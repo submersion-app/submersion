@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
 void main() {
@@ -289,6 +290,107 @@ void main() {
         expect(withQuery.copyWith(clearQuery: true).hasActiveFilters, isFalse);
       });
     });
+
+    group('explore axes (#2195)', () {
+      // Behaviour against real rows lives in
+      // dive_repository_explore_axes_filter_test, which runs every axis
+      // through Statistics, the list and its count. These pin what each
+      // axis lowers to, since toQuery() is now the only evaluator.
+      ConditionNode c(List<String> path, QueryOp op, QueryValue v) =>
+          ConditionNode(FieldPath(path), op, v);
+
+      test('each axis lowers to its registry field', () {
+        const f = DiveFilterState(
+          minWaterTemp: 20,
+          maxWaterTemp: 28,
+          minVisibility: 15,
+          maxVisibility: 40,
+          waterTypes: [WaterType.salt, WaterType.fresh],
+          speciesIds: ['sp_green_turtle'],
+          siteIds: ['s1', 's2'],
+        );
+        final q = f.toQuery()! as AndNode;
+        expect(
+          q.children,
+          containsAll(<QueryNode>[
+            c(['waterTemp'], QueryOp.gte, const NumberValue(20, null)),
+            c(['waterTemp'], QueryOp.lte, const NumberValue(28, null)),
+            c(['visibility'], QueryOp.gte, const NumberValue(15, null)),
+            c(['visibility'], QueryOp.lte, const NumberValue(40, null)),
+            c(
+              ['waterType'],
+              QueryOp.inList,
+              ListValue([const EnumValue('salt'), const EnumValue('fresh')]),
+            ),
+            c(
+              ['sightings', 'species'],
+              QueryOp.inList,
+              ListValue([const RefValue('sp_green_turtle', 'sp_green_turtle')]),
+            ),
+            c(
+              ['site'],
+              QueryOp.inList,
+              ListValue([
+                const RefValue('s1', 's1'),
+                const RefValue('s2', 's2'),
+              ]),
+            ),
+          ]),
+        );
+      });
+
+      test('a species filter makes the list follow the sightings table', () {
+        // Replaces the retired per-axis sightings tick: a sighting is written
+        // without a dives write, so the compiled query must name the table.
+        const f = DiveFilterState(speciesIds: ['x']);
+        expect(diveFilterTablesTouched(f), contains('sightings'));
+        expect(
+          diveFilterTablesTouched(const DiveFilterState(minDepth: 1)),
+          isNot(contains('sightings')),
+        );
+      });
+
+      test('two filters differing only in an explore axis are unequal', () {
+        // The id-set family is keyed on filter equality, so a missing field
+        // here would serve one filter's cached dives for another.
+        expect(
+          const DiveFilterState(minWaterTemp: 10),
+          isNot(const DiveFilterState(minWaterTemp: 20)),
+        );
+        expect(
+          const DiveFilterState(speciesIds: ['a']),
+          isNot(const DiveFilterState(speciesIds: ['b'])),
+        );
+        expect(
+          const DiveFilterState(siteIds: ['s1']),
+          const DiveFilterState(siteIds: ['s1']),
+        );
+        expect(
+          const DiveFilterState(waterTypes: [WaterType.salt]).hashCode,
+          const DiveFilterState(waterTypes: [WaterType.salt]).hashCode,
+        );
+      });
+
+      test('the axes count as active and clear through copyWith', () {
+        const f = DiveFilterState(
+          minWaterTemp: 1,
+          maxVisibility: 2,
+          waterTypes: [WaterType.salt],
+          speciesIds: ['x'],
+          siteIds: ['s'],
+        );
+        expect(f.hasActiveFilters, isTrue);
+        final cleared = f.copyWith(
+          clearMinWaterTemp: true,
+          clearMaxVisibility: true,
+          clearWaterTypes: true,
+          clearSpeciesIds: true,
+          clearSiteIds: true,
+        );
+        expect(cleared.hasActiveFilters, isFalse);
+        expect(cleared.toQuery(), isNull);
+      });
+    });
   });
 
   group('activeAxisCount', () {
@@ -315,6 +417,24 @@ void main() {
           computerId: 'c1',
         ).activeAxisCount,
         3,
+      );
+    });
+
+    test('an explore bound pair counts once, like depth', () {
+      expect(
+        const DiveFilterState(
+          minWaterTemp: 10,
+          maxWaterTemp: 20,
+        ).activeAxisCount,
+        1,
+      );
+      expect(
+        const DiveFilterState(
+          minVisibility: 5,
+          maxVisibility: 30,
+          waterTypes: [WaterType.salt],
+        ).activeAxisCount,
+        2,
       );
     });
 
@@ -357,6 +477,14 @@ void main() {
         const DiveFilterState().copyWith(
           query: ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null),
         ),
+        // Explore's axes (#2195).
+        const DiveFilterState(minWaterTemp: 10),
+        const DiveFilterState(maxWaterTemp: 20),
+        const DiveFilterState(minVisibility: 10),
+        const DiveFilterState(maxVisibility: 20),
+        const DiveFilterState(waterTypes: [WaterType.salt]),
+        const DiveFilterState(speciesIds: ['sp']),
+        const DiveFilterState(siteIds: ['s']),
       ];
       for (final f in singles) {
         expect(f.hasActiveFilters, isTrue);

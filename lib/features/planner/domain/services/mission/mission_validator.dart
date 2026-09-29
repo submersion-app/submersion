@@ -2,6 +2,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
+import 'package:submersion/features/planner/domain/services/mission/leg_speed_resolver.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_geometry.dart';
 
 /// A real, finite number above zero. NaN fails every comparison, so a plain
@@ -72,6 +73,23 @@ List<MissionIssue> validateMission(DpvMission mission) {
       issues.add(
         MissionIssue(
           type: MissionIssueType.memberSwimSpeedUnset,
+          severity: MissionIssueSeverity.blocking,
+          memberId: member.id,
+        ),
+      );
+    }
+    // A set speed the headway floor zeroes even in still water would make
+    // every exit or leg read blocked by a current that is not there. An
+    // unset (zero or less) speed is reported above instead.
+    final towSpeed = scooter.ratedSpeedMps * scooter.towSpeedFactor;
+    if ([
+      member.swimSpeedMps,
+      scooter.ratedSpeedMps,
+      towSpeed,
+    ].any((speed) => _isPositive(speed) && speed < kMinSpeedOverGroundMps)) {
+      issues.add(
+        MissionIssue(
+          type: MissionIssueType.speedBelowHeadwayFloor,
           severity: MissionIssueSeverity.blocking,
           memberId: member.id,
         ),

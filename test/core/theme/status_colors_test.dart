@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 
@@ -28,16 +27,11 @@ Map<String, StatusSwatch> _swatches(StatusColors c) => {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  // Runtime fetching is off for this file's tests only. Set in setUpAll, not
-  // here, because a CI bundle declares every file before any test runs.
-  late bool originalFetching;
 
   // Force-initialize the theme finals inside a guarded zone so the expected
   // google_fonts load errors (fonts are not bundled in test assets) do not
   // escape as unhandled async exceptions. Mirrors app_theme_registry_test.
   setUpAll(() async {
-    originalFetching = GoogleFonts.config.allowRuntimeFetching;
-    GoogleFonts.config.allowRuntimeFetching = false;
     final originalDebugPrint = debugPrint;
     debugPrint = (String? message, {int? wrapWidth}) {};
     try {
@@ -56,7 +50,6 @@ void main() {
       debugPrint = originalDebugPrint;
     }
   });
-  tearDownAll(() => GoogleFonts.config.allowRuntimeFetching = originalFetching);
 
   group('StatusColors palette', () {
     for (final (mode, palette) in [

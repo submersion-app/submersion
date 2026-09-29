@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -1145,17 +1144,16 @@ void main() {
       // literally different typeface from the dive and site titles.
       //
       // Touching consoleLight lazily initializes it, which calls
-      // GoogleFonts.jetBrainsMonoTextTheme(). Disabling runtime fetching keeps
-      // that from reaching the network; the family name is carried on the
-      // TextStyle regardless of whether the font bytes ever load, which is all
-      // this test reads.
+      // GoogleFonts.jetBrainsMonoTextTheme(). The test harness turns off
+      // runtime fetching, so that never reaches the network; the family name
+      // is carried on the TextStyle regardless of whether the font bytes ever
+      // load, which is all this test reads.
       //
       // The app_theme_registry_test hardening (await GoogleFonts.pendingFonts()
       // plus a debugPrint override) does NOT transfer here, because that file
       // uses plain test(). Inside testWidgets, awaiting pendingFonts() from a
       // tear-down never completes, and reassigning debugPrint trips
       // debugAssertAllFoundationVarsUnset, which runs before tear-downs.
-      GoogleFonts.config.allowRuntimeFetching = false;
 
       final titleFamily = consoleLight.textTheme.titleMedium!.fontFamily;
       final bodyFamily = consoleLight.textTheme.bodyLarge!.fontFamily;

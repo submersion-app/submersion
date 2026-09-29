@@ -13,13 +13,12 @@ Future<Set<String>> _tables(AppDatabase db) async => {
 };
 
 void main() {
-  test('v242 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 242);
+  test('v242 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v244 (DPV mission planner) landed on top; the newest
+    // rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(242));
     expect(AppDatabase.migrationVersions, contains(242));
-    // v241 (tank series source id) sits directly below it.
-    expect(AppDatabase.migrationStepCount(241), 1);
+    expect(AppDatabase.migrationStepCount(240), greaterThanOrEqualTo(1));
     // A local cache: the sync compatibility floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });

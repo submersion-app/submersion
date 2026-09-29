@@ -18,10 +18,11 @@ String _materialFontsDir() {
 
 /// Load Roboto into [PdfFonts] from the Flutter SDK, with no network.
 ///
-/// [PdfFonts] downloads Roboto on first use. The test binding answers every
-/// HTTP request with 400, the printing package then falls back to Helvetica
-/// without throwing, and [PdfFonts] caches that. Seeding the printing cache
-/// first means the download is never attempted.
+/// [PdfFonts] downloads Roboto on first use. The test harness refuses every
+/// request that leaves the machine (test/helpers/blocked_network.dart), the
+/// printing package then falls back to Helvetica without throwing, and
+/// [PdfFonts] caches that. Seeding the printing cache first means the download
+/// is never attempted.
 Future<void> loadPdfRoboto() async {
   for (final style in _styles) {
     final file = File(p.join(_materialFontsDir(), 'Roboto-$style.ttf'));

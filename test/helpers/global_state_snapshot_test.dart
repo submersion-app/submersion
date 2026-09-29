@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
@@ -15,6 +16,8 @@ import 'global_test_defaults.dart';
 class _FakePathProvider extends PathProviderPlatform {}
 
 class _Overrides extends HttpOverrides {}
+
+final class _IoOverrides extends IOOverrides {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -50,6 +53,17 @@ void main() {
     ]);
   });
 
+  test('turning font fetching back on is reported', () {
+    final before = GlobalStateSnapshot.take();
+    addTearDown(applyGlobalTestDefaults);
+
+    GoogleFonts.config.allowRuntimeFetching = true;
+
+    expect(GlobalStateSnapshot.take().changedSince(before), [
+      'GoogleFonts.config.allowRuntimeFetching',
+    ]);
+  });
+
   test('HTTP overrides and foundation hooks are reported', () {
     final before = GlobalStateSnapshot.take();
     final previousOverrides = HttpOverrides.current;
@@ -73,6 +87,35 @@ void main() {
       'FlutterError.onError',
       'debugDefaultTargetPlatformOverride',
     ]);
+  });
+
+  test('IO overrides are reported', () {
+    final before = GlobalStateSnapshot.take();
+    final previous = IOOverrides.current;
+    addTearDown(() => IOOverrides.global = previous);
+
+    IOOverrides.global = _IoOverrides();
+
+    expect(GlobalStateSnapshot.take().changedSince(before), [
+      'IOOverrides.current',
+    ]);
+  });
+
+  test('restoring the harness overrides reports nothing', () {
+    final before = GlobalStateSnapshot.take();
+    final previousHttp = HttpOverrides.current;
+    final previousIo = IOOverrides.current;
+    addTearDown(() {
+      HttpOverrides.global = previousHttp;
+      IOOverrides.global = previousIo;
+    });
+    HttpOverrides.global = _Overrides();
+    IOOverrides.global = _IoOverrides();
+
+    HttpOverrides.global = previousHttp;
+    IOOverrides.global = previousIo;
+
+    expect(GlobalStateSnapshot.take().changedSince(before), isEmpty);
   });
 
   test('a PDF font loader override is reported', () {
@@ -135,60 +178,6 @@ void main() {
         ),
       ),
     );
-  });
-
-  group('the test binding appearing during a file', () {
-    void printA(String? message, {int? wrapWidth}) {}
-    void printB(String? message, {int? wrapWidth}) {}
-    final overrides = _Overrides();
-
-    Map<String, Object?> state({
-      required bool binding,
-      Object? http,
-      Object? print,
-      bool scan = false,
-    }) => {
-      GlobalStateSnapshot.bindingKey: binding,
-      'HttpOverrides.current': http,
-      'debugPrint': print,
-      'QualityScanScheduler.enabled': scan,
-    };
-
-    test('the values the binding installs are not reported', () {
-      final before = GlobalStateSnapshot.fromValues(
-        state(binding: false, print: printA),
-      );
-      final after = GlobalStateSnapshot.fromValues(
-        state(binding: true, http: overrides, print: printB),
-      );
-
-      expect(after.changedSince(before), isEmpty);
-    });
-
-    test('they are reported when the binding was already there', () {
-      final before = GlobalStateSnapshot.fromValues(
-        state(binding: true, print: printA),
-      );
-      final after = GlobalStateSnapshot.fromValues(
-        state(binding: true, http: overrides, print: printB),
-      );
-
-      expect(after.changedSince(before), [
-        'HttpOverrides.current',
-        'debugPrint',
-      ]);
-    });
-
-    test('anything else the file changed is still reported', () {
-      final before = GlobalStateSnapshot.fromValues(
-        state(binding: false, print: printA),
-      );
-      final after = GlobalStateSnapshot.fromValues(
-        state(binding: true, http: overrides, print: printB, scan: true),
-      );
-
-      expect(after.changedSince(before), ['QualityScanScheduler.enabled']);
-    });
   });
 
   group('declareAndCheck', () {

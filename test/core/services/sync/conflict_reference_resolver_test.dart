@@ -106,6 +106,28 @@ void main() {
     expect(item.name, 'Wing');
   });
 
+  test("names a mission member's scooter through its equipment item", () async {
+    // scooterEquipmentId is a soft link with no Drift constraint (issue
+    // #2086), so it is mapped by name like switchToTankId.
+    await serializer.upsertRecord('equipment', {
+      'id': 'eq-dpv',
+      'name': 'Blacktip',
+      'type': 'other',
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+
+    final refs = await resolver.resolve('divePlanMissionMembers', {
+      'id': 'member-1',
+      'scooterEquipmentId': 'eq-dpv',
+      'createdAt': 1000,
+    });
+
+    final scooter = refFor(refs, 'scooterEquipmentId');
+    expect(scooter.targetType, 'equipment');
+    expect(scooter.name, 'Blacktip');
+  });
+
   test('marks a reference whose row is absent locally as missing', () async {
     await seedDive('dive-1');
 
