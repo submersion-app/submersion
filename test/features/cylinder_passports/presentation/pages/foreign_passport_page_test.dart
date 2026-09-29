@@ -199,6 +199,19 @@ void main() {
     expect(find.textContaining('--'), findsNothing);
   });
 
+  testWidgets('a tag with only a fill does not say it has no details', (
+    tester,
+  ) async {
+    final bare = CylinderPassportPayload(
+      passportId: full.passportId,
+      writtenOn: full.writtenOn,
+      fill: tagFill,
+    );
+    final l10n = await pump(tester, bare);
+    expect(find.text(l10n.passport_foreign_lastFill), findsOneWidget);
+    expect(find.text(l10n.passport_foreign_noDetails), findsNothing);
+  });
+
   testWidgets('a tag without a fill shows none', (tester) async {
     final l10n = await pump(tester, full);
     expect(find.text(l10n.passport_foreign_lastFill), findsNothing);

@@ -180,7 +180,8 @@ class _ForeignPassportPageState extends ConsumerState<ForeignPassportPage> {
       if (tag.lastVip case final d?)
         (attributeLabel(l10n, 'last_visual_inspection'), units.formatDate(d)),
     ];
-    final hasDetails = rows.isNotEmpty || tag.name != null || tag.o2Clean;
+    final hasDetails =
+        rows.isNotEmpty || tag.name != null || tag.o2Clean || tag.fill != null;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [

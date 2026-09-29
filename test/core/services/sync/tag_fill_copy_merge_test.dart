@@ -7,6 +7,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 
 import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
@@ -97,12 +98,7 @@ void main() {
       ),
     );
     await uploadPeer(
-      fill(
-        source: 'nfc',
-        hlc: hlcAt(9000, 'peer'),
-        updatedAt: 9000,
-        o2: 32.2,
-      ),
+      fill(source: 'nfc', hlc: hlcAt(9000, 'peer'), updatedAt: 9000, o2: 32.2),
     );
     final row = await syncAndRead();
     expect(row['source'], 'manual');
@@ -113,12 +109,7 @@ void main() {
   test('a tag copy gives way to the original, even an older one', () async {
     await SyncDataSerializer().upsertRecord(
       'cylinderFills',
-      fill(
-        source: 'nfc',
-        hlc: hlcAt(9000, 'here'),
-        updatedAt: 9000,
-        o2: 32.2,
-      ),
+      fill(source: 'nfc', hlc: hlcAt(9000, 'here'), updatedAt: 9000, o2: 32.2),
     );
     await uploadPeer(
       fill(
@@ -131,6 +122,32 @@ void main() {
     final row = await syncAndRead();
     expect(row['source'], 'manual');
     expect(row['notes'], 'topped');
+  });
+
+  test('a tag copy never brings back a fill deleted here', () async {
+    await SyncDataSerializer().upsertRecord(
+      'cylinderFills',
+      fill(source: 'manual', hlc: hlcAt(1000, 'here'), updatedAt: 1000),
+    );
+    // A peer that never saw the delete taps the tag afterwards: its copy is
+    // newer than the deletion by every clock.
+    final later = DateTime.now().millisecondsSinceEpoch + 86400000;
+    await uploadPeer(
+      fill(source: 'nfc', hlc: hlcAt(later, 'peer'), updatedAt: later),
+    );
+    // After the fresh-device reset, which clears the deletion log.
+    await impersonateFreshDevice();
+    await CylinderFillRepository().delete('fill-1');
+    final result = await SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    ).performSync();
+    expect(result.status, isNot(SyncResultStatus.error));
+    expect(
+      await SyncDataSerializer().fetchRecord('cylinderFills', 'fill-1'),
+      isNull,
+    );
   });
 
   test('two originals still merge by their clocks', () async {

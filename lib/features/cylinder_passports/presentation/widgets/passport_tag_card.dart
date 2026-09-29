@@ -114,7 +114,8 @@ class PassportTagCard extends ConsumerWidget {
         const <ServiceRecord>[];
     // The label and QR carry the bounded payload; an NFC write starts from
     // the full one and lets the tag's capacity decide what is left off.
-    final newest = ref.watch(newestFillProvider(equipment.id)).value;
+    final newestState = ref.watch(newestFillProvider(equipment.id));
+    final newest = newestState.value;
     final full = fullPayloadFor(
       equipment,
       passportId: passportId,
@@ -126,7 +127,10 @@ class PassportTagCard extends ConsumerWidget {
     // A printed label never carries a fill: it changes every fill.
     final payload = labelPayloadOf(full?.copyWith(clearFill: true));
     final nfc = ref.watch(nfcSupportProvider).value;
-    final canWriteNfc = full != null && nfc == NfcSupport.enabled;
+    // Every write carries the newest fill, so the write waits for it; a fill
+    // that fails to load is an extra, and the passport is still written.
+    final canWriteNfc =
+        full != null && nfc == NfcSupport.enabled && !newestState.isLoading;
     ServiceClockStatus? clock(String kindId) =>
         clocks.where((c) => c.kind.id == kindId).firstOrNull;
     final scanned = scannedTag;

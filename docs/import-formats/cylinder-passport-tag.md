@@ -67,7 +67,8 @@ label is worse than none. Submersion writes the fill whenever it writes the
 tag, including straight after Log a fill and after the blender's Log this
 fill.
 
-A fill needs `fi`, `ft` with a time zone (`Z` or an offset) and `fo` greater
+A fill needs `fi`, `ft` as an RFC 3339 time (`T`, seconds, and `Z` or an
+offset) that names a real date and time, and `fo` greater
 than 0, with `fo` plus `fh` at most 100. A fill missing any of those, or
 with a malformed one, is dropped on its own: the tag still opens.
 Out-of-range details (`fp` over 400 bar, `fc` outside -40 to 80 C) are

@@ -168,18 +168,37 @@ abstract final class PassportPayloadCodec {
     return '${formatDate(u)}T${two(u.hour)}:${two(u.minute)}:${two(u.second)}Z';
   }
 
-  static final RegExp _zoned = RegExp(r'(Z|[+-]\d\d:\d\d)$');
+  /// An RFC 3339 date-time with its zone, as [_rfc3339] writes one: `T`
+  /// between date and time, seconds, an optional fraction, then `Z` or an
+  /// offset (spec section 6.2).
+  static final RegExp _rfc3339Time = RegExp(
+    r'^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(?:\.\d+)?'
+    r'(?:Z|[+-]\d\d:\d\d)$',
+  );
+
+  /// [text] as an instant, or null unless it is RFC 3339 and a real date and
+  /// time. DateTime.tryParse alone takes other forms and rolls an impossible
+  /// date over (2026-02-30 becomes March 2), which would misdate the fill.
+  static DateTime? _fillTime(String? text) {
+    final m = text == null ? null : _rfc3339Time.firstMatch(text);
+    if (m == null) return null;
+    final [y, mo, d, h, mi, sec] = [
+      for (var i = 1; i <= 6; i++) int.parse(m.group(i)!),
+    ];
+    final day = DateTime.utc(y, mo, d);
+    if (day.month != mo || day.day != d) return null;
+    if (h > 23 || mi > 59 || sec > 59) return null;
+    return DateTime.tryParse(text!);
+  }
 
   /// The fill keys, or null when `fi`, `ft` or `fo` is missing or invalid:
   /// a bad fill is dropped, never the tag (spec section 6.2).
   static TagFill? _fill(Map<String, String> pairs) {
     final id = pairs['fi']?.toLowerCase();
-    final at = pairs['ft'];
     final o2 = double.tryParse(pairs['fo'] ?? '');
     final he = double.tryParse(pairs['fh'] ?? '') ?? 0;
     if (id == null || !_uuid.hasMatch(id)) return null;
-    if (at == null || !_zoned.hasMatch(at)) return null;
-    final filledAt = DateTime.tryParse(at);
+    final filledAt = _fillTime(pairs['ft']);
     if (filledAt == null || o2 == null) return null;
     // NaN parses as a number and fails no comparison, so it is refused by
     // name.

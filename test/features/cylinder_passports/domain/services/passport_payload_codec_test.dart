@@ -271,6 +271,35 @@ void main() {
       }
     });
 
+    test('a fill time must be RFC 3339 and a real date and time', () {
+      const p =
+          'f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab'
+          '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&fo=32&ft=';
+      DateTime? at(String ft) =>
+          (PassportPayloadCodec.decode('$p${Uri.encodeQueryComponent(ft)}')
+                  as PassportDecoded)
+              .payload
+              .fill
+              ?.filledAt;
+      for (final bad in [
+        '2026-09-28 09:30:00Z',
+        '2026-09-28T09:30Z',
+        '20260928T093000Z',
+        '2026-13-45T09:30:00Z',
+        '2026-02-30T09:30:00Z',
+        '2026-09-28T24:00:00Z',
+        '2026-09-28T09:60:00Z',
+        '2026-09-28t09:30:00Z',
+      ]) {
+        expect(at(bad), isNull, reason: bad);
+      }
+      expect(at('2026-09-28T11:30:00+02:00'), DateTime.utc(2026, 9, 28, 9, 30));
+      expect(
+        at('2026-09-28T09:30:00.5Z'),
+        DateTime.utc(2026, 9, 28, 9, 30, 0, 500),
+      );
+    });
+
     test('out-of-range fill details are dropped, the fill kept', () {
       final r =
           PassportPayloadCodec.decode(

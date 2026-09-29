@@ -7,6 +7,11 @@
 /// diver's own fill never turns into its tag copy (spec section 11).
 enum TagFillCopyMerge { keepLocal, takeRemote }
 
+/// Whether [row] is a fill copied from an NFC tag. Such a copy never revives
+/// a fill deleted on this device: a deleted fill stays deleted, however many
+/// phones still hold the tag (spec section 11).
+bool isTagFillCopy(Map<String, dynamic> row) => row['source'] == _tagSource;
+
 /// The merge for a fill row present on both sides, or null when neither or
 /// both are tag copies and the clocks decide as usual.
 TagFillCopyMerge? tagFillCopyMerge(
@@ -14,8 +19,8 @@ TagFillCopyMerge? tagFillCopyMerge(
   Map<String, dynamic> remote,
 ) {
   if (local == null) return null;
-  final localIsCopy = local['source'] == _tagSource;
-  final remoteIsCopy = remote['source'] == _tagSource;
+  final localIsCopy = isTagFillCopy(local);
+  final remoteIsCopy = isTagFillCopy(remote);
   if (localIsCopy == remoteIsCopy) return null;
   return localIsCopy ? TagFillCopyMerge.takeRemote : TagFillCopyMerge.keepLocal;
 }

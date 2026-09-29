@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
@@ -79,6 +81,7 @@ void main() {
     FakeNfcTagService? nfc,
     Future<void> Function(BuildContext)? onPrintLabel,
     CylinderFill? newest,
+    Future<CylinderFill?> Function()? loadNewest,
   }) async {
     final overrides = await getBaseOverrides(nfcTagService: nfc);
     await tester.pumpWidget(
@@ -90,7 +93,9 @@ void main() {
           serviceRecordsForEquipmentProvider(
             id,
           ).overrideWith((ref) async => records),
-          newestFillProvider(id).overrideWith((ref) async => newest),
+          newestFillProvider(
+            id,
+          ).overrideWith((ref) => (loadNewest ?? () async => newest)()),
         ],
         child: SingleChildScrollView(
           child: PassportTagCard(
@@ -262,6 +267,42 @@ void main() {
     );
     expect(button.onPressed, isNull);
     expect(find.text(l10n.passport_nfc_unsupported), findsOneWidget);
+  });
+
+  testWidgets('Write NFC tag waits for the newest fill', (tester) async {
+    final fill = Completer<CylinderFill?>();
+    final l10n = await pump(
+      tester,
+      nfc: FakeNfcTagService(tag: FakeTagHandle()),
+      loadNewest: () => fill.future,
+    );
+    ButtonStyleButton write() => tester.widget<ButtonStyleButton>(
+      find.ancestor(
+        of: find.text(l10n.passport_nfc_write),
+        matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+      ),
+    );
+    expect(write().onPressed, isNull);
+    fill.complete(null);
+    await tester.pumpAndSettle();
+    expect(write().onPressed, isNotNull);
+  });
+
+  testWidgets('a fill that fails to load does not block the write', (
+    tester,
+  ) async {
+    final l10n = await pump(
+      tester,
+      nfc: FakeNfcTagService(tag: FakeTagHandle()),
+      loadNewest: () async => throw StateError('database is locked'),
+    );
+    final button = tester.widget<ButtonStyleButton>(
+      find.ancestor(
+        of: find.text(l10n.passport_nfc_write),
+        matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+      ),
+    );
+    expect(button.onPressed, isNotNull);
   });
 
   testWidgets('Write NFC tag writes the passport', (tester) async {

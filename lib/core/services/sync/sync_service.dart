@@ -3110,6 +3110,11 @@ class SyncService {
               entityType: entityType,
               recordId: recordId,
             );
+          } else if (entityType == 'cylinderFills' && isTagFillCopy(record)) {
+            // A fill copied from a tag is not an edit of the fill we deleted,
+            // so it never revives it, whatever its clock
+            // (tag_fill_copy_merge.dart).
+            continue;
           } else {
             // Read the remote clock whether or not this entity resolves as
             // LWW. [hasUpdatedAt] selects the merge STRATEGY (an entity that
