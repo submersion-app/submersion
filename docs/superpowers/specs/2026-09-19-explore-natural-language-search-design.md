@@ -442,3 +442,38 @@ subjects are a single count-per-entity bar chart.
   prompt-only JSON and relies on Dart validation, and the plan says so.
 - A GitHub issue for the program must exist before the first PR; each phase
   PR references it with `Refs` and the last one closes it.
+
+## Deviations recorded during implementation (phase 2, 2026-09-28)
+
+Phase 2 was rebuilt on main after the entity query language (#2365) made
+every dive surface compile one query tree. The profile-derived predicates
+became fields on the dive query registry, so the typed syntax, the rule
+builder, the dive list and Explore all get them.
+
+- One table, `dive_derived_metrics` (schema v247), device-local with no hlc.
+  No `dive_sac_buckets`: a registry field's SQL cannot take a diver-chosen
+  N, so "SAC before versus after N minutes" became `sacTrend` (rising,
+  steady, falling; slope band 0.02 bar/min per minute) and `sacChange`
+  (percent, first half of the dive against the second). Explore leaves the
+  "after N minutes" words unplaced.
+- `sac` is searchable in the diver's pressure unit through a new
+  pressure-rate dimension (`barmin`, `psimin`). It uses the formula the
+  Insights SAC chart plots, not the engine's bucketed mean, so a search and
+  the chart agree.
+- `finalStop` is an enum (stable, unstable over 1.0 m from the median,
+  noStop), with `finalStopExcursion` (a depth) and `finalStopDuration`
+  (minutes) beside it. Null when the profile could not be judged.
+- Safety findings are the relation `findings` over `dive_safety_findings`,
+  live findings only (not dismissed, current review engine).
+- The engine computes SAC itself from the decoded samples and the richest
+  pressure series per tank, as the phase 2 branch did: the isolate has no
+  hydrated `Dive`. The final stop is judged on the tail after the last
+  sample deeper than 7.0 m, ignoring samples shallower than 2.0 m (the
+  ascent's end and the surface): the longest run within 1.5 m of the tail's
+  mean depth, lasting at least 60 s, with transit samples at either end
+  trimmed. Its excursion is the 90th percentile distance from its mean, so
+  one sample passing through is not an unsteady stop. SAC buckets are 300 s;
+  a bucket where pressure does not fall is skipped.
+- Explore stays on `DiveFilterState` and lowers the new clauses into its
+  query tree; query schema version 2. Replacing `ExploreDiveField` with the
+  registry remains query-language PR 5.

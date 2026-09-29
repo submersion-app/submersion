@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
@@ -49,28 +50,8 @@ class MissionEngine {
     final cruise = cruiseSpeedMps(team);
     final limitingId = cruiseLimitingMemberId(team);
 
-    // Resolve every leg at cruise and cut the route at the first one the
-    // current makes untraversable in either direction.
-    final legSpeeds = <LegSpeeds>[];
-    for (final leg in mission.legs) {
-      final resolved = speeds.resolve(
-        leg: leg,
-        current: mission.currentFor(leg),
-        baseSpeedMps: cruise,
-      );
-      if (!resolved.traversable) {
-        issues.add(
-          MissionIssue(
-            type: MissionIssueType.untraversableLeg,
-            severity: MissionIssueSeverity.blocking,
-            legId: leg.id,
-            outbound: !resolved.outboundTraversable,
-          ),
-        );
-        break;
-      }
-      legSpeeds.add(resolved);
-    }
+    final (speeds: legSpeeds, :cut) = traversableRoute(mission);
+    if (cut != null) issues.add(cut);
     if (legSpeeds.isEmpty) return MissionOutcome.empty(issues: issues);
     final legs = mission.legs.sublist(0, legSpeeds.length);
     final route = mission.copyWith(legs: legs);
@@ -263,6 +244,66 @@ class MissionEngine {
       constraint: analysis.constraint(memberOutcomes),
       issues: issues,
     );
+  }
+
+  /// The planned round trip at cruise as the plan's segments: the outbound
+  /// legs up to the first one the current makes untraversable, then the same
+  /// way back. Empty when the mission has a blocking validation issue or no
+  /// leg can be travelled, so a half-built mission never feeds the plan
+  /// engine nonsense. For a mission [compute] accepts, this is its outcome's
+  /// `segments`.
+  List<PlanSegment> roundTripSegments({
+    required domain.DivePlan plan,
+    required DpvMission mission,
+  }) {
+    final blocked = validateMission(
+      mission,
+    ).any((i) => i.severity == MissionIssueSeverity.blocking);
+    if (blocked) return const [];
+    final cruise = cruiseSpeedMps(mission.team);
+    final route = traversableRoute(mission).speeds;
+    if (route.isEmpty) return const [];
+    final traversable = mission.legs.sublist(0, route.length);
+    return builder
+        .build(
+          plan: plan,
+          mission: mission.copyWith(legs: traversable),
+          throughLegIndex: traversable.length - 1,
+          outboundSpeedMps: cruise,
+          exitSpeedMps: cruise,
+        )
+        .segments;
+  }
+
+  /// Every leg resolved at the team's cruise speed, up to the first one the
+  /// current makes untraversable in either direction, and the issue naming
+  /// that leg (null when the whole route can be travelled). [speeds] holds
+  /// one entry per leg kept, in route order.
+  ({List<LegSpeeds> speeds, MissionIssue? cut}) traversableRoute(
+    DpvMission mission,
+  ) {
+    final cruise = cruiseSpeedMps(mission.team);
+    final kept = <LegSpeeds>[];
+    for (final leg in mission.legs) {
+      final resolved = speeds.resolve(
+        leg: leg,
+        current: mission.currentFor(leg),
+        baseSpeedMps: cruise,
+      );
+      if (!resolved.traversable) {
+        return (
+          speeds: kept,
+          cut: MissionIssue(
+            type: MissionIssueType.untraversableLeg,
+            severity: MissionIssueSeverity.blocking,
+            legId: leg.id,
+            outbound: !resolved.outboundTraversable,
+          ),
+        );
+      }
+      kept.add(resolved);
+    }
+    return (speeds: kept, cut: null);
   }
 
   List<LegOutcome> _legOutcomes(

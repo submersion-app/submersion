@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
@@ -8,6 +10,7 @@ import 'package:submersion/features/explore/presentation/widgets/explore_results
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -137,5 +140,32 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(en.common_error_tryAgain), findsNWidgets(2));
     expect(find.textContaining('database is locked'), findsNothing);
+  });
+
+  testWidgets('the SAC chart is titled SAC and reads per minute', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      [const ChartRequest(ChartKind.sacTrend)],
+      data: ExploreChartData(
+        points: [TrendDataPoint(date: DateTime(2025, 6, 1), value: 1.2)],
+      ),
+    );
+    // The axis numbers are in the diver's pressure unit; the title says
+    // which.
+    expect(find.text('${en.query_dives_sac} (bar/min)'), findsOneWidget);
+    expect(find.byType(DiveTrendChart), findsOneWidget);
+  });
+
+  test('the SAC axis reads to the diver unit precision', () {
+    expect(sacAxisLabel(const UnitFormatter(AppSettings()), 1.5), '1.5');
+    expect(
+      sacAxisLabel(
+        const UnitFormatter(AppSettings(pressureUnit: PressureUnit.psi)),
+        1.5,
+      ),
+      '22',
+    );
   });
 }

@@ -5,6 +5,7 @@ import 'package:submersion/core/database/tables/app_tables.dart';
 import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
+import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 import 'package:submersion/core/database/tables/dive_profile_tables.dart';
 import 'package:submersion/core/database/tables/dive_tables.dart';
@@ -31,6 +32,7 @@ export 'package:submersion/core/database/tables/app_tables.dart';
 export 'package:submersion/core/database/tables/buddy_tables.dart';
 export 'package:submersion/core/database/tables/cylinder_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
+export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 export 'package:submersion/core/database/tables/dive_profile_tables.dart';
 export 'package:submersion/core/database/tables/dive_tables.dart';
@@ -124,6 +126,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     EmergencyChambers,
     Incidents,
     DiveSensorSummaries,
+    // Explore derived metrics (v247, issue #2195), local only
+    DiveDerivedMetricsRows,
     EquipmentObservations,
     EquipmentFindings,
     EquipmentConditionReviews,
@@ -998,9 +1002,13 @@ class AppDatabase extends _$AppDatabase {
     // the floor does not move. 243 was held by #2409 and 244 went to
     // #2086 when this was taken.
     245,
+    // v247: dive_derived_metrics, the Explore derived metrics the dive query
+    // fields read (issue #2195, phase 2). A table with no hlc, never synced,
+    // so the floor does not move. 246 is held by #2409 (open).
+    247,
     // v248: trip_equipment, gear packed for a trip (issue #2338).
     // Table-only rung, no backfill; the floor does not move. 246 is held by
-    // #2409 and 247 by #2579.
+    // #2409 and 247 went to #2195 (Explore derived metrics).
     248,
   ];
 

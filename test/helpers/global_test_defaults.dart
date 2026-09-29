@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 import 'blocked_network.dart';
@@ -39,6 +40,7 @@ import 'blocked_network.dart';
 void applyGlobalTestDefaults() {
   QualityScanScheduler.enabled = false;
   SensorSummaryScheduler.enabled = false;
+  DerivedMetricsScheduler.enabled = false;
   debugCanShareFiles = true;
   GoogleFonts.config.allowRuntimeFetching = false;
   HttpOverrides.global = blockedNetworkHttpOverrides;

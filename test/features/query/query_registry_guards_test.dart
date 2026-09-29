@@ -63,9 +63,12 @@ void main() {
         for (final r in e.relations) {
           final target = appQueryRegistry.entityFor(r.target);
           final join = substituteJoin(r.joinSql, 'r0', 'r1');
+          final filter = r.targetFilterSql == null
+              ? ''
+              : ' AND (${substituteJoin(r.targetFilterSql!, 'r0', 'r1')})';
           final sql =
               'SELECT 1 FROM ${e.table} r0 WHERE EXISTS '
-              '(SELECT 1 FROM ${target.table} r1 WHERE $join)';
+              '(SELECT 1 FROM ${target.table} r1 WHERE $join$filter)';
           await expectLater(
             db.customSelect(sql).get(),
             completes,
@@ -89,6 +92,22 @@ void main() {
               contains(m[2]),
               reason: '${e.subject}.${r.key} names ${m[2]} on $table',
             );
+          }
+          // A target filter is about the target row alone.
+          final targetFilter = r.targetFilterSql;
+          if (targetFilter != null) {
+            expect(
+              targetFilter,
+              isNot(contains('{from}')),
+              reason: '${e.subject}.${r.key}: targetFilterSql names {from}',
+            );
+            for (final m in RegExp(r'\{to\}\.(\w+)').allMatches(targetFilter)) {
+              expect(
+                tableNamed(target.table).$columns.map((c) => c.$name),
+                contains(m[1]),
+                reason: '${e.subject}.${r.key} filter names ${m[1]}',
+              );
+            }
           }
           if (r.shape == RelationShape.fk || r.shape == RelationShape.child) {
             expect(

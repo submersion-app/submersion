@@ -148,10 +148,13 @@ class _Ctx {
     tables.addAll(rel.tables);
     final to = nextAlias();
     final join = substituteJoin(rel.joinSql, fromAlias, to);
+    final filter = rel.targetFilterSql == null
+        ? ''
+        : ' AND (${substituteJoin(rel.targetFilterSql!, fromAlias, to)})';
     final rest = hops.length == 1 && inner == null
         ? ''
         : ' AND ${_hops(hops.sublist(1), to, inner)}';
-    return 'EXISTS (SELECT 1 FROM ${target.table} $to WHERE $join$rest)';
+    return 'EXISTS (SELECT 1 FROM ${target.table} $to WHERE $join$filter$rest)';
   }
 
   String _scoped(

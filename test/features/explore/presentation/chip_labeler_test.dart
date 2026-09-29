@@ -23,6 +23,7 @@ void main() {
       AppSettings(
         depthUnit: DepthUnit.feet,
         temperatureUnit: TemperatureUnit.fahrenheit,
+        pressureUnit: PressureUnit.psi,
       ),
     ),
   );
@@ -258,5 +259,28 @@ void main() {
     );
     expect(german.label(bottom), contains('45 Min.'));
     expect(metric.label(bottom), contains('45 min'));
+  });
+
+  test('SAC reads in the diver pressure unit, findings by rule name', () {
+    const sac = ClauseChip(
+      field: ExploreDiveField.sac,
+      op: ClauseOp.gte,
+      value: 1.5,
+      dimension: FieldDimension.pressureRate,
+    );
+    expect(metric.label(sac), contains('bar/min'));
+    expect(imperial.label(sac), contains('psi/min'));
+    expect(
+      metric.label(
+        chip(ExploreDiveField.finding, ['rapidAscent'], op: ClauseOp.inList),
+      ),
+      contains(l10n.safetySettings_rule_rapidAscent),
+    );
+    expect(
+      metric.label(
+        chip(ExploreDiveField.finalStop, ['unstable'], op: ClauseOp.inList),
+      ),
+      contains(l10n.query_dives_finalStop_unstable),
+    );
   });
 }

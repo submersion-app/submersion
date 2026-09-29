@@ -65,6 +65,13 @@ void main() {
       (FieldDimension.pressure, QueryUnit.bar, QueryUnit.psi, 145.038, 10),
       (FieldDimension.weight, QueryUnit.kg, QueryUnit.lb, 22.0462, 10),
       (FieldDimension.volume, QueryUnit.l, QueryUnit.cuft, 0.353147, 10),
+      (
+        FieldDimension.pressureRate,
+        QueryUnit.barMin,
+        QueryUnit.psiMin,
+        14.5038,
+        1,
+      ),
     ];
     for (final (dim, metric, imp, typedImperial, storage) in cases) {
       expect(dimensionOfUnit(metric), dim);
@@ -94,6 +101,23 @@ void main() {
     expect(
       storageToDisplay(12, QueryUnit.min, FieldDimension.minutes, imperial),
       (12.0, null),
+    );
+  });
+
+  test('a rate field shows its unit per minute', () {
+    expect(displaySuffix(FieldDimension.pressureRate, kMetricPrefs), 'bar/min');
+    expect(displaySuffix(FieldDimension.pressureRate, imperial), 'psi/min');
+    expect(displaySuffix(FieldDimension.percent, kMetricPrefs), '%');
+    expect(displaySuffix(FieldDimension.depth, imperial), 'ft');
+    expect(displaySuffix(FieldDimension.count, kMetricPrefs), isNull);
+  });
+
+  test('rate suffixes are letters only, as the number token allows', () {
+    expect(QueryUnit.fromSuffix('barmin'), QueryUnit.barMin);
+    expect(QueryUnit.fromSuffix('PSIMIN'), QueryUnit.psiMin);
+    expect(
+      unitForDimension(FieldDimension.pressureRate, imperial),
+      QueryUnit.psiMin,
     );
   });
 }

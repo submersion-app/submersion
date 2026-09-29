@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
+import '../../../../helpers/fake_hosts.dart';
 import '../../../../helpers/mock_channels.dart';
 import '../../../../helpers/pdf_text.dart';
 
@@ -33,6 +34,13 @@ const imperial = UnitFormatter(
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
 
   late Directory shareDir;
   late PdfExportService service;

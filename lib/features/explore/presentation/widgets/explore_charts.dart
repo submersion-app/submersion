@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
+import 'package:submersion/features/query/presentation/query_label_lookup.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
@@ -40,6 +42,10 @@ class _ExploreChartCard extends ConsumerWidget {
       ChartKind.depthTrend => l10n.explore_chart_depthTrend,
       ChartKind.waterTempTrend => l10n.explore_chart_waterTempTrend,
       ChartKind.bottomTimeTrend => l10n.explore_chart_bottomTimeTrend,
+      // The axis is bare numbers in the diver's pressure unit, so the title
+      // names it.
+      ChartKind.sacTrend =>
+        '${queryLabelForKey(l10n, 'query_dives_sac')} (${units.sacSymbol})',
       ChartKind.entityCounts => l10n.explore_chart_entityCounts(
         _kindName(l10n, request.entityKind),
       ),
@@ -76,6 +82,7 @@ class _ExploreChartCard extends ConsumerWidget {
                         ChartKind.bottomTimeTrend => l10n.explore_value_minutes(
                           v.round(),
                         ),
+                        ChartKind.sacTrend => units.formatSac(v),
                         _ => '${v.round()}',
                       },
                       yAxisFormatter: (v) => switch (request.kind) {
@@ -87,6 +94,7 @@ class _ExploreChartCard extends ConsumerWidget {
                           v,
                           decimals: 0,
                         ),
+                        ChartKind.sacTrend => sacAxisLabel(units, v),
                         _ => '${v.round()}',
                       },
                       onDiveSelected: (id) => context.push('/dives/$id'),
@@ -110,3 +118,9 @@ class _ExploreChartCard extends ConsumerWidget {
     null => '',
   };
 }
+
+/// A SAC axis label: the value in the diver's pressure unit, to the
+/// precision SAC is shown with everywhere else (a tenth of a bar, a whole
+/// psi), in the diver's number format.
+String sacAxisLabel(UnitFormatter units, double barPerMin) =>
+    formatFixedForDisplay(units.convertSac(barPerMin), units.sacDecimals);

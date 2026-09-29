@@ -180,7 +180,7 @@ class QueryValueEditor extends StatelessWidget {
     return _NumberField(
       key: key,
       initialText: shown,
-      suffix: field.dimension == FieldDimension.percent ? '%' : unit?.suffix,
+      suffix: displaySuffix(field.dimension, context.prefs),
       onChanged: (text) {
         // Read as every number field in the app reads, in the diver's
         // locale. Blank or unreadable text keeps the last value; the field

@@ -133,4 +133,13 @@ void main() {
       expect(await scoped.list(diverId: 'bob', locale: 'en'), hasLength(1));
     });
   }
+
+  test('a sentence saved before schema v2 is kept', () async {
+    await repo.record('turtles', 'en', parsed, diverId: 'ana');
+    await db.customStatement('UPDATE recent_queries SET schema_version = 1');
+    expect(
+      (await repo.list(diverId: 'ana', locale: 'en')).map((r) => r.sentence),
+      ['turtles'],
+    );
+  });
 }

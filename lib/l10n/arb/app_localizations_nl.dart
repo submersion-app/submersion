@@ -329,6 +329,286 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_buddyPicker_empty => 'Nog geen buddy’s';
+
+  @override
+  String get plannerMission_buddyPicker_me => 'Ik';
+
+  @override
+  String get plannerMission_buddyPicker_title => 'Kies een buddy';
+
+  @override
+  String get plannerMission_current_setsToward => 'Stroomt richting';
+
+  @override
+  String get plannerMission_current_speed => 'Stroomsnelheid';
+
+  @override
+  String get plannerMission_disableConfirm => 'Uitschakelen';
+
+  @override
+  String get plannerMission_disableMessage =>
+      'De route en het team worden verwijderd. Het gegenereerde profiel blijft als gewone, bewerkbare segmenten.';
+
+  @override
+  String get plannerMission_disableTitle => 'DPV-missie uitschakelen?';
+
+  @override
+  String get plannerMission_enable => 'Plannen als DPV-missie';
+
+  @override
+  String get plannerMission_enableConfirm => 'Vervangen';
+
+  @override
+  String get plannerMission_enableMessage =>
+      'De missie bouwt het profiel op uit de route en het team, dus de segmenten van dit plan worden vervangen. Als je de missie later uitschakelt, blijft het profiel van de missie behouden, niet deze segmenten.';
+
+  @override
+  String get plannerMission_enableTitle =>
+      'De segmenten vervangen door een DPV-missie?';
+
+  @override
+  String get plannerMission_environment_openWater => 'Open water';
+
+  @override
+  String get plannerMission_environment_overhead => 'Overhead';
+
+  @override
+  String get plannerMission_issue_batteryReserveInvalid =>
+      'De accureserve moet tussen 0 en 100% liggen';
+
+  @override
+  String get plannerMission_issue_emptyRoute => 'Voeg minstens één traject toe';
+
+  @override
+  String get plannerMission_issue_emptyTeam => 'Voeg minstens één duiker toe';
+
+  @override
+  String plannerMission_issue_legDepthInvalid(String leg) {
+    return '$leg heeft een ongeldige diepte';
+  }
+
+  @override
+  String plannerMission_issue_legTooShort(String leg) {
+    return '$leg is te kort om af te leggen';
+  }
+
+  @override
+  String plannerMission_issue_memberSacUnset(String name) {
+    return '$name heeft een RMV nodig';
+  }
+
+  @override
+  String plannerMission_issue_memberSwimSpeedUnset(String name) {
+    return '$name heeft een zwemsnelheid nodig';
+  }
+
+  @override
+  String get plannerMission_issue_openWaterInputInvalid =>
+      'Een uitgang aan de oever, de oppervlaktezwemlimiet of de loopsnelheid is negatief';
+
+  @override
+  String get plannerMission_issue_planHasNoTank =>
+      'Voeg een hoofdgasfles toe aan het plan';
+
+  @override
+  String get plannerMission_issue_planNotDiveable =>
+      'De geplande route overschrijdt een kritieke limiet';
+
+  @override
+  String get plannerMission_issue_scenarioFailed =>
+      'Een storingsscenario kon niet worden berekend';
+
+  @override
+  String plannerMission_issue_scooterUnspecified(String name) {
+    return 'De scooter van $name heeft een snelheid en looptijd nodig';
+  }
+
+  @override
+  String plannerMission_issue_speedBelowHeadwayFloor(String name) {
+    return 'De zwem-, scooter- of sleepsnelheid van $name is te laag om vooruit te komen';
+  }
+
+  @override
+  String get plannerMission_issue_tankBudgetUnknown =>
+      'Elke fles heeft een inhoud en een vuldruk nodig';
+
+  @override
+  String get plannerMission_issue_unsupportedMode =>
+      'DPV-missies plannen alleen duiken met een open systeem';
+
+  @override
+  String plannerMission_issue_untraversableLeg(String leg) {
+    return 'De stroming blokkeert $leg';
+  }
+
+  @override
+  String get plannerMission_leg_depth => 'Diepte';
+
+  @override
+  String get plannerMission_leg_distance => 'Afstand';
+
+  @override
+  String get plannerMission_leg_heading => 'Koers';
+
+  @override
+  String get plannerMission_leg_label => 'Naam van het punt';
+
+  @override
+  String get plannerMission_leg_shoreExit => 'Uitgang aan de oever vanaf hier';
+
+  @override
+  String get plannerMission_leg_shoreSwim => 'Oppervlaktezwemmen naar de oever';
+
+  @override
+  String get plannerMission_leg_shoreWalk => 'Lopen naar de ingang';
+
+  @override
+  String get plannerMission_leg_useMissionCurrent =>
+      'De stroming van de missie gebruiken';
+
+  @override
+  String get plannerMission_member_chooseScooter => 'Kiezen uit uitrusting';
+
+  @override
+  String get plannerMission_member_manualScooter => 'Handmatig invoeren';
+
+  @override
+  String get plannerMission_member_name => 'Naam';
+
+  @override
+  String get plannerMission_member_pickBuddy => 'Kies een buddy';
+
+  @override
+  String get plannerMission_member_sac => 'Bottom RMV';
+
+  @override
+  String get plannerMission_member_scooter => 'Scooter';
+
+  @override
+  String get plannerMission_member_swimSpeed => 'Zwemsnelheid';
+
+  @override
+  String plannerMission_profile_none(String reason) {
+    return 'Nog geen profiel: $reason';
+  }
+
+  @override
+  String plannerMission_profile_segment(String depth, String minutes) {
+    return '$depth, $minutes min';
+  }
+
+  @override
+  String get plannerMission_profile_title => 'Gegenereerd profiel';
+
+  @override
+  String get plannerMission_route_addLeg => 'Traject toevoegen';
+
+  @override
+  String get plannerMission_route_deleteLeg => 'Traject verwijderen';
+
+  @override
+  String get plannerMission_route_editLeg => 'Traject bewerken';
+
+  @override
+  String plannerMission_route_legSummary(
+    String depth,
+    String distance,
+    String heading,
+  ) {
+    return '$distance op $depth, koers $heading';
+  }
+
+  @override
+  String plannerMission_route_ownCurrent(String direction, String speed) {
+    return 'Stroming $speed richting $direction';
+  }
+
+  @override
+  String plannerMission_route_shoreExit(String swim, String walk) {
+    return 'Uitgang aan de oever: $swim zwemmen, $walk lopen';
+  }
+
+  @override
+  String get plannerMission_route_title => 'Route';
+
+  @override
+  String plannerMission_route_unnamedLeg(int number) {
+    return 'Traject $number';
+  }
+
+  @override
+  String get plannerMission_scooter_burnTime => 'Looptijd';
+
+  @override
+  String get plannerMission_scooter_name => 'Naam van de scooter';
+
+  @override
+  String get plannerMission_scooter_speed => 'Nominale snelheid';
+
+  @override
+  String get plannerMission_scooter_towBurnFactor =>
+      'Factor verbruik bij slepen';
+
+  @override
+  String get plannerMission_scooter_towSpeedFactor => 'Factor sleepsnelheid';
+
+  @override
+  String get plannerMission_settings_batteryReserve => 'Accureserve';
+
+  @override
+  String get plannerMission_settings_defaultCurrent => 'Standaardstroming';
+
+  @override
+  String get plannerMission_settings_environment => 'Omgeving';
+
+  @override
+  String get plannerMission_settings_surfaceSwimLimit =>
+      'Langste oppervlaktezwemtocht';
+
+  @override
+  String get plannerMission_settings_walkSpeed => 'Loopsnelheid';
+
+  @override
+  String get plannerMission_team_addDiver => 'Duiker toevoegen';
+
+  @override
+  String plannerMission_team_capacity(String wh) {
+    return 'Accu van $wh Wh';
+  }
+
+  @override
+  String plannerMission_team_defaultName(int number) {
+    return 'Duiker $number';
+  }
+
+  @override
+  String get plannerMission_team_editDiver => 'Duiker bewerken';
+
+  @override
+  String plannerMission_team_memberSummary(String sac, String speed) {
+    return 'RMV $sac, zwemmen $speed';
+  }
+
+  @override
+  String get plannerMission_team_noScooter => 'Geen scooter ingesteld';
+
+  @override
+  String get plannerMission_team_removeDiver => 'Duiker verwijderen';
+
+  @override
+  String plannerMission_team_scooterSummary(
+    String minutes,
+    String name,
+    String speed,
+  ) {
+    return '$name: $speed, $minutes min looptijd';
+  }
+
+  @override
+  String get plannerMission_team_title => 'DPV-team';
+
+  @override
   String get settings_shareAllEquipment_title => 'Al mijn uitrusting delen...';
 
   @override
@@ -8903,6 +9183,19 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Geen';
+
+  @override
+  String get diveLog_tank_tripCylinderLabel => 'Fles van de reis';
+
+  @override
+  String get diveLog_tank_tripCylinderNone => 'Geen';
+
+  @override
+  String get diveLog_tank_tripCylinderMissing => 'Niet meer op deze reis';
+
+  @override
+  String get diveLog_tank_tripCylinderSuggested =>
+      'Voorgesteld uit de volle flessen van de reis';
 
   @override
   String get diveLog_tissue_title => 'Weefselbelasting';
@@ -25302,6 +25595,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_cylinders_action_adjust => 'Bijwerken';
+
+  @override
+  String get trips_cylinders_action_logDive => 'Duik vastleggen';
 
   @override
   String trips_cylinders_bottle(String label) {
@@ -45340,6 +45636,45 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_dives_rating => 'Beoordeling';
 
   @override
+  String get query_dives_findings => 'Veiligheidsbevindingen';
+
+  @override
+  String get query_dives_sac => 'SAC';
+
+  @override
+  String get query_dives_sacTrend => 'SAC-trend';
+
+  @override
+  String get query_dives_sacTrend_rising => 'Stijgend';
+
+  @override
+  String get query_dives_sacTrend_steady => 'Stabiel';
+
+  @override
+  String get query_dives_sacTrend_falling => 'Dalend';
+
+  @override
+  String get query_dives_sacChange => 'SAC-verandering';
+
+  @override
+  String get query_dives_finalStop => 'Laatste stop';
+
+  @override
+  String get query_dives_finalStop_stable => 'Stabiel';
+
+  @override
+  String get query_dives_finalStop_unstable => 'Instabiel';
+
+  @override
+  String get query_dives_finalStop_noStop => 'Geen stop';
+
+  @override
+  String get query_dives_finalStopExcursion => 'Afwijking bij laatste stop';
+
+  @override
+  String get query_dives_finalStopDuration => 'Duur laatste stop';
+
+  @override
   String get query_dives_runtime => 'Totale duur';
 
   @override
@@ -45416,6 +45751,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_entity_equipmentAttributes => 'Uitrustingskenmerken';
+
+  @override
+  String get query_entity_findings => 'Veiligheidsbevindingen';
+
+  @override
+  String get query_findings_rule => 'Regel';
 
   @override
   String get query_entity_media => 'Media';

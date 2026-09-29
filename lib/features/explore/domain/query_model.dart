@@ -7,7 +7,12 @@ library;
 
 import 'dart:convert';
 
-const int kQuerySchemaVersion = 1;
+const int kQuerySchemaVersion = 2;
+
+/// The oldest schema version a stored or model-written parse may carry.
+/// Version 2 only added fields and units, so every version 1 payload is a
+/// valid version 2 payload and a diver's recent sentences survive the bump.
+const int kMinReadableQuerySchemaVersion = 1;
 
 enum QuerySubject { dives, equipment, sites, buddies, species, trips, centers }
 
@@ -34,7 +39,9 @@ enum ClauseUnit {
   psi('psi'),
   min('min'),
   lMin('l_min'),
-  cuftMin('cuft_min');
+  cuftMin('cuft_min'),
+  barMin('bar_min'),
+  psiMin('psi_min');
 
   final String jsonName;
   const ClauseUnit(this.jsonName);
@@ -141,7 +148,9 @@ class ParsedQuery {
 
   factory ParsedQuery.fromJson(Map<String, Object?> json) {
     final version = json['schemaVersion'];
-    if (version != kQuerySchemaVersion) {
+    if (version is! int ||
+        version < kMinReadableQuerySchemaVersion ||
+        version > kQuerySchemaVersion) {
       throw QuerySchemaException(
         'schemaVersion $version, expected $kQuerySchemaVersion',
       );

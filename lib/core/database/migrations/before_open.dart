@@ -175,6 +175,8 @@ extension BeforeOpenBackstops on AppDatabase {
 
     // v245 backstop: the certifications buddy index (idempotent).
     await _assertCertificationsBuddyIndex();
+    // v247 backstop: the Explore derived metrics (local, idempotent).
+    await _assertDerivedMetricsTable();
 
     // v248 backstop: trip_equipment and its item index (idempotent).
     await _assertTripEquipmentSchema();

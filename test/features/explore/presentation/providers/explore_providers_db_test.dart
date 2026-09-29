@@ -94,6 +94,41 @@ void main() {
     expect(await c.read(exploreCountProvider.future), 1);
   });
 
+  test('the SAC chart plots each matched dive SAC', () async {
+    // 200 to 140 bar over 50 min at 15 m average: 0.48 bar/min.
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion(
+            id: const Value('sac'),
+            diveDateTime: Value(now),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+            maxDepth: const Value(25),
+            runtime: const Value(3000),
+            avgDepth: const Value(15),
+          ),
+        );
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 't1',
+            diveId: 'sac',
+            startPressure: const Value(200),
+            endPressure: const Value(140),
+          ),
+        );
+    final c = await container();
+    c.read(exploreFilterProvider.notifier).state = const DiveFilterState(
+      minDepth: 20,
+    );
+    final data = await c.read(
+      exploreChartDataProvider(const ChartRequest(ChartKind.sacTrend)).future,
+    );
+    expect(data.points.single.value, closeTo(0.48, 0.001));
+  });
+
   test('every chart kind runs its query under the filter', () async {
     await insertSite('s1');
     await insertSite('s2');

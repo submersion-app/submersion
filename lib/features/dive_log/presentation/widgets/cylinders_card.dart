@@ -22,6 +22,9 @@ import 'package:submersion/features/equipment/presentation/widgets/observation_s
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_labels.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -67,6 +70,21 @@ class CylindersCard extends ConsumerWidget {
     final knownSerials = Transmitter.knownSerials(
       ref.watch(transmittersProvider).value ?? const <Transmitter>[],
     );
+    // Linked tanks name their trip cylinder and the bottle it held when the
+    // dive started (decided 2026-09-28). Only read when a tank is linked.
+    final tripId = dive.tripId ?? dive.trip?.id;
+    final slotLabels =
+        tripId == null || !dive.tanks.any((t) => t.tripCylinderId != null)
+        ? const <String, TripCylinderTankLabel>{}
+        : ref
+                  .watch(
+                    tripCylinderLabelsAtProvider((
+                      tripId: tripId,
+                      atMillis: dive.effectiveEntryTime.millisecondsSinceEpoch,
+                    )),
+                  )
+                  .value ??
+              const <String, TripCylinderTankLabel>{};
 
     return Card(
       child: Padding(
@@ -90,6 +108,7 @@ class CylindersCard extends ConsumerWidget {
                     ? computerNames[entry.value.computerId]
                     : null,
                 knownSerials: knownSerials,
+                slotLabel: slotLabels[entry.value.tripCylinderId],
               ),
             ),
             if (_canReassign(dive, tankPressures))
@@ -135,6 +154,7 @@ class CylindersCard extends ConsumerWidget {
     required Map<String, List<TankPressurePoint>>? tankPressures,
     required String? sourceName,
     required Set<String> knownSerials,
+    required TripCylinderTankLabel? slotLabel,
   }) {
     final theme = Theme.of(context);
     final serial = normalizeTransmitterSerial(tank.transmitterSerial);
@@ -230,6 +250,14 @@ class CylindersCard extends ConsumerWidget {
               color: theme.colorScheme.tertiary,
             ),
           ),
+          if (slotLabel != null)
+            Text(
+              tripCylinderTankLine(context.l10n, slotLabel),
+              key: Key('tank-trip-cylinder-${tank.id}'),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           if (serial != null)
             Row(
               children: [
@@ -258,7 +286,8 @@ class CylindersCard extends ConsumerWidget {
       ),
       // Either extra subtitle row makes the tile tall, and M3 centres the
       // leading icon on a tall two-line tile, away from the name.
-      isThreeLine: serial != null || consumptionRow != null,
+      isThreeLine:
+          serial != null || consumptionRow != null || slotLabel != null,
       trailing: _checkInButton(tank),
     );
   }

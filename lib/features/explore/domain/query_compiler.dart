@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/syntax/date_grammar.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
@@ -31,6 +32,10 @@ const Set<ExploreDiveField> _numberQueryFields = {
   ExploreDiveField.avgDepth,
   ExploreDiveField.airTemp,
   ExploreDiveField.diveNumber,
+  ExploreDiveField.sac,
+  ExploreDiveField.sacChange,
+  ExploreDiveField.finalStopExcursion,
+  ExploreDiveField.finalStopDuration,
 };
 
 typedef _Lowered = ({DiveFilterState? filter, ClauseChip? chip, String? error});
@@ -251,7 +256,8 @@ abstract final class QueryCompiler {
     }
     if (values.any((v) => !allowed.contains(v))) return _fail('invalid');
     // Every listed enum field is a dive query registry field of the same
-    // name: the catalog reads its values from there.
+    // name, except `finding`, which is the rule of the dive's findings:
+    // `_enumPath` maps it. The catalog reads the values from the registry.
     final key = field.jsonName;
     // "Not" keeps the dives where the field was never recorded: the query
     // tree's NOT treats an unknown as not matching, where the complement of
@@ -298,11 +304,16 @@ abstract final class QueryCompiler {
           ]
         : values;
     return ConditionNode(
-      FieldPath([key]),
+      FieldPath(_enumPath(field, key)),
       QueryOp.inList,
       ListValue([for (final n in names) EnumValue(n)]),
     );
   }
+
+  /// The registry path an enum field lowers onto: the dive field of its own
+  /// name, or for a safety finding the rule of any of the dive's findings.
+  static List<String> _enumPath(ExploreDiveField field, String key) =>
+      field == ExploreDiveField.finding ? const ['findings', 'rule'] : [key];
 
   static _Lowered _lowerNumber(
     QueryClause c,
@@ -311,8 +322,17 @@ abstract final class QueryCompiler {
     DiveFilterState f,
     UnitPrefs units,
   ) {
+    if (!unitFits(spec.dimension, c.unit)) return _fail('invalid');
+    final rate = spec.dimension == FieldDimension.pressureRate;
+    // A rate keeps four decimals: psi/min bounds half a psi apart are only
+    // 0.07 bar/min apart, and two decimals would round them together.
     double ground(num v) => double.parse(
-      groundToMetric(v, c.unit, spec.dimension, units).toStringAsFixed(2),
+      groundToMetric(
+        v,
+        c.unit,
+        spec.dimension,
+        units,
+      ).toStringAsFixed(rate ? 4 : 2),
     );
     double? lo;
     double? hi;
@@ -347,14 +367,19 @@ abstract final class QueryCompiler {
         case ClauseOp.gte:
           lo = v;
         case ClauseOp.eq:
-          // A measured depth or temperature is almost never exactly the
-          // number said, so "exactly 15 m" is the half unit either side of
-          // it in the unit the diver used, the way it would be rounded.
-          final continuous =
-              spec.dimension == FieldDimension.depth ||
-              spec.dimension == FieldDimension.temperature;
-          lo = continuous ? ground(raw - 0.5) : v;
-          hi = continuous ? ground(raw + 0.5) : v;
+          // A measured value is almost never exactly the number said, so
+          // "exactly 15 m" is the half unit either side of it in the unit
+          // the diver used, the way it would be rounded. SAC is read to a
+          // tenth of a bar or a whole psi, so "a SAC of 1.2" is 1.15 to 1.25
+          // bar/min and "20 psi/min" is 19.5 to 20.5. Counts stay exact.
+          final half = switch (spec.dimension) {
+            FieldDimension.depth || FieldDimension.temperature => 0.5,
+            FieldDimension.pressureRate =>
+              rateUnitSaid(c.unit, units) == PressureUnit.psi ? 0.5 : 0.05,
+            _ => 0.0,
+          };
+          lo = half == 0 ? v : ground(raw - half);
+          hi = half == 0 ? v : ground(raw + half);
         default:
           return _fail('invalid');
       }

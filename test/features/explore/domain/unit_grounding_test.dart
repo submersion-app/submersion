@@ -56,4 +56,35 @@ void main() {
     );
     expect(groundToMetric(32, null, FieldDimension.percent, imperial), 32);
   });
+
+  test('a unit fits only a field measured in its kind', () {
+    expect(unitFits(FieldDimension.depth, ClauseUnit.ft), isTrue);
+    expect(unitFits(FieldDimension.depth, ClauseUnit.c), isFalse);
+    expect(unitFits(FieldDimension.temperature, ClauseUnit.f), isTrue);
+    expect(unitFits(FieldDimension.temperature, ClauseUnit.m), isFalse);
+    expect(unitFits(FieldDimension.pressure, ClauseUnit.psi), isTrue);
+    expect(unitFits(FieldDimension.pressure, ClauseUnit.min), isFalse);
+    expect(unitFits(FieldDimension.pressureRate, ClauseUnit.bar), isTrue);
+    expect(unitFits(FieldDimension.pressureRate, ClauseUnit.psiMin), isTrue);
+    expect(unitFits(FieldDimension.pressureRate, ClauseUnit.lMin), isFalse);
+    expect(unitFits(FieldDimension.minutes, ClauseUnit.min), isTrue);
+    expect(unitFits(FieldDimension.minutes, ClauseUnit.bar), isFalse);
+    // No unit always fits; a unitless field takes what it is given.
+    expect(unitFits(FieldDimension.depth, null), isTrue);
+    expect(unitFits(FieldDimension.count, ClauseUnit.m), isTrue);
+    expect(unitFits(FieldDimension.none, ClauseUnit.c), isTrue);
+    expect(unitFits(FieldDimension.percent, ClauseUnit.ft), isTrue);
+  });
+
+  test('a SAC unit said without per minute is per minute', () {
+    expect(rateUnitSaid(ClauseUnit.bar, metric), PressureUnit.bar);
+    expect(rateUnitSaid(ClauseUnit.barMin, metric), PressureUnit.bar);
+    expect(rateUnitSaid(ClauseUnit.psi, metric), PressureUnit.psi);
+    expect(rateUnitSaid(ClauseUnit.psiMin, metric), PressureUnit.psi);
+    expect(rateUnitSaid(null, metric), PressureUnit.bar);
+    expect(
+      groundToMetric(1.5, ClauseUnit.bar, FieldDimension.pressureRate, metric),
+      1.5,
+    );
+  });
 }

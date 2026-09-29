@@ -5,6 +5,7 @@ import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
 import 'package:submersion/features/equipment/data/services/equipment_set_for_computer_linker.dart';
@@ -319,6 +320,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     // Queue a data-quality scan of the imported dives (fire-and-forget).
     scheduleQualityScan(importedDiveIds);
     scheduleSensorSummaryRefresh(importedDiveIds);
+    scheduleDerivedMetricsRefresh(importedDiveIds);
 
     final numberConflict = await diveNumberConflictNotice(
       retainSourceDiveNumbers: retainSourceDiveNumbers,

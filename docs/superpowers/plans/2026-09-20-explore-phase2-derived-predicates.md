@@ -1,5 +1,7 @@
 # Explore Phase 2 (Profile-Derived Predicates) Implementation Plan
 
+> **Superseded** by `2026-09-28-explore-phase2-registry-fields.md`: this plan's filter wiring predates the entity query language.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make "SAC increased after 20 minutes" and "the final stop was unstable" answerable in SQL, by deriving a small set of per-dive scalars and per-bucket SAC values from the profile blob once per dive version, and exposing them (plus the five safety findings already stored) as Explore query fields.

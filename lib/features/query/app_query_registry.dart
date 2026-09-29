@@ -23,6 +23,7 @@ final QueryRegistry appQueryRegistry = QueryRegistry([
   customFieldQueryEntity,
   sightingQueryEntity,
   mediaQueryEntity,
+  findingQueryEntity,
   siteQueryEntity,
   siteTypeQueryEntity,
   equipmentQueryEntity,

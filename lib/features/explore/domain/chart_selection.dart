@@ -6,6 +6,7 @@ enum ChartKind {
   depthTrend,
   waterTempTrend,
   bottomTimeTrend,
+  sacTrend,
   entityCounts,
 }
 
@@ -48,6 +49,7 @@ List<ChartRequest> selectCharts({
     ExploreDiveField.depth: ChartKind.depthTrend,
     ExploreDiveField.waterTemp: ChartKind.waterTempTrend,
     ExploreDiveField.bottomTime: ChartKind.bottomTimeTrend,
+    ExploreDiveField.sac: ChartKind.sacTrend,
   };
   for (final entry in trends.entries) {
     if (numericFields.contains(entry.key)) out.add(ChartRequest(entry.value));

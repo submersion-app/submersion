@@ -384,8 +384,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newDive',
-                builder: (context, state) =>
-                    DiveEditPage(prefill: state.extra as DivePrefill?),
+                builder: (context, state) => newDivePage(state),
               ),
               GoRoute(
                 path: 'scan',
@@ -1966,3 +1965,12 @@ class _DivelogsImportWizardRoute extends ConsumerWidget {
 /// case variants, arbitrary strings) returns false. This conservative rule
 /// keeps the URL contract unambiguous for shareability and logging.
 bool parseForceFullQueryParam(String? value) => value == 'true';
+
+/// The new-dive page for [state]: a prefill passed as `extra` (the OCR scan,
+/// a passport tag), and the board's Log dive shortcut as the `tripId` and
+/// `tripCylinderId` query parameters.
+DiveEditPage newDivePage(GoRouterState state) => DiveEditPage(
+  prefill: state.extra as DivePrefill?,
+  tripId: state.uri.queryParameters['tripId'],
+  tripCylinderId: state.uri.queryParameters['tripCylinderId'],
+);

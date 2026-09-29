@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/drift.dart' show Value, Variable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, DivesCompanion, DiveTanksCompanion;
@@ -117,6 +118,33 @@ void main() {
     } else {
       await tester.pump();
     }
+  }
+
+  Future<void> pumpBoardWithRouter(WidgetTester tester, GoRouter router) async {
+    tester.view.physicalSize = const Size(900, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          allDiveCentersProvider.overrideWith((ref) async => const []),
+          activeEquipmentProvider.overrideWith((ref) async => const []),
+          tankPresetsProvider.overrideWith(
+            (ref) => Future.value([
+              TankPresetEntity.fromBuiltIn(TankPresets.byName('al80')!),
+            ]),
+          ),
+        ],
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
   }
 
   testWidgets('an empty board offers to add cylinders', (tester) async {
@@ -355,6 +383,38 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Truck 1'), findsOneWidget);
+  });
+
+  testWidgets('Log dive opens a new dive on that slot', (tester) async {
+    final a = await slot('Truck 1', 0);
+    String? pushed;
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => TripCylinderBoardPage(tripId: tripId),
+        ),
+        GoRoute(
+          path: '/dives/new',
+          builder: (_, state) {
+            pushed = state.uri.toString();
+            return const Scaffold(body: Text('NEW DIVE'));
+          },
+        ),
+      ],
+    );
+    await pumpBoardWithRouter(tester, router);
+    addTearDown(router.dispose);
+
+    await tester.tap(find.byKey(Key('slot-menu-${a.id}')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Log dive'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('NEW DIVE'), findsOneWidget);
+    final uri = Uri.parse(pushed!);
+    expect(uri.queryParameters['tripId'], tripId);
+    expect(uri.queryParameters['tripCylinderId'], a.id);
   });
 
   test('reorderedIds moves one id and keeps the rest in order', () {
