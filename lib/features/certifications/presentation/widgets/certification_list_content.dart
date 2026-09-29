@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/sort_options_display.dart';
@@ -168,7 +169,9 @@ class _CertificationListContentState
     final visibleIds = visibleCerts.map((c) => c.id).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && certificationsAsync.hasSettled) {
+        _selection.pruneTo(visibleIds);
+      }
     });
 
     // Built inside the selection listener below so rows re-render as checks
@@ -232,7 +235,7 @@ class _CertificationListContentState
                       onPressed: () {
                         showSearch(
                           context: context,
-                          delegate: CertificationSearchDelegate(ref),
+                          delegate: CertificationSearchDelegate(),
                         );
                       },
                     ),
@@ -382,7 +385,9 @@ class _CertificationListContentState
     // Same pruning the list path does: drop checked certifications that fell
     // out of the visible list, so the count matches what is on screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && certificationsAsync.hasSettled) {
+        _selection.pruneTo(visibleIds);
+      }
     });
 
     // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
@@ -500,7 +505,7 @@ class _CertificationListContentState
             onPressed: () {
               showSearch(
                 context: context,
-                delegate: CertificationSearchDelegate(ref),
+                delegate: CertificationSearchDelegate(),
               );
             },
           ),

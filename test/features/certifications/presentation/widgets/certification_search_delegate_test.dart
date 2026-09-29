@@ -33,7 +33,7 @@ Future<void> _openSearch(
             builder: (context, ref, _) => ElevatedButton(
               onPressed: () => showSearch(
                 context: context,
-                delegate: CertificationSearchDelegate(ref),
+                delegate: CertificationSearchDelegate(),
               ),
               child: const Text('open search'),
             ),

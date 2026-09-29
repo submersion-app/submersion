@@ -102,7 +102,7 @@ class CertificationListPage extends ConsumerWidget {
               onPressed: () {
                 showSearch(
                   context: context,
-                  delegate: CertificationSearchDelegate(ref),
+                  delegate: CertificationSearchDelegate(),
                 );
               },
             ),

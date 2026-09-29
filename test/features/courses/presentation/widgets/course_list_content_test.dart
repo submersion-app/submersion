@@ -581,6 +581,7 @@ void main() {
       required Set<String> ids,
       CourseFilterState filter = const CourseFilterState(),
       ListViewMode viewMode = ListViewMode.detailed,
+      Duration idsDelay = Duration.zero,
     }) async {
       final overrides = await _buildPhoneOverrides(
         courses: [
@@ -594,7 +595,9 @@ void main() {
           overrides: [
             ...overrides,
             courseFilterProvider.overrideWith((ref) => filter),
-            entityQueryIdsProvider.overrideWith((ref, key) async => ids),
+            entityQueryIdsProvider.overrideWith(
+              (ref, key) => Future.delayed(idsDelay, () => ids),
+            ),
           ],
           child: const CourseListContent(showAppBar: true),
         ),
@@ -613,6 +616,32 @@ void main() {
         c.read(courseFilterProvider).status,
         CourseStatusFilter.inProgress,
       );
+    });
+
+    testWidgets('a status chip keeps the checks that stay on screen', (
+      tester,
+    ) async {
+      // A real id set takes a query's time, so the list has a loading frame.
+      final c = await pump(
+        tester,
+        ids: const {'k1', 'k2'},
+        idsDelay: const Duration(milliseconds: 50),
+      );
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+
+      // The chip's id set loads first; the selection must survive that.
+      await tester.tap(find.widgetWithText(FilterChip, 'In Progress'));
+      // One frame at once, as the app draws it, before the query answers.
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(
+        c.read(courseFilterProvider).status,
+        CourseStatusFilter.inProgress,
+      );
+      expect(find.text('2 selected'), findsOneWidget);
     });
 
     testWidgets('table mode reads the filtered courses', (tester) async {

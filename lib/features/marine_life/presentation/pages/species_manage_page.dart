@@ -76,7 +76,7 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
     ).where(_isSelectable).map((s) => s.id).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(selectableIds);
+      if (mounted && speciesAsync.hasSettled) _selection.pruneTo(selectableIds);
     });
 
     return SelectableListScope(

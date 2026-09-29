@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/sort_options_display.dart';
@@ -122,7 +123,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     final visibleIds = visibleCourses.map((c) => c.id).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && coursesAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     // Built inside the selection listener below so rows re-render as checks
@@ -361,7 +362,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
         .toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && coursesAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and

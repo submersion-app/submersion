@@ -8,9 +8,7 @@ import 'package:submersion/features/certifications/presentation/widgets/certific
 
 /// Search delegate for certifications
 class CertificationSearchDelegate extends SearchDelegate<Certification?> {
-  final WidgetRef ref;
-
-  CertificationSearchDelegate(this.ref);
+  CertificationSearchDelegate();
 
   @override
   String get searchFieldLabel => 'Search certifications...'; // TODO: l10n - searchFieldLabel getter has no context
@@ -69,9 +67,9 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
     return _buildSearchResults(context);
   }
 
-  // Watched through the search page's own Consumer: [ref] belongs to the
-  // list underneath, so watching through it rebuilt the list, not this page,
-  // and the results stayed a spinner until the next keystroke.
+  // Watched through the search page's own Consumer: a ref from the list
+  // underneath would rebuild the list, not this page, and the results would
+  // stay a spinner until the next keystroke.
   Widget _buildSearchResults(BuildContext context) => Consumer(
     builder: (context, ref, _) => _buildResultsFor(
       context,
