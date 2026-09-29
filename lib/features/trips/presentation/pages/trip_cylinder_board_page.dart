@@ -15,6 +15,7 @@ import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cy
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_ledger_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_slot_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_fill_forecast_banner.dart';
+import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_fill_forecast_strip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// [ids] with the one at [oldIndex] moved to [newIndex], the index
@@ -82,11 +83,18 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage> {
     } else {
       body = Column(
         children: [
-          if (forecast != null)
+          if (forecast != null) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: TripFillForecastBanner(forecast: forecast, units: units),
             ),
+            if (forecast.days.isNotEmpty)
+              TripFillForecastStrip(
+                tripId: tripId,
+                days: forecast.days,
+                units: units,
+              ),
+          ],
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: SegmentedButton<bool>(

@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Value, Variable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, DivesCompanion, DiveTanksCompanion;
@@ -15,6 +16,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
+import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
@@ -455,6 +457,108 @@ void main() {
     );
     expect(find.byKey(const Key('fill-forecast-banner')), findsOneWidget);
     expect(find.text("Tomorrow needs 4, you'll have 1 full."), findsOneWidget);
+  });
+  FillForecast forecastWithDays(List<FillForecastDay> days) => FillForecast(
+    fullCount: 4,
+    partialCount: 0,
+    todayDemand: 2,
+    tomorrowDemand: 2,
+    tomorrowSupply: 2,
+    todayShortfall: 0,
+    tomorrowShortfall: 0,
+    deadlineMinutes: null,
+    remainingDemand: 6,
+    days: days,
+  );
+
+  testWidgets('the strip lists the remaining days with their plans', (
+    tester,
+  ) async {
+    final a = await slot('Truck 1', 0);
+    await fill(a.id);
+    await pumpBoard(
+      tester,
+      forecast: forecastWithDays([
+        FillForecastDay(date: DateTime(2026, 3, 13), plannedDives: 2),
+        FillForecastDay(
+          date: DateTime(2026, 3, 14),
+          plannedDives: 1,
+          isOverride: true,
+        ),
+      ]),
+    );
+    expect(find.text('Planned dives'), findsOneWidget);
+    expect(find.textContaining('2 dives'), findsOneWidget);
+    expect(find.textContaining('1 dive'), findsOneWidget);
+  });
+
+  testWidgets('saving a day writes its plan to the itinerary', (tester) async {
+    final a = await slot('Truck 1', 0);
+    await fill(a.id);
+    await pumpBoard(
+      tester,
+      forecast: forecastWithDays([
+        FillForecastDay(date: DateTime(2026, 3, 10), plannedDives: 2),
+      ]),
+    );
+    await tester.tap(find.byKey(const Key('forecast-day-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('plan-more')));
+    await tester.pump();
+    expect(find.text('3'), findsOneWidget);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final days = await ItineraryDayRepository().getByTripId(tripId);
+    expect(days, hasLength(1));
+    expect(days.single.date, DateTime(2026, 3, 10));
+    expect(days.single.dayNumber, 3);
+    expect(days.single.dayType, DayType.diveDay);
+    expect(days.single.plannedDives, 3);
+  });
+
+  testWidgets('using the estimate clears a planned day', (tester) async {
+    final a = await slot('Truck 1', 0);
+    await fill(a.id);
+    await ItineraryDayRepository().setPlannedDives(
+      tripId: tripId,
+      date: DateTime(2026, 3, 10),
+      plannedDives: 4,
+    );
+    await pumpBoard(
+      tester,
+      forecast: forecastWithDays([
+        FillForecastDay(
+          date: DateTime(2026, 3, 10),
+          plannedDives: 4,
+          isOverride: true,
+        ),
+      ]),
+    );
+    await tester.tap(find.byKey(const Key('forecast-day-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('plan-use-estimate')));
+    await tester.pumpAndSettle();
+
+    final day = (await ItineraryDayRepository().getByTripId(tripId)).single;
+    expect(day.plannedDives, isNull);
+  });
+
+  testWidgets('cancel writes nothing', (tester) async {
+    final a = await slot('Truck 1', 0);
+    await fill(a.id);
+    await pumpBoard(
+      tester,
+      forecast: forecastWithDays([
+        FillForecastDay(date: DateTime(2026, 3, 10), plannedDives: 2),
+      ]),
+    );
+    await tester.tap(find.byKey(const Key('forecast-day-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('plan-more')));
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(await ItineraryDayRepository().getByTripId(tripId), isEmpty);
   });
 }
 
