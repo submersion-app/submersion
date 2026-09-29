@@ -739,6 +739,7 @@
   "accessibility_shortcut_newDive": "新建潜水",
   "accessibility_shortcut_openSettings": "打开设置",
   "accessibility_shortcut_searchDives": "搜索潜水",
+  "accessibility_shortcut_exploreWithSentence": "用一句话探索",
   "accessibility_sort_selectedLabel": "按{displayName}排序，当前已选中",
   "accessibility_sort_unselectedLabel": "按{displayName}排序",
   "backup_appBar_title": "备份与恢复",
@@ -7401,6 +7402,182 @@
       }
     }
   },
+  "trips_cylinders_title": "气瓶",
+  "trips_cylinders_summary": "满瓶 {full} · 部分 {partial} · 空瓶 {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "尚未充气 {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "设置气瓶",
+  "trips_cylinders_setUpHint": "记录本次行程中你持有的气瓶：充气、混合气以及每瓶剩余多少。",
+  "trips_cylinders_status_full": "满",
+  "trips_cylinders_status_partial": "部分",
+  "trips_cylinders_status_empty": "空",
+  "trips_cylinders_status_unknown": "尚未充气",
+  "trips_cylinders_mixAir": "空气",
+  "trips_cylinders_segment_board": "看板",
+  "trips_cylinders_segment_ledger": "记录",
+  "trips_cylinders_action_add": "添加气瓶",
+  "trips_cylinders_action_fill": "充气",
+  "trips_cylinders_action_fillSeveral": "批量充气",
+  "trips_cylinders_action_adjust": "调整",
+  "trips_cylinders_bottle": "瓶号 {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, other{{count} 次潜水}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "于 {place} 充气，{when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "已充气，{when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "已调整，{when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "在 {site} 潜水，{when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "已潜水，{when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "本次行程还没有气瓶",
+  "trips_cylinders_ledgerEmpty": "还没有充气或调整记录",
+  "trips_cylinders_kind_fill": "充气",
+  "trips_cylinders_kind_adjustment": "调整",
+  "trips_cylinders_deleteConfirmUnused": "删除这个气瓶及其充气记录？",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, other{删除这个气瓶及其充气记录？有 {count} 次潜水使用过它。这些潜水保留各自的气瓶，只移除关联。}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "删除这条记录？",
+  "trips_cylinders_add_tabRental": "租用",
+  "trips_cylinders_add_tabOwned": "我的装备",
+  "trips_cylinders_add_count": "数量",
+  "trips_cylinders_add_preset": "气瓶类型",
+  "trips_cylinders_add_prefix": "名称前缀",
+  "trips_cylinders_add_prefixDefault": "车",
+  "trips_cylinders_add_noOwned": "你的装备中没有可添加的气瓶了。",
+  "trips_cylinders_add_errorCount": "请输入 1 到 20 之间的数字。",
+  "trips_cylinders_fill_titleEdit": "编辑充气",
+  "trips_cylinders_fill_when": "时间",
+  "trips_cylinders_fill_where": "充气站",
+  "trips_cylinders_fill_whereNone": "未设置",
+  "trips_cylinders_fill_pressure": "充气压力（{unit}）",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "订购 O2（%）",
+  "trips_cylinders_fill_he": "订购 He（%）",
+  "trips_cylinders_fill_analyzedO2": "分析 O2（%）",
+  "trips_cylinders_fill_analyzedHe": "分析 He（%）",
+  "trips_cylinders_fill_bottle": "瓶号",
+  "trips_cylinders_fill_cost": "费用",
+  "trips_cylinders_fill_costEach": "每个气瓶的费用",
+  "trips_cylinders_fill_currency": "货币",
+  "trips_cylinders_fill_package": "包含在套餐中",
+  "trips_cylinders_fill_slots": "要充气的气瓶",
+  "trips_cylinders_fill_errorMix": "氧气须为 1 到 100%，氦气为 0 到 99%，两者合计不超过 100。",
+  "trips_cylinders_fill_errorNoSlot": "请至少选择一个气瓶。",
+  "trips_cylinders_note": "备注",
+  "trips_cylinders_adjust_titleEdit": "编辑调整",
+  "trips_cylinders_adjust_pressure": "压力（{unit}）",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "标记为空",
+  "trips_cylinders_edit_title": "编辑气瓶",
+  "trips_cylinders_edit_label": "名称",
+  "trips_cylinders_edit_errorLabel": "请输入名称。",
+  "trips_cylinders_edit_errorNeedsPressure": "请同时输入工作压力，以便换算尺寸。",
+  "trips_cylinders_edit_volume": "尺寸（{unit}）",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "工作压力（{unit}）",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "自定义",
   "trips_edit_label_disembarkPort": "下船港口",
   "trips_edit_label_embarkPort": "登船港口",
   "trips_edit_label_endDate": "结束日期",
@@ -11886,6 +12063,99 @@
   "diveLog_filter_noComputersRegistered": "未注册潜水电脑",
   "diveLog_filter_sectionDepthRangeUnit": "深度范围（{unit}）",
   "diveLog_filter_sectionDiveComputer": "潜水电脑",
+  "diveLog_filterChip_speciesCount": "{count} 种物种",
+  "diveLog_filterChip_weekdayCount": "{count, plural, other{每周 {count} 天}}",
+  "diveLog_filterChip_siteCount": "{count} 个潜点",
+  "diveLog_filterChip_visibilityRange": "能见度 {min} 至 {max} {unit}",
+  "diveLog_filterChip_visibilityMin": "能见度超过 {value} {unit}",
+  "diveLog_filterChip_visibilityMax": "能见度低于 {value} {unit}",
+  "diveLog_filterChip_waterTempRange": "水温 {min} 至 {max}{unit}",
+  "diveLog_filterChip_waterTempMin": "水温超过 {value}{unit}",
+  "diveLog_filterChip_waterTempMax": "水温低于 {value}{unit}",
+  "diveLog_filterChip_waterTypeCount": "{count} 种水体类型",
+  "diveLog_filter_sectionSpecies": "海洋生物",
+  "diveLog_filter_sectionVisibilityUnit": "能见度（{unit}）",
+  "diveLog_filter_sectionWaterTempUnit": "水温（{unit}）",
+  "diveLog_filter_sectionWaterType": "水体类型",
+  "diveLog_filter_speciesSearchHint": "搜索物种",
+  "diveLog_listPage_tooltip_explore": "用一句话探索",
+  "explore_chip_favorite": "收藏",
+  "explore_chip_deco": "减压潜水",
+  "explore_chip_noDeco": "无减压",
+  "explore_chip_noBuddy": "无潜伴",
+  "explore_chip_rating": "评分{op} {value}",
+  "explore_chip_numeric": "{field}{op} {value}",
+  "explore_chip_between": "{field} {low} 至 {high}",
+  "explore_chip_enum": "{field}：{values}",
+  "explore_chip_enumNot": "{field}不是 {values}",
+  "explore_chip_timeRange": "{start} 至 {end}",
+  "explore_chip_timeSince": "自 {start} 起",
+  "explore_chip_timeBefore": "{end} 之前",
+  "explore_count": "{count, plural, =0{无潜水} =1{1 次潜水} other{{count} 次潜水}}",
+  "explore_download_button": "下载设备端模型",
+  "explore_download_running": "正在下载模型",
+  "explore_error_contextExceeded": "这句话对设备端模型来说太长了。请尝试更短的句子。",
+  "explore_error_decodingFailure": "模型没有给出可用的答案。请尝试换个说法。",
+  "explore_error_guardrail": "模型拒绝了这句话。",
+  "explore_error_modelNotReady": "设备端模型尚未就绪。",
+  "explore_error_quotaExceeded": "设备端模型正忙。请稍后再试。",
+  "explore_error_refusal": "模型拒绝了这句话。",
+  "explore_error_schemaMismatch": "无法理解此内容。如果持续出现，请更新应用。",
+  "explore_error_unknown": "向设备端模型提问时出错。",
+  "explore_error_unsupportedLocale": "设备端模型不理解这种语言。",
+  "explore_field_airTemp": "气温",
+  "explore_field_avgDepth": "平均深度",
+  "explore_field_bottomTime": "水底时间",
+  "explore_field_currentStrength": "水流",
+  "explore_field_depth": "深度",
+  "explore_field_diveMode": "潜水模式",
+  "explore_field_diveNumber": "潜水编号",
+  "explore_field_diveType": "潜水类型",
+  "explore_field_entryMethod": "入水方式",
+  "explore_field_o2": "氧气",
+  "explore_field_rating": "评分",
+  "explore_field_visibility": "能见度",
+  "explore_field_waterTemp": "水温",
+  "explore_field_waterType": "水体类型",
+  "explore_field_weekday": "星期",
+  "explore_handoff_diveList": "在潜水列表中打开",
+  "explore_handoff_insights": "在洞察中打开",
+  "explore_hint": "询问你的潜水，例如博奈尔 20 米以下的海龟",
+  "explore_needsAttention_title": "需要注意",
+  "explore_op_gt": "超过",
+  "explore_op_gte": "至少",
+  "explore_op_lt": "低于",
+  "explore_op_lte": "至多",
+  "explore_value_minutes": "{minutes} 分钟",
+  "explore_op_eq": "为",
+  "explore_pickCandidate_title": "\"{text}\" 指的是哪一个？",
+  "explore_recent_title": "最近",
+  "explore_results_title": "匹配的潜水",
+  "explore_results_truncated": "显示前 {count} 条。在潜水列表中查看全部。",
+  "explore_shortcut_unavailable": "探索需要设备端模型，但此设备上的模型尚未就绪。",
+  "explore_subjectNotSupported": "目前只能搜索潜水记录。",
+  "explore_title": "探索",
+  "explore_understood_title": "已理解",
+  "explore_unplaced_reason_invalid": "无法读取此值",
+  "explore_unplaced_reason_noAxis": "尚不可搜索",
+  "explore_unplaced_reason_outOfRange": "值超出范围",
+  "explore_unplaced_reason_unknownField": "未知字段",
+  "explore_unplaced_reason_unknownTime": "无法读取此时间",
+  "explore_unresolved_noCandidates": "日志中没有匹配项",
+  "explore_chart_divesOverTime": "潜水随时间变化",
+  "explore_chart_depthTrend": "深度",
+  "explore_chart_waterTempTrend": "水温",
+  "explore_chart_bottomTimeTrend": "水底时间",
+  "explore_chart_entityCounts": "每个{kind}的潜水次数",
+  "explore_kind_site": "潜点",
+  "explore_kind_place": "地点",
+  "explore_kind_species": "物种",
+  "explore_kind_gear": "装备",
+  "explore_kind_buddy": "潜伴",
+  "explore_kind_tag": "标签",
+  "explore_kind_center": "潜水中心",
+  "explore_kind_trip": "行程",
+  "explore_kind_computer": "电脑",
   "diveLog_listPage_semanticsDiveAtSite": "第 {diveNumber} 次潜水，地点 {siteName}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "在 {siteName} 的计划潜水",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {

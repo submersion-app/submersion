@@ -244,6 +244,41 @@ void main() {
       expect(fold(events: [fill(0)], uses: twoTanks).linkedDiveCount, 2);
     });
 
+    test('a short fill is judged by the same thresholds as a reading', () {
+      // 207 bar cylinder: full from 186.3, empty at 50 or less.
+      expect(
+        fold(events: [fill(0, pressure: 40)]).status,
+        TripCylinderStatus.empty,
+      );
+      expect(
+        fold(events: [fill(0, pressure: 120)]).status,
+        TripCylinderStatus.partial,
+      );
+      expect(
+        fold(events: [fill(0, pressure: 190)]).status,
+        TripCylinderStatus.full,
+      );
+    });
+
+    test('a fill with no pressure, or no working pressure, stays full', () {
+      expect(
+        fold(events: [fill(0, pressure: null)]).status,
+        TripCylinderStatus.full,
+      );
+      final unrated = foldCylinderState(
+        cylinder: TripCylinder(
+          id: 'c1',
+          tripId: 't1',
+          label: 'Truck 1',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        events: [fill(0, pressure: 120)],
+        uses: const [],
+      );
+      expect(unrated.status, TripCylinderStatus.full);
+    });
+
     test('a second fill after a dive restores full', () {
       final s = fold(events: [fill(0), fill(120)], uses: [dive(60)]);
       expect(s.status, TripCylinderStatus.full);
@@ -388,6 +423,28 @@ void main() {
         tankMix: const GasMix(o2: 32),
       );
       expect(pick!.id, 'first');
+    });
+  });
+
+  group('the last item', () {
+    test('the last item is the event when an event came last', () {
+      final f = fill(120, label: '14');
+      final s = fold(events: [f], uses: [dive(60)]);
+      expect(s.lastEvent, f);
+      expect(s.lastUse, isNull);
+    });
+
+    test('the last item is the tank use when a dive came last', () {
+      final d = dive(60);
+      final s = fold(events: [fill(0)], uses: [d]);
+      expect(s.lastUse, d);
+      expect(s.lastEvent, isNull);
+    });
+
+    test('an untouched slot has no last item', () {
+      final s = fold();
+      expect(s.lastEvent, isNull);
+      expect(s.lastUse, isNull);
     });
   });
 }

@@ -69,14 +69,30 @@ const List<_OwnedTable> _ownedTables = [
     hasBuiltIns: true,
     children: [],
   ),
-  // Segments before tanks: a segment's tank_id has no ON DELETE action. The
-  // plan's equipment links cascade, here and on a peer applying the plan's
-  // tombstone, as DivePlanRepository.deletePlan leaves them.
+  // Mission rows first (they reference only the plan), then segments before
+  // tanks: a segment's tank_id has no ON DELETE action. The plan's equipment
+  // links cascade, here and on a peer applying the plan's tombstone, as
+  // DivePlanRepository.deletePlan leaves them.
   (
     table: 'dive_plans',
     entityType: 'divePlans',
     hasBuiltIns: false,
     children: [
+      (
+        table: 'dive_plan_mission_legs',
+        entityType: 'divePlanMissionLegs',
+        parentColumn: 'plan_id',
+      ),
+      (
+        table: 'dive_plan_mission_members',
+        entityType: 'divePlanMissionMembers',
+        parentColumn: 'plan_id',
+      ),
+      (
+        table: 'dive_plan_missions',
+        entityType: 'divePlanMissions',
+        parentColumn: 'plan_id',
+      ),
       (
         table: 'dive_plan_segments',
         entityType: 'divePlanSegments',

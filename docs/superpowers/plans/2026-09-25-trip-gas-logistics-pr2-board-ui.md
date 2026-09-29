@@ -5392,6 +5392,18 @@ git diff origin/main...HEAD | grep -nP "^\+.*(\x{2014}|\x{2013})"
 ```
 Expected: no output. Then scan the same diff for the two tool-attribution terms the contributor guide's Attribution section forbids; expected: no output.
 
-- [ ] **Step 5: Push and open the pull request, only when the user asks**
+- [ ] **Step 5: Capture the screenshots the PR needs**
 
-Pushing and opening a PR are outward actions; wait for the user's go-ahead. Then push with `-u`, and create the PR in one Bash call with `unset GITHUB_TOKEN; gh pr create --repo submersion-app/submersion --base main ...` and a body whose first line is `Part of #2325`, summarizing: the story card, the board page and route, the four sheets, the ledger, the passport copies of fills on owned cylinders, the strings in all 11 locales, and the PR 1 review follow-up (the fold breaks every tie deterministically). Bind the PR in the desktop app and read CI through it; never poll.
+This PR changes `lib/**/presentation/`, so the project's rule requires screenshots in its description: before and after (after only for a brand-new screen), light and dark, phone and desktop widths. `gh` cannot upload images; capture them, hand the files to the maintainer with `SendUserFile`, and list them in the PR's Screenshots section.
+
+Capture with a throwaway golden test (never committed): pump the widget in a `ProviderScope` with seeded states, wrap `MaterialApp` with `theme:` light or dark, set `tester.view.physicalSize` to `Size(390, 844)` for phone and `Size(1280, 800)` for desktop, and `await expectLater(find.byType(MaterialApp), matchesGoldenFile('goldens/<name>.png'))`, run with `--update-goldens`. Load a real font in `setUpAll` or every glyph renders as a box: register `/System/Library/Fonts/Supplemental/Arial.ttf` through `FontLoader` under both `'Roboto'` and `'.SF Pro Text'`. Copy the PNGs to the scratchpad, then delete the test file and its `goldens/` folder.
+
+The set, each in light and dark and at phone and desktop width:
+1. The trip detail page before (on main: no cylinders card) and after (the card with four slots in mixed states).
+2. The board page with four slots (new screen, after only).
+3. The fill sheet in "Fill several" mode with two slots checked (new).
+4. The ledger segment with a fill and an adjustment (new).
+
+- [ ] **Step 6: Push and open the pull request, only when the user asks**
+
+Pushing and opening a PR are outward actions; wait for the user's go-ahead. Then push with `-u`, and create the PR in one Bash call with `unset GITHUB_TOKEN; gh pr create --repo submersion-app/submersion --base main ...` and a body whose first line is `Part of #2325`, summarizing: the story card, the board page and route, the four sheets, the ledger, the passport copies of fills on owned cylinders, the strings in all 11 locales, and the PR 1 review follow-up (the fold breaks every tie deterministically). The body follows `.github/PULL_REQUEST_TEMPLATE.md` and its Screenshots section names each captured image (which screen, theme and width), so the maintainer can drag the files in. Bind the PR in the desktop app and read CI through it; never poll.

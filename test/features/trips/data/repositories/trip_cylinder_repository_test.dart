@@ -2,10 +2,12 @@ import 'package:drift/drift.dart' show Value, Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
-    show AppDatabase, DivesCompanion, DiveTanksCompanion;
+    show AppDatabase, DiveSitesCompanion, DivesCompanion, DiveTanksCompanion;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
@@ -378,5 +380,281 @@ void main() {
       use.entryTime,
       DateTime.fromMillisecondsSinceEpoch(t0 + 7200000, isUtc: true),
     );
+  });
+
+  group('board follow-ups', () {
+    test('a tank use carries its dive site name', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 's1',
+              name: 'Salt Pier',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      await insertDiveWithTank(
+        diveId: 'd1',
+        tankId: 't1',
+        entryMillis: at.millisecondsSinceEpoch,
+        cylinderId: a.id,
+      );
+      await db.customUpdate("UPDATE dives SET site_id = 's1' WHERE id = 'd1'");
+
+      final uses = await repository.getTankUsesForTrip(tripId);
+      expect(uses[a.id]!.single.siteName, 'Salt Pier');
+    });
+
+    test('reorder rewrites board order and stages only moved rows', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final b = await repository.createCylinder(slot(label: 'B', sortOrder: 1));
+      final c = await repository.createCylinder(slot(label: 'C', sortOrder: 2));
+      await db.customStatement("DELETE FROM sync_records");
+
+      await repository.reorderCylinders([c.id, a.id, b.id]);
+
+      final listed = await repository.getCylindersForTrip(tripId);
+      expect(listed.map((x) => x.label), ['C', 'A', 'B']);
+      expect(await pendingCountFor('tripCylinders', c.id), 1);
+      expect(await pendingCountFor('tripCylinders', a.id), 1);
+      expect(await pendingCountFor('tripCylinders', b.id), 1);
+
+      await db.customStatement("DELETE FROM sync_records");
+      await repository.reorderCylinders([c.id, a.id, b.id]);
+      expect(await pendingCountFor('tripCylinders', a.id), 0);
+    });
+
+    test('createCylinders writes the whole batch or none of it', () async {
+      final made = await repository.createCylinders([
+        slot(label: 'A'),
+        slot(label: 'B', sortOrder: 1),
+      ]);
+      expect(made.map((x) => x.label), ['A', 'B']);
+      expect(await pendingCountFor('tripCylinders', made.last.id), 1);
+
+      // The second row reuses an id, so the insert fails part way.
+      await expectLater(
+        repository.createCylinders([
+          slot(label: 'C', sortOrder: 2),
+          slot(label: 'D', sortOrder: 3).copyWith(id: made.first.id),
+        ]),
+        throwsA(anything),
+      );
+      final listed = await repository.getCylindersForTrip(tripId);
+      expect(listed.map((x) => x.label), ['A', 'B']);
+    });
+
+    test('a create that cannot be staged for sync leaves no row', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      Future<int> rows(String table) async =>
+          (await db
+                  .customSelect('SELECT COUNT(*) AS n FROM $table')
+                  .getSingle())
+              .read<int>('n');
+      // Staging fails once the insert has already run.
+      await db.customStatement(
+        'ALTER TABLE sync_records RENAME TO sync_records_off',
+      );
+      addTearDown(
+        () => db.customStatement(
+          'ALTER TABLE sync_records_off RENAME TO sync_records',
+        ),
+      );
+
+      await expectLater(
+        repository.createEvent(
+          TripCylinderEvent(
+            id: '',
+            tripCylinderId: a.id,
+            kind: TripCylinderEventKind.fill,
+            occurredAt: DateTime.utc(2026, 3, 9, 8),
+            createdAt: DateTime.utc(2026, 3, 9, 8),
+            updatedAt: DateTime.utc(2026, 3, 9, 8),
+          ),
+        ),
+        throwsA(anything),
+      );
+      expect(await rows('trip_cylinder_events'), 0);
+
+      await expectLater(
+        repository.createCylinder(slot(label: 'B', sortOrder: 1)),
+        throwsA(anything),
+      );
+      expect(await rows('trip_cylinders'), 1);
+    });
+
+    test('a delete that cannot log its tombstone keeps the event', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final e = await repository.createEvent(fill(a.id));
+      await db.customStatement(
+        'ALTER TABLE deletion_log RENAME TO deletion_log_off',
+      );
+      addTearDown(
+        () => db.customStatement(
+          'ALTER TABLE deletion_log_off RENAME TO deletion_log',
+        ),
+      );
+
+      await expectLater(repository.deleteEvent(e.id), throwsA(anything));
+      expect(await repository.getEventsForCylinder(a.id), hasLength(1));
+    });
+
+    test('renaming a dive site refreshes the board', () async {
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 's1',
+              name: 'Salt Pier',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      final changed = repository.watchTripCylinderChanges().first;
+      await (db.update(db.diveSites)..where((t) => t.id.equals('s1'))).write(
+        const DiveSitesCompanion(name: Value('Salt Pier North')),
+      );
+      await expectLater(changed.timeout(const Duration(seconds: 2)), completes);
+    });
+
+    test('a delete run alongside the event commits or fails with it', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final e = await repository.createEvent(fill(a.id));
+      final fills = CylinderFillRepository();
+      await fills.create(
+        CylinderFill(
+          id: 'copy-1',
+          passportId: 'passport-1',
+          filledAt: DateTime(2026, 3, 9, 8),
+          o2Percent: 32,
+          createdAt: DateTime.utc(2026, 3, 9),
+          updatedAt: DateTime.utc(2026, 3, 9),
+        ),
+      );
+      await db.customStatement(
+        'ALTER TABLE deletion_log RENAME TO deletion_log_off',
+      );
+      addTearDown(
+        () => db.customStatement(
+          'ALTER TABLE deletion_log_off RENAME TO deletion_log',
+        ),
+      );
+
+      await expectLater(
+        repository.deleteEvent(e.id, alongside: () => fills.delete('copy-1')),
+        throwsA(anything),
+      );
+      expect(await fills.getById('copy-1'), isNotNull);
+      expect(await repository.getEventsForCylinder(a.id), hasLength(1));
+    });
+
+    test('editing a slot never moves it on the board', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final b = await repository.createCylinder(slot(label: 'B', sortOrder: 1));
+      await repository.reorderCylinders([b.id, a.id]);
+
+      // The editor still holds A as it was before the reorder.
+      await repository.updateCylinder(a.copyWith(label: 'A2'));
+
+      final listed = await repository.getCylindersForTrip(tripId);
+      expect(listed.map((x) => x.label), ['B', 'A2']);
+    });
+
+    test('an update that cannot be staged for sync changes nothing', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final e = await repository.createEvent(fill(a.id));
+      await db.customStatement(
+        'ALTER TABLE sync_records RENAME TO sync_records_off',
+      );
+      addTearDown(
+        () => db.customStatement(
+          'ALTER TABLE sync_records_off RENAME TO sync_records',
+        ),
+      );
+
+      await expectLater(
+        repository.updateEvent(e.copyWith(pressure: 123.0)),
+        throwsA(anything),
+      );
+      await expectLater(
+        repository.updateCylinder(a.copyWith(label: 'Z')),
+        throwsA(anything),
+      );
+      final events = await repository.getEventsForCylinder(a.id);
+      expect(events.single.pressure, e.pressure);
+      expect((await repository.getCylinderById(a.id))!.label, 'A');
+    });
+
+    test('createEvents writes the whole batch or none of it', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final made = await repository.createEvents([fill(a.id), fill(a.id)]);
+      expect(made, hasLength(2));
+
+      await expectLater(
+        repository.createEvents([
+          fill(a.id),
+          fill(a.id).copyWith(id: made.first.id),
+        ]),
+        throwsA(anything),
+      );
+      expect(await repository.getEventsForCylinder(a.id), hasLength(2));
+    });
+
+    test('the ledger stream ignores dives and sites', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      var hits = 0;
+      final sub = repository.watchLedgerChanges().listen((_) => hits++);
+      addTearDown(sub.cancel);
+      await pumpEventQueue();
+      hits = 0;
+
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 's1',
+              name: 'Salt Pier',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      await pumpEventQueue();
+      expect(hits, 0);
+
+      await repository.createEvent(fill(a.id));
+      await pumpEventQueue();
+      expect(hits, greaterThan(0));
+    });
+
+    test('one createEvents batch shares its creation time', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final b = await repository.createCylinder(slot(label: 'B', sortOrder: 1));
+      final made = await repository.createEvents([
+        for (var i = 0; i < 20; i++) fill(i.isEven ? a.id : b.id),
+      ]);
+      expect(made.map((e) => e.createdAt).toSet(), hasLength(1));
+    });
+
+    test('updating an event that is gone throws and stages nothing', () async {
+      final a = await repository.createCylinder(slot(label: 'A'));
+      final e = await repository.createEvent(fill(a.id));
+      await repository.deleteEvent(e.id);
+      await db.customStatement('DELETE FROM sync_records');
+
+      await expectLater(
+        repository.updateEvent(e.copyWith(pressure: 150.0)),
+        throwsA(isA<TripCylinderEventMissing>()),
+      );
+      expect(await pendingCountFor('tripCylinderEvents', e.id), 0);
+    });
+
+    test('one createCylinders batch shares its creation time', () async {
+      final made = await repository.createCylinders([
+        for (var i = 0; i < 20; i++) slot(label: 'S$i', sortOrder: i),
+      ]);
+      expect(made.map((c) => c.createdAt).toSet(), hasLength(1));
+    });
   });
 }

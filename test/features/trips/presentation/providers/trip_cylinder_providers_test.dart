@@ -170,4 +170,78 @@ void main() {
       TripCylinderStatus.partial,
     );
   });
+
+  test('the ledger lists every event on the trip, newest first', () async {
+    final a = await slot('A');
+    final b = await slot('B', sortOrder: 1);
+    await repository.createEvent(
+      TripCylinderEvent(
+        id: 'e-old',
+        tripCylinderId: a.id,
+        kind: TripCylinderEventKind.fill,
+        occurredAt: at,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    await repository.createEvent(
+      TripCylinderEvent(
+        id: 'e-new',
+        tripCylinderId: b.id,
+        kind: TripCylinderEventKind.adjustment,
+        occurredAt: at.add(const Duration(hours: 3)),
+        pressure: 0,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+
+    final ledger = await container.read(
+      tripCylinderLedgerProvider(tripId).future,
+    );
+    expect(ledger.map((e) => e.id), ['e-new', 'e-old']);
+  });
+
+  test('ledger entries at the same minute list the later one first', () async {
+    final a = await slot('A');
+    Future<void> at8(String id) => repository.createEvent(
+      TripCylinderEvent(
+        id: id,
+        tripCylinderId: a.id,
+        kind: TripCylinderEventKind.fill,
+        occurredAt: at,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    // Ids sort the other way round, so only the creation time can win.
+    await at8('z-first');
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    await at8('a-second');
+
+    final ledger = await container.read(
+      tripCylinderLedgerProvider(tripId).future,
+    );
+    expect(ledger.map((e) => e.id), ['a-second', 'z-first']);
+  });
+
+  test('fills saved together list in board order', () async {
+    final a = await slot('A');
+    final b = await slot('B', sortOrder: 1);
+    final c = await slot('C', sortOrder: 2);
+    TripCylinderEvent fillOn(String id) => TripCylinderEvent(
+      id: '',
+      tripCylinderId: id,
+      kind: TripCylinderEventKind.fill,
+      occurredAt: at,
+      createdAt: at,
+      updatedAt: at,
+    );
+    await repository.createEvents([fillOn(c.id), fillOn(a.id), fillOn(b.id)]);
+
+    final ledger = await container.read(
+      tripCylinderLedgerProvider(tripId).future,
+    );
+    expect(ledger.map((e) => e.tripCylinderId), [a.id, b.id, c.id]);
+  });
 }

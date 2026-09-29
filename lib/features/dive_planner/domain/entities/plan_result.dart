@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode, TurnPressureRule;
 
@@ -631,6 +632,10 @@ class DivePlanState extends Equatable {
   final double? plannedWeightKg;
   final Map<String, double>? plannedWeightPlacement;
 
+  /// The DPV mission being planned, or null. Travels with the state so
+  /// turning the mission off clears it on save.
+  final DpvMission? mission;
+
   /// Notes for the plan.
   final String notes;
 
@@ -688,6 +693,7 @@ class DivePlanState extends Equatable {
     this.gearProvenance = const [],
     this.plannedWeightKg,
     this.plannedWeightPlacement,
+    this.mission,
     this.notes = '',
     this.isDirty = false,
     required this.createdAt,
@@ -776,6 +782,8 @@ class DivePlanState extends Equatable {
     double? plannedWeightKg,
     Map<String, double>? plannedWeightPlacement,
     bool clearPlannedWeight = false,
+    DpvMission? mission,
+    bool clearMission = false,
     String? notes,
     bool? isDirty,
     DateTime? createdAt,
@@ -858,6 +866,7 @@ class DivePlanState extends Equatable {
       plannedWeightPlacement: clearPlannedWeight
           ? null
           : (plannedWeightPlacement ?? this.plannedWeightPlacement),
+      mission: clearMission ? null : (mission ?? this.mission),
       notes: notes ?? this.notes,
       isDirty: isDirty ?? this.isDirty,
       createdAt: createdAt ?? this.createdAt,
@@ -912,6 +921,7 @@ class DivePlanState extends Equatable {
     gearProvenance,
     plannedWeightKg,
     plannedWeightPlacement,
+    mission,
     notes,
     isDirty,
     createdAt,

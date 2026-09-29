@@ -213,7 +213,9 @@ class MissionEngine {
       // In open water the safe surface is the ascent alone, which does not
       // depend on whose scooter failed.
       final safeSurfaceSeconds = openWater
-          ? members.map((m) => m.surface?.ttsSeconds).nonNulls.firstOrNull
+          // A failed surface run knows no ascent time, so it has none to
+          // give; its zero must not read as a safe surface reached at once.
+          ? members.map((m) => m.surface?.knownTtsSeconds).nonNulls.firstOrNull
           : overheadSafeSurface;
       waypoints.add(
         WaypointOutcome(
@@ -313,20 +315,14 @@ class MissionEngine {
           memberId: member.id,
         ),
       );
-      return ExitOutcome(
-        mode: mode,
-        towerId: towerId,
-        feasible: false,
-        exitBottomSeconds: 0,
-        ttsSeconds: 0,
-        exitLitersByMember: const {},
-      );
+      return ExitOutcome.failed(mode: mode, towerId: towerId);
     }
   }
 
   /// The open-water surface exit at waypoint [k] after [failedMemberId]'s
-  /// scooter dies, or null (with a warning) when it cannot be run.
-  ExitOutcome? _evaluateSurface({
+  /// scooter dies; a failed, infeasible exit (with a warning) when it cannot
+  /// be run, so the binding factor does not blame the current for it.
+  ExitOutcome _evaluateSurface({
     required domain.DivePlan plan,
     required DpvMission mission,
     required int k,
@@ -351,7 +347,7 @@ class MissionEngine {
           memberId: failedMemberId,
         ),
       );
-      return null;
+      return const ExitOutcome.failed(mode: MissionExitMode.surface);
     }
   }
 
@@ -383,17 +379,26 @@ class MissionEngine {
     }
   }
 
-  /// Prefers a feasible tow; then one that made headway over one the current
-  /// blocked (a blocked tow reports no time, so it would otherwise win on
-  /// time and hide why the tow that ran failed); then the quicker one.
+  /// Prefers a feasible tow; then one that was computed over one whose
+  /// computation threw; then one that made headway over one the current
+  /// blocked. A failed or blocked tow reports no time, so either would
+  /// otherwise win on time and hide why the tow that ran failed. Then the
+  /// quicker one.
   ExitOutcome _betterTow(ExitOutcome? current, ExitOutcome candidate) {
     if (current == null) return candidate;
     if (candidate.feasible != current.feasible) {
       return candidate.feasible ? candidate : current;
     }
+    if (candidate.failed != current.failed) {
+      return candidate.failed ? current : candidate;
+    }
     if (candidate.blockedByCurrent != current.blockedByCurrent) {
       return candidate.blockedByCurrent ? current : candidate;
     }
-    return candidate.exitSeconds < current.exitSeconds ? candidate : current;
+    final candidateSeconds = candidate.knownExitSeconds;
+    final currentSeconds = current.knownExitSeconds;
+    // Both failed: neither has a time to compare, so the first stands.
+    if (candidateSeconds == null || currentSeconds == null) return current;
+    return candidateSeconds < currentSeconds ? candidate : current;
   }
 }

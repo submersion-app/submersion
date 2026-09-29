@@ -1495,6 +1495,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'Sluiten / Annuleren';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence =>
+      'Verkennen met een zin';
+
+  @override
   String get accessibility_shortcut_goBack => 'Ga terug';
 
   @override
@@ -25197,6 +25201,252 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_title => 'Flessen';
+
+  @override
+  String trips_cylinders_summary(int full, int partial, int empty) {
+    return 'Vol $full · Deels $partial · Leeg $empty';
+  }
+
+  @override
+  String trips_cylinders_summaryUnfilled(int count) {
+    return 'Nog niet gevuld $count';
+  }
+
+  @override
+  String get trips_cylinders_setUp => 'Flessen instellen';
+
+  @override
+  String get trips_cylinders_setUpHint =>
+      'Houd de flessen bij die je op deze reis hebt: vullingen, mengsels en wat er in elke fles over is.';
+
+  @override
+  String get trips_cylinders_status_full => 'Vol';
+
+  @override
+  String get trips_cylinders_status_partial => 'Deels vol';
+
+  @override
+  String get trips_cylinders_status_empty => 'Leeg';
+
+  @override
+  String get trips_cylinders_status_unknown => 'Nog niet gevuld';
+
+  @override
+  String get trips_cylinders_mixAir => 'Lucht';
+
+  @override
+  String get trips_cylinders_segment_board => 'Overzicht';
+
+  @override
+  String get trips_cylinders_segment_ledger => 'Logboek';
+
+  @override
+  String get trips_cylinders_action_add => 'Flessen toevoegen';
+
+  @override
+  String get trips_cylinders_action_fill => 'Vullen';
+
+  @override
+  String get trips_cylinders_action_fillSeveral => 'Meerdere vullen';
+
+  @override
+  String get trips_cylinders_action_adjust => 'Bijwerken';
+
+  @override
+  String trips_cylinders_bottle(String label) {
+    return 'Fles $label';
+  }
+
+  @override
+  String trips_cylinders_linkedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_last_fillAt(String place, String when) {
+    return 'Gevuld bij $place, $when';
+  }
+
+  @override
+  String trips_cylinders_last_fill(String when) {
+    return 'Gevuld $when';
+  }
+
+  @override
+  String trips_cylinders_last_adjustment(String when) {
+    return 'Bijgewerkt $when';
+  }
+
+  @override
+  String trips_cylinders_last_diveAt(String site, String when) {
+    return 'Gedoken bij $site, $when';
+  }
+
+  @override
+  String trips_cylinders_last_dive(String when) {
+    return 'Gedoken $when';
+  }
+
+  @override
+  String get trips_cylinders_boardEmpty => 'Nog geen flessen op deze reis';
+
+  @override
+  String get trips_cylinders_ledgerEmpty => 'Nog geen vullingen of correcties';
+
+  @override
+  String get trips_cylinders_kind_fill => 'Vulling';
+
+  @override
+  String get trips_cylinders_kind_adjustment => 'Correctie';
+
+  @override
+  String get trips_cylinders_deleteConfirmUnused =>
+      'Deze fles en haar vullingen verwijderen?';
+
+  @override
+  String trips_cylinders_deleteConfirmUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Deze fles en haar vullingen verwijderen? $count duiken gebruikten haar. Die duiken houden hun flessen; alleen de koppeling verdwijnt.',
+      one:
+          'Deze fles en haar vullingen verwijderen? $count duik gebruikte haar. Die duik houdt zijn fles; alleen de koppeling verdwijnt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_deleteEventConfirm => 'Dit item verwijderen?';
+
+  @override
+  String get trips_cylinders_add_tabRental => 'Huur';
+
+  @override
+  String get trips_cylinders_add_tabOwned => 'Uit mijn uitrusting';
+
+  @override
+  String get trips_cylinders_add_count => 'Aantal';
+
+  @override
+  String get trips_cylinders_add_preset => 'Flestype';
+
+  @override
+  String get trips_cylinders_add_prefix => 'Voorvoegsel voor de naam';
+
+  @override
+  String get trips_cylinders_add_prefixDefault => 'Pick-up';
+
+  @override
+  String get trips_cylinders_add_noOwned =>
+      'Er zijn geen flessen uit je uitrusting meer om toe te voegen.';
+
+  @override
+  String get trips_cylinders_add_errorCount =>
+      'Voer een getal van 1 tot 20 in.';
+
+  @override
+  String get trips_cylinders_fill_titleEdit => 'Vulling bewerken';
+
+  @override
+  String get trips_cylinders_fill_when => 'Wanneer';
+
+  @override
+  String get trips_cylinders_fill_where => 'Vulstation';
+
+  @override
+  String get trips_cylinders_fill_whereNone => 'Niet ingesteld';
+
+  @override
+  String trips_cylinders_fill_pressure(String unit) {
+    return 'Vuldruk ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_fill_o2 => 'O2 besteld (%)';
+
+  @override
+  String get trips_cylinders_fill_he => 'He besteld (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedO2 => 'O2 geanalyseerd (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedHe => 'He geanalyseerd (%)';
+
+  @override
+  String get trips_cylinders_fill_bottle => 'Flesnummer';
+
+  @override
+  String get trips_cylinders_fill_cost => 'Kosten';
+
+  @override
+  String get trips_cylinders_fill_costEach => 'Kosten per fles';
+
+  @override
+  String get trips_cylinders_fill_currency => 'Valuta';
+
+  @override
+  String get trips_cylinders_fill_package => 'Inbegrepen in een pakket';
+
+  @override
+  String get trips_cylinders_fill_slots => 'Te vullen flessen';
+
+  @override
+  String get trips_cylinders_fill_errorMix =>
+      'Zuurstof moet tussen 1 en 100 procent liggen, helium tussen 0 en 99, en samen hoogstens 100.';
+
+  @override
+  String get trips_cylinders_fill_errorNoSlot => 'Kies minstens één fles.';
+
+  @override
+  String get trips_cylinders_note => 'Notitie';
+
+  @override
+  String get trips_cylinders_adjust_titleEdit => 'Correctie bewerken';
+
+  @override
+  String trips_cylinders_adjust_pressure(String unit) {
+    return 'Druk ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_adjust_markEmpty => 'Als leeg markeren';
+
+  @override
+  String get trips_cylinders_edit_title => 'Fles bewerken';
+
+  @override
+  String get trips_cylinders_edit_label => 'Naam';
+
+  @override
+  String get trips_cylinders_edit_errorLabel => 'Voer een naam in.';
+
+  @override
+  String get trips_cylinders_edit_errorNeedsPressure =>
+      'Voer ook de werkdruk in, zodat de grootte kan worden omgerekend.';
+
+  @override
+  String trips_cylinders_edit_volume(String unit) {
+    return 'Grootte ($unit)';
+  }
+
+  @override
+  String trips_cylinders_edit_workingPressure(String unit) {
+    return 'Werkdruk ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_edit_presetCustom => 'Aangepast';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override
@@ -39659,6 +39909,369 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionDiveComputer => 'Duikcomputer';
+
+  @override
+  String diveLog_filterChip_speciesCount(Object count) {
+    return '$count soorten';
+  }
+
+  @override
+  String diveLog_filterChip_weekdayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weekdagen',
+      one: '$count weekdag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_filterChip_siteCount(Object count) {
+    return '$count locaties';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return 'Zicht $min tot $max $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMin(String value, String unit) {
+    return 'Zicht meer dan $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMax(String value, String unit) {
+    return 'Zicht minder dan $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return 'Water $min tot $max$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMin(String value, String unit) {
+    return 'Water warmer dan $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMax(String value, String unit) {
+    return 'Water kouder dan $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTypeCount(Object count) {
+    return '$count watertypen';
+  }
+
+  @override
+  String get diveLog_filter_sectionSpecies => 'Zeeleven';
+
+  @override
+  String diveLog_filter_sectionVisibilityUnit(Object unit) {
+    return 'Zicht ($unit)';
+  }
+
+  @override
+  String diveLog_filter_sectionWaterTempUnit(Object unit) {
+    return 'Watertemperatuur ($unit)';
+  }
+
+  @override
+  String get diveLog_filter_sectionWaterType => 'Watertype';
+
+  @override
+  String get diveLog_filter_speciesSearchHint => 'Soorten zoeken';
+
+  @override
+  String get diveLog_listPage_tooltip_explore => 'Verkennen met een zin';
+
+  @override
+  String get explore_chip_favorite => 'Favoriet';
+
+  @override
+  String get explore_chip_deco => 'Decompressieduik';
+
+  @override
+  String get explore_chip_noDeco => 'Zonder decompressie';
+
+  @override
+  String get explore_chip_noBuddy => 'Zonder buddy';
+
+  @override
+  String explore_chip_rating(String op, String value) {
+    return 'Beoordeling $op $value';
+  }
+
+  @override
+  String explore_chip_numeric(String field, String op, String value) {
+    return '$field $op $value';
+  }
+
+  @override
+  String explore_chip_between(String field, String low, String high) {
+    return '$field $low tot $high';
+  }
+
+  @override
+  String explore_chip_enum(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
+  String explore_chip_enumNot(String field, String values) {
+    return '$field niet $values';
+  }
+
+  @override
+  String explore_chip_timeRange(String start, String end) {
+    return '$start tot $end';
+  }
+
+  @override
+  String explore_chip_timeSince(Object start) {
+    return 'Sinds $start';
+  }
+
+  @override
+  String explore_chip_timeBefore(Object end) {
+    return 'Voor $end';
+  }
+
+  @override
+  String explore_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+      zero: 'Geen duiken',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_download_button => 'Het model op het apparaat downloaden';
+
+  @override
+  String get explore_download_running => 'Het model wordt gedownload';
+
+  @override
+  String get explore_error_contextExceeded =>
+      'Die zin is te lang voor het model op het apparaat. Probeer een kortere.';
+
+  @override
+  String get explore_error_decodingFailure =>
+      'Het model gaf geen bruikbaar antwoord. Probeer het anders te formuleren.';
+
+  @override
+  String get explore_error_guardrail => 'Het model heeft deze zin afgewezen.';
+
+  @override
+  String get explore_error_modelNotReady =>
+      'Het model op het apparaat is nog niet klaar.';
+
+  @override
+  String get explore_error_quotaExceeded =>
+      'Het model op het apparaat is bezet. Probeer het zo opnieuw.';
+
+  @override
+  String get explore_error_refusal => 'Het model heeft deze zin afgewezen.';
+
+  @override
+  String get explore_error_schemaMismatch =>
+      'Dit kon niet worden begrepen. Werk de app bij als dit blijft gebeuren.';
+
+  @override
+  String get explore_error_unknown =>
+      'Er ging iets mis bij het raadplegen van het model op het apparaat.';
+
+  @override
+  String get explore_error_unsupportedLocale =>
+      'Het model op het apparaat begrijpt deze taal niet.';
+
+  @override
+  String get explore_field_airTemp => 'Luchttemperatuur';
+
+  @override
+  String get explore_field_avgDepth => 'Gemiddelde diepte';
+
+  @override
+  String get explore_field_bottomTime => 'Bodemtijd';
+
+  @override
+  String get explore_field_currentStrength => 'Stroming';
+
+  @override
+  String get explore_field_depth => 'Diepte';
+
+  @override
+  String get explore_field_diveMode => 'Duikmodus';
+
+  @override
+  String get explore_field_diveNumber => 'Duiknummer';
+
+  @override
+  String get explore_field_diveType => 'Duiktype';
+
+  @override
+  String get explore_field_entryMethod => 'Instap';
+
+  @override
+  String get explore_field_o2 => 'Zuurstof';
+
+  @override
+  String get explore_field_rating => 'Beoordeling';
+
+  @override
+  String get explore_field_visibility => 'Zicht';
+
+  @override
+  String get explore_field_waterTemp => 'Watertemperatuur';
+
+  @override
+  String get explore_field_waterType => 'Watertype';
+
+  @override
+  String get explore_field_weekday => 'Weekdag';
+
+  @override
+  String get explore_handoff_diveList => 'Openen in duiklijst';
+
+  @override
+  String get explore_handoff_insights => 'Openen in Inzichten';
+
+  @override
+  String get explore_hint =>
+      'Vraag naar je duiken, bijvoorbeeld schildpadden dieper dan 20 m op Bonaire';
+
+  @override
+  String get explore_needsAttention_title => 'Vraagt aandacht';
+
+  @override
+  String get explore_op_gt => 'meer dan';
+
+  @override
+  String get explore_op_gte => 'minstens';
+
+  @override
+  String get explore_op_lt => 'minder dan';
+
+  @override
+  String get explore_op_lte => 'hoogstens';
+
+  @override
+  String explore_value_minutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get explore_op_eq => 'van';
+
+  @override
+  String explore_pickCandidate_title(Object text) {
+    return 'Wat bedoelde je met \"$text\"?';
+  }
+
+  @override
+  String get explore_recent_title => 'Recent';
+
+  @override
+  String get explore_results_title => 'Overeenkomende duiken';
+
+  @override
+  String explore_results_truncated(Object count) {
+    return 'De eerste $count worden getoond. Open de duiklijst voor alle duiken.';
+  }
+
+  @override
+  String get explore_shortcut_unavailable =>
+      'Verkennen heeft het model op het apparaat nodig, dat op dit apparaat niet klaar is.';
+
+  @override
+  String get explore_subjectNotSupported =>
+      'Voorlopig kunnen alleen duiken worden gezocht.';
+
+  @override
+  String get explore_title => 'Verkennen';
+
+  @override
+  String get explore_understood_title => 'Begrepen';
+
+  @override
+  String get explore_unplaced_reason_invalid =>
+      'Deze waarde kon niet worden gelezen';
+
+  @override
+  String get explore_unplaced_reason_noAxis => 'Nog niet doorzoekbaar';
+
+  @override
+  String get explore_unplaced_reason_outOfRange => 'Waarde buiten bereik';
+
+  @override
+  String get explore_unplaced_reason_unknownField => 'Onbekend veld';
+
+  @override
+  String get explore_unplaced_reason_unknownTime =>
+      'Deze tijd kon niet worden gelezen';
+
+  @override
+  String get explore_unresolved_noCandidates =>
+      'Geen overeenkomst in je logboek';
+
+  @override
+  String get explore_chart_divesOverTime => 'Duiken in de tijd';
+
+  @override
+  String get explore_chart_depthTrend => 'Diepte';
+
+  @override
+  String get explore_chart_waterTempTrend => 'Watertemperatuur';
+
+  @override
+  String get explore_chart_bottomTimeTrend => 'Bodemtijd';
+
+  @override
+  String explore_chart_entityCounts(Object kind) {
+    return 'Duiken per $kind';
+  }
+
+  @override
+  String get explore_kind_site => 'locatie';
+
+  @override
+  String get explore_kind_place => 'plaats';
+
+  @override
+  String get explore_kind_species => 'soort';
+
+  @override
+  String get explore_kind_gear => 'uitrusting';
+
+  @override
+  String get explore_kind_buddy => 'buddy';
+
+  @override
+  String get explore_kind_tag => 'tag';
+
+  @override
+  String get explore_kind_center => 'duikcentrum';
+
+  @override
+  String get explore_kind_trip => 'reis';
+
+  @override
+  String get explore_kind_computer => 'computer';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

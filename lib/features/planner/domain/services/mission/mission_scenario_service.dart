@@ -6,6 +6,7 @@ import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/services/mission/battery_burn_service.dart';
 import 'package:submersion/features/planner/domain/services/mission/exit_path_evaluator.dart';
+import 'package:submersion/features/planner/domain/services/mission/leg_speed_resolver.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_geometry.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_segment_builder.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_team.dart';
@@ -74,6 +75,7 @@ class MissionScenarioService {
     String? towerId,
     MissionProfile? outbound,
   }) {
+    _requireTank(plan);
     if (mode == MissionExitMode.surface) {
       throw ArgumentError.value(
         mode,
@@ -182,6 +184,7 @@ class MissionScenarioService {
     String? failedMemberId,
     MissionProfile? outbound,
   }) {
+    _requireTank(plan);
     final out =
         outbound ??
         builder.outbound(
@@ -222,8 +225,11 @@ class MissionScenarioService {
                 baseSpeedMps: swimSpeed,
               )
               .outboundMps;
-    // A shore route has no bearing, so it takes the worst the current can do.
-    final shoreMps = swimSpeed - (current?.speedMps ?? 0.0);
+    // A shore route has no bearing, so it takes the worst the current can do,
+    // held to the same headway floor as a route with a heading.
+    final shoreMps = LegSpeedResolver.headway(
+      swimSpeed - (current?.speedMps ?? 0.0),
+    );
     final shore = leg.shoreExit;
     final routes = <_SurfaceRoute>[
       (swimM: home.distanceHomeM, walkM: 0.0, viaShore: false, mps: homeMps),
@@ -293,6 +299,7 @@ class MissionScenarioService {
     required int waypointIndex,
     MissionProfile? outbound,
   }) {
+    _requireTank(plan);
     final cruise = cruiseSpeedMps(mission.team);
     final out =
         outbound ??
@@ -311,5 +318,14 @@ class MissionScenarioService {
       divers: const [],
     );
     return result.exitBottomSeconds + result.ttsSeconds;
+  }
+
+  /// Every scenario breathes from the plan's cylinders. MissionEngine reports
+  /// a plan without one as planHasNoTank before running any; a direct caller
+  /// gets this instead of an index out of range deep in the segment builder.
+  static void _requireTank(domain.DivePlan plan) {
+    if (plan.tanks.isEmpty) {
+      throw ArgumentError.value(plan.id, 'plan', 'has no tank');
+    }
   }
 }

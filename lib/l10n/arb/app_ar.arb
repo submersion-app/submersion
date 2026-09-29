@@ -645,6 +645,7 @@
   "accessibility_shortcut_newDive": "غوصة جديدة",
   "accessibility_shortcut_openSettings": "فتح الإعدادات",
   "accessibility_shortcut_searchDives": "البحث في الغوصات",
+  "accessibility_shortcut_exploreWithSentence": "استكشف بجملة",
   "accessibility_sort_selectedLabel": "ترتيب حسب {displayName}، محدد حالياً",
   "accessibility_sort_unselectedLabel": "ترتيب حسب {displayName}",
   "backup_appBar_title": "النسخ الاحتياطي والاستعادة",
@@ -7214,6 +7215,182 @@
       }
     }
   },
+  "trips_cylinders_title": "الأسطوانات",
+  "trips_cylinders_summary": "ممتلئة {full} · جزئية {partial} · فارغة {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "لم تُعبّأ بعد {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "إعداد الأسطوانات",
+  "trips_cylinders_setUpHint": "تتبّع الأسطوانات التي معك في هذه الرحلة: التعبئات والخلطات وما تبقّى في كل منها.",
+  "trips_cylinders_status_full": "ممتلئة",
+  "trips_cylinders_status_partial": "جزئية",
+  "trips_cylinders_status_empty": "فارغة",
+  "trips_cylinders_status_unknown": "لم تُعبّأ بعد",
+  "trips_cylinders_mixAir": "هواء",
+  "trips_cylinders_segment_board": "اللوحة",
+  "trips_cylinders_segment_ledger": "السجل",
+  "trips_cylinders_action_add": "إضافة أسطوانات",
+  "trips_cylinders_action_fill": "تعبئة",
+  "trips_cylinders_action_fillSeveral": "تعبئة عدة أسطوانات",
+  "trips_cylinders_action_adjust": "تعديل",
+  "trips_cylinders_bottle": "الأسطوانة {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} غطسة} other{{count} غطسات}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "عُبّئت في {place}، {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "عُبّئت {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "عُدّلت {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "غطسة في {site}، {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "غطسة {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "لا توجد أسطوانات في هذه الرحلة بعد",
+  "trips_cylinders_ledgerEmpty": "لا توجد تعبئات أو تعديلات بعد",
+  "trips_cylinders_kind_fill": "تعبئة",
+  "trips_cylinders_kind_adjustment": "تعديل",
+  "trips_cylinders_deleteConfirmUnused": "حذف هذه الأسطوانة وتعبئاتها؟",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها {count} غطسة. تحتفظ الغطسة بأسطوانتها ويُزال الربط فقط.} other{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها {count} غطسات. تحتفظ الغطسات بأسطواناتها ويُزال الربط فقط.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "حذف هذا الإدخال؟",
+  "trips_cylinders_add_tabRental": "مستأجرة",
+  "trips_cylinders_add_tabOwned": "من معداتي",
+  "trips_cylinders_add_count": "العدد",
+  "trips_cylinders_add_preset": "نوع الأسطوانة",
+  "trips_cylinders_add_prefix": "بادئة الاسم",
+  "trips_cylinders_add_prefixDefault": "الشاحنة",
+  "trips_cylinders_add_noOwned": "لم تعد هناك أسطوانات في معداتك لإضافتها.",
+  "trips_cylinders_add_errorCount": "أدخل رقمًا من 1 إلى 20.",
+  "trips_cylinders_fill_titleEdit": "تعديل التعبئة",
+  "trips_cylinders_fill_when": "متى",
+  "trips_cylinders_fill_where": "محطة التعبئة",
+  "trips_cylinders_fill_whereNone": "غير محددة",
+  "trips_cylinders_fill_pressure": "ضغط التعبئة ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 المطلوب (%)",
+  "trips_cylinders_fill_he": "He المطلوب (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 المقاس (%)",
+  "trips_cylinders_fill_analyzedHe": "He المقاس (%)",
+  "trips_cylinders_fill_bottle": "رقم الأسطوانة",
+  "trips_cylinders_fill_cost": "التكلفة",
+  "trips_cylinders_fill_costEach": "التكلفة لكل أسطوانة",
+  "trips_cylinders_fill_currency": "العملة",
+  "trips_cylinders_fill_package": "ضمن باقة",
+  "trips_cylinders_fill_slots": "الأسطوانات المراد تعبئتها",
+  "trips_cylinders_fill_errorMix": "يجب أن يكون الأكسجين بين 1 و100 بالمئة، والهيليوم بين 0 و99، ومجموعهما 100 على الأكثر.",
+  "trips_cylinders_fill_errorNoSlot": "اختر أسطوانة واحدة على الأقل.",
+  "trips_cylinders_note": "ملاحظة",
+  "trips_cylinders_adjust_titleEdit": "تعديل التصحيح",
+  "trips_cylinders_adjust_pressure": "الضغط ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "تعليم كفارغة",
+  "trips_cylinders_edit_title": "تعديل الأسطوانة",
+  "trips_cylinders_edit_label": "الاسم",
+  "trips_cylinders_edit_errorLabel": "أدخل اسمًا.",
+  "trips_cylinders_edit_errorNeedsPressure": "أدخل ضغط العمل أيضًا حتى يمكن تحويل الحجم.",
+  "trips_cylinders_edit_volume": "الحجم ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "ضغط العمل ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "مخصص",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "تاريخ الانتهاء",
@@ -11886,6 +12063,99 @@
   "diveLog_filter_noComputersRegistered": "لا توجد حواسيب غوص مسجَّلة",
   "diveLog_filter_sectionDepthRangeUnit": "نطاق العمق ({unit})",
   "diveLog_filter_sectionDiveComputer": "حاسوب الغوص",
+  "diveLog_filterChip_speciesCount": "{count} أنواع",
+  "diveLog_filterChip_weekdayCount": "{count, plural, =1{يوم واحد من الأسبوع} other{{count} أيام من الأسبوع}}",
+  "diveLog_filterChip_siteCount": "{count} مواقع",
+  "diveLog_filterChip_visibilityRange": "الرؤية {min} إلى {max} {unit}",
+  "diveLog_filterChip_visibilityMin": "الرؤية أكثر من {value} {unit}",
+  "diveLog_filterChip_visibilityMax": "الرؤية أقل من {value} {unit}",
+  "diveLog_filterChip_waterTempRange": "الماء {min} إلى {max}{unit}",
+  "diveLog_filterChip_waterTempMin": "الماء أكثر من {value}{unit}",
+  "diveLog_filterChip_waterTempMax": "الماء أقل من {value}{unit}",
+  "diveLog_filterChip_waterTypeCount": "{count} أنواع مياه",
+  "diveLog_filter_sectionSpecies": "الحياة البحرية",
+  "diveLog_filter_sectionVisibilityUnit": "الرؤية ({unit})",
+  "diveLog_filter_sectionWaterTempUnit": "درجة حرارة الماء ({unit})",
+  "diveLog_filter_sectionWaterType": "نوع المياه",
+  "diveLog_filter_speciesSearchHint": "البحث عن الأنواع",
+  "diveLog_listPage_tooltip_explore": "استكشف بجملة",
+  "explore_chip_favorite": "مفضل",
+  "explore_chip_deco": "غطسة تخفيف ضغط",
+  "explore_chip_noDeco": "بدون تخفيف ضغط",
+  "explore_chip_noBuddy": "بدون رفيق",
+  "explore_chip_rating": "التقييم {op} {value}",
+  "explore_chip_numeric": "{field} {op} {value}",
+  "explore_chip_between": "{field} {low} إلى {high}",
+  "explore_chip_enum": "{field}: {values}",
+  "explore_chip_enumNot": "{field} ليس {values}",
+  "explore_chip_timeRange": "{start} إلى {end}",
+  "explore_chip_timeSince": "منذ {start}",
+  "explore_chip_timeBefore": "قبل {end}",
+  "explore_count": "{count, plural, =0{لا توجد غطسات} =1{غطسة واحدة} other{{count} غطسات}}",
+  "explore_download_button": "تنزيل النموذج على الجهاز",
+  "explore_download_running": "جارٍ تنزيل النموذج",
+  "explore_error_contextExceeded": "هذه الجملة طويلة جدًا على النموذج على الجهاز. جرّب جملة أقصر.",
+  "explore_error_decodingFailure": "لم ينتج النموذج إجابة قابلة للاستخدام. جرّب إعادة الصياغة.",
+  "explore_error_guardrail": "رفض النموذج هذه الجملة.",
+  "explore_error_modelNotReady": "النموذج على الجهاز غير جاهز بعد.",
+  "explore_error_quotaExceeded": "النموذج على الجهاز مشغول. حاول مرة أخرى بعد قليل.",
+  "explore_error_refusal": "رفض النموذج هذه الجملة.",
+  "explore_error_schemaMismatch": "لم يتم فهم ذلك. حدّث التطبيق إذا استمر هذا.",
+  "explore_error_unknown": "حدث خطأ أثناء سؤال النموذج على الجهاز.",
+  "explore_error_unsupportedLocale": "النموذج على الجهاز لا يفهم هذه اللغة.",
+  "explore_field_airTemp": "درجة حرارة الهواء",
+  "explore_field_avgDepth": "متوسط العمق",
+  "explore_field_bottomTime": "وقت القاع",
+  "explore_field_currentStrength": "التيار",
+  "explore_field_depth": "العمق",
+  "explore_field_diveMode": "وضع الغطس",
+  "explore_field_diveNumber": "رقم الغطسة",
+  "explore_field_diveType": "نوع الغطسة",
+  "explore_field_entryMethod": "الدخول",
+  "explore_field_o2": "الأكسجين",
+  "explore_field_rating": "التقييم",
+  "explore_field_visibility": "الرؤية",
+  "explore_field_waterTemp": "درجة حرارة الماء",
+  "explore_field_waterType": "نوع المياه",
+  "explore_field_weekday": "يوم الأسبوع",
+  "explore_handoff_diveList": "فتح في قائمة الغطسات",
+  "explore_handoff_insights": "فتح في الرؤى",
+  "explore_hint": "اسأل عن غطساتك، مثلاً سلاحف أعمق من 20 م في بونير",
+  "explore_needsAttention_title": "يحتاج إلى انتباه",
+  "explore_op_gt": "أكثر من",
+  "explore_op_gte": "على الأقل",
+  "explore_op_lt": "أقل من",
+  "explore_op_lte": "على الأكثر",
+  "explore_value_minutes": "{minutes} دقيقة",
+  "explore_op_eq": "يساوي",
+  "explore_pickCandidate_title": "ماذا قصدت بـ \"{text}\"؟",
+  "explore_recent_title": "الأخيرة",
+  "explore_results_title": "الغطسات المطابقة",
+  "explore_results_truncated": "عرض أول {count}. افتح قائمة الغطسات لرؤيتها كلها.",
+  "explore_shortcut_unavailable": "يحتاج الاستكشاف إلى النموذج على الجهاز، وهو غير جاهز على هذا الجهاز.",
+  "explore_subjectNotSupported": "يمكن البحث في الغطسات فقط حاليًا.",
+  "explore_title": "استكشاف",
+  "explore_understood_title": "تم فهمه",
+  "explore_unplaced_reason_invalid": "تعذّرت قراءة هذه القيمة",
+  "explore_unplaced_reason_noAxis": "غير قابل للبحث بعد",
+  "explore_unplaced_reason_outOfRange": "القيمة خارج النطاق",
+  "explore_unplaced_reason_unknownField": "حقل غير معروف",
+  "explore_unplaced_reason_unknownTime": "تعذّرت قراءة هذا الوقت",
+  "explore_unresolved_noCandidates": "لا توجد مطابقة في سجلك",
+  "explore_chart_divesOverTime": "الغطسات عبر الزمن",
+  "explore_chart_depthTrend": "العمق",
+  "explore_chart_waterTempTrend": "درجة حرارة الماء",
+  "explore_chart_bottomTimeTrend": "وقت القاع",
+  "explore_chart_entityCounts": "الغطسات لكل {kind}",
+  "explore_kind_site": "موقع",
+  "explore_kind_place": "مكان",
+  "explore_kind_species": "نوع",
+  "explore_kind_gear": "معدات",
+  "explore_kind_buddy": "رفيق",
+  "explore_kind_tag": "علامة",
+  "explore_kind_center": "مركز غطس",
+  "explore_kind_trip": "رحلة",
+  "explore_kind_computer": "حاسوب",
   "diveLog_listPage_semanticsDiveAtSite": "الغوصة {diveNumber} في {siteName}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "غوصة مخططة في {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {

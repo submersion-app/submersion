@@ -149,81 +149,89 @@ void main() {
     return row.read<int>('n');
   }
 
-  test('bulkDeleteDives deletes more dives than one statement can bind, '
-      'with one tombstone per dive', () async {
-    final ids = diveIds(count);
-    await insertDives(ids);
-    await insertSite('site-1');
-    // Dive-only media dies with its dive; site-linked media survives with
-    // the dive link cleared. Both steps bind the dying dives' ids.
-    final doomed = await mediaRepository.createMedia(
-      photo('doomed.jpg', diveId: ids.first),
-    );
-    final kept = await mediaRepository.createMedia(
-      photo('kept.jpg', diveId: ids.last, siteId: 'site-1'),
-    );
-    // A plan linked to a dive has its link cleared before the delete.
-    await DivePlanRepository().savePlan(
-      DivePlan(
-        id: 'plan-1',
-        name: 'plan-1',
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-        gfLow: 30,
-        gfHigh: 70,
-        linkedDiveId: ids[count ~/ 2],
-      ),
-    );
-    // A route linked to a dive past the first chunk is normalized as
-    // unlinked afterwards.
-    final routeId = await insertRoute(diveId: ids[kSeriesIdChunkSize + 1]);
-    // The surviving photo's enrichment was computed against the dying dive,
-    // so it goes, with a tombstone.
-    await insertEnrichment('enrichment-1', kept.id, ids.last);
-    // Only the delete's own sync marks remain for the assertions below.
-    await db.customStatement('DELETE FROM sync_records');
+  test(
+    'bulkDeleteDives deletes more dives than one statement can bind, '
+    'with one tombstone per dive',
+    () async {
+      final ids = diveIds(count);
+      await insertDives(ids);
+      await insertSite('site-1');
+      // Dive-only media dies with its dive; site-linked media survives with
+      // the dive link cleared. Both steps bind the dying dives' ids.
+      final doomed = await mediaRepository.createMedia(
+        photo('doomed.jpg', diveId: ids.first),
+      );
+      final kept = await mediaRepository.createMedia(
+        photo('kept.jpg', diveId: ids.last, siteId: 'site-1'),
+      );
+      // A plan linked to a dive has its link cleared before the delete.
+      await DivePlanRepository().savePlan(
+        DivePlan(
+          id: 'plan-1',
+          name: 'plan-1',
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+          gfLow: 30,
+          gfHigh: 70,
+          linkedDiveId: ids[count ~/ 2],
+        ),
+      );
+      // A route linked to a dive past the first chunk is normalized as
+      // unlinked afterwards.
+      final routeId = await insertRoute(diveId: ids[kSeriesIdChunkSize + 1]);
+      // The surviving photo's enrichment was computed against the dying dive,
+      // so it goes, with a tombstone.
+      await insertEnrichment('enrichment-1', kept.id, ids.last);
+      // Only the delete's own sync marks remain for the assertions below.
+      await db.customStatement('DELETE FROM sync_records');
 
-    final deleted = await diveRepository.bulkDeleteDives(ids);
+      final deleted = await diveRepository.bulkDeleteDives(ids);
 
-    expect(deleted, ids);
-    expect(await countRows('dives'), 0);
-    expect(await mediaRepository.getMediaById(doomed.id), isNull);
-    final survivor = await mediaRepository.getMediaById(kept.id);
-    expect(survivor, isNotNull);
-    expect(survivor!.diveId, isNull);
-    expect(survivor.siteId, 'site-1');
-    final plan = await db
-        .customSelect(
-          "SELECT linked_dive_id FROM dive_plans WHERE id = 'plan-1'",
-        )
-        .getSingle();
-    expect(plan.readNullable<String>('linked_dive_id'), isNull);
-    expect(await pendingIds('divePlans'), ['plan-1']);
-    final route = (await NavTrackRepository().getById(
-      routeId,
-      includePoints: false,
-    ))!;
-    expect(route.linkMode, isNull);
-    expect(route.isPrimary, isTrue);
-    expect(await pendingIds(NavTrackRepository.entityType), [routeId]);
-    expect(await countRows('media_enrichment'), 0);
-    expect(await tombstoneIds('mediaEnrichment'), ['enrichment-1']);
-    expect(await pendingIds('media'), [kept.id]);
-    expect(await tombstoneIds('media'), [doomed.id]);
+      expect(deleted, ids);
+      expect(await countRows('dives'), 0);
+      expect(await mediaRepository.getMediaById(doomed.id), isNull);
+      final survivor = await mediaRepository.getMediaById(kept.id);
+      expect(survivor, isNotNull);
+      expect(survivor!.diveId, isNull);
+      expect(survivor.siteId, 'site-1');
+      final plan = await db
+          .customSelect(
+            "SELECT linked_dive_id FROM dive_plans WHERE id = 'plan-1'",
+          )
+          .getSingle();
+      expect(plan.readNullable<String>('linked_dive_id'), isNull);
+      expect(await pendingIds('divePlans'), ['plan-1']);
+      final route = (await NavTrackRepository().getById(
+        routeId,
+        includePoints: false,
+      ))!;
+      expect(route.linkMode, isNull);
+      expect(route.isPrimary, isTrue);
+      expect(await pendingIds(NavTrackRepository.entityType), [routeId]);
+      expect(await countRows('media_enrichment'), 0);
+      expect(await tombstoneIds('mediaEnrichment'), ['enrichment-1']);
+      expect(await pendingIds('media'), [kept.id]);
+      expect(await tombstoneIds('media'), [doomed.id]);
 
-    final tombstones = await (db.select(
-      db.deletionLog,
-    )..where((t) => t.entityType.equals('dives'))).get();
-    expect(tombstones.map((t) => t.recordId).toSet(), ids.toSet());
-    expect(
-      tombstones.map((t) => t.hlc).toSet(),
-      hasLength(count),
-      reason: 'each dive delete is its own event, with its own clock',
-    );
-    for (final t in tombstones) {
-      expect(t.originHlc, t.hlc, reason: 'a local delete is its own origin');
-    }
-  });
+      final tombstones = await (db.select(
+        db.deletionLog,
+      )..where((t) => t.entityType.equals('dives'))).get();
+      expect(tombstones.map((t) => t.recordId).toSet(), ids.toSet());
+      expect(
+        tombstones.map((t) => t.hlc).toSet(),
+        hasLength(count),
+        reason: 'each dive delete is its own event, with its own clock',
+      );
+      for (final t in tombstones) {
+        expect(t.originHlc, t.hlc, reason: 'a local delete is its own origin');
+      }
+    },
+    // Measured at 57.7 s in a full bundled run and 51 s alone with --coverage
+    // on 2026-09-28, more than a third of testTimeLimit
+    // (test/helpers/test_timeouts.dart). CI's 4-vCPU runners are slower than
+    // that machine, so it gets five minutes.
+    timeout: const Timeout(Duration(minutes: 5)),
+  );
 
   test('getDivesByIds reads more ids than one statement can bind, '
       'newest first', () async {

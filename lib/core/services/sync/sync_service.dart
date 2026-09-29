@@ -1395,6 +1395,22 @@ class SyncService {
             records: data.divePlanSegments,
             hasUpdatedAt: true,
           ),
+          // Mission rows reference only their plan, applied above.
+          (
+            type: 'divePlanMissions',
+            records: data.divePlanMissions,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'divePlanMissionLegs',
+            records: data.divePlanMissionLegs,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'divePlanMissionMembers',
+            records: data.divePlanMissionMembers,
+            hasUpdatedAt: true,
+          ),
           (type: 'equipment', records: data.equipment, hasUpdatedAt: true),
           // Trip cylinder slots reference trips and equipment; their ledger
           // references the slots and dive centers. Both before dives, whose
@@ -2495,6 +2511,9 @@ class SyncService {
     'divePlans': true,
     'divePlanTanks': true,
     'divePlanSegments': true,
+    'divePlanMissions': true,
+    'divePlanMissionLegs': true,
+    'divePlanMissionMembers': true,
     'equipment': true,
     'equipmentSets': true,
     'equipmentSetItems': false,
@@ -2848,6 +2867,20 @@ class SyncService {
     'divePlanSegments': [
       (field: 'planId', parent: 'divePlans', nullable: false),
       (field: 'tankId', parent: 'divePlanTanks', nullable: false),
+    ],
+    'divePlanMissions': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+    ],
+    // A mission row's id is its plan's id, so planId also names the
+    // mission: a leg or member whose mission this device removed is dropped
+    // rather than landing as an orphan the mission read never shows.
+    'divePlanMissionLegs': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+      (field: 'planId', parent: 'divePlanMissions', nullable: false),
+    ],
+    'divePlanMissionMembers': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+      (field: 'planId', parent: 'divePlanMissions', nullable: false),
     ],
     'certifications': [
       (field: 'courseId', parent: 'courses', nullable: true),

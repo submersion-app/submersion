@@ -68,7 +68,8 @@ class ConflictReferenceResolver {
   /// without a declared Drift constraint (`Media.subscriptionId` and
   /// `connectorAccountId`, `DiveDiveTypes.diveTypeId`,
   /// `SiteSiteTypes.siteTypeId`,
-  /// `DivePlanSegments.switchToTankId`, `DiveProfileEvents.tankId`); they are
+  /// `DivePlanSegments.switchToTankId`, `DiveProfileEvents.tankId`,
+  /// `DivePlanMissionMembers.scooterEquipmentId`); they are
   /// listed here because the dialog can resolve them just as well, so verify
   /// those against their table rather than expecting a `references` clause.
   /// Columns whose name is ambiguous across tables are disambiguated by
@@ -89,6 +90,7 @@ class ConflictReferenceResolver {
     'instructorId': 'buddies',
     'signerId': 'buddies',
     'equipmentId': 'equipment',
+    'scooterEquipmentId': 'equipment',
     'setId': 'equipmentSets',
     'equipmentSetId': 'equipmentSets',
     'configId': 'cylinderConfigs',

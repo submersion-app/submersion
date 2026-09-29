@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/planner/data/services/plan_file_mission_codec.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 
@@ -19,18 +20,29 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 /// Version 1 files still import — their `endDepth` is the target depth and
 /// the retired fields are ignored — so a plan shared by an older install
 /// keeps opening.
+///
+/// Version 3 adds an optional `mission` block: a DPV mission's route, team
+/// and scooter numbers (issue #2086). It is absent for a plan without one,
+/// and version 1 and 2 files import with no mission. A plan without a
+/// mission is still written as version 2, so an older install keeps
+/// opening it.
 const subplanFormat = 'submersion-plan';
-const subplanVersion = 2;
+const subplanVersion = 3;
 const subplanMinReadableVersion = 1;
 const subplanExtension = 'subplan';
 
 const _uuid = Uuid();
 
+/// The version written for a plan with no mission block.
+const _subplanVersionWithoutMission = 2;
+
 /// Serializes [plan] into a shareable `.subplan` JSON string.
 String planToSubplanJson(domain.DivePlan plan) {
   final map = {
     'format': subplanFormat,
-    'version': subplanVersion,
+    'version': plan.mission == null
+        ? _subplanVersionWithoutMission
+        : subplanVersion,
     'plan': {
       'name': plan.name,
       'notes': plan.notes,
@@ -92,6 +104,7 @@ String planToSubplanJson(domain.DivePlan plan) {
             'order': segment.order,
           },
       ],
+      if (plan.mission != null) 'mission': missionToFileMap(plan.mission!),
     },
   };
   return const JsonEncoder.withIndent('  ').convert(map);
@@ -244,5 +257,11 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
     turnPressureFraction: (plan['turnPressureFraction'] as num?)?.toDouble(),
     tanks: tanks,
     segments: segments,
+    // Only an absent or null block means no mission. A present block of the
+    // wrong type fails the cast, which the caller turns into a
+    // FormatException rather than importing the plan without it.
+    mission: plan['mission'] == null
+        ? null
+        : missionFromFileMap(plan['mission'] as Map<String, dynamic>, _uuid.v4),
   );
 }

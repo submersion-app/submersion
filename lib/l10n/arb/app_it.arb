@@ -645,6 +645,7 @@
   "accessibility_shortcut_newDive": "Nuova immersione",
   "accessibility_shortcut_openSettings": "Apri impostazioni",
   "accessibility_shortcut_searchDives": "Cerca immersioni",
+  "accessibility_shortcut_exploreWithSentence": "Esplora con una frase",
   "accessibility_sort_selectedLabel": "Ordina per {displayName}, attualmente selezionato",
   "accessibility_sort_unselectedLabel": "Ordina per {displayName}",
   "backup_appBar_title": "Backup e Ripristino",
@@ -7108,6 +7109,182 @@
       }
     }
   },
+  "trips_cylinders_title": "Bombole",
+  "trips_cylinders_summary": "Piene {full} · Parziali {partial} · Vuote {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "Non ancora caricate {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "Configura le bombole",
+  "trips_cylinders_setUpHint": "Tieni traccia delle bombole che hai in questo viaggio: ricariche, miscele e quanto resta in ciascuna.",
+  "trips_cylinders_status_full": "Piena",
+  "trips_cylinders_status_partial": "Parziale",
+  "trips_cylinders_status_empty": "Vuota",
+  "trips_cylinders_status_unknown": "Non ancora caricata",
+  "trips_cylinders_mixAir": "Aria",
+  "trips_cylinders_segment_board": "Quadro",
+  "trips_cylinders_segment_ledger": "Registro",
+  "trips_cylinders_action_add": "Aggiungi bombole",
+  "trips_cylinders_action_fill": "Ricarica",
+  "trips_cylinders_action_fillSeveral": "Ricarica più bombole",
+  "trips_cylinders_action_adjust": "Correggi",
+  "trips_cylinders_bottle": "Bombola {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} immersione} other{{count} immersioni}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "Ricaricata da {place}, {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "Ricaricata {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "Corretta {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "Immersione a {site}, {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "Immersione {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "Ancora nessuna bombola in questo viaggio",
+  "trips_cylinders_ledgerEmpty": "Ancora nessuna ricarica o correzione",
+  "trips_cylinders_kind_fill": "Ricarica",
+  "trips_cylinders_kind_adjustment": "Correzione",
+  "trips_cylinders_deleteConfirmUnused": "Eliminare questa bombola e le sue ricariche?",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{Eliminare questa bombola e le sue ricariche? {count} immersione l'ha usata. L'immersione conserva la sua bombola; viene rimosso solo il collegamento.} other{Eliminare questa bombola e le sue ricariche? {count} immersioni l'hanno usata. Le immersioni conservano le loro bombole; viene rimosso solo il collegamento.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "Eliminare questa voce?",
+  "trips_cylinders_add_tabRental": "Noleggio",
+  "trips_cylinders_add_tabOwned": "Dalla mia attrezzatura",
+  "trips_cylinders_add_count": "Quante",
+  "trips_cylinders_add_preset": "Tipo di bombola",
+  "trips_cylinders_add_prefix": "Prefisso del nome",
+  "trips_cylinders_add_prefixDefault": "Pick-up",
+  "trips_cylinders_add_noOwned": "Non restano bombole della tua attrezzatura da aggiungere.",
+  "trips_cylinders_add_errorCount": "Inserisci un numero da 1 a 20.",
+  "trips_cylinders_fill_titleEdit": "Modifica ricarica",
+  "trips_cylinders_fill_when": "Quando",
+  "trips_cylinders_fill_where": "Stazione di ricarica",
+  "trips_cylinders_fill_whereNone": "Non impostata",
+  "trips_cylinders_fill_pressure": "Pressione di ricarica ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 richiesto (%)",
+  "trips_cylinders_fill_he": "He richiesto (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 analizzato (%)",
+  "trips_cylinders_fill_analyzedHe": "He analizzato (%)",
+  "trips_cylinders_fill_bottle": "Numero della bombola",
+  "trips_cylinders_fill_cost": "Costo",
+  "trips_cylinders_fill_costEach": "Costo per bombola",
+  "trips_cylinders_fill_currency": "Valuta",
+  "trips_cylinders_fill_package": "Incluso in un pacchetto",
+  "trips_cylinders_fill_slots": "Bombole da ricaricare",
+  "trips_cylinders_fill_errorMix": "L'ossigeno deve essere tra 1 e 100 per cento, l'elio tra 0 e 99, e insieme al massimo 100.",
+  "trips_cylinders_fill_errorNoSlot": "Scegli almeno una bombola.",
+  "trips_cylinders_note": "Nota",
+  "trips_cylinders_adjust_titleEdit": "Modifica correzione",
+  "trips_cylinders_adjust_pressure": "Pressione ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "Segna come vuota",
+  "trips_cylinders_edit_title": "Modifica bombola",
+  "trips_cylinders_edit_label": "Nome",
+  "trips_cylinders_edit_errorLabel": "Inserisci un nome.",
+  "trips_cylinders_edit_errorNeedsPressure": "Inserisci anche la pressione di esercizio per poter convertire la dimensione.",
+  "trips_cylinders_edit_volume": "Dimensione ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "Pressione di esercizio ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "Personalizzata",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Data di fine",
@@ -11886,6 +12063,99 @@
   "diveLog_filter_noComputersRegistered": "Nessun computer subacqueo registrato",
   "diveLog_filter_sectionDepthRangeUnit": "Intervallo di profondità ({unit})",
   "diveLog_filter_sectionDiveComputer": "Computer subacqueo",
+  "diveLog_filterChip_speciesCount": "{count} specie",
+  "diveLog_filterChip_weekdayCount": "{count, plural, =1{{count} giorno della settimana} other{{count} giorni della settimana}}",
+  "diveLog_filterChip_siteCount": "{count} siti",
+  "diveLog_filterChip_visibilityRange": "Visibilità da {min} a {max} {unit}",
+  "diveLog_filterChip_visibilityMin": "Visibilità oltre {value} {unit}",
+  "diveLog_filterChip_visibilityMax": "Visibilità sotto {value} {unit}",
+  "diveLog_filterChip_waterTempRange": "Acqua da {min} a {max}{unit}",
+  "diveLog_filterChip_waterTempMin": "Acqua oltre {value}{unit}",
+  "diveLog_filterChip_waterTempMax": "Acqua sotto {value}{unit}",
+  "diveLog_filterChip_waterTypeCount": "{count} tipi di acqua",
+  "diveLog_filter_sectionSpecies": "Vita marina",
+  "diveLog_filter_sectionVisibilityUnit": "Visibilità ({unit})",
+  "diveLog_filter_sectionWaterTempUnit": "Temperatura dell'acqua ({unit})",
+  "diveLog_filter_sectionWaterType": "Tipo di acqua",
+  "diveLog_filter_speciesSearchHint": "Cerca specie",
+  "diveLog_listPage_tooltip_explore": "Esplora con una frase",
+  "explore_chip_favorite": "Preferito",
+  "explore_chip_deco": "Immersione con decompressione",
+  "explore_chip_noDeco": "Senza decompressione",
+  "explore_chip_noBuddy": "Senza compagno",
+  "explore_chip_rating": "Valutazione {op} {value}",
+  "explore_chip_numeric": "{field} {op} {value}",
+  "explore_chip_between": "{field} da {low} a {high}",
+  "explore_chip_enum": "{field}: {values}",
+  "explore_chip_enumNot": "{field} non {values}",
+  "explore_chip_timeRange": "da {start} a {end}",
+  "explore_chip_timeSince": "Da {start}",
+  "explore_chip_timeBefore": "Prima di {end}",
+  "explore_count": "{count, plural, =0{Nessuna immersione} =1{1 immersione} other{{count} immersioni}}",
+  "explore_download_button": "Scarica il modello sul dispositivo",
+  "explore_download_running": "Download del modello in corso",
+  "explore_error_contextExceeded": "Questa frase è troppo lunga per il modello sul dispositivo. Provane una più breve.",
+  "explore_error_decodingFailure": "Il modello non ha prodotto una risposta utilizzabile. Prova a riformulare.",
+  "explore_error_guardrail": "Il modello ha rifiutato questa frase.",
+  "explore_error_modelNotReady": "Il modello sul dispositivo non è ancora pronto.",
+  "explore_error_quotaExceeded": "Il modello sul dispositivo è occupato. Riprova tra un momento.",
+  "explore_error_refusal": "Il modello ha rifiutato questa frase.",
+  "explore_error_schemaMismatch": "Impossibile comprendere. Aggiorna l'app se il problema persiste.",
+  "explore_error_unknown": "Qualcosa è andato storto interrogando il modello sul dispositivo.",
+  "explore_error_unsupportedLocale": "Il modello sul dispositivo non comprende questa lingua.",
+  "explore_field_airTemp": "Temperatura dell'aria",
+  "explore_field_avgDepth": "Profondità media",
+  "explore_field_bottomTime": "Tempo di fondo",
+  "explore_field_currentStrength": "Corrente",
+  "explore_field_depth": "Profondità",
+  "explore_field_diveMode": "Modalità di immersione",
+  "explore_field_diveNumber": "Numero immersione",
+  "explore_field_diveType": "Tipo di immersione",
+  "explore_field_entryMethod": "Ingresso",
+  "explore_field_o2": "Ossigeno",
+  "explore_field_rating": "Valutazione",
+  "explore_field_visibility": "Visibilità",
+  "explore_field_waterTemp": "Temperatura dell'acqua",
+  "explore_field_waterType": "Tipo di acqua",
+  "explore_field_weekday": "Giorno della settimana",
+  "explore_handoff_diveList": "Apri nell'elenco immersioni",
+  "explore_handoff_insights": "Apri in Analisi",
+  "explore_hint": "Chiedi delle tue immersioni, ad esempio tartarughe oltre 20 m a Bonaire",
+  "explore_needsAttention_title": "Da verificare",
+  "explore_op_gt": "oltre",
+  "explore_op_gte": "almeno",
+  "explore_op_lt": "sotto",
+  "explore_op_lte": "al massimo",
+  "explore_value_minutes": "{minutes} min",
+  "explore_op_eq": "di",
+  "explore_pickCandidate_title": "Cosa intendevi con \"{text}\"?",
+  "explore_recent_title": "Recenti",
+  "explore_results_title": "Immersioni corrispondenti",
+  "explore_results_truncated": "Mostrate le prime {count}. Apri l'elenco immersioni per vederle tutte.",
+  "explore_shortcut_unavailable": "Esplora richiede il modello sul dispositivo, che non è pronto su questo dispositivo.",
+  "explore_subjectNotSupported": "Per ora è possibile cercare solo immersioni.",
+  "explore_title": "Esplora",
+  "explore_understood_title": "Compreso",
+  "explore_unplaced_reason_invalid": "Impossibile leggere questo valore",
+  "explore_unplaced_reason_noAxis": "Non ancora ricercabile",
+  "explore_unplaced_reason_outOfRange": "Valore fuori intervallo",
+  "explore_unplaced_reason_unknownField": "Campo sconosciuto",
+  "explore_unplaced_reason_unknownTime": "Impossibile leggere questo periodo",
+  "explore_unresolved_noCandidates": "Nessuna corrispondenza nel tuo logbook",
+  "explore_chart_divesOverTime": "Immersioni nel tempo",
+  "explore_chart_depthTrend": "Profondità",
+  "explore_chart_waterTempTrend": "Temperatura dell'acqua",
+  "explore_chart_bottomTimeTrend": "Tempo di fondo",
+  "explore_chart_entityCounts": "Immersioni per {kind}",
+  "explore_kind_site": "sito",
+  "explore_kind_place": "luogo",
+  "explore_kind_species": "specie",
+  "explore_kind_gear": "attrezzatura",
+  "explore_kind_buddy": "compagno",
+  "explore_kind_tag": "tag",
+  "explore_kind_center": "diving center",
+  "explore_kind_trip": "viaggio",
+  "explore_kind_computer": "computer",
   "diveLog_listPage_semanticsDiveAtSite": "Immersione {diveNumber} presso {siteName}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "Immersione pianificata a {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {

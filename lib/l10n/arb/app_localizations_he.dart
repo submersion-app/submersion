@@ -1478,6 +1478,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'סגירה / ביטול';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence => 'חקירה באמצעות משפט';
+
+  @override
   String get accessibility_shortcut_goBack => 'חזרה אחורה';
 
   @override
@@ -24776,6 +24779,250 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_title => 'מכלים';
+
+  @override
+  String trips_cylinders_summary(int full, int partial, int empty) {
+    return 'מלאים $full · חלקיים $partial · ריקים $empty';
+  }
+
+  @override
+  String trips_cylinders_summaryUnfilled(int count) {
+    return 'טרם מולאו $count';
+  }
+
+  @override
+  String get trips_cylinders_setUp => 'הגדרת מכלים';
+
+  @override
+  String get trips_cylinders_setUpHint =>
+      'עקבו אחר המכלים שיש לכם בטיול הזה: מילויים, תערובות וכמה נשאר בכל אחד.';
+
+  @override
+  String get trips_cylinders_status_full => 'מלא';
+
+  @override
+  String get trips_cylinders_status_partial => 'חלקי';
+
+  @override
+  String get trips_cylinders_status_empty => 'ריק';
+
+  @override
+  String get trips_cylinders_status_unknown => 'טרם מולא';
+
+  @override
+  String get trips_cylinders_mixAir => 'אוויר';
+
+  @override
+  String get trips_cylinders_segment_board => 'לוח';
+
+  @override
+  String get trips_cylinders_segment_ledger => 'יומן';
+
+  @override
+  String get trips_cylinders_action_add => 'הוספת מכלים';
+
+  @override
+  String get trips_cylinders_action_fill => 'מילוי';
+
+  @override
+  String get trips_cylinders_action_fillSeveral => 'מילוי כמה מכלים';
+
+  @override
+  String get trips_cylinders_action_adjust => 'תיקון';
+
+  @override
+  String trips_cylinders_bottle(String label) {
+    return 'מכל $label';
+  }
+
+  @override
+  String trips_cylinders_linkedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: '$count צלילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_last_fillAt(String place, String when) {
+    return 'מולא אצל $place, $when';
+  }
+
+  @override
+  String trips_cylinders_last_fill(String when) {
+    return 'מולא $when';
+  }
+
+  @override
+  String trips_cylinders_last_adjustment(String when) {
+    return 'תוקן $when';
+  }
+
+  @override
+  String trips_cylinders_last_diveAt(String site, String when) {
+    return 'צלילה באתר $site, $when';
+  }
+
+  @override
+  String trips_cylinders_last_dive(String when) {
+    return 'צלילה $when';
+  }
+
+  @override
+  String get trips_cylinders_boardEmpty => 'עדיין אין מכלים בטיול הזה';
+
+  @override
+  String get trips_cylinders_ledgerEmpty => 'עדיין אין מילויים או תיקונים';
+
+  @override
+  String get trips_cylinders_kind_fill => 'מילוי';
+
+  @override
+  String get trips_cylinders_kind_adjustment => 'תיקון';
+
+  @override
+  String get trips_cylinders_deleteConfirmUnused =>
+      'למחוק את המכל הזה ואת המילויים שלו?';
+
+  @override
+  String trips_cylinders_deleteConfirmUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'למחוק את המכל הזה ואת המילויים שלו? $count צלילות השתמשו בו. הצלילות שומרות את המכלים שלהן; רק הקישור מוסר.',
+      one:
+          'למחוק את המכל הזה ואת המילויים שלו? $count צלילה השתמשה בו. הצלילה שומרת את המכל שלה; רק הקישור מוסר.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_deleteEventConfirm => 'למחוק את הרשומה הזו?';
+
+  @override
+  String get trips_cylinders_add_tabRental => 'שכור';
+
+  @override
+  String get trips_cylinders_add_tabOwned => 'מהציוד שלי';
+
+  @override
+  String get trips_cylinders_add_count => 'כמה';
+
+  @override
+  String get trips_cylinders_add_preset => 'סוג מכל';
+
+  @override
+  String get trips_cylinders_add_prefix => 'קידומת לשם';
+
+  @override
+  String get trips_cylinders_add_prefixDefault => 'טנדר';
+
+  @override
+  String get trips_cylinders_add_noOwned => 'לא נותרו מכלים בציוד שלך להוספה.';
+
+  @override
+  String get trips_cylinders_add_errorCount => 'הזינו מספר בין 1 ל-20.';
+
+  @override
+  String get trips_cylinders_fill_titleEdit => 'עריכת מילוי';
+
+  @override
+  String get trips_cylinders_fill_when => 'מתי';
+
+  @override
+  String get trips_cylinders_fill_where => 'תחנת מילוי';
+
+  @override
+  String get trips_cylinders_fill_whereNone => 'לא הוגדר';
+
+  @override
+  String trips_cylinders_fill_pressure(String unit) {
+    return 'לחץ מילוי ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_fill_o2 => 'O2 שהוזמן (%)';
+
+  @override
+  String get trips_cylinders_fill_he => 'He שהוזמן (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedO2 => 'O2 שנמדד (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedHe => 'He שנמדד (%)';
+
+  @override
+  String get trips_cylinders_fill_bottle => 'מספר מכל';
+
+  @override
+  String get trips_cylinders_fill_cost => 'עלות';
+
+  @override
+  String get trips_cylinders_fill_costEach => 'עלות לכל מכל';
+
+  @override
+  String get trips_cylinders_fill_currency => 'מטבע';
+
+  @override
+  String get trips_cylinders_fill_package => 'כלול בחבילה';
+
+  @override
+  String get trips_cylinders_fill_slots => 'מכלים למילוי';
+
+  @override
+  String get trips_cylinders_fill_errorMix =>
+      'החמצן חייב להיות בין 1 ל-100 אחוז, ההליום בין 0 ל-99, ויחד לכל היותר 100.';
+
+  @override
+  String get trips_cylinders_fill_errorNoSlot => 'בחרו לפחות מכל אחד.';
+
+  @override
+  String get trips_cylinders_note => 'הערה';
+
+  @override
+  String get trips_cylinders_adjust_titleEdit => 'עריכת תיקון';
+
+  @override
+  String trips_cylinders_adjust_pressure(String unit) {
+    return 'לחץ ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_adjust_markEmpty => 'סימון כריק';
+
+  @override
+  String get trips_cylinders_edit_title => 'עריכת מכל';
+
+  @override
+  String get trips_cylinders_edit_label => 'שם';
+
+  @override
+  String get trips_cylinders_edit_errorLabel => 'הזינו שם.';
+
+  @override
+  String get trips_cylinders_edit_errorNeedsPressure =>
+      'הזינו גם לחץ עבודה כדי שאפשר יהיה להמיר את הגודל.';
+
+  @override
+  String trips_cylinders_edit_volume(String unit) {
+    return 'גודל ($unit)';
+  }
+
+  @override
+  String trips_cylinders_edit_workingPressure(String unit) {
+    return 'לחץ עבודה ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_edit_presetCustom => 'מותאם אישית';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override
@@ -39119,6 +39366,363 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionDiveComputer => 'מחשב צלילה';
+
+  @override
+  String diveLog_filterChip_speciesCount(Object count) {
+    return '$count מינים';
+  }
+
+  @override
+  String diveLog_filterChip_weekdayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ימים בשבוע',
+      one: 'יום אחד בשבוע',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_filterChip_siteCount(Object count) {
+    return '$count אתרים';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return 'ראות $min עד $max $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMin(String value, String unit) {
+    return 'ראות מעל $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMax(String value, String unit) {
+    return 'ראות מתחת $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return 'מים $min עד $max$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMin(String value, String unit) {
+    return 'מים מעל $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMax(String value, String unit) {
+    return 'מים מתחת $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTypeCount(Object count) {
+    return '$count סוגי מים';
+  }
+
+  @override
+  String get diveLog_filter_sectionSpecies => 'חיים ימיים';
+
+  @override
+  String diveLog_filter_sectionVisibilityUnit(Object unit) {
+    return 'ראות ($unit)';
+  }
+
+  @override
+  String diveLog_filter_sectionWaterTempUnit(Object unit) {
+    return 'טמפרטורת המים ($unit)';
+  }
+
+  @override
+  String get diveLog_filter_sectionWaterType => 'סוג מים';
+
+  @override
+  String get diveLog_filter_speciesSearchHint => 'חיפוש מינים';
+
+  @override
+  String get diveLog_listPage_tooltip_explore => 'חקירה באמצעות משפט';
+
+  @override
+  String get explore_chip_favorite => 'מועדף';
+
+  @override
+  String get explore_chip_deco => 'צלילת דקומפרסיה';
+
+  @override
+  String get explore_chip_noDeco => 'ללא דקומפרסיה';
+
+  @override
+  String get explore_chip_noBuddy => 'ללא שותף';
+
+  @override
+  String explore_chip_rating(String op, String value) {
+    return 'דירוג $op $value';
+  }
+
+  @override
+  String explore_chip_numeric(String field, String op, String value) {
+    return '$field $op $value';
+  }
+
+  @override
+  String explore_chip_between(String field, String low, String high) {
+    return '$field $low עד $high';
+  }
+
+  @override
+  String explore_chip_enum(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
+  String explore_chip_enumNot(String field, String values) {
+    return '$field לא $values';
+  }
+
+  @override
+  String explore_chip_timeRange(String start, String end) {
+    return '$start עד $end';
+  }
+
+  @override
+  String explore_chip_timeSince(Object start) {
+    return 'מאז $start';
+  }
+
+  @override
+  String explore_chip_timeBefore(Object end) {
+    return 'לפני $end';
+  }
+
+  @override
+  String explore_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+      zero: 'אין צלילות',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_download_button => 'הורדת המודל למכשיר';
+
+  @override
+  String get explore_download_running => 'המודל בהורדה';
+
+  @override
+  String get explore_error_contextExceeded =>
+      'המשפט ארוך מדי עבור המודל במכשיר. נסו משפט קצר יותר.';
+
+  @override
+  String get explore_error_decodingFailure =>
+      'המודל לא הפיק תשובה שמישה. נסו לנסח מחדש.';
+
+  @override
+  String get explore_error_guardrail => 'המודל דחה את המשפט הזה.';
+
+  @override
+  String get explore_error_modelNotReady => 'המודל במכשיר עדיין לא מוכן.';
+
+  @override
+  String get explore_error_quotaExceeded =>
+      'המודל במכשיר עסוק. נסו שוב בעוד רגע.';
+
+  @override
+  String get explore_error_refusal => 'המודל דחה את המשפט הזה.';
+
+  @override
+  String get explore_error_schemaMismatch =>
+      'לא ניתן להבין זאת. עדכנו את האפליקציה אם זה חוזר על עצמו.';
+
+  @override
+  String get explore_error_unknown => 'משהו השתבש בפנייה למודל במכשיר.';
+
+  @override
+  String get explore_error_unsupportedLocale =>
+      'המודל במכשיר אינו מבין שפה זו.';
+
+  @override
+  String get explore_field_airTemp => 'טמפרטורת האוויר';
+
+  @override
+  String get explore_field_avgDepth => 'עומק ממוצע';
+
+  @override
+  String get explore_field_bottomTime => 'זמן קרקעית';
+
+  @override
+  String get explore_field_currentStrength => 'זרם';
+
+  @override
+  String get explore_field_depth => 'עומק';
+
+  @override
+  String get explore_field_diveMode => 'מצב צלילה';
+
+  @override
+  String get explore_field_diveNumber => 'מספר צלילה';
+
+  @override
+  String get explore_field_diveType => 'סוג צלילה';
+
+  @override
+  String get explore_field_entryMethod => 'כניסה';
+
+  @override
+  String get explore_field_o2 => 'חמצן';
+
+  @override
+  String get explore_field_rating => 'דירוג';
+
+  @override
+  String get explore_field_visibility => 'ראות';
+
+  @override
+  String get explore_field_waterTemp => 'טמפרטורת המים';
+
+  @override
+  String get explore_field_waterType => 'סוג מים';
+
+  @override
+  String get explore_field_weekday => 'יום בשבוע';
+
+  @override
+  String get explore_handoff_diveList => 'פתיחה ברשימת הצלילות';
+
+  @override
+  String get explore_handoff_insights => 'פתיחה בתובנות';
+
+  @override
+  String get explore_hint =>
+      'שאלו על הצלילות שלכם, למשל צבים מתחת ל-20 מ\' בבונייר';
+
+  @override
+  String get explore_needsAttention_title => 'דורש תשומת לב';
+
+  @override
+  String get explore_op_gt => 'מעל';
+
+  @override
+  String get explore_op_gte => 'לפחות';
+
+  @override
+  String get explore_op_lt => 'מתחת';
+
+  @override
+  String get explore_op_lte => 'לכל היותר';
+
+  @override
+  String explore_value_minutes(int minutes) {
+    return '$minutes דק\'';
+  }
+
+  @override
+  String get explore_op_eq => 'של';
+
+  @override
+  String explore_pickCandidate_title(Object text) {
+    return 'למה התכוונתם ב\"$text\"?';
+  }
+
+  @override
+  String get explore_recent_title => 'אחרונים';
+
+  @override
+  String get explore_results_title => 'צלילות מתאימות';
+
+  @override
+  String explore_results_truncated(Object count) {
+    return 'מוצגים $count הראשונים. פתחו את רשימת הצלילות לכולן.';
+  }
+
+  @override
+  String get explore_shortcut_unavailable =>
+      'חקירה דורשת את המודל במכשיר, שאינו מוכן במכשיר זה.';
+
+  @override
+  String get explore_subjectNotSupported => 'כרגע ניתן לחפש צלילות בלבד.';
+
+  @override
+  String get explore_title => 'חקירה';
+
+  @override
+  String get explore_understood_title => 'הובן';
+
+  @override
+  String get explore_unplaced_reason_invalid => 'לא ניתן לקרוא ערך זה';
+
+  @override
+  String get explore_unplaced_reason_noAxis => 'עדיין לא ניתן לחפש';
+
+  @override
+  String get explore_unplaced_reason_outOfRange => 'ערך מחוץ לטווח';
+
+  @override
+  String get explore_unplaced_reason_unknownField => 'שדה לא ידוע';
+
+  @override
+  String get explore_unplaced_reason_unknownTime => 'לא ניתן לקרוא זמן זה';
+
+  @override
+  String get explore_unresolved_noCandidates => 'אין התאמה ביומן שלכם';
+
+  @override
+  String get explore_chart_divesOverTime => 'צלילות לאורך זמן';
+
+  @override
+  String get explore_chart_depthTrend => 'עומק';
+
+  @override
+  String get explore_chart_waterTempTrend => 'טמפרטורת המים';
+
+  @override
+  String get explore_chart_bottomTimeTrend => 'זמן קרקעית';
+
+  @override
+  String explore_chart_entityCounts(Object kind) {
+    return 'צלילות לפי $kind';
+  }
+
+  @override
+  String get explore_kind_site => 'אתר';
+
+  @override
+  String get explore_kind_place => 'מקום';
+
+  @override
+  String get explore_kind_species => 'מין';
+
+  @override
+  String get explore_kind_gear => 'ציוד';
+
+  @override
+  String get explore_kind_buddy => 'שותף';
+
+  @override
+  String get explore_kind_tag => 'תגית';
+
+  @override
+  String get explore_kind_center => 'מרכז צלילה';
+
+  @override
+  String get explore_kind_trip => 'טיול';
+
+  @override
+  String get explore_kind_computer => 'מחשב';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

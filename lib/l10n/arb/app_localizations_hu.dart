@@ -1498,6 +1498,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'Bezárás / Mégse';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence =>
+      'Felfedezés egy mondattal';
+
+  @override
   String get accessibility_shortcut_goBack => 'Vissza';
 
   @override
@@ -25309,6 +25313,254 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_title => 'Palackok';
+
+  @override
+  String trips_cylinders_summary(int full, int partial, int empty) {
+    return 'Tele $full · Részben $partial · Üres $empty';
+  }
+
+  @override
+  String trips_cylinders_summaryUnfilled(int count) {
+    return 'Még nincs töltve $count';
+  }
+
+  @override
+  String get trips_cylinders_setUp => 'Palackok beállítása';
+
+  @override
+  String get trips_cylinders_setUpHint =>
+      'Kövesd az úton nálad lévő palackokat: töltések, keverékek és hogy mennyi maradt mindegyikben.';
+
+  @override
+  String get trips_cylinders_status_full => 'Tele';
+
+  @override
+  String get trips_cylinders_status_partial => 'Részben';
+
+  @override
+  String get trips_cylinders_status_empty => 'Üres';
+
+  @override
+  String get trips_cylinders_status_unknown => 'Még nincs töltve';
+
+  @override
+  String get trips_cylinders_mixAir => 'Levegő';
+
+  @override
+  String get trips_cylinders_segment_board => 'Áttekintés';
+
+  @override
+  String get trips_cylinders_segment_ledger => 'Napló';
+
+  @override
+  String get trips_cylinders_action_add => 'Palackok hozzáadása';
+
+  @override
+  String get trips_cylinders_action_fill => 'Töltés';
+
+  @override
+  String get trips_cylinders_action_fillSeveral => 'Több töltése';
+
+  @override
+  String get trips_cylinders_action_adjust => 'Módosítás';
+
+  @override
+  String trips_cylinders_bottle(String label) {
+    return 'Palack $label';
+  }
+
+  @override
+  String trips_cylinders_linkedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '$count merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_last_fillAt(String place, String when) {
+    return 'Töltve: $place, $when';
+  }
+
+  @override
+  String trips_cylinders_last_fill(String when) {
+    return 'Töltve: $when';
+  }
+
+  @override
+  String trips_cylinders_last_adjustment(String when) {
+    return 'Módosítva: $when';
+  }
+
+  @override
+  String trips_cylinders_last_diveAt(String site, String when) {
+    return 'Merülés: $site, $when';
+  }
+
+  @override
+  String trips_cylinders_last_dive(String when) {
+    return 'Merülés: $when';
+  }
+
+  @override
+  String get trips_cylinders_boardEmpty =>
+      'Ezen az úton még nincsenek palackok';
+
+  @override
+  String get trips_cylinders_ledgerEmpty => 'Még nincs töltés vagy módosítás';
+
+  @override
+  String get trips_cylinders_kind_fill => 'Töltés';
+
+  @override
+  String get trips_cylinders_kind_adjustment => 'Módosítás';
+
+  @override
+  String get trips_cylinders_deleteConfirmUnused =>
+      'Törlöd ezt a palackot és a töltéseit?';
+
+  @override
+  String trips_cylinders_deleteConfirmUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Törlöd ezt a palackot és a töltéseit? $count merülés használta. A merülések megtartják a palackjukat, csak a kapcsolat törlődik.',
+      one:
+          'Törlöd ezt a palackot és a töltéseit? $count merülés használta. A merülés megtartja a palackját, csak a kapcsolat törlődik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_deleteEventConfirm => 'Törlöd ezt a bejegyzést?';
+
+  @override
+  String get trips_cylinders_add_tabRental => 'Bérelt';
+
+  @override
+  String get trips_cylinders_add_tabOwned => 'A felszerelésemből';
+
+  @override
+  String get trips_cylinders_add_count => 'Darabszám';
+
+  @override
+  String get trips_cylinders_add_preset => 'Palacktípus';
+
+  @override
+  String get trips_cylinders_add_prefix => 'Név előtagja';
+
+  @override
+  String get trips_cylinders_add_prefixDefault => 'Pickup';
+
+  @override
+  String get trips_cylinders_add_noOwned =>
+      'A felszerelésedben nincs több hozzáadható palack.';
+
+  @override
+  String get trips_cylinders_add_errorCount =>
+      'Adj meg egy számot 1 és 20 között.';
+
+  @override
+  String get trips_cylinders_fill_titleEdit => 'Töltés szerkesztése';
+
+  @override
+  String get trips_cylinders_fill_when => 'Mikor';
+
+  @override
+  String get trips_cylinders_fill_where => 'Töltőállomás';
+
+  @override
+  String get trips_cylinders_fill_whereNone => 'Nincs megadva';
+
+  @override
+  String trips_cylinders_fill_pressure(String unit) {
+    return 'Töltési nyomás ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_fill_o2 => 'Kért O2 (%)';
+
+  @override
+  String get trips_cylinders_fill_he => 'Kért He (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedO2 => 'Mért O2 (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedHe => 'Mért He (%)';
+
+  @override
+  String get trips_cylinders_fill_bottle => 'Palackszám';
+
+  @override
+  String get trips_cylinders_fill_cost => 'Költség';
+
+  @override
+  String get trips_cylinders_fill_costEach => 'Költség palackonként';
+
+  @override
+  String get trips_cylinders_fill_currency => 'Pénznem';
+
+  @override
+  String get trips_cylinders_fill_package => 'A csomag része';
+
+  @override
+  String get trips_cylinders_fill_slots => 'Töltendő palackok';
+
+  @override
+  String get trips_cylinders_fill_errorMix =>
+      'Az oxigén 1 és 100 százalék között, a hélium 0 és 99 között lehet, együtt legfeljebb 100.';
+
+  @override
+  String get trips_cylinders_fill_errorNoSlot =>
+      'Válassz legalább egy palackot.';
+
+  @override
+  String get trips_cylinders_note => 'Megjegyzés';
+
+  @override
+  String get trips_cylinders_adjust_titleEdit => 'Módosítás szerkesztése';
+
+  @override
+  String trips_cylinders_adjust_pressure(String unit) {
+    return 'Nyomás ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_adjust_markEmpty => 'Megjelölés üresként';
+
+  @override
+  String get trips_cylinders_edit_title => 'Palack szerkesztése';
+
+  @override
+  String get trips_cylinders_edit_label => 'Név';
+
+  @override
+  String get trips_cylinders_edit_errorLabel => 'Adj meg egy nevet.';
+
+  @override
+  String get trips_cylinders_edit_errorNeedsPressure =>
+      'Add meg az üzemi nyomást is, hogy a méret átszámítható legyen.';
+
+  @override
+  String trips_cylinders_edit_volume(String unit) {
+    return 'Méret ($unit)';
+  }
+
+  @override
+  String trips_cylinders_edit_workingPressure(String unit) {
+    return 'Üzemi nyomás ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_edit_presetCustom => 'Egyéni';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override
@@ -39763,6 +40015,368 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionDiveComputer => 'Búvárcomputer';
+
+  @override
+  String diveLog_filterChip_speciesCount(Object count) {
+    return '$count faj';
+  }
+
+  @override
+  String diveLog_filterChip_weekdayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nap a héten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_filterChip_siteCount(Object count) {
+    return '$count helyszín';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return 'Látótávolság $min és $max $unit között';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMin(String value, String unit) {
+    return 'Látótávolság $value $unit felett';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMax(String value, String unit) {
+    return 'Látótávolság $value $unit alatt';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return 'Víz $min és $max$unit között';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMin(String value, String unit) {
+    return 'Víz $value$unit felett';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMax(String value, String unit) {
+    return 'Víz $value$unit alatt';
+  }
+
+  @override
+  String diveLog_filterChip_waterTypeCount(Object count) {
+    return '$count víztípus';
+  }
+
+  @override
+  String get diveLog_filter_sectionSpecies => 'Tengeri élővilág';
+
+  @override
+  String diveLog_filter_sectionVisibilityUnit(Object unit) {
+    return 'Látótávolság ($unit)';
+  }
+
+  @override
+  String diveLog_filter_sectionWaterTempUnit(Object unit) {
+    return 'Vízhőmérséklet ($unit)';
+  }
+
+  @override
+  String get diveLog_filter_sectionWaterType => 'Víztípus';
+
+  @override
+  String get diveLog_filter_speciesSearchHint => 'Fajok keresése';
+
+  @override
+  String get diveLog_listPage_tooltip_explore => 'Felfedezés egy mondattal';
+
+  @override
+  String get explore_chip_favorite => 'Kedvenc';
+
+  @override
+  String get explore_chip_deco => 'Dekompressziós merülés';
+
+  @override
+  String get explore_chip_noDeco => 'Dekompresszió nélkül';
+
+  @override
+  String get explore_chip_noBuddy => 'Társ nélkül';
+
+  @override
+  String explore_chip_rating(String op, String value) {
+    return 'Értékelés $op $value';
+  }
+
+  @override
+  String explore_chip_numeric(String field, String op, String value) {
+    return '$field $op $value';
+  }
+
+  @override
+  String explore_chip_between(String field, String low, String high) {
+    return '$field $low és $high között';
+  }
+
+  @override
+  String explore_chip_enum(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
+  String explore_chip_enumNot(String field, String values) {
+    return '$field nem $values';
+  }
+
+  @override
+  String explore_chip_timeRange(String start, String end) {
+    return '$start és $end között';
+  }
+
+  @override
+  String explore_chip_timeSince(Object start) {
+    return '$start óta';
+  }
+
+  @override
+  String explore_chip_timeBefore(Object end) {
+    return '$end előtt';
+  }
+
+  @override
+  String explore_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+      zero: 'Nincs merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_download_button => 'Az eszközön futó modell letöltése';
+
+  @override
+  String get explore_download_running => 'A modell letöltése folyamatban';
+
+  @override
+  String get explore_error_contextExceeded =>
+      'Ez a mondat túl hosszú az eszközön futó modellnek. Próbáljon rövidebbet.';
+
+  @override
+  String get explore_error_decodingFailure =>
+      'A modell nem adott használható választ. Próbálja átfogalmazni.';
+
+  @override
+  String get explore_error_guardrail => 'A modell elutasította ezt a mondatot.';
+
+  @override
+  String get explore_error_modelNotReady =>
+      'Az eszközön futó modell még nem áll készen.';
+
+  @override
+  String get explore_error_quotaExceeded =>
+      'Az eszközön futó modell elfoglalt. Próbálja újra kis idő múlva.';
+
+  @override
+  String get explore_error_refusal => 'A modell elutasította ezt a mondatot.';
+
+  @override
+  String get explore_error_schemaMismatch =>
+      'Ezt nem sikerült értelmezni. Frissítse az alkalmazást, ha ez továbbra is előfordul.';
+
+  @override
+  String get explore_error_unknown =>
+      'Hiba történt az eszközön futó modell lekérdezésekor.';
+
+  @override
+  String get explore_error_unsupportedLocale =>
+      'Az eszközön futó modell nem érti ezt a nyelvet.';
+
+  @override
+  String get explore_field_airTemp => 'Levegő hőmérséklete';
+
+  @override
+  String get explore_field_avgDepth => 'Átlagos mélység';
+
+  @override
+  String get explore_field_bottomTime => 'Fenékidő';
+
+  @override
+  String get explore_field_currentStrength => 'Áramlás';
+
+  @override
+  String get explore_field_depth => 'Mélység';
+
+  @override
+  String get explore_field_diveMode => 'Merülési mód';
+
+  @override
+  String get explore_field_diveNumber => 'Merülés száma';
+
+  @override
+  String get explore_field_diveType => 'Merülés típusa';
+
+  @override
+  String get explore_field_entryMethod => 'Beszállás';
+
+  @override
+  String get explore_field_o2 => 'Oxigén';
+
+  @override
+  String get explore_field_rating => 'Értékelés';
+
+  @override
+  String get explore_field_visibility => 'Látótávolság';
+
+  @override
+  String get explore_field_waterTemp => 'Vízhőmérséklet';
+
+  @override
+  String get explore_field_waterType => 'Víztípus';
+
+  @override
+  String get explore_field_weekday => 'Hét napja';
+
+  @override
+  String get explore_handoff_diveList => 'Megnyitás a merüléslistában';
+
+  @override
+  String get explore_handoff_insights => 'Megnyitás az Elemzésekben';
+
+  @override
+  String get explore_hint =>
+      'Kérdezzen a merüléseiről, például teknősök 20 m alatt Bonaire-en';
+
+  @override
+  String get explore_needsAttention_title => 'Figyelmet igényel';
+
+  @override
+  String get explore_op_gt => 'felett';
+
+  @override
+  String get explore_op_gte => 'legalább';
+
+  @override
+  String get explore_op_lt => 'alatt';
+
+  @override
+  String get explore_op_lte => 'legfeljebb';
+
+  @override
+  String explore_value_minutes(int minutes) {
+    return '$minutes perc';
+  }
+
+  @override
+  String get explore_op_eq => 'értéke';
+
+  @override
+  String explore_pickCandidate_title(Object text) {
+    return 'Mit értett ezen: \"$text\"?';
+  }
+
+  @override
+  String get explore_recent_title => 'Legutóbbi';
+
+  @override
+  String get explore_results_title => 'Egyező merülések';
+
+  @override
+  String explore_results_truncated(Object count) {
+    return 'Az első $count látható. Az összeshez nyissa meg a merüléslistát.';
+  }
+
+  @override
+  String get explore_shortcut_unavailable =>
+      'A felfedezéshez az eszközön futó modell szükséges, amely ezen az eszközön nem áll készen.';
+
+  @override
+  String get explore_subjectNotSupported =>
+      'Jelenleg csak merülések kereshetők.';
+
+  @override
+  String get explore_title => 'Felfedezés';
+
+  @override
+  String get explore_understood_title => 'Értelmezve';
+
+  @override
+  String get explore_unplaced_reason_invalid =>
+      'Ezt az értéket nem sikerült beolvasni';
+
+  @override
+  String get explore_unplaced_reason_noAxis => 'Még nem kereshető';
+
+  @override
+  String get explore_unplaced_reason_outOfRange =>
+      'Az érték a tartományon kívül esik';
+
+  @override
+  String get explore_unplaced_reason_unknownField => 'Ismeretlen mező';
+
+  @override
+  String get explore_unplaced_reason_unknownTime =>
+      'Ezt az időt nem sikerült beolvasni';
+
+  @override
+  String get explore_unresolved_noCandidates => 'Nincs egyezés a naplójában';
+
+  @override
+  String get explore_chart_divesOverTime => 'Merülések az idő során';
+
+  @override
+  String get explore_chart_depthTrend => 'Mélység';
+
+  @override
+  String get explore_chart_waterTempTrend => 'Vízhőmérséklet';
+
+  @override
+  String get explore_chart_bottomTimeTrend => 'Fenékidő';
+
+  @override
+  String explore_chart_entityCounts(Object kind) {
+    return 'Merülések $kind szerint';
+  }
+
+  @override
+  String get explore_kind_site => 'helyszín';
+
+  @override
+  String get explore_kind_place => 'hely';
+
+  @override
+  String get explore_kind_species => 'faj';
+
+  @override
+  String get explore_kind_gear => 'felszerelés';
+
+  @override
+  String get explore_kind_buddy => 'társ';
+
+  @override
+  String get explore_kind_tag => 'címke';
+
+  @override
+  String get explore_kind_center => 'búvárközpont';
+
+  @override
+  String get explore_kind_trip => 'utazás';
+
+  @override
+  String get explore_kind_computer => 'computer';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

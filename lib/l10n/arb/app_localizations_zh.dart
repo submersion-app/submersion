@@ -1426,6 +1426,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => '关闭 / 取消';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence => '用一句话探索';
+
+  @override
   String get accessibility_shortcut_goBack => '返回';
 
   @override
@@ -24103,6 +24106,243 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_title => '气瓶';
+
+  @override
+  String trips_cylinders_summary(int full, int partial, int empty) {
+    return '满瓶 $full · 部分 $partial · 空瓶 $empty';
+  }
+
+  @override
+  String trips_cylinders_summaryUnfilled(int count) {
+    return '尚未充气 $count';
+  }
+
+  @override
+  String get trips_cylinders_setUp => '设置气瓶';
+
+  @override
+  String get trips_cylinders_setUpHint => '记录本次行程中你持有的气瓶：充气、混合气以及每瓶剩余多少。';
+
+  @override
+  String get trips_cylinders_status_full => '满';
+
+  @override
+  String get trips_cylinders_status_partial => '部分';
+
+  @override
+  String get trips_cylinders_status_empty => '空';
+
+  @override
+  String get trips_cylinders_status_unknown => '尚未充气';
+
+  @override
+  String get trips_cylinders_mixAir => '空气';
+
+  @override
+  String get trips_cylinders_segment_board => '看板';
+
+  @override
+  String get trips_cylinders_segment_ledger => '记录';
+
+  @override
+  String get trips_cylinders_action_add => '添加气瓶';
+
+  @override
+  String get trips_cylinders_action_fill => '充气';
+
+  @override
+  String get trips_cylinders_action_fillSeveral => '批量充气';
+
+  @override
+  String get trips_cylinders_action_adjust => '调整';
+
+  @override
+  String trips_cylinders_bottle(String label) {
+    return '瓶号 $label';
+  }
+
+  @override
+  String trips_cylinders_linkedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_last_fillAt(String place, String when) {
+    return '于 $place 充气，$when';
+  }
+
+  @override
+  String trips_cylinders_last_fill(String when) {
+    return '已充气，$when';
+  }
+
+  @override
+  String trips_cylinders_last_adjustment(String when) {
+    return '已调整，$when';
+  }
+
+  @override
+  String trips_cylinders_last_diveAt(String site, String when) {
+    return '在 $site 潜水，$when';
+  }
+
+  @override
+  String trips_cylinders_last_dive(String when) {
+    return '已潜水，$when';
+  }
+
+  @override
+  String get trips_cylinders_boardEmpty => '本次行程还没有气瓶';
+
+  @override
+  String get trips_cylinders_ledgerEmpty => '还没有充气或调整记录';
+
+  @override
+  String get trips_cylinders_kind_fill => '充气';
+
+  @override
+  String get trips_cylinders_kind_adjustment => '调整';
+
+  @override
+  String get trips_cylinders_deleteConfirmUnused => '删除这个气瓶及其充气记录？';
+
+  @override
+  String trips_cylinders_deleteConfirmUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '删除这个气瓶及其充气记录？有 $count 次潜水使用过它。这些潜水保留各自的气瓶，只移除关联。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_deleteEventConfirm => '删除这条记录？';
+
+  @override
+  String get trips_cylinders_add_tabRental => '租用';
+
+  @override
+  String get trips_cylinders_add_tabOwned => '我的装备';
+
+  @override
+  String get trips_cylinders_add_count => '数量';
+
+  @override
+  String get trips_cylinders_add_preset => '气瓶类型';
+
+  @override
+  String get trips_cylinders_add_prefix => '名称前缀';
+
+  @override
+  String get trips_cylinders_add_prefixDefault => '车';
+
+  @override
+  String get trips_cylinders_add_noOwned => '你的装备中没有可添加的气瓶了。';
+
+  @override
+  String get trips_cylinders_add_errorCount => '请输入 1 到 20 之间的数字。';
+
+  @override
+  String get trips_cylinders_fill_titleEdit => '编辑充气';
+
+  @override
+  String get trips_cylinders_fill_when => '时间';
+
+  @override
+  String get trips_cylinders_fill_where => '充气站';
+
+  @override
+  String get trips_cylinders_fill_whereNone => '未设置';
+
+  @override
+  String trips_cylinders_fill_pressure(String unit) {
+    return '充气压力（$unit）';
+  }
+
+  @override
+  String get trips_cylinders_fill_o2 => '订购 O2（%）';
+
+  @override
+  String get trips_cylinders_fill_he => '订购 He（%）';
+
+  @override
+  String get trips_cylinders_fill_analyzedO2 => '分析 O2（%）';
+
+  @override
+  String get trips_cylinders_fill_analyzedHe => '分析 He（%）';
+
+  @override
+  String get trips_cylinders_fill_bottle => '瓶号';
+
+  @override
+  String get trips_cylinders_fill_cost => '费用';
+
+  @override
+  String get trips_cylinders_fill_costEach => '每个气瓶的费用';
+
+  @override
+  String get trips_cylinders_fill_currency => '货币';
+
+  @override
+  String get trips_cylinders_fill_package => '包含在套餐中';
+
+  @override
+  String get trips_cylinders_fill_slots => '要充气的气瓶';
+
+  @override
+  String get trips_cylinders_fill_errorMix =>
+      '氧气须为 1 到 100%，氦气为 0 到 99%，两者合计不超过 100。';
+
+  @override
+  String get trips_cylinders_fill_errorNoSlot => '请至少选择一个气瓶。';
+
+  @override
+  String get trips_cylinders_note => '备注';
+
+  @override
+  String get trips_cylinders_adjust_titleEdit => '编辑调整';
+
+  @override
+  String trips_cylinders_adjust_pressure(String unit) {
+    return '压力（$unit）';
+  }
+
+  @override
+  String get trips_cylinders_adjust_markEmpty => '标记为空';
+
+  @override
+  String get trips_cylinders_edit_title => '编辑气瓶';
+
+  @override
+  String get trips_cylinders_edit_label => '名称';
+
+  @override
+  String get trips_cylinders_edit_errorLabel => '请输入名称。';
+
+  @override
+  String get trips_cylinders_edit_errorNeedsPressure => '请同时输入工作压力，以便换算尺寸。';
+
+  @override
+  String trips_cylinders_edit_volume(String unit) {
+    return '尺寸（$unit）';
+  }
+
+  @override
+  String trips_cylinders_edit_workingPressure(String unit) {
+    return '工作压力（$unit）';
+  }
+
+  @override
+  String get trips_cylinders_edit_presetCustom => '自定义';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => '上船/下船';
 
   @override
@@ -37715,6 +37955,355 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionDiveComputer => '潜水电脑';
+
+  @override
+  String diveLog_filterChip_speciesCount(Object count) {
+    return '$count 种物种';
+  }
+
+  @override
+  String diveLog_filterChip_weekdayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '每周 $count 天',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_filterChip_siteCount(Object count) {
+    return '$count 个潜点';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return '能见度 $min 至 $max $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMin(String value, String unit) {
+    return '能见度超过 $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMax(String value, String unit) {
+    return '能见度低于 $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return '水温 $min 至 $max$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMin(String value, String unit) {
+    return '水温超过 $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMax(String value, String unit) {
+    return '水温低于 $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTypeCount(Object count) {
+    return '$count 种水体类型';
+  }
+
+  @override
+  String get diveLog_filter_sectionSpecies => '海洋生物';
+
+  @override
+  String diveLog_filter_sectionVisibilityUnit(Object unit) {
+    return '能见度（$unit）';
+  }
+
+  @override
+  String diveLog_filter_sectionWaterTempUnit(Object unit) {
+    return '水温（$unit）';
+  }
+
+  @override
+  String get diveLog_filter_sectionWaterType => '水体类型';
+
+  @override
+  String get diveLog_filter_speciesSearchHint => '搜索物种';
+
+  @override
+  String get diveLog_listPage_tooltip_explore => '用一句话探索';
+
+  @override
+  String get explore_chip_favorite => '收藏';
+
+  @override
+  String get explore_chip_deco => '减压潜水';
+
+  @override
+  String get explore_chip_noDeco => '无减压';
+
+  @override
+  String get explore_chip_noBuddy => '无潜伴';
+
+  @override
+  String explore_chip_rating(String op, String value) {
+    return '评分$op $value';
+  }
+
+  @override
+  String explore_chip_numeric(String field, String op, String value) {
+    return '$field$op $value';
+  }
+
+  @override
+  String explore_chip_between(String field, String low, String high) {
+    return '$field $low 至 $high';
+  }
+
+  @override
+  String explore_chip_enum(String field, String values) {
+    return '$field：$values';
+  }
+
+  @override
+  String explore_chip_enumNot(String field, String values) {
+    return '$field不是 $values';
+  }
+
+  @override
+  String explore_chip_timeRange(String start, String end) {
+    return '$start 至 $end';
+  }
+
+  @override
+  String explore_chip_timeSince(Object start) {
+    return '自 $start 起';
+  }
+
+  @override
+  String explore_chip_timeBefore(Object end) {
+    return '$end 之前';
+  }
+
+  @override
+  String explore_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+      zero: '无潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_download_button => '下载设备端模型';
+
+  @override
+  String get explore_download_running => '正在下载模型';
+
+  @override
+  String get explore_error_contextExceeded => '这句话对设备端模型来说太长了。请尝试更短的句子。';
+
+  @override
+  String get explore_error_decodingFailure => '模型没有给出可用的答案。请尝试换个说法。';
+
+  @override
+  String get explore_error_guardrail => '模型拒绝了这句话。';
+
+  @override
+  String get explore_error_modelNotReady => '设备端模型尚未就绪。';
+
+  @override
+  String get explore_error_quotaExceeded => '设备端模型正忙。请稍后再试。';
+
+  @override
+  String get explore_error_refusal => '模型拒绝了这句话。';
+
+  @override
+  String get explore_error_schemaMismatch => '无法理解此内容。如果持续出现，请更新应用。';
+
+  @override
+  String get explore_error_unknown => '向设备端模型提问时出错。';
+
+  @override
+  String get explore_error_unsupportedLocale => '设备端模型不理解这种语言。';
+
+  @override
+  String get explore_field_airTemp => '气温';
+
+  @override
+  String get explore_field_avgDepth => '平均深度';
+
+  @override
+  String get explore_field_bottomTime => '水底时间';
+
+  @override
+  String get explore_field_currentStrength => '水流';
+
+  @override
+  String get explore_field_depth => '深度';
+
+  @override
+  String get explore_field_diveMode => '潜水模式';
+
+  @override
+  String get explore_field_diveNumber => '潜水编号';
+
+  @override
+  String get explore_field_diveType => '潜水类型';
+
+  @override
+  String get explore_field_entryMethod => '入水方式';
+
+  @override
+  String get explore_field_o2 => '氧气';
+
+  @override
+  String get explore_field_rating => '评分';
+
+  @override
+  String get explore_field_visibility => '能见度';
+
+  @override
+  String get explore_field_waterTemp => '水温';
+
+  @override
+  String get explore_field_waterType => '水体类型';
+
+  @override
+  String get explore_field_weekday => '星期';
+
+  @override
+  String get explore_handoff_diveList => '在潜水列表中打开';
+
+  @override
+  String get explore_handoff_insights => '在洞察中打开';
+
+  @override
+  String get explore_hint => '询问你的潜水，例如博奈尔 20 米以下的海龟';
+
+  @override
+  String get explore_needsAttention_title => '需要注意';
+
+  @override
+  String get explore_op_gt => '超过';
+
+  @override
+  String get explore_op_gte => '至少';
+
+  @override
+  String get explore_op_lt => '低于';
+
+  @override
+  String get explore_op_lte => '至多';
+
+  @override
+  String explore_value_minutes(int minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String get explore_op_eq => '为';
+
+  @override
+  String explore_pickCandidate_title(Object text) {
+    return '\"$text\" 指的是哪一个？';
+  }
+
+  @override
+  String get explore_recent_title => '最近';
+
+  @override
+  String get explore_results_title => '匹配的潜水';
+
+  @override
+  String explore_results_truncated(Object count) {
+    return '显示前 $count 条。在潜水列表中查看全部。';
+  }
+
+  @override
+  String get explore_shortcut_unavailable => '探索需要设备端模型，但此设备上的模型尚未就绪。';
+
+  @override
+  String get explore_subjectNotSupported => '目前只能搜索潜水记录。';
+
+  @override
+  String get explore_title => '探索';
+
+  @override
+  String get explore_understood_title => '已理解';
+
+  @override
+  String get explore_unplaced_reason_invalid => '无法读取此值';
+
+  @override
+  String get explore_unplaced_reason_noAxis => '尚不可搜索';
+
+  @override
+  String get explore_unplaced_reason_outOfRange => '值超出范围';
+
+  @override
+  String get explore_unplaced_reason_unknownField => '未知字段';
+
+  @override
+  String get explore_unplaced_reason_unknownTime => '无法读取此时间';
+
+  @override
+  String get explore_unresolved_noCandidates => '日志中没有匹配项';
+
+  @override
+  String get explore_chart_divesOverTime => '潜水随时间变化';
+
+  @override
+  String get explore_chart_depthTrend => '深度';
+
+  @override
+  String get explore_chart_waterTempTrend => '水温';
+
+  @override
+  String get explore_chart_bottomTimeTrend => '水底时间';
+
+  @override
+  String explore_chart_entityCounts(Object kind) {
+    return '每个$kind的潜水次数';
+  }
+
+  @override
+  String get explore_kind_site => '潜点';
+
+  @override
+  String get explore_kind_place => '地点';
+
+  @override
+  String get explore_kind_species => '物种';
+
+  @override
+  String get explore_kind_gear => '装备';
+
+  @override
+  String get explore_kind_buddy => '潜伴';
+
+  @override
+  String get explore_kind_tag => '标签';
+
+  @override
+  String get explore_kind_center => '潜水中心';
+
+  @override
+  String get explore_kind_trip => '行程';
+
+  @override
+  String get explore_kind_computer => '电脑';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

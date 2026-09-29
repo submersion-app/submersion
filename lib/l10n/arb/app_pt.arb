@@ -645,6 +645,7 @@
   "accessibility_shortcut_newDive": "Novo mergulho",
   "accessibility_shortcut_openSettings": "Abrir configurações",
   "accessibility_shortcut_searchDives": "Buscar mergulhos",
+  "accessibility_shortcut_exploreWithSentence": "Explorar com uma frase",
   "accessibility_sort_selectedLabel": "Ordenar por {displayName}, selecionado atualmente",
   "accessibility_sort_unselectedLabel": "Ordenar por {displayName}",
   "backup_appBar_title": "Backup e Restauração",
@@ -7214,6 +7215,182 @@
       }
     }
   },
+  "trips_cylinders_title": "Cilindros",
+  "trips_cylinders_summary": "Cheios {full} · Parciais {partial} · Vazios {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "Ainda não enchidos {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "Configurar cilindros",
+  "trips_cylinders_setUpHint": "Acompanhe os cilindros que tem nesta viagem: enchimentos, misturas e o que resta em cada um.",
+  "trips_cylinders_status_full": "Cheio",
+  "trips_cylinders_status_partial": "Parcial",
+  "trips_cylinders_status_empty": "Vazio",
+  "trips_cylinders_status_unknown": "Ainda não enchido",
+  "trips_cylinders_mixAir": "Ar",
+  "trips_cylinders_segment_board": "Quadro",
+  "trips_cylinders_segment_ledger": "Registo",
+  "trips_cylinders_action_add": "Adicionar cilindros",
+  "trips_cylinders_action_fill": "Encher",
+  "trips_cylinders_action_fillSeveral": "Encher vários",
+  "trips_cylinders_action_adjust": "Ajustar",
+  "trips_cylinders_bottle": "Cilindro {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} mergulho} other{{count} mergulhos}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "Enchido em {place}, {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "Enchido {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "Ajustado {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "Mergulho em {site}, {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "Mergulho {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "Ainda não há cilindros nesta viagem",
+  "trips_cylinders_ledgerEmpty": "Ainda não há enchimentos nem ajustes",
+  "trips_cylinders_kind_fill": "Enchimento",
+  "trips_cylinders_kind_adjustment": "Ajuste",
+  "trips_cylinders_deleteConfirmUnused": "Eliminar este cilindro e os seus enchimentos?",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{Eliminar este cilindro e os seus enchimentos? {count} mergulho usou-o. Esse mergulho mantém o seu cilindro; só a ligação é removida.} other{Eliminar este cilindro e os seus enchimentos? {count} mergulhos usaram-no. Esses mergulhos mantêm os seus cilindros; só a ligação é removida.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "Eliminar esta entrada?",
+  "trips_cylinders_add_tabRental": "Aluguer",
+  "trips_cylinders_add_tabOwned": "Do meu equipamento",
+  "trips_cylinders_add_count": "Quantos",
+  "trips_cylinders_add_preset": "Tipo de cilindro",
+  "trips_cylinders_add_prefix": "Prefixo do nome",
+  "trips_cylinders_add_prefixDefault": "Carrinha",
+  "trips_cylinders_add_noOwned": "Não restam cilindros do seu equipamento para adicionar.",
+  "trips_cylinders_add_errorCount": "Introduza um número de 1 a 20.",
+  "trips_cylinders_fill_titleEdit": "Editar enchimento",
+  "trips_cylinders_fill_when": "Quando",
+  "trips_cylinders_fill_where": "Posto de enchimento",
+  "trips_cylinders_fill_whereNone": "Não definido",
+  "trips_cylinders_fill_pressure": "Pressão de enchimento ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 pedido (%)",
+  "trips_cylinders_fill_he": "He pedido (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 analisado (%)",
+  "trips_cylinders_fill_analyzedHe": "He analisado (%)",
+  "trips_cylinders_fill_bottle": "Número do cilindro",
+  "trips_cylinders_fill_cost": "Custo",
+  "trips_cylinders_fill_costEach": "Custo por cilindro",
+  "trips_cylinders_fill_currency": "Moeda",
+  "trips_cylinders_fill_package": "Incluído num pacote",
+  "trips_cylinders_fill_slots": "Cilindros a encher",
+  "trips_cylinders_fill_errorMix": "O oxigénio tem de estar entre 1 e 100 por cento, o hélio entre 0 e 99, e juntos no máximo 100.",
+  "trips_cylinders_fill_errorNoSlot": "Escolha pelo menos um cilindro.",
+  "trips_cylinders_note": "Nota",
+  "trips_cylinders_adjust_titleEdit": "Editar ajuste",
+  "trips_cylinders_adjust_pressure": "Pressão ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "Marcar como vazio",
+  "trips_cylinders_edit_title": "Editar cilindro",
+  "trips_cylinders_edit_label": "Nome",
+  "trips_cylinders_edit_errorLabel": "Introduza um nome.",
+  "trips_cylinders_edit_errorNeedsPressure": "Introduza também a pressão de serviço para poder converter o tamanho.",
+  "trips_cylinders_edit_volume": "Tamanho ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "Pressão de serviço ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "Personalizado",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Data Final",
@@ -11886,6 +12063,99 @@
   "diveLog_filter_noComputersRegistered": "Nenhum computador de mergulho registrado",
   "diveLog_filter_sectionDepthRangeUnit": "Faixa de profundidade ({unit})",
   "diveLog_filter_sectionDiveComputer": "Computador de Mergulho",
+  "diveLog_filterChip_speciesCount": "{count} espécies",
+  "diveLog_filterChip_weekdayCount": "{count, plural, =1{{count} dia da semana} other{{count} dias da semana}}",
+  "diveLog_filterChip_siteCount": "{count} locais",
+  "diveLog_filterChip_visibilityRange": "Visibilidade {min} a {max} {unit}",
+  "diveLog_filterChip_visibilityMin": "Visibilidade acima de {value} {unit}",
+  "diveLog_filterChip_visibilityMax": "Visibilidade abaixo de {value} {unit}",
+  "diveLog_filterChip_waterTempRange": "Água {min} a {max}{unit}",
+  "diveLog_filterChip_waterTempMin": "Água acima de {value}{unit}",
+  "diveLog_filterChip_waterTempMax": "Água abaixo de {value}{unit}",
+  "diveLog_filterChip_waterTypeCount": "{count} tipos de água",
+  "diveLog_filter_sectionSpecies": "Vida marinha",
+  "diveLog_filter_sectionVisibilityUnit": "Visibilidade ({unit})",
+  "diveLog_filter_sectionWaterTempUnit": "Temperatura da água ({unit})",
+  "diveLog_filter_sectionWaterType": "Tipo de água",
+  "diveLog_filter_speciesSearchHint": "Pesquisar espécies",
+  "diveLog_listPage_tooltip_explore": "Explorar com uma frase",
+  "explore_chip_favorite": "Favorito",
+  "explore_chip_deco": "Mergulho com descompressão",
+  "explore_chip_noDeco": "Sem descompressão",
+  "explore_chip_noBuddy": "Sem parceiro",
+  "explore_chip_rating": "Avaliação {op} {value}",
+  "explore_chip_numeric": "{field} {op} {value}",
+  "explore_chip_between": "{field} {low} a {high}",
+  "explore_chip_enum": "{field}: {values}",
+  "explore_chip_enumNot": "{field} não {values}",
+  "explore_chip_timeRange": "{start} a {end}",
+  "explore_chip_timeSince": "Desde {start}",
+  "explore_chip_timeBefore": "Antes de {end}",
+  "explore_count": "{count, plural, =0{Sem mergulhos} =1{{count} mergulho} other{{count} mergulhos}}",
+  "explore_download_button": "Transferir o modelo para o dispositivo",
+  "explore_download_running": "A transferir o modelo",
+  "explore_error_contextExceeded": "Essa frase é demasiado longa para o modelo no dispositivo. Tente uma mais curta.",
+  "explore_error_decodingFailure": "O modelo não produziu uma resposta utilizável. Tente reformular.",
+  "explore_error_guardrail": "O modelo recusou esta frase.",
+  "explore_error_modelNotReady": "O modelo no dispositivo ainda não está pronto.",
+  "explore_error_quotaExceeded": "O modelo no dispositivo está ocupado. Tente novamente daqui a pouco.",
+  "explore_error_refusal": "O modelo recusou esta frase.",
+  "explore_error_schemaMismatch": "Não foi possível compreender. Atualize a aplicação se isto continuar a acontecer.",
+  "explore_error_unknown": "Algo correu mal ao consultar o modelo no dispositivo.",
+  "explore_error_unsupportedLocale": "O modelo no dispositivo não compreende este idioma.",
+  "explore_field_airTemp": "Temperatura do ar",
+  "explore_field_avgDepth": "Profundidade média",
+  "explore_field_bottomTime": "Tempo de fundo",
+  "explore_field_currentStrength": "Corrente",
+  "explore_field_depth": "Profundidade",
+  "explore_field_diveMode": "Modo de mergulho",
+  "explore_field_diveNumber": "Número do mergulho",
+  "explore_field_diveType": "Tipo de mergulho",
+  "explore_field_entryMethod": "Entrada",
+  "explore_field_o2": "Oxigénio",
+  "explore_field_rating": "Avaliação",
+  "explore_field_visibility": "Visibilidade",
+  "explore_field_waterTemp": "Temperatura da água",
+  "explore_field_waterType": "Tipo de água",
+  "explore_field_weekday": "Dia da semana",
+  "explore_handoff_diveList": "Abrir na lista de mergulhos",
+  "explore_handoff_insights": "Abrir em Análises",
+  "explore_hint": "Pergunte sobre os seus mergulhos, por exemplo tartarugas abaixo de 20 m em Bonaire",
+  "explore_needsAttention_title": "Requer atenção",
+  "explore_op_gt": "acima de",
+  "explore_op_gte": "pelo menos",
+  "explore_op_lt": "abaixo de",
+  "explore_op_lte": "no máximo",
+  "explore_value_minutes": "{minutes} min",
+  "explore_op_eq": "de",
+  "explore_pickCandidate_title": "O que quis dizer com \"{text}\"?",
+  "explore_recent_title": "Recentes",
+  "explore_results_title": "Mergulhos correspondentes",
+  "explore_results_truncated": "A mostrar os primeiros {count}. Abra a lista de mergulhos para ver todos.",
+  "explore_shortcut_unavailable": "Explorar precisa do modelo no dispositivo, que não está pronto neste dispositivo.",
+  "explore_subjectNotSupported": "Por agora só é possível pesquisar mergulhos.",
+  "explore_title": "Explorar",
+  "explore_understood_title": "Compreendido",
+  "explore_unplaced_reason_invalid": "Não foi possível ler este valor",
+  "explore_unplaced_reason_noAxis": "Ainda não pesquisável",
+  "explore_unplaced_reason_outOfRange": "Valor fora do intervalo",
+  "explore_unplaced_reason_unknownField": "Campo desconhecido",
+  "explore_unplaced_reason_unknownTime": "Não foi possível ler este período",
+  "explore_unresolved_noCandidates": "Sem correspondência no seu diário",
+  "explore_chart_divesOverTime": "Mergulhos ao longo do tempo",
+  "explore_chart_depthTrend": "Profundidade",
+  "explore_chart_waterTempTrend": "Temperatura da água",
+  "explore_chart_bottomTimeTrend": "Tempo de fundo",
+  "explore_chart_entityCounts": "Mergulhos por {kind}",
+  "explore_kind_site": "local",
+  "explore_kind_place": "lugar",
+  "explore_kind_species": "espécie",
+  "explore_kind_gear": "equipamento",
+  "explore_kind_buddy": "parceiro",
+  "explore_kind_tag": "etiqueta",
+  "explore_kind_center": "centro de mergulho",
+  "explore_kind_trip": "viagem",
+  "explore_kind_computer": "computador",
   "diveLog_listPage_semanticsDiveAtSite": "Mergulho {diveNumber} em {siteName}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "Mergulho planejado em {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {

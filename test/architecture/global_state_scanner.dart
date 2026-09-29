@@ -44,6 +44,7 @@ const harnessDefaults = [
   'QualityScanScheduler.enabled',
   'SensorSummaryScheduler.enabled',
   'debugCanShareFiles',
+  'GoogleFonts.config.allowRuntimeFetching',
 ];
 
 /// Channels whose mock handlers change what the path provider and the share
@@ -55,6 +56,7 @@ const mockedChannels = [
 
 const platformRule = 'platform singleton';
 const httpRule = 'HTTP overrides';
+const ioRule = 'IO overrides';
 const harnessRule = 'harness default';
 const channelRule = 'channel mock';
 const foundationRule = 'foundation hook';
@@ -230,6 +232,11 @@ List<GlobalStateOffence> scanForUnrestoredGlobals(String path, String source) {
     read: 'HttpOverrides.current',
     target: 'HttpOverrides.global',
     rule: httpRule,
+  );
+  checkReplacements(
+    read: 'IOOverrides.current',
+    target: 'IOOverrides.global',
+    rule: ioRule,
   );
   for (final hook in ['debugPrint', 'FlutterError.onError']) {
     checkReplacements(

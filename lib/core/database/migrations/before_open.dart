@@ -624,6 +624,10 @@ extension BeforeOpenBackstops on AppDatabase {
     await Migrator(this).createTable(divePlanTanks);
     await Migrator(this).createTable(divePlanSegments);
 
+    // v244 backstop: re-assert the DPV mission tables. A database that
+    // arrives by restore or sync-adopt never runs onUpgrade.
+    await _assertDivePlanMissionSchema();
+
     // v103 backstop: dive_roles table + built-in seed + dives.diver_role
     // column (same collision disease; all DDL idempotent). The seed is
     // guarded on the divers FK parent existing, which only matters for

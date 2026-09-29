@@ -15,21 +15,18 @@ Future<bool> _fontsSettle(Duration within) => GoogleFonts.pendingFonts()
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('puts debugPrint and runtime fetching back', () async {
+  test('puts debugPrint back and leaves runtime fetching off', () async {
     final printBefore = debugPrint;
-    final fetchingBefore = GoogleFonts.config.allowRuntimeFetching;
 
     await warmUpThemePresets();
 
     expect(identical(debugPrint, printBefore), isTrue);
-    expect(GoogleFonts.config.allowRuntimeFetching, fetchingBefore);
+    expect(GoogleFonts.config.allowRuntimeFetching, isFalse);
   });
 
   test('returns within its bound while a font load is stranded', () async {
     final printBefore = debugPrint;
-    final fetchingBefore = GoogleFonts.config.allowRuntimeFetching;
     debugPrint = (String? message, {int? wrapWidth}) {};
-    GoogleFonts.config.allowRuntimeFetching = false;
     // Start a load on a fake clock and walk away from it, as a widget test
     // that is the first to build a Google Font does. Nothing advances that
     // clock, so the load cannot complete. Once the tear-down below lets it
@@ -54,7 +51,6 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 10));
         strandedClock.flushMicrotasks();
       }
-      GoogleFonts.config.allowRuntimeFetching = fetchingBefore;
       debugPrint = printBefore;
       expect(strandedLoadFinished, isTrue);
     });

@@ -1489,6 +1489,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'إغلاق / إلغاء';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence => 'استكشف بجملة';
+
+  @override
   String get accessibility_shortcut_goBack => 'رجوع';
 
   @override
@@ -25082,6 +25085,252 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_title => 'الأسطوانات';
+
+  @override
+  String trips_cylinders_summary(int full, int partial, int empty) {
+    return 'ممتلئة $full · جزئية $partial · فارغة $empty';
+  }
+
+  @override
+  String trips_cylinders_summaryUnfilled(int count) {
+    return 'لم تُعبّأ بعد $count';
+  }
+
+  @override
+  String get trips_cylinders_setUp => 'إعداد الأسطوانات';
+
+  @override
+  String get trips_cylinders_setUpHint =>
+      'تتبّع الأسطوانات التي معك في هذه الرحلة: التعبئات والخلطات وما تبقّى في كل منها.';
+
+  @override
+  String get trips_cylinders_status_full => 'ممتلئة';
+
+  @override
+  String get trips_cylinders_status_partial => 'جزئية';
+
+  @override
+  String get trips_cylinders_status_empty => 'فارغة';
+
+  @override
+  String get trips_cylinders_status_unknown => 'لم تُعبّأ بعد';
+
+  @override
+  String get trips_cylinders_mixAir => 'هواء';
+
+  @override
+  String get trips_cylinders_segment_board => 'اللوحة';
+
+  @override
+  String get trips_cylinders_segment_ledger => 'السجل';
+
+  @override
+  String get trips_cylinders_action_add => 'إضافة أسطوانات';
+
+  @override
+  String get trips_cylinders_action_fill => 'تعبئة';
+
+  @override
+  String get trips_cylinders_action_fillSeveral => 'تعبئة عدة أسطوانات';
+
+  @override
+  String get trips_cylinders_action_adjust => 'تعديل';
+
+  @override
+  String trips_cylinders_bottle(String label) {
+    return 'الأسطوانة $label';
+  }
+
+  @override
+  String trips_cylinders_linkedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسات',
+      one: '$count غطسة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_last_fillAt(String place, String when) {
+    return 'عُبّئت في $place، $when';
+  }
+
+  @override
+  String trips_cylinders_last_fill(String when) {
+    return 'عُبّئت $when';
+  }
+
+  @override
+  String trips_cylinders_last_adjustment(String when) {
+    return 'عُدّلت $when';
+  }
+
+  @override
+  String trips_cylinders_last_diveAt(String site, String when) {
+    return 'غطسة في $site، $when';
+  }
+
+  @override
+  String trips_cylinders_last_dive(String when) {
+    return 'غطسة $when';
+  }
+
+  @override
+  String get trips_cylinders_boardEmpty => 'لا توجد أسطوانات في هذه الرحلة بعد';
+
+  @override
+  String get trips_cylinders_ledgerEmpty => 'لا توجد تعبئات أو تعديلات بعد';
+
+  @override
+  String get trips_cylinders_kind_fill => 'تعبئة';
+
+  @override
+  String get trips_cylinders_kind_adjustment => 'تعديل';
+
+  @override
+  String get trips_cylinders_deleteConfirmUnused =>
+      'حذف هذه الأسطوانة وتعبئاتها؟';
+
+  @override
+  String trips_cylinders_deleteConfirmUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها $count غطسات. تحتفظ الغطسات بأسطواناتها ويُزال الربط فقط.',
+      one:
+          'حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها $count غطسة. تحتفظ الغطسة بأسطوانتها ويُزال الربط فقط.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_deleteEventConfirm => 'حذف هذا الإدخال؟';
+
+  @override
+  String get trips_cylinders_add_tabRental => 'مستأجرة';
+
+  @override
+  String get trips_cylinders_add_tabOwned => 'من معداتي';
+
+  @override
+  String get trips_cylinders_add_count => 'العدد';
+
+  @override
+  String get trips_cylinders_add_preset => 'نوع الأسطوانة';
+
+  @override
+  String get trips_cylinders_add_prefix => 'بادئة الاسم';
+
+  @override
+  String get trips_cylinders_add_prefixDefault => 'الشاحنة';
+
+  @override
+  String get trips_cylinders_add_noOwned =>
+      'لم تعد هناك أسطوانات في معداتك لإضافتها.';
+
+  @override
+  String get trips_cylinders_add_errorCount => 'أدخل رقمًا من 1 إلى 20.';
+
+  @override
+  String get trips_cylinders_fill_titleEdit => 'تعديل التعبئة';
+
+  @override
+  String get trips_cylinders_fill_when => 'متى';
+
+  @override
+  String get trips_cylinders_fill_where => 'محطة التعبئة';
+
+  @override
+  String get trips_cylinders_fill_whereNone => 'غير محددة';
+
+  @override
+  String trips_cylinders_fill_pressure(String unit) {
+    return 'ضغط التعبئة ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_fill_o2 => 'O2 المطلوب (%)';
+
+  @override
+  String get trips_cylinders_fill_he => 'He المطلوب (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedO2 => 'O2 المقاس (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedHe => 'He المقاس (%)';
+
+  @override
+  String get trips_cylinders_fill_bottle => 'رقم الأسطوانة';
+
+  @override
+  String get trips_cylinders_fill_cost => 'التكلفة';
+
+  @override
+  String get trips_cylinders_fill_costEach => 'التكلفة لكل أسطوانة';
+
+  @override
+  String get trips_cylinders_fill_currency => 'العملة';
+
+  @override
+  String get trips_cylinders_fill_package => 'ضمن باقة';
+
+  @override
+  String get trips_cylinders_fill_slots => 'الأسطوانات المراد تعبئتها';
+
+  @override
+  String get trips_cylinders_fill_errorMix =>
+      'يجب أن يكون الأكسجين بين 1 و100 بالمئة، والهيليوم بين 0 و99، ومجموعهما 100 على الأكثر.';
+
+  @override
+  String get trips_cylinders_fill_errorNoSlot =>
+      'اختر أسطوانة واحدة على الأقل.';
+
+  @override
+  String get trips_cylinders_note => 'ملاحظة';
+
+  @override
+  String get trips_cylinders_adjust_titleEdit => 'تعديل التصحيح';
+
+  @override
+  String trips_cylinders_adjust_pressure(String unit) {
+    return 'الضغط ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_adjust_markEmpty => 'تعليم كفارغة';
+
+  @override
+  String get trips_cylinders_edit_title => 'تعديل الأسطوانة';
+
+  @override
+  String get trips_cylinders_edit_label => 'الاسم';
+
+  @override
+  String get trips_cylinders_edit_errorLabel => 'أدخل اسمًا.';
+
+  @override
+  String get trips_cylinders_edit_errorNeedsPressure =>
+      'أدخل ضغط العمل أيضًا حتى يمكن تحويل الحجم.';
+
+  @override
+  String trips_cylinders_edit_volume(String unit) {
+    return 'الحجم ($unit)';
+  }
+
+  @override
+  String trips_cylinders_edit_workingPressure(String unit) {
+    return 'ضغط العمل ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_edit_presetCustom => 'مخصص';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override
@@ -39551,6 +39800,363 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionDiveComputer => 'حاسوب الغوص';
+
+  @override
+  String diveLog_filterChip_speciesCount(Object count) {
+    return '$count أنواع';
+  }
+
+  @override
+  String diveLog_filterChip_weekdayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أيام من الأسبوع',
+      one: 'يوم واحد من الأسبوع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_filterChip_siteCount(Object count) {
+    return '$count مواقع';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return 'الرؤية $min إلى $max $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMin(String value, String unit) {
+    return 'الرؤية أكثر من $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMax(String value, String unit) {
+    return 'الرؤية أقل من $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return 'الماء $min إلى $max$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMin(String value, String unit) {
+    return 'الماء أكثر من $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMax(String value, String unit) {
+    return 'الماء أقل من $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTypeCount(Object count) {
+    return '$count أنواع مياه';
+  }
+
+  @override
+  String get diveLog_filter_sectionSpecies => 'الحياة البحرية';
+
+  @override
+  String diveLog_filter_sectionVisibilityUnit(Object unit) {
+    return 'الرؤية ($unit)';
+  }
+
+  @override
+  String diveLog_filter_sectionWaterTempUnit(Object unit) {
+    return 'درجة حرارة الماء ($unit)';
+  }
+
+  @override
+  String get diveLog_filter_sectionWaterType => 'نوع المياه';
+
+  @override
+  String get diveLog_filter_speciesSearchHint => 'البحث عن الأنواع';
+
+  @override
+  String get diveLog_listPage_tooltip_explore => 'استكشف بجملة';
+
+  @override
+  String get explore_chip_favorite => 'مفضل';
+
+  @override
+  String get explore_chip_deco => 'غطسة تخفيف ضغط';
+
+  @override
+  String get explore_chip_noDeco => 'بدون تخفيف ضغط';
+
+  @override
+  String get explore_chip_noBuddy => 'بدون رفيق';
+
+  @override
+  String explore_chip_rating(String op, String value) {
+    return 'التقييم $op $value';
+  }
+
+  @override
+  String explore_chip_numeric(String field, String op, String value) {
+    return '$field $op $value';
+  }
+
+  @override
+  String explore_chip_between(String field, String low, String high) {
+    return '$field $low إلى $high';
+  }
+
+  @override
+  String explore_chip_enum(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
+  String explore_chip_enumNot(String field, String values) {
+    return '$field ليس $values';
+  }
+
+  @override
+  String explore_chip_timeRange(String start, String end) {
+    return '$start إلى $end';
+  }
+
+  @override
+  String explore_chip_timeSince(Object start) {
+    return 'منذ $start';
+  }
+
+  @override
+  String explore_chip_timeBefore(Object end) {
+    return 'قبل $end';
+  }
+
+  @override
+  String explore_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسات',
+      one: 'غطسة واحدة',
+      zero: 'لا توجد غطسات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_download_button => 'تنزيل النموذج على الجهاز';
+
+  @override
+  String get explore_download_running => 'جارٍ تنزيل النموذج';
+
+  @override
+  String get explore_error_contextExceeded =>
+      'هذه الجملة طويلة جدًا على النموذج على الجهاز. جرّب جملة أقصر.';
+
+  @override
+  String get explore_error_decodingFailure =>
+      'لم ينتج النموذج إجابة قابلة للاستخدام. جرّب إعادة الصياغة.';
+
+  @override
+  String get explore_error_guardrail => 'رفض النموذج هذه الجملة.';
+
+  @override
+  String get explore_error_modelNotReady => 'النموذج على الجهاز غير جاهز بعد.';
+
+  @override
+  String get explore_error_quotaExceeded =>
+      'النموذج على الجهاز مشغول. حاول مرة أخرى بعد قليل.';
+
+  @override
+  String get explore_error_refusal => 'رفض النموذج هذه الجملة.';
+
+  @override
+  String get explore_error_schemaMismatch =>
+      'لم يتم فهم ذلك. حدّث التطبيق إذا استمر هذا.';
+
+  @override
+  String get explore_error_unknown => 'حدث خطأ أثناء سؤال النموذج على الجهاز.';
+
+  @override
+  String get explore_error_unsupportedLocale =>
+      'النموذج على الجهاز لا يفهم هذه اللغة.';
+
+  @override
+  String get explore_field_airTemp => 'درجة حرارة الهواء';
+
+  @override
+  String get explore_field_avgDepth => 'متوسط العمق';
+
+  @override
+  String get explore_field_bottomTime => 'وقت القاع';
+
+  @override
+  String get explore_field_currentStrength => 'التيار';
+
+  @override
+  String get explore_field_depth => 'العمق';
+
+  @override
+  String get explore_field_diveMode => 'وضع الغطس';
+
+  @override
+  String get explore_field_diveNumber => 'رقم الغطسة';
+
+  @override
+  String get explore_field_diveType => 'نوع الغطسة';
+
+  @override
+  String get explore_field_entryMethod => 'الدخول';
+
+  @override
+  String get explore_field_o2 => 'الأكسجين';
+
+  @override
+  String get explore_field_rating => 'التقييم';
+
+  @override
+  String get explore_field_visibility => 'الرؤية';
+
+  @override
+  String get explore_field_waterTemp => 'درجة حرارة الماء';
+
+  @override
+  String get explore_field_waterType => 'نوع المياه';
+
+  @override
+  String get explore_field_weekday => 'يوم الأسبوع';
+
+  @override
+  String get explore_handoff_diveList => 'فتح في قائمة الغطسات';
+
+  @override
+  String get explore_handoff_insights => 'فتح في الرؤى';
+
+  @override
+  String get explore_hint =>
+      'اسأل عن غطساتك، مثلاً سلاحف أعمق من 20 م في بونير';
+
+  @override
+  String get explore_needsAttention_title => 'يحتاج إلى انتباه';
+
+  @override
+  String get explore_op_gt => 'أكثر من';
+
+  @override
+  String get explore_op_gte => 'على الأقل';
+
+  @override
+  String get explore_op_lt => 'أقل من';
+
+  @override
+  String get explore_op_lte => 'على الأكثر';
+
+  @override
+  String explore_value_minutes(int minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String get explore_op_eq => 'يساوي';
+
+  @override
+  String explore_pickCandidate_title(Object text) {
+    return 'ماذا قصدت بـ \"$text\"؟';
+  }
+
+  @override
+  String get explore_recent_title => 'الأخيرة';
+
+  @override
+  String get explore_results_title => 'الغطسات المطابقة';
+
+  @override
+  String explore_results_truncated(Object count) {
+    return 'عرض أول $count. افتح قائمة الغطسات لرؤيتها كلها.';
+  }
+
+  @override
+  String get explore_shortcut_unavailable =>
+      'يحتاج الاستكشاف إلى النموذج على الجهاز، وهو غير جاهز على هذا الجهاز.';
+
+  @override
+  String get explore_subjectNotSupported => 'يمكن البحث في الغطسات فقط حاليًا.';
+
+  @override
+  String get explore_title => 'استكشاف';
+
+  @override
+  String get explore_understood_title => 'تم فهمه';
+
+  @override
+  String get explore_unplaced_reason_invalid => 'تعذّرت قراءة هذه القيمة';
+
+  @override
+  String get explore_unplaced_reason_noAxis => 'غير قابل للبحث بعد';
+
+  @override
+  String get explore_unplaced_reason_outOfRange => 'القيمة خارج النطاق';
+
+  @override
+  String get explore_unplaced_reason_unknownField => 'حقل غير معروف';
+
+  @override
+  String get explore_unplaced_reason_unknownTime => 'تعذّرت قراءة هذا الوقت';
+
+  @override
+  String get explore_unresolved_noCandidates => 'لا توجد مطابقة في سجلك';
+
+  @override
+  String get explore_chart_divesOverTime => 'الغطسات عبر الزمن';
+
+  @override
+  String get explore_chart_depthTrend => 'العمق';
+
+  @override
+  String get explore_chart_waterTempTrend => 'درجة حرارة الماء';
+
+  @override
+  String get explore_chart_bottomTimeTrend => 'وقت القاع';
+
+  @override
+  String explore_chart_entityCounts(Object kind) {
+    return 'الغطسات لكل $kind';
+  }
+
+  @override
+  String get explore_kind_site => 'موقع';
+
+  @override
+  String get explore_kind_place => 'مكان';
+
+  @override
+  String get explore_kind_species => 'نوع';
+
+  @override
+  String get explore_kind_gear => 'معدات';
+
+  @override
+  String get explore_kind_buddy => 'رفيق';
+
+  @override
+  String get explore_kind_tag => 'علامة';
+
+  @override
+  String get explore_kind_center => 'مركز غطس';
+
+  @override
+  String get explore_kind_trip => 'رحلة';
+
+  @override
+  String get explore_kind_computer => 'حاسوب';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

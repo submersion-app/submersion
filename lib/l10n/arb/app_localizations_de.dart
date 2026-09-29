@@ -1501,6 +1501,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'Schließen / Abbrechen';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence =>
+      'Mit einem Satz erkunden';
+
+  @override
   String get accessibility_shortcut_goBack => 'Zurück';
 
   @override
@@ -25339,6 +25343,255 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_title => 'Flaschen';
+
+  @override
+  String trips_cylinders_summary(int full, int partial, int empty) {
+    return 'Voll $full · Teilweise $partial · Leer $empty';
+  }
+
+  @override
+  String trips_cylinders_summaryUnfilled(int count) {
+    return 'Noch nicht gefüllt $count';
+  }
+
+  @override
+  String get trips_cylinders_setUp => 'Flaschen einrichten';
+
+  @override
+  String get trips_cylinders_setUpHint =>
+      'Verfolge die Flaschen, die du auf dieser Reise hast: Füllungen, Gemische und was in jeder übrig ist.';
+
+  @override
+  String get trips_cylinders_status_full => 'Voll';
+
+  @override
+  String get trips_cylinders_status_partial => 'Teilweise';
+
+  @override
+  String get trips_cylinders_status_empty => 'Leer';
+
+  @override
+  String get trips_cylinders_status_unknown => 'Noch nicht gefüllt';
+
+  @override
+  String get trips_cylinders_mixAir => 'Luft';
+
+  @override
+  String get trips_cylinders_segment_board => 'Übersicht';
+
+  @override
+  String get trips_cylinders_segment_ledger => 'Verlauf';
+
+  @override
+  String get trips_cylinders_action_add => 'Flaschen hinzufügen';
+
+  @override
+  String get trips_cylinders_action_fill => 'Füllen';
+
+  @override
+  String get trips_cylinders_action_fillSeveral => 'Mehrere füllen';
+
+  @override
+  String get trips_cylinders_action_adjust => 'Anpassen';
+
+  @override
+  String trips_cylinders_bottle(String label) {
+    return 'Flasche $label';
+  }
+
+  @override
+  String trips_cylinders_linkedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '$count Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_last_fillAt(String place, String when) {
+    return 'Gefüllt bei $place, $when';
+  }
+
+  @override
+  String trips_cylinders_last_fill(String when) {
+    return 'Gefüllt $when';
+  }
+
+  @override
+  String trips_cylinders_last_adjustment(String when) {
+    return 'Angepasst $when';
+  }
+
+  @override
+  String trips_cylinders_last_diveAt(String site, String when) {
+    return 'Getaucht bei $site, $when';
+  }
+
+  @override
+  String trips_cylinders_last_dive(String when) {
+    return 'Getaucht $when';
+  }
+
+  @override
+  String get trips_cylinders_boardEmpty =>
+      'Noch keine Flaschen auf dieser Reise';
+
+  @override
+  String get trips_cylinders_ledgerEmpty =>
+      'Noch keine Füllungen oder Anpassungen';
+
+  @override
+  String get trips_cylinders_kind_fill => 'Füllung';
+
+  @override
+  String get trips_cylinders_kind_adjustment => 'Anpassung';
+
+  @override
+  String get trips_cylinders_deleteConfirmUnused =>
+      'Diese Flasche und ihre Füllungen löschen?';
+
+  @override
+  String trips_cylinders_deleteConfirmUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Diese Flasche und ihre Füllungen löschen? $count Tauchgänge haben sie benutzt. Sie behalten ihre Flaschen; nur die Verknüpfung wird entfernt.',
+      one:
+          'Diese Flasche und ihre Füllungen löschen? $count Tauchgang hat sie benutzt. Er behält seine Flasche; nur die Verknüpfung wird entfernt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_deleteEventConfirm => 'Diesen Eintrag löschen?';
+
+  @override
+  String get trips_cylinders_add_tabRental => 'Leihflaschen';
+
+  @override
+  String get trips_cylinders_add_tabOwned => 'Aus meiner Ausrüstung';
+
+  @override
+  String get trips_cylinders_add_count => 'Anzahl';
+
+  @override
+  String get trips_cylinders_add_preset => 'Flaschentyp';
+
+  @override
+  String get trips_cylinders_add_prefix => 'Namenspräfix';
+
+  @override
+  String get trips_cylinders_add_prefixDefault => 'Pick-up';
+
+  @override
+  String get trips_cylinders_add_noOwned =>
+      'In deiner Ausrüstung sind keine Flaschen mehr zum Hinzufügen.';
+
+  @override
+  String get trips_cylinders_add_errorCount =>
+      'Gib eine Zahl von 1 bis 20 ein.';
+
+  @override
+  String get trips_cylinders_fill_titleEdit => 'Füllung bearbeiten';
+
+  @override
+  String get trips_cylinders_fill_when => 'Wann';
+
+  @override
+  String get trips_cylinders_fill_where => 'Füllstation';
+
+  @override
+  String get trips_cylinders_fill_whereNone => 'Nicht festgelegt';
+
+  @override
+  String trips_cylinders_fill_pressure(String unit) {
+    return 'Fülldruck ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_fill_o2 => 'O2 bestellt (%)';
+
+  @override
+  String get trips_cylinders_fill_he => 'He bestellt (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedO2 => 'O2 analysiert (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedHe => 'He analysiert (%)';
+
+  @override
+  String get trips_cylinders_fill_bottle => 'Flaschennummer';
+
+  @override
+  String get trips_cylinders_fill_cost => 'Kosten';
+
+  @override
+  String get trips_cylinders_fill_costEach => 'Kosten pro Flasche';
+
+  @override
+  String get trips_cylinders_fill_currency => 'Währung';
+
+  @override
+  String get trips_cylinders_fill_package => 'Im Paket enthalten';
+
+  @override
+  String get trips_cylinders_fill_slots => 'Zu füllende Flaschen';
+
+  @override
+  String get trips_cylinders_fill_errorMix =>
+      'Sauerstoff muss 1 bis 100 Prozent sein, Helium 0 bis 99, zusammen höchstens 100.';
+
+  @override
+  String get trips_cylinders_fill_errorNoSlot =>
+      'Wähle mindestens eine Flasche.';
+
+  @override
+  String get trips_cylinders_note => 'Notiz';
+
+  @override
+  String get trips_cylinders_adjust_titleEdit => 'Anpassung bearbeiten';
+
+  @override
+  String trips_cylinders_adjust_pressure(String unit) {
+    return 'Druck ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_adjust_markEmpty => 'Als leer markieren';
+
+  @override
+  String get trips_cylinders_edit_title => 'Flasche bearbeiten';
+
+  @override
+  String get trips_cylinders_edit_label => 'Bezeichnung';
+
+  @override
+  String get trips_cylinders_edit_errorLabel => 'Gib eine Bezeichnung ein.';
+
+  @override
+  String get trips_cylinders_edit_errorNeedsPressure =>
+      'Gib auch den Betriebsdruck ein, damit die Größe umgerechnet werden kann.';
+
+  @override
+  String trips_cylinders_edit_volume(String unit) {
+    return 'Größe ($unit)';
+  }
+
+  @override
+  String trips_cylinders_edit_workingPressure(String unit) {
+    return 'Betriebsdruck ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_edit_presetCustom => 'Benutzerdefiniert';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override
@@ -39850,6 +40103,369 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionDiveComputer => 'Tauchcomputer';
+
+  @override
+  String diveLog_filterChip_speciesCount(Object count) {
+    return '$count Arten';
+  }
+
+  @override
+  String diveLog_filterChip_weekdayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Wochentage',
+      one: '$count Wochentag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_filterChip_siteCount(Object count) {
+    return '$count Tauchplätze';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return 'Sicht $min bis $max $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMin(String value, String unit) {
+    return 'Sicht über $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMax(String value, String unit) {
+    return 'Sicht unter $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return 'Wasser $min bis $max$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMin(String value, String unit) {
+    return 'Wasser über $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMax(String value, String unit) {
+    return 'Wasser unter $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTypeCount(Object count) {
+    return '$count Wasserarten';
+  }
+
+  @override
+  String get diveLog_filter_sectionSpecies => 'Meereslebewesen';
+
+  @override
+  String diveLog_filter_sectionVisibilityUnit(Object unit) {
+    return 'Sicht ($unit)';
+  }
+
+  @override
+  String diveLog_filter_sectionWaterTempUnit(Object unit) {
+    return 'Wassertemperatur ($unit)';
+  }
+
+  @override
+  String get diveLog_filter_sectionWaterType => 'Wasserart';
+
+  @override
+  String get diveLog_filter_speciesSearchHint => 'Arten suchen';
+
+  @override
+  String get diveLog_listPage_tooltip_explore => 'Mit einem Satz erkunden';
+
+  @override
+  String get explore_chip_favorite => 'Favorit';
+
+  @override
+  String get explore_chip_deco => 'Dekompressionstauchgang';
+
+  @override
+  String get explore_chip_noDeco => 'Ohne Dekompression';
+
+  @override
+  String get explore_chip_noBuddy => 'Ohne Buddy';
+
+  @override
+  String explore_chip_rating(String op, String value) {
+    return 'Bewertung $op $value';
+  }
+
+  @override
+  String explore_chip_numeric(String field, String op, String value) {
+    return '$field $op $value';
+  }
+
+  @override
+  String explore_chip_between(String field, String low, String high) {
+    return '$field $low bis $high';
+  }
+
+  @override
+  String explore_chip_enum(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
+  String explore_chip_enumNot(String field, String values) {
+    return '$field nicht $values';
+  }
+
+  @override
+  String explore_chip_timeRange(String start, String end) {
+    return '$start bis $end';
+  }
+
+  @override
+  String explore_chip_timeSince(Object start) {
+    return 'Seit $start';
+  }
+
+  @override
+  String explore_chip_timeBefore(Object end) {
+    return 'Vor $end';
+  }
+
+  @override
+  String explore_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+      zero: 'Keine Tauchgänge',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_download_button => 'Modell auf das Gerät herunterladen';
+
+  @override
+  String get explore_download_running => 'Modell wird heruntergeladen';
+
+  @override
+  String get explore_error_contextExceeded =>
+      'Dieser Satz ist zu lang für das Modell auf dem Gerät. Versuchen Sie einen kürzeren.';
+
+  @override
+  String get explore_error_decodingFailure =>
+      'Das Modell hat keine verwertbare Antwort geliefert. Formulieren Sie es anders.';
+
+  @override
+  String get explore_error_guardrail => 'Das Modell hat diesen Satz abgelehnt.';
+
+  @override
+  String get explore_error_modelNotReady =>
+      'Das Modell auf dem Gerät ist noch nicht bereit.';
+
+  @override
+  String get explore_error_quotaExceeded =>
+      'Das Modell auf dem Gerät ist ausgelastet. Versuchen Sie es gleich noch einmal.';
+
+  @override
+  String get explore_error_refusal => 'Das Modell hat diesen Satz abgelehnt.';
+
+  @override
+  String get explore_error_schemaMismatch =>
+      'Das konnte nicht verstanden werden. Aktualisieren Sie die App, falls das weiterhin passiert.';
+
+  @override
+  String get explore_error_unknown =>
+      'Beim Abfragen des Modells auf dem Gerät ist ein Fehler aufgetreten.';
+
+  @override
+  String get explore_error_unsupportedLocale =>
+      'Das Modell auf dem Gerät versteht diese Sprache nicht.';
+
+  @override
+  String get explore_field_airTemp => 'Lufttemperatur';
+
+  @override
+  String get explore_field_avgDepth => 'Durchschnittstiefe';
+
+  @override
+  String get explore_field_bottomTime => 'Grundzeit';
+
+  @override
+  String get explore_field_currentStrength => 'Strömung';
+
+  @override
+  String get explore_field_depth => 'Tiefe';
+
+  @override
+  String get explore_field_diveMode => 'Tauchmodus';
+
+  @override
+  String get explore_field_diveNumber => 'Tauchgangsnummer';
+
+  @override
+  String get explore_field_diveType => 'Tauchgangsart';
+
+  @override
+  String get explore_field_entryMethod => 'Einstieg';
+
+  @override
+  String get explore_field_o2 => 'Sauerstoff';
+
+  @override
+  String get explore_field_rating => 'Bewertung';
+
+  @override
+  String get explore_field_visibility => 'Sicht';
+
+  @override
+  String get explore_field_waterTemp => 'Wassertemperatur';
+
+  @override
+  String get explore_field_waterType => 'Wasserart';
+
+  @override
+  String get explore_field_weekday => 'Wochentag';
+
+  @override
+  String get explore_handoff_diveList => 'In der Tauchgangsliste öffnen';
+
+  @override
+  String get explore_handoff_insights => 'In Einblicken öffnen';
+
+  @override
+  String get explore_hint =>
+      'Fragen Sie nach Ihren Tauchgängen, zum Beispiel Schildkröten tiefer als 20 m auf Bonaire';
+
+  @override
+  String get explore_needsAttention_title => 'Bitte prüfen';
+
+  @override
+  String get explore_op_gt => 'über';
+
+  @override
+  String get explore_op_gte => 'mindestens';
+
+  @override
+  String get explore_op_lt => 'unter';
+
+  @override
+  String get explore_op_lte => 'höchstens';
+
+  @override
+  String explore_value_minutes(int minutes) {
+    return '$minutes Min.';
+  }
+
+  @override
+  String get explore_op_eq => 'von';
+
+  @override
+  String explore_pickCandidate_title(Object text) {
+    return 'Was meinten Sie mit \"$text\"?';
+  }
+
+  @override
+  String get explore_recent_title => 'Zuletzt';
+
+  @override
+  String get explore_results_title => 'Passende Tauchgänge';
+
+  @override
+  String explore_results_truncated(Object count) {
+    return 'Die ersten $count werden angezeigt. In der Tauchgangsliste öffnen, um alle zu sehen.';
+  }
+
+  @override
+  String get explore_shortcut_unavailable =>
+      'Erkunden benötigt das Modell auf dem Gerät, das auf diesem Gerät nicht bereit ist.';
+
+  @override
+  String get explore_subjectNotSupported =>
+      'Derzeit können nur Tauchgänge gesucht werden.';
+
+  @override
+  String get explore_title => 'Erkunden';
+
+  @override
+  String get explore_understood_title => 'Verstanden';
+
+  @override
+  String get explore_unplaced_reason_invalid =>
+      'Dieser Wert konnte nicht gelesen werden';
+
+  @override
+  String get explore_unplaced_reason_noAxis => 'Noch nicht durchsuchbar';
+
+  @override
+  String get explore_unplaced_reason_outOfRange =>
+      'Wert außerhalb des Bereichs';
+
+  @override
+  String get explore_unplaced_reason_unknownField => 'Unbekanntes Feld';
+
+  @override
+  String get explore_unplaced_reason_unknownTime =>
+      'Diese Zeitangabe konnte nicht gelesen werden';
+
+  @override
+  String get explore_unresolved_noCandidates => 'Kein Treffer in Ihrem Logbuch';
+
+  @override
+  String get explore_chart_divesOverTime => 'Tauchgänge im Zeitverlauf';
+
+  @override
+  String get explore_chart_depthTrend => 'Tiefe';
+
+  @override
+  String get explore_chart_waterTempTrend => 'Wassertemperatur';
+
+  @override
+  String get explore_chart_bottomTimeTrend => 'Grundzeit';
+
+  @override
+  String explore_chart_entityCounts(Object kind) {
+    return 'Tauchgänge pro $kind';
+  }
+
+  @override
+  String get explore_kind_site => 'Tauchplatz';
+
+  @override
+  String get explore_kind_place => 'Ort';
+
+  @override
+  String get explore_kind_species => 'Art';
+
+  @override
+  String get explore_kind_gear => 'Ausrüstung';
+
+  @override
+  String get explore_kind_buddy => 'Buddy';
+
+  @override
+  String get explore_kind_tag => 'Tag';
+
+  @override
+  String get explore_kind_center => 'Tauchbasis';
+
+  @override
+  String get explore_kind_trip => 'Reise';
+
+  @override
+  String get explore_kind_computer => 'Computer';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
