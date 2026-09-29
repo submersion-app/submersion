@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
@@ -29,7 +30,10 @@ final _buddy = Buddy(
   updatedAt: DateTime(2026, 1, 1),
 );
 
-Future<List<dynamic>> _overrides({required int diveCount}) async => [
+Future<List<dynamic>> _overrides({
+  required int diveCount,
+  Future<List<BuddyWithDiveCount>> Function(String query)? search,
+}) async => [
   ...await getBaseOverrides(),
   buddyDetailedCardConfigProvider.overrideWith(
     (ref) => EntityCardConfigNotifier<BuddyField>(
@@ -42,13 +46,15 @@ Future<List<dynamic>> _overrides({required int diveCount}) async => [
   // actually reading rather than merely whether it renders a tile.
   buddySearchProvider.overrideWith((ref, query) async => [_buddy]),
   buddySearchWithDiveCountProvider.overrideWith(
-    (ref, query) async => [
-      BuddyWithDiveCount(
-        buddy: _buddy,
-        diveCount: diveCount,
-        lastDiveAt: DateTime(2016, 11, 20),
-      ),
-    ],
+    (ref, query) async =>
+        search?.call(query) ??
+        [
+          BuddyWithDiveCount(
+            buddy: _buddy,
+            diveCount: diveCount,
+            lastDiveAt: DateTime(2016, 11, 20),
+          ),
+        ],
   ),
 ];
 
@@ -97,5 +103,107 @@ void main() {
     await _openSearch(tester, diveCount: 0);
 
     expect(find.text('0 dives'), findsOneWidget);
+  });
+
+  group('inside the router', () {
+    /// Opens the search from a routed page, so a tapped result navigates.
+    Future<void> openRouted(
+      WidgetTester tester, {
+      Future<List<BuddyWithDiveCount>> Function(String query)? search,
+    }) async {
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) => ElevatedButton(
+                  onPressed: () => showSearch(
+                    context: context,
+                    delegate: BuddySearchDelegate(ref),
+                  ),
+                  child: const Text('open search'),
+                ),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/buddies/:id',
+            builder: (context, state) =>
+                Text('detail ${state.pathParameters['id']}'),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        testAppRouter(
+          router: router,
+          locale: const Locale('en'),
+          overrides: await _overrides(diveCount: 2, search: search),
+        ),
+      );
+      await tester.tap(find.text('open search'));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> type(WidgetTester tester, String text) async {
+      await tester.enterText(find.byType(TextField), text);
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('an empty query shows the search hint', (tester) async {
+      await openRouted(tester);
+
+      expect(find.text('Search by name, email, or phone'), findsOneWidget);
+    });
+
+    testWidgets('a tapped result opens the buddy', (tester) async {
+      await openRouted(tester);
+      await type(tester, 'umb');
+
+      await tester.tap(find.text('PELIZZARI Umberto'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('detail b1'), findsOneWidget);
+    });
+
+    testWidgets('a query with no matches says so', (tester) async {
+      await openRouted(tester, search: (_) async => []);
+      await type(tester, 'zzz');
+
+      expect(find.text('No buddies found for "zzz"'), findsOneWidget);
+    });
+
+    testWidgets('a failed search shows the error', (tester) async {
+      await openRouted(tester, search: (_) async => throw StateError('boom'));
+      await type(tester, 'umb');
+
+      expect(find.textContaining('boom'), findsOneWidget);
+    });
+
+    testWidgets('submitting shows the same results', (tester) async {
+      await openRouted(tester);
+      await tester.enterText(find.byType(TextField), 'umb');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
+      expect(find.text('PELIZZARI Umberto'), findsOneWidget);
+    });
+
+    testWidgets('clear empties the query, and back closes the search', (
+      tester,
+    ) async {
+      await openRouted(tester);
+      await type(tester, 'umb');
+
+      await tester.tap(find.byTooltip('Clear search'));
+      await tester.pumpAndSettle();
+      expect(find.text('Search by name, email, or phone'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.arrow_back));
+      await tester.pumpAndSettle();
+      expect(find.text('open search'), findsOneWidget);
+    });
   });
 }

@@ -69,9 +69,20 @@ class CertificationSearchDelegate extends SearchDelegate<Certification?> {
     return _buildSearchResults(context);
   }
 
-  Widget _buildSearchResults(BuildContext context) {
-    final searchAsync = ref.watch(certificationSearchProvider(query));
+  // Watched through the search page's own Consumer: [ref] belongs to the
+  // list underneath, so watching through it rebuilt the list, not this page,
+  // and the results stayed a spinner until the next keystroke.
+  Widget _buildSearchResults(BuildContext context) => Consumer(
+    builder: (context, ref, _) => _buildResultsFor(
+      context,
+      ref.watch(certificationSearchProvider(query)),
+    ),
+  );
 
+  Widget _buildResultsFor(
+    BuildContext context,
+    AsyncValue<List<Certification>> searchAsync,
+  ) {
     return searchAsync.when(
       data: (certifications) {
         if (certifications.isEmpty) {
