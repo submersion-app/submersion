@@ -44541,6 +44541,42 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_dives_rating => 'דירוג';
 
   @override
+  String get query_dives_sac => 'SAC';
+
+  @override
+  String get query_dives_sacTrend => 'מגמת SAC';
+
+  @override
+  String get query_dives_sacTrend_rising => 'עולה';
+
+  @override
+  String get query_dives_sacTrend_steady => 'יציב';
+
+  @override
+  String get query_dives_sacTrend_falling => 'יורד';
+
+  @override
+  String get query_dives_sacChange => 'שינוי SAC';
+
+  @override
+  String get query_dives_finalStop => 'עצירה אחרונה';
+
+  @override
+  String get query_dives_finalStop_stable => 'יציבה';
+
+  @override
+  String get query_dives_finalStop_unstable => 'לא יציבה';
+
+  @override
+  String get query_dives_finalStop_noStop => 'ללא עצירה';
+
+  @override
+  String get query_dives_finalStopExcursion => 'סטייה בעצירה האחרונה';
+
+  @override
+  String get query_dives_finalStopDuration => 'משך העצירה האחרונה';
+
+  @override
   String get query_dives_runtime => 'משך כולל';
 
   @override

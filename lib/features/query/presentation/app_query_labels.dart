@@ -88,6 +88,9 @@ class AppQueryLabels implements QueryLabels {
           TripType.dayTrip => _l10n.trips_type_dayTrip,
           null => value,
         };
+      case 'query_dives_sacTrend':
+      case 'query_dives_finalStop':
+        return queryLabelForKey(_l10n, '${field.labelKey}_$value');
       case 'query_equipment_serviceDue':
         return queryLabelForKey(_l10n, 'query_equipment_serviceDue_$value');
       case 'query_sites_difficulty':

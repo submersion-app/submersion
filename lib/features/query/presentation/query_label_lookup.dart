@@ -107,6 +107,18 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_exitMethod;
     case 'query_dives_favorite':
       return l10n.query_dives_favorite;
+    case 'query_dives_finalStop':
+      return l10n.query_dives_finalStop;
+    case 'query_dives_finalStopDuration':
+      return l10n.query_dives_finalStopDuration;
+    case 'query_dives_finalStopExcursion':
+      return l10n.query_dives_finalStopExcursion;
+    case 'query_dives_finalStop_noStop':
+      return l10n.query_dives_finalStop_noStop;
+    case 'query_dives_finalStop_stable':
+      return l10n.query_dives_finalStop_stable;
+    case 'query_dives_finalStop_unstable':
+      return l10n.query_dives_finalStop_unstable;
     case 'query_dives_gasCount':
       return l10n.query_dives_gasCount;
     case 'query_dives_gear':
@@ -131,6 +143,18 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_rating;
     case 'query_dives_runtime':
       return l10n.query_dives_runtime;
+    case 'query_dives_sac':
+      return l10n.query_dives_sac;
+    case 'query_dives_sacChange':
+      return l10n.query_dives_sacChange;
+    case 'query_dives_sacTrend':
+      return l10n.query_dives_sacTrend;
+    case 'query_dives_sacTrend_falling':
+      return l10n.query_dives_sacTrend_falling;
+    case 'query_dives_sacTrend_rising':
+      return l10n.query_dives_sacTrend_rising;
+    case 'query_dives_sacTrend_steady':
+      return l10n.query_dives_sacTrend_steady;
     case 'query_dives_sightings':
       return l10n.query_dives_sightings;
     case 'query_dives_site':

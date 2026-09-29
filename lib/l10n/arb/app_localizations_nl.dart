@@ -45147,6 +45147,42 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_dives_rating => 'Beoordeling';
 
   @override
+  String get query_dives_sac => 'SAC';
+
+  @override
+  String get query_dives_sacTrend => 'SAC-trend';
+
+  @override
+  String get query_dives_sacTrend_rising => 'Stijgend';
+
+  @override
+  String get query_dives_sacTrend_steady => 'Stabiel';
+
+  @override
+  String get query_dives_sacTrend_falling => 'Dalend';
+
+  @override
+  String get query_dives_sacChange => 'SAC-verandering';
+
+  @override
+  String get query_dives_finalStop => 'Laatste stop';
+
+  @override
+  String get query_dives_finalStop_stable => 'Stabiel';
+
+  @override
+  String get query_dives_finalStop_unstable => 'Instabiel';
+
+  @override
+  String get query_dives_finalStop_noStop => 'Geen stop';
+
+  @override
+  String get query_dives_finalStopExcursion => 'Afwijking bij laatste stop';
+
+  @override
+  String get query_dives_finalStopDuration => 'Duur laatste stop';
+
+  @override
   String get query_dives_runtime => 'Totale duur';
 
   @override

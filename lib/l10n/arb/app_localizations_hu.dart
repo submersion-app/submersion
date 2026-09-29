@@ -45263,6 +45263,42 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_dives_rating => 'Értékelés';
 
   @override
+  String get query_dives_sac => 'SAC';
+
+  @override
+  String get query_dives_sacTrend => 'SAC-trend';
+
+  @override
+  String get query_dives_sacTrend_rising => 'Emelkedő';
+
+  @override
+  String get query_dives_sacTrend_steady => 'Egyenletes';
+
+  @override
+  String get query_dives_sacTrend_falling => 'Csökkenő';
+
+  @override
+  String get query_dives_sacChange => 'SAC-változás';
+
+  @override
+  String get query_dives_finalStop => 'Utolsó megálló';
+
+  @override
+  String get query_dives_finalStop_stable => 'Stabil';
+
+  @override
+  String get query_dives_finalStop_unstable => 'Instabil';
+
+  @override
+  String get query_dives_finalStop_noStop => 'Nincs megálló';
+
+  @override
+  String get query_dives_finalStopExcursion => 'Eltérés az utolsó megállónál';
+
+  @override
+  String get query_dives_finalStopDuration => 'Az utolsó megálló hossza';
+
+  @override
   String get query_dives_runtime => 'Teljes idő';
 
   @override

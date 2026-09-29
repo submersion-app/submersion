@@ -45430,6 +45430,42 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_dives_rating => 'Valutazione';
 
   @override
+  String get query_dives_sac => 'SAC';
+
+  @override
+  String get query_dives_sacTrend => 'Andamento del SAC';
+
+  @override
+  String get query_dives_sacTrend_rising => 'In aumento';
+
+  @override
+  String get query_dives_sacTrend_steady => 'Stabile';
+
+  @override
+  String get query_dives_sacTrend_falling => 'In calo';
+
+  @override
+  String get query_dives_sacChange => 'Variazione del SAC';
+
+  @override
+  String get query_dives_finalStop => 'Ultima sosta';
+
+  @override
+  String get query_dives_finalStop_stable => 'Stabile';
+
+  @override
+  String get query_dives_finalStop_unstable => 'Instabile';
+
+  @override
+  String get query_dives_finalStop_noStop => 'Nessuna sosta';
+
+  @override
+  String get query_dives_finalStopExcursion => 'Scostamento all\'ultima sosta';
+
+  @override
+  String get query_dives_finalStopDuration => 'Durata dell\'ultima sosta';
+
+  @override
   String get query_dives_runtime => 'Durata totale';
 
   @override

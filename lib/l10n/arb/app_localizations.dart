@@ -72680,6 +72680,78 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'SAC'**
+  String get query_dives_sac;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'SAC trend'**
+  String get query_dives_sacTrend;
+
+  /// Enum value label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Rising'**
+  String get query_dives_sacTrend_rising;
+
+  /// Enum value label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Steady'**
+  String get query_dives_sacTrend_steady;
+
+  /// Enum value label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Falling'**
+  String get query_dives_sacTrend_falling;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'SAC change'**
+  String get query_dives_sacChange;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Final stop'**
+  String get query_dives_finalStop;
+
+  /// Enum value label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Stable'**
+  String get query_dives_finalStop_stable;
+
+  /// Enum value label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Unstable'**
+  String get query_dives_finalStop_unstable;
+
+  /// Enum value label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'No stop'**
+  String get query_dives_finalStop_noStop;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Final stop excursion'**
+  String get query_dives_finalStopExcursion;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Final stop length'**
+  String get query_dives_finalStopDuration;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'Runtime'**
   String get query_dives_runtime;
 
