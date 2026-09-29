@@ -28159,6 +28159,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveImport_uddf_media => 'Fotos';
 
   @override
+  String get diveImport_uddf_fills => 'Llenados';
+
+  @override
   String get diveImport_uddf_title => 'Importar desde UDDF';
 
   @override

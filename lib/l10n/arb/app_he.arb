@@ -2011,6 +2011,7 @@
   "diveImport_uddf_tabTypes": "סוגים",
   "diveImport_uddf_tags": "תגיות",
   "diveImport_uddf_media": "תמונות",
+  "diveImport_uddf_fills": "מילויים",
   "diveImport_uddf_title": "ייבוא מ-UDDF",
   "diveImport_uddf_toggleDiveSelection": "החלף בחירת צלילה",
   "diveImport_uddf_toggleEntitySelection": "החלף בחירה עבור {name}",

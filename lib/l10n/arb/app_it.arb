@@ -2011,6 +2011,7 @@
   "diveImport_uddf_tabTypes": "Tipi",
   "diveImport_uddf_tags": "Tag",
   "diveImport_uddf_media": "Foto",
+  "diveImport_uddf_fills": "Ricariche",
   "diveImport_uddf_title": "Importa da UDDF",
   "diveImport_uddf_toggleDiveSelection": "Seleziona/deseleziona immersione",
   "diveImport_uddf_toggleEntitySelection": "Seleziona/deseleziona {name}",

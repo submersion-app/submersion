@@ -2113,6 +2113,7 @@
   "diveImport_uddf_tabTypes": "الأنواع",
   "diveImport_uddf_tags": "الوسوم",
   "diveImport_uddf_media": "الصور",
+  "diveImport_uddf_fills": "التعبئات",
   "diveImport_uddf_title": "استيراد من UDDF",
   "diveImport_uddf_toggleDiveSelection": "تبديل تحديد الغطسة",
   "diveImport_uddf_toggleEntitySelection": "تبديل تحديد {name}",

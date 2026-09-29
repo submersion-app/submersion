@@ -2113,6 +2113,7 @@
   "diveImport_uddf_tabTypes": "Tipos",
   "diveImport_uddf_tags": "Etiquetas",
   "diveImport_uddf_media": "Fotos",
+  "diveImport_uddf_fills": "Llenados",
   "diveImport_uddf_title": "Importar desde UDDF",
   "diveImport_uddf_toggleDiveSelection": "Alternar selección de inmersión",
   "diveImport_uddf_toggleEntitySelection": "Alternar selección de {name}",

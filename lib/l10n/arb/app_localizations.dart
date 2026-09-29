@@ -44858,6 +44858,12 @@ abstract class AppLocalizations {
   /// **'Photos'**
   String get diveImport_uddf_media;
 
+  /// Entity type label for cylinder fills in the import wizard
+  ///
+  /// In en, this message translates to:
+  /// **'Fills'**
+  String get diveImport_uddf_fills;
+
   /// No description provided for @diveImport_uddf_title.
   ///
   /// In en, this message translates to:

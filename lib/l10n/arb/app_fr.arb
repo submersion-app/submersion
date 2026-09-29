@@ -2011,6 +2011,7 @@
   "diveImport_uddf_tabTypes": "Types",
   "diveImport_uddf_tags": "Tags",
   "diveImport_uddf_media": "Photos",
+  "diveImport_uddf_fills": "Gonflages",
   "diveImport_uddf_title": "Import depuis UDDF",
   "diveImport_uddf_toggleDiveSelection": "Basculer la sélection de la plongée",
   "diveImport_uddf_toggleEntitySelection": "Basculer la sélection de {name}",

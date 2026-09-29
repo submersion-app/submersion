@@ -28130,6 +28130,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveImport_uddf_media => 'Foto';
 
   @override
+  String get diveImport_uddf_fills => 'Ricariche';
+
+  @override
   String get diveImport_uddf_title => 'Importa da UDDF';
 
   @override

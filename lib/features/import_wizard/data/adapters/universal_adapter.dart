@@ -12,6 +12,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
@@ -493,6 +496,12 @@ class UniversalAdapter implements ImportSourceAdapter {
       payload.entitiesOf(ui.ImportEntityType.media),
       _mediaToEntityItem,
     );
+    _addGroupIfNotEmpty(
+      groups,
+      wizard.ImportEntityType.fills,
+      payload.entitiesOf(ui.ImportEntityType.fills),
+      _fillToEntityItem,
+    );
 
     final targets = await _importTargets(payload);
     return ImportBundle(
@@ -685,6 +694,9 @@ class UniversalAdapter implements ImportSourceAdapter {
       entityMatches: dupResult.entityMatches[ui.ImportEntityType.diveTypes],
     );
 
+    // Fills are not checked: their identity is the fill id and the importer
+    // skips one already here (passports phase 5), so a re-import shows the
+    // rows and creates none.
     return ImportBundle(
       source: bundle.source,
       groups: updatedGroups,
@@ -768,6 +780,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       diveTypes: resolve(wizard.ImportEntityType.diveTypes),
       equipmentSets: resolve(wizard.ImportEntityType.equipmentSets),
       courses: resolve(wizard.ImportEntityType.courses),
+      fills: resolve(wizard.ImportEntityType.fills),
     );
 
     return importer.import(
@@ -1500,6 +1513,19 @@ class UniversalAdapter implements ImportSourceAdapter {
     return EntityItem(title: base, subtitle: filename);
   }
 
+  EntityItem _fillToEntityItem(Map<String, dynamic> data) {
+    final passportId = (data['passportId'] as String?) ?? '';
+    final filledAt = data['filledAt'] as DateTime?;
+    final o2 = asDoubleOrNull(data['o2Percent']);
+    final he = asDoubleOrNull(data['hePercent']) ?? 0;
+    final mix = o2 == null ? '' : GasMix(o2: o2, he: he).name;
+    final when = filledAt == null ? '' : _units.formatDate(filledAt);
+    return EntityItem(
+      title: passportId.isEmpty ? mix : passportId,
+      subtitle: [when, mix].where((s) => s.isNotEmpty).join(', '),
+    );
+  }
+
   EntityItem _courseToEntityItem(Map<String, dynamic> data) {
     final name = (data['name'] as String?) ?? 'Unnamed';
     final agency = data['agency'] as String?;
@@ -1876,6 +1902,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     if (result.courses > 0) {
       counts[wizard.ImportEntityType.courses] = result.courses;
     }
+    if (result.fills > 0) counts[wizard.ImportEntityType.fills] = result.fills;
     return counts;
   }
 
@@ -1896,6 +1923,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       equipmentSets: payload.entitiesOf(ui.ImportEntityType.equipmentSets),
       courses: payload.entitiesOf(ui.ImportEntityType.courses),
       serviceRecords: payload.entitiesOf(ui.ImportEntityType.serviceRecords),
+      fills: payload.entitiesOf(ui.ImportEntityType.fills),
       customDiveRoles: [
         for (final role
             in (payload.metadata[ImportPayload.customDiveRolesKey] as List?) ??
@@ -1951,5 +1979,9 @@ ImportRepositories universalImportRepositories(WidgetRef ref) {
     // Site features (issue #2200); without it every feature in the file is
     // dropped and the site arrives with none of its markers.
     siteFeatureRepository: ref.read(siteFeatureRepositoryProvider),
+    // Cylinder fills (passports phase 5); without both, every fill in a
+    // fills CSV is skipped.
+    cylinderFillRepository: ref.read(cylinderFillRepositoryProvider),
+    cylinderPassportRepository: ref.read(cylinderPassportRepositoryProvider),
   );
 }

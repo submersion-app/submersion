@@ -27794,6 +27794,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveImport_uddf_media => 'الصور';
 
   @override
+  String get diveImport_uddf_fills => 'التعبئات';
+
+  @override
   String get diveImport_uddf_title => 'استيراد من UDDF';
 
   @override

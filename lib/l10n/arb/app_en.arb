@@ -17947,6 +17947,10 @@
   "@diveImport_uddf_media": {
     "description": "Entity type label for photos referenced by an imported logbook"
   },
+  "diveImport_uddf_fills": "Fills",
+  "@diveImport_uddf_fills": {
+    "description": "Entity type label for cylinder fills in the import wizard"
+  },
   "diveImport_uddf_title": "Import from UDDF",
   "diveImport_uddf_toggleDiveSelection": "Toggle selection for dive",
   "diveImport_uddf_toggleEntitySelection": "Toggle selection for {name}",

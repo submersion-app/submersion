@@ -27471,6 +27471,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_uddf_media => 'תמונות';
 
   @override
+  String get diveImport_uddf_fills => 'מילויים';
+
+  @override
   String get diveImport_uddf_title => 'ייבוא מ-UDDF';
 
   @override

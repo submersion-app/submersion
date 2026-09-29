@@ -28053,6 +28053,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveImport_uddf_media => 'Fényképek';
 
   @override
+  String get diveImport_uddf_fills => 'Töltések';
+
+  @override
   String get diveImport_uddf_title => 'Importálás UDDF-ből';
 
   @override

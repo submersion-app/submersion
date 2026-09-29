@@ -2207,6 +2207,7 @@
   "diveImport_uddf_tabTypes": "类型",
   "diveImport_uddf_tags": "标签",
   "diveImport_uddf_media": "照片",
+  "diveImport_uddf_fills": "充气记录",
   "diveImport_uddf_title": "从 UDDF 导入",
   "diveImport_uddf_toggleDiveSelection": "切换潜水记录选择",
   "diveImport_uddf_toggleEntitySelection": "切换 {name} 的选择",

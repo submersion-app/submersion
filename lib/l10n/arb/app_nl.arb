@@ -2113,6 +2113,7 @@
   "diveImport_uddf_tabTypes": "Types",
   "diveImport_uddf_tags": "Tags",
   "diveImport_uddf_media": "Foto's",
+  "diveImport_uddf_fills": "Vullingen",
   "diveImport_uddf_title": "Importeren vanuit UDDF",
   "diveImport_uddf_toggleDiveSelection": "Duikselectie wisselen",
   "diveImport_uddf_toggleEntitySelection": "Selectie wisselen voor {name}",

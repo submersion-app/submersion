@@ -2124,6 +2124,7 @@
   "diveImport_uddf_tabTypes": "Typen",
   "diveImport_uddf_tags": "Tags",
   "diveImport_uddf_media": "Fotos",
+  "diveImport_uddf_fills": "Füllungen",
   "diveImport_uddf_title": "Aus UDDF importieren",
   "diveImport_uddf_toggleDiveSelection": "Auswahl für Tauchgang umschalten",
   "diveImport_uddf_toggleEntitySelection": "Auswahl für {name} umschalten",

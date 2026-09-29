@@ -2011,6 +2011,7 @@
   "diveImport_uddf_tabTypes": "Típusok",
   "diveImport_uddf_tags": "Címkék",
   "diveImport_uddf_media": "Fényképek",
+  "diveImport_uddf_fills": "Töltések",
   "diveImport_uddf_title": "Importálás UDDF-ből",
   "diveImport_uddf_toggleDiveSelection": "Merülés kijelölésének váltása",
   "diveImport_uddf_toggleEntitySelection": "{name} kijelölésének váltása",
