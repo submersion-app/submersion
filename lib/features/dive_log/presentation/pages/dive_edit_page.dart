@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/utils/usable_set_items.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -2208,6 +2209,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // Queue a data-quality rescan of the edited dives (fire-and-forget).
       scheduleQualityScan(ids);
       scheduleSensorSummaryRefresh(ids);
+      scheduleDerivedMetricsRefresh(ids);
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       if (widget.embedded) {
@@ -5755,6 +5757,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (savedDiveId != null) {
         scheduleQualityScan([savedDiveId]);
         scheduleSensorSummaryRefresh([savedDiveId]);
+        scheduleDerivedMetricsRefresh([savedDiveId]);
       }
 
       // Offer to log the dive for linked buddies (issue #2002). Runs before

@@ -43,6 +43,7 @@ class GlobalStateOffence {
 const harnessDefaults = [
   'QualityScanScheduler.enabled',
   'SensorSummaryScheduler.enabled',
+  'DerivedMetricsScheduler.enabled',
   'debugCanShareFiles',
   'GoogleFonts.config.allowRuntimeFetching',
 ];

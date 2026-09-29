@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
@@ -1254,6 +1255,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     // Queue a data-quality scan of the imported dives (fire-and-forget).
     scheduleQualityScan(netImportedDiveIds);
     scheduleSensorSummaryRefresh(netImportedDiveIds);
+    scheduleDerivedMetricsRefresh(netImportedDiveIds);
     // Check-ins ride inside imported equipment, with or without new dives;
     // merged into the batch above when there is one, so no extra pass.
     scheduleAllConditionFindingsRefresh();
