@@ -336,6 +336,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerMission_buddyPicker_title => 'בחירת בן זוג';
 
   @override
+  String plannerMission_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'משימה: $count בעיות',
+      one: 'משימה: $count בעיה',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get plannerMission_current_setsToward => 'זורם לכיוון';
 
   @override
@@ -369,6 +380,33 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerMission_environment_overhead => 'סביבה סגורה';
+
+  @override
+  String get plannerMission_factor_battery => 'עתודת סוללה';
+
+  @override
+  String get plannerMission_factor_blockedByCurrent =>
+      'זרם שחוסם את הדרך החוצה';
+
+  @override
+  String get plannerMission_factor_exposure => 'חשיפה לחמצן';
+
+  @override
+  String get plannerMission_factor_noFeasibleTow => 'אין גרירה אפשרית';
+
+  @override
+  String get plannerMission_factor_ownGas => 'הגז שלו';
+
+  @override
+  String get plannerMission_factor_scenarioFailed =>
+      'תרחיש תקלה שלא ניתן היה לחשב';
+
+  @override
+  String get plannerMission_factor_surfaceSwimLimit =>
+      'מגבלת השחייה על פני המים';
+
+  @override
+  String get plannerMission_factor_teamGas => 'הגז של חבר צוות';
 
   @override
   String get plannerMission_issue_batteryReserveInvalid =>
@@ -496,6 +534,144 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerMission_profile_title => 'פרופיל שנוצר';
+
+  @override
+  String plannerMission_results_abandonment(String waypoint) {
+    return 'הנקודה האחרונה שממנה כולם יכולים לצאת: $waypoint';
+  }
+
+  @override
+  String plannerMission_results_assumptions(String reserve) {
+    return 'עתודת סוללה $reserve% מזמן הפעולה. צולל שהסקוטר שלו מתקלקל נושם את ה-RMV בלחץ של התוכנית עד העצירה הראשונה.';
+  }
+
+  @override
+  String plannerMission_results_battery(
+    String minutes,
+    String percent,
+    String reserve,
+  ) {
+    return 'סוללה $percent% מזמן הפעולה ($minutes′), עתודה $reserve%';
+  }
+
+  @override
+  String plannerMission_results_bindsAt(String factor, String waypoint) {
+    return 'מגבלה ב$waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_blocked => 'עדיין אי אפשר לחשב את המשימה:';
+
+  @override
+  String get plannerMission_results_cannotGetOut => 'לא יכול לצאת';
+
+  @override
+  String get plannerMission_results_computing => 'מחשב את תרחישי התקלה';
+
+  @override
+  String get plannerMission_results_failed => 'לא ניתן היה לחשב את המשימה';
+
+  @override
+  String plannerMission_results_home(String distance) {
+    return '$distance בקו ישר אל הכניסה';
+  }
+
+  @override
+  String plannerMission_results_legLine(
+    String backMinutes,
+    String backSpeed,
+    String outMinutes,
+    String outSpeed,
+  ) {
+    return 'הלוך $outSpeed $outMinutes′, חזור $backSpeed $backMinutes′';
+  }
+
+  @override
+  String get plannerMission_results_legs => 'קטעים';
+
+  @override
+  String plannerMission_results_limitedBy(
+    String factor,
+    String name,
+    String scooter,
+    String waypoint,
+  ) {
+    return 'מוגבל על ידי ה$scooter של $name ב$waypoint: $factor';
+  }
+
+  @override
+  String plannerMission_results_limitedByDiver(
+    String factor,
+    String name,
+    String waypoint,
+  ) {
+    return 'מוגבל על ידי $name ב$waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_noAbandonment =>
+      'אין נקודה שממנה אפשר לצאת בכל תקלה';
+
+  @override
+  String get plannerMission_results_noBuddy => 'אין בן זוג';
+
+  @override
+  String get plannerMission_results_noLimit => 'אין מגבלה במסלול הזה';
+
+  @override
+  String get plannerMission_results_notComputed => 'לא ניתן היה לחשב';
+
+  @override
+  String plannerMission_results_safeSurface(String minutes) {
+    return 'פני מים בטוחים בעוד $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_setsCruise =>
+      'קובע את מהירות השיוט של הצוות';
+
+  @override
+  String plannerMission_results_surface(String minutes) {
+    return 'פני המים $minutes′';
+  }
+
+  @override
+  String plannerMission_results_surfaceViaShore(String minutes) {
+    return 'פני המים דרך החוף $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_survives => 'יוצא';
+
+  @override
+  String plannerMission_results_swim(String minutes) {
+    return 'שחייה $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_title => 'משימה';
+
+  @override
+  String plannerMission_results_tow(String minutes, String name) {
+    return 'גרירה על ידי $name $minutes′';
+  }
+
+  @override
+  String plannerMission_results_turnPressure(String pressure) {
+    return 'פנייה חזרה ב$pressure';
+  }
+
+  @override
+  String get plannerMission_results_unconstrained =>
+      'מכל נקודה אפשר לצאת בתקלה של כל סקוטר';
+
+  @override
+  String plannerMission_results_waypointLine(String distance, String minutes) {
+    return '$distance, הגעה $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_waypoints => 'נקודות ציון';
 
   @override
   String get plannerMission_route_addLeg => 'הוספת קטע';

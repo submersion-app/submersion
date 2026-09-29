@@ -334,6 +334,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerMission_buddyPicker_title => '选择潜伴';
 
   @override
+  String plannerMission_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '任务：$count 个问题',
+      one: '任务：$count 个问题',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get plannerMission_current_setsToward => '流向';
 
   @override
@@ -366,6 +377,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerMission_environment_overhead => '有顶环境';
+
+  @override
+  String get plannerMission_factor_battery => '电池储备';
+
+  @override
+  String get plannerMission_factor_blockedByCurrent => '阻挡撤出路线的水流';
+
+  @override
+  String get plannerMission_factor_exposure => '氧暴露';
+
+  @override
+  String get plannerMission_factor_noFeasibleTow => '无可行的拖带';
+
+  @override
+  String get plannerMission_factor_ownGas => '自身气体';
+
+  @override
+  String get plannerMission_factor_scenarioFailed => '无法计算的故障场景';
+
+  @override
+  String get plannerMission_factor_surfaceSwimLimit => '水面游泳限制';
+
+  @override
+  String get plannerMission_factor_teamGas => '队友的气体';
 
   @override
   String get plannerMission_issue_batteryReserveInvalid =>
@@ -488,6 +523,141 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerMission_profile_title => '生成的剖面';
+
+  @override
+  String plannerMission_results_abandonment(String waypoint) {
+    return '所有人都能撤出的最后一个航点：$waypoint';
+  }
+
+  @override
+  String plannerMission_results_assumptions(String reserve) {
+    return '电池储备为续航时间的 $reserve%。推进器故障的潜水员在首次停留前按计划的应激 RMV 呼吸。';
+  }
+
+  @override
+  String plannerMission_results_battery(
+    String minutes,
+    String percent,
+    String reserve,
+  ) {
+    return '电池：续航时间的 $percent%（$minutes′），储备 $reserve%';
+  }
+
+  @override
+  String plannerMission_results_bindsAt(String factor, String waypoint) {
+    return '在 $waypoint 受限：$factor';
+  }
+
+  @override
+  String get plannerMission_results_blocked => '任务暂时无法计算：';
+
+  @override
+  String get plannerMission_results_cannotGetOut => '无法撤出';
+
+  @override
+  String get plannerMission_results_computing => '正在计算故障场景';
+
+  @override
+  String get plannerMission_results_failed => '无法计算此任务';
+
+  @override
+  String plannerMission_results_home(String distance) {
+    return '距入口直线 $distance';
+  }
+
+  @override
+  String plannerMission_results_legLine(
+    String backMinutes,
+    String backSpeed,
+    String outMinutes,
+    String outSpeed,
+  ) {
+    return '去程 $outSpeed $outMinutes′，返程 $backSpeed $backMinutes′';
+  }
+
+  @override
+  String get plannerMission_results_legs => '航段';
+
+  @override
+  String plannerMission_results_limitedBy(
+    String factor,
+    String name,
+    String scooter,
+    String waypoint,
+  ) {
+    return '受限于 $name 的 $scooter，位于 $waypoint：$factor';
+  }
+
+  @override
+  String plannerMission_results_limitedByDiver(
+    String factor,
+    String name,
+    String waypoint,
+  ) {
+    return '受限于 $name，位于 $waypoint：$factor';
+  }
+
+  @override
+  String get plannerMission_results_noAbandonment => '没有任何航点能应对所有故障';
+
+  @override
+  String get plannerMission_results_noBuddy => '无潜伴';
+
+  @override
+  String get plannerMission_results_noLimit => '此路线无限制';
+
+  @override
+  String get plannerMission_results_notComputed => '无法计算';
+
+  @override
+  String plannerMission_results_safeSurface(String minutes) {
+    return '$minutes′ 内安全出水';
+  }
+
+  @override
+  String get plannerMission_results_setsCruise => '决定团队的巡航速度';
+
+  @override
+  String plannerMission_results_surface(String minutes) {
+    return '出水 $minutes′';
+  }
+
+  @override
+  String plannerMission_results_surfaceViaShore(String minutes) {
+    return '经岸边出水 $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_survives => '可撤出';
+
+  @override
+  String plannerMission_results_swim(String minutes) {
+    return '游回 $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_title => '任务';
+
+  @override
+  String plannerMission_results_tow(String minutes, String name) {
+    return '由 $name 拖带 $minutes′';
+  }
+
+  @override
+  String plannerMission_results_turnPressure(String pressure) {
+    return '在 $pressure 返程';
+  }
+
+  @override
+  String get plannerMission_results_unconstrained => '任一推进器故障时，每个航点都能撤出';
+
+  @override
+  String plannerMission_results_waypointLine(String distance, String minutes) {
+    return '$distance，到达 $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_waypoints => '航点';
 
   @override
   String get plannerMission_route_addLeg => '添加航段';

@@ -340,6 +340,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerMission_buddyPicker_title => 'Scegli un compagno';
 
   @override
+  String plannerMission_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Missione: $count problemi',
+      one: 'Missione: $count problema',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get plannerMission_current_setsToward => 'Scorre verso';
 
   @override
@@ -374,6 +385,33 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get plannerMission_environment_overhead => 'Ambiente ostruito';
+
+  @override
+  String get plannerMission_factor_battery => 'riserva della batteria';
+
+  @override
+  String get plannerMission_factor_blockedByCurrent =>
+      'una corrente che blocca l\'uscita';
+
+  @override
+  String get plannerMission_factor_exposure => 'esposizione all\'ossigeno';
+
+  @override
+  String get plannerMission_factor_noFeasibleTow => 'nessun traino praticabile';
+
+  @override
+  String get plannerMission_factor_ownGas => 'il proprio gas';
+
+  @override
+  String get plannerMission_factor_scenarioFailed =>
+      'uno scenario di guasto che non è stato possibile calcolare';
+
+  @override
+  String get plannerMission_factor_surfaceSwimLimit =>
+      'il limite di nuoto in superficie';
+
+  @override
+  String get plannerMission_factor_teamGas => 'il gas di un compagno';
 
   @override
   String get plannerMission_issue_batteryReserveInvalid =>
@@ -502,6 +540,149 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get plannerMission_profile_title => 'Profilo generato';
+
+  @override
+  String plannerMission_results_abandonment(String waypoint) {
+    return 'Ultimo punto da cui tutti possono uscire: $waypoint';
+  }
+
+  @override
+  String plannerMission_results_assumptions(String reserve) {
+    return 'Riserva della batteria $reserve% dell\'autonomia. Chi ha lo scooter in avaria respira l\'RMV sotto stress del piano fino alla prima sosta.';
+  }
+
+  @override
+  String plannerMission_results_battery(
+    String minutes,
+    String percent,
+    String reserve,
+  ) {
+    return 'Batteria $percent% dell\'autonomia ($minutes′), riserva $reserve%';
+  }
+
+  @override
+  String plannerMission_results_bindsAt(String factor, String waypoint) {
+    return 'Limite a $waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_blocked =>
+      'La missione non può ancora essere calcolata:';
+
+  @override
+  String get plannerMission_results_cannotGetOut => 'non può uscire';
+
+  @override
+  String get plannerMission_results_computing =>
+      'Calcolo degli scenari di guasto in corso';
+
+  @override
+  String get plannerMission_results_failed =>
+      'Non è stato possibile calcolare la missione';
+
+  @override
+  String plannerMission_results_home(String distance) {
+    return '$distance in linea retta fino all\'ingresso';
+  }
+
+  @override
+  String plannerMission_results_legLine(
+    String backMinutes,
+    String backSpeed,
+    String outMinutes,
+    String outSpeed,
+  ) {
+    return 'andata $outSpeed $outMinutes′, ritorno $backSpeed $backMinutes′';
+  }
+
+  @override
+  String get plannerMission_results_legs => 'Tratti';
+
+  @override
+  String plannerMission_results_limitedBy(
+    String factor,
+    String name,
+    String scooter,
+    String waypoint,
+  ) {
+    return 'Limitato dallo $scooter di $name a $waypoint: $factor';
+  }
+
+  @override
+  String plannerMission_results_limitedByDiver(
+    String factor,
+    String name,
+    String waypoint,
+  ) {
+    return 'Limitato da $name a $waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_noAbandonment =>
+      'Nessun punto consente di uscire con qualsiasi guasto';
+
+  @override
+  String get plannerMission_results_noBuddy => 'nessun compagno';
+
+  @override
+  String get plannerMission_results_noLimit =>
+      'Nessun limite su questo percorso';
+
+  @override
+  String get plannerMission_results_notComputed =>
+      'non è stato possibile calcolarlo';
+
+  @override
+  String plannerMission_results_safeSurface(String minutes) {
+    return 'Superficie sicura in $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_setsCruise =>
+      'Determina la velocità di crociera della squadra';
+
+  @override
+  String plannerMission_results_surface(String minutes) {
+    return 'superficie $minutes′';
+  }
+
+  @override
+  String plannerMission_results_surfaceViaShore(String minutes) {
+    return 'superficie dalla riva $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_survives => 'esce';
+
+  @override
+  String plannerMission_results_swim(String minutes) {
+    return 'nuoto $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_title => 'Missione';
+
+  @override
+  String plannerMission_results_tow(String minutes, String name) {
+    return 'trainato da $name $minutes′';
+  }
+
+  @override
+  String plannerMission_results_turnPressure(String pressure) {
+    return 'Inversione a $pressure';
+  }
+
+  @override
+  String get plannerMission_results_unconstrained =>
+      'Da ogni punto si esce con il guasto di qualsiasi scooter';
+
+  @override
+  String plannerMission_results_waypointLine(String distance, String minutes) {
+    return '$distance, arrivo $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_waypoints => 'Punti';
 
   @override
   String get plannerMission_route_addLeg => 'Aggiungi tratto';

@@ -338,6 +338,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerMission_buddyPicker_title => 'Buddy kiválasztása';
 
   @override
+  String plannerMission_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Küldetés: $count probléma',
+      one: 'Küldetés: $count probléma',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get plannerMission_current_setsToward => 'Áramlás iránya';
 
   @override
@@ -372,6 +383,33 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerMission_environment_overhead => 'Mennyezetes';
+
+  @override
+  String get plannerMission_factor_battery => 'akkumulátortartalék';
+
+  @override
+  String get plannerMission_factor_blockedByCurrent =>
+      'a kijutást elzáró áramlás';
+
+  @override
+  String get plannerMission_factor_exposure => 'oxigénterhelés';
+
+  @override
+  String get plannerMission_factor_noFeasibleTow => 'nincs járható vontatás';
+
+  @override
+  String get plannerMission_factor_ownGas => 'saját gáz';
+
+  @override
+  String get plannerMission_factor_scenarioFailed =>
+      'egy meghibásodási forgatókönyv, amelyet nem sikerült kiszámítani';
+
+  @override
+  String get plannerMission_factor_surfaceSwimLimit =>
+      'a felszíni úszás korlátja';
+
+  @override
+  String get plannerMission_factor_teamGas => 'egy csapattárs gáza';
 
   @override
   String get plannerMission_issue_batteryReserveInvalid =>
@@ -502,6 +540,147 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerMission_profile_title => 'Generált profil';
+
+  @override
+  String plannerMission_results_abandonment(String waypoint) {
+    return 'Az utolsó pont, ahonnan mindenki kijut: $waypoint';
+  }
+
+  @override
+  String plannerMission_results_assumptions(String reserve) {
+    return 'Akkumulátortartalék: az üzemidő $reserve%-a. Akinek a scootere meghibásodik, az első megállóig a terv stressz-RMV-jével lélegzik.';
+  }
+
+  @override
+  String plannerMission_results_battery(
+    String minutes,
+    String percent,
+    String reserve,
+  ) {
+    return 'Akkumulátor: az üzemidő $percent%-a ($minutes′), tartalék $reserve%';
+  }
+
+  @override
+  String plannerMission_results_bindsAt(String factor, String waypoint) {
+    return 'Korlát $waypoint pontnál: $factor';
+  }
+
+  @override
+  String get plannerMission_results_blocked =>
+      'A küldetés még nem számítható ki:';
+
+  @override
+  String get plannerMission_results_cannotGetOut => 'nem jut ki';
+
+  @override
+  String get plannerMission_results_computing =>
+      'A meghibásodási forgatókönyvek számítása folyamatban';
+
+  @override
+  String get plannerMission_results_failed =>
+      'A küldetést nem sikerült kiszámítani';
+
+  @override
+  String plannerMission_results_home(String distance) {
+    return '$distance egyenesen a bejáratig';
+  }
+
+  @override
+  String plannerMission_results_legLine(
+    String backMinutes,
+    String backSpeed,
+    String outMinutes,
+    String outSpeed,
+  ) {
+    return 'oda $outSpeed $outMinutes′, vissza $backSpeed $backMinutes′';
+  }
+
+  @override
+  String get plannerMission_results_legs => 'Szakaszok';
+
+  @override
+  String plannerMission_results_limitedBy(
+    String factor,
+    String name,
+    String scooter,
+    String waypoint,
+  ) {
+    return 'Korlátozó tényező $waypoint pontnál: $factor ($name, $scooter)';
+  }
+
+  @override
+  String plannerMission_results_limitedByDiver(
+    String factor,
+    String name,
+    String waypoint,
+  ) {
+    return 'Korlátozó tényező $waypoint pontnál: $factor ($name)';
+  }
+
+  @override
+  String get plannerMission_results_noAbandonment =>
+      'Egyik pontról sem lehet minden meghibásodásnál kijutni';
+
+  @override
+  String get plannerMission_results_noBuddy => 'nincs társ';
+
+  @override
+  String get plannerMission_results_noLimit => 'Nincs korlát ezen az útvonalon';
+
+  @override
+  String get plannerMission_results_notComputed => 'nem sikerült kiszámítani';
+
+  @override
+  String plannerMission_results_safeSurface(String minutes) {
+    return 'Biztonságos felszín $minutes′ alatt';
+  }
+
+  @override
+  String get plannerMission_results_setsCruise =>
+      'Ez határozza meg a csapat utazósebességét';
+
+  @override
+  String plannerMission_results_surface(String minutes) {
+    return 'felszín $minutes′';
+  }
+
+  @override
+  String plannerMission_results_surfaceViaShore(String minutes) {
+    return 'felszín a parton át $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_survives => 'kijut';
+
+  @override
+  String plannerMission_results_swim(String minutes) {
+    return 'úszás $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_title => 'Küldetés';
+
+  @override
+  String plannerMission_results_tow(String minutes, String name) {
+    return 'vontatja: $name $minutes′';
+  }
+
+  @override
+  String plannerMission_results_turnPressure(String pressure) {
+    return 'Visszafordulás $pressure értéknél';
+  }
+
+  @override
+  String get plannerMission_results_unconstrained =>
+      'Bármely scooter meghibásodásakor minden pontról ki lehet jutni';
+
+  @override
+  String plannerMission_results_waypointLine(String distance, String minutes) {
+    return '$distance, érkezés $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_waypoints => 'Pontok';
 
   @override
   String get plannerMission_route_addLeg => 'Szakasz hozzáadása';

@@ -97,6 +97,14 @@
   "plannerMission_buddyPicker_empty": "No buddies yet",
   "plannerMission_buddyPicker_me": "Me",
   "plannerMission_buddyPicker_title": "Choose a buddy",
+  "plannerMission_chip_issues": "{count, plural, =1{Mission: {count} issue} other{Mission: {count} issues}}",
+  "@plannerMission_chip_issues": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "plannerMission_current_setsToward": "Sets toward",
   "plannerMission_current_speed": "Current speed",
   "plannerMission_disableConfirm": "Turn off",
@@ -108,6 +116,14 @@
   "plannerMission_enableTitle": "Replace the segments with a DPV mission?",
   "plannerMission_environment_openWater": "Open water",
   "plannerMission_environment_overhead": "Overhead",
+  "plannerMission_factor_battery": "battery reserve",
+  "plannerMission_factor_blockedByCurrent": "a current that blocks the way out",
+  "plannerMission_factor_exposure": "oxygen exposure",
+  "plannerMission_factor_noFeasibleTow": "no workable tow",
+  "plannerMission_factor_ownGas": "own gas",
+  "plannerMission_factor_scenarioFailed": "a failure scenario that could not be computed",
+  "plannerMission_factor_surfaceSwimLimit": "the surface swim limit",
+  "plannerMission_factor_teamGas": "a teammate's gas",
   "plannerMission_issue_batteryReserveInvalid": "The battery reserve must be between 0 and 100%",
   "plannerMission_issue_emptyRoute": "Add at least one leg",
   "plannerMission_issue_emptyTeam": "Add at least one diver",
@@ -208,6 +224,179 @@
     }
   },
   "plannerMission_profile_title": "Generated profile",
+  "plannerMission_results_abandonment": "Last waypoint every diver can get out from: {waypoint}",
+  "@plannerMission_results_abandonment": {
+    "placeholders": {
+      "waypoint": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_assumptions": "Battery reserve {reserve}% of burn time. A diver whose scooter fails breathes the plan's stressed RMV until the first stop.",
+  "@plannerMission_results_assumptions": {
+    "placeholders": {
+      "reserve": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_battery": "Battery {percent}% of burn time ({minutes}′), reserve {reserve}%",
+  "@plannerMission_results_battery": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "reserve": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_bindsAt": "Limit at {waypoint}: {factor}",
+  "@plannerMission_results_bindsAt": {
+    "placeholders": {
+      "factor": {
+        "type": "String"
+      },
+      "waypoint": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_blocked": "The mission cannot be computed yet:",
+  "plannerMission_results_cannotGetOut": "cannot get out",
+  "plannerMission_results_computing": "Working out the failure scenarios",
+  "plannerMission_results_failed": "The mission could not be computed",
+  "plannerMission_results_home": "{distance} straight home",
+  "@plannerMission_results_home": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_legLine": "out {outSpeed} {outMinutes}′, back {backSpeed} {backMinutes}′",
+  "@plannerMission_results_legLine": {
+    "placeholders": {
+      "backMinutes": {
+        "type": "String"
+      },
+      "backSpeed": {
+        "type": "String"
+      },
+      "outMinutes": {
+        "type": "String"
+      },
+      "outSpeed": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_legs": "Legs",
+  "plannerMission_results_limitedBy": "Limited by {name}'s {scooter} at {waypoint}: {factor}",
+  "@plannerMission_results_limitedBy": {
+    "placeholders": {
+      "factor": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "scooter": {
+        "type": "String"
+      },
+      "waypoint": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_limitedByDiver": "Limited by {name} at {waypoint}: {factor}",
+  "@plannerMission_results_limitedByDiver": {
+    "placeholders": {
+      "factor": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "waypoint": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_noAbandonment": "No waypoint is survivable for every failure",
+  "plannerMission_results_noBuddy": "no buddy",
+  "plannerMission_results_noLimit": "No limit on this route",
+  "plannerMission_results_notComputed": "could not be computed",
+  "plannerMission_results_safeSurface": "Safe surface in {minutes}′",
+  "@plannerMission_results_safeSurface": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_setsCruise": "Sets the team's cruise speed",
+  "plannerMission_results_surface": "surface {minutes}′",
+  "@plannerMission_results_surface": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_surfaceViaShore": "surface via the shore {minutes}′",
+  "@plannerMission_results_surfaceViaShore": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_survives": "gets out",
+  "plannerMission_results_swim": "swim {minutes}′",
+  "@plannerMission_results_swim": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_title": "Mission",
+  "plannerMission_results_tow": "tow by {name} {minutes}′",
+  "@plannerMission_results_tow": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_turnPressure": "Turn at {pressure}",
+  "@plannerMission_results_turnPressure": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_unconstrained": "Every waypoint is survivable for any single scooter failure",
+  "plannerMission_results_waypointLine": "{distance}, arrive {minutes}′",
+  "@plannerMission_results_waypointLine": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_waypoints": "Waypoints",
   "plannerMission_route_addLeg": "Add leg",
   "plannerMission_route_deleteLeg": "Delete leg",
   "plannerMission_route_editLeg": "Edit leg",
