@@ -1307,6 +1307,7 @@ void main() {
               (ref) => _ReloadingPaginatedNotifier(ref, summaries),
             ),
           ],
+          locale: const Locale('en'),
           child: const DiveListContent(showAppBar: false),
         ),
       );
@@ -1348,6 +1349,7 @@ void main() {
               ),
             ),
           ],
+          locale: const Locale('en'),
           child: const DiveListContent(showAppBar: false),
         ),
       );

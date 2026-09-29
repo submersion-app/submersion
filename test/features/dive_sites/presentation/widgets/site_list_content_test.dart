@@ -873,6 +873,69 @@ void main() {
     }
   });
 
+  group('a reload of the rows', () {
+    for (final mode in [ListViewMode.detailed, ListViewMode.table]) {
+      testWidgets('keeps the checks that stay on screen (${mode.name})', (
+        tester,
+      ) async {
+        final all = <SiteWithDiveCount>[
+          _makeSite(id: 's1', name: 'Aaa Site'),
+          _makeSite(id: 's2', name: 'Bbb Site'),
+        ];
+        // Stands in for a dependency of the site rows, such as the diver.
+        final reloadTrigger = StateProvider<int>((ref) => 0);
+        // Rows that reload on that dependency and reach the list as they
+        // are, previous value included.
+        final reloadingSites = FutureProvider<List<SiteWithDiveCount>>((
+          ref,
+        ) async {
+          ref.watch(reloadTrigger);
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          return all;
+        });
+
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) => MockCurrentDiverIdNotifier(),
+              ),
+              sortedSitesWithCountsProvider.overrideWith(
+                (ref) => ref.watch(reloadingSites),
+              ),
+              siteListNotifierProvider.overrideWith(
+                (ref) => _MockSiteListNotifier(),
+              ),
+              siteListViewModeProvider.overrideWith((ref) => mode),
+              highlightedSiteIdProvider.overrideWith((ref) => null),
+            ],
+            locale: const Locale('en'),
+            child: const SiteListContent(showAppBar: true),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+        await tester.pumpAndSettle();
+        expect(find.text('2 selected'), findsOneWidget);
+
+        // A reload keeps the previous rows while the new ones load; pruning
+        // must read them, not an empty frame.
+        ProviderScope.containerOf(
+          tester.element(find.byType(SiteListContent)),
+        ).read(reloadTrigger.notifier).state++;
+        await tester.pump();
+        await tester.pumpAndSettle();
+        expect(find.text('2 selected'), findsOneWidget);
+      });
+    }
+  });
+
   group('selection mode', () {
     testWidgets(
       'long press enters selection mode and shows selection app bar',

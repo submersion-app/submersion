@@ -444,7 +444,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           : listContent;
     }
 
-    final loadedSites = sitesAsync.valueOrNull ?? const <SiteWithDiveCount>[];
+    final loadedSites = sitesAsync.value ?? const <SiteWithDiveCount>[];
     final visibleIds = loadedSites.map((s) => s.site.id).toList();
 
     // Drop checked sites that fell out of the filtered list, so the count
@@ -640,7 +640,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     AsyncValue<List<SiteWithDiveCount>> sitesAsync,
     SiteFilterState filter,
   ) {
-    final loadedSites = sitesAsync.valueOrNull ?? const <SiteWithDiveCount>[];
+    final loadedSites = sitesAsync.value ?? const <SiteWithDiveCount>[];
     final visibleIds = loadedSites.map((s) => s.site.id).toList();
 
     // Same pruning the list path does: drop checked sites that fell out of
