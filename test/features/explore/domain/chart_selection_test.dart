@@ -85,4 +85,14 @@ void main() {
       expect(charts.last.entityKind, kind, reason: kind.name);
     }
   });
+
+  test('a SAC clause draws a SAC chart', () {
+    expect(
+      selectCharts(
+        numericFields: const [ExploreDiveField.sac],
+        resolvedEntityCounts: const {},
+      ),
+      contains(const ChartRequest(ChartKind.sacTrend)),
+    );
+  });
 }

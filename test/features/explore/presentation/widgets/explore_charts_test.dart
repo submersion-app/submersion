@@ -138,4 +138,18 @@ void main() {
     expect(find.text(en.common_error_tryAgain), findsNWidgets(2));
     expect(find.textContaining('database is locked'), findsNothing);
   });
+
+  testWidgets('the SAC chart is titled SAC and reads per minute', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      [const ChartRequest(ChartKind.sacTrend)],
+      data: ExploreChartData(
+        points: [TrendDataPoint(date: DateTime(2025, 6, 1), value: 1.2)],
+      ),
+    );
+    expect(find.text(en.query_dives_sac), findsOneWidget);
+    expect(find.byType(DiveTrendChart), findsOneWidget);
+  });
 }

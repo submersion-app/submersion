@@ -396,6 +396,13 @@ final exploreChartDataProvider =
                 filter: filter,
               ),
             );
+          case ChartKind.sacTrend:
+            return ExploreChartData(
+              points: await stats.getSacPressurePerDive(
+                diverId: diverId,
+                filter: filter,
+              ),
+            );
           case ChartKind.entityCounts:
             final rows = switch (request.entityKind) {
               MentionKind.species => (await stats.getMostCommonSightings(
