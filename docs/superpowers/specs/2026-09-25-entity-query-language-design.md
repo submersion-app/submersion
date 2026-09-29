@@ -933,6 +933,18 @@ Decided in the whole-branch review of PR 1:
   stranded pre-v199 fixture builds the table without `buddy_id`. 243 and
   244 were held by #2409 and #2538 when the rung was taken.
 
+## Deviations recorded during implementation (PR 5)
+
+- **The loader lives in features.** `NameIndex`, `NameEntry` and `NameTarget` moved to `lib/core/query/names/`; `NameIndexLoader` lives in `lib/features/query/data/`, because it reads the registry, the equipment attribute catalog and the species name lookup, and core never imports a feature.
+- **One index.** The typed index and Explore's index merged. A typed ref now also resolves by an alternate label (a built-in species' localized or scientific name, an item's brand and model) and prints its primary name; places, attribute choices and legacy buddy names are sentence-only entries. Refs to any other relation target (a certification behind `buddies.certifications`) are rows of `NameTarget.row`. Entries of one rank keep their load order, so the same rows always resolve the same way.
+- **Places lower to site place conditions** (`site.island = "Bonaire"`, an OR over each column the label came from), so a saved or handed-off query keeps finding new sites in the place. A place with no recorded columns falls back to its site ids.
+- **Mentions of one kind OR together**, centers, trips and computers included (they were "the last one wins"); buddies and attribute choices stay ANDed. A ref prints the row's primary name, else the label the mention resolved to.
+- **Rating and bottom time bounds are whole numbers**, as the filter axes they replaced were.
+- **Explore keeps its own unit rules on top of core grounding**: a unit of another kind is refused, a plain bar or psi said on a SAC means per minute, and a rate keeps four decimals (Explore phase 2's behaviour).
+- **`time_grammar` needed no move.** Explore already read `lib/core/query/syntax/date_grammar.dart`.
+- **Profile-derived predicates came as registry fields** (Explore phase 2, #2579: `sac`, `sacTrend`, `sacChange`, `finalStop`, `finalStopExcursion`, `finalStopDuration`, `findings`), not through `derivedPredicateCondition`, which never reached main.
+- **`DiveFilterState` stays the repositories' argument.** Explore holds a `QueryNode` (`exploreQueryNodeProvider`) and wraps it as `DiveFilterState(query: node)` for results, counts, charts and the handoff, which the dive list shows as query chips.
+
 ## Open items for the implementation plans
 
 - PR 1 must re-grep `currentSchemaVersion` only if it adds a table; it does
