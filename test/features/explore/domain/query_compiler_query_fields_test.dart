@@ -285,6 +285,52 @@ void main() {
       );
     });
 
+    (double, double) bounds(CompiledQuery q) {
+      final and = q.filter.query! as AndNode;
+      double v(int i) =>
+          ((and.children[i] as ConditionNode).value as NumberValue).value;
+      return (v(0), v(1));
+    }
+
+    test('exactly a SAC in psi/min is a real band, half a psi either side', () {
+      final q = QueryCompiler.compile(
+        ParsedQuery.fromJson({
+          'schemaVersion': kQuerySchemaVersion,
+          'subject': 'dives',
+          'clauses': [clause('sac', 'eq', 20)],
+        }),
+        CompilerContext(
+          units: (
+            depth: DepthUnit.feet,
+            temperature: TemperatureUnit.fahrenheit,
+            pressure: PressureUnit.psi,
+          ),
+          names: NameIndex.empty,
+          now: DateTime(2026, 9, 28),
+        ),
+      );
+      final (lo, hi) = bounds(q);
+      // 19.5 to 20.5 psi/min: 1.344 to 1.413 bar/min, not one rounded value.
+      expect(lo, closeTo(1.344, 0.001));
+      expect(hi, closeTo(1.413, 0.001));
+    });
+
+    test('SAC said in psi without per minute is psi per minute', () {
+      final q = compile([
+        {...clause('sac', 'gt', 20), 'unit': 'psi'},
+      ]);
+      final bound = (q.filter.query! as ConditionNode).value as NumberValue;
+      expect(bound.value, closeTo(1.379, 0.001));
+    });
+
+    test('a volume rate on SAC is refused, not read as pressure', () {
+      final q = compile([
+        {...clause('sac', 'gt', 15), 'unit': 'l_min'},
+      ]);
+      expect(q.unplaced.single.reason, 'invalid');
+      expect(q.filter.query, isNull);
+    });
+
     test('a change below minus 100 percent is out of range', () {
       expect(
         compile([clause('sacChange', 'lt', -150)]).unplaced.single.reason,

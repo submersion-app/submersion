@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/syntax/date_grammar.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
@@ -320,8 +321,17 @@ abstract final class QueryCompiler {
     DiveFilterState f,
     UnitPrefs units,
   ) {
+    final rate = spec.dimension == FieldDimension.pressureRate;
+    if (rate && !unitFitsRate(c.unit)) return _fail('invalid');
+    // A rate keeps four decimals: psi/min bounds half a psi apart are only
+    // 0.07 bar/min apart, and two decimals would round them together.
     double ground(num v) => double.parse(
-      groundToMetric(v, c.unit, spec.dimension, units).toStringAsFixed(2),
+      groundToMetric(
+        v,
+        c.unit,
+        spec.dimension,
+        units,
+      ).toStringAsFixed(rate ? 4 : 2),
     );
     double? lo;
     double? hi;
@@ -359,10 +369,12 @@ abstract final class QueryCompiler {
           // A measured value is almost never exactly the number said, so
           // "exactly 15 m" is the half unit either side of it in the unit
           // the diver used, the way it would be rounded. SAC is read to a
-          // tenth, so "a SAC of 1.2" is 1.15 to 1.25. Counts stay exact.
+          // tenth of a bar or a whole psi, so "a SAC of 1.2" is 1.15 to 1.25
+          // bar/min and "20 psi/min" is 19.5 to 20.5. Counts stay exact.
           final half = switch (spec.dimension) {
             FieldDimension.depth || FieldDimension.temperature => 0.5,
-            FieldDimension.pressureRate => 0.05,
+            FieldDimension.pressureRate =>
+              rateUnitSaid(c.unit, units) == PressureUnit.psi ? 0.5 : 0.05,
             _ => 0.0,
           };
           lo = half == 0 ? v : ground(raw - half);

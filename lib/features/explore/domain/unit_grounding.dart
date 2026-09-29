@@ -45,12 +45,7 @@ double groundToMetric(
       };
       return from.convert(v, PressureUnit.bar);
     case FieldDimension.pressureRate:
-      final from = switch (unit) {
-        ClauseUnit.barMin => PressureUnit.bar,
-        ClauseUnit.psiMin => PressureUnit.psi,
-        _ => prefs.pressure,
-      };
-      return from.convert(v, PressureUnit.bar);
+      return rateUnitSaid(unit, prefs).convert(v, PressureUnit.bar);
     case FieldDimension.minutes:
     case FieldDimension.percent:
     case FieldDimension.count:
@@ -58,3 +53,25 @@ double groundToMetric(
       return v;
   }
 }
+
+/// The pressure unit a SAC was said in. Divers often drop "per minute", so
+/// a plain bar or psi on a rate means bar/min or psi/min; no unit means the
+/// diver's own.
+PressureUnit rateUnitSaid(ClauseUnit? unit, UnitPrefs prefs) => switch (unit) {
+  ClauseUnit.bar || ClauseUnit.barMin => PressureUnit.bar,
+  ClauseUnit.psi || ClauseUnit.psiMin => PressureUnit.psi,
+  _ => prefs.pressure,
+};
+
+/// Whether [unit] can be read as a pressure rate. A volume rate (l/min,
+/// cuft/min) is RMV, a different measure, and a depth or a temperature is
+/// not a rate at all: reading either as bar/min would silently search for
+/// the wrong thing.
+bool unitFitsRate(ClauseUnit? unit) => switch (unit) {
+  null ||
+  ClauseUnit.bar ||
+  ClauseUnit.psi ||
+  ClauseUnit.barMin ||
+  ClauseUnit.psiMin => true,
+  _ => false,
+};
