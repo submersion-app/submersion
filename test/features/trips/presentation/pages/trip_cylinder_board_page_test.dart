@@ -20,8 +20,10 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
@@ -85,6 +87,7 @@ void main() {
     TripCylinderRepository? repository,
     Future<List<TripCylinderState>>? states,
     bool settle = true,
+    FillForecast? forecast,
   }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
@@ -100,6 +103,9 @@ void main() {
               TankPresetEntity.fromBuiltIn(TankPresets.byName('al80')!),
             ]),
           ),
+          tripFillForecastProvider(
+            tripId,
+          ).overrideWith((ref) async => forecast),
           if (repository != null)
             tripCylinderRepositoryProvider.overrideWithValue(repository),
           if (states != null)
@@ -120,7 +126,11 @@ void main() {
     }
   }
 
-  Future<void> pumpBoardWithRouter(WidgetTester tester, GoRouter router) async {
+  Future<void> pumpBoardWithRouter(
+    WidgetTester tester,
+    GoRouter router, {
+    FillForecast? forecast,
+  }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -135,6 +145,9 @@ void main() {
               TankPresetEntity.fromBuiltIn(TankPresets.byName('al80')!),
             ]),
           ),
+          tripFillForecastProvider(
+            tripId,
+          ).overrideWith((ref) async => forecast),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -421,6 +434,27 @@ void main() {
     expect(reorderedIds(['a', 'b', 'c'], 2, 0), ['c', 'a', 'b']);
     expect(reorderedIds(['a', 'b', 'c'], 0, 2), ['b', 'c', 'a']);
     expect(reorderedIds(['a', 'b', 'c'], 1, 1), ['a', 'b', 'c']);
+  });
+  testWidgets('the board shows the forecast as a banner', (tester) async {
+    final a = await slot('Truck 1', 0);
+    await fill(a.id);
+    await pumpBoard(
+      tester,
+      forecast: const FillForecast(
+        fullCount: 1,
+        partialCount: 0,
+        todayDemand: 0,
+        tomorrowDemand: 4,
+        tomorrowSupply: 1,
+        todayShortfall: 0,
+        tomorrowShortfall: 3,
+        deadlineMinutes: null,
+        remainingDemand: 8,
+        days: [],
+      ),
+    );
+    expect(find.byKey(const Key('fill-forecast-banner')), findsOneWidget);
+    expect(find.text("Tomorrow needs 4, you'll have 1 full."), findsOneWidget);
   });
 }
 

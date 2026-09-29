@@ -8,6 +8,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_fill_forecast_banner.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The cylinders card in the trip story: a count of full, partial and
@@ -36,6 +38,7 @@ class TripCylindersCard extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
+    final forecast = ref.watch(tripFillForecastProvider(trip.id)).value;
     void open() => context.push('/trips/${trip.id}/cylinders');
 
     final List<Widget> content;
@@ -66,6 +69,14 @@ class TripCylindersCard extends ConsumerWidget {
                     '${l10n.trips_cylinders_summaryUnfilled(counts.unknown)}',
           style: theme.textTheme.bodyMedium,
         ),
+        if (forecast != null) ...[
+          const SizedBox(height: 4),
+          TripFillForecastText(
+            key: const Key('trip-cylinders-forecast'),
+            forecast: forecast,
+            units: units,
+          ),
+        ],
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,

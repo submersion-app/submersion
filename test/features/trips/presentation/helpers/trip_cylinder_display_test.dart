@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
@@ -7,6 +8,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -239,5 +241,60 @@ void main() {
       l10n.diveCenters_fillHours_errorOrder,
       'Closing time must be after opening time.',
     );
+  });
+
+  FillForecast forecastOf({
+    int todayShortfall = 0,
+    int tomorrowShortfall = 0,
+    int? deadline,
+  }) => FillForecast(
+    fullCount: 2,
+    partialCount: 0,
+    todayDemand: 4,
+    tomorrowDemand: 6,
+    tomorrowSupply: 1,
+    todayShortfall: todayShortfall,
+    tomorrowShortfall: tomorrowShortfall,
+    deadlineMinutes: deadline,
+    remainingDemand: 10,
+    days: const [],
+  );
+
+  test('a time of day in the diver\'s format', () {
+    expect(units.formatMinutesOfDay(1020), '5:00 PM');
+    expect(
+      const UnitFormatter(
+        AppSettings(timeFormat: TimeFormat.twentyFourHour),
+      ).formatMinutesOfDay(1020),
+      '17:00',
+    );
+  });
+
+  test('forecast lines: both shortfalls, today first, with the deadline', () {
+    final r = tripFillForecastLines(
+      l10n,
+      units,
+      forecastOf(todayShortfall: 2, tomorrowShortfall: 5, deadline: 1020),
+    );
+    expect(r.short, isTrue);
+    expect(r.lines, [
+      'Today needs 4, you have 2 full. Fill before 5:00 PM.',
+      "Tomorrow needs 6, you'll have 1 full.",
+    ]);
+  });
+
+  test('forecast lines: tomorrow alone, no deadline', () {
+    final r = tripFillForecastLines(
+      l10n,
+      units,
+      forecastOf(tomorrowShortfall: 5),
+    );
+    expect(r.lines, ["Tomorrow needs 6, you'll have 1 full."]);
+  });
+
+  test('forecast lines: enough', () {
+    final r = tripFillForecastLines(l10n, units, forecastOf(deadline: 1020));
+    expect(r.short, isFalse);
+    expect(r.lines, ['Enough full cylinders through tomorrow.']);
   });
 }
