@@ -7251,6 +7251,10 @@
   "passport_nfc_fieldName": "Name",
   "passport_nfc_fieldSerial": "Serial number",
   "passport_nfc_fieldO2Clean": "O2 clean",
+  "passport_nfc_fieldFillAnalyzer": "Fill analyzer",
+  "passport_nfc_fieldFilledBy": "Filled by",
+  "passport_nfc_fieldFillTemperature": "Fill temperature",
+  "passport_nfc_fieldFill": "Newest fill",
   "passport_foreign_serial": "Serial {serial}",
   "@passport_foreign_serial": {
     "placeholders": {

@@ -12900,6 +12900,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passport_nfc_fieldO2Clean => 'Limpo para O2';
 
   @override
+  String get passport_nfc_fieldFillAnalyzer => 'Analisador do enchimento';
+
+  @override
+  String get passport_nfc_fieldFilledBy => 'Enchido por';
+
+  @override
+  String get passport_nfc_fieldFillTemperature => 'Temperatura do enchimento';
+
+  @override
+  String get passport_nfc_fieldFill => 'Enchimento mais recente';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Nº de série $serial';
   }

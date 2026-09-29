@@ -12900,6 +12900,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get passport_nfc_fieldO2Clean => 'O2-rein';
 
   @override
+  String get passport_nfc_fieldFillAnalyzer => 'Analysator der Füllung';
+
+  @override
+  String get passport_nfc_fieldFilledBy => 'Gefüllt von';
+
+  @override
+  String get passport_nfc_fieldFillTemperature => 'Temperatur der Füllung';
+
+  @override
+  String get passport_nfc_fieldFill => 'Neueste Füllung';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Seriennummer $serial';
   }

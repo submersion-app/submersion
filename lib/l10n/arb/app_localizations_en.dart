@@ -12705,6 +12705,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_nfc_fieldO2Clean => 'O2 clean';
 
   @override
+  String get passport_nfc_fieldFillAnalyzer => 'Fill analyzer';
+
+  @override
+  String get passport_nfc_fieldFilledBy => 'Filled by';
+
+  @override
+  String get passport_nfc_fieldFillTemperature => 'Fill temperature';
+
+  @override
+  String get passport_nfc_fieldFill => 'Newest fill';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Serial $serial';
   }

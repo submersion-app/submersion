@@ -12872,6 +12872,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get passport_nfc_fieldO2Clean => 'O2-tiszta';
 
   @override
+  String get passport_nfc_fieldFillAnalyzer => 'Töltés analizátora';
+
+  @override
+  String get passport_nfc_fieldFilledBy => 'Töltötte';
+
+  @override
+  String get passport_nfc_fieldFillTemperature => 'Töltés hőmérséklete';
+
+  @override
+  String get passport_nfc_fieldFill => 'Legutóbbi töltés';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Sorozatszám: $serial';
   }

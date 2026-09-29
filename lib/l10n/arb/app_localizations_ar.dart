@@ -12699,6 +12699,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_nfc_fieldO2Clean => 'نظيفة للأكسجين';
 
   @override
+  String get passport_nfc_fieldFillAnalyzer => 'محلل التعبئة';
+
+  @override
+  String get passport_nfc_fieldFilledBy => 'عبّأها';
+
+  @override
+  String get passport_nfc_fieldFillTemperature => 'درجة حرارة التعبئة';
+
+  @override
+  String get passport_nfc_fieldFill => 'أحدث تعبئة';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'الرقم التسلسلي $serial';
   }

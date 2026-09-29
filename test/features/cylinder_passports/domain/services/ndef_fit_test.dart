@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/tag_fill.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/ndef_fit.dart';
@@ -47,8 +48,17 @@ void main() {
     );
   });
 
-  test('drops keys in the fixed order, name first, volume last', () {
-    var p = full;
+  test('drops keys in the fixed order, the fill first, volume last', () {
+    var p = full.copyWith(
+      fill: TagFill(
+        id: '3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11',
+        filledAt: DateTime.utc(2026, 9, 28, 9, 30),
+        o2Percent: 32,
+        temperatureC: 24,
+        filledBy: 'Blue Hole',
+        analyzer: 'Divesoft',
+      ),
+    );
     final seen = <String>[];
     for (final key in NdefFit.dropOrder) {
       final next = NdefFit.drop(p, key);
@@ -57,6 +67,7 @@ void main() {
       p = next;
     }
     expect(seen, NdefFit.dropOrder);
+    expect(p.fill, isNull);
     expect(p.name, isNull);
     expect(p.volumeL, isNull);
     expect(p.passportId, id);
@@ -91,5 +102,45 @@ void main() {
 
   test('a payload that already fits a label is unchanged', () {
     expect(NdefFit.fitForLabel(full), full);
+  });
+
+  group('the newest fill', () {
+    final fill = TagFill(
+      id: '3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11',
+      filledAt: DateTime.utc(2026, 9, 28, 9, 30),
+      o2Percent: 32.1,
+      pressureBar: 232,
+      temperatureC: 24.5,
+      filledBy: 'Blue Hole Dive Shop',
+      analyzer: 'Divesoft',
+    );
+
+    test('a small tag drops the fill before any cylinder key', () {
+      final fitted = NdefFit.fit(
+        full.copyWith(fill: fill),
+        NdefFit.ntag213Bytes,
+      )!;
+      expect(fitted.fill, isNull);
+      expect(NdefFit.dropOrder.take(4), ['fa', 'fb', 'fc', 'fill']);
+    });
+
+    test('an NTAG215 keeps everything, the fill included', () {
+      expect(
+        NdefFit.fit(full.copyWith(fill: fill), NdefFit.ntag215Bytes),
+        full.copyWith(fill: fill),
+      );
+    });
+
+    test("the fill's details go before the fill itself", () {
+      final noDetails = NdefFit.drop(
+        NdefFit.drop(NdefFit.drop(full.copyWith(fill: fill), 'fa'), 'fb'),
+        'fc',
+      );
+      expect(noDetails.fill!.analyzer, isNull);
+      expect(noDetails.fill!.filledBy, isNull);
+      expect(noDetails.fill!.temperatureC, isNull);
+      expect(noDetails.fill!.o2Percent, 32.1);
+      expect(NdefFit.drop(noDetails, 'fill').fill, isNull);
+    });
   });
 }

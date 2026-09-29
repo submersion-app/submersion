@@ -12321,6 +12321,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_nfc_fieldO2Clean => '氧气清洁';
 
   @override
+  String get passport_nfc_fieldFillAnalyzer => '充气分析仪';
+
+  @override
+  String get passport_nfc_fieldFilledBy => '充气人';
+
+  @override
+  String get passport_nfc_fieldFillTemperature => '充气温度';
+
+  @override
+  String get passport_nfc_fieldFill => '最新充气';
+
+  @override
   String passport_foreign_serial(String serial) {
     return '序列号 $serial';
   }

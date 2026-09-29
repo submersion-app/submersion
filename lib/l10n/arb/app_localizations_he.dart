@@ -12616,6 +12616,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_nfc_fieldO2Clean => 'נקי ל-O2';
 
   @override
+  String get passport_nfc_fieldFillAnalyzer => 'מנתח המילוי';
+
+  @override
+  String get passport_nfc_fieldFilledBy => 'מולא על ידי';
+
+  @override
+  String get passport_nfc_fieldFillTemperature => 'טמפרטורת המילוי';
+
+  @override
+  String get passport_nfc_fieldFill => 'המילוי האחרון';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'מספר סידורי $serial';
   }

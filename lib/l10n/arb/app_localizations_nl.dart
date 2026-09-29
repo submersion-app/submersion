@@ -12808,6 +12808,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get passport_nfc_fieldO2Clean => 'O2-schoon';
 
   @override
+  String get passport_nfc_fieldFillAnalyzer => 'Analyser van de vulling';
+
+  @override
+  String get passport_nfc_fieldFilledBy => 'Gevuld door';
+
+  @override
+  String get passport_nfc_fieldFillTemperature => 'Temperatuur van de vulling';
+
+  @override
+  String get passport_nfc_fieldFill => 'Nieuwste vulling';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Serienummer $serial';
   }

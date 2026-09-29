@@ -19,6 +19,10 @@ final _log = LoggerService.forClass(NfcWriteSheet);
 
 /// A readable name for a tag key left off a small tag.
 String tagFieldLabel(AppLocalizations l10n, String key) => switch (key) {
+  'fa' => l10n.passport_nfc_fieldFillAnalyzer,
+  'fb' => l10n.passport_nfc_fieldFilledBy,
+  'fc' => l10n.passport_nfc_fieldFillTemperature,
+  'fill' => l10n.passport_nfc_fieldFill,
   'n' => l10n.passport_nfc_fieldName,
   'sn' => l10n.passport_nfc_fieldSerial,
   'vi' => attributeLabel(l10n, 'last_visual_inspection'),
