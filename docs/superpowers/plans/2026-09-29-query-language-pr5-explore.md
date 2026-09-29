@@ -48,7 +48,7 @@
 
 ## Review Focus
 
-1. **A recent query saved before PR 5 reruns unchanged.** A stored `ParsedQuery` with a pinned mention identity (for example `buddyId:b1::::`) reruns to the same chips and the same dives. Test: Task 3 Step 1 (`identity keeps its stored format`) and Task 5 Step 1 (fixture case `pinned buddy`).
+1. **A recent query saved before PR 5 reruns unchanged.** A stored `ParsedQuery` with a pinned mention identity (for example `buddyId:b1:::`) reruns to the same chips and the same dives. Test: Task 3 Step 1 (`identity keeps its stored format`) and Task 5 Step 1 (fixture case `pinned buddy`).
 2. **A German diver types a built-in species' German name in the typed editor.** It resolves to the species and prints the stored primary name. Test: Task 1 Step 1 (`an alternate label resolves to the row and prints the primary label`) and Task 2 Step 1 (`a built-in species gets its localized name as an alternate`).
 3. **A label shared across rows.** When one item's brand and model equals another item's name, the typed parser picks the item whose primary name it is. Test: Task 1 Step 1 (`a primary name wins over another row's alternate`).
 4. **A handed-off query is editable and savable in the dive list.** The node Explore hands over carries real primary labels, so its chips read as names and a saved query stores labels, not ids. Test: Task 6 Step 1 (`the handoff carries named refs`).
@@ -224,7 +224,7 @@ void main() {
       attrKey: 'material',
       attrChoice: 'trilaminate',
     );
-    expect(buddy.identity, 'buddyId:b1::::');
+    expect(buddy.identity, 'buddyId:b1:::');
     expect(legacy.identity, 'legacyBuddyName::::Bob');
     expect(choice.identity, 'attrChoice::material:trilaminate:');
   });
@@ -915,7 +915,7 @@ In `test/features/explore/domain/entity_resolver_test.dart`, change the index bu
       ),
     ]);
     final r = resolveMention(
-      const QueryMention(kind: MentionKind.buddy, text: 'John Smith', identity: 'buddyId:b2::::'),
+      const QueryMention(kind: MentionKind.buddy, text: 'John Smith', identity: 'buddyId:b2:::'),
       index,
     );
     expect((r as Resolved).entry.ids, ['b2']);
@@ -1363,7 +1363,7 @@ void main() {
       {'d5'},
     ),
     'pinned buddy': (
-      q(mentions: [_m(MentionKind.buddy, 'Ana', identity: 'buddyId:b1::::')]),
+      q(mentions: [_m(MentionKind.buddy, 'Ana', identity: 'buddyId:b1:::')]),
       {'d1', 'd5'},
     ),
     'legacy buddy Bob': (q(mentions: [_m(MentionKind.buddy, 'Bob')]), {'d2'}),
