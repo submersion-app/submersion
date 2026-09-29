@@ -284,6 +284,12 @@ predicates (`sacTrend`, `sacRoseAfter`, `finalStopUnstable`,
 `finalStopDuration`, `safetyFinding`) register in PR 5 as fields whose `sql`
 is the output of the existing `derivedPredicateCondition` builder.
 
+Update (2026-09-28): Explore phase 2 registered them first, as dive fields
+over the stored table `dive_derived_metrics` (`sacTrend`, `sacChange`,
+`finalStop`, `finalStopExcursion`, `finalStopDuration`), plus `sac` and the
+`findings` relation; `derivedPredicateCondition` was never built. PR 5 takes
+them as given.
+
 ### Relations, phase 1 (dives)
 
 fk: `site`, `trip`, `center`, `computer`, `course`.
