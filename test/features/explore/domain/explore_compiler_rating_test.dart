@@ -67,4 +67,10 @@ void main() {
     expect(boundOf(q, 'rating', QueryOp.gte), 3);
     expect(boundOf(q, 'rating', QueryOp.lte), 3);
   });
+
+  test('a fractional bound rounds inward, never past what was said', () {
+    // "Under 3.5 stars" is at most 3; "at least 3.5" is at least 4.
+    expect(boundOf(compile('lt', 3.5), 'rating', QueryOp.lte), 3);
+    expect(boundOf(compile('gte', 3.5), 'rating', QueryOp.gte), 4);
+  });
 }

@@ -205,4 +205,26 @@ void main() {
     expect(index.resolve(QuerySubject.trips, 'Bonaire 2025')?.id, 'tr1');
     expect(index.resolve(QuerySubject.computers, 'perdix')?.id, 'dc1');
   });
+
+  test(
+    'in English a built-in species keeps the rank ahead of custom ones',
+    () async {
+      // The localized name equals the stored one in English, so no alternate
+      // is added; the built-in's own name must still rank ahead, as Explore
+      // ranked built-ins before custom species.
+      await db.customStatement(
+        "INSERT INTO species (id, common_name, category, is_built_in) VALUES "
+        "('sp_whale_shark', 'Whale Shark', 'fish', 1), "
+        "('custom1', 'Whale Shark', 'fish', 0)",
+      );
+      final index = await load();
+      final rows = index
+          .forSubject(QuerySubject.species)
+          .where((e) => e.label == 'Whale Shark');
+      expect(
+        {for (final e in rows) e.ids.single: e.rank},
+        {'sp_whale_shark': 0, 'custom1': 1},
+      );
+    },
+  );
 }

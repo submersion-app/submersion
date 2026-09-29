@@ -71,9 +71,7 @@ class NameIndexLoader {
             label: label,
             ids: [id],
             target: rowTargetFor(subject),
-            // A built-in species' localized name ranks ahead of its stored
-            // name for sentences, as Explore ranked them.
-            rank: subject == QuerySubject.species ? 1 : 0,
+            rank: _primaryRank(subject, id, label, row, l10n),
             primary: true,
           ),
         );
@@ -204,6 +202,25 @@ class NameIndexLoader {
           rank: 1,
         ),
     ];
+  }
+
+  /// A row's own name ranks 0 for sentences, except a species': built-ins
+  /// rank ahead of custom species, as Explore ranked them. A built-in whose
+  /// localized name differs has that name at rank 0 (an alternate) and its
+  /// stored name at 1; in a locale where the two agree (English) the stored
+  /// name itself is the rank-0 built-in label.
+  static int _primaryRank(
+    QuerySubject subject,
+    String id,
+    String label,
+    QueryRow row,
+    AppLocalizations l10n,
+  ) {
+    if (subject != QuerySubject.species) return 0;
+    final builtIn = (row.read<int?>('is_built_in') ?? 0) == 1;
+    if (!builtIn) return 1;
+    final localized = builtInSpeciesName(l10n, id);
+    return localized == null || localized == label ? 0 : 1;
   }
 
   Iterable<NameEntry> _alternates(

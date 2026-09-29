@@ -177,9 +177,11 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
         return _fail('invalid');
     }
   }
+  // Whole-number fields round inward, so a bound never reaches past what was
+  // said: "under 3.5 stars" is at most 3, "at least 3.5" is at least 4.
   if (field.wholeNumbers) {
-    lo = lo?.roundToDouble();
-    hi = hi?.roundToDouble();
+    lo = lo?.ceilToDouble();
+    hi = hi?.floorToDouble();
   }
   final key = field.path.last;
   final bounds = <QueryNode>[

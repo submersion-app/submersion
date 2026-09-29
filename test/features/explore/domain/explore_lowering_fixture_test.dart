@@ -130,6 +130,24 @@ void main() {
     });
   });
 
+  test('a place finds sites whose column has stray whitespace', () async {
+    // Imported sites can carry a padded island or city; the place label is
+    // trimmed, so the condition must compare trimmed text too.
+    await db.customStatement(
+      "UPDATE dive_sites SET island = 'Bonaire ', "
+      "country = 'Caribbean Netherlands' WHERE id = 's1'",
+    );
+    await db.customStatement(
+      "UPDATE dive_sites SET island = 'Bonaire', "
+      "country = 'Caribbean Netherlands' WHERE id = 's2'",
+    );
+    expect(await ids(q(mentions: [_m(MentionKind.place, 'Bonaire')])), {
+      'd1',
+      'd2',
+      'd3',
+    });
+  });
+
   test('two centers OR together', () async {
     await db.customStatement(
       "INSERT INTO dive_centers (id, name, created_at, updated_at) VALUES "
