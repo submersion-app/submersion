@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:sqlite3/sqlite3.dart';
@@ -8,6 +7,7 @@ import 'package:submersion/features/universal_import/data/services/divinglog_pro
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_reference_reader.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_row_values.dart';
+import 'package:submersion/features/universal_import/data/services/sqlite_temp_copy.dart';
 
 /// Reads a Diving Log 5.0 / DiveLogDT SQLite logbook.
 ///
@@ -78,30 +78,8 @@ class DivingLogDbReader {
     return DivingLogCapabilities(tables: tables, columns: columns);
   }
 
-  /// Writes [bytes] into a private temp directory, opens it read-only, runs
-  /// [body], and always removes the directory.
-  ///
-  /// The directory comes from `createTempSync`, which the OS guarantees to
-  /// be unique. A timestamp-derived name does not: two calls landing in the
-  /// same microsecond would share a path, and each would delete the file the
-  /// other was still reading.
-  static Future<T> _withDb<T>(
-    Uint8List bytes,
-    T Function(Database db) body,
-  ) async {
-    final tmpDir = Directory.systemTemp.createTempSync('divinglog_import_');
-    try {
-      final tmpFile = File('${tmpDir.path}/logbook.sqlite');
-      await tmpFile.writeAsBytes(bytes);
-      final db = sqlite3.open(tmpFile.path, mode: OpenMode.readOnly);
-      try {
-        return body(db);
-      } finally {
-        db.close();
-      }
-    } finally {
-      _deleteTempDir(tmpDir);
-    }
+  static Future<T> _withDb<T>(Uint8List bytes, T Function(Database db) body) {
+    return withTempSqliteCopy(bytes, prefix: 'divinglog_import_', body: body);
   }
 
   /// Every `Logbook` column phase 1 wants. Any the file lacks is dropped
@@ -387,12 +365,4 @@ class DivingLogDbReader {
 
   /// Reads a column that the SELECT may not have included at all, so a
   /// missing column and a null value are the same thing to callers.
-
-  static void _deleteTempDir(Directory d) {
-    try {
-      if (d.existsSync()) d.deleteSync(recursive: true);
-    } catch (_) {
-      // Best-effort cleanup.
-    }
-  }
 }
