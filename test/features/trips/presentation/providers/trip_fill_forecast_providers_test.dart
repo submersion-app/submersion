@@ -2,7 +2,7 @@ import 'package:clock/clock.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart'
-    show AppDatabase, DivesCompanion;
+    show AppDatabase, DiversCompanion, DivesCompanion;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -79,13 +79,14 @@ void main() {
     }
   }
 
-  Future<void> diveAt(String id, DateTime wallClock) => db
+  Future<void> diveAt(String id, DateTime wallClock, {String? diver}) => db
       .into(db.dives)
       .insert(
         DivesCompanion.insert(
           id: id,
           diveDateTime: wallClock.millisecondsSinceEpoch,
           tripId: Value(tripId),
+          diverId: Value(diver),
           createdAt: 1,
           updatedAt: 1,
         ),
@@ -156,5 +157,27 @@ void main() {
     await diveAt('early', DateTime.utc(2026, 3, 10, 0, 5));
     expect(await cylinders.countTripDivesOn(tripId, DateTime(2026, 3, 10)), 2);
     expect(await cylinders.countTripDivesOn(tripId, DateTime(2026, 3, 11)), 1);
+  });
+
+  test('two divers logging the same dives count one round each', () async {
+    // A shared trip, two diver profiles: both log the morning dive, one
+    // logs the midday dive too. Two rounds are done today, not three, so
+    // the forecast does not free a bottle per profile.
+    for (final id in ['a', 'b']) {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: id,
+              name: 'Diver $id',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    }
+    await diveAt('a1', DateTime.utc(2026, 3, 10, 8), diver: 'a');
+    await diveAt('b1', DateTime.utc(2026, 3, 10, 8, 5), diver: 'b');
+    await diveAt('a2', DateTime.utc(2026, 3, 10, 11), diver: 'a');
+    expect(await cylinders.countTripDivesOn(tripId, DateTime(2026, 3, 10)), 2);
   });
 }

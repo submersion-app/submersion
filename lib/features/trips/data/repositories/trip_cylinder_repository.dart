@@ -555,9 +555,11 @@ class TripCylinderRepository {
     return out;
   }
 
-  /// Dives on the trip whose entry falls on [day]'s calendar date, in the
+  /// Rounds of dives logged on the trip on [day]'s calendar date, in the
   /// wall-clock frame every dive time is stored in: the fill forecast's
-  /// "dives already logged today".
+  /// "dives already logged today". A shared trip carries each diver
+  /// profile's own log of the same dive, so this is the most any one diver
+  /// logged that day, not the row count.
   Future<int> countTripDivesOn(String tripId, DateTime day) async {
     final from = DateTime.utc(day.year, day.month, day.day);
     final to = DateTime.utc(day.year, day.month, day.day + 1);
@@ -566,10 +568,13 @@ class TripCylinderRepository {
           '''
           -- stats-scope-exempt: the forecast counts every dive on the trip,
           -- as the board does
-          SELECT COUNT(*) AS n FROM dives
-          WHERE trip_id = ?1
-            AND COALESCE(entry_time, dive_date_time) >= ?2
-            AND COALESCE(entry_time, dive_date_time) < ?3
+          SELECT COALESCE(MAX(n), 0) AS n FROM (
+            SELECT COUNT(*) AS n FROM dives
+            WHERE trip_id = ?1
+              AND COALESCE(entry_time, dive_date_time) >= ?2
+              AND COALESCE(entry_time, dive_date_time) < ?3
+            GROUP BY diver_id
+          )
           ''',
           variables: [
             Variable.withString(tripId),
