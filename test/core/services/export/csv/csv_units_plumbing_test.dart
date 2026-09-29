@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 
+import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 import 'csv_dives_writer_test.dart' show imperial;
 import 'csv_test_fixtures.dart';
@@ -93,6 +95,23 @@ void main() {
       dialogTitle: 'Save',
       units: units,
     );
+    expect(header(saved()), contains('Temperature (°F)'));
+    expect(saved(), contains('AL80'));
+  });
+
+  test('sharing fills writes the chosen units and the cylinder name '
+      'under the fills file name', () async {
+    // No file-capable share sheet here, so the share lands through the
+    // save dialog and the picker sees the bytes.
+    debugCanShareFiles = false;
+    addTearDown(applyGlobalTestDefaults);
+    final path = await service.exportFillsToCsv(
+      goldenFills(),
+      equipmentById: goldenFillEquipment(),
+      units: units,
+    );
+    expect(path, p.join(workDir.path, 'export.csv'));
+    expect(mockPicker.lastSavedFileName, 'fills_export.csv');
     expect(header(saved()), contains('Temperature (°F)'));
     expect(saved(), contains('AL80'));
   });

@@ -1056,6 +1056,29 @@ void main() {
       expect(find.text('Courses'), findsOneWidget);
       expect(find.text('3'), findsOneWidget);
     });
+
+    testWidgets('shows cylinder fills row (cylinder passports phase 5)', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.fills: 5},
+          consolidatedCount: 0,
+          skippedCount: 0,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.text('Fills'), findsOneWidget);
+      expect(find.text('5'), findsOneWidget);
+      expect(find.byIcon(Icons.propane_tank_outlined), findsOneWidget);
+    });
   });
 
   group('ImportSummaryStep - per-file outcomes (bulk import)', () {
