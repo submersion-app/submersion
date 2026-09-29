@@ -23,6 +23,7 @@ import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab
 import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_cylinders_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_gear_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_header_cards.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -123,9 +124,13 @@ class _TripDetailContent extends ConsumerWidget {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
-          TripGearAlertsPanel(trip: trip),
-          TripCylindersCard(trip: trip),
-          TripGearCard(trip: trip),
+          TripHeaderCards(
+            children: [
+              TripGearAlertsPanel(trip: trip),
+              TripCylindersCard(trip: trip),
+              TripGearCard(trip: trip),
+            ],
+          ),
           Expanded(child: body),
         ],
       );
@@ -138,9 +143,13 @@ class _TripDetailContent extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          TripGearAlertsPanel(trip: trip),
-          TripCylindersCard(trip: trip),
-          TripGearCard(trip: trip),
+          TripHeaderCards(
+            children: [
+              TripGearAlertsPanel(trip: trip),
+              TripCylindersCard(trip: trip),
+              TripGearCard(trip: trip),
+            ],
+          ),
           Expanded(child: body),
         ],
       ),
@@ -207,9 +216,13 @@ class _TripDetailContent extends ConsumerWidget {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
-          TripGearAlertsPanel(trip: trip),
-          TripCylindersCard(trip: trip),
-          TripGearCard(trip: trip),
+          TripHeaderCards(
+            children: [
+              TripGearAlertsPanel(trip: trip),
+              TripCylindersCard(trip: trip),
+              TripGearCard(trip: trip),
+            ],
+          ),
           Expanded(child: tabbedBody),
         ],
       );
@@ -222,9 +235,13 @@ class _TripDetailContent extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          TripGearAlertsPanel(trip: trip),
-          TripCylindersCard(trip: trip),
-          TripGearCard(trip: trip),
+          TripHeaderCards(
+            children: [
+              TripGearAlertsPanel(trip: trip),
+              TripCylindersCard(trip: trip),
+              TripGearCard(trip: trip),
+            ],
+          ),
           Expanded(child: tabbedBody),
         ],
       ),

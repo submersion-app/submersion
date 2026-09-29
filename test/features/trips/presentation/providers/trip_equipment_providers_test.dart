@@ -124,6 +124,27 @@ void main() {
       expect(gear.map((e) => e.id), ['Apeks']);
     });
 
+    test('a revoked share takes the item off the trip', () async {
+      await db
+          .into(db.equipmentShares)
+          .insert(
+            EquipmentSharesCompanion.insert(
+              id: 'share',
+              equipmentId: 'reg',
+              diverId: 'me',
+              createdAt: t,
+            ),
+          );
+      await TripEquipmentRepository().pack('t1', ['reg']);
+      expect((await read(tripGearProvider('t1'))).map((e) => e.id), ['reg']);
+      // The owner revokes the share: only equipment_shares changes.
+      await (db.delete(
+        db.equipmentShares,
+      )..where((s) => s.id.equals('share'))).go();
+      await Future<void>.delayed(Duration.zero);
+      expect(await container.read(tripGearProvider('t1').future), isEmpty);
+    });
+
     test('equipmentTripsProvider unions packed links and slots', () async {
       await TripEquipmentRepository().pack('t1', ['Apeks']);
       await db

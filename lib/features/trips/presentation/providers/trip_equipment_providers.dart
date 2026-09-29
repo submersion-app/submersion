@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
@@ -21,6 +22,10 @@ final tripGearProvider = FutureProvider.family<List<EquipmentItem>, String>((
   final equipment = ref.watch(equipmentRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchChanges());
   ref.invalidateSelfWhen(equipment.watchEquipmentChanges());
+  // Visibility comes and goes with a share row (issue #2046).
+  ref.invalidateSelfWhen(
+    ref.read(equipmentShareRepositoryProvider).watchChanges(),
+  );
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   var ids = await repository.equipmentIdsForTrip(tripId);
   if (diverId != null) {

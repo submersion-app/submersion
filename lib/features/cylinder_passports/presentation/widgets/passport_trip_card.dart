@@ -10,6 +10,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('passportTripCard');
 
+/// The trip picker's New trip choice, told apart from a trip.
+const _newTrip = #newTrip;
+
 /// The trips a cylinder is packed for (spec section 8, issue #2338): the
 /// nearest in-progress or upcoming trip first, "+N" for the rest. A trip
 /// where the cylinder is only a slot on the trip's cylinder board shows too,
@@ -29,7 +32,7 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
   Future<void> _assign() async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    final trip = await showModalBottomSheet<Trip>(
+    final picked = await showModalBottomSheet<Object>(
       context: context,
       isScrollControlled: true,
       builder: (sheetContext) => DraggableScrollableSheet(
@@ -41,15 +44,22 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
           scrollController: scrollController,
           selectedTrip: null,
           onTripSelected: (trip) => Navigator.of(sheetContext).pop(trip),
-          // Packing starts from an existing trip; a new one is made on the
-          // trips page.
-          onCreateNewTrip: () => Navigator.of(sheetContext).pop(),
+          onCreateNewTrip: () => Navigator.of(sheetContext).pop(_newTrip),
         ),
       ),
     );
-    if (trip == null) return;
+    // The passport may have closed while the picker was open.
+    if (!mounted) return;
+    // New trip opens the trip editor, as the dive editor's picker does, and
+    // packs for the trip it saves.
+    final String? tripId = switch (picked) {
+      final Trip trip => trip.id,
+      _newTrip => await context.push<String>('/trips/new'),
+      _ => null,
+    };
+    if (tripId == null || !mounted) return;
     try {
-      await ref.read(tripEquipmentRepositoryProvider).pack(trip.id, [
+      await ref.read(tripEquipmentRepositoryProvider).pack(tripId, [
         widget.equipmentId,
       ]);
     } catch (e, stackTrace) {

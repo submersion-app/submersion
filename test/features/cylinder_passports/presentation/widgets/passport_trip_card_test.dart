@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_trip_card.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
@@ -101,6 +102,95 @@ void main() {
     await tester.pumpAndSettle();
     expect(fake.packed.map((p) => p.$1), ['a']);
     expect(fake.packed.single.$2, ['tank']);
+  });
+
+  testWidgets('New trip packs for the trip it creates', (tester) async {
+    final fake = _FakePacks();
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(
+            body: SingleChildScrollView(
+              child: PassportTripCard(equipmentId: 'tank'),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/trips/new',
+          builder: (context, state) => Scaffold(
+            body: TextButton(
+              onPressed: () => context.pop('new-trip'),
+              child: const Text('save trip'),
+            ),
+          ),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        overrides: [
+          ...overrides,
+          equipmentTripsProvider('tank').overrideWith((ref) async => const []),
+          allTripsProvider.overrideWith((ref) async => const []),
+          tripEquipmentRepositoryProvider.overrideWithValue(fake),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportTripCard)),
+    );
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.trips_picker_empty_createButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('save trip'));
+    await tester.pumpAndSettle();
+    expect(fake.packed.map((p) => p.$1), ['new-trip']);
+    expect(fake.packed.single.$2, ['tank']);
+  });
+
+  testWidgets('a card gone while the picker is open packs nothing', (
+    tester,
+  ) async {
+    final fake = _FakePacks();
+    final show = ValueNotifier(true);
+    addTearDown(show.dispose);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          equipmentTripsProvider('tank').overrideWith((ref) async => const []),
+          allTripsProvider.overrideWith((ref) async => [trip('a')]),
+          tripEquipmentRepositoryProvider.overrideWithValue(fake),
+        ],
+        child: ValueListenableBuilder<bool>(
+          valueListenable: show,
+          builder: (context, visible, _) => visible
+              ? const SingleChildScrollView(
+                  child: PassportTripCard(equipmentId: 'tank'),
+                )
+              : const Text('gone'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportTripCard)),
+    );
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pumpAndSettle();
+    // The passport closes underneath the open picker.
+    show.value = false;
+    await tester.pump();
+    await tester.tap(find.text('Trip a'));
+    await tester.pumpAndSettle();
+    expect(fake.packed, isEmpty);
+    expect(find.text(l10n.passport_trip_failed), findsNothing);
   });
 
   testWidgets('a failed unpack says so', (tester) async {
