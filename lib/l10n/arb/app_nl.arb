@@ -5526,6 +5526,8 @@
   "plannerMission_disableConfirm": "Uitschakelen",
   "plannerMission_disableMessage": "De route en het team worden verwijderd. Het gegenereerde profiel blijft als gewone, bewerkbare segmenten.",
   "plannerMission_disableTitle": "DPV-missie uitschakelen?",
+  "plannerMission_results_abandonmentUnknown": "Niet te bepalen vanaf welke punten iedereen eruit komt",
+  "plannerMission_results_safeSurfaceUnknown": "Veilig aan de oppervlakte: kon niet worden berekend",
   "plannerMission_chip_issues": "{count, plural, =1{Missie: {count} probleem} other{Missie: {count} problemen}}",
   "plannerMission_factor_battery": "accureserve",
   "plannerMission_factor_blockedByCurrent": "een stroming die de weg terug blokkeert",

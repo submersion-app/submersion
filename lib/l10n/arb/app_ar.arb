@@ -5526,6 +5526,8 @@
   "plannerMission_disableConfirm": "إيقاف",
   "plannerMission_disableMessage": "تُحذف المسار والفريق. يبقى الملف الشخصي المُنشأ كمقاطع عادية يمكنك تحريرها.",
   "plannerMission_disableTitle": "إيقاف مهمة DPV؟",
+  "plannerMission_results_abandonmentUnknown": "تعذر تحديد النقاط التي يمكن الخروج منها",
+  "plannerMission_results_safeSurfaceUnknown": "سطح آمن: تعذر الحساب",
   "plannerMission_chip_issues": "{count, plural, =1{المهمة: {count} مشكلة} other{المهمة: {count} مشكلات}}",
   "plannerMission_factor_battery": "احتياطي البطارية",
   "plannerMission_factor_blockedByCurrent": "تيار يعيق طريق الخروج",

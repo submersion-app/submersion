@@ -548,6 +548,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_results_abandonmentUnknown =>
+      'Welche Wegpunkte überlebbar sind, konnte nicht ermittelt werden';
+
+  @override
   String plannerMission_results_assumptions(String reserve) {
     return 'Akkureserve $reserve % der Laufzeit. Wessen Scooter ausfällt, atmet bis zum ersten Stopp das eigene AMV, erhöht um den Stressfaktor des Plans.';
   }
@@ -636,6 +640,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String plannerMission_results_safeSurface(String minutes) {
     return 'Sichere Oberfläche in $minutes′';
   }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown =>
+      'Sichere Oberfläche: konnte nicht berechnet werden';
 
   @override
   String get plannerMission_results_setsCruise =>

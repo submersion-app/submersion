@@ -541,6 +541,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_results_abandonmentUnknown =>
+      'לא ניתן היה לקבוע מאילו נקודות אפשר לצאת';
+
+  @override
   String plannerMission_results_assumptions(String reserve) {
     return 'עתודת סוללה $reserve% מזמן הפעולה. צולל שהסקוטר שלו מתקלקל נושם את ה-RMV שלו מוכפל במקדם הלחץ של התוכנית עד העצירה הראשונה.';
   }
@@ -625,6 +629,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String plannerMission_results_safeSurface(String minutes) {
     return 'פני מים בטוחים בעוד $minutes′';
   }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown =>
+      'פני מים בטוחים: לא ניתן היה לחשב';
 
   @override
   String get plannerMission_results_setsCruise =>

@@ -36,7 +36,7 @@ class MissionLegTable extends StatelessWidget {
                 '${missionLegName(l10n, missionLeg)}: '
                 // Placeholders are alphabetical: backMinutes, backSpeed,
                 // outMinutes, outSpeed.
-                '${l10n.plannerMission_results_legLine(ceilMinutes(leg.returnSeconds).toString(), units.speed(leg.returnSpeedMps), ceilMinutes(leg.outboundSeconds).toString(), units.speed(leg.outboundSpeedMps))}',
+                '${l10n.plannerMission_results_legLine(ceilMinutes(leg.returnSeconds).toString(), floorSpeed(units, leg.returnSpeedMps), ceilMinutes(leg.outboundSeconds).toString(), floorSpeed(units, leg.outboundSpeedMps))}',
                 style: theme.textTheme.bodySmall,
               ),
             ),

@@ -5526,6 +5526,8 @@
   "plannerMission_disableConfirm": "Desactivar",
   "plannerMission_disableMessage": "Se eliminan la ruta y el equipo. El perfil generado se conserva como segmentos normales que puedes editar.",
   "plannerMission_disableTitle": "¿Desactivar la misión DPV?",
+  "plannerMission_results_abandonmentUnknown": "No se pudo determinar qué puntos permiten salir",
+  "plannerMission_results_safeSurfaceUnknown": "Superficie segura: no se pudo calcular",
   "plannerMission_chip_issues": "{count, plural, =1{Misión: {count} problema} other{Misión: {count} problemas}}",
   "plannerMission_factor_battery": "reserva de batería",
   "plannerMission_factor_blockedByCurrent": "una corriente que bloquea la salida",

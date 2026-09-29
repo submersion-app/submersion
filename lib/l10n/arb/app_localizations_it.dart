@@ -547,6 +547,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_results_abandonmentUnknown =>
+      'Non è stato possibile stabilire da quali punti si può uscire';
+
+  @override
   String plannerMission_results_assumptions(String reserve) {
     return 'Riserva della batteria $reserve% dell\'autonomia. Chi ha lo scooter in avaria respira il proprio RMV aumentato del fattore di stress del piano fino alla prima sosta.';
   }
@@ -636,6 +640,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String plannerMission_results_safeSurface(String minutes) {
     return 'Superficie sicura in $minutes′';
   }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown =>
+      'Superficie sicura: non è stato possibile calcolarla';
 
   @override
   String get plannerMission_results_setsCruise =>

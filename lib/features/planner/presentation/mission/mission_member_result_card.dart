@@ -69,7 +69,7 @@ class MissionMemberResultCard extends StatelessWidget {
                 ceilMinutes(
                   (result.batteryRoundTripFraction *
                           member.scooter.burnTimeSeconds)
-                      .round(),
+                      .ceil(),
                 ).toString(),
                 ceilPercent(result.batteryRoundTripFraction),
                 settingPercent(reserve),

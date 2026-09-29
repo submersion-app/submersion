@@ -80,6 +80,7 @@ Future<ProviderContainer> _pump(
       locale: const Locale('en'),
       overrides: [
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        missionSettleDelayProvider.overrideWithValue(Duration.zero),
         missionEngineRunnerProvider.overrideWithValue(runner),
       ],
       child: const SingleChildScrollView(child: MissionResultsSection()),
@@ -332,5 +333,130 @@ void main() {
     // Cavern is gone; its answer must not move onto T.
     expect(find.textContaining('get out from: T'), findsNothing);
     expect(find.text('Cavern'), findsNothing);
+  });
+
+  /// The real outcome for the mission, reshaped by [edit].
+  MissionEngineRunner reshaped(MissionOutcome Function(MissionOutcome) edit) =>
+      (plan, mission, config) async =>
+          edit(await _syncRunner(plan, mission, config));
+
+  testWidgets('a blocked result still says a newer one is coming', (
+    tester,
+  ) async {
+    final container = await _pump(
+      tester,
+      width: 400,
+      mission: MissionEdits.starter(
+        legId: 'L1',
+        memberId: 'a',
+        memberName: 'Sam',
+        sacBottom: 15,
+      ),
+      runner: firstOnly(),
+    );
+    expect(find.textContaining('cannot be computed yet'), findsOneWidget);
+    container.read(divePlanNotifierProvider.notifier).updateMission(_mission());
+    await tester.pump();
+    expect(find.text('Working out the failure scenarios'), findsOneWidget);
+  });
+
+  testWidgets('warnings and notes from the engine are shown', (tester) async {
+    await _pump(
+      tester,
+      width: 400,
+      runner: reshaped(
+        (o) => o.copyWith(
+          issues: [
+            ...o.issues,
+            const MissionIssue(
+              type: MissionIssueType.scenarioFailed,
+              severity: MissionIssueSeverity.warning,
+            ),
+          ],
+        ),
+      ),
+    );
+    expect(
+      find.text('A failure scenario could not be computed'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a safe surface that could not be computed says so', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      width: 400,
+      runner: reshaped(
+        (o) => o.copyWith(
+          waypoints: [
+            for (final w in o.waypoints)
+              w.copyWith(clearSafeSurfaceSeconds: true),
+          ],
+        ),
+      ),
+    );
+    expect(find.text('Safe surface: could not be computed'), findsOneWidget);
+  });
+
+  testWidgets('no survivable waypoint because scenarios failed is unknown', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      width: 400,
+      runner: reshaped(
+        (o) => o.copyWith(
+          clearAbandonmentIndex: true,
+          waypoints: [
+            for (final w in o.waypoints)
+              w.copyWith(
+                survivable: false,
+                members: [
+                  for (final m in w.members)
+                    m.copyWith(
+                      survivable: false,
+                      swim: const ExitOutcome.failed(
+                        mode: MissionExitMode.swim,
+                      ),
+                      clearTow: true,
+                    ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+    expect(find.textContaining('No waypoint is survivable'), findsNothing);
+    expect(
+      find.text('Which waypoints are survivable could not be worked out'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('computed figures round the safe way', (tester) async {
+    await _pump(
+      tester,
+      width: 400,
+      runner: reshaped(
+        (o) => o.copyWith(
+          // 46.6 m/min over the ground, and 600.4 s of a 5400 s burn.
+          legs: [
+            for (final l in o.legs)
+              l.copyWith(
+                outboundSpeedMps: 46.6 / 60,
+                returnSpeedMps: 46.6 / 60,
+              ),
+          ],
+          members: [
+            for (final m in o.members)
+              m.copyWith(batteryRoundTripFraction: 600.4 / 5400),
+          ],
+        ),
+      ),
+    );
+    expect(find.textContaining('out 46 m/min'), findsOneWidget);
+    expect(find.textContaining('(11′)'), findsWidgets);
   });
 }

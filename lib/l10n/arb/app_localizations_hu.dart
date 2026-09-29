@@ -547,6 +547,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_results_abandonmentUnknown =>
+      'Nem sikerült megállapítani, mely pontokról lehet kijutni';
+
+  @override
   String plannerMission_results_assumptions(String reserve) {
     return 'Akkumulátortartalék: az üzemidő $reserve%-a. Akinek a scootere meghibásodik, az első megállóig a saját RMV-jével lélegzik, a terv stresszszorzójával megemelve.';
   }
@@ -634,6 +638,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String plannerMission_results_safeSurface(String minutes) {
     return 'Biztonságos felszín $minutes′ alatt';
   }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown =>
+      'Biztonságos felszín: nem sikerült kiszámítani';
 
   @override
   String get plannerMission_results_setsCruise =>

@@ -545,6 +545,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_results_abandonmentUnknown =>
+      'Niet te bepalen vanaf welke punten iedereen eruit komt';
+
+  @override
   String plannerMission_results_assumptions(String reserve) {
     return 'Accureserve $reserve% van de looptijd. Wie een scooter verliest, ademt tot de eerste stop het eigen RMV, verhoogd met de stressfactor van het plan.';
   }
@@ -632,6 +636,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String plannerMission_results_safeSurface(String minutes) {
     return 'Veilig aan de oppervlakte in $minutes′';
   }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown =>
+      'Veilig aan de oppervlakte: kon niet worden berekend';
 
   @override
   String get plannerMission_results_setsCruise =>

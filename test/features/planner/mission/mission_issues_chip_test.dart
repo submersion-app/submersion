@@ -9,6 +9,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
+import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
@@ -45,6 +46,7 @@ void main() {
         locale: const Locale('en'),
         overrides: [
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          missionSettleDelayProvider.overrideWithValue(Duration.zero),
           missionEngineRunnerProvider.overrideWithValue(_syncRunner),
         ],
         child: MissionIssuesChip(onTap: () {}),
@@ -81,6 +83,7 @@ void main() {
         locale: const Locale('en'),
         overrides: [
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          missionSettleDelayProvider.overrideWithValue(Duration.zero),
           missionEngineRunnerProvider.overrideWithValue(
             (plan, mission, config) => pending.future,
           ),
@@ -100,5 +103,61 @@ void main() {
         );
     await tester.pump();
     expect(find.textContaining('Mission:'), findsOneWidget);
+  });
+
+  testWidgets('fixing the issues hides the chip before the result lands', (
+    tester,
+  ) async {
+    var calls = 0;
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          missionSettleDelayProvider.overrideWithValue(Duration.zero),
+          missionEngineRunnerProvider.overrideWithValue((
+            plan,
+            mission,
+            config,
+          ) {
+            calls++;
+            return calls == 1
+                ? _syncRunner(plan, mission, config)
+                : Completer<MissionOutcome>().future;
+          }),
+        ],
+        child: MissionIssuesChip(onTap: () {}),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MissionIssuesChip)),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    final starter = MissionEdits.starter(
+      legId: 'L1',
+      memberId: 'a',
+      memberName: 'Sam',
+      sacBottom: 15,
+    );
+    notifier.enableMission(starter);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Mission:'), findsOneWidget);
+    notifier.updateMission(
+      MissionEdits.updateMember(
+        MissionEdits.updateLeg(
+          starter,
+          starter.legs.single.copyWith(distanceM: 300, depthM: 20),
+        ),
+        starter.team.single.copyWith(
+          scooter: const ScooterSpec(
+            name: 'S',
+            ratedSpeedMps: 0.9,
+            burnTimeSeconds: 5400,
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.textContaining('Mission:'), findsNothing);
   });
 }

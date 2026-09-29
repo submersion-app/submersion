@@ -60,16 +60,11 @@ class MissionWaypointList extends StatelessWidget {
 
     // A scenario whose computation threw is unknown, not the water's
     // verdict: it reads as not computed, never as no way out.
-    String status(MemberWaypointOutcome m) {
-      if (m.survivable) return l10n.plannerMission_results_survives;
-      final failed =
-          m.swim.failed ||
-          (m.tow?.failed ?? false) ||
-          (m.surface?.failed ?? false);
-      return failed
-          ? l10n.plannerMission_results_notComputed
-          : l10n.plannerMission_results_cannotGetOut;
-    }
+    String status(MemberWaypointOutcome m) => m.survivable
+        ? l10n.plannerMission_results_survives
+        : scenarioUnknown(m)
+        ? l10n.plannerMission_results_notComputed
+        : l10n.plannerMission_results_cannotGetOut;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,13 +92,16 @@ class MissionWaypointList extends StatelessWidget {
                     ),
                     style: theme.textTheme.bodySmall,
                   ),
-                  if (w.safeSurfaceSeconds != null)
-                    Text(
-                      l10n.plannerMission_results_safeSurface(
-                        ceilMinutes(w.safeSurfaceSeconds!).toString(),
-                      ),
-                      style: theme.textTheme.bodySmall,
-                    ),
+                  // Null only when it could not be computed: say so, a
+                  // missing safety figure must not look irrelevant.
+                  Text(
+                    w.safeSurfaceSeconds == null
+                        ? l10n.plannerMission_results_safeSurfaceUnknown
+                        : l10n.plannerMission_results_safeSurface(
+                            ceilMinutes(w.safeSurfaceSeconds!).toString(),
+                          ),
+                    style: theme.textTheme.bodySmall,
+                  ),
                   if (openWater)
                     Text(
                       l10n.plannerMission_results_home(

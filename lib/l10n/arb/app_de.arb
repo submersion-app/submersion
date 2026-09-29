@@ -5629,6 +5629,8 @@
   "plannerMission_disableConfirm": "Ausschalten",
   "plannerMission_disableMessage": "Route und Team werden entfernt. Das erzeugte Profil bleibt als normale, bearbeitbare Segmente erhalten.",
   "plannerMission_disableTitle": "DPV-Mission ausschalten?",
+  "plannerMission_results_abandonmentUnknown": "Welche Wegpunkte überlebbar sind, konnte nicht ermittelt werden",
+  "plannerMission_results_safeSurfaceUnknown": "Sichere Oberfläche: konnte nicht berechnet werden",
   "plannerMission_chip_issues": "{count, plural, =1{Mission: {count} Problem} other{Mission: {count} Probleme}}",
   "plannerMission_factor_battery": "Akkureserve",
   "plannerMission_factor_blockedByCurrent": "eine Strömung, die den Rückweg blockiert",

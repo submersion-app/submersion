@@ -134,4 +134,84 @@ void main() {
       const MissionEngine().compute(plan: plan, mission: state.mission!),
     );
   });
+
+  test('an engine exception is not retried', () async {
+    var calls = 0;
+    final container = ProviderContainer(
+      overrides: [
+        missionEngineRunnerProvider.overrideWithValue((
+          plan,
+          mission,
+          config,
+        ) async {
+          calls++;
+          throw const FormatException('scenario');
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(missionOutcomeProvider, (_, _) {});
+    addTearDown(sub.close);
+    _buildMission(container);
+    await expectLater(
+      container.read(missionOutcomeProvider.future),
+      throwsA(isA<FormatException>()),
+    );
+    // Riverpod's default retry would have run it again within this window.
+    await Future<void>.delayed(const Duration(milliseconds: 800));
+    expect(calls, 1);
+  });
+
+  test('renaming the plan does not recompute the mission', () async {
+    var calls = 0;
+    final container = ProviderContainer(
+      overrides: [
+        missionEngineRunnerProvider.overrideWithValue((plan, mission, config) {
+          calls++;
+          return _syncRunner(plan, mission, config);
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(missionOutcomeProvider, (_, _) {});
+    addTearDown(sub.close);
+    _buildMission(container);
+    await container.read(missionOutcomeProvider.future);
+    final before = calls;
+    container.read(divePlanNotifierProvider.notifier).updateName('Wall run');
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    expect(calls, before);
+  });
+
+  test('edits typed in quick succession compute once', () async {
+    var calls = 0;
+    final container = ProviderContainer(
+      overrides: [
+        missionEngineRunnerProvider.overrideWithValue((plan, mission, config) {
+          calls++;
+          return _syncRunner(plan, mission, config);
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(missionOutcomeProvider, (_, _) {});
+    addTearDown(sub.close);
+    _buildMission(container);
+    await container.read(missionOutcomeProvider.future);
+    final before = calls;
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    // "1", "12", "120": three keystrokes a few milliseconds apart.
+    for (final metres in [1.0, 12.0, 120.0]) {
+      final mission = container.read(divePlanNotifierProvider).mission!;
+      notifier.updateMission(
+        MissionEdits.updateLeg(
+          mission,
+          mission.legs.single.copyWith(distanceM: metres),
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+    await container.read(missionOutcomeProvider.future);
+    expect(calls, before + 1);
+  });
 }

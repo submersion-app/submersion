@@ -5694,6 +5694,8 @@
   "plannerMission_disableConfirm": "关闭",
   "plannerMission_disableMessage": "路线和队伍将被移除。生成的剖面会保留为可编辑的普通分段。",
   "plannerMission_disableTitle": "关闭 DPV 任务？",
+  "plannerMission_results_abandonmentUnknown": "无法确定哪些航点可以撤出",
+  "plannerMission_results_safeSurfaceUnknown": "安全出水：无法计算",
   "plannerMission_chip_issues": "{count, plural, =1{任务：{count} 个问题} other{任务：{count} 个问题}}",
   "plannerMission_factor_battery": "电池储备",
   "plannerMission_factor_blockedByCurrent": "阻挡撤出路线的水流",

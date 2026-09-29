@@ -543,6 +543,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_results_abandonmentUnknown =>
+      'Which waypoints are survivable could not be worked out';
+
+  @override
   String plannerMission_results_assumptions(String reserve) {
     return 'Battery reserve $reserve% of burn time. A diver whose scooter fails breathes their own RMV raised by the plan\'s stress ratio until the first stop.';
   }
@@ -630,6 +634,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String plannerMission_results_safeSurface(String minutes) {
     return 'Safe surface in $minutes′';
   }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown =>
+      'Safe surface: could not be computed';
 
   @override
   String get plannerMission_results_setsCruise =>

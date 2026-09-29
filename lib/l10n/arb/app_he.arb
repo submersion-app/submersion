@@ -5424,6 +5424,8 @@
   "plannerMission_disableConfirm": "כיבוי",
   "plannerMission_disableMessage": "המסלול והצוות יוסרו. הפרופיל שנוצר יישאר כמקטעים רגילים שאפשר לערוך.",
   "plannerMission_disableTitle": "לכבות את משימת ה-DPV?",
+  "plannerMission_results_abandonmentUnknown": "לא ניתן היה לקבוע מאילו נקודות אפשר לצאת",
+  "plannerMission_results_safeSurfaceUnknown": "פני מים בטוחים: לא ניתן היה לחשב",
   "plannerMission_chip_issues": "{count, plural, =1{משימה: {count} בעיה} other{משימה: {count} בעיות}}",
   "plannerMission_factor_battery": "עתודת סוללה",
   "plannerMission_factor_blockedByCurrent": "זרם שחוסם את הדרך החוצה",

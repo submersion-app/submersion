@@ -547,6 +547,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_results_abandonmentUnknown =>
+      'Impossible de déterminer depuis quels points on peut sortir';
+
+  @override
   String plannerMission_results_assumptions(String reserve) {
     return 'Réserve de batterie de $reserve % de l’autonomie. Le plongeur dont le scooter tombe en panne respire son propre RMV augmenté du facteur de stress du plan jusqu’au premier palier.';
   }
@@ -635,6 +639,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String plannerMission_results_safeSurface(String minutes) {
     return 'Surface sûre dans $minutes′';
   }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown =>
+      'Surface sûre : n’a pas pu être calculée';
 
   @override
   String get plannerMission_results_setsCruise =>

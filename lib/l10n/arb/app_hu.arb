@@ -5424,6 +5424,8 @@
   "plannerMission_disableConfirm": "Kikapcsolás",
   "plannerMission_disableMessage": "Az útvonal és a csapat törlődik. A generált profil szerkeszthető, normál szakaszokként megmarad.",
   "plannerMission_disableTitle": "Kikapcsolod a DPV-küldetést?",
+  "plannerMission_results_abandonmentUnknown": "Nem sikerült megállapítani, mely pontokról lehet kijutni",
+  "plannerMission_results_safeSurfaceUnknown": "Biztonságos felszín: nem sikerült kiszámítani",
   "plannerMission_chip_issues": "{count, plural, =1{Küldetés: {count} probléma} other{Küldetés: {count} probléma}}",
   "plannerMission_factor_battery": "akkumulátortartalék",
   "plannerMission_factor_blockedByCurrent": "a kijutást elzáró áramlás",

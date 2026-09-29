@@ -530,6 +530,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_results_abandonmentUnknown => '无法确定哪些航点可以撤出';
+
+  @override
   String plannerMission_results_assumptions(String reserve) {
     return '电池储备为续航时间的 $reserve%。推进器故障的潜水员在首次停留前按其自身 RMV 乘以计划的应激系数呼吸。';
   }
@@ -613,6 +616,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String plannerMission_results_safeSurface(String minutes) {
     return '$minutes′ 内安全出水';
   }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown => '安全出水：无法计算';
 
   @override
   String get plannerMission_results_setsCruise => '决定团队的巡航速度';

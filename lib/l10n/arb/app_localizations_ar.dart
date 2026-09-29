@@ -538,6 +538,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_results_abandonmentUnknown =>
+      'تعذر تحديد النقاط التي يمكن الخروج منها';
+
+  @override
   String plannerMission_results_assumptions(String reserve) {
     return 'احتياطي البطارية $reserve% من مدة التشغيل. يتنفس الغواص الذي يتعطل سكوتره معدل RMV الخاص به مضروبًا في معامل الضغط في الخطة حتى أول توقف.';
   }
@@ -622,6 +626,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String plannerMission_results_safeSurface(String minutes) {
     return 'سطح آمن خلال $minutes′';
   }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown =>
+      'سطح آمن: تعذر الحساب';
 
   @override
   String get plannerMission_results_setsCruise => 'يحدد سرعة الإبحار للفريق';

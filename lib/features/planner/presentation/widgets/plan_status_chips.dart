@@ -259,7 +259,10 @@ class MissionIssuesChip extends ConsumerWidget {
     // engine's own; until it lands, or if it failed, the issues known
     // without computing stand in, so the chip never waits on the isolate.
     final known = ref.watch(missionBlockingIssuesProvider);
-    final outcome = ref.watch(missionOutcomeProvider).value;
+    final result = ref.watch(missionOutcomeProvider);
+    // A previous outcome kept while a newer edit computes, or after it
+    // failed, describes an older mission: count what is known now.
+    final outcome = result.isLoading || result.hasError ? null : result.value;
     if (!missionOn) return const SizedBox.shrink();
     final blocking = outcome == null
         ? known.length

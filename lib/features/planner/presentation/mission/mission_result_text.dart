@@ -3,6 +3,7 @@ import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_issue_text.dart';
+import 'package:submersion/features/planner/presentation/mission/mission_units.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 String missionFactorLabel(AppLocalizations l10n, MissionBindingFactor f) =>
@@ -81,6 +82,19 @@ MissionLeg? missionLegAt(
 /// noise (0.55 * 100 is 55.00000000000001) from adding a percent.
 String ceilPercent(double fraction) =>
     (fraction * 100 - 1e-9).ceil().toString();
+
+/// True when [m]'s failure here is unknown rather than unsurvivable: no
+/// exit works, and at least one exit's computation threw, so the water, gas
+/// and battery were never judged.
+bool scenarioUnknown(MemberWaypointOutcome m) =>
+    !m.survivable &&
+    (m.swim.failed || (m.tow?.failed ?? false) || (m.surface?.failed ?? false));
+
+/// A computed speed over the ground in the diver's unit, rounded down: a
+/// plan never shows the team moving faster than it does. The small offset
+/// keeps binary noise from taking a whole unit off.
+String floorSpeed(MissionUnits units, double mps) =>
+    '${(units.speedDisplay(mps) + 1e-9).floor()} ${units.speedSymbol}';
 
 /// A percent the diver set, shown as they set it: the battery reserve is an
 /// input, and rounding it up would overstate what is kept back.

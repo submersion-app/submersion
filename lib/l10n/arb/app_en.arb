@@ -232,6 +232,7 @@
       }
     }
   },
+  "plannerMission_results_abandonmentUnknown": "Which waypoints are survivable could not be worked out",
   "plannerMission_results_assumptions": "Battery reserve {reserve}% of burn time. A diver whose scooter fails breathes their own RMV raised by the plan's stress ratio until the first stop.",
   "@plannerMission_results_assumptions": {
     "placeholders": {
@@ -338,6 +339,7 @@
       }
     }
   },
+  "plannerMission_results_safeSurfaceUnknown": "Safe surface: could not be computed",
   "plannerMission_results_setsCruise": "Sets the team's cruise speed",
   "plannerMission_results_surface": "surface {minutes}′",
   "@plannerMission_results_surface": {

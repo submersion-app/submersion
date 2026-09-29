@@ -926,6 +926,12 @@ abstract class AppLocalizations {
   /// **'Last waypoint every diver can get out from: {waypoint}'**
   String plannerMission_results_abandonment(String waypoint);
 
+  /// No description provided for @plannerMission_results_abandonmentUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Which waypoints are survivable could not be worked out'**
+  String get plannerMission_results_abandonmentUnknown;
+
   /// No description provided for @plannerMission_results_assumptions.
   ///
   /// In en, this message translates to:
@@ -1045,6 +1051,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Safe surface in {minutes}′'**
   String plannerMission_results_safeSurface(String minutes);
+
+  /// No description provided for @plannerMission_results_safeSurfaceUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Safe surface: could not be computed'**
+  String get plannerMission_results_safeSurfaceUnknown;
 
   /// No description provided for @plannerMission_results_setsCruise.
   ///

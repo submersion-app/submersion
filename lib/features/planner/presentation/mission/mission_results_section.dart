@@ -52,6 +52,16 @@ class MissionResultsSection extends ConsumerWidget {
               ),
       );
     }
+    // The last outcome stands, but the diver is told the newest edit could
+    // not be computed, or that a newer result is on the way.
+    final status = result.hasError
+        ? failed
+        : result.isLoading
+        ? Text(
+            l10n.plannerMission_results_computing,
+            style: theme.textTheme.bodySmall,
+          )
+        : null;
     if (outcome.isBlocked) {
       final blocking = [
         for (final issue in outcome.issues)
@@ -60,6 +70,7 @@ class MissionResultsSection extends ConsumerWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          ?status,
           Text(l10n.plannerMission_results_blocked),
           for (final issue in blocking)
             Text(
@@ -76,15 +87,7 @@ class MissionResultsSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // The last outcome stands, but the diver is told the newest edit
-        // could not be computed, or that a newer result is on the way.
-        if (result.hasError)
-          failed
-        else if (result.isLoading)
-          Text(
-            l10n.plannerMission_results_computing,
-            style: theme.textTheme.bodySmall,
-          ),
+        ?status,
         Text(
           missionConstraintText(l10n, outcome, mission),
           style: theme.textTheme.bodyMedium,
@@ -96,7 +99,13 @@ class MissionResultsSection extends ConsumerWidget {
           style: theme.textTheme.bodySmall,
         ),
         Text(
-          abandonment == null
+          // No survivable waypoint because its scenarios could not be
+          // computed is unknown, not a verdict about the water.
+          abandonment == null &&
+                  outcome.waypoints.isNotEmpty &&
+                  outcome.waypoints.first.members.any(scenarioUnknown)
+              ? l10n.plannerMission_results_abandonmentUnknown
+              : abandonment == null
               ? l10n.plannerMission_results_noAbandonment
               // A leg removed since this outcome: its answer is on the way.
               : abandonmentLeg == null
@@ -106,6 +115,14 @@ class MissionResultsSection extends ConsumerWidget {
                 ),
           style: theme.textTheme.bodySmall,
         ),
+        // Warnings and notes: a scenario that could not be computed, a
+        // scooter whose equipment item is gone.
+        for (final issue in outcome.issues)
+          if (issue.severity != MissionIssueSeverity.blocking)
+            Text(
+              missionIssueText(l10n, issue, mission),
+              style: theme.textTheme.bodySmall,
+            ),
         for (final result in outcome.members)
           if (mission.team.where((t) => t.id == result.memberId).firstOrNull
               case final member?)
