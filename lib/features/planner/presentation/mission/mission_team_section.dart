@@ -6,10 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
-import 'package:submersion/features/planner/presentation/mission/buddy_picker_sheet.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/planner/presentation/mission/mission_avatars.dart';
 import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
@@ -234,7 +231,7 @@ class _MemberCard extends ConsumerWidget {
               ?.dpvBatteryCapacityWh;
     return Card(
       child: ListTile(
-        leading: _MemberAvatar(member: member),
+        leading: MissionMemberAvatar(member: member),
         title: Text(
           member.displayName,
           maxLines: 1,
@@ -271,39 +268,5 @@ class _MemberCard extends ConsumerWidget {
               ),
       ),
     );
-  }
-}
-
-/// The photo of the buddy or diver profile a team member was picked from,
-/// else the member's initials.
-class _MemberAvatar extends ConsumerWidget {
-  const _MemberAvatar({required this.member});
-
-  final MissionMember member;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final buddyId = member.buddyId;
-    final diverId = member.diverId;
-    if (buddyId != null) {
-      final buddy = ref.watch(buddyByIdProvider(buddyId)).value;
-      if (buddy != null) return MissionBuddyAvatar(buddy: buddy);
-    } else if (diverId != null) {
-      final diver = ref.watch(diverByIdProvider(diverId)).value;
-      if (diver != null) {
-        return ProfileAvatar(photo: diver.photo, initials: diver.initials);
-      }
-    }
-    return ProfileAvatar(photo: null, initials: _initials(member.displayName));
-  }
-
-  /// First and last initials, as buddy and diver profiles show them.
-  static String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.length >= 2) {
-      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
-    }
-    final only = parts.first;
-    return only.isEmpty ? '?' : only[0].toUpperCase();
   }
 }
