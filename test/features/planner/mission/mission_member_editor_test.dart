@@ -41,6 +41,7 @@ const _member = MissionMember(
 Future<void> _open(
   WidgetTester tester, {
   AppSettings settings = const AppSettings(),
+  Locale locale = const Locale('en'),
 }) async {
   tester.view.physicalSize = const Size(400, 1200);
   tester.view.devicePixelRatio = 1.0;
@@ -48,7 +49,7 @@ Future<void> _open(
   lastResult = null;
   await tester.pumpWidget(
     testApp(
-      locale: const Locale('en'),
+      locale: locale,
       overrides: [
         allBuddiesProvider.overrideWith(
           (ref) async => [
@@ -333,5 +334,63 @@ void main() {
     await tester.pumpAndSettle();
     expect(lastResult!.scooter.equipmentId, isNull);
     expect(lastResult!.scooter.ratedSpeedMps, 0.9);
+  });
+
+  testWidgets('Save keeps an out-of-range number the diver just typed', (
+    tester,
+  ) async {
+    await _open(tester);
+    // Below the 1.0 minimum: not applied while typing, clamped on commit.
+    await tester.enterText(_box('Tow burn factor'), '0.9');
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.scooter.towBurnFactor, 1.0);
+  });
+
+  testWidgets('renaming a picked scooter makes it manual', (tester) async {
+    await _open(tester);
+    await tester.tap(find.text('Choose from equipment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Blacktip'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.ancestor(
+        of: find.text('Scooter name'),
+        matching: find.byType(TextField),
+      ),
+      'My Blacktip',
+    );
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.scooter.name, 'My Blacktip');
+    expect(lastResult!.scooter.equipmentId, isNull);
+  });
+
+  testWidgets('an emptied name keeps the previous name', (tester) async {
+    await _open(tester);
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(TextField, 'Diver 1'),
+      ),
+      '   ',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.displayName, 'Diver 1');
+  });
+
+  testWidgets('the diver editor fits a 320 pt phone', (tester) async {
+    await _open(tester);
+    tester.view.physicalSize = const Size(320, 700);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the burn time unit is worded per language', (tester) async {
+    await _open(tester, locale: const Locale('de'));
+    expect(find.text('Min.'), findsOneWidget);
   });
 }

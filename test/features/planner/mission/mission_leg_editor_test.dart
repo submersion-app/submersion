@@ -158,4 +158,31 @@ void main() {
     await tester.pumpAndSettle();
     expect(lastResult!.shoreExit, isNull);
   });
+
+  testWidgets('Save keeps an out-of-range heading the diver just typed', (
+    tester,
+  ) async {
+    await _open(tester);
+    await tester.enterText(_box('Heading'), '400');
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.headingDeg, 359);
+  });
+
+  testWidgets('the leg editor fits a 320 pt phone with every row', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await _open(tester, openWater: true);
+    await tester.tap(find.text("Use the mission's current"));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Shore exit from here'));
+    await tester.tap(find.text('Shore exit from here'));
+    await tester.pumpAndSettle();
+    expect(find.text('Walk to the entry'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

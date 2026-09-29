@@ -42,6 +42,19 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
   late final TextEditingController _label;
   late MissionLeg _draft;
 
+  final _fields = <String, GlobalKey<PlanNumberFieldState>>{};
+
+  GlobalKey<PlanNumberFieldState> _field(String id) =>
+      _fields.putIfAbsent(id, GlobalKey<PlanNumberFieldState>.new);
+
+  /// Commits every box first: on a touch screen tapping Save does not take
+  /// focus from the box, so an out-of-range value would otherwise be lost.
+  void _commitFields() {
+    for (final field in _fields.values) {
+      field.currentState?.commit();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -75,6 +88,7 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
               ),
             ),
             PlanNumberField(
+              key: _field('plannerMission_leg_distance'),
               label: l10n.plannerMission_leg_distance,
               value: u.distanceDisplay(_draft.distanceM),
               hintValue: 0,
@@ -91,6 +105,7 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
               },
             ),
             PlanNumberField(
+              key: _field('plannerMission_leg_depth'),
               label: l10n.plannerMission_leg_depth,
               value: u.distanceDisplay(_draft.depthM),
               hintValue: 0,
@@ -106,6 +121,7 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
               },
             ),
             PlanNumberField(
+              key: _field('plannerMission_leg_heading'),
               label: l10n.plannerMission_leg_heading,
               value: _draft.headingDeg,
               hintValue: 0,
@@ -136,6 +152,7 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
             ),
             if (current != null) ...[
               PlanNumberField(
+                key: _field('plannerMission_current_speed'),
                 label: l10n.plannerMission_current_speed,
                 value: u.speedDisplay(current.speedMps),
                 hintValue: 0,
@@ -156,6 +173,7 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
                 },
               ),
               PlanNumberField(
+                key: _field('plannerMission_current_setsToward'),
                 label: l10n.plannerMission_current_setsToward,
                 value: current.setsTowardDeg,
                 hintValue: 0,
@@ -192,6 +210,7 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
               ),
               if (shore != null) ...[
                 PlanNumberField(
+                  key: _field('plannerMission_leg_shoreSwim'),
                   label: l10n.plannerMission_leg_shoreSwim,
                   value: u.distanceDisplay(shore.surfaceSwimM),
                   hintValue: 0,
@@ -212,6 +231,7 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
                   },
                 ),
                 PlanNumberField(
+                  key: _field('plannerMission_leg_shoreWalk'),
                   label: l10n.plannerMission_leg_shoreWalk,
                   value: u.distanceDisplay(shore.walkM),
                   hintValue: 0,
@@ -242,9 +262,12 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
           child: Text(l10n.common_action_cancel),
         ),
         FilledButton(
-          onPressed: () => Navigator.of(
-            context,
-          ).pop(_draft.copyWith(label: _label.text.trim())),
+          onPressed: () {
+            _commitFields();
+            Navigator.of(
+              context,
+            ).pop(_draft.copyWith(label: _label.text.trim()));
+          },
           child: Text(l10n.common_action_save),
         ),
       ],

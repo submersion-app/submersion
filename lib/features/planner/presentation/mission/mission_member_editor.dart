@@ -35,6 +35,20 @@ class _MissionMemberEditor extends StatefulWidget {
 
 class _MissionMemberEditorState extends State<_MissionMemberEditor> {
   late MissionMember _draft;
+
+  final _fields = <String, GlobalKey<PlanNumberFieldState>>{};
+
+  GlobalKey<PlanNumberFieldState> _field(String id) =>
+      _fields.putIfAbsent(id, GlobalKey<PlanNumberFieldState>.new);
+
+  /// Commits every box first: on a touch screen tapping Save does not take
+  /// focus from the box, so an out-of-range value would otherwise be lost.
+  void _commitFields() {
+    for (final field in _fields.values) {
+      field.currentState?.commit();
+    }
+  }
+
   late final TextEditingController _name;
   late final TextEditingController _scooterName;
 
@@ -112,8 +126,8 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
   void _setScooter(ScooterSpec scooter) =>
       setState(() => _draft = _draft.copyWith(scooter: scooter));
 
-  /// A number typed over a picked scooter makes it manual: the next load
-  /// must not overwrite the diver's figure from the equipment item.
+  /// A number or name typed over a picked scooter makes it manual: the next
+  /// load must not overwrite the diver's figure from the equipment item.
   void _setScooterNumbers(ScooterSpec scooter) =>
       _setScooter(scooter.copyWith(clearEquipmentId: true));
 
@@ -142,6 +156,7 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               onPressed: _pickWho,
             ),
             PlanNumberField(
+              key: _field('plannerMission_member_sac'),
               label: l10n.plannerMission_member_sac,
               value: u.sacDisplay(_draft.sacBottom),
               hintValue: 0,
@@ -158,6 +173,7 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               },
             ),
             PlanNumberField(
+              key: _field('plannerMission_member_swimSpeed'),
               label: l10n.plannerMission_member_swimSpeed,
               value: u.speedDisplay(_draft.swimSpeedMps),
               hintValue: 0,
@@ -194,9 +210,10 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               decoration: InputDecoration(
                 labelText: l10n.plannerMission_scooter_name,
               ),
-              onChanged: (v) => _setScooter(scooter.copyWith(name: v)),
+              onChanged: (v) => _setScooterNumbers(scooter.copyWith(name: v)),
             ),
             PlanNumberField(
+              key: _field('plannerMission_scooter_speed'),
               label: l10n.plannerMission_scooter_speed,
               value: u.speedDisplay(scooter.ratedSpeedMps),
               hintValue: 0,
@@ -212,10 +229,11 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               },
             ),
             PlanNumberField(
+              key: _field('plannerMission_scooter_burnTime'),
               label: l10n.plannerMission_scooter_burnTime,
               value: scooter.burnTimeSeconds / 60,
               hintValue: 0,
-              suffixText: 'min',
+              suffixText: l10n.divePlanner_label_minutesUnit,
               isInteger: true,
               decimals: 0,
               min: 0,
@@ -228,6 +246,7 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               },
             ),
             PlanNumberField(
+              key: _field('plannerMission_scooter_towSpeedFactor'),
               label: l10n.plannerMission_scooter_towSpeedFactor,
               value: scooter.towSpeedFactor,
               hintValue: kDefaultTowSpeedFactor,
@@ -242,6 +261,7 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               },
             ),
             PlanNumberField(
+              key: _field('plannerMission_scooter_towBurnFactor'),
               label: l10n.plannerMission_scooter_towBurnFactor,
               value: scooter.towBurnFactor,
               hintValue: kDefaultTowBurnFactor,
@@ -263,9 +283,17 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
           child: Text(l10n.common_action_cancel),
         ),
         FilledButton(
-          onPressed: () => Navigator.of(
-            context,
-          ).pop(_draft.copyWith(displayName: _name.text.trim())),
+          onPressed: () {
+            _commitFields();
+            final name = _name.text.trim();
+            Navigator.of(context).pop(
+              _draft.copyWith(
+                // An emptied name keeps the diver's name, so issues can
+                // still say whose scooter or gas is short.
+                displayName: name.isEmpty ? widget.member.displayName : name,
+              ),
+            );
+          },
           child: Text(l10n.common_action_save),
         ),
       ],
