@@ -15,7 +15,7 @@ void main() {
     updatedAt: t0,
   );
 
-  TripCylinderEvent fill(int minutes, String bottle) => TripCylinderEvent(
+  TripCylinderEvent fill(int minutes, String? bottle) => TripCylinderEvent(
     id: 'f$minutes',
     tripCylinderId: 'a',
     kind: TripCylinderEventKind.fill,
@@ -56,7 +56,7 @@ void main() {
     expect(labels['a']!.bottle, '22');
   });
 
-  test('no fill before the dive, or an adjustment, leaves no bottle', () {
+  test('no fill before the dive, or an adjustment, names only the slot', () {
     final labels = tripCylinderLabelsAt(
       cylinders: [truck],
       eventsBySlot: {
@@ -74,6 +74,42 @@ void main() {
       },
       atMillis: at(60),
     );
-    expect(labels['a'], (label: 'Truck 1', bottle: null));
+    // The slot's own label, which the tank line leaves out.
+    expect(labels['a'], (label: 'Truck 1', bottle: 'Truck 1'));
+  });
+
+  test('a refill that names no bottle keeps the one in the slot', () {
+    // The board keeps Bottle 14 through an unlabelled refill; so does the
+    // dive line.
+    final labels = tripCylinderLabelsAt(
+      cylinders: [truck],
+      eventsBySlot: {
+        'a': [fill(0, '14'), fill(300, null)],
+      },
+      atMillis: at(400),
+    );
+    expect(labels['a']!.bottle, '14');
+  });
+
+  test('two fills at one instant name the bottle the board does', () {
+    // The fold breaks the tie on the event id, whatever order the query
+    // returned the rows in: f0b after f0a.
+    TripCylinderEvent at0(String id, String bottle) => TripCylinderEvent(
+      id: id,
+      tripCylinderId: 'a',
+      kind: TripCylinderEventKind.fill,
+      occurredAt: t0,
+      bottleLabel: bottle,
+      createdAt: t0,
+      updatedAt: t0,
+    );
+    final labels = tripCylinderLabelsAt(
+      cylinders: [truck],
+      eventsBySlot: {
+        'a': [at0('f0b', '9'), at0('f0a', '3')],
+      },
+      atMillis: at(60),
+    );
+    expect(labels['a']!.bottle, '9');
   });
 }

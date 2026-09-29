@@ -362,8 +362,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   TankPresetEntity? _defaultPreset;
   bool _tanksDirty = false;
 
-  /// Tanks the dive had when it was loaded: never suggested a slot, since
-  /// the suggestion is only for tanks added in this editing session.
+  /// Tanks the dive had when it was loaded, or that a prefill (a scan, a
+  /// cylinder tag) filled: never suggested a slot, since a suggestion would
+  /// replace their values with the slot's, and None would not restore them.
   Set<String> _loadedTankIds = const {};
 
   /// Tanks whose slot link is a suggestion the diver has not confirmed.
@@ -450,6 +451,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// trip the discard guard.
   bool _suppressDirty = true;
 
+  /// The form's entry date and time as an instant, the wall clock stamped
+  /// UTC as every dive time is. The save, the flight-window check and the
+  /// trip cylinders' state at the dive all read it here.
+  DateTime _currentEntryTime() => DateTime.utc(
+    _entryDate.year,
+    _entryDate.month,
+    _entryDate.day,
+    _entryTime.hour,
+    _entryTime.minute,
+  );
+
   /// In-edit dive end time, wall-clock-as-UTC: exit fields when both are
   /// set, otherwise entry + runtime. Null when neither is derivable. Feeds
   /// the flight-window warning banner; mirrors the save-path derivation.
@@ -463,13 +475,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         _exitTime!.minute,
       );
     }
-    final entry = DateTime.utc(
-      _entryDate.year,
-      _entryDate.month,
-      _entryDate.day,
-      _entryTime.hour,
-      _entryTime.minute,
-    );
+    final entry = _currentEntryTime();
     final runtimeMinutes = switch (readNumber(
       _runtimeController.text,
       integer: true,
@@ -724,6 +730,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           t.material != null) {
         _tanksDirty = true;
       }
+      _loadedTankIds = {..._loadedTankIds, _tanks.first.id};
     } else if (p.startPressureBar != null ||
         p.endPressureBar != null ||
         p.o2Percent != null ||
@@ -746,6 +753,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
         ..._tanks.skip(1),
       ];
+      _loadedTankIds = {..._loadedTankIds, _tanks.first.id};
     }
   }
 
@@ -2776,22 +2784,27 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
   }
 
-  /// The trip's cylinders as they stood when this dive starts (the form's
-  /// date and time, the wall clock stamped UTC as every dive time is),
-  /// never counting this dive's own use (decided 2026-09-29).
+  /// The trip's cylinders as they stood when this dive starts, never
+  /// counting this dive's own use (decided 2026-09-29).
   ({String tripId, int atMillis, String? excludeDiveId}) _tripCylinderKeyFor(
     String tripId,
   ) => (
     tripId: tripId,
-    atMillis: DateTime.utc(
-      _entryDate.year,
-      _entryDate.month,
-      _entryDate.day,
-      _entryTime.hour,
-      _entryTime.minute,
-    ).millisecondsSinceEpoch,
+    atMillis: _currentEntryTime().millisecondsSinceEpoch,
     excludeDiveId: widget.diveId,
   );
+
+  /// The trip's slots at this dive's start, read once. The provider is
+  /// auto-disposed, so a listener holds it while the read is in flight.
+  Future<List<TripCylinderState>> _readTripCylinderStates(String tripId) async {
+    final provider = tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId));
+    final hold = ref.listenManual(provider, (_, _) {});
+    try {
+      return await ref.read(provider.future);
+    } finally {
+      hold.close();
+    }
+  }
 
   /// Suggests a full trip cylinder for each tank added in this editing
   /// session that has none and whose suggestion the diver has not turned
@@ -2799,9 +2812,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Future<void> _suggestTripCylinders() async {
     final tripId = _selectedTrip?.id;
     if (tripId == null || widget.isBulk) return;
-    final states = await ref.read(
-      tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId)).future,
-    );
+    final states = await _readTripCylinderStates(tripId);
     if (!mounted || _selectedTrip?.id != tripId) return;
     final result = suggestTripCylindersForTanks(
       tanks: _tanks,
@@ -2828,11 +2839,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// new tank, or a slot that no longer exists, gets the usual suggestion.
   Future<void> _applyTripLink(String tripId, String? cylinderId) async {
     final trip = await ref.read(tripRepositoryProvider).getTripById(tripId);
-    if (trip == null || !mounted) return;
-    final states = await ref.read(
-      tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId)).future,
-    );
-    if (!mounted) return;
+    // A trip the diver picked while this loaded stands.
+    if (trip == null || !mounted || _selectedTrip != null) return;
+    final states = await _readTripCylinderStates(tripId);
+    if (!mounted || _selectedTrip != null) return;
     final slot = states.where((s) => s.cylinder.id == cylinderId).firstOrNull;
     setState(() {
       _selectedTrip = trip;
@@ -5543,13 +5553,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
     try {
       // Build entry DateTime from date and time
-      final entryDateTime = DateTime.utc(
-        _entryDate.year,
-        _entryDate.month,
-        _entryDate.day,
-        _entryTime.hour,
-        _entryTime.minute,
-      );
+      final entryDateTime = _currentEntryTime();
 
       // Build exit DateTime if set
       DateTime? exitDateTime;

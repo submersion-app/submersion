@@ -288,4 +288,24 @@ void main() {
     // Editing the minute-60 dive itself: its own use does not count.
     expect((await statesAt(120, 'd60')).single.pressure, 200);
   });
+
+  test('a dive-time provider is dropped once nothing watches it', () async {
+    // Keyed by an instant, so every dive opened and every time tried is a
+    // new key: a kept one would watch the tables for the whole session.
+    await slot('A');
+    final ms = at.millisecondsSinceEpoch;
+    final states = tripCylinderStatesAtProvider((
+      tripId: tripId,
+      atMillis: ms,
+      excludeDiveId: null,
+    ));
+    final labels = tripCylinderLabelsAtProvider((tripId: tripId, atMillis: ms));
+    for (final p in [states, labels]) {
+      final sub = container.listen(p, (_, _) {});
+      await container.read(p.future);
+      sub.close();
+      await container.pump();
+      expect(container.exists(p), isFalse);
+    }
+  });
 }

@@ -89,9 +89,9 @@ final tripCylinderLedgerProvider =
 
 /// Each slot's label and the bottle it held at a dive's start, for the dive
 /// detail page. Keyed by trip and instant; refetches when the trip's slots
-/// or ledger change.
-final tripCylinderLabelsAtProvider =
-    FutureProvider.family<
+/// or ledger change. Auto-disposed: every dive opened is a new key.
+final tripCylinderLabelsAtProvider = FutureProvider.autoDispose
+    .family<
       Map<String, TripCylinderTankLabel>,
       ({String tripId, int atMillis})
     >((ref, key) async {
@@ -111,8 +111,9 @@ final tripCylinderLabelsAtProvider =
 /// The trip's slots as they stood when a dive started, for the dive
 /// editor's picker and suggestion: fills and adjustments up to that
 /// instant, earlier dives, and never the dive being edited itself.
-final tripCylinderStatesAtProvider =
-    FutureProvider.family<
+/// Auto-disposed: every date and time the editor tries is a new key.
+final tripCylinderStatesAtProvider = FutureProvider.autoDispose
+    .family<
       List<TripCylinderState>,
       ({String tripId, int atMillis, String? excludeDiveId})
     >((ref, key) async {

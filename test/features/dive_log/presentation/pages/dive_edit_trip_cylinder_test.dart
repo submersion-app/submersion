@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/app_router.dart' show newDivePage;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/tank_row.dart';
@@ -15,6 +18,7 @@ import 'package:submersion/features/trips/data/repositories/trip_repository.dart
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -80,6 +84,8 @@ void main() {
     String? diveId,
     String? tripId,
     String? tripCylinderId,
+    DivePrefill? prefill,
+    TripRepository? trips,
     void Function(String)? onSaved,
   }) async {
     tester.view.physicalSize = const Size(800, 2600);
@@ -95,6 +101,7 @@ void main() {
             return DiveListNotifier(repository, ref);
           }),
           customTankPresetsProvider.overrideWith((ref) async => []),
+          if (trips != null) tripRepositoryProvider.overrideWithValue(trips),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -105,6 +112,7 @@ void main() {
               embedded: true,
               tripId: tripId,
               tripCylinderId: tripCylinderId,
+              prefill: prefill,
               onSaved: onSaved,
             ),
           ),
@@ -149,6 +157,21 @@ void main() {
     final row = rows(tester).first;
     expect(row.tank.tripCylinderId, a.id);
     expect(row.suggested, isTrue);
+  });
+
+  testWidgets('a tank filled from a scan is never suggested', (tester) async {
+    // The scanned start pressure is a reading; a suggestion would replace
+    // it with the board's, and None would not bring it back.
+    await pumpEditPage(
+      tester,
+      tripId: trip.id,
+      prefill: const DivePrefill(startPressureBar: 180, o2Percent: 32),
+    );
+    await settleTrip(tester);
+    final row = rows(tester).first;
+    expect(row.tank.tripCylinderId, isNull);
+    expect(row.tank.startPressure, 180);
+    expect(row.suggested, isFalse);
   });
 
   testWidgets('an added tank takes the next full slot', (tester) async {
@@ -276,6 +299,57 @@ void main() {
     expect(r[2].suggested, isFalse);
   });
 
+  testWidgets('a trip picked while the shortcut loads is kept', (tester) async {
+    final now = DateTime.now();
+    await TripRepository().createTrip(
+      Trip(
+        id: '',
+        name: 'Curacao',
+        startDate: DateTime(now.year, now.month, now.day + 10),
+        endDate: DateTime(now.year, now.month, now.day + 15),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    final gate = Completer<void>();
+    await pumpEditPage(
+      tester,
+      tripId: trip.id,
+      tripCylinderId: b.id,
+      trips: _GatedTripRepository(gate.future),
+    );
+    // The shortcut's trip load is still waiting; the diver picks Curacao.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(TripSection),
+        matching: find.byIcon(Icons.flight_takeoff),
+      ),
+    );
+    await settleTrip(tester);
+    final notSet = find.descendant(
+      of: find.byType(TripSection),
+      matching: find.text('Not set'),
+    );
+    await tester.ensureVisible(notSet.first);
+    await tester.pump();
+    await tester.tap(notSet.first);
+    await settleTrip(tester);
+    await tester.tap(find.text('Curacao').last);
+    await settleTrip(tester);
+
+    final curacao = find.descendant(
+      of: find.byType(TripSection),
+      matching: find.text('Curacao'),
+    );
+    expect(curacao, findsOneWidget);
+
+    gate.complete();
+    await settleTrip(tester);
+
+    expect(curacao, findsOneWidget);
+    expect(rows(tester).first.tank.tripCylinderId, isNot(b.id));
+  });
+
   testWidgets('switching trips drops the old link and suggests anew', (
     tester,
   ) async {
@@ -378,4 +452,17 @@ void main() {
     expect(built!.tripId, 't9');
     expect(built!.tripCylinderId, 'c9');
   });
+}
+
+/// Holds every trip lookup until [gate] completes, as a slow database would.
+class _GatedTripRepository extends TripRepository {
+  _GatedTripRepository(this.gate);
+
+  final Future<void> gate;
+
+  @override
+  Future<Trip?> getTripById(String id) async {
+    await gate;
+    return super.getTripById(id);
+  }
 }
