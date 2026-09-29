@@ -367,6 +367,29 @@ void main() {
     expect(m.expectedDives, 0);
   });
 
+  test('a partial itinerary counts its uncovered days as dive days', () async {
+    // A single planned day (the board's day strip) is not a whole
+    // itinerary: June 1 and 3 have no row and are dive days, June 2 is a
+    // sea day. Two dive days at the default two dives.
+    await rebreather();
+    final t = await trip('Shore', DateTime(2026, 6, 1), DateTime(2026, 6, 3));
+    await ItineraryDayRepository().saveAll([
+      ItineraryDay(
+        id: '',
+        tripId: t.id,
+        dayNumber: 2,
+        date: DateTime(2026, 6, 2),
+        dayType: DayType.seaDay,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    ]);
+    final m = (await container.read(
+      tripScrubberMarginsProvider(t.id).future,
+    )).single;
+    expect(m.expectedDives, 4);
+  });
+
   test('a rating edit reaches an open trip', () async {
     // The rated duration is an attribute; its write reaches
     // equipment_attributes alone.
