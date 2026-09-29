@@ -196,6 +196,17 @@
       }
     }
   },
+  "plannerMission_profile_segment": "{depth}, {minutes} min",
+  "@plannerMission_profile_segment": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "plannerMission_profile_title": "Generated profile",
   "plannerMission_route_addLeg": "Add leg",
   "plannerMission_route_deleteLeg": "Delete leg",

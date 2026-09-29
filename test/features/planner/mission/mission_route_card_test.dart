@@ -6,6 +6,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
+import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain;
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/entities/mission/shore_exit.dart';
@@ -26,11 +29,57 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _harness() => testApp(
+Widget _harness({Locale locale = const Locale('en')}) => testApp(
   overrides: [settingsProvider.overrideWith((ref) => _TestSettingsNotifier())],
-  locale: const Locale('en'),
+  locale: locale,
   child: const PlanEditorPane(),
 );
+
+/// Adds a leg through the editor the Add button opens.
+Future<void> _addLeg(WidgetTester tester) async {
+  await tester.tap(find.byTooltip('Add leg'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Save'));
+  await tester.pumpAndSettle();
+}
+
+/// A route the team can travel: [legs] with one 0.9 m/s scooter.
+DpvMission _travelable(DpvMission mission, List<MissionLeg> legs) =>
+    mission.copyWith(
+      legs: legs,
+      team: [
+        mission.team.single.copyWith(
+          scooter: const ScooterSpec(
+            name: 'S',
+            ratedSpeedMps: 0.9,
+            burnTimeSeconds: 5400,
+          ),
+        ),
+      ],
+    );
+
+Future<ProviderContainer> _openRoute(
+  WidgetTester tester,
+  List<MissionLeg> legs, {
+  Locale locale = const Locale('en'),
+}) async {
+  tester.view.physicalSize = const Size(400, 1400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(_harness(locale: locale));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byType(SwitchListTile));
+  await tester.pumpAndSettle();
+  final container = ProviderScope.containerOf(
+    tester.element(find.byType(PlanEditorPane)),
+  );
+  final notifier = container.read(divePlanNotifierProvider.notifier);
+  notifier.updateMission(
+    _travelable(container.read(divePlanNotifierProvider).mission!, legs),
+  );
+  await tester.pumpAndSettle();
+  return container;
+}
 
 void main() {
   testWidgets('turning the mission on swaps the segments for the route', (
@@ -84,7 +133,23 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Plan as DPV mission'));
     await tester.pumpAndSettle();
+    // Adding opens the editor first; cancelling adds nothing.
     await tester.tap(find.byTooltip('Add leg'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit leg'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Leg 2'), findsNothing);
+    await tester.tap(find.byTooltip('Add leg'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.descendant(
+        of: find.widgetWithText(PlanNumberField, 'Distance'),
+        matching: find.byType(TextField),
+      ),
+      '200',
+    );
+    await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect(find.text('Leg 2'), findsOneWidget);
   });
@@ -199,8 +264,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Plan as DPV mission'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Add leg'));
-    await tester.pumpAndSettle();
+    await _addLeg(tester);
     expect(find.text('Leg 2'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Delete leg').last);
@@ -218,8 +282,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Plan as DPV mission'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Add leg'));
-    await tester.pumpAndSettle();
+    await _addLeg(tester);
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanEditorPane)),
     );
@@ -335,5 +398,60 @@ void main() {
     await tester.pumpAndSettle();
     final segments = container.read(divePlanNotifierProvider).segments;
     expect(find.textContaining(' min'), findsNWidgets(segments.length));
+  });
+
+  const wall = MissionLeg(
+    id: 'L1',
+    order: 0,
+    label: 'Wall',
+    distanceM: 300,
+    depthM: 20,
+    headingDeg: 0,
+  );
+
+  testWidgets('a plan-level issue is a note under a working profile', (
+    tester,
+  ) async {
+    final container = await _openRoute(tester, const [wall]);
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .updateMode(domain.PlanMode.ccr);
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).segments, isNotEmpty);
+    expect(find.textContaining('No profile yet'), findsNothing);
+    expect(
+      find.text('DPV missions plan open circuit dives only'),
+      findsOneWidget,
+    );
+    expect(find.text('Generated profile'), findsOneWidget);
+  });
+
+  testWidgets('a later leg the current blocks is named under the profile', (
+    tester,
+  ) async {
+    await _openRoute(tester, const [
+      wall,
+      MissionLeg(
+        id: 'L2',
+        order: 1,
+        label: 'Channel',
+        distanceM: 200,
+        depthM: 20,
+        headingDeg: 0,
+        // 1.2 m/s setting south against 0.9 m/s scooters heading north.
+        current: CurrentVector(speedMps: 1.2, setsTowardDeg: 180),
+      ),
+    ]);
+    expect(find.text('The current blocks Channel'), findsOneWidget);
+    expect(find.text('Generated profile'), findsOneWidget);
+  });
+
+  testWidgets('generated profile rows are worded per language', (tester) async {
+    await _openRoute(tester, const [wall], locale: const Locale('de'));
+    // The route card's profile comes before the Plan Setup sections.
+    await tester.tap(find.byType(ExpansionTile).first);
+    await tester.pumpAndSettle();
+    expect(find.textContaining(' Min.'), findsWidgets);
+    expect(find.textContaining(' min'), findsNothing);
   });
 }

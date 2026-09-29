@@ -482,6 +482,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerMission_profile_segment(String depth, String minutes) {
+    return '$depth，$minutes 分钟';
+  }
+
+  @override
   String get plannerMission_profile_title => '生成的剖面';
 
   @override

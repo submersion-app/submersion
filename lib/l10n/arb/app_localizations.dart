@@ -854,6 +854,12 @@ abstract class AppLocalizations {
   /// **'No profile yet: {reason}'**
   String plannerMission_profile_none(String reason);
 
+  /// No description provided for @plannerMission_profile_segment.
+  ///
+  /// In en, this message translates to:
+  /// **'{depth}, {minutes} min'**
+  String plannerMission_profile_segment(String depth, String minutes);
+
   /// No description provided for @plannerMission_profile_title.
   ///
   /// In en, this message translates to:

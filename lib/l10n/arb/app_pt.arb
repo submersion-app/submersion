@@ -5502,6 +5502,7 @@
   "plannerMission_disableConfirm": "Desativar",
   "plannerMission_disableMessage": "A rota e a equipa são removidas. O perfil gerado fica como segmentos normais que pode editar.",
   "plannerMission_disableTitle": "Desativar a missão DPV?",
+  "plannerMission_profile_segment": "{depth}, {minutes} min",
   "plannerMission_enableConfirm": "Substituir",
   "plannerMission_enableMessage": "A missão cria o perfil a partir da rota e da equipa, por isso os segmentos deste plano são substituídos. Se desativar a missão mais tarde, fica o perfil da missão, não estes segmentos.",
   "plannerMission_enableTitle": "Substituir os segmentos por uma missão DPV?",

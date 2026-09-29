@@ -5605,6 +5605,7 @@
   "plannerMission_disableConfirm": "Ausschalten",
   "plannerMission_disableMessage": "Route und Team werden entfernt. Das erzeugte Profil bleibt als normale, bearbeitbare Segmente erhalten.",
   "plannerMission_disableTitle": "DPV-Mission ausschalten?",
+  "plannerMission_profile_segment": "{depth}, {minutes} Min.",
   "plannerMission_enableConfirm": "Ersetzen",
   "plannerMission_enableMessage": "Die Mission erzeugt das Profil aus Route und Team, daher werden die Segmente dieses Plans ersetzt. Wenn du die Mission später ausschaltest, bleibt das Profil der Mission erhalten, nicht diese Segmente.",
   "plannerMission_enableTitle": "Segmente durch eine DPV-Mission ersetzen?",

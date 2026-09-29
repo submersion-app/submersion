@@ -5400,6 +5400,7 @@
   "plannerMission_disableConfirm": "Disattiva",
   "plannerMission_disableMessage": "Il percorso e la squadra vengono rimossi. Il profilo generato resta come segmenti normali modificabili.",
   "plannerMission_disableTitle": "Disattivare la missione DPV?",
+  "plannerMission_profile_segment": "{depth}, {minutes} min",
   "plannerMission_enableConfirm": "Sostituisci",
   "plannerMission_enableMessage": "La missione costruisce il profilo dal percorso e dalla squadra, quindi i segmenti di questo piano vengono sostituiti. Se in seguito disattivi la missione, resta il profilo della missione, non questi segmenti.",
   "plannerMission_enableTitle": "Sostituire i segmenti con una missione DPV?",

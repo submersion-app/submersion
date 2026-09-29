@@ -493,6 +493,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String plannerMission_profile_segment(String depth, String minutes) {
+    return '$depth, $minutes min';
+  }
+
+  @override
   String get plannerMission_profile_title => 'Generated profile';
 
   @override

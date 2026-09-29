@@ -26,8 +26,13 @@ class MissionLegList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(divePlanNotifierProvider);
-    final mission = state.mission;
+    // Only what the card shows or checks: the route, the profile it
+    // generated, and the plan fields the plan check reads (mode, tanks).
+    final (mission, segments, _, _) = ref.watch(
+      divePlanNotifierProvider.select(
+        (s) => (s.mission, s.segments, s.mode, s.tanks),
+      ),
+    );
     if (mission == null) return const SizedBox.shrink();
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     final units = MissionUnits(UnitFormatter(ref.watch(settingsProvider)));
@@ -43,8 +48,24 @@ class MissionLegList extends ConsumerWidget {
         units: units,
       );
       if (edited != null) {
-        notifier.updateMission(MissionEdits.updateLeg(mission, edited));
+        notifier.editMission((m) => MissionEdits.updateLeg(m, edited));
       }
+    }
+
+    // A new leg is added on Save, so an unfinished one never blanks the
+    // profile of a route that works.
+    Future<void> addLeg() async {
+      final draft = MissionEdits.addLeg(mission, const Uuid().v4()).legs.last;
+      final added = await showMissionLegEditor(
+        context,
+        leg: draft,
+        openWater: openWater,
+        units: units,
+      );
+      if (added == null) return;
+      notifier.editMission(
+        (m) => MissionEdits.updateLeg(MissionEdits.addLeg(m, added.id), added),
+      );
     }
 
     return Card(
@@ -69,9 +90,7 @@ class MissionLegList extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(Icons.add),
                   tooltip: l10n.plannerMission_route_addLeg,
-                  onPressed: () => notifier.updateMission(
-                    MissionEdits.addLeg(mission, const Uuid().v4()),
-                  ),
+                  onPressed: addLeg,
                 ),
               ],
             ),
@@ -82,8 +101,8 @@ class MissionLegList extends ConsumerWidget {
               // The default desktop handle is drawn over the row's trailing
               // edge, on top of the delete button; this row places its own.
               buildDefaultDragHandles: false,
-              onReorderItem: (oldIndex, newIndex) => notifier.updateMission(
-                MissionEdits.reorderLegs(mission, oldIndex, newIndex),
+              onReorderItem: (oldIndex, newIndex) => notifier.editMission(
+                (m) => MissionEdits.reorderLegs(m, oldIndex, newIndex),
               ),
               itemBuilder: (context, index) {
                 final leg = mission.legs[index];
@@ -111,8 +130,8 @@ class MissionLegList extends ConsumerWidget {
                         IconButton(
                           icon: const Icon(Icons.delete, size: 18),
                           tooltip: l10n.plannerMission_route_deleteLeg,
-                          onPressed: () => notifier.updateMission(
-                            MissionEdits.removeLeg(mission, leg.id),
+                          onPressed: () => notifier.editMission(
+                            (m) => MissionEdits.removeLeg(m, leg.id),
                           ),
                         ),
                         ReorderableDragStartListener(
@@ -127,9 +146,13 @@ class MissionLegList extends ConsumerWidget {
             ),
             const Divider(),
             _GeneratedProfileStrip(
-              segments: state.segments,
+              segments: segments,
               units: units,
-              reason: _blockingReason(context, state, mission),
+              issues: _blockingIssues(
+                context,
+                ref.read(divePlanNotifierProvider),
+                mission,
+              ),
             ),
           ],
         ),
@@ -166,25 +189,23 @@ class MissionLegList extends ConsumerWidget {
     return lines.join('\n');
   }
 
-  /// Why the route generates no profile, as a sentence, or null: the first
-  /// blocking validation issue, else a first leg the current blocks.
-  static String? _blockingReason(
+  /// Every blocking issue, as sentences in the order the diver meets them:
+  /// the mission's own, then the plan's, then a leg the current blocks.
+  static List<String> _blockingIssues(
     BuildContext context,
     DivePlanState state,
     DpvMission mission,
   ) {
-    final route = const MissionEngine().traversableRoute(mission);
-    final issues = [
-      ...validateMission(mission),
-      ...validatePlanForMission(divePlanFromState(state)),
-      if (route.speeds.isEmpty && route.cut != null) route.cut!,
+    final cut = const MissionEngine().traversableRoute(mission).cut;
+    return [
+      for (final issue in [
+        ...validateMission(mission),
+        ...validatePlanForMission(divePlanFromState(state)),
+        ?cut,
+      ])
+        if (issue.severity == MissionIssueSeverity.blocking)
+          missionIssueText(context.l10n, issue, mission),
     ];
-    for (final issue in issues) {
-      if (issue.severity == MissionIssueSeverity.blocking) {
-        return missionIssueText(context.l10n, issue, mission);
-      }
-    }
-    return null;
   }
 }
 
@@ -192,44 +213,55 @@ class _GeneratedProfileStrip extends StatelessWidget {
   const _GeneratedProfileStrip({
     required this.segments,
     required this.units,
-    required this.reason,
+    required this.issues,
   });
 
   final List<PlanSegment> segments;
   final MissionUnits units;
 
-  /// Why there is no profile, or null when the mission generates one.
-  final String? reason;
+  /// Blocking issues as sentences. With no profile the first says why; with
+  /// one (a plan-level issue, or a later leg the current blocks) each is a
+  /// note under it.
+  final List<String> issues;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    if (reason != null) {
+    final noteStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.error,
+    );
+    if (segments.isEmpty && issues.isNotEmpty) {
       return Text(
-        l10n.plannerMission_profile_none(reason!),
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.error,
-        ),
+        l10n.plannerMission_profile_none(issues.first),
+        style: noteStyle,
       );
     }
-    // Read-only: the diver sees exactly what the engine is fed.
-    return ExpansionTile(
-      tilePadding: EdgeInsets.zero,
-      title: Text(
-        l10n.plannerMission_profile_title,
-        style: theme.textTheme.bodyMedium,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final segment in segments)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              '${units.distance(segment.targetDepth)}, '
-              '${(segment.durationSeconds / 60).ceil()} min',
-              style: theme.textTheme.bodySmall,
-            ),
+        // Read-only: the diver sees exactly what the engine is fed.
+        ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          title: Text(
+            l10n.plannerMission_profile_title,
+            style: theme.textTheme.bodyMedium,
           ),
+          children: [
+            for (final segment in segments)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.plannerMission_profile_segment(
+                    units.distance(segment.targetDepth),
+                    (segment.durationSeconds / 60).ceil().toString(),
+                  ),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+          ],
+        ),
+        for (final issue in issues) Text(issue, style: noteStyle),
       ],
     );
   }

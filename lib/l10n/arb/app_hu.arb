@@ -5400,6 +5400,7 @@
   "plannerMission_disableConfirm": "Kikapcsolás",
   "plannerMission_disableMessage": "Az útvonal és a csapat törlődik. A generált profil szerkeszthető, normál szakaszokként megmarad.",
   "plannerMission_disableTitle": "Kikapcsolod a DPV-küldetést?",
+  "plannerMission_profile_segment": "{depth}, {minutes} perc",
   "plannerMission_enableConfirm": "Csere",
   "plannerMission_enableMessage": "A küldetés az útvonalból és a csapatból építi fel a profilt, ezért a terv szakaszai lecserélődnek. Ha később kikapcsolod a küldetést, a küldetés profilja marad meg, nem ezek a szakaszok.",
   "plannerMission_enableTitle": "Lecseréled a szakaszokat egy DPV-küldetésre?",

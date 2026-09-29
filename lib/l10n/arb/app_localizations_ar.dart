@@ -490,6 +490,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String plannerMission_profile_segment(String depth, String minutes) {
+    return '$depth، $minutes دقيقة';
+  }
+
+  @override
   String get plannerMission_profile_title => 'الملف الشخصي المُنشأ';
 
   @override
