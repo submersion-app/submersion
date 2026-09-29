@@ -265,7 +265,9 @@ abstract final class DerivedMetricsService {
     TankPressureSeries? best;
     var bestDrop = 0.0;
     for (final tank in tanks) {
-      if (tank.volumeLiters == null || tank.points.length < 2) continue;
+      // No volume needed: SAC here is pressure per minute, and many
+      // imported cylinders never get a size.
+      if (tank.points.length < 2) continue;
       final sorted = [...tank.points]
         ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
       final drop = sorted.first.bar - sorted.last.bar;

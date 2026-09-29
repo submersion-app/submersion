@@ -96,16 +96,15 @@ void main() {
       expect(m.finalStopKind, FinalStopKind.safety);
     });
 
-    test('a tank with no volume is not usable', () {
+    test('a tank with no volume still gives SAC, which is in bar/min', () {
+      // Many imported cylinders never get a size; SAC as pressure per minute
+      // does not need one, so the trend must not go empty without it.
       final m = run(
-        tanks: [
-          const TankPressureSeries(
-            tankId: 't1',
-            points: [(timestamp: 0, bar: 200), (timestamp: 600, bar: 180)],
-          ),
-        ],
+        tanks: [TankPressureSeries(tankId: 't1', points: steadyTank().points)],
       );
-      expect(m.unsupportedReason, UnsupportedReason.noPressureSeries);
+      expect(m.unsupportedReason, isNull);
+      expect(m.hasSac, isTrue);
+      expect(m.sacTrend, isNotNull);
     });
   });
 
