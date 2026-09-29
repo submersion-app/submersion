@@ -22952,6 +22952,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tides_source_datumMsl => '高度基于平均海平面';
 
   @override
+  String get tides_source_siteLocalTime => '时间以潜水点当地时间显示。';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return '$distance 海洋模型网格';
+  }
+
+  @override
   String get tides_title => '潮汐';
 
   @override
@@ -31253,6 +31261,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return '潜水途中压力在没有气体切换的情况下上升了 $rise';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '压力传感器记录了 $count 次错误读数（中断或尖峰）',
+      one: '压力传感器记录了 1 次错误读数（中断或尖峰）',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed => '压力序列混合了两个来源的读数';
 
   @override
   String dataQuality_msg_sac(String sac) {

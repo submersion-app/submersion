@@ -24183,6 +24183,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tides_source_datumMsl => 'Alturas relativas ao nível médio do mar';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Os horários são mostrados na hora local do local de mergulho.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'Grade do modelo oceânico de $distance';
+  }
+
+  @override
   String get tides_title => 'Marés';
 
   @override
@@ -32931,6 +32940,23 @@ class AppLocalizationsPt extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return 'A pressão subiu $rise a meio do mergulho sem troca de gás';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'O sensor de pressão registou leituras erradas $count vezes (falhas ou picos)',
+      one:
+          'O sensor de pressão registou uma leitura errada uma vez (falha ou pico)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed =>
+      'A série de pressão mistura as leituras de duas fontes';
 
   @override
   String dataQuality_msg_sac(String sac) {

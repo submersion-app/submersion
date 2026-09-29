@@ -23590,6 +23590,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tides_source_datumMsl => 'גבהים ביחס לגובה פני הים הממוצע';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'השעות מוצגות לפי השעה המקומית של אתר הצלילה.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'רשת מודל אוקיינוס של $distance';
+  }
+
+  @override
   String get tides_title => 'גאות';
 
   @override
@@ -32166,6 +32175,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return 'הלחץ עלה ב-$rise באמצע הצלילה ללא החלפת גז';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'חיישן הלחץ רשם קריאות שגויות $count פעמים (נפילות או קפיצות)',
+      one: 'חיישן הלחץ רשם קריאה שגויה פעם אחת (נפילה או קפיצה)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed =>
+      'סדרת הלחץ מערבבת קריאות משני מקורות';
 
   @override
   String dataQuality_msg_sac(String sac) {

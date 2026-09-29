@@ -24106,6 +24106,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Magasságok a közepes tengerszinthez képest';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Az időpontok a merülőhely helyi idejében jelennek meg.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return '$distance felbontású óceánmodell-rács';
+  }
+
+  @override
   String get tides_title => 'Árapály';
 
   @override
@@ -32808,6 +32817,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return 'A nyomás $rise értékkel emelkedett a merülés közben gázcsere nélkül';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A nyomásérzékelő $count alkalommal adott hibás értéket (kiesés vagy tüske)',
+      one: 'A nyomásérzékelő egyszer hibás értéket adott (kiesés vagy tüske)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed =>
+      'A nyomássor két forrás mérési adatait keveri';
 
   @override
   String dataQuality_msg_sac(String sac) {

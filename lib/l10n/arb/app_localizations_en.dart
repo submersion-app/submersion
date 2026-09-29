@@ -23795,6 +23795,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tides_source_datumMsl => 'Heights relative to mean sea level';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Times are shown in the dive site\'s local time.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return '$distance ocean-model grid';
+  }
+
+  @override
   String get tides_title => 'Tides';
 
   @override
@@ -32429,6 +32438,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return 'Pressure rose $rise mid-dive with no gas switch';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'The pressure sensor logged false readings $count times (dropouts or spikes)',
+      one: 'The pressure sensor logged a false reading once (dropout or spike)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed =>
+      'The pressure series mixes the readings of two sources';
 
   @override
   String dataQuality_msg_sac(String sac) {

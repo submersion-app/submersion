@@ -17,6 +17,7 @@ import 'package:submersion/core/database/database.dart'
         DiveProfileEvent;
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/matching/match_scorer.dart';
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
@@ -1801,6 +1802,7 @@ class DiveComputerRepository {
               diveId: diveId,
               tankId: tankIdsByIndex[entry.key]!,
               computerId: computerId,
+              sourceId: ownerSourceId,
               samples: [
                 for (final point in entry.value)
                   TankPressureSample(
@@ -1828,25 +1830,30 @@ class DiveComputerRepository {
 
             final tank = tanks.firstWhere((t) => t.index == tankIndex);
             if (tank.startPressure == null || tank.endPressure == null) {
+              // Signal dropouts at either end of the series must not become
+              // the recorded pressure (#2441).
+              final endpoints = cleanSeriesEndpoints([
+                for (final p in pressurePoints)
+                  (t: p.timestamp, bar: p.pressure),
+              ]);
+              if (endpoints == null) continue;
               final tankId = tankIdsByIndex[tankIndex]!;
-              final sorted = [...pressurePoints]
-                ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
               await (_db.update(
                 _db.diveTanks,
               )..where((t) => t.id.equals(tankId))).write(
                 DiveTanksCompanion(
                   startPressure: tank.startPressure == null
-                      ? Value(sorted.first.pressure)
+                      ? Value(endpoints.start)
                       : const Value.absent(),
                   endPressure: tank.endPressure == null
-                      ? Value(sorted.last.pressure)
+                      ? Value(endpoints.end)
                       : const Value.absent(),
                 ),
               );
               _log.info(
                 'Derived tank $tankIndex pressures from profile: '
-                'start=${sorted.first.pressure.toStringAsFixed(1)} bar, '
-                'end=${sorted.last.pressure.toStringAsFixed(1)} bar',
+                'start=${endpoints.start.toStringAsFixed(1)} bar, '
+                'end=${endpoints.end.toStringAsFixed(1)} bar',
               );
             }
           }

@@ -2773,6 +2773,8 @@ class SyncService {
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'tankId', parent: 'diveTanks', nullable: false),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
+      // v241 (issue #2440): the owning source, like diveProfileSeries.
+      (field: 'sourceId', parent: 'diveDataSources', nullable: true),
     ],
     'sightings': [
       (field: 'diveId', parent: 'dives', nullable: false),

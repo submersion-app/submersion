@@ -142,6 +142,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
+import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
 
 const _createNewSiteSentinel = '__create_new__';
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
@@ -5725,24 +5726,25 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ref.invalidate(courseForDiveProvider(savedDiveId));
       }
 
-      // Record tide conditions if site has coordinates (skip freshwater
-      // sites: tides are meaningless there and a nearby ocean station
-      // must not leak in).
+      // Record tide conditions if the site has coordinates. The recorder
+      // skips freshwater dives, judged by the dive's own water type first.
       if (savedDiveId != null &&
           _selectedSite != null &&
-          _selectedSite!.hasCoordinates &&
-          _selectedSite!.waterType != WaterType.fresh) {
+          _selectedSite!.hasCoordinates) {
         try {
           final resolved = await ref.read(
             resolvedTideDataProvider(_selectedSite!.location!).future,
           );
           if (resolved != null) {
-            // Record tide status at dive entry time
-            final status = resolved.calculator.getStatus(entryDateTime);
-            final tideRepository = ref.read(tideRecordRepositoryProvider);
-            await tideRepository.createFromStatus(
+            // entryDateTime is the dive's wall clock (DateTime.utc of the
+            // picked digits); the recorder evaluates the real instant.
+            await recordDiveTide(
+              repository: ref.read(tideRecordRepositoryProvider),
+              calculator: resolved.calculator,
               diveId: savedDiveId,
-              status: status,
+              entryWallClock: entryDateTime,
+              location: _selectedSite!.location!,
+              waterType: _waterType ?? _selectedSite!.waterType,
             );
           }
         } catch (e) {

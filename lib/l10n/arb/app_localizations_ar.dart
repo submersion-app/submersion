@@ -23882,6 +23882,15 @@ class AppLocalizationsAr extends AppLocalizations {
       'الارتفاعات نسبة إلى متوسط مستوى سطح البحر';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'تُعرض الأوقات بالتوقيت المحلي لموقع الغوص.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'شبكة نموذج المحيط بدقة $distance';
+  }
+
+  @override
   String get tides_title => 'المد والجزر';
 
   @override
@@ -32526,6 +32535,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return 'ارتفع الضغط $rise في منتصف الغوصة دون تبديل للغاز';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سجّل مستشعر الضغط قراءات خاطئة $count مرات (انقطاعات أو قفزات)',
+      one: 'سجّل مستشعر الضغط قراءة خاطئة مرة واحدة (انقطاع أو قفزة)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed => 'تمزج سلسلة الضغط قراءات مصدرين';
 
   @override
   String dataQuality_msg_sac(String sac) {

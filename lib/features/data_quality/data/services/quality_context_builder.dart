@@ -105,8 +105,14 @@ class QualityContextBuilder {
           QualitySample(t: p.timestamp, depth: p.depth, temp: p.temperature),
     ];
 
+    final sources = await _diveRepo.getDataSources(dive.id);
     final pressures = <String, List<QualityPressureSample>>{};
-    final tankSeries = await _tankSeries.getSeriesForDive(dive.id);
+    // The detectors read what the rest of the app reads: one source per
+    // stretch of a tank, never two recordings interleaved (#2440).
+    final tankSeries = selectTankSeriesPerSource(
+      await _tankSeries.getSeriesForDive(dive.id),
+      preferredSourceId: sources.where((s) => s.isPrimary).firstOrNull?.id,
+    );
     final byTank = <String, List<series.TankPressureSeries>>{};
     for (final s in tankSeries) {
       byTank.putIfAbsent(s.tankId, () => []).add(s);
@@ -137,7 +143,6 @@ class QualityContextBuilder {
         ),
     ];
 
-    final sources = await _diveRepo.getDataSources(dive.id);
     final neighbors = await _neighbors(dive);
     final carriesDiverData = await _carriesDiverData(dive.id);
 

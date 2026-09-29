@@ -58,7 +58,7 @@ GeoPoint offsetToGeoPoint(
 
   return GeoPoint(
     lat2 * 180.0 / math.pi,
-    _normalizeLongitude(lon2 * 180.0 / math.pi),
+    normalizeLongitude(lon2 * 180.0 / math.pi),
   );
 }
 
@@ -72,16 +72,3 @@ GeoPoint offsetToGeoPoint(
   GeoPoint anchor,
   GeoPoint point,
 ) => enuOffsetMeters(anchor, point);
-
-/// Wraps a longitude in degrees to (-180, 180], the range every other
-/// coordinate in this app is stored and compared in.
-double _normalizeLongitude(double degrees) {
-  var d = degrees;
-  while (d > 180) {
-    d -= 360;
-  }
-  while (d <= -180) {
-    d += 360;
-  }
-  return d;
-}

@@ -971,6 +971,15 @@ class AppDatabase extends _$AppDatabase {
     // to 240. Renumbered from 233 and then 235: main shipped 233 (#1921),
     // 234 (#2046) and 239 (#2275) while this was open.
     240,
+    // v241: tank_pressure_series.source_id (issue #2440), backfilled where
+    // the source is unambiguous. Additive nullable column, so the floor
+    // stays at 240. Renumbered from 232 and then 240 while in review: main
+    // shipped 232 to 234, 239 (#2275) and 240 (#1926) while this was open.
+    // Kept below v242, which main shipped with 241 left for this rung: a
+    // database already at 242 skips this step, the beforeOpen backstop
+    // adds the column there, and its series stay unattributed, which every
+    // reader already handles.
+    241,
     // v242: equipment_service_status, the local service-due cache the
     // query language's serviceDue field reads (issue #2365, PR 3). A table
     // with no hlc, never synced, so the floor does not move. 241 was held

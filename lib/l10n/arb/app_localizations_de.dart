@@ -24131,6 +24131,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Höhen relativ zum mittleren Meeresspiegel';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Zeiten werden in der Ortszeit des Tauchplatzes angezeigt.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'Ozeanmodell-Raster mit $distance';
+  }
+
+  @override
   String get tides_title => 'Gezeiten';
 
   @override
@@ -32884,6 +32893,23 @@ class AppLocalizationsDe extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return 'Druck stieg mitten im Tauchgang um $rise ohne Gaswechsel';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Der Drucksensor lieferte $count-mal Fehlwerte (Aussetzer oder Ausreisser)',
+      one:
+          'Der Drucksensor lieferte einmal Fehlwerte (Aussetzer oder Ausreisser)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed =>
+      'Die Druckreihe vermischt die Messwerte zweier Quellen';
 
   @override
   String dataQuality_msg_sac(String sac) {

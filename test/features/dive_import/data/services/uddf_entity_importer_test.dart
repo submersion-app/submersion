@@ -167,6 +167,12 @@ void main() {
       mockSiteRepo.getAllSites(diverId: anyNamed('diverId')),
     ).thenAnswer((_) async => []);
 
+    // Every imported dive attributes its pressure series to its source once
+    // the source row exists (#2440).
+    when(
+      mockTankPressureRepo.stampSourceWhereNull(any, any),
+    ).thenAnswer((_) async => 0);
+
     repos = ImportRepositories(
       tripRepository: mockTripRepo,
       equipmentRepository: mockEquipmentRepo,
@@ -2702,6 +2708,10 @@ void main() {
         expect(pressuresByTank.keys, hasLength(2));
         expect(pressuresByTank.values.first, isNotEmpty);
         expect(pressuresByTank.values.last, isNotEmpty);
+
+        // Written before the source row exists, the series are attributed
+        // to the dive's single source once it does (#2440).
+        verify(mockTankPressureRepo.stampSourceWhereNull(any, any)).called(1);
       },
     );
 

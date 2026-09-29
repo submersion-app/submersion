@@ -28,10 +28,12 @@ class _FakeFesService extends TideDataService {
   _FakeFesService(this.calculator);
 
   @override
-  Future<TideCalculator?> getCalculatorForLocation(
+  Future<FesModelData?> getModelForLocation(
     double latitude,
     double longitude,
-  ) async => calculator;
+  ) async => calculator == null
+      ? null
+      : FesModelData(calculator: calculator!, resolutionKm: 11.1);
 }
 
 void main() {
@@ -176,5 +178,14 @@ void main() {
     final client = MockClient((request) async => http.Response('x', 500));
     final r = resolver(idx: index, client: client, fes: null);
     expect(await r.resolve(-17.5, 177.5), isNull);
+  });
+
+  test('the model tier reports its grid resolution', () async {
+    final client = MockClient((request) async => http.Response('x', 500));
+    final r = resolver(client: client, fes: fesCalculator);
+
+    final resolved = await r.resolve(-17.5, 177.5); // no station index
+    expect(resolved!.source.kind, TideDataSourceKind.fesModel);
+    expect(resolved.source.resolutionKm, 11.1);
   });
 }

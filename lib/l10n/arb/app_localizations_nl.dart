@@ -23995,6 +23995,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hoogten ten opzichte van gemiddeld zeeniveau';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Tijden worden weergegeven in de lokale tijd van de duikstek.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'Oceaanmodelraster van $distance';
+  }
+
+  @override
   String get tides_title => 'Getijden';
 
   @override
@@ -32707,6 +32716,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return 'Druk steeg $rise midden in de duik zonder gaswisseling';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'De druksensor gaf $count keer foute metingen (uitval of pieken)',
+      one: 'De druksensor gaf één keer een foute meting (uitval of piek)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed =>
+      'De drukreeks vermengt de metingen van twee bronnen';
 
   @override
   String dataQuality_msg_sac(String sac) {

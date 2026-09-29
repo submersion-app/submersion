@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
@@ -244,6 +245,7 @@ class ReparseService {
         await _replaceTankPressureProfiles(
           diveId: diveId,
           computerId: computerId,
+          sourceId: sourceRow.id,
           parsed: parsed,
           tankIdsByIndex: tankIdsByIndex,
         );
@@ -935,6 +937,7 @@ class ReparseService {
   Future<void> _replaceTankPressureProfiles({
     required String diveId,
     required String? computerId,
+    required String sourceId,
     required pigeon.ParsedDive parsed,
     required Map<int, String> tankIdsByIndex,
   }) async {
@@ -962,6 +965,7 @@ class ReparseService {
         diveId: diveId,
         tankId: tankId,
         computerId: computerId,
+        sourceId: sourceId,
         samples: [
           for (final point in entry.value)
             TankPressureSample(
@@ -989,16 +993,18 @@ class ReparseService {
       final needEnd = parsedTank?.endPressureBar == null;
       if (!needStart && !needEnd) continue;
 
-      final sorted = [...entry.value]
-        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      // Signal dropouts at either end of the series must not become the
+      // recorded pressure (#2441).
+      final endpoints = cleanSeriesEndpoints([
+        for (final p in entry.value) (t: p.timestamp, bar: p.pressure),
+      ]);
+      if (endpoints == null) continue;
       await (db.update(db.diveTanks)..where((t) => t.id.equals(tankId))).write(
         DiveTanksCompanion(
           startPressure: needStart
-              ? Value(sorted.first.pressure)
+              ? Value(endpoints.start)
               : const Value.absent(),
-          endPressure: needEnd
-              ? Value(sorted.last.pressure)
-              : const Value.absent(),
+          endPressure: needEnd ? Value(endpoints.end) : const Value.absent(),
         ),
       );
     }

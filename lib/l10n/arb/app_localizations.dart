@@ -38638,6 +38638,18 @@ abstract class AppLocalizations {
   /// **'Heights relative to mean sea level'**
   String get tides_source_datumMsl;
 
+  /// No description provided for @tides_source_siteLocalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Times are shown in the dive site\'s local time.'**
+  String get tides_source_siteLocalTime;
+
+  /// No description provided for @tides_source_modelResolution.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} ocean-model grid'**
+  String tides_source_modelResolution(String distance);
+
   /// No description provided for @tides_title.
   ///
   /// In en, this message translates to:
@@ -52595,6 +52607,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pressure rose {rise} mid-dive with no gas switch'**
   String dataQuality_msg_pressureRise(String rise);
+
+  /// No description provided for @dataQuality_msg_pressureDropout.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{The pressure sensor logged a false reading once (dropout or spike)} other{The pressure sensor logged false readings {count} times (dropouts or spikes)}}'**
+  String dataQuality_msg_pressureDropout(int count);
+
+  /// No description provided for @dataQuality_msg_pressureMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'The pressure series mixes the readings of two sources'**
+  String get dataQuality_msg_pressureMixed;
 
   /// No description provided for @dataQuality_msg_sac.
   ///

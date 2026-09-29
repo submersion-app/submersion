@@ -506,6 +506,13 @@ extension BeforeOpenBackstops on AppDatabase {
       );
     }
 
+    // v241 backstop: re-assert tank_pressure_series.source_id
+    // (parallel-branch version-collision self-heal). Column only; the
+    // backfill stays in the rung. After the v182 backstop above, whose raw
+    // DDL predates the column: a series table it creates on this open
+    // gets the column on this open too.
+    await _assertTankSeriesSourceIdColumn();
+
     // v186 backstop: re-assert pre_dive_checklist_template_items.
     // equipment_id (same parallel-branch version-collision self-heal).
     // Safe to re-run on every open: the helper is column-only with no
