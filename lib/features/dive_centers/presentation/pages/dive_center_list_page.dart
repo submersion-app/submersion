@@ -144,19 +144,11 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
               );
             },
           ),
-          Consumer(
-            builder: (context, ref, _) => QueryFilterButton(
-              active: ref.watch(diveCenterQueryProvider) != null,
-              compact: true,
-              onPressed: () => showQueryFilterSheet(
-                context,
-                subject: QuerySubject.centers,
-                root: diveCenterQueryEntity,
-                initial: ref.read(diveCenterQueryProvider),
-                onApply: (ref, query) =>
-                    ref.read(diveCenterQueryProvider.notifier).state = query,
-              ),
-            ),
+          QueryFilterAction(
+            provider: diveCenterQueryProvider,
+            subject: QuerySubject.centers,
+            root: diveCenterQueryEntity,
+            compact: true,
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),

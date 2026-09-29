@@ -35,6 +35,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
 import 'package:submersion/features/dive_centers/query/dive_center_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 
 /// Content widget for the dive center list, used in master-detail layout.
@@ -172,15 +173,6 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     }
   }
 
-  void _openQueryFilter() => showQueryFilterSheet(
-    context,
-    subject: QuerySubject.centers,
-    root: diveCenterQueryEntity,
-    initial: ref.read(diveCenterQueryProvider),
-    onApply: (ref, query) =>
-        ref.read(diveCenterQueryProvider.notifier).state = query,
-  );
-
   void _setQuery(QueryNode? query) =>
       ref.read(diveCenterQueryProvider.notifier).state = query;
 
@@ -284,9 +276,10 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
                     ),
                     // The only way into bulk actions: entry by long-press was removed,
                     // so nothing but this control opens selection mode on touch.
-                    QueryFilterButton(
-                      active: ref.watch(diveCenterQueryProvider) != null,
-                      onPressed: _openQueryFilter,
+                    QueryFilterAction(
+                      provider: diveCenterQueryProvider,
+                      subject: QuerySubject.centers,
+                      root: diveCenterQueryEntity,
                     ),
                     IconButton(
                       key: const ValueKey('enter_selection'),
@@ -598,9 +591,10 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           ),
           // The only way into bulk actions: entry by long-press was removed,
           // so nothing but this control opens selection mode on touch.
-          QueryFilterButton(
-            active: ref.watch(diveCenterQueryProvider) != null,
-            onPressed: _openQueryFilter,
+          QueryFilterAction(
+            provider: diveCenterQueryProvider,
+            subject: QuerySubject.centers,
+            root: diveCenterQueryEntity,
             compact: true,
           ),
           IconButton(
@@ -791,8 +785,11 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           Text(context.l10n.diveCenters_error_generic(error.toString())),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () =>
-                ref.read(diveCenterListNotifierProvider.notifier).refresh(),
+            onPressed: () {
+              // An id-set error shows here too: run the query again as well.
+              ref.invalidate(entityQueryIdsProvider);
+              ref.read(diveCenterListNotifierProvider.notifier).refresh();
+            },
             child: Text(context.l10n.diveCenters_action_retry),
           ),
         ],

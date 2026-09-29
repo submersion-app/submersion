@@ -98,12 +98,7 @@ class CourseListPage extends ConsumerWidget {
                   subject: QuerySubject.courses,
                   root: courseQueryEntity,
                   initial: ref.read(courseFilterProvider).query,
-                  onApply: (ref, query) {
-                    final notifier = ref.read(courseFilterProvider.notifier);
-                    notifier.state = query == null
-                        ? notifier.state.copyWith(clearQuery: true)
-                        : notifier.state.copyWith(query: query);
-                  },
+                  onApply: setCourseQuery,
                 ),
               ),
             ),

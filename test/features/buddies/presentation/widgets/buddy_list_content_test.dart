@@ -775,6 +775,39 @@ void main() {
       expect(find.byType(QueryNoMatchState), findsOneWidget);
     });
 
+    testWidgets('Retry after an id-set error runs the query again', (
+      tester,
+    ) async {
+      var calls = 0;
+      final overrides = await _buildPhoneOverrides(
+        buddies: [
+          _makeBuddy(id: 'b1', name: 'Alice'),
+          _makeBuddy(id: 'b2', name: 'Bob'),
+        ],
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            buddyQueryProvider.overrideWith((ref) => fav),
+            entityQueryIdsProvider.overrideWith((ref, key) async {
+              if (calls++ == 0) throw StateError('database busy');
+              return {'b1'};
+            }),
+          ],
+          child: const BuddyListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('database busy'), findsOneWidget);
+
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alice'), findsOneWidget);
+      expect(find.text('Bob'), findsNothing);
+    });
+
     testWidgets('table mode reads the filtered buddies', (tester) async {
       await pumpWithQuery(tester, ids: {'b2'}, viewMode: ListViewMode.table);
       expect(find.text('Bob'), findsOneWidget);

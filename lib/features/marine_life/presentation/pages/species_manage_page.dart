@@ -103,19 +103,10 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
                     onPressed: () => context.pop(),
                   ),
                   actions: [
-                    QueryFilterButton(
-                      active: ref.watch(speciesCatalogQueryProvider) != null,
-                      onPressed: () => showQueryFilterSheet(
-                        context,
-                        subject: QuerySubject.species,
-                        root: speciesQueryEntity,
-                        initial: ref.read(speciesCatalogQueryProvider),
-                        onApply: (ref, query) =>
-                            ref
-                                    .read(speciesCatalogQueryProvider.notifier)
-                                    .state =
-                                query,
-                      ),
+                    QueryFilterAction(
+                      provider: speciesCatalogQueryProvider,
+                      subject: QuerySubject.species,
+                      root: speciesQueryEntity,
                     ),
                     IconButton(
                       key: const ValueKey('enter_selection'),

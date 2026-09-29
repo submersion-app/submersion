@@ -30,6 +30,7 @@ import 'package:submersion/features/courses/domain/models/course_filter_state.da
 import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
 import 'package:submersion/features/courses/query/course_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 
 /// Content widget for the course list
@@ -81,24 +82,14 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     notifier.state = notifier.state.copyWith(status: status);
   }
 
-  void _setQuery(QueryNode? query) {
-    final notifier = ref.read(courseFilterProvider.notifier);
-    notifier.state = query == null
-        ? notifier.state.copyWith(clearQuery: true)
-        : notifier.state.copyWith(query: query);
-  }
+  void _setQuery(QueryNode? query) => setCourseQuery(ref, query);
 
   void _openQueryFilter() => showQueryFilterSheet(
     context,
     subject: QuerySubject.courses,
     root: courseQueryEntity,
     initial: ref.read(courseFilterProvider).query,
-    onApply: (ref, query) {
-      final notifier = ref.read(courseFilterProvider.notifier);
-      notifier.state = query == null
-          ? notifier.state.copyWith(clearQuery: true)
-          : notifier.state.copyWith(query: query);
-    },
+    onApply: setCourseQuery,
   );
 
   /// The list body with the query's chips above it (#2365).
@@ -244,10 +235,6 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     );
   }
 
-  /// Build the full scaffold/layout for table mode.
-  ///
-  /// When embedded inside [TableModeLayout] (showAppBar: false), provides
-  /// only the compact app bar and the table content.
   /// The filtered courses, sorted. Shared by the list and by the pruning in
   /// [build] so the selection never holds a course the filter has hidden.
   List<Course> _visibleCourses(
@@ -359,6 +346,10 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
     return BulkActionOutcome.completed;
   }
 
+  /// Build the full scaffold/layout for table mode.
+  ///
+  /// When embedded inside [TableModeLayout] (showAppBar: false), provides
+  /// only the compact app bar and the table content.
   Widget _buildTableModeScaffold(
     BuildContext context,
     AsyncValue<List<Course>> coursesAsync,
@@ -676,6 +667,8 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () {
+              // An id-set error shows here too: run the query again as well.
+              ref.invalidate(entityQueryIdsProvider);
               ref.read(courseListNotifierProvider.notifier).refresh();
             },
             child: Text(context.l10n.courses_action_retry),

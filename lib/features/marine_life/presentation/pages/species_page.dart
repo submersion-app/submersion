@@ -17,6 +17,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
 import 'package:submersion/features/marine_life/query/species_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 
 /// The species the diver has seen across every dive, searchable and sortable.
@@ -54,16 +55,10 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
       appBar: AppBar(
         title: Text(l10n.marineLife_speciesPage_title),
         actions: [
-          QueryFilterButton(
-            active: ref.watch(seenSpeciesQueryProvider) != null,
-            onPressed: () => showQueryFilterSheet(
-              context,
-              subject: QuerySubject.species,
-              root: speciesQueryEntity,
-              initial: ref.read(seenSpeciesQueryProvider),
-              onApply: (ref, query) =>
-                  ref.read(seenSpeciesQueryProvider.notifier).state = query,
-            ),
+          QueryFilterAction(
+            provider: seenSpeciesQueryProvider,
+            subject: QuerySubject.species,
+            root: speciesQueryEntity,
           ),
           PopupMenuButton<SeenSpeciesSort>(
             key: const ValueKey('species_sort_menu'),
@@ -105,7 +100,11 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
                 error: (error, _) => _ErrorState(
                   message: l10n.marineLife_speciesPage_error(error.toString()),
                   retryLabel: l10n.marineLife_speciesPage_retry,
-                  onRetry: () => ref.invalidate(seenSpeciesProvider),
+                  onRetry: () {
+                    // An id-set error shows here too: run the query again.
+                    ref.invalidate(entityQueryIdsProvider);
+                    ref.invalidate(seenSpeciesProvider);
+                  },
                 ),
                 data: _buildList,
               ),

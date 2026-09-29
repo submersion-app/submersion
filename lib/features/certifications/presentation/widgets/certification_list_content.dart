@@ -32,6 +32,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
 import 'package:submersion/features/certifications/query/certification_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 
 /// Content widget for the certification list, used in master-detail layout.
@@ -136,15 +137,6 @@ class _CertificationListContentState
       context.push('/certifications/${cert.id}');
     }
   }
-
-  void _openQueryFilter() => showQueryFilterSheet(
-    context,
-    subject: QuerySubject.certifications,
-    root: certificationQueryEntity,
-    initial: ref.read(certificationQueryProvider),
-    onApply: (ref, query) =>
-        ref.read(certificationQueryProvider.notifier).state = query,
-  );
 
   void _setQuery(QueryNode? query) =>
       ref.read(certificationQueryProvider.notifier).state = query;
@@ -251,9 +243,10 @@ class _CertificationListContentState
                     ),
                     // The only way into bulk actions: entry by long-press was removed,
                     // so nothing but this control opens selection mode on touch.
-                    QueryFilterButton(
-                      active: ref.watch(certificationQueryProvider) != null,
-                      onPressed: _openQueryFilter,
+                    QueryFilterAction(
+                      provider: certificationQueryProvider,
+                      subject: QuerySubject.certifications,
+                      root: certificationQueryEntity,
                     ),
                     IconButton(
                       key: const ValueKey('enter_selection'),
@@ -518,9 +511,10 @@ class _CertificationListContentState
           ),
           // The only way into bulk actions: entry by long-press was removed,
           // so nothing but this control opens selection mode on touch.
-          QueryFilterButton(
-            active: ref.watch(certificationQueryProvider) != null,
-            onPressed: _openQueryFilter,
+          QueryFilterAction(
+            provider: certificationQueryProvider,
+            subject: QuerySubject.certifications,
+            root: certificationQueryEntity,
             compact: true,
           ),
           IconButton(
@@ -750,8 +744,11 @@ class _CertificationListContentState
           ),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: () =>
-                ref.read(certificationListNotifierProvider.notifier).refresh(),
+            onPressed: () {
+              // An id-set error shows here too: run the query again as well.
+              ref.invalidate(entityQueryIdsProvider);
+              ref.read(certificationListNotifierProvider.notifier).refresh();
+            },
             child: Text(context.l10n.certifications_list_button_retry),
           ),
         ],

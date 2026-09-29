@@ -106,20 +106,11 @@ class CertificationListPage extends ConsumerWidget {
                 );
               },
             ),
-            Consumer(
-              builder: (context, ref, _) => QueryFilterButton(
-                active: ref.watch(certificationQueryProvider) != null,
-                compact: true,
-                onPressed: () => showQueryFilterSheet(
-                  context,
-                  subject: QuerySubject.certifications,
-                  root: certificationQueryEntity,
-                  initial: ref.read(certificationQueryProvider),
-                  onApply: (ref, query) =>
-                      ref.read(certificationQueryProvider.notifier).state =
-                          query,
-                ),
-              ),
+            QueryFilterAction(
+              provider: certificationQueryProvider,
+              subject: QuerySubject.certifications,
+              root: certificationQueryEntity,
+              compact: true,
             ),
             IconButton(
               icon: const Icon(Icons.sort, size: 20),

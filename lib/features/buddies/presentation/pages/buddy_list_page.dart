@@ -101,19 +101,11 @@ class BuddyListPage extends ConsumerWidget {
                 );
               },
             ),
-            Consumer(
-              builder: (context, ref, _) => QueryFilterButton(
-                active: ref.watch(buddyQueryProvider) != null,
-                compact: true,
-                onPressed: () => showQueryFilterSheet(
-                  context,
-                  subject: QuerySubject.buddies,
-                  root: buddyQueryEntity,
-                  initial: ref.read(buddyQueryProvider),
-                  onApply: (ref, query) =>
-                      ref.read(buddyQueryProvider.notifier).state = query,
-                ),
-              ),
+            QueryFilterAction(
+              provider: buddyQueryProvider,
+              subject: QuerySubject.buddies,
+              root: buddyQueryEntity,
+              compact: true,
             ),
             IconButton(
               icon: const Icon(Icons.sort, size: 20),

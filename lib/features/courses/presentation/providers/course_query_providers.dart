@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart' show QueryNode;
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/domain/models/course_filter_state.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -23,3 +24,13 @@ final filteredCoursesProvider = Provider<AsyncValue<List<Course>>>(
     (c) => c.id,
   ),
 );
+
+/// Sets the course list's query, or clears it for null, keeping the status
+/// chips; the list, its chips and the filter sheet all write through here.
+void setCourseQuery(WidgetRef ref, QueryNode? query) {
+  final notifier = ref.read(courseFilterProvider.notifier);
+  notifier.state = notifier.state.copyWith(
+    query: query,
+    clearQuery: query == null,
+  );
+}

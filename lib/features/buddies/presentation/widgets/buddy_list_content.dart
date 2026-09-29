@@ -41,6 +41,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
 import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 
 /// Content widget for the buddy list, used in master-detail layout.
@@ -455,15 +456,6 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     }
   }
 
-  void _openQueryFilter() => showQueryFilterSheet(
-    context,
-    subject: QuerySubject.buddies,
-    root: buddyQueryEntity,
-    initial: ref.read(buddyQueryProvider),
-    onApply: (ref, query) =>
-        ref.read(buddyQueryProvider.notifier).state = query,
-  );
-
   void _setQuery(QueryNode? query) =>
       ref.read(buddyQueryProvider.notifier).state = query;
 
@@ -570,9 +562,10 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
                     ),
                     // The only way into bulk actions: entry by long-press was removed,
                     // so nothing but this control opens selection mode on touch.
-                    QueryFilterButton(
-                      active: ref.watch(buddyQueryProvider) != null,
-                      onPressed: _openQueryFilter,
+                    QueryFilterAction(
+                      provider: buddyQueryProvider,
+                      subject: QuerySubject.buddies,
+                      root: buddyQueryEntity,
                     ),
                     IconButton(
                       key: const ValueKey('enter_selection'),
@@ -791,9 +784,10 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           ),
           // The only way into bulk actions: entry by long-press was removed,
           // so nothing but this control opens selection mode on touch.
-          QueryFilterButton(
-            active: ref.watch(buddyQueryProvider) != null,
-            onPressed: _openQueryFilter,
+          QueryFilterAction(
+            provider: buddyQueryProvider,
+            subject: QuerySubject.buddies,
+            root: buddyQueryEntity,
             compact: true,
           ),
           IconButton(
@@ -1009,7 +1003,11 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           Text(context.l10n.buddies_error_loading(error.toString())),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: () => ref.invalidate(allBuddiesWithDiveCountProvider),
+            onPressed: () {
+              // An id-set error shows here too: run the query again as well.
+              ref.invalidate(entityQueryIdsProvider);
+              ref.invalidate(allBuddiesWithDiveCountProvider);
+            },
             child: Text(context.l10n.buddies_action_retry),
           ),
         ],
