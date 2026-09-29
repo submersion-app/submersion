@@ -73,4 +73,13 @@ void main() {
     expect(boundOf(compile('lt', 3.5), 'rating', QueryOp.lte), 3);
     expect(boundOf(compile('gte', 3.5), 'rating', QueryOp.gte), 4);
   });
+
+  test('an exact value no whole number can equal is out of range', () {
+    // "Exactly 3.5 stars" rounds inward to at least 4 and at most 3: no
+    // dive can match, so the clause says why instead of finding nothing.
+    final q = compile('eq', 3.5);
+    expect(q.query, isNull);
+    expect(q.chips, isEmpty);
+    expect(q.unplaced.single.reason, 'outOfRange');
+  });
 }

@@ -213,7 +213,9 @@ bool unitFits(FieldDimension dimension, ClauseUnit? unit) {
     FieldDimension.count ||
     FieldDimension.none => true,
     // The query unit the clause unit reads as on this field (a plain bar or
-    // psi on a rate is the rate) must belong to the field's dimension.
+    // psi on a rate is the rate) must belong to the field's dimension. The
+    // model has no weight or volume unit, so on such a field any unit said
+    // is of another kind and refused; a bare number takes the diver's unit.
     _ => switch (queryUnitOf(unit, dimension)) {
       final q? => dimensionOfUnit(q) == dimension,
       null => false,

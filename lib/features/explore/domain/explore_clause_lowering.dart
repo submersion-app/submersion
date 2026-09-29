@@ -182,6 +182,9 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
   if (field.wholeNumbers) {
     lo = lo?.ceilToDouble();
     hi = hi?.floorToDouble();
+    // "Exactly 3.5 stars" rounds to at least 4 and at most 3: no whole
+    // number lies between, so say so rather than find nothing.
+    if (lo != null && hi != null && lo > hi) return _fail('outOfRange');
   }
   final key = field.path.last;
   final bounds = <QueryNode>[

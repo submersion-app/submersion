@@ -166,6 +166,11 @@ void main() {
     expect(unitFits(FieldDimension.depth, null), isTrue);
     expect(unitFits(FieldDimension.count, ClauseUnit.m), isTrue);
     expect(unitFits(FieldDimension.none, ClauseUnit.c), isTrue);
+    // The model has no weight or volume unit, so any unit said on such a
+    // field is of another kind; a bare number still takes the diver's unit.
+    expect(unitFits(FieldDimension.weight, ClauseUnit.m), isFalse);
+    expect(unitFits(FieldDimension.volume, ClauseUnit.bar), isFalse);
+    expect(unitFits(FieldDimension.weight, null), isTrue);
   });
 
   test('a SAC unit said without per minute is per minute', () {
