@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
@@ -263,6 +264,44 @@ class MissionEngine {
       constraint: analysis.constraint(memberOutcomes),
       issues: issues,
     );
+  }
+
+  /// The planned round trip at cruise as the plan's segments: the outbound
+  /// legs up to the first one the current makes untraversable, then the same
+  /// way back. Empty when the mission has a blocking validation issue or no
+  /// leg can be travelled, so a half-built mission never feeds the plan
+  /// engine nonsense. For a mission [compute] accepts, this is its outcome's
+  /// `segments`.
+  List<PlanSegment> roundTripSegments({
+    required domain.DivePlan plan,
+    required DpvMission mission,
+  }) {
+    final blocked = validateMission(
+      mission,
+    ).any((i) => i.severity == MissionIssueSeverity.blocking);
+    if (blocked) return const [];
+    final cruise = cruiseSpeedMps(mission.team);
+    final traversable = <MissionLeg>[];
+    for (final leg in mission.legs) {
+      final resolved = speeds.resolve(
+        leg: leg,
+        current: mission.currentFor(leg),
+        baseSpeedMps: cruise,
+      );
+      // The route stops at the first leg the current blocks.
+      if (!resolved.traversable) break;
+      traversable.add(leg);
+    }
+    if (traversable.isEmpty) return const [];
+    return builder
+        .build(
+          plan: plan,
+          mission: mission.copyWith(legs: traversable),
+          throughLegIndex: traversable.length - 1,
+          outboundSpeedMps: cruise,
+          exitSpeedMps: cruise,
+        )
+        .segments;
   }
 
   List<LegOutcome> _legOutcomes(
