@@ -1434,12 +1434,11 @@ void main() {
 
     group('UniversalImportNotifier - MacDive SQLite', () {
       test('detects MacDive SQLite format from synthetic DB', () async {
-        final path =
-            '${Directory.systemTemp.path}/mdw_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-        final file = buildSyntheticMacDiveDb(path);
+        final dir = Directory.systemTemp.createTempSync('mdw_');
         addTearDown(() {
-          if (file.existsSync()) file.deleteSync();
+          if (dir.existsSync()) dir.deleteSync(recursive: true);
         });
+        final file = buildSyntheticMacDiveDb(p.join(dir.path, 'mdw.sqlite'));
         final bytes = Uint8List.fromList(await file.readAsBytes());
 
         final detection = await notifier.loadFileFromBytes(
@@ -1455,12 +1454,11 @@ void main() {
       test(
         'MacDiveSqliteParser produces populated payload from synthetic DB',
         () async {
-          final path =
-              '${Directory.systemTemp.path}/mdw2_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-          final file = buildSyntheticMacDiveDb(path);
+          final dir = Directory.systemTemp.createTempSync('mdw2_');
           addTearDown(() {
-            if (file.existsSync()) file.deleteSync();
+            if (dir.existsSync()) dir.deleteSync(recursive: true);
           });
+          final file = buildSyntheticMacDiveDb(p.join(dir.path, 'mdw2.sqlite'));
           final bytes = Uint8List.fromList(await file.readAsBytes());
 
           const parser = MacDiveSqliteParser();

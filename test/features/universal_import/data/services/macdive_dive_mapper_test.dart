@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -21,13 +22,12 @@ void main() {
   late Uint8List bytes;
 
   setUpAll(() async {
-    final path =
-        '${Directory.systemTemp.path}/mdm_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-    final file = buildSyntheticMacDiveDb(path);
-    bytes = Uint8List.fromList(await file.readAsBytes());
+    final dir = Directory.systemTemp.createTempSync('mdm_');
     addTearDown(() {
-      if (file.existsSync()) file.deleteSync();
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
     });
+    final file = buildSyntheticMacDiveDb(p.join(dir.path, 'mdm.sqlite'));
+    bytes = Uint8List.fromList(await file.readAsBytes());
   });
 
   group('MacDiveDiveMapper', () {

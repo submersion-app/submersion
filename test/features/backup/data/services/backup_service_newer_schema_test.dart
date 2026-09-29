@@ -52,7 +52,21 @@ class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
 /// Restoring a backup written by a NEWER schema must be refused BEFORE the
 /// database swap. The post-swap open guard would otherwise fire with the new
 /// file already live, leaving the app with no working database (issue #1089).
+/// Per-file temp root, so the backup service's fixed `Submersion/Backups`
+/// subtree does not collide with the other suites that mock path_provider the
+/// same way. `flutter test` runs files in parallel isolates against one real
+/// $TMPDIR, so sharing it let one suite truncate or encrypt another's artifact
+/// mid-assert.
+final _isolatedTempDir = Directory.systemTemp.createTempSync(
+  'newer_schema_pp_',
+);
+
 void main() {
+  tearDownAll(() {
+    if (_isolatedTempDir.existsSync()) {
+      _isolatedTempDir.deleteSync(recursive: true);
+    }
+  });
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory tempDir;
@@ -65,7 +79,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (MethodCall methodCall) async => Directory.systemTemp.path,
+          (MethodCall methodCall) async => _isolatedTempDir.path,
         );
   });
   tearDownAll(clearPathAndShareChannelMocks);
