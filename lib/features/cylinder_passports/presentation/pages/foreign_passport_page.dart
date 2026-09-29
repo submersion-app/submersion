@@ -12,6 +12,8 @@ import 'package:submersion/features/cylinder_passports/domain/services/passport_
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
@@ -113,7 +115,9 @@ class _ForeignPassportPageState extends ConsumerState<ForeignPassportPage> {
       label: Text(context.l10n.passport_foreign_useOnDive),
       onPressed: () => context.push(
         '/dives/new',
-        extra: DivePrefill(tank: tankFromPassport(tag)),
+        extra: DivePrefill(
+          tank: tankFromPassport(tag, mix: tag.fill?.gasMix ?? const GasMix()),
+        ),
       ),
     ),
     const SizedBox(height: 8),
@@ -230,6 +234,38 @@ class _ForeignPassportPageState extends ConsumerState<ForeignPassportPage> {
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(l10n.passport_foreign_noDetails),
+          ),
+        // Shown, not stored: a buddy's or a rental's fill is not the
+        // diver's history (spec section 11).
+        if (tag.fill case final fill?)
+          Card(
+            margin: const EdgeInsets.only(top: 12),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.passport_foreign_lastFill,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.passport_foreign_fillSummary(
+                      fill.gasMix.name,
+                      units.formatPressure(fill.pressureBar),
+                      units.formatDate(fill.filledAt),
+                    ),
+                  ),
+                  if (fill.filledBy != null)
+                    Text(l10n.passport_fill_station(fill.filledBy!)),
+                  Text(
+                    l10n.passport_fill_analyseBeforeDiving,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
           ),
         const SizedBox(height: 24),
         ..._actions(tag),

@@ -12390,6 +12390,25 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get passport_fill_fromTag => 'מהתג';
+
+  @override
+  String get passport_fill_analyseBeforeDiving =>
+      'נתחו את הגז בעצמכם לפני שתצללו איתו';
+
+  @override
+  String get passport_foreign_lastFill => 'המילוי האחרון על התג';
+
+  @override
+  String passport_foreign_fillSummary(
+    String mix,
+    String pressure,
+    String date,
+  ) {
+    return '$mix · $pressure · $date';
+  }
+
+  @override
   String passport_fill_addedFromTag(String mix, String pressure) {
     return 'המילוי מהתג נוסף: $mix, $pressure';
   }
@@ -12408,9 +12427,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String passport_fill_temperature(String temperature) {
     return 'טמפרטורת הגז $temperature';
   }
-
-  @override
-  String get passport_fill_unsigned => 'לא חתום';
 
   @override
   String get passport_history_title => 'היסטוריית מילויים';

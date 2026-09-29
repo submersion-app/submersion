@@ -12476,6 +12476,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get passport_fill_fromTag => 'From tag';
+
+  @override
+  String get passport_fill_analyseBeforeDiving =>
+      'Analyse the gas yourself before you dive it';
+
+  @override
+  String get passport_foreign_lastFill => 'Last fill on the tag';
+
+  @override
+  String passport_foreign_fillSummary(
+    String mix,
+    String pressure,
+    String date,
+  ) {
+    return '$mix · $pressure · $date';
+  }
+
+  @override
   String passport_fill_addedFromTag(String mix, String pressure) {
     return 'Fill from the tag added: $mix, $pressure';
   }
@@ -12494,9 +12513,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String passport_fill_temperature(String temperature) {
     return 'Gas temperature $temperature';
   }
-
-  @override
-  String get passport_fill_unsigned => 'Unsigned';
 
   @override
   String get passport_history_title => 'Fill history';

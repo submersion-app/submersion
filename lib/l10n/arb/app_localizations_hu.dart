@@ -12641,6 +12641,25 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get passport_fill_fromTag => 'Címkéről';
+
+  @override
+  String get passport_fill_analyseBeforeDiving =>
+      'Merülés előtt elemezd a gázt magad';
+
+  @override
+  String get passport_foreign_lastFill => 'Utolsó töltés a címkén';
+
+  @override
+  String passport_foreign_fillSummary(
+    String mix,
+    String pressure,
+    String date,
+  ) {
+    return '$mix · $pressure · $date';
+  }
+
+  @override
   String passport_fill_addedFromTag(String mix, String pressure) {
     return 'A címke töltése hozzáadva: $mix, $pressure';
   }
@@ -12659,9 +12678,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String passport_fill_temperature(String temperature) {
     return 'Gázhőmérséklet: $temperature';
   }
-
-  @override
-  String get passport_fill_unsigned => 'Aláíratlan';
 
   @override
   String get passport_history_title => 'Töltési előzmények';

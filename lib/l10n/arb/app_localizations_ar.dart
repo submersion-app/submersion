@@ -12472,6 +12472,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get passport_fill_fromTag => 'من الوسم';
+
+  @override
+  String get passport_fill_analyseBeforeDiving =>
+      'حلّل الغاز بنفسك قبل الغوص به';
+
+  @override
+  String get passport_foreign_lastFill => 'آخر تعبئة على الوسم';
+
+  @override
+  String passport_foreign_fillSummary(
+    String mix,
+    String pressure,
+    String date,
+  ) {
+    return '$mix · $pressure · $date';
+  }
+
+  @override
   String passport_fill_addedFromTag(String mix, String pressure) {
     return 'أُضيفت التعبئة من الوسم: $mix، $pressure';
   }
@@ -12490,9 +12509,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String passport_fill_temperature(String temperature) {
     return 'درجة حرارة الغاز $temperature';
   }
-
-  @override
-  String get passport_fill_unsigned => 'غير موقَّعة';
 
   @override
   String get passport_history_title => 'سجل التعبئة';

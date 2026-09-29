@@ -12107,6 +12107,24 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get passport_fill_fromTag => '来自标签';
+
+  @override
+  String get passport_fill_analyseBeforeDiving => '潜水前请亲自分析气体';
+
+  @override
+  String get passport_foreign_lastFill => '标签上的最近一次充气';
+
+  @override
+  String passport_foreign_fillSummary(
+    String mix,
+    String pressure,
+    String date,
+  ) {
+    return '$mix · $pressure · $date';
+  }
+
+  @override
   String passport_fill_addedFromTag(String mix, String pressure) {
     return '已添加标签上的充气：$mix，$pressure';
   }
@@ -12125,9 +12143,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String passport_fill_temperature(String temperature) {
     return '气体温度 $temperature';
   }
-
-  @override
-  String get passport_fill_unsigned => '未签名';
 
   @override
   String get passport_history_title => '充气历史';

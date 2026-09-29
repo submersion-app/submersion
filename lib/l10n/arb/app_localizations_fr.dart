@@ -12714,6 +12714,25 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get passport_fill_fromTag => 'Du tag';
+
+  @override
+  String get passport_fill_analyseBeforeDiving =>
+      'Analysez le gaz vous-même avant de plonger avec';
+
+  @override
+  String get passport_foreign_lastFill => 'Dernier remplissage sur le tag';
+
+  @override
+  String passport_foreign_fillSummary(
+    String mix,
+    String pressure,
+    String date,
+  ) {
+    return '$mix · $pressure · $date';
+  }
+
+  @override
   String passport_fill_addedFromTag(String mix, String pressure) {
     return 'Remplissage du tag ajouté : $mix, $pressure';
   }
@@ -12732,9 +12751,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String passport_fill_temperature(String temperature) {
     return 'Température du gaz $temperature';
   }
-
-  @override
-  String get passport_fill_unsigned => 'Non signé';
 
   @override
   String get passport_history_title => 'Historique des gonflages';

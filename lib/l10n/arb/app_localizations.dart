@@ -20926,6 +20926,30 @@ abstract class AppLocalizations {
   /// **'Filled by {station}'**
   String passport_fill_station(String station);
 
+  /// No description provided for @passport_fill_fromTag.
+  ///
+  /// In en, this message translates to:
+  /// **'From tag'**
+  String get passport_fill_fromTag;
+
+  /// No description provided for @passport_fill_analyseBeforeDiving.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyse the gas yourself before you dive it'**
+  String get passport_fill_analyseBeforeDiving;
+
+  /// No description provided for @passport_foreign_lastFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Last fill on the tag'**
+  String get passport_foreign_lastFill;
+
+  /// No description provided for @passport_foreign_fillSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{mix} · {pressure} · {date}'**
+  String passport_foreign_fillSummary(String mix, String pressure, String date);
+
   /// No description provided for @passport_fill_addedFromTag.
   ///
   /// In en, this message translates to:
@@ -20949,12 +20973,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas temperature {temperature}'**
   String passport_fill_temperature(String temperature);
-
-  /// No description provided for @passport_fill_unsigned.
-  ///
-  /// In en, this message translates to:
-  /// **'Unsigned'**
-  String get passport_fill_unsigned;
 
   /// No description provided for @passport_history_title.
   ///

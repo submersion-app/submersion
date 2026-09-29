@@ -7128,6 +7128,23 @@
       "station": {"type": "String"}
     }
   },
+  "passport_fill_fromTag": "From tag",
+  "passport_fill_analyseBeforeDiving": "Analyse the gas yourself before you dive it",
+  "passport_foreign_lastFill": "Last fill on the tag",
+  "passport_foreign_fillSummary": "{mix} · {pressure} · {date}",
+  "@passport_foreign_fillSummary": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      },
+      "pressure": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "passport_fill_addedFromTag": "Fill from the tag added: {mix}, {pressure}",
   "@passport_fill_addedFromTag": {
     "placeholders": {
@@ -7158,7 +7175,6 @@
       "temperature": {"type": "String"}
     }
   },
-  "passport_fill_unsigned": "Unsigned",
   "passport_history_title": "Fill history",
   "passport_history_sinceHydro": "{count, plural, =0{No fills since the last hydro} =1{{count} fill since the last hydro} other{{count} fills since the last hydro}}",
   "@passport_history_sinceHydro": {

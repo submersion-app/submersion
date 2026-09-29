@@ -116,6 +116,12 @@ class _FillSummary extends StatelessWidget {
               units.formatTemperature(fill.temperatureC),
             ),
           ),
+        // Nothing on a tag is signed: its fill is what someone typed.
+        if (fill.source == FillSource.nfc)
+          Text(
+            l10n.passport_fill_analyseBeforeDiving,
+            style: theme.textTheme.bodySmall,
+          ),
         const SizedBox(height: 8),
         Text(
           l10n.passport_fill_mod(
@@ -138,8 +144,9 @@ class _FillSummary extends StatelessWidget {
   }
 }
 
-/// Unsigned for a manual fill. PR 3 replaces this with the verification
-/// badge; keeping the widget name lets that PR swap the body only.
+/// Where a fill came from, when that matters (spec section 11): "From tag"
+/// for a fill read from the cylinder's NFC tag. Nothing is signed, so
+/// nothing claims to be verified; a fill the diver logged needs no badge.
 class FillSourceBadge extends StatelessWidget {
   const FillSourceBadge({super.key, required this.fill});
 
@@ -147,12 +154,13 @@ class FillSourceBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (fill.source != FillSource.nfc) return const SizedBox.shrink();
     final theme = Theme.of(context);
     return Semantics(
-      label: context.l10n.passport_fill_unsigned,
+      label: context.l10n.passport_fill_fromTag,
       child: Chip(
-        label: Text(context.l10n.passport_fill_unsigned),
-        avatar: const Icon(Icons.edit_note, size: 18),
+        label: Text(context.l10n.passport_fill_fromTag),
+        avatar: const Icon(Icons.nfc, size: 18),
         labelStyle: theme.textTheme.labelSmall,
         visualDensity: VisualDensity.compact,
       ),
