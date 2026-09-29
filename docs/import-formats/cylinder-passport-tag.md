@@ -45,13 +45,44 @@ metric. Only `f` and `p` are required.
 | `h` | last hydrostatic test, `YYYY-MM-DD` | `2024-06-14` |
 | `vi` | last visual inspection, `YYYY-MM-DD` | `2026-03-02` |
 | `oc` | `1` when oxygen clean at write time | `1` |
+| `fi` | newest fill: its id, a UUID, the dedupe key | `3f0c2b8e-...` |
+| `ft` | fill time, RFC 3339 UTC to the second | `2026-09-28T09:30:00Z` |
+| `fo` | fill O2, percent | `32.1` |
+| `fh` | fill He, percent, default 0 | `0` |
+| `fp` | fill pressure, bar | `232` |
+| `fc` | gas temperature at the reading, C | `24.5` |
+| `fb` | filled by (a person or a station), at most 40 characters | `Blue+Hole` |
+| `fa` | analyzer, at most 40 characters | `Divesoft` |
+| `fs` | reserved for a future signature; ignored | |
 
 Example:
 
     https://submersion.app/c#f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab&w=2026-09-25&n=Steel+12+L&sn=AB12345&v=12&wp=232&m=st&vt=din&h=2024-06-14&vi=2026-03-02&oc=1
 
-The gas mix is never on the tag. It changes every fill and travels in a fill
-record instead.
+## The newest fill
+
+An NFC tag also carries the cylinder's newest fill, in the `f` keys above.
+Printed labels never do: a label outlives many fills, and a stale mix on a
+label is worse than none. Submersion writes the fill whenever it writes the
+tag, including straight after Log a fill and after the blender's Log this
+fill.
+
+A fill needs `fi`, `ft` with a time zone (`Z` or an offset) and `fo` greater
+than 0, with `fo` plus `fh` at most 100. A fill missing any of those, or
+with a malformed one, is dropped on its own: the tag still opens.
+Out-of-range details (`fp` over 400 bar, `fc` outside -40 to 80 C) are
+dropped and the fill kept. `fs` is reserved and ignored; nothing on a tag is
+signed, so a reader must present the fill as what the tag says, for the
+diver to analyse, never as verified.
+
+When the diver who owns the cylinder scans the tag, Submersion adds the fill
+to the cylinder's history once, keyed by `fi`: a fill already there, or one
+the diver deleted, is not added again. Anyone else's scan shows the fill
+without storing it.
+
+Example, an NFC tag with a fill:
+
+    https://submersion.app/c#f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab&w=2026-09-28&v=12&wp=232&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11&ft=2026-09-28T09%3A30%3A00Z&fo=32.1&fh=0&fp=232&fc=24.5&fb=Blue+Hole&fa=Divesoft
 
 ## Passport ids
 
@@ -73,20 +104,21 @@ derive anything from it; third-party producers may use any UUID version.
 
 ## NFC layout
 
-The NDEF message holds, in order: the identity URI record above; when room
-allows, the newest signed fill record as a second URI record
-(`https://submersion.app/f#<token>`, documented separately); when room still
-allows, an Android Application Record for `app.submersion`. Readers process
-URI records in order and ignore records they do not know.
+The NDEF message holds, in order: the identity URI record above, with the
+newest fill riding in the passport link itself; when room still allows, an
+Android Application Record for `app.submersion`. Readers process URI records
+in order and ignore records they do not know.
 
 When a tag is too small, optional keys are dropped in this fixed order until
-the identity record fits: `n`, `sn`, `vi`, `h`, `oc`, `vt`, `m`, `wp`, `v`.
+the identity record fits: the fill's `fa`, `fb` and `fc`, then the whole
+fill, then `n`, `sn`, `vi`, `h`, `oc`, `vt`, `m`, `wp`, `v`.
 `f`, `p` and `w` are never dropped. Submersion fits the message to the NDEF
 capacity the phone reports for the tag (about 137 bytes on an NTAG213, 496
 on an NTAG215 and 868 on an NTAG216), and adds the Android Application
-Record only when it still fits. For the example above an NTAG213 drops the
-name and serial and has no room for the Android record, keeping the spec
-and dates; NTAG215 and NTAG216 hold everything, and are the tags to buy. Every write is read back before Submersion reports it as
+Record only when it still fits. For the first example above an NTAG213 drops
+the name and serial and has no room for the Android record, keeping the
+spec and dates, and a fill never fits on it; NTAG215 and NTAG216 hold
+everything, a fill included, and are the tags to buy. Every write is read back before Submersion reports it as
 written. Names and serials are cut by whole characters, never mid-glyph.
 
 ## Printing
