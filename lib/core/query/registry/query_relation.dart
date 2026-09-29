@@ -27,7 +27,10 @@ class QueryRelation {
   final String labelKey;
 
   /// Overrides `NOT EXISTS` for `:none` when a legacy scalar also counts as
-  /// "has one" (the dive's `buddy` text beside `dive_buddies`).
+  /// "has one" (the dive's `buddy` text beside `dive_buddies`). The compiler
+  /// uses it as written, so a relation with a [targetFilterSql] must apply
+  /// that filter inside its own [emptySql] too, or `:none` and `:any` would
+  /// count rows the filter hides.
   final String? emptySql;
 
   /// A condition on the target row alone, written against `{to}`, that

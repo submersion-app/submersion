@@ -57,7 +57,9 @@ DiveDerivedMetrics computeDerivedMetricsFromBlobs(
     final decoded = _decodeOrNull(() => profileCodec.decode(blob));
     if (decoded != null) samples.addAll(decoded);
   }
-  if (samples.isEmpty) {
+  // A gauge dive's reason is its mode whatever its profile; the engine says
+  // so. Anything else with no readable samples has no profile.
+  if (samples.isEmpty && input.diveMode != DiveMode.gauge) {
     // No profile at all (a manual log), or blobs that did not read. Record
     // the reason so the sweep does not revisit the dive on every pass.
     return DiveDerivedMetrics(

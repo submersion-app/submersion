@@ -82,6 +82,11 @@ void main() {
     expect(labels.enumValue(dives.field('weekday')!, 'monday'), 'Mon');
     expect(labels.enumValue(dives.field('sacTrend')!, 'rising'), 'Rising');
     expect(labels.enumValue(dives.field('finalStop')!, 'noStop'), 'No stop');
+    final rule = appQueryRegistry
+        .entityFor(QuerySubject.findings)
+        .field('rule')!;
+    expect(labels.enumValue(rule, 'rapidAscent'), 'Rapid ascents');
+    expect(labels.enumValue(rule, 'noSuchRule'), 'noSuchRule');
     // An unknown enum value falls back to its stored name.
     expect(labels.enumValue(dives.field('waterType')!, 'brine'), 'brine');
     final certs = appQueryRegistry.entityFor(QuerySubject.certifications);

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/derived_metrics_repository.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/domain/services/derived_metrics_service.dart';
 
@@ -212,4 +213,85 @@ void main() {
     await sub.cancel();
     expect(ticks, isNotEmpty);
   });
+
+  test(
+    'each tank sends its richest pressure series, with its volume',
+    () async {
+      await insertDive('d1');
+      Future<void> tank(String id, {double? volume}) => db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: id,
+              diveId: 'd1',
+              volume: Value(volume),
+            ),
+          );
+      Future<void> series(String id, String tankId, int count, int marker) => db
+          .into(db.tankPressureSeries)
+          .insert(
+            TankPressureSeriesCompanion.insert(
+              id: id,
+              diveId: 'd1',
+              tankId: tankId,
+              sampleCount: count,
+              startTimestamp: 0,
+              endTimestamp: 600,
+              codecVersion: 1,
+              samples: Uint8List.fromList([marker]),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      await tank('t1', volume: 12);
+      await tank('t2');
+      // Two computers logged t1: the longer series wins; on a tie, the lower
+      // id. t2 has no series and sends nothing.
+      await series('s-b', 't1', 20, 2);
+      await series('s-a', 't1', 20, 1);
+      await series('s-short', 't1', 5, 3);
+
+      DerivedMetricsWorkInput? seen;
+      await DerivedMetricsRepository(
+        runner: (input) async {
+          seen = input;
+          return DiveDerivedMetrics(
+            diveId: input.diveId,
+            engineVersion: DerivedMetricsService.version,
+            sourceUpdatedAt: input.sourceUpdatedAt,
+            computedAt: input.computedAtMs,
+          );
+        },
+      ).ensureCurrent('d1');
+
+      expect(seen!.tankBlobs, hasLength(1));
+      final blob = seen!.tankBlobs.single;
+      expect(blob.tankId, 't1');
+      expect(blob.volumeLiters, 12);
+      expect(blob.samples, [1]);
+    },
+  );
+
+  test('the default runner computes on a worker isolate', () async {
+    await insertDive('d1');
+    // No profile: the real engine, run through compute(), says so.
+    final metrics = await DerivedMetricsRepository().ensureCurrent('d1');
+    expect(metrics!.unsupportedReason, UnsupportedReason.noProfile);
+  });
+
+  test(
+    'a stored name this build does not know reads as the safe default',
+    () async {
+      await insertDive('d1');
+      final r = repo();
+      await r.ensureCurrent('d1');
+      await db.customStatement(
+        "UPDATE dive_derived_metrics SET final_stop_kind = 'future', "
+        "unsupported_reason = 'future'",
+      );
+      final stored = await r.getMetrics('d1');
+      expect(stored!.finalStopKind, FinalStopKind.none);
+      expect(stored.unsupportedReason, UnsupportedReason.noProfile);
+    },
+  );
 }

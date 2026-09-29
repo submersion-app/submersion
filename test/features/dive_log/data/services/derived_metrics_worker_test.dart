@@ -122,4 +122,14 @@ void main() {
     final out = computeDerivedMetricsFromBlobs(input(primaryBlobs: const []));
     expect(out.unsupportedReason, UnsupportedReason.noProfile);
   });
+
+  test(
+    'a gauge dive with no profile reports its mode, not a missing profile',
+    () {
+      final out = computeDerivedMetricsFromBlobs(
+        input(primaryBlobs: const [], mode: DiveMode.gauge),
+      );
+      expect(out.unsupportedReason, UnsupportedReason.gaugeMode);
+    },
+  );
 }

@@ -140,4 +140,11 @@ void main() {
     expect(seen.single.force, isTrue);
     expect(repo.calls, isEmpty);
   });
+
+  test('the default factory builds the real repository', () {
+    expect(
+      DerivedMetricsScheduler.defaultRepositoryFactory(),
+      isA<DerivedMetricsRepository>(),
+    );
+  });
 }
