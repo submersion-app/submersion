@@ -50,28 +50,8 @@ class MissionEngine {
     final cruise = cruiseSpeedMps(team);
     final limitingId = cruiseLimitingMemberId(team);
 
-    // Resolve every leg at cruise and cut the route at the first one the
-    // current makes untraversable in either direction.
-    final legSpeeds = <LegSpeeds>[];
-    for (final leg in mission.legs) {
-      final resolved = speeds.resolve(
-        leg: leg,
-        current: mission.currentFor(leg),
-        baseSpeedMps: cruise,
-      );
-      if (!resolved.traversable) {
-        issues.add(
-          MissionIssue(
-            type: MissionIssueType.untraversableLeg,
-            severity: MissionIssueSeverity.blocking,
-            legId: leg.id,
-            outbound: !resolved.outboundTraversable,
-          ),
-        );
-        break;
-      }
-      legSpeeds.add(resolved);
-    }
+    final (speeds: legSpeeds, :cut) = traversableRoute(mission);
+    if (cut != null) issues.add(cut);
     if (legSpeeds.isEmpty) return MissionOutcome.empty(issues: issues);
     final legs = mission.legs.sublist(0, legSpeeds.length);
     final route = mission.copyWith(legs: legs);
@@ -281,18 +261,9 @@ class MissionEngine {
     ).any((i) => i.severity == MissionIssueSeverity.blocking);
     if (blocked) return const [];
     final cruise = cruiseSpeedMps(mission.team);
-    final traversable = <MissionLeg>[];
-    for (final leg in mission.legs) {
-      final resolved = speeds.resolve(
-        leg: leg,
-        current: mission.currentFor(leg),
-        baseSpeedMps: cruise,
-      );
-      // The route stops at the first leg the current blocks.
-      if (!resolved.traversable) break;
-      traversable.add(leg);
-    }
-    if (traversable.isEmpty) return const [];
+    final route = traversableRoute(mission).speeds;
+    if (route.isEmpty) return const [];
+    final traversable = mission.legs.sublist(0, route.length);
     return builder
         .build(
           plan: plan,
@@ -302,6 +273,37 @@ class MissionEngine {
           exitSpeedMps: cruise,
         )
         .segments;
+  }
+
+  /// Every leg resolved at the team's cruise speed, up to the first one the
+  /// current makes untraversable in either direction, and the issue naming
+  /// that leg (null when the whole route can be travelled). [speeds] holds
+  /// one entry per leg kept, in route order.
+  ({List<LegSpeeds> speeds, MissionIssue? cut}) traversableRoute(
+    DpvMission mission,
+  ) {
+    final cruise = cruiseSpeedMps(mission.team);
+    final kept = <LegSpeeds>[];
+    for (final leg in mission.legs) {
+      final resolved = speeds.resolve(
+        leg: leg,
+        current: mission.currentFor(leg),
+        baseSpeedMps: cruise,
+      );
+      if (!resolved.traversable) {
+        return (
+          speeds: kept,
+          cut: MissionIssue(
+            type: MissionIssueType.untraversableLeg,
+            severity: MissionIssueSeverity.blocking,
+            legId: leg.id,
+            outbound: !resolved.outboundTraversable,
+          ),
+        );
+      }
+      kept.add(resolved);
+    }
+    return (speeds: kept, cut: null);
   }
 
   List<LegOutcome> _legOutcomes(

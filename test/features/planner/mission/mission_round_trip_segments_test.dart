@@ -7,6 +7,7 @@ import 'package:submersion/features/planner/domain/entities/mission/current_vect
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
+import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
 
@@ -96,5 +97,50 @@ void main() {
       ],
     );
     expect(engine.roundTripSegments(plan: _plan(), mission: mission), isEmpty);
+  });
+
+  group('traversableRoute', () {
+    const against = CurrentVector(speedMps: 0.6, setsTowardDeg: 180);
+
+    test('a clear route keeps every leg and names no cut', () {
+      final route = engine.traversableRoute(
+        DpvMission(
+          legs: [_leg('L1', 0), _leg('L2', 1)],
+          team: [_member('a', 0)],
+        ),
+      );
+      expect(route.speeds, hasLength(2));
+      expect(route.cut, isNull);
+    });
+
+    test('a blocked first leg leaves no route and names the leg', () {
+      final route = engine.traversableRoute(
+        DpvMission(
+          legs: [
+            _leg('L1', 0).copyWith(current: against),
+            _leg('L2', 1),
+          ],
+          team: [_member('a', 0)],
+        ),
+      );
+      expect(route.speeds, isEmpty);
+      expect(route.cut!.type, MissionIssueType.untraversableLeg);
+      expect(route.cut!.legId, 'L1');
+      expect(route.cut!.outbound, isTrue);
+    });
+
+    test('a blocked later leg keeps the legs before it', () {
+      final route = engine.traversableRoute(
+        DpvMission(
+          legs: [
+            _leg('L1', 0),
+            _leg('L2', 1).copyWith(current: against),
+          ],
+          team: [_member('a', 0)],
+        ),
+      );
+      expect(route.speeds, hasLength(1));
+      expect(route.cut!.legId, 'L2');
+    });
   });
 }

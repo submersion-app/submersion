@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
+import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/entities/mission/shore_exit.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -133,6 +134,55 @@ void main() {
     expect(find.textContaining('Current 9 m/min toward 225°'), findsOneWidget);
     expect(
       find.textContaining('Shore exit: swim 120m, walk 40m'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a first leg the current blocks says why there is no profile', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Plan as DPV mission'));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanEditorPane)),
+    );
+    final mission = container.read(divePlanNotifierProvider).mission!;
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .updateMission(
+          mission.copyWith(
+            legs: const [
+              MissionLeg(
+                id: 'L1',
+                order: 0,
+                label: 'Wall',
+                distanceM: 300,
+                depthM: 20,
+                headingDeg: 0,
+                // 0.6 m/s setting south against 0.5 m/s scooters heading north.
+                current: CurrentVector(speedMps: 0.6, setsTowardDeg: 180),
+              ),
+            ],
+            team: [
+              mission.team.single.copyWith(
+                scooter: const ScooterSpec(
+                  name: 'S',
+                  ratedSpeedMps: 0.5,
+                  burnTimeSeconds: 7200,
+                ),
+              ),
+            ],
+          ),
+        );
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).segments, isEmpty);
+    expect(
+      find.textContaining('No profile yet: The current blocks Wall'),
       findsOneWidget,
     );
   });

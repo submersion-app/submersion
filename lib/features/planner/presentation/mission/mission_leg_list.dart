@@ -11,6 +11,7 @@ import 'package:submersion/features/planner/domain/entities/mission/mission_leg.
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_validator.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_issue_text.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_leg_editor.dart';
@@ -148,15 +149,18 @@ class MissionLegList extends ConsumerWidget {
     return lines.join('\n');
   }
 
-  /// The first blocking validation issue, as a sentence, or null.
+  /// Why the route generates no profile, as a sentence, or null: the first
+  /// blocking validation issue, else a first leg the current blocks.
   static String? _blockingReason(
     BuildContext context,
     DivePlanState state,
     DpvMission mission,
   ) {
+    final route = const MissionEngine().traversableRoute(mission);
     final issues = [
       ...validateMission(mission),
       ...validatePlanForMission(divePlanFromState(state)),
+      if (route.speeds.isEmpty && route.cut != null) route.cut!,
     ];
     for (final issue in issues) {
       if (issue.severity == MissionIssueSeverity.blocking) {
