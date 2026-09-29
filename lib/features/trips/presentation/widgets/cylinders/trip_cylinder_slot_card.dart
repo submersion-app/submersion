@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -60,7 +61,7 @@ Future<bool> confirmDeleteTripCylinder(
   }
 }
 
-enum _SlotAction { fill, adjust, edit, delete }
+enum _SlotAction { fill, adjust, logDive, edit, delete }
 
 /// One slot on the board: its status dot and word, mix, pressure, the
 /// bottle now in it, its size, the last thing that happened to it and how
@@ -89,6 +90,13 @@ class TripCylinderSlotCard extends ConsumerWidget {
         preselected: {c.id},
       ),
       _SlotAction.adjust => showTripCylinderAdjustSheet(context, cylinder: c),
+      // A new dive on this trip, its first tank breathing from this slot.
+      _SlotAction.logDive => context.push(
+        Uri(
+          path: '/dives/new',
+          queryParameters: {'tripId': c.tripId, 'tripCylinderId': c.id},
+        ).toString(),
+      ),
       _SlotAction.edit => showTripCylinderEditSheet(context, cylinder: c),
       _SlotAction.delete => confirmDeleteTripCylinder(context, ref, c),
     };
@@ -155,6 +163,10 @@ class TripCylinderSlotCard extends ConsumerWidget {
             PopupMenuItem(
               value: _SlotAction.adjust,
               child: Text(l10n.trips_cylinders_action_adjust),
+            ),
+            PopupMenuItem(
+              value: _SlotAction.logDive,
+              child: Text(l10n.trips_cylinders_action_logDive),
             ),
             PopupMenuItem(
               value: _SlotAction.edit,
