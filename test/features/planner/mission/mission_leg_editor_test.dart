@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
@@ -73,5 +74,22 @@ void main() {
     await tester.pumpAndSettle();
     await _open(tester, openWater: true);
     expect(find.text('Shore exit from here'), findsOneWidget);
+  });
+
+  testWidgets('a distance emptied on the way to retyping is not saved as 0', (
+    tester,
+  ) async {
+    await _open(tester);
+    final box = find.descendant(
+      of: find.widgetWithText(PlanNumberField, 'Distance'),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(box, '');
+    await tester.pump();
+    // The box is not refilled with 0 under the diver's cursor.
+    expect(tester.widget<TextField>(box).controller!.text, isEmpty);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.distanceM, 300);
   });
 }

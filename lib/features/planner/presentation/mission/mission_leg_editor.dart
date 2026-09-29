@@ -82,11 +82,13 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
               decimals: 0,
               min: 0,
               allowEmpty: false,
-              onChanged: (v) => setState(
-                () => _draft = _draft.copyWith(
-                  distanceM: u.distanceMeters(v ?? 0),
-                ),
-              ),
+              onChanged: (v) {
+                if (v == null) return;
+                setState(
+                  () =>
+                      _draft = _draft.copyWith(distanceM: u.distanceMeters(v)),
+                );
+              },
             ),
             PlanNumberField(
               label: l10n.plannerMission_leg_depth,
@@ -96,10 +98,12 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
               decimals: 0,
               min: 0,
               allowEmpty: false,
-              onChanged: (v) => setState(
-                () =>
-                    _draft = _draft.copyWith(depthM: u.distanceMeters(v ?? 0)),
-              ),
+              onChanged: (v) {
+                if (v == null) return;
+                setState(
+                  () => _draft = _draft.copyWith(depthM: u.distanceMeters(v)),
+                );
+              },
             ),
             PlanNumberField(
               label: l10n.plannerMission_leg_heading,
@@ -110,8 +114,10 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
               min: 0,
               max: 359,
               allowEmpty: false,
-              onChanged: (v) =>
-                  setState(() => _draft = _draft.copyWith(headingDeg: v ?? 0)),
+              onChanged: (v) {
+                if (v == null) return;
+                setState(() => _draft = _draft.copyWith(headingDeg: v));
+              },
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
@@ -137,14 +143,17 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
                 decimals: 0,
                 min: 0,
                 allowEmpty: false,
-                onChanged: (v) => setState(
-                  () => _draft = _draft.copyWith(
-                    current: CurrentVector(
-                      speedMps: u.speedMps(v ?? 0),
-                      setsTowardDeg: current.setsTowardDeg,
+                onChanged: (v) {
+                  if (v == null) return;
+                  setState(
+                    () => _draft = _draft.copyWith(
+                      current: CurrentVector(
+                        speedMps: u.speedMps(v),
+                        setsTowardDeg: current.setsTowardDeg,
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               PlanNumberField(
                 label: l10n.plannerMission_current_setsToward,
@@ -155,14 +164,17 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
                 min: 0,
                 max: 359,
                 allowEmpty: false,
-                onChanged: (v) => setState(
-                  () => _draft = _draft.copyWith(
-                    current: CurrentVector(
-                      speedMps: current.speedMps,
-                      setsTowardDeg: v ?? 0,
+                onChanged: (v) {
+                  if (v == null) return;
+                  setState(
+                    () => _draft = _draft.copyWith(
+                      current: CurrentVector(
+                        speedMps: current.speedMps,
+                        setsTowardDeg: v,
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ],
             if (widget.openWater) ...[
@@ -187,14 +199,17 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
                   decimals: 0,
                   min: 0,
                   allowEmpty: false,
-                  onChanged: (v) => setState(
-                    () => _draft = _draft.copyWith(
-                      shoreExit: ShoreExit(
-                        surfaceSwimM: u.distanceMeters(v ?? 0),
-                        walkM: shore.walkM,
+                  onChanged: (v) {
+                    if (v == null) return;
+                    setState(
+                      () => _draft = _draft.copyWith(
+                        shoreExit: ShoreExit(
+                          surfaceSwimM: u.distanceMeters(v),
+                          walkM: shore.walkM,
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
                 PlanNumberField(
                   label: l10n.plannerMission_leg_shoreWalk,
@@ -204,14 +219,17 @@ class _MissionLegEditorState extends State<_MissionLegEditor> {
                   decimals: 0,
                   min: 0,
                   allowEmpty: false,
-                  onChanged: (v) => setState(
-                    () => _draft = _draft.copyWith(
-                      shoreExit: ShoreExit(
-                        surfaceSwimM: shore.surfaceSwimM,
-                        walkM: u.distanceMeters(v ?? 0),
+                  onChanged: (v) {
+                    if (v == null) return;
+                    setState(
+                      () => _draft = _draft.copyWith(
+                        shoreExit: ShoreExit(
+                          surfaceSwimM: shore.surfaceSwimM,
+                          walkM: u.distanceMeters(v),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ],
             ],

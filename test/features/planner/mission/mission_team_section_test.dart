@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
@@ -183,5 +184,61 @@ void main() {
       find.textContaining('Long-range DPV: 72 m/min, 150 min burn'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('emptying a field to retype it keeps the plan values', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanSetupAccordion)),
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .enableMission(
+          MissionEdits.starter(
+            legId: 'L1',
+            memberId: 'm1',
+            memberName: 'Sam',
+            sacBottom: 15,
+          ).copyWith(
+            batteryReserveFraction: 0.25,
+            defaultCurrent: const CurrentVector(
+              speedMps: 20 / 60,
+              setsTowardDeg: 90,
+            ),
+          ),
+        );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('DPV team'));
+    await tester.pumpAndSettle();
+    DpvMission mission() => container.read(divePlanNotifierProvider).mission!;
+    Finder box(String label) => find.descendant(
+      of: find.widgetWithText(PlanNumberField, label),
+      matching: find.byType(TextField),
+    );
+
+    // Backspacing the current's speed to retype it keeps its direction.
+    await tester.enterText(box('Default current'), '');
+    await tester.pump();
+    expect(mission().defaultCurrent, isNotNull);
+    await tester.enterText(box('Default current'), '30');
+    await tester.pump();
+    expect(mission().defaultCurrent!.speedMps, closeTo(0.5, 1e-9));
+    expect(mission().defaultCurrent!.setsTowardDeg, 90);
+
+    // An emptied reserve is not reset to the default under the diver.
+    await tester.enterText(box('Battery reserve'), '');
+    await tester.pump();
+    expect(mission().batteryReserveFraction, 0.25);
+
+    // Typing 0 is how the diver says there is no default current.
+    await tester.enterText(box('Default current'), '0');
+    await tester.pump();
+    expect(mission().defaultCurrent, isNull);
   });
 }

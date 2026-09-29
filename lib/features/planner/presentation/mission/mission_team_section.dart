@@ -108,12 +108,12 @@ class MissionTeamSection extends ConsumerWidget {
           min: 0,
           max: 100,
           allowEmpty: false,
-          onChanged: (v) => notifier.updateMission(
-            mission.copyWith(
-              batteryReserveFraction:
-                  (v ?? kDefaultBatteryReserveFraction * 100) / 100,
-            ),
-          ),
+          onChanged: (v) {
+            if (v == null) return;
+            notifier.updateMission(
+              mission.copyWith(batteryReserveFraction: v / 100),
+            );
+          },
         ),
         PlanNumberField(
           label: l10n.plannerMission_settings_defaultCurrent,
@@ -124,16 +124,21 @@ class MissionTeamSection extends ConsumerWidget {
           suffixText: units.speedSymbol,
           decimals: 0,
           min: 0,
-          onChanged: (v) => notifier.updateMission(
-            v == null || v == 0
-                ? mission.copyWith(clearDefaultCurrent: true)
-                : mission.copyWith(
-                    defaultCurrent: CurrentVector(
-                      speedMps: units.speedMps(v),
-                      setsTowardDeg: defaultCurrent?.setsTowardDeg ?? 0,
+          // An emptied box is the diver retyping; 0 says there is none.
+          allowEmpty: false,
+          onChanged: (v) {
+            if (v == null) return;
+            notifier.updateMission(
+              v == 0
+                  ? mission.copyWith(clearDefaultCurrent: true)
+                  : mission.copyWith(
+                      defaultCurrent: CurrentVector(
+                        speedMps: units.speedMps(v),
+                        setsTowardDeg: defaultCurrent?.setsTowardDeg ?? 0,
+                      ),
                     ),
-                  ),
-          ),
+            );
+          },
         ),
         if (defaultCurrent != null)
           PlanNumberField(
@@ -145,14 +150,17 @@ class MissionTeamSection extends ConsumerWidget {
             min: 0,
             max: 359,
             allowEmpty: false,
-            onChanged: (v) => notifier.updateMission(
-              mission.copyWith(
-                defaultCurrent: CurrentVector(
-                  speedMps: defaultCurrent.speedMps,
-                  setsTowardDeg: v ?? 0,
+            onChanged: (v) {
+              if (v == null) return;
+              notifier.updateMission(
+                mission.copyWith(
+                  defaultCurrent: CurrentVector(
+                    speedMps: defaultCurrent.speedMps,
+                    setsTowardDeg: v,
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         if (openWater) ...[
           PlanNumberField(
@@ -163,13 +171,12 @@ class MissionTeamSection extends ConsumerWidget {
             decimals: 0,
             min: 0,
             allowEmpty: false,
-            onChanged: (v) => notifier.updateMission(
-              mission.copyWith(
-                walkSpeedMps: v == null
-                    ? kDefaultWalkSpeedMps
-                    : units.speedMps(v),
-              ),
-            ),
+            onChanged: (v) {
+              if (v == null) return;
+              notifier.updateMission(
+                mission.copyWith(walkSpeedMps: units.speedMps(v)),
+              );
+            },
           ),
           PlanNumberField(
             label: l10n.plannerMission_settings_surfaceSwimLimit,

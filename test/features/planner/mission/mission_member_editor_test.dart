@@ -9,6 +9,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -259,5 +260,22 @@ void main() {
     expect(scooter.ratedSpeedMps, 0.8);
     // Left for the diver to fill in; validation reports it until then.
     expect(scooter.burnTimeSeconds, 0);
+  });
+
+  testWidgets('an RMV emptied on the way to retyping is not saved as 0', (
+    tester,
+  ) async {
+    await _open(tester);
+    await tester.enterText(
+      find.descendant(
+        of: find.widgetWithText(PlanNumberField, 'Bottom RMV'),
+        matching: find.byType(TextField),
+      ),
+      '',
+    );
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.sacBottom, 15);
   });
 }

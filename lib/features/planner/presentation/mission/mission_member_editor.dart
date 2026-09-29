@@ -149,11 +149,13 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               decimals: u.sacDecimals,
               min: 0,
               allowEmpty: false,
-              onChanged: (v) => setState(
-                () => _draft = _draft.copyWith(
-                  sacBottom: u.sacLitersPerMin(v ?? 0),
-                ),
-              ),
+              onChanged: (v) {
+                if (v == null) return;
+                setState(
+                  () =>
+                      _draft = _draft.copyWith(sacBottom: u.sacLitersPerMin(v)),
+                );
+              },
             ),
             PlanNumberField(
               label: l10n.plannerMission_member_swimSpeed,
@@ -163,10 +165,12 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               decimals: 0,
               min: 0,
               allowEmpty: false,
-              onChanged: (v) => setState(
-                () =>
-                    _draft = _draft.copyWith(swimSpeedMps: u.speedMps(v ?? 0)),
-              ),
+              onChanged: (v) {
+                if (v == null) return;
+                setState(
+                  () => _draft = _draft.copyWith(swimSpeedMps: u.speedMps(v)),
+                );
+              },
             ),
             const Divider(),
             Text(l10n.plannerMission_member_scooter),
@@ -200,9 +204,12 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               decimals: 0,
               min: 0,
               allowEmpty: false,
-              onChanged: (v) => _setScooterNumbers(
-                scooter.copyWith(ratedSpeedMps: u.speedMps(v ?? 0)),
-              ),
+              onChanged: (v) {
+                if (v == null) return;
+                _setScooterNumbers(
+                  scooter.copyWith(ratedSpeedMps: u.speedMps(v)),
+                );
+              },
             ),
             PlanNumberField(
               label: l10n.plannerMission_scooter_burnTime,
@@ -213,9 +220,12 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               decimals: 0,
               min: 0,
               allowEmpty: false,
-              onChanged: (v) => _setScooterNumbers(
-                scooter.copyWith(burnTimeSeconds: ((v ?? 0) * 60).round()),
-              ),
+              onChanged: (v) {
+                if (v == null) return;
+                _setScooterNumbers(
+                  scooter.copyWith(burnTimeSeconds: (v * 60).round()),
+                );
+              },
             ),
             PlanNumberField(
               label: l10n.plannerMission_scooter_towSpeedFactor,
@@ -226,9 +236,10 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               min: 0,
               max: 1,
               allowEmpty: false,
-              onChanged: (v) => _setScooterNumbers(
-                scooter.copyWith(towSpeedFactor: v ?? kDefaultTowSpeedFactor),
-              ),
+              onChanged: (v) {
+                if (v == null) return;
+                _setScooterNumbers(scooter.copyWith(towSpeedFactor: v));
+              },
             ),
             PlanNumberField(
               label: l10n.plannerMission_scooter_towBurnFactor,
@@ -238,9 +249,10 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               decimals: 2,
               min: 1,
               allowEmpty: false,
-              onChanged: (v) => _setScooterNumbers(
-                scooter.copyWith(towBurnFactor: v ?? kDefaultTowBurnFactor),
-              ),
+              onChanged: (v) {
+                if (v == null) return;
+                _setScooterNumbers(scooter.copyWith(towBurnFactor: v));
+              },
             ),
           ],
         ),
