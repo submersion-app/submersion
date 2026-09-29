@@ -15803,6 +15803,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile aprire quella bombola. Riprova.';
 
   @override
+  String gasCalculators_blender_filledFrom(String name, String mix) {
+    return '$name: $mix';
+  }
+
+  @override
   String get gasCalculators_blender_amounts => 'Gas da aggiungere';
 
   @override

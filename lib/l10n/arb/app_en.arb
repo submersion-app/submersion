@@ -9189,6 +9189,18 @@
   "gasCalculators_blender_scanTag": "Scan tag",
   "gasCalculators_blender_notYourCylinder": "That cylinder is not in your gear",
   "gasCalculators_blender_cylinderFailed": "Could not open that cylinder. Try again.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
+  "@gasCalculators_blender_filledFrom": {
+    "description": "After Choose cylinder: the cylinder chosen and the mix of its last fill, now what is in it.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_blender_amounts": "Gas to add",
   "gasCalculators_blender_stepStart": "Start with {pressure} {gas}",
   "@gasCalculators_blender_stepStart": {

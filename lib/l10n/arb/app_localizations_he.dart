@@ -15448,6 +15448,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לפתוח את הבלון הזה. נסו שוב.';
 
   @override
+  String gasCalculators_blender_filledFrom(String name, String mix) {
+    return '$name: $mix';
+  }
+
+  @override
   String get gasCalculators_blender_amounts => 'גז להוספה';
 
   @override

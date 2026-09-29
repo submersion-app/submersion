@@ -15076,6 +15076,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_cylinderFailed => '无法打开该气瓶，请重试。';
 
   @override
+  String gasCalculators_blender_filledFrom(String name, String mix) {
+    return '$name：$mix';
+  }
+
+  @override
   String get gasCalculators_blender_amounts => '需充入的气体';
 
   @override

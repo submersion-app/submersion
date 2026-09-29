@@ -15786,6 +15786,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Flasche konnte nicht geöffnet werden. Versuche es erneut.';
 
   @override
+  String gasCalculators_blender_filledFrom(String name, String mix) {
+    return '$name: $mix';
+  }
+
+  @override
   String get gasCalculators_blender_amounts => 'Zuzuführendes Gas';
 
   @override

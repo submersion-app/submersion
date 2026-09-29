@@ -110,6 +110,7 @@
   "gasCalculators_blender_scanTag": "Címke beolvasása",
   "gasCalculators_blender_notYourCylinder": "Ez a palack nem szerepel a felszerelésedben",
   "gasCalculators_blender_cylinderFailed": "Nem sikerült megnyitni a palackot. Próbáld újra.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_amounts": "Hozzáadandó gáz",
   "gasCalculators_blender_stepStart": "Kezdd {pressure} {gas} gázzal",
   "gasCalculators_blender_stepFill": "Tölts {gas}-t {pressure}-ig → {mix}",

@@ -110,6 +110,7 @@
   "gasCalculators_blender_scanTag": "Tag scannen",
   "gasCalculators_blender_notYourCylinder": "Diese Flasche gehört nicht zu deiner Ausrüstung",
   "gasCalculators_blender_cylinderFailed": "Die Flasche konnte nicht geöffnet werden. Versuche es erneut.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_amounts": "Zuzuführendes Gas",
   "gasCalculators_blender_stepStart": "Beginne mit {pressure} {gas}",
   "gasCalculators_blender_stepFill": "Fülle {gas} bis {pressure} → {mix}",

@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_field_parsing.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_cylinder_picker.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_mix_row.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_section_title.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/mix_template_menu.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+final _log = LoggerService.forClass(BlenderCylinderCard);
 
 /// What is in the cylinder now, and what the diver wants in it.
 class BlenderCylinderCard extends ConsumerWidget {
@@ -48,8 +55,27 @@ class BlenderCylinderCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            BlenderSectionTitle(
-              context.l10n.gasCalculators_blender_startCylinder,
+            Row(
+              children: [
+                Expanded(
+                  child: BlenderSectionTitle(
+                    context.l10n.gasCalculators_blender_startCylinder,
+                  ),
+                ),
+                // Flexible, so a long label or a narrow phone shortens the button
+                // instead of overflowing the row.
+                Flexible(
+                  child: TextButton.icon(
+                    key: const Key('blender-choose-cylinder'),
+                    icon: const Icon(Icons.propane_tank_outlined, size: 18),
+                    label: Text(
+                      context.l10n.gasCalculators_blender_chooseCylinder,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onPressed: () => _chooseCylinder(context, ref),
+                  ),
+                ),
+              ],
             ),
             BlenderMixRow(
               pressureSymbol: units.pressureSymbol,
@@ -117,5 +143,52 @@ class BlenderCylinderCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Choose cylinder (spec section 11): one of the diver's cylinders sets the
+  /// size and, when it has a fill, the mix already in it. The start pressure
+  /// is left alone: the last fill's pressure is what the cylinder held after
+  /// filling, not what is in it now.
+  Future<void> _chooseCylinder(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final EquipmentItem? tank;
+    final CylinderFill? newest;
+    try {
+      tank = await showBlenderCylinderPicker(context, ref);
+      // Nothing chosen, or the diver left the blender while scanning.
+      if (tank == null || !context.mounted) return;
+      newest = await ref.read(newestFillProvider(tank.id).future);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to choose a cylinder for a blend',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.gasCalculators_blender_cylinderFailed)),
+      );
+      return;
+    }
+    if (tank.volumeL case final litres?) {
+      ref.read(blenderCylinderLitersProvider.notifier).state = litres;
+    }
+    if (newest != null) {
+      ref.read(blenderStartMixProvider.notifier).state = newest.gasMix;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.gasCalculators_blender_filledFrom(
+              tank.name,
+              newest.gasMix.name,
+            ),
+          ),
+        ),
+      );
+    }
+    await saveBlenderPreferences(ref);
+    // Every field keeps its own controller, seeded once: a new epoch
+    // rebuilds the blender so they show the new values.
+    ref.read(blenderResetEpochProvider.notifier).state++;
   }
 }

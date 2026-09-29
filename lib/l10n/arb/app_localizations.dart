@@ -25878,6 +25878,12 @@ abstract class AppLocalizations {
   /// **'Could not open that cylinder. Try again.'**
   String get gasCalculators_blender_cylinderFailed;
 
+  /// After Choose cylinder: the cylinder chosen and the mix of its last fill, now what is in it.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {mix}'**
+  String gasCalculators_blender_filledFrom(String name, String mix);
+
   /// No description provided for @gasCalculators_blender_amounts.
   ///
   /// In en, this message translates to:

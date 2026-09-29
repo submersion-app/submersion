@@ -110,6 +110,7 @@
   "gasCalculators_blender_scanTag": "مسح الوسم",
   "gasCalculators_blender_notYourCylinder": "هذه الأسطوانة ليست ضمن معداتك",
   "gasCalculators_blender_cylinderFailed": "تعذر فتح هذه الأسطوانة. حاول مرة أخرى.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_amounts": "الغاز المطلوب إضافته",
   "gasCalculators_blender_stepStart": "ابدأ بـ {pressure} {gas}",
   "gasCalculators_blender_stepFill": "املأ {gas} حتى {pressure} → {mix}",

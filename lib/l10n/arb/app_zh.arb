@@ -110,6 +110,7 @@
   "gasCalculators_blender_scanTag": "扫描标签",
   "gasCalculators_blender_notYourCylinder": "该气瓶不在你的装备中",
   "gasCalculators_blender_cylinderFailed": "无法打开该气瓶，请重试。",
+  "gasCalculators_blender_filledFrom": "{name}：{mix}",
   "gasCalculators_blender_amounts": "需充入的气体",
   "gasCalculators_blender_stepStart": "从 {pressure} {gas} 开始",
   "gasCalculators_blender_stepFill": "充 {gas} 至 {pressure} → {mix}",

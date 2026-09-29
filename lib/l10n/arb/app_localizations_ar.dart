@@ -15575,6 +15575,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر فتح هذه الأسطوانة. حاول مرة أخرى.';
 
   @override
+  String gasCalculators_blender_filledFrom(String name, String mix) {
+    return '$name: $mix';
+  }
+
+  @override
   String get gasCalculators_blender_amounts => 'الغاز المطلوب إضافته';
 
   @override

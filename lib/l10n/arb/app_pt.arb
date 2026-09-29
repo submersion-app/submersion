@@ -110,6 +110,7 @@
   "gasCalculators_blender_scanTag": "Ler etiqueta",
   "gasCalculators_blender_notYourCylinder": "Esse cilindro não está no seu equipamento",
   "gasCalculators_blender_cylinderFailed": "Não foi possível abrir esse cilindro. Tente novamente.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_amounts": "Gás a adicionar",
   "gasCalculators_blender_stepStart": "Começa com {pressure} {gas}",
   "gasCalculators_blender_stepFill": "Enche {gas} até {pressure} → {mix}",

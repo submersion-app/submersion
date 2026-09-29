@@ -110,6 +110,7 @@
   "gasCalculators_blender_scanTag": "Scansiona il tag",
   "gasCalculators_blender_notYourCylinder": "Quella bombola non è nella tua attrezzatura",
   "gasCalculators_blender_cylinderFailed": "Impossibile aprire quella bombola. Riprova.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_amounts": "Gas da aggiungere",
   "gasCalculators_blender_stepStart": "Inizia con {pressure} {gas}",
   "gasCalculators_blender_stepFill": "Riempi {gas} fino a {pressure} → {mix}",

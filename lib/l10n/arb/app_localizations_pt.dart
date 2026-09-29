@@ -15802,6 +15802,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível abrir esse cilindro. Tente novamente.';
 
   @override
+  String gasCalculators_blender_filledFrom(String name, String mix) {
+    return '$name: $mix';
+  }
+
+  @override
   String get gasCalculators_blender_amounts => 'Gás a adicionar';
 
   @override

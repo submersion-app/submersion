@@ -110,6 +110,7 @@
   "gasCalculators_blender_scanTag": "Tag scannen",
   "gasCalculators_blender_notYourCylinder": "Die fles zit niet in je uitrusting",
   "gasCalculators_blender_cylinderFailed": "Kan die fles niet openen. Probeer het opnieuw.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_amounts": "Toe te voegen gas",
   "gasCalculators_blender_stepStart": "Begin met {pressure} {gas}",
   "gasCalculators_blender_stepFill": "Vul {gas} tot {pressure} → {mix}",

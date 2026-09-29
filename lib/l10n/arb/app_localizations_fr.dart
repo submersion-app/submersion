@@ -15851,6 +15851,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'ouvrir ce bloc. Réessayez.';
 
   @override
+  String gasCalculators_blender_filledFrom(String name, String mix) {
+    return '$name : $mix';
+  }
+
+  @override
   String get gasCalculators_blender_amounts => 'Gaz à ajouter';
 
   @override

@@ -110,6 +110,7 @@
   "gasCalculators_blender_scanTag": "Scanner le tag",
   "gasCalculators_blender_notYourCylinder": "Ce bloc ne fait pas partie de votre matériel",
   "gasCalculators_blender_cylinderFailed": "Impossible d'ouvrir ce bloc. Réessayez.",
+  "gasCalculators_blender_filledFrom": "{name} : {mix}",
   "gasCalculators_blender_amounts": "Gaz à ajouter",
   "gasCalculators_blender_stepStart": "Commencer avec {pressure} {gas}",
   "gasCalculators_blender_stepFill": "Remplir {gas} jusqu'à {pressure} → {mix}",

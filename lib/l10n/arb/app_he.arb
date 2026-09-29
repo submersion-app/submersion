@@ -110,6 +110,7 @@
   "gasCalculators_blender_scanTag": "סריקת תג",
   "gasCalculators_blender_notYourCylinder": "הבלון הזה אינו בציוד שלך",
   "gasCalculators_blender_cylinderFailed": "לא ניתן לפתוח את הבלון הזה. נסו שוב.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_amounts": "גז להוספה",
   "gasCalculators_blender_stepStart": "התחל עם {pressure} {gas}",
   "gasCalculators_blender_stepFill": "מלא {gas} עד {pressure} → {mix}",
