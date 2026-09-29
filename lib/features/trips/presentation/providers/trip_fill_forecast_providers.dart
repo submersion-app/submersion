@@ -4,6 +4,7 @@ import 'package:clock/clock.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
@@ -21,6 +22,10 @@ final tripFillForecastProvider = FutureProvider.family<FillForecast?, String>((
   ref,
   tripId,
 ) async {
+  // The history and today's count read the dives and past trips tables
+  // directly, outside the providers watched below.
+  ref.invalidateSelfWhen(ref.watch(diveRepositoryProvider).watchDivesChanges());
+  ref.invalidateSelfWhen(ref.watch(tripRepositoryProvider).watchTripsChanges());
   final trip = await ref.watch(tripByIdProvider(tripId).future);
   if (trip == null) return null;
   final states = await ref.watch(tripCylinderStatesProvider(tripId).future);
