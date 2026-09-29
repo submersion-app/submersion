@@ -164,4 +164,10 @@ void main() {
       'Limited by Sam at T: own gas',
     );
   });
+
+  test('binary noise does not add a unit to a rounded-up figure', () {
+    const metric = UnitFormatter(AppSettings());
+    expect(ceilPressure(metric, 150.00000000000003), '150 bar');
+    expect(ceilDistance(metric, 300.00000000000006), '300m');
+  });
 }

@@ -101,9 +101,11 @@ String floorSpeed(MissionUnits units, double mps) =>
 String settingPercent(double fraction) => (fraction * 100).round().toString();
 
 /// A turn pressure in the diver's unit, rounded up: turning early is safe.
+/// The small offset keeps binary noise on an exact figure from adding a
+/// unit, as in [ceilPercent].
 String ceilPressure(UnitFormatter units, double bar) =>
-    '${units.convertPressure(bar).ceil()} ${units.pressureSymbol}';
+    '${(units.convertPressure(bar) - 1e-9).ceil()} ${units.pressureSymbol}';
 
-/// A distance in the depth unit, rounded up.
+/// A distance in the depth unit, rounded up, with the same noise guard.
 String ceilDistance(UnitFormatter units, double meters) =>
-    '${units.convertDepth(meters).ceil()}${units.depthSymbol}';
+    '${(units.convertDepth(meters) - 1e-9).ceil()}${units.depthSymbol}';

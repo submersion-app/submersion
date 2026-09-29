@@ -116,13 +116,15 @@ class MissionResultsSection extends ConsumerWidget {
           style: theme.textTheme.bodySmall,
         ),
         // Warnings and notes: a scenario that could not be computed, a
-        // scooter whose equipment item is gone.
-        for (final issue in outcome.issues)
-          if (issue.severity != MissionIssueSeverity.blocking)
-            Text(
+        // scooter whose equipment item is gone. A warning raised once per
+        // failed scenario reads the same each time, so each sentence shows
+        // once.
+        for (final note in {
+          for (final issue in outcome.issues)
+            if (issue.severity != MissionIssueSeverity.blocking)
               missionIssueText(l10n, issue, mission),
-              style: theme.textTheme.bodySmall,
-            ),
+        })
+          Text(note, style: theme.textTheme.bodySmall),
         for (final result in outcome.members)
           if (mission.team.where((t) => t.id == result.memberId).firstOrNull
               case final member?)

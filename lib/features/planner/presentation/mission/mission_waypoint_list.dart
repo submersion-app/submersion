@@ -34,7 +34,8 @@ class MissionWaypointList extends StatelessWidget {
     String? name(String memberId) =>
         mission.team.where((t) => t.id == memberId).firstOrNull?.displayName;
 
-    String exits(MemberWaypointOutcome m) {
+    // The exits that work, as a parenthesised suffix, or nothing.
+    String exitsSuffix(MemberWaypointOutcome m) {
       final parts = <String>[
         if (m.swim.feasible)
           l10n.plannerMission_results_swim(
@@ -55,7 +56,7 @@ class MissionWaypointList extends StatelessWidget {
             ceilMinutes(m.surface!.knownExitSeconds!).toString(),
           ),
       ];
-      return parts.join(', ');
+      return parts.isEmpty ? '' : ' (${parts.join(', ')})';
     }
 
     // A scenario whose computation threw is unknown, not the water's
@@ -114,7 +115,7 @@ class MissionWaypointList extends StatelessWidget {
                       Text(
                         '$memberName: '
                         '${status(m)}'
-                        '${exits(m).isEmpty ? '' : ' (${exits(m)})'}',
+                        '${exitsSuffix(m)}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: m.survivable ? null : theme.colorScheme.error,
                         ),

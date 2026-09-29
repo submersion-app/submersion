@@ -517,4 +517,31 @@ void main() {
     expect(header(), findsOneWidget);
     expect(find.byType(MissionResultsSection), findsOneWidget);
   });
+
+  testWidgets('a warning raised for several scenarios is listed once', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      width: 400,
+      runner: reshaped(
+        (o) => o.copyWith(
+          issues: [
+            ...o.issues,
+            for (final member in ['a', 'm1'])
+              MissionIssue(
+                type: MissionIssueType.scenarioFailed,
+                severity: MissionIssueSeverity.warning,
+                legId: 'L1',
+                memberId: member,
+              ),
+          ],
+        ),
+      ),
+    );
+    expect(
+      find.text('A failure scenario could not be computed'),
+      findsOneWidget,
+    );
+  });
 }
