@@ -84,6 +84,64 @@ void main() {
       expect(response.statusCode, 404);
     });
 
+    test(
+      'fails the request, not the caller, when its callback throws',
+      () async {
+        serveFakeHostWith('api.example.test', (_) => throw StateError('bad'));
+        final client = HttpClient();
+        addTearDown(() => client.close(force: true));
+        final request = await client.getUrl(
+          Uri.parse('https://api.example.test/'),
+        );
+
+        final closing = request.close();
+
+        await expectLater(closing, throwsA(isA<StateError>()));
+        await expectLater(request.done, throwsA(isA<StateError>()));
+      },
+    );
+
+    test(
+      'is refused if it stops being a fake before the request closes',
+      () async {
+        expectNetworkRefusals();
+        serveFakeHost('api.example.test');
+        final client = HttpClient();
+        addTearDown(() => client.close(force: true));
+        final request = await client.getUrl(
+          Uri.parse('https://api.example.test/'),
+        );
+
+        resetFakeHosts();
+
+        await expectLater(
+          request.close(),
+          throwsA(
+            isA<StateError>().having(
+              (error) => error.message,
+              'message',
+              startsWith('A test reached the network'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test('headers it does not model fail loudly, not with null', () async {
+      serveFakeHost('api.example.test');
+      final client = HttpClient();
+      addTearDown(() => client.close(force: true));
+      final request = await client.getUrl(
+        Uri.parse('https://api.example.test/'),
+      );
+      final response = await request.close();
+
+      expect(
+        () => response.headers.chunkedTransferEncoding,
+        throwsUnsupportedError,
+      );
+    });
+
     test('is forgotten when the fake hosts are reset', () async {
       expectNetworkRefusals();
       serveFakeHost('api.example.test');
@@ -135,6 +193,23 @@ void main() {
         throwsA(isA<StateError>()),
       );
     });
+  });
+
+  test('open() reaches a loopback server by its IPv6 address', () async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv6, 0);
+    addTearDown(() => server.close(force: true));
+    server.listen((request) {
+      request.response
+        ..write('${request.uri}')
+        ..close();
+    });
+    final client = HttpClient();
+    addTearDown(() => client.close(force: true));
+
+    final request = await client.get('::1', server.port, '/x?y=1');
+    final body = await (await request.close()).transform(utf8.decoder).join();
+
+    expect(body, '/x?y=1');
   });
 
   test('a loopback server still answers through the routing client', () async {

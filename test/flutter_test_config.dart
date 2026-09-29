@@ -27,11 +27,12 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   applyGlobalTestDefaults();
   pinLateBoundSharePlatform();
   // Around every test in the entrypoint, alone or bundled: fake hosts last one
-  // test, and a network refusal that the code under test caught still fails
-  // the test.
+  // test, and a network refusal that code caught still fails a test, whether
+  // it happened during the test or before it (a setUpAll, a file declaring
+  // its tests, or an earlier test's leftover work).
   setUp(() {
     resetFakeHosts();
-    resetNetworkRefusals();
+    expectNoNetworkRefusalsBeforeTest();
   });
   tearDown(expectNoNetworkRefusals);
   await testMain();

@@ -102,6 +102,29 @@ void main() {
       },
     );
 
+    test(
+      'before a test, fails on a refusal caught since the last test',
+      () async {
+        resetNetworkRefusals();
+        await swallowedRequest('https://example.com/in-set-up-all');
+
+        expect(
+          expectNoNetworkRefusalsBeforeTest,
+          throwsA(
+            isA<TestFailure>().having(
+              (failure) => failure.message,
+              'message',
+              allOf(
+                contains('https://example.com/in-set-up-all'),
+                contains('setUpAll'),
+              ),
+            ),
+          ),
+        );
+        expect(expectNoNetworkRefusals, returnsNormally);
+      },
+    );
+
     test('passes when nothing was refused', () {
       resetNetworkRefusals();
 

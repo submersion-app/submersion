@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'blocked_network.dart';
+
 /// Hosts a test answers from memory instead of the network.
 ///
 /// The harness refuses every request that leaves the machine
@@ -140,15 +142,25 @@ class FakeHostClientRequest implements HttpClientRequest {
   @override
   Future<HttpClientResponse> close() {
     if (!_done.isCompleted) {
+      final respond = _hosts[uri.host.toLowerCase()];
+      if (respond == null) {
+        // The host stopped being a fake after the request opened: the
+        // registry was reset for the next test, so this is leftover network
+        // use, refused like any other.
+        _done.completeError(refuseNetwork('$uri'));
+        return _done.future;
+      }
       final request = (
         method: method,
         url: uri,
         body: utf8.decode(_body.takeBytes(), allowMalformed: true),
       );
       _requests = [..._requests, request];
-      final respond = _hosts[uri.host.toLowerCase()];
-      final answer = respond == null ? FakeResponse.offline : respond(request);
-      _done.complete(_FakeHostResponse(answer));
+      try {
+        _done.complete(_FakeHostResponse(respond(request)));
+      } catch (error, stackTrace) {
+        _done.completeError(error, stackTrace);
+      }
     }
     return _done.future;
   }
@@ -280,6 +292,13 @@ class _FakeHeaders implements HttpHeaders {
   set contentLength(int length) =>
       set(HttpHeaders.contentLengthHeader, '$length');
 
+  /// A setter the fake does not model is accepted and ignored; anything else
+  /// fails loudly rather than handing back a null the caller cannot use.
   @override
-  dynamic noSuchMethod(Invocation invocation) => null;
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.isSetter) return null;
+    throw UnsupportedError(
+      'Fake host headers do not support ${invocation.memberName}.',
+    );
+  }
 }

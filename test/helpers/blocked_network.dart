@@ -56,6 +56,10 @@ StateError _refuse(String target) {
   return networkRefusal(target);
 }
 
+/// Records [target] as refused and returns the error to fail the call with,
+/// for another part of the harness (fake_hosts.dart) that refuses a request.
+StateError refuseNetwork(String target) => _refuse(target);
+
 /// Starts a test with nothing refused and no refusal expected.
 ///
 /// `test/flutter_test_config.dart` calls this before every test.
@@ -86,6 +90,26 @@ void expectNoNetworkRefusals() {
     'caught before it could fail the test: ${refused.toSet().join(', ')}. '
     'Fake the service the code calls, or serve the response from a loopback '
     'HttpServer. See "Network, time limits and fonts" in '
+    'docs/developer/testing.md.',
+  );
+}
+
+/// Fails if a refusal was caught since the last test ended: in a setUpAll,
+/// while a file declared its tests, or in work an earlier test left running.
+/// A per-test check cannot see those, since they belong to no test.
+///
+/// `test/flutter_test_config.dart` calls this before every test; it starts
+/// the test clean either way.
+void expectNoNetworkRefusalsBeforeTest() {
+  final refused = _refused;
+  resetNetworkRefusals();
+  if (refused.isEmpty) return;
+  fail(
+    'Code tried to reach the network before this test started, and the '
+    'refusal was caught: ${refused.toSet().join(', ')}. It ran in a setUpAll, '
+    'while a file declared its tests, or in work an earlier test left '
+    'running. Declare the host with serveFakeHost in setUpAll, or fake the '
+    'service. See "Network, time limits and fonts" in '
     'docs/developer/testing.md.',
   );
 }
@@ -132,7 +156,20 @@ class _RoutingHttpClient implements HttpClient {
     String host,
     int port,
     String path,
-  ) => openUrl(method, Uri.parse('http://$host:$port$path'));
+  ) {
+    // Built from parts, not a string, so an IPv6 host needs no brackets.
+    final target = Uri.parse(path);
+    return openUrl(
+      method,
+      Uri(
+        scheme: 'http',
+        host: host,
+        port: port,
+        path: target.path,
+        query: target.hasQuery ? target.query : null,
+      ),
+    );
+  }
 
   @override
   Future<HttpClientRequest> getUrl(Uri url) => openUrl('GET', url);

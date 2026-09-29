@@ -423,6 +423,8 @@ CI bundle, or through `flutter test` locally.
   inside its zone. A refusal fails the test even when the code under test
   catches it: the harness records it and fails the test in a tear-down, naming
   the URL. A test that is refused on purpose calls `expectNetworkRefusals()`.
+  A refusal caught outside any test (in a `setUpAll`, while a file declares
+  its tests, or in work an earlier test left running) fails the next test.
 - **Answering a public service.** When the code under test calls a service
   such as Nominatim, Open-Meteo, the OSM tile server or the PDF font host,
   declare it in `setUp`:
