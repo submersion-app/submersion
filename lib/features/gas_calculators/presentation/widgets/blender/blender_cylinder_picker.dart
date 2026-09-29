@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
-import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -63,7 +60,7 @@ Future<EquipmentItem?> showBlenderCylinderPicker(
     case OwnCylinder(:final equipmentId, :final tag):
       // Every tag the app opens is checked for a fill (spec section 11), so
       // a newer fill from the diver's other phone sets the start mix.
-      await _importTagFill(ref, tag, equipmentId);
+      await importTagFill(ref, tag: tag, equipmentId: equipmentId);
       return ref
           .read(equipmentRepositoryProvider)
           .getEquipmentById(equipmentId);
@@ -79,29 +76,6 @@ Future<EquipmentItem?> showBlenderCylinderPicker(
       return null;
   }
 }
-
-/// Adds the tag's fill to the cylinder's history once. A failure is logged
-/// and the cylinder is still chosen: the fill is an extra.
-Future<void> _importTagFill(
-  WidgetRef ref,
-  CylinderPassportPayload tag,
-  String equipmentId,
-) async {
-  try {
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    await ref
-        .read(tagFillImporterProvider)
-        .importIfNew(tag: tag, equipmentId: equipmentId, diverId: diverId);
-  } catch (e, stackTrace) {
-    _log.error(
-      'Failed to import the fill on a scanned tag',
-      error: e,
-      stackTrace: stackTrace,
-    );
-  }
-}
-
-const _log = LoggerService('blenderCylinderPicker');
 
 /// The picker's Scan tag choice, told apart from a tank.
 const _scan = #scan;

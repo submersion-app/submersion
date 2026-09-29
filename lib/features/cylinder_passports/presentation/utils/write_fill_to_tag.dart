@@ -68,9 +68,10 @@ Future<void> offerWriteFillToTag(
     ),
   );
   if (write != true || !context.mounted) return;
-  // The fills tick may not have reached the payload yet; rebuild it so the
-  // write carries the fill just saved.
-  ref.invalidate(tagPayloadProvider(equipmentId));
+  // The fills tick may not have reached the fill list yet; re-read it, and
+  // the newest fill and the payload built on it follow, so the write carries
+  // the fill just saved.
+  ref.invalidate(fillsForEquipmentProvider(equipmentId));
   // Listened to while it builds: an auto-dispose provider that is only read
   // is disposed at its first await.
   final listening = ref.listenManual(

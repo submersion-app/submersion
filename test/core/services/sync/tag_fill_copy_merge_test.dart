@@ -61,8 +61,11 @@ void main() {
     'hlc': hlc,
   };
 
-  Future<void> uploadPeer(Map<String, dynamic> row) async {
-    final data = SyncData(cylinderFills: [row]);
+  Future<void> uploadPeer(
+    Map<String, dynamic>? row, {
+    Map<String, List<SyncDeletion>> deletions = const {},
+  }) async {
+    final data = SyncData(cylinderFills: [?row]);
     final payload = SyncPayload(
       version: syncFormatVersion,
       exportedAt: 1700000000000,
@@ -71,7 +74,7 @@ void main() {
           .convert(utf8.encode(jsonEncode(data.toJson())))
           .toString(),
       data: data,
-      deletions: const {},
+      deletions: deletions,
     );
     await seedPeerBaseFromPayload(cloud, 'peer', payload);
   }
@@ -144,6 +147,34 @@ void main() {
       cloudProvider: cloud,
     ).performSync();
     expect(result.status, isNot(SyncResultStatus.error));
+    expect(
+      await SyncDataSerializer().fetchRecord('cylinderFills', 'fill-1'),
+      isNull,
+    );
+  });
+
+  test("a peer's delete removes a tag copy here, with no conflict", () async {
+    // Copied from the tag after the peer deleted the fill, so the copy is
+    // newer than the deletion.
+    final later = DateTime.now().millisecondsSinceEpoch + 86400000;
+    await SyncDataSerializer().upsertRecord(
+      'cylinderFills',
+      fill(source: 'nfc', hlc: hlcAt(later, 'here'), updatedAt: later),
+    );
+    await uploadPeer(
+      null,
+      deletions: {
+        'cylinderFills': [const SyncDeletion(id: 'fill-1', deletedAt: 1000)],
+      },
+    );
+    await impersonateFreshDevice();
+    final result = await SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    ).performSync();
+    expect(result.status, isNot(SyncResultStatus.error));
+    expect(result.conflictsFound, 0);
     expect(
       await SyncDataSerializer().fetchRecord('cylinderFills', 'fill-1'),
       isNull,

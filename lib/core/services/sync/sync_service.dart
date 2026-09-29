@@ -2416,7 +2416,15 @@ class SyncService {
               localUpdatedAt > lastSyncMs;
           final newerThanTombstone =
               localUpdatedAt != null && localUpdatedAt > deletionTimestamp;
-          final hasConflict = editedSinceLastSync || newerThanTombstone;
+          // A fill copied from a tag is not an edit of the fill the peer
+          // deleted: the delete wins, with no conflict to resolve, so every
+          // device agrees it stays deleted (tag_fill_copy_merge.dart).
+          final tagCopy =
+              entityType == 'cylinderFills' &&
+              local != null &&
+              isTagFillCopy(local);
+          final hasConflict =
+              !tagCopy && (editedSinceLastSync || newerThanTombstone);
 
           if (hasConflict) {
             conflicts += 1;

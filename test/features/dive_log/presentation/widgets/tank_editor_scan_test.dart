@@ -7,7 +7,10 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/services/tag_fill_importer.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
@@ -36,6 +39,15 @@ class _PresetListNotifier
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _BrokenImporter extends TagFillImporter {
+  @override
+  Future<CylinderFill?> importIfNew({
+    required CylinderPassportPayload tag,
+    required String equipmentId,
+    required String? diverId,
+  }) async => throw StateError('database is locked');
 }
 
 class _MissingEquipment extends EquipmentRepository {
@@ -326,6 +338,24 @@ void main() {
     await scan(tester);
     expect(changed!.volume, closeTo(12, 0.1));
     expect(changed!.workingPressure, closeTo(232, 0.5));
+  });
+
+  testWidgets('a fill that fails to import still fills the tank', (
+    tester,
+  ) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      scanned:
+          'https://submersion.app/c#f=1&p=$own'
+          '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11'
+          '&ft=2026-09-28T09%3A30%3A00Z&fo=36',
+      onChanged: (t) => changed = t,
+      extra: [tagFillImporterProvider.overrideWithValue(_BrokenImporter())],
+    );
+    await scan(tester);
+    expect(changed!.volume, 12);
+    expect(changed!.workingPressure, 232);
   });
 
   testWidgets('a pressure-only tag keeps the tank volume in cubic feet', (
