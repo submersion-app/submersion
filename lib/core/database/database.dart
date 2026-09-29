@@ -214,6 +214,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     TripCylinderEvents,
     // Saved Connections maps (v235, issue #2322)
     ConnectionMaps,
+    // Gear packed for a trip (v248, issue #2338)
+    TripEquipment,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -223,7 +225,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 245;
+  static const int currentSchemaVersion = 248;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -996,6 +998,10 @@ class AppDatabase extends _$AppDatabase {
     // the floor does not move. 243 was held by #2409 and 244 went to
     // #2086 when this was taken.
     245,
+    // v248: trip_equipment, gear packed for a trip (issue #2338).
+    // Table-only rung, no backfill; the floor does not move. 246 is held by
+    // #2409 and 247 by #2579.
+    248,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

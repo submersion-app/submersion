@@ -465,6 +465,20 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_saved_queries_diver '
         'ON saved_queries(diver_id, subject, sort_order)',
   ),
+  // A passport's trips: packed links by item (v248, issue #2338).
+  (
+    name: 'idx_trip_equipment_equipment',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_trip_equipment_equipment '
+        'ON trip_equipment(equipment_id)',
+  ),
+  // A passport's trips: trip gas slots by item (issue #2338).
+  (
+    name: 'idx_trip_cylinders_equipment',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_trip_cylinders_equipment '
+        'ON trip_cylinders(equipment_id)',
+  ),
 ];
 
 /// Creates any canonical index missing from [db], returning the names of

@@ -96,5 +96,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertCertificationsBuddyIndex();
     }
     if (from < 245) await reportProgress();
+    // v248: gear packed for a trip (issue #2338). Table-only rung, no
+    // backfill; re-asserted in beforeOpen.
+    if (from < 248) {
+      await _assertTripEquipmentSchema();
+    }
+    if (from < 248) await reportProgress();
   }
 }

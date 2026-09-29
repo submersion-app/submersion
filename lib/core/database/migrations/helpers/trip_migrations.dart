@@ -90,4 +90,18 @@ extension TripMigrations on AppDatabase {
       );
     }
   }
+
+  /// The trip_equipment table and its item index (v248, issue #2338).
+  /// Called from the v248 rung and the beforeOpen backstop. Skipped on a
+  /// partial migration-test fixture that lacks a parent table.
+  Future<void> _assertTripEquipmentSchema() async {
+    for (final parent in const ['trips', 'equipment']) {
+      if (!await _tableExists(parent)) return;
+    }
+    await Migrator(this).createTable(tripEquipment);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_trip_equipment_equipment '
+      'ON trip_equipment(equipment_id)',
+    );
+  }
 }

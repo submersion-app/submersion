@@ -384,7 +384,7 @@ is a label. The pin rule moves with signing to section 18.
 
 ### 10.4 `trip_equipment`
 
-A parent-gated child of `trips`, modelled on `equipment_shares` (v219).
+A parent-gated child of `trips`, modelled on `equipment_shares` (v234).
 
 | Column | Type | Notes |
 | --- | --- | --- |
@@ -398,6 +398,13 @@ Unique index on `(trip_id, equipment_id)`, index on `equipment_id`. Any
 equipment type may be packed. Phase 1 exposes it from the passport's Trip
 card and a Gear section on `trip_detail_page.dart` that uses
 `EquipmentPickerSheet`.
+
+Decided 2026-09-29: a cylinder's passport Trip card also lists the trips
+where the cylinder is a trip gas slot (`trip_cylinders.equipment_id`), so
+it reads "Packed for <trip>" either way. Assign and Unassign on the card
+touch `trip_equipment` only; a slot stays the cylinder board's business.
+The trip page's Gear card sits right after the Cylinders card. Schema
+v248 (246 and 247 were held by open PRs).
 
 ### 10.5 Station identity
 

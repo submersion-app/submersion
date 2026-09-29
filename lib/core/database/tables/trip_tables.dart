@@ -313,3 +313,31 @@ class TripChecklistItems extends Table {
   Set<Column> get primaryKey => {id};
   // coverage:ignore-end
 }
+
+/// Gear packed for a trip (v248, issue #2338). A parent-gated child of
+/// `trips`, modelled on `equipment_shares`: no updated_at, its own clock,
+/// exported through the trip's clock plus pending marks. Any equipment type
+/// may be packed. Both parents cascade.
+@DataClassName('TripEquipmentRow')
+class TripEquipment extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get tripId =>
+      text().references(Trips, #id, onDelete: KeyAction.cascade)();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {tripId, equipmentId},
+  ];
+  // coverage:ignore-end
+}

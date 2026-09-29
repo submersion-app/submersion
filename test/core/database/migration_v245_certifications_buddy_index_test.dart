@@ -17,10 +17,11 @@ Future<bool> _hasIndex(AppDatabase db) async {
 }
 
 void main() {
-  test('v245 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 245);
-    expect(AppDatabase.migrationVersions.last, 245);
-    expect(AppDatabase.migrationStepCount(244), 1);
+  // Relaxed once v248 (trip_equipment, #2338) landed on top.
+  test('v245 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(245));
+    expect(AppDatabase.migrationVersions, contains(245));
+    expect(AppDatabase.migrationStepCount(244), greaterThanOrEqualTo(1));
   });
 
   test('a fresh database indexes certifications by buddy', () async {
