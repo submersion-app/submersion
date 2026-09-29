@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/data/services/trip_fill_saver.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -24,20 +25,6 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 /// together at most 100.
 bool tripCylinderMixIsValid(double o2, double he) =>
     o2 >= 1 && o2 <= 100 && he >= 0 && he <= 99 && o2 + he <= 100;
-
-/// The fill station the trip used last, for the sheet's default: the Bonaire
-/// ritual is the same drive-through every morning.
-String? lastTripFillCenter(List<TripCylinderState> slots) {
-  TripCylinderEvent? latest;
-  for (final s in slots) {
-    final fill = s.lastFill;
-    if (fill == null || fill.diveCenterId == null) continue;
-    if (latest == null || fill.occurredAt.isAfter(latest.occurredAt)) {
-      latest = fill;
-    }
-  }
-  return latest?.diveCenterId;
-}
 
 /// Asks for a date, then a time, starting from [current]. Returns the
 /// picked wall clock stamped UTC, the frame every dive time uses, or null
