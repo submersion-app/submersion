@@ -5,6 +5,7 @@ import 'package:submersion/core/database/tables/app_tables.dart';
 import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
+import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 import 'package:submersion/core/database/tables/dive_profile_tables.dart';
 import 'package:submersion/core/database/tables/dive_tables.dart';
@@ -31,6 +32,7 @@ export 'package:submersion/core/database/tables/app_tables.dart';
 export 'package:submersion/core/database/tables/buddy_tables.dart';
 export 'package:submersion/core/database/tables/cylinder_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
+export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 export 'package:submersion/core/database/tables/dive_profile_tables.dart';
 export 'package:submersion/core/database/tables/dive_tables.dart';
@@ -124,6 +126,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     EmergencyChambers,
     Incidents,
     DiveSensorSummaries,
+    // Explore derived metrics (v247, issue #2195), local only
+    DiveDerivedMetricsRows,
     EquipmentObservations,
     EquipmentFindings,
     EquipmentConditionReviews,
@@ -223,7 +227,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 244;
+  static const int currentSchemaVersion = 247;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -983,6 +987,10 @@ class AppDatabase extends _$AppDatabase {
     // Renumbered from 241: #2493 took it, main shipped 242 (#2541) and
     // an open branch claims 243 (#2409).
     244,
+    // v247: dive_derived_metrics, the Explore derived metrics the dive query
+    // fields read (issue #2195, phase 2). A table with no hlc, never synced,
+    // so the floor does not move. 245 and 246 are held by #2572 and #2409.
+    247,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

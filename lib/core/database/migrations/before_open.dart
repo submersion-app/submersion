@@ -173,6 +173,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // v242 backstop: the equipment service cache (local, idempotent).
     await _assertEquipmentServiceStatusTable();
 
+    // v247 backstop: the Explore derived metrics (local, idempotent).
+    await _assertDerivedMetricsTable();
+
     // v122 backstop: re-assert service ledger schema + built-in kinds.
     // The legacy backfill is NOT here (onUpgrade only) -- re-running it
     // would resurrect user-deleted schedules.
