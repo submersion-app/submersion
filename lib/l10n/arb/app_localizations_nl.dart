@@ -23995,6 +23995,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hoogten ten opzichte van gemiddeld zeeniveau';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Tijden worden weergegeven in de lokale tijd van de duikstek.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'Oceaanmodelraster van $distance';
+  }
+
+  @override
   String get tides_title => 'Getijden';
 
   @override
@@ -32707,6 +32716,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return 'Druk steeg $rise midden in de duik zonder gaswisseling';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'De druksensor gaf $count keer foute metingen (uitval of pieken)',
+      one: 'De druksensor gaf één keer een foute meting (uitval of piek)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed =>
+      'De drukreeks vermengt de metingen van twee bronnen';
 
   @override
   String dataQuality_msg_sac(String sac) {
@@ -44967,6 +44991,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_buddies_certifications => 'Brevetten';
 
   @override
+  String get query_buddies_dives => 'Duiken';
+
+  @override
   String get query_buddies_email => 'E-mail';
 
   @override
@@ -44982,25 +45009,55 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_buddies_phone => 'Telefoon';
 
   @override
+  String get query_centers_affiliations => 'Aangesloten bij';
+
+  @override
   String get query_centers_city => 'Stad';
+
+  @override
+  String get query_centers_coordinates => 'Coördinaten';
 
   @override
   String get query_centers_country => 'Land';
 
   @override
+  String get query_centers_dives => 'Duiken';
+
+  @override
   String get query_centers_name => 'Naam';
+
+  @override
+  String get query_centers_notes => 'Notities';
+
+  @override
+  String get query_centers_rating => 'Beoordeling';
+
+  @override
+  String get query_centers_stateProvince => 'Staat / Provincie';
 
   @override
   String get query_certifications_agency => 'Organisatie';
 
   @override
+  String get query_certifications_buddy => 'Buddy';
+
+  @override
   String get query_certifications_cardNumber => 'Kaartnummer';
+
+  @override
+  String get query_certifications_course => 'Cursus';
 
   @override
   String get query_certifications_expiryDate => 'Vervaldatum';
 
   @override
+  String get query_certifications_instructor => 'Instructeur';
+
+  @override
   String get query_certifications_instructorName => 'Naam instructeur';
+
+  @override
+  String get query_certifications_instructorNumber => 'Instructeurnummer';
 
   @override
   String get query_certifications_issueDate => 'Uitgiftedatum';
@@ -45010,6 +45067,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_certifications_name => 'Naam';
+
+  @override
+  String get query_certifications_notes => 'Notities';
 
   @override
   String get query_computers_manufacturer => 'Fabrikant';
@@ -45027,10 +45087,28 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_courses_agency => 'Organisatie';
 
   @override
+  String get query_courses_certification => 'Certificering';
+
+  @override
   String get query_courses_completionDate => 'Voltooiingsdatum';
 
   @override
+  String get query_courses_dives => 'Duiken';
+
+  @override
+  String get query_courses_instructor => 'Instructeur';
+
+  @override
+  String get query_courses_instructorName => 'Naam instructeur';
+
+  @override
+  String get query_courses_location => 'Locatie';
+
+  @override
   String get query_courses_name => 'Naam';
+
+  @override
+  String get query_courses_notes => 'Notities';
 
   @override
   String get query_courses_startDate => 'Startdatum';
@@ -45351,6 +45429,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_equipment_type => 'Type';
 
   @override
+  String get query_filter_clear => 'Wissen';
+
+  @override
+  String get query_filter_tooltip => 'Filter';
+
+  @override
+  String get query_list_noMatch => 'Niets komt overeen met deze query';
+
+  @override
   String get query_media_caption => 'Bijschrift';
 
   @override
@@ -45414,13 +45501,31 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_sites_types => 'Duikstektypes';
 
   @override
+  String get query_species_builtIn => 'Ingebouwd';
+
+  @override
   String get query_species_category => 'Categorie';
+
+  @override
+  String get query_species_description => 'Beschrijving';
+
+  @override
+  String get query_species_dives => 'Duiken';
+
+  @override
+  String get query_species_expectedSites => 'Verwacht op duikplekken';
 
   @override
   String get query_species_name => 'Naam';
 
   @override
   String get query_species_scientificName => 'Wetenschappelijke naam';
+
+  @override
+  String get query_species_sightings => 'Waarnemingen';
+
+  @override
+  String get query_species_taxonomyClass => 'Taxonomische klasse';
 
   @override
   String get query_tags_name => 'Naam';

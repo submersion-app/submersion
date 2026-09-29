@@ -551,6 +551,12 @@ class DiveUncombineService {
         diveId: newDiveId,
         tankId: tankIdMap[s.tankId] ?? s.tankId,
         computerId: s.computerId,
+        // An unattributed series belongs to a segment's only source; on a
+        // segment of several it stays unattributed rather than being
+        // grouped with one of them (issue #2440).
+        sourceId: s.sourceId == null
+            ? (soloSegment ? newSourceIdByOld[lead.id] : null)
+            : newSourceIdByOld[s.sourceId],
         samples: [for (final p in s.samples) p.shiftedBy(offset)],
         now: now,
       );

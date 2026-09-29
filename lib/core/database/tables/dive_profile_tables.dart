@@ -351,6 +351,16 @@ class TankPressureSeries extends Table {
     #id,
     onDelete: KeyAction.setNull,
   )();
+
+  /// The data source whose recording this series is (v241, issue #2440).
+  /// Two file-imported sources both carry a null [computerId], so without
+  /// this their series of one cylinder cannot be told apart. Null on a
+  /// series whose source could not be determined.
+  TextColumn get sourceId => text().nullable().references(
+    DiveDataSources,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   IntColumn get sampleCount => integer()();
   IntColumn get startTimestamp => integer()();
   IntColumn get endTimestamp => integer()();

@@ -9,6 +9,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
   switch (key) {
     case 'query_buddies_certifications':
       return l10n.query_buddies_certifications;
+    case 'query_buddies_dives':
+      return l10n.query_buddies_dives;
     case 'query_buddies_email':
       return l10n.query_buddies_email;
     case 'query_buddies_favorite':
@@ -19,26 +21,48 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_buddies_notes;
     case 'query_buddies_phone':
       return l10n.query_buddies_phone;
+    case 'query_centers_affiliations':
+      return l10n.query_centers_affiliations;
     case 'query_centers_city':
       return l10n.query_centers_city;
+    case 'query_centers_coordinates':
+      return l10n.query_centers_coordinates;
     case 'query_centers_country':
       return l10n.query_centers_country;
+    case 'query_centers_dives':
+      return l10n.query_centers_dives;
     case 'query_centers_name':
       return l10n.query_centers_name;
+    case 'query_centers_notes':
+      return l10n.query_centers_notes;
+    case 'query_centers_rating':
+      return l10n.query_centers_rating;
+    case 'query_centers_stateProvince':
+      return l10n.query_centers_stateProvince;
     case 'query_certifications_agency':
       return l10n.query_certifications_agency;
+    case 'query_certifications_buddy':
+      return l10n.query_certifications_buddy;
     case 'query_certifications_cardNumber':
       return l10n.query_certifications_cardNumber;
+    case 'query_certifications_course':
+      return l10n.query_certifications_course;
     case 'query_certifications_expiryDate':
       return l10n.query_certifications_expiryDate;
+    case 'query_certifications_instructor':
+      return l10n.query_certifications_instructor;
     case 'query_certifications_instructorName':
       return l10n.query_certifications_instructorName;
+    case 'query_certifications_instructorNumber':
+      return l10n.query_certifications_instructorNumber;
     case 'query_certifications_issueDate':
       return l10n.query_certifications_issueDate;
     case 'query_certifications_level':
       return l10n.query_certifications_level;
     case 'query_certifications_name':
       return l10n.query_certifications_name;
+    case 'query_certifications_notes':
+      return l10n.query_certifications_notes;
     case 'query_computers_manufacturer':
       return l10n.query_computers_manufacturer;
     case 'query_computers_model':
@@ -49,10 +73,22 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_computers_serialNumber;
     case 'query_courses_agency':
       return l10n.query_courses_agency;
+    case 'query_courses_certification':
+      return l10n.query_courses_certification;
     case 'query_courses_completionDate':
       return l10n.query_courses_completionDate;
+    case 'query_courses_dives':
+      return l10n.query_courses_dives;
+    case 'query_courses_instructor':
+      return l10n.query_courses_instructor;
+    case 'query_courses_instructorName':
+      return l10n.query_courses_instructorName;
+    case 'query_courses_location':
+      return l10n.query_courses_location;
     case 'query_courses_name':
       return l10n.query_courses_name;
+    case 'query_courses_notes':
+      return l10n.query_courses_notes;
     case 'query_courses_startDate':
       return l10n.query_courses_startDate;
     case 'query_customFields_key':
@@ -345,8 +381,14 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_error_inNeedsList;
     case 'query_error_unterminatedQuote':
       return l10n.query_error_unterminatedQuote;
+    case 'query_filter_clear':
+      return l10n.query_filter_clear;
+    case 'query_filter_tooltip':
+      return l10n.query_filter_tooltip;
     case 'query_findings_rule':
       return l10n.query_findings_rule;
+    case 'query_list_noMatch':
+      return l10n.query_list_noMatch;
     case 'query_media_caption':
       return l10n.query_media_caption;
     case 'query_media_favorite':
@@ -421,12 +463,24 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_sites_tags;
     case 'query_sites_types':
       return l10n.query_sites_types;
+    case 'query_species_builtIn':
+      return l10n.query_species_builtIn;
     case 'query_species_category':
       return l10n.query_species_category;
+    case 'query_species_description':
+      return l10n.query_species_description;
+    case 'query_species_dives':
+      return l10n.query_species_dives;
+    case 'query_species_expectedSites':
+      return l10n.query_species_expectedSites;
     case 'query_species_name':
       return l10n.query_species_name;
     case 'query_species_scientificName':
       return l10n.query_species_scientificName;
+    case 'query_species_sightings':
+      return l10n.query_species_sightings;
+    case 'query_species_taxonomyClass':
+      return l10n.query_species_taxonomyClass;
     case 'query_tags_name':
       return l10n.query_tags_name;
     case 'query_tanks_cylinder':

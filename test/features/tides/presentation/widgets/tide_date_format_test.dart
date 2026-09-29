@@ -119,7 +119,9 @@ Future<void> _pumpTimesTable(
 
 // The section's window label replicates TideChart's maths against the real
 // clock, so anchor the bounds on far-past and far-future extremes to keep the
-// rendered window fully determined by the fixtures.
+// rendered window fully determined by the fixtures. The section shows
+// these instants in the site's wall clock: Santa Cruz is PDT (UTC-7) on
+// both dates, so 06:15Z becomes 23:15 the previous day.
 final _sectionExtremes = [
   TideExtreme(
     type: TideExtremeType.low,
@@ -231,7 +233,7 @@ void main() {
     testWidgets('the window label is month-first by default', (tester) async {
       await _pumpSection(tester, DateFormatPreference.mmddyyyy);
 
-      expect(find.text('Tue, Mar 10 | 05:45 - 15:00 (May 20)'), findsOneWidget);
+      expect(find.text('Mon, Mar 9 | 22:45 - 08:00 (May 20)'), findsOneWidget);
     });
 
     testWidgets('the window label follows a day-first preference', (
@@ -240,7 +242,7 @@ void main() {
       // Both halves flip: the start date and the parenthesised end date.
       await _pumpSection(tester, DateFormatPreference.ddmmyyyy);
 
-      expect(find.text('Tue, 10 Mar | 05:45 - 15:00 (20 May)'), findsOneWidget);
+      expect(find.text('Mon, 9 Mar | 22:45 - 08:00 (20 May)'), findsOneWidget);
     });
   });
 

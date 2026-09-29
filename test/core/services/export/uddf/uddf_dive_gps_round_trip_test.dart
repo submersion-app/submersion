@@ -43,6 +43,7 @@ import 'package:submersion/features/universal_import/data/parsers/uddf_import_pa
 import 'package:xml/xml.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 const _diverId = 'diver-gps-round-trip';
 const _diveId = 'dive-gps-1';
@@ -122,6 +123,12 @@ DiveSourceExport _source({
 }
 
 void main() {
+  // The code under test calls Open-Meteo; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('api.open-meteo.com');
+  });
+
   late AppDatabase db;
 
   setUp(() async {

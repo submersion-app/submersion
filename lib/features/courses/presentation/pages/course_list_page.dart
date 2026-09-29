@@ -19,6 +19,10 @@ import 'package:submersion/features/courses/presentation/widgets/course_list_con
 import 'package:submersion/features/courses/presentation/widgets/course_summary_widget.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
+import 'package:submersion/features/courses/query/course_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 
 class CourseListPage extends ConsumerWidget {
   const CourseListPage({super.key});
@@ -85,6 +89,19 @@ class CourseListPage extends ConsumerWidget {
             ),
           ),
           appBarActions: [
+            Consumer(
+              builder: (context, ref, _) => QueryFilterButton(
+                active: ref.watch(courseFilterProvider).query != null,
+                compact: true,
+                onPressed: () => showQueryFilterSheet(
+                  context,
+                  subject: QuerySubject.courses,
+                  root: courseQueryEntity,
+                  initial: ref.read(courseFilterProvider).query,
+                  onApply: setCourseQuery,
+                ),
+              ),
+            ),
             IconButton(
               icon: const Icon(Icons.sort, size: 20),
               tooltip: context.l10n.courses_action_sort,

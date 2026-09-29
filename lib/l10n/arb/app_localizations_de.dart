@@ -24131,6 +24131,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Höhen relativ zum mittleren Meeresspiegel';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Zeiten werden in der Ortszeit des Tauchplatzes angezeigt.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'Ozeanmodell-Raster mit $distance';
+  }
+
+  @override
   String get tides_title => 'Gezeiten';
 
   @override
@@ -32884,6 +32893,23 @@ class AppLocalizationsDe extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return 'Druck stieg mitten im Tauchgang um $rise ohne Gaswechsel';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Der Drucksensor lieferte $count-mal Fehlwerte (Aussetzer oder Ausreisser)',
+      one:
+          'Der Drucksensor lieferte einmal Fehlwerte (Aussetzer oder Ausreisser)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed =>
+      'Die Druckreihe vermischt die Messwerte zweier Quellen';
 
   @override
   String dataQuality_msg_sac(String sac) {
@@ -45175,6 +45201,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_buddies_certifications => 'Zertifizierungen';
 
   @override
+  String get query_buddies_dives => 'Tauchgänge';
+
+  @override
   String get query_buddies_email => 'E-Mail';
 
   @override
@@ -45190,25 +45219,55 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_buddies_phone => 'Telefon';
 
   @override
+  String get query_centers_affiliations => 'Verbindungen';
+
+  @override
   String get query_centers_city => 'Stadt';
+
+  @override
+  String get query_centers_coordinates => 'Koordinaten';
 
   @override
   String get query_centers_country => 'Land';
 
   @override
+  String get query_centers_dives => 'Tauchgänge';
+
+  @override
   String get query_centers_name => 'Name';
+
+  @override
+  String get query_centers_notes => 'Notizen';
+
+  @override
+  String get query_centers_rating => 'Bewertung';
+
+  @override
+  String get query_centers_stateProvince => 'Bundesland / Provinz';
 
   @override
   String get query_certifications_agency => 'Verband';
 
   @override
+  String get query_certifications_buddy => 'Tauchpartner';
+
+  @override
   String get query_certifications_cardNumber => 'Kartennummer';
+
+  @override
+  String get query_certifications_course => 'Kurs';
 
   @override
   String get query_certifications_expiryDate => 'Ablaufdatum';
 
   @override
+  String get query_certifications_instructor => 'Tauchlehrer';
+
+  @override
   String get query_certifications_instructorName => 'Name des Instructors';
+
+  @override
+  String get query_certifications_instructorNumber => 'Tauchlehrernummer';
 
   @override
   String get query_certifications_issueDate => 'Ausstellungsdatum';
@@ -45218,6 +45277,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_certifications_name => 'Name';
+
+  @override
+  String get query_certifications_notes => 'Notizen';
 
   @override
   String get query_computers_manufacturer => 'Hersteller';
@@ -45235,10 +45297,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_courses_agency => 'Verband';
 
   @override
+  String get query_courses_certification => 'Zertifizierung';
+
+  @override
   String get query_courses_completionDate => 'Abschlussdatum';
 
   @override
+  String get query_courses_dives => 'Tauchgänge';
+
+  @override
+  String get query_courses_instructor => 'Tauchlehrer';
+
+  @override
+  String get query_courses_instructorName => 'Name des Instructors';
+
+  @override
+  String get query_courses_location => 'Ort';
+
+  @override
   String get query_courses_name => 'Name';
+
+  @override
+  String get query_courses_notes => 'Notizen';
 
   @override
   String get query_courses_startDate => 'Startdatum';
@@ -45559,6 +45639,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_equipment_type => 'Typ';
 
   @override
+  String get query_filter_clear => 'Löschen';
+
+  @override
+  String get query_filter_tooltip => 'Filter';
+
+  @override
+  String get query_list_noMatch => 'Nichts entspricht dieser Abfrage';
+
+  @override
   String get query_media_caption => 'Bildunterschrift';
 
   @override
@@ -45622,13 +45711,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_sites_types => 'Tauchplatztypen';
 
   @override
+  String get query_species_builtIn => 'Vordefiniert';
+
+  @override
   String get query_species_category => 'Kategorie';
+
+  @override
+  String get query_species_description => 'Beschreibung';
+
+  @override
+  String get query_species_dives => 'Tauchgänge';
+
+  @override
+  String get query_species_expectedSites => 'Erwartet an Tauchplätzen';
 
   @override
   String get query_species_name => 'Name';
 
   @override
   String get query_species_scientificName => 'Wissenschaftlicher Name';
+
+  @override
+  String get query_species_sightings => 'Sichtungen';
+
+  @override
+  String get query_species_taxonomyClass => 'Taxonomische Klasse';
 
   @override
   String get query_tags_name => 'Name';

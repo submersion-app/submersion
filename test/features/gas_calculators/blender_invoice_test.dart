@@ -27,6 +27,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../helpers/fake_path_provider.dart';
+import '../../helpers/fake_hosts.dart';
 
 /// The share helpers write into getApplicationDocumentsDirectory(), a
 /// platform channel with no implementation under flutter_test.
@@ -116,6 +117,13 @@ Future<WidgetRef> _pump(
 }
 
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   group('BilledFill', () {
     test('round-trips through JSON, itemisation included', () {
       const fill = BilledFill(

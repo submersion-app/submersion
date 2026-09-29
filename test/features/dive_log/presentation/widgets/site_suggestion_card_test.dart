@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_sugge
 
 import '../../../media/presentation/support/media_widget_harness.dart';
 import '../support/fake_matching_service.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 /// Holds the apply open so the test can dispose the card mid-write.
 class _BlockingMatchingService extends FakeMatchingService {
@@ -51,6 +52,12 @@ class _StubDiveRepository implements DiveRepository {
 }
 
 void main() {
+  // The code under test calls Nominatim; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('nominatim.openstreetmap.org');
+  });
+
   late FakeMatchingService service;
   late _StubDiveRepository dives;
   var refreshed = 0;

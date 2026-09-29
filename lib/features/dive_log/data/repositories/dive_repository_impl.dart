@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/database/database.dart';
@@ -3916,7 +3917,12 @@ class DiveRepository {
 
     // Get per-tank pressure data to derive start/end pressure when the dive
     // computer provided time-series readings.
-    final tankSeries = await _tankSeries.getSeriesForDive(row.id);
+    // One source per stretch of a tank, never two interleaved (#2440), and
+    // no signal dropout standing in for either endpoint (#2441).
+    final tankSeries = selectTankSeriesPerSource(
+      await _tankSeries.getSeriesForDive(row.id),
+      preferredSourceId: await _tankSeries.primarySourceId(row.id),
+    );
     final startPressureByTank = <String, double>{};
     final endPressureByTank = <String, double>{};
     final byTank = <String, List<dynamic>>{};
@@ -3925,9 +3931,12 @@ class DiveRepository {
     }
     for (final entry in byTank.entries) {
       final merged = mergeTankSeriesPoints(entry.value.cast());
-      if (merged.isEmpty) continue;
-      startPressureByTank[entry.key] = merged.first.pressure;
-      endPressureByTank[entry.key] = merged.last.pressure;
+      final endpoints = cleanSeriesEndpoints([
+        for (final p in merged) (t: p.timestamp, bar: p.pressure),
+      ]);
+      if (endpoints == null) continue;
+      startPressureByTank[entry.key] = endpoints.start;
+      endPressureByTank[entry.key] = endpoints.end;
     }
 
     // Get profile for this dive from [_mergedSeriesPoints].

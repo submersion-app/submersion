@@ -81,21 +81,77 @@ void main() {
     expect(tankA.endPressure, 150.0);
   });
 
-  test('multiple series for one tank interleave by timestamp', () async {
-    await db
-        .into(db.diveComputers)
-        .insert(
-          DiveComputersCompanion.insert(
-            id: 'comp-1',
-            name: 'comp-1',
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
+  test(
+    'series of one tank that follow one another join by timestamp',
+    () async {
+      // A combined dive: each half recorded the cylinder on its own.
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion.insert(
+              id: 'comp-1',
+              name: 'comp-1',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      await series.insertSeries(
+        diveId: 'dive-1',
+        tankId: 'tank-a',
+        samples: const [
+          TankPressureSample(timestamp: 2700, pressure: 120.0),
+          TankPressureSample(timestamp: 3600, pressure: 100.0),
+        ],
+        now: now,
+      );
+      await series.insertSeries(
+        diveId: 'dive-1',
+        tankId: 'tank-a',
+        computerId: 'comp-1',
+        samples: const [
+          TankPressureSample(timestamp: 0, pressure: 200.0),
+          TankPressureSample(timestamp: 900, pressure: 180.0),
+          TankPressureSample(timestamp: 1800, pressure: 150.0),
+        ],
+        now: now,
+      );
+      final byTank = await tanks.getTankPressuresForDive('dive-1');
+      expect(byTank['tank-a']!.map((p) => p.timestamp), [
+        0,
+        900,
+        1800,
+        2700,
+        3600,
+      ]);
+      expect(byTank['tank-a']!.map((p) => p.pressure), [
+        200.0,
+        180.0,
+        150.0,
+        120.0,
+        100.0,
+      ]);
+      final forTank = await tanks.getPressuresForTank('dive-1', 'tank-a');
+      expect(forTank.map((p) => p.timestamp), [0, 900, 1800, 2700, 3600]);
+      expect(forTank.map((p) => p.pressure), [
+        200.0,
+        180.0,
+        150.0,
+        120.0,
+        100.0,
+      ]);
+      final dive = await DiveRepository().getDiveById('dive-1');
+      final tankA = dive!.tanks.singleWhere((t) => t.id == 'tank-a');
+      expect(tankA.startPressure, 200.0);
+      expect(tankA.endPressure, 100.0);
+    },
+  );
+
+  test('overlapping recordings of one tank are never interleaved', () async {
+    // Two recordings of the same stretch (#2440): interleaving them would
+    // zigzag between 200/150/100 and 180/120. The fuller one is read.
     await series.insertSeries(
       diveId: 'dive-1',
       tankId: 'tank-a',
-      computerId: 'comp-1',
       samples: const [
         TankPressureSample(timestamp: 0, pressure: 200.0),
         TankPressureSample(timestamp: 1800, pressure: 150.0),
@@ -113,27 +169,9 @@ void main() {
       now: now,
     );
     final byTank = await tanks.getTankPressuresForDive('dive-1');
-    expect(byTank['tank-a']!.map((p) => p.timestamp), [
-      0,
-      900,
-      1800,
-      2700,
-      3600,
-    ]);
-    expect(byTank['tank-a']!.map((p) => p.pressure), [
-      200.0,
-      180.0,
-      150.0,
-      120.0,
-      100.0,
-    ]);
+    expect(byTank['tank-a']!.map((p) => p.timestamp), [0, 1800, 3600]);
     final forTank = await tanks.getPressuresForTank('dive-1', 'tank-a');
-    expect(forTank.map((p) => p.timestamp), [0, 900, 1800, 2700, 3600]);
-    expect(forTank.map((p) => p.pressure), [200.0, 180.0, 150.0, 120.0, 100.0]);
-    final dive = await DiveRepository().getDiveById('dive-1');
-    final tankA = dive!.tanks.singleWhere((t) => t.id == 'tank-a');
-    expect(tankA.startPressure, 200.0);
-    expect(tankA.endPressure, 100.0);
+    expect(forTank.map((p) => p.timestamp), [0, 1800, 3600]);
   });
 
   test('a dive with no tank series has no pressures', () async {
@@ -199,8 +237,9 @@ void main() {
     );
     expect(forBlack['tank-a']!.map((p) => p.timestamp), [2, 4]);
 
-    // The unscoped read is unchanged: the interleaved union.
-    final union = await tanks.getTankPressuresForDive('dive-1');
-    expect(union['tank-a']!.map((p) => p.timestamp), [2, 3, 4, 5]);
+    // The unscoped read no longer interleaves the two recordings (#2440):
+    // with no source to prefer, the one that starts first is read.
+    final unscoped = await tanks.getTankPressuresForDive('dive-1');
+    expect(unscoped['tank-a']!.map((p) => p.timestamp), [2, 4]);
   });
 }

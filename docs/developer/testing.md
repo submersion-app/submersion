@@ -418,16 +418,32 @@ CI bundle, or through `flutter test` locally.
   `package:http`, images and most plugins use), or a plain `Socket`, to any
   host but this machine fails with `A test reached the network: <URL>`. A TLS
   socket opened directly with `SecureSocket.connect` connects below the hook
-  and is not covered; nothing in `lib/` opens one. Inject a fake client (`MockClient` from
-  `package:http/testing.dart`), serve the response from a loopback
-  `HttpServer` (`HttpServer.bind(InternetAddress.loopbackIPv4, 0)`), or call
-  `loadPdfRoboto()` for PDF fonts. The overrides live in
+  and is not covered; nothing in `lib/` opens one. The overrides live in
   `test/helpers/blocked_network.dart`, and `HttpOverrides.runZoned` still wins
-  inside its zone. The refusal is a `StateError`: code under test that catches
-  every error swallows it, so no request leaves the machine but the test does
-  not fail on it. A widget test that waits for such a lookup with
-  `pumpAndSettle` can then wait forever; pump a bounded number of times
-  instead, or fake the service.
+  inside its zone. A refusal fails the test even when the code under test
+  catches it: the harness records it and fails the test in a tear-down, naming
+  the URL. A test that is refused on purpose calls `expectNetworkRefusals()`.
+  A refusal caught outside any test (in a `setUpAll`, while a file declares
+  its tests, or in work an earlier test left running) fails the next test.
+- **Answering a public service.** When the code under test calls a service
+  such as Nominatim, Open-Meteo, the OSM tile server or the PDF font host,
+  declare it in `setUp`:
+
+  ```dart
+  setUp(() {
+    // The code under test calls Open-Meteo; it answers as offline.
+    serveFakeHost('api.open-meteo.com');
+  });
+  ```
+
+  The harness's `HttpClient` then answers that host from memory
+  (`test/helpers/fake_hosts.dart`): a 503 "offline" by default, which is what
+  the code meets on a device without a network, or a given response such as
+  `FakeResponse.json({...})`. `fakeHostRequests` lists what was asked. The
+  answer arrives inside a widget test's fake clock, and declarations last one
+  test. Where the code takes a client, injecting one (`MockClient` from
+  `package:http/testing.dart`) works too; `loadPdfRoboto()` loads real fonts
+  for a PDF test that needs them.
 - **A time limit per test.** A test fails after `testTimeLimit`
   (`test/helpers/test_timeouts.dart`, two minutes), set for plain tests in
   `dart_test.yaml` and for widget tests on the binding in

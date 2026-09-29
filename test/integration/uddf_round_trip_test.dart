@@ -40,8 +40,15 @@ import '../helpers/mock_channels.dart';
 import '../helpers/python_script_runner.dart';
 import '../helpers/uddf_comparison_helper.dart';
 import 'uddf_test_importer.dart';
+import '../helpers/fake_hosts.dart';
 
 void main() {
+  // The code under test calls Nominatim; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('nominatim.openstreetmap.org');
+  });
+
   late AppDatabase testDb;
   late ExportService exportService;
   late Directory tempDir;

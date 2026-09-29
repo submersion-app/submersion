@@ -24106,6 +24106,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Magasságok a közepes tengerszinthez képest';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Az időpontok a merülőhely helyi idejében jelennek meg.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return '$distance felbontású óceánmodell-rács';
+  }
+
+  @override
   String get tides_title => 'Árapály';
 
   @override
@@ -32808,6 +32817,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return 'A nyomás $rise értékkel emelkedett a merülés közben gázcsere nélkül';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A nyomásérzékelő $count alkalommal adott hibás értéket (kiesés vagy tüske)',
+      one: 'A nyomásérzékelő egyszer hibás értéket adott (kiesés vagy tüske)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed =>
+      'A nyomássor két forrás mérési adatait keveri';
 
   @override
   String dataQuality_msg_sac(String sac) {
@@ -45083,6 +45108,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_buddies_certifications => 'Minősítések';
 
   @override
+  String get query_buddies_dives => 'Merülések';
+
+  @override
   String get query_buddies_email => 'E-mail';
 
   @override
@@ -45098,25 +45126,55 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_buddies_phone => 'Telefon';
 
   @override
+  String get query_centers_affiliations => 'Tagságok';
+
+  @override
   String get query_centers_city => 'Város';
+
+  @override
+  String get query_centers_coordinates => 'Koordináták';
 
   @override
   String get query_centers_country => 'Ország';
 
   @override
+  String get query_centers_dives => 'Merülések';
+
+  @override
   String get query_centers_name => 'Név';
+
+  @override
+  String get query_centers_notes => 'Jegyzetek';
+
+  @override
+  String get query_centers_rating => 'Értékelés';
+
+  @override
+  String get query_centers_stateProvince => 'Állam / megye';
 
   @override
   String get query_certifications_agency => 'Szervezet';
 
   @override
+  String get query_certifications_buddy => 'Búvártárs';
+
+  @override
   String get query_certifications_cardNumber => 'Kártyaszám';
+
+  @override
+  String get query_certifications_course => 'Tanfolyam';
 
   @override
   String get query_certifications_expiryDate => 'Lejárat dátuma';
 
   @override
+  String get query_certifications_instructor => 'Oktató';
+
+  @override
   String get query_certifications_instructorName => 'Oktató neve';
+
+  @override
+  String get query_certifications_instructorNumber => 'Oktató száma';
 
   @override
   String get query_certifications_issueDate => 'Kiállítás dátuma';
@@ -45126,6 +45184,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_certifications_name => 'Név';
+
+  @override
+  String get query_certifications_notes => 'Jegyzetek';
 
   @override
   String get query_computers_manufacturer => 'Gyártó';
@@ -45143,10 +45204,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_courses_agency => 'Szervezet';
 
   @override
+  String get query_courses_certification => 'Képesítés';
+
+  @override
   String get query_courses_completionDate => 'Befejezés dátuma';
 
   @override
+  String get query_courses_dives => 'Merülések';
+
+  @override
+  String get query_courses_instructor => 'Oktató';
+
+  @override
+  String get query_courses_instructorName => 'Oktató neve';
+
+  @override
+  String get query_courses_location => 'Helyszín';
+
+  @override
   String get query_courses_name => 'Név';
+
+  @override
+  String get query_courses_notes => 'Jegyzetek';
 
   @override
   String get query_courses_startDate => 'Kezdő dátum';
@@ -45467,6 +45546,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_equipment_type => 'Típus';
 
   @override
+  String get query_filter_clear => 'Törlés';
+
+  @override
+  String get query_filter_tooltip => 'Szűrő';
+
+  @override
+  String get query_list_noMatch => 'Semmi sem felel meg ennek a lekérdezésnek';
+
+  @override
   String get query_media_caption => 'Felirat';
 
   @override
@@ -45530,13 +45618,31 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_sites_types => 'Merülőhely-típusok';
 
   @override
+  String get query_species_builtIn => 'Beépített';
+
+  @override
   String get query_species_category => 'Kategória';
+
+  @override
+  String get query_species_description => 'Leírás';
+
+  @override
+  String get query_species_dives => 'Merülések';
+
+  @override
+  String get query_species_expectedSites => 'Várható helyszíneken';
 
   @override
   String get query_species_name => 'Név';
 
   @override
   String get query_species_scientificName => 'Tudományos név';
+
+  @override
+  String get query_species_sightings => 'Észlelések';
+
+  @override
+  String get query_species_taxonomyClass => 'Taxonómiai osztály';
 
   @override
   String get query_tags_name => 'Név';

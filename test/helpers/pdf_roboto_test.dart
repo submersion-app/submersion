@@ -3,6 +3,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 
+import 'blocked_network.dart';
 import 'pdf_roboto.dart';
 
 const _styles = ['Regular', 'Bold', 'Italic', 'BoldItalic'];
@@ -42,6 +43,9 @@ void main() {
   test(
     'without the helper the blocked download falls back to Helvetica',
     () async {
+      // The refused download is what this test is about.
+      expectNetworkRefusals();
+
       await PdfFonts.instance.initialize();
 
       expect(PdfFonts.instance.regular, isNot(isA<pw.TtfFont>()));

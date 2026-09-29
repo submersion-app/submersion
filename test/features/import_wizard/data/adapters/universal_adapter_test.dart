@@ -103,6 +103,7 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
 ])
 import '../../../../helpers/test_database.dart';
 import 'universal_adapter_test.mocks.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 typedef Override = riverpod.Override;
 
@@ -371,6 +372,12 @@ List<Override> _fullOverrides({
 // ---------------------------------------------------------------------------
 
 void main() {
+  // The code under test calls Open-Meteo; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('api.open-meteo.com');
+  });
+
   // -------------------------------------------------------------------------
   // Adapter metadata
   // -------------------------------------------------------------------------

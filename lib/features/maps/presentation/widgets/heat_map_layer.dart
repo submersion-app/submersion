@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_shader_provider.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_density.dart';
+import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 
 /// A flutter_map layer that displays a density-colorized heat map.
 ///
@@ -141,32 +142,51 @@ class _HeatMapPainter extends CustomPainter {
     final recorder = ui.PictureRecorder();
     final bufferCanvas = Canvas(recorder);
 
+    // One pass per visible copy of the world, so the heat carries on past
+    // the date line on a map that scrolls across it (issue #2516). A blob up
+    // to [radius] px past the edge still shows, including one from a world
+    // that starts just off screen, so reach that far for copies.
+    final copies = worldCopyCameras(camera, bleed: radius);
     for (final point in points) {
-      final screen = camera.latLngToScreenOffset(point.location);
-      if (!isPointVisible(screen, size, radius)) continue;
-
       final intensity = densityIntensity(point.weight, maxWeight);
       if (intensity <= 0) continue;
-
-      final blob = densityBlobGradient(intensity);
-      final gradient = RadialGradient(
-        colors: blob.colors,
-        stops: blob.stops,
-      ).createShader(Rect.fromCircle(center: screen, radius: radius));
-
-      bufferCanvas.drawCircle(
-        screen,
-        radius,
-        Paint()
-          ..shader = gradient
-          ..blendMode = BlendMode.plus,
-      );
+      for (final copy in copies) {
+        _drawBlob(
+          bufferCanvas,
+          copy.camera.latLngToScreenOffset(point.location),
+          size,
+          intensity,
+        );
+      }
     }
 
     final picture = recorder.endRecording();
     final image = picture.toImageSync(size.width.ceil(), size.height.ceil());
     picture.dispose();
     return image;
+  }
+
+  void _drawBlob(
+    Canvas bufferCanvas,
+    Offset screen,
+    Size size,
+    double intensity,
+  ) {
+    if (!isPointVisible(screen, size, radius)) return;
+
+    final blob = densityBlobGradient(intensity);
+    final gradient = RadialGradient(
+      colors: blob.colors,
+      stops: blob.stops,
+    ).createShader(Rect.fromCircle(center: screen, radius: radius));
+
+    bufferCanvas.drawCircle(
+      screen,
+      radius,
+      Paint()
+        ..shader = gradient
+        ..blendMode = BlendMode.plus,
+    );
   }
 
   @override

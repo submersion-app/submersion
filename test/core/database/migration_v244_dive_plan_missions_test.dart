@@ -60,8 +60,8 @@ Future<String?> _ddl(AppDatabase db, String table) async {
 
 void main() {
   test('v244 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v247 (Explore derived metrics) landed on top; the newest
-    // rung owns the exact assertion.
+    // Relaxed once v245 (certifications buddy index) landed on top; the
+    // newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(244));
     expect(AppDatabase.migrationVersions, contains(244));
     expect(AppDatabase.migrationStepCount(242), greaterThanOrEqualTo(1));

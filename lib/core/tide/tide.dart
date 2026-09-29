@@ -39,7 +39,7 @@
 /// ## Data Sources
 ///
 /// Constituent data can come from:
-/// - FES2014/FES2022 global ocean tide models (via PyFES extraction)
+/// - The bundled FES2022 ocean tide grid (scripts/tide/extract_fes_grid.py)
 /// - NOAA harmonic constants database
 /// - UK Hydrographic Office data
 /// - Australian BOM tide data

@@ -20,6 +20,11 @@ import 'package:submersion/features/buddies/presentation/widgets/buddy_summary_w
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_search_delegate.dart';
+import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 
 class BuddyListPage extends ConsumerWidget {
   const BuddyListPage({super.key});
@@ -95,6 +100,12 @@ class BuddyListPage extends ConsumerWidget {
                   delegate: BuddySearchDelegate(ref),
                 );
               },
+            ),
+            QueryFilterAction(
+              provider: buddyQueryProvider,
+              subject: QuerySubject.buddies,
+              root: buddyQueryEntity,
+              compact: true,
             ),
             IconButton(
               icon: const Icon(Icons.sort, size: 20),

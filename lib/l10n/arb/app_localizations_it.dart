@@ -24176,6 +24176,15 @@ class AppLocalizationsIt extends AppLocalizations {
       'Altezze rispetto al livello medio del mare';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'Gli orari sono mostrati nell\'ora locale del sito di immersione.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'Griglia del modello oceanico di $distance';
+  }
+
+  @override
   String get tides_title => 'Maree';
 
   @override
@@ -32930,6 +32939,23 @@ class AppLocalizationsIt extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return 'La pressione è aumentata di $rise durante l\'immersione senza cambio gas';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Il sensore di pressione ha registrato letture errate $count volte (interruzioni o picchi)',
+      one:
+          'Il sensore di pressione ha registrato una lettura errata una volta (interruzione o picco)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed =>
+      'La serie di pressione mescola le letture di due fonti';
 
   @override
   String dataQuality_msg_sac(String sac) {
@@ -45250,6 +45276,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_buddies_certifications => 'Brevetti';
 
   @override
+  String get query_buddies_dives => 'Immersioni';
+
+  @override
   String get query_buddies_email => 'E-mail';
 
   @override
@@ -45265,25 +45294,55 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_buddies_phone => 'Telefono';
 
   @override
+  String get query_centers_affiliations => 'Affiliazioni';
+
+  @override
   String get query_centers_city => 'Città';
+
+  @override
+  String get query_centers_coordinates => 'Coordinate';
 
   @override
   String get query_centers_country => 'Paese';
 
   @override
+  String get query_centers_dives => 'Immersioni';
+
+  @override
   String get query_centers_name => 'Nome';
+
+  @override
+  String get query_centers_notes => 'Note';
+
+  @override
+  String get query_centers_rating => 'Valutazione';
+
+  @override
+  String get query_centers_stateProvince => 'Stato / Provincia';
 
   @override
   String get query_certifications_agency => 'Didattica';
 
   @override
+  String get query_certifications_buddy => 'Compagno';
+
+  @override
   String get query_certifications_cardNumber => 'Numero tessera';
+
+  @override
+  String get query_certifications_course => 'Corso';
 
   @override
   String get query_certifications_expiryDate => 'Data di scadenza';
 
   @override
+  String get query_certifications_instructor => 'Istruttore';
+
+  @override
   String get query_certifications_instructorName => 'Nome dell\'istruttore';
+
+  @override
+  String get query_certifications_instructorNumber => 'Numero istruttore';
 
   @override
   String get query_certifications_issueDate => 'Data di rilascio';
@@ -45293,6 +45352,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_certifications_name => 'Nome';
+
+  @override
+  String get query_certifications_notes => 'Note';
 
   @override
   String get query_computers_manufacturer => 'Produttore';
@@ -45310,10 +45372,28 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_courses_agency => 'Didattica';
 
   @override
+  String get query_courses_certification => 'Certificazione';
+
+  @override
   String get query_courses_completionDate => 'Data di completamento';
 
   @override
+  String get query_courses_dives => 'Immersioni';
+
+  @override
+  String get query_courses_instructor => 'Istruttore';
+
+  @override
+  String get query_courses_instructorName => 'Nome dell\'istruttore';
+
+  @override
+  String get query_courses_location => 'Località';
+
+  @override
   String get query_courses_name => 'Nome';
+
+  @override
+  String get query_courses_notes => 'Note';
 
   @override
   String get query_courses_startDate => 'Data di inizio';
@@ -45634,6 +45714,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_equipment_type => 'Tipo';
 
   @override
+  String get query_filter_clear => 'Cancella';
+
+  @override
+  String get query_filter_tooltip => 'Filtro';
+
+  @override
+  String get query_list_noMatch =>
+      'Nessun risultato corrisponde a questa query';
+
+  @override
   String get query_media_caption => 'Didascalia';
 
   @override
@@ -45697,13 +45787,31 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_sites_types => 'Tipi di sito';
 
   @override
+  String get query_species_builtIn => 'Predefinito';
+
+  @override
   String get query_species_category => 'Categoria';
+
+  @override
+  String get query_species_description => 'Descrizione';
+
+  @override
+  String get query_species_dives => 'Immersioni';
+
+  @override
+  String get query_species_expectedSites => 'Prevista nei siti';
 
   @override
   String get query_species_name => 'Nome';
 
   @override
   String get query_species_scientificName => 'Nome scientifico';
+
+  @override
+  String get query_species_sightings => 'Avvistamenti';
+
+  @override
+  String get query_species_taxonomyClass => 'Classe tassonomica';
 
   @override
   String get query_tags_name => 'Nome';

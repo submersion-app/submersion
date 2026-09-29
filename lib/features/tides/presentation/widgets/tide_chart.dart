@@ -64,6 +64,11 @@ class TideChart extends StatefulWidget {
   /// ("Jan 15") or day-first ("15 Jan"). Defaults to month-first.
   final DateFormatPreference dateFormat;
 
+  /// Maps a plotted instant to the clock its labels are printed in, such as
+  /// a dive site's wall clock. Positions stay in real instants, which never
+  /// repeat, so a DST change cannot fold the axis. Identity when null.
+  final DateTime Function(DateTime instant)? displayTime;
+
   const TideChart({
     super.key,
     required this.predictions,
@@ -76,6 +81,7 @@ class TideChart extends StatefulWidget {
     this.onPointSelected,
     this.timeFormat = TimeFormat.twentyFourHour,
     this.depthUnit = DepthUnit.meters,
+    this.displayTime,
     this.dateFormat = DateFormatPreference.mmddyyyy,
   });
 
@@ -84,6 +90,9 @@ class TideChart extends StatefulWidget {
 }
 
 class _TideChartState extends State<TideChart> {
+  DateTime _display(DateTime instant) =>
+      widget.displayTime?.call(instant) ?? instant;
+
   @override
   Widget build(BuildContext context) {
     if (widget.predictions.isEmpty) {
@@ -185,7 +194,9 @@ class _TideChartState extends State<TideChart> {
     }
 
     // Format "Now" label with time and height
-    final nowTimeStr = DateFormat(widget.timeFormat.pattern).format(reference);
+    final nowTimeStr = DateFormat(
+      widget.timeFormat.pattern,
+    ).format(_display(reference));
     final nowHeightStr = currentHeight != null
         ? '${DepthUnit.meters.convert(currentHeight, widget.depthUnit).toStringAsFixed(1)}${widget.depthUnit.symbol}'
         : '';
@@ -211,7 +222,7 @@ class _TideChartState extends State<TideChart> {
                 );
                 final timeStr = DateFormat(
                   widget.timeFormat.pattern,
-                ).format(e.time);
+                ).format(_display(e.time));
                 return context.l10n.tides_semantic_extremeItem(
                   typeLabel,
                   timeStr,
@@ -311,8 +322,10 @@ class _TideChartState extends State<TideChart> {
                               reservedSize: 30,
                               interval: _calculateTimeInterval(maxX),
                               getTitlesWidget: (value, meta) {
-                                final time = minTime.add(
-                                  Duration(minutes: (value * 60).round()),
+                                final time = _display(
+                                  minTime.add(
+                                    Duration(minutes: (value * 60).round()),
+                                  ),
                                 );
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 4),
@@ -337,8 +350,10 @@ class _TideChartState extends State<TideChart> {
                               reservedSize: 20,
                               interval: _calculateTimeInterval(maxX),
                               getTitlesWidget: (value, meta) {
-                                final time = minTime.add(
-                                  Duration(minutes: (value * 60).round()),
+                                final time = _display(
+                                  minTime.add(
+                                    Duration(minutes: (value * 60).round()),
+                                  ),
                                 );
                                 // Show day labels at midnight crossings
                                 if (time.hour == 0 && time.minute < 30) {
@@ -459,12 +474,12 @@ class _TideChartState extends State<TideChart> {
                                     effectivePredictions[spot.spotIndex];
                                 final timeStr = DateFormat(
                                   widget.timeFormat.pattern,
-                                ).format(prediction.time);
+                                ).format(_display(prediction.time));
                                 final dateStr = DateFormat(
                                   UnitFormatter.weekdayMonthDayPattern(
                                     widget.dateFormat,
                                   ),
-                                ).format(prediction.time);
+                                ).format(_display(prediction.time));
                                 final displayHeight = DepthUnit.meters.convert(
                                   prediction.heightMeters,
                                   widget.depthUnit,
@@ -735,7 +750,7 @@ class _TideChartState extends State<TideChart> {
       final label = isHigh ? 'H' : 'L';
       final timeStr = DateFormat(
         widget.timeFormat.pattern,
-      ).format(extreme.time);
+      ).format(_display(extreme.time));
       final displayHeight = DepthUnit.meters.convert(
         extreme.heightMeters,
         widget.depthUnit,

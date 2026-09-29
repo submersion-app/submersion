@@ -16,6 +16,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import '../../../../helpers/mock_channels.dart';
 import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 /// The course training log must report total *runtime*, not bottom time (#644).
 /// The historical ISO rendering these tests were written against; the diver's
@@ -34,6 +35,13 @@ const imperial = UnitFormatter(
 );
 
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory shareDir;

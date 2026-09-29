@@ -3,11 +3,18 @@ import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 
-/// Minimal in PR 1; PR 4 of #2365 adds the buddy list's query entry point.
+/// Every field and relation a buddy query can name (#2365). The buddy list's
+/// query roots here; dive paths reach it through `buddies`.
 const buddyQueryEntity = QueryEntity(
   subject: QuerySubject.buddies,
   table: 'buddies',
   diverScopeColumn: 'diver_id',
+  // The buddy search route's columns (name, email, phone).
+  textSearchSql: [
+    "{r}.name LIKE ? ESCAPE '\\'",
+    "{r}.email LIKE ? ESCAPE '\\'",
+    "{r}.phone LIKE ? ESCAPE '\\'",
+  ],
   fields: [
     QueryField(
       key: 'name',
@@ -53,6 +60,19 @@ const buddyQueryEntity = QueryEntity(
       joinSql: '{to}.buddy_id = {from}.id',
       isMany: true,
       labelKey: 'query_buddies_certifications',
+    ),
+    QueryRelation(
+      key: 'dives',
+      target: QuerySubject.dives,
+      shape: RelationShape.junction,
+      // IN (subquery), as the dive side's junction hops: SQLite probes
+      // dives by key.
+      joinSql:
+          '{to}.id IN (SELECT j.dive_id FROM dive_buddies j '
+          'WHERE j.buddy_id = {from}.id)',
+      isMany: true,
+      labelKey: 'query_buddies_dives',
+      tables: ['dive_buddies'],
     ),
   ],
 );

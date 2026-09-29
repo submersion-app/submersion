@@ -10,6 +10,10 @@ import 'package:submersion/features/marine_life/presentation/providers/seen_spec
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -73,6 +77,7 @@ Future<void> _pumpPage(
   List<SeenSpecies> entries, {
   Locale locale = const Locale('en'),
   Map<String, MediaItem> covers = const {},
+  List<Override> extra = const [],
 }) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
@@ -84,6 +89,7 @@ Future<void> _pumpPage(
         mediaResolverOverride(),
         seenSpeciesProvider.overrideWith((ref) async => entries),
         speciesCoverMediaProvider.overrideWith((ref) async => covers),
+        ...extra,
       ],
     ),
   );
@@ -218,5 +224,43 @@ void main() {
 
     expect(find.byType(MediaItemView), findsOneWidget);
     expect(find.byType(CircleAvatar), findsOneWidget);
+  });
+
+  group('query (#2365)', () {
+    final sharks = ConditionNode(
+      FieldPath(['category']),
+      QueryOp.eq,
+      const EnumValue('shark'),
+    );
+
+    testWidgets('the query narrows the sighted species', (tester) async {
+      await _pumpPage(
+        tester,
+        [_whaleShark, _turtle],
+        extra: [
+          seenSpeciesQueryProvider.overrideWith((ref) => sharks),
+          entityQueryIdsProvider.overrideWith(
+            (ref, key) async => {'sp_whale_shark'},
+          ),
+        ],
+      );
+      expect(find.text('Whale Shark'), findsOneWidget);
+      expect(find.text('Green Sea Turtle'), findsNothing);
+      expect(find.text('category = shark'), findsOneWidget);
+    });
+
+    testWidgets('a query that keeps nothing shows the no-match state', (
+      tester,
+    ) async {
+      await _pumpPage(
+        tester,
+        [_whaleShark, _turtle],
+        extra: [
+          seenSpeciesQueryProvider.overrideWith((ref) => sharks),
+          entityQueryIdsProvider.overrideWith((ref, key) async => const {}),
+        ],
+      );
+      expect(find.byType(QueryNoMatchState), findsOneWidget);
+    });
   });
 }

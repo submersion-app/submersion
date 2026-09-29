@@ -22952,6 +22952,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tides_source_datumMsl => '高度基于平均海平面';
 
   @override
+  String get tides_source_siteLocalTime => '时间以潜水点当地时间显示。';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return '$distance 海洋模型网格';
+  }
+
+  @override
   String get tides_title => '潮汐';
 
   @override
@@ -31253,6 +31261,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return '潜水途中压力在没有气体切换的情况下上升了 $rise';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '压力传感器记录了 $count 次错误读数（中断或尖峰）',
+      one: '压力传感器记录了 1 次错误读数（中断或尖峰）',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed => '压力序列混合了两个来源的读数';
 
   @override
   String dataQuality_msg_sac(String sac) {
@@ -42653,6 +42675,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_buddies_certifications => '证书';
 
   @override
+  String get query_buddies_dives => '潜水';
+
+  @override
   String get query_buddies_email => '电子邮件';
 
   @override
@@ -42668,25 +42693,55 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_buddies_phone => '电话';
 
   @override
+  String get query_centers_affiliations => '所属机构';
+
+  @override
   String get query_centers_city => '城市';
+
+  @override
+  String get query_centers_coordinates => '坐标';
 
   @override
   String get query_centers_country => '国家';
 
   @override
+  String get query_centers_dives => '潜水';
+
+  @override
   String get query_centers_name => '名称';
+
+  @override
+  String get query_centers_notes => '备注';
+
+  @override
+  String get query_centers_rating => '评分';
+
+  @override
+  String get query_centers_stateProvince => '州 / 省';
 
   @override
   String get query_certifications_agency => '认证机构';
 
   @override
+  String get query_certifications_buddy => '潜伴';
+
+  @override
   String get query_certifications_cardNumber => '卡号';
+
+  @override
+  String get query_certifications_course => '课程';
 
   @override
   String get query_certifications_expiryDate => '到期日期';
 
   @override
+  String get query_certifications_instructor => '教练';
+
+  @override
   String get query_certifications_instructorName => '教练姓名';
+
+  @override
+  String get query_certifications_instructorNumber => '教练编号';
 
   @override
   String get query_certifications_issueDate => '签发日期';
@@ -42696,6 +42751,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_certifications_name => '名称';
+
+  @override
+  String get query_certifications_notes => '备注';
 
   @override
   String get query_computers_manufacturer => '制造商';
@@ -42713,10 +42771,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_courses_agency => '认证机构';
 
   @override
+  String get query_courses_certification => '认证';
+
+  @override
   String get query_courses_completionDate => '完成日期';
 
   @override
+  String get query_courses_dives => '潜水';
+
+  @override
+  String get query_courses_instructor => '教练';
+
+  @override
+  String get query_courses_instructorName => '教练姓名';
+
+  @override
+  String get query_courses_location => '地点';
+
+  @override
   String get query_courses_name => '名称';
+
+  @override
+  String get query_courses_notes => '备注';
 
   @override
   String get query_courses_startDate => '开始日期';
@@ -43037,6 +43113,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_equipment_type => '类型';
 
   @override
+  String get query_filter_clear => '清除';
+
+  @override
+  String get query_filter_tooltip => '筛选';
+
+  @override
+  String get query_list_noMatch => '没有与此查询匹配的结果';
+
+  @override
   String get query_media_caption => '说明';
 
   @override
@@ -43100,13 +43185,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_sites_types => '潜水点类型';
 
   @override
+  String get query_species_builtIn => '内置';
+
+  @override
   String get query_species_category => '类别';
+
+  @override
+  String get query_species_description => '描述';
+
+  @override
+  String get query_species_dives => '潜水';
+
+  @override
+  String get query_species_expectedSites => '预期出现的潜点';
 
   @override
   String get query_species_name => '名称';
 
   @override
   String get query_species_scientificName => '学名';
+
+  @override
+  String get query_species_sightings => '观察记录';
+
+  @override
+  String get query_species_taxonomyClass => '分类纲';
 
   @override
   String get query_tags_name => '名称';

@@ -23882,6 +23882,15 @@ class AppLocalizationsAr extends AppLocalizations {
       'الارتفاعات نسبة إلى متوسط مستوى سطح البحر';
 
   @override
+  String get tides_source_siteLocalTime =>
+      'تُعرض الأوقات بالتوقيت المحلي لموقع الغوص.';
+
+  @override
+  String tides_source_modelResolution(String distance) {
+    return 'شبكة نموذج المحيط بدقة $distance';
+  }
+
+  @override
   String get tides_title => 'المد والجزر';
 
   @override
@@ -32526,6 +32535,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String dataQuality_msg_pressureRise(String rise) {
     return 'ارتفع الضغط $rise في منتصف الغوصة دون تبديل للغاز';
   }
+
+  @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سجّل مستشعر الضغط قراءات خاطئة $count مرات (انقطاعات أو قفزات)',
+      one: 'سجّل مستشعر الضغط قراءة خاطئة مرة واحدة (انقطاع أو قفزة)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_msg_pressureMixed => 'تمزج سلسلة الضغط قراءات مصدرين';
 
   @override
   String dataQuality_msg_sac(String sac) {
@@ -44915,6 +44938,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_buddies_certifications => 'الشهادات';
 
   @override
+  String get query_buddies_dives => 'الغطسات';
+
+  @override
   String get query_buddies_email => 'البريد الإلكتروني';
 
   @override
@@ -44930,25 +44956,55 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_buddies_phone => 'الهاتف';
 
   @override
+  String get query_centers_affiliations => 'الانتماءات';
+
+  @override
   String get query_centers_city => 'المدينة';
+
+  @override
+  String get query_centers_coordinates => 'الإحداثيات';
 
   @override
   String get query_centers_country => 'البلد';
 
   @override
+  String get query_centers_dives => 'الغطسات';
+
+  @override
   String get query_centers_name => 'الاسم';
+
+  @override
+  String get query_centers_notes => 'ملاحظات';
+
+  @override
+  String get query_centers_rating => 'التقييم';
+
+  @override
+  String get query_centers_stateProvince => 'الولاية / المقاطعة';
 
   @override
   String get query_certifications_agency => 'الهيئة';
 
   @override
+  String get query_certifications_buddy => 'زميل الغوص';
+
+  @override
   String get query_certifications_cardNumber => 'رقم البطاقة';
+
+  @override
+  String get query_certifications_course => 'الدورة';
 
   @override
   String get query_certifications_expiryDate => 'تاريخ الانتهاء';
 
   @override
+  String get query_certifications_instructor => 'المدرب';
+
+  @override
   String get query_certifications_instructorName => 'اسم المدرب';
+
+  @override
+  String get query_certifications_instructorNumber => 'رقم المدرب';
 
   @override
   String get query_certifications_issueDate => 'تاريخ الإصدار';
@@ -44958,6 +45014,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_certifications_name => 'الاسم';
+
+  @override
+  String get query_certifications_notes => 'ملاحظات';
 
   @override
   String get query_computers_manufacturer => 'الشركة المصنعة';
@@ -44975,10 +45034,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_courses_agency => 'الهيئة';
 
   @override
+  String get query_courses_certification => 'الاعتماد';
+
+  @override
   String get query_courses_completionDate => 'تاريخ الإكمال';
 
   @override
+  String get query_courses_dives => 'الغطسات';
+
+  @override
+  String get query_courses_instructor => 'المدرب';
+
+  @override
+  String get query_courses_instructorName => 'اسم المدرب';
+
+  @override
+  String get query_courses_location => 'الموقع';
+
+  @override
   String get query_courses_name => 'الاسم';
+
+  @override
+  String get query_courses_notes => 'ملاحظات';
 
   @override
   String get query_courses_startDate => 'تاريخ البدء';
@@ -45299,6 +45376,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_equipment_type => 'النوع';
 
   @override
+  String get query_filter_clear => 'مسح';
+
+  @override
+  String get query_filter_tooltip => 'التصفية';
+
+  @override
+  String get query_list_noMatch => 'لا شيء يطابق هذا الاستعلام';
+
+  @override
   String get query_media_caption => 'التعليق';
 
   @override
@@ -45362,13 +45448,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_sites_types => 'أنواع الموقع';
 
   @override
+  String get query_species_builtIn => 'مدمج';
+
+  @override
   String get query_species_category => 'الفئة';
+
+  @override
+  String get query_species_description => 'الوصف';
+
+  @override
+  String get query_species_dives => 'الغطسات';
+
+  @override
+  String get query_species_expectedSites => 'متوقع في المواقع';
 
   @override
   String get query_species_name => 'الاسم';
 
   @override
   String get query_species_scientificName => 'الاسم العلمي';
+
+  @override
+  String get query_species_sightings => 'المشاهدات';
+
+  @override
+  String get query_species_taxonomyClass => 'الصنف التصنيفي';
 
   @override
   String get query_tags_name => 'الاسم';

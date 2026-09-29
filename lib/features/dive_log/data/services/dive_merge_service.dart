@@ -481,10 +481,22 @@ class DiveMergeService {
           final newTankId = result.tankIdMap[s.tankId];
           if (newTankId == null || s.samples.isEmpty) continue;
           final offset = result.segmentOffsetsSeconds[s.diveId] ?? 0;
+          // The owning source follows the series (issue #2440). An
+          // unattributed series of a segment with several sources is left
+          // unattributed rather than handed to one of them: nothing says
+          // which recorded it. A source that is none of the merged ones tells
+          // no more than no source at all, as in consolidation.
+          final knownSource =
+              s.sourceId != null && mergedSourceIds.containsKey(s.sourceId);
+          final ambiguous =
+              !knownSource && (rowsBySegment[s.diveId]?.length ?? 0) > 1;
           await _tankSeries.insertSeries(
             diveId: mergedId,
             tankId: newTankId,
             computerId: s.computerId,
+            sourceId: ambiguous
+                ? null
+                : mergedSourceIdFor(s.diveId, s.sourceId),
             samples: [for (final p in s.samples) p.shiftedBy(offset)],
             now: now,
           );

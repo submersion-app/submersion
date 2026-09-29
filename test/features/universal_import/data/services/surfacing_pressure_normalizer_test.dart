@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/services/surfacing_pressure_normalizer.dart';
 
 /// Issue #1092: an exporting app that took its end pressure from the last
@@ -57,6 +58,21 @@ void main() {
     );
 
     expect(firstTank(result)['endPressure'], 41.0);
+  });
+
+  test('keeps the payload source divers', () {
+    // A multi-diver import (#1893) must still offer its Divers step after
+    // the surfacing rule rebuilt the payload.
+    const divers = [SourceDiver(key: 'd1', name: 'Anna')];
+    final result = trimTankPressuresAtSurfacing(
+      ImportPayload(
+        entities: {
+          ImportEntityType.dives: [bleedingOxygenDive()],
+        },
+        sourceDivers: divers,
+      ),
+    );
+    expect(result.sourceDivers, divers);
   });
 
   test('leaves start pressure alone', () {

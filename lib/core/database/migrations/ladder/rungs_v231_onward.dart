@@ -70,6 +70,13 @@ extension RungsFromV231 on AppDatabase {
       await _assertProfileEventsDiveIdIndex();
     }
     if (from < 240) await reportProgress();
+    // v241: tank_pressure_series.source_id (issue #2440), backfilled
+    // where the source is unambiguous.
+    if (from < 241) {
+      await _assertTankSeriesSourceIdColumn();
+      await _backfillTankSeriesSourceIds();
+    }
+    if (from < 241) await reportProgress();
     // v242: the equipment service cache (issue #2365). Table-only rung;
     // re-asserted in beforeOpen.
     if (from < 242) {
@@ -83,6 +90,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertDivePlanMissionSchema();
     }
     if (from < 244) await reportProgress();
+    // v245: index certifications by buddy (issue #2365). Index-only rung;
+    // re-asserted in beforeOpen.
+    if (from < 245) {
+      await _assertCertificationsBuddyIndex();
+    }
+    if (from < 245) await reportProgress();
     // v247: the Explore derived metrics (issue #2195). Table-only rung, no
     // backfill: the startup sweep fills it. Re-asserted in beforeOpen.
     if (from < 247) {

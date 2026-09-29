@@ -14,7 +14,7 @@ Future<Set<String>> _tables(AppDatabase db) async => {
 
 void main() {
   test('v242 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v244 (DPV mission planner) landed on top; the newest
+    // Relaxed once v244 (DPV mission planner) and v245 landed on top; the newest
     // rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(242));
     expect(AppDatabase.migrationVersions, contains(242));

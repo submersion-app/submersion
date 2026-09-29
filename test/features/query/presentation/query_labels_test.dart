@@ -84,5 +84,15 @@ void main() {
     expect(labels.enumValue(dives.field('finalStop')!, 'noStop'), 'No stop');
     // An unknown enum value falls back to its stored name.
     expect(labels.enumValue(dives.field('waterType')!, 'brine'), 'brine');
+    final certs = appQueryRegistry.entityFor(QuerySubject.certifications);
+    expect(labels.enumValue(certs.field('agency')!, 'padi'), 'PADI');
+    expect(labels.enumValue(certs.field('level')!, 'rescue'), 'Rescue Diver');
+    final courses = appQueryRegistry.entityFor(QuerySubject.courses);
+    expect(labels.enumValue(courses.field('agency')!, 'padi'), 'PADI');
+    final species = appQueryRegistry.entityFor(QuerySubject.species);
+    expect(
+      labels.enumValue(species.field('category')!, 'plant'),
+      'Plant/Algae',
+    );
   });
 }
