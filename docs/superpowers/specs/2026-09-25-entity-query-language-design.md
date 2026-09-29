@@ -916,6 +916,10 @@ Decided in the whole-branch review of PR 1:
 - **Relations are not diver-scoped.** As with `sites.dives`, a hop reaches
   every diver's rows: `sightings.count >= 3` on the nav Species page counts
   every diver's sightings of that species.
+- **The root is diver-scoped.** `entityQueryIdsProvider` ANDs
+  `r0.diver_id = ?` for a per-diver root (buddies, certifications, courses,
+  centers), exactly as each repository scopes its list, so the id set never
+  walks another diver's rows. Species are shared and stay unscoped.
 - **The dive center map stays unfiltered**, like the site map.
 - **Schema rung 245** indexes `certifications(buddy_id)`
   (`idx_certifications_buddy_id`), so every hop in the three-hop dive query
