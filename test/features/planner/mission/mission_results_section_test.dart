@@ -12,6 +12,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
+import 'package:submersion/features/planner/domain/entities/mission/shore_exit.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
@@ -20,6 +21,7 @@ import 'package:submersion/features/planner/presentation/mission/mission_results
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/presentation/providers/mission_outcome_provider.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/test_app.dart';
@@ -458,5 +460,61 @@ void main() {
     );
     expect(find.textContaining('out 46 m/min'), findsOneWidget);
     expect(find.textContaining('(11′)'), findsWidgets);
+  });
+
+  testWidgets('open water shows the way home and the surface exits', (
+    tester,
+  ) async {
+    final m = _mission();
+    await _pump(
+      tester,
+      width: 400,
+      mission: m.copyWith(
+        environment: MissionEnvironment.openWater,
+        legs: [
+          m.legs.single.copyWith(
+            shoreExit: const ShoreExit(surfaceSwimM: 50, walkM: 20),
+          ),
+        ],
+      ),
+    );
+    expect(find.textContaining('300m straight home'), findsOneWidget);
+    expect(
+      find.textContaining(RegExp(r'surface( via the shore)? \d+′')),
+      findsWidgets,
+    );
+  });
+
+  testWidgets('the results sheet carries the Mission section', (tester) async {
+    tester.view.physicalSize = const Size(420, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          missionSettleDelayProvider.overrideWithValue(Duration.zero),
+          missionEngineRunnerProvider.overrideWithValue(_syncRunner),
+        ],
+        child: SingleChildScrollView(
+          child: PlanResultsSheet(
+            controller: ScrollController(),
+            shrinkWrap: true,
+          ),
+        ),
+      ),
+    );
+    final notifier = ProviderScope.containerOf(
+      tester.element(find.byType(PlanResultsSheet)),
+    ).read(divePlanNotifierProvider.notifier);
+    Finder header() => find.byWidgetPredicate(
+      (w) => w is PlanSectionHeader && w.label == 'Mission',
+    );
+    expect(header(), findsNothing);
+    notifier.enableMission(_mission());
+    await tester.pumpAndSettle();
+    expect(header(), findsOneWidget);
+    expect(find.byType(MissionResultsSection), findsOneWidget);
   });
 }

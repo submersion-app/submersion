@@ -126,4 +126,42 @@ void main() {
     expect(settingPercent(1 / 3), '33');
     expect(settingPercent(0.55), '55');
   });
+
+  test('a diver whose scooter has no name is named alone', () {
+    final unnamed = MissionEdits.updateMember(
+      mission,
+      mission.team.single.copyWith(
+        scooter: mission.team.single.scooter.copyWith(name: '  '),
+      ),
+    );
+    const limited = MissionOutcome(
+      segments: [],
+      cruiseSpeedMps: 0.9,
+      legs: [],
+      waypoints: [
+        WaypointOutcome(
+          index: 0,
+          legId: 'L1',
+          cumulativeDistanceM: 0,
+          arrivalRuntimeSeconds: 0,
+          directDistanceHomeM: 0,
+          safeSurfaceSeconds: null,
+          members: [],
+          survivable: true,
+        ),
+      ],
+      members: [],
+      abandonmentIndex: null,
+      constraint: MissionConstraint(
+        memberId: 'm1',
+        factor: MissionBindingFactor.ownGas,
+        waypointIndex: 0,
+      ),
+      issues: [],
+    );
+    expect(
+      missionConstraintText(l10n, limited, unnamed),
+      'Limited by Sam at T: own gas',
+    );
+  });
 }
