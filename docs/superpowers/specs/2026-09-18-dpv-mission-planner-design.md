@@ -342,9 +342,10 @@ limit turns the surface swim back into a constraint.
 
 ### Persistence
 
-Three new tables in `lib/core/database/database.dart`, following the
-`dive_plan_segments` pattern: text id, parent id, sort order, created and
-updated timestamps, nullable hlc, no cascade, explicit child deletes.
+Three new tables in `lib/core/database/tables/dive_plan_mission_tables.dart`,
+following the `dive_plan_segments` pattern: text id, parent id, sort order,
+created and updated timestamps, nullable hlc, no cascade, explicit child
+deletes.
 
 | Table | Columns |
 | --- | --- |
@@ -363,12 +364,17 @@ diver or item.
 "No mission" is "no row" in `dive_plan_missions`, so `DivePlan.mission` is
 null exactly when the plan has none.
 
-The migration rung takes the next free number at implementation time. On
-2026-09-25 main is at v226, #2315 claims v227 and #1772 claims v228, so this
-lands as v229 or later; re-check `origin/main` before opening the PR.
-The rung creates the tables and their indexes with create-if-missing
-statements and has an idempotent assert like the existing plan column asserts,
-so a database that already carries them is left alone.
+The migration rung takes the next free number at implementation time: v244,
+renumbered from v241 when #2493 claimed that number (242 and 243 were already
+taken or claimed); re-check `origin/main` and the open PRs before merging. The
+table-only rung leaves the sync floor at 240. The create lives in
+`migrations/helpers/dive_plan_migrations.dart`, the rung in
+`migrations/ladder/rungs_v231_onward.dart` and the backstop in
+`migrations/before_open.dart`. The rung and the backstop create the three
+tables with create-if-missing statements, so a database that already carries
+them is left alone. They create no index: the leg and member plan-id indexes
+are declared in `lib/core/database/performance_indexes.dart` and installed by
+`ensurePerformanceIndexes` when the database opens.
 
 Every seam the plan tables already cross gets the three new tables:
 
@@ -392,7 +398,8 @@ optional `mission` block, including the environment, walk speed, surface
 swim limit and each leg's shore exit. Version 2 files, and version 3 files
 without a mission, load unchanged. Export writes the block whenever a mission
 exists, and leaves out the buddy, diver and scooter equipment links, because
-they name rows of the exporting install.
+they name rows of the exporting install. A plan without a mission is still
+stamped version 2, so an install that reads only version 2 keeps opening it.
 
 `DivePlanState` gains a `mission` field, and `dive_plan_state_mapper.dart`
 maps it both ways.

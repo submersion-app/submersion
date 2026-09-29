@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -285,6 +286,37 @@ void main() {
       expect(find.text('To try'), findsNothing);
       expect(find.text('Mine'), findsOneWidget);
     });
+
+    testWidgets(
+      'each top-level query condition is a chip that removes itself',
+      (tester) async {
+        await pumpList(
+          tester,
+          SiteFilterState(
+            query: AndNode([
+              ConditionNode(
+                FieldPath(['rating']),
+                QueryOp.gte,
+                const NumberValue(3, null),
+              ),
+              ConditionNode(
+                FieldPath(['difficulty']),
+                QueryOp.eq,
+                const EnumValue('advanced'),
+              ),
+            ]),
+          ),
+        );
+
+        expect(find.text('rating >= 3'), findsOneWidget);
+        expect(find.text('difficulty = advanced'), findsOneWidget);
+
+        chip(tester, 'rating >= 3').onDeleted!();
+        await tester.pumpAndSettle();
+        expect(find.text('rating >= 3'), findsNothing);
+        expect(find.text('difficulty = advanced'), findsOneWidget);
+      },
+    );
   });
 
   group('overflow menu "Select sites"', () {

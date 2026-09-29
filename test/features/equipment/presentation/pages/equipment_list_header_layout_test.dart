@@ -24,6 +24,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 
+import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
 
 /// The Equipment/Sets toggle scopes the search / filter / sort / select
@@ -72,6 +73,8 @@ Future<List<Override>> _overrides({double? paneWidth}) async {
     equipmentListNotifierProvider.overrideWith((ref) => _MockEquipNotifier()),
     tagListNotifierProvider.overrideWith((ref) => _EmptyTagList()),
     equipmentSetListNotifierProvider.overrideWith((ref) => _EmptySetList()),
+    fakeEquipmentQueryIds(),
+    allEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
     equipmentListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
     equipmentSortProvider.overrideWith(
       (ref) => const SortState(

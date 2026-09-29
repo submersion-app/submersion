@@ -26,6 +26,7 @@ import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 
+import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
 
 // ---------------------------------------------------------------------------
@@ -109,6 +110,8 @@ Future<List<Override>> _buildOverrides({
     // The add form's Tags field (issue #1942) watches the tag list, whose
     // repository needs a database this harness does not open.
     tagListNotifierProvider.overrideWith((ref) => _EmptyTagList()),
+    fakeEquipmentQueryIds(),
+    allEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
     equipmentListViewModeProvider.overrideWith((ref) => viewMode),
     equipmentTableConfigProvider.overrideWith(
       (ref) => _TestEquipTableConfigNotifier(),

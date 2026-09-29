@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/shared/widgets/sheet_messenger_scope.dart';
+import 'package:submersion/core/query/domain/query_node.dart' show QueryNode;
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -7,6 +10,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/searchable_fil
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/utils/location_options.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_sheet_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
@@ -42,6 +47,9 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
   Set<String> _siteTypeIds = {};
   Set<String> _tagIds = {};
 
+  /// The advanced part (#2365): typed, built or applied from a saved query.
+  QueryNode? _query;
+
   // Controllers for text fields
   late TextEditingController _minDepthController;
   late TextEditingController _maxDepthController;
@@ -61,6 +69,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     _hasDives = filter.hasDives;
     _siteTypeIds = {...filter.siteTypeIds};
     _tagIds = {...filter.tagIds};
+    _query = filter.query;
 
     // Depth bounds are held in meters, matching the stored site depths they
     // are compared against, but the diver reads and edits them in their unit.
@@ -132,23 +141,32 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                 const Divider(),
                 // Filter content
                 Expanded(
-                  child: ListView(
-                    controller: scrollController,
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      _buildLocationSection(),
-                      const SizedBox(height: 24),
-                      _buildDifficultySection(),
-                      const SizedBox(height: 24),
-                      _buildSiteTypeSection(),
-                      _buildTagSection(),
-                      _buildDepthSection(),
-                      const SizedBox(height: 24),
-                      _buildRatingSection(),
-                      const SizedBox(height: 24),
-                      _buildOptionsSection(),
-                      const SizedBox(height: 80), // Space for buttons
-                    ],
+                  child: SheetMessengerScope(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        QuerySheetSection(
+                          subject: QuerySubject.sites,
+                          root: siteQueryEntity,
+                          value: _query,
+                          onChanged: (node) => setState(() => _query = node),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildLocationSection(),
+                        const SizedBox(height: 24),
+                        _buildDifficultySection(),
+                        const SizedBox(height: 24),
+                        _buildSiteTypeSection(),
+                        _buildTagSection(),
+                        _buildDepthSection(),
+                        const SizedBox(height: 24),
+                        _buildRatingSection(),
+                        const SizedBox(height: 24),
+                        _buildOptionsSection(),
+                        const SizedBox(height: 80), // Space for buttons
+                      ],
+                    ),
                   ),
                 ),
                 // Bottom buttons
@@ -512,6 +530,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
       _hasDives = null;
       _siteTypeIds = {};
       _tagIds = {};
+      _query = null;
 
       _minDepthController.clear();
       _maxDepthController.clear();
@@ -530,6 +549,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
       hasDives: _hasDives,
       siteTypeIds: _siteTypeIds,
       tagIds: _tagIds,
+      query: _query,
     );
     Navigator.of(context).pop();
   }

@@ -2,14 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 
 import '../../helpers/google_fonts_settle.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  GoogleFonts.config.allowRuntimeFetching = false;
 
   // Force-initialize all theme finals inside a guarded zone so that the
   // expected google_fonts font-loading errors (fonts are not bundled in

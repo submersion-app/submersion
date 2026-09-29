@@ -39,6 +39,8 @@ Widget _host({
   VoidCallback? onUseAnotherFolder,
   VoidCallback? onRestoreFromFile,
   VoidCallback? onStartFresh,
+  String? unreachableFolder,
+  VoidCallback? onUseDefaultLocation,
   bool recoveryBusy = false,
   VoidCallback? onClose,
 }) {
@@ -62,6 +64,8 @@ Widget _host({
         onUseAnotherFolder: onUseAnotherFolder,
         onRestoreFromFile: onRestoreFromFile,
         onStartFresh: onStartFresh,
+        unreachableFolder: unreachableFolder,
+        onUseDefaultLocation: onUseDefaultLocation,
         recoveryBusy: recoveryBusy,
         onClose: onClose ?? () {},
       ),
@@ -556,6 +560,130 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Other ways back in'), findsNothing);
+    });
+  });
+
+  // Issue #2178. On macOS and iOS this used to be answered by resetting the
+  // storage location without a word, so the next launch looked like a dive
+  // log that had emptied itself.
+  group('an unreachable dive log folder', () {
+    const folder = '/Users/diver/Library/Mobile Documents/Submersion';
+
+    testWidgets('says so, names the folder and says nothing changed', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          kind: StartupFailureKind.locationUnreachable,
+          unreachableFolder: folder,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text("Your dive log's folder can't be reached"), findsOne);
+      expect(find.text(folder), findsOneWidget);
+      expect(find.textContaining('Nothing in it has been changed'), findsOne);
+      expect(find.text('Submersion could not start'), findsNothing);
+    });
+
+    // The two routes that write into the live folder cannot work while it
+    // cannot be reached, and would only end in an error dialog.
+    testWidgets('offers only the routes that change which folder is used', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          kind: StartupFailureKind.locationUnreachable,
+          unreachableFolder: folder,
+          recoveryBackup: _preMigrationRecord(),
+          onRestoreBackup: () {},
+          onUseAnotherFolder: () {},
+          onRestoreFromFile: () {},
+          onStartFresh: () {},
+          onUseDefaultLocation: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text("Choose your dive log's folder"), findsOneWidget);
+      expect(find.text('Go back to the app default location'), findsOne);
+      expect(find.text('Restore this backup'), findsNothing);
+      expect(find.text('Restore from a backup file'), findsNothing);
+      expect(find.text('Start with an empty dive log'), findsNothing);
+      // The same route as everywhere else, worded for picking the SAME
+      // folder again: that is what gives a sandboxed build its access back.
+      expect(find.text('Use a dive log in another folder'), findsNothing);
+    });
+
+    testWidgets('each of its routes reports the tap', (tester) async {
+      var folderTapped = false;
+      var defaultTapped = false;
+      await tester.pumpWidget(
+        _host(
+          kind: StartupFailureKind.locationUnreachable,
+          unreachableFolder: folder,
+          onUseAnotherFolder: () => folderTapped = true,
+          onUseDefaultLocation: () => defaultTapped = true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text("Choose your dive log's folder"));
+      await tester.tap(find.text("Choose your dive log's folder"));
+      await tester.ensureVisible(
+        find.text('Go back to the app default location'),
+      );
+      await tester.tap(find.text('Go back to the app default location'));
+
+      expect(folderTapped, isTrue);
+      expect(defaultTapped, isTrue);
+    });
+
+    testWidgets('both routes are disabled while one is running', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          kind: StartupFailureKind.locationUnreachable,
+          unreachableFolder: folder,
+          onUseAnotherFolder: () {},
+          onUseDefaultLocation: () {},
+          recoveryBusy: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      for (final label in [
+        "Choose your dive log's folder",
+        'Go back to the app default location',
+      ]) {
+        final button = tester.widget<ButtonStyleButton>(
+          find.ancestor(
+            of: find.text(label),
+            matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+          ),
+        );
+        expect(button.onPressed, isNull, reason: '$label must be disabled');
+      }
+    });
+
+    // The reset is the answer to a folder that cannot be reached. A damaged
+    // file in a folder that CAN be reached already has start-fresh, and
+    // switching locations would only hide the damaged file from the diver.
+    testWidgets('going back to the default is offered for no other class', (
+      tester,
+    ) async {
+      for (final kind in StartupFailureKind.values) {
+        if (kind == StartupFailureKind.locationUnreachable) continue;
+        await tester.pumpWidget(_host(kind: kind, onUseDefaultLocation: () {}));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Go back to the app default location'),
+          findsNothing,
+          reason: '$kind must not offer the default location',
+        );
+      }
     });
   });
 

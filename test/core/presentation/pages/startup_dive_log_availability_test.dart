@@ -24,6 +24,8 @@ import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_failed_exception.dart';
 
+import '../../../helpers/theme_presets_warm_up.dart';
+
 /// Answers the startup gate from a script instead of the filesystem, so a
 /// widget test never waits on real I/O. The last answer repeats once the
 /// script runs out.
@@ -143,6 +145,11 @@ class _Journal extends RestoreJournal {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  // Builds the theme presets before any widget test does. A widget test that
+  // is the first to build them strands their google_fonts loads, and a later
+  // file in the same CI isolate that waits on the loads then hangs.
+  setUpAll(warmUpThemePresets);
 
   late Directory folder;
   late SharedPreferences prefs;

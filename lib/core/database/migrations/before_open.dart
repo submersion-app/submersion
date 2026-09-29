@@ -175,6 +175,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // already at 239 or later skips the v238 rung.
     await _assertSavedQueriesSchema();
 
+    // v242 backstop: the equipment service cache (local, idempotent).
+    await _assertEquipmentServiceStatusTable();
+
     // v122 backstop: re-assert service ledger schema + built-in kinds.
     // The legacy backfill is NOT here (onUpgrade only) -- re-running it
     // would resurrect user-deleted schedules.
@@ -625,6 +628,10 @@ extension BeforeOpenBackstops on AppDatabase {
     await Migrator(this).createTable(divePlans);
     await Migrator(this).createTable(divePlanTanks);
     await Migrator(this).createTable(divePlanSegments);
+
+    // v244 backstop: re-assert the DPV mission tables. A database that
+    // arrives by restore or sync-adopt never runs onUpgrade.
+    await _assertDivePlanMissionSchema();
 
     // v103 backstop: dive_roles table + built-in seed + dives.diver_role
     // column (same collision disease; all DDL idempotent). The seed is

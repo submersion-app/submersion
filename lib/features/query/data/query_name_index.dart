@@ -56,6 +56,7 @@ class QueryNameIndexLoader {
   /// The subjects a relation can point at by name.
   static const refSubjects = [
     QuerySubject.sites,
+    QuerySubject.siteTypes,
     QuerySubject.trips,
     QuerySubject.centers,
     QuerySubject.computers,

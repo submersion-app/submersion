@@ -6,10 +6,12 @@ import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/dive_lab_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
+import 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 import 'package:submersion/core/database/tables/dive_profile_tables.dart';
 import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/equipment_condition_tables.dart';
+import 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
@@ -31,10 +33,12 @@ export 'package:submersion/core/database/tables/buddy_tables.dart';
 export 'package:submersion/core/database/tables/cylinder_tables.dart';
 export 'package:submersion/core/database/tables/dive_lab_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
+export 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 export 'package:submersion/core/database/tables/dive_profile_tables.dart';
 export 'package:submersion/core/database/tables/dive_tables.dart';
 export 'package:submersion/core/database/tables/diver_tables.dart';
 export 'package:submersion/core/database/tables/equipment_condition_tables.dart';
+export 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 export 'package:submersion/core/database/tables/equipment_tables.dart';
 export 'package:submersion/core/database/tables/marine_life_tables.dart';
 export 'package:submersion/core/database/tables/media_tables.dart';
@@ -140,6 +144,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Equipment sharing and its event log (v234, issue #2046)
     EquipmentShares,
     EquipmentOwnershipEvents,
+    // Equipment service cache for the query language (v242, issue
+    // #2365), local only
+    EquipmentServiceStatus,
     // Saved queries (v238, issue #2365)
     SavedQueries,
     // Dive Lab saved scenarios (v236)
@@ -183,6 +190,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DivePlans,
     DivePlanTanks,
     DivePlanSegments,
+    // DPV mission planner (v244, issue #2086)
+    DivePlanMissions,
+    DivePlanMissionLegs,
+    DivePlanMissionMembers,
     // CSV import presets (local-only)
     CsvPresets,
     // Column view configuration
@@ -216,7 +227,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 240;
+  static const int currentSchemaVersion = 244;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -971,6 +982,18 @@ class AppDatabase extends _$AppDatabase {
     // to 240. Renumbered from 233 and then 235: main shipped 233 (#1921),
     // 234 (#2046) and 239 (#2275) while this was open.
     240,
+    // v242: equipment_service_status, the local service-due cache the
+    // query language's serviceDue field reads (issue #2365, PR 3). A table
+    // with no hlc, never synced, so the floor does not move. 241 was held
+    // by #2493 when this was taken.
+    242,
+    // v244: DPV mission planner (issue #2086). dive_plan_missions,
+    // dive_plan_mission_legs and dive_plan_mission_members, children of
+    // dive_plans. Table-only rung, no backfill; an older reader keeps the
+    // new entity types as inert unknowns, so the floor stays at 240.
+    // Renumbered from 241: #2493 took it, main shipped 242 (#2541) and
+    // an open branch claims 243 (#2409).
+    244,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

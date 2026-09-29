@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 
@@ -28,7 +27,6 @@ Map<String, StatusSwatch> _swatches(StatusColors c) => {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  GoogleFonts.config.allowRuntimeFetching = false;
 
   // Force-initialize the theme finals inside a guarded zone so the expected
   // google_fonts load errors (fonts are not bundled in test assets) do not

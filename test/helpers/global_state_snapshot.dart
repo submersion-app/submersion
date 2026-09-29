@@ -4,6 +4,7 @@ import 'package:file_picker_platform_interface/file_picker_platform_interface.da
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_web_auth_2_platform_interface/flutter_web_auth_2_platform_interface.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
@@ -39,12 +40,8 @@ class GlobalStateSnapshot {
   GlobalStateSnapshot.fromValues(Map<String, Object?> values)
     : _values = Map.of(values);
 
-  /// Whether the Flutter test binding existed when the snapshot was taken.
-  static const bindingKey = 'test binding';
-
   factory GlobalStateSnapshot.take() {
     return GlobalStateSnapshot._({
-      bindingKey: _bindingReady(),
       'PathProviderPlatform.instance': PathProviderPlatform.instance,
       'SharePlatform.instance': SharePlatform.instance,
       'FilePickerPlatform.instance': FilePickerPlatform.instance,
@@ -54,8 +51,11 @@ class GlobalStateSnapshot {
       'VideoPlayerPlatform.instance': VideoPlayerPlatform.instance,
       'FlutterWebAuth2Platform.instance': FlutterWebAuth2Platform.instance,
       'HttpOverrides.current': HttpOverrides.current,
+      'IOOverrides.current': IOOverrides.current,
       'QualityScanScheduler.enabled': QualityScanScheduler.enabled,
       'SensorSummaryScheduler.enabled': SensorSummaryScheduler.enabled,
+      'GoogleFonts.config.allowRuntimeFetching':
+          GoogleFonts.config.allowRuntimeFetching,
       'canShareFiles': canShareFiles,
       'debugPrint': debugPrint,
       'FlutterError.onError': FlutterError.onError,
@@ -68,15 +68,6 @@ class GlobalStateSnapshot {
   }
 
   final Map<String, Object?> _values;
-
-  static bool _bindingReady() {
-    try {
-      TestDefaultBinaryMessengerBinding.instance;
-      return true;
-    } on FlutterError {
-      return false;
-    }
-  }
 
   /// Whether a mock handler is installed on [channel]. False when no test
   /// binding exists yet, since then nothing can have installed one.
@@ -93,23 +84,15 @@ class GlobalStateSnapshot {
     );
   }
 
-  /// What the Flutter test binding installs when it is first set up. A file
-  /// that sets up the binding changes these once for the whole isolate, and
-  /// there is nothing it could put back.
-  static const _installedByBinding = {'HttpOverrides.current', 'debugPrint'};
-
   /// The names of the values that differ from [earlier], in a fixed order.
-  List<String> changedSince(GlobalStateSnapshot earlier) {
-    final bindingAppeared =
-        _values[bindingKey] == true && earlier._values[bindingKey] != true;
-    return [
-      for (final name in _values.keys)
-        if (name != bindingKey &&
-            !(bindingAppeared && _installedByBinding.contains(name)) &&
-            !identical(_values[name], earlier._values[name]))
-          name,
-    ];
-  }
+  ///
+  /// The test binding exists before any file runs
+  /// (test/flutter_test_config.dart), so a value it installs when set up is
+  /// never mistaken for a file's change.
+  List<String> changedSince(GlobalStateSnapshot earlier) => [
+    for (final name in _values.keys)
+      if (!identical(_values[name], earlier._values[name])) name,
+  ];
 
   /// Fails if anything recorded here has changed since.
   void expectRestored() {

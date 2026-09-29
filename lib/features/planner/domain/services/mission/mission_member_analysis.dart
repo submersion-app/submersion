@@ -127,8 +127,10 @@ class MissionMemberAnalysis {
   /// swim feels the current, a current that closes the underwater exits
   /// closes the surface too. Then own gas and a teammate's gas, from every
   /// exit that ran (the swim, a tow that made headway, the surface); then an
-  /// exit the plan engine calls not diveable; then a tow that made headway
-  /// but failed; then a current that closes them all.
+  /// exit the plan engine calls not diveable; then a tow that was computed,
+  /// made headway and still failed; then an exit whose computation threw,
+  /// since a known cause is worth more than none; then a current that
+  /// closes them all.
   MissionBindingFactor _whyUnsurvivable(
     String memberId,
     MemberWaypointOutcome own,
@@ -142,7 +144,7 @@ class MissionMemberAnalysis {
       return MissionBindingFactor.surfaceSwimLimit;
     }
     final tow = own.tow;
-    final towRan = tow != null && !tow.blockedByCurrent;
+    final towRan = tow != null && !tow.blockedByCurrent && !tow.failed;
     final witnesses = [own.swim, if (towRan) tow, ?surface];
     if (witnesses.any((e) => e.gasShortfallMemberIds.contains(memberId))) {
       return MissionBindingFactor.ownGas;
@@ -154,6 +156,9 @@ class MissionMemberAnalysis {
       return MissionBindingFactor.exposure;
     }
     if (towRan) return MissionBindingFactor.noFeasibleTow;
+    if ([own.swim, ?tow, ?surface].any((e) => e.failed)) {
+      return MissionBindingFactor.scenarioFailed;
+    }
     return MissionBindingFactor.blockedByCurrent;
   }
 

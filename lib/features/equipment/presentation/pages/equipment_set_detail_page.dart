@@ -125,6 +125,15 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
     final numberById = model == null
         ? const <String, int>{}
         : {for (final p in model.numbered) p.item.id: p.number};
+    // The widest badge the rows will show, at the diver's text size: the
+    // highest number takes the most digits.
+    final badgeSlot = model == null
+        ? null
+        : FigureNumberBadge.widthFor(
+            model.itemCount,
+            24,
+            textScaler: MediaQuery.textScalerOf(context),
+          );
     // Members the diver can no longer see (a share was removed, issue
     // #2046) stay in the set, marked. Null until the list loads.
     final visibleIds = ref
@@ -334,6 +343,7 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
                     item,
                     labels,
                     numberById[item.id],
+                    badgeSlot: badgeSlot,
                     noLongerShared:
                         visibleIds != null && !visibleIds.contains(item.id),
                   ),
@@ -391,13 +401,17 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
   );
 
   /// One member of the set. [number] is its figure number, shown as the
-  /// legend badge; child items and assembly parts have none.
+  /// legend badge; child items and assembly parts have none. While the
+  /// figure shows, every row leads with a slot [badgeSlot] wide (the widest
+  /// badge at the diver's text size), holding the badge or nothing, so every
+  /// name starts at the same place. Null when it is off.
   /// [noLongerShared] marks a member another profile stopped sharing.
   Widget _buildEquipmentTile(
     BuildContext context,
     EquipmentItem item,
     Map<String, EquipmentRowLabel> labels,
     int? number, {
+    double? badgeSlot,
     bool noLongerShared = false,
   }) {
     final selected = item.id == selectedFigureItemId;
@@ -414,11 +428,20 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
         leading: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (number != null) ...[
-              FigureNumberBadge(
-                number: number,
-                selected: selected,
-                onTap: () => selectFigureItem(item.id, revealFigure: true),
+            if (badgeSlot != null) ...[
+              SizedBox(
+                width: badgeSlot,
+                child: number == null
+                    ? null
+                    : Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: FigureNumberBadge(
+                          number: number,
+                          selected: selected,
+                          onTap: () =>
+                              selectFigureItem(item.id, revealFigure: true),
+                        ),
+                      ),
               ),
               const SizedBox(width: 8),
             ],

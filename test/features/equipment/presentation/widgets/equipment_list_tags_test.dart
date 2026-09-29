@@ -15,6 +15,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 
+import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -94,6 +95,7 @@ void main() {
         ),
         activeEquipmentProvider.overrideWith((ref) async => const [wing, reg]),
         allEquipmentProvider.overrideWith((ref) async => const [wing, reg]),
+        fakeEquipmentQueryIds(),
         equipmentListViewModeProvider.overrideWith((ref) => viewMode),
         equipmentFilterProvider.overrideWith((ref) => filter),
         highlightedEquipmentIdProvider.overrideWith((ref) => null),

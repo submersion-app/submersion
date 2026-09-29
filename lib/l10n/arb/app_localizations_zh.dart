@@ -1426,6 +1426,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => '关闭 / 取消';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence => '用一句话探索';
+
+  @override
   String get accessibility_shortcut_goBack => '返回';
 
   @override
@@ -12247,6 +12250,80 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_foreign_defaultName => '气瓶';
 
   @override
+  String get passport_nfc_tap => '轻触 NFC 标签';
+
+  @override
+  String get passport_nfc_holdNear => '将标签贴近手机背面。';
+
+  @override
+  String get passport_nfc_write => '写入 NFC 标签';
+
+  @override
+  String get passport_nfc_rewrite => '重写标签';
+
+  @override
+  String get passport_nfc_reprint => '重新打印标签';
+
+  @override
+  String get passport_nfc_unsupported => '此设备无法读取或写入 NFC 标签。';
+
+  @override
+  String get passport_nfc_disabled => 'NFC 已关闭。请在系统设置中开启。';
+
+  @override
+  String get passport_nfc_written => '标签已写入并校验';
+
+  @override
+  String passport_nfc_tagInfo(String type, int capacity) {
+    return '$type，$capacity 字节';
+  }
+
+  @override
+  String passport_nfc_capacity(int capacity) {
+    return '$capacity 字节';
+  }
+
+  @override
+  String get passport_nfc_allFields => '所有信息都能写入此标签。';
+
+  @override
+  String passport_nfc_fieldsDropped(String fields) {
+    return '为适应容量而省略：$fields';
+  }
+
+  @override
+  String get passport_nfc_notNdef => '此标签无法保存链接。请使用 NTAG215 或 NTAG216 标签。';
+
+  @override
+  String get passport_nfc_readOnly => '此标签已锁定，无法写入。';
+
+  @override
+  String passport_nfc_tooSmall(int capacity) {
+    return '此标签太小（$capacity 字节），连气瓶标识都放不下。';
+  }
+
+  @override
+  String get passport_nfc_readBackFailed => '标签回读内容与写入不一致，因此未写入。';
+
+  @override
+  String get passport_nfc_writeFailed => '标签未写入。请保持稳定后重试。';
+
+  @override
+  String get passport_nfc_readFailed => '无法读取标签。请保持稳定后重试。';
+
+  @override
+  String get passport_nfc_retry => '重试';
+
+  @override
+  String get passport_nfc_fieldName => '名称';
+
+  @override
+  String get passport_nfc_fieldSerial => '序列号';
+
+  @override
+  String get passport_nfc_fieldO2Clean => '氧气清洁';
+
+  @override
   String passport_foreign_serial(String serial) {
     return '序列号 $serial';
   }
@@ -13731,6 +13808,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String equipment_list_emptyState_noEquipment(Object filterText) {
     return '没有$filterText';
   }
+
+  @override
+  String get equipment_list_emptyState_noQueryMatch => '没有与此查询匹配的装备';
 
   @override
   String get equipment_list_emptyState_noStatusMatch => '没有此状态的装备';
@@ -37570,6 +37650,355 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_sectionDiveComputer => '潜水电脑';
 
   @override
+  String diveLog_filterChip_speciesCount(Object count) {
+    return '$count 种物种';
+  }
+
+  @override
+  String diveLog_filterChip_weekdayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '每周 $count 天',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_filterChip_siteCount(Object count) {
+    return '$count 个潜点';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return '能见度 $min 至 $max $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMin(String value, String unit) {
+    return '能见度超过 $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMax(String value, String unit) {
+    return '能见度低于 $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return '水温 $min 至 $max$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMin(String value, String unit) {
+    return '水温超过 $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMax(String value, String unit) {
+    return '水温低于 $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTypeCount(Object count) {
+    return '$count 种水体类型';
+  }
+
+  @override
+  String get diveLog_filter_sectionSpecies => '海洋生物';
+
+  @override
+  String diveLog_filter_sectionVisibilityUnit(Object unit) {
+    return '能见度（$unit）';
+  }
+
+  @override
+  String diveLog_filter_sectionWaterTempUnit(Object unit) {
+    return '水温（$unit）';
+  }
+
+  @override
+  String get diveLog_filter_sectionWaterType => '水体类型';
+
+  @override
+  String get diveLog_filter_speciesSearchHint => '搜索物种';
+
+  @override
+  String get diveLog_listPage_tooltip_explore => '用一句话探索';
+
+  @override
+  String get explore_chip_favorite => '收藏';
+
+  @override
+  String get explore_chip_deco => '减压潜水';
+
+  @override
+  String get explore_chip_noDeco => '无减压';
+
+  @override
+  String get explore_chip_noBuddy => '无潜伴';
+
+  @override
+  String explore_chip_rating(String op, String value) {
+    return '评分$op $value';
+  }
+
+  @override
+  String explore_chip_numeric(String field, String op, String value) {
+    return '$field$op $value';
+  }
+
+  @override
+  String explore_chip_between(String field, String low, String high) {
+    return '$field $low 至 $high';
+  }
+
+  @override
+  String explore_chip_enum(String field, String values) {
+    return '$field：$values';
+  }
+
+  @override
+  String explore_chip_enumNot(String field, String values) {
+    return '$field不是 $values';
+  }
+
+  @override
+  String explore_chip_timeRange(String start, String end) {
+    return '$start 至 $end';
+  }
+
+  @override
+  String explore_chip_timeSince(Object start) {
+    return '自 $start 起';
+  }
+
+  @override
+  String explore_chip_timeBefore(Object end) {
+    return '$end 之前';
+  }
+
+  @override
+  String explore_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+      zero: '无潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_download_button => '下载设备端模型';
+
+  @override
+  String get explore_download_running => '正在下载模型';
+
+  @override
+  String get explore_error_contextExceeded => '这句话对设备端模型来说太长了。请尝试更短的句子。';
+
+  @override
+  String get explore_error_decodingFailure => '模型没有给出可用的答案。请尝试换个说法。';
+
+  @override
+  String get explore_error_guardrail => '模型拒绝了这句话。';
+
+  @override
+  String get explore_error_modelNotReady => '设备端模型尚未就绪。';
+
+  @override
+  String get explore_error_quotaExceeded => '设备端模型正忙。请稍后再试。';
+
+  @override
+  String get explore_error_refusal => '模型拒绝了这句话。';
+
+  @override
+  String get explore_error_schemaMismatch => '无法理解此内容。如果持续出现，请更新应用。';
+
+  @override
+  String get explore_error_unknown => '向设备端模型提问时出错。';
+
+  @override
+  String get explore_error_unsupportedLocale => '设备端模型不理解这种语言。';
+
+  @override
+  String get explore_field_airTemp => '气温';
+
+  @override
+  String get explore_field_avgDepth => '平均深度';
+
+  @override
+  String get explore_field_bottomTime => '水底时间';
+
+  @override
+  String get explore_field_currentStrength => '水流';
+
+  @override
+  String get explore_field_depth => '深度';
+
+  @override
+  String get explore_field_diveMode => '潜水模式';
+
+  @override
+  String get explore_field_diveNumber => '潜水编号';
+
+  @override
+  String get explore_field_diveType => '潜水类型';
+
+  @override
+  String get explore_field_entryMethod => '入水方式';
+
+  @override
+  String get explore_field_o2 => '氧气';
+
+  @override
+  String get explore_field_rating => '评分';
+
+  @override
+  String get explore_field_visibility => '能见度';
+
+  @override
+  String get explore_field_waterTemp => '水温';
+
+  @override
+  String get explore_field_waterType => '水体类型';
+
+  @override
+  String get explore_field_weekday => '星期';
+
+  @override
+  String get explore_handoff_diveList => '在潜水列表中打开';
+
+  @override
+  String get explore_handoff_insights => '在洞察中打开';
+
+  @override
+  String get explore_hint => '询问你的潜水，例如博奈尔 20 米以下的海龟';
+
+  @override
+  String get explore_needsAttention_title => '需要注意';
+
+  @override
+  String get explore_op_gt => '超过';
+
+  @override
+  String get explore_op_gte => '至少';
+
+  @override
+  String get explore_op_lt => '低于';
+
+  @override
+  String get explore_op_lte => '至多';
+
+  @override
+  String explore_value_minutes(int minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String get explore_op_eq => '为';
+
+  @override
+  String explore_pickCandidate_title(Object text) {
+    return '\"$text\" 指的是哪一个？';
+  }
+
+  @override
+  String get explore_recent_title => '最近';
+
+  @override
+  String get explore_results_title => '匹配的潜水';
+
+  @override
+  String explore_results_truncated(Object count) {
+    return '显示前 $count 条。在潜水列表中查看全部。';
+  }
+
+  @override
+  String get explore_shortcut_unavailable => '探索需要设备端模型，但此设备上的模型尚未就绪。';
+
+  @override
+  String get explore_subjectNotSupported => '目前只能搜索潜水记录。';
+
+  @override
+  String get explore_title => '探索';
+
+  @override
+  String get explore_understood_title => '已理解';
+
+  @override
+  String get explore_unplaced_reason_invalid => '无法读取此值';
+
+  @override
+  String get explore_unplaced_reason_noAxis => '尚不可搜索';
+
+  @override
+  String get explore_unplaced_reason_outOfRange => '值超出范围';
+
+  @override
+  String get explore_unplaced_reason_unknownField => '未知字段';
+
+  @override
+  String get explore_unplaced_reason_unknownTime => '无法读取此时间';
+
+  @override
+  String get explore_unresolved_noCandidates => '日志中没有匹配项';
+
+  @override
+  String get explore_chart_divesOverTime => '潜水随时间变化';
+
+  @override
+  String get explore_chart_depthTrend => '深度';
+
+  @override
+  String get explore_chart_waterTempTrend => '水温';
+
+  @override
+  String get explore_chart_bottomTimeTrend => '水底时间';
+
+  @override
+  String explore_chart_entityCounts(Object kind) {
+    return '每个$kind的潜水次数';
+  }
+
+  @override
+  String get explore_kind_site => '潜点';
+
+  @override
+  String get explore_kind_place => '地点';
+
+  @override
+  String get explore_kind_species => '物种';
+
+  @override
+  String get explore_kind_gear => '装备';
+
+  @override
+  String get explore_kind_buddy => '潜伴';
+
+  @override
+  String get explore_kind_tag => '标签';
+
+  @override
+  String get explore_kind_center => '潜水中心';
+
+  @override
+  String get explore_kind_trip => '行程';
+
+  @override
+  String get explore_kind_computer => '电脑';
+
+  @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return '第 $diveNumber 次潜水，地点 $siteName';
   }
@@ -38978,6 +39407,16 @@ class AppLocalizationsZh extends AppLocalizations {
       '有其他程序仍在使用数据库文件，因此 Submersion 停止了操作，没有写入。没有任何内容被更改或损坏。请完全关闭 Submersion，然后重新打开。';
 
   @override
+  String get startup_locationUnreachable_title => '无法访问潜水日志所在的文件夹';
+
+  @override
+  String get startup_locationUnreachable_body =>
+      '您的潜水日志保存在您选择的文件夹中，Submersion 目前无法打开该文件夹。其中的内容没有任何更改。如果该文件夹位于未连接的驱动器上，或位于仍在同步的云文件夹中，请重新连接后再次打开 Submersion。';
+
+  @override
+  String get startup_locationUnreachable_folderLabel => '潜水日志所在的文件夹：';
+
+  @override
   String get startup_failure_technicalDetails => '技术详情';
 
   @override
@@ -39035,6 +39474,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_failure_startFresh_subtitle => '将损坏的文件移到一旁，重新开始。不会删除任何内容。';
 
   @override
+  String get startup_failure_chooseFolderAgain => '选择潜水日志所在的文件夹';
+
+  @override
+  String get startup_failure_chooseFolderAgain_subtitle =>
+      '再次选择同一个文件夹以恢复 Submersion 的访问权限，或选择潜水日志现在所在的文件夹。';
+
+  @override
+  String get startup_failure_useDefaultLocation => '返回应用默认位置';
+
+  @override
+  String get startup_failure_useDefaultLocation_subtitle =>
+      '停止使用此文件夹，改为打开 Submersion 自身文件夹中的潜水日志。您的文件夹不会有任何更改。';
+
+  @override
   String get startup_recovery_adopt_title => '使用这个潜水日志？';
 
   @override
@@ -39085,6 +39538,17 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get startup_recovery_encryptedBackup_body =>
       '该备份已加密。Submersion 只有在应用打开后才能解锁加密备份，因此请先使用这里的其他方式，然后在设置的备份与恢复中恢复它。';
+
+  @override
+  String get startup_recovery_useDefault_title => '返回应用默认位置？';
+
+  @override
+  String startup_recovery_useDefault_body(Object folder) {
+    return '从现在起，Submersion 将打开其自身文件夹中的潜水日志；如果那里没有，则新建一个空白日志。$folder 中的任何内容都不会被移动或删除。如需再次使用该文件夹，请在设置的数据库存储中选择它。';
+  }
+
+  @override
+  String get startup_recovery_useDefault_confirm => '使用默认位置';
 
   @override
   String get startup_failure_downgrade_title => '回到上一个版本';
@@ -42706,6 +43170,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_entity_sightings => '观察记录';
 
   @override
+  String get query_entity_siteTypes => '潜水点类型';
+
+  @override
   String get query_entity_sites => '潜点';
 
   @override
@@ -42745,6 +43212,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_equipment_brand => '品牌';
 
   @override
+  String get query_equipment_dives => '潜水';
+
+  @override
   String get query_equipment_model => '型号';
 
   @override
@@ -42754,7 +43224,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_equipment_serialNumber => '序列号';
 
   @override
+  String get query_equipment_serviceDue => '需要维护';
+
+  @override
+  String get query_equipment_serviceDue_dueSoon => '即将到期';
+
+  @override
+  String get query_equipment_serviceDue_ok => '已是最新版本';
+
+  @override
+  String get query_equipment_serviceDue_overdue => '已逾期';
+
+  @override
   String get query_equipment_status => '状态';
+
+  @override
+  String get query_equipment_tags => '标签';
 
   @override
   String get query_equipment_type => '类型';
@@ -42769,6 +43254,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_media_type => '类型';
 
   @override
+  String get query_sheet_sectionTitle => '查询';
+
+  @override
   String get query_sightings_count => '数量';
 
   @override
@@ -42778,10 +43266,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_sightings_species => '物种';
 
   @override
+  String get query_siteTypes_name => '名称';
+
+  @override
   String get query_sites_city => '城市';
 
   @override
+  String get query_sites_coordinates => '坐标';
+
+  @override
   String get query_sites_country => '国家';
+
+  @override
+  String get query_sites_difficulty => '难度';
+
+  @override
+  String get query_sites_dives => '潜水';
 
   @override
   String get query_sites_island => '岛屿';
@@ -42793,10 +43293,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_sites_name => '名称';
 
   @override
+  String get query_sites_notes => '备注';
+
+  @override
   String get query_sites_rating => '评分';
 
   @override
   String get query_sites_region => '地区';
+
+  @override
+  String get query_sites_tags => '标签';
+
+  @override
+  String get query_sites_types => '潜水点类型';
 
   @override
   String get query_species_category => '类别';
@@ -42832,7 +43341,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_tanks_volume => '容量';
 
   @override
+  String get query_trips_dives => '潜水';
+
+  @override
   String get query_trips_endDate => '结束日期';
+
+  @override
+  String get query_trips_liveaboardName => '船宿';
 
   @override
   String get query_trips_location => '地点';
@@ -42841,7 +43356,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_trips_name => '名称';
 
   @override
+  String get query_trips_notes => '备注';
+
+  @override
+  String get query_trips_resortName => '度假村';
+
+  @override
+  String get query_trips_shared => '已共享';
+
+  @override
   String get query_trips_startDate => '开始日期';
+
+  @override
+  String get query_trips_tripType => '旅行类型';
 
   @override
   String get query_weights_amount => '数量';

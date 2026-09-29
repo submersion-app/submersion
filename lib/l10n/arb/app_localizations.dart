@@ -2365,6 +2365,12 @@ abstract class AppLocalizations {
   /// **'Close / Cancel'**
   String get accessibility_shortcut_closeCancel;
 
+  /// No description provided for @accessibility_shortcut_exploreWithSentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore with a sentence'**
+  String get accessibility_shortcut_exploreWithSentence;
+
   /// Keyboard shortcut label for going back
   ///
   /// In en, this message translates to:
@@ -21160,6 +21166,138 @@ abstract class AppLocalizations {
   /// **'Cylinder'**
   String get passport_foreign_defaultName;
 
+  /// No description provided for @passport_nfc_tap.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an NFC tag'**
+  String get passport_nfc_tap;
+
+  /// No description provided for @passport_nfc_holdNear.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the tag against the back of the phone.'**
+  String get passport_nfc_holdNear;
+
+  /// No description provided for @passport_nfc_write.
+  ///
+  /// In en, this message translates to:
+  /// **'Write NFC tag'**
+  String get passport_nfc_write;
+
+  /// No description provided for @passport_nfc_rewrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewrite tag'**
+  String get passport_nfc_rewrite;
+
+  /// No description provided for @passport_nfc_reprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reprint label'**
+  String get passport_nfc_reprint;
+
+  /// No description provided for @passport_nfc_unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This device cannot read or write NFC tags.'**
+  String get passport_nfc_unsupported;
+
+  /// No description provided for @passport_nfc_disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'NFC is turned off. Turn it on in the system settings.'**
+  String get passport_nfc_disabled;
+
+  /// No description provided for @passport_nfc_written.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag written and checked'**
+  String get passport_nfc_written;
+
+  /// No description provided for @passport_nfc_tagInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'{type}, {capacity} bytes'**
+  String passport_nfc_tagInfo(String type, int capacity);
+
+  /// No description provided for @passport_nfc_capacity.
+  ///
+  /// In en, this message translates to:
+  /// **'{capacity} bytes'**
+  String passport_nfc_capacity(int capacity);
+
+  /// No description provided for @passport_nfc_allFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything fits on this tag.'**
+  String get passport_nfc_allFields;
+
+  /// No description provided for @passport_nfc_fieldsDropped.
+  ///
+  /// In en, this message translates to:
+  /// **'Left off to fit: {fields}'**
+  String passport_nfc_fieldsDropped(String fields);
+
+  /// No description provided for @passport_nfc_notNdef.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag cannot hold a link. Use an NTAG215 or NTAG216 tag.'**
+  String get passport_nfc_notNdef;
+
+  /// No description provided for @passport_nfc_readOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag is locked and cannot be written.'**
+  String get passport_nfc_readOnly;
+
+  /// No description provided for @passport_nfc_tooSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag is too small ({capacity} bytes), even for the cylinder\'s identity.'**
+  String passport_nfc_tooSmall(int capacity);
+
+  /// No description provided for @passport_nfc_readBackFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The tag did not read back as written, so it was not written.'**
+  String get passport_nfc_readBackFailed;
+
+  /// No description provided for @passport_nfc_writeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The tag was not written. Hold it still and try again.'**
+  String get passport_nfc_writeFailed;
+
+  /// No description provided for @passport_nfc_readFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the tag. Hold it still and try again.'**
+  String get passport_nfc_readFailed;
+
+  /// No description provided for @passport_nfc_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get passport_nfc_retry;
+
+  /// No description provided for @passport_nfc_fieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get passport_nfc_fieldName;
+
+  /// No description provided for @passport_nfc_fieldSerial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get passport_nfc_fieldSerial;
+
+  /// No description provided for @passport_nfc_fieldO2Clean.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 clean'**
+  String get passport_nfc_fieldO2Clean;
+
   /// No description provided for @passport_foreign_serial.
   ///
   /// In en, this message translates to:
@@ -23551,6 +23689,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No {filterText}'**
   String equipment_list_emptyState_noEquipment(Object filterText);
+
+  /// Empty-state subtitle on the equipment list when the advanced query matches none of the items
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment matches this query'**
+  String get equipment_list_emptyState_noQueryMatch;
 
   /// No description provided for @equipment_list_emptyState_noStatusMatch.
   ///
@@ -64118,6 +64262,568 @@ abstract class AppLocalizations {
   /// **'Dive Computer'**
   String get diveLog_filter_sectionDiveComputer;
 
+  /// No description provided for @diveLog_filterChip_speciesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} species'**
+  String diveLog_filterChip_speciesCount(Object count);
+
+  /// No description provided for @diveLog_filterChip_weekdayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} weekday} other{{count} weekdays}}'**
+  String diveLog_filterChip_weekdayCount(int count);
+
+  /// No description provided for @diveLog_filterChip_siteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sites'**
+  String diveLog_filterChip_siteCount(Object count);
+
+  /// No description provided for @diveLog_filterChip_visibilityRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility {min} to {max} {unit}'**
+  String diveLog_filterChip_visibilityRange(
+    String min,
+    String max,
+    String unit,
+  );
+
+  /// No description provided for @diveLog_filterChip_visibilityMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility over {value} {unit}'**
+  String diveLog_filterChip_visibilityMin(String value, String unit);
+
+  /// No description provided for @diveLog_filterChip_visibilityMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility under {value} {unit}'**
+  String diveLog_filterChip_visibilityMax(String value, String unit);
+
+  /// No description provided for @diveLog_filterChip_waterTempRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Water {min} to {max}{unit}'**
+  String diveLog_filterChip_waterTempRange(String min, String max, String unit);
+
+  /// No description provided for @diveLog_filterChip_waterTempMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Water over {value}{unit}'**
+  String diveLog_filterChip_waterTempMin(String value, String unit);
+
+  /// No description provided for @diveLog_filterChip_waterTempMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Water under {value}{unit}'**
+  String diveLog_filterChip_waterTempMax(String value, String unit);
+
+  /// No description provided for @diveLog_filterChip_waterTypeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} water types'**
+  String diveLog_filterChip_waterTypeCount(Object count);
+
+  /// No description provided for @diveLog_filter_sectionSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Marine life'**
+  String get diveLog_filter_sectionSpecies;
+
+  /// No description provided for @diveLog_filter_sectionVisibilityUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility ({unit})'**
+  String diveLog_filter_sectionVisibilityUnit(Object unit);
+
+  /// No description provided for @diveLog_filter_sectionWaterTempUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Water temperature ({unit})'**
+  String diveLog_filter_sectionWaterTempUnit(Object unit);
+
+  /// No description provided for @diveLog_filter_sectionWaterType.
+  ///
+  /// In en, this message translates to:
+  /// **'Water type'**
+  String get diveLog_filter_sectionWaterType;
+
+  /// No description provided for @diveLog_filter_speciesSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search species'**
+  String get diveLog_filter_speciesSearchHint;
+
+  /// No description provided for @diveLog_listPage_tooltip_explore.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore with a sentence'**
+  String get diveLog_listPage_tooltip_explore;
+
+  /// No description provided for @explore_chip_favorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite'**
+  String get explore_chip_favorite;
+
+  /// No description provided for @explore_chip_deco.
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression dive'**
+  String get explore_chip_deco;
+
+  /// No description provided for @explore_chip_noDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'No decompression'**
+  String get explore_chip_noDeco;
+
+  /// No description provided for @explore_chip_noBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'No buddy'**
+  String get explore_chip_noBuddy;
+
+  /// No description provided for @explore_chip_rating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating {op} {value}'**
+  String explore_chip_rating(String op, String value);
+
+  /// No description provided for @explore_chip_numeric.
+  ///
+  /// In en, this message translates to:
+  /// **'{field} {op} {value}'**
+  String explore_chip_numeric(String field, String op, String value);
+
+  /// No description provided for @explore_chip_between.
+  ///
+  /// In en, this message translates to:
+  /// **'{field} {low} to {high}'**
+  String explore_chip_between(String field, String low, String high);
+
+  /// No description provided for @explore_chip_enum.
+  ///
+  /// In en, this message translates to:
+  /// **'{field}: {values}'**
+  String explore_chip_enum(String field, String values);
+
+  /// No description provided for @explore_chip_enumNot.
+  ///
+  /// In en, this message translates to:
+  /// **'{field} not {values}'**
+  String explore_chip_enumNot(String field, String values);
+
+  /// No description provided for @explore_chip_timeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String explore_chip_timeRange(String start, String end);
+
+  /// No description provided for @explore_chip_timeSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {start}'**
+  String explore_chip_timeSince(Object start);
+
+  /// No description provided for @explore_chip_timeBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before {end}'**
+  String explore_chip_timeBefore(Object end);
+
+  /// No description provided for @explore_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No dives} =1{1 dive} other{{count} dives}}'**
+  String explore_count(num count);
+
+  /// No description provided for @explore_download_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Download the on-device model'**
+  String get explore_download_button;
+
+  /// No description provided for @explore_download_running.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the model'**
+  String get explore_download_running;
+
+  /// No description provided for @explore_error_contextExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'That sentence is too long for the on-device model. Try a shorter one.'**
+  String get explore_error_contextExceeded;
+
+  /// No description provided for @explore_error_decodingFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'The model did not produce a usable answer. Try rewording.'**
+  String get explore_error_decodingFailure;
+
+  /// No description provided for @explore_error_guardrail.
+  ///
+  /// In en, this message translates to:
+  /// **'The model declined this sentence.'**
+  String get explore_error_guardrail;
+
+  /// No description provided for @explore_error_modelNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'The on-device model is not ready yet.'**
+  String get explore_error_modelNotReady;
+
+  /// No description provided for @explore_error_quotaExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'The on-device model is busy. Try again in a moment.'**
+  String get explore_error_quotaExceeded;
+
+  /// No description provided for @explore_error_refusal.
+  ///
+  /// In en, this message translates to:
+  /// **'The model declined this sentence.'**
+  String get explore_error_refusal;
+
+  /// No description provided for @explore_error_schemaMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not understand this. Update the app if this keeps happening.'**
+  String get explore_error_schemaMismatch;
+
+  /// No description provided for @explore_error_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong asking the on-device model.'**
+  String get explore_error_unknown;
+
+  /// No description provided for @explore_error_unsupportedLocale.
+  ///
+  /// In en, this message translates to:
+  /// **'The on-device model does not understand this language.'**
+  String get explore_error_unsupportedLocale;
+
+  /// No description provided for @explore_field_airTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Air temperature'**
+  String get explore_field_airTemp;
+
+  /// No description provided for @explore_field_avgDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Average depth'**
+  String get explore_field_avgDepth;
+
+  /// No description provided for @explore_field_bottomTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom time'**
+  String get explore_field_bottomTime;
+
+  /// No description provided for @explore_field_currentStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get explore_field_currentStrength;
+
+  /// No description provided for @explore_field_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get explore_field_depth;
+
+  /// No description provided for @explore_field_diveMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive mode'**
+  String get explore_field_diveMode;
+
+  /// No description provided for @explore_field_diveNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive number'**
+  String get explore_field_diveNumber;
+
+  /// No description provided for @explore_field_diveType.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive type'**
+  String get explore_field_diveType;
+
+  /// No description provided for @explore_field_entryMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry'**
+  String get explore_field_entryMethod;
+
+  /// No description provided for @explore_field_o2.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen'**
+  String get explore_field_o2;
+
+  /// No description provided for @explore_field_rating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get explore_field_rating;
+
+  /// No description provided for @explore_field_visibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility'**
+  String get explore_field_visibility;
+
+  /// No description provided for @explore_field_waterTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Water temperature'**
+  String get explore_field_waterTemp;
+
+  /// No description provided for @explore_field_waterType.
+  ///
+  /// In en, this message translates to:
+  /// **'Water type'**
+  String get explore_field_waterType;
+
+  /// No description provided for @explore_field_weekday.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekday'**
+  String get explore_field_weekday;
+
+  /// No description provided for @explore_handoff_diveList.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in dive list'**
+  String get explore_handoff_diveList;
+
+  /// No description provided for @explore_handoff_insights.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Insights'**
+  String get explore_handoff_insights;
+
+  /// No description provided for @explore_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about your dives, for example turtles below 20 m in Bonaire'**
+  String get explore_hint;
+
+  /// No description provided for @explore_needsAttention_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get explore_needsAttention_title;
+
+  /// No description provided for @explore_op_gt.
+  ///
+  /// In en, this message translates to:
+  /// **'over'**
+  String get explore_op_gt;
+
+  /// No description provided for @explore_op_gte.
+  ///
+  /// In en, this message translates to:
+  /// **'at least'**
+  String get explore_op_gte;
+
+  /// No description provided for @explore_op_lt.
+  ///
+  /// In en, this message translates to:
+  /// **'under'**
+  String get explore_op_lt;
+
+  /// No description provided for @explore_op_lte.
+  ///
+  /// In en, this message translates to:
+  /// **'at most'**
+  String get explore_op_lte;
+
+  /// No description provided for @explore_value_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String explore_value_minutes(int minutes);
+
+  /// No description provided for @explore_op_eq.
+  ///
+  /// In en, this message translates to:
+  /// **'of'**
+  String get explore_op_eq;
+
+  /// No description provided for @explore_pickCandidate_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Which did you mean by \"{text}\"?'**
+  String explore_pickCandidate_title(Object text);
+
+  /// No description provided for @explore_recent_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get explore_recent_title;
+
+  /// No description provided for @explore_results_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching dives'**
+  String get explore_results_title;
+
+  /// No description provided for @explore_results_truncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the first {count}. Open in the dive list for all of them.'**
+  String explore_results_truncated(Object count);
+
+  /// No description provided for @explore_shortcut_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore needs the on-device model, which is not ready on this device.'**
+  String get explore_shortcut_unavailable;
+
+  /// No description provided for @explore_subjectNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Only dives can be searched for now.'**
+  String get explore_subjectNotSupported;
+
+  /// No description provided for @explore_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore'**
+  String get explore_title;
+
+  /// No description provided for @explore_understood_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Understood'**
+  String get explore_understood_title;
+
+  /// No description provided for @explore_unplaced_reason_invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read this value'**
+  String get explore_unplaced_reason_invalid;
+
+  /// No description provided for @explore_unplaced_reason_noAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'Not searchable yet'**
+  String get explore_unplaced_reason_noAxis;
+
+  /// No description provided for @explore_unplaced_reason_outOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Value out of range'**
+  String get explore_unplaced_reason_outOfRange;
+
+  /// No description provided for @explore_unplaced_reason_unknownField.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown field'**
+  String get explore_unplaced_reason_unknownField;
+
+  /// No description provided for @explore_unplaced_reason_unknownTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read this time'**
+  String get explore_unplaced_reason_unknownTime;
+
+  /// No description provided for @explore_unresolved_noCandidates.
+  ///
+  /// In en, this message translates to:
+  /// **'No match in your logbook'**
+  String get explore_unresolved_noCandidates;
+
+  /// No description provided for @explore_chart_divesOverTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives over time'**
+  String get explore_chart_divesOverTime;
+
+  /// No description provided for @explore_chart_depthTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get explore_chart_depthTrend;
+
+  /// No description provided for @explore_chart_waterTempTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Water temperature'**
+  String get explore_chart_waterTempTrend;
+
+  /// No description provided for @explore_chart_bottomTimeTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom time'**
+  String get explore_chart_bottomTimeTrend;
+
+  /// No description provided for @explore_chart_entityCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives per {kind}'**
+  String explore_chart_entityCounts(Object kind);
+
+  /// No description provided for @explore_kind_site.
+  ///
+  /// In en, this message translates to:
+  /// **'site'**
+  String get explore_kind_site;
+
+  /// No description provided for @explore_kind_place.
+  ///
+  /// In en, this message translates to:
+  /// **'place'**
+  String get explore_kind_place;
+
+  /// No description provided for @explore_kind_species.
+  ///
+  /// In en, this message translates to:
+  /// **'species'**
+  String get explore_kind_species;
+
+  /// No description provided for @explore_kind_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'gear'**
+  String get explore_kind_gear;
+
+  /// No description provided for @explore_kind_buddy.
+  ///
+  /// In en, this message translates to:
+  /// **'buddy'**
+  String get explore_kind_buddy;
+
+  /// No description provided for @explore_kind_tag.
+  ///
+  /// In en, this message translates to:
+  /// **'tag'**
+  String get explore_kind_tag;
+
+  /// No description provided for @explore_kind_center.
+  ///
+  /// In en, this message translates to:
+  /// **'dive center'**
+  String get explore_kind_center;
+
+  /// No description provided for @explore_kind_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'trip'**
+  String get explore_kind_trip;
+
+  /// No description provided for @explore_kind_computer.
+  ///
+  /// In en, this message translates to:
+  /// **'computer'**
+  String get explore_kind_computer;
+
   /// Screen-reader label for a dive row in the dive list.
   ///
   /// In en, this message translates to:
@@ -66269,6 +66975,24 @@ abstract class AppLocalizations {
   /// **'Something else was still using the database file, so Submersion stopped rather than write to it. Nothing was changed and nothing is damaged. Close Submersion completely, then open it again.'**
   String get startup_databaseBusy_body;
 
+  /// Title of the startup failure screen shown when the folder the diver chose for their dive log cannot be reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive log\'s folder can\'t be reached'**
+  String get startup_locationUnreachable_title;
+
+  /// Says the chosen folder cannot be opened, that nothing in it changed, and gives the usual fix: reconnect the drive or let the cloud folder finish syncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive log is kept in a folder you chose, and Submersion can\'t open that folder right now. Nothing in it has been changed. If the folder is on a drive that isn\'t connected, or in a cloud folder that is still syncing, reconnect it and open Submersion again.'**
+  String get startup_locationUnreachable_body;
+
+  /// Label above the path of the dive log folder that cannot be reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive log\'s folder:'**
+  String get startup_locationUnreachable_folderLabel;
+
   /// Label above the raw error text on the terminal startup failure screen.
   ///
   /// In en, this message translates to:
@@ -66368,6 +67092,30 @@ abstract class AppLocalizations {
   /// **'Set the damaged file aside and begin again. Nothing is deleted.'**
   String get startup_failure_startFresh_subtitle;
 
+  /// Action opening a folder picker when the dive log folder cannot be reached. Picking the same folder again gives a sandboxed build its access back.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your dive log\'s folder'**
+  String get startup_failure_chooseFolderAgain;
+
+  /// Explains that picking the same folder restores access, and that another folder can be picked instead.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the same folder again to give Submersion access to it, or pick the folder your dive log is in now.'**
+  String get startup_failure_chooseFolderAgain_subtitle;
+
+  /// Action that stops using the unreachable folder and goes back to the location Settings > Database Storage calls the app default location.
+  ///
+  /// In en, this message translates to:
+  /// **'Go back to the app default location'**
+  String get startup_failure_useDefaultLocation;
+
+  /// Explains that going back to the default location leaves the diver's folder untouched.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop using this folder and open the dive log in Submersion\'s own folder. Nothing in your folder is changed.'**
+  String get startup_failure_useDefaultLocation_subtitle;
+
   /// Title of the dialog confirming the dive log found in the picked folder.
   ///
   /// In en, this message translates to:
@@ -66445,6 +67193,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.'**
   String get startup_recovery_encryptedBackup_body;
+
+  /// Title of the dialog confirming the return to the app default location.
+  ///
+  /// In en, this message translates to:
+  /// **'Go back to the app default location?'**
+  String get startup_recovery_useDefault_title;
+
+  /// Explains what the app opens from now on, that nothing in the folder it leaves is moved or deleted, and where to choose that folder again.
+  ///
+  /// In en, this message translates to:
+  /// **'From now on Submersion opens the dive log in its own folder, or starts an empty one there if there is none. Nothing in {folder} is moved or deleted. To use that folder again, choose it in Settings, under Database Storage.'**
+  String startup_recovery_useDefault_body(Object folder);
+
+  /// Confirm button of the go-back-to-the-default-location dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the default location'**
+  String get startup_recovery_useDefault_confirm;
 
   /// Heading of the guided-downgrade section on a failed schema upgrade.
   ///
@@ -72558,6 +73324,12 @@ abstract class AppLocalizations {
   /// **'Sightings'**
   String get query_entity_sightings;
 
+  /// Entity name in the query field picker
+  ///
+  /// In en, this message translates to:
+  /// **'Site types'**
+  String get query_entity_siteTypes;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
@@ -72636,6 +73408,12 @@ abstract class AppLocalizations {
   /// **'Brand'**
   String get query_equipment_brand;
 
+  /// Relation label in the query builder: the dives an item was used on
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_equipment_dives;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
@@ -72654,11 +73432,41 @@ abstract class AppLocalizations {
   /// **'Serial number'**
   String get query_equipment_serialNumber;
 
+  /// Field label in the query builder: the item's service verdict
+  ///
+  /// In en, this message translates to:
+  /// **'Service due'**
+  String get query_equipment_serviceDue;
+
+  /// Service verdict value in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get query_equipment_serviceDue_dueSoon;
+
+  /// Service verdict value in the query builder: no service due
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get query_equipment_serviceDue_ok;
+
+  /// Service verdict value in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get query_equipment_serviceDue_overdue;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'Status'**
   String get query_equipment_status;
+
+  /// Relation label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_equipment_tags;
 
   /// Field label in the query builder
   ///
@@ -72684,6 +73492,12 @@ abstract class AppLocalizations {
   /// **'Type'**
   String get query_media_type;
 
+  /// Section title in the site and equipment filter sheets for the query editor and saved queries
+  ///
+  /// In en, this message translates to:
+  /// **'Query'**
+  String get query_sheet_sectionTitle;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
@@ -72705,14 +73519,38 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Name'**
+  String get query_siteTypes_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'City'**
   String get query_sites_city;
+
+  /// Field label in the query builder: whether the site has a position
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinates'**
+  String get query_sites_coordinates;
 
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'Country'**
   String get query_sites_country;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty'**
+  String get query_sites_difficulty;
+
+  /// Relation label in the query builder: the dives at a site
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_sites_dives;
 
   /// Field label in the query builder
   ///
@@ -72735,6 +73573,12 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_sites_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'Rating'**
   String get query_sites_rating;
 
@@ -72743,6 +73587,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Region'**
   String get query_sites_region;
+
+  /// Relation label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_sites_tags;
+
+  /// Relation label in the query builder: a site's classification types
+  ///
+  /// In en, this message translates to:
+  /// **'Site types'**
+  String get query_sites_types;
 
   /// Field label in the query builder
   ///
@@ -72810,11 +73666,23 @@ abstract class AppLocalizations {
   /// **'Volume'**
   String get query_tanks_volume;
 
+  /// Relation label in the query builder: the dives on a trip
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_trips_dives;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'End date'**
   String get query_trips_endDate;
+
+  /// Field label in the query builder: the trip's liveaboard name
+  ///
+  /// In en, this message translates to:
+  /// **'Liveaboard'**
+  String get query_trips_liveaboardName;
 
   /// Field label in the query builder
   ///
@@ -72831,8 +73699,32 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_trips_notes;
+
+  /// Field label in the query builder: the trip's resort name
+  ///
+  /// In en, this message translates to:
+  /// **'Resort'**
+  String get query_trips_resortName;
+
+  /// Field label in the query builder: whether the trip is shared with every diver profile
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get query_trips_shared;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'Start date'**
   String get query_trips_startDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Trip type'**
+  String get query_trips_tripType;
 
   /// Field label in the query builder
   ///
