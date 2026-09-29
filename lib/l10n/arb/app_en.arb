@@ -94,6 +94,210 @@
   "@equipment_history_unshared": {"placeholders": {"name": {"type": "String"}}},
   "equipment_history_transferred": "Transferred from {from} to {to}",
   "@equipment_history_transferred": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
+  "plannerMission_buddyPicker_empty": "No buddies yet",
+  "plannerMission_buddyPicker_me": "Me",
+  "plannerMission_buddyPicker_title": "Choose a buddy",
+  "plannerMission_current_setsToward": "Sets toward",
+  "plannerMission_current_speed": "Current speed",
+  "plannerMission_disableConfirm": "Turn off",
+  "plannerMission_disableMessage": "The route and team are removed. The generated profile stays as ordinary segments you can edit.",
+  "plannerMission_disableTitle": "Turn off the DPV mission?",
+  "plannerMission_enable": "Plan as DPV mission",
+  "plannerMission_environment_openWater": "Open water",
+  "plannerMission_environment_overhead": "Overhead",
+  "plannerMission_issue_batteryReserveInvalid": "The battery reserve must be between 0 and 100%",
+  "plannerMission_issue_emptyRoute": "Add at least one leg",
+  "plannerMission_issue_emptyTeam": "Add at least one diver",
+  "plannerMission_issue_legDepthInvalid": "{leg} has an invalid depth",
+  "@plannerMission_issue_legDepthInvalid": {
+    "placeholders": {
+      "leg": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_issue_legTooShort": "{leg} is too short to travel",
+  "@plannerMission_issue_legTooShort": {
+    "placeholders": {
+      "leg": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_issue_memberSacUnset": "{name} needs an RMV",
+  "@plannerMission_issue_memberSacUnset": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_issue_memberSwimSpeedUnset": "{name} needs a swim speed",
+  "@plannerMission_issue_memberSwimSpeedUnset": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_issue_openWaterInputInvalid": "A shore exit, the surface swim limit or the walking speed is negative",
+  "plannerMission_issue_planHasNoTank": "Add a back-gas cylinder to the plan",
+  "plannerMission_issue_planNotDiveable": "The planned route breaks a critical limit",
+  "plannerMission_issue_scenarioFailed": "A failure scenario could not be computed",
+  "plannerMission_issue_scooterUnspecified": "{name}'s scooter needs a speed and burn time",
+  "@plannerMission_issue_scooterUnspecified": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_issue_speedBelowHeadwayFloor": "{name}'s swim, scooter or tow speed is too slow to make headway",
+  "@plannerMission_issue_speedBelowHeadwayFloor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_issue_tankBudgetUnknown": "Every cylinder needs a size and a fill pressure",
+  "plannerMission_issue_unsupportedMode": "DPV missions plan open circuit dives only",
+  "plannerMission_issue_untraversableLeg": "The current blocks {leg}",
+  "@plannerMission_issue_untraversableLeg": {
+    "placeholders": {
+      "leg": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_leg_depth": "Depth",
+  "plannerMission_leg_distance": "Distance",
+  "plannerMission_leg_heading": "Heading",
+  "plannerMission_leg_label": "Waypoint name",
+  "plannerMission_leg_shoreExit": "Shore exit from here",
+  "plannerMission_leg_shoreSwim": "Surface swim to shore",
+  "plannerMission_leg_shoreWalk": "Walk to the entry",
+  "plannerMission_leg_useMissionCurrent": "Use the mission's current",
+  "plannerMission_member_chooseScooter": "Choose from equipment",
+  "plannerMission_member_manualScooter": "Enter manually",
+  "plannerMission_member_name": "Name",
+  "plannerMission_member_pickBuddy": "Choose a buddy",
+  "plannerMission_member_sac": "Bottom RMV",
+  "plannerMission_member_scooter": "Scooter",
+  "plannerMission_member_swimSpeed": "Swim speed",
+  "plannerMission_profile_none": "No profile yet: {reason}",
+  "@plannerMission_profile_none": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_profile_title": "Generated profile",
+  "plannerMission_route_addLeg": "Add leg",
+  "plannerMission_route_deleteLeg": "Delete leg",
+  "plannerMission_route_editLeg": "Edit leg",
+  "plannerMission_route_legSummary": "{distance} at {depth}, heading {heading}",
+  "@plannerMission_route_legSummary": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "distance": {
+        "type": "String"
+      },
+      "heading": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_route_ownCurrent": "Current {speed} toward {direction}",
+  "@plannerMission_route_ownCurrent": {
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      },
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_route_shoreExit": "Shore exit: swim {swim}, walk {walk}",
+  "@plannerMission_route_shoreExit": {
+    "placeholders": {
+      "swim": {
+        "type": "String"
+      },
+      "walk": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_route_title": "Route",
+  "plannerMission_route_unnamedLeg": "Leg {number}",
+  "@plannerMission_route_unnamedLeg": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerMission_scooter_burnTime": "Burn time",
+  "plannerMission_scooter_name": "Scooter name",
+  "plannerMission_scooter_speed": "Rated speed",
+  "plannerMission_scooter_towBurnFactor": "Tow burn factor",
+  "plannerMission_scooter_towSpeedFactor": "Tow speed factor",
+  "plannerMission_settings_batteryReserve": "Battery reserve",
+  "plannerMission_settings_defaultCurrent": "Default current",
+  "plannerMission_settings_environment": "Environment",
+  "plannerMission_settings_surfaceSwimLimit": "Longest surface swim",
+  "plannerMission_settings_walkSpeed": "Walking speed",
+  "plannerMission_team_addDiver": "Add diver",
+  "plannerMission_team_capacity": "{wh} Wh battery",
+  "@plannerMission_team_capacity": {
+    "placeholders": {
+      "wh": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_team_defaultName": "Diver {number}",
+  "@plannerMission_team_defaultName": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerMission_team_editDiver": "Edit diver",
+  "plannerMission_team_memberSummary": "RMV {sac}, swim {speed}",
+  "@plannerMission_team_memberSummary": {
+    "placeholders": {
+      "sac": {
+        "type": "String"
+      },
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_team_noScooter": "No scooter set",
+  "plannerMission_team_removeDiver": "Remove diver",
+  "plannerMission_team_scooterSummary": "{name}: {speed}, {minutes} min burn",
+  "@plannerMission_team_scooterSummary": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_team_title": "DPV team",
   "settings_shareAllEquipment_title": "Share all my equipment...",
   "settings_shareAllEquipment_body": "{count, plural, =1{Share your 1 item with the profiles you choose.} other{Share your {count} items with the profiles you choose.}}",
   "@settings_shareAllEquipment_body": {"placeholders": {"count": {"type": "int"}}},

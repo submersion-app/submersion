@@ -329,6 +329,274 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_buddyPicker_empty => 'Még nincsenek buddyk';
+
+  @override
+  String get plannerMission_buddyPicker_me => 'Én';
+
+  @override
+  String get plannerMission_buddyPicker_title => 'Buddy kiválasztása';
+
+  @override
+  String get plannerMission_current_setsToward => 'Áramlás iránya';
+
+  @override
+  String get plannerMission_current_speed => 'Áramlás sebessége';
+
+  @override
+  String get plannerMission_disableConfirm => 'Kikapcsolás';
+
+  @override
+  String get plannerMission_disableMessage =>
+      'Az útvonal és a csapat törlődik. A generált profil szerkeszthető, normál szakaszokként megmarad.';
+
+  @override
+  String get plannerMission_disableTitle => 'Kikapcsolod a DPV-küldetést?';
+
+  @override
+  String get plannerMission_enable => 'Tervezés DPV-küldetésként';
+
+  @override
+  String get plannerMission_environment_openWater => 'Nyílt víz';
+
+  @override
+  String get plannerMission_environment_overhead => 'Mennyezetes';
+
+  @override
+  String get plannerMission_issue_batteryReserveInvalid =>
+      'Az akkumulátortartaléknak 0 és 100% között kell lennie';
+
+  @override
+  String get plannerMission_issue_emptyRoute =>
+      'Adj hozzá legalább egy szakaszt';
+
+  @override
+  String get plannerMission_issue_emptyTeam => 'Adj hozzá legalább egy búvárt';
+
+  @override
+  String plannerMission_issue_legDepthInvalid(String leg) {
+    return '$leg mélysége érvénytelen';
+  }
+
+  @override
+  String plannerMission_issue_legTooShort(String leg) {
+    return '$leg túl rövid a megtételhez';
+  }
+
+  @override
+  String plannerMission_issue_memberSacUnset(String name) {
+    return '$name számára RMV szükséges';
+  }
+
+  @override
+  String plannerMission_issue_memberSwimSpeedUnset(String name) {
+    return '$name számára úszási sebesség szükséges';
+  }
+
+  @override
+  String get plannerMission_issue_openWaterInputInvalid =>
+      'Egy parti kiszállás, a felszíni úszás korlátja vagy a gyaloglási sebesség negatív';
+
+  @override
+  String get plannerMission_issue_planHasNoTank =>
+      'Adj a tervhez egy fő gázpalackot';
+
+  @override
+  String get plannerMission_issue_planNotDiveable =>
+      'A tervezett útvonal túllép egy kritikus határt';
+
+  @override
+  String get plannerMission_issue_scenarioFailed =>
+      'Egy meghibásodási forgatókönyvet nem sikerült kiszámítani';
+
+  @override
+  String plannerMission_issue_scooterUnspecified(String name) {
+    return '$name scooteréhez sebesség és üzemidő kell';
+  }
+
+  @override
+  String plannerMission_issue_speedBelowHeadwayFloor(String name) {
+    return '$name úszási, scooter- vagy vontatási sebessége túl kicsi a haladáshoz';
+  }
+
+  @override
+  String get plannerMission_issue_tankBudgetUnknown =>
+      'Minden palackhoz méret és töltőnyomás kell';
+
+  @override
+  String get plannerMission_issue_unsupportedMode =>
+      'A DPV-küldetések csak nyílt rendszerű merülést terveznek';
+
+  @override
+  String plannerMission_issue_untraversableLeg(String leg) {
+    return 'Az áramlás elzárja ezt: $leg';
+  }
+
+  @override
+  String get plannerMission_leg_depth => 'Mélység';
+
+  @override
+  String get plannerMission_leg_distance => 'Távolság';
+
+  @override
+  String get plannerMission_leg_heading => 'Irány';
+
+  @override
+  String get plannerMission_leg_label => 'Útpont neve';
+
+  @override
+  String get plannerMission_leg_shoreExit => 'Kiszállás a partra innen';
+
+  @override
+  String get plannerMission_leg_shoreSwim => 'Felszíni úszás a partig';
+
+  @override
+  String get plannerMission_leg_shoreWalk => 'Gyaloglás a beszállási pontig';
+
+  @override
+  String get plannerMission_leg_useMissionCurrent =>
+      'A küldetés áramlásának használata';
+
+  @override
+  String get plannerMission_member_chooseScooter =>
+      'Választás a felszerelésből';
+
+  @override
+  String get plannerMission_member_manualScooter => 'Kézi megadás';
+
+  @override
+  String get plannerMission_member_name => 'Név';
+
+  @override
+  String get plannerMission_member_pickBuddy => 'Buddy kiválasztása';
+
+  @override
+  String get plannerMission_member_sac => 'Bottom RMV';
+
+  @override
+  String get plannerMission_member_scooter => 'Scooter';
+
+  @override
+  String get plannerMission_member_swimSpeed => 'Úszási sebesség';
+
+  @override
+  String plannerMission_profile_none(String reason) {
+    return 'Még nincs profil: $reason';
+  }
+
+  @override
+  String get plannerMission_profile_title => 'Generált profil';
+
+  @override
+  String get plannerMission_route_addLeg => 'Szakasz hozzáadása';
+
+  @override
+  String get plannerMission_route_deleteLeg => 'Szakasz törlése';
+
+  @override
+  String get plannerMission_route_editLeg => 'Szakasz szerkesztése';
+
+  @override
+  String plannerMission_route_legSummary(
+    String depth,
+    String distance,
+    String heading,
+  ) {
+    return '$distance $depth mélységben, irány $heading';
+  }
+
+  @override
+  String plannerMission_route_ownCurrent(String direction, String speed) {
+    return 'Áramlás $speed, irány $direction';
+  }
+
+  @override
+  String plannerMission_route_shoreExit(String swim, String walk) {
+    return 'Kiszállás a partra: úszás $swim, gyaloglás $walk';
+  }
+
+  @override
+  String get plannerMission_route_title => 'Útvonal';
+
+  @override
+  String plannerMission_route_unnamedLeg(int number) {
+    return '$number. szakasz';
+  }
+
+  @override
+  String get plannerMission_scooter_burnTime => 'Üzemidő';
+
+  @override
+  String get plannerMission_scooter_name => 'Scooter neve';
+
+  @override
+  String get plannerMission_scooter_speed => 'Névleges sebesség';
+
+  @override
+  String get plannerMission_scooter_towBurnFactor =>
+      'Vontatási fogyasztási tényező';
+
+  @override
+  String get plannerMission_scooter_towSpeedFactor =>
+      'Vontatási sebességtényező';
+
+  @override
+  String get plannerMission_settings_batteryReserve => 'Akkumulátortartalék';
+
+  @override
+  String get plannerMission_settings_defaultCurrent =>
+      'Alapértelmezett áramlás';
+
+  @override
+  String get plannerMission_settings_environment => 'Környezet';
+
+  @override
+  String get plannerMission_settings_surfaceSwimLimit =>
+      'Leghosszabb felszíni úszás';
+
+  @override
+  String get plannerMission_settings_walkSpeed => 'Gyaloglási sebesség';
+
+  @override
+  String get plannerMission_team_addDiver => 'Búvár hozzáadása';
+
+  @override
+  String plannerMission_team_capacity(String wh) {
+    return '$wh Wh akkumulátor';
+  }
+
+  @override
+  String plannerMission_team_defaultName(int number) {
+    return '$number. búvár';
+  }
+
+  @override
+  String get plannerMission_team_editDiver => 'Búvár szerkesztése';
+
+  @override
+  String plannerMission_team_memberSummary(String sac, String speed) {
+    return 'RMV $sac, úszás $speed';
+  }
+
+  @override
+  String get plannerMission_team_noScooter => 'Nincs beállított scooter';
+
+  @override
+  String get plannerMission_team_removeDiver => 'Búvár eltávolítása';
+
+  @override
+  String plannerMission_team_scooterSummary(
+    String minutes,
+    String name,
+    String speed,
+  ) {
+    return '$name: $speed, $minutes perc üzemidő';
+  }
+
+  @override
+  String get plannerMission_team_title => 'DPV-csapat';
+
+  @override
   String get settings_shareAllEquipment_title =>
       'Minden felszerelésem megosztása...';
 

@@ -328,6 +328,266 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_buddyPicker_empty => 'لا يوجد رفاق بعد';
+
+  @override
+  String get plannerMission_buddyPicker_me => 'أنا';
+
+  @override
+  String get plannerMission_buddyPicker_title => 'اختر رفيقاً';
+
+  @override
+  String get plannerMission_current_setsToward => 'يتجه نحو';
+
+  @override
+  String get plannerMission_current_speed => 'سرعة التيار';
+
+  @override
+  String get plannerMission_disableConfirm => 'إيقاف';
+
+  @override
+  String get plannerMission_disableMessage =>
+      'تُحذف المسار والفريق. يبقى الملف الشخصي المُنشأ كمقاطع عادية يمكنك تحريرها.';
+
+  @override
+  String get plannerMission_disableTitle => 'إيقاف مهمة DPV؟';
+
+  @override
+  String get plannerMission_enable => 'التخطيط كمهمة DPV';
+
+  @override
+  String get plannerMission_environment_openWater => 'المياه المفتوحة';
+
+  @override
+  String get plannerMission_environment_overhead => 'بيئة مسقوفة';
+
+  @override
+  String get plannerMission_issue_batteryReserveInvalid =>
+      'يجب أن يكون احتياطي البطارية بين 0 و100%';
+
+  @override
+  String get plannerMission_issue_emptyRoute => 'أضف مقطعاً واحداً على الأقل';
+
+  @override
+  String get plannerMission_issue_emptyTeam => 'أضف غواصاً واحداً على الأقل';
+
+  @override
+  String plannerMission_issue_legDepthInvalid(String leg) {
+    return 'عمق $leg غير صالح';
+  }
+
+  @override
+  String plannerMission_issue_legTooShort(String leg) {
+    return '$leg أقصر من أن يُقطع';
+  }
+
+  @override
+  String plannerMission_issue_memberSacUnset(String name) {
+    return 'يحتاج $name إلى قيمة RMV';
+  }
+
+  @override
+  String plannerMission_issue_memberSwimSpeedUnset(String name) {
+    return 'يحتاج $name إلى سرعة سباحة';
+  }
+
+  @override
+  String get plannerMission_issue_openWaterInputInvalid =>
+      'قيمة خروج إلى الشاطئ أو حد السباحة على السطح أو سرعة المشي سالبة';
+
+  @override
+  String get plannerMission_issue_planHasNoTank =>
+      'أضف أسطوانة غاز رئيسية إلى الخطة';
+
+  @override
+  String get plannerMission_issue_planNotDiveable =>
+      'المسار المخطط يتجاوز حداً حرجاً';
+
+  @override
+  String get plannerMission_issue_scenarioFailed => 'تعذر حساب سيناريو عطل';
+
+  @override
+  String plannerMission_issue_scooterUnspecified(String name) {
+    return 'يحتاج سكوتر $name إلى سرعة ومدة تشغيل';
+  }
+
+  @override
+  String plannerMission_issue_speedBelowHeadwayFloor(String name) {
+    return 'سرعة سباحة $name أو سرعة السكوتر أو السحب أبطأ من أن تحقق تقدماً';
+  }
+
+  @override
+  String get plannerMission_issue_tankBudgetUnknown =>
+      'تحتاج كل أسطوانة إلى حجم وضغط تعبئة';
+
+  @override
+  String get plannerMission_issue_unsupportedMode =>
+      'مهام DPV تخطط للغوص بالدائرة المفتوحة فقط';
+
+  @override
+  String plannerMission_issue_untraversableLeg(String leg) {
+    return 'التيار يعيق $leg';
+  }
+
+  @override
+  String get plannerMission_leg_depth => 'العمق';
+
+  @override
+  String get plannerMission_leg_distance => 'المسافة';
+
+  @override
+  String get plannerMission_leg_heading => 'الاتجاه';
+
+  @override
+  String get plannerMission_leg_label => 'اسم نقطة الطريق';
+
+  @override
+  String get plannerMission_leg_shoreExit => 'خروج إلى الشاطئ من هنا';
+
+  @override
+  String get plannerMission_leg_shoreSwim => 'السباحة على السطح إلى الشاطئ';
+
+  @override
+  String get plannerMission_leg_shoreWalk => 'المشي إلى نقطة الدخول';
+
+  @override
+  String get plannerMission_leg_useMissionCurrent => 'استخدام تيار المهمة';
+
+  @override
+  String get plannerMission_member_chooseScooter => 'الاختيار من المعدات';
+
+  @override
+  String get plannerMission_member_manualScooter => 'إدخال يدوي';
+
+  @override
+  String get plannerMission_member_name => 'الاسم';
+
+  @override
+  String get plannerMission_member_pickBuddy => 'اختر رفيقاً';
+
+  @override
+  String get plannerMission_member_sac => 'Bottom RMV';
+
+  @override
+  String get plannerMission_member_scooter => 'السكوتر';
+
+  @override
+  String get plannerMission_member_swimSpeed => 'سرعة السباحة';
+
+  @override
+  String plannerMission_profile_none(String reason) {
+    return 'لا يوجد ملف شخصي بعد: $reason';
+  }
+
+  @override
+  String get plannerMission_profile_title => 'الملف الشخصي المُنشأ';
+
+  @override
+  String get plannerMission_route_addLeg => 'إضافة مقطع';
+
+  @override
+  String get plannerMission_route_deleteLeg => 'حذف المقطع';
+
+  @override
+  String get plannerMission_route_editLeg => 'تحرير المقطع';
+
+  @override
+  String plannerMission_route_legSummary(
+    String depth,
+    String distance,
+    String heading,
+  ) {
+    return '$distance على عمق $depth، الاتجاه $heading';
+  }
+
+  @override
+  String plannerMission_route_ownCurrent(String direction, String speed) {
+    return 'تيار $speed باتجاه $direction';
+  }
+
+  @override
+  String plannerMission_route_shoreExit(String swim, String walk) {
+    return 'خروج إلى الشاطئ: سباحة $swim، مشي $walk';
+  }
+
+  @override
+  String get plannerMission_route_title => 'المسار';
+
+  @override
+  String plannerMission_route_unnamedLeg(int number) {
+    return 'المقطع $number';
+  }
+
+  @override
+  String get plannerMission_scooter_burnTime => 'مدة التشغيل';
+
+  @override
+  String get plannerMission_scooter_name => 'اسم السكوتر';
+
+  @override
+  String get plannerMission_scooter_speed => 'السرعة الاسمية';
+
+  @override
+  String get plannerMission_scooter_towBurnFactor => 'معامل استهلاك السحب';
+
+  @override
+  String get plannerMission_scooter_towSpeedFactor => 'معامل سرعة السحب';
+
+  @override
+  String get plannerMission_settings_batteryReserve => 'احتياطي البطارية';
+
+  @override
+  String get plannerMission_settings_defaultCurrent => 'التيار الافتراضي';
+
+  @override
+  String get plannerMission_settings_environment => 'البيئة';
+
+  @override
+  String get plannerMission_settings_surfaceSwimLimit => 'أطول سباحة على السطح';
+
+  @override
+  String get plannerMission_settings_walkSpeed => 'سرعة المشي';
+
+  @override
+  String get plannerMission_team_addDiver => 'إضافة غواص';
+
+  @override
+  String plannerMission_team_capacity(String wh) {
+    return 'بطارية $wh واط ساعة';
+  }
+
+  @override
+  String plannerMission_team_defaultName(int number) {
+    return 'الغواص $number';
+  }
+
+  @override
+  String get plannerMission_team_editDiver => 'تحرير الغواص';
+
+  @override
+  String plannerMission_team_memberSummary(String sac, String speed) {
+    return 'RMV $sac، السباحة $speed';
+  }
+
+  @override
+  String get plannerMission_team_noScooter => 'لم يتم تحديد سكوتر';
+
+  @override
+  String get plannerMission_team_removeDiver => 'إزالة الغواص';
+
+  @override
+  String plannerMission_team_scooterSummary(
+    String minutes,
+    String name,
+    String speed,
+  ) {
+    return '$name: $speed، مدة التشغيل $minutes دقيقة';
+  }
+
+  @override
+  String get plannerMission_team_title => 'فريق DPV';
+
+  @override
   String get settings_shareAllEquipment_title => 'مشاركة كل معداتي...';
 
   @override

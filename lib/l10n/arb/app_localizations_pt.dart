@@ -330,6 +330,272 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_buddyPicker_empty => 'Ainda sem parceiros';
+
+  @override
+  String get plannerMission_buddyPicker_me => 'Eu';
+
+  @override
+  String get plannerMission_buddyPicker_title => 'Escolher um parceiro';
+
+  @override
+  String get plannerMission_current_setsToward => 'Flui para';
+
+  @override
+  String get plannerMission_current_speed => 'Velocidade da corrente';
+
+  @override
+  String get plannerMission_disableConfirm => 'Desativar';
+
+  @override
+  String get plannerMission_disableMessage =>
+      'A rota e a equipa são removidas. O perfil gerado fica como segmentos normais que pode editar.';
+
+  @override
+  String get plannerMission_disableTitle => 'Desativar a missão DPV?';
+
+  @override
+  String get plannerMission_enable => 'Planear como missão DPV';
+
+  @override
+  String get plannerMission_environment_openWater => 'Águas abertas';
+
+  @override
+  String get plannerMission_environment_overhead => 'Teto';
+
+  @override
+  String get plannerMission_issue_batteryReserveInvalid =>
+      'A reserva de bateria deve estar entre 0 e 100%';
+
+  @override
+  String get plannerMission_issue_emptyRoute => 'Adicione pelo menos um troço';
+
+  @override
+  String get plannerMission_issue_emptyTeam =>
+      'Adicione pelo menos um mergulhador';
+
+  @override
+  String plannerMission_issue_legDepthInvalid(String leg) {
+    return '$leg tem uma profundidade inválida';
+  }
+
+  @override
+  String plannerMission_issue_legTooShort(String leg) {
+    return '$leg é demasiado curto para percorrer';
+  }
+
+  @override
+  String plannerMission_issue_memberSacUnset(String name) {
+    return '$name precisa de um RMV';
+  }
+
+  @override
+  String plannerMission_issue_memberSwimSpeedUnset(String name) {
+    return '$name precisa de uma velocidade de nado';
+  }
+
+  @override
+  String get plannerMission_issue_openWaterInputInvalid =>
+      'Uma saída pela margem, o limite de nado à superfície ou a velocidade a caminhar é negativo';
+
+  @override
+  String get plannerMission_issue_planHasNoTank =>
+      'Adicione uma garrafa de gás principal ao plano';
+
+  @override
+  String get plannerMission_issue_planNotDiveable =>
+      'A rota planeada ultrapassa um limite crítico';
+
+  @override
+  String get plannerMission_issue_scenarioFailed =>
+      'Não foi possível calcular um cenário de avaria';
+
+  @override
+  String plannerMission_issue_scooterUnspecified(String name) {
+    return 'A scooter de $name precisa de velocidade e autonomia';
+  }
+
+  @override
+  String plannerMission_issue_speedBelowHeadwayFloor(String name) {
+    return 'A velocidade de nado, de scooter ou de reboque de $name é demasiado baixa para avançar';
+  }
+
+  @override
+  String get plannerMission_issue_tankBudgetUnknown =>
+      'Cada garrafa precisa de um volume e de uma pressão de enchimento';
+
+  @override
+  String get plannerMission_issue_unsupportedMode =>
+      'As missões DPV só planeiam mergulhos em circuito aberto';
+
+  @override
+  String plannerMission_issue_untraversableLeg(String leg) {
+    return 'A corrente bloqueia $leg';
+  }
+
+  @override
+  String get plannerMission_leg_depth => 'Profundidade';
+
+  @override
+  String get plannerMission_leg_distance => 'Distância';
+
+  @override
+  String get plannerMission_leg_heading => 'Rumo';
+
+  @override
+  String get plannerMission_leg_label => 'Nome do ponto';
+
+  @override
+  String get plannerMission_leg_shoreExit => 'Saída pela margem a partir daqui';
+
+  @override
+  String get plannerMission_leg_shoreSwim => 'Nado à superfície até à margem';
+
+  @override
+  String get plannerMission_leg_shoreWalk => 'Caminhar até à entrada';
+
+  @override
+  String get plannerMission_leg_useMissionCurrent =>
+      'Usar a corrente da missão';
+
+  @override
+  String get plannerMission_member_chooseScooter => 'Escolher do equipamento';
+
+  @override
+  String get plannerMission_member_manualScooter => 'Introduzir manualmente';
+
+  @override
+  String get plannerMission_member_name => 'Nome';
+
+  @override
+  String get plannerMission_member_pickBuddy => 'Escolher um parceiro';
+
+  @override
+  String get plannerMission_member_sac => 'Bottom RMV';
+
+  @override
+  String get plannerMission_member_scooter => 'Scooter';
+
+  @override
+  String get plannerMission_member_swimSpeed => 'Velocidade de nado';
+
+  @override
+  String plannerMission_profile_none(String reason) {
+    return 'Ainda sem perfil: $reason';
+  }
+
+  @override
+  String get plannerMission_profile_title => 'Perfil gerado';
+
+  @override
+  String get plannerMission_route_addLeg => 'Adicionar troço';
+
+  @override
+  String get plannerMission_route_deleteLeg => 'Eliminar troço';
+
+  @override
+  String get plannerMission_route_editLeg => 'Editar troço';
+
+  @override
+  String plannerMission_route_legSummary(
+    String depth,
+    String distance,
+    String heading,
+  ) {
+    return '$distance a $depth, rumo $heading';
+  }
+
+  @override
+  String plannerMission_route_ownCurrent(String direction, String speed) {
+    return 'Corrente $speed para $direction';
+  }
+
+  @override
+  String plannerMission_route_shoreExit(String swim, String walk) {
+    return 'Saída pela margem: nadar $swim, caminhar $walk';
+  }
+
+  @override
+  String get plannerMission_route_title => 'Rota';
+
+  @override
+  String plannerMission_route_unnamedLeg(int number) {
+    return 'Troço $number';
+  }
+
+  @override
+  String get plannerMission_scooter_burnTime => 'Autonomia';
+
+  @override
+  String get plannerMission_scooter_name => 'Nome da scooter';
+
+  @override
+  String get plannerMission_scooter_speed => 'Velocidade nominal';
+
+  @override
+  String get plannerMission_scooter_towBurnFactor =>
+      'Fator de consumo em reboque';
+
+  @override
+  String get plannerMission_scooter_towSpeedFactor =>
+      'Fator de velocidade de reboque';
+
+  @override
+  String get plannerMission_settings_batteryReserve => 'Reserva de bateria';
+
+  @override
+  String get plannerMission_settings_defaultCurrent => 'Corrente predefinida';
+
+  @override
+  String get plannerMission_settings_environment => 'Ambiente';
+
+  @override
+  String get plannerMission_settings_surfaceSwimLimit =>
+      'Nado à superfície mais longo';
+
+  @override
+  String get plannerMission_settings_walkSpeed => 'Velocidade a caminhar';
+
+  @override
+  String get plannerMission_team_addDiver => 'Adicionar mergulhador';
+
+  @override
+  String plannerMission_team_capacity(String wh) {
+    return 'Bateria de $wh Wh';
+  }
+
+  @override
+  String plannerMission_team_defaultName(int number) {
+    return 'Mergulhador $number';
+  }
+
+  @override
+  String get plannerMission_team_editDiver => 'Editar mergulhador';
+
+  @override
+  String plannerMission_team_memberSummary(String sac, String speed) {
+    return 'RMV $sac, nado $speed';
+  }
+
+  @override
+  String get plannerMission_team_noScooter => 'Nenhuma scooter definida';
+
+  @override
+  String get plannerMission_team_removeDiver => 'Remover mergulhador';
+
+  @override
+  String plannerMission_team_scooterSummary(
+    String minutes,
+    String name,
+    String speed,
+  ) {
+    return '$name: $speed, $minutes min de autonomia';
+  }
+
+  @override
+  String get plannerMission_team_title => 'Equipa DPV';
+
+  @override
   String get settings_shareAllEquipment_title =>
       'Partilhar todo o meu equipamento...';
 

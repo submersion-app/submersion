@@ -327,6 +327,268 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_buddyPicker_empty => 'עדיין אין בני זוג';
+
+  @override
+  String get plannerMission_buddyPicker_me => 'אני';
+
+  @override
+  String get plannerMission_buddyPicker_title => 'בחירת בן זוג';
+
+  @override
+  String get plannerMission_current_setsToward => 'זורם לכיוון';
+
+  @override
+  String get plannerMission_current_speed => 'מהירות הזרם';
+
+  @override
+  String get plannerMission_disableConfirm => 'כיבוי';
+
+  @override
+  String get plannerMission_disableMessage =>
+      'המסלול והצוות יוסרו. הפרופיל שנוצר יישאר כמקטעים רגילים שאפשר לערוך.';
+
+  @override
+  String get plannerMission_disableTitle => 'לכבות את משימת ה-DPV?';
+
+  @override
+  String get plannerMission_enable => 'תכנון כמשימת DPV';
+
+  @override
+  String get plannerMission_environment_openWater => 'מים פתוחים';
+
+  @override
+  String get plannerMission_environment_overhead => 'סביבה סגורה';
+
+  @override
+  String get plannerMission_issue_batteryReserveInvalid =>
+      'עתודת הסוללה חייבת להיות בין 0 ל-100%';
+
+  @override
+  String get plannerMission_issue_emptyRoute => 'יש להוסיף לפחות קטע אחד';
+
+  @override
+  String get plannerMission_issue_emptyTeam => 'יש להוסיף לפחות צולל אחד';
+
+  @override
+  String plannerMission_issue_legDepthInvalid(String leg) {
+    return 'העומק של $leg אינו תקין';
+  }
+
+  @override
+  String plannerMission_issue_legTooShort(String leg) {
+    return '$leg קצר מכדי לעבור אותו';
+  }
+
+  @override
+  String plannerMission_issue_memberSacUnset(String name) {
+    return 'ל-$name חסר RMV';
+  }
+
+  @override
+  String plannerMission_issue_memberSwimSpeedUnset(String name) {
+    return 'ל-$name חסרה מהירות שחייה';
+  }
+
+  @override
+  String get plannerMission_issue_openWaterInputInvalid =>
+      'יציאה לחוף, מגבלת השחייה על פני המים או מהירות ההליכה שלילית';
+
+  @override
+  String get plannerMission_issue_planHasNoTank =>
+      'יש להוסיף לתוכנית מכל גז ראשי';
+
+  @override
+  String get plannerMission_issue_planNotDiveable =>
+      'המסלול המתוכנן חורג ממגבלה קריטית';
+
+  @override
+  String get plannerMission_issue_scenarioFailed =>
+      'לא ניתן היה לחשב תרחיש תקלה';
+
+  @override
+  String plannerMission_issue_scooterUnspecified(String name) {
+    return 'לסקוטר של $name חסרים מהירות וזמן פעולה';
+  }
+
+  @override
+  String plannerMission_issue_speedBelowHeadwayFloor(String name) {
+    return 'מהירות השחייה, הסקוטר או הגרירה של $name איטית מכדי להתקדם';
+  }
+
+  @override
+  String get plannerMission_issue_tankBudgetUnknown =>
+      'לכל מכל נדרשים נפח ולחץ מילוי';
+
+  @override
+  String get plannerMission_issue_unsupportedMode =>
+      'משימות DPV מתכננות צלילות במעגל פתוח בלבד';
+
+  @override
+  String plannerMission_issue_untraversableLeg(String leg) {
+    return 'הזרם חוסם את $leg';
+  }
+
+  @override
+  String get plannerMission_leg_depth => 'עומק';
+
+  @override
+  String get plannerMission_leg_distance => 'מרחק';
+
+  @override
+  String get plannerMission_leg_heading => 'כיוון';
+
+  @override
+  String get plannerMission_leg_label => 'שם נקודת הציון';
+
+  @override
+  String get plannerMission_leg_shoreExit => 'יציאה לחוף מכאן';
+
+  @override
+  String get plannerMission_leg_shoreSwim => 'שחייה על פני המים עד החוף';
+
+  @override
+  String get plannerMission_leg_shoreWalk => 'הליכה לנקודת הכניסה';
+
+  @override
+  String get plannerMission_leg_useMissionCurrent => 'שימוש בזרם של המשימה';
+
+  @override
+  String get plannerMission_member_chooseScooter => 'בחירה מהציוד';
+
+  @override
+  String get plannerMission_member_manualScooter => 'הזנה ידנית';
+
+  @override
+  String get plannerMission_member_name => 'שם';
+
+  @override
+  String get plannerMission_member_pickBuddy => 'בחירת בן זוג';
+
+  @override
+  String get plannerMission_member_sac => 'Bottom RMV';
+
+  @override
+  String get plannerMission_member_scooter => 'סקוטר';
+
+  @override
+  String get plannerMission_member_swimSpeed => 'מהירות שחייה';
+
+  @override
+  String plannerMission_profile_none(String reason) {
+    return 'עדיין אין פרופיל: $reason';
+  }
+
+  @override
+  String get plannerMission_profile_title => 'פרופיל שנוצר';
+
+  @override
+  String get plannerMission_route_addLeg => 'הוספת קטע';
+
+  @override
+  String get plannerMission_route_deleteLeg => 'מחיקת קטע';
+
+  @override
+  String get plannerMission_route_editLeg => 'עריכת קטע';
+
+  @override
+  String plannerMission_route_legSummary(
+    String depth,
+    String distance,
+    String heading,
+  ) {
+    return '$distance בעומק $depth, כיוון $heading';
+  }
+
+  @override
+  String plannerMission_route_ownCurrent(String direction, String speed) {
+    return 'זרם $speed לכיוון $direction';
+  }
+
+  @override
+  String plannerMission_route_shoreExit(String swim, String walk) {
+    return 'יציאה לחוף: שחייה $swim, הליכה $walk';
+  }
+
+  @override
+  String get plannerMission_route_title => 'מסלול';
+
+  @override
+  String plannerMission_route_unnamedLeg(int number) {
+    return 'קטע $number';
+  }
+
+  @override
+  String get plannerMission_scooter_burnTime => 'זמן פעולה';
+
+  @override
+  String get plannerMission_scooter_name => 'שם הסקוטר';
+
+  @override
+  String get plannerMission_scooter_speed => 'מהירות נקובה';
+
+  @override
+  String get plannerMission_scooter_towBurnFactor => 'מקדם צריכה בגרירה';
+
+  @override
+  String get plannerMission_scooter_towSpeedFactor => 'מקדם מהירות גרירה';
+
+  @override
+  String get plannerMission_settings_batteryReserve => 'עתודת סוללה';
+
+  @override
+  String get plannerMission_settings_defaultCurrent => 'זרם ברירת מחדל';
+
+  @override
+  String get plannerMission_settings_environment => 'סביבה';
+
+  @override
+  String get plannerMission_settings_surfaceSwimLimit =>
+      'השחייה הארוכה ביותר על פני המים';
+
+  @override
+  String get plannerMission_settings_walkSpeed => 'מהירות הליכה';
+
+  @override
+  String get plannerMission_team_addDiver => 'הוספת צולל';
+
+  @override
+  String plannerMission_team_capacity(String wh) {
+    return 'סוללה $wh Wh';
+  }
+
+  @override
+  String plannerMission_team_defaultName(int number) {
+    return 'צולל $number';
+  }
+
+  @override
+  String get plannerMission_team_editDiver => 'עריכת צולל';
+
+  @override
+  String plannerMission_team_memberSummary(String sac, String speed) {
+    return 'RMV $sac, שחייה $speed';
+  }
+
+  @override
+  String get plannerMission_team_noScooter => 'לא הוגדר סקוטר';
+
+  @override
+  String get plannerMission_team_removeDiver => 'הסרת צולל';
+
+  @override
+  String plannerMission_team_scooterSummary(
+    String minutes,
+    String name,
+    String speed,
+  ) {
+    return '$name: $speed, זמן פעולה $minutes דק׳';
+  }
+
+  @override
+  String get plannerMission_team_title => 'צוות DPV';
+
+  @override
   String get settings_shareAllEquipment_title => 'שיתוף כל הציוד שלי...';
 
   @override

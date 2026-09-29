@@ -325,6 +325,261 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get plannerMission_buddyPicker_empty => '暂无潜伴';
+
+  @override
+  String get plannerMission_buddyPicker_me => '我';
+
+  @override
+  String get plannerMission_buddyPicker_title => '选择潜伴';
+
+  @override
+  String get plannerMission_current_setsToward => '流向';
+
+  @override
+  String get plannerMission_current_speed => '水流速度';
+
+  @override
+  String get plannerMission_disableConfirm => '关闭';
+
+  @override
+  String get plannerMission_disableMessage => '路线和队伍将被移除。生成的剖面会保留为可编辑的普通分段。';
+
+  @override
+  String get plannerMission_disableTitle => '关闭 DPV 任务？';
+
+  @override
+  String get plannerMission_enable => '按 DPV 任务规划';
+
+  @override
+  String get plannerMission_environment_openWater => '开放水域';
+
+  @override
+  String get plannerMission_environment_overhead => '有顶环境';
+
+  @override
+  String get plannerMission_issue_batteryReserveInvalid =>
+      '电池储备必须在 0 到 100% 之间';
+
+  @override
+  String get plannerMission_issue_emptyRoute => '请至少添加一个航段';
+
+  @override
+  String get plannerMission_issue_emptyTeam => '请至少添加一名潜水员';
+
+  @override
+  String plannerMission_issue_legDepthInvalid(String leg) {
+    return '$leg 的深度无效';
+  }
+
+  @override
+  String plannerMission_issue_legTooShort(String leg) {
+    return '$leg 太短，无法通行';
+  }
+
+  @override
+  String plannerMission_issue_memberSacUnset(String name) {
+    return '$name 需要设置 RMV';
+  }
+
+  @override
+  String plannerMission_issue_memberSwimSpeedUnset(String name) {
+    return '$name 需要设置游泳速度';
+  }
+
+  @override
+  String get plannerMission_issue_openWaterInputInvalid =>
+      '上岸出口、水面游泳上限或步行速度为负值';
+
+  @override
+  String get plannerMission_issue_planHasNoTank => '请为计划添加一个主气瓶';
+
+  @override
+  String get plannerMission_issue_planNotDiveable => '计划路线超出了关键限制';
+
+  @override
+  String get plannerMission_issue_scenarioFailed => '无法计算某个故障场景';
+
+  @override
+  String plannerMission_issue_scooterUnspecified(String name) {
+    return '$name 的推进器需要设置速度和续航时间';
+  }
+
+  @override
+  String plannerMission_issue_speedBelowHeadwayFloor(String name) {
+    return '$name 的游泳、推进器或拖曳速度太慢，无法前进';
+  }
+
+  @override
+  String get plannerMission_issue_tankBudgetUnknown => '每个气瓶都需要设置容量和充气压力';
+
+  @override
+  String get plannerMission_issue_unsupportedMode => 'DPV 任务仅规划开放式潜水';
+
+  @override
+  String plannerMission_issue_untraversableLeg(String leg) {
+    return '水流阻挡了 $leg';
+  }
+
+  @override
+  String get plannerMission_leg_depth => '深度';
+
+  @override
+  String get plannerMission_leg_distance => '距离';
+
+  @override
+  String get plannerMission_leg_heading => '航向';
+
+  @override
+  String get plannerMission_leg_label => '航点名称';
+
+  @override
+  String get plannerMission_leg_shoreExit => '从此处上岸';
+
+  @override
+  String get plannerMission_leg_shoreSwim => '水面游至岸边';
+
+  @override
+  String get plannerMission_leg_shoreWalk => '步行至入水点';
+
+  @override
+  String get plannerMission_leg_useMissionCurrent => '使用任务的水流';
+
+  @override
+  String get plannerMission_member_chooseScooter => '从装备中选择';
+
+  @override
+  String get plannerMission_member_manualScooter => '手动输入';
+
+  @override
+  String get plannerMission_member_name => '名称';
+
+  @override
+  String get plannerMission_member_pickBuddy => '选择潜伴';
+
+  @override
+  String get plannerMission_member_sac => 'Bottom RMV';
+
+  @override
+  String get plannerMission_member_scooter => '推进器';
+
+  @override
+  String get plannerMission_member_swimSpeed => '游泳速度';
+
+  @override
+  String plannerMission_profile_none(String reason) {
+    return '尚无剖面：$reason';
+  }
+
+  @override
+  String get plannerMission_profile_title => '生成的剖面';
+
+  @override
+  String get plannerMission_route_addLeg => '添加航段';
+
+  @override
+  String get plannerMission_route_deleteLeg => '删除航段';
+
+  @override
+  String get plannerMission_route_editLeg => '编辑航段';
+
+  @override
+  String plannerMission_route_legSummary(
+    String depth,
+    String distance,
+    String heading,
+  ) {
+    return '$distance，深度 $depth，航向 $heading';
+  }
+
+  @override
+  String plannerMission_route_ownCurrent(String direction, String speed) {
+    return '水流 $speed，流向 $direction';
+  }
+
+  @override
+  String plannerMission_route_shoreExit(String swim, String walk) {
+    return '上岸出口：游 $swim，步行 $walk';
+  }
+
+  @override
+  String get plannerMission_route_title => '路线';
+
+  @override
+  String plannerMission_route_unnamedLeg(int number) {
+    return '航段 $number';
+  }
+
+  @override
+  String get plannerMission_scooter_burnTime => '续航时间';
+
+  @override
+  String get plannerMission_scooter_name => '推进器名称';
+
+  @override
+  String get plannerMission_scooter_speed => '额定速度';
+
+  @override
+  String get plannerMission_scooter_towBurnFactor => '拖曳耗电系数';
+
+  @override
+  String get plannerMission_scooter_towSpeedFactor => '拖曳速度系数';
+
+  @override
+  String get plannerMission_settings_batteryReserve => '电池储备';
+
+  @override
+  String get plannerMission_settings_defaultCurrent => '默认水流';
+
+  @override
+  String get plannerMission_settings_environment => '环境';
+
+  @override
+  String get plannerMission_settings_surfaceSwimLimit => '最长水面游泳距离';
+
+  @override
+  String get plannerMission_settings_walkSpeed => '步行速度';
+
+  @override
+  String get plannerMission_team_addDiver => '添加潜水员';
+
+  @override
+  String plannerMission_team_capacity(String wh) {
+    return '$wh Wh 电池';
+  }
+
+  @override
+  String plannerMission_team_defaultName(int number) {
+    return '潜水员 $number';
+  }
+
+  @override
+  String get plannerMission_team_editDiver => '编辑潜水员';
+
+  @override
+  String plannerMission_team_memberSummary(String sac, String speed) {
+    return 'RMV $sac，游速 $speed';
+  }
+
+  @override
+  String get plannerMission_team_noScooter => '未设置推进器';
+
+  @override
+  String get plannerMission_team_removeDiver => '移除潜水员';
+
+  @override
+  String plannerMission_team_scooterSummary(
+    String minutes,
+    String name,
+    String speed,
+  ) {
+    return '$name：$speed，续航 $minutes 分钟';
+  }
+
+  @override
+  String get plannerMission_team_title => 'DPV 队伍';
+
+  @override
   String get settings_shareAllEquipment_title => '共享我的全部装备...';
 
   @override
