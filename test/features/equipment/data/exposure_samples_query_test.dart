@@ -281,7 +281,7 @@ void main() {
     expect(byDive['older']!.maxDepth, 30.0);
   });
 
-  test('the stamp includes the newest series of the dive', () async {
+  test('the stamp includes every series of the dive', () async {
     // Series are synced child rows that never re-stamp their dive (#1769).
     // A summary built after one arrived carries the series' stamp, so the
     // sample must carry it too, in both queries, or the summary would read
@@ -326,22 +326,24 @@ void main() {
             updatedAt: t1 + 90,
           ),
         );
+    // The dive's stamp plus both series'.
+    final stamp = t1 + (t1 + 50) + (t1 + 90);
     await db
         .into(db.diveSensorSummaries)
         .insert(
           DiveSensorSummariesCompanion.insert(
             diveId: 'd1',
             engineVersion: 1,
-            sourceUpdatedAt: t1 + 90,
+            sourceUpdatedAt: stamp,
             computedAt: 1,
           ).copyWith(maxDepth: const Value(40.0)),
         );
 
     final single = await repo.getExposureSamplesForEquipment(mask.id);
-    expect(single.single.updatedAt, t1 + 90);
+    expect(single.single.updatedAt, stamp);
     expect(single.single.maxDepth, 40.0);
     final batched = await repo.getItemExposures([mask]);
-    expect(batched[mask.id]!.samples.single.updatedAt, t1 + 90);
+    expect(batched[mask.id]!.samples.single.updatedAt, stamp);
     expect(batched[mask.id]!.samples.single.maxDepth, 40.0);
   });
 

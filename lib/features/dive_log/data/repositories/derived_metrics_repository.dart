@@ -43,7 +43,8 @@ class DerivedMetricsRepository {
   /// dive does not exist.
   ///
   /// [force] rebuilds a row that looks current, for a data-quality repair
-  /// that rewrote a profile without touching the dive's `updated_at`.
+  /// that may leave the source stamp where it was (a rewrite that keeps the
+  /// dive's and its series' `updated_at`).
   Future<DiveDerivedMetrics?> ensureCurrent(
     String diveId, {
     bool force = false,

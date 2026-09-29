@@ -172,7 +172,10 @@ void main() {
     // Series are synced child rows that never re-stamp their dive (#1769).
     // A summary built after one arrived carries its stamp and is current;
     // one built before it is not.
-    for (final (id, day, stamp) in [('rebuilt', 3, 500), ('before', 2, 1)]) {
+    for (final (id, day, stamp) in [
+      ('rebuilt', 3, 1 + 500),
+      ('before', 2, 1),
+    ]) {
       await dive(
         id,
         DateTime(2026, 1, day),

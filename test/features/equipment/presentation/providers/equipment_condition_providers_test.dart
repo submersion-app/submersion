@@ -505,11 +505,12 @@ void main() {
     expect(engine.last!.summariesByDive.keys, ['loop']);
   });
 
-  test('a summary built from a newer synced series is current', () async {
+  test('a summary built from the synced series is current', () async {
     // Series never re-stamp their dive (#1769). A summary rebuilt after a
     // synced profile carries the series' stamp; reading it as stale would
     // request it again on every review and never save a marker.
-    await ccrWithDive(summaryStamp: 9);
+    // The dive's stamp (5) plus its series' (9).
+    await ccrWithDive(summaryStamp: 5 + 9);
     await db
         .into(db.diveProfileSeries)
         .insert(
