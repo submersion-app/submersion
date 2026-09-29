@@ -74,6 +74,16 @@ reason.
   18). An unsigned fill logged from the blender is in phase 3 (section 11).
 - UDDF export of fills. CSV joins in PR 5; the `.db` backup is a byte copy
   and already carries every table.
+
+  Decided 2026-09-29 (PR 5): there is no multi-file CSV "bundle" in the
+  code. The app has three self-describing Submersion CSVs (dives, sites,
+  equipment), each with a header signature and a parser, plus an
+  export-only gear check-ins CSV. Fills get their own fourth Submersion
+  CSV, one row per fill: an entry in the CSV export sheet
+  (`CsvExportType.fills`), a header signature (`SubmersionCsvKind.fills`),
+  a format (`ImportFormat.submersionFillsCsv`), a parser and a Fills group
+  in the import wizard. A fills file imports on its own and also batches
+  with the equipment CSV.
 - Tags on gear other than cylinders. `trip_equipment` accepts any type, but
   the passport, labels and scanning are cylinder features.
 
@@ -360,6 +370,29 @@ Invariants the repository enforces:
   re-colours the whole history without a migration.
 - `equipment_id` is resolved from `passport_id` on write and re-resolved by
   "Link an existing tag" and "Add to my gear".
+
+Decided 2026-09-29 (PR 5, the fills CSV):
+
+- Columns: everything except the reserved `station_key` and
+  `signed_record`. That is the fill id, the passport id, the linked
+  cylinder's name and serial (display only, ignored on import), date and
+  time, O2 %, He %, pressure and temperature in the export's units (the unit
+  in the header, like the other sheets), filled by (`station_name`),
+  analyzer, source and notes.
+- Identity: import KEEPS the fill id, unlike the other CSVs, which mint
+  ids. A row whose id already exists here, or was deleted here (deletion
+  log), is skipped, the same rule `TagFillImporter` applies to a fill read
+  from a tag. A row without an id is a hand-added one and is given a fresh
+  id.
+- Linking: a fill is linked to the importing diver's cylinder that holds
+  its passport id (`CylinderPassportRepository.findEquipmentIdByPassportId`
+  scoped to the diver); otherwise `equipment_id` stays null and the fill
+  is relinked when a cylinder gets that id. `diver_id` is the importing
+  diver. `source` is kept as written (`FillSource.fromName`, unknown text
+  reads as `manual`).
+- Export scope: every fill the diver can see under section 10.8 (linked to
+  a cylinder the diver owns or has been shared, or unlinked and logged by
+  the diver), newest first.
 
 ### 10.3 `fill_stations`
 
@@ -654,7 +687,7 @@ previous one merges, each closing its own issue and referencing the umbrella #23
 | 2 NFC | #2336 | `nfc_manager`, `NfcTagService`; read, background launch filters; write with capacity and read-back; staleness hint with Rewrite and Reprint | no | 1b |
 | 3 Fill on the tag | #2337 | Fill keys in the tag codec and `NdefFit`; reading them on every tag open (store for an own cylinder, show for a foreign one); Write to tag after Log a fill; the newest fill in every NFC write; the trimix blender's Choose cylinder and Log this fill; tag doc update; hardware checklist (rescoped 2026-09-28) | no | 2 |
 | 4 Trip assignment | #2338 | `trip_equipment` table, repository, sync; passport Trip card; trip page Gear section | yes | 1a |
-| 5 CSV round trip | #2339 | fills in the Submersion CSV bundle: writer, signature, parser, round-trip test | no | 1a |
+| 5 CSV round trip | #2339 | a fourth Submersion CSV for fills (decided 2026-09-29, section 4): writer, export sheet entry, signature, format, parser, wizard Fills group, id-keeping importer, round-trip test in three unit modes | no | 1a |
 
 PRs 4 and 5 can run in parallel with 1b onward. The website deliverable
 (13.6) is tracked on #2333 and must be live before the release
