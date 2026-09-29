@@ -7,6 +7,7 @@ import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_
 import 'package:submersion/features/cylinder_passports/domain/services/passport_metrics.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/gas_percent.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/write_fill_to_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -48,11 +49,20 @@ class PassportCurrentFillCard extends ConsumerWidget {
               child: FilledButton.tonalIcon(
                 onPressed: passportId == null
                     ? null
-                    : () => showLogFillSheet(
-                        context,
-                        passportId: passportId!,
-                        equipmentId: equipmentId,
-                      ),
+                    : () async {
+                        final saved = await showLogFillSheet(
+                          context,
+                          passportId: passportId!,
+                          equipmentId: equipmentId,
+                        );
+                        if (saved == null || !context.mounted) return;
+                        await offerWriteFillToTag(
+                          context,
+                          ref,
+                          equipmentId: equipmentId,
+                          fill: saved,
+                        );
+                      },
                 icon: const Icon(Icons.add),
                 label: Text(l10n.passport_fill_log),
               ),

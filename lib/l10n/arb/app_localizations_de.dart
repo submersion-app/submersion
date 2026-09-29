@@ -12674,6 +12674,19 @@ class AppLocalizationsDe extends AppLocalizations {
       'Analysiere das Gas selbst, bevor du damit tauchst';
 
   @override
+  String get passport_fill_writeToTagTitle => 'Füllung erfasst';
+
+  @override
+  String get passport_fill_writeToTagBody =>
+      'Auf den Tag der Flasche schreiben?';
+
+  @override
+  String get passport_fill_writeToTag => 'Auf den Tag schreiben';
+
+  @override
+  String get passport_fill_notNow => 'Nicht jetzt';
+
+  @override
   String get passport_foreign_lastFill => 'Letzte Füllung auf dem Tag';
 
   @override

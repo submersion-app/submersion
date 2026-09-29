@@ -12675,6 +12675,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Analizza tu stesso il gas prima di immergerti';
 
   @override
+  String get passport_fill_writeToTagTitle => 'Ricarica registrata';
+
+  @override
+  String get passport_fill_writeToTagBody => 'Scriverla sul tag della bombola?';
+
+  @override
+  String get passport_fill_writeToTag => 'Scrivi sul tag';
+
+  @override
+  String get passport_fill_notNow => 'Non ora';
+
+  @override
   String get passport_foreign_lastFill => 'Ultimo riempimento sul tag';
 
   @override

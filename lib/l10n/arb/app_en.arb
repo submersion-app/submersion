@@ -7130,6 +7130,10 @@
   },
   "passport_fill_fromTag": "From tag",
   "passport_fill_analyseBeforeDiving": "Analyse the gas yourself before you dive it",
+  "passport_fill_writeToTagTitle": "Fill logged",
+  "passport_fill_writeToTagBody": "Write it to the tank's tag?",
+  "passport_fill_writeToTag": "Write to tag",
+  "passport_fill_notNow": "Not now",
   "passport_foreign_lastFill": "Last fill on the tag",
   "passport_foreign_fillSummary": "{mix} · {pressure} · {date}",
   "@passport_foreign_fillSummary": {

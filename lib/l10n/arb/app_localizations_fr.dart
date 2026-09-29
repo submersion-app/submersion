@@ -12718,7 +12718,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get passport_fill_analyseBeforeDiving =>
-      'Analysez le gaz vous-même avant de plonger avec';
+      'Analysez vous-même le gaz avant la plongée';
+
+  @override
+  String get passport_fill_writeToTagTitle => 'Gonflage enregistré';
+
+  @override
+  String get passport_fill_writeToTagBody => 'L\'écrire sur le tag du bloc ?';
+
+  @override
+  String get passport_fill_writeToTag => 'Écrire sur le tag';
+
+  @override
+  String get passport_fill_notNow => 'Pas maintenant';
 
   @override
   String get passport_foreign_lastFill => 'Dernier remplissage sur le tag';

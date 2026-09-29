@@ -12648,6 +12648,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülés előtt elemezd a gázt magad';
 
   @override
+  String get passport_fill_writeToTagTitle => 'Töltés rögzítve';
+
+  @override
+  String get passport_fill_writeToTagBody => 'Felírod a palack címkéjére?';
+
+  @override
+  String get passport_fill_writeToTag => 'Írás a címkére';
+
+  @override
+  String get passport_fill_notNow => 'Most nem';
+
+  @override
   String get passport_foreign_lastFill => 'Utolsó töltés a címkén';
 
   @override

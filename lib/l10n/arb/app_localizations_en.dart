@@ -12483,6 +12483,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Analyse the gas yourself before you dive it';
 
   @override
+  String get passport_fill_writeToTagTitle => 'Fill logged';
+
+  @override
+  String get passport_fill_writeToTagBody => 'Write it to the tank\'s tag?';
+
+  @override
+  String get passport_fill_writeToTag => 'Write to tag';
+
+  @override
+  String get passport_fill_notNow => 'Not now';
+
+  @override
   String get passport_foreign_lastFill => 'Last fill on the tag';
 
   @override

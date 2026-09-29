@@ -12582,6 +12582,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Analyseer het gas zelf voordat je ermee duikt';
 
   @override
+  String get passport_fill_writeToTagTitle => 'Vulling gelogd';
+
+  @override
+  String get passport_fill_writeToTagBody => 'Op de tag van de fles schrijven?';
+
+  @override
+  String get passport_fill_writeToTag => 'Naar tag schrijven';
+
+  @override
+  String get passport_fill_notNow => 'Niet nu';
+
+  @override
   String get passport_foreign_lastFill => 'Laatste vulling op de tag';
 
   @override

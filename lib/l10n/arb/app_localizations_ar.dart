@@ -12479,6 +12479,19 @@ class AppLocalizationsAr extends AppLocalizations {
       'حلّل الغاز بنفسك قبل الغوص به';
 
   @override
+  String get passport_fill_writeToTagTitle => 'تم تسجيل التعبئة';
+
+  @override
+  String get passport_fill_writeToTagBody =>
+      'هل تريد كتابتها على وسم الأسطوانة؟';
+
+  @override
+  String get passport_fill_writeToTag => 'الكتابة على الوسم';
+
+  @override
+  String get passport_fill_notNow => 'ليس الآن';
+
+  @override
   String get passport_foreign_lastFill => 'آخر تعبئة على الوسم';
 
   @override

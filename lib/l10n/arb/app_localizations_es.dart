@@ -12675,6 +12675,19 @@ class AppLocalizationsEs extends AppLocalizations {
       'Analiza el gas antes de bucear';
 
   @override
+  String get passport_fill_writeToTagTitle => 'Carga registrada';
+
+  @override
+  String get passport_fill_writeToTagBody =>
+      '¿Escribirla en la etiqueta de la botella?';
+
+  @override
+  String get passport_fill_writeToTag => 'Escribir en la etiqueta';
+
+  @override
+  String get passport_fill_notNow => 'Ahora no';
+
+  @override
   String get passport_foreign_lastFill => 'Último llenado en la etiqueta';
 
   @override

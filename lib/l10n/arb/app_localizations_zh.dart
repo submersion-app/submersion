@@ -12113,6 +12113,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_fill_analyseBeforeDiving => '潜水前请亲自分析气体';
 
   @override
+  String get passport_fill_writeToTagTitle => '充气已记录';
+
+  @override
+  String get passport_fill_writeToTagBody => '要写入气瓶的标签吗？';
+
+  @override
+  String get passport_fill_writeToTag => '写入标签';
+
+  @override
+  String get passport_fill_notNow => '暂不';
+
+  @override
   String get passport_foreign_lastFill => '标签上的最近一次充气';
 
   @override

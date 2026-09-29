@@ -12397,6 +12397,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'נתחו את הגז בעצמכם לפני שתצללו איתו';
 
   @override
+  String get passport_fill_writeToTagTitle => 'המילוי נרשם';
+
+  @override
+  String get passport_fill_writeToTagBody => 'לכתוב אותו לתג של המיכל?';
+
+  @override
+  String get passport_fill_writeToTag => 'כתיבה לתג';
+
+  @override
+  String get passport_fill_notNow => 'לא כעת';
+
+  @override
   String get passport_foreign_lastFill => 'המילוי האחרון על התג';
 
   @override
