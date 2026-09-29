@@ -70,7 +70,65 @@ void main() {
     });
   });
 
+  group('the refusal check', () {
+    Future<void> swallowedRequest(String url) =>
+        HttpOverrides.runWithHttpOverrides(() async {
+          final client = HttpClient();
+          try {
+            await client.getUrl(Uri.parse(url));
+          } catch (_) {
+            // Code under test that catches every error, as some services do.
+          } finally {
+            client.close(force: true);
+          }
+        }, blockedNetworkHttpOverrides);
+
+    test(
+      'fails when a refusal was caught before it could fail the test',
+      () async {
+        resetNetworkRefusals();
+        await swallowedRequest('https://example.com/swallowed');
+
+        expect(
+          expectNoNetworkRefusals,
+          throwsA(
+            isA<TestFailure>().having(
+              (failure) => failure.message,
+              'message',
+              contains('https://example.com/swallowed'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test('passes when nothing was refused', () {
+      resetNetworkRefusals();
+
+      expect(expectNoNetworkRefusals, returnsNormally);
+    });
+
+    test('passes when the test said it expects refusals', () async {
+      resetNetworkRefusals();
+      expectNetworkRefusals();
+      await swallowedRequest('https://example.com/on-purpose');
+
+      expect(expectNoNetworkRefusals, returnsNormally);
+    });
+
+    test('starts clean after each check', () async {
+      resetNetworkRefusals();
+      await swallowedRequest('https://example.com/once');
+      expect(expectNoNetworkRefusals, throwsA(isA<TestFailure>()));
+
+      expect(expectNoNetworkRefusals, returnsNormally);
+    });
+  });
+
   group('BlockedNetworkHttpOverrides', () {
+    // These tests are refused on purpose.
+    setUp(expectNetworkRefusals);
+
     test('a request to a public host fails with its URL', () async {
       final error = await HttpOverrides.runWithHttpOverrides(() async {
         final client = HttpClient();
@@ -126,6 +184,8 @@ void main() {
   });
 
   group('BlockedNetworkIOOverrides', () {
+    setUp(expectNetworkRefusals);
+
     test('Socket.connect to a public host fails with host and port', () async {
       final error = await IOOverrides.runWithIOOverrides(
         () => Socket.connect('example.com', 443).then<Object?>((socket) {

@@ -10,6 +10,9 @@ import 'blocked_network.dart';
 /// plain tests come first and hold even when this file runs on its own, with
 /// no widget test ahead of them to set up the binding.
 void main() {
+  // These tests are refused on purpose.
+  setUp(expectNetworkRefusals);
+
   test('the harness installs the blocking overrides', () {
     expect(HttpOverrides.current, same(blockedNetworkHttpOverrides));
     expect(IOOverrides.current, same(blockedNetworkIOOverrides));

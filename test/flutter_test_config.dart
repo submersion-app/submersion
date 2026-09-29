@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/blocked_network.dart';
+import 'helpers/fake_hosts.dart';
 import 'helpers/global_test_defaults.dart';
 import 'helpers/late_bound_share_platform.dart';
 import 'helpers/test_timeouts.dart';
@@ -24,5 +26,13 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   }
   applyGlobalTestDefaults();
   pinLateBoundSharePlatform();
+  // Around every test in the entrypoint, alone or bundled: fake hosts last one
+  // test, and a network refusal that the code under test caught still fails
+  // the test.
+  setUp(() {
+    resetFakeHosts();
+    resetNetworkRefusals();
+  });
+  tearDown(expectNoNetworkRefusals);
   await testMain();
 }

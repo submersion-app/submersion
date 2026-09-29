@@ -1,5 +1,9 @@
 import 'dart:io';
 
+import 'package:flutter_test/flutter_test.dart';
+
+import 'fake_hosts.dart';
+
 /// Whether [host] is this machine: `localhost` or a name under `.localhost`,
 /// a loopback address such as 127.0.0.1, ::1 or ::ffff:127.0.0.1 (as text, an
 /// IPv6 address possibly in brackets, or as an [InternetAddress]), or a Unix
@@ -40,6 +44,52 @@ StateError networkRefusal(String target) => StateError(
 String _describe(Object? host) =>
     host is InternetAddress ? host.address : '$host';
 
+/// The targets refused since the last [resetNetworkRefusals].
+var _refused = const <String>[];
+
+/// Whether the current test is refused the network on purpose.
+var _refusalsExpected = false;
+
+/// Records [target] as refused and returns the error to fail the call with.
+StateError _refuse(String target) {
+  _refused = [..._refused, target];
+  return networkRefusal(target);
+}
+
+/// Starts a test with nothing refused and no refusal expected.
+///
+/// `test/flutter_test_config.dart` calls this before every test.
+void resetNetworkRefusals() {
+  _refused = const [];
+  _refusalsExpected = false;
+}
+
+/// Declares that the current test is refused the network on purpose, as the
+/// guard's own tests are, so [expectNoNetworkRefusals] lets it pass.
+void expectNetworkRefusals() {
+  _refusalsExpected = true;
+}
+
+/// Fails if the current test was refused the network and the refusal was
+/// caught before it could fail the test.
+///
+/// Code under test that catches every error turns a refusal into a quiet
+/// fallback, so the request would go unnoticed. `test/flutter_test_config.dart`
+/// calls this after every test; it starts the next check clean either way.
+void expectNoNetworkRefusals() {
+  final refused = _refused;
+  final expected = _refusalsExpected;
+  resetNetworkRefusals();
+  if (refused.isEmpty || expected) return;
+  fail(
+    'Code under this test tried to reach the network, and the refusal was '
+    'caught before it could fail the test: ${refused.toSet().join(', ')}. '
+    'Fake the service the code calls, or serve the response from a loopback '
+    'HttpServer. See "Network, time limits and fonts" in '
+    'docs/developer/testing.md.',
+  );
+}
+
 /// Real [HttpClient]s that can only reach this machine.
 ///
 /// HttpClient asks findProxy for every request's URL before it opens a
@@ -48,13 +98,164 @@ String _describe(Object? host) =>
 /// they are.
 class BlockedNetworkHttpOverrides extends HttpOverrides {
   @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..findProxy = (uri) {
-        if (!isLoopbackHost(uri.host)) throw networkRefusal('$uri');
-        return 'DIRECT';
-      };
+  HttpClient createHttpClient(SecurityContext? context) =>
+      _RoutingHttpClient(super.createHttpClient(context));
+}
+
+/// The proxy lookup every client uses: loopback goes direct, anything else is
+/// refused. [chosen] is a lookup the caller set, which still gets its say for
+/// loopback.
+String Function(Uri) _guardedProxy([String Function(Uri)? chosen]) => (uri) {
+  if (!isLoopbackHost(uri.host)) throw _refuse('$uri');
+  return chosen?.call(uri) ?? 'DIRECT';
+};
+
+/// A real [HttpClient] that answers declared fake hosts (fake_hosts.dart) from
+/// memory, and otherwise can only reach this machine. A caller that sets its
+/// own findProxy cannot lift the refusal.
+class _RoutingHttpClient implements HttpClient {
+  _RoutingHttpClient(this._inner) {
+    _inner.findProxy = _guardedProxy();
   }
+
+  final HttpClient _inner;
+
+  @override
+  Future<HttpClientRequest> openUrl(String method, Uri url) =>
+      isFakeHost(url.host)
+      ? Future.value(FakeHostClientRequest(method, url))
+      : _inner.openUrl(method, url);
+
+  @override
+  Future<HttpClientRequest> open(
+    String method,
+    String host,
+    int port,
+    String path,
+  ) => openUrl(method, Uri.parse('http://$host:$port$path'));
+
+  @override
+  Future<HttpClientRequest> getUrl(Uri url) => openUrl('GET', url);
+
+  @override
+  Future<HttpClientRequest> get(String host, int port, String path) =>
+      open('GET', host, port, path);
+
+  @override
+  Future<HttpClientRequest> postUrl(Uri url) => openUrl('POST', url);
+
+  @override
+  Future<HttpClientRequest> post(String host, int port, String path) =>
+      open('POST', host, port, path);
+
+  @override
+  Future<HttpClientRequest> putUrl(Uri url) => openUrl('PUT', url);
+
+  @override
+  Future<HttpClientRequest> put(String host, int port, String path) =>
+      open('PUT', host, port, path);
+
+  @override
+  Future<HttpClientRequest> deleteUrl(Uri url) => openUrl('DELETE', url);
+
+  @override
+  Future<HttpClientRequest> delete(String host, int port, String path) =>
+      open('DELETE', host, port, path);
+
+  @override
+  Future<HttpClientRequest> patchUrl(Uri url) => openUrl('PATCH', url);
+
+  @override
+  Future<HttpClientRequest> patch(String host, int port, String path) =>
+      open('PATCH', host, port, path);
+
+  @override
+  Future<HttpClientRequest> headUrl(Uri url) => openUrl('HEAD', url);
+
+  @override
+  Future<HttpClientRequest> head(String host, int port, String path) =>
+      open('HEAD', host, port, path);
+
+  @override
+  set findProxy(String Function(Uri url)? f) =>
+      _inner.findProxy = _guardedProxy(f);
+
+  @override
+  Duration get idleTimeout => _inner.idleTimeout;
+
+  @override
+  set idleTimeout(Duration value) => _inner.idleTimeout = value;
+
+  @override
+  Duration? get connectionTimeout => _inner.connectionTimeout;
+
+  @override
+  set connectionTimeout(Duration? value) => _inner.connectionTimeout = value;
+
+  @override
+  int? get maxConnectionsPerHost => _inner.maxConnectionsPerHost;
+
+  @override
+  set maxConnectionsPerHost(int? value) => _inner.maxConnectionsPerHost = value;
+
+  @override
+  bool get autoUncompress => _inner.autoUncompress;
+
+  @override
+  set autoUncompress(bool value) => _inner.autoUncompress = value;
+
+  @override
+  String? get userAgent => _inner.userAgent;
+
+  @override
+  set userAgent(String? value) => _inner.userAgent = value;
+
+  @override
+  set authenticate(
+    Future<bool> Function(Uri url, String scheme, String? realm)? f,
+  ) => _inner.authenticate = f;
+
+  @override
+  set authenticateProxy(
+    Future<bool> Function(String host, int port, String scheme, String? realm)?
+    f,
+  ) => _inner.authenticateProxy = f;
+
+  @override
+  set connectionFactory(
+    Future<ConnectionTask<Socket>> Function(
+      Uri url,
+      String? proxyHost,
+      int? proxyPort,
+    )?
+    f,
+  ) => _inner.connectionFactory = f;
+
+  @override
+  set badCertificateCallback(
+    bool Function(X509Certificate cert, String host, int port)? callback,
+  ) => _inner.badCertificateCallback = callback;
+
+  @override
+  set keyLog(Function(String line)? callback) => _inner.keyLog = callback;
+
+  @override
+  void addCredentials(
+    Uri url,
+    String realm,
+    HttpClientCredentials credentials,
+  ) => _inner.addCredentials(url, realm, credentials);
+
+  @override
+  void addProxyCredentials(
+    String host,
+    int port,
+    String realm,
+    HttpClientCredentials credentials,
+  ) => _inner.addProxyCredentials(host, port, realm, credentials);
+
+  @override
+  void close({bool force = false}) => _inner.close(force: force);
 }
 
 /// Sockets that can only reach this machine.
@@ -73,7 +274,7 @@ final class BlockedNetworkIOOverrides extends IOOverrides {
     Duration? timeout,
   }) {
     if (!isLoopbackHost(host)) {
-      return Future.error(networkRefusal('${_describe(host)}:$port'));
+      return Future.error(_refuse('${_describe(host)}:$port'));
     }
     return super.socketConnect(
       host,
@@ -92,7 +293,7 @@ final class BlockedNetworkIOOverrides extends IOOverrides {
     int sourcePort = 0,
   }) {
     if (!isLoopbackHost(host)) {
-      return Future.error(networkRefusal('${_describe(host)}:$port'));
+      return Future.error(_refuse('${_describe(host)}:$port'));
     }
     return super.socketStartConnect(
       host,
