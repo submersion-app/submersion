@@ -451,7 +451,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     // always matches what is on screen. pruneTo is a no-op when nothing
     // changed, which keeps this off a rebuild loop.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && sitesAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     if (!widget.showAppBar) {
@@ -646,7 +646,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     // Same pruning the list path does: drop checked sites that fell out of
     // the visible list, so the count always matches what is on screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && sitesAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and

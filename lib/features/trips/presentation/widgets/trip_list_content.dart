@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -182,7 +183,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     // Drop checked trips that fell out of the filtered list, so a bulk action
     // can never reach a trip that is not on screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && tripsAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     if (!widget.showAppBar) {
@@ -368,7 +369,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     final visibleIds = loadedTrips.map((t) => t.trip.id).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && tripsAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     return SelectableListScope(

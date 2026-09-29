@@ -9,6 +9,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -1091,7 +1092,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     // can never reach a dive the user cannot see. pruneTo is a no-op when
     // nothing changed, which is what keeps this off a rebuild loop.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && paginatedAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     return SelectableListScope(
@@ -1655,13 +1656,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     // Pass the real dive list, not an empty one. Passing const [] made
     // select-all vanish and select-by-date-range select nothing whenever the
     // list was in table mode.
-    final tableDives = ref.watch(allDivesForTableProvider).value ?? const [];
+    final tableAsync = ref.watch(allDivesForTableProvider);
+    final tableDives = tableAsync.value ?? const [];
     final visibleIds = tableDives.map((d) => d.id).toList();
 
     // Same pruning the list path does: drop checked dives that fell out of
     // the visible list, so the count always matches what is on screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && tableAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and

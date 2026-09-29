@@ -703,6 +703,66 @@ void main() {
     });
   });
 
+  group('a new filter', () {
+    for (final mode in [ListViewMode.detailed, ListViewMode.table]) {
+      testWidgets('keeps the checks that stay on screen (${mode.name})', (
+        tester,
+      ) async {
+        final all = <EquipmentItem>[
+          _makeEquipment(id: 'e1', name: 'Aaa Reg'),
+          _makeEquipment(id: 'e2', name: 'Bbb Reg'),
+        ];
+
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) => MockCurrentDiverIdNotifier(),
+              ),
+              allEquipmentProvider.overrideWith((ref) async => all),
+              // A real id set takes a query's time, so the list has a
+              // loading frame.
+              queryFilteredEquipmentIdsProvider.overrideWith(
+                (ref, key) => Future.delayed(
+                  const Duration(milliseconds: 50),
+                  () => const {'e1', 'e2'},
+                ),
+              ),
+              equipmentListViewModeProvider.overrideWith((ref) => mode),
+              equipmentTableConfigProvider.overrideWith(
+                (ref) => _TestEquipTableConfigNotifier(_testConfig),
+              ),
+              highlightedEquipmentIdProvider.overrideWith((ref) => null),
+            ],
+            locale: const Locale('en'),
+            child: const EquipmentListContent(showAppBar: true),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+        await tester.pumpAndSettle();
+        expect(find.text('2 selected'), findsOneWidget);
+
+        // The new filter's id set loads first; the selection must survive
+        // that.
+        ProviderScope.containerOf(
+              tester.element(find.byType(EquipmentListContent)),
+            ).read(equipmentFilterProvider.notifier).state =
+            const EquipmentFilterState(type: EquipmentType.regulator);
+        // One frame at once, as the app draws it, before the query answers.
+        await tester.pump();
+        await tester.pumpAndSettle();
+        expect(find.text('2 selected'), findsOneWidget);
+      });
+    }
+  });
+
   group('EquipmentListContent in table mode', () {
     testWidgets('renders table with column headers', (tester) async {
       final equipment = [
