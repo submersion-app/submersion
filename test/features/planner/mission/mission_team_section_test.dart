@@ -9,6 +9,13 @@ import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
+import 'dart:typed_data';
+
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -377,5 +384,97 @@ void main() {
       ],
     );
     expect(find.textContaining('1000 Wh battery'), findsOneWidget);
+  });
+
+  testWidgets('a value committed as a dialog opens survives its save', (
+    tester,
+  ) async {
+    final container = await openTeam(tester, starter);
+    // Out of range: not applied while typing, clamped to 100 on blur.
+    await tester.enterText(box('Battery reserve'), '150');
+    await tester.pump();
+    await tester.tap(find.text('Sam'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(
+      container.read(divePlanNotifierProvider).mission!.batteryReserveFraction,
+      1.0,
+    );
+  });
+
+  testWidgets('a new diver takes the lowest free default name', (tester) async {
+    final container = await openTeam(
+      tester,
+      MissionEdits.addMember(
+        MissionEdits.starter(
+          legId: 'L1',
+          memberId: 'm1',
+          memberName: 'Diver 1',
+          sacBottom: 15,
+        ),
+        'm2',
+        name: 'Diver 2',
+        sacBottom: 15,
+      ),
+    );
+    await tester.tap(find.byTooltip('Remove diver').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Add diver'));
+    await tester.pumpAndSettle();
+    final names = [
+      for (final m in container.read(divePlanNotifierProvider).mission!.team)
+        m.displayName,
+    ];
+    expect(names, ['Diver 2', 'Diver 1']);
+  });
+
+  testWidgets('a diver card shows the buddy or diver photo', (tester) async {
+    final buddyPhoto = Uint8List.fromList([1]);
+    final diverPhoto = Uint8List.fromList([2]);
+    final mission = MissionEdits.addMember(
+      starter,
+      'm2',
+      name: 'Me',
+      sacBottom: 15,
+    );
+    await openTeam(
+      tester,
+      MissionEdits.updateMember(
+        MissionEdits.updateMember(
+          mission,
+          mission.team.first.copyWith(buddyId: 'b1'),
+        ),
+        mission.team.last.copyWith(diverId: 'd1'),
+      ),
+      overrides: [
+        buddyByIdProvider('b1').overrideWith(
+          (ref) async => Buddy(
+            id: 'b1',
+            name: 'Sam',
+            photo: buddyPhoto,
+            createdAt: DateTime(2026, 9, 28),
+            updatedAt: DateTime(2026, 9, 28),
+          ),
+        ),
+        diverByIdProvider('d1').overrideWith(
+          (ref) async => Diver(
+            id: 'd1',
+            name: 'Me',
+            photo: diverPhoto,
+            createdAt: DateTime(2026, 9, 28),
+            updatedAt: DateTime(2026, 9, 28),
+          ),
+        ),
+      ],
+    );
+    ProfileAvatar avatarOf(String name) => tester.widget<ProfileAvatar>(
+      find.descendant(
+        of: find.widgetWithText(Card, name),
+        matching: find.byType(ProfileAvatar),
+      ),
+    );
+    expect(avatarOf('Sam').photo, same(buddyPhoto));
+    expect(avatarOf('Me').photo, same(diverPhoto));
   });
 }

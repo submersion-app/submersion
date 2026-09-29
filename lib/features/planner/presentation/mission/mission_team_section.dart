@@ -6,6 +6,10 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
+import 'package:submersion/features/planner/presentation/mission/buddy_picker_sheet.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
@@ -40,7 +44,7 @@ class MissionTeamSection extends ConsumerWidget {
         units: units,
       );
       if (edited != null) {
-        notifier.updateMission(MissionEdits.updateMember(mission, edited));
+        notifier.editMission((m) => MissionEdits.updateMember(m, edited));
       }
     }
 
@@ -54,8 +58,8 @@ class MissionTeamSection extends ConsumerWidget {
             onEdit: () => edit(member),
             onRemove: mission.team.length == 1
                 ? null
-                : () => notifier.updateMission(
-                    MissionEdits.removeMember(mission, member.id),
+                : () => notifier.editMission(
+                    (m) => MissionEdits.removeMember(m, member.id),
                   ),
           ),
         Align(
@@ -65,18 +69,19 @@ class MissionTeamSection extends ConsumerWidget {
             child: TextButton.icon(
               icon: const Icon(Icons.person_add_alt),
               label: Text(l10n.plannerMission_team_addDiver),
-              onPressed: () => notifier.updateMission(
-                MissionEdits.addMember(
-                  mission,
+              onPressed: () => notifier.editMission(
+                (m) => MissionEdits.addMember(
+                  m,
                   const Uuid().v4(),
-                  name: l10n.plannerMission_team_defaultName(
-                    mission.team.length + 1,
+                  name: MissionEdits.nextDefaultName(
+                    m,
+                    l10n.plannerMission_team_defaultName,
                   ),
                   // A new diver starts on the first diver's SAC; the plan's
                   // own SAC seeded that one.
-                  sacBottom: mission.team.isEmpty
+                  sacBottom: m.team.isEmpty
                       ? ref.read(divePlanNotifierProvider).sacRate
-                      : mission.team.first.sacBottom,
+                      : m.team.first.sacBottom,
                 ),
               ),
             ),
@@ -97,7 +102,7 @@ class MissionTeamSection extends ConsumerWidget {
           ],
           selected: {mission.environment},
           onSelectionChanged: (s) =>
-              notifier.updateMission(mission.copyWith(environment: s.single)),
+              notifier.editMission((m) => m.copyWith(environment: s.single)),
         ),
         PlanNumberField(
           label: l10n.plannerMission_settings_batteryReserve,
@@ -110,8 +115,8 @@ class MissionTeamSection extends ConsumerWidget {
           allowEmpty: false,
           onChanged: (v) {
             if (v == null) return;
-            notifier.updateMission(
-              mission.copyWith(batteryReserveFraction: v / 100),
+            notifier.editMission(
+              (m) => m.copyWith(batteryReserveFraction: v / 100),
             );
           },
         ),
@@ -128,13 +133,13 @@ class MissionTeamSection extends ConsumerWidget {
           allowEmpty: false,
           onChanged: (v) {
             if (v == null) return;
-            notifier.updateMission(
-              v == 0
-                  ? mission.copyWith(clearDefaultCurrent: true)
-                  : mission.copyWith(
+            notifier.editMission(
+              (m) => v == 0
+                  ? m.copyWith(clearDefaultCurrent: true)
+                  : m.copyWith(
                       defaultCurrent: CurrentVector(
                         speedMps: units.speedMps(v),
-                        setsTowardDeg: defaultCurrent?.setsTowardDeg ?? 0,
+                        setsTowardDeg: m.defaultCurrent?.setsTowardDeg ?? 0,
                       ),
                     ),
             );
@@ -152,10 +157,11 @@ class MissionTeamSection extends ConsumerWidget {
             allowEmpty: false,
             onChanged: (v) {
               if (v == null) return;
-              notifier.updateMission(
-                mission.copyWith(
+              notifier.editMission(
+                (m) => m.copyWith(
                   defaultCurrent: CurrentVector(
-                    speedMps: defaultCurrent.speedMps,
+                    speedMps:
+                        m.defaultCurrent?.speedMps ?? defaultCurrent.speedMps,
                     setsTowardDeg: v,
                   ),
                 ),
@@ -173,8 +179,8 @@ class MissionTeamSection extends ConsumerWidget {
             allowEmpty: false,
             onChanged: (v) {
               if (v == null) return;
-              notifier.updateMission(
-                mission.copyWith(walkSpeedMps: units.speedMps(v)),
+              notifier.editMission(
+                (m) => m.copyWith(walkSpeedMps: units.speedMps(v)),
               );
             },
           ),
@@ -187,12 +193,10 @@ class MissionTeamSection extends ConsumerWidget {
             suffixText: units.distanceSymbol,
             decimals: 0,
             min: 0,
-            onChanged: (v) => notifier.updateMission(
-              v == null
-                  ? mission.copyWith(clearSurfaceSwimLimit: true)
-                  : mission.copyWith(
-                      surfaceSwimLimitM: units.distanceMeters(v),
-                    ),
+            onChanged: (v) => notifier.editMission(
+              (m) => v == null
+                  ? m.copyWith(clearSurfaceSwimLimit: true)
+                  : m.copyWith(surfaceSwimLimitM: units.distanceMeters(v)),
             ),
           ),
         ],
@@ -230,6 +234,7 @@ class _MemberCard extends ConsumerWidget {
               ?.dpvBatteryCapacityWh;
     return Card(
       child: ListTile(
+        leading: _MemberAvatar(member: member),
         title: Text(
           member.displayName,
           maxLines: 1,
@@ -266,5 +271,39 @@ class _MemberCard extends ConsumerWidget {
               ),
       ),
     );
+  }
+}
+
+/// The photo of the buddy or diver profile a team member was picked from,
+/// else the member's initials.
+class _MemberAvatar extends ConsumerWidget {
+  const _MemberAvatar({required this.member});
+
+  final MissionMember member;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final buddyId = member.buddyId;
+    final diverId = member.diverId;
+    if (buddyId != null) {
+      final buddy = ref.watch(buddyByIdProvider(buddyId)).value;
+      if (buddy != null) return MissionBuddyAvatar(buddy: buddy);
+    } else if (diverId != null) {
+      final diver = ref.watch(diverByIdProvider(diverId)).value;
+      if (diver != null) {
+        return ProfileAvatar(photo: diver.photo, initials: diver.initials);
+      }
+    }
+    return ProfileAvatar(photo: null, initials: _initials(member.displayName));
+  }
+
+  /// First and last initials, as buddy and diver profiles show them.
+  static String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+    }
+    final only = parts.first;
+    return only.isEmpty ? '?' : only[0].toUpperCase();
   }
 }

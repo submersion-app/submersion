@@ -47,7 +47,7 @@ class _BuddyPickerSheet extends ConsumerWidget {
             ListTile(title: Text(l10n.plannerMission_buddyPicker_empty)),
           for (final buddy in buddies)
             ListTile(
-              leading: _BuddyLeading(buddy: buddy),
+              leading: MissionBuddyAvatar(buddy: buddy),
               title: Text(
                 buddy.name,
                 maxLines: 1,
@@ -65,8 +65,8 @@ class _BuddyPickerSheet extends ConsumerWidget {
 
 /// A buddy's avatar; a buddy with no photo of their own who is linked to a
 /// diver profile shows that profile's photo, as the buddy list does.
-class _BuddyLeading extends ConsumerWidget {
-  const _BuddyLeading({required this.buddy});
+class MissionBuddyAvatar extends ConsumerWidget {
+  const MissionBuddyAvatar({super.key, required this.buddy});
 
   final Buddy buddy;
 
