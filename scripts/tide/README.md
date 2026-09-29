@@ -27,10 +27,3 @@ the small synthetic grid the decoding tests use.
 
 `generate_noaa_station_index.py` refreshes the bundled station index.
 `fetch_noaa_local_time_fixtures.py` refreshes the local-time golden fixtures.
-
-## Time zones
-
-`generate_tz_lookup_data.py` regenerates `lib/core/util/tz_lookup_data.dart`
-from photostructure/tz-lookup (CC0-1.0) at a pinned commit, and
-`generate_tz_lookup_fixture.js` (node) regenerates the parity fixture from
-the same commit.

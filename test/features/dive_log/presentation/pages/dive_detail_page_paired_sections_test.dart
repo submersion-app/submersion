@@ -233,13 +233,13 @@ TideRecord _tideRecord(String diveId) => TideRecord(
   createdAt: DateTime.utc(2026, 3, 15, 12),
 );
 
-/// [dive] at a site on the equator and prime meridian. Tide cards need site
-/// coordinates, and this site's zone (Etc/GMT) keeps stored times verbatim.
-Dive _atEquator(Dive dive) => dive.copyWith(
+/// [dive] at a Reykjavik site. Tide cards need site coordinates, and
+/// Iceland keeps UTC all year, so stored times print verbatim.
+Dive _atUtcSite(Dive dive) => dive.copyWith(
   site: const DiveSite(
-    id: 'site-equator',
-    name: 'Equator',
-    location: GeoPoint(0, 0),
+    id: 'site-reykjavik',
+    name: 'Reykjavik',
+    location: GeoPoint(64.15, -21.95),
   ),
 );
 
@@ -514,7 +514,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _atEquator(_diveWithGps('gps-tide-wide'));
+      final dive = _atUtcSite(_diveWithGps('gps-tide-wide'));
       final settings = _settingsWithOrder([
         DiveDetailSectionId.surfaceGps,
         DiveDetailSectionId.tide,
@@ -555,7 +555,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _atEquator(_diveWithGps('gps-tide-gap'));
+      final dive = _atUtcSite(_diveWithGps('gps-tide-gap'));
       // The pre-existing default order, which every upgrading user has saved.
       final settings = _settingsWithOrder([
         DiveDetailSectionId.tide,
@@ -588,7 +588,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(700, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _atEquator(_diveWithGps('gps-tide-narrow'));
+      final dive = _atUtcSite(_diveWithGps('gps-tide-narrow'));
       final settings = _settingsWithOrder([
         DiveDetailSectionId.surfaceGps,
         DiveDetailSectionId.tide,
@@ -616,7 +616,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _atEquator(_diveWithGps('gps-no-tide'));
+      final dive = _atUtcSite(_diveWithGps('gps-no-tide'));
       final settings = _settingsWithOrder([
         DiveDetailSectionId.surfaceGps,
         DiveDetailSectionId.tide,
@@ -643,7 +643,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _atEquator(
+      final dive = _atUtcSite(
         Dive(id: 'no-gps', dateTime: DateTime(2026, 3, 15, 10, 0)),
       );
       final settings = _settingsWithOrder([

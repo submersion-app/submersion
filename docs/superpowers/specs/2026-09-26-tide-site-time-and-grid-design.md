@@ -66,8 +66,11 @@ finer grid, so the asset format and the reader must change together.
 1. Fix both causes in one spec and one PR.
 2. The site's time zone comes from an offline coordinate lookup at compute
    time. No stored site time zone, no schema change, no sync change.
-3. Vendor the CC0 `tz-lookup` quadtree decoder and data rather than taking a
-   pub dependency.
+3. Resolve the zone with `lat_lng_to_timezone`, the lookup main's importers
+   already use (amended 2026-09-28; the first version vendored the CC0
+   `tz-lookup` quadtree). Tides read back wall clocks the importers wrote,
+   so both must use the same zone, and the two lookups disagreed at some
+   sites (Socorro: Mazatlan versus Mexico_City, an hour apart).
 4. Coastal layer at 0.1 degree (about 11 km) within 30 km of any non-ocean
    cell, plus a 1-degree global layer. About 54 MB of assets, replacing
    today's 70 MB.
@@ -82,16 +85,13 @@ feature knows the difference exists.
 
 ### New unit: `SiteTimeZone`
 
-`lib/core/util/site_time_zone.dart`, with the decoder's data in a sibling
-generated file `lib/core/util/tz_lookup_data.dart`.
+`lib/core/util/site_time_zone.dart`.
 
-- `String zoneIdFor(double latitude, double longitude)`: the quadtree walk
-  ported from `tz.js` in photostructure/tz-lookup (CC0-1.0, pinned to commit
-  `6051e7e2fe8b754e23d40aff0120cf9b38bde608`). A 96 by 24 top-level grid over
-  the globe, then binary subdivision driven by base-56 pairs in a 65,016
-  character data string, ending in one of 436 zone ids. Open ocean returns an
-  `Etc/GMT` zone by longitude from the data itself. Latitude 90 or above
-  returns `Etc/GMT`.
+- `String zoneIdFor(double latitude, double longitude)`: the IANA zone from
+  `lat_lng_to_timezone`, the same offline lookup the importers use. Offshore
+  points resolve to the nearest land zone, keeping its daylight saving.
+  Coordinates outside the valid range return the `Etc/GMT` zone for their
+  longitude, because the lookup maps even invalid input to some zone.
 - `DateTime instantFromWallClock(DateTime wallClockUtc, double latitude, double longitude)`:
   builds a `TZDateTime` in the site zone from the wall-clock components and
   returns its UTC instant.
@@ -99,21 +99,12 @@ generated file `lib/core/util/tz_lookup_data.dart`.
   the inverse. Returns a `DateTime.utc` carrying the site's wall-clock digits,
   the flavor every existing tide formatter already expects.
 - DST is resolved by tzdata for the actual date through the `timezone`
-  package, which the app already depends on. `SiteTimeZone` initializes the
-  tzdata database lazily once itself rather than relying on
-  `NotificationService` having run first.
+  package, which the app already depends on. `SiteTimeZone` loads the
+  database through the shared `ensureTimeZoneDatabase()`
+  (`lib/core/util/time_zone_database.dart`), never directly, because a
+  reload resets `tz.local`.
 - A zone id absent from tzdata (a future rename) falls back to the
   longitude-based `Etc/GMT` zone and logs once.
-
-`tz_lookup_data.dart` is produced by `scripts/tide/generate_tz_lookup_data.py`,
-which downloads `tz.js` at the pinned commit and emits the data string and
-zone list as Dart constants, so the blob is reproducible rather than hand
-pasted. The generated file carries the upstream commit and the CC0 notice.
-
-Spot-checked against 27 dive sites worldwide: every July offset correct.
-Known imprecision: Eilat resolves to `Asia/Riyadh`, one hour off in Israeli
-winter. The upstream project states about 5% of inhabited points resolve to
-a zone with a different offset; a site-level override is out of scope.
 
 ### Engine boundary
 
@@ -312,12 +303,13 @@ Every oracle comes from outside this codebase.
 
 ### Site time
 
-- Decoder parity: a fixture of about 200 coordinates with zone ids produced
-  by running upstream `tz.js` at the pinned commit. It covers every site in
-  the maintainer's database, the 27 spot-check sites, open ocean, both poles
-  and the antimeridian. The Dart port must match all of them.
+- Agreement: at ten dive sites, including offshore reefs and places where
+  lookups have disagreed, `zoneIdFor` equals the MacDive importer's zone.
+- Coverage: every zone returned over a 4-degree global grid resolves in the
+  bundled tzdata.
 - Offsets: Monterey in January and July, Sydney (southern DST), Adelaide
-  (half-hour zone), Bonaire (no DST), and an open-ocean `Etc/GMT+3` point,
+  (half-hour zone), Bonaire (no DST), and an open-ocean point that takes the
+  nearest land zone (the Azores),
   each asserted against published offsets.
 - DST edges: a wall-clock time inside the spring-forward gap and one inside
   the fall-back overlap. The test pins the `timezone` package's resolution and

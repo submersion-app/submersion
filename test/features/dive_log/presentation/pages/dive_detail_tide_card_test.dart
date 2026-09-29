@@ -38,13 +38,14 @@ TideRecord _tideRecord({
   );
 }
 
-/// A dive at a site on the equator and prime meridian. Its zone is Etc/GMT,
-/// so the site's wall clock equals UTC and stored instants print verbatim.
-Dive _equatorDive() => createTestDiveWithBottomTime().copyWith(
+/// A dive at a Reykjavik site. Iceland keeps UTC all year with no daylight
+/// saving, so the site's wall clock equals UTC and stored instants print
+/// verbatim.
+Dive _utcSiteDive() => createTestDiveWithBottomTime().copyWith(
   site: const DiveSite(
-    id: 'site-equator',
-    name: 'Equator',
-    location: GeoPoint(0, 0),
+    id: 'site-reykjavik',
+    name: 'Reykjavik',
+    location: GeoPoint(64.15, -21.95),
   ),
 );
 
@@ -54,7 +55,7 @@ Future<void> _pumpDetailPage(
   Dive? dive,
   DateFormatPreference dateFormat = DateFormatPreference.mmmDYYYY,
 }) async {
-  final shownDive = dive ?? _equatorDive();
+  final shownDive = dive ?? _utcSiteDive();
   final settings = MockSettingsNotifier();
   await settings.setTimeFormat(TimeFormat.twentyFourHour);
   await settings.setDateFormat(dateFormat);
@@ -219,7 +220,7 @@ void main() {
 
   testWidgets('a dive marked freshwater shows no tide card', (tester) async {
     // The diver's own water type wins over the site's (Dive.effectiveWaterType).
-    final dive = _equatorDive().copyWith(waterType: WaterType.fresh);
+    final dive = _utcSiteDive().copyWith(waterType: WaterType.fresh);
     await _pumpDetailPage(
       tester,
       _tideRecord(

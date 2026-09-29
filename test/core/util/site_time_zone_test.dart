@@ -1,53 +1,50 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:path/path.dart' as p;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'package:submersion/core/util/site_time_zone.dart';
-import 'package:submersion/core/util/tz_lookup_data.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_time_zone.dart';
 
 void main() {
   tearDown(() => SiteTimeZone.debugZoneIdOverride = null);
 
   group('SiteTimeZone.zoneIdFor', () {
-    final fixture =
-        json.decode(
-              File(
-                p.join(
-                  'test',
-                  'core',
-                  'util',
-                  'fixtures',
-                  'tz_lookup_parity.json',
-                ),
-              ).readAsStringSync(),
-            )
-            as Map<String, dynamic>;
-    final points = (fixture['points'] as List).cast<Map<String, dynamic>>();
+    // Public dive sites, offshore points and places where zone lookups have
+    // historically disagreed.
+    const sites = {
+      'Socorro': (18.78, -110.95),
+      'Roca Partida': (19.00, -112.07),
+      'Bonaire': (12.15, -68.27),
+      'Daedalus Reef': (24.93, 35.87),
+      'Cozumel': (20.35, -87.03),
+      'Monterey': (36.62, -121.90),
+      'Komodo': (-8.55, 119.55),
+      'Fiji Beqa': (-18.40, 178.10),
+      'Silfra': (64.26, -21.12),
+      'Open Atlantic': (30.0, -40.0),
+    };
 
-    test('matches upstream tz.js at every fixture point', () {
-      expect(points.length, greaterThan(200));
-      for (final point in points) {
+    test('agrees with the importers, which write the wall clocks it reads', () {
+      // An importer turns a dive's instant into a wall clock with the site's
+      // zone; tides turn that wall clock back into an instant. Any other
+      // zone here would shift every tide by the difference.
+      for (final site in sites.entries) {
         expect(
-          SiteTimeZone.zoneIdFor(
-            (point['lat'] as num).toDouble(),
-            (point['lon'] as num).toDouble(),
-          ),
-          point['zone'],
-          reason: '${point['name']} (${point['lat']}, ${point['lon']})',
+          SiteTimeZone.zoneIdFor(site.value.$1, site.value.$2),
+          MacDiveTimeZone.nameForLocation(site.value.$1, site.value.$2),
+          reason: site.key,
         );
       }
     });
 
-    test('every lookup zone resolves in the bundled tzdata', () {
-      // A zone newer than package:timezone's data would silently fall back
-      // to the whole-hour longitude offset; regenerate against both together.
+    test('every zone it returns resolves in the bundled tzdata', () {
+      // A lookup zone newer than package:timezone's data would silently fall
+      // back to the whole-hour longitude offset.
       SiteTimeZone.instantFromWallClock(DateTime.utc(2026), 12.15, -68.27);
-      final missing = tzLookupZones.where(
-        (zone) => !tz.timeZoneDatabase.locations.containsKey(zone),
-      );
+      final missing = <String>{
+        for (var lat = -80.0; lat <= 80.0; lat += 4)
+          for (var lon = -180.0; lon < 180.0; lon += 4)
+            SiteTimeZone.zoneIdFor(lat, lon),
+      }.where((zone) => !tz.timeZoneDatabase.locations.containsKey(zone));
       expect(missing, isEmpty);
     });
 
@@ -97,9 +94,11 @@ void main() {
         instant(bonaire, DateTime.utc(2026, 3, 28, 10)),
         DateTime.utc(2026, 3, 28, 14),
       );
+      // Offshore points take the nearest land zone: here the Azores, still
+      // on UTC-1 the day before their daylight saving starts.
       expect(
         instant(openAtlantic, DateTime.utc(2026, 3, 28, 10)),
-        DateTime.utc(2026, 3, 28, 13),
+        DateTime.utc(2026, 3, 28, 11),
       );
     });
 
