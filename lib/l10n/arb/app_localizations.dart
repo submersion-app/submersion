@@ -41240,6 +41240,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t save the plan: {error}'**
   String trips_cylinders_forecast_saveError(String error);
 
+  /// No description provided for @trips_cylinders_forecast_dayPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned by you'**
+  String get trips_cylinders_forecast_dayPlanned;
+
   /// No description provided for @trips_cylinders_title.
   ///
   /// In en, this message translates to:

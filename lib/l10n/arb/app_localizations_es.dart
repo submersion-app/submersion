@@ -5589,8 +5589,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveCenters_fillHours_clear => 'Borrar horario de llenado';
 
   @override
-  String get diveCenters_fillHours_errorBoth =>
-      'Indique ambas horas o ninguna.';
+  String get diveCenters_fillHours_errorBoth => 'Indica ambas horas o ninguna.';
 
   @override
   String get diveCenters_fillHours_errorOrder =>
@@ -25640,7 +25639,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_edit_hint_diversSharing =>
-      'Usted incluido. En blanco significa 1.';
+      'Contándote a ti. En blanco significa 1.';
 
   @override
   String get trips_edit_label_divesPerDay => 'Inmersiones por día';
@@ -25756,17 +25755,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
-    return 'Hoy se necesitan $needed, tiene $full llenas.';
+    return 'Hoy se necesitan $needed, tienes $full llenas.';
   }
 
   @override
   String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
-    return 'Mañana se necesitan $needed, tendrá $full llenas.';
+    return 'Mañana se necesitan $needed, tendrás $full llenas.';
   }
 
   @override
   String trips_cylinders_forecast_fillBefore(String time) {
-    return 'Llene antes de las $time.';
+    return 'Llena antes de las $time.';
   }
 
   @override
@@ -25805,6 +25804,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String trips_cylinders_forecast_saveError(String error) {
     return 'No se pudo guardar el plan: $error';
   }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => 'Planificado por ti';
 
   @override
   String get trips_cylinders_title => 'Botellas';

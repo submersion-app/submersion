@@ -7367,6 +7367,7 @@
       }
     }
   },
+  "trips_cylinders_forecast_dayPlanned": "Planeado por si",
   "trips_cylinders_title": "Cilindros",
   "trips_cylinders_summary": "Cheios {full} · Parciais {partial} · Vazios {empty}",
   "@trips_cylinders_summary": {

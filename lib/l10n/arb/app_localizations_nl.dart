@@ -25592,6 +25592,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_forecast_dayPlanned => 'Door jou gepland';
+
+  @override
   String get trips_cylinders_title => 'Flessen';
 
   @override

@@ -25706,6 +25706,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_forecast_dayPlanned => 'Általad tervezve';
+
+  @override
   String get trips_cylinders_title => 'Palackok';
 
   @override

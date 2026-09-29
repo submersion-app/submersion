@@ -527,6 +527,35 @@ void main() {
           );
         },
       );
+
+      test('a plan reaches every row a date has', () async {
+        // Two devices that planned one date offline leave two rows; the
+        // edit must reach the one the forecast reads, whichever that is.
+        await repository.saveAll([
+          createTestDay(dayNumber: 3, date: DateTime(2025, 3, 3)),
+          createTestDay(dayNumber: 3, date: DateTime(2025, 3, 3)),
+        ]);
+        await repository.setPlannedDives(
+          tripId: testTripId,
+          date: DateTime(2025, 3, 3),
+          plannedDives: 3,
+        );
+        final days = await repository.getByTripId(testTripId);
+        expect(days, hasLength(2));
+        expect(days.map((d) => d.plannedDives), everyElement(3));
+      });
+
+      test('a plan for an unknown trip fails and writes nothing', () async {
+        await expectLater(
+          repository.setPlannedDives(
+            tripId: 'no-such-trip',
+            date: DateTime(2025, 3, 3),
+            plannedDives: 2,
+          ),
+          throwsA(isA<StateError>()),
+        );
+        expect(await repository.getByTripId('no-such-trip'), isEmpty);
+      });
     });
   });
 }

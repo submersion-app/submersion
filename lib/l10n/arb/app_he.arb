@@ -7367,6 +7367,7 @@
       }
     }
   },
+  "trips_cylinders_forecast_dayPlanned": "תוכנן על ידך",
   "trips_cylinders_title": "מכלים",
   "trips_cylinders_summary": "מלאים {full} · חלקיים {partial} · ריקים {empty}",
   "@trips_cylinders_summary": {

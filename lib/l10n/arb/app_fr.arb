@@ -7265,6 +7265,7 @@
       }
     }
   },
+  "trips_cylinders_forecast_dayPlanned": "Planifié par vous",
   "trips_cylinders_title": "Blocs",
   "trips_cylinders_summary": "Pleins {full} · Entamés {partial} · Vides {empty}",
   "@trips_cylinders_summary": {

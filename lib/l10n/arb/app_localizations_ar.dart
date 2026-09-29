@@ -25470,6 +25470,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_forecast_dayPlanned => 'خططتها أنت';
+
+  @override
   String get trips_cylinders_title => 'الأسطوانات';
 
   @override

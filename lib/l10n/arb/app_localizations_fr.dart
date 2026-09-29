@@ -25878,6 +25878,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_forecast_dayPlanned => 'Planifié par vous';
+
+  @override
   String get trips_cylinders_title => 'Blocs';
 
   @override

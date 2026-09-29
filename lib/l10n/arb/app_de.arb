@@ -1773,7 +1773,7 @@
   "diveCenters_fillHours_closes": "Schließt",
   "diveCenters_fillHours_notSet": "Nicht gesetzt",
   "diveCenters_fillHours_clear": "Füllzeiten löschen",
-  "diveCenters_fillHours_errorBoth": "Beide Zeiten setzen oder keine.",
+  "diveCenters_fillHours_errorBoth": "Setze beide Zeiten oder keine.",
   "diveCenters_fillHours_errorOrder": "Die Schließzeit muss nach der Öffnungszeit liegen.",
   "diveCenters_section_notes": "Notizen",
   "diveCenters_snackbar_coordinatesFound": "Koordinaten aus Adresse gefunden",
@@ -7304,7 +7304,7 @@
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Planung",
   "trips_edit_label_diversSharing": "Taucher, die sich Flaschen teilen",
-  "trips_edit_hint_diversSharing": "Sie eingeschlossen. Leer bedeutet 1.",
+  "trips_edit_hint_diversSharing": "Dich eingeschlossen. Leer bedeutet 1.",
   "trips_edit_label_divesPerDay": "Tauchgänge pro Tag",
   "trips_edit_hint_divesPerDay": "Für die Füllprognose. Leer bedeutet Schätzung.",
   "trips_edit_label_expectedDives": "Erwartete Tauchgänge",
@@ -7411,7 +7411,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_todayShort": "Heute werden {needed} gebraucht, Sie haben {full} volle.",
+  "trips_cylinders_forecast_todayShort": "Heute werden {needed} gebraucht, du hast {full} volle.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
       "needed": {
@@ -7422,7 +7422,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_tomorrowShort": "Morgen werden {needed} gebraucht, Sie haben dann {full} volle.",
+  "trips_cylinders_forecast_tomorrowShort": "Morgen werden {needed} gebraucht, du hast dann {full} volle.",
   "@trips_cylinders_forecast_tomorrowShort": {
     "placeholders": {
       "needed": {
@@ -7470,6 +7470,7 @@
       }
     }
   },
+  "trips_cylinders_forecast_dayPlanned": "Von dir geplant",
   "trips_cylinders_title": "Flaschen",
   "trips_cylinders_summary": "Voll {full} · Teilweise {partial} · Leer {empty}",
   "@trips_cylinders_summary": {

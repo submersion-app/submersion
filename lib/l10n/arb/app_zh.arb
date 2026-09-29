@@ -7554,6 +7554,7 @@
       }
     }
   },
+  "trips_cylinders_forecast_dayPlanned": "由你计划",
   "trips_cylinders_title": "气瓶",
   "trips_cylinders_summary": "满瓶 {full} · 部分 {partial} · 空瓶 {empty}",
   "@trips_cylinders_summary": {

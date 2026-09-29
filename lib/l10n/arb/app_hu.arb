@@ -7265,6 +7265,7 @@
       }
     }
   },
+  "trips_cylinders_forecast_dayPlanned": "Általad tervezve",
   "trips_cylinders_title": "Palackok",
   "trips_cylinders_summary": "Tele {full} · Részben {partial} · Üres {empty}",
   "@trips_cylinders_summary": {

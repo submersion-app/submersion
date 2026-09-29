@@ -1762,7 +1762,7 @@
   "diveCenters_fillHours_closes": "Cierra",
   "diveCenters_fillHours_notSet": "Sin definir",
   "diveCenters_fillHours_clear": "Borrar horario de llenado",
-  "diveCenters_fillHours_errorBoth": "Indique ambas horas o ninguna.",
+  "diveCenters_fillHours_errorBoth": "Indica ambas horas o ninguna.",
   "diveCenters_fillHours_errorOrder": "La hora de cierre debe ser posterior a la de apertura.",
   "diveCenters_section_notes": "Notas",
   "diveCenters_snackbar_coordinatesFound": "Coordenadas encontradas desde dirección",
@@ -7201,7 +7201,7 @@
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Planificación",
   "trips_edit_label_diversSharing": "Buceadores que comparten botellas",
-  "trips_edit_hint_diversSharing": "Usted incluido. En blanco significa 1.",
+  "trips_edit_hint_diversSharing": "Contándote a ti. En blanco significa 1.",
   "trips_edit_label_divesPerDay": "Inmersiones por día",
   "trips_edit_hint_divesPerDay": "Para la previsión de llenado. En blanco significa estimar.",
   "trips_edit_label_expectedDives": "Inmersiones previstas",
@@ -7308,7 +7308,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_todayShort": "Hoy se necesitan {needed}, tiene {full} llenas.",
+  "trips_cylinders_forecast_todayShort": "Hoy se necesitan {needed}, tienes {full} llenas.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
       "needed": {
@@ -7319,7 +7319,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_tomorrowShort": "Mañana se necesitan {needed}, tendrá {full} llenas.",
+  "trips_cylinders_forecast_tomorrowShort": "Mañana se necesitan {needed}, tendrás {full} llenas.",
   "@trips_cylinders_forecast_tomorrowShort": {
     "placeholders": {
       "needed": {
@@ -7330,7 +7330,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_fillBefore": "Llene antes de las {time}.",
+  "trips_cylinders_forecast_fillBefore": "Llena antes de las {time}.",
   "@trips_cylinders_forecast_fillBefore": {
     "placeholders": {
       "time": {
@@ -7367,6 +7367,7 @@
       }
     }
   },
+  "trips_cylinders_forecast_dayPlanned": "Planificado por ti",
   "trips_cylinders_title": "Botellas",
   "trips_cylinders_summary": "Llenas {full} · Parciales {partial} · Vacías {empty}",
   "@trips_cylinders_summary": {

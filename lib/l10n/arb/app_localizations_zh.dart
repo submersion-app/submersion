@@ -24478,6 +24478,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_forecast_dayPlanned => '由你计划';
+
+  @override
   String get trips_cylinders_title => '气瓶';
 
   @override

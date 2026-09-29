@@ -25787,6 +25787,9 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_forecast_dayPlanned => 'Planeado por si';
+
+  @override
   String get trips_cylinders_title => 'Cilindros';
 
   @override

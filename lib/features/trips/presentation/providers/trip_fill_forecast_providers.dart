@@ -27,8 +27,10 @@ final tripFillForecastProvider = FutureProvider.family<FillForecast?, String>((
   ref.invalidateSelfWhen(ref.watch(diveRepositoryProvider).watchDivesChanges());
   ref.invalidateSelfWhen(ref.watch(tripRepositoryProvider).watchTripsChanges());
   final trip = await ref.watch(tripByIdProvider(tripId).future);
-  if (trip == null) return null;
+  // An unknown or ended trip has no forecast: skip every query below.
+  if (trip == null || trip.endsBefore(clock.now())) return null;
   final states = await ref.watch(tripCylinderStatesProvider(tripId).future);
+  if (states.isEmpty) return null;
   final itinerary = await ref.watch(itineraryDaysProvider(tripId).future);
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   final now = clock.now();
@@ -61,12 +63,20 @@ final tripFillForecastProvider = FutureProvider.family<FillForecast?, String>((
       fillClosesAt: center?.fillClosesAt,
     ),
   );
-  if (forecast != null) {
+  // A build invalidated during an await above is already disposed: no
+  // timer for it. The tick goes through invalidateSelfWhen, so a paused
+  // provider refreshes on resume rather than being invalidated mid-pause.
+  if (forecast != null && ref.mounted) {
+    final tick = StreamController<void>();
     final timer = Timer(
       fillForecastNextRefresh(now, forecast).difference(now),
-      ref.invalidateSelf,
+      () => tick.add(null),
     );
-    ref.onDispose(timer.cancel);
+    ref.onDispose(() {
+      timer.cancel();
+      tick.close();
+    });
+    ref.invalidateSelfWhen(tick.stream);
   }
   return forecast;
 });

@@ -1762,7 +1762,7 @@
   "diveCenters_fillHours_closes": "Chiude",
   "diveCenters_fillHours_notSet": "Non impostato",
   "diveCenters_fillHours_clear": "Cancella orari di ricarica",
-  "diveCenters_fillHours_errorBoth": "Imposti entrambi gli orari o nessuno.",
+  "diveCenters_fillHours_errorBoth": "Imposta entrambi gli orari o nessuno.",
   "diveCenters_fillHours_errorOrder": "L'orario di chiusura deve seguire quello di apertura.",
   "diveCenters_section_notes": "Note",
   "diveCenters_snackbar_coordinatesFound": "Coordinate trovate dall'indirizzo",
@@ -7095,7 +7095,7 @@
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Pianificazione",
   "trips_edit_label_diversSharing": "Subacquei che condividono le bombole",
-  "trips_edit_hint_diversSharing": "Lei compreso. Vuoto significa 1.",
+  "trips_edit_hint_diversSharing": "Te compreso. Vuoto significa 1.",
   "trips_edit_label_divesPerDay": "Immersioni al giorno",
   "trips_edit_hint_divesPerDay": "Per la previsione di ricarica. Vuoto significa stima.",
   "trips_edit_label_expectedDives": "Immersioni previste",
@@ -7202,7 +7202,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_todayShort": "Oggi ne servono {needed}, ne ha {full} piene.",
+  "trips_cylinders_forecast_todayShort": "Oggi ne servono {needed}, ne hai {full} piene.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
       "needed": {
@@ -7213,7 +7213,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_tomorrowShort": "Domani ne servono {needed}, ne avrà {full} piene.",
+  "trips_cylinders_forecast_tomorrowShort": "Domani ne servono {needed}, ne avrai {full} piene.",
   "@trips_cylinders_forecast_tomorrowShort": {
     "placeholders": {
       "needed": {
@@ -7224,7 +7224,7 @@
       }
     }
   },
-  "trips_cylinders_forecast_fillBefore": "Ricarichi prima delle {time}.",
+  "trips_cylinders_forecast_fillBefore": "Ricarica prima delle {time}.",
   "@trips_cylinders_forecast_fillBefore": {
     "placeholders": {
       "time": {
@@ -7261,6 +7261,7 @@
       }
     }
   },
+  "trips_cylinders_forecast_dayPlanned": "Pianificato da te",
   "trips_cylinders_title": "Bombole",
   "trips_cylinders_summary": "Piene {full} · Parziali {partial} · Vuote {empty}",
   "@trips_cylinders_summary": {

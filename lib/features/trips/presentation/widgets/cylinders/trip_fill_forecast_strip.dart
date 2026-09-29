@@ -80,27 +80,32 @@ class _TripFillForecastStripState extends ConsumerState<TripFillForecastStrip> {
             style: theme.textTheme.titleSmall,
           ),
         ),
-        SizedBox(
-          height: 48,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: widget.days.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 8),
-            itemBuilder: (context, i) {
-              final day = widget.days[i];
-              return ActionChip(
-                key: Key('forecast-day-$i'),
-                avatar: day.isOverride
-                    ? const Icon(Icons.edit_calendar, size: 16)
-                    : null,
-                label: Text(
-                  '${widget.units.formatWeekdayMonthDay(day.date)} · '
-                  '${l10n.trips_cylinders_forecast_plannedDives(day.plannedDives)}',
+        // Sized by its chips rather than a fixed height, so large text
+        // grows the row instead of clipping it. A trip has few days left.
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            spacing: 8,
+            children: [
+              for (final (i, day) in widget.days.indexed)
+                ActionChip(
+                  key: Key('forecast-day-$i'),
+                  avatar: day.isOverride
+                      ? Icon(
+                          Icons.edit_calendar,
+                          size: 16,
+                          semanticLabel:
+                              l10n.trips_cylinders_forecast_dayPlanned,
+                        )
+                      : null,
+                  label: Text(
+                    '${widget.units.formatWeekdayMonthDay(day.date)} · '
+                    '${l10n.trips_cylinders_forecast_plannedDives(day.plannedDives)}',
+                  ),
+                  onPressed: _saving ? null : () => _edit(day),
                 ),
-                onPressed: _saving ? null : () => _edit(day),
-              );
-            },
+            ],
           ),
         ),
       ],

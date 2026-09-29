@@ -25,6 +25,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -90,6 +91,7 @@ void main() {
     Future<List<TripCylinderState>>? states,
     bool settle = true,
     FillForecast? forecast,
+    ItineraryDayRepository? itinerary,
   }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
@@ -108,6 +110,8 @@ void main() {
           tripFillForecastProvider(
             tripId,
           ).overrideWith((ref) async => forecast),
+          if (itinerary != null)
+            itineraryDayRepositoryProvider.overrideWithValue(itinerary),
           if (repository != null)
             tripCylinderRepositoryProvider.overrideWithValue(repository),
           if (states != null)
@@ -560,6 +564,49 @@ void main() {
     await tester.pumpAndSettle();
     expect(await ItineraryDayRepository().getByTripId(tripId), isEmpty);
   });
+
+  testWidgets('a day the diver planned says so to a screen reader', (
+    tester,
+  ) async {
+    final a = await slot('Truck 1', 0);
+    await fill(a.id);
+    await pumpBoard(
+      tester,
+      forecast: forecastWithDays([
+        FillForecastDay(
+          date: DateTime(2026, 3, 10),
+          plannedDives: 3,
+          isOverride: true,
+        ),
+      ]),
+    );
+    final icon = tester.widget<Icon>(find.byIcon(Icons.edit_calendar));
+    expect(icon.semanticLabel, 'Planned by you');
+  });
+
+  testWidgets('a failed plan save says so and frees the strip', (tester) async {
+    final a = await slot('Truck 1', 0);
+    await fill(a.id);
+    await pumpBoard(
+      tester,
+      itinerary: _FailingItineraryRepository(),
+      forecast: forecastWithDays([
+        FillForecastDay(date: DateTime(2026, 3, 10), plannedDives: 2),
+      ]),
+    );
+    await tester.tap(find.byKey(const Key('forecast-day-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text("Couldn't save the plan: Bad state: disk full"),
+      findsOneWidget,
+    );
+    final chip = tester.widget<ActionChip>(
+      find.byKey(const Key('forecast-day-0')),
+    );
+    expect(chip.onPressed, isNotNull);
+  });
 }
 
 /// Holds each reorder until the test releases it, then writes it for real.
@@ -582,4 +629,14 @@ class _CountFailingRepository extends TripCylinderRepository {
   @override
   Future<int> countLinkedDives(String cylinderId) async =>
       throw StateError('count failed');
+}
+
+/// Cannot write a day's plan.
+class _FailingItineraryRepository extends ItineraryDayRepository {
+  @override
+  Future<void> setPlannedDives({
+    required String tripId,
+    required DateTime date,
+    required int? plannedDives,
+  }) async => throw StateError('disk full');
 }

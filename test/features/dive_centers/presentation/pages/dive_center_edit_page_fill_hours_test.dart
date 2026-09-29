@@ -133,4 +133,31 @@ void main() {
     expect(saved!.fillOpensAt, isNull);
     expect(saved.fillClosesAt, isNull);
   });
+
+  testWidgets('hours that close before they open block the save', (
+    tester,
+  ) async {
+    // Stored by an older build or a sync peer; the form will not save them
+    // back until the diver fixes the order.
+    final now = DateTime(2026);
+    final center = await DiveCenterRepository().createDiveCenter(
+      DiveCenter(
+        id: '',
+        name: 'Dive Friends',
+        fillOpensAt: 1020,
+        fillClosesAt: 480,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await pumpPage(tester, centerId: center.id);
+    await tester.enterText(find.byType(TextFormField).first, 'Renamed');
+    await save(tester);
+    expect(
+      find.text('Closing time must be after opening time.'),
+      findsOneWidget,
+    );
+    final saved = await DiveCenterRepository().getDiveCenterById(center.id);
+    expect(saved!.name, 'Dive Friends');
+  });
 }

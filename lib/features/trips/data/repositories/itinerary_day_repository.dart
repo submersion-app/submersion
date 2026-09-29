@@ -157,25 +157,28 @@ class ItineraryDayRepository {
     final day = DateTime(date.year, date.month, date.day);
     final now = DateTime.now().millisecondsSinceEpoch;
     try {
-      String? written;
+      var written = const <String>[];
       await _db.transaction(() async {
         final rows = await (_db.select(
           _db.tripItineraryDays,
         )..where((t) => t.tripId.equals(tripId))).get();
-        final existing = rows.where((r) {
-          final d = DateTime.fromMillisecondsSinceEpoch(r.date);
-          return d.year == day.year && d.month == day.month && d.day == day.day;
-        }).firstOrNull;
-        if (existing != null) {
+        // Every row the date has: two devices that planned it offline leave
+        // two, and the forecast reads whichever it meets last.
+        final existing = [
+          for (final r in rows)
+            if (_sameDay(DateTime.fromMillisecondsSinceEpoch(r.date), day))
+              r.id,
+        ];
+        if (existing.isNotEmpty) {
           await (_db.update(
             _db.tripItineraryDays,
-          )..where((t) => t.id.equals(existing.id))).write(
+          )..where((t) => t.id.isIn(existing))).write(
             TripItineraryDaysCompanion(
               plannedDives: Value(plannedDives),
               updatedAt: Value(now),
             ),
           );
-          written = existing.id;
+          written = existing;
         } else if (plannedDives != null) {
           final trip = await (_db.select(
             _db.trips,
@@ -195,9 +198,9 @@ class ItineraryDayRepository {
                   updatedAt: now,
                 ),
               );
-          written = id;
+          written = [id];
         }
-        if (written case final id?) {
+        for (final id in written) {
           await _syncRepository.markRecordPending(
             entityType: 'itineraryDays',
             recordId: id,
@@ -205,7 +208,7 @@ class ItineraryDayRepository {
           );
         }
       });
-      if (written != null) SyncEventBus.notifyLocalChange();
+      if (written.isNotEmpty) SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to set planned dives for trip $tripId on $day',
@@ -365,6 +368,9 @@ class ItineraryDayRepository {
       rethrow;
     }
   }
+
+  static bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   /// Create a date key for day-granularity comparison (year-month-day).
   String _dateKey(DateTime date) {
