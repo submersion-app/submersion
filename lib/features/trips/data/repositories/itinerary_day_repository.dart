@@ -9,6 +9,8 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart'
     as domain;
+import 'package:submersion/features/trips/domain/entities/trip.dart'
+    show calendarDaysBetween;
 
 class ItineraryDayRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -71,6 +73,7 @@ class ItineraryDayRepository {
               latitude: Value(entry.day.latitude),
               longitude: Value(entry.day.longitude),
               notes: Value(entry.day.notes),
+              plannedDives: Value(entry.day.plannedDives),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -101,7 +104,7 @@ class ItineraryDayRepository {
   }
 
   /// Update a single itinerary day by id. Only updates mutable fields
-  /// (dayType, portName, latitude, longitude, notes, updatedAt).
+  /// (dayType, portName, latitude, longitude, notes, plannedDives, updatedAt).
   /// Preserves createdAt.
   Future<void> updateDay(domain.ItineraryDay day) async {
     try {
@@ -117,6 +120,7 @@ class ItineraryDayRepository {
           latitude: Value(day.latitude),
           longitude: Value(day.longitude),
           notes: Value(day.notes),
+          plannedDives: Value(day.plannedDives),
           updatedAt: Value(now),
         ),
       );
@@ -132,6 +136,79 @@ class ItineraryDayRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to update itinerary day: ${day.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Sets one day's planned dives for the fill forecast; null returns the
+  /// day to the estimate. A day with no itinerary row gets one, typed dive
+  /// day (decided 2026-09-29: a trip may plan single days without an
+  /// itinerary); null on such a day writes nothing. The find and the insert
+  /// share one transaction, and the table has no (trip, date) uniqueness,
+  /// so two quick saves cannot insert the day twice.
+  Future<void> setPlannedDives({
+    required String tripId,
+    required DateTime date,
+    required int? plannedDives,
+  }) async {
+    final day = DateTime(date.year, date.month, date.day);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    try {
+      String? written;
+      await _db.transaction(() async {
+        final rows = await (_db.select(
+          _db.tripItineraryDays,
+        )..where((t) => t.tripId.equals(tripId))).get();
+        final existing = rows.where((r) {
+          final d = DateTime.fromMillisecondsSinceEpoch(r.date);
+          return d.year == day.year && d.month == day.month && d.day == day.day;
+        }).firstOrNull;
+        if (existing != null) {
+          await (_db.update(
+            _db.tripItineraryDays,
+          )..where((t) => t.id.equals(existing.id))).write(
+            TripItineraryDaysCompanion(
+              plannedDives: Value(plannedDives),
+              updatedAt: Value(now),
+            ),
+          );
+          written = existing.id;
+        } else if (plannedDives != null) {
+          final trip = await (_db.select(
+            _db.trips,
+          )..where((t) => t.id.equals(tripId))).getSingle();
+          final start = DateTime.fromMillisecondsSinceEpoch(trip.startDate);
+          final id = _uuid.v4();
+          await _db
+              .into(_db.tripItineraryDays)
+              .insert(
+                TripItineraryDaysCompanion.insert(
+                  id: id,
+                  tripId: tripId,
+                  dayNumber: calendarDaysBetween(start, day) + 1,
+                  date: day.millisecondsSinceEpoch,
+                  plannedDives: Value(plannedDives),
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              );
+          written = id;
+        }
+        if (written case final id?) {
+          await _syncRepository.markRecordPending(
+            entityType: 'itineraryDays',
+            recordId: id,
+            localUpdatedAt: now,
+          );
+        }
+      });
+      if (written != null) SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set planned dives for trip $tripId on $day',
         error: e,
         stackTrace: stackTrace,
       );
@@ -209,7 +286,8 @@ class ItineraryDayRepository {
         existingByDate[key] = day;
       }
 
-      // Merge: preserve dayType, portName, latitude, longitude, notes
+      // Merge: preserve dayType, portName, latitude, longitude, notes,
+      // plannedDives
       // from overlapping dates
       final mergedDays = newDays.map((newDay) {
         final key = _dateKey(newDay.date);
@@ -221,6 +299,7 @@ class ItineraryDayRepository {
             latitude: oldDay.latitude,
             longitude: oldDay.longitude,
             notes: oldDay.notes,
+            plannedDives: oldDay.plannedDives,
           );
         }
         return newDay;
@@ -266,6 +345,7 @@ class ItineraryDayRepository {
       latitude: row.latitude,
       longitude: row.longitude,
       notes: row.notes,
+      plannedDives: row.plannedDives,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
