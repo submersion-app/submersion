@@ -5,6 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
+import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
+import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -135,5 +137,51 @@ void main() {
     expect(find.text('Walking speed'), findsOneWidget);
     expect(find.text('Sets toward'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a diver card reads RMV, swim speed and scooter in order', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanSetupAccordion)),
+    );
+    final starter = MissionEdits.starter(
+      legId: 'L1',
+      memberId: 'm1',
+      memberName: 'Sam',
+      sacBottom: 15,
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .enableMission(
+          MissionEdits.updateMember(
+            starter,
+            const MissionMember(
+              id: 'm1',
+              order: 0,
+              displayName: 'Sam',
+              sacBottom: 15,
+              swimSpeedMps: 0.5,
+              scooter: ScooterSpec(
+                name: 'Long-range DPV',
+                ratedSpeedMps: 1.2,
+                burnTimeSeconds: 150 * 60,
+              ),
+            ),
+          ),
+        );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('DPV team'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('swim 30 m/min'), findsOneWidget);
+    expect(
+      find.textContaining('Long-range DPV: 72 m/min, 150 min burn'),
+      findsOneWidget,
+    );
   });
 }

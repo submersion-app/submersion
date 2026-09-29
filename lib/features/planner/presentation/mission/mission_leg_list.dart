@@ -127,15 +127,17 @@ class MissionLegList extends ConsumerWidget {
   ) {
     final l10n = context.l10n;
     final lines = [
+      // Generated l10n methods take placeholders in alphabetical order, not
+      // sentence order: depth, distance, heading.
       l10n.plannerMission_route_legSummary(
-        units.distance(leg.distanceM),
         units.distance(leg.depthM),
+        units.distance(leg.distanceM),
         units.heading(leg.headingDeg),
       ),
       if (leg.current != null)
         l10n.plannerMission_route_ownCurrent(
-          units.speed(leg.current!.speedMps),
           units.heading(leg.current!.setsTowardDeg),
+          units.speed(leg.current!.speedMps),
         ),
       if (leg.shoreExit != null)
         l10n.plannerMission_route_shoreExit(

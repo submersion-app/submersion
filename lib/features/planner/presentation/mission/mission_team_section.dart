@@ -235,10 +235,11 @@ class _MemberCard extends ConsumerWidget {
               units.speed(member.swimSpeedMps),
             ),
             if (hasScooter)
+              // Placeholders are alphabetical: minutes, name, speed.
               l10n.plannerMission_team_scooterSummary(
+                (scooter.burnTimeSeconds / 60).round().toString(),
                 scooter.name,
                 units.speed(scooter.ratedSpeedMps),
-                (scooter.burnTimeSeconds / 60).round().toString(),
               )
             else
               l10n.plannerMission_team_noScooter,

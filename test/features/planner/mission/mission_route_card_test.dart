@@ -3,6 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
+import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
+import 'package:submersion/features/planner/domain/entities/mission/shore_exit.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -92,5 +95,45 @@ void main() {
     await tester.tap(find.text('Plan as DPV mission'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a leg row reads distance, depth, current and exit in order', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Plan as DPV mission'));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanEditorPane)),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    final mission = container.read(divePlanNotifierProvider).mission!;
+    notifier.updateMission(
+      mission.copyWith(
+        legs: const [
+          MissionLeg(
+            id: 'L1',
+            order: 0,
+            label: 'Wall',
+            distanceM: 600,
+            depthM: 18,
+            headingDeg: 90,
+            current: CurrentVector(speedMps: 0.15, setsTowardDeg: 225),
+            shoreExit: ShoreExit(surfaceSwimM: 120, walkM: 40),
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('600m at 18m, heading 90°'), findsOneWidget);
+    expect(find.textContaining('Current 9 m/min toward 225°'), findsOneWidget);
+    expect(
+      find.textContaining('Shore exit: swim 120m, walk 40m'),
+      findsOneWidget,
+    );
   });
 }
