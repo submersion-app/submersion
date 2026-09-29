@@ -763,7 +763,11 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   void editMission(DpvMission Function(DpvMission current) edit) {
     final current = state.mission;
     if (current == null) return;
-    _setMission(edit(current));
+    final next = edit(current);
+    // An edit that changes nothing (0 typed over no current) is not a change
+    // to save.
+    if (next == current) return;
+    _setMission(next);
   }
 
   /// Turns the mission off. The segments it last generated stay as ordinary

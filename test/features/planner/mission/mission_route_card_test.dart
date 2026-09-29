@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -453,5 +454,26 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining(' Min.'), findsWidgets);
     expect(find.textContaining(' min'), findsNothing);
+  });
+
+  testWidgets('a leg with its own current and a shore exit shows both', (
+    tester,
+  ) async {
+    await _openRoute(tester, const [
+      MissionLeg(
+        id: 'L1',
+        order: 0,
+        label: 'Reef',
+        distanceM: 300,
+        depthM: 20,
+        headingDeg: 0,
+        current: CurrentVector(speedMps: 0.1, setsTowardDeg: 0),
+        shoreExit: ShoreExit(surfaceSwimM: 120, walkM: 40),
+      ),
+    ]);
+    final paragraph = tester.renderObject<RenderParagraph>(
+      find.textContaining('Shore exit: swim 120m, walk 40m'),
+    );
+    expect(paragraph.didExceedMaxLines, isFalse);
   });
 }

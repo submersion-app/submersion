@@ -118,11 +118,9 @@ class MissionLegList extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    subtitle: Text(
-                      _legSubtitle(context, leg, mission, units),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    // Up to three lines (summary, own current, shore exit),
+                    // all shown.
+                    subtitle: Text(_legSubtitle(context, leg, mission, units)),
                     onTap: () => edit(leg),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,

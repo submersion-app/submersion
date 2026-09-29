@@ -335,4 +335,13 @@ void main() {
       expect(opener.state.isDirty, isFalse);
     });
   });
+
+  test('an edit that changes nothing leaves the plan as it was', () {
+    notifier.enableMission(starter);
+    notifier.markSaved();
+    final before = notifier.state;
+    notifier.editMission((m) => m.copyWith(clearDefaultCurrent: true));
+    expect(notifier.state, same(before));
+    expect(notifier.state.isDirty, isFalse);
+  });
 }

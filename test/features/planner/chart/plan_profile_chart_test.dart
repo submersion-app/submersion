@@ -395,4 +395,27 @@ void main() {
 
     expect(container.read(divePlanNotifierProvider).segments, generated);
   });
+
+  testWidgets('a mission with no profile yet offers no quick plan', (
+    tester,
+  ) async {
+    await tester.pumpWidget(harness());
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanProfileChart)),
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .enableMission(
+          MissionEdits.starter(
+            legId: 'L1',
+            memberId: 'm1',
+            memberName: 'Sam',
+            sacBottom: 15,
+          ),
+        );
+    await tester.pumpAndSettle();
+    // A quick plan would replace the mission being built.
+    expect(find.text('Quick Plan'), findsNothing);
+    expect(find.byType(FilledButton), findsNothing);
+  });
 }
