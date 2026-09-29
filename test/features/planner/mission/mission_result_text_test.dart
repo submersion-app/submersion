@@ -1,0 +1,105 @@
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
+import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
+import 'package:submersion/features/planner/presentation/mission/mission_result_text.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+void main() {
+  late AppLocalizations l10n;
+  setUpAll(() async {
+    l10n = await AppLocalizations.delegate.load(const Locale('en'));
+  });
+
+  final base = MissionEdits.starter(
+    legId: 'L1',
+    memberId: 'm1',
+    memberName: 'Sam',
+    sacBottom: 15,
+  );
+  final mission = MissionEdits.updateLeg(
+    MissionEdits.updateMember(
+      base,
+      base.team.single.copyWith(
+        scooter: const ScooterSpec(
+          name: 'Blacktip',
+          ratedSpeedMps: 0.9,
+          burnTimeSeconds: 5400,
+        ),
+      ),
+    ),
+    base.legs.single.copyWith(label: 'T'),
+  );
+
+  test(
+    'the constraint sentence names the diver, scooter, place and factor',
+    () {
+      const limited = MissionOutcome(
+        segments: [],
+        cruiseSpeedMps: 0.9,
+        legs: [],
+        waypoints: [],
+        members: [],
+        abandonmentIndex: null,
+        constraint: MissionConstraint(
+          memberId: 'm1',
+          factor: MissionBindingFactor.battery,
+          waypointIndex: 0,
+        ),
+        issues: [],
+      );
+      expect(
+        missionConstraintText(l10n, limited, mission),
+        "Limited by Sam's Blacktip at T: battery reserve",
+      );
+    },
+  );
+
+  test(
+    'a constraint naming a diver no longer on the team reads as computing',
+    () {
+      const stale = MissionOutcome(
+        segments: [],
+        cruiseSpeedMps: 0.9,
+        legs: [],
+        waypoints: [],
+        members: [],
+        abandonmentIndex: null,
+        constraint: MissionConstraint(
+          memberId: 'gone',
+          factor: MissionBindingFactor.battery,
+          waypointIndex: 0,
+        ),
+        issues: [],
+      );
+      expect(
+        missionConstraintText(l10n, stale, mission),
+        'Working out the failure scenarios',
+      );
+    },
+  );
+
+  test('every binding factor has a label', () {
+    for (final factor in MissionBindingFactor.values) {
+      expect(missionFactorLabel(l10n, factor), isNotEmpty, reason: factor.name);
+    }
+  });
+
+  test('numbers round up, never to nearest', () {
+    expect(ceilMinutes(61), 2);
+    expect(ceilMinutes(60), 1);
+    expect(ceilPercent(0.334), '34');
+    const metric = UnitFormatter(AppSettings());
+    expect(ceilPressure(metric, 170.2), '171 bar');
+    expect(ceilDistance(metric, 212.1), '213m');
+    const imperial = UnitFormatter(
+      AppSettings(depthUnit: DepthUnit.feet, pressureUnit: PressureUnit.psi),
+    );
+    // 170.2 bar is 2468.6 psi: up to 2469.
+    expect(ceilPressure(imperial, 170.2), '2469 psi');
+  });
+}
