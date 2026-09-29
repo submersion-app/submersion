@@ -35,7 +35,7 @@ ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
     expectedDivesN = 0;
   } else {
     final history = inputs.divesPerDiveDayHistory;
-    final perDay = history.isEmpty ? defaultDivesPerDiveDay : _median(history);
+    final perDay = history.isEmpty ? defaultDivesPerDiveDay : medianOf(history);
     expectedDives = (inputs.itineraryDiveDays * perDay).ceil();
     expectedDivesN = history.length;
   }
@@ -46,10 +46,10 @@ ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
     minutesPerDive = minutesOverride.toDouble();
     minutesPerDiveN = 0;
   } else if (inputs.scrubberMinutesHistory.isNotEmpty) {
-    minutesPerDive = _median(inputs.scrubberMinutesHistory);
+    minutesPerDive = medianOf(inputs.scrubberMinutesHistory);
     minutesPerDiveN = inputs.scrubberMinutesHistory.length;
   } else if (inputs.rebreatherRuntimeMinutesHistory.isNotEmpty) {
-    minutesPerDive = _median(inputs.rebreatherRuntimeMinutesHistory);
+    minutesPerDive = medianOf(inputs.rebreatherRuntimeMinutesHistory);
     minutesPerDiveN = inputs.rebreatherRuntimeMinutesHistory.length;
   } else {
     minutesPerDive = 0;
@@ -81,7 +81,9 @@ ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
   );
 }
 
-double _median(List<double> values) {
+/// The median of [values]; the mean of the middle two for an even count.
+/// [values] must not be empty.
+double medianOf(List<double> values) {
   final sorted = [...values]..sort();
   final mid = sorted.length ~/ 2;
   return sorted.length.isOdd
