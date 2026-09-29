@@ -54,9 +54,13 @@ Future<List<Override>> _getMapEnabledOverrides() async {
 /// See: https://github.com/submersion-app/submersion/issues/132
 void main() {
   // The code under test calls Nominatim; it answers as offline, as it
-  // would on a device without a network.
+  // would on a device without a network. The map's tiles come from the OSM
+  // tile server: flutter_map declines to request them in tests (no
+  // unblockOSM define), and the host is declared so that never depends on
+  // a refusal either.
   setUp(() {
     serveFakeHost('nominatim.openstreetmap.org');
+    serveFakeHost('tile.openstreetmap.org');
   });
 
   // -- DiveListTile (covers 4 patch lines: httpHeaders block) --

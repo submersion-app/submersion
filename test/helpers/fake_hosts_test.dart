@@ -108,6 +108,24 @@ void main() {
       );
     });
 
+    test('cannot be reached through a proxy the caller chose', () async {
+      final client = HttpClient()..findProxy = (_) => 'PROXY example.com:8080';
+      addTearDown(() => client.close(force: true));
+
+      // The request is for this machine, but the proxy is not: connecting to
+      // the proxy is a socket to a public host, which is refused.
+      await expectLater(
+        client.getUrl(Uri.parse('http://127.0.0.1:9/')),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            contains('example.com:8080'),
+          ),
+        ),
+      );
+    });
+
     test('is refused even when the caller replaces findProxy', () async {
       final client = HttpClient()..findProxy = (_) => 'DIRECT';
       addTearDown(() => client.close(force: true));
