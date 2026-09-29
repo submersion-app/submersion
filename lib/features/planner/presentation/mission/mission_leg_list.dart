@@ -79,30 +79,47 @@ class MissionLegList extends ConsumerWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: mission.legs.length,
+              // The default desktop handle is drawn over the row's trailing
+              // edge, on top of the delete button; this row places its own.
+              buildDefaultDragHandles: false,
               onReorderItem: (oldIndex, newIndex) => notifier.updateMission(
                 MissionEdits.reorderLegs(mission, oldIndex, newIndex),
               ),
               itemBuilder: (context, index) {
                 final leg = mission.legs[index];
-                return ListTile(
+                // Long-press drags the row on touch; the handle drags it
+                // anywhere.
+                return ReorderableDelayedDragStartListener(
                   key: ValueKey(leg.id),
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    missionLegName(l10n, leg),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: Text(
-                    _legSubtitle(context, leg, mission, units),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  onTap: () => edit(leg),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, size: 18),
-                    tooltip: l10n.plannerMission_route_deleteLeg,
-                    onPressed: () => notifier.updateMission(
-                      MissionEdits.removeLeg(mission, leg.id),
+                  index: index,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      missionLegName(l10n, leg),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      _legSubtitle(context, leg, mission, units),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onTap: () => edit(leg),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.delete, size: 18),
+                          tooltip: l10n.plannerMission_route_deleteLeg,
+                          onPressed: () => notifier.updateMission(
+                            MissionEdits.removeLeg(mission, leg.id),
+                          ),
+                        ),
+                        ReorderableDragStartListener(
+                          index: index,
+                          child: const Icon(Icons.drag_handle, size: 18),
+                        ),
+                      ],
                     ),
                   ),
                 );

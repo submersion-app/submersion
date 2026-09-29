@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -185,5 +186,57 @@ void main() {
       find.textContaining('No profile yet: The current blocks Wall'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('on desktop the delete button is not under a drag handle', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Plan as DPV mission'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Add leg'));
+    await tester.pumpAndSettle();
+    expect(find.text('Leg 2'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Delete leg').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Leg 2'), findsNothing);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
+
+  testWidgets('dragging a leg by its handle reorders the route', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Plan as DPV mission'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Add leg'));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanEditorPane)),
+    );
+    final first = container.read(divePlanNotifierProvider).mission!.legs.first;
+
+    final handle = find.byIcon(Icons.drag_handle).first;
+    final gesture = await tester.startGesture(tester.getCenter(handle));
+    await tester.pump(kLongPressTimeout);
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(0, 20));
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    await tester.pumpAndSettle();
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    final legs = container.read(divePlanNotifierProvider).mission!.legs;
+    expect(legs.last.id, first.id);
+    expect([for (final l in legs) l.order], [0, 1]);
   });
 }
