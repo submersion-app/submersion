@@ -81,6 +81,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/universal_import/presentation/providers/csv_preset_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 
 import '../helpers/mock_providers.dart';
 import '../helpers/test_database.dart';
@@ -572,6 +573,14 @@ void main() {
     (
       name: 'equipmentSharesProvider',
       read: (c) => c.read(equipmentSharesProvider(_id).future),
+    ),
+    (
+      name: 'tripGearProvider',
+      read: (c) => c.read(tripGearProvider(_id).future),
+    ),
+    (
+      name: 'equipmentTripsProvider',
+      read: (c) => c.read(equipmentTripsProvider(_id).future),
     ),
     (
       name: 'equipmentOwnershipEventsProvider',

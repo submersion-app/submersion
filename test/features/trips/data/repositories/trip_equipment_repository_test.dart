@@ -43,7 +43,9 @@ void main() {
       (await db
               .customSelect(
                 'SELECT COUNT(*) AS n FROM deletion_log WHERE entity_type = ?',
-                variables: [Variable<String>(TripEquipmentRepository.entity)],
+                variables: const [
+                  Variable<String>(TripEquipmentRepository.entity),
+                ],
               )
               .getSingle())
           .read<int>('n');
