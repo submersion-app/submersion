@@ -30,6 +30,14 @@ class QueryRelation {
   /// "has one" (the dive's `buddy` text beside `dive_buddies`).
   final String? emptySql;
 
+  /// A condition on the target row alone, written against `{to}`, that
+  /// every hop through this relation ANDs after [joinSql]: rows it rejects
+  /// are invisible to every query, whatever the condition inside the hop.
+  /// For a relation that should only ever see some of the child rows (live
+  /// safety findings, not dismissed ones), where [joinSql] must stay the
+  /// single equality the guards expect.
+  final String? targetFilterSql;
+
   /// Tables [joinSql] or [emptySql] read besides the target (a junction).
   final List<String> tables;
 
@@ -42,6 +50,7 @@ class QueryRelation {
     required this.isMany,
     required this.labelKey,
     this.emptySql,
+    this.targetFilterSql,
     this.tables = const [],
   });
 

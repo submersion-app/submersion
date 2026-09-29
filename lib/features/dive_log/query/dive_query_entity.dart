@@ -495,20 +495,17 @@ final QueryEntity diveQueryEntity = QueryEntity(
     _child('media', QuerySubject.media),
     // Live findings only: a dismissed finding is one the diver waved off,
     // and one from an older engine is replaced when the dive is next
-    // reviewed. A child hop must stay one equality, so the finding's `rule`
-    // reads null for a finding that is not live, and `findings:none` asks
-    // the same question here.
+    // reviewed. The filter rides on the hop, so no condition inside it (an
+    // empty rule, a negated rule) can reach a hidden finding.
     QueryRelation(
       key: 'findings',
       aliases: const ['finding'],
       target: QuerySubject.findings,
       shape: RelationShape.child,
       joinSql: '{to}.dive_id = {from}.id',
+      targetFilterSql: kLiveFindingSql,
       isMany: true,
       labelKey: _label('findings'),
-      emptySql:
-          'NOT EXISTS (SELECT 1 FROM dive_safety_findings f '
-          'WHERE f.dive_id = {from}.id AND $kLiveFindingSql)',
     ),
   ],
 );

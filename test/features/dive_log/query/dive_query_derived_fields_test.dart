@@ -242,6 +242,17 @@ void main() {
       expect(await ids('finding.rule = sawtoothProfile'), {'d2'});
     });
 
+    test(
+      'a dismissed or superseded finding is invisible to every condition',
+      () async {
+        // d2 has a dismissed rapidAscent and a live sawtoothProfile; d3 has
+        // only an old-engine rapidAscent. Neither hidden row may be found by
+        // an empty rule or a negated rule.
+        expect(await ids('findings.rule:none'), isEmpty);
+        expect(await ids('findings[NOT rule = sawtoothProfile]'), {'d1'});
+      },
+    );
+
     test('no live finding is :none', () async {
       expect(await ids('findings:none'), {'d3', 'd4'});
       expect(await ids('NOT findings.rule = rapidAscent'), {'d2', 'd3', 'd4'});

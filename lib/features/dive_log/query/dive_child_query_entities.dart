@@ -136,14 +136,13 @@ final mediaQueryEntity = QueryEntity(
 
 /// A finding the diver still sees: not dismissed, and from the current
 /// review engine (an older one is replaced when the dive is next reviewed).
-/// Written against the alias `f`.
+/// The `findings` relation's target filter, written against `{to}`.
 const kLiveFindingSql =
-    'f.dismissed_at IS NULL '
-    'AND f.engine_version >= ${SafetyReviewService.engineVersion}';
+    '{to}.dismissed_at IS NULL '
+    'AND {to}.engine_version >= ${SafetyReviewService.engineVersion}';
 
 /// A dive's safety review findings, reached through the dive relation
-/// `findings`. The `rule` reads null for a finding that is not live, so no
-/// condition on it matches a dismissed or superseded finding.
+/// `findings`, whose target filter hides every finding that is not live.
 final findingQueryEntity = QueryEntity(
   subject: QuerySubject.findings,
   table: 'dive_safety_findings',
@@ -151,12 +150,10 @@ final findingQueryEntity = QueryEntity(
     QueryField(
       key: 'rule',
       type: FieldType.enumName,
-      sql: "(CASE WHEN ${_live('{r}')} THEN {r}.rule_id END)",
-      emptySql: "(CASE WHEN ${_live('{r}')} THEN {r}.rule_id END) IS NULL",
+      sql: '{r}.rule_id',
+      emptySql: '{r}.rule_id IS NULL',
       labelKey: 'query_findings_rule',
       enumValues: [for (final r in SafetyRuleId.values) r.dbValue],
     ),
   ],
 );
-
-String _live(String alias) => kLiveFindingSql.replaceAll('f.', '$alias.');
