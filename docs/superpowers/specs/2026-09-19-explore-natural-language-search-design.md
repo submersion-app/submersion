@@ -467,8 +467,13 @@ builder, the dive list and Explore all get them.
   live findings only (not dismissed, current review engine).
 - The engine computes SAC itself from the decoded samples and the richest
   pressure series per tank, as the phase 2 branch did: the isolate has no
-  hydrated `Dive`. Constants: 7.0 m, 60 s, a 1.5 m level window, 300 s
-  buckets; a bucket where pressure rises is skipped.
+  hydrated `Dive`. The final stop is judged on the tail after the last
+  sample deeper than 7.0 m, ignoring samples shallower than 2.0 m (the
+  ascent's end and the surface): the longest run within 1.5 m of the tail's
+  mean depth, lasting at least 60 s, with transit samples at either end
+  trimmed. Its excursion is the 90th percentile distance from its mean, so
+  one sample passing through is not an unsteady stop. SAC buckets are 300 s;
+  a bucket where pressure does not fall is skipped.
 - Explore stays on `DiveFilterState` and lowers the new clauses into its
   query tree; query schema version 2. Replacing `ExploreDiveField` with the
   registry remains query-language PR 5.

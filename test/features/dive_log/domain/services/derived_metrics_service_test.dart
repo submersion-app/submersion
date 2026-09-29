@@ -127,6 +127,70 @@ void main() {
       expect(m.finalStopKind, FinalStopKind.deco);
     });
 
+    /// A real dive's end: 20 m bottom, an arrival at [stopDepth] at
+    /// [arriveRate] m/min, a stop of [stopSeconds], an ascent to the surface
+    /// at [ascentRate] m/min, then [surfaceSeconds] logged at the surface.
+    /// One sample every 10 s, as a dive computer writes them.
+    List<ProfileSample> realEnd({
+      double stopDepth = 5,
+      double arriveRate = 9,
+      int stopSeconds = 180,
+      double ascentRate = 9,
+      int surfaceSeconds = 0,
+    }) {
+      final out = <ProfileSample>[];
+      var t = 0;
+      void at(double depth) {
+        out.add(ProfileSample(timestamp: t, depth: depth));
+        t += 10;
+      }
+
+      for (var i = 0; i < 90; i++) {
+        at(20);
+      }
+      for (var d = 20 - arriveRate / 6; d > stopDepth; d -= arriveRate / 6) {
+        at(d);
+      }
+      for (var i = 0; i < stopSeconds ~/ 10; i++) {
+        at(stopDepth);
+      }
+      for (var d = stopDepth - ascentRate / 6; d > 0; d -= ascentRate / 6) {
+        at(d);
+      }
+      for (var i = 0; i <= surfaceSeconds ~/ 10; i++) {
+        at(0);
+      }
+      return out;
+    }
+
+    void expectTextbookStop(DiveDerivedMetrics m, {double depth = 5}) {
+      expect(m.finalStopState, FinalStopState.stable);
+      expect(m.finalStopDurationSeconds, inInclusiveRange(170, 240));
+      expect(m.finalStopMaxExcursionMeters, lessThan(kFinalStopUnstableMeters));
+      expect(m.finalStopKind, FinalStopKind.safety);
+    }
+
+    test('a stop followed by a normal ascent to the surface is stable', () {
+      expectTextbookStop(run(samples: realEnd()));
+    });
+
+    test('a stop followed by a slow ascent is stable', () {
+      expectTextbookStop(run(samples: realEnd(ascentRate: 3)));
+    });
+
+    test('a shallow 3 m stop is stable', () {
+      expectTextbookStop(run(samples: realEnd(stopDepth: 3)), depth: 3);
+    });
+
+    test('a minute logged at the surface does not end the stop', () {
+      expectTextbookStop(run(samples: realEnd(surfaceSeconds: 60)));
+    });
+
+    test('a transit sample on the way to the stop is not an excursion', () {
+      // 10 m/min leaves one sample at 6.67 m between the bottom and 5 m.
+      expectTextbookStop(run(samples: realEnd(arriveRate: 10, ascentRate: 10)));
+    });
+
     test('a wandering stop reports its excursion', () {
       // The diver porpoises between 3.5 m and 6.5 m around a 5 m median.
       final samples = squareProfile();

@@ -34,8 +34,12 @@ abstract final class DerivedMetricsService {
   /// A level run must last this long to be a stop rather than a pause.
   static const int finalStopMinSeconds = 60;
 
-  /// How far a sample may sit from a run's median and still be "level".
+  /// How far a sample may sit from the stop depth and still be at the stop.
   static const double levelWindowMeters = 1.5;
+
+  /// Shallower than this is the end of the ascent or the surface, not a
+  /// stop.
+  static const double finalStopMinDepthMeters = 2.0;
 
   static bool isCurrent(DiveDerivedMetrics m, int diveUpdatedAt) =>
       m.engineVersion >= version && m.sourceUpdatedAt == diveUpdatedAt;
@@ -88,6 +92,19 @@ abstract final class DerivedMetricsService {
     );
   }
 
+  /// The last stop of the dive, judged the way a diver would read the
+  /// profile. Only the shallow tail counts: everything after the last sample
+  /// deeper than [finalStopMaxDepthMeters]. Samples shallower than
+  /// [finalStopMinDepthMeters] are the ascent's end and the surface, never
+  /// the stop. The stop sits at the tail's mean depth (a median snaps to one
+  /// side of a diver swinging above and below it), and is the longest
+  /// unbroken run of samples within [levelWindowMeters] of it.
+  ///
+  /// Transit is trimmed from both ends: a sample that keeps moving towards
+  /// the stop on the way in, or away from it on the ascent, is not the stop.
+  /// A diver swinging back and forth is never trimmed. Stability is then the
+  /// 90th percentile of the distance from the stop's mean depth, so a stop is
+  /// unsteady only when the diver spends real time away from it.
   static ({
     FinalStopKind kind,
     int startSeconds,
@@ -96,57 +113,88 @@ abstract final class DerivedMetricsService {
     double maxExcursion,
   })?
   _finalStop(List<ProfileSample> samples) {
-    // Walk backwards from the last sample shallower than the stop ceiling,
-    // collecting while the depth stays inside the level window of the run's
-    // running median.
-    var end = samples.length - 1;
-    while (end >= 0 && samples[end].depth > finalStopMaxDepthMeters) {
-      end--;
-    }
-    if (end < 1) return null;
+    final lastDeep = samples.lastIndexWhere(
+      (s) => s.depth > finalStopMaxDepthMeters,
+    );
+    if (lastDeep < 0) return null;
+    final tail = samples.sublist(lastDeep + 1);
+    final candidates = [
+      for (final s in tail)
+        if (s.depth >= finalStopMinDepthMeters) s.depth,
+    ];
+    if (candidates.isEmpty) return null;
+    final center = candidates.reduce((a, b) => a + b) / candidates.length;
 
-    // "Level" is judged on the run's SPREAD, not on each sample's distance
-    // from a running median: a diver alternating above and below the median
-    // moves it on every sample, which would end the run at the first swing
-    // even though the whole swing sits inside the band.
-    final run = <ProfileSample>[samples[end]];
-    var low = run.first.depth;
-    var high = run.first.depth;
-    for (var i = end - 1; i >= 0; i--) {
-      final candidate = samples[i];
-      if (candidate.depth > finalStopMaxDepthMeters) break;
-      final nextLow = math.min(low, candidate.depth);
-      final nextHigh = math.max(high, candidate.depth);
-      if (nextHigh - nextLow > levelWindowMeters * 2) break;
-      low = nextLow;
-      high = nextHigh;
-      run.insert(0, candidate);
+    List<ProfileSample>? best;
+    var run = <ProfileSample>[];
+    int span(List<ProfileSample> r) =>
+        r.isEmpty ? 0 : r.last.timestamp - r.first.timestamp;
+    void close() {
+      if (run.length >= 2 && span(run) > span(best ?? const [])) best = run;
+      run = <ProfileSample>[];
     }
-    if (run.length < 2) return null;
 
-    final duration = run.last.timestamp - run.first.timestamp;
+    for (final s in tail) {
+      final level =
+          s.depth >= finalStopMinDepthMeters &&
+          (s.depth - center).abs() <= levelWindowMeters;
+      if (level) {
+        run.add(s);
+      } else {
+        close();
+      }
+    }
+    close();
+    final found = best;
+    if (found == null) return null;
+    final stop = _trimTransit(found);
+    final duration = span(stop);
     if (duration < finalStopMinSeconds) return null;
 
-    final depths = run.map((s) => s.depth).toList();
-    final median = _median(depths);
+    final depths = stop.map((s) => s.depth).toList();
     final mean = depths.reduce((a, b) => a + b) / depths.length;
     final variance =
         depths.map((d) => (d - mean) * (d - mean)).reduce((a, b) => a + b) /
         depths.length;
-    final excursion = depths
-        .map((d) => (d - median).abs())
-        .reduce((a, b) => a > b ? a : b);
+    final excursions = depths.map((d) => (d - mean).abs()).toList()..sort();
+    // Nearest-rank 90th percentile.
+    final p90 =
+        excursions[((excursions.length * 0.9).ceil() - 1).clamp(
+          0,
+          excursions.length - 1,
+        )];
     // decoType 2 is a mandatory deco stop; anything else at this depth is a
     // safety stop the diver chose.
-    final isDeco = run.any((s) => s.decoType == 2);
+    final isDeco = stop.any((s) => s.decoType == 2);
 
     return (
       kind: isDeco ? FinalStopKind.deco : FinalStopKind.safety,
-      startSeconds: run.first.timestamp,
+      startSeconds: stop.first.timestamp,
       durationSeconds: duration,
       stdDev: math.sqrt(variance),
-      maxExcursion: excursion,
+      maxExcursion: p90,
     );
+  }
+
+  /// A run without the samples still arriving at the stop or already
+  /// leaving it: from each end, drop a sample more than half a metre off the
+  /// run's mean while its neighbour is closer to the mean.
+  static List<ProfileSample> _trimTransit(List<ProfileSample> run) {
+    final mean = run.map((s) => s.depth).reduce((a, b) => a + b) / run.length;
+    double off(ProfileSample s) => (s.depth - mean).abs();
+    var from = 0;
+    var to = run.length - 1;
+    while (to - from > 1 &&
+        off(run[from]) > 0.5 &&
+        off(run[from + 1]) < off(run[from])) {
+      from++;
+    }
+    while (to - from > 1 &&
+        off(run[to]) > 0.5 &&
+        off(run[to - 1]) < off(run[to])) {
+      to--;
+    }
+    return run.sublist(from, to + 1);
   }
 
   static ({
@@ -275,12 +323,5 @@ abstract final class DerivedMetricsService {
     }
     if (denominator == 0) return null;
     return numerator / denominator;
-  }
-
-  static double _median(List<double> values) {
-    final sorted = [...values]..sort();
-    final mid = sorted.length ~/ 2;
-    if (sorted.length.isOdd) return sorted[mid];
-    return (sorted[mid - 1] + sorted[mid]) / 2;
   }
 }
