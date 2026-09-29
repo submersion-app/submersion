@@ -12628,6 +12628,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_nfc_fieldFill => 'המילוי האחרון';
 
   @override
+  String get passport_nfc_fillIncluded => 'המילוי האחרון נמצא גם על התג';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'מספר סידורי $serial';
   }

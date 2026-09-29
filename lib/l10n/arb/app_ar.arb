@@ -4132,6 +4132,7 @@
   "passport_nfc_fieldFilledBy": "عبّأها",
   "passport_nfc_fieldFillTemperature": "درجة حرارة التعبئة",
   "passport_nfc_fieldFill": "أحدث تعبئة",
+  "passport_nfc_fillIncluded": "أحدث تعبئة موجودة على الوسم أيضًا",
   "passport_foreign_serial": "الرقم التسلسلي {serial}",
   "passport_logFill_date": "تاريخ التعبئة",
   "passport_logFill_time": "الوقت",

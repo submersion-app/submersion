@@ -4030,6 +4030,7 @@
   "passport_nfc_fieldFilledBy": "Riempita da",
   "passport_nfc_fieldFillTemperature": "Temperatura del riempimento",
   "passport_nfc_fieldFill": "Ultimo riempimento",
+  "passport_nfc_fillIncluded": "Anche l'ultimo riempimento è sul tag",
   "passport_foreign_serial": "N. di serie {serial}",
   "passport_logFill_date": "Ricaricata il",
   "passport_logFill_time": "Ora",

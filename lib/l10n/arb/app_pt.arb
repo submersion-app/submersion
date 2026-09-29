@@ -4132,6 +4132,7 @@
   "passport_nfc_fieldFilledBy": "Enchido por",
   "passport_nfc_fieldFillTemperature": "Temperatura do enchimento",
   "passport_nfc_fieldFill": "Enchimento mais recente",
+  "passport_nfc_fillIncluded": "O enchimento mais recente também está na etiqueta",
   "passport_foreign_serial": "Nº de série {serial}",
   "passport_logFill_date": "Carregado em",
   "passport_logFill_time": "Hora",

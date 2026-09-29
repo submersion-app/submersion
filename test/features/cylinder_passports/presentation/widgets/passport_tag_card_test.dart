@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_ndef.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/nfc_write_sheet.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/ndef_fit.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -75,6 +78,7 @@ void main() {
     List<ServiceRecord> records = const [],
     FakeNfcTagService? nfc,
     Future<void> Function(BuildContext)? onPrintLabel,
+    CylinderFill? newest,
   }) async {
     final overrides = await getBaseOverrides(nfcTagService: nfc);
     await tester.pumpWidget(
@@ -86,6 +90,7 @@ void main() {
           serviceRecordsForEquipmentProvider(
             id,
           ).overrideWith((ref) async => records),
+          newestFillProvider(id).overrideWith((ref) async => newest),
         ],
         child: SingleChildScrollView(
           child: PassportTagCard(
@@ -293,5 +298,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(l10n.passport_nfc_written), findsOneWidget);
     expect(tag.writes, 1);
+  });
+
+  testWidgets('Write NFC tag carries the newest fill; the label never does', (
+    tester,
+  ) async {
+    final tag = FakeTagHandle();
+    final at = DateTime.utc(2026, 9, 28, 9, 30);
+    final newest = CylinderFill(
+      id: '3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11',
+      passportId: pid,
+      equipmentId: id,
+      filledAt: at,
+      o2Percent: 32,
+      pressureBar: 232,
+      createdAt: at,
+      updatedAt: at,
+    );
+    await pump(
+      tester,
+      nfc: FakeNfcTagService(tag: tag),
+      newest: newest,
+    );
+    final qr = tester.widget<PassportQrView>(find.byType(PassportQrView));
+    expect(qr.data, isNot(contains('fi=')));
+    await tester.ensureVisible(find.byKey(const Key('passportTag_writeNfc')));
+    await tester.tap(find.byKey(const Key('passportTag_writeNfc')));
+    await tester.pumpAndSettle();
+    final written =
+        PassportPayloadCodec.decode(firstPassportUri(tag.stored!)!)
+            as PassportDecoded;
+    expect(written.payload.fill?.id, newest.id);
   });
 }

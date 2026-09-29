@@ -12912,6 +12912,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passport_nfc_fieldFill => 'Enchimento mais recente';
 
   @override
+  String get passport_nfc_fillIncluded =>
+      'O enchimento mais recente também está na etiqueta';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Nº de série $serial';
   }

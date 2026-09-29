@@ -4278,6 +4278,7 @@
   "passport_nfc_fieldFilledBy": "充气人",
   "passport_nfc_fieldFillTemperature": "充气温度",
   "passport_nfc_fieldFill": "最新充气",
+  "passport_nfc_fillIncluded": "最新充气也已写入标签",
   "passport_foreign_serial": "序列号 {serial}",
   "passport_logFill_date": "充气日期",
   "passport_logFill_time": "时间",

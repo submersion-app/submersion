@@ -4030,6 +4030,7 @@
   "passport_nfc_fieldFilledBy": "מולא על ידי",
   "passport_nfc_fieldFillTemperature": "טמפרטורת המילוי",
   "passport_nfc_fieldFill": "המילוי האחרון",
+  "passport_nfc_fillIncluded": "המילוי האחרון נמצא גם על התג",
   "passport_foreign_serial": "מספר סידורי {serial}",
   "passport_logFill_date": "מולא בתאריך",
   "passport_logFill_time": "שעה",

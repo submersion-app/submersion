@@ -7255,6 +7255,7 @@
   "passport_nfc_fieldFilledBy": "Filled by",
   "passport_nfc_fieldFillTemperature": "Fill temperature",
   "passport_nfc_fieldFill": "Newest fill",
+  "passport_nfc_fillIncluded": "The newest fill is on the tag too",
   "passport_foreign_serial": "Serial {serial}",
   "@passport_foreign_serial": {
     "placeholders": {

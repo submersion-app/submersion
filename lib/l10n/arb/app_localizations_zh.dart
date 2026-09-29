@@ -12333,6 +12333,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_nfc_fieldFill => '最新充气';
 
   @override
+  String get passport_nfc_fillIncluded => '最新充气也已写入标签';
+
+  @override
   String passport_foreign_serial(String serial) {
     return '序列号 $serial';
   }

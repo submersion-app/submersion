@@ -12820,6 +12820,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get passport_nfc_fieldFill => 'Nieuwste vulling';
 
   @override
+  String get passport_nfc_fillIncluded =>
+      'De nieuwste vulling staat ook op de tag';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Serienummer $serial';
   }

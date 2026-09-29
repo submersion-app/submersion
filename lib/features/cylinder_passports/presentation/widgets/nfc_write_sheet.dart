@@ -221,6 +221,10 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
                     ),
               textAlign: TextAlign.center,
             ),
+            if (written.plan.payload.fill != null) ...[
+              const SizedBox(height: 4),
+              Text(l10n.passport_nfc_fillIncluded, textAlign: TextAlign.center),
+            ],
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,

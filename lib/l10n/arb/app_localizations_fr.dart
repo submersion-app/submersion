@@ -12961,6 +12961,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passport_nfc_fieldFill => 'Dernier remplissage';
 
   @override
+  String get passport_nfc_fillIncluded =>
+      'Le dernier remplissage est aussi sur le tag';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'N° de série $serial';
   }

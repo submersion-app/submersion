@@ -12711,6 +12711,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_nfc_fieldFill => 'أحدث تعبئة';
 
   @override
+  String get passport_nfc_fillIncluded => 'أحدث تعبئة موجودة على الوسم أيضًا';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'الرقم التسلسلي $serial';
   }

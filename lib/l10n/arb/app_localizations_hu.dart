@@ -12884,6 +12884,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get passport_nfc_fieldFill => 'Legutóbbi töltés';
 
   @override
+  String get passport_nfc_fillIncluded => 'A legutóbbi töltés is a címkén van';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Sorozatszám: $serial';
   }

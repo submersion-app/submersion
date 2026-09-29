@@ -102,6 +102,34 @@ void main() {
   });
 
   group('planPassportMessage', () {
+    final fill = TagFill(
+      id: '3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11',
+      filledAt: DateTime.utc(2026, 9, 28, 9, 30),
+      o2Percent: 32,
+      pressureBar: 232,
+      filledBy: 'Blue Hole',
+    );
+
+    test('an NTAG215 carries the newest fill', () {
+      final plan = planPassportMessage(
+        full.copyWith(fill: fill),
+        maxMessageBytes: 496,
+      )!;
+      expect(plan.payload.fill, fill);
+      expect(plan.droppedKeys, isEmpty);
+    });
+
+    test('an NTAG213 keeps the identity and leaves the fill off', () {
+      final plan = planPassportMessage(
+        full.copyWith(fill: fill),
+        maxMessageBytes: 144,
+      )!;
+      expect(plan.payload.fill, isNull);
+      expect(plan.droppedKeys, contains('fill'));
+      expect(plan.payload.passportId, full.passportId);
+      expect(plan.payload.writtenOn, full.writtenOn);
+    });
+
     test('a roomy tag gets everything and the Android record', () {
       final plan = planPassportMessage(full, maxMessageBytes: 496)!;
       expect(plan.payload, full);

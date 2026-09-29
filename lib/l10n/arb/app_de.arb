@@ -4143,6 +4143,7 @@
   "passport_nfc_fieldFilledBy": "Gefüllt von",
   "passport_nfc_fieldFillTemperature": "Temperatur der Füllung",
   "passport_nfc_fieldFill": "Neueste Füllung",
+  "passport_nfc_fillIncluded": "Die neueste Füllung ist auch auf dem Tag",
   "passport_foreign_serial": "Seriennummer {serial}",
   "passport_logFill_date": "Gefüllt am",
   "passport_logFill_time": "Uhrzeit",

@@ -12717,6 +12717,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_nfc_fieldFill => 'Newest fill';
 
   @override
+  String get passport_nfc_fillIncluded => 'The newest fill is on the tag too';
+
+  @override
   String passport_foreign_serial(String serial) {
     return 'Serial $serial';
   }

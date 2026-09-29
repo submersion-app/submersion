@@ -4132,6 +4132,7 @@
   "passport_nfc_fieldFilledBy": "Gevuld door",
   "passport_nfc_fieldFillTemperature": "Temperatuur van de vulling",
   "passport_nfc_fieldFill": "Nieuwste vulling",
+  "passport_nfc_fillIncluded": "De nieuwste vulling staat ook op de tag",
   "passport_foreign_serial": "Serienummer {serial}",
   "passport_logFill_date": "Gevuld op",
   "passport_logFill_time": "Tijd",

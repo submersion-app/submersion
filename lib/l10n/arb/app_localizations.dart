@@ -21316,6 +21316,12 @@ abstract class AppLocalizations {
   /// **'Newest fill'**
   String get passport_nfc_fieldFill;
 
+  /// No description provided for @passport_nfc_fillIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'The newest fill is on the tag too'**
+  String get passport_nfc_fillIncluded;
+
   /// No description provided for @passport_foreign_serial.
   ///
   /// In en, this message translates to:
