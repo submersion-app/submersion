@@ -13,7 +13,13 @@ enum QueryUnit {
   lb('lb'),
   l('l'),
   cuft('cuft'),
-  min('min');
+  min('min'),
+
+  /// SAC units. Letters only, because the number token's suffix is
+  /// `[A-Za-z]*`: the diver types `1.5barmin`, and the editor shows the
+  /// spelled unit ("bar/min") from `displaySuffix`.
+  barMin('barmin'),
+  psiMin('psimin');
 
   final String suffix;
   const QueryUnit(this.suffix);
