@@ -69,26 +69,14 @@ Iterable<NameEntry> entriesForKind(NameIndex index, MentionKind kind) {
       .where((e) => scope.targets.contains(e.target));
 }
 
-/// The mention kind a picked entry pins as.
-MentionKind mentionKindOf(NameTarget target) => switch (target) {
-  NameTarget.siteId => MentionKind.site,
-  NameTarget.sitePlace => MentionKind.place,
-  NameTarget.speciesId => MentionKind.species,
-  NameTarget.equipmentId || NameTarget.attrChoice => MentionKind.gear,
-  NameTarget.buddyId || NameTarget.legacyBuddyName => MentionKind.buddy,
-  NameTarget.tagId => MentionKind.tag,
-  NameTarget.centerId => MentionKind.center,
-  NameTarget.tripId => MentionKind.trip,
-  NameTarget.computerId => MentionKind.computer,
-  NameTarget.siteTypeId ||
-  NameTarget.courseId ||
-  NameTarget.diveTypeId ||
-  NameTarget.row => throw ArgumentError.value(
-    target,
-    'target',
-    'no mention kind',
-  ),
-};
+/// The mention kind a picked entry pins as: the kind whose scope holds
+/// [target]. A typed-query row target has none.
+MentionKind mentionKindOf(NameTarget target) {
+  for (final kind in MentionKind.values) {
+    if (mentionScope(kind).targets.contains(target)) return kind;
+  }
+  throw ArgumentError.value(target, 'target', 'no mention kind');
+}
 
 /// The kinds a mention of [kind] is looked up under, in priority order. A
 /// place falls through to sites and a site to places, so "Bonaire" and

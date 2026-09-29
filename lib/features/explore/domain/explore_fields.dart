@@ -58,8 +58,14 @@ class ExploreField {
   final List<String>? tokens;
 
   /// The registry field at [path], or null for a relation (noBuddy).
-  QueryField? get field =>
-      resolvePath(appQueryRegistry, diveQueryEntity, FieldPath(path)).field;
+  QueryField? get field => _resolved.putIfAbsent(
+    path.join('.'),
+    () => resolvePath(appQueryRegistry, diveQueryEntity, FieldPath(path)).field,
+  );
+
+  /// Resolved registry fields by path: the registry never changes at run
+  /// time, so each path is walked once.
+  static final _resolved = <String, QueryField?>{};
 
   FieldDimension get dimension =>
       kind == ExploreValueKind.number ? field!.dimension : FieldDimension.none;
@@ -203,20 +209,14 @@ PressureUnit rateUnitSaid(ClauseUnit? unit, UnitPrefs prefs) => switch (unit) {
 bool unitFits(FieldDimension dimension, ClauseUnit? unit) {
   if (unit == null) return true;
   return switch (dimension) {
-    FieldDimension.depth => unit == ClauseUnit.m || unit == ClauseUnit.ft,
-    FieldDimension.temperature => unit == ClauseUnit.c || unit == ClauseUnit.f,
-    FieldDimension.pressure => unit == ClauseUnit.bar || unit == ClauseUnit.psi,
-    // Divers drop "per minute": a plain bar or psi on a rate fits.
-    FieldDimension.pressureRate =>
-      unit == ClauseUnit.bar ||
-          unit == ClauseUnit.psi ||
-          unit == ClauseUnit.barMin ||
-          unit == ClauseUnit.psiMin,
-    FieldDimension.minutes => unit == ClauseUnit.min,
-    FieldDimension.weight ||
-    FieldDimension.volume ||
     FieldDimension.percent ||
     FieldDimension.count ||
     FieldDimension.none => true,
+    // The query unit the clause unit reads as on this field (a plain bar or
+    // psi on a rate is the rate) must belong to the field's dimension.
+    _ => switch (queryUnitOf(unit, dimension)) {
+      final q? => dimensionOfUnit(q) == dimension,
+      null => false,
+    },
   };
 }
