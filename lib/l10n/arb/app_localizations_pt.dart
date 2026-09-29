@@ -16458,7 +16458,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get marineLife_speciesEdit_taxonomyClassHint => 'ex., Actinopterygii';
 
   @override
-  String get marineLife_speciesEdit_taxonomyClassLabel => 'Classe Taxonomica';
+  String get marineLife_speciesEdit_taxonomyClassLabel => 'Classe taxonómica';
 
   @override
   String marineLife_speciesEdit_updatedSnackbar(Object name) {
@@ -45511,7 +45511,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get query_species_sightings => 'Avistamentos';
 
   @override
-  String get query_species_taxonomyClass => 'Classe Taxonomica';
+  String get query_species_taxonomyClass => 'Classe taxonómica';
 
   @override
   String get query_tags_name => 'Nome';
