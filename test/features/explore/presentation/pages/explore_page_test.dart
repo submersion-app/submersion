@@ -233,6 +233,34 @@ void main() {
     expect(find.text('dive list'), findsOneWidget);
   });
 
+  testWidgets('the handoff carries named refs', (tester) async {
+    final (container, _) = await pump(tester);
+    await ask(tester);
+    // "turtles" names two species: the diver picks one, as on the page.
+    await tester.tap(find.text('turtles'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Green Turtle').last);
+    await tester.pumpAndSettle();
+    final scope = container.read(exploreQueryNodeProvider);
+    expect(scope, isNotNull);
+    await tester.tap(find.text('Open in dive list'));
+    await tester.pumpAndSettle();
+    final handed = container.read(diveFilterProvider);
+    expect(handed.query, scope);
+    // Only the query: no legacy axis is set beside it.
+    expect(handed.minDepth, isNull);
+    expect(handed.siteIds, isEmpty);
+    final species = conditionsIn(handed.query, [
+      'sightings',
+      'species',
+    ], QueryOp.inList).single;
+    // A named ref, so the dive list's chip reads the name and a saved query
+    // stores it.
+    expect((species.value! as ListValue).items, const [
+      RefValue('sp1', 'Green Turtle'),
+    ]);
+  });
+
   testWidgets('insights handoff writes the insights filter', (tester) async {
     final (container, _) = await pump(tester);
     await ask(tester);

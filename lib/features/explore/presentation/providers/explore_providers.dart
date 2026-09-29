@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -24,10 +25,13 @@ import 'package:submersion/features/insights/presentation/providers/insights_pro
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 
-/// Explore's own filter scope, so editing chips never rescopes the dive list
-/// or Statistics until the diver asks for a handoff.
-final exploreFilterProvider = StateProvider<DiveFilterState>(
-  (ref) => const DiveFilterState(),
+/// Explore's own scope, so editing chips never rescopes the dive list or
+/// Statistics until the diver asks for a handoff (#2365 PR 5).
+final exploreQueryNodeProvider = StateProvider<QueryNode?>((ref) => null);
+
+/// The scope as the repositories take it: the query alone, no legacy axis.
+final exploreFilterProvider = Provider<DiveFilterState>(
+  (ref) => DiveFilterState(query: ref.watch(exploreQueryNodeProvider)),
 );
 
 final exploreRepositoryProvider = Provider<ExploreRepository>(
@@ -153,7 +157,7 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
       clearError: true,
       clearResults: true,
     );
-    _ref.read(exploreFilterProvider.notifier).state = const DiveFilterState();
+    _ref.read(exploreQueryNodeProvider.notifier).state = null;
     return request;
   }
 
@@ -218,7 +222,7 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
     // Also retires any request still in flight.
     _request++;
     state = const ExploreState();
-    _ref.read(exploreFilterProvider.notifier).state = const DiveFilterState();
+    _ref.read(exploreQueryNodeProvider.notifier).state = null;
   }
 
   /// False when a newer request superseded [request] while the name index
@@ -244,9 +248,7 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
         now: DateTime.now(),
       ),
     );
-    _ref.read(exploreFilterProvider.notifier).state = DiveFilterState(
-      query: compiled.query,
-    );
+    _ref.read(exploreQueryNodeProvider.notifier).state = compiled.query;
     state = state.copyWith(
       parsed: parsed,
       compiled: compiled,

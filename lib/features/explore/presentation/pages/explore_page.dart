@@ -145,11 +145,15 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () {
-                          // The live filter, not compiled.filter: they agree
-                          // today, and reading the published one keeps the
-                          // handoff correct if anything else ever writes it.
-                          ref.read(diveFilterProvider.notifier).state = ref
-                              .read(exploreFilterProvider);
+                          // The published query alone, which the dive list
+                          // shows as query chips: the live scope, not
+                          // compiled.query, so the handoff stays right if
+                          // anything else ever writes it.
+                          ref
+                              .read(diveFilterProvider.notifier)
+                              .state = DiveFilterState(
+                            query: ref.read(exploreQueryNodeProvider),
+                          );
                           // go, not push: the handoff moves to a shell tab.
                           context.go('/dives');
                         },
@@ -160,8 +164,11 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                     Expanded(
                       child: FilledButton(
                         onPressed: () {
-                          ref.read(insightsFilterProvider.notifier).state = ref
-                              .read(exploreFilterProvider);
+                          ref
+                              .read(insightsFilterProvider.notifier)
+                              .state = DiveFilterState(
+                            query: ref.read(exploreQueryNodeProvider),
+                          );
                           context.go('/insights');
                         },
                         child: Text(l10n.explore_handoff_insights),
