@@ -7,6 +7,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.da
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_labels.dart';
 
 /// A mix as the board shows it. Air is a word and is translated; nitrox and
 /// trimix keep their international notation (EAN32, Tx 21/35).
@@ -92,3 +93,32 @@ String? tripCylinderLastItemText(
       return l10n.trips_cylinders_last_adjustment(when);
   }
 }
+
+/// A linked dive tank's slot in words: "Truck 2 · Bottle 14". The bottle is
+/// left out when unknown or when it is the slot's own label (an owned
+/// cylinder keeps its identifier as both).
+String tripCylinderTankLine(
+  AppLocalizations l10n,
+  TripCylinderTankLabel label,
+) {
+  final bottle = label.bottle;
+  return bottle == null || bottle == label.label
+      ? label.label
+      : '${label.label} · ${l10n.trips_cylinders_bottle(bottle)}';
+}
+
+/// A slot as the tank editor's picker lists it: label, the bottle in it
+/// now, mix, pressure and status.
+String tripCylinderPickerLabel(
+  AppLocalizations l10n,
+  UnitFormatter units,
+  TripCylinderState state,
+) => [
+  tripCylinderTankLine(l10n, (
+    label: state.cylinder.label,
+    bottle: state.bottleLabel,
+  )),
+  state.mix == null ? '--' : tripCylinderMixLabel(l10n, state.mix!),
+  state.pressure == null ? '--' : units.formatPressure(state.pressure),
+  tripCylinderStatusLabel(l10n, state.status),
+].join(' · ');

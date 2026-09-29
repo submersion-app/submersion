@@ -6,6 +6,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_labels.dart';
 
 final tripCylinderRepositoryProvider = Provider<TripCylinderRepository>(
   (ref) => TripCylinderRepository(),
@@ -84,4 +85,25 @@ final tripCylinderLedgerProvider =
           return byBoard != 0 ? byBoard : b.id.compareTo(a.id);
         });
       return events;
+    });
+
+/// Each slot's label and the bottle it held at a dive's start, for the dive
+/// detail page. Keyed by trip and instant; refetches when the trip's slots
+/// or ledger change.
+final tripCylinderLabelsAtProvider =
+    FutureProvider.family<
+      Map<String, TripCylinderTankLabel>,
+      ({String tripId, int atMillis})
+    >((ref, key) async {
+      final repository = ref.watch(tripCylinderRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchLedgerChanges());
+      final (cylinders, events) = await (
+        repository.getCylindersForTrip(key.tripId),
+        repository.getEventsForTrip(key.tripId),
+      ).wait;
+      return tripCylinderLabelsAt(
+        cylinders: cylinders,
+        eventsBySlot: events,
+        atMillis: key.atMillis,
+      );
     });

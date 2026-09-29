@@ -7,6 +7,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
@@ -148,5 +149,57 @@ void main() {
         isNull,
       );
     });
+  });
+
+  group('tank line', () {
+    test('names the slot and the bottle', () {
+      expect(
+        tripCylinderTankLine(l10n, (label: 'Truck 2', bottle: '14')),
+        'Truck 2 · Bottle 14',
+      );
+    });
+
+    test('leaves out an unknown or repeated bottle', () {
+      expect(
+        tripCylinderTankLine(l10n, (label: 'Truck 2', bottle: null)),
+        'Truck 2',
+      );
+      expect(
+        tripCylinderTankLine(l10n, (label: 'My HP100', bottle: 'My HP100')),
+        'My HP100',
+      );
+    });
+  });
+
+  test('the picker label names bottle, mix, pressure and status', () {
+    final t0 = DateTime.utc(2026, 3, 9);
+    final state = foldCylinderState(
+      cylinder: TripCylinder(
+        id: 'a',
+        tripId: 't1',
+        label: 'Truck 2',
+        workingPressure: 207,
+        createdAt: t0,
+        updatedAt: t0,
+      ),
+      events: [
+        TripCylinderEvent(
+          id: 'f',
+          tripCylinderId: 'a',
+          kind: TripCylinderEventKind.fill,
+          occurredAt: t0,
+          bottleLabel: '14',
+          pressure: 200,
+          o2Percent: 32,
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+      ],
+      uses: const [],
+    );
+    expect(
+      tripCylinderPickerLabel(l10n, units, state),
+      'Truck 2 · Bottle 14 · EAN32 · ${units.formatPressure(200)} · Full',
+    );
   });
 }
