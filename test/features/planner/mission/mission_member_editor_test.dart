@@ -1,0 +1,203 @@
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
+import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
+import 'package:submersion/features/planner/presentation/mission/mission_member_editor.dart';
+import 'package:submersion/features/planner/presentation/mission/mission_units.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/planner/presentation/mission/buddy_picker_sheet.dart';
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
+
+import '../../../helpers/test_app.dart';
+
+MissionMember? lastResult;
+
+const _member = MissionMember(
+  id: 'm1',
+  order: 0,
+  displayName: 'Diver 1',
+  sacBottom: 15,
+  scooter: ScooterSpec(name: '', ratedSpeedMps: 0, burnTimeSeconds: 0),
+);
+
+Future<void> _open(WidgetTester tester) async {
+  tester.view.physicalSize = const Size(400, 1200);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+  lastResult = null;
+  await tester.pumpWidget(
+    testApp(
+      locale: const Locale('en'),
+      overrides: [
+        allBuddiesProvider.overrideWith(
+          (ref) async => [
+            Buddy(
+              id: 'b1',
+              name: 'Alex Rivers',
+              createdAt: DateTime(2026, 9, 28),
+              updatedAt: DateTime(2026, 9, 28),
+            ),
+          ],
+        ),
+        currentDiverProvider.overrideWith(
+          (ref) async => Diver(
+            id: 'd1',
+            name: 'Sam Lee',
+            createdAt: DateTime(2026, 9, 28),
+            updatedAt: DateTime(2026, 9, 28),
+          ),
+        ),
+        activeEquipmentProvider.overrideWith(
+          (ref) async => [
+            EquipmentItem(
+              id: 'eq-1',
+              name: 'Blacktip',
+              type: EquipmentType.dpv,
+              attributes: [
+                EquipmentAttribute.curated(
+                  equipmentId: 'eq-1',
+                  key: 'speed_mps',
+                  valueNum: 0.9,
+                ),
+                EquipmentAttribute.curated(
+                  equipmentId: 'eq-1',
+                  key: 'burn_time_h',
+                  valueNum: 1.5,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+      child: Builder(
+        builder: (context) => TextButton(
+          onPressed: () async => lastResult = await showMissionMemberEditor(
+            context,
+            member: _member,
+            units: MissionUnits(const UnitFormatter(AppSettings())),
+          ),
+          child: const Text('open'),
+        ),
+      ),
+    ),
+  );
+  await tester.tap(find.text('open'));
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  testWidgets('picking a buddy fills the name and buddy id', (tester) async {
+    await _open(tester);
+    await tester.tap(find.text('Choose a buddy'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Alex Rivers'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.displayName, 'Alex Rivers');
+    expect(lastResult!.buddyId, 'b1');
+    expect(lastResult!.diverId, isNull);
+  });
+
+  testWidgets('picking Me fills the active diver', (tester) async {
+    await _open(tester);
+    await tester.tap(find.text('Choose a buddy'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Me'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.displayName, 'Sam Lee');
+    expect(lastResult!.diverId, 'd1');
+  });
+
+  testWidgets('a scooter from equipment brings its numbers', (tester) async {
+    await _open(tester);
+    await tester.tap(find.text('Choose from equipment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Blacktip'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    final scooter = lastResult!.scooter;
+    expect(scooter.equipmentId, 'eq-1');
+    expect(scooter.ratedSpeedMps, 0.9);
+    expect(scooter.burnTimeSeconds, 5400);
+  });
+
+  testWidgets('editing a picked scooter by hand makes it manual', (
+    tester,
+  ) async {
+    await _open(tester);
+    await tester.tap(find.text('Choose from equipment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Blacktip'));
+    await tester.pumpAndSettle();
+    // 0.9 m/s shows as 54 m/min; the diver types their own figure.
+    await tester.enterText(find.widgetWithText(TextField, '54'), '60');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.scooter.equipmentId, isNull);
+    expect(lastResult!.scooter.ratedSpeedMps, closeTo(1.0, 1e-9));
+  });
+
+  testWidgets('a linked buddy with no photo shows the diver profile photo', (
+    tester,
+  ) async {
+    final photo = Uint8List.fromList([1, 2, 3]);
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          allBuddiesProvider.overrideWith(
+            (ref) async => [
+              Buddy(
+                id: 'b2',
+                name: 'Linked Buddy',
+                linkedDiverId: 'd2',
+                createdAt: DateTime(2026, 9, 28),
+                updatedAt: DateTime(2026, 9, 28),
+              ),
+            ],
+          ),
+          currentDiverProvider.overrideWith((ref) async => null),
+          diverByIdProvider('d2').overrideWith(
+            (ref) async => Diver(
+              id: 'd2',
+              name: 'Linked Diver',
+              photo: photo,
+              createdAt: DateTime(2026, 9, 28),
+              updatedAt: DateTime(2026, 9, 28),
+            ),
+          ),
+        ],
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showBuddyPickerSheet(context),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    final avatar = tester.widget<ProfileAvatar>(
+      find.descendant(
+        of: find.widgetWithText(ListTile, 'Linked Buddy'),
+        matching: find.byType(ProfileAvatar),
+      ),
+    );
+    expect(avatar.photo, same(photo));
+  });
+}
