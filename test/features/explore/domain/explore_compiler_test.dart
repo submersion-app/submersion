@@ -1,11 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
-import 'package:submersion/features/explore/domain/compiled_query.dart';
+import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
-import 'package:submersion/features/explore/domain/query_compiler.dart';
+import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/features/explore/domain/explore_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/domain/unit_grounding.dart';
 
@@ -22,27 +23,27 @@ void main() {
   );
   final now = DateTime(2026, 9, 19);
 
-  const names = NameIndex([
+  final names = NameIndex(const [
     NameEntry(
-      kind: MentionKind.place,
+      subject: QuerySubject.sites,
       label: 'Bonaire',
       ids: ['s1', 's2'],
       target: NameTarget.sitePlace,
     ),
     NameEntry(
-      kind: MentionKind.species,
+      subject: QuerySubject.species,
       label: 'Green Turtle',
       ids: ['sp_green_turtle'],
       target: NameTarget.speciesId,
     ),
     NameEntry(
-      kind: MentionKind.species,
+      subject: QuerySubject.species,
       label: 'Hawksbill Turtle',
       ids: ['sp_hawksbill_turtle'],
       target: NameTarget.speciesId,
     ),
     NameEntry(
-      kind: MentionKind.gear,
+      subject: QuerySubject.equipment,
       label: 'Trilaminate',
       ids: [],
       target: NameTarget.attrChoice,
@@ -51,17 +52,17 @@ void main() {
       attrChoice: 'trilaminate',
     ),
     NameEntry(
-      kind: MentionKind.buddy,
+      subject: QuerySubject.buddies,
       label: 'Sarah Jones',
       ids: ['b1'],
       target: NameTarget.buddyId,
     ),
   ]);
 
-  CompiledQuery compile(ParsedQuery q, {UnitPrefs units = metric}) =>
-      QueryCompiler.compile(
+  ExploreCompilation compile(ParsedQuery q, {UnitPrefs units = metric}) =>
+      ExploreCompiler.compile(
         q,
-        CompilerContext(units: units, names: names, now: now),
+        ExploreCompilerContext(units: units, names: names, now: now),
       );
 
   ParsedQuery turtlesQuery() => ParsedQuery.fromJson({

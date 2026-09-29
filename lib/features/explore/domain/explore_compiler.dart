@@ -7,18 +7,18 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
-import 'package:submersion/features/explore/domain/compiled_query.dart';
+import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
 import 'package:submersion/features/explore/domain/entity_resolver.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/domain/unit_grounding.dart';
 
-class CompilerContext {
+class ExploreCompilerContext {
   final UnitPrefs units;
   final NameIndex names;
   final DateTime now;
-  const CompilerContext({
+  const ExploreCompilerContext({
     required this.units,
     required this.names,
     required this.now,
@@ -46,10 +46,13 @@ _Lowered _fail(String error) => (filter: null, chip: null, error: error);
 ///
 /// The model chose the words; everything about units, names, ids and ranges
 /// is decided here, so a canned JSON payload fully specifies the outcome.
-abstract final class QueryCompiler {
-  static CompiledQuery compile(ParsedQuery query, CompilerContext ctx) {
-    if (query.subject != QuerySubject.dives) {
-      return CompiledQuery(
+abstract final class ExploreCompiler {
+  static ExploreCompilation compile(
+    ParsedQuery query,
+    ExploreCompilerContext ctx,
+  ) {
+    if (query.subject != ParsedSubject.dives) {
+      return ExploreCompilation(
         filter: const DiveFilterState(),
         chips: const [],
         unresolved: const [],
@@ -131,7 +134,7 @@ abstract final class QueryCompiler {
       unplaced.add(UnplacedItem(w));
     }
 
-    return CompiledQuery(
+    return ExploreCompilation(
       filter: filter,
       chips: chips,
       unresolved: unresolved,
@@ -152,7 +155,7 @@ abstract final class QueryCompiler {
     final q = normalize(m.text);
     final scored = <(NameEntry, double)>[];
     for (final e in [
-      for (final k in mentionSearchKinds(m.kind)) ...names.forKind(k),
+      for (final k in mentionSearchKinds(m.kind)) ...entriesForKind(names, k),
     ]) {
       final s = diceCoefficient(q, normalize(e.label));
       if (s > 0.3) scored.add((e, s));
@@ -545,6 +548,12 @@ abstract final class QueryCompiler {
         return f.copyWith(tripId: e.ids.single);
       case NameTarget.computerId:
         return f.copyWith(computerId: e.ids.single);
+      // Typed-query rows: a sentence's mention kinds never resolve to these.
+      case NameTarget.siteTypeId ||
+          NameTarget.courseId ||
+          NameTarget.diveTypeId ||
+          NameTarget.row:
+        return f;
     }
   }
 }

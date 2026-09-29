@@ -1,9 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
-import 'package:submersion/features/explore/domain/compiled_query.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
-import 'package:submersion/features/explore/domain/query_compiler.dart';
+import 'package:submersion/features/explore/domain/explore_compilation.dart';
+import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/features/explore/domain/explore_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 /// Every resolved buddy is an exact match. A name-substring filter would let
@@ -15,21 +16,21 @@ void main() {
     temperature: TemperatureUnit.celsius,
     pressure: PressureUnit.bar,
   );
-  const names = NameIndex([
+  final names = NameIndex(const [
     NameEntry(
-      kind: MentionKind.buddy,
+      subject: QuerySubject.buddies,
       label: 'Ana',
       ids: ['b-ana'],
       target: NameTarget.buddyId,
     ),
     NameEntry(
-      kind: MentionKind.buddy,
+      subject: QuerySubject.buddies,
       label: 'Bob',
       ids: ['b-bob'],
       target: NameTarget.buddyId,
     ),
     NameEntry(
-      kind: MentionKind.buddy,
+      subject: QuerySubject.buddies,
       label: 'Smith, John',
       ids: [],
       target: NameTarget.legacyBuddyName,
@@ -37,7 +38,7 @@ void main() {
     ),
   ]);
 
-  CompiledQuery compile(List<String> buddies) => QueryCompiler.compile(
+  ExploreCompilation compile(List<String> buddies) => ExploreCompiler.compile(
     ParsedQuery.fromJson({
       'schemaVersion': kQuerySchemaVersion,
       'subject': 'dives',
@@ -45,7 +46,11 @@ void main() {
         for (final b in buddies) {'kind': 'buddy', 'text': b},
       ],
     }),
-    CompilerContext(units: units, names: names, now: DateTime(2026, 9, 28)),
+    ExploreCompilerContext(
+      units: units,
+      names: names,
+      now: DateTime(2026, 9, 28),
+    ),
   );
 
   test('one buddy stays the plain exact buddy axis', () {
@@ -70,27 +75,27 @@ void main() {
   });
 
   test('three buddies AND together', () {
-    const withCarl = NameIndex([
+    final withCarl = NameIndex(const [
       NameEntry(
-        kind: MentionKind.buddy,
+        subject: QuerySubject.buddies,
         label: 'Ana',
         ids: ['b-ana'],
         target: NameTarget.buddyId,
       ),
       NameEntry(
-        kind: MentionKind.buddy,
+        subject: QuerySubject.buddies,
         label: 'Bob',
         ids: ['b-bob'],
         target: NameTarget.buddyId,
       ),
       NameEntry(
-        kind: MentionKind.buddy,
+        subject: QuerySubject.buddies,
         label: 'Carl',
         ids: ['b-carl'],
         target: NameTarget.buddyId,
       ),
     ]);
-    final f = QueryCompiler.compile(
+    final f = ExploreCompiler.compile(
       ParsedQuery.fromJson({
         'schemaVersion': kQuerySchemaVersion,
         'subject': 'dives',
@@ -100,7 +105,7 @@ void main() {
           {'kind': 'buddy', 'text': 'Carl'},
         ],
       }),
-      CompilerContext(
+      ExploreCompilerContext(
         units: units,
         names: withCarl,
         now: DateTime(2026, 9, 28),

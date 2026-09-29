@@ -106,12 +106,19 @@ class NameIndex implements NameResolver, NameEntries {
         _refs.putIfAbsent(e.subject, () => []).add(RefValue(id, e.label));
       }
     }
+    final position = {
+      for (var i = 0; i < this.entries.length; i++) this.entries[i]: i,
+    };
     for (final list in _bySubject.values) {
       // Primary names first, then alternates by rank, so another row's
-      // alternate never shadows a primary name.
+      // alternate never shadows a primary name. Ties keep load order: the
+      // sort is not stable on long lists, and resolution must not change
+      // between two loads of the same rows.
       list.sort((a, b) {
         if (a.primary != b.primary) return a.primary ? -1 : 1;
-        return a.rank.compareTo(b.rank);
+        final byRank = a.rank.compareTo(b.rank);
+        if (byRank != 0) return byRank;
+        return position[a]!.compareTo(position[b]!);
       });
     }
   }

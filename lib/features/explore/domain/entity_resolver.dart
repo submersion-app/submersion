@@ -1,5 +1,6 @@
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 sealed class Resolution {
@@ -20,6 +21,74 @@ class Ambiguous extends Resolution {
 class Unresolved extends Resolution {
   const Unresolved();
 }
+
+/// The index subject and targets a mention kind is looked up under.
+({QuerySubject subject, Set<NameTarget> targets}) mentionScope(
+  MentionKind kind,
+) => switch (kind) {
+  MentionKind.site => (
+    subject: QuerySubject.sites,
+    targets: {NameTarget.siteId},
+  ),
+  MentionKind.place => (
+    subject: QuerySubject.sites,
+    targets: {NameTarget.sitePlace},
+  ),
+  MentionKind.species => (
+    subject: QuerySubject.species,
+    targets: {NameTarget.speciesId},
+  ),
+  MentionKind.gear => (
+    subject: QuerySubject.equipment,
+    targets: {NameTarget.equipmentId, NameTarget.attrChoice},
+  ),
+  MentionKind.buddy => (
+    subject: QuerySubject.buddies,
+    targets: {NameTarget.buddyId, NameTarget.legacyBuddyName},
+  ),
+  MentionKind.tag => (subject: QuerySubject.tags, targets: {NameTarget.tagId}),
+  MentionKind.center => (
+    subject: QuerySubject.centers,
+    targets: {NameTarget.centerId},
+  ),
+  MentionKind.trip => (
+    subject: QuerySubject.trips,
+    targets: {NameTarget.tripId},
+  ),
+  MentionKind.computer => (
+    subject: QuerySubject.computers,
+    targets: {NameTarget.computerId},
+  ),
+};
+
+/// The entries a mention of [kind] can match, in the index's order.
+Iterable<NameEntry> entriesForKind(NameIndex index, MentionKind kind) {
+  final scope = mentionScope(kind);
+  return index
+      .forSubject(scope.subject)
+      .where((e) => scope.targets.contains(e.target));
+}
+
+/// The mention kind a picked entry pins as.
+MentionKind mentionKindOf(NameTarget target) => switch (target) {
+  NameTarget.siteId => MentionKind.site,
+  NameTarget.sitePlace => MentionKind.place,
+  NameTarget.speciesId => MentionKind.species,
+  NameTarget.equipmentId || NameTarget.attrChoice => MentionKind.gear,
+  NameTarget.buddyId || NameTarget.legacyBuddyName => MentionKind.buddy,
+  NameTarget.tagId => MentionKind.tag,
+  NameTarget.centerId => MentionKind.center,
+  NameTarget.tripId => MentionKind.trip,
+  NameTarget.computerId => MentionKind.computer,
+  NameTarget.siteTypeId ||
+  NameTarget.courseId ||
+  NameTarget.diveTypeId ||
+  NameTarget.row => throw ArgumentError.value(
+    target,
+    'target',
+    'no mention kind',
+  ),
+};
 
 /// The kinds a mention of [kind] is looked up under, in priority order. A
 /// place falls through to sites and a site to places, so "Bonaire" and
@@ -49,7 +118,7 @@ Resolution resolveMention(
   final groups = <List<NameEntry>>[];
   void addGroups(MentionKind kind) {
     final byRank = <int, List<NameEntry>>{};
-    for (final e in index.forKind(kind)) {
+    for (final e in entriesForKind(index, kind)) {
       byRank.putIfAbsent(e.rank, () => []).add(e);
     }
     final ranks = byRank.keys.toList()..sort();

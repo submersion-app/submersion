@@ -24,7 +24,7 @@ void main() {
     expect(v['ops'], ClauseOp.values.map((o) => o.jsonName).toList());
     expect(v['units'], ClauseUnit.values.map((u) => u.jsonName).toList());
     expect(v['mentionKinds'], MentionKind.values.map((k) => k.name).toList());
-    expect(v['subjects'], QuerySubject.values.map((s) => s.name).toList());
+    expect(v['subjects'], ParsedSubject.values.map((s) => s.name).toList());
   });
 
   test('enum values are listed from the catalog, as prose', () {

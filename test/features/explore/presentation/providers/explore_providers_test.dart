@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/features/explore/domain/compiled_query.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
+import 'package:submersion/features/explore/domain/explore_compilation.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
@@ -49,9 +51,9 @@ class _ThrowingEngine implements NlEngine {
       throw const NlException(NlError.contextExceeded);
 }
 
-Future<NameIndex> _bonaireLoader() async => const NameIndex([
+Future<NameIndex> _bonaireLoader() async => NameIndex(const [
   NameEntry(
-    kind: MentionKind.place,
+    subject: QuerySubject.sites,
     label: 'Bonaire',
     ids: ['s1', 's2'],
     target: NameTarget.sitePlace,
@@ -99,7 +101,7 @@ void main() {
         temperature: TemperatureUnit.celsius,
         pressure: PressureUnit.bar,
       )),
-      nameIndexProvider.overrideWith((ref) => names()),
+      queryNameIndexProvider.overrideWith((ref) => names()),
       recentQueryRecorderProvider.overrideWithValue(
         recorder ?? (sentence, locale, parsed) async {},
       ),
@@ -199,7 +201,7 @@ void main() {
     n.resolveWith(
       0,
       const NameEntry(
-        kind: MentionKind.place,
+        subject: QuerySubject.sites,
         label: 'Bonaire',
         ids: ['s1', 's2'],
         target: NameTarget.sitePlace,
@@ -217,7 +219,7 @@ void main() {
     n.resolveWith(
       99,
       const NameEntry(
-        kind: MentionKind.place,
+        subject: QuerySubject.sites,
         label: 'Bonaire',
         ids: ['s1'],
         target: NameTarget.sitePlace,
@@ -253,15 +255,15 @@ void main() {
   });
 
   group('review fixes', () {
-    const twins = NameIndex([
+    final twins = NameIndex(const [
       NameEntry(
-        kind: MentionKind.buddy,
+        subject: QuerySubject.buddies,
         label: 'John Smith',
         ids: ['john-a'],
         target: NameTarget.buddyId,
       ),
       NameEntry(
-        kind: MentionKind.buddy,
+        subject: QuerySubject.buddies,
         label: 'John Smith',
         ids: ['john-b'],
         target: NameTarget.buddyId,

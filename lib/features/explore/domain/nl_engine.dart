@@ -47,7 +47,7 @@ abstract class NlEngine {
 abstract final class NlPrompt {
   static Map<String, Object?> vocabulary() => {
     'schemaVersion': kQuerySchemaVersion,
-    'subjects': QuerySubject.values.map((s) => s.name).toList(),
+    'subjects': ParsedSubject.values.map((s) => s.name).toList(),
     'fields': DiveFieldCatalog.jsonNames,
     'ops': ClauseOp.values.map((o) => o.jsonName).toList(),
     'units': ClauseUnit.values.map((u) => u.jsonName).toList(),

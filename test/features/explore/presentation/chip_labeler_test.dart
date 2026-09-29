@@ -1,10 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/explore/domain/compiled_query.dart';
+import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/chip_labeler.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -171,7 +172,7 @@ void main() {
         const MentionChip(
           kind: MentionKind.place,
           entry: NameEntry(
-            kind: MentionKind.place,
+            subject: QuerySubject.sites,
             label: 'Bonaire',
             ids: ['s1'],
             target: NameTarget.sitePlace,

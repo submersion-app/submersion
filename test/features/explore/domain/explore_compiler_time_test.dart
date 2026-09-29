@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/features/explore/domain/compiled_query.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
-import 'package:submersion/features/explore/domain/query_compiler.dart';
+import 'package:submersion/features/explore/domain/explore_compilation.dart';
+import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/features/explore/domain/explore_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 /// Relative periods are calendar arithmetic, never elapsed time: a Duration
@@ -15,14 +15,15 @@ void main() {
     pressure: PressureUnit.bar,
   );
 
-  CompiledQuery compileTime(String text, DateTime now) => QueryCompiler.compile(
-    ParsedQuery.fromJson({
-      'schemaVersion': kQuerySchemaVersion,
-      'subject': 'dives',
-      'time': {'text': text},
-    }),
-    CompilerContext(units: units, names: NameIndex.empty, now: now),
-  );
+  ExploreCompilation compileTime(String text, DateTime now) =>
+      ExploreCompiler.compile(
+        ParsedQuery.fromJson({
+          'schemaVersion': kQuerySchemaVersion,
+          'subject': 'dives',
+          'time': {'text': text},
+        }),
+        ExploreCompilerContext(units: units, names: NameIndex.empty, now: now),
+      );
 
   test('last 1 month on the 31st starts on the last day of February', () {
     // Counted months keep the day of month, clamped: DateTime(2026, 2, 31)

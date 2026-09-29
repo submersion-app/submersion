@@ -168,4 +168,41 @@ void main() {
       'species',
     });
   });
+
+  test('a site with no place fields contributes no place entry', () async {
+    await db.customStatement(
+      "INSERT INTO dive_sites (id, name, created_at, updated_at) "
+      "VALUES ('s-bare', 'Bare Reef', 0, 0)",
+    );
+    final index = await load();
+    final places = index
+        .forSubject(QuerySubject.sites)
+        .where((e) => e.target == NameTarget.sitePlace);
+    expect(places.any((e) => e.ids.contains('s-bare')), isFalse);
+    expect(index.resolve(QuerySubject.sites, 'Bare Reef')?.id, 's-bare');
+  });
+
+  test('tags, centers, trips and computers each get a row', () async {
+    await db.customStatement(
+      "INSERT INTO tags (id, name, created_at, updated_at) "
+      "VALUES ('t1', 'night', 0, 0)",
+    );
+    await db.customStatement(
+      "INSERT INTO dive_centers (id, name, created_at, updated_at) "
+      "VALUES ('c1', 'Buddy Dive', 0, 0)",
+    );
+    await db.customStatement(
+      "INSERT INTO trips (id, name, start_date, end_date, created_at, "
+      "updated_at) VALUES ('tr1', 'Bonaire 2025', 0, 0, 0, 0)",
+    );
+    await db.customStatement(
+      "INSERT INTO dive_computers (id, name, created_at, updated_at) "
+      "VALUES ('dc1', 'Perdix', 0, 0)",
+    );
+    final index = await load();
+    expect(index.resolve(QuerySubject.tags, 'night')?.id, 't1');
+    expect(index.resolve(QuerySubject.centers, 'buddy dive')?.id, 'c1');
+    expect(index.resolve(QuerySubject.trips, 'Bonaire 2025')?.id, 'tr1');
+    expect(index.resolve(QuerySubject.computers, 'perdix')?.id, 'dc1');
+  });
 }

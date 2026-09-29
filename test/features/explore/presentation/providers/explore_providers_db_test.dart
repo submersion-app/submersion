@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
@@ -9,8 +10,8 @@ import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
-import 'package:submersion/features/explore/domain/query_compiler.dart';
+import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/features/explore/domain/explore_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -68,7 +69,7 @@ void main() {
       overrides: [
         ...overrides,
         localeProvider.overrideWithValue('en'),
-        nameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+        queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
       ].cast(),
     );
     addTearDown(c.dispose);
@@ -248,7 +249,7 @@ void main() {
               ),
             );
       }
-      final compiled = QueryCompiler.compile(
+      final compiled = ExploreCompiler.compile(
         ParsedQuery.fromJson({
           'schemaVersion': kQuerySchemaVersion,
           'subject': 'dives',
@@ -263,7 +264,7 @@ void main() {
             },
           ],
         }),
-        CompilerContext(
+        ExploreCompilerContext(
           units: (
             depth: DepthUnit.meters,
             temperature: TemperatureUnit.celsius,
@@ -299,7 +300,7 @@ void main() {
             ),
           );
     }
-    final compiled = QueryCompiler.compile(
+    final compiled = ExploreCompiler.compile(
       ParsedQuery.fromJson({
         'schemaVersion': kQuerySchemaVersion,
         'subject': 'dives',
@@ -312,7 +313,7 @@ void main() {
           },
         ],
       }),
-      CompilerContext(
+      ExploreCompilerContext(
         units: (
           depth: DepthUnit.meters,
           temperature: TemperatureUnit.celsius,
@@ -333,7 +334,7 @@ void main() {
     await c.read(recentQueryRecorderProvider)(
       'turtles in bonaire',
       'en',
-      const ParsedQuery(subject: QuerySubject.dives),
+      const ParsedQuery(subject: ParsedSubject.dives),
     );
     final recent = await c.read(recentQueriesProvider.future);
     expect(recent.map((r) => r.sentence), ['turtles in bonaire']);
@@ -346,7 +347,7 @@ void main() {
         .record(
           'tortues',
           'fr',
-          const ParsedQuery(subject: QuerySubject.dives),
+          const ParsedQuery(subject: ParsedSubject.dives),
           diverId: '',
         );
     expect(await c.read(recentQueriesProvider.future), isEmpty);
@@ -367,13 +368,13 @@ void main() {
         .record(
           'wrecks with Bob',
           'en',
-          const ParsedQuery(subject: QuerySubject.dives),
+          const ParsedQuery(subject: ParsedSubject.dives),
           diverId: 'bob',
         );
     await c.read(recentQueryRecorderProvider)(
       'turtles with Ana',
       'en',
-      const ParsedQuery(subject: QuerySubject.dives),
+      const ParsedQuery(subject: ParsedSubject.dives),
     );
     final recent = await c.read(recentQueriesProvider.future);
     expect(recent.map((r) => r.sentence), ['turtles with Ana']);

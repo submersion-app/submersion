@@ -6,7 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_text.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
-import 'package:submersion/features/explore/domain/compiled_query.dart';
+import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/query/presentation/query_label_lookup.dart';

@@ -2,9 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
-import 'package:submersion/features/explore/domain/compiled_query.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
-import 'package:submersion/features/explore/domain/query_compiler.dart';
+import 'package:submersion/features/explore/domain/explore_compilation.dart';
+import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/features/explore/domain/explore_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 /// Every field the prompt offers the model lowers to something. The fields
@@ -17,14 +17,14 @@ void main() {
     pressure: PressureUnit.bar,
   );
 
-  CompiledQuery compile(List<Map<String, Object?>> clauses) =>
-      QueryCompiler.compile(
+  ExploreCompilation compile(List<Map<String, Object?>> clauses) =>
+      ExploreCompiler.compile(
         ParsedQuery.fromJson({
           'schemaVersion': kQuerySchemaVersion,
           'subject': 'dives',
           'clauses': clauses,
         }),
-        CompilerContext(
+        ExploreCompilerContext(
           units: units,
           names: NameIndex.empty,
           now: DateTime(2026, 9, 28),
@@ -285,7 +285,7 @@ void main() {
       );
     });
 
-    (double, double) bounds(CompiledQuery q) {
+    (double, double) bounds(ExploreCompilation q) {
       final and = q.filter.query! as AndNode;
       double v(int i) =>
           ((and.children[i] as ConditionNode).value as NumberValue).value;
@@ -293,13 +293,13 @@ void main() {
     }
 
     test('exactly a SAC in psi/min is a real band, half a psi either side', () {
-      final q = QueryCompiler.compile(
+      final q = ExploreCompiler.compile(
         ParsedQuery.fromJson({
           'schemaVersion': kQuerySchemaVersion,
           'subject': 'dives',
           'clauses': [clause('sac', 'eq', 20)],
         }),
-        CompilerContext(
+        ExploreCompilerContext(
           units: (
             depth: DepthUnit.feet,
             temperature: TemperatureUnit.fahrenheit,

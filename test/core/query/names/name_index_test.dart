@@ -31,6 +31,22 @@ void main() {
     );
   });
 
+  test('entries of one rank keep their load order, however many', () {
+    final rows = [
+      for (var i = 0; i < 40; i++)
+        _row(QuerySubject.buddies, 'b$i', 'Buddy', primary: i.isEven),
+    ];
+    final index = NameIndex(rows);
+    final order = index
+        .forSubject(QuerySubject.buddies)
+        .map((e) => e.ids.single);
+    expect(order, [
+      for (var i = 0; i < 40; i += 2) 'b$i',
+      for (var i = 1; i < 40; i += 2) 'b$i',
+    ]);
+    expect(index.resolve(QuerySubject.buddies, 'Buddy')!.id, 'b0');
+  });
+
   test('fromRefs takes any ref subject, not only the loaded ones', () {
     final index = NameIndex.fromRefs(const {
       QuerySubject.certifications: [RefValue('c1', 'Rescue Diver')],

@@ -1,7 +1,7 @@
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 enum ChipRef { clause, mention, time }
@@ -71,13 +71,13 @@ class UnplacedItem {
   const UnplacedItem(this.text, {this.reason});
 }
 
-class CompiledQuery {
+class ExploreCompilation {
   final DiveFilterState filter;
   final List<QueryChip> chips;
   final List<UnresolvedMention> unresolved;
   final List<UnplacedItem> unplaced;
   final List<ChartRequest> charts;
-  const CompiledQuery({
+  const ExploreCompilation({
     required this.filter,
     required this.chips,
     required this.unresolved,

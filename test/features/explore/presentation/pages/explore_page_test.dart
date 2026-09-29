@@ -5,11 +5,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/pages/explore_page.dart';
@@ -76,22 +78,22 @@ void main() {
       temperature: TemperatureUnit.celsius,
       pressure: PressureUnit.bar,
     )),
-    nameIndexProvider.overrideWith(
-      (ref) async => const NameIndex([
+    queryNameIndexProvider.overrideWith(
+      (ref) async => NameIndex(const [
         NameEntry(
-          kind: MentionKind.place,
+          subject: QuerySubject.sites,
           label: 'Bonaire',
           ids: ['s1', 's2'],
           target: NameTarget.sitePlace,
         ),
         NameEntry(
-          kind: MentionKind.species,
+          subject: QuerySubject.species,
           label: 'Green Turtle',
           ids: ['sp1'],
           target: NameTarget.speciesId,
         ),
         NameEntry(
-          kind: MentionKind.species,
+          subject: QuerySubject.species,
           label: 'Hawksbill Turtle',
           ids: ['sp2'],
           target: NameTarget.speciesId,
