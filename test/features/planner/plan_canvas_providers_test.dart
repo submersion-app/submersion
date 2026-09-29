@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -28,6 +29,14 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(mapStyle: style);
 
   @override
+  Future<void> setThemeMode(ThemeMode mode) async =>
+      state = state.copyWith(themeMode: mode);
+
+  @override
+  Future<void> setEndLimit(double value) async =>
+      state = state.copyWith(endLimit: value);
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -45,6 +54,19 @@ ProviderContainer _container({int? gfLow, int? gfHigh, double? endLimit}) {
   );
   addTearDown(container.dispose);
   return container;
+}
+
+/// A stand-in for the planner's real dependents (the plan outcome, the
+/// bailout and rock-bottom checks, the DPV mission), counting how often
+/// [planEngineConfigProvider] makes it rebuild.
+({Provider<PlanEngineConfig> provider, int Function() builds})
+_countingDependent() {
+  var builds = 0;
+  final provider = Provider<PlanEngineConfig>((ref) {
+    builds++;
+    return ref.watch(planEngineConfigProvider);
+  });
+  return (provider: provider, builds: () => builds);
 }
 
 int _totalStopSeconds(ProviderContainer container) => container
@@ -242,5 +264,44 @@ void main() {
       issues.map((i) => i.type),
       isNot(contains(PlanIssueType.endExceeded)),
     );
+  });
+
+  group('planEngineConfig rebuilds only for its own inputs (issue #2632)', () {
+    test('a theme change does not rebuild its dependents', () async {
+      final container = _container();
+      final dependent = _countingDependent();
+      container.listen(dependent.provider, (_, _) {});
+      final before = container.read(planEngineConfigProvider);
+      expect(dependent.builds(), 1);
+
+      await container
+          .read(settingsProvider.notifier)
+          .setThemeMode(ThemeMode.dark);
+      await container
+          .read(settingsProvider.notifier)
+          .setMapStyle(MapStyle.esriSatellite);
+      container.read(dependent.provider);
+
+      expect(container.read(settingsProvider).themeMode, ThemeMode.dark);
+      expect(dependent.builds(), 1);
+      expect(
+        identical(container.read(planEngineConfigProvider), before),
+        isTrue,
+        reason: 'an unrelated setting must not rebuild the config itself',
+      );
+    });
+
+    test('an END limit change still rebuilds its dependents', () async {
+      final container = _container();
+      final dependent = _countingDependent();
+      container.listen(dependent.provider, (_, _) {});
+      expect(dependent.builds(), 1);
+
+      await container.read(settingsProvider.notifier).setEndLimit(40);
+      container.read(dependent.provider);
+
+      expect(container.read(planEngineConfigProvider).endLimitMeters, 40);
+      expect(dependent.builds(), 2);
+    });
   });
 }

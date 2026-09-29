@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
@@ -20,7 +21,11 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 
 /// Thresholds and policy limits the engine evaluates plans against.
-class PlanEngineConfig {
+///
+/// A value type: `planEngineConfigProvider` rebuilds it from Settings, and
+/// equality is what keeps an unchanged config from rerunning every plan
+/// engine consumer downstream (issue #2632).
+class PlanEngineConfig extends Equatable {
   final double ppO2Working;
   final double ppO2Deco;
   final int cnsWarningThreshold;
@@ -89,6 +94,26 @@ class PlanEngineConfig {
     this.cnsMethod = CnsCalculationMethod.shearwater,
     this.gasModel = GasModel.real,
   });
+
+  @override
+  List<Object?> get props => [
+    ppO2Working,
+    ppO2Deco,
+    cnsWarningThreshold,
+    o2Narcotic,
+    endLimitMeters,
+    bestMixEndMeters,
+    otuLimit,
+    o2MetabolicRateLpm,
+    loopVolumeLiters,
+    buddyFactor,
+    scrInjectionRateLpm,
+    pscrO2ConsumptionMlMin,
+    pscrSacMlMin,
+    pscrRatio,
+    cnsMethod,
+    gasModel,
+  ];
 
   /// Merges this app-wide config with [plan]'s per-plan gas-option
   /// overrides. A set plan value always wins; an unset (null) one falls back
