@@ -12,6 +12,7 @@ class SuuntoParsedDive {
     this.deviceName,
     this.serialNumber,
     this.firmwareVersion,
+    this.notes,
   });
 
   final DownloadedDive dive;
@@ -21,6 +22,24 @@ class SuuntoParsedDive {
   final String? deviceName;
   final String? serialNumber;
   final String? firmwareVersion;
+
+  /// The notes the diver wrote in the Suunto app, from the workout listing
+  /// rather than the dive export (issue #2410).
+  final String? notes;
+
+  SuuntoParsedDive copyWith({
+    DownloadedDive? dive,
+    String? deviceName,
+    String? serialNumber,
+    String? firmwareVersion,
+    String? notes,
+  }) => SuuntoParsedDive(
+    dive: dive ?? this.dive,
+    deviceName: deviceName ?? this.deviceName,
+    serialNumber: serialNumber ?? this.serialNumber,
+    firmwareVersion: firmwareVersion ?? this.firmwareVersion,
+    notes: notes ?? this.notes,
+  );
 }
 
 /// Converts a normalized Suunto dive export (see [SuuntoSmlNormalizer]) into

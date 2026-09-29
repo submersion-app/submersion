@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/shared/widgets/sheet_messenger_scope.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart' show QueryNode;
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/domain/models/service_due_filter_display.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_choice_attribute_filter.dart';
+import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_sheet_section.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -55,6 +61,10 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   EquipmentType? _type;
   List<EquipmentAttrCondition> _attrConditions = const [];
   Set<String> _tagIds = const {};
+  EquipmentOwnerFilter _owner = EquipmentOwnerFilter.all;
+
+  /// The advanced part (#2365): typed, built or applied from a saved query.
+  QueryNode? _query;
 
   @override
   void initState() {
@@ -65,6 +75,8 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     _type = filter.type;
     _attrConditions = filter.attrConditions;
     _tagIds = filter.tagIds;
+    _owner = filter.owner;
+    _query = filter.query;
   }
 
   /// Conditions belong to a category, so picking another one drops them.
@@ -121,15 +133,25 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                 ),
                 const Divider(),
                 Expanded(
-                  child: ListView(
-                    controller: scrollController,
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      _buildStatusSection(),
-                      const SizedBox(height: 24),
-                      _buildCategorySection(),
-                      _buildTagSection(),
-                    ],
+                  child: SheetMessengerScope(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        QuerySheetSection(
+                          subject: QuerySubject.equipment,
+                          root: equipmentQueryEntity,
+                          value: _query,
+                          onChanged: (node) => setState(() => _query = node),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildStatusSection(),
+                        const SizedBox(height: 24),
+                        _buildOwnerSection(),
+                        _buildCategorySection(),
+                        _buildTagSection(),
+                      ],
+                    ),
                   ),
                 ),
                 // Outside the ListView: as lazy children the actions were
@@ -331,6 +353,8 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       _type = null;
       _attrConditions = const [];
       _tagIds = const {};
+      _owner = EquipmentOwnerFilter.all;
+      _query = null;
     });
   }
 
@@ -343,7 +367,49 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
       type: _type,
       attrConditions: _attrConditions,
       tagIds: _tagIds,
+      owner: _owner,
+      query: _query,
     );
     Navigator.of(context).pop();
+  }
+
+  /// Whose gear to show (issue #2046), offered only with two or more
+  /// profiles.
+  Widget _buildOwnerSection() {
+    if (!ref.watch(hasMultipleDiversProvider)) {
+      return const SizedBox.shrink();
+    }
+    final l10n = context.l10n;
+    final labels = {
+      EquipmentOwnerFilter.all: l10n.equipment_filter_owner_all,
+      EquipmentOwnerFilter.mine: l10n.equipment_filter_owner_mine,
+      EquipmentOwnerFilter.sharedWithMe: l10n.equipment_sharedWithMe,
+    };
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.equipment_filter_section_owner,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final entry in labels.entries)
+                ChoiceChip(
+                  key: ValueKey('equipment_filter_owner_${entry.key.name}'),
+                  label: Text(entry.value),
+                  selected: _owner == entry.key,
+                  onSelected: (_) => setState(() => _owner = entry.key),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

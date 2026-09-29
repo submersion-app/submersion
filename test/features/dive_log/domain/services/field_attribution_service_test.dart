@@ -107,7 +107,7 @@ void main() {
 
       expect(result['maxDepth'], equals('Suunto D5'));
       expect(result['avgDepth'], equals('Suunto D5'));
-      expect(result['bottomTime'], equals('Suunto D5'));
+      expect(result['runtime'], equals('Suunto D5'));
       expect(result['waterTemp'], equals('Suunto D5'));
       expect(result['surfaceInterval'], equals('Suunto D5'));
       expect(result['cns'], equals('Suunto D5'));
@@ -234,7 +234,7 @@ void main() {
 
         expect(result['maxDepth'], equals('Shearwater Petrel'));
         expect(result['avgDepth'], equals('Shearwater Petrel'));
-        expect(result['bottomTime'], equals('Shearwater Petrel'));
+        expect(result['runtime'], equals('Shearwater Petrel'));
       },
     );
 
@@ -287,7 +287,7 @@ void main() {
       final result = _compute([first, second]);
 
       expect(result['maxDepth'], equals('Suunto D5'));
-      expect(result['bottomTime'], equals('Suunto D5'));
+      expect(result['runtime'], equals('Suunto D5'));
     });
 
     test('omits field keys for fields with null values on active source', () {
@@ -342,7 +342,7 @@ void main() {
       final result = _compute([primary, secondary]);
 
       expect(result['maxDepth'], equals('My Perdix'));
-      expect(result['bottomTime'], equals('My Perdix'));
+      expect(result['runtime'], equals('My Perdix'));
     });
 
     test('uses Unknown Source display name when computerModel is null', () {

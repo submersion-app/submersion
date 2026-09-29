@@ -89,9 +89,12 @@ class BathymetryCache extends Table {
 /// [BathymetryCache] quantized cells, so caching at tile granularity is what
 /// actually guarantees "every tile is downloaded only once" (the task's OGD
 /// fair-use requirement), independent of the coarser 0.02 degree cache grid.
-/// status semantics: 'ok' = usable grid in gridJson; 'empty' = the STAC
+/// status semantics: 'ok' = usable grid in gridJson; 'gap' = the STAC
 /// lookup for this tile definitively found no covering asset. Transient
-/// failures (network error, STAC error) write NO row.
+/// failures (network error, STAC error, a download that is not a zip) write
+/// NO row. 'empty' is the pre-#1770 negative, written before downloads were
+/// validated: SwissBathyTileCacheRepository.read drops it so the tile
+/// re-resolves once.
 class SwissBathyTileCache extends Table {
   TextColumn get tileKey => text()();
   TextColumn get status => text()();
@@ -100,7 +103,7 @@ class SwissBathyTileCache extends Table {
 
   /// The STAC item's `datetime` (or `updated`/`created` fallback) at the
   /// time this tile was last downloaded — the version token the periodic
-  /// freshness check compares against. Null for 'empty' rows and rows
+  /// freshness check compares against. Null for 'gap' rows and rows
   /// written before this field existed (v14).
   TextColumn get sourceDatetime => text().nullable()();
 
@@ -115,7 +118,7 @@ class SwissBathyTileCache extends Table {
   /// href before comparing datetimes, rather than assuming the first
   /// bbox-overlapping candidate is the one that actually covered this tile
   /// (it is not necessarily -- see [SwissBathy3dSource._firstOverlappingCandidate]).
-  /// Null for 'empty' rows and rows written before this field existed
+  /// Null for 'gap' rows and rows written before this field existed
   /// (v15), which fall back to one full re-resolution on their next check.
   TextColumn get sourceHref => text().nullable()();
 
@@ -125,7 +128,7 @@ class SwissBathyTileCache extends Table {
   /// correction to `swiss_lake_levels.dart` (a lake's bbox or documented
   /// level changed) since this tile was cached, so the baked-in depths are
   /// wrong and the row must be dropped rather than served stale. Null for
-  /// 'empty' rows and rows written before this field existed (v17), which
+  /// 'gap' rows and rows written before this field existed (v17), which
   /// are ALSO treated as a mismatch (not trusted as-is): unlike
   /// [sourceDatetime]/[checkedAt], there is no way to tell whether an old
   /// row's baked-in level is still correct without this field, so it falls
@@ -134,7 +137,7 @@ class SwissBathyTileCache extends Table {
   /// used to resolve to a coarser neighboring lake's bbox before a
   /// whitelist correction) rather than merely preventing new ones. Null
   /// only for rows written before this field existed (v17) -- every 'ok'
-  /// AND 'empty' row written since then stores its actual level, so the
+  /// AND 'gap' row written since then stores its actual level, so the
   /// mismatch check above applies uniformly to both statuses.
   RealColumn get referenceLevelMeters => real().nullable()();
 
@@ -271,6 +274,29 @@ class DecoClassificationCache extends Table {
   Set<Column> get primaryKey => {diveId};
 }
 
+/// Each diver's last Explore sentences with the model's parse, so the field
+/// can offer them and a re-run skips the model. Local-only by construction:
+/// no HLC, never synced, never backed up; rows with an older schema version
+/// are dropped on read.
+class RecentQueries extends Table {
+  /// The diver who asked. A sentence names that diver's own buddies and
+  /// sites, and its pinned identities are theirs.
+  TextColumn get diverId => text()();
+
+  /// The normalized sentence, so a retyped sentence bumps its row.
+  TextColumn get key => text()();
+  TextColumn get sentence => text()();
+  TextColumn get locale => text()();
+  TextColumn get parsedJson => text()();
+  IntColumn get schemaVersion => integer()();
+  TextColumn get subject => text()();
+  IntColumn get lastUsedAt => integer()();
+
+  /// One row per diver, language and sentence.
+  @override
+  Set<Column> get primaryKey => {diverId, locale, key};
+}
+
 @DriftDatabase(
   tables: [
     LocalAssetCache,
@@ -284,13 +310,14 @@ class DecoClassificationCache extends Table {
     WatchedRoots,
     WatchedFolderIndex,
     DecoClassificationCache,
+    RecentQueries,
   ],
 )
 class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -454,6 +481,10 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           );
         }
       }
+      // v18: Explore recent queries. Table-only rung, no backfill.
+      if (from < 18) {
+        await m.createTable(recentQueries);
+      }
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -533,6 +564,33 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           inputs_hash TEXT NOT NULL,
           computed_at INTEGER NOT NULL,
           PRIMARY KEY (dive_id)
+        )
+      ''');
+      // v18 mirror, same collision self-heal as above. Development builds
+      // of v18 created the table keyed on the sentence alone; the rows are a
+      // convenience cache, so any shape whose key lacks the diver is dropped
+      // and recreated.
+      final recentColumns = await customSelect(
+        "SELECT name, pk FROM pragma_table_info('recent_queries')",
+      ).get();
+      if (recentColumns.isNotEmpty &&
+          !recentColumns.any(
+            (r) =>
+                r.read<String>('name') == 'diver_id' && r.read<int>('pk') > 0,
+          )) {
+        await customStatement('DROP TABLE recent_queries');
+      }
+      await customStatement('''
+        CREATE TABLE IF NOT EXISTS recent_queries (
+          diver_id TEXT NOT NULL,
+          key TEXT NOT NULL,
+          sentence TEXT NOT NULL,
+          locale TEXT NOT NULL,
+          parsed_json TEXT NOT NULL,
+          schema_version INTEGER NOT NULL,
+          subject TEXT NOT NULL,
+          last_used_at INTEGER NOT NULL,
+          PRIMARY KEY (diver_id, locale, key)
         )
       ''');
       await customStatement('''

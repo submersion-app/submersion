@@ -26,6 +26,8 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../helpers/fake_path_provider.dart';
+
 /// The share helpers write into getApplicationDocumentsDirectory(), a
 /// platform channel with no implementation under flutter_test.
 class _FakePathProvider extends PathProviderPlatform
@@ -468,6 +470,27 @@ void main() {
       expect(fills, hasLength(1));
       expect(fills.single.isManual, isTrue);
       expect(fills.single.total, closeTo(12.50, 0.001));
+    });
+
+    testWidgets('an unreadable free amount says so instead of saving no '
+        'amount (#1900)', (tester) async {
+      final ref = await _pump(tester);
+      await _openAddLine(tester, freeAmount: true);
+
+      await tester.enterText(
+        find.byKey(const Key('blender-line-description')),
+        'Analyser cell',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-amount')),
+        '12..50',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Enter a valid number'), findsWidgets);
+      expect(ref.read(blenderBilledFillsProvider), isEmpty);
     });
 
     testWidgets('a free amount with nothing to name it says so', (
@@ -1500,11 +1523,20 @@ void main() {
     late Directory documents;
     final platform = _FakeSharePlatform();
 
-    setUpAll(() => SharePlatform.instance = platform);
+    // The harness pins a forwarder that looks the platform up on every share
+    // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+    // again when this group is done.
+    late SharePlatform originalSharePlatform;
+
+    setUpAll(() {
+      originalSharePlatform = SharePlatform.instance;
+      SharePlatform.instance = platform;
+    });
+    tearDownAll(() => SharePlatform.instance = originalSharePlatform);
 
     setUp(() {
       documents = Directory.systemTemp.createTempSync('blender_invoice_test');
-      PathProviderPlatform.instance = _FakePathProvider(documents.path);
+      useFakePathProvider(_FakePathProvider(documents.path));
       platform.calls.clear();
     });
 

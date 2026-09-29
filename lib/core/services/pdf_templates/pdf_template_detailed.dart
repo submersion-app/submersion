@@ -4,12 +4,15 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_front_matter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_chart.dart';
@@ -22,6 +25,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 
 /// Detailed PDF template: one dive per page with the full field set.
 ///
@@ -38,7 +47,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
     required UnitFormatter units,
-    String title = 'Dive Logbook',
+    String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
     Diver? diver,
@@ -48,18 +57,27 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, String> equipmentSetNamesById = const {},
+    DateTime? generatedAt,
+    PdfLocalization? localization,
   }) async {
-    final pdf = pw.Document(theme: PdfFonts.instance.theme);
+    final stamp = generatedAt ?? DateTime.now();
+    final loc = localization ?? PdfLocalization.english();
+    final l10n = loc.l10n;
+    final documentTitle = title ?? l10n.settings_export_pdfDocumentTitle;
+    final pdf = pw.Document(theme: await PdfFonts.instance.themeFor(loc));
     final pageFormat = getPageFormat(pageSize);
 
     pdf.addPage(
       pw.Page(
         pageFormat: pageFormat,
+        textDirection: loc.textDirection,
         build: (context) => PdfSharedComponents.buildCoverPage(
-          title: title,
+          title: documentTitle,
           diveCount: dives.length,
           pageFormat: pageFormat,
           dates: dates,
+          l10n: l10n,
+          generatedAt: stamp,
           firstDiveDate: dives.isNotEmpty ? dives.last.dateTime : null,
           lastDiveDate: dives.isNotEmpty ? dives.first.dateTime : null,
           diver: diver,
@@ -72,9 +90,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         pw.MultiPage(
           pageFormat: pageFormat,
           margin: const pw.EdgeInsets.all(40),
+          textDirection: loc.textDirection,
           build: (context) => PdfFrontMatter.buildDiverPageBody(
             diver: diver,
             dates: dates,
+            l10n: l10n,
             diveCount: dives.length,
             certifications: certifications ?? const [],
             photoBytes: diverPhoto,
@@ -87,10 +107,12 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       pdf.addPage(
         pw.Page(
           pageFormat: pageFormat,
+          textDirection: loc.textDirection,
           build: (context) => PdfSharedComponents.buildSummaryPage(
             dives: dives,
             dates: dates,
             units: units,
+            l10n: l10n,
           ),
         ),
       );
@@ -101,9 +123,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         pw.MultiPage(
           pageFormat: pageFormat,
           margin: const pw.EdgeInsets.all(32),
+          textDirection: loc.textDirection,
           build: (context) => PdfSharedComponents.buildCertificationCardsBody(
             certifications: certifications,
             dates: dates,
+            l10n: l10n,
             diver: diver,
           ),
         ),
@@ -118,9 +142,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         pw.MultiPage(
           pageFormat: pageFormat,
           margin: const pw.EdgeInsets.all(32),
+          textDirection: loc.textDirection,
           build: (context) => _buildDivePage(
             dive,
             dates: dates,
+            l10n: l10n,
             units: units,
             profile: _seriesFor(dive, profiles),
             signatures: diveSignatures?[dive.id],
@@ -157,6 +183,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     Dive dive, {
     required PdfDateFormatter dates,
     required UnitFormatter units,
+    required AppLocalizations l10n,
     PdfProfileSeries? profile,
     List<Signature>? signatures,
     required bool includeVerificationAreas,
@@ -166,43 +193,57 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   }) {
     final chart = profile == null
         ? null
-        : PdfProfileChart.build(series: profile, units: units);
+        : PdfProfileChart.build(series: profile, units: units, l10n: l10n);
 
     return [
-      _buildHeader(dive, dates: dates),
+      _buildHeader(dive, dates: dates, l10n: l10n),
       pw.SizedBox(height: 12),
       pw.Divider(color: PdfColors.grey400),
       pw.SizedBox(height: 12),
 
       if (chart != null) ...[chart, pw.SizedBox(height: 16)],
 
-      ..._section('Profile', _profileFields(dive, dates: dates, units: units)),
-      ..._cylinderSection(dive, units: units),
-      ..._section('Conditions', _conditionFields(dive, units: units)),
-      ..._section('Weather', _weatherFields(dive, units: units)),
-      ..._section('Team', _teamFields(dive)),
       ..._section(
-        'Equipment',
+        l10n.pdf_sectionProfile,
+        _profileFields(dive, dates: dates, units: units, l10n: l10n),
+      ),
+      ..._cylinderSection(dive, units: units, l10n: l10n),
+      ..._section(
+        l10n.pdf_sectionConditions,
+        _conditionFields(dive, units: units, l10n: l10n),
+      ),
+      ..._section(
+        l10n.pdf_sectionWeather,
+        _weatherFields(dive, units: units, l10n: l10n),
+      ),
+      ..._section(l10n.pdf_sectionTeam, _teamFields(dive, l10n)),
+      ..._section(
+        l10n.pdf_sectionEquipment,
         _equipmentFields(
           dive,
           units: units,
+          l10n: l10n,
           arrangement: gearArrangement,
           setNamesById: equipmentSetNamesById,
         ),
       ),
       ..._section(
-        'Technical',
-        _technicalFields(dive, diveTypesById: diveTypesById),
+        l10n.pdf_sectionTechnical,
+        _technicalFields(dive, diveTypesById: diveTypesById, l10n: l10n),
       ),
-      ..._marineLifeSection(dive),
-      ..._notesSection(dive),
-      ..._customFieldsSection(dive),
-      ..._signatureSection(signatures, dates: dates),
-      if (includeVerificationAreas) ..._verificationSection(),
+      ..._marineLifeSection(dive, l10n),
+      ..._notesSection(dive, l10n),
+      ..._customFieldsSection(dive, l10n),
+      ..._signatureSection(signatures, dates: dates, l10n: l10n),
+      if (includeVerificationAreas) ..._verificationSection(l10n),
     ];
   }
 
-  pw.Widget _buildHeader(Dive dive, {required PdfDateFormatter dates}) {
+  pw.Widget _buildHeader(
+    Dive dive, {
+    required PdfDateFormatter dates,
+    required AppLocalizations l10n,
+  }) {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -213,7 +254,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             children: [
               pw.Text(
                 '#${dive.diveNumber ?? '-'} - '
-                '${dive.site?.name ?? 'Unknown Site'}',
+                '${dive.site?.name ?? l10n.pdf_unknownSite}',
                 style: const pw.TextStyle(
                   fontSize: 18,
                   fontWeight: pw.FontWeight.bold,
@@ -276,11 +317,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
 
   pw.Widget _sectionTitle(String title) => pw.Text(
     title.toUpperCase(),
-    style: const pw.TextStyle(
+    style: pw.TextStyle(
       fontSize: 9,
       fontWeight: pw.FontWeight.bold,
       color: PdfColors.grey700,
-      letterSpacing: 1,
+      letterSpacing: pdfTracking(title, 1),
     ),
   );
 
@@ -288,21 +329,33 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     Dive dive, {
     required PdfDateFormatter dates,
     required UnitFormatter units,
+    required AppLocalizations l10n,
   }) {
     return [
       if (dive.maxDepth != null)
-        _Field('Max Depth', units.formatDepth(dive.maxDepth)),
+        _Field(l10n.pdf_maxDepth, units.formatDepth(dive.maxDepth)),
       if (dive.avgDepth != null)
-        _Field('Avg Depth', units.formatDepth(dive.avgDepth)),
+        _Field(l10n.pdf_avgDepth, units.formatDepth(dive.avgDepth)),
       if (dive.effectiveRuntime != null)
-        _Field('Runtime', '${dive.effectiveRuntime!.inMinutes} min'),
+        _Field(
+          l10n.pdf_runtime,
+          l10n.pdf_minutes('${dive.effectiveRuntime!.inMinutes}'),
+        ),
       if (dive.bottomTime != null)
-        _Field('Bottom Time', '${dive.bottomTime!.inMinutes} min'),
-      if (dive.entryTime != null) _Field('In', dates.time(dive.entryTime!)),
-      if (dive.exitTime != null) _Field('Out', dates.time(dive.exitTime!)),
+        _Field(
+          l10n.pdf_bottomTime,
+          l10n.pdf_minutes('${dive.bottomTime!.inMinutes}'),
+        ),
+      if (dive.entryTime != null)
+        _Field(l10n.pdf_timeIn, dates.time(dive.entryTime!)),
+      if (dive.exitTime != null)
+        _Field(l10n.pdf_timeOut, dates.time(dive.exitTime!)),
       if (dive.surfaceInterval != null)
-        _Field('Surface Interval', _duration(dive.surfaceInterval!)),
-      ..._gasConsumptionFields(dive, units),
+        _Field(
+          l10n.pdf_surfaceInterval,
+          _duration(dive.surfaceInterval!, l10n),
+        ),
+      ..._gasConsumptionFields(dive, units, l10n),
     ];
   }
 
@@ -321,7 +374,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   /// gets the SAC row, because a page that silently drops gas consumption is
   /// worse than one showing the other lane (issue #386). The page has no
   /// place for the tappable volume hint the app shows there.
-  List<_Field> _gasConsumptionFields(Dive dive, UnitFormatter units) {
+  List<_Field> _gasConsumptionFields(
+    Dive dive,
+    UnitFormatter units,
+    AppLocalizations l10n,
+  ) {
     final display = units.settings.gasConsumptionDisplay;
     final sac = dive.sac;
     final rmv = display.showsRmv ? dive.rmvFor(units.settings.gasModel) : null;
@@ -329,31 +386,41 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
 
     return [
       if ((display.showsSac || sacFallback) && sac != null)
-        _Field('SAC', units.formatSac(sac)),
-      if (rmv != null) _Field('RMV', units.formatRmv(rmv)),
+        _Field(l10n.pdf_sac, units.formatSac(sac)),
+      if (rmv != null) _Field(l10n.pdf_rmv, units.formatRmv(rmv)),
     ];
   }
 
   /// Every cylinder, not just the first: a technical dive carries stage and
   /// deco bottles whose pressures matter as much as the back gas.
-  List<pw.Widget> _cylinderSection(Dive dive, {required UnitFormatter units}) {
+  List<pw.Widget> _cylinderSection(
+    Dive dive, {
+    required UnitFormatter units,
+    required AppLocalizations l10n,
+  }) {
     if (dive.tanks.isEmpty) return const [];
 
     return [
-      _sectionTitle('Cylinders'),
+      _sectionTitle(l10n.pdf_sectionCylinders),
       pw.SizedBox(height: 6),
-      ...dive.tanks.map((tank) => _buildCylinderRow(tank, units: units)),
+      ...dive.tanks.map(
+        (tank) => _buildCylinderRow(tank, units: units, l10n: l10n),
+      ),
       pw.SizedBox(height: 14),
     ];
   }
 
-  pw.Widget _buildCylinderRow(DiveTank tank, {required UnitFormatter units}) {
+  pw.Widget _buildCylinderRow(
+    DiveTank tank, {
+    required UnitFormatter units,
+    required AppLocalizations l10n,
+  }) {
     final descriptors = <String>[
       tank.gasMix.name,
       if (tank.volume != null)
         units.formatTankVolume(tank.volume, tank.workingPressure),
-      if (tank.material != null) tank.material!.displayName,
-      if (tank.role != TankRole.backGas) tank.role.displayName,
+      if (tank.material != null) tank.material!.localizedName(l10n),
+      if (tank.role != TankRole.backGas) tank.role.localizedName(l10n),
     ];
 
     // A half-filled pressure pair is still worth printing: a logbook records
@@ -363,7 +430,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       if (tank.startPressure != null || tank.endPressure != null)
         pdfPressureRange(units, tank.startPressure, tank.endPressure),
       if (tank.pressureUsed != null)
-        '${units.formatPressure(tank.pressureUsed)} used',
+        l10n.pdf_pressureUsed(units.formatPressure(tank.pressureUsed)),
     ];
 
     return pw.Padding(
@@ -374,7 +441,9 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
           pw.SizedBox(
             width: 90,
             child: pw.Text(
-              tank.name ?? tank.presetName ?? 'Cylinder ${tank.order + 1}',
+              tank.name ??
+                  tank.presetName ??
+                  l10n.pdf_cylinderNumber('${tank.order + 1}'),
               style: const pw.TextStyle(
                 fontSize: 10,
                 fontWeight: pw.FontWeight.bold,
@@ -396,43 +465,58 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     );
   }
 
-  List<_Field> _conditionFields(Dive dive, {required UnitFormatter units}) {
+  List<_Field> _conditionFields(
+    Dive dive, {
+    required UnitFormatter units,
+    required AppLocalizations l10n,
+  }) {
     return [
       if (dive.waterTemp != null)
-        _Field('Water Temp', units.formatTemperature(dive.waterTemp)),
+        _Field(l10n.pdf_waterTemp, units.formatTemperature(dive.waterTemp)),
       if (dive.airTemp != null)
-        _Field('Air Temp', units.formatTemperature(dive.airTemp)),
+        _Field(l10n.pdf_airTemp, units.formatTemperature(dive.airTemp)),
       if (dive.visibilityMeters != null)
-        _Field('Visibility', units.formatDistance(dive.visibilityMeters!))
+        _Field(
+          l10n.pdf_visibility,
+          units.formatDistance(dive.visibilityMeters!),
+        )
       else if (dive.visibility != null)
-        _Field('Visibility', dive.visibility!.displayName),
+        _Field(l10n.pdf_visibility, visibilityName(dive.visibility!, l10n)),
       if (dive.currentStrength != null)
-        _Field('Current', dive.currentStrength!.displayName),
+        _Field(l10n.pdf_current, dive.currentStrength!.localizedName(l10n)),
       if (dive.currentDirection != null)
-        _Field('Current Dir', dive.currentDirection!.displayName),
+        _Field(
+          l10n.pdf_currentDirection,
+          dive.currentDirection!.localizedName(l10n),
+        ),
       if (dive.effectiveWaterType != null)
-        _Field('Water Type', dive.effectiveWaterType!.displayName),
+        _Field(
+          l10n.pdf_waterType,
+          dive.effectiveWaterType!.localizedName(l10n),
+        ),
       if (dive.effectiveEntryMethod != null)
-        _Field('Entry', dive.effectiveEntryMethod!.displayName),
-      if (dive.exitMethod != null) _Field('Exit', dive.exitMethod!.displayName),
+        _Field(l10n.pdf_entry, dive.effectiveEntryMethod!.localizedName(l10n)),
+      if (dive.exitMethod != null)
+        _Field(l10n.pdf_exit, dive.exitMethod!.localizedName(l10n)),
       if (dive.altitude != null)
-        _Field('Altitude', units.formatAltitude(dive.altitude)),
+        _Field(l10n.pdf_altitude, units.formatAltitude(dive.altitude)),
     ];
   }
 
   /// Once the `dive_buddies` junction holds anyone it is authoritative, and the
   /// legacy [Dive.buddy] / [Dive.diveMaster] text is stale (#1864). This is the
   /// same rule as the dive list's Buddy and Dive Master columns.
-  List<_Field> _teamFields(Dive dive) {
+  List<_Field> _teamFields(Dive dive, AppLocalizations l10n) {
     return [
       for (final buddy in dive.buddies)
-        _Field(buddy.role.name, buddy.buddy.name),
+        _Field(buddy.role.localizedName(l10n), buddy.buddy.name),
       if (dive.buddies.isEmpty && dive.buddy != null)
-        _Field('Buddy', dive.buddy!),
+        _Field(l10n.pdf_buddy, dive.buddy!),
       if (dive.buddies.isEmpty && dive.diveMaster != null)
-        _Field('Dive Master', dive.diveMaster!),
-      if (dive.diveCenter != null) _Field('Dive Center', dive.diveCenter!.name),
-      if (dive.trip != null) _Field('Trip', dive.trip!.name),
+        _Field(l10n.pdf_diveMaster, dive.diveMaster!),
+      if (dive.diveCenter != null)
+        _Field(l10n.pdf_diveCenter, dive.diveCenter!.name),
+      if (dive.trip != null) _Field(l10n.pdf_trip, dive.trip!.name),
     ];
   }
 
@@ -446,9 +530,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     required UnitFormatter units,
     required EquipmentArrangement arrangement,
     Map<String, String> setNamesById = const {},
+    AppLocalizations? l10n,
   }) => _equipmentFields(
     dive,
     units: units,
+    l10n: l10n ?? PdfLocalization.english().l10n,
     arrangement: arrangement,
     setNamesById: setNamesById,
   ).map((f) => (label: f.label, value: f.value)).toList();
@@ -456,6 +542,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   List<_Field> _equipmentFields(
     Dive dive, {
     required UnitFormatter units,
+    required AppLocalizations l10n,
     required EquipmentArrangement arrangement,
     required Map<String, String> setNamesById,
   }) {
@@ -464,10 +551,6 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     // exports (UDDF, CSV, Excel) deliberately do not; they take the
     // repository's deterministic baseline instead, so their output does not
     // churn with a display preference.
-    //
-    // displayName rather than a localized label: this template has no
-    // AppLocalizations in scope, which is exactly why arrangeEquipment takes
-    // the label resolver as a parameter.
     //
     // An assembly keeps its parts under it, indented, in template order
     // (#1487). Set gear and hand-added gear print as one arranged list, so a
@@ -485,7 +568,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     ];
     List<_Field> rows(GearNode node, int depth) => [
       _Field(
-        '${'  ' * depth}${node.link.item.type.displayName}',
+        '${'  ' * depth}${node.link.item.type.localizedName(l10n)}',
         node.link.item.name,
       ),
       for (final child in node.children) ...rows(child, depth + 1),
@@ -494,17 +577,17 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       // The current editor writes Dive.weights; weightAmount is the legacy
       // scalar kept for older dives.
       if (dive.weights.isNotEmpty)
-        _Field('Weight', units.formatWeight(dive.totalWeight))
+        _Field(l10n.pdf_weight, units.formatWeight(dive.totalWeight))
       else if (dive.weightAmount != null)
-        _Field('Weight', units.formatWeight(dive.weightAmount)),
+        _Field(l10n.pdf_weight, units.formatWeight(dive.weightAmount)),
       if (dive.weightType != null)
-        _Field('Weight Type', dive.weightType!.displayName),
+        _Field(l10n.pdf_weightType, dive.weightType!.localizedName(l10n)),
       if (setNames.isNotEmpty)
-        _Field(setNames.length == 1 ? 'Set' : 'Sets', setNames.join(', ')),
+        _Field(l10n.pdf_equipmentSets(setNames.length), setNames.join(', ')),
       for (final group in arrangeEquipment(
         [for (final n in roots) n.link.item],
         arrangement,
-        typeLabel: (type) => type.displayName,
+        typeLabel: (type) => type.localizedName(l10n),
       ))
         for (final item in group.items) ...rows(rootsById[item.id]!, 0),
     ];
@@ -513,61 +596,85 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   List<_Field> _technicalFields(
     Dive dive, {
     required Map<String, DiveTypeEntity> diveTypesById,
+    required AppLocalizations l10n,
   }) {
-    final diveTypeNames = dive.diveTypeNamesFrom(diveTypesById);
+    // Built-in types print under their localized name, the way the app shows
+    // them; a custom type keeps the name the diver gave it (#1834, #2252).
+    final storedNames = dive.diveTypeNamesFrom(diveTypesById);
+    final diveTypeNames = [
+      for (var i = 0; i < storedNames.length; i++)
+        _diveTypeName(dive.diveTypeIds[i], storedNames[i], diveTypesById, l10n),
+    ];
     return [
       if (dive.diveComputerModel != null)
-        _Field('Computer', dive.diveComputerModel!),
+        _Field(l10n.pdf_computer, dive.diveComputerModel!),
       if (dive.diveMode != DiveMode.oc)
-        _Field('Dive Mode', dive.diveMode.displayName),
-      if (dive.decoAlgorithm != null) _Field('Algorithm', dive.decoAlgorithm!),
+        _Field(l10n.pdf_diveMode, dive.diveMode.localizedName(l10n)),
+      if (dive.decoAlgorithm != null)
+        _Field(l10n.pdf_algorithm, dive.decoAlgorithm!),
       if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null)
         _Field(
-          'Gradient Factors',
+          l10n.pdf_gradientFactors,
           '${dive.gradientFactorLow}/${dive.gradientFactorHigh}',
         ),
       if (dive.setpointHigh != null)
         // Deliberately not unit-converted: a CCR setpoint is a partial
         // pressure of oxygen, quoted in bar (or ata) whatever the diver's
         // cylinder-pressure preference. The CCR settings panel does the same.
-        _Field('Setpoint', '${dive.setpointHigh} bar'),
+        _Field(l10n.pdf_setpoint, '${dive.setpointHigh} bar'),
       if (diveTypeNames.isNotEmpty)
-        _Field('Dive Type', diveTypeNames.join(', ')),
+        _Field(l10n.pdf_diveType, diveTypeNames.join(', ')),
     ];
   }
 
+  /// [stored] is the name [Dive.diveTypeNamesFrom] settled on for [id].
+  String _diveTypeName(
+    String id,
+    String stored,
+    Map<String, DiveTypeEntity> typesById,
+    AppLocalizations l10n,
+  ) {
+    final type = typesById[id];
+    if (type != null) return type.isBuiltIn ? type.localizedName(l10n) : stored;
+    return builtInDiveTypeName(l10n, id) ?? stored;
+  }
+
   /// Recorded weather, which #1017 asks for beyond the free-text summary.
-  List<_Field> _weatherFields(Dive dive, {required UnitFormatter units}) {
+  List<_Field> _weatherFields(
+    Dive dive, {
+    required UnitFormatter units,
+    required AppLocalizations l10n,
+  }) {
     return [
       if (dive.weatherDescription != null)
-        _Field('Conditions', dive.weatherDescription!),
+        _Field(l10n.pdf_weatherConditions, dive.weatherDescription!),
       if (dive.windSpeed != null)
-        _Field('Wind', units.formatWindSpeed(dive.windSpeed)),
+        _Field(l10n.pdf_wind, units.formatWindSpeed(dive.windSpeed)),
       if (dive.windDirection != null)
-        _Field('Wind Dir', dive.windDirection!.displayName),
+        _Field(l10n.pdf_windDirection, dive.windDirection!.localizedName(l10n)),
       if (dive.cloudCover != null)
-        _Field('Cloud', dive.cloudCover!.displayName),
+        _Field(l10n.pdf_cloud, dive.cloudCover!.localizedName(l10n)),
       if (dive.precipitation != null)
-        _Field('Precipitation', dive.precipitation!.displayName),
+        _Field(l10n.pdf_precipitation, dive.precipitation!.localizedName(l10n)),
       if (dive.humidity != null)
-        _Field('Humidity', '${dive.humidity!.toStringAsFixed(0)}%'),
+        _Field(l10n.pdf_humidity, '${dive.humidity!.toStringAsFixed(0)}%'),
       // Swell is a height in meters, so it follows the depth unit the way the
       // dive editor renders it.
       if (dive.swellHeight != null)
-        _Field('Swell', units.formatDepth(dive.swellHeight)),
+        _Field(l10n.pdf_swell, units.formatDepth(dive.swellHeight)),
     ];
   }
 
   /// User-defined key/value entries. The legacy builder rendered these, so
   /// dropping them would lose data that has no other section to hold it.
-  List<pw.Widget> _customFieldsSection(Dive dive) {
+  List<pw.Widget> _customFieldsSection(Dive dive, AppLocalizations l10n) {
     if (dive.customFields.isEmpty) return const [];
 
     const keyStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey600);
     const valueStyle = pw.TextStyle(fontSize: 10);
 
     return [
-      _sectionTitle('Additional Fields'),
+      _sectionTitle(l10n.pdf_sectionAdditionalFields),
       pw.SizedBox(height: 6),
       for (final field in dive.customFields)
         if (_fitsInRow([field.key, field.value]))
@@ -653,11 +760,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   ///
   /// A list rather than the `_section` chips: a sighting carries free-text
   /// notes that would not survive a fixed-width chip.
-  List<pw.Widget> _marineLifeSection(Dive dive) {
+  List<pw.Widget> _marineLifeSection(Dive dive, AppLocalizations l10n) {
     if (dive.sightings.isEmpty) return const [];
 
     return [
-      _sectionTitle('Marine Life'),
+      _sectionTitle(l10n.pdf_sectionMarineLife),
       pw.SizedBox(height: 6),
       ...dive.sightings.expand(_sightingLines),
       pw.SizedBox(height: 14),
@@ -699,11 +806,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     ];
   }
 
-  List<pw.Widget> _notesSection(Dive dive) {
+  List<pw.Widget> _notesSection(Dive dive, AppLocalizations l10n) {
     if (dive.notes.isEmpty) return const [];
 
     return [
-      _sectionTitle('Notes'),
+      _sectionTitle(l10n.pdf_sectionNotes),
       pw.SizedBox(height: 6),
       // TextOverflow.span is what lets MultiPage break the notes across
       // sheets. Without it a pw.Text cannot span, so a note taller than one
@@ -721,19 +828,23 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   List<pw.Widget> _signatureSection(
     List<Signature>? signatures, {
     required PdfDateFormatter dates,
+    required AppLocalizations l10n,
   }) {
     if (signatures == null || signatures.isEmpty) return const [];
 
     return [
-      _sectionTitle('Verified By'),
+      _sectionTitle(l10n.pdf_sectionVerifiedBy),
       pw.SizedBox(height: 6),
       pw.Wrap(
         spacing: 8,
         runSpacing: 8,
         children: signatures
             .map(
-              (sig) =>
-                  PdfSharedComponents.buildSignatureBlock(sig, dates: dates),
+              (sig) => PdfSharedComponents.buildSignatureBlock(
+                sig,
+                dates: dates,
+                l10n: l10n,
+              ),
             )
             .toList(),
       ),
@@ -741,31 +852,33 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     ];
   }
 
-  List<pw.Widget> _verificationSection() {
+  List<pw.Widget> _verificationSection(AppLocalizations l10n) {
     return [
-      _sectionTitle('Verification'),
+      _sectionTitle(l10n.pdf_sectionVerification),
       pw.SizedBox(height: 6),
       pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           PdfSharedComponents.buildLargeSignatureBlock(
-            label: 'Instructor Signature',
+            label: l10n.pdf_instructorSignature,
           ),
           pw.SizedBox(width: 24),
           PdfSharedComponents.buildLargeSignatureBlock(
-            label: 'Buddy Signature',
+            label: l10n.pdf_buddySignature,
           ),
           pw.SizedBox(width: 24),
-          PdfSharedComponents.buildStampArea(),
+          PdfSharedComponents.buildStampArea(label: l10n.pdf_officialStamp),
         ],
       ),
     ];
   }
 
-  String _duration(Duration d) {
+  String _duration(Duration d, AppLocalizations l10n) {
     final hours = d.inHours;
     final minutes = d.inMinutes % 60;
-    return hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+    return hours > 0
+        ? l10n.pdf_hoursMinutes('$hours', '$minutes')
+        : l10n.pdf_minutesShort('$minutes');
   }
 }
 

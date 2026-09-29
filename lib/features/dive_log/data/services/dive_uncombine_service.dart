@@ -392,9 +392,10 @@ class DiveUncombineService {
                   lead.maxDepth ?? ownSummary?.maxDepth ?? diveRow.maxDepth,
                 ),
                 avgDepth: Value(lead.avgDepth ?? diveRow.avgDepth),
-                bottomTime: Value(
-                  lead.duration ?? ownSummary?.bottomTime ?? diveRow.bottomTime,
-                ),
+                // Bottom time is derived, never measured: the provenance
+                // row's duration is the runtime its computer recorded, so it
+                // is not a candidate here (issue #2421).
+                bottomTime: Value(ownSummary?.bottomTime ?? diveRow.bottomTime),
                 waterTemp: Value(lead.waterTemp ?? diveRow.waterTemp),
                 surfaceIntervalSeconds: Value(
                   lead.surfaceInterval ?? diveRow.surfaceIntervalSeconds,
@@ -667,9 +668,9 @@ class DiveUncombineService {
           keptLead.maxDepth ?? keptSummary?.maxDepth ?? diveRow.maxDepth,
         ),
         avgDepth: Value(keptLead.avgDepth ?? diveRow.avgDepth),
-        bottomTime: Value(
-          keptLead.duration ?? keptSummary?.bottomTime ?? diveRow.bottomTime,
-        ),
+        // Derived from the kept segment's samples; keptLead.duration is a
+        // runtime, never a bottom time (issue #2421).
+        bottomTime: Value(keptSummary?.bottomTime ?? diveRow.bottomTime),
         waterTemp: Value(keptLead.waterTemp ?? diveRow.waterTemp),
         // Both fall back to where the kept segment actually ends, never to
         // the combined dive's own end. Falling back to diveRow.exitTime left

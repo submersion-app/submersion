@@ -20,6 +20,15 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_composer.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_inputs.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_model_memo.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_selection.dart';
+import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:uuid/uuid.dart';
 
 class EquipmentSetEditPage extends ConsumerStatefulWidget {
@@ -34,8 +43,12 @@ class EquipmentSetEditPage extends ConsumerStatefulWidget {
       _EquipmentSetEditPageState();
 }
 
-class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
+class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
+    with FigureSelection<EquipmentSetEditPage> {
   final _formKey = GlobalKey<FormState>();
+
+  /// The live figure's model, reused while the ticked items are unchanged.
+  final _memo = FigureModelMemo();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
 
@@ -44,6 +57,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
   bool _isInitialized = false;
   bool _isDefault = false;
   bool _autoApplyOnComputerImport = false;
+  bool _showFigure = false;
   List<EquipmentSetGeofence> _geofences = [];
 
   @override
@@ -62,6 +76,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
     _selectedEquipmentIds.addAll(set.equipmentIds);
     _isDefault = set.isDefault;
     _autoApplyOnComputerImport = set.autoApplyOnComputerImport;
+    _showFigure = set.showFigure;
     _geofences = List.of(set.geofences);
   }
 
@@ -145,11 +160,24 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
               ? context.l10n.equipment_setEdit_appBar_editTitle
               : context.l10n.equipment_setEdit_appBar_newTitle,
         ),
+        // Save sits top right, where the gear editor has it (issue #2266);
+        // the button at the bottom of the form stays for divers who scroll.
+        actions: [
+          Tooltip(
+            message: widget.isEditing
+                ? context.l10n.equipment_setEdit_saveTooltip_edit
+                : context.l10n.equipment_setEdit_saveTooltip_new,
+            child: AppBarTextAction(
+              label: context.l10n.common_action_save,
+              onPressed: _isLoading ? null : () => _saveSet(existingSet),
+              busy: _isLoading,
+            ),
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+        child: _formScroll(
           children: [
             // Name
             TextFormField(
@@ -203,6 +231,18 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
               ),
               value: _autoApplyOnComputerImport,
               onChanged: (v) => setState(() => _autoApplyOnComputerImport = v),
+            ),
+            const SizedBox(height: 8),
+
+            // The diver figure on the set page (issue #2326), off by default.
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.l10n.equipment_setEdit_figureSwitch_title),
+              subtitle: Text(
+                context.l10n.equipment_setEdit_figureSwitch_subtitle,
+              ),
+              value: _showFigure,
+              onChanged: (v) => setState(() => _showFigure = v),
             ),
             const SizedBox(height: 16),
 
@@ -330,27 +370,141 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
                 // Labelled as one list, so identical items read differently
                 // from each other (#1549).
                 final labels = equipmentRowLabelsOf(context, ref, equipment);
+                // Members the diver can no longer see (a share was removed,
+                // issue #2046) stay selected, so saving keeps them; they are
+                // listed without a checkbox and marked.
+                final visibleIds = ref
+                    .watch(allEquipmentProvider)
+                    .value
+                    ?.map((e) => e.id)
+                    .toSet();
+                final unshared = [
+                  if (visibleIds != null)
+                    for (final item in existingSet?.items ?? const [])
+                      if (!visibleIds.contains(item.id)) item,
+                ];
 
-                return Column(
-                  children: groups.map((group) {
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (group.type != null)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                              child: EquipmentGroupHeader(type: group.type!),
-                            ),
-                          ...group.items.map(
-                            (item) =>
-                                _buildEquipmentCheckbox(context, item, labels),
+                // The live figure (issue #2326): the ticked items that have
+                // a row here, in the order the page lists them, so its
+                // numbers run down the rows. A retired member has no row,
+                // so it is not drawn. Parts wait for the components index,
+                // as on the set page.
+                final ordered = [
+                  for (final group in groups)
+                    for (final item in group.items)
+                      if (_selectedEquipmentIds.contains(item.id)) item,
+                ];
+                final componentsAsync = ref.watch(
+                  equipmentComponentsIndexProvider,
+                );
+                final components = componentsAsync.hasError
+                    ? ComponentsIndex.empty
+                    : componentsAsync.value;
+                final model =
+                    _showFigure && components != null && ordered.isNotEmpty
+                    ? _memo.of(
+                        (
+                          equipment,
+                          [for (final item in ordered) item.id].join('|'),
+                          components,
+                          ref.watch(equipmentArrangementProvider),
+                          Localizations.localeOf(context),
+                        ),
+                        () => composeFigure(
+                          figureInputsFromItems(
+                            ordered,
+                            components: components,
                           ),
-                        ],
+                        ),
+                      )
+                    : null;
+                final numberById = model == null
+                    ? const <String, int>{}
+                    : {for (final p in model.numbered) p.item.id: p.number};
+                // The widest badge the rows will show, at the diver's text
+                // size: the highest number takes the most digits.
+                final badgeSlot = model == null
+                    ? null
+                    : FigureNumberBadge.widthFor(
+                        model.itemCount,
+                        24,
+                        textScaler: MediaQuery.textScalerOf(context),
+                      );
+                return Column(
+                  children: [
+                    if (model != null) ...[
+                      Card(
+                        key: figureKey,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          // Typing a name does not rebuild the page, so the
+                          // summary listens to the field itself.
+                          child: ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: _nameController,
+                            builder: (context, value, _) {
+                              final name = value.text.trim();
+                              return GearFigure(
+                                model: model,
+                                title: name.isEmpty
+                                    ? context
+                                          .l10n
+                                          .equipment_setEdit_appBar_newTitle
+                                    : name,
+                                selectedItemId: selectedFigureItemId,
+                                selectionSerial: figureSelectionSerial,
+                                onItemTap: (placed) =>
+                                    selectFigureItem(placed.item.id),
+                              );
+                            },
+                          ),
+                        ),
                       ),
-                    );
-                  }).toList(),
+                      const SizedBox(height: 8),
+                    ],
+                    if (unshared.isNotEmpty)
+                      Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Column(
+                          children: [
+                            for (final item in unshared)
+                              ListTile(
+                                enabled: false,
+                                title: Text(item.name),
+                                subtitle: Text(
+                                  context.l10n.equipment_set_noLongerShared,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    for (final group in groups)
+                      Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (group.type != null)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  12,
+                                  16,
+                                  0,
+                                ),
+                                child: EquipmentGroupHeader(type: group.type!),
+                              ),
+                            for (final item in group.items)
+                              _buildEquipmentCheckbox(
+                                context,
+                                item,
+                                labels,
+                                numberById[item.id],
+                                badgeSlot: badgeSlot,
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -389,44 +543,101 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
     );
   }
 
+  /// The form's scroll view. While the figure shows, every row is built so a
+  /// tap on the figure can scroll to any of them (issue #2326); off, the
+  /// form stays the lazily built list it always was, so a long inventory
+  /// builds no faster or slower than before the figure.
+  Widget _formScroll({required List<Widget> children}) => _showFigure
+      ? SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: children,
+          ),
+        )
+      : ListView(padding: const EdgeInsets.all(16), children: children);
+
+  /// One row of the picker. [number] is the item's figure number while the
+  /// figure shows; it leads the row as a badge that brings the figure into
+  /// view. While the figure shows, every row leads with a slot [badgeSlot]
+  /// wide (the widest badge at the diver's text size), holding the badge or
+  /// nothing, so every name starts at the same place. Null when it is off.
   Widget _buildEquipmentCheckbox(
     BuildContext context,
     EquipmentItem item,
     Map<String, EquipmentRowLabel> labels,
-  ) {
+    int? number, {
+    double? badgeSlot,
+  }) {
     final isSelected = _selectedEquipmentIds.contains(item.id);
+    final scheme = Theme.of(context).colorScheme;
+    final flashing = number != null && item.id == selectedFigureItemId;
+    final highlight = flashing ? figureHighlightFor(scheme) : null;
+    final icon = Icon(
+      equipmentTypeIcon(item.type),
+      color: highlight?.onFill ?? scheme.onSurfaceVariant,
+    );
 
-    return CheckboxListTile(
-      value: isSelected,
-      onChanged: (value) {
-        setState(() {
-          if (value == true) {
-            _selectedEquipmentIds.add(item.id);
-          } else {
-            _selectedEquipmentIds.remove(item.id);
-          }
-        });
-      },
-      title: Text(item.name),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          switch (labels[item.id]?.subtitle) {
-            final detail? => Text(detail),
-            null => const SizedBox.shrink(),
+    return KeyedSubtree(
+      key: figureRowKey(item.id),
+      child: ListTileTheme.merge(
+        textColor: highlight?.onFill,
+        iconColor: highlight?.onFill,
+        child: CheckboxListTile(
+          tileColor: highlight?.fill,
+          value: isSelected,
+          onChanged: (value) {
+            setState(() {
+              if (value == true) {
+                _selectedEquipmentIds.add(item.id);
+              } else {
+                _selectedEquipmentIds.remove(item.id);
+              }
+            });
           },
-          ServiceStatusIndicatorFor(
-            equipmentId: item.id,
-            density: ServiceIndicatorDensity.compact,
+          title: Text(item.name),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              switch (labels[item.id]?.subtitle) {
+                final detail? => Text(detail),
+                null => const SizedBox.shrink(),
+              },
+              ServiceStatusIndicatorFor(
+                equipmentId: item.id,
+                density: ServiceIndicatorDensity.compact,
+              ),
+            ],
           ),
-        ],
+          secondary: badgeSlot == null
+              ? icon
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: badgeSlot,
+                      child: number == null
+                          ? null
+                          : Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: FigureNumberBadge(
+                                number: number,
+                                selected: flashing,
+                                onTap: () => selectFigureItem(
+                                  item.id,
+                                  revealFigure: true,
+                                ),
+                              ),
+                            ),
+                    ),
+                    const SizedBox(width: 8),
+                    icon,
+                  ],
+                ),
+          controlAffinity: ListTileControlAffinity.trailing,
+        ),
       ),
-      secondary: Icon(
-        equipmentTypeIcon(item.type),
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-      controlAffinity: ListTileControlAffinity.trailing,
     );
   }
 
@@ -504,6 +715,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
         description: _descriptionController.text.trim(),
         equipmentIds: _selectedEquipmentIds.toList(),
         autoApplyOnComputerImport: _autoApplyOnComputerImport,
+        showFigure: _showFigure,
         createdAt: existingSet?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );

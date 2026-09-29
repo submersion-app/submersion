@@ -58,6 +58,9 @@ class EquipmentSetRepository {
   ///   the cascade propagation above is delete-only, so a RENAME of a member
   ///   only surfaces if this table is watched directly.
   /// - `equipment_set_geofences` -- hydrated by the set detail/edit providers.
+  /// - `equipment_attributes` -- hydrated with each item; a member's colour
+  ///   tints the set page's diver figure, and a synced colour edit writes
+  ///   only this table (issue #2326).
   ///
   /// Without this, deleting a gear item left every cached set carrying the dead
   /// id; the edit form then re-inserted it and the save died on the FK
@@ -68,6 +71,7 @@ class EquipmentSetRepository {
           TableUpdateQuery.onTable(_db.equipmentSets),
           TableUpdateQuery.onTable(_db.equipmentSetItems),
           TableUpdateQuery.onTable(_db.equipment),
+          TableUpdateQuery.onTable(_db.equipmentAttributes),
           TableUpdateQuery.onTable(_db.equipmentSetGeofences),
         ]),
       )
@@ -186,6 +190,7 @@ class EquipmentSetRepository {
               name: Value(set.name),
               description: Value(set.description),
               autoApplyOnComputerImport: Value(set.autoApplyOnComputerImport),
+              showFigure: Value(set.showFigure),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -250,6 +255,7 @@ class EquipmentSetRepository {
           name: Value(set.name),
           description: Value(set.description),
           autoApplyOnComputerImport: Value(set.autoApplyOnComputerImport),
+          showFigure: Value(set.showFigure),
           updatedAt: Value(now),
         ),
       );
@@ -447,6 +453,26 @@ class EquipmentSetRepository {
 
   /// Clear the default flag from a single set, leaving the diver with no
   /// default (nothing auto-applies until a default is set again).
+  /// Turns the diver figure on or off for set [id], writing only that
+  /// column. The page's menu uses this rather than [updateSet], which
+  /// rewrites the name and the member list from the caller's copy and would
+  /// revert anything sync changed since that copy was loaded.
+  Future<void> setShowFigure(String id, bool showFigure) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.equipmentSets)..where((t) => t.id.equals(id))).write(
+      EquipmentSetsCompanion(
+        showFigure: Value(showFigure),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'equipmentSets',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
   Future<void> clearDefault(String id) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.equipmentSets)..where((t) => t.id.equals(id))).write(
@@ -571,6 +597,7 @@ class EquipmentSetRepository {
       equipmentIds: equipmentIds,
       isDefault: row.isDefault,
       autoApplyOnComputerImport: row.autoApplyOnComputerImport,
+      showFigure: row.showFigure,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );

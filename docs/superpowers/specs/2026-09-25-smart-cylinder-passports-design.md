@@ -179,6 +179,10 @@ this fixed order until the record fits: `n`, `sn`, `vi`, `h`, `oc`, `vt`,
 `m`, `wp`, `v`. It never drops `f`, `p` or `w`. A 144-byte NTAG213 gets
 identity only; NTAG215 and NTAG216 get everything.
 
+On a phone the capacity is the NDEF message size the platform reports for
+the tag (`Ndef.maxSize`), which already excludes the Type 2 TLV wrapper
+that `NdefFit.fit` counts for a bare tag (decided 2026-09-27).
+
 The NDEF message holds, in order: the identity URI record; when room allows,
 the newest signed fill record as a second URI record
 (`https://submersion.app/f#<token>`, section 11); when room still allows, an
@@ -236,9 +240,11 @@ shows "Tag out of date" on the Tag card with Rewrite (NFC) and Reprint (QR).
 5. A rejected tag: `PassportResolution.invalid(reason)`, shown as a snack bar
    with the reason and a Paste link retry.
 
-From the tank editor a hit sets the tank's `equipmentId`, copies the spec and
-prefills the gas mix from the newest fill; a miss prefills the spec from the
-snapshot and the mix from any fill record that arrived with it.
+From the tank editor a hit copies the spec, prefills the gas mix from the
+newest fill, and adds the cylinder to the dive's gear list. It never writes
+`dive_tanks.equipment_id`, which the transmitter registry owns (decided
+2026-09-26). A miss prefills the spec from the snapshot and the mix from any
+fill record that arrived with it.
 
 ## 8. The passport page
 
@@ -281,7 +287,10 @@ record that arrived on the same tag or a following scan. Two actions:
   and sets their `anchorDate` from `h` and `vi` with `anchorSetAt` now, and
   attaches `o2-clean` when `oc` is set. It never fabricates `ServiceRecord`
   rows from a sticker. Fills already stored under that passport id are
-  re-linked (section 10.8).
+  re-linked (section 10.8). Because of that re-link, it refuses, creating
+  nothing, when a cylinder anywhere in the library that is still in service
+  holds the id, not only one visible to the diver; a retired or sold holder
+  does not block (decided 2026-09-26).
 
 ## 10. Data
 
@@ -552,20 +561,28 @@ encoder, and `pw.BarcodeWidget` in the PDF label.
 - Android manifest: an intent filter with `android:autoVerify="true"` for
   `https` on `submersion.app` with `pathPrefix` `/c` and `/f`, and a filter
   for the `submersion` scheme.
-- go_router: top-level `/c` and `/f` routes that read `state.uri.fragment`,
-  falling back to `state.uri.query`. The existing top-level `redirect` gates
-  on setup; an incoming link before the shell is ready is queued and replayed
-  the same way an incoming file is.
-- Whether Flutter hands the fragment through intact on both platforms is
-  verified on device in PR 1b. If any carrier strips it, the writer uses the
-  query for that carrier and section 6.1 records the exception.
+- Links arrive through the `app_links` package; Flutter's own deep linking is
+  off on iOS (`FlutterDeepLinkingEnabled` false) and Android
+  (`flutter_deeplinking_enabled` false), because it passes only path, query
+  and fragment and so dropped the `submersion://c` host (decided 2026-09-26).
+  A dispatcher accepts passport tags only, drops a repeat of the same link
+  within two seconds, and holds a link that arrives before any diver exists
+  until setup finishes.
+- Whether each carrier hands the fragment through intact is verified on
+  device (the 1b device checklist). If any carrier strips it, the writer uses
+  the query for that carrier and section 6.1 records the exception.
 
 ### 13.3 NFC
 
 - iOS: `NFCReaderUsageDescription`; entitlement
-  `com.apple.developer.nfc.readersession.formats` with `NDEF`. With the
-  associated domain verified, background tag reading opens the app on a tap
-  with nothing running.
+  `com.apple.developer.nfc.readersession.formats` with `TAG` only
+  (`nfc_manager` 4 reads and writes through `NFCTagReaderSession`, which
+  needs `TAG`; decided 2026-09-27). `NDEF` must not be listed: App Store
+  Connect rejects an upload whose entitlement still names it (ITMS-90778,
+  "NDEF is disallowed"; decided 2026-09-28). With the associated domain verified,
+  background tag reading opens the app on a tap with nothing running.
+  NFC Tag Reading must be enabled for the app id in the Apple developer
+  portal before a signed build.
 - Android: `android.permission.NFC`; `<uses-feature android:name=
   "android.hardware.nfc" android:required="false"/>`; an
   `NDEF_DISCOVERED` filter on the host and `/c` path so a tap launches the
@@ -592,6 +609,11 @@ them). They get Paste link, `.sfr` files through `GlobalDropTarget` and
 `IncomingFileHandler`, label printing, and station mode, which matters
 because a shop PC at the fill panel is the likeliest station. macOS gets
 everything except NFC.
+
+Passport links do not open the app on Windows or Linux: neither installer
+registers the `submersion` protocol or the https app link, so the app does
+not listen for links there, and a label read on those machines goes through
+Paste link (decided 2026-09-27).
 
 ### 13.6 Website deliverable
 

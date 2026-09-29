@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/ocr_import/domain/services/logbook_parser.dart';
@@ -37,6 +39,8 @@ class OcrScanPage extends ConsumerStatefulWidget {
   ConsumerState<OcrScanPage> createState() => _OcrScanPageState();
 }
 
+final _log = LoggerService.forClass(OcrScanPage);
+
 class _OcrScanPageState extends ConsumerState<OcrScanPage> {
   bool _processing = false;
 
@@ -55,13 +59,40 @@ class _OcrScanPageState extends ConsumerState<OcrScanPage> {
     return result?.path;
   }
 
+  /// [_pick], with a denied camera (image_picker's camera_access_denied)
+  /// explained instead of thrown. A library or file failure gets its own
+  /// message: it is not a camera problem.
+  Future<String?> _pickOrExplain(ImageSource source) async {
+    try {
+      return await _pick(source);
+    } on PlatformException catch (e, stackTrace) {
+      _log.error(
+        'Could not pick a logbook photo',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          SnackBar(
+            content: Text(
+              source == ImageSource.camera
+                  ? context.l10n.common_camera_unavailable
+                  : context.l10n.common_photo_pickFailed,
+            ),
+          ),
+        );
+      }
+      return null;
+    }
+  }
+
   Future<void> _pickFromCamera() async {
-    final path = await _pick(ImageSource.camera);
+    final path = await _pickOrExplain(ImageSource.camera);
     if (path != null) await _process(path);
   }
 
   Future<void> _pickFromGallery() async {
-    final path = await _pick(ImageSource.gallery);
+    final path = await _pickOrExplain(ImageSource.gallery);
     if (path != null) await _process(path);
   }
 

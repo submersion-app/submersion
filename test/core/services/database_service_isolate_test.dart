@@ -15,6 +15,8 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
 
+import '../../helpers/fake_path_provider.dart';
+
 class _FakeLocation implements DatabaseLocationService {
   _FakeLocation(this.path);
   final String path;
@@ -43,11 +45,7 @@ class _FakePathProvider extends PathProviderPlatform
 /// new) at the live path, and, unless [withMarker] is false (a build without
 /// the journal), the restore-pending marker. The database must be closed.
 void _strandOriginal(String dbPath, {bool withMarker = true}) {
-  File(dbPath).renameSync('$dbPath.pre-restore');
-  for (final suffix in ['-wal', '-shm']) {
-    final sidecar = File('$dbPath$suffix');
-    if (sidecar.existsSync()) sidecar.renameSync('$dbPath.pre-restore$suffix');
-  }
+  _moveAside(dbPath);
   final rejected = sqlite3.sqlite3.open(dbPath);
   rejected.execute('CREATE TABLE placeholder (x)');
   rejected.execute(
@@ -58,6 +56,16 @@ void _strandOriginal(String dbPath, {bool withMarker = true}) {
     File(
       '$dbPath.restore-pending',
     ).writeAsStringSync('{"startedAt":"2026-09-13T10:00:00.000Z"}');
+  }
+}
+
+/// Moves the closed database at [dbPath] and its sidecars to `.pre-restore`,
+/// leaving the live path empty.
+void _moveAside(String dbPath) {
+  File(dbPath).renameSync('$dbPath.pre-restore');
+  for (final suffix in ['-wal', '-shm']) {
+    final sidecar = File('$dbPath$suffix');
+    if (sidecar.existsSync()) sidecar.renameSync('$dbPath.pre-restore$suffix');
   }
 }
 
@@ -100,7 +108,7 @@ void main() {
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('ws5-isolate-test');
     dbPath = p.join(tempDir.path, 'submersion.db');
-    PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
+    useFakePathProvider(_FakePathProvider(tempDir.path));
     DatabaseService.instance.resetForTesting();
   });
 
@@ -422,13 +430,12 @@ void main() {
     },
   );
 
-  test('a locked stale .pre-restore file fails the restore without leaving '
-      'the database closed', () async {
-    // Regression guard: this delete used to run AFTER close() but OUTSIDE
-    // any try/catch, so a transient failure to remove a leftover
-    // .pre-restore file (a prior restore's own best-effort cleanup can
-    // fail the same way) propagated out of restore() with the live
-    // database already closed and no reopen ever attempted.
+  test('an unmarked leftover beside a fresh empty database is kept, not '
+      'deleted (#1924)', () async {
+    // The state a build before the journal left: its swap-failure rollback
+    // could not put the original back, so the next launch found no live file
+    // and created a fresh, empty database there. The diver's only copy sits
+    // at .pre-restore with no marker, beside a live file that opens cleanly.
     final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
     await DatabaseService.instance.initialize(
       locationService: _FakeLocation(defaultPath),
@@ -438,26 +445,87 @@ void main() {
         .getSingle();
     final backupPath = p.join(tempDir.path, 'backup.db');
     await DatabaseService.instance.backup(backupPath);
-
     final now = DateTime.now();
     await DiverRepository().createDiver(
-      domain.Diver(id: '', name: 'Keep Me', createdAt: now, updatedAt: now),
+      domain.Diver(id: '', name: 'Original', createdAt: now, updatedAt: now),
     );
-
-    // A stale .pre-restore left by some earlier run, and locked.
-    final asidePath = '$defaultPath.pre-restore';
-    File(asidePath).writeAsStringSync('stale');
-    DatabaseService.instance.debugFailDeleteFor = {asidePath};
-
-    await expectLater(
-      DatabaseService.instance.restore(backupPath),
-      throwsA(anything),
+    await DatabaseService.instance.close(strict: true);
+    _moveAside(defaultPath);
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
     );
+    expect(await DiverRepository().getAllDivers(), isEmpty);
 
-    // The original database must still be open and usable, not left
-    // closed by a delete failure that occurred after close().
-    final divers = await DiverRepository().getAllDivers();
-    expect(divers.map((d) => d.name), contains('Keep Me'));
+    await DatabaseService.instance.restore(backupPath);
+
+    final kept = _quarantinedCopies(defaultPath, '.pre-restore.');
+    expect(kept, hasLength(1), reason: 'the original must be kept aside');
+    expect(_diverNames(kept.single), contains('Original'));
+    expect(File('$defaultPath.pre-restore').existsSync(), isFalse);
+  });
+
+  group('a failed restore into a location that holds no database (#2177)', () {
+    // The startup "dive log not found" screen offers a restore into a folder
+    // whose dive log is missing, with nothing open. Rolling back must not
+    // leave an empty database there: the next launch would find a file and
+    // open it as the diver's dive log.
+    late String missingPath;
+    late String backupPath;
+
+    setUp(() async {
+      final sourcePath = p.join(tempDir.path, 'source', 'submersion.db');
+      await DatabaseService.instance.initialize(
+        locationService: _FakeLocation(sourcePath),
+      );
+      backupPath = p.join(tempDir.path, 'backup.db');
+      await DatabaseService.instance.backup(backupPath);
+      await DatabaseService.instance.close(strict: true);
+      DatabaseService.instance.resetForTesting();
+
+      missingPath = p.join(tempDir.path, 'lost', 'submersion.db');
+      await Directory(p.dirname(missingPath)).create();
+      DatabaseService.instance.adoptLocationService(_FakeLocation(missingPath));
+    });
+
+    test('a failed swap leaves the path empty', () async {
+      DatabaseService.instance.debugOnRestoreWindowOpen = (stagingPath) {
+        File(stagingPath).deleteSync();
+      };
+
+      await expectLater(
+        DatabaseService.instance.restore(backupPath),
+        throwsA(anything),
+      );
+
+      expect(File(missingPath).existsSync(), isFalse);
+    });
+
+    test('a restore into a folder that is gone recreates it, as opening '
+        'a new dive log there would', () async {
+      await Directory(p.dirname(missingPath)).delete(recursive: true);
+
+      await DatabaseService.instance.restore(backupPath);
+
+      expect(File(missingPath).existsSync(), isTrue);
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+    });
+
+    test('a rejected newer-schema file leaves the path empty', () async {
+      final raw = sqlite3.sqlite3.open(backupPath);
+      raw.execute(
+        'PRAGMA user_version = ${AppDatabase.currentSchemaVersion + 1}',
+      );
+      raw.close();
+
+      await expectLater(
+        DatabaseService.instance.restore(backupPath),
+        throwsA(isA<DatabaseVersionMismatchException>()),
+      );
+
+      expect(File(missingPath).existsSync(), isFalse);
+    });
   });
 
   test('a newer-schema file rejected at the post-swap reopen rolls back '
@@ -748,8 +816,8 @@ void main() {
     expect(File('$defaultPath.restore-staging').existsSync(), isFalse);
   });
 
-  test('a locked stale leftover aborts the restore before the database '
-      'closes', () async {
+  test('a leftover that cannot be moved aside aborts the restore before '
+      'the database closes', () async {
     final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
     await DatabaseService.instance.initialize(
       locationService: _FakeLocation(defaultPath),
@@ -763,9 +831,17 @@ void main() {
     await DiverRepository().createDiver(
       domain.Diver(id: '', name: 'Keep Me', createdAt: now, updatedAt: now),
     );
+    // An unmarked leftover is moved to a timestamped name, never deleted.
+    // A directory already sitting at that name makes the move fail, as a
+    // file lock that outlasts the restore would. The quarantine's collision
+    // check does not step past it to `-1`: it probes with File.existsSync,
+    // which is false for a directory, so the rename targets the directory
+    // and throws.
     final asidePath = '$defaultPath.pre-restore';
     File(asidePath).writeAsStringSync('stale');
-    DatabaseService.instance.debugFailDeleteFor = {asidePath};
+    DatabaseService.instance.debugClock = () =>
+        DateTime.utc(2026, 9, 13, 10, 30, 5);
+    Directory('$asidePath.20260913T103005Z').createSync();
     var windowOpened = false;
     DatabaseService.instance.debugOnRestoreWindowOpen = (_) =>
         windowOpened = true;
@@ -784,6 +860,7 @@ void main() {
     expect(divers.map((d) => d.name), contains('Keep Me'));
     expect(File('$defaultPath.restore-staging').existsSync(), isFalse);
     expect(File('$defaultPath.restore-pending').existsSync(), isFalse);
+    expect(File(asidePath).readAsStringSync(), 'stale');
   });
 
   test(
@@ -873,38 +950,38 @@ void main() {
     },
   );
 
-  test(
-    'a missing-source restore still sweeps temp files stranded by a prior run',
-    () async {
-      final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
-      await DatabaseService.instance.initialize(
-        locationService: _FakeLocation(defaultPath),
-      );
-      await DatabaseService.instance.database
-          .customSelect('SELECT 1')
-          .getSingle();
+  test('a missing-source restore sweeps the staging file but keeps an unmarked '
+      '.pre-restore (#1924)', () async {
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    await DatabaseService.instance.database
+        .customSelect('SELECT 1')
+        .getSingle();
 
-      // Temp files a prior restore left behind (e.g. a large .pre-restore copy
-      // from a best-effort cleanup that failed) must not accumulate on disk.
-      File('$defaultPath.pre-restore').writeAsStringSync('stale');
-      File('$defaultPath.restore-staging').writeAsStringSync('stale');
+    // A staging copy a prior restore left behind is pure garbage and must
+    // not accumulate on disk. An unmarked .pre-restore is not: nothing
+    // proves it is not the diver's only copy, so the sweep leaves it for
+    // the next real restore to move aside.
+    File('$defaultPath.pre-restore').writeAsStringSync('stale');
+    File('$defaultPath.restore-staging').writeAsStringSync('stale');
 
-      // A restore pointed at a missing file swaps nothing in and reports
-      // that (issue #1344), but still sweeps the temps on the way out.
-      await expectLater(
-        DatabaseService.instance.restore(p.join(tempDir.path, 'missing.db')),
-        throwsA(isA<RestoreSourceMissingException>()),
-      );
+    // A restore pointed at a missing file swaps nothing in and reports
+    // that (issue #1344), but still sweeps the temps on the way out.
+    await expectLater(
+      DatabaseService.instance.restore(p.join(tempDir.path, 'missing.db')),
+      throwsA(isA<RestoreSourceMissingException>()),
+    );
 
-      expect(File('$defaultPath.pre-restore').existsSync(), isFalse);
-      expect(File('$defaultPath.restore-staging').existsSync(), isFalse);
-      // The live database was never touched.
-      final one = await DatabaseService.instance.database
-          .customSelect('SELECT 1 AS v')
-          .getSingle();
-      expect(one.read<int>('v'), 1);
-    },
-  );
+    expect(File('$defaultPath.pre-restore').readAsStringSync(), 'stale');
+    expect(File('$defaultPath.restore-staging').existsSync(), isFalse);
+    // The live database was never touched.
+    final one = await DatabaseService.instance.database
+        .customSelect('SELECT 1 AS v')
+        .getSingle();
+    expect(one.read<int>('v'), 1);
+  });
 
   test('restore succeeds while a watch() subscription is paused', () async {
     // Riverpod 3 auto-pauses the streams of providers nobody is listening to,
@@ -965,7 +1042,7 @@ void main() {
           .getSingle();
       // A temp file stranded by an earlier restore is still swept on the way
       // out, exactly as the silent no-op used to do.
-      final stranded = File('$defaultPath.pre-restore');
+      final stranded = File('$defaultPath.restore-staging');
       await stranded.writeAsString('stale');
 
       var windowOpened = false;

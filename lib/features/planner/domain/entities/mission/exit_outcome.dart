@@ -53,6 +53,11 @@ class ExitOutcome extends Equatable {
   /// Surface exit only: no surface route is within the mission's limit.
   final bool surfaceLimitExceeded;
 
+  /// The computation of this exit threw, so nothing is known about it:
+  /// [feasible] is false, but not because of the water, the gas or the
+  /// battery.
+  final bool failed;
+
   const ExitOutcome({
     required this.mode,
     this.towerId,
@@ -69,9 +74,39 @@ class ExitOutcome extends Equatable {
     this.walkM,
     this.viaShore = false,
     this.surfaceLimitExceeded = false,
+    this.failed = false,
   });
 
+  /// A way out whose computation threw: infeasible, with no time, gas or
+  /// shortfall known. Its times are zero and must not be read as times;
+  /// read [knownExitSeconds] and [knownTtsSeconds] instead.
+  const ExitOutcome.failed({required MissionExitMode mode, String? towerId})
+    : this(
+        mode: mode,
+        towerId: towerId,
+        feasible: false,
+        exitBottomSeconds: 0,
+        ttsSeconds: 0,
+        exitLitersByMember: const {},
+        failed: true,
+      );
+
+  /// Total seconds of the way out. Zero, and meaningless, for a [failed]
+  /// exit or one the current blocked; anything that ranks or reports exits
+  /// reads [knownExitSeconds].
   int get exitSeconds => exitBottomSeconds + ttsSeconds + surfaceSeconds;
+
+  /// [exitSeconds], or null when no way out was travelled: the exit
+  /// [failed], or the current blocked it.
+  int? get knownExitSeconds => failed || blockedByCurrent ? null : exitSeconds;
+
+  /// [ttsSeconds], or null when no ascent was computed: the exit [failed],
+  /// or the current blocked an underwater exit. A blocked surface exit still
+  /// knows its ascent in place, which the safe-surface time reads.
+  int? get knownTtsSeconds =>
+      failed || (blockedByCurrent && mode != MissionExitMode.surface)
+      ? null
+      : ttsSeconds;
 
   ExitOutcome copyWith({
     MissionExitMode? mode,
@@ -92,6 +127,7 @@ class ExitOutcome extends Equatable {
     bool clearWalkM = false,
     bool? viaShore,
     bool? surfaceLimitExceeded,
+    bool? failed,
   }) {
     return ExitOutcome(
       mode: mode ?? this.mode,
@@ -113,6 +149,7 @@ class ExitOutcome extends Equatable {
       walkM: clearWalkM ? null : (walkM ?? this.walkM),
       viaShore: viaShore ?? this.viaShore,
       surfaceLimitExceeded: surfaceLimitExceeded ?? this.surfaceLimitExceeded,
+      failed: failed ?? this.failed,
     );
   }
 
@@ -133,5 +170,6 @@ class ExitOutcome extends Equatable {
     walkM,
     viaShore,
     surfaceLimitExceeded,
+    failed,
   ];
 }

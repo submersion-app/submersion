@@ -14,6 +14,7 @@ import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
 import '../../../../helpers/in_memory_seed_version_store.dart';
+import '../../../../helpers/mock_channels.dart';
 import '../../../../support/fake_cloud_storage_provider.dart';
 
 /// Fake database adapter (mirror of backup_service_test.dart's).
@@ -81,6 +82,7 @@ void main() {
           (MethodCall methodCall) async => Directory.systemTemp.path,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});

@@ -1,7 +1,7 @@
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 
 /// The ids of the built-in dive types, mirroring `kSeedBuiltInDiveTypesSql`
-/// in lib/core/database/database.dart.
+/// in lib/core/database/tables/tag_tables.dart.
 ///
 /// The seed is raw SQL, so this list cannot be derived from it the way
 /// `kBuiltInSiteTypeIds` derives from `kBuiltInSiteTypes`. A test asserts the

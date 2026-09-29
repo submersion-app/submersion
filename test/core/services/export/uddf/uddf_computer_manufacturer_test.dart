@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
-import 'package:submersion/core/services/export/uddf/uddf_import_service.dart';
 
 /// UDDF names the vendor in `<manufacturer><name>`, but the dive-attribution
 /// map only ever carried model/serial/firmware, so an imported computer was
@@ -105,14 +104,6 @@ const _uddfManufacturerWithoutName = '''<?xml version="1.0" encoding="UTF-8" ?>
 ''';
 
 void main() {
-  test('UddfImportService carries the dive computer manufacturer', () async {
-    final result = await UddfImportService().importDivesFromUddf(_uddf);
-    final dive = result['dives']!.single;
-
-    expect(dive['diveComputerModel'], 'Perdix 2');
-    expect(dive['diveComputerManufacturer'], 'Shearwater');
-  });
-
   test(
     'UddfFullImportService carries the dive computer manufacturer',
     () async {
@@ -125,10 +116,10 @@ void main() {
   );
 
   test('ignores a manufacturer element that carries no name', () async {
-    final result = await UddfImportService().importDivesFromUddf(
+    final result = await UddfFullImportService().importAllDataFromUddf(
       _uddfManufacturerWithoutName,
     );
-    final dive = result['dives']!.single;
+    final dive = result.dives.single;
 
     // Never 'VancouverCanada': the address and contact subtrees are not the
     // vendor name.

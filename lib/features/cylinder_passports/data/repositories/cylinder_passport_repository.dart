@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
@@ -50,9 +51,9 @@ class CylinderPassportRepository {
     return value == null || value.isEmpty ? null : value;
   }
 
-  /// The one cylinder holding [passportId], limited to [diverId]'s own gear
-  /// when given. The sharing program's visibility clause replaces the
-  /// diver_id test when it lands.
+  /// The one cylinder holding [passportId], limited to the gear [diverId]
+  /// can see (owns or has been shared) when given; the whole library when
+  /// null.
   Future<String?> findEquipmentIdByPassportId(
     String passportId, {
     String? diverId,
@@ -71,7 +72,8 @@ class CylinderPassportRepository {
               // blocks or answers a lookup while it is not a tank.
               eq.type.equals(EquipmentType.tank.name),
         );
-    if (diverId != null) query.where(eq.diverId.equals(diverId));
+    final visible = VisibilityFilter.equipmentVisibleTo(_db, eq, diverId);
+    if (visible != null) query.where(visible);
     final holders = [for (final r in await query.get()) r.readTable(eq)];
     if (holders.isEmpty) return null;
     // One id should have one holder, but an old import could have written

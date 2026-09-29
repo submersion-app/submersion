@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -25,6 +26,7 @@ import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 
+import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
 
 // ---------------------------------------------------------------------------
@@ -108,6 +110,8 @@ Future<List<Override>> _buildOverrides({
     // The add form's Tags field (issue #1942) watches the tag list, whose
     // repository needs a database this harness does not open.
     tagListNotifierProvider.overrideWith((ref) => _EmptyTagList()),
+    fakeEquipmentQueryIds(),
+    allEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
     equipmentListViewModeProvider.overrideWith((ref) => viewMode),
     equipmentTableConfigProvider.overrideWith(
       (ref) => _TestEquipTableConfigNotifier(),
@@ -814,5 +818,30 @@ void main() {
       );
       expect(find.byKey(const ValueKey('attr-field-connection')), findsNothing);
     });
+  });
+
+  testWidgets('the overflow menu offers scanning a cylinder tag', (
+    tester,
+  ) async {
+    var launched = 0;
+    final overrides = await _buildOverrides();
+    await tester.pumpWidget(
+      _buildTestWidget(
+        child: const EquipmentListPage(),
+        overrides: [
+          ...overrides,
+          passportScanLauncherProvider.overrideWithValue((context) async {
+            launched++;
+            return null;
+          }),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.more_vert).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('equipment_menu_scanTag')));
+    await tester.pumpAndSettle();
+    expect(launched, 1);
   });
 }

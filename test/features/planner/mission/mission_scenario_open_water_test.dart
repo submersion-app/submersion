@@ -243,6 +243,21 @@ void main() {
       expect(exit.surfaceSeconds, 1667);
     });
 
+    test('a shore route below the headway floor is closed too', () {
+      // 0.17 m/s sets straight away from the entry: 0.03 m/s home and on
+      // the worst-case shore swim alike, both under the 0.05 m/s floor, so
+      // neither may be offered as a multi-hour way out.
+      final exit = surface(
+        _mission(
+          current: const CurrentVector(speedMps: 0.17, setsTowardDeg: 36.8699),
+          shore: const ShoreExit(surfaceSwimM: 100, walkM: 300),
+        ),
+      );
+      expect(exit.viaShore, isFalse);
+      expect(exit.blockedByCurrent, isTrue);
+      expect(exit.feasible, isFalse);
+    });
+
     test('a shore route, whose bearing is unknown, takes the worst case', () {
       // Worst case 0.2 - 0.1 = 0.1 m/s: 100 m in 1000 s, then 300 m of
       // walk at 0.8 m/s in 375 s; 1375 s beats the 1667 s swim home.

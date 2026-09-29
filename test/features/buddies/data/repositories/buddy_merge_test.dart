@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/services/database_service.dart';
@@ -275,10 +276,20 @@ void main() {
             updatedAt: now,
           ),
         );
+        // Backdate the stored row. Create and merge both stamp the wall clock
+        // in milliseconds, and in a warm isolate they land in the same one, so
+        // only an older seed makes "strictly later" hold on every run.
+        final seededUpdatedAt = DateTime.utc(2020).millisecondsSinceEpoch;
+        await (database.update(
+          database.certifications,
+        )..where((t) => t.id.equals(cert.id))).write(
+          db.CertificationsCompanion(updatedAt: Value(seededUpdatedAt)),
+        );
 
         final preMergeRow = await (database.select(
           database.certifications,
         )..where((t) => t.id.equals(cert.id))).getSingle();
+        expect(preMergeRow.updatedAt, seededUpdatedAt);
 
         await repository.mergeBuddies(
           mergedBuddy: buddyA.copyWith(name: 'Alice'),

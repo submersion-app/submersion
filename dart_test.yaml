@@ -1,10 +1,23 @@
+# Per-test limit for plain tests; widget tests get the same limit from the
+# binding in test/flutter_test_config.dart. Keep it equal to testTimeLimit in
+# test/helpers/test_timeouts.dart (test_timeouts_test.dart checks).
+#
+# testWidgets passes the binding's limit to each test explicitly, and an
+# explicit timeout wins over this file, over the tag timeouts below and over a
+# file-level @Timeout. A widget test that needs longer passes its own
+# `timeout:` argument.
+timeout: 2m
+
 tags:
   performance:
     # Performance tests use large datasets and may take minutes to run.
     # Run explicitly: flutter test --run-skipped --tags performance
     # Or: flutter test --run-skipped test/performance/
     skip: "Slow performance tests; run with --run-skipped --tags performance"
+    # Minutes by design, and never part of the default run.
+    timeout: 30m
   real-data:
     # Real-data tests use actual user exports and may take time to run.
     # Run explicitly: flutter test --run-skipped --tags real-data
     skip: "Real-data regression tests; run with --run-skipped --tags real-data"
+    timeout: 30m

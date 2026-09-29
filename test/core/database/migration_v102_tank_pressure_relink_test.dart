@@ -4,7 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 
 /// v102 re-links tank_pressure_profiles rows that were stranded under a stale
-/// tank id (issue #510). See `AppDatabase._relinkStrandedTankPressures`.
+/// tank id (issue #510). See `_relinkStrandedTankPressures`.
 ///
 /// v182/v183 (well past v102 in the same ladder) pack whatever
 /// tank_pressure_profiles rows the repair leaves behind into

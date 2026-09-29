@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/app.dart';
 import 'package:submersion/core/router/app_router.dart';
@@ -13,9 +17,14 @@ import 'package:submersion/core/services/sync/sync_initializer.dart'
 import 'package:submersion/core/services/sync/sync_service.dart'
     show ConflictResolution;
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
+import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
+import 'helpers/fake_nfc.dart';
 import 'helpers/mock_providers.dart';
 
 /// A [SyncNotifier] stand-in whose state can be driven directly from a test,
@@ -117,6 +126,14 @@ class _DrivableBackupOp extends StateNotifier<BackupOperationState>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// An incoming-link source a test can push links into.
+class _PushableLinks implements IncomingLinkSource {
+  final controller = StreamController<String>.broadcast();
+
+  @override
+  Stream<String> get links => controller.stream;
+}
+
 /// Minimal router wired to the real [rootNavigatorKey] so the app-root adopt
 /// dialog (which reads `rootNavigatorKey.currentContext`) can surface.
 GoRouter _testRouter() => GoRouter(
@@ -137,19 +154,30 @@ LibraryEpochMarker _marker() => const LibraryEpochMarker(
 );
 
 void main() {
+  /// Builds of the service-due cache writer; stubbed so the app tests never
+  /// evaluate real service clocks.
+  var serviceCacheBuilds = 0;
+
   /// Pumps [SubmersionApp] with the providers its build/launch path reads
   /// stubbed out, leaving [sync] as the driver for the app-root listener.
   Future<void> pumpApp(
     WidgetTester tester,
     _DrivableSyncNotifier sync, {
     _DrivableBackupOp? backupOp,
+    List<Override> extraOverrides = const [],
+    IncomingLinkSource? links,
+    GoRouter? router,
+    FakeNfcTagService? nfc,
   }) async {
-    final base = await getBaseOverrides();
+    final base = await getBaseOverrides(
+      incomingLinks: links,
+      nfcTagService: nfc,
+    );
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           ...base,
-          appRouterProvider.overrideWithValue(_testRouter()),
+          appRouterProvider.overrideWithValue(router ?? _testRouter()),
           syncStateProvider.overrideWith((ref) => sync),
           if (backupOp != null)
             backupOperationProvider.overrideWith((ref) => backupOp),
@@ -157,12 +185,31 @@ void main() {
             (ref) async => DeviceIdentityStatus.unchanged,
           ),
           restoreLastProviderProvider.overrideWith((ref) async {}),
+          equipmentServiceStatusCacheProvider.overrideWith((ref) async {
+            serviceCacheBuilds++;
+          }),
+          ...extraOverrides,
         ],
         child: const SubmersionApp(),
       ),
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('runs the service-due cache writer only on demand (#2365)', (
+    tester,
+  ) async {
+    // The app root keeps the keeper alive, and the keeper starts the
+    // writer only while a filter names serviceDue: with none, launching
+    // the app evaluates no service clocks.
+    serviceCacheBuilds = 0;
+    await pumpApp(tester, _DrivableSyncNotifier(const SyncState()));
+    expect(serviceCacheBuilds, 0);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SubmersionApp)),
+    );
+    expect(container.exists(serviceStatusKeeperProvider), isTrue);
+  });
 
   testWidgets('shows the post-restore syncing notice when sync begins', (
     tester,
@@ -302,5 +349,169 @@ void main() {
     await tester.tap(find.text('Review'));
     await tester.pumpAndSettle();
     expect(find.text('Adopt Restored Library?'), findsOneWidget);
+  });
+
+  testWidgets('a cylinder tag link arriving at the running app is opened', (
+    tester,
+  ) async {
+    final links = _PushableLinks();
+    addTearDown(links.controller.close);
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      links: links,
+      extraOverrides: [
+        diverCountProvider.overrideWith((ref) async => 1),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+
+    // A tag link with no passport id: it reaches the tag handling, which
+    // refuses it with a message instead of navigating.
+    links.controller.add('submersion://c?f=1');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('That is not a cylinder tag'), findsOneWidget);
+  });
+
+  testWidgets('a tag link during setup waits until setup is left', (
+    tester,
+  ) async {
+    final links = _PushableLinks();
+    addTearDown(links.controller.close);
+    final router = GoRouter(
+      navigatorKey: rootNavigatorKey,
+      initialLocation: '/welcome',
+      routes: [
+        GoRoute(
+          path: '/welcome',
+          builder: (context, state) => const Scaffold(body: Text('wizard')),
+        ),
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: SizedBox.shrink()),
+        ),
+      ],
+    );
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      links: links,
+      router: router,
+      extraOverrides: [
+        // The wizard has already written the diver row: divers exist, but
+        // setup is still on screen.
+        diverCountProvider.overrideWith((ref) async => 1),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+
+    links.controller.add('submersion://c?f=1');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('That is not a cylinder tag'), findsNothing);
+
+    router.go('/');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('That is not a cylinder tag'), findsOneWidget);
+  });
+
+  testWidgets('a tag link before the navigator is built is kept, not lost', (
+    tester,
+  ) async {
+    final links = _PushableLinks();
+    addTearDown(links.controller.close);
+    final gate = Completer<void>();
+    // An async top-level redirect, like the app's own: go_router builds no
+    // Navigator until it resolves.
+    final router = GoRouter(
+      navigatorKey: rootNavigatorKey,
+      redirect: (context, state) async {
+        await gate.future;
+        return null;
+      },
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: SizedBox.shrink()),
+        ),
+      ],
+    );
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      links: links,
+      router: router,
+      extraOverrides: [
+        diverCountProvider.overrideWith((ref) async => 1),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+    expect(rootNavigatorKey.currentContext, isNull);
+
+    links.controller.add('submersion://c?f=1');
+    await tester.pump();
+
+    gate.complete();
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.text('That is not a cylinder tag'), findsOneWidget);
+  });
+
+  testWidgets('NFC turned on in the system settings is noticed on return', (
+    tester,
+  ) async {
+    final nfc = FakeNfcTagService(supportValue: NfcSupport.disabled);
+    await pumpApp(tester, _DrivableSyncNotifier(const SyncState()), nfc: nfc);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SubmersionApp)),
+    );
+    final sub = container.listen(nfcSupportProvider, (_, _) {});
+    addTearDown(sub.close);
+    expect(
+      await container.read(nfcSupportProvider.future),
+      NfcSupport.disabled,
+    );
+
+    // The diver follows "Turn it on in the system settings" and comes back.
+    nfc.supportValue = NfcSupport.enabled;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(await container.read(nfcSupportProvider.future), NfcSupport.enabled);
+  });
+
+  testWidgets('the iOS NFC sheet coming and going is not a return to the app', (
+    tester,
+  ) async {
+    // The sheet makes the app inactive, then resumed. Taken as leaving and
+    // coming back, App Lock set to Immediately would lock after every tag
+    // and every tag would start a sync.
+    final nfc = FakeNfcTagService(supportValue: NfcSupport.disabled);
+    await pumpApp(tester, _DrivableSyncNotifier(const SyncState()), nfc: nfc);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SubmersionApp)),
+    );
+    final sub = container.listen(nfcSupportProvider, (_, _) {});
+    addTearDown(sub.close);
+    expect(
+      await container.read(nfcSupportProvider.future),
+      NfcSupport.disabled,
+    );
+
+    nfc.supportValue = NfcSupport.enabled;
+    nfc.sessionActive = true;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    nfc.sessionActive = false;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    // No resume work ran, so NFC was not checked again.
+    expect(
+      await container.read(nfcSupportProvider.future),
+      NfcSupport.disabled,
+    );
   });
 }

@@ -84,7 +84,7 @@ class _RecordingExportService implements ExportService {
     required PdfDateFormatter dates,
     required UnitFormatter units,
     PdfExportOptions options = const PdfExportOptions(),
-    String title = 'Dive Logbook',
+    String? title,
     Map<String, PdfProfileSeries>? profiles,
     List<Certification>? certifications,
     Diver? diver,

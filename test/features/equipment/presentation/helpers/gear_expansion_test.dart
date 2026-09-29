@@ -17,6 +17,29 @@ class _ThrowingEquipmentRepository extends EquipmentRepository {
       throw StateError('database unavailable');
 }
 
+/// Parts owned by Bill: the gauge is shared with Anna, the hose is not.
+class _SharedPartsRepository extends EquipmentRepository {
+  @override
+  Future<List<EquipmentItem>> getEquipmentByIds(List<String> ids) async => [
+    for (final id in ids)
+      EquipmentItem(
+        id: id,
+        diverId: 'bill',
+        name: id,
+        type: EquipmentType.other,
+      ),
+  ];
+
+  @override
+  Future<List<String>> usableSetMemberIds(
+    List<String> ids,
+    String diverId,
+  ) async => [
+    for (final id in ids)
+      if (id == 'gauge') id,
+  ];
+}
+
 void main() {
   const reg = EquipmentItem(
     id: 'reg',
@@ -33,7 +56,78 @@ void main() {
       createdAt: t0,
       updatedAt: t0,
     ),
+    EquipmentComponent(
+      id: 'c2',
+      parentEquipmentId: 'reg',
+      componentEquipmentId: 'gauge',
+      sortOrder: 1,
+      createdAt: t0,
+      updatedAt: t0,
+    ),
   ]);
+
+  Future<GearExpansion?> expand(
+    WidgetTester tester, {
+    required EquipmentRepository repository,
+    required String? diverId,
+  }) async {
+    GearExpansion? result;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          equipmentComponentsIndexProvider.overrideWith((ref) async => index),
+          equipmentRepositoryProvider.overrideWithValue(repository),
+        ],
+        child: MaterialApp(
+          home: Consumer(
+            builder: (context, ref, _) => TextButton(
+              onPressed: () async {
+                result = await expandGearOnPage(
+                  ref,
+                  additions: const [(equipmentId: 'reg', viaSetId: null)],
+                  existing: const [],
+                  existingItems: const [reg],
+                  diverId: diverId,
+                );
+              },
+              child: const Text('add'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('add'));
+    await tester.pumpAndSettle();
+    return result;
+  }
+
+  testWidgets('a shared assembly attaches only the parts the diver sees', (
+    tester,
+  ) async {
+    // Issue #2046: the hose was never shared with Anna, so adding Bill's
+    // shared regulator must not put it on her dive.
+    final result = await expand(
+      tester,
+      repository: _SharedPartsRepository(),
+      diverId: 'anna',
+    );
+    expect(result!.newItems.map((e) => e.id), ['gauge']);
+    expect(result.provenance.map((p) => p.equipmentId), ['reg', 'gauge']);
+  });
+
+  testWidgets('with no diver every part attaches, as before sharing', (
+    tester,
+  ) async {
+    final result = await expand(
+      tester,
+      repository: _SharedPartsRepository(),
+      diverId: null,
+    );
+    expect(
+      result!.newItems.map((e) => e.id),
+      unorderedEquals(['hose', 'gauge']),
+    );
+  });
 
   testWidgets('a failed parts fetch attaches the addition flat', (
     tester,
@@ -58,6 +152,7 @@ void main() {
                     additions: const [(equipmentId: 'reg', viaSetId: null)],
                     existing: const [],
                     existingItems: const [reg],
+                    diverId: null,
                   );
                 } catch (e) {
                   error = e;
@@ -102,6 +197,7 @@ void main() {
                     additions: const [(equipmentId: 'reg', viaSetId: 'w')],
                     existing: const [],
                     existingItems: const [reg],
+                    diverId: null,
                   );
                 } catch (e) {
                   error = e;

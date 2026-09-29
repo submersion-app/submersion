@@ -209,6 +209,22 @@ void main() {
           );
       return [('transmitters', 'transmitters', 'tx-a')];
     },
+    'a saved query': () async {
+      await db
+          .into(db.savedQueries)
+          .insert(
+            SavedQueriesCompanion.insert(
+              id: 'sq-a',
+              subject: 'dives',
+              name: 'Deep',
+              queryJson: '{"version":1,"node":{"t":"text","words":["x"]}}',
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [('saved_queries', 'savedQueries', 'sq-a')];
+    },
     'a cylinder fill': () async {
       await db
           .into(db.cylinderFills)
@@ -280,10 +296,56 @@ void main() {
               updatedAt: stale,
             ),
           );
+      await db
+          .into(db.divePlanMissions)
+          .insert(
+            DivePlanMissionsCompanion.insert(
+              id: 'plan-a',
+              planId: 'plan-a',
+              batteryReserveFraction: 1 / 3,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.divePlanMissionLegs)
+          .insert(
+            DivePlanMissionLegsCompanion.insert(
+              id: 'pleg-a',
+              planId: 'plan-a',
+              label: 'T',
+              distanceM: 300,
+              depthM: 20,
+              headingDeg: 90,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.divePlanMissionMembers)
+          .insert(
+            DivePlanMissionMembersCompanion.insert(
+              id: 'pmember-a',
+              planId: 'plan-a',
+              displayName: 'Sam',
+              sacBottom: 15,
+              swimSpeedMps: 0.2,
+              scooterName: 'Blacktip',
+              scooterSpeedMps: 0.9,
+              scooterBurnSeconds: 5400,
+              towSpeedFactor: 0.6,
+              towBurnFactor: 1.5,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
       return [
         ('dive_plans', 'divePlans', 'plan-a'),
         ('dive_plan_tanks', 'divePlanTanks', 'ptank-a'),
         ('dive_plan_segments', 'divePlanSegments', 'pseg-a'),
+        ('dive_plan_missions', 'divePlanMissions', 'plan-a'),
+        ('dive_plan_mission_legs', 'divePlanMissionLegs', 'pleg-a'),
+        ('dive_plan_mission_members', 'divePlanMissionMembers', 'pmember-a'),
       ];
     },
     'a trip checklist template and its items': () async {
@@ -651,11 +713,14 @@ void main() {
     // Adding a table with a plain `diver_id REFERENCES divers(id)` re-breaks
     // the delete for any diver who owns a row of it. This fails until the
     // new table gets an ON DELETE action or a step in
-    // deleteDiverWithReassignment, and is listed in _clearedByDelete.
+    // deleteDiverWithReassignment, and is listed in _clearedByDelete. SET
+    // NULL keeps the row and cannot block the delete, as in the reference
+    // census below (equipment_ownership_events, issue #2046).
     final unhandled = {
       for (final (table, _, target, onDelete) in await foreignKeys())
         if (target == 'divers' &&
             onDelete != 'CASCADE' &&
+            onDelete != 'SET NULL' &&
             !_clearedByDelete.contains(table))
           table,
     };
@@ -673,6 +738,9 @@ void main() {
     // here.
     const clearedReferences = {
       'checklist_template_items.template_id',
+      'dive_plan_mission_legs.plan_id',
+      'dive_plan_mission_members.plan_id',
+      'dive_plan_missions.plan_id',
       'dive_plan_segments.plan_id',
       'dive_plan_tanks.plan_id',
       'dive_plans.linked_dive_id',
@@ -727,6 +795,7 @@ const _clearedByDelete = {
   'tank_presets',
   'transmitters',
   'cylinder_fills',
+  'saved_queries',
   'trips',
   'weight_presets',
 };

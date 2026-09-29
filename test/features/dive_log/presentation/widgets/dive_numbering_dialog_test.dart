@@ -253,6 +253,38 @@ void main() {
         );
       });
 
+      testWidgets('Renumber refuses a start number the field is flagging '
+          '(#1900 review)', (tester) async {
+        final repo = _FakeDiveRepository();
+        await _pumpAndOpen(tester, repo: repo);
+
+        await tester.tap(find.text('Renumber all dives'));
+        await tester.pumpAndSettle();
+
+        // Renumbering cannot be undone, so it never runs from a number the
+        // diver can see is not the one they typed.
+        for (final (typed, message) in [
+          ('5.5', 'Enter a whole number'),
+          ('0', 'Enter 1 or more'),
+          ('-3', 'Enter 1 or more'),
+        ]) {
+          await tester.enterText(find.byType(TextField), typed);
+          await tester.pumpAndSettle();
+          expect(find.text(message), findsOneWidget, reason: typed);
+
+          await tester.tap(find.text('Renumber'));
+          await tester.pumpAndSettle();
+          expect(repo.renumberAllCalled, isFalse, reason: typed);
+          expect(find.text('Renumber All Dives'), findsOneWidget);
+        }
+
+        await tester.enterText(find.byType(TextField), '50');
+        await tester.tap(find.text('Renumber'));
+        await tester.pumpAndSettle();
+
+        expect(repo.renumberStartFrom, 50);
+      });
+
       testWidgets('cancel in confirmation dialog does not call repository', (
         tester,
       ) async {

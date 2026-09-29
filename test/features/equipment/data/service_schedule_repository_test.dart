@@ -36,6 +36,32 @@ void main() {
     expect(kindIds, isNot(contains('o2-clean'))); // autoAttach = false
   });
 
+  // Issue #2275: a regulator split into parts (#1487) is serviced part by
+  // part, so a new first or second stage gets the regulator service clock
+  // a whole regulator does. A hose is inspected or replaced, not serviced.
+  for (final type in [EquipmentType.firstStage, EquipmentType.secondStage]) {
+    test('auto-attach creates regulator-service for a ${type.name}', () async {
+      final part = await equipmentRepo.createEquipment(
+        EquipmentItem(id: '', name: 'Part', type: type),
+      );
+      final schedules = await repo.getSchedulesForEquipment(part.id);
+      final kindIds = schedules.map((s) => s.serviceKindId).toSet();
+      expect(kindIds, contains('regulator-service'));
+      expect(kindIds, isNot(contains('o2-clean'))); // autoAttach = false
+    });
+  }
+
+  test('auto-attach creates no regulator-service for a hose', () async {
+    final hose = await equipmentRepo.createEquipment(
+      const EquipmentItem(id: '', name: 'Hose', type: EquipmentType.hose),
+    );
+    final schedules = await repo.getSchedulesForEquipment(hose.id);
+    expect(
+      schedules.map((s) => s.serviceKindId),
+      isNot(contains('regulator-service')),
+    );
+  });
+
   test('auto-attach is idempotent', () async {
     final tank = await makeTank();
     await repo.autoAttachForEquipment(

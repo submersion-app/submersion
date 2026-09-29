@@ -1,8 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/services/nfc_manager_tag_service.dart';
+import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
+import 'package:submersion/features/cylinder_passports/data/services/passport_adoption_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
@@ -12,6 +16,10 @@ final cylinderFillRepositoryProvider = Provider<CylinderFillRepository>(
 
 final cylinderPassportRepositoryProvider = Provider<CylinderPassportRepository>(
   (ref) => CylinderPassportRepository(),
+);
+
+final passportAdoptionServiceProvider = Provider<PassportAdoptionService>(
+  (ref) => PassportAdoptionService(),
 );
 
 /// The cylinder's passport id, or null until the passport page mints one.
@@ -50,3 +58,22 @@ final newestFillProvider = FutureProvider.family<CylinderFill?, String>((
   final fills = await ref.watch(fillsForEquipmentProvider(equipmentId).future);
   return fills.isEmpty ? null : fills.first;
 });
+
+/// Whether this platform has NFC tag reading at all: phones only
+/// (spec 13.3). An iPad reports itself unsupported through the service.
+bool nfcPlatform() =>
+    !kIsWeb &&
+    (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android);
+
+final nfcTagServiceProvider = Provider<NfcTagService>(
+  (ref) =>
+      nfcPlatform() ? NfcManagerTagService() : const UnsupportedNfcTagService(),
+);
+
+/// Re-checked when a screen first asks and whenever the app resumes (the
+/// app root invalidates it), since the diver can turn NFC on and off in the
+/// system settings.
+final nfcSupportProvider = FutureProvider.autoDispose<NfcSupport>(
+  (ref) => ref.watch(nfcTagServiceProvider).support(),
+);

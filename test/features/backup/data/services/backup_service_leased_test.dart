@@ -10,6 +10,8 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
 
+import '../../../../helpers/mock_channels.dart';
+
 /// Fake of the narrow bookmark seam so the leased resolver can be tested
 /// without a native channel.
 class _FakeBookmarkPort implements BackupBookmarkPort {
@@ -48,6 +50,7 @@ void main() {
           (call) async => Directory.systemTemp.path,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});

@@ -2,10 +2,11 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Applies the owner-or-shared visibility predicate to queries on tables
-/// that have a nullable `diver_id` and an `is_shared` column (trips,
-/// dive_sites). When `diverId` is `null`, every entry point is a no-op so
-/// existing "all divers / unfiltered" call sites keep working unchanged.
+/// Applies owner-or-shared visibility predicates: an `is_shared` flag on
+/// trips and dive_sites (nullable `diver_id`), per-profile share rows for
+/// equipment (issue #2046). When `diverId` is `null`, every entry point is a
+/// no-op so existing "all divers / unfiltered" call sites keep working
+/// unchanged.
 class VisibilityFilter {
   const VisibilityFilter._();
 
@@ -27,6 +28,55 @@ class VisibilityFilter {
   ) {
     if (diverId == null) return;
     query.where((t) => t.diverId.equals(diverId) | t.isShared.equals(true));
+  }
+
+  /// Owner-or-shared predicate for `equipment` (issue #2046): an item is
+  /// visible to [diverId] when [diverId] owns it or holds an
+  /// `equipment_shares` row for it. Unlike trips and sites there is no
+  /// all-profiles flag; sharing is per profile. No-op for a null [diverId].
+  static void applyToEquipment(
+    AppDatabase db,
+    SimpleSelectStatement<$EquipmentTable, EquipmentData> query,
+    String? diverId,
+  ) {
+    if (diverId == null) return;
+    query.where((t) => equipmentVisibleTo(db, t, diverId)!);
+  }
+
+  /// The [applyToEquipment] predicate over [equipment], for queries that are
+  /// not a plain select on the table (a join through `equipment`). Null for a
+  /// null [diverId], so the caller adds nothing.
+  static Expression<bool>? equipmentVisibleTo(
+    AppDatabase db,
+    $EquipmentTable equipment,
+    String? diverId,
+  ) {
+    if (diverId == null) return null;
+    final shares = db.equipmentShares;
+    return equipment.diverId.equals(diverId) |
+        equipment.id.isInQuery(
+          db.selectOnly(shares)
+            ..addColumns([shares.equipmentId])
+            ..where(shares.diverId.equals(diverId)),
+        );
+  }
+
+  /// [applyToEquipment] for raw SQL: `$conjunction (alias.diver_id = ? OR
+  /// alias.id IN (items shared with ?))`. Empty for a null [diverId].
+  static SqlFragment equipmentSqlFragment({
+    required String tableAlias,
+    required String? diverId,
+    required String conjunction,
+  }) {
+    if (diverId == null) {
+      return const SqlFragment(whereClause: '', variables: []);
+    }
+    return SqlFragment(
+      whereClause:
+          ' $conjunction ($tableAlias.diver_id = ? OR $tableAlias.id IN '
+          '(SELECT equipment_id FROM equipment_shares WHERE diver_id = ?))',
+      variables: [Variable.withString(diverId), Variable.withString(diverId)],
+    );
   }
 
   /// Returns a SQL fragment and its variables for raw-SQL composition.

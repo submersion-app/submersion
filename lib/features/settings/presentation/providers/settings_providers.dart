@@ -489,6 +489,10 @@ class AppSettings {
   /// Show field-level data source attribution badges on dive details
   final bool showDataSourceBadges;
 
+  /// Draw the dive's gear on the diver figure in the dive detail equipment
+  /// card (issue #2326). Off by default.
+  final bool showDiveFigure;
+
   /// Show profile panel in table view by default
   final bool showProfilePanelInTableView;
 
@@ -618,12 +622,12 @@ class AppSettings {
     this.ascentGasSet = AscentGasSet.allCarried,
     this.o2Narcotic = true,
     this.endLimit = 30.0,
-    this.defaultNdlSource = MetricDataSource.calculated,
-    this.defaultCeilingSource = MetricDataSource.calculated,
-    this.defaultDecoStopSource = MetricDataSource.calculated,
-    this.defaultTtsSource = MetricDataSource.calculated,
-    this.defaultCnsSource = MetricDataSource.calculated,
-    this.defaultGtrSource = MetricDataSource.calculated,
+    this.defaultNdlSource = MetricDataSource.computer,
+    this.defaultCeilingSource = MetricDataSource.computer,
+    this.defaultDecoStopSource = MetricDataSource.computer,
+    this.defaultTtsSource = MetricDataSource.computer,
+    this.defaultCnsSource = MetricDataSource.computer,
+    this.defaultGtrSource = MetricDataSource.computer,
     // Same default as the planner's reserve and defaultGtrReserveBar.
     this.gtrReservePressure = 50.0,
     this.cnsCalculationMethod = CnsCalculationMethod.shearwater,
@@ -680,6 +684,7 @@ class AppSettings {
     this.tripServiceLeadDays = 14,
     this.reminderTime = const TimeOfDay(hour: 9, minute: 0),
     this.showDataSourceBadges = true,
+    this.showDiveFigure = false,
     this.showProfilePanelInTableView = true,
     this.showDetailsPaneDives = false,
     this.showDetailsPaneSites = false,
@@ -860,6 +865,7 @@ class AppSettings {
     int? tripServiceLeadDays,
     TimeOfDay? reminderTime,
     bool? showDataSourceBadges,
+    bool? showDiveFigure,
     bool? showProfilePanelInTableView,
     bool? showDetailsPaneDives,
     bool? showDetailsPaneSites,
@@ -1040,6 +1046,7 @@ class AppSettings {
       tripServiceLeadDays: tripServiceLeadDays ?? this.tripServiceLeadDays,
       reminderTime: reminderTime ?? this.reminderTime,
       showDataSourceBadges: showDataSourceBadges ?? this.showDataSourceBadges,
+      showDiveFigure: showDiveFigure ?? this.showDiveFigure,
       showProfilePanelInTableView:
           showProfilePanelInTableView ?? this.showProfilePanelInTableView,
       showDetailsPaneDives: showDetailsPaneDives ?? this.showDetailsPaneDives,
@@ -2223,6 +2230,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setShowDataSourceBadges(bool value) async {
     state = state.copyWith(showDataSourceBadges: value);
+    await _saveSettings();
+  }
+
+  Future<void> setShowDiveFigure(bool value) async {
+    state = state.copyWith(showDiveFigure: value);
     await _saveSettings();
   }
 

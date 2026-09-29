@@ -81,7 +81,8 @@ dart run build_runner watch --delete-conflicting-outputs
 
 Regenerate code after:
 
-- Changing database schema (`database.dart`)
+- Changing database schema (`database.dart` or a library under
+  `lib/core/database/tables/`)
 - Modifying Freezed classes
 - Updating Riverpod providers with annotations
 - Pulling changes that modify generated files

@@ -93,7 +93,7 @@ void main() {
     await tester.ensureVisible(find.text(l10n.forms_save));
     await tester.tap(find.text(l10n.forms_save));
     await tester.pumpAndSettle();
-    expect(find.text(l10n.passport_logFill_invalidNumber), findsOneWidget);
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
   });
 
   testWidgets('refuses an O2 of zero', (tester) async {

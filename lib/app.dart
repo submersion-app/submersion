@@ -3,7 +3,9 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/utils/system_sheet_lifecycle.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
@@ -21,6 +23,12 @@ import 'package:submersion/features/auto_update/presentation/providers/update_me
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -85,7 +93,12 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     with WidgetsBindingObserver {
   final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _adoptDialogShownThisSession = false;
+  final _lifecycle = SystemSheetLifecycle();
   late final FileShareHandler _fileShareHandler;
+  late final PassportLinkDispatcher _passportLinks;
+  late final GoRouter _linkRouter;
+  bool _hasDivers = false;
+  bool _linkReadyRetryScheduled = false;
   late final AppLifecycleListener _lifecycleListener;
 
   @override
@@ -111,11 +124,34 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         );
       },
     );
+    _passportLinks = PassportLinkDispatcher(
+      source: ref.read(incomingLinkSourceProvider),
+      open: _openPassportLink,
+      alreadyHandled: (text) =>
+          ref.read(recentPassportTagsProvider).takeJustHandled(text),
+    );
+    // A tag tapped on a fresh install waits until setup is over, and one
+    // tapped with the app closed waits for the navigator to exist.
+    _linkRouter = ref.read(appRouterProvider);
+    _linkRouter.routeInformationProvider.addListener(_updatePassportLinkReady);
+    // The SQL count, not the profile list: this listener lives all session,
+    // and keeping the list alive would re-hydrate every profile on each
+    // divers-table write.
+    ref.listenManual<AsyncValue<int>>(diverCountProvider, (_, next) {
+      _hasDivers = (next.value ?? 0) > 0;
+      _updatePassportLinkReady();
+    }, fireImmediately: true);
+    // The serviceDue query field reads a cache of the service engine's
+    // verdicts, and any list can reach it through a relation (a dive's
+    // gear.serviceDue). The keeper runs the cache writer while a filter
+    // names it, and leaves the clocks idle otherwise (#2365).
+    ref.listenManual(serviceStatusKeeperProvider, (_, _) {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeSyncOnLaunch();
       _resumeMediaTransfers();
       _republishOwnedMedia();
       _fileShareHandler.initialize();
+      _passportLinks.start();
       // Fill the per-dive sensor summary cache for dives that predate it or
       // changed since. Single-flight, oldest first, no-op when current.
       SensorSummaryScheduler.instance.scheduleStaleSweep();
@@ -124,6 +160,10 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   @override
   void dispose() {
+    _linkRouter.routeInformationProvider.removeListener(
+      _updatePassportLinkReady,
+    );
+    unawaited(_passportLinks.dispose());
     _fileShareHandler.dispose();
     _lifecycleListener.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -153,15 +193,23 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.hidden) {
-      ref.read(appLockNotifierProvider.notifier).noteBackgrounded();
-    }
-    if (state == AppLifecycleState.resumed) {
-      ref.read(appLockNotifierProvider.notifier).noteResumed();
-      _maybeSyncOnResume();
-      _resumeMediaTransfers();
+    // The iOS NFC sheet over the app is not the diver leaving it.
+    final meaning = _lifecycle.interpret(
+      state,
+      systemSheetUp: ref.read(nfcTagServiceProvider).sessionActive,
+    );
+    switch (meaning) {
+      case LifecycleMeaning.backgrounded:
+        ref.read(appLockNotifierProvider.notifier).noteBackgrounded();
+      case LifecycleMeaning.resumed:
+        ref.read(appLockNotifierProvider.notifier).noteResumed();
+        _maybeSyncOnResume();
+        _resumeMediaTransfers();
+        // NFC may have been turned on in the system settings meanwhile, as
+        // the passport screens tell the diver to do.
+        ref.invalidate(nfcSupportProvider);
+      case LifecycleMeaning.none:
+        break;
     }
   }
 
@@ -347,6 +395,36 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       case IncomingFileOutcome.none:
         break;
     }
+  }
+
+  /// Whether a passport link can open now: a diver exists, setup is no
+  /// longer on screen (the wizard writes the diver before it finishes, and
+  /// finishing replaces the whole stack), and the root navigator is built
+  /// (go_router builds none until its async redirect resolves).
+  void _updatePassportLinkReady() {
+    if (!mounted) return;
+    final settled =
+        _hasDivers &&
+        _linkRouter.routeInformationProvider.value.uri.path != '/welcome';
+    final navigatorBuilt = rootNavigatorKey.currentContext != null;
+    _passportLinks.setReady(settled && navigatorBuilt);
+    // One pending retry at most, however many updates arrive meanwhile.
+    if (settled && !navigatorBuilt && !_linkReadyRetryScheduled) {
+      _linkReadyRetryScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _linkReadyRetryScheduled = false;
+        _updatePassportLinkReady();
+      });
+    }
+  }
+
+  /// Opens a passport tag that arrived as a link. The root navigator's
+  /// context sits under the router and the scaffold messenger, which is all
+  /// [openScannedTag] needs.
+  Future<void> _openPassportLink(String text) async {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    await openScannedTag(context, ref, text);
   }
 
   Future<void> _handleIncomingFiles(List<String> paths) async {

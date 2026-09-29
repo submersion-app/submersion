@@ -20,6 +20,18 @@ class UnitPrefs {
     required this.weight,
     required this.volume,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      other is UnitPrefs &&
+      other.depth == depth &&
+      other.temperature == temperature &&
+      other.pressure == pressure &&
+      other.weight == weight &&
+      other.volume == volume;
+
+  @override
+  int get hashCode => Object.hash(depth, temperature, pressure, weight, volume);
 }
 
 const kMetricPrefs = UnitPrefs(
@@ -40,6 +52,34 @@ FieldDimension dimensionOfUnit(QueryUnit unit) => switch (unit) {
   QueryUnit.l || QueryUnit.cuft => FieldDimension.volume,
   QueryUnit.min => FieldDimension.minutes,
 };
+
+/// The unit the diver sees for [dimension] under [prefs]: what a number
+/// field's suffix shows and what a typed number without a suffix means.
+/// Null for the unitless dimensions (percent, count, none).
+QueryUnit? unitForDimension(FieldDimension dimension, UnitPrefs prefs) {
+  switch (dimension) {
+    case FieldDimension.depth:
+      return prefs.depth == DepthUnit.feet ? QueryUnit.ft : QueryUnit.m;
+    case FieldDimension.temperature:
+      return prefs.temperature == TemperatureUnit.fahrenheit
+          ? QueryUnit.f
+          : QueryUnit.c;
+    case FieldDimension.pressure:
+      return prefs.pressure == PressureUnit.psi ? QueryUnit.psi : QueryUnit.bar;
+    case FieldDimension.weight:
+      return prefs.weight == WeightUnit.pounds ? QueryUnit.lb : QueryUnit.kg;
+    case FieldDimension.volume:
+      return prefs.volume == VolumeUnit.cubicFeet
+          ? QueryUnit.cuft
+          : QueryUnit.l;
+    case FieldDimension.minutes:
+      return QueryUnit.min;
+    case FieldDimension.percent:
+    case FieldDimension.count:
+    case FieldDimension.none:
+      return null;
+  }
+}
 
 /// Converts a typed number to storage units. An explicit [unit] wins; a bare
 /// number takes the diver's unit for [dimension]; a unitless dimension is

@@ -134,6 +134,21 @@ void main() {
     expect(source.computerId, computer.id);
   });
 
+  test('the provenance row stores the runtime, not the bottom time', () async {
+    await runImport([
+      {
+        ...diveEntry(day: 1, model: 'Perdix 2', serial: 'SN-1'),
+        'runtime': const Duration(minutes: 50),
+        'duration': const Duration(minutes: 42),
+      },
+    ]);
+
+    // Bottom time is derived, never stored in place of the runtime the
+    // source measured (issue #2421).
+    final source = (await db.select(db.diveDataSources).get()).single;
+    expect(source.duration, const Duration(minutes: 50).inSeconds);
+  });
+
   test('registers a computer per distinct device in one file', () async {
     await runImport([
       diveEntry(day: 1, model: 'Perdix 2', serial: 'SN-1'),

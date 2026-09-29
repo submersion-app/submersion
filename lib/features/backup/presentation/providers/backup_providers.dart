@@ -589,6 +589,48 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     }
   }
 
+  /// Restore from a database copy a restore set aside next to the live
+  /// database (issue #1923). See [BackupService.restoreFromDatabaseCopy].
+  Future<void> restoreFromDatabaseCopy(
+    String path, {
+    RestoreMode mode = RestoreMode.merge,
+  }) async {
+    if (state.status == BackupOperationStatus.inProgress) return;
+
+    state = BackupOperationState(
+      status: BackupOperationStatus.inProgress,
+      message: _l10n.backup_operation_restoring,
+      isRestoring: true,
+    );
+
+    try {
+      await _service.restoreFromDatabaseCopy(
+        path,
+        mode: mode,
+        onMigrationProgress: _onRestoreMigrationProgress,
+      );
+      await _syncActiveDiverAfterRestore();
+      await _runPostRestoreSafetyReview();
+      // See restoreFromBackup.
+      SensorSummaryScheduler.instance.scheduleStaleSweep();
+      state = const BackupOperationState(
+        status: BackupOperationStatus.restoreComplete,
+      );
+      _ref.invalidate(backupHistoryProvider);
+    } on RestoreSourceMissingException {
+      // The copy was gone by the time the swap ran (issue #1344).
+      state = BackupOperationState(
+        status: BackupOperationStatus.error,
+        message: _l10n.backup_operation_restoreSourceMissing,
+      );
+    } catch (e) {
+      state = BackupOperationState(
+        status: BackupOperationStatus.error,
+        message: _l10n.backup_operation_restoreFailed('$e'),
+      );
+    }
+  }
+
   /// Surface migration-ladder progress while a restored older-schema backup
   /// upgrades to the current schema — the only long phase of the swap, and
   /// otherwise a silent stall behind the restore barrier.

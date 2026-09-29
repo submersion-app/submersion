@@ -5,6 +5,7 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -327,6 +328,66 @@ void main() {
     await retype('eq-1', 'regulator');
     await retype('eq-1', 'tank');
     expect(await repo.findEquipmentIdByPassportId(id, diverId: 'd1'), 'eq-1');
+  });
+
+  group('shared cylinders', () {
+    final shares = EquipmentShareRepository();
+
+    setUp(() async {
+      final t = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: 'd3',
+              name: 'd3',
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      await repo.assignPassportId(
+        equipmentId: 'eq-1',
+        passportId: id,
+        diverId: 'd1',
+      );
+      await shares.shareMany(
+        equipmentIds: ['eq-1'],
+        diverIds: ['d2'],
+        actingDiverId: 'd1',
+      );
+    });
+
+    test('a diver the cylinder is shared with finds it', () async {
+      expect(await repo.findEquipmentIdByPassportId(id, diverId: 'd2'), 'eq-1');
+    });
+
+    test('a diver it is not shared with does not', () async {
+      expect(await repo.findEquipmentIdByPassportId(id, diverId: 'd3'), isNull);
+    });
+
+    test('unsharing hides it again', () async {
+      await shares.unshare(
+        equipmentId: 'eq-1',
+        diverId: 'd2',
+        actingDiverId: 'd1',
+      );
+      expect(await repo.findEquipmentIdByPassportId(id, diverId: 'd2'), isNull);
+      expect(await repo.findEquipmentIdByPassportId(id, diverId: 'd1'), 'eq-1');
+    });
+
+    test('the sharee cannot link the tag while the owner uses it', () async {
+      await expectLater(
+        repo.assignPassportId(
+          equipmentId: 'eq-other',
+          passportId: id,
+          diverId: 'd2',
+        ),
+        throwsA(
+          isA<PassportIdInUse>().having((e) => e.equipmentId, 'id', 'eq-1'),
+        ),
+      );
+      expect(await repo.getPassportId('eq-other'), isNull);
+    });
   });
 }
 

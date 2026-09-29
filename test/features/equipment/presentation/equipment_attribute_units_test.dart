@@ -425,4 +425,23 @@ void main() {
       );
     });
   });
+
+  group('color', () {
+    final def = EquipmentAttributeCatalog.defFor(EquipmentAttrKeys.color);
+    EquipmentAttribute withValue(String value) => EquipmentAttribute.curated(
+      equipmentId: 'e',
+      key: 'color',
+    ).copyWith(valueText: value);
+
+    test('a palette colour shows its name', () {
+      expect(
+        formatAttributeValue(withValue('#EF4444'), def, units, l10n),
+        'Red',
+      );
+    });
+
+    test('anything else shows nothing', () {
+      expect(formatAttributeValue(withValue('Red'), def, units, l10n), '');
+    });
+  });
 }

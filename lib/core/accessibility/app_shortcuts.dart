@@ -1,11 +1,18 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/accessibility/not_while_typing_activator.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
+import 'package:submersion/core/router/section_navigation.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/explore/domain/nl_engine.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Creates a platform-appropriate shortcut activator.
 ///
@@ -30,6 +37,16 @@ class AppShortcuts {
   AppShortcuts._();
 
   static bool _registered = false;
+
+  static const _log = LoggerService('AppShortcuts');
+
+  /// Forget that the shortcuts were registered, so the next
+  /// [ensureRegistered] fills the catalog again.
+  ///
+  /// [ShortcutCatalog.clear] empties the catalog but cannot reach this flag,
+  /// so a test that clears the catalog resets the flag with it.
+  @visibleForTesting
+  static void debugReset() => _registered = false;
 
   /// Register all global shortcuts with the [ShortcutCatalog].
   ///
@@ -97,6 +114,8 @@ class AppShortcuts {
         activator: platformShortcut(LogicalKeyboardKey.keyF),
         isGlobal: true,
       ),
+      // 'Explore with a sentence' is listed by globalBindings, which can
+      // read the platform gate from the provider graph.
 
       // General
       const ShortcutEntry(
@@ -120,14 +139,88 @@ class AppShortcuts {
         isGlobal: true,
       ),
 
-      // Help
+      // Help. Bare "?" is ignored while typing in a text field; the modified
+      // key works everywhere, including inside one (#2145).
       const ShortcutEntry(
         label: 'Keyboard shortcuts',
         category: 'Help',
         activator: SingleActivator(LogicalKeyboardKey.question),
         isGlobal: true,
       ),
+      ShortcutEntry(
+        label: 'Keyboard shortcuts',
+        category: 'Help',
+        activator: platformShortcut(LogicalKeyboardKey.slash),
+        isGlobal: true,
+      ),
     ]);
+  }
+
+  /// Opens Explore when the on-device model can answer, and says why not
+  /// otherwise. The page is useless without a model, so this honours the
+  /// same availability as the app bar action, but waits for the probe: a
+  /// press before anything asked would otherwise read "still loading" and
+  /// be dropped.
+  ///
+  /// One press at a time: presses while the probe is still answering open
+  /// nothing more, and an Explore already on the stack is returned to rather
+  /// than stacked again.
+  static Future<void> _openExplore(BuildContext context) async {
+    if (_openingExplore) return;
+    _openingExplore = true;
+    try {
+      final container = ProviderScope.containerOf(context, listen: false);
+      final NlAvailability availability;
+      try {
+        availability = await container.read(exploreAvailabilityProvider.future);
+      } catch (e, stackTrace) {
+        // A failed probe is an unavailable model, as the app bar reads it.
+        _log.warning('Explore probe failed', error: e, stackTrace: stackTrace);
+        if (context.mounted) _showExploreUnavailable(context);
+        return;
+      }
+      if (!context.mounted) return;
+      if (availability == NlAvailability.available) {
+        context.pushOrReturnTo(_explorePath);
+      } else {
+        _showExploreUnavailable(context);
+      }
+    } finally {
+      _openingExplore = false;
+    }
+  }
+
+  static const _explorePath = '/dives/explore';
+  static const _exploreLabel = 'Explore with a sentence';
+
+  /// True while a press is waiting on the availability probe.
+  static bool _openingExplore = false;
+
+  /// Lists or unlists Explore in the catalog to match the platform gate.
+  /// The gate is a provider so every entry point, and every test override,
+  /// agrees; registration has no container, so the entry follows here.
+  static void _syncExploreEntry(bool supported) {
+    final catalog = ShortcutCatalog.instance;
+    final listed = catalog.entries.any((e) => e.label == _exploreLabel);
+    if (listed == supported) return;
+    if (supported) {
+      catalog.register(
+        ShortcutEntry(
+          label: _exploreLabel,
+          category: 'Search',
+          activator: platformShortcut(LogicalKeyboardKey.keyE),
+          isGlobal: true,
+        ),
+      );
+    } else {
+      catalog.unregisterLabel(_exploreLabel);
+    }
+  }
+
+  static void _showExploreUnavailable(BuildContext context) {
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(content: Text(context.l10n.explore_shortcut_unavailable)),
+    );
   }
 
   /// Returns the global shortcut bindings map for [CallbackShortcuts].
@@ -135,6 +228,11 @@ class AppShortcuts {
     BuildContext context,
   ) {
     ensureRegistered();
+    final exploreSupported = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(explorePlatformSupportedProvider);
+    _syncExploreEntry(exploreSupported);
 
     return {
       // Navigation.
@@ -174,6 +272,8 @@ class AppShortcuts {
       platformShortcut(LogicalKeyboardKey.keyF): () {
         context.push('/dives/search');
       },
+      if (exploreSupported)
+        platformShortcut(LogicalKeyboardKey.keyE): () => _openExplore(context),
 
       // Settings
       platformShortcut(LogicalKeyboardKey.comma): () {
@@ -183,8 +283,13 @@ class AppShortcuts {
         showDiverSwitcherSheet(context);
       },
 
-      // Help overlay (bare "?" key, no modifier — matches convention)
-      const CharacterActivator('?'): () {
+      // Help overlay. Bare "?" follows the common convention, but it must not
+      // fire while the diver is typing, or no field could ever contain a "?"
+      // (#2145). Ctrl+/ (Cmd+/ on macOS) opens the help from anywhere.
+      const NotWhileTypingActivator(CharacterActivator('?')): () {
+        showShortcutsHelpDialog(context);
+      },
+      platformShortcut(LogicalKeyboardKey.slash): () {
         showShortcutsHelpDialog(context);
       },
     };

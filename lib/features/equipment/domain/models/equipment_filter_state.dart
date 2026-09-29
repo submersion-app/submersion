@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
 /// Which service clocks the list narrows to.
@@ -36,6 +36,10 @@ enum ServiceDueFilter {
 /// - Tags (issue #1942) narrow client-side too: an item matches when it
 ///   carries any selected tag. Tags are not on the entity, so [apply] takes
 ///   the list's batch map of tag ids per item.
+/// Whose gear the list shows (issue #2046). Only offered with two or more
+/// profiles.
+enum EquipmentOwnerFilter { all, mine, sharedWithMe }
+
 @immutable
 class EquipmentFilterState {
   /// The status to show, or null for the default view. The default hides
@@ -56,12 +60,22 @@ class EquipmentFilterState {
   /// Tag ids, any-of (issue #1942). Empty means no tag narrowing.
   final Set<String> tagIds;
 
+  /// Whose gear to show (issue #2046). [EquipmentOwnerFilter.all] narrows
+  /// nothing.
+  final EquipmentOwnerFilter owner;
+
+  /// The advanced part (#2365): a typed or built query, ANDed with every
+  /// axis above by `EquipmentFilterQuery.toQuery`.
+  final QueryNode? query;
+
   const EquipmentFilterState({
     this.status,
     this.serviceDue,
     this.type,
     this.attrConditions = const [],
     this.tagIds = const {},
+    this.owner = EquipmentOwnerFilter.all,
+    this.query,
   }) : assert(
          !(serviceDue != null && status != null),
          'The status axis is a single choice: service due or a status, never '
@@ -74,50 +88,12 @@ class EquipmentFilterState {
       hasStatusFilter ||
       type != null ||
       attrConditions.isNotEmpty ||
-      tagIds.isNotEmpty;
+      tagIds.isNotEmpty ||
+      owner != EquipmentOwnerFilter.all ||
+      query != null;
 
   /// Whether the status axis is anything other than the default view.
   bool get hasStatusFilter => status != null || serviceDue != null;
-
-  /// Narrow [equipment] to the selected category, its conditions and the
-  /// selected tags. [tagIdsByEquipment] is each item's tag ids, keyed by
-  /// item id (an item with no entry has no tags).
-  ///
-  /// The status axis is applied upstream by provider selection, so this is the
-  /// only filtering the list itself has to do.
-  List<EquipmentItem> apply(
-    List<EquipmentItem> equipment,
-    Map<String, Iterable<String>> tagIdsByEquipment,
-  ) {
-    final selected = type;
-    if (selected == null && attrConditions.isEmpty && tagIds.isEmpty) {
-      return equipment;
-    }
-    return equipment
-        .where(
-          (e) =>
-              (selected == null || e.type == selected) &&
-              attrConditions.every((c) => c.matches(e)) &&
-              (tagIds.isEmpty ||
-                  (tagIdsByEquipment[e.id] ?? const <String>[]).any(
-                    tagIds.contains,
-                  )),
-        )
-        .toList();
-  }
-
-  /// Whether the tag selection is what emptied [equipment]: some item passes
-  /// the category and its conditions, but none of those carries a selected
-  /// tag. The empty state blames the axis that did the emptying.
-  bool tagsEmptied(
-    List<EquipmentItem> equipment,
-    Map<String, Iterable<String>> tagIdsByEquipment,
-  ) =>
-      tagIds.isNotEmpty &&
-      apply(equipment, tagIdsByEquipment).isEmpty &&
-      copyWith(
-        clearTagIds: true,
-      ).apply(equipment, tagIdsByEquipment).isNotEmpty;
 
   /// Copy with per-axis clearing. Clearing the status axis resets both of its
   /// values, since they are one choice to the diver. A new or cleared
@@ -129,10 +105,13 @@ class EquipmentFilterState {
     EquipmentType? type,
     List<EquipmentAttrCondition>? attrConditions,
     Set<String>? tagIds,
+    EquipmentOwnerFilter? owner,
+    QueryNode? query,
     bool clearStatus = false,
     bool clearType = false,
     bool clearAttrConditions = false,
     bool clearTagIds = false,
+    bool clearQuery = false,
   }) {
     final nextType = clearType ? null : (type ?? this.type);
     final categoryChanged = nextType != this.type;
@@ -146,6 +125,8 @@ class EquipmentFilterState {
                 (categoryChanged ? const [] : this.attrConditions)),
       // Tags do not belong to the category, so a new one keeps them.
       tagIds: clearTagIds ? const {} : (tagIds ?? this.tagIds),
+      owner: owner ?? this.owner,
+      query: clearQuery ? null : (query ?? this.query),
     );
   }
 
@@ -157,7 +138,9 @@ class EquipmentFilterState {
           other.serviceDue == serviceDue &&
           other.type == type &&
           listEquals(other.attrConditions, attrConditions) &&
-          setEquals(other.tagIds, tagIds);
+          setEquals(other.tagIds, tagIds) &&
+          other.owner == owner &&
+          other.query == query;
 
   @override
   int get hashCode => Object.hash(
@@ -166,10 +149,13 @@ class EquipmentFilterState {
     type,
     Object.hashAll(attrConditions),
     Object.hashAllUnordered(tagIds),
+    owner,
+    query,
   );
 
   @override
   String toString() =>
       'EquipmentFilterState(status: $status, serviceDue: $serviceDue, '
-      'type: $type, attrConditions: $attrConditions, tagIds: $tagIds)';
+      'type: $type, attrConditions: $attrConditions, tagIds: $tagIds, '
+      'owner: $owner, query: $query)';
 }

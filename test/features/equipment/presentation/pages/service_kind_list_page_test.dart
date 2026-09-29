@@ -446,6 +446,37 @@ void main() {
       expect(custom.defaultIntervalDays, 540);
     });
 
+    testWidgets('dive, hour and exposure intervals save as typed (#1900)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildDbPage());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Name'),
+        'Reg service',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Interval (dives)'),
+        '100',
+      );
+      await tester.enterText(
+        find.byKey(const Key('service-kind-exposure-coldDives')),
+        '25',
+      );
+      final save = find.text('Save');
+      await tester.ensureVisible(save);
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+
+      final kinds = await tester.runAsync(() => kindRepo.getAllKinds());
+      final custom = kinds!.firstWhere((k) => k.name == 'Reg service');
+      expect(custom.defaultIntervalDives, 100);
+      expect(custom.exposureIntervals.values, contains(25.0));
+    });
+
     testWidgets('delete flow removes the custom kind after confirmation', (
       tester,
     ) async {
@@ -477,6 +508,28 @@ void main() {
       expect(find.text('Doomed kind'), findsNothing);
       final kinds = await tester.runAsync(() => kindRepo.getAllKinds());
       expect(kinds!.where((k) => !k.isBuiltIn), isEmpty);
+    });
+
+    testWidgets('a fractional day interval fails validation instead of '
+        'saving no interval (#1900)', (tester) async {
+      await tester.pumpWidget(buildDbPage());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Name'),
+        'Cell check',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Interval (days)'),
+        '1.5',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter a whole number'), findsOneWidget);
+      expect(find.text('Add service type'), findsOneWidget); // still open
     });
 
     testWidgets('empty name fails validation and keeps the dialog open', (

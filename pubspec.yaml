@@ -38,6 +38,7 @@ dependencies:
   # encrypted databases; the codec only engages when PRAGMA key is set.
   path_provider: ^2.1.5
   path: ^1.9.0
+  path_parsing: ^1.1.0  # SVG path data for the diver figure artwork
   # `@immutable` for the pure-Dart query package (lib/core/query), which
   # must not import Flutter.
   meta: ^1.16.0
@@ -84,6 +85,8 @@ dependencies:
     path: packages/submersion_saf
   submersion_ocr:
     path: packages/submersion_ocr
+  submersion_nl:
+    path: packages/submersion_nl
   submersion_transcoder:
     path: packages/submersion_transcoder
   permission_handler: ^13.0.1
@@ -150,6 +153,8 @@ dependencies:
   flutter_local_notifications: ^22.0.1
   workmanager: ^0.10.7
   timezone: ^0.11.0
+  # Offline zone lookup for dive sites, when an imported dive carries no zone.
+  lat_lng_to_timezone: ^0.2.0
   google_fonts: ^8.0.2
   linked_scroll_controller: ^0.2.0
   cryptography: ^2.9.0
@@ -160,6 +165,16 @@ dependencies:
   # Keeps the screen awake while a blocking sync-maintenance dialog is up: a
   # phone that locks mid-wipe suspends the work behind it (issue #1194).
   wakelock_plus: ^1.7.0
+  # Camera QR scanning of cylinder passport labels (issue #2335).
+  mobile_scanner: ^7.4.2
+  # Incoming passport links (https://submersion.app/c and submersion://c).
+  # Flutter's own deep linking is off because it drops the custom-scheme host.
+  app_links: ^7.2.1
+  # NFC tags on cylinders (issue #2336): sessions, the cross-platform NDEF
+  # tag, and the NDEF message types the passport layer builds and reads.
+  nfc_manager: ^4.2.1
+  nfc_manager_ndef: ^1.1.0
+  ndef_record: ^1.4.2
 
 dev_dependencies:
   flutter_test:

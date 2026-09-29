@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/storage_prov
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fake_path_provider.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Routes getApplicationDocumentsDirectory to a temp dir so the reset handler's
@@ -65,7 +66,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     tempDir = Directory.systemTemp.createTempSync('storage_reset_test');
-    PathProviderPlatform.instance = _FakePathProvider(tempDir.path);
+    useFakePathProvider(_FakePathProvider(tempDir.path));
   });
 
   tearDown(() async {

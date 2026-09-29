@@ -99,6 +99,13 @@ void main() {
     },
   );
 
+  test('returns null when STAC confirms there is no tile here', () async {
+    final service = buildService(
+      (_) async => http.Response(jsonEncode({'features': []}), 200),
+    );
+    expect(await service.depthForCoordinate(zurichseePoint), isNull);
+  });
+
   test('returns null when the STAC lookup fails', () async {
     final service = buildService((_) async => http.Response('oops', 500));
     expect(await service.depthForCoordinate(zurichseePoint), isNull);

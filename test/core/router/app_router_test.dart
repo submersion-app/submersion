@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
@@ -191,6 +192,16 @@ void main() {
   });
 
   group('app_router route configuration', () {
+    test('connections lives under Insights and accepts query params', () {
+      final routes = router.configuration.routes;
+      expect(_findRouteByName(routes, 'connections'), isNotNull);
+      expect(_locationOfRoute(routes, 'connections'), kConnectionsLocation);
+      final match = router.configuration.findMatch(
+        Uri.parse('/insights/connections?mode=around&focus=buddy:abc'),
+      );
+      expect(match.fullPath, '/insights/connections');
+    });
+
     test('the cylinder passport nests under equipment detail', () {
       final names = _collectRouteNames(router.configuration.routes);
       expect(names, contains('equipmentPassport'));
@@ -321,6 +332,14 @@ void main() {
               )
               as GoRoute;
       expect(downloadRoute.path, equals('download'));
+    });
+
+    test('a scanned foreign tag has its own route, not an equipment id', () {
+      final match = router.configuration.findMatch(
+        Uri.parse('/equipment/tag?t=x'),
+      );
+      expect(match.isError, isFalse);
+      expect(match.last.route.name, 'foreignPassport');
     });
   });
 
@@ -1169,6 +1188,14 @@ void main() {
             '/settings is a bottom-nav destination; switching tabs must not '
             'animate, matching every other tab root.',
       );
+    });
+  });
+
+  group('explore route', () {
+    test('is registered under the dive list', () {
+      final route = _findRouteByName(router.configuration.routes, 'explore');
+      expect(route, isNotNull);
+      expect(route!.path, 'explore');
     });
   });
 

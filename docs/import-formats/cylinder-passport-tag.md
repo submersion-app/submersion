@@ -20,10 +20,11 @@ any case, accept `http` and a `www.submersion.app` host, and require the path
 to be exactly `/c`; any other path or host is not a tag. The payload sits in
 the fragment so a browser never sends it to the server.
 
-Write the https form. From the release that adds scanning, and once the
-website's app-link files are published, it opens Submersion directly when
-installed and a browser page that shows the snapshot otherwise. Until then,
-the tag is read by Submersion's own scanner and by pasting the link.
+Write the https form. It opens Submersion directly where the app is
+installed, once the website's app-link files are published, and a browser
+page that shows the snapshot otherwise. Submersion's own scanner (the
+Equipment list's menu, and each tank in the dive editor) and pasting the link
+work without the website.
 
 ## Payload
 
@@ -79,11 +80,14 @@ allows, an Android Application Record for `app.submersion`. Readers process
 URI records in order and ignore records they do not know.
 
 When a tag is too small, optional keys are dropped in this fixed order until
-the record fits: `n`, `sn`, `vi`, `h`, `oc`, `vt`, `m`, `wp`, `v`. `f`, `p`
-and `w` are never dropped. For the example above, a 144-byte NTAG213 drops
-the name and serial and keeps the spec and dates; NTAG215 (504 bytes) and
-NTAG216 (888 bytes) hold everything, and NTAG216 has room for the fill
-record too. Names and serials are cut by whole characters, never mid-glyph.
+the identity record fits: `n`, `sn`, `vi`, `h`, `oc`, `vt`, `m`, `wp`, `v`.
+`f`, `p` and `w` are never dropped. Submersion fits the message to the NDEF
+capacity the phone reports for the tag (about 137 bytes on an NTAG213, 496
+on an NTAG215 and 868 on an NTAG216), and adds the Android Application
+Record only when it still fits. For the example above an NTAG213 drops the
+name and serial and has no room for the Android record, keeping the spec
+and dates; NTAG215 and NTAG216 hold everything, and are the tags to buy. Every write is read back before Submersion reports it as
+written. Names and serials are cut by whole characters, never mid-glyph.
 
 ## Printing
 

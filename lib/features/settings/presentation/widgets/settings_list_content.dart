@@ -101,7 +101,7 @@ const settingsSections = [
     id: 'sharedData',
     icon: Icons.share,
     title: 'Shared data',
-    subtitle: 'Share sites and trips across profiles',
+    subtitle: 'Share sites, trips and equipment across profiles',
   ),
   SettingsSection(
     id: 'units',

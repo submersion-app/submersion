@@ -459,6 +459,94 @@ void main() {
       expect(find.text("Eric's MacBook"), findsOneWidget);
       expect(find.text('Another device'), findsNothing);
     });
+
+    // The verdict columns sync, and a device that cannot reach another
+    // device's path writes nothing, so a verdict on a row linked elsewhere
+    // was recorded there. Saying "this device" beside a Serving block that
+    // reports the source unreachable contradicted it (issue #2458).
+    group('verdict recorded on the linking device', () {
+      testWidgets('found names the peer that linked it', (tester) async {
+        await pump(
+          tester,
+          _item(
+            sourceType: MediaSourceType.localFile,
+            originDeviceId: 'dev-b',
+            lastVerifiedAt: DateTime(2026, 8, 1, 10),
+          ),
+          thisDevice: 'dev-a',
+          peerNames: Stream.value(const {'dev-b': "Eric's MacBook"}),
+        );
+
+        expect(find.text("Found on Eric's MacBook"), findsOneWidget);
+        expect(find.text('Found on this device'), findsNothing);
+      });
+
+      testWidgets('found falls back to another device when unnamed', (
+        tester,
+      ) async {
+        await pump(
+          tester,
+          _item(
+            sourceType: MediaSourceType.localFile,
+            originDeviceId: 'dev-b',
+            lastVerifiedAt: DateTime(2026, 8, 1, 10),
+          ),
+          thisDevice: 'dev-a',
+        );
+
+        expect(find.text('Found on another device'), findsOneWidget);
+        expect(find.text('Found on this device'), findsNothing);
+      });
+
+      testWidgets('missing names the peer that linked it', (tester) async {
+        await pump(
+          tester,
+          _item(
+            sourceType: MediaSourceType.localFile,
+            originDeviceId: 'dev-b',
+            isOrphaned: true,
+          ),
+          thisDevice: 'dev-a',
+          peerNames: Stream.value(const {'dev-b': "Eric's MacBook"}),
+        );
+
+        expect(find.text("Missing from Eric's MacBook"), findsOneWidget);
+        expect(find.text('Missing from this device'), findsNothing);
+      });
+
+      testWidgets('missing falls back to another device when unnamed', (
+        tester,
+      ) async {
+        await pump(
+          tester,
+          _item(
+            sourceType: MediaSourceType.localFile,
+            originDeviceId: 'dev-b',
+            isOrphaned: true,
+          ),
+          thisDevice: 'dev-a',
+        );
+
+        expect(find.text('Missing from another device'), findsOneWidget);
+        expect(find.text('Missing from this device'), findsNothing);
+      });
+
+      testWidgets('a row linked here keeps the this-device wording', (
+        tester,
+      ) async {
+        await pump(
+          tester,
+          _item(
+            sourceType: MediaSourceType.localFile,
+            originDeviceId: 'dev-a',
+            lastVerifiedAt: DateTime(2026, 8, 1, 10),
+          ),
+          thisDevice: 'dev-a',
+        );
+
+        expect(find.text('Found on this device'), findsOneWidget);
+      });
+    });
   });
 
   group('Backup block', () {

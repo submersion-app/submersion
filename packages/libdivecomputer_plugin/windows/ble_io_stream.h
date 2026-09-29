@@ -19,6 +19,8 @@
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.Streams.h>
 
+#include "ble_read_poll.h"
+
 extern "C" {
 #include "libdc_wrapper.h"
 }
@@ -71,6 +73,9 @@ class BleIoStream {
   static int CloseCallback(void* userdata);
   static int IoctlCallback(void* userdata, unsigned int request,
                             void* data, size_t size);
+  // DC_IOCTL_BLE_CHARACTERISTIC_READ (issue #422): read one characteristic
+  // by UUID from any discovered service into the request buffer.
+  int ReadCharacteristic(const winrt::guid& uuid, void* data, size_t size);
   static int PollCallback(void* userdata, int timeout);
   static int PurgeCallback(void* userdata, unsigned int direction);
 
@@ -106,6 +111,11 @@ class BleIoStream {
   static const winrt::guid kUbloxServiceUuid;
   static const winrt::guid kUbloxDataUuid;
   static const winrt::guid kUbloxCreditsUuid;
+  static const winrt::guid kCressiServiceUuid;
+  // Read-poll service (issue #1454): its data characteristic can be read and
+  // written but can neither notify nor indicate.
+  static const winrt::guid kSeacServiceUuid;
+  static const winrt::guid kSeacDataUuid;
 
   // Opening credit grant. 0xFF is reserved by the TIO protocol, so 254 is the
   // largest value that means "credits" rather than a control code.
@@ -126,6 +136,10 @@ class BleIoStream {
   winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
       GattCharacteristic notify_characteristic_{nullptr};
   winrt::event_token notify_token_;
+  // Every characteristic discovery saw, for characteristic reads (#422).
+  std::vector<winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
+                  GattCharacteristic>
+      all_characteristics_;
   // ATT handle of the data notify characteristic, cached so the notification
   // thread can identify a callback's source without reading
   // notify_characteristic_ -- Close() clears that member concurrently, and
@@ -169,6 +183,10 @@ class BleIoStream {
   // require each read to return bytes from at most one notification;
   // coalescing them into a flat buffer loses packet boundaries.
   std::deque<std::vector<uint8_t>> read_chunks_;
+
+  // Non-null only when the read-poll tier was selected. Read, poll and purge
+  // go to it instead of read_chunks_, which stays empty in that mode.
+  std::unique_ptr<BleReadPoller> read_poller_;
 
   int timeout_ms_ = 10000;
   std::string device_name_;

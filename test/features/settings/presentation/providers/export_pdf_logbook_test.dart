@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show Locale;
 
+import 'package:clock/clock.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,11 +23,13 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, DivesCompanion, MediaCompanion;
 
+import '../../../../helpers/mock_channels.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_database.dart';
@@ -135,6 +139,34 @@ class _FixedSettings extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// A clock that moves a calendar day forward on every read, so an export that
+/// reads it once for the cover and again for the file name stamps two dates.
+/// It starts a minute before midnight, the case that split them in practice.
+Clock _dayPerReadClock() {
+  var reads = 0;
+  return Clock(() => DateTime(2199, 7, 14 + reads++, 23, 59));
+}
+
+/// Every reading of [bytes]: the plain text, and the text of each embedded
+/// font subset, whichever of the two the export's fonts produced.
+List<String> _allTexts(List<int> bytes) => [
+  pdfVisibleText(bytes),
+  ...pdfSubsetTexts(bytes),
+];
+
+/// Pins date formatting to en_US for a test that matches ISO digits
+/// literally, so a locale with its own numerals cannot change what the
+/// stamps print; the previous locale is restored afterwards.
+void _pinEnglishDates() {
+  final previous = Intl.defaultLocale;
+  Intl.defaultLocale = 'en_US';
+  addTearDown(() => Intl.defaultLocale = previous);
+}
+
+/// The ISO date an export's file name carries.
+String _fileNameDate(String fileName) =>
+    RegExp(r'_(\d{4}-\d{2}-\d{2})\.pdf$').firstMatch(fileName)!.group(1)!;
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -158,6 +190,7 @@ void main() {
           (call) async => null,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (await workDir.exists()) await workDir.delete(recursive: true);
@@ -399,6 +432,38 @@ void main() {
       );
     });
 
+    test(
+      'stamps the cover and the file name with one instant (#2490)',
+      () async {
+        _pinEnglishDates();
+        final container = makeContainer(
+          settings: const AppSettings(
+            dateFormat: DateFormatPreference.yyyymmdd,
+          ),
+        );
+        await withClock(
+          _dayPerReadClock(),
+          () => notifierOf(container).exportDivesToPdf(
+            const PdfExportOptions(template: PdfTemplate.detailed),
+          ),
+        );
+
+        final state = container.read(exportNotifierProvider);
+        expect(state.status, ExportStatus.success);
+        final date = _fileNameDate(p.basename(state.filePath!));
+        expect(
+          date,
+          startsWith('2199-07-'),
+          reason: 'the file name must be dated by the export clock',
+        );
+        expect(
+          _allTexts(await File(state.filePath!).readAsBytes()),
+          anyElement(contains('Generated on $date')),
+          reason: 'the cover must show the date the file name carries',
+        );
+      },
+    );
+
     test('reports an error when there is nothing to export', () async {
       final container = makeContainer(divesOverride: const []);
       await notifierOf(container).exportDivesToPdf();
@@ -440,6 +505,25 @@ void main() {
       );
     });
 
+    test('prints in the language picked in the export sheet (#2252)', () async {
+      final target = p.join(workDir.path, 'saved_french.pdf');
+      picker.saveFileResult = Uri.file(target);
+      final fr = lookupAppLocalizations(const Locale('fr'));
+
+      final container = makeContainer();
+      await notifierOf(container).savePdfToFile(
+        const PdfExportOptions(
+          template: PdfTemplate.simple,
+          languageCode: 'fr',
+        ),
+      );
+
+      final text = await textAt(target);
+      expect(text, contains(fr.settings_export_pdfDocumentTitle));
+      expect(text, contains(fr.pdf_headerDiveCount(2)));
+      expect(text, isNot(contains('2 dives')));
+    });
+
     test('the detailed template saves a different document', () async {
       final target = p.join(workDir.path, 'saved_detailed.pdf');
       picker.saveFileResult = Uri.file(target);
@@ -466,6 +550,43 @@ void main() {
         final state = container.read(exportNotifierProvider);
         expect(state.status, ExportStatus.idle);
         expect(state.message, 'Save cancelled');
+      },
+    );
+
+    test(
+      'stamps the cover and the file name with one instant (#2490)',
+      () async {
+        _pinEnglishDates();
+        final target = p.join(workDir.path, 'saved_clock.pdf');
+        picker.saveFileResult = Uri.file(target);
+
+        final container = makeContainer(
+          settings: const AppSettings(
+            dateFormat: DateFormatPreference.yyyymmdd,
+          ),
+        );
+        await withClock(
+          _dayPerReadClock(),
+          () => notifierOf(
+            container,
+          ).savePdfToFile(const PdfExportOptions(template: PdfTemplate.simple)),
+        );
+
+        expect(
+          container.read(exportNotifierProvider).status,
+          ExportStatus.success,
+        );
+        final date = _fileNameDate(picker.requestedFileName!);
+        expect(
+          date,
+          startsWith('2199-07-'),
+          reason: 'the suggested name must be dated by the export clock',
+        );
+        expect(
+          _allTexts(await File(target).readAsBytes()),
+          anyElement(contains('Generated $date')),
+          reason: 'the stamp must show the date the suggested name carries',
+        );
       },
     );
 

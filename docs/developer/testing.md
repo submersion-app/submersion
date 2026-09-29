@@ -1,15 +1,8 @@
 # Testing Guide
 
-Submersion has comprehensive test coverage including unit, widget, integration, and performance tests.
-
-## Overview
-
-| Test Type | Count | Coverage |
-|-----------|-------|----------|
-| **Unit Tests** | 165+ | 80%+ |
-| **Widget Tests** | 48+ | Critical paths |
-| **Integration Tests** | 2+ | Full workflows |
-| **Performance Tests** | 6+ | Large datasets |
+Submersion has unit, widget, integration and performance tests. See
+[Coverage](#coverage) for what the coverage numbers measure and what they do
+not ask for.
 
 ## Test Structure
 
@@ -43,9 +36,35 @@ tests at once.
 
 ### All Tests
 
+The quickest full run bundles the suite (see
+[Shared Isolates in CI](#shared-isolates-in-ci)):
+
+```bash
+scripts/run_all_tests.sh
+```
+
+It runs from the repository root wherever you start it, excludes performance
+tests, and passes options to `flutter test`, such as
+`scripts/run_all_tests.sh --coverage`. The whole suite goes to one
+`flutter test` call, so a coverage report covers all of it. It takes options
+only: to run particular files, use `flutter test <paths>`. `TEST_CONCURRENCY=N`
+sets the number of parallel test isolates (default: the core count, at most
+16). If anything fails, it names the test files that failed, did not compile or
+could not load, so one can be rerun on its own with `flutter test <path>`, and
+exits non-zero. `RUN_ALL_TESTS=1 git push` runs the same script before pushing.
+
+Measured on an 18-core Mac at `--concurrency=16` (issue #2512), the whole suite
+took 10 min 11 s as separate files and 2 min 52 s as bundles of up to 40 test
+files. Each run keeps its bundles in its own directory under `test/.bundles`,
+so it leaves bundles made by another run alone. Under Git Bash on Windows, where
+a command line is limited to 8,191 characters, the script rebuilds the bundles
+with more files each until their paths fit. Without `python3` it runs the files
+one by one, as plain `flutter test` does:
+
 ```bash
 flutter test
-```text
+```
+
 ### Specific Test Suite
 
 ```bash
@@ -390,6 +409,137 @@ class MockDiveRepository extends Mock implements DiveRepository {
 }
 ```
 
+## Network, Time Limits and Fonts
+
+Every test runs with the same three limits, whether it runs on its own, in a
+CI bundle, or through `flutter test` locally.
+
+- **No network.** An HTTP or HTTPS request through `HttpClient` (which
+  `package:http`, images and most plugins use), or a plain `Socket`, to any
+  host but this machine fails with `A test reached the network: <URL>`. A TLS
+  socket opened directly with `SecureSocket.connect` connects below the hook
+  and is not covered; nothing in `lib/` opens one. Inject a fake client (`MockClient` from
+  `package:http/testing.dart`), serve the response from a loopback
+  `HttpServer` (`HttpServer.bind(InternetAddress.loopbackIPv4, 0)`), or call
+  `loadPdfRoboto()` for PDF fonts. The overrides live in
+  `test/helpers/blocked_network.dart`, and `HttpOverrides.runZoned` still wins
+  inside its zone. The refusal is a `StateError`: code under test that catches
+  every error swallows it, so no request leaves the machine but the test does
+  not fail on it. A widget test that waits for such a lookup with
+  `pumpAndSettle` can then wait forever; pump a bounded number of times
+  instead, or fake the service.
+- **A time limit per test.** A test fails after `testTimeLimit`
+  (`test/helpers/test_timeouts.dart`, two minutes), set for plain tests in
+  `dart_test.yaml` and for widget tests on the binding in
+  `test/flutter_test_config.dart`. A test that is slow on purpose declares its
+  own `timeout:` with a comment saying why. The `performance` and `real-data`
+  tags, which run only on request, allow 30 minutes. That tag setting, like a
+  file-level `@Timeout`, reaches plain tests only: `testWidgets` passes the
+  binding's limit to each test explicitly, so a widget test that needs longer
+  passes its own `timeout:` argument.
+- **No font downloads.** Google Fonts runtime fetching is off for every test.
+  The family name is still on each `TextStyle`; the font bytes never load.
+
+## Shared Isolates in CI
+
+`flutter test` compiles and loads every test file as its own entrypoint. In CI
+that made the cost of a run follow the number of test files, so the test job
+runs bundles instead: generated entrypoints that import many test files and
+call each one's `main()` inside a group named after the file
+(`scripts/bundle_tests.py`, issue #2500). A full local run with
+`scripts/run_all_tests.sh` (or `RUN_ALL_TESTS=1` on a push) uses bundles too, of
+up to 40 files so they spread evenly over the local workers (issue #2512). The
+pre-push hook's usual run of the affected
+test files stays unbundled: a few dozen files finish sooner side by side than
+one after another in a single isolate.
+
+### The rule: put back what you replace
+
+The files in a bundle share process-wide state. A test that replaces a global
+restores it, so the next file starts from the same place.
+
+| You change | Put it back with |
+|---|---|
+| The path provider | `useFakePathProvider(fake)` from `test/helpers/fake_path_provider.dart`, in `setUp` or the test. It restores the previous provider when the test ends |
+| Any other `*Platform.instance`, `HttpOverrides.global` or `IOOverrides.global` | Read the previous value into a variable, and assign that variable back in `tearDown` or `addTearDown` |
+| `debugPrint`, `FlutterError.onError` or `debugDefaultTargetPlatformOverride` | Put the saved value (or `null` for the platform override) back before the test ends. flutter_test requires this in the body of a `testWidgets` |
+| `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled`, `debugCanShareFiles` or `GoogleFonts.config.allowRuntimeFetching` | `applyGlobalTestDefaults()` from `test/helpers/global_test_defaults.dart`, in `tearDown` |
+| A mock handler on the path provider or share channel | `clearPathAndShareChannelMocks()` from `test/helpers/mock_channels.dart`, or `setMockMethodCallHandler(channel, null)`, in a `tearDown` or `tearDownAll` |
+| The share sheet | Assign your fake to `SharePlatform.instance` and restore it. The harness pins a forwarder, so the fake is looked up on every share |
+| PDF fonts | `loadPdfRoboto()` in `setUpAll` and `unloadPdfRoboto()` in `tearDownAll`, from `test/helpers/pdf_roboto.dart` |
+
+A restore belongs in a teardown, so that it runs when a test fails too. A
+`tearDown` answers for the group it is declared in, and an `addTearDown` for the
+test that registers it, so restoring in one group does not cover a replacement
+in another. The foundation hooks above are the exception.
+
+Two checks enforce the rule:
+
+- `test/architecture/test_global_state_restored_test.dart` reads the source and
+  fails on an assignment that nothing in its scope restores. It names the file
+  and line, and it runs locally like any other test.
+- In CI and in a bundled full local run, each generated bundle records the
+  process-wide state before a file's tests
+  (`test/helpers/global_state_snapshot.dart`) and fails that file's group
+  if anything is left changed afterwards, whatever shape the code took.
+
+The bundle also checks each file's `main()`, which runs while the bundle is
+declared, before any test. Each file is declared from the harness defaults. A
+file that throws while declaring fails in a test named `declares its tests`,
+and one that leaves a global changed fails in `declares its tests without
+changing global state`. The other files in the bundle still run.
+
+A shared isolate exposes three more things:
+
+- Code in the body of `main()` or `group()` runs while the file is declared,
+  before any test. By then an earlier file has set up the test binding. Build
+  anything that touches the network or a platform channel inside `setUp` or the
+  test, or make it `late final`.
+- A warm isolate is faster than a cold one. An assertion that two timestamps
+  differ needs the difference built in, not left to the clock.
+- The theme presets are built once per isolate, by the first test that reads
+  them, and building them starts google_fonts loads. A `testWidgets` body that
+  is first strands those loads on its fake clock, and they never complete, so
+  never wait on `GoogleFonts.pendingFonts()` directly: use `settleGoogleFonts()`
+  from `test/helpers/google_fonts_settle.dart`, which bounds the wait. A
+  stranded load costs time only in a bundle where a later file waits with
+  `settleGoogleFonts()`: that file then sits out the whole limit. Today the
+  only files that wait are the theme tests under `test/core/theme/`, so a
+  widget test elsewhere under `test/core/` that reads the registry, directly
+  or through a widget such as `StartupPage`, calls
+  `setUpAll(warmUpThemePresets)` from `test/helpers/theme_presets_warm_up.dart`
+  to build the presets outside the fake clock. A new file that waits on the
+  loads makes the same true of the files ahead of it in its bundle.
+
+### Reproducing a CI failure locally
+
+```bash
+# The bundle that runs a given test file:
+flutter test $(python3 scripts/bundle_tests.py --containing test/path/to/my_test.dart)
+
+# A whole CI shard. The shard count is TOTAL_SHARDS in .github/workflows/ci.yaml:
+flutter test --exclude-tags performance $(python3 scripts/bundle_tests.py --shard 2 --total-shards 6)
+
+# Exactly these files, in this order, in one isolate:
+flutter test $(python3 scripts/bundle_tests.py --files test/a_test.dart test/b_test.dart)
+```
+
+A failure names the file it came from: every test in a bundle sits in a group
+named after its file's path. To find the earlier file a failing test depends
+on, take the files imported before it in the bundle and halve the list with
+`--files` until one is left.
+
+### Files that run as their own entrypoint
+
+A file is left out of the bundles when it has a library-level `@Tags`,
+`@TestOn`, `@Timeout`, `@Skip`, `@Retry` or `@OnPlatform` annotation (the test
+runner reads those from an entrypoint only), calls `matchesGoldenFile`, or has
+a `main` that is `async` or takes parameters.
+
+The comment `// test-bundle: run-alone <reason>`, on a line of its own, does the
+same for any file. It is there to unblock main while a conflict is fixed, not
+to leave one in place.
+
 ## Best Practices
 
 1. **Isolation** - Each test is independent and doesn't rely on other tests
@@ -429,13 +579,47 @@ When adding new features:
 4. Run performance tests if data model changes
 5. Update this documentation
 
-## Coverage Goals
+## Coverage
 
-| Test Type | Target |
-|-----------|--------|
-| Unit Tests | 80%+ code coverage |
-| Widget Tests | All critical user paths |
-| Integration Tests | Complete workflows |
-| Performance Tests | All operations with large datasets |
+Codecov reports two numbers on every PR:
 
-**Current Status:** All goals met
+| Status | Target | Measures |
+|---|---|---|
+| `codecov/patch` | 80% | The lines the PR adds or changes |
+| `codecov/project` | 70%, within 5 points | All of `lib/`, plus the Python scripts the Script Tests job covers |
+
+Codecov builds both from seven uploads: one per test shard for `lib/`, and one
+from the Script Tests job for the scripts in its `guards` list
+(`coverage/scripts.xml`, flag `scripts`). Neither status blocks a merge: only
+`CI Success` is required. They are there to show when new logic went untested.
+
+### What counts
+
+Before each test shard uploads its report, CI removes the lines of trivial
+members (`scripts/filter_trivial_coverage.py`):
+
+- `copyWith`, when its body only copies fields into a constructor
+  (`name: name ?? this.name`, `name: this.name`);
+- Equatable `props`;
+- `operator ==`, `hashCode` and `toString`, when the body is one plain
+  expression (`=> Object.hash(a, b)`, or a single `return`, optionally after
+  `if (identical(this, other)) return true;`).
+
+A `copyWith` with any other logic, such as a clear flag or a computed value,
+still counts. So does an `==`, `hashCode` or `toString` with a condition, a
+loop, a local variable or a closure, and so do `toJson` and `fromJson`.
+Generated files and `lib/l10n/` are not counted at all.
+
+Test behaviour, not lines. A test that only checks that a field copies, or
+that two equal objects are equal, would almost never catch a bug, and the
+target no longer asks for one.
+
+### Checking patch coverage locally
+
+```bash
+flutter test --coverage test/path/to/the/tests/you/changed
+python3 scripts/filter_trivial_coverage.py coverage/lcov.info
+```
+
+Then compare the lines your change adds (`git diff --unified=0 origin/main...HEAD -- lib/`)
+with the `DA:` records in `coverage/lcov.info`, the way Codecov does.

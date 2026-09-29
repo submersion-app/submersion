@@ -10,6 +10,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
@@ -38,6 +39,7 @@ import 'package:submersion/features/dive_log/domain/entities/source_profile.dart
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
+import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -214,6 +216,9 @@ class DiveRepository {
     'dive_sites',
     'trips',
     'dive_safety_findings',
+    // The badge counts findings only while a review marker exists, and a
+    // recompute that reaches the same findings writes only the marker.
+    'dive_safety_reviews',
     'dive_tags',
     'tags',
     'dive_dive_types',
@@ -288,6 +293,10 @@ class DiveRepository {
   ///
   /// Also watches `dive_sensor_summaries`, which the condition sweep fills
   /// outside any notifier.
+  ///
+  /// Also watches `equipment_attributes`: each gear item is hydrated with its
+  /// attributes, and its colour tints the diver figure in the equipment card
+  /// (issue #2326). A synced colour edit writes only this table.
   Stream<void> watchDiveDetailChanges() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
@@ -297,6 +306,7 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.tankPressureSeries),
           TableUpdateQuery.onTable(_db.diveEquipment),
           TableUpdateQuery.onTable(_db.equipment),
+          TableUpdateQuery.onTable(_db.equipmentAttributes),
           TableUpdateQuery.onTable(_db.gasSwitches),
           TableUpdateQuery.onTable(_db.diveDataSources),
           TableUpdateQuery.onTable(_db.diveComputers),
@@ -477,6 +487,7 @@ class DiveRepository {
               .add(
                 EquipmentItem(
                   id: e.id,
+                  diverId: e.diverId,
                   name: e.name,
                   type: EquipmentType.values.firstWhere(
                     (t) => t.name == e.type,
@@ -2264,7 +2275,12 @@ class DiveRepository {
             // idx_dive_safety_findings_dive_id and only counts findings for the
             // page's dives, instead of grouping the whole findings table.
             '(SELECT COUNT(*) FROM dive_safety_findings sf '
-            'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL'
+            'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL '
+            // A dive whose review was invalidated (clearReviewForDive keeps
+            // its findings for the next recompute to diff against) shows no
+            // badge until it is recomputed.
+            'AND EXISTS (SELECT 1 FROM dive_safety_reviews sr '
+            'WHERE sr.dive_id = d.id)'
             '$safetyCountFilter) '
             'AS safety_finding_count '
             'FROM dives d '
@@ -2285,6 +2301,7 @@ class DiveRepository {
                 // Renaming a trip changes a header the list is showing.
                 _db.trips,
                 _db.diveSafetyFindings,
+                _db.diveSafetyReviews,
                 // Whatever the filter joined (#2365).
                 ...tablesNamed(compiled.tablesTouched),
               },
@@ -2513,6 +2530,23 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// Distinct legacy free-text buddy names (`dives.buddy`), for name
+  /// matching. Names only, never a count.
+  // stats-scope-exempt: a name list, not an aggregate; an excluded dive's
+  // buddy is still a name the diver may type.
+  Future<List<String>> getDistinctLegacyBuddyNames({String? diverId}) async {
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT buddy FROM dives '
+          "WHERE buddy IS NOT NULL AND buddy <> '' $diverFilter "
+          'ORDER BY buddy',
+          variables: [if (diverId != null) Variable(diverId)],
+        )
+        .get();
+    return rows.map((r) => r.read<String>('buddy')).toList();
   }
 
   /// Drift tables by their SQL names, for `readsFrom` and [watchTables].
@@ -2913,7 +2947,12 @@ class DiveRepository {
           // idx_dive_safety_findings_dive_id and only counts findings for the
           // requested dives, instead of grouping the whole findings table.
           '(SELECT COUNT(*) FROM dive_safety_findings sf '
-          'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL'
+          'WHERE sf.dive_id = d.id AND sf.dismissed_at IS NULL '
+          // A dive whose review was invalidated (clearReviewForDive keeps
+          // its findings for the next recompute to diff against) shows no
+          // badge until it is recomputed.
+          'AND EXISTS (SELECT 1 FROM dive_safety_reviews sr '
+          'WHERE sr.dive_id = d.id)'
           '$safetyCountFilter) '
           'AS safety_finding_count '
           'FROM dives d '
@@ -2931,6 +2970,7 @@ class DiveRepository {
             _db.diveSites,
             _db.trips,
             _db.diveSafetyFindings,
+            _db.diveSafetyReviews,
           },
         )
         .get();
@@ -3914,6 +3954,7 @@ class DiveRepository {
       final e = joinRow.readTable(_db.equipment);
       return EquipmentItem(
         id: e.id,
+        diverId: e.diverId,
         name: e.name,
         type: EquipmentType.values.firstWhere(
           (t) => t.name == e.type,
@@ -4893,16 +4934,13 @@ class DiveRepository {
   /// Delete all profile events for a dive
   Future<void> deleteProfileEventsForDive(String diveId) async {
     try {
-      final existing = await (_db.select(
-        _db.diveProfileEvents,
-      )..where((t) => t.diveId.equals(diveId))).get();
-      await (_db.delete(
+      final deleted = await (_db.delete(
         _db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).go();
-      for (final row in existing) {
-        await _syncRepository.logDeletion(
-          entityType: 'diveProfileEvents',
-          recordId: row.id,
+      // One tombstone for the dive's events, not one per event (#1926).
+      if (deleted > 0) {
+        await _syncRepository.logScopedDeletion(
+          EventScopeTombstone(diveId: diveId),
         );
       }
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -5673,6 +5711,48 @@ class DiveRepository {
         localUpdatedAt: now,
       );
     }
+  }
+
+  /// Write [notes] onto dive [diveId] only when its notes are blank, so a
+  /// cloud import can bring in the notes the diver wrote in the source app
+  /// without overwriting any written in Submersion (issue #2410). Returns
+  /// whether anything was written; a blank [notes] writes nothing.
+  Future<bool> fillNotesIfEmpty(String diveId, String notes) async {
+    final text = notes.trim();
+    if (text.isEmpty) return false;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final changed = await _db.customUpdate(
+      'UPDATE dives SET notes = ?, updated_at = ? '
+      // TRIM strips only spaces by default, so tabs and newlines are named.
+      "WHERE id = ? AND TRIM(COALESCE(notes, ''), ' ' || char(9, 10, 13)) = ''",
+      variables: [
+        Variable.withString(text),
+        Variable.withInt(now),
+        Variable.withString(diveId),
+      ],
+      updates: {_db.dives},
+    );
+    if (changed == 0) return false;
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    return true;
+  }
+
+  /// Add [weight] to dive [diveId] only when the dive records no weight yet,
+  /// the weight counterpart of [fillNotesIfEmpty]. Returns whether it was
+  /// added.
+  Future<bool> addWeightIfNone(String diveId, domain.DiveWeight weight) async {
+    final existing =
+        await (_db.select(_db.diveWeights)
+              ..where((t) => t.diveId.equals(diveId))
+              ..limit(1))
+            .get();
+    if (existing.isNotEmpty) return false;
+    await bulkAddWeights([diveId], [weight]);
+    return true;
   }
 
   /// Shift dive times of every dive in [diveIds] by [offset].
@@ -7422,7 +7502,8 @@ class DiveRepository {
           computerSerial: Value(diveRow.diveComputerSerial),
           maxDepth: Value(diveRow.maxDepth),
           avgDepth: Value(diveRow.avgDepth),
-          duration: Value(diveRow.bottomTime),
+          // The runtime, never the derived bottom time (issue #2421).
+          duration: Value(diveRow.runtime),
           waterTemp: Value(diveRow.waterTemp),
           entryTime: Value(
             diveRow.entryTime != null
@@ -7493,6 +7574,16 @@ class DiveRepository {
               ..where((t) => t.id.equals(computerReadingId)))
             .write(const DiveDataSourcesCompanion(isPrimary: Value(true)));
 
+        // Bottom time is derived from the new primary's own profile, never
+        // taken from its duration, which is the runtime it measured (issue
+        // #2421). With no profile to derive from, the dive keeps its own.
+        final derivedBottomTime = sourceBottomTimeSeconds(
+          await _profileSeries.getSeriesForDive(diveId),
+          sourceId: newPrimary.id,
+          computerId: newPrimary.computerId,
+          runtimeSeconds: newPrimary.duration,
+        );
+
         // Update the dives record with the new primary's metadata.
         final now = DateTime.now().millisecondsSinceEpoch;
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
@@ -7501,7 +7592,9 @@ class DiveRepository {
             diveComputerSerial: Value(newPrimary.computerSerial),
             maxDepth: Value(newPrimary.maxDepth),
             avgDepth: Value(newPrimary.avgDepth),
-            bottomTime: Value(newPrimary.duration),
+            bottomTime: derivedBottomTime != null
+                ? Value(derivedBottomTime)
+                : const Value.absent(),
             waterTemp: Value(newPrimary.waterTemp),
             entryTime: Value(newPrimary.entryTime?.millisecondsSinceEpoch),
             exitTime: Value(newPrimary.exitTime?.millisecondsSinceEpoch),

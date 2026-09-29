@@ -22,7 +22,7 @@ import 'package:submersion/core/services/sync/changeset_log/base_parse_client.da
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/byte_progress_stream.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
-import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
@@ -33,6 +33,8 @@ import 'package:submersion/core/services/sync/changeset_log/stale_restore_detect
 import 'package:submersion/core/services/sync/changeset_log/sync_liveness.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/core/services/sync/changeset_log/tombstone_horizon.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone_applier.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
@@ -227,6 +229,7 @@ class _EpochGate {
 /// Core sync service that orchestrates cloud sync operations
 class SyncService {
   final SyncRepository _syncRepository;
+  final EventScopeTombstoneApplier _eventScopeApplier;
   final SyncDataSerializer _serializer;
   final CloudStorageProvider? _cloudProvider;
   final SyncInitializer? _syncInitializer;
@@ -315,6 +318,9 @@ class SyncService {
     PeerDeviceNameStore? peerNames,
     Future<void> Function(MediaResolutionHints hints)? onMediaResolutionHints,
   }) : _syncRepository = syncRepository,
+       _eventScopeApplier = EventScopeTombstoneApplier(
+         syncRepository: syncRepository,
+       ),
        _serializer = serializer,
        _cloudProvider = cloudProvider,
        _syncInitializer = syncInitializer,
@@ -1281,6 +1287,15 @@ class SyncService {
         contradictedByEntity[delEntry.key] = contradicted;
       }
     }
+    final payloadScopes = _payloadEventScopes(
+      remotePayload.deletions,
+      remotePayload.exportedAt,
+    );
+    if (payloadScopes != null) {
+      for (final rec in remotePayload.data.diveProfileEvents) {
+        _addScopeContradiction(contradictedByEntity, payloadScopes, rec);
+      }
+    }
 
     final deletionResult = await _applyRemoteDeletions(
       remotePayload.deletions,
@@ -1380,6 +1395,22 @@ class SyncService {
             records: data.divePlanSegments,
             hasUpdatedAt: true,
           ),
+          // Mission rows reference only their plan, applied above.
+          (
+            type: 'divePlanMissions',
+            records: data.divePlanMissions,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'divePlanMissionLegs',
+            records: data.divePlanMissionLegs,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'divePlanMissionMembers',
+            records: data.divePlanMissionMembers,
+            hasUpdatedAt: true,
+          ),
           (type: 'equipment', records: data.equipment, hasUpdatedAt: true),
           // Trip cylinder slots reference trips and equipment; their ledger
           // references the slots and dive centers. Both before dives, whose
@@ -1477,6 +1508,19 @@ class SyncService {
           (
             type: 'cylinderFills',
             records: data.cylinderFills,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'connectionMaps',
+            records: data.connectionMaps,
+            hasUpdatedAt: true,
+          ),
+          // Saved queries reference sites and buddies only inside their
+          // JSON (by id, resolved at load), so they carry no FK but the
+          // diver and can apply anywhere in the order.
+          (
+            type: 'savedQueries',
+            records: data.savedQueries,
             hasUpdatedAt: true,
           ),
           (type: 'species', records: data.species, hasUpdatedAt: false),
@@ -1592,6 +1636,17 @@ class SyncService {
           (
             type: 'equipmentTags',
             records: data.equipmentTags,
+            hasUpdatedAt: false,
+          ),
+          // After both parents (equipment and divers), issue #2046.
+          (
+            type: 'equipmentShares',
+            records: data.equipmentShares,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'equipmentOwnershipEvents',
+            records: data.equipmentOwnershipEvents,
             hasUpdatedAt: false,
           ),
           (
@@ -1901,9 +1956,12 @@ class SyncService {
     };
     final parentUpdatedAt = <String, Map<String, int>>{};
     final contradictedByEntity = <String, Set<String>>{};
+    final payloadScopes = _payloadEventScopes(deletions, baseExportedAt);
     final pass2Tables = <String>{
       for (final table in _baseApplyEntityFlags.keys)
-        if (parentTypes.contains(table) || deletionIds.containsKey(table))
+        if (parentTypes.contains(table) ||
+            deletionIds.containsKey(table) ||
+            (payloadScopes != null && table == 'diveProfileEvents'))
           table,
     };
     progress.beginPass(1);
@@ -1922,6 +1980,9 @@ class SyncService {
         }
         if (deletionIds[table]?.contains(id) == true) {
           (contradictedByEntity[table] ??= {}).add(id);
+        }
+        if (payloadScopes != null && table == 'diveProfileEvents') {
+          _addScopeContradiction(contradictedByEntity, payloadScopes, rec);
         }
       }
     }
@@ -2079,13 +2140,16 @@ class SyncService {
     };
     final parentUpdatedAt = <String, Map<String, int>>{};
     final contradictedByEntity = <String, Set<String>>{};
+    final payloadScopes = _payloadEventScopes(deletions, baseExportedAt);
     progress.beginPass(1);
     await BaseJsonStreamReader().parse(
       openWithProgress(),
       wantRows: (section, table) =>
           section == 'data' &&
           _baseApplyEntityFlags.containsKey(table) &&
-          (parentTypes.contains(table) || deletionIds.containsKey(table)),
+          (parentTypes.contains(table) ||
+              deletionIds.containsKey(table) ||
+              (payloadScopes != null && table == 'diveProfileEvents')),
       onRow: (section, table, rowBytes) async {
         final rec = jsonDecode(utf8.decode(rowBytes)) as Map<String, dynamic>;
         final id = recordIdForEntity(table, rec);
@@ -2097,6 +2161,9 @@ class SyncService {
         }
         if (deletionIds[table]?.contains(id) == true) {
           (contradictedByEntity[table] ??= {}).add(id);
+        }
+        if (payloadScopes != null && table == 'diveProfileEvents') {
+          _addScopeContradiction(contradictedByEntity, payloadScopes, rec);
         }
       },
     );
@@ -2206,6 +2273,47 @@ class SyncService {
     });
   }
 
+  /// The payload's own event scope tombstones (#1926), or null when it has
+  /// none. A delete time missing from an older peer falls back to the
+  /// payload's export time, as [_applyRemoteDeletions] does.
+  static EventScopeCoverage? _payloadEventScopes(
+    Map<String, List<SyncDeletion>> deletions,
+    int exportedAt,
+  ) {
+    final scopes = deletions[EventScopeTombstone.entityType];
+    if (scopes == null || scopes.isEmpty) return null;
+    // Only the clocks that parse: a scope without one falls back to its
+    // delete time, as it does in the applier.
+    final clocks = <String, Hlc>{};
+    for (final d in scopes) {
+      final clock = tryParseHlc(d.hlc);
+      if (clock != null) clocks[d.id] = clock;
+    }
+    return EventScopeCoverage.from(
+      deletedAt: {
+        for (final d in scopes)
+          d.id: d.deletedAt > 0 ? d.deletedAt : exportedAt,
+      },
+      clocks: clocks,
+    );
+  }
+
+  /// Records [event] as contradicted when a scope in the same payload covers
+  /// it. The publisher sends it live beside that scope, so it still holds
+  /// it, and the same-payload rule the per-row path follows applies: the
+  /// live row is the publisher's current truth and survives both the scope
+  /// and the merge guard.
+  static void _addScopeContradiction(
+    Map<String, Set<String>> contradictedByEntity,
+    EventScopeCoverage payloadScopes,
+    Map<String, dynamic> event,
+  ) {
+    final id = recordIdForEntity('diveProfileEvents', event);
+    if (id != null && payloadScopes.covers(event)) {
+      (contradictedByEntity['diveProfileEvents'] ??= {}).add(id);
+    }
+  }
+
   Future<_MergeResult> _applyRemoteDeletions(
     Map<String, List<SyncDeletion>> deletions,
     int? lastSyncMs,
@@ -2222,6 +2330,25 @@ class SyncService {
       for (final deletion in entry.value) {
         final recordId = deletion.id;
         try {
+          // One tombstone for a set of events (#1926): expanded here into
+          // the rows it covers, never looked up as a record of its own.
+          if (entityType == EventScopeTombstone.entityType) {
+            final deletionHlc = _parseHlc(deletion.hlc);
+            if (deletionHlc != null) SyncClock.instance.receive(deletionHlc);
+            // The rows it removed, not the scope: a relayed copy that finds
+            // nothing left to delete applied nothing.
+            applied += await _eventScopeApplier.apply(
+              deletion: deletion,
+              deletedAt: deletion.deletedAt > 0
+                  ? deletion.deletedAt
+                  : remoteExportedAt,
+              pendingEventIds:
+                  pendingByEntity['diveProfileEvents'] ?? const <String>{},
+              contradictedEventIds:
+                  contradictedByEntity['diveProfileEvents'] ?? const <String>{},
+            );
+            continue;
+          }
           if (pendingByEntity[entityType]?.contains(recordId) == true) {
             continue;
           }
@@ -2384,6 +2511,9 @@ class SyncService {
     'divePlans': true,
     'divePlanTanks': true,
     'divePlanSegments': true,
+    'divePlanMissions': true,
+    'divePlanMissionLegs': true,
+    'divePlanMissionMembers': true,
     'equipment': true,
     'equipmentSets': true,
     'equipmentSetItems': false,
@@ -2405,6 +2535,8 @@ class SyncService {
     'diveComputers': true,
     'transmitters': true,
     'cylinderFills': true,
+    'connectionMaps': true,
+    'savedQueries': true,
     'species': false,
     'tags': true,
     'courses': true,
@@ -2436,6 +2568,8 @@ class SyncService {
     'siteSiteTypes': false,
     'siteTags': false,
     'equipmentTags': false,
+    'equipmentShares': false,
+    'equipmentOwnershipEvents': false,
     'mediaSpecies': false,
     'siteFeatures': true,
     'csvPresets': true,
@@ -2675,6 +2809,14 @@ class SyncService {
       (field: 'equipmentId', parent: 'equipment', nullable: false),
       (field: 'tagId', parent: 'tags', nullable: false),
     ],
+    // v234: equipment sharing (issue #2046). The diver keys are left to
+    // repairDanglingForeignKeys like every diverId (see the note above).
+    'equipmentShares': [
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
+    ],
+    'equipmentOwnershipEvents': [
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
+    ],
     'mediaSpecies': [
       (field: 'mediaId', parent: 'media', nullable: false),
       (field: 'speciesId', parent: 'species', nullable: false),
@@ -2725,6 +2867,20 @@ class SyncService {
     'divePlanSegments': [
       (field: 'planId', parent: 'divePlans', nullable: false),
       (field: 'tankId', parent: 'divePlanTanks', nullable: false),
+    ],
+    'divePlanMissions': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+    ],
+    // A mission row's id is its plan's id, so planId also names the
+    // mission: a leg or member whose mission this device removed is dropped
+    // rather than landing as an orphan the mission read never shows.
+    'divePlanMissionLegs': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+      (field: 'planId', parent: 'divePlanMissions', nullable: false),
+    ],
+    'divePlanMissionMembers': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+      (field: 'planId', parent: 'divePlanMissions', nullable: false),
     ],
     'certifications': [
       (field: 'courseId', parent: 'courses', nullable: true),
@@ -2822,6 +2978,22 @@ class SyncService {
     // merge and compared by timestamp when a delete arrives.
     final ownClocked = SyncDataSerializer.ownClockEntities.contains(entityType);
     final clockGuarded = ownClocked;
+    // Deletions apply before the merge, but the local-deletion guard below
+    // matches by exact id. A lagging peer can still hold events a scope
+    // delete removed (#1926), so those are checked against the scopes too.
+    final eventScopes = entityType == 'diveProfileEvents'
+        ? EventScopeCoverage.from(
+            deletedAt:
+                allTombstones[EventScopeTombstone.entityType] ??
+                const <String, int>{},
+            clocks:
+                tombstoneClocks[EventScopeTombstone.entityType] ??
+                const <String, Hlc>{},
+          )
+        : null;
+    // Events the payload sends live beside a scope that covers them: kept,
+    // then given a fresh clock (see below).
+    final scopeSurvivors = <String>{};
     final factGroups = SyncFactGroups.of(entityType);
     final localById = hasUpdatedAt || clockGuarded || factGroups.isNotEmpty
         ? await _serializer.fetchRecords(entityType, [
@@ -2971,6 +3143,17 @@ class SyncService {
               recordId: recordId,
             );
           }
+        }
+
+        // A scope delete covers this event: the same rule as the per-row
+        // guard above, where only a copy newer than the delete comes back.
+        // The exception is a row the same payload sends live beside it,
+        // which the publisher still holds and so wins.
+        if (eventScopes != null &&
+            !eventScopes.isEmpty &&
+            eventScopes.covers(record)) {
+          if (!contradicted.contains(recordId)) continue;
+          scopeSurvivors.add(recordId);
         }
 
         if (!hasUpdatedAt) {
@@ -3140,6 +3323,22 @@ class SyncService {
         batchFailed = true;
         failed += toUpsert.length;
         applied -= toUpsert.length;
+      }
+    }
+
+    // A live event that beat a scope keeps an old clock, but the scope is
+    // stored and relayed: a later copy of it (from another peer, or relayed
+    // on from here) would delete the event again. The per-row path drops a
+    // contradicted tombstone; a scope also covers other rows, so instead the
+    // event takes a clock newer than the scope and is published with it, and
+    // no copy of the scope covers it anywhere any more.
+    if (!batchFailed) {
+      for (final id in scopeSurvivors) {
+        await _syncRepository.markRecordPending(
+          entityType: entityType,
+          recordId: id,
+          localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+        );
       }
     }
 
@@ -3544,61 +3743,8 @@ class SyncService {
     await resetSyncState();
     await _syncRepository.setLastAcceptedEpochId(null);
     await _epochStore?.clear();
-    await deleteLeftoverBaseTempFiles();
+    await sweepLeftoverSyncTempFiles();
     _log.info('Local sync state repaired');
-  }
-
-  /// How recently a sync temp file must have been touched to be spared as
-  /// "probably still being written" rather than swept as a leftover. Mirrors
-  /// `ResumableBasePublishStore._orphanGrace`, for the same reason.
-  static const Duration _tempFileGrace = Duration(minutes: 5);
-
-  /// Best-effort sweep of leftover streaming-base temp files (base exports
-  /// `ssv1_base_*.json` and assembled `ssv1_*.base` / `ssv1_adopt_*` parts)
-  /// from the app temp dir. Every sync temp file is prefixed `ssv1_`, so
-  /// the sweep matches ONLY that prefix -- never an unrelated app temp file
-  /// (the dir is a shared, general-purpose temp location). Failure is logged
-  /// and ignored; a stale temp file is harmless.
-  ///
-  /// Skips anything touched within [_tempFileGrace]. The prefix keeps the
-  /// sweep off files this app did not write, but NOT off files another
-  /// instance of it is writing right now: under `flutter test`
-  /// [resolveSyncTempDir] falls back to the machine-wide
-  /// `Directory.systemTemp`, so every concurrent test process shares one
-  /// directory and a base export in flight in one of them sits next to this
-  /// sweep running in another. Deleting it fails that publish, which surfaces
-  /// as a sync returning non-success in a test file that touched no sync code
-  /// at all. The uuid in each name prevents collisions but cannot help here,
-  /// because the sweep matches on prefix rather than on a name it chose. A
-  /// leftover worth reaping is by definition from a run that already ended, so
-  /// it is old; a true orphan younger than the grace is simply reclaimed by
-  /// the next sweep.
-  ///
-  /// [tempDir] is injectable so tests can sweep a private directory instead of
-  /// the shared one -- otherwise this test would be the very hazard it covers.
-  Future<void> deleteLeftoverBaseTempFiles({
-    @visibleForTesting Future<Directory> Function()? tempDir,
-  }) async {
-    try {
-      final dir = await (tempDir?.call() ?? resolveSyncTempDir());
-      final cutoff = DateTime.now().subtract(_tempFileGrace);
-      await for (final entity in dir.list(followLinks: false)) {
-        if (entity is! File) continue;
-        final name = entity.uri.pathSegments.last;
-        if (name.startsWith('ssv1_')) {
-          try {
-            // Inside the try: the file can vanish between the listing and the
-            // stat, which is exactly what a concurrent sweep looks like.
-            if ((await entity.lastModified()).isAfter(cutoff)) continue;
-            await entity.delete();
-          } catch (_) {
-            // best effort
-          }
-        }
-      }
-    } catch (e) {
-      _log.warning('Could not sweep leftover base temp files: $e');
-    }
   }
 
   /// Best-effort removal of [deviceId]'s entire changeset log from the cloud

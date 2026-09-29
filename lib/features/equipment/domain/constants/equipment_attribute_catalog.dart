@@ -11,7 +11,9 @@ import 'package:submersion/core/constants/enums.dart';
 /// - date:      valueNum unix milliseconds
 /// - url:       valueText holds the link as the diver typed it; [parseWebLink]
 ///              is the only thing allowed to turn it into a launchable Uri
-enum AttributeKind { text, number, thickness, choice, flag, date, url }
+/// - color:     valueText holds `#RRGGBB`, uppercase; `normalizeEquipmentColor`
+///              decides whether a stored value is a colour
+enum AttributeKind { text, number, thickness, choice, flag, date, url, color }
 
 /// Which block of the edit and detail forms an attribute belongs in.
 ///
@@ -27,6 +29,11 @@ enum AttributeGroup {
   /// lost luggage, theft or fire (issue #1517). Rendered with purchase date
   /// and price.
   purchase,
+
+  /// How the item looks: its colour, which tints its artwork on the diver
+  /// figure (issue #2326). Rendered as its own block of the edit form and
+  /// as its own row on the detail page.
+  appearance,
 
   /// Written by the app, never by a form: identifiers a feature owns, such
   /// as a cylinder's passport id (issue #2334). No form section renders this
@@ -73,6 +80,9 @@ abstract final class EquipmentAttrKeys {
   static const weightStyle = 'weight_style';
   static const insulationLevel = 'insulation_level';
   static const fillMaterial = 'fill_material';
+
+  // The item's colour (issue #2326), read by the diver figure.
+  static const color = 'color';
 
   // Hose kind (issue #1805): LP regulator, HP gauge/transmitter, LPI inflator.
   static const hoseType = 'hose_type';
@@ -173,6 +183,23 @@ abstract final class EquipmentAttributeCatalog {
       group: AttributeGroup.purchase,
     ),
   ];
+
+  /// The item's look (issue #2326), present for every type except the
+  /// consumables that live inside another item and `other`, which has no
+  /// artwork to tint.
+  static const List<EquipmentAttributeDef> appearance = [
+    EquipmentAttributeDef(
+      key: EquipmentAttrKeys.color,
+      kind: AttributeKind.color,
+      group: AttributeGroup.appearance,
+    ),
+  ];
+
+  static const Set<EquipmentType> _noAppearance = {
+    EquipmentType.o2Cell,
+    EquipmentType.battery,
+    EquipmentType.other,
+  };
 
   static const _size = EquipmentAttributeDef(
     key: EquipmentAttrKeys.size,
@@ -722,19 +749,26 @@ abstract final class EquipmentAttributeCatalog {
   };
 
   /// Curated attributes for [type]: type-specific first, then universal,
-  /// then the purchase record. Consumers that render one block at a time
-  /// filter on [EquipmentAttributeDef.group].
+  /// then the purchase record, then the item's appearance. Consumers that
+  /// render one block at a time filter on [EquipmentAttributeDef.group].
   static List<EquipmentAttributeDef> attributesFor(EquipmentType type) => [
     ...(_byType[type] ?? const []),
     ...universal,
     ...purchase,
+    if (!_noAppearance.contains(type)) ...appearance,
   ];
+
+  /// Whether items of [type] take a colour ([appearance]). A colour that
+  /// reaches a type without one is the diver's own field, not the item's
+  /// colour (issue #2520): see `keepStrayColorAsCustom`.
+  static bool hasColor(EquipmentType type) => !_noAppearance.contains(type);
 
   static final Map<String, EquipmentAttributeDef> _byKey = {
     for (final defs in _byType.values)
       for (final def in defs) def.key: def,
     for (final def in universal) def.key: def,
     for (final def in purchase) def.key: def,
+    for (final def in appearance) def.key: def,
   };
 
   /// Definition for a curated key, or null for unknown/custom keys.
