@@ -133,6 +133,16 @@ class TripCylinderRepository {
     return cylinder.copyWith(id: id, createdAt: stamp, updatedAt: stamp);
   }
 
+  /// The trips where [equipmentId] is a slot (issue #2338), for the
+  /// passport's Trip card.
+  Future<Set<String>> tripIdsForEquipment(String equipmentId) async =>
+      (await (_db.selectOnly(_db.tripCylinders)
+                ..addColumns([_db.tripCylinders.tripId])
+                ..where(_db.tripCylinders.equipmentId.equals(equipmentId)))
+              .map((r) => r.read(_db.tripCylinders.tripId)!)
+              .get())
+          .toSet();
+
   Future<domain.TripCylinder> createCylinder(
     domain.TripCylinder cylinder,
   ) async {

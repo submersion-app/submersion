@@ -16,6 +16,7 @@ import 'package:submersion/features/trips/data/repositories/itinerary_day_reposi
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_day_weather_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 
@@ -277,6 +278,8 @@ class TripRepository {
         await TripDayWeatherRepository().deleteByTripId(id);
         // Slots, their ledger and the links on the tanks that used them.
         await TripCylinderRepository().deleteByTripId(id);
+        // Packed gear (issue #2338): deleted and tombstoned before the trip.
+        await TripEquipmentRepository().deleteByTripId(id);
 
         // Remove trip association from dives (nullable FK)
         await _db.customUpdate(

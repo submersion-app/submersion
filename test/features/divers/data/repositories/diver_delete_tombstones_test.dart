@@ -243,6 +243,18 @@ void main() {
               updatedAt: stale,
             ),
           );
+      // Gear packed for the trip (issue #2338).
+      await insertEquipment('gear-t');
+      await db
+          .into(db.tripEquipment)
+          .insert(
+            TripEquipmentCompanion.insert(
+              id: 'pack-a',
+              tripId: 'trip-a',
+              equipmentId: 'gear-t',
+              createdAt: stale,
+            ),
+          );
       return [
         ('trips', 'trips', 'trip-a'),
         ('liveaboard_detail_records', 'liveaboardDetails', 'lb-a'),
@@ -251,6 +263,7 @@ void main() {
         ('trip_day_weather', 'tripDayWeather', 'wx-a'),
         ('trip_cylinders', 'tripCylinders', 'slot-a'),
         ('trip_cylinder_events', 'tripCylinderEvents', 'fill-a'),
+        ('trip_equipment', 'tripEquipment', 'pack-a'),
       ];
     },
     'a private dive site': () async {
