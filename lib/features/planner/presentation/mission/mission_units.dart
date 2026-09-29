@@ -30,6 +30,7 @@ class MissionUnits {
   double sacDisplay(double litersPerMin) => units.convertRmv(litersPerMin);
   double sacLitersPerMin(double display) => units.volumeToLiters(display);
   String get sacSymbol => units.rmvSymbol;
+  int get sacDecimals => units.rmvDecimals;
   String sac(double litersPerMin) => units.formatRmv(litersPerMin);
 
   String heading(double degrees) => '${degrees.round() % 360}°';

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -31,7 +32,10 @@ const _member = MissionMember(
   scooter: ScooterSpec(name: '', ratedSpeedMps: 0, burnTimeSeconds: 0),
 );
 
-Future<void> _open(WidgetTester tester) async {
+Future<void> _open(
+  WidgetTester tester, {
+  AppSettings settings = const AppSettings(),
+}) async {
   tester.view.physicalSize = const Size(400, 1200);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
@@ -85,7 +89,7 @@ Future<void> _open(WidgetTester tester) async {
           onPressed: () async => lastResult = await showMissionMemberEditor(
             context,
             member: _member,
-            units: MissionUnits(const UnitFormatter(AppSettings())),
+            units: MissionUnits(UnitFormatter(settings)),
           ),
           child: const Text('open'),
         ),
@@ -199,5 +203,28 @@ void main() {
       ),
     );
     expect(avatar.photo, same(photo));
+  });
+
+  testWidgets('the scooter buttons leave room for the name field label', (
+    tester,
+  ) async {
+    await _open(tester);
+    final buttons = tester.getRect(find.byType(Wrap));
+    final field = tester.getRect(
+      find.ancestor(
+        of: find.text('Scooter name'),
+        matching: find.byType(TextField),
+      ),
+    );
+    expect(field.top - buttons.bottom, greaterThanOrEqualTo(8));
+  });
+
+  testWidgets('RMV in cubic feet keeps two decimals', (tester) async {
+    await _open(
+      tester,
+      settings: const AppSettings(volumeUnit: VolumeUnit.cubicFeet),
+    );
+    // 15 L/min is 0.5297 cuft/min; one decimal would round it to 0.5.
+    expect(find.text('0.53'), findsOneWidget);
   });
 }

@@ -133,7 +133,7 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
               value: u.sacDisplay(_draft.sacBottom),
               hintValue: 0,
               suffixText: u.sacSymbol,
-              decimals: 1,
+              decimals: u.sacDecimals,
               min: 0,
               allowEmpty: false,
               onChanged: (v) => setState(
@@ -171,6 +171,7 @@ class _MissionMemberEditorState extends State<_MissionMemberEditor> {
                 ),
               ],
             ),
+            const SizedBox(height: 8),
             TextField(
               controller: _scooterName,
               decoration: InputDecoration(
