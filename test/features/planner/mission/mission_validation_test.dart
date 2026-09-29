@@ -40,6 +40,7 @@ MissionMember _member({
   double towBurn = 1.5,
   double sac = 15,
   double swim = 0.2,
+  double rated = 0.5,
 }) => MissionMember(
   id: 'a',
   order: 0,
@@ -48,7 +49,7 @@ MissionMember _member({
   swimSpeedMps: swim,
   scooter: ScooterSpec(
     name: 'S',
-    ratedSpeedMps: 0.5,
+    ratedSpeedMps: rated,
     burnTimeSeconds: 7200,
     towSpeedFactor: towSpeed,
     towBurnFactor: towBurn,
@@ -247,6 +248,38 @@ void main() {
         outcome.issues.map((i) => i.type),
         contains(MissionIssueType.planNotDiveable),
       );
+    });
+  });
+
+  group('speeds under the headway floor', () {
+    // Below 0.05 m/s the resolver reads no headway even in still water, so
+    // such a speed would surface as blocked by a current that is not there.
+    for (final (label, member) in [
+      ('a swim speed of 0.04 m/s', _member(swim: 0.04)),
+      ('a scooter rated 0.04 m/s', _member(rated: 0.04)),
+      ('a tow speed of 0.5 x 0.08 = 0.04 m/s', _member(towSpeed: 0.08)),
+    ]) {
+      test('$label is refused', () {
+        expect(
+          _blocking(_mission(member: member)),
+          contains((MissionIssueType.speedBelowHeadwayFloor, null, 'a')),
+        );
+      });
+    }
+
+    test('a swim speed at the floor is allowed', () {
+      expect(
+        _blocking(_mission(member: _member(swim: 0.05))).map((i) => i.$1),
+        isNot(contains(MissionIssueType.speedBelowHeadwayFloor)),
+      );
+    });
+
+    test('a zero swim speed is unset, not under the floor', () {
+      final types = _blocking(
+        _mission(member: _member(swim: 0)),
+      ).map((i) => i.$1);
+      expect(types, contains(MissionIssueType.memberSwimSpeedUnset));
+      expect(types, isNot(contains(MissionIssueType.speedBelowHeadwayFloor)));
     });
   });
 }

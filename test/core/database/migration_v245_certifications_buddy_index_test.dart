@@ -20,7 +20,7 @@ void main() {
   test('v245 is the current schema version and in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, 245);
     expect(AppDatabase.migrationVersions.last, 245);
-    expect(AppDatabase.migrationStepCount(242), 1);
+    expect(AppDatabase.migrationStepCount(244), 1);
   });
 
   test('a fresh database indexes certifications by buddy', () async {

@@ -77,6 +77,9 @@ class SyncRepository {
     'divePlans': (table: 'dive_plans', pk: 'id'),
     'divePlanTanks': (table: 'dive_plan_tanks', pk: 'id'),
     'divePlanSegments': (table: 'dive_plan_segments', pk: 'id'),
+    'divePlanMissions': (table: 'dive_plan_missions', pk: 'id'),
+    'divePlanMissionLegs': (table: 'dive_plan_mission_legs', pk: 'id'),
+    'divePlanMissionMembers': (table: 'dive_plan_mission_members', pk: 'id'),
     'equipment': (table: 'equipment', pk: 'id'),
     'equipmentSets': (table: 'equipment_sets', pk: 'id'),
     // The equipmentSetItems junction is deliberately absent: it has no hlc

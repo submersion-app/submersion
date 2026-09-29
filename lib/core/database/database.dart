@@ -5,6 +5,7 @@ import 'package:submersion/core/database/tables/app_tables.dart';
 import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
+import 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 import 'package:submersion/core/database/tables/dive_profile_tables.dart';
 import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
@@ -30,6 +31,7 @@ export 'package:submersion/core/database/tables/app_tables.dart';
 export 'package:submersion/core/database/tables/buddy_tables.dart';
 export 'package:submersion/core/database/tables/cylinder_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
+export 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 export 'package:submersion/core/database/tables/dive_profile_tables.dart';
 export 'package:submersion/core/database/tables/dive_tables.dart';
 export 'package:submersion/core/database/tables/diver_tables.dart';
@@ -184,6 +186,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DivePlans,
     DivePlanTanks,
     DivePlanSegments,
+    // DPV mission planner (v244, issue #2086)
+    DivePlanMissions,
+    DivePlanMissionLegs,
+    DivePlanMissionMembers,
     // CSV import presets (local-only)
     CsvPresets,
     // Column view configuration
@@ -970,9 +976,16 @@ class AppDatabase extends _$AppDatabase {
     // with no hlc, never synced, so the floor does not move. 241 was held
     // by #2493 when this was taken.
     242,
+    // v244: DPV mission planner (issue #2086). dive_plan_missions,
+    // dive_plan_mission_legs and dive_plan_mission_members, children of
+    // dive_plans. Table-only rung, no backfill; an older reader keeps the
+    // new entity types as inert unknowns, so the floor stays at 240.
+    // Renumbered from 241: #2493 took it, main shipped 242 (#2541) and
+    // an open branch claims 243 (#2409).
+    244,
     // v245: idx_certifications_buddy_id (issue #2365, PR 4). Index-only;
-    // the floor does not move. 243 and 244 were held by #2409 and #2538
-    // when this was taken.
+    // the floor does not move. 243 was held by #2409 and 244 went to
+    // #2086 when this was taken.
     245,
   ];
 

@@ -155,6 +155,24 @@ addTearDown(() => HttpOverrides.global = previous);
     );
   });
 
+  group('IO overrides', () {
+    test('an assignment with no capture is an offence', () {
+      final offences = scan('IOOverrides.global = _Overrides();\n');
+
+      expect(offences.map((o) => o.rule), [ioRule]);
+    });
+
+    test('capturing IOOverrides.current and assigning it back is accepted', () {
+      final offences = scan('''
+final previous = IOOverrides.current;
+IOOverrides.global = _Overrides();
+addTearDown(() => IOOverrides.global = previous);
+''');
+
+      expect(offences, isEmpty);
+    });
+  });
+
   group('harness defaults', () {
     for (final name in harnessDefaults) {
       test('changing $name without the helper is an offence', () {

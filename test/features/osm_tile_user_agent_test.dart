@@ -147,7 +147,12 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      // Bounded pumps, not pumpAndSettle: the initial location starts a
+      // reverse geocode, which the test harness refuses (no network), and its
+      // spinner can keep animating while the lookup's rate-limit wait runs on
+      // the real clock. Nothing here depends on the lookup.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.byType(TileLayer), findsOneWidget);
     });

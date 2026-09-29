@@ -10,6 +10,7 @@ import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_mission_store.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
@@ -40,6 +41,7 @@ class DivePlanRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DivePlanRepository);
+  final _missions = const DivePlanMissionStore();
 
   /// Fires on any change to the plan tables.
   Stream<void> watchPlanChanges() => _db.tableUpdates(
@@ -48,6 +50,9 @@ class DivePlanRepository {
       _db.divePlanTanks,
       _db.divePlanSegments,
       _db.divePlanEquipment,
+      _db.divePlanMissions,
+      _db.divePlanMissionLegs,
+      _db.divePlanMissionMembers,
     ]),
   );
 
@@ -75,6 +80,8 @@ class DivePlanRepository {
     final addedEquipmentIds = <String>[];
     final changedEquipmentIds = <String>[];
     final removedEquipmentIds = <String>[];
+    var missionWritten = MissionRowIds.none;
+    var missionRemoved = MissionRowIds.none;
 
     try {
       await _db.transaction(() async {
@@ -211,6 +218,20 @@ class DivePlanRepository {
               ))
               .go();
         }
+        final missionWrite = await _missions.write(
+          _db,
+          plan.id,
+          plan.mission,
+          now,
+          _uuid.v4,
+        );
+        missionWritten = missionWrite.written;
+        missionRemoved = missionWrite.removed;
+        // The mission as stored: a leg or member id another plan held was
+        // re-minted, and the caller must see the id it can save again.
+        if (missionWrite.mission != null) {
+          stored = stored.copyWith(mission: missionWrite.mission);
+        }
       });
 
       // Sync bookkeeping AFTER the transaction commits so a rollback leaves
@@ -259,6 +280,13 @@ class DivePlanRepository {
           recordId: '${plan.id}|$id',
         );
       }
+      await _missions.recordWrite(
+        _syncRepository,
+        plan.id,
+        missionWritten,
+        missionRemoved,
+        now,
+      );
       SyncEventBus.notifyLocalChange();
       return stored;
     } catch (e, stackTrace) {
@@ -364,7 +392,7 @@ class DivePlanRepository {
         _db.divePlanEquipment,
       )..where((e) => e.planId.equals(id))).get();
 
-      return _mapPlan(
+      final plan = _mapPlan(
         row,
         tankRows,
         segmentRows,
@@ -378,6 +406,8 @@ class DivePlanRepository {
             ),
         ],
       );
+      final mission = await _missions.read(_db, id);
+      return mission == null ? plan : plan.copyWith(mission: mission);
     } catch (e, stackTrace) {
       _log.error('Failed to load plan $id', error: e, stackTrace: stackTrace);
       rethrow;
@@ -450,8 +480,10 @@ class DivePlanRepository {
       final segmentIds = (await (_db.select(
         _db.divePlanSegments,
       )..where((t) => t.planId.equals(id))).get()).map((r) => r.id).toList();
+      final missionIds = await _missions.idsFor(_db, id);
 
       await _db.transaction(() async {
+        await _missions.deleteAll(_db, id);
         await (_db.delete(
           _db.divePlanSegments,
         )..where((t) => t.planId.equals(id))).go();
@@ -461,6 +493,7 @@ class DivePlanRepository {
         await (_db.delete(_db.divePlans)..where((t) => t.id.equals(id))).go();
       });
 
+      await _missions.recordDeletion(_syncRepository, id, missionIds);
       for (final segmentId in segmentIds) {
         await _syncRepository.logDeletion(
           entityType: 'divePlanSegments',
@@ -509,6 +542,9 @@ class DivePlanRepository {
       updatedAt: now,
       tanks: newTanks,
       segments: newSegments,
+      mission: source.mission == null
+          ? null
+          : _missions.remint(source.mission!, _uuid.v4),
       clearLinkedDiveId: true,
     );
     final sourceRow = await (_db.select(

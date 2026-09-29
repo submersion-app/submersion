@@ -76,6 +76,13 @@ extension RungsFromV231 on AppDatabase {
       await _assertEquipmentServiceStatusTable();
     }
     if (from < 242) await reportProgress();
+    // v244: DPV mission planner (issue #2086). Table-only rung, no
+    // backfill: a plan without a mission row has no mission. Re-asserted
+    // in beforeOpen.
+    if (from < 244) {
+      await _assertDivePlanMissionSchema();
+    }
+    if (from < 244) await reportProgress();
     // v245: index certifications by buddy (issue #2365). Index-only rung;
     // re-asserted in beforeOpen.
     if (from < 245) {

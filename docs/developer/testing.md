@@ -409,6 +409,37 @@ class MockDiveRepository extends Mock implements DiveRepository {
 }
 ```
 
+## Network, Time Limits and Fonts
+
+Every test runs with the same three limits, whether it runs on its own, in a
+CI bundle, or through `flutter test` locally.
+
+- **No network.** An HTTP or HTTPS request through `HttpClient` (which
+  `package:http`, images and most plugins use), or a plain `Socket`, to any
+  host but this machine fails with `A test reached the network: <URL>`. A TLS
+  socket opened directly with `SecureSocket.connect` connects below the hook
+  and is not covered; nothing in `lib/` opens one. Inject a fake client (`MockClient` from
+  `package:http/testing.dart`), serve the response from a loopback
+  `HttpServer` (`HttpServer.bind(InternetAddress.loopbackIPv4, 0)`), or call
+  `loadPdfRoboto()` for PDF fonts. The overrides live in
+  `test/helpers/blocked_network.dart`, and `HttpOverrides.runZoned` still wins
+  inside its zone. The refusal is a `StateError`: code under test that catches
+  every error swallows it, so no request leaves the machine but the test does
+  not fail on it. A widget test that waits for such a lookup with
+  `pumpAndSettle` can then wait forever; pump a bounded number of times
+  instead, or fake the service.
+- **A time limit per test.** A test fails after `testTimeLimit`
+  (`test/helpers/test_timeouts.dart`, two minutes), set for plain tests in
+  `dart_test.yaml` and for widget tests on the binding in
+  `test/flutter_test_config.dart`. A test that is slow on purpose declares its
+  own `timeout:` with a comment saying why. The `performance` and `real-data`
+  tags, which run only on request, allow 30 minutes. That tag setting, like a
+  file-level `@Timeout`, reaches plain tests only: `testWidgets` passes the
+  binding's limit to each test explicitly, so a widget test that needs longer
+  passes its own `timeout:` argument.
+- **No font downloads.** Google Fonts runtime fetching is off for every test.
+  The family name is still on each `TextStyle`; the font bytes never load.
+
 ## Shared Isolates in CI
 
 `flutter test` compiles and loads every test file as its own entrypoint. In CI
@@ -430,9 +461,9 @@ restores it, so the next file starts from the same place.
 | You change | Put it back with |
 |---|---|
 | The path provider | `useFakePathProvider(fake)` from `test/helpers/fake_path_provider.dart`, in `setUp` or the test. It restores the previous provider when the test ends |
-| Any other `*Platform.instance`, or `HttpOverrides.global` | Read the previous value into a variable, and assign that variable back in `tearDown` or `addTearDown` |
+| Any other `*Platform.instance`, `HttpOverrides.global` or `IOOverrides.global` | Read the previous value into a variable, and assign that variable back in `tearDown` or `addTearDown` |
 | `debugPrint`, `FlutterError.onError` or `debugDefaultTargetPlatformOverride` | Put the saved value (or `null` for the platform override) back before the test ends. flutter_test requires this in the body of a `testWidgets` |
-| `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled` or `debugCanShareFiles` | `applyGlobalTestDefaults()` from `test/helpers/global_test_defaults.dart`, in `tearDown` |
+| `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled`, `debugCanShareFiles` or `GoogleFonts.config.allowRuntimeFetching` | `applyGlobalTestDefaults()` from `test/helpers/global_test_defaults.dart`, in `tearDown` |
 | A mock handler on the path provider or share channel | `clearPathAndShareChannelMocks()` from `test/helpers/mock_channels.dart`, or `setMockMethodCallHandler(channel, null)`, in a `tearDown` or `tearDownAll` |
 | The share sheet | Assign your fake to `SharePlatform.instance` and restore it. The harness pins a forwarder, so the fake is looked up on every share |
 | PDF fonts | `loadPdfRoboto()` in `setUpAll` and `unloadPdfRoboto()` in `tearDownAll`, from `test/helpers/pdf_roboto.dart` |
