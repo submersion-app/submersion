@@ -99,6 +99,20 @@ abstract final class MissionEdits {
     ]);
   }
 
+  /// The first of `nameFor(1)`, `nameFor(2)`, ... that no diver is called,
+  /// so removing "Diver 1" and adding a diver does not make two "Diver 2"s.
+  static String nextDefaultName(
+    DpvMission m,
+    String Function(int number) nameFor,
+  ) {
+    final taken = {for (final t in m.team) t.displayName};
+    var n = 1;
+    while (taken.contains(nameFor(n))) {
+      n++;
+    }
+    return nameFor(n);
+  }
+
   static DpvMission updateMember(DpvMission m, MissionMember member) =>
       _withTeam(m, [for (final t in m.team) t.id == member.id ? member : t]);
 

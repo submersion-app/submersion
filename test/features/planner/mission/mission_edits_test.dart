@@ -105,4 +105,22 @@ void main() {
       expect(MissionEdits.withLiveScooters(stored, [dpvItem('eq-1')]), stored);
     });
   });
+
+  test('the next default name is the lowest one not in use', () {
+    String nameFor(int n) => 'Diver $n';
+    final two = MissionEdits.addMember(
+      MissionEdits.starter(
+        legId: 'L1',
+        memberId: 'm1',
+        memberName: 'Diver 1',
+        sacBottom: 15,
+      ),
+      'm2',
+      name: 'Diver 2',
+      sacBottom: 15,
+    );
+    expect(MissionEdits.nextDefaultName(two, nameFor), 'Diver 3');
+    final onlyTwo = MissionEdits.removeMember(two, 'm1');
+    expect(MissionEdits.nextDefaultName(onlyTwo, nameFor), 'Diver 1');
+  });
 }

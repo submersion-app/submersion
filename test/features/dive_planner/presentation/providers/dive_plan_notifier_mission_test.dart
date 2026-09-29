@@ -145,6 +145,21 @@ void main() {
     expect(notifier.state.segments, hasLength(2));
   });
 
+  test('editMission applies the edit to the current mission', () {
+    notifier.enableMission(starter);
+    notifier.updateMission(starter.copyWith(batteryReserveFraction: 0.5));
+    // An edit written against the starter must not undo the reserve change.
+    notifier.editMission((m) => m.copyWith(walkSpeedMps: 1.0));
+    expect(notifier.state.mission!.batteryReserveFraction, 0.5);
+    expect(notifier.state.mission!.walkSpeedMps, 1.0);
+  });
+
+  test('editMission does nothing without a mission', () {
+    final before = notifier.state;
+    notifier.editMission((m) => m.copyWith(walkSpeedMps: 1.0));
+    expect(notifier.state, same(before));
+  });
+
   group('opening a saved mission', () {
     setUp(() async => setUpTestDatabase());
     tearDown(tearDownTestDatabase);
@@ -264,6 +279,60 @@ void main() {
       items.complete([dpvItem('eq-1')]);
       expect(await loading, isTrue);
       expect(opener.state.mission!.legs.single.distanceM, 500);
+    });
+  });
+
+  group('opening a saved mission, regeneration', () {
+    setUp(() async => setUpTestDatabase());
+    tearDown(tearDownTestDatabase);
+
+    test('the profile is regenerated once on load, not dirtied', () async {
+      // Saved with a complete manual mission but no segments, as a plan file
+      // written by another version might be.
+      final mission = MissionEdits.updateMember(
+        MissionEdits.updateLeg(
+          starter,
+          starter.legs.single.copyWith(distanceM: 300, depthM: 20),
+        ),
+        starter.team.single.copyWith(
+          scooter: const ScooterSpec(
+            name: 'Manual',
+            ratedSpeedMps: 0.9,
+            burnTimeSeconds: 5400,
+          ),
+        ),
+      );
+      await DivePlanRepository().savePlan(
+        domain.DivePlan(
+          id: 'plan-2',
+          name: 'Stale profile',
+          gfLow: 40,
+          gfHigh: 80,
+          tanks: const [
+            DiveTank(
+              id: 'back',
+              volume: 24,
+              startPressure: 230,
+              gasMix: GasMix(o2: 21),
+              role: TankRole.backGas,
+            ),
+          ],
+          mission: mission,
+          createdAt: DateTime(2026, 9, 28),
+          updatedAt: DateTime(2026, 9, 28),
+        ),
+      );
+      final opener = DivePlanNotifier(
+        PlanCalculatorService(),
+        repository: DivePlanRepository(),
+      );
+      addTearDown(opener.dispose);
+      expect(await opener.loadPlanById('plan-2'), isTrue);
+      expect(
+        opener.state.segments.map((s) => s.id),
+        contains('mission-out-L1'),
+      );
+      expect(opener.state.isDirty, isFalse);
     });
   });
 }

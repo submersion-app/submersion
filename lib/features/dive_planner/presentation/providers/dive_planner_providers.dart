@@ -268,10 +268,9 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
         await _liveEquipment(plan.id),
       );
       if (!mounted) return false;
-      // An edit made while the equipment loaded wins over the refresh.
-      if (live != mission && state.mission == mission) {
-        _setMission(live, markDirty: false);
-      }
+      // Regenerated once, so the profile always matches the mission it was
+      // saved with; an edit made while the equipment loaded wins.
+      if (state.mission == mission) _setMission(live, markDirty: false);
     }
     return true;
   }
@@ -757,6 +756,15 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   /// Replaces the mission and regenerates the plan's segments from it.
   void updateMission(DpvMission mission) => _setMission(mission);
+
+  /// Applies [edit] to the mission as it is now, not as a widget last saw
+  /// it: a value committed between a build and a callback survives. Does
+  /// nothing when no mission is on.
+  void editMission(DpvMission Function(DpvMission current) edit) {
+    final current = state.mission;
+    if (current == null) return;
+    _setMission(edit(current));
+  }
 
   /// Turns the mission off. The segments it last generated stay as ordinary
   /// segments the diver can edit.
