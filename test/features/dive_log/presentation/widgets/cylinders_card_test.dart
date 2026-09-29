@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/presentation/widgets/observation_s
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 
 import '../../../../helpers/test_app.dart';
 
@@ -743,6 +744,38 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Reassign pressure series'), findsNothing);
+    });
+
+    testWidgets('a linked tank names its trip cylinder and bottle', (
+      tester,
+    ) async {
+      final dive = _makeDive([
+        _makeTank().copyWith(tripCylinderId: 'a'),
+      ]).copyWith(tripId: 't1');
+      await tester.pumpWidget(
+        _buildCard(
+          dive: dive,
+          extraOverrides: [
+            tripCylinderLabelsAtProvider((
+              tripId: 't1',
+              atMillis: dive.effectiveEntryTime.millisecondsSinceEpoch,
+            )).overrideWith(
+              (ref) async => {'a': (label: 'Truck 2', bottle: '14')},
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Truck 2 · Bottle 14'), findsOneWidget);
+    });
+
+    testWidgets('an unlinked tank shows no trip cylinder line', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(dive: _makeDive([_makeTank()]).copyWith(tripId: 't1')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('tank-trip-cylinder-tank-1')), findsNothing);
+      expect(find.textContaining('Bottle'), findsNothing);
     });
   });
 }
