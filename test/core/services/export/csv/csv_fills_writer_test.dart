@@ -70,4 +70,12 @@ void main() {
     expect(r['Notes'], "'-deep");
     expect(r['Analyzer'], "'@box");
   });
+
+  test('a hand-typed fill id is neutralised too', () {
+    // The parser keeps a hand-added row's id as written, so an id is not
+    // always a UUID by the time it is exported again.
+    final fill = goldenFills().first.copyWith(id: '=HYPERLINK("x")');
+    final r = rowOf(CsvFillsWriter(CsvExportUnits.metric).write([fill]), 1);
+    expect(r['Fill ID'], "'=HYPERLINK(\"x\")");
+  });
 }

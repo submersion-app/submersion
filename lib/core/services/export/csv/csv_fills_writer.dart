@@ -48,7 +48,7 @@ class CsvFillsWriter {
           ? null
           : equipmentById[fill.equipmentId];
       rows.add([
-        fill.id,
+        sanitizeCsvField(fill.id),
         sanitizeCsvField(fill.passportId),
         sanitizeCsvField(cylinder?.name),
         sanitizeCsvField(cylinder?.serialNumber),

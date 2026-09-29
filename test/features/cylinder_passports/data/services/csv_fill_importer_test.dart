@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
@@ -141,6 +143,27 @@ void main() {
   });
 
   test(
+    'a row that cannot be stored is logged and the rest still import',
+    () async {
+      final seen = <LogEntry>[];
+      final sub = LoggerService.logStream.listen(seen.add);
+      addTearDown(sub.cancel);
+      final failing = CsvFillImporter(fills: _FailingFills('bad'));
+      final count = await failing.importRows(
+        [row(id: 'bad'), row(id: 'good')],
+        selected: {0, 1},
+        diverId: 'd1',
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(count, 1);
+      expect(
+        seen.where((e) => e.message.contains('Could not import fill bad')),
+        hasLength(1),
+      );
+    },
+  );
+
+  test(
     'fromPayload reads an unknown source as manual and a missing He as 0',
     () {
       final fill = CsvFillImporter.fromPayload(
@@ -153,4 +176,17 @@ void main() {
       expect(fill.equipmentId, isNull);
     },
   );
+}
+
+/// Throws when asked to store the fill [failId], as a locked database would.
+class _FailingFills extends CylinderFillRepository {
+  _FailingFills(this.failId);
+
+  final String failId;
+
+  @override
+  Future<CylinderFill> create(CylinderFill fill) async {
+    if (fill.id == failId) throw StateError('database is locked');
+    return super.create(fill);
+  }
 }

@@ -1,6 +1,9 @@
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+
+const _log = LoggerService('csvFillImporter');
 
 /// Stores the rows of a Submersion fills CSV (spec section 10.2, PR 5).
 ///
@@ -35,8 +38,10 @@ class CsvFillImporter {
       if (fill == null) continue;
       try {
         if (await importIfNew(fill, diverId: diverId) != null) count++;
-      } catch (_) {
-        // One bad row must not abort the import.
+      } catch (e) {
+        // One bad row must not abort the import; it is logged so a failed
+        // row is told apart from one skipped as already here.
+        _log.warning('Could not import fill ${fill.id}: $e');
       }
     }
     return count;
