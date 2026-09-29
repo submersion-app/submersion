@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -384,6 +385,15 @@ void main() {
       ],
     );
     expect(find.textContaining('1000 Wh battery'), findsOneWidget);
+
+    // On a narrow phone the wrapped scooter line must not push the battery
+    // line out of the card.
+    tester.view.physicalSize = const Size(320, 2000);
+    await tester.pumpAndSettle();
+    final paragraph = tester.renderObject<RenderParagraph>(
+      find.textContaining('1000 Wh battery'),
+    );
+    expect(paragraph.didExceedMaxLines, isFalse);
   });
 
   testWidgets('a value committed as a dialog opens survives its save', (

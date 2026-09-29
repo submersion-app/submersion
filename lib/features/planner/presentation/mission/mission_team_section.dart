@@ -257,9 +257,9 @@ class _MemberCard extends ConsumerWidget {
               l10n.plannerMission_team_noScooter,
             if (capacityWh != null)
               l10n.plannerMission_team_capacity(capacityWh.round().toString()),
+            // Not capped: beside the avatar the scooter line can wrap, and a
+            // capped subtitle would cut off the battery line under it.
           ].join('\n'),
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
         ),
         onTap: onEdit,
         trailing: onRemove == null
