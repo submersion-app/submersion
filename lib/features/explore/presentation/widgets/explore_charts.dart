@@ -42,7 +42,10 @@ class _ExploreChartCard extends ConsumerWidget {
       ChartKind.depthTrend => l10n.explore_chart_depthTrend,
       ChartKind.waterTempTrend => l10n.explore_chart_waterTempTrend,
       ChartKind.bottomTimeTrend => l10n.explore_chart_bottomTimeTrend,
-      ChartKind.sacTrend => queryLabelForKey(l10n, 'query_dives_sac'),
+      // The axis is bare numbers in the diver's pressure unit, so the title
+      // names it.
+      ChartKind.sacTrend =>
+        '${queryLabelForKey(l10n, 'query_dives_sac')} (${units.sacSymbol})',
       ChartKind.entityCounts => l10n.explore_chart_entityCounts(
         _kindName(l10n, request.entityKind),
       ),

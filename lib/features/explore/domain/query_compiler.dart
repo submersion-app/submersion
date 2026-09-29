@@ -322,8 +322,8 @@ abstract final class QueryCompiler {
     DiveFilterState f,
     UnitPrefs units,
   ) {
+    if (!unitFits(spec.dimension, c.unit)) return _fail('invalid');
     final rate = spec.dimension == FieldDimension.pressureRate;
-    if (rate && !unitFitsRate(c.unit)) return _fail('invalid');
     // A rate keeps four decimals: psi/min bounds half a psi apart are only
     // 0.07 bar/min apart, and two decimals would round them together.
     double ground(num v) => double.parse(

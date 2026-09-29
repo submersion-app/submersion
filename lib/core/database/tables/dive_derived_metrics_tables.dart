@@ -35,6 +35,10 @@ class DiveDerivedMetricsRows extends Table {
   IntColumn get finalStopStartS => integer().nullable()();
   IntColumn get finalStopDurationS => integer().nullable()();
   RealColumn get finalStopDepthStddevM => real().nullable()();
+
+  /// How far the diver strayed from the stop's mean depth, in metres: the
+  /// 90th percentile of the samples, not the single worst one, so a sample
+  /// passing through is not counted as straying.
   RealColumn get finalStopMaxExcursionM => real().nullable()();
 
   /// Bar per minute at surface pressure.

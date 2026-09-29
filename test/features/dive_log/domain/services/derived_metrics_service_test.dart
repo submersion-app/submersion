@@ -190,6 +190,36 @@ void main() {
       expectTextbookStop(run(samples: realEnd(arriveRate: 10, ascentRate: 10)));
     });
 
+    test('a 6 m then 3 m deco sequence ends on the 3 m stop', () {
+      // Both stops are held steady; they are two stops, not one wandering
+      // one, and the last is the 3 m stop.
+      final samples = <ProfileSample>[];
+      var t = 0;
+      void hold(double depth, int seconds) {
+        for (var i = 0; i < seconds ~/ 10; i++) {
+          samples.add(ProfileSample(timestamp: t, depth: depth));
+          t += 10;
+        }
+      }
+
+      hold(40, 900);
+      for (final d in [30.0, 20.0, 12.0, 8.0]) {
+        hold(d, 10);
+      }
+      hold(6, 300);
+      for (final d in [5.0, 4.0]) {
+        hold(d, 10);
+      }
+      hold(3, 180);
+      for (final d in [2.0, 1.0, 0.0]) {
+        hold(d, 10);
+      }
+      final m = run(samples: samples);
+      expect(m.finalStopState, FinalStopState.stable);
+      expect(m.finalStopDurationSeconds, inInclusiveRange(170, 200));
+      expect(m.finalStopMaxExcursionMeters, lessThan(0.5));
+    });
+
     test('a wandering stop reports its excursion', () {
       // The diver porpoises between 3.5 m and 6.5 m around a 5 m median.
       final samples = squareProfile();

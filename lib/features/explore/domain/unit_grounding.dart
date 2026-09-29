@@ -63,15 +63,26 @@ PressureUnit rateUnitSaid(ClauseUnit? unit, UnitPrefs prefs) => switch (unit) {
   _ => prefs.pressure,
 };
 
-/// Whether [unit] can be read as a pressure rate. A volume rate (l/min,
-/// cuft/min) is RMV, a different measure, and a depth or a temperature is
-/// not a rate at all: reading either as bar/min would silently search for
-/// the wrong thing.
-bool unitFitsRate(ClauseUnit? unit) => switch (unit) {
-  null ||
-  ClauseUnit.bar ||
-  ClauseUnit.psi ||
-  ClauseUnit.barMin ||
-  ClauseUnit.psiMin => true,
-  _ => false,
-};
+/// Whether [unit] can be read on a field of [dimension]. A unit of another
+/// kind (20 c on a depth, l/min on a SAC, which is RMV) would otherwise be
+/// ignored and the number read in the diver's own unit, searching for the
+/// wrong thing without saying so. No unit always fits, and a unitless field
+/// takes whatever it is given, as it always has.
+bool unitFits(FieldDimension dimension, ClauseUnit? unit) {
+  if (unit == null) return true;
+  return switch (dimension) {
+    FieldDimension.depth => unit == ClauseUnit.m || unit == ClauseUnit.ft,
+    FieldDimension.temperature => unit == ClauseUnit.c || unit == ClauseUnit.f,
+    FieldDimension.pressure => unit == ClauseUnit.bar || unit == ClauseUnit.psi,
+    // Divers drop "per minute": a plain bar or psi on a rate fits.
+    FieldDimension.pressureRate =>
+      unit == ClauseUnit.bar ||
+          unit == ClauseUnit.psi ||
+          unit == ClauseUnit.barMin ||
+          unit == ClauseUnit.psiMin,
+    FieldDimension.minutes => unit == ClauseUnit.min,
+    FieldDimension.percent ||
+    FieldDimension.count ||
+    FieldDimension.none => true,
+  };
+}

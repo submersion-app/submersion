@@ -77,6 +77,9 @@ class DiveDerivedMetrics {
   final int? finalStopStartSeconds;
   final int? finalStopDurationSeconds;
   final double? finalStopDepthStdDevMeters;
+
+  /// The 90th-percentile distance from the stop's mean depth, in metres;
+  /// not the single worst sample (see `DerivedMetricsService._finalStop`).
   final double? finalStopMaxExcursionMeters;
 
   final double? sacMeanBarPerMin;

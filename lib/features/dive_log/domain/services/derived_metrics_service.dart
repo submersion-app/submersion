@@ -41,6 +41,15 @@ abstract final class DerivedMetricsService {
   /// stop.
   static const double finalStopMinDepthMeters = 2.0;
 
+  /// The stop depth is judged from this much time at depth before the
+  /// ascent: long enough to outweigh transit, short enough that an earlier
+  /// deco stop does not pull the centre off the last one.
+  static const int finalStopCenterSeconds = 180;
+
+  /// A sample further than this from the stop's mean, still moving towards
+  /// it or away from it, is transit rather than the stop.
+  static const double transitMeters = kFinalStopUnstableMeters / 2;
+
   static bool isCurrent(DiveDerivedMetrics m, int diveUpdatedAt) =>
       m.engineVersion >= version && m.sourceUpdatedAt == diveUpdatedAt;
 
@@ -123,12 +132,20 @@ abstract final class DerivedMetricsService {
     );
     if (lastDeep < 0) return null;
     final tail = samples.sublist(lastDeep + 1);
-    final candidates = [
+    final atDepth = [
       for (final s in tail)
-        if (s.depth >= finalStopMinDepthMeters) s.depth,
+        if (s.depth >= finalStopMinDepthMeters) s,
     ];
-    if (candidates.isEmpty) return null;
-    final center = candidates.reduce((a, b) => a + b) / candidates.length;
+    if (atDepth.isEmpty) return null;
+    // Centre on the last few minutes only: a deco sequence (6 m, then 3 m)
+    // is two stops, and the mean of the whole tail would sit between them
+    // and take both as one wandering stop.
+    final lastAtDepth = atDepth.last.timestamp;
+    final recent = [
+      for (final s in atDepth)
+        if (lastAtDepth - s.timestamp <= finalStopCenterSeconds) s.depth,
+    ];
+    final center = recent.reduce((a, b) => a + b) / recent.length;
 
     List<ProfileSample>? best;
     var run = <ProfileSample>[];
@@ -182,20 +199,20 @@ abstract final class DerivedMetricsService {
   }
 
   /// A run without the samples still arriving at the stop or already
-  /// leaving it: from each end, drop a sample more than half a metre off the
-  /// run's mean while its neighbour is closer to the mean.
+  /// leaving it: from each end, drop a sample more than [transitMeters] off
+  /// the run's mean while its neighbour is closer to the mean.
   static List<ProfileSample> _trimTransit(List<ProfileSample> run) {
     final mean = run.map((s) => s.depth).reduce((a, b) => a + b) / run.length;
     double off(ProfileSample s) => (s.depth - mean).abs();
     var from = 0;
     var to = run.length - 1;
     while (to - from > 1 &&
-        off(run[from]) > 0.5 &&
+        off(run[from]) > transitMeters &&
         off(run[from + 1]) < off(run[from])) {
       from++;
     }
     while (to - from > 1 &&
-        off(run[to]) > 0.5 &&
+        off(run[to]) > transitMeters &&
         off(run[to - 1]) < off(run[to])) {
       to--;
     }

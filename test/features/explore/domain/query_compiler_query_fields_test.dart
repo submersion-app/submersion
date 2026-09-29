@@ -331,6 +331,32 @@ void main() {
       expect(q.filter.query, isNull);
     });
 
+    test('a unit of the wrong kind is refused on any measured field', () {
+      // Reading 20 c as 20 m, or 15 m as 15 degrees, would search for the
+      // wrong thing without saying so.
+      for (final bad in [
+        {...clause('depth', 'gt', 20), 'unit': 'c'},
+        {...clause('waterTemp', 'lt', 15), 'unit': 'm'},
+        {...clause('bottomTime', 'gt', 40), 'unit': 'bar'},
+      ]) {
+        final q = compile([bad]);
+        expect(q.unplaced.single.reason, 'invalid', reason: '$bad');
+      }
+      // The right kind still grounds.
+      expect(
+        compile([
+          {...clause('depth', 'gt', 60), 'unit': 'ft'},
+        ]).unplaced,
+        isEmpty,
+      );
+      expect(
+        compile([
+          {...clause('bottomTime', 'gt', 40), 'unit': 'min'},
+        ]).unplaced,
+        isEmpty,
+      );
+    });
+
     test('a change below minus 100 percent is out of range', () {
       expect(
         compile([clause('sacChange', 'lt', -150)]).unplaced.single.reason,

@@ -372,6 +372,8 @@ final QueryEntity diveQueryEntity = QueryEntity(
       enumValues: _names(FinalStopState.values),
       tables: const [kDiveDerivedMetricsTable],
     ),
+    // How far the diver strayed from the stop's depth for a tenth of the
+    // stop or more (the 90th percentile), not the single worst sample.
     _num(
       'finalStopExcursion',
       _derived('final_stop_max_excursion_m'),

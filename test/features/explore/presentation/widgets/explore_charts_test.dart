@@ -152,7 +152,9 @@ void main() {
         points: [TrendDataPoint(date: DateTime(2025, 6, 1), value: 1.2)],
       ),
     );
-    expect(find.text(en.query_dives_sac), findsOneWidget);
+    // The axis numbers are in the diver's pressure unit; the title says
+    // which.
+    expect(find.text('${en.query_dives_sac} (bar/min)'), findsOneWidget);
     expect(find.byType(DiveTrendChart), findsOneWidget);
   });
 
