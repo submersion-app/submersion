@@ -119,6 +119,8 @@ class TripRepository {
               ),
               expectedDives: Value(trip.expectedDives),
               expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
+              diversSharingCylinders: Value(trip.diversSharingCylinders),
+              divesPerDayTarget: Value(trip.divesPerDayTarget),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -164,6 +166,8 @@ class TripRepository {
           returnFlightAt: Value(trip.returnFlightAt?.millisecondsSinceEpoch),
           expectedDives: Value(trip.expectedDives),
           expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
+          diversSharingCylinders: Value(trip.diversSharingCylinders),
+          divesPerDayTarget: Value(trip.divesPerDayTarget),
           updatedAt: Value(now),
         ),
       );
@@ -694,6 +698,8 @@ class TripRepository {
           : null,
       expectedDives: row.expectedDives,
       expectedRuntimeMinutes: row.expectedRuntimeMinutes,
+      diversSharingCylinders: row.diversSharingCylinders,
+      divesPerDayTarget: row.divesPerDayTarget,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
@@ -725,6 +731,8 @@ class TripRepository {
           : null,
       expectedDives: data['expected_dives'] as int?,
       expectedRuntimeMinutes: data['expected_runtime_minutes'] as int?,
+      diversSharingCylinders: (data['divers_sharing_cylinders'] as int?) ?? 1,
+      divesPerDayTarget: data['dives_per_day_target'] as int?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(data['created_at'] as int),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(data['updated_at'] as int),
     );

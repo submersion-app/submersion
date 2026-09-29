@@ -38,4 +38,33 @@ void main() {
     expect(cleared!.expectedDives, isNull);
     expect(cleared.expectedRuntimeMinutes, isNull);
   });
+
+  test('the fill forecast fields round-trip through both mappers', () async {
+    final repo = TripRepository();
+    final created = await repo.createTrip(
+      Trip(
+        id: '',
+        name: 'Bonaire',
+        startDate: DateTime(2026, 3, 8),
+        endDate: DateTime(2026, 3, 14),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+        diversSharingCylinders: 3,
+        divesPerDayTarget: 2,
+      ),
+    );
+    final byId = await repo.getTripById(created.id);
+    expect(byId!.diversSharingCylinders, 3);
+    expect(byId.divesPerDayTarget, 2);
+    final withStats = await repo.getAllTripsWithStats();
+    expect(withStats.single.trip.diversSharingCylinders, 3);
+    expect(withStats.single.trip.divesPerDayTarget, 2);
+
+    await repo.updateTrip(
+      byId.copyWith(diversSharingCylinders: 1, divesPerDayTarget: null),
+    );
+    final cleared = await repo.getTripById(created.id);
+    expect(cleared!.diversSharingCylinders, 1);
+    expect(cleared.divesPerDayTarget, isNull);
+  });
 }
