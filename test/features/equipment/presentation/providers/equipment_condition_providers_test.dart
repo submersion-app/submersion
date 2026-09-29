@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
@@ -502,6 +503,38 @@ void main() {
     await ccrWithDive(summaryStamp: 5);
     await container.read(equipmentConditionProvider('ccr').future);
     expect(engine.last!.summariesByDive.keys, ['loop']);
+  });
+
+  test('a summary built from a newer synced series is current', () async {
+    // Series never re-stamp their dive (#1769). A summary rebuilt after a
+    // synced profile carries the series' stamp; reading it as stale would
+    // request it again on every review and never save a marker.
+    await ccrWithDive(summaryStamp: 9);
+    await db
+        .into(db.diveProfileSeries)
+        .insert(
+          DiveProfileSeriesCompanion.insert(
+            id: 'ps',
+            diveId: 'loop',
+            startTimestamp: 0,
+            endTimestamp: 60,
+            sampleCount: 1,
+            maxDepth: 10,
+            firstDepth: 0,
+            lastDepth: 0,
+            codecVersion: 1,
+            samples: Uint8List.fromList([1]),
+            createdAt: 9,
+            updatedAt: 9,
+          ),
+        );
+    await container.read(equipmentConditionProvider('ccr').future);
+    expect(engine.last!.summariesByDive.keys, ['loop']);
+    expect(summariesRequested, isEmpty);
+    expect(
+      await EquipmentFindingsRepository(db: db).getReview('ccr'),
+      isNotNull,
+    );
   });
 
   test('a rebuilt summary recomputes the item', () async {

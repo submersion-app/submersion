@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/trips/domain/services/scrubber_margin_service.dart';
@@ -93,7 +94,7 @@ class TripHistoryRepository {
           FROM dives d
           LEFT JOIN dive_sensor_summaries s
             ON s.dive_id = d.id
-            AND s.source_updated_at = d.updated_at
+            AND s.source_updated_at = ${diveSourceStampSql()}
             AND s.engine_version >= ?
           WHERE d.dive_mode IN ('ccr', 'scr')
             AND d.dive_date_time < ? $diverFilter

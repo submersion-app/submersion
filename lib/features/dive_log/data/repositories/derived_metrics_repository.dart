@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show compute;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
@@ -14,19 +15,6 @@ typedef DerivedMetricsRunner =
 
 Future<DiveDerivedMetrics> _computeOnIsolate(DerivedMetricsWorkInput input) =>
     compute(computeDerivedMetricsFromBlobs, input);
-
-/// What the metrics were built from, as one stamp: the later of the dive's
-/// own `updated_at` and its newest profile or tank-pressure series. Those
-/// series are synced child rows that never re-stamp their dive (#1769), so
-/// the dive's `updated_at` alone would call metrics from an old profile
-/// current. Removing a series moves the stamp too, since a row matches only
-/// its exact stamp. Written against the dive alias `d`.
-const _sourceStampSql =
-    'MAX(d.updated_at, '
-    'COALESCE((SELECT MAX(p.updated_at) FROM dive_profile_series p '
-    'WHERE p.dive_id = d.id), 0), '
-    'COALESCE((SELECT MAX(t.updated_at) FROM tank_pressure_series t '
-    'WHERE t.dive_id = d.id), 0))';
 
 /// Reads and writes the Explore derived metrics, computing them on a worker
 /// isolate when the stored row is missing or stale.
@@ -65,7 +53,8 @@ class DerivedMetricsRepository {
     )..where((t) => t.id.equals(diveId))).getSingleOrNull();
     if (dive == null) return null;
 
-    final stamp = await _sourceStamp(diveId);
+    // The dive plus its synced series, which never re-stamp it (#1769).
+    final stamp = (await readDiveSourceStamp(_db, diveId))!;
     if (!force) {
       final stored = await getMetrics(diveId);
       if (stored != null && DerivedMetricsService.isCurrent(stored, stamp)) {
@@ -102,17 +91,6 @@ class DerivedMetricsRepository {
 
     await saveMetrics(metrics);
     return metrics;
-  }
-
-  Future<int> _sourceStamp(String diveId) async {
-    final row = await _db
-        .customSelect(
-          'SELECT $_sourceStampSql AS stamp FROM dives d WHERE d.id = ?',
-          variables: [Variable(diveId)],
-          readsFrom: {_db.dives, _db.diveProfileSeries, _db.tankPressureSeries},
-        )
-        .getSingle();
-    return row.read<int>('stamp');
   }
 
   /// A tank can carry one series per computer that logged it. Pick the
@@ -205,7 +183,7 @@ class DerivedMetricsRepository {
           'SELECT d.id AS id FROM dives d '
           'LEFT JOIN dive_derived_metrics m ON m.dive_id = d.id '
           'WHERE (m.dive_id IS NULL OR m.engine_version < ? '
-          'OR m.source_updated_at != $_sourceStampSql) $diverFilter '
+          'OR m.source_updated_at != ${diveSourceStampSql()}) $diverFilter '
           'ORDER BY d.dive_date_time DESC, d.id ASC',
           variables: [
             const Variable(DerivedMetricsService.version),

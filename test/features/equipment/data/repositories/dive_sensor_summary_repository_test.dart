@@ -248,6 +248,80 @@ void main() {
       },
     );
 
+    test('a synced profile series change makes the row stale', () async {
+      // Series are synced child rows that never re-stamp their dive
+      // (#1769): a new profile arriving by sync leaves dives.updated_at
+      // alone, and the summary must still read as stale.
+      await insertDive('d1', updatedAt: 1000);
+      await insertProfile('d1', const [
+        ProfileSample(timestamp: 0, depth: 0),
+        ProfileSample(timestamp: 60, depth: 12),
+      ]);
+      await repo.ensureCurrent('d1');
+      expect(await repo.staleDiveIds(), isEmpty);
+
+      await (db.delete(
+        db.diveProfileSeries,
+      )..where((t) => t.diveId.equals('d1'))).go();
+      await ProfileSeriesRepository(database: db).insertSeries(
+        diveId: 'd1',
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 0),
+          ProfileSample(timestamp: 60, depth: 30),
+        ],
+        now: 5000,
+      );
+
+      expect(await repo.staleDiveIds(), ['d1']);
+      final rebuilt = await repo.ensureCurrent('d1');
+      expect(runs, 2);
+      expect(rebuilt!.maxDepth, 30);
+      expect(rebuilt.sourceUpdatedAt, 5000);
+      expect(await repo.staleDiveIds(), isEmpty);
+      await repo.ensureCurrent('d1');
+      expect(runs, 2);
+    });
+
+    test('a synced tank pressure series makes the row stale', () async {
+      await insertDive('d1', updatedAt: 1000);
+      await repo.ensureCurrent('d1');
+      await db
+          .into(db.diveTanks)
+          .insert(DiveTanksCompanion.insert(id: 't1', diveId: 'd1'));
+      await TankPressureSeriesRepository(database: db).insertSeries(
+        diveId: 'd1',
+        tankId: 't1',
+        samples: const [
+          TankPressureSample(timestamp: 0, pressure: 200),
+          TankPressureSample(timestamp: 600, pressure: 150),
+        ],
+        now: 5000,
+      );
+
+      expect(await repo.staleDiveIds(), ['d1']);
+      expect(await repo.countStale(), 1);
+      expect((await repo.ensureCurrent('d1'))!.sourceUpdatedAt, 5000);
+      expect(runs, 2);
+    });
+
+    test('removing a newer series makes the row stale too', () async {
+      // The row matches only its exact stamp, so the stamp falling back
+      // to the dive's own is a change as well.
+      await insertDive('d1', updatedAt: 1000);
+      await ProfileSeriesRepository(database: db).insertSeries(
+        diveId: 'd1',
+        samples: const [ProfileSample(timestamp: 0, depth: 9)],
+        now: 3000,
+      );
+      await repo.ensureCurrent('d1');
+      expect(await repo.staleDiveIds(), isEmpty);
+
+      await (db.delete(
+        db.diveProfileSeries,
+      )..where((t) => t.diveId.equals('d1'))).go();
+      expect(await repo.staleDiveIds(), ['d1']);
+    });
+
     test('scopes to a diver when asked', () async {
       await insertDiver('a');
       await insertDiver('b');
