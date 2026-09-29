@@ -113,6 +113,32 @@ void main() {
     expect(payload.data.tripEquipment.single['equipmentId'], 'bcd');
   });
 
+  test('a full export carries every packed row', () async {
+    await pack('a');
+    final payload = await serializer.exportData(
+      deviceId: 'me',
+      deletions: const [],
+    );
+    expect(payload.data.tripEquipment.map((r) => r['id']), ['a']);
+  });
+
+  test('a trip whose clock moved carries its packed rows', () async {
+    // Not pending itself: the row travels because its trip changed.
+    await pack('a');
+    const watermark = '000000000000000:000000:peer';
+    await SyncRepository().markRecordPending(
+      entityType: 'trips',
+      recordId: 't1',
+      localUpdatedAt: 1,
+    );
+    final payload = await serializer.exportChangeset(
+      deviceId: 'me',
+      hlcWatermark: watermark,
+      deletions: const [],
+    );
+    expect(payload.data.tripEquipment.map((r) => r['id']), ['a']);
+  });
+
   test('registration', () {
     expect(
       SyncDataSerializer.parentGatedChildEntities,

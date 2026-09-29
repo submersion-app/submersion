@@ -193,6 +193,61 @@ void main() {
     expect(find.text(l10n.passport_trip_failed), findsNothing);
   });
 
+  testWidgets('tapping a trip opens it', (tester) async {
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(
+            body: SingleChildScrollView(
+              child: PassportTripCard(equipmentId: 'tank'),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/trips/:tripId',
+          builder: (context, state) =>
+              Text('trip ${state.pathParameters['tripId']}'),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        overrides: [
+          ...overrides,
+          equipmentTripsProvider(
+            'tank',
+          ).overrideWith((ref) async => [packed('a')]),
+          allTripsProvider.overrideWith((ref) async => const []),
+          tripEquipmentRepositoryProvider.overrideWithValue(_FakePacks()),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportTripCard)),
+    );
+    await tester.tap(find.text(l10n.passport_trip_packedFor('Trip a')));
+    await tester.pumpAndSettle();
+    expect(find.text('trip a'), findsOneWidget);
+  });
+
+  testWidgets('a failed pack says so', (tester) async {
+    final (l10n, fake) = await pump(
+      tester,
+      allTrips: [trip('a')],
+      failing: true,
+    );
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Trip a'));
+    await tester.pumpAndSettle();
+    expect(fake.packed, isEmpty);
+    expect(find.text(l10n.passport_trip_failed), findsOneWidget);
+  });
+
   testWidgets('a failed unpack says so', (tester) async {
     final (l10n, _) = await pump(tester, trips: [packed('a')], failing: true);
     await tester.tap(find.byTooltip(l10n.passport_trip_unassign));

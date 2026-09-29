@@ -135,6 +135,7 @@ void main() {
       'csvPresets',
       'viewConfigs',
       'fieldPresets',
+      'tripEquipment',
     ];
 
     for (final type in simpleTypes) {

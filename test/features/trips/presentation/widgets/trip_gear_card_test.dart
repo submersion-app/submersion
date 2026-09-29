@@ -93,6 +93,14 @@ void main() {
     expect(fake.unpacked, [('t1', 'bcd')]);
   });
 
+  testWidgets('a failed unpack says so', (tester) async {
+    final fake = await pump(tester, gear: () async => const [bcd]);
+    fake.failing = true;
+    await tester.tap(find.byTooltip(l10nOf(tester).trips_gear_remove));
+    await tester.pumpAndSettle();
+    expect(find.text(l10nOf(tester).trips_gear_failed), findsOneWidget);
+  });
+
   testWidgets('Add gear packs the picked item', (tester) async {
     final fake = await pump(tester, active: const [bcd]);
     await tester.tap(find.text(l10nOf(tester).trips_gear_add));
@@ -105,6 +113,7 @@ void main() {
 }
 
 class _FakePacks extends TripEquipmentRepository {
+  bool failing = false;
   final packed = <(String, List<String>)>[];
   final unpacked = <(String, String)>[];
 
@@ -116,6 +125,7 @@ class _FakePacks extends TripEquipmentRepository {
 
   @override
   Future<void> unpack(String tripId, String equipmentId) async {
+    if (failing) throw StateError('database is locked');
     unpacked.add((tripId, equipmentId));
   }
 }

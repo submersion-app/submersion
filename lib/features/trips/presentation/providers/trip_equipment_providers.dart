@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -88,5 +90,5 @@ final equipmentTripsProvider = FutureProvider.family<List<PackedTrip>, String>((
           packed: packed.contains(trip.id),
           slot: slotted.contains(trip.id),
         ),
-  ], DateTime.now());
+  ], clock.now());
 });
