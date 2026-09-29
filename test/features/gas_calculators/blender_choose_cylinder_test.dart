@@ -82,6 +82,7 @@ void main() {
     WidgetTester tester, {
     AppSettings settings = const AppSettings(),
     String? scanned,
+    Future<List<EquipmentItem>> Function()? gear,
   }) async {
     final overrides = await getBaseOverrides(
       settingsNotifier: MockSettingsNotifier(settings),
@@ -94,7 +95,9 @@ void main() {
         overrides: [
           ...overrides,
           appSettingsRepositoryProvider.overrideWithValue(prefs),
-          activeEquipmentProvider.overrideWith((ref) async => [filled, empty]),
+          activeEquipmentProvider.overrideWith(
+            (ref) => (gear ?? () async => [filled, empty])(),
+          ),
           passportScanLauncherProvider.overrideWithValue(
             (context) async => scanned,
           ),
@@ -253,5 +256,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('gone'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a gear list that fails to load says so', (tester) async {
+    final (l10n, ref) = await pump(
+      tester,
+      gear: () async => throw StateError('database is locked'),
+    );
+    final before = ref.read(blenderStartMixProvider);
+    await tapAndWait(tester, find.byKey(const Key('blender-choose-cylinder')));
+    expect(find.text(l10n.gasCalculators_blender_cylinderFailed), findsOne);
+    expect(ref.read(blenderStartMixProvider), before);
+  });
+
+  testWidgets('a scan that is not a cylinder tag says so', (tester) async {
+    final (l10n, ref) = await pump(tester, scanned: 'hello');
+    final before = ref.read(blenderStartMixProvider);
+    await tapAndWait(tester, find.byKey(const Key('blender-choose-cylinder')));
+    await tapAndWait(tester, find.byKey(const Key('blender-scan-tag')));
+    expect(find.text(l10n.passport_tag_linkInvalid), findsOne);
+    expect(ref.read(blenderStartMixProvider), before);
   });
 }
