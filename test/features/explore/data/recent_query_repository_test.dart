@@ -103,33 +103,34 @@ void main() {
     expect(await repo.list(diverId: 'ana', locale: 'en'), isEmpty);
   });
 
-  test('a table from before rows carried a diver is recreated', () async {
-    // A development build of cache v18 made the table with no diver_id.
-    final file = File(
-      p.join(
-        (await Directory.systemTemp.createTemp('recent_queries')).path,
-        'cache.db',
-      ),
-    );
-    addTearDown(() => file.parent.delete(recursive: true));
-    final old = LocalCacheDatabase(NativeDatabase(file));
-    await old.customStatement('SELECT 1');
-    await old.customStatement('DROP TABLE recent_queries');
-    await old.customStatement(
-      'CREATE TABLE recent_queries (key TEXT NOT NULL, sentence TEXT NOT NULL, '
-      'locale TEXT NOT NULL, parsed_json TEXT NOT NULL, '
-      'schema_version INTEGER NOT NULL, subject TEXT NOT NULL, '
-      'last_used_at INTEGER NOT NULL, PRIMARY KEY (key))',
-    );
-    await old.close();
+  // Earlier development builds of cache v18: no diver at all, then a diver
+  // column that was not part of the key.
+  for (final (name, columns) in [
+    ('no diver column', 'key TEXT NOT NULL,'),
+    ('a diver outside the key', 'key TEXT NOT NULL, diver_id TEXT NOT NULL,'),
+  ]) {
+    test('a table with $name is recreated', () async {
+      final dir = await Directory.systemTemp.createTemp('recent_queries');
+      addTearDown(() => dir.delete(recursive: true));
+      final file = File(p.join(dir.path, 'cache.db'));
+      final old = LocalCacheDatabase(NativeDatabase(file));
+      await old.customStatement('DROP TABLE recent_queries');
+      await old.customStatement(
+        'CREATE TABLE recent_queries ($columns sentence TEXT NOT NULL, '
+        'locale TEXT NOT NULL, parsed_json TEXT NOT NULL, '
+        'schema_version INTEGER NOT NULL, subject TEXT NOT NULL, '
+        'last_used_at INTEGER NOT NULL, PRIMARY KEY (key))',
+      );
+      await old.close();
 
-    final reopened = LocalCacheDatabase(NativeDatabase(file));
-    addTearDown(reopened.close);
-    final scoped = RecentQueryRepository(database: reopened);
-    await scoped.record('after the upgrade', 'en', parsed, diverId: 'ana');
-    expect(
-      (await scoped.list(diverId: 'ana', locale: 'en')).map((r) => r.sentence),
-      ['after the upgrade'],
-    );
-  });
+      final reopened = LocalCacheDatabase(NativeDatabase(file));
+      addTearDown(reopened.close);
+      final scoped = RecentQueryRepository(database: reopened);
+      // The same sentence for two divers needs the diver in the key.
+      await scoped.record('night dives', 'en', parsed, diverId: 'ana');
+      await scoped.record('night dives', 'en', parsed, diverId: 'bob');
+      expect(await scoped.list(diverId: 'ana', locale: 'en'), hasLength(1));
+      expect(await scoped.list(diverId: 'bob', locale: 'en'), hasLength(1));
+    });
+  }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/compiled_query.dart';
 import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
@@ -191,7 +191,19 @@ void main() {
     final c = compile(q);
     expect(c.filter.minDepth, 10);
     expect(c.filter.maxDepth, 30);
-    expect(c.filter.waterTypes, [WaterType.fresh, WaterType.brackish]);
+    // "Not" is a query-tree NOT, which keeps dives with no water type
+    // recorded; a complement on the axis would drop them.
+    expect(c.filter.waterTypes, isEmpty);
+    expect(
+      c.filter.query,
+      NotNode(
+        ConditionNode(
+          FieldPath(['waterType']),
+          QueryOp.inList,
+          ListValue(const [EnumValue('salt')]),
+        ),
+      ),
+    );
     expect(c.filter.favoritesOnly, isTrue);
     expect(c.filter.decoOnly, isFalse);
     expect(c.filter.weekdays, [6, 7]);

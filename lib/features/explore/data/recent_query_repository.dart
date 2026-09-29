@@ -33,9 +33,10 @@ class RecentQueryRepository {
 
   static const int cap = 20;
 
-  static String keyFor(String diverId, String sentence, String locale) =>
-      '$diverId|${fuzzy.normalize(sentence).replaceAll(RegExp(r'\s+'), ' ')}'
-      '|$locale';
+  /// The sentence as the key compares it: a retyped sentence that differs
+  /// only in case, accents or spacing is the same row.
+  static String keyFor(String sentence) =>
+      fuzzy.normalize(sentence).replaceAll(RegExp(r'\s+'), ' ');
 
   /// The diver's recent sentences in [locale], newest first.
   Future<List<RecentQuery>> list({
@@ -77,9 +78,13 @@ class RecentQueryRepository {
       }
     }
     if (stale.isNotEmpty) {
-      await (_db.delete(
-        _db.recentQueries,
-      )..where((t) => t.key.isIn(stale))).go();
+      await (_db.delete(_db.recentQueries)..where(
+            (t) =>
+                t.diverId.equals(diverId) &
+                t.locale.equals(locale) &
+                t.key.isIn(stale),
+          ))
+          .go();
     }
     return out;
   }
@@ -95,8 +100,8 @@ class RecentQueryRepository {
         .into(_db.recentQueries)
         .insertOnConflictUpdate(
           RecentQueriesCompanion(
-            key: Value(keyFor(diverId, sentence, locale)),
             diverId: Value(diverId),
+            key: Value(keyFor(sentence)),
             sentence: Value(sentence),
             locale: Value(locale),
             parsedJson: Value(jsonEncode(parsed.toJson())),
@@ -107,14 +112,12 @@ class RecentQueryRepository {
         );
     // Keep the diver's newest [cap] rows; another diver's are theirs.
     await _db.customStatement(
-      'DELETE FROM recent_queries WHERE diver_id = ? AND key NOT IN '
-      '(SELECT key FROM recent_queries WHERE diver_id = ? '
+      'DELETE FROM recent_queries WHERE diver_id = ? AND rowid NOT IN '
+      '(SELECT rowid FROM recent_queries WHERE diver_id = ? '
       'ORDER BY last_used_at DESC LIMIT $cap)',
       [diverId, diverId],
     );
   }
-
-  Future<void> clear() => _db.delete(_db.recentQueries).go();
 
   /// Change tick for the list provider.
   Stream<void> watchChanges() =>

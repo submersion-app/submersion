@@ -232,6 +232,24 @@ void main() {
       );
     });
 
+    test('unregisterLabel removes only the entries with that label', () {
+      ShortcutCatalog.instance.registerAll([
+        const ShortcutEntry(
+          label: 'Explore',
+          category: 'Search',
+          activator: SingleActivator(LogicalKeyboardKey.keyE),
+        ),
+        const ShortcutEntry(
+          label: 'Search',
+          category: 'Search',
+          activator: SingleActivator(LogicalKeyboardKey.keyF),
+        ),
+      ]);
+
+      ShortcutCatalog.instance.unregisterLabel('Explore');
+      expect(ShortcutCatalog.instance.entries.map((e) => e.label), ['Search']);
+    });
+
     test('clear removes all entries', () {
       ShortcutCatalog.instance.registerAll([
         const ShortcutEntry(

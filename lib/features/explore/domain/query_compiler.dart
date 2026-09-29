@@ -3,6 +3,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/syntax/date_grammar.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/compiled_query.dart';
@@ -23,44 +24,13 @@ class CompilerContext {
   });
 }
 
-const Map<String, int> _weekdayNumbers = {
-  'mon': 1,
-  'tue': 2,
-  'wed': 3,
-  'thu': 4,
-  'fri': 5,
-  'sat': 6,
-  'sun': 7,
-};
-
-/// The weekday names the dive query registry uses.
-const Map<String, String> _weekdayQueryNames = {
-  'mon': 'monday',
-  'tue': 'tuesday',
-  'wed': 'wednesday',
-  'thu': 'thursday',
-  'fri': 'friday',
-  'sat': 'saturday',
-  'sun': 'sunday',
-};
-
-/// Enum fields with no plain filter axis (or whose axis is already taken),
-/// lowered to a condition on this dive query field. The catalog's enum
-/// values are the registry's own enum names.
-const Map<ExploreDiveField, String> _enumQueryKeys = {
-  ExploreDiveField.waterType: 'waterType',
-  ExploreDiveField.weekday: 'weekday',
-  ExploreDiveField.diveMode: 'diveMode',
-  ExploreDiveField.entryMethod: 'entryMethod',
-  ExploreDiveField.currentStrength: 'currentStrength',
-};
-
 /// Numeric fields with no plain filter axis, lowered to inclusive bounds on
-/// this dive query field. Values are metric, like the registry's.
-const Map<ExploreDiveField, String> _numberQueryKeys = {
-  ExploreDiveField.avgDepth: 'avgDepth',
-  ExploreDiveField.airTemp: 'airTemp',
-  ExploreDiveField.diveNumber: 'diveNumber',
+/// the dive query field of the same name. Values are metric, like the
+/// registry's.
+const Set<ExploreDiveField> _numberQueryFields = {
+  ExploreDiveField.avgDepth,
+  ExploreDiveField.airTemp,
+  ExploreDiveField.diveNumber,
 };
 
 typedef _Lowered = ({DiveFilterState? filter, ClauseChip? chip, String? error});
@@ -263,17 +233,16 @@ abstract final class QueryCompiler {
     final allowed = spec.enumValues;
     if (allowed == null) {
       // A dive type is the diver's own entity, named in their words: an
-      // exact (case-insensitive) name match through the types junction.
-      if (field != ExploreDiveField.diveType || values.length != 1) {
-        return _fail('invalid');
-      }
+      // exact (case-insensitive) match on any of the names through the
+      // types junction, which the query compiler emits as one LOWER IN.
+      if (field != ExploreDiveField.diveType) return _fail('invalid');
       return (
         filter: _andQuery(
           f,
           ConditionNode(
             FieldPath(['types', 'name']),
-            QueryOp.eq,
-            StringValue(values.single),
+            QueryOp.inList,
+            ListValue([for (final v in values) StringValue(v)]),
           ),
         ),
         chip: chip,
@@ -281,38 +250,58 @@ abstract final class QueryCompiler {
       );
     }
     if (values.any((v) => !allowed.contains(v))) return _fail('invalid');
-    final chosen = c.op == ClauseOp.not
-        ? allowed.where((v) => !values.contains(v)).toList()
-        : values;
+    // Every listed enum field is a dive query registry field of the same
+    // name: the catalog reads its values from there.
+    final key = field.jsonName;
+    // "Not" keeps the dives where the field was never recorded: the query
+    // tree's NOT treats an unknown as not matching, where the complement of
+    // the listed values would silently drop every blank dive.
+    if (c.op == ClauseOp.not) {
+      return (
+        filter: _andQuery(f, NotNode(_enumCondition(field, key, values))),
+        chip: chip,
+        error: null,
+      );
+    }
     // Each clause is its own condition, ANDed with the rest. The first
     // water-type or weekday clause uses the plain filter axis; a second one
     // on the same field must not merge into that axis, whose values OR.
     switch (field) {
       case ExploreDiveField.waterType when f.waterTypes.isEmpty:
-        final types = chosen.map((v) => WaterType.values.byName(v)).toList();
+        final types = values.map((v) => WaterType.values.byName(v)).toList();
         return (filter: f.copyWith(waterTypes: types), chip: chip, error: null);
       case ExploreDiveField.weekday when f.weekdays.isEmpty:
-        final days = chosen.map((v) => _weekdayNumbers[v]!).toList();
+        final days = values.map((v) => kWeekdayTokens.indexOf(v) + 1).toList();
         return (filter: f.copyWith(weekdays: days), chip: chip, error: null);
       default:
-        final key = _enumQueryKeys[field];
-        if (key == null) return _fail('noAxis');
-        final names = field == ExploreDiveField.weekday
-            ? chosen.map((v) => _weekdayQueryNames[v]!)
-            : chosen;
         return (
-          filter: _andQuery(
-            f,
-            ConditionNode(
-              FieldPath([key]),
-              QueryOp.inList,
-              ListValue([for (final n in names) EnumValue(n)]),
-            ),
-          ),
+          filter: _andQuery(f, _enumCondition(field, key, values)),
           chip: chip,
           error: null,
         );
     }
+  }
+
+  /// Membership in [values] on the dive query field [key]. Weekday tokens
+  /// map to the registry's own weekday names, which run Monday first too.
+  static ConditionNode _enumCondition(
+    ExploreDiveField field,
+    String key,
+    List<String> values,
+  ) {
+    final names = field == ExploreDiveField.weekday
+        ? [
+            for (final v in values)
+              diveQueryEntity.field(key)!.enumValues![kWeekdayTokens.indexOf(
+                v,
+              )],
+          ]
+        : values;
+    return ConditionNode(
+      FieldPath([key]),
+      QueryOp.inList,
+      ListValue([for (final n in names) EnumValue(n)]),
+    );
   }
 
   static _Lowered _lowerNumber(
@@ -336,6 +325,9 @@ abstract final class QueryCompiler {
       var a = ground(raw[0] as num);
       var b = ground(raw[1] as num);
       if (b < a) (a, b) = (b, a);
+      if (!_inRange(field, a) || !_inRange(field, b)) {
+        return _fail('outOfRange');
+      }
       lo = a;
       hi = b;
       chipValue = [a, b];
@@ -344,6 +336,9 @@ abstract final class QueryCompiler {
       if (raw is! num) return _fail('invalid');
       final v = ground(raw);
       chipValue = v;
+      // The number said is what must be plausible; an "exactly" band may
+      // reach half a unit past the bound.
+      if (!_inRange(field, v)) return _fail('outOfRange');
       switch (c.op) {
         case ClauseOp.lt:
         case ClauseOp.lte:
@@ -352,14 +347,17 @@ abstract final class QueryCompiler {
         case ClauseOp.gte:
           lo = v;
         case ClauseOp.eq:
-          lo = v;
-          hi = v;
+          // A measured depth or temperature is almost never exactly the
+          // number said, so "exactly 15 m" is the half unit either side of
+          // it in the unit the diver used, the way it would be rounded.
+          final continuous =
+              spec.dimension == FieldDimension.depth ||
+              spec.dimension == FieldDimension.temperature;
+          lo = continuous ? ground(raw - 0.5) : v;
+          hi = continuous ? ground(raw + 0.5) : v;
         default:
           return _fail('invalid');
       }
-    }
-    if (!_inRange(field, lo) || !_inRange(field, hi)) {
-      return _fail('outOfRange');
     }
     // The chip reports the op the filter ACTUALLY applies, not the one the
     // model wrote. Every numeric axis is an inclusive bound, so a strict
@@ -428,7 +426,7 @@ abstract final class QueryCompiler {
         }
         return (filter: next, chip: chip, error: null);
       default:
-        final key = _numberQueryKeys[field];
+        final key = _numberQueryFields.contains(field) ? field.jsonName : null;
         if (key == null) return _fail('noAxis');
         var next = f;
         if (lo != null) {
@@ -458,16 +456,15 @@ abstract final class QueryCompiler {
     return f.copyWith(query: next);
   }
 
+  /// The dive query registry's sanity bounds where it has them, so Explore
+  /// accepts exactly what the rule builder does. The rest are Explore's own:
+  /// gas O2 is not a dive field, and the registry leaves these unbounded.
   static bool _inRange(ExploreDiveField field, double? v) {
     if (v == null) return true;
+    final sanity = diveQueryEntity.field(field.jsonName)?.sanity;
+    if (sanity != null) return v >= sanity.min && v <= sanity.max;
     return switch (field) {
-      ExploreDiveField.depth || ExploreDiveField.avgDepth => v >= 0 && v <= 350,
-      // The dive query registry's sanity bounds: ice diving puts the air
-      // well below the water's floor.
-      ExploreDiveField.waterTemp => v >= -5 && v <= 45,
-      ExploreDiveField.airTemp => v >= -40 && v <= 60,
       ExploreDiveField.visibility => v >= 0 && v <= 200,
-      ExploreDiveField.rating => v >= 1 && v <= 5,
       ExploreDiveField.o2 => v >= 1 && v <= 100,
       ExploreDiveField.bottomTime => v >= 0 && v <= 24 * 60,
       _ => v >= 0,

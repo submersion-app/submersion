@@ -109,19 +109,9 @@ class ChipLabeler {
       CurrentStrength.values.byName(v).localizedName(l10n),
     ExploreDiveField.weekday => DateFormat.E(l10n.localeName).format(
       // 1 January 2024 was a Monday.
-      DateTime(2024, 1, _weekdayIndex[v]!),
+      DateTime(2024, 1, kWeekdayTokens.indexOf(v) + 1),
     ),
     _ => v,
-  };
-
-  static const Map<String, int> _weekdayIndex = {
-    'mon': 1,
-    'tue': 2,
-    'wed': 3,
-    'thu': 4,
-    'fri': 5,
-    'sat': 6,
-    'sun': 7,
   };
 
   String _time(DateTime? start, DateTime? end) {

@@ -26,4 +26,19 @@ void main() {
     expect(v['mentionKinds'], MentionKind.values.map((k) => k.name).toList());
     expect(v['subjects'], QuerySubject.values.map((s) => s.name).toList());
   });
+
+  test('enum values are listed from the catalog, as prose', () {
+    final text = NlPrompt.instructions();
+    expect(text, contains('waterType: salt, fresh or brackish.'));
+    expect(text, contains('diveMode: oc, ccr, scr or gauge.'));
+    expect(
+      text,
+      contains(
+        'entryMethod: shore, boat, backRoll, giantStride, seatedEntry, '
+        'ladder, platform, jetty or other.',
+      ),
+    );
+    expect(text, contains('currentStrength: none, light, moderate or strong.'));
+    expect(text, contains('weekday: mon, tue, wed, thu, fri, sat, sun.'));
+  });
 }

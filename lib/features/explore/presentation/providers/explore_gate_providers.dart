@@ -7,18 +7,18 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 final nlEngineProvider = Provider<NlEngine>((ref) => ChannelNlEngine());
 
-/// Whether any on-device model adapter exists for [platform].
-bool exploreSupportedOn(TargetPlatform platform) => switch (platform) {
-  TargetPlatform.android || TargetPlatform.iOS || TargetPlatform.macOS => true,
-  _ => false,
-};
-
 /// Synchronous platform gate, separate from the async probe so an entry
 /// point is never enabled transiently while the probe loads (the iCloud tile
 /// pattern). Uses defaultTargetPlatform so tests can override the platform.
-final explorePlatformSupportedProvider = Provider<bool>(
-  (ref) => exploreSupportedOn(defaultTargetPlatform),
-);
+/// The one gate for every entry point, the keyboard shortcut included.
+final explorePlatformSupportedProvider = Provider<bool>((ref) {
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.android ||
+    TargetPlatform.iOS ||
+    TargetPlatform.macOS => true,
+    _ => false,
+  };
+});
 
 /// The model's answer for the active app locale. 'system' resolves to the
 /// device locale tag.

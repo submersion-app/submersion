@@ -54,7 +54,15 @@ abstract final class NlPrompt {
     'mentionKinds': MentionKind.values.map((k) => k.name).toList(),
   };
 
-  static String instructions() => '''
+  /// A catalog field's values as prose, "a, b or c", so the prompt lists
+  /// exactly what the compiler accepts. Every listed field has at least two.
+  static String _oneOf(ExploreDiveField field) {
+    final values = DiveFieldCatalog.spec(field).enumValues!;
+    return '${values.take(values.length - 1).join(', ')} or ${values.last}';
+  }
+
+  static String instructions() =>
+      '''
 You turn one sentence about a scuba diver's logbook into a JSON object. Reply with JSON only.
 
 Shape:
@@ -63,7 +71,7 @@ Shape:
 subject is one of: dives, equipment, sites, buddies, species, trips, centers. Use "dives" unless the sentence clearly asks for another kind of thing.
 
 A clause is {"field", "op", "value", "unit", "text"}. text is the words of the sentence the clause came from. Fields:
-depth: maximum depth of the dive. avgDepth: average depth. bottomTime: minutes of bottom time. waterTemp: water temperature. airTemp: air temperature. visibility: underwater visibility distance. rating: 1 to 5 stars. o2: oxygen percent of the gas. diveNumber: the dive's number. waterType: salt, fresh or brackish. diveMode: oc, ccr, scr or gauge. entryMethod: shore, boat, backRoll, giantStride, seatedEntry, ladder, platform, jetty or other. currentStrength: none, light, moderate or strong. favorite: true. deco: true or false. noBuddy: true. weekday: mon, tue, wed, thu, fri, sat, sun. diveType: the name of a dive type.
+depth: maximum depth of the dive. avgDepth: average depth. bottomTime: minutes of bottom time. waterTemp: water temperature. airTemp: air temperature. visibility: underwater visibility distance. rating: 1 to 5 stars. o2: oxygen percent of the gas. diveNumber: the dive's number. waterType: ${_oneOf(ExploreDiveField.waterType)}. diveMode: ${_oneOf(ExploreDiveField.diveMode)}. entryMethod: ${_oneOf(ExploreDiveField.entryMethod)}. currentStrength: ${_oneOf(ExploreDiveField.currentStrength)}. favorite: true. deco: true or false. noBuddy: true. weekday: ${kWeekdayTokens.join(', ')}. diveType: the name of a dive type.
 
 op is one of: lt, lte, gt, gte, eq, between, in, not. "below 20m" on depth means deeper, so op gt. "shallower than" means op lt. between takes value [low, high]. in takes a list. not excludes one value.
 unit is one of: m, ft, c, f, bar, psi, min, l_min, cuft_min. Omit unit when the sentence gives none; never convert numbers.

@@ -36,21 +36,36 @@ class _Engine implements NlEngine {
 void main() {
   Future<GoRouter> pumpHost(
     WidgetTester tester,
-    Future<NlAvailability> answer,
-  ) async {
+    Future<NlAvailability> answer, {
+    bool? platformSupported,
+  }) async {
     final router = GoRouter(
       initialLocation: '/dives',
       routes: [
-        GoRoute(
-          path: '/dives',
-          builder: (context, state) => Scaffold(
+        // Mounted like the app router: the bindings sit in a shell around
+        // every page, so a press on Explore still reaches them.
+        ShellRoute(
+          builder: (context, state, child) => Scaffold(
             body: CallbackShortcuts(
               bindings: AppShortcuts.globalBindings(context),
-              child: const Focus(autofocus: true, child: Text('Dive list')),
+              child: Focus(autofocus: true, child: child),
             ),
           ),
           routes: [
-            GoRoute(path: 'explore', builder: (_, _) => const Text('Explore')),
+            GoRoute(
+              path: '/dives',
+              builder: (_, _) => const Text('Dive list'),
+              routes: [
+                GoRoute(
+                  path: 'explore',
+                  builder: (_, _) => const Text('Explore'),
+                ),
+                GoRoute(
+                  path: 'other',
+                  builder: (_, _) => const Text('Other page'),
+                ),
+              ],
+            ),
           ],
         ),
       ],
@@ -61,6 +76,10 @@ void main() {
         overrides: [
           nlEngineProvider.overrideWithValue(_Engine(answer)),
           localeProvider.overrideWithValue('en'),
+          if (platformSupported != null)
+            explorePlatformSupportedProvider.overrideWithValue(
+              platformSupported,
+            ),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -96,6 +115,127 @@ void main() {
     probe.complete(NlAvailability.available);
     await tester.pumpAndSettle();
     expect(find.text('Explore'), findsOneWidget);
+  });
+
+  testWidgets('presses while the probe answers open Explore once', (
+    tester,
+  ) async {
+    final probe = Completer<NlAvailability>();
+    final router = await pumpHost(tester, probe.future);
+
+    await pressExplore(tester);
+    await pressExplore(tester);
+    probe.complete(NlAvailability.available);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Explore'), findsOneWidget);
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('Dive list'), findsOneWidget);
+  });
+
+  testWidgets('a press on Explore does not stack another', (tester) async {
+    final router = await pumpHost(
+      tester,
+      Future.value(NlAvailability.available),
+    );
+    await pressExplore(tester);
+    await tester.pumpAndSettle();
+    expect(find.text('Explore'), findsOneWidget);
+
+    // The shell's bindings stay mounted above the pushed page.
+    await pressExplore(tester);
+    await tester.pumpAndSettle();
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('Dive list'), findsOneWidget);
+  });
+
+  testWidgets('Explore under another page is returned to, not stacked', (
+    tester,
+  ) async {
+    final router = await pumpHost(
+      tester,
+      Future.value(NlAvailability.available),
+    );
+    await pressExplore(tester);
+    await tester.pumpAndSettle();
+    router.push('/dives/other');
+    await tester.pumpAndSettle();
+    expect(find.text('Other page'), findsOneWidget);
+
+    await pressExplore(tester);
+    await tester.pumpAndSettle();
+    expect(find.text('Explore'), findsOneWidget);
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('Dive list'), findsOneWidget);
+  });
+
+  testWidgets('the provider gate decides, not the platform directly', (
+    tester,
+  ) async {
+    ShortcutCatalog.instance.clear();
+    AppShortcuts.debugReset();
+    addTearDown(() {
+      ShortcutCatalog.instance.clear();
+      AppShortcuts.debugReset();
+    });
+
+    await pumpHost(
+      tester,
+      Future.value(NlAvailability.available),
+      platformSupported: false,
+    );
+
+    expect(
+      ShortcutCatalog.instance.entries.map((e) => e.label),
+      isNot(contains('Explore with a sentence')),
+    );
+    await pressExplore(tester);
+    await tester.pumpAndSettle();
+    expect(find.text('Explore'), findsNothing);
+  });
+
+  testWidgets('a probe that fails says the model is unavailable', (
+    tester,
+  ) async {
+    // Failed only once the press is listening, as a real probe would.
+    final probe = Completer<NlAvailability>();
+    await pumpHost(tester, probe.future);
+
+    await pressExplore(tester);
+    probe.completeError(StateError('probe crashed'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Explore'), findsNothing);
+    expect(
+      find.text(AppLocalizationsEn().explore_shortcut_unavailable),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a gate that turns off unlists the shortcut', (tester) async {
+    ShortcutCatalog.instance.clear();
+    AppShortcuts.debugReset();
+    addTearDown(() {
+      ShortcutCatalog.instance.clear();
+      AppShortcuts.debugReset();
+    });
+    List<String> labels() =>
+        ShortcutCatalog.instance.entries.map((e) => e.label).toList();
+
+    await pumpHost(tester, Future.value(NlAvailability.available));
+    expect(labels(), contains('Explore with a sentence'));
+
+    // A new scope rebuilds the shell with the gate closed.
+    await tester.pumpWidget(const SizedBox());
+    await pumpHost(
+      tester,
+      Future.value(NlAvailability.available),
+      platformSupported: false,
+    );
+    expect(labels(), isNot(contains('Explore with a sentence')));
   });
 
   testWidgets('a device without the model says so', (tester) async {
