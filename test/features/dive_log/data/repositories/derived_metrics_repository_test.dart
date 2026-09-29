@@ -294,4 +294,40 @@ void main() {
       expect(stored.unsupportedReason, UnsupportedReason.noProfile);
     },
   );
+
+  test(
+    'a synced series change makes the row stale without the dive changing',
+    () async {
+      // A synced child row never re-stamps its dive (#1769), so the dive's
+      // updated_at alone would call these metrics current forever.
+      await insertDive('d1');
+      final r = repo();
+      await r.ensureCurrent('d1');
+      expect(await r.staleDiveIds(), isEmpty);
+
+      await db
+          .into(db.diveTanks)
+          .insert(DiveTanksCompanion.insert(id: 't1', diveId: 'd1'));
+      await db
+          .into(db.tankPressureSeries)
+          .insert(
+            TankPressureSeriesCompanion.insert(
+              id: 's1',
+              diveId: 'd1',
+              tankId: 't1',
+              sampleCount: 2,
+              startTimestamp: 0,
+              endTimestamp: 600,
+              codecVersion: 1,
+              samples: Uint8List.fromList([1]),
+              createdAt: now + 5,
+              updatedAt: now + 5,
+            ),
+          );
+      expect(await r.staleDiveIds(), ['d1']);
+      await r.ensureCurrent('d1');
+      expect(runs, 2);
+      expect(await r.staleDiveIds(), isEmpty);
+    },
+  );
 }

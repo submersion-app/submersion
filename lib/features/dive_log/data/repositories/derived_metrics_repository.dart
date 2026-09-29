@@ -15,6 +15,19 @@ typedef DerivedMetricsRunner =
 Future<DiveDerivedMetrics> _computeOnIsolate(DerivedMetricsWorkInput input) =>
     compute(computeDerivedMetricsFromBlobs, input);
 
+/// What the metrics were built from, as one stamp: the later of the dive's
+/// own `updated_at` and its newest profile or tank-pressure series. Those
+/// series are synced child rows that never re-stamp their dive (#1769), so
+/// the dive's `updated_at` alone would call metrics from an old profile
+/// current. Removing a series moves the stamp too, since a row matches only
+/// its exact stamp. Written against the dive alias `d`.
+const _sourceStampSql =
+    'MAX(d.updated_at, '
+    'COALESCE((SELECT MAX(p.updated_at) FROM dive_profile_series p '
+    'WHERE p.dive_id = d.id), 0), '
+    'COALESCE((SELECT MAX(t.updated_at) FROM tank_pressure_series t '
+    'WHERE t.dive_id = d.id), 0))';
+
 /// Reads and writes the Explore derived metrics, computing them on a worker
 /// isolate when the stored row is missing or stale.
 ///
@@ -52,10 +65,10 @@ class DerivedMetricsRepository {
     )..where((t) => t.id.equals(diveId))).getSingleOrNull();
     if (dive == null) return null;
 
+    final stamp = await _sourceStamp(diveId);
     if (!force) {
       final stored = await getMetrics(diveId);
-      if (stored != null &&
-          DerivedMetricsService.isCurrent(stored, dive.updatedAt)) {
+      if (stored != null && DerivedMetricsService.isCurrent(stored, stamp)) {
         return stored;
       }
     }
@@ -82,13 +95,24 @@ class DerivedMetricsRepository {
               ),
         ],
         diveMode: DiveMode.fromCode(dive.diveMode),
-        sourceUpdatedAt: dive.updatedAt,
+        sourceUpdatedAt: stamp,
         computedAtMs: DateTime.now().millisecondsSinceEpoch,
       ),
     );
 
     await saveMetrics(metrics);
     return metrics;
+  }
+
+  Future<int> _sourceStamp(String diveId) async {
+    final row = await _db
+        .customSelect(
+          'SELECT $_sourceStampSql AS stamp FROM dives d WHERE d.id = ?',
+          variables: [Variable(diveId)],
+          readsFrom: {_db.dives, _db.diveProfileSeries, _db.tankPressureSeries},
+        )
+        .getSingle();
+    return row.read<int>('stamp');
   }
 
   /// A tank can carry one series per computer that logged it. Pick the
@@ -181,13 +205,18 @@ class DerivedMetricsRepository {
           'SELECT d.id AS id FROM dives d '
           'LEFT JOIN dive_derived_metrics m ON m.dive_id = d.id '
           'WHERE (m.dive_id IS NULL OR m.engine_version < ? '
-          'OR m.source_updated_at != d.updated_at) $diverFilter '
+          'OR m.source_updated_at != $_sourceStampSql) $diverFilter '
           'ORDER BY d.dive_date_time DESC, d.id ASC',
           variables: [
             const Variable(DerivedMetricsService.version),
             if (diverId != null) Variable(diverId),
           ],
-          readsFrom: {_db.dives, _db.diveDerivedMetricsRows},
+          readsFrom: {
+            _db.dives,
+            _db.diveDerivedMetricsRows,
+            _db.diveProfileSeries,
+            _db.tankPressureSeries,
+          },
         )
         .get();
     return rows.map((r) => r.read<String>('id')).toList();
