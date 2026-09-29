@@ -244,4 +244,48 @@ void main() {
     );
     expect(ledger.map((e) => e.tripCylinderId), [a.id, b.id, c.id]);
   });
+
+  test('labels at a dive name the bottle the slot held then', () async {
+    final a = await slot('A');
+    Future<void> fillWith(String bottle, int hours) => repository.createEvent(
+      TripCylinderEvent(
+        id: '',
+        tripCylinderId: a.id,
+        kind: TripCylinderEventKind.fill,
+        occurredAt: at.add(Duration(hours: hours)),
+        bottleLabel: bottle,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    await fillWith('14', 0);
+    await fillWith('22', 6);
+
+    final labels = await container.read(
+      tripCylinderLabelsAtProvider((
+        tripId: tripId,
+        atMillis: at.add(const Duration(hours: 2)).millisecondsSinceEpoch,
+      )).future,
+    );
+    expect(labels[a.id], (label: 'A', bottle: '14'));
+  });
+
+  test('states at a dive leave out that dive and later fills', () async {
+    final a = await slot('A');
+    await fill(a.id);
+    await diveOn(a.id, minutesAfter: 60, end: 90);
+
+    Future<List<TripCylinderState>> statesAt(int minutes, String? exclude) =>
+        container.read(
+          tripCylinderStatesAtProvider((
+            tripId: tripId,
+            atMillis: at.add(Duration(minutes: minutes)).millisecondsSinceEpoch,
+            excludeDiveId: exclude,
+          )).future,
+        );
+    // Another dive at minute 120 sees the minute-60 dive's end pressure.
+    expect((await statesAt(120, null)).single.pressure, 90);
+    // Editing the minute-60 dive itself: its own use does not count.
+    expect((await statesAt(120, 'd60')).single.pressure, 200);
+  });
 }
