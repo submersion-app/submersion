@@ -43,8 +43,12 @@ void main() {
 
   test('the starter names what it is missing', () {
     container.read(divePlanNotifierProvider.notifier).enableMission(starter);
-    expect(types(), contains(MissionIssueType.scooterUnspecified));
-    expect(types(), contains(MissionIssueType.legTooShort));
+    // Exactly what is missing: a scooter with no speed is not a current
+    // that blocks leg 1, which the engine would never report.
+    expect(types(), [
+      MissionIssueType.scooterUnspecified,
+      MissionIssueType.legTooShort,
+    ]);
   });
 
   test('a complete mission has none, and a blocked first leg is one', () {

@@ -5536,7 +5536,7 @@
   "plannerMission_factor_surfaceSwimLimit": "o limite de natação à superfície",
   "plannerMission_factor_teamGas": "o gás de um colega de equipa",
   "plannerMission_results_abandonment": "Último ponto de onde todos podem sair: {waypoint}",
-  "plannerMission_results_assumptions": "Reserva de bateria de {reserve}% da autonomia. O mergulhador cuja scooter avaria respira o RMV sob stress do plano até à primeira paragem.",
+  "plannerMission_results_assumptions": "Reserva de bateria de {reserve}% da autonomia. O mergulhador cuja scooter avaria respira o seu próprio RMV aumentado pelo fator de stress do plano até à primeira paragem.",
   "plannerMission_results_battery": "Bateria {percent}% da autonomia ({minutes}′), reserva {reserve}%",
   "plannerMission_results_bindsAt": "Limite em {waypoint}: {factor}",
   "plannerMission_results_blocked": "A missão ainda não pode ser calculada:",

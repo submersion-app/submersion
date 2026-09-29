@@ -5434,7 +5434,7 @@
   "plannerMission_factor_surfaceSwimLimit": "il limite di nuoto in superficie",
   "plannerMission_factor_teamGas": "il gas di un compagno",
   "plannerMission_results_abandonment": "Ultimo punto da cui tutti possono uscire: {waypoint}",
-  "plannerMission_results_assumptions": "Riserva della batteria {reserve}% dell'autonomia. Chi ha lo scooter in avaria respira l'RMV sotto stress del piano fino alla prima sosta.",
+  "plannerMission_results_assumptions": "Riserva della batteria {reserve}% dell'autonomia. Chi ha lo scooter in avaria respira il proprio RMV aumentato del fattore di stress del piano fino alla prima sosta.",
   "plannerMission_results_battery": "Batteria {percent}% dell'autonomia ({minutes}′), riserva {reserve}%",
   "plannerMission_results_bindsAt": "Limite a {waypoint}: {factor}",
   "plannerMission_results_blocked": "La missione non può ancora essere calcolata:",

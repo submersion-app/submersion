@@ -5536,7 +5536,7 @@
   "plannerMission_factor_surfaceSwimLimit": "de limiet voor zwemmen aan de oppervlakte",
   "plannerMission_factor_teamGas": "het gas van een teamgenoot",
   "plannerMission_results_abandonment": "Laatste punt van waaruit iedereen eruit komt: {waypoint}",
-  "plannerMission_results_assumptions": "Accureserve {reserve}% van de looptijd. Wie een scooter verliest, ademt tot de eerste stop het stress-RMV van het plan.",
+  "plannerMission_results_assumptions": "Accureserve {reserve}% van de looptijd. Wie een scooter verliest, ademt tot de eerste stop het eigen RMV, verhoogd met de stressfactor van het plan.",
   "plannerMission_results_battery": "Accu {percent}% van de looptijd ({minutes}′), reserve {reserve}%",
   "plannerMission_results_bindsAt": "Limiet bij {waypoint}: {factor}",
   "plannerMission_results_blocked": "De missie kan nog niet worden berekend:",

@@ -531,7 +531,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String plannerMission_results_assumptions(String reserve) {
-    return '电池储备为续航时间的 $reserve%。推进器故障的潜水员在首次停留前按计划的应激 RMV 呼吸。';
+    return '电池储备为续航时间的 $reserve%。推进器故障的潜水员在首次停留前按其自身 RMV 乘以计划的应激系数呼吸。';
   }
 
   @override

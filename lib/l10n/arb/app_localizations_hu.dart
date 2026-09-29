@@ -548,7 +548,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String plannerMission_results_assumptions(String reserve) {
-    return 'Akkumulátortartalék: az üzemidő $reserve%-a. Akinek a scootere meghibásodik, az első megállóig a terv stressz-RMV-jével lélegzik.';
+    return 'Akkumulátortartalék: az üzemidő $reserve%-a. Akinek a scootere meghibásodik, az első megállóig a saját RMV-jével lélegzik, a terv stresszszorzójával megemelve.';
   }
 
   @override

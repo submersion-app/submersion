@@ -72,27 +72,37 @@ class MissionResultsSection extends ConsumerWidget {
       );
     }
     final abandonment = outcome.abandonmentIndex;
+    final abandonmentLeg = missionLegAt(outcome, mission, abandonment);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // The last outcome stands, but the diver is told the newest edit
-        // could not be computed.
-        if (result.hasError) failed,
+        // could not be computed, or that a newer result is on the way.
+        if (result.hasError)
+          failed
+        else if (result.isLoading)
+          Text(
+            l10n.plannerMission_results_computing,
+            style: theme.textTheme.bodySmall,
+          ),
         Text(
           missionConstraintText(l10n, outcome, mission),
           style: theme.textTheme.bodyMedium,
         ),
         Text(
           l10n.plannerMission_results_assumptions(
-            ceilPercent(mission.batteryReserveFraction),
+            settingPercent(mission.batteryReserveFraction),
           ),
           style: theme.textTheme.bodySmall,
         ),
         Text(
-          abandonment == null || abandonment >= mission.legs.length
+          abandonment == null
               ? l10n.plannerMission_results_noAbandonment
+              // A leg removed since this outcome: its answer is on the way.
+              : abandonmentLeg == null
+              ? l10n.plannerMission_results_computing
               : l10n.plannerMission_results_abandonment(
-                  missionLegName(l10n, mission.legs[abandonment]),
+                  missionLegName(l10n, abandonmentLeg),
                 ),
           style: theme.textTheme.bodySmall,
         ),
@@ -100,6 +110,7 @@ class MissionResultsSection extends ConsumerWidget {
           if (mission.team.where((t) => t.id == result.memberId).firstOrNull
               case final member?)
             MissionMemberResultCard(
+              outcome: outcome,
               member: member,
               result: result,
               mission: mission,

@@ -5639,7 +5639,7 @@
   "plannerMission_factor_surfaceSwimLimit": "das Limit für Oberflächenschwimmen",
   "plannerMission_factor_teamGas": "Gas eines Teammitglieds",
   "plannerMission_results_abandonment": "Letzter Wegpunkt, von dem alle herauskommen: {waypoint}",
-  "plannerMission_results_assumptions": "Akkureserve {reserve} % der Laufzeit. Wessen Scooter ausfällt, atmet bis zum ersten Stopp das Stress-AMV des Plans.",
+  "plannerMission_results_assumptions": "Akkureserve {reserve} % der Laufzeit. Wessen Scooter ausfällt, atmet bis zum ersten Stopp das eigene AMV, erhöht um den Stressfaktor des Plans.",
   "plannerMission_results_battery": "Akku {percent} % der Laufzeit ({minutes}′), Reserve {reserve} %",
   "plannerMission_results_bindsAt": "Limit bei {waypoint}: {factor}",
   "plannerMission_results_blocked": "Die Mission kann noch nicht berechnet werden:",

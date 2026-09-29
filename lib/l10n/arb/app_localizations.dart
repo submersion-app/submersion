@@ -929,7 +929,7 @@ abstract class AppLocalizations {
   /// No description provided for @plannerMission_results_assumptions.
   ///
   /// In en, this message translates to:
-  /// **'Battery reserve {reserve}% of burn time. A diver whose scooter fails breathes the plan\'s stressed RMV until the first stop.'**
+  /// **'Battery reserve {reserve}% of burn time. A diver whose scooter fails breathes their own RMV raised by the plan\'s stress ratio until the first stop.'**
   String plannerMission_results_assumptions(String reserve);
 
   /// No description provided for @plannerMission_results_battery.

@@ -546,7 +546,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String plannerMission_results_assumptions(String reserve) {
-    return 'Accureserve $reserve% van de looptijd. Wie een scooter verliest, ademt tot de eerste stop het stress-RMV van het plan.';
+    return 'Accureserve $reserve% van de looptijd. Wie een scooter verliest, ademt tot de eerste stop het eigen RMV, verhoogd met de stressfactor van het plan.';
   }
 
   @override

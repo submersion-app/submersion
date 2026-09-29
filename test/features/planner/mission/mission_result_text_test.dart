@@ -42,7 +42,20 @@ void main() {
         segments: [],
         cruiseSpeedMps: 0.9,
         legs: [],
-        waypoints: [],
+        // Real outcomes record each waypoint's leg id; the sentence names
+        // the leg through it.
+        waypoints: [
+          WaypointOutcome(
+            index: 0,
+            legId: 'L1',
+            cumulativeDistanceM: 0,
+            arrivalRuntimeSeconds: 0,
+            directDistanceHomeM: 0,
+            safeSurfaceSeconds: null,
+            members: [],
+            survivable: true,
+          ),
+        ],
         members: [],
         abandonmentIndex: null,
         constraint: MissionConstraint(
@@ -101,5 +114,16 @@ void main() {
     );
     // 170.2 bar is 2468.6 psi: up to 2469.
     expect(ceilPressure(imperial, 170.2), '2469 psi');
+  });
+
+  test('a battery percent is not pushed up by binary noise', () {
+    // 0.55 * 100 is 55.00000000000001 in binary floating point.
+    expect(ceilPercent(0.55), '55');
+    expect(ceilPercent(0.551), '56');
+  });
+
+  test('the reserve reads as the diver set it', () {
+    expect(settingPercent(1 / 3), '33');
+    expect(settingPercent(0.55), '55');
   });
 }

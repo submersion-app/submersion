@@ -548,7 +548,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String plannerMission_results_assumptions(String reserve) {
-    return 'Réserve de batterie de $reserve % de l’autonomie. Le plongeur dont le scooter tombe en panne respire le RMV majoré du plan jusqu’au premier palier.';
+    return 'Réserve de batterie de $reserve % de l’autonomie. Le plongeur dont le scooter tombe en panne respire son propre RMV augmenté du facteur de stress du plan jusqu’au premier palier.';
   }
 
   @override

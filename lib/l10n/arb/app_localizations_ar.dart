@@ -539,7 +539,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String plannerMission_results_assumptions(String reserve) {
-    return 'احتياطي البطارية $reserve% من مدة التشغيل. يتنفس الغواص الذي يتعطل سكوتره معدل RMV تحت الضغط في الخطة حتى أول توقف.';
+    return 'احتياطي البطارية $reserve% من مدة التشغيل. يتنفس الغواص الذي يتعطل سكوتره معدل RMV الخاص به مضروبًا في معامل الضغط في الخطة حتى أول توقف.';
   }
 
   @override

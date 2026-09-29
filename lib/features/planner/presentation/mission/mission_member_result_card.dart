@@ -14,6 +14,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// turn pressure.
 class MissionMemberResultCard extends StatelessWidget {
   const MissionMemberResultCard({
+    required this.outcome,
     super.key,
     required this.member,
     required this.result,
@@ -21,6 +22,9 @@ class MissionMemberResultCard extends StatelessWidget {
     required this.units,
   });
 
+  /// The outcome [result] belongs to, which maps its waypoint index to a
+  /// leg id.
+  final MissionOutcome outcome;
   final MissionMember member;
   final MemberOutcome result;
   final DpvMission mission;
@@ -35,6 +39,7 @@ class MissionMemberResultCard extends StatelessWidget {
     final overReserve = result.batteryRoundTripFraction > 1 - reserve;
     final binding = result.bindingFactor;
     final bindingIndex = result.bindingWaypointIndex;
+    final bindingLeg = missionLegAt(outcome, mission, bindingIndex);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -67,7 +72,7 @@ class MissionMemberResultCard extends StatelessWidget {
                       .round(),
                 ).toString(),
                 ceilPercent(result.batteryRoundTripFraction),
-                ceilPercent(reserve),
+                settingPercent(reserve),
               ),
               style: theme.textTheme.bodySmall,
             ),
@@ -77,14 +82,15 @@ class MissionMemberResultCard extends StatelessWidget {
                 style: theme.textTheme.bodySmall,
               ),
             Text(
-              binding == null ||
-                      bindingIndex == null ||
-                      bindingIndex >= mission.legs.length
+              binding == null || bindingIndex == null
                   ? l10n.plannerMission_results_noLimit
+                  // A leg removed since this outcome: never "no limit".
+                  : bindingLeg == null
+                  ? l10n.plannerMission_results_computing
                   // Placeholders are alphabetical: factor, waypoint.
                   : l10n.plannerMission_results_bindsAt(
                       missionFactorLabel(l10n, binding),
-                      missionLegName(l10n, mission.legs[bindingIndex]),
+                      missionLegName(l10n, bindingLeg),
                     ),
               style: theme.textTheme.bodySmall,
             ),

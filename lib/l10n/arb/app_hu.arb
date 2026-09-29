@@ -5434,7 +5434,7 @@
   "plannerMission_factor_surfaceSwimLimit": "a felszíni úszás korlátja",
   "plannerMission_factor_teamGas": "egy csapattárs gáza",
   "plannerMission_results_abandonment": "Az utolsó pont, ahonnan mindenki kijut: {waypoint}",
-  "plannerMission_results_assumptions": "Akkumulátortartalék: az üzemidő {reserve}%-a. Akinek a scootere meghibásodik, az első megállóig a terv stressz-RMV-jével lélegzik.",
+  "plannerMission_results_assumptions": "Akkumulátortartalék: az üzemidő {reserve}%-a. Akinek a scootere meghibásodik, az első megállóig a saját RMV-jével lélegzik, a terv stresszszorzójával megemelve.",
   "plannerMission_results_battery": "Akkumulátor: az üzemidő {percent}%-a ({minutes}′), tartalék {reserve}%",
   "plannerMission_results_bindsAt": "Korlát {waypoint} pontnál: {factor}",
   "plannerMission_results_blocked": "A küldetés még nem számítható ki:",

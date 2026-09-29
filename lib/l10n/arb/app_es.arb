@@ -5536,7 +5536,7 @@
   "plannerMission_factor_surfaceSwimLimit": "el límite de nado en superficie",
   "plannerMission_factor_teamGas": "el gas de un compañero",
   "plannerMission_results_abandonment": "Último punto desde el que todos pueden salir: {waypoint}",
-  "plannerMission_results_assumptions": "Reserva de batería del {reserve} % de la autonomía. El buceador cuyo scooter se avería respira el RMV bajo estrés del plan hasta la primera parada.",
+  "plannerMission_results_assumptions": "Reserva de batería del {reserve} % de la autonomía. El buceador cuyo scooter se avería respira su propio RMV aumentado por el factor de estrés del plan hasta la primera parada.",
   "plannerMission_results_battery": "Batería {percent} % de la autonomía ({minutes}′), reserva {reserve} %",
   "plannerMission_results_bindsAt": "Límite en {waypoint}: {factor}",
   "plannerMission_results_blocked": "La misión aún no se puede calcular:",

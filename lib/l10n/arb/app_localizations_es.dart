@@ -549,7 +549,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String plannerMission_results_assumptions(String reserve) {
-    return 'Reserva de batería del $reserve % de la autonomía. El buceador cuyo scooter se avería respira el RMV bajo estrés del plan hasta la primera parada.';
+    return 'Reserva de batería del $reserve % de la autonomía. El buceador cuyo scooter se avería respira su propio RMV aumentado por el factor de estrés del plan hasta la primera parada.';
   }
 
   @override

@@ -549,7 +549,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String plannerMission_results_assumptions(String reserve) {
-    return 'Akkureserve $reserve % der Laufzeit. Wessen Scooter ausfällt, atmet bis zum ersten Stopp das Stress-AMV des Plans.';
+    return 'Akkureserve $reserve % der Laufzeit. Wessen Scooter ausfällt, atmet bis zum ersten Stopp das eigene AMV, erhöht um den Stressfaktor des Plans.';
   }
 
   @override

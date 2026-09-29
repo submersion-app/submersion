@@ -5434,7 +5434,7 @@
   "plannerMission_factor_surfaceSwimLimit": "la limite de nage en surface",
   "plannerMission_factor_teamGas": "le gaz d’un coéquipier",
   "plannerMission_results_abandonment": "Dernier point d’où tout le monde peut sortir : {waypoint}",
-  "plannerMission_results_assumptions": "Réserve de batterie de {reserve} % de l’autonomie. Le plongeur dont le scooter tombe en panne respire le RMV majoré du plan jusqu’au premier palier.",
+  "plannerMission_results_assumptions": "Réserve de batterie de {reserve} % de l’autonomie. Le plongeur dont le scooter tombe en panne respire son propre RMV augmenté du facteur de stress du plan jusqu’au premier palier.",
   "plannerMission_results_battery": "Batterie {percent} % de l’autonomie ({minutes}′), réserve {reserve} %",
   "plannerMission_results_bindsAt": "Limite à {waypoint} : {factor}",
   "plannerMission_results_blocked": "La mission ne peut pas encore être calculée :",

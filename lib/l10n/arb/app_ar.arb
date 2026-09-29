@@ -5536,7 +5536,7 @@
   "plannerMission_factor_surfaceSwimLimit": "حد السباحة على السطح",
   "plannerMission_factor_teamGas": "غاز أحد أفراد الفريق",
   "plannerMission_results_abandonment": "آخر نقطة يمكن للجميع الخروج منها: {waypoint}",
-  "plannerMission_results_assumptions": "احتياطي البطارية {reserve}% من مدة التشغيل. يتنفس الغواص الذي يتعطل سكوتره معدل RMV تحت الضغط في الخطة حتى أول توقف.",
+  "plannerMission_results_assumptions": "احتياطي البطارية {reserve}% من مدة التشغيل. يتنفس الغواص الذي يتعطل سكوتره معدل RMV الخاص به مضروبًا في معامل الضغط في الخطة حتى أول توقف.",
   "plannerMission_results_battery": "البطارية {percent}% من مدة التشغيل ({minutes}′)، الاحتياطي {reserve}%",
   "plannerMission_results_bindsAt": "الحد عند {waypoint}: {factor}",
   "plannerMission_results_blocked": "لا يمكن حساب المهمة بعد:",

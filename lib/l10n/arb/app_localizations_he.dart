@@ -542,7 +542,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String plannerMission_results_assumptions(String reserve) {
-    return 'עתודת סוללה $reserve% מזמן הפעולה. צולל שהסקוטר שלו מתקלקל נושם את ה-RMV בלחץ של התוכנית עד העצירה הראשונה.';
+    return 'עתודת סוללה $reserve% מזמן הפעולה. צולל שהסקוטר שלו מתקלקל נושם את ה-RMV שלו מוכפל במקדם הלחץ של התוכנית עד העצירה הראשונה.';
   }
 
   @override

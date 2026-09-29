@@ -15,13 +15,13 @@ final missionBlockingIssuesProvider = Provider<List<MissionIssue>>((ref) {
   );
   if (mission == null) return const [];
   final plan = divePlanFromState(ref.read(divePlanNotifierProvider));
-  final cut = const MissionEngine().traversableRoute(mission).cut;
-  return [
-    for (final issue in [
-      ...validateMission(mission),
-      ...validatePlanForMission(plan),
-      ?cut,
-    ])
-      if (issue.severity == MissionIssueSeverity.blocking) issue,
-  ];
+  bool blocking(MissionIssue i) => i.severity == MissionIssueSeverity.blocking;
+  final own = validateMission(mission).where(blocking).toList();
+  // Speeds exist only once the mission validates: a scooter with no speed
+  // is not a current that blocks leg 1. The engine cuts the route the same
+  // way, after validation.
+  final cut = own.isEmpty
+      ? const MissionEngine().traversableRoute(mission).cut
+      : null;
+  return [...own, ...validatePlanForMission(plan).where(blocking), ?cut];
 });

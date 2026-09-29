@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -8,6 +10,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
+import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
@@ -116,7 +119,7 @@ void main() {
       find.text(
         'Battery ${ceilPercent(a.batteryRoundTripFraction)}% of burn time '
         '(${ceilMinutes((a.batteryRoundTripFraction * 5400).round())}′), '
-        'reserve 34%',
+        'reserve 33%',
       ),
       // Both divers ride the same scooter, so the line can appear twice.
       findsWidgets,
@@ -132,7 +135,7 @@ void main() {
     // multi-placeholder line reads in sentence order.
     expect(
       find.textContaining(
-        RegExp(r'^Battery \d+% of burn time \(\d+′\), reserve 34%$'),
+        RegExp(r'^Battery \d+% of burn time \(\d+′\), reserve 33%$'),
       ),
       findsNWidgets(2),
     );
@@ -233,5 +236,101 @@ void main() {
     );
     expect(find.textContaining('could not be computed'), findsWidgets);
     expect(find.textContaining('cannot get out'), findsNothing);
+  });
+
+  testWidgets('the assumptions name what the engine breathes', (tester) async {
+    await _pump(tester, width: 400);
+    expect(
+      find.textContaining(
+        "breathes their own RMV raised by the plan's stress ratio",
+      ),
+      findsOneWidget,
+    );
+  });
+
+  /// Computes the first mission, then leaves every later one in flight, so
+  /// the section shows the first outcome against a newer mission.
+  MissionEngineRunner firstOnly() {
+    var calls = 0;
+    return (plan, mission, config) {
+      calls++;
+      return calls == 1
+          ? _syncRunner(plan, mission, config)
+          : Completer<MissionOutcome>().future;
+    };
+  }
+
+  DpvMission cavernThenT() {
+    final m = _mission();
+    return m.copyWith(
+      legs: [
+        m.legs.single.copyWith(label: 'Cavern', distanceM: 100),
+        const MissionLeg(
+          id: 'L2',
+          order: 1,
+          label: 'T',
+          distanceM: 300,
+          depthM: 20,
+          headingDeg: 0,
+        ),
+      ],
+    );
+  }
+
+  String abandonment(WidgetTester tester) => tester
+      .widget<Text>(
+        find.textContaining(
+          RegExp(r'^(Last waypoint every diver|No waypoint is survivable)'),
+        ),
+      )
+      .data!;
+
+  testWidgets('a reorder while computing keeps each figure under its leg', (
+    tester,
+  ) async {
+    final container = await _pump(
+      tester,
+      width: 400,
+      mission: cavernThenT(),
+      runner: firstOnly(),
+    );
+    final before = abandonment(tester);
+    // The engine's answer for this route: Cavern, the first waypoint.
+    expect(before, endsWith(': Cavern'));
+    final mission = container.read(divePlanNotifierProvider).mission!;
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .updateMission(MissionEdits.reorderLegs(mission, 1, 0));
+    await tester.pump();
+    // Still the same place, and the diver is told a newer result is coming.
+    expect(abandonment(tester), before);
+    expect(find.text('Working out the failure scenarios'), findsOneWidget);
+    // Cavern's 100 m line sits under Cavern's title, not under T's.
+    final cavern = tester.getTopLeft(find.text('Cavern')).dy;
+    final line = tester
+        .getTopLeft(find.textContaining(RegExp(r'^100m, arrive')))
+        .dy;
+    final t = tester.getTopLeft(find.text('T')).dy;
+    expect(cavern < line && line < t, isTrue);
+  });
+
+  testWidgets('removing a leg while computing names no other leg', (
+    tester,
+  ) async {
+    final container = await _pump(
+      tester,
+      width: 400,
+      mission: cavernThenT(),
+      runner: firstOnly(),
+    );
+    expect(abandonment(tester), endsWith(': Cavern'));
+    final mission = container.read(divePlanNotifierProvider).mission!;
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .updateMission(MissionEdits.removeLeg(mission, 'L1'));
+    await tester.pump();
+    // Cavern is gone; its answer must not move onto T.
+    expect(find.textContaining('get out from: T'), findsNothing);
+    expect(find.text('Cavern'), findsNothing);
   });
 }

@@ -1,5 +1,6 @@
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
+import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_issue_text.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -32,10 +33,11 @@ String missionConstraintText(
   final member = mission.team.where((t) => t.id == c.memberId).firstOrNull;
   // An outcome computed before the latest edit can name a diver or waypoint
   // the mission no longer has; its replacement is on the way.
-  if (member == null || c.waypointIndex >= mission.legs.length) {
+  final leg = missionLegAt(outcome, mission, c.waypointIndex);
+  if (member == null || leg == null) {
     return l10n.plannerMission_results_computing;
   }
-  final waypoint = missionLegName(l10n, mission.legs[c.waypointIndex]);
+  final waypoint = missionLegName(l10n, leg);
   final factor = missionFactorLabel(l10n, c.factor);
   final scooter = member.scooter.name.trim();
   // Placeholders are alphabetical: factor, name, (scooter,) waypoint.
@@ -57,8 +59,32 @@ String missionConstraintText(
 /// it is.
 int ceilMinutes(int seconds) => (seconds / 60).ceil();
 
-/// A fraction as a whole percent, rounded up.
-String ceilPercent(double fraction) => (fraction * 100).ceil().toString();
+/// The current mission's leg at [outcome]'s waypoint [index], matched by the
+/// leg id the outcome recorded, or null when that leg is gone. An outcome
+/// stays on screen while a newer edit computes, so an index read straight
+/// into the mission's legs would name the wrong leg after a reorder or a
+/// removal.
+MissionLeg? missionLegAt(
+  MissionOutcome outcome,
+  DpvMission mission,
+  int? index,
+) {
+  if (index == null) return null;
+  final legId = outcome.waypoints
+      .where((w) => w.index == index)
+      .firstOrNull
+      ?.legId;
+  return mission.legs.where((l) => l.id == legId).firstOrNull;
+}
+
+/// A fraction as a whole percent, rounded up. The small offset keeps binary
+/// noise (0.55 * 100 is 55.00000000000001) from adding a percent.
+String ceilPercent(double fraction) =>
+    (fraction * 100 - 1e-9).ceil().toString();
+
+/// A percent the diver set, shown as they set it: the battery reserve is an
+/// input, and rounding it up would overstate what is kept back.
+String settingPercent(double fraction) => (fraction * 100).round().toString();
 
 /// A turn pressure in the diver's unit, rounded up: turning early is safe.
 String ceilPressure(UnitFormatter units, double bar) =>

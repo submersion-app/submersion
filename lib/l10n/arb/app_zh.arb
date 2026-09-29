@@ -5704,7 +5704,7 @@
   "plannerMission_factor_surfaceSwimLimit": "水面游泳限制",
   "plannerMission_factor_teamGas": "队友的气体",
   "plannerMission_results_abandonment": "所有人都能撤出的最后一个航点：{waypoint}",
-  "plannerMission_results_assumptions": "电池储备为续航时间的 {reserve}%。推进器故障的潜水员在首次停留前按计划的应激 RMV 呼吸。",
+  "plannerMission_results_assumptions": "电池储备为续航时间的 {reserve}%。推进器故障的潜水员在首次停留前按其自身 RMV 乘以计划的应激系数呼吸。",
   "plannerMission_results_battery": "电池：续航时间的 {percent}%（{minutes}′），储备 {reserve}%",
   "plannerMission_results_bindsAt": "在 {waypoint} 受限：{factor}",
   "plannerMission_results_blocked": "任务暂时无法计算：",

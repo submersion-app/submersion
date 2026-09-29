@@ -75,14 +75,17 @@ class MissionWaypointList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (final w in outcome.waypoints)
-          if (w.index < mission.legs.length)
+          // Titled by the leg id the outcome recorded, never by position:
+          // a reorder since would put one leg's figures under another.
+          if (mission.legs.where((l) => l.id == w.legId).firstOrNull
+              case final leg?)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    missionLegName(l10n, mission.legs[w.index]),
+                    missionLegName(l10n, leg),
                     style: theme.textTheme.titleSmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
