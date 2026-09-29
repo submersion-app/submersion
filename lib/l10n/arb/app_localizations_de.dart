@@ -12667,6 +12667,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String passport_fill_addedFromTag(String mix, String pressure) {
+    return 'Füllung vom Tag hinzugefügt: $mix, $pressure';
+  }
+
+  @override
   String passport_fill_analyzer(String analyzer) {
     return 'Analysiert mit $analyzer';
   }

@@ -12472,6 +12472,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String passport_fill_addedFromTag(String mix, String pressure) {
+    return 'أُضيفت التعبئة من الوسم: $mix، $pressure';
+  }
+
+  @override
   String passport_fill_analyzer(String analyzer) {
     return 'حُلِّلت بجهاز $analyzer';
   }

@@ -12641,6 +12641,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String passport_fill_addedFromTag(String mix, String pressure) {
+    return 'A címke töltése hozzáadva: $mix, $pressure';
+  }
+
+  @override
   String passport_fill_analyzer(String analyzer) {
     return 'Elemezve: $analyzer';
   }

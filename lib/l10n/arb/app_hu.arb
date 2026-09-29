@@ -3965,6 +3965,7 @@
   "passport_fill_mod": "MOD {depth} {ppo2} ppO2-nél",
   "passport_fill_end": "END {depth} a munka-MOD-on",
   "passport_fill_station": "Töltötte: {station}",
+  "passport_fill_addedFromTag": "A címke töltése hozzáadva: {mix}, {pressure}",
   "passport_fill_analyzer": "Elemezve: {analyzer}",
   "passport_fill_analysis": "O2 {o2}, He {he}",
   "passport_fill_temperature": "Gázhőmérséklet: {temperature}",

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
@@ -38,6 +40,25 @@ Future<void> openScannedTag(
     if (!context.mounted) return;
     switch (resolution) {
       case OwnCylinder(:final equipmentId, :final tag):
+        // The fill the tag carries joins the history once (spec section 11).
+        final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+        final added = await ref
+            .read(tagFillImporterProvider)
+            .importIfNew(tag: tag, equipmentId: equipmentId, diverId: diverId);
+        if (!context.mounted) return;
+        if (added != null) {
+          final units = UnitFormatter(ref.read(settingsProvider));
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                l10n.passport_fill_addedFromTag(
+                  added.gasMix.name,
+                  units.formatPressure(added.pressureBar),
+                ),
+              ),
+            ),
+          );
+        }
         router.push('/equipment/$equipmentId/passport', extra: tag);
       case ForeignCylinder(:final tag):
         router.push(foreignPassportLocation(tag));

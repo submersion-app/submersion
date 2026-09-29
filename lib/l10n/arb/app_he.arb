@@ -3965,6 +3965,7 @@
   "passport_fill_mod": "MOD {depth} ב-ppO2 {ppo2}",
   "passport_fill_end": "END {depth} ב-MOD העבודה",
   "passport_fill_station": "מולא על ידי {station}",
+  "passport_fill_addedFromTag": "המילוי מהתג נוסף: {mix}, {pressure}",
   "passport_fill_analyzer": "נותח באמצעות {analyzer}",
   "passport_fill_analysis": "O2 {o2}, He {he}",
   "passport_fill_temperature": "טמפרטורת הגז {temperature}",

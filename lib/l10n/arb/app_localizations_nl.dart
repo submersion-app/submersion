@@ -12575,6 +12575,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String passport_fill_addedFromTag(String mix, String pressure) {
+    return 'Vulling van de tag toegevoegd: $mix, $pressure';
+  }
+
+  @override
   String passport_fill_analyzer(String analyzer) {
     return 'Geanalyseerd met $analyzer';
   }

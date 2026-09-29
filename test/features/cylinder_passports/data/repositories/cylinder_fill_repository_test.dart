@@ -214,4 +214,13 @@ void main() {
     expect(await repo.recentStationNames(), ['Reef Air', 'Blue Water']);
     expect(await repo.recentAnalyzers(), ['Analox', 'Divesoft']);
   });
+
+  test('wasDeleted is true only after a delete', () async {
+    final at = DateTime(2026, 9, 28);
+    final created = await repo.create(fill('f-1', at));
+    expect(await repo.wasDeleted('f-1'), isFalse);
+    expect(await repo.wasDeleted('nope'), isFalse);
+    await repo.delete(created.id);
+    expect(await repo.wasDeleted('f-1'), isTrue);
+  });
 }

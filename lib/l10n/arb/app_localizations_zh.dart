@@ -12107,6 +12107,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String passport_fill_addedFromTag(String mix, String pressure) {
+    return '已添加标签上的充气：$mix，$pressure';
+  }
+
+  @override
   String passport_fill_analyzer(String analyzer) {
     return '使用 $analyzer 分析';
   }

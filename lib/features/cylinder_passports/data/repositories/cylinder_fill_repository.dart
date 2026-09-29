@@ -57,6 +57,19 @@ class CylinderFillRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Whether a fill with [id] was deleted (a tombstone exists), so a tag
+  /// that still carries it does not bring it back (spec section 11).
+  Future<bool> wasDeleted(String id) async {
+    final row =
+        await (_db.select(_db.deletionLog)
+              ..where(
+                (t) => t.entityType.equals(entity) & t.recordId.equals(id),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
+  }
+
   Future<CylinderFill?> getById(String id) async {
     final row = await (_db.select(
       _db.cylinderFills,

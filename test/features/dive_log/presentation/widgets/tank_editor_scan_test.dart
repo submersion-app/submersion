@@ -195,6 +195,42 @@ void main() {
     expect(scannedItem, isNull);
   });
 
+  testWidgets("a foreign cylinder's tag fill sets the mix", (tester) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      scanned:
+          'https://submersion.app/c#f=1&p=$stranger&v=10'
+          '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11'
+          '&ft=2026-09-28T09%3A30%3A00Z&fo=21&fh=35',
+      onChanged: (t) => changed = t,
+    );
+    await scan(tester);
+    expect((changed!.gasMix.o2, changed!.gasMix.he), (21.0, 35.0));
+  });
+
+  testWidgets("an own cylinder's newer tag fill is stored and used", (
+    tester,
+  ) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      scanned:
+          'https://submersion.app/c#f=1&p=$own'
+          '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f12'
+          '&ft=2030-01-01T00%3A00%3A00Z&fo=21&fh=35',
+      onChanged: (t) => changed = t,
+    );
+    await scan(tester);
+    expect((changed!.gasMix.o2, changed!.gasMix.he), (21.0, 35.0));
+    final stored = await tester.runAsync(
+      () => CylinderFillRepository().getById(
+        '3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f12',
+      ),
+    );
+    expect(stored!.source, FillSource.nfc);
+  });
+
   const al80Tank = DiveTank(
     id: 'tank-1',
     volume: 11.1,

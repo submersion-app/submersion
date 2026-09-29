@@ -20926,6 +20926,12 @@ abstract class AppLocalizations {
   /// **'Filled by {station}'**
   String passport_fill_station(String station);
 
+  /// No description provided for @passport_fill_addedFromTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill from the tag added: {mix}, {pressure}'**
+  String passport_fill_addedFromTag(String mix, String pressure);
+
   /// No description provided for @passport_fill_analyzer.
   ///
   /// In en, this message translates to:

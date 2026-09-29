@@ -3965,6 +3965,7 @@
   "passport_fill_mod": "PMU {depth} à ppO2 {ppo2}",
   "passport_fill_end": "PEN {depth} à la PMU de travail",
   "passport_fill_station": "Gonflée par {station}",
+  "passport_fill_addedFromTag": "Remplissage du tag ajouté : {mix}, {pressure}",
   "passport_fill_analyzer": "Analysée avec {analyzer}",
   "passport_fill_analysis": "O2 {o2}, He {he}",
   "passport_fill_temperature": "Température du gaz {temperature}",

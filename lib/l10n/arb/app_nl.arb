@@ -4067,6 +4067,7 @@
   "passport_fill_mod": "MOD {depth} bij ppO2 {ppo2}",
   "passport_fill_end": "END {depth} op de werk-MOD",
   "passport_fill_station": "Gevuld door {station}",
+  "passport_fill_addedFromTag": "Vulling van de tag toegevoegd: {mix}, {pressure}",
   "passport_fill_analyzer": "Geanalyseerd met {analyzer}",
   "passport_fill_analysis": "O2 {o2}, He {he}",
   "passport_fill_temperature": "Gastemperatuur {temperature}",

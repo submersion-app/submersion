@@ -69,7 +69,11 @@ void main() {
           path: '/equipment/:id/passport',
           builder: (context, state) {
             passportExtra = state.extra;
-            return Text('passport ${state.pathParameters['id']}');
+            // A Scaffold, as the real passport page has, so a snack bar shown
+            // on the way there is visible.
+            return Scaffold(
+              body: Text('passport ${state.pathParameters['id']}'),
+            );
           },
         ),
       ],
@@ -256,6 +260,39 @@ void main() {
     expect(find.text('home'), findsOneWidget);
     expect(find.textContaining('passport '), findsNothing);
     expect(find.text(l10n.passport_scan_openFailed), findsNothing);
+  });
+  group('a tag carrying a fill', () {
+    const withFill =
+        '$tag&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11'
+        '&ft=2026-09-28T09%3A30%3A00Z&fo=32&fp=232&fb=Blue+Hole';
+
+    testWidgets('an own cylinder stores the fill and says so', (tester) async {
+      await tester.runAsync(
+        () => CylinderPassportRepository().assignPassportId(
+          equipmentId: 'eq-1',
+          passportId: id,
+        ),
+      );
+      final l10n = await pump(tester, text: withFill);
+      expect(find.text('passport eq-1'), findsOneWidget);
+      final fills = await tester.runAsync(
+        () => db.select(db.cylinderFills).get(),
+      );
+      expect(fills!.map((f) => f.id), ['3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11']);
+      expect(
+        find.text(l10n.passport_fill_addedFromTag('EAN32', '232 bar')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets("someone else's cylinder stores nothing", (tester) async {
+      await pump(tester, text: withFill);
+      expect(find.text('foreign page'), findsOneWidget);
+      final fills = await tester.runAsync(
+        () => db.select(db.cylinderFills).get(),
+      );
+      expect(fills, isEmpty);
+    });
   });
 }
 

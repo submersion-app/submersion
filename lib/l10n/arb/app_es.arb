@@ -4067,6 +4067,7 @@
   "passport_fill_mod": "MOD {depth} a ppO2 {ppo2}",
   "passport_fill_end": "END {depth} en la MOD de trabajo",
   "passport_fill_station": "Cargada por {station}",
+  "passport_fill_addedFromTag": "Llenado de la etiqueta añadido: {mix}, {pressure}",
   "passport_fill_analyzer": "Analizada con {analyzer}",
   "passport_fill_analysis": "O2 {o2}, He {he}",
   "passport_fill_temperature": "Temperatura del gas {temperature}",

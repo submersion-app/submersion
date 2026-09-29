@@ -7128,6 +7128,17 @@
       "station": {"type": "String"}
     }
   },
+  "passport_fill_addedFromTag": "Fill from the tag added: {mix}, {pressure}",
+  "@passport_fill_addedFromTag": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      },
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
   "passport_fill_analyzer": "Analyzed with {analyzer}",
   "@passport_fill_analyzer": {
     "placeholders": {
