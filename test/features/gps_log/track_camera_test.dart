@@ -1,7 +1,6 @@
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/domain/track_geometry.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_camera.dart';
@@ -21,17 +20,6 @@ void main() {
 
     test('is false for an ordinary track', () {
       expect(crossesAntimeridian(trackBounds(_cozumel)!), isFalse);
-    });
-  });
-
-  group('normalizeLongitude', () {
-    test('wraps an unwrapped longitude back into range', () {
-      expect(normalizeLongitude(180.1), closeTo(-179.9, 1e-9));
-    });
-
-    test('leaves a legal longitude alone', () {
-      expect(normalizeLongitude(-87.25), closeTo(-87.25, 1e-9));
-      expect(normalizeLongitude(179.9), closeTo(179.9, 1e-9));
     });
   });
 

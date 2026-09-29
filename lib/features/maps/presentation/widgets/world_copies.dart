@@ -3,6 +3,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/utils/geo_math.dart';
+
 /// The camera constraint for the app's world maps: stop at the poles but
 /// scroll east and west without end, the way flutter_map repeats the world.
 ///
@@ -20,7 +22,8 @@ const CameraConstraint worldMapCameraConstraint =
 /// [shift] counts whole worlds east of the canonical one (negative is west).
 typedef WorldCopy = ({int shift, MapCamera camera});
 
-/// Every copy of the world that [camera]'s viewport overlaps, west to east.
+/// Every copy of the world that [camera]'s viewport overlaps, or comes
+/// within [bleed] pixels of, west to east.
 ///
 /// flutter_map repeats tiles and its own marker, polyline and polygon layers
 /// across the date line, but a layer that projects points itself (the marker
@@ -33,22 +36,23 @@ typedef WorldCopy = ({int shift, MapCamera camera});
 /// widths further east on screen. A longitude past 180 has no valid
 /// [LatLngBounds], so each shifted copy's [MapCamera.visibleBounds] holds
 /// instead the canonical longitudes it actually puts on screen, padded by
-/// half a screen. A copy with none (one of the [margin] extras) gets a
-/// zero-width band at its edge, so a layer that recurses by visible bounds,
-/// as the cluster plugin does, skips it almost entirely.
+/// half a screen, so a layer that recurses by visible bounds, as the cluster
+/// plugin does, only walks the part of the world that copy can show.
 ///
-/// [margin] adds that many copies beyond the visible ones on each side.
+/// [bleed] is for a layer that draws past a point's position, such as a heat
+/// blob of that radius: a copy whose world starts just off screen can still
+/// reach it. Away from the seam it adds nothing.
 ///
 /// A CRS that does not repeat the world has one copy: [camera].
-List<WorldCopy> worldCopyCameras(MapCamera camera, {int margin = 0}) {
+List<WorldCopy> worldCopyCameras(MapCamera camera, {double bleed = 0}) {
   final worldWidth = camera.getWorldWidthAtZoom();
   if (worldWidth <= 0) return [(shift: 0, camera: camera)];
 
   // The canonical world covers x in [0, worldWidth) at this zoom.
   final left = camera.pixelOrigin.dx;
   final right = left + camera.size.width;
-  final first = (left / worldWidth).floor() - margin;
-  final last = ((right - 1) / worldWidth).floor() + margin;
+  final first = ((left - bleed) / worldWidth).floor();
+  final last = ((right + bleed - 1) / worldWidth).floor();
   if (first == 0 && last == 0) return [(shift: 0, camera: camera)];
 
   final real = camera.visibleBounds;
@@ -123,13 +127,16 @@ class _WorldWrappedMarkerClusterLayerState
     final camera = MapCamera.of(context);
     final controller = MapController.of(context);
 
-    // A jump of more than half the world between two frames is the camera
-    // wrapping at the seam, not a pan: 179.9 to -179.9 is 0.2 degrees east.
+    // The camera wrapped at the seam when its longitude jumped by more than
+    // half the world while it actually moved only a little the short way:
+    // 179.9 to -179.9 is 0.2 degrees east. A long jump the short way too is
+    // a teleport (a fit, a list tap), and nothing on screen carries over, so
+    // leave the keys alone and every copy keeps its clusters.
     final last = _lastLongitude;
     if (last != null) {
       final jump = camera.center.longitude - last;
-      if (jump < -180) _wraps++;
-      if (jump > 180) _wraps--;
+      final moved = longitudeDelta(last, camera.center.longitude).abs();
+      if (jump.abs() > 180 && moved < 90) _wraps += jump < 0 ? 1 : -1;
     }
     _lastLongitude = camera.center.longitude;
 

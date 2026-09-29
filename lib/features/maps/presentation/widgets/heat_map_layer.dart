@@ -143,10 +143,10 @@ class _HeatMapPainter extends CustomPainter {
     final bufferCanvas = Canvas(recorder);
 
     // One pass per visible copy of the world, so the heat carries on past
-    // the date line on a map that scrolls across it (issue #2516). A spare
-    // copy each side, because a blob up to [radius] px past the edge still
-    // shows, including one whose world starts just off screen.
-    final copies = worldCopyCameras(camera, margin: 1);
+    // the date line on a map that scrolls across it (issue #2516). A blob up
+    // to [radius] px past the edge still shows, including one from a world
+    // that starts just off screen, so reach that far for copies.
+    final copies = worldCopyCameras(camera, bleed: radius);
     for (final point in points) {
       final intensity = densityIntensity(point.weight, maxWeight);
       if (intensity <= 0) continue;

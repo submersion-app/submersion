@@ -72,23 +72,21 @@ void main() {
       );
     });
 
-    test('an off-screen margin copy gets a zero-width window', () {
-      final copies = worldCopyCameras(
-        _camera(longitude: 0, zoom: 5),
-        margin: 1,
-      );
-      for (final copy in copies.where((c) => c.shift != 0)) {
-        final bounds = copy.camera.visibleBounds;
-        expect(bounds.east, bounds.west, reason: 'shift ${copy.shift}');
-      }
+    test('a bleed reaches a world that starts just off screen', () {
+      // At zoom 5 the world is 8192 px wide. Centred so the right edge of an
+      // 800 px view sits 10 px short of 180, the eastern world is off screen
+      // but within a 30 px bleed of it.
+      const edgeGap = 10.0;
+      const degreesToEdge = (400 + edgeGap) * 360 / 8192;
+      final camera = _camera(longitude: 180 - degreesToEdge, zoom: 5);
+
+      expect(worldCopyCameras(camera).map((c) => c.shift), [0]);
+      expect(worldCopyCameras(camera, bleed: 30).map((c) => c.shift), [0, 1]);
     });
 
-    test('adds spare copies on each side when asked for a margin', () {
-      final copies = worldCopyCameras(
-        _camera(longitude: 0, zoom: 5),
-        margin: 1,
-      );
-      expect(copies.map((c) => c.shift), [-1, 0, 1]);
+    test('a bleed adds nothing away from the seam', () {
+      final camera = _camera(longitude: 0, zoom: 5);
+      expect(worldCopyCameras(camera, bleed: 30).map((c) => c.shift), [0]);
     });
 
     test('is just the camera for a CRS that does not repeat the world', () {
@@ -215,6 +213,52 @@ void main() {
       expect(controller.camera.center.longitude, closeTo(-179, 1e-9));
       expect(identical(layerOf('west-of-seam'), west), isTrue);
       expect(identical(layerOf('east-of-seam'), east), isTrue);
+    });
+
+    testWidgets('a teleport across half the world keeps the copy State', (
+      tester,
+    ) async {
+      final controller = MapController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Center(
+            child: SizedBox(
+              width: 800,
+              height: 600,
+              child: FlutterMap(
+                mapController: controller,
+                options: const MapOptions(
+                  initialCenter: LatLng(0, 100),
+                  initialZoom: 5,
+                  cameraConstraint: CameraConstraint.containLatitude(),
+                ),
+                children: [
+                  WorldWrappedMarkerClusterLayer(
+                    options: MarkerClusterLayerOptions(
+                      size: const Size(30, 30),
+                      markers: [marker('asia', const LatLng(0, 100))],
+                      builder: (context, markers) => const SizedBox(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final before = tester.state(find.byType(MarkerClusterLayer));
+
+      // 100E to 90W: the raw longitude drops by 190, which looks like a wrap,
+      // but the camera really moved 170 degrees. Nothing crossed the seam, so
+      // the one copy on screen must keep its State (and its clusters).
+      controller.move(const LatLng(0, -90), 5);
+      await tester.pump();
+
+      expect(
+        identical(tester.state(find.byType(MarkerClusterLayer)), before),
+        isTrue,
+      );
     });
 
     testWidgets('draws each marker once when no seam is in view', (
