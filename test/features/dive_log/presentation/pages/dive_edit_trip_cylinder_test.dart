@@ -159,6 +159,9 @@ void main() {
     final r = rows(tester);
     expect(r[0].tank.tripCylinderId, a.id);
     expect(r[1].tank.tripCylinderId, b.id);
+    // Each picker hides the slot the other tank holds.
+    expect(r[0].takenTripCylinderIds, {b.id});
+    expect(r[1].takenTripCylinderIds, {a.id});
   });
 
   testWidgets('None turns the suggestion down for good', (tester) async {
@@ -221,6 +224,44 @@ void main() {
     expect(r[0].tank.tripCylinderId, isNull);
     expect(r[0].suggested, isFalse);
     expect(r[1].tank.tripCylinderId, a.id);
+  });
+
+  testWidgets('a past dive suggests and fills from the slots as they were', (
+    tester,
+  ) async {
+    // At noon a (filled 07:00) is the oldest full slot, with EAN32. By
+    // today's state a was refilled at 14:00 with EAN36, which would make b
+    // (08:00) the oldest instead.
+    final refill = DateTime.utc(2026, 3, 9, 14);
+    await TripCylinderRepository().createEvent(
+      TripCylinderEvent(
+        id: '',
+        tripCylinderId: a.id,
+        kind: TripCylinderEventKind.fill,
+        occurredAt: refill,
+        pressure: 200,
+        o2Percent: 36,
+        createdAt: refill,
+        updatedAt: refill,
+      ),
+    );
+    final dive = await repository.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime.utc(2026, 3, 9, 12),
+        trip: trip,
+        tanks: const [DiveTank(id: 'k1', startPressure: 200, endPressure: 60)],
+      ),
+    );
+    await pumpEditPage(tester, diveId: dive.id);
+    await settleTrip(tester);
+    await tester.tap(find.text('Gas & Gear').first);
+    await settleTrip(tester);
+    await tester.tap(find.text('Add Tank'));
+    await settleTrip(tester);
+    final added = rows(tester)[1].tank;
+    expect(added.tripCylinderId, a.id);
+    expect(added.gasMix.o2, 32);
   });
 
   testWidgets('the link is saved with the dive', (tester) async {

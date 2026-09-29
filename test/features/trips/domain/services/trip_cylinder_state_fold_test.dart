@@ -447,4 +447,50 @@ void main() {
       expect(s.lastUse, isNull);
     });
   });
+
+  group('foldCylinderStatesAt', () {
+    List<TripCylinderState> atTime(
+      int minutes, {
+      String? excludeDiveId,
+      List<TripCylinderEvent>? events,
+      List<TripCylinderTankUse> uses = const [],
+    }) => foldCylinderStatesAt(
+      cylinders: [slot],
+      eventsBySlot: {
+        'c1': events ?? [fill(0), fill(300, pressure: 180)],
+      },
+      usesBySlot: {'c1': uses},
+      atMillis: at(minutes).millisecondsSinceEpoch,
+      excludeDiveId: excludeDiveId,
+    );
+
+    test('a fill after the instant is not yet in the slot', () {
+      final s = atTime(120).single;
+      expect(s.pressure, 200);
+      expect(s.lastFill!.id, 'f0');
+    });
+
+    test('a fill at the instant counts, as the fold ranks it first', () {
+      expect(atTime(300).single.pressure, 180);
+    });
+
+    test('before any event the slot is unknown', () {
+      expect(atTime(-10).single.status, TripCylinderStatus.unknown);
+    });
+
+    test('earlier dives count and the dive being edited does not', () {
+      final uses = [
+        dive(60, diveId: 'd', end: 90),
+        dive(120, diveId: 'e', end: 60),
+      ];
+      // At minute 120 only the minute-60 dive happened before.
+      expect(atTime(120, uses: uses).single.pressure, 90);
+      // Editing the minute-60 dive: its own use is left out.
+      expect(atTime(200, uses: uses, excludeDiveId: 'd60').single.pressure, 60);
+      expect(
+        atTime(100, uses: uses, excludeDiveId: 'd60').single.pressure,
+        200,
+      );
+    });
+  });
 }

@@ -32,7 +32,6 @@ import 'package:submersion/features/equipment/presentation/widgets/service_statu
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_tank_link.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 
 final _log = LoggerService.forClass(TankEditor);
 
@@ -64,9 +63,14 @@ class TankEditor extends ConsumerStatefulWidget {
   /// page) waits for it, so Save cannot outrun the scan.
   final void Function(Future<void> scan)? onScanPending;
 
-  /// The dive's trip: when it has cylinders, a picker links this tank to
-  /// one of them. Null hides the picker.
-  final String? tripId;
+  /// The dive's trip cylinders as they stood when the dive started (the
+  /// page watches them): when there are any, a picker links this tank to
+  /// one of them. Null (no trip) hides the picker.
+  final List<TripCylinderState>? tripCylinderStates;
+
+  /// Slots other tanks on this dive already hold: not offered, since two
+  /// tanks cannot breathe from one cylinder.
+  final Set<String> takenTripCylinderIds;
 
   /// The link was preselected as a suggestion, so the picker says so until
   /// the diver changes it or the dive is saved.
@@ -82,7 +86,8 @@ class TankEditor extends ConsumerStatefulWidget {
     this.showPressures = true,
     this.onCylinderScanned,
     this.onScanPending,
-    this.tripId,
+    this.tripCylinderStates,
+    this.takenTripCylinderIds = const {},
     this.suggested = false,
   });
 
@@ -210,12 +215,15 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _regulatorEquipmentId = widget.tank.regulatorEquipmentId;
     // Initialize selected preset from tank's presetName
     // Check built-in presets first, async lookup for custom presets happens in build
-    if (widget.tank.presetName != null) {
-      final builtIn = TankPresets.byName(widget.tank.presetName!);
-      if (builtIn != null) {
-        _selectedPreset = TankPresetEntity.fromBuiltIn(builtIn);
-      }
-    }
+    // Reset on every read, not only set: a re-read after a fill from a
+    // slot with no preset must not keep the old preset, or the next
+    // keystroke would write it (and in cuft its volume) back.
+    final builtIn = widget.tank.presetName == null
+        ? null
+        : TankPresets.byName(widget.tank.presetName!);
+    _selectedPreset = builtIn == null
+        ? null
+        : TankPresetEntity.fromBuiltIn(builtIn);
   }
 
   @override
@@ -469,8 +477,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
             // Regulator breathed from this cylinder (v202), so high-O2
             // contact reaches the regulator's service clocks.
-            if (widget.tripId case final tripId?)
-              _buildTripCylinderPicker(tripId),
+            if (widget.tripCylinderStates case final states?)
+              _buildTripCylinderPicker(states),
             _buildRegulatorPicker(),
             const SizedBox(height: 12),
 
@@ -673,16 +681,19 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
   }
 
-  Widget _buildTripCylinderPicker(String tripId) {
+  Widget _buildTripCylinderPicker(List<TripCylinderState> all) {
     final l10n = context.l10n;
     final units = UnitFormatter(ref.watch(settingsProvider));
-    // `value`, not `valueOrNull`: it keeps the previous list while the
-    // provider reloads, so the tank's slot does not flicker to None.
-    final states =
-        ref.watch(tripCylinderStatesProvider(tripId)).value ??
-        const <TripCylinderState>[];
-    if (states.isEmpty) return const SizedBox.shrink();
     final linked = widget.tank.tripCylinderId;
+    // Slots other tanks hold are left out; this tank's own link always
+    // stays in the list.
+    final states = [
+      for (final s in all)
+        if (s.cylinder.id == linked ||
+            !widget.takenTripCylinderIds.contains(s.cylinder.id))
+          s,
+    ];
+    if (states.isEmpty) return const SizedBox.shrink();
     final known = states.any((s) => s.cylinder.id == linked);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -720,6 +731,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// 2026-09-28), or clears only the link for None. The page's new tank
   /// comes back through didUpdateWidget, which re-reads the fields.
   void _pickTripCylinder(List<TripCylinderState> states, String? id) {
+    // The dropdown reports the current item again when it is re-picked;
+    // refilling from the slot would overwrite the fields behind the
+    // diver's back (on an existing dive, from a state that includes it).
+    if (id == widget.tank.tripCylinderId) return;
     final current = _currentTank();
     final slot = states.where((s) => s.cylinder.id == id).firstOrNull;
     widget.onChanged(

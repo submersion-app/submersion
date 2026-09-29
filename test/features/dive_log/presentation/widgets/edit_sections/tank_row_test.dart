@@ -7,6 +7,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
@@ -20,7 +24,12 @@ const _testTank = DiveTank(
   gasMix: GasMix(o2: 32),
 );
 
-Future<void> _pump(WidgetTester tester, {DiveTank tank = _testTank}) async {
+Future<void> _pump(
+  WidgetTester tester, {
+  DiveTank tank = _testTank,
+  List<TripCylinderState>? slots,
+  bool suggested = false,
+}) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
     ProviderScope(
@@ -44,6 +53,8 @@ Future<void> _pump(WidgetTester tester, {DiveTank tank = _testTank}) async {
                 units: const UnitFormatter(AppSettings()),
                 onChanged: (_) {},
                 canRemove: false,
+                tripCylinderStates: slots,
+                suggested: suggested,
               ),
             ),
           ),
@@ -106,5 +117,61 @@ void main() {
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(find.byType(TankEditor), findsNothing);
+  });
+
+  group('trip cylinder line', () {
+    final t0 = DateTime.utc(2026, 3, 9, 7);
+    final truck = foldCylinderState(
+      cylinder: TripCylinder(
+        id: 'a',
+        tripId: 't1',
+        label: 'Truck 1',
+        workingPressure: 207,
+        createdAt: t0,
+        updatedAt: t0,
+      ),
+      events: [
+        TripCylinderEvent(
+          id: 'f',
+          tripCylinderId: 'a',
+          kind: TripCylinderEventKind.fill,
+          occurredAt: t0,
+          bottleLabel: '14',
+          pressure: 200,
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+      ],
+      uses: const [],
+    );
+
+    testWidgets('a collapsed linked tank names its slot', (tester) async {
+      await _pump(
+        tester,
+        tank: _testTank.copyWith(tripCylinderId: 'a'),
+        slots: [truck],
+      );
+      expect(find.text('Truck 1 · Bottle 14'), findsOneWidget);
+      expect(find.byIcon(Icons.auto_awesome), findsNothing);
+    });
+
+    testWidgets('a suggested link is marked', (tester) async {
+      await _pump(
+        tester,
+        tank: _testTank.copyWith(tripCylinderId: 'a'),
+        slots: [truck],
+        suggested: true,
+      );
+      expect(find.byIcon(Icons.auto_awesome), findsOneWidget);
+      expect(
+        tester.widget<Icon>(find.byIcon(Icons.auto_awesome)).semanticLabel,
+        "Suggested from the trip's full cylinders",
+      );
+    });
+
+    testWidgets('an unlinked tank shows no slot line', (tester) async {
+      await _pump(tester, slots: [truck]);
+      expect(find.textContaining('Truck 1'), findsNothing);
+    });
   });
 }

@@ -68,6 +68,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_tank_link.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
@@ -2775,13 +2776,32 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
   }
 
+  /// The trip's cylinders as they stood when this dive starts (the form's
+  /// date and time, the wall clock stamped UTC as every dive time is),
+  /// never counting this dive's own use (decided 2026-09-29).
+  ({String tripId, int atMillis, String? excludeDiveId}) _tripCylinderKeyFor(
+    String tripId,
+  ) => (
+    tripId: tripId,
+    atMillis: DateTime.utc(
+      _entryDate.year,
+      _entryDate.month,
+      _entryDate.day,
+      _entryTime.hour,
+      _entryTime.minute,
+    ).millisecondsSinceEpoch,
+    excludeDiveId: widget.diveId,
+  );
+
   /// Suggests a full trip cylinder for each tank added in this editing
   /// session that has none and whose suggestion the diver has not turned
   /// down. Runs when the trip is set and when a tank is added.
   Future<void> _suggestTripCylinders() async {
     final tripId = _selectedTrip?.id;
     if (tripId == null || widget.isBulk) return;
-    final states = await ref.read(tripCylinderStatesProvider(tripId).future);
+    final states = await ref.read(
+      tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId)).future,
+    );
     if (!mounted || _selectedTrip?.id != tripId) return;
     final result = suggestTripCylindersForTanks(
       tanks: _tanks,
@@ -2809,7 +2829,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Future<void> _applyTripLink(String tripId, String? cylinderId) async {
     final trip = await ref.read(tripRepositoryProvider).getTripById(tripId);
     if (trip == null || !mounted) return;
-    final states = await ref.read(tripCylinderStatesProvider(tripId).future);
+    final states = await ref.read(
+      tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId)).future,
+    );
     if (!mounted) return;
     final slot = states.where((s) => s.cylinder.id == cylinderId).firstOrNull;
     setState(() {
@@ -3169,6 +3191,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   Widget _buildGasGearSection(UnitFormatter units) {
     final defaultExpanded = !widget.isEditing;
+    // `value`, not `valueOrNull`: the list survives a reload, so a linked
+    // tank never flickers to None while the provider refetches.
+    final tripId = _selectedTrip?.id;
+    final List<TripCylinderState>? slotStates = tripId == null
+        ? null
+        : ref
+                  .watch(
+                    tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId)),
+                  )
+                  .value ??
+              const <TripCylinderState>[];
     return GasGearSection(
       expanded: _isExpanded('gasGear', defaultValue: defaultExpanded),
       onToggle: () => _toggleSection('gasGear', defaultValue: defaultExpanded),
@@ -3206,7 +3239,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             tank: _tanks[i],
             tankNumber: i + 1,
             units: units,
-            tripId: _selectedTrip?.id,
+            tripCylinderStates: slotStates,
+            takenTripCylinderIds: {
+              for (final t in _tanks)
+                if (t.id != _tanks[i].id && t.tripCylinderId != null)
+                  t.tripCylinderId!,
+            },
             suggested: _suggestedTankIds.contains(_tanks[i].id),
             onChanged: (updatedTank) {
               final before = _tanks[i];

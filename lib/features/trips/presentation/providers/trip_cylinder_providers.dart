@@ -107,3 +107,27 @@ final tripCylinderLabelsAtProvider =
         atMillis: key.atMillis,
       );
     });
+
+/// The trip's slots as they stood when a dive started, for the dive
+/// editor's picker and suggestion: fills and adjustments up to that
+/// instant, earlier dives, and never the dive being edited itself.
+final tripCylinderStatesAtProvider =
+    FutureProvider.family<
+      List<TripCylinderState>,
+      ({String tripId, int atMillis, String? excludeDiveId})
+    >((ref, key) async {
+      final repository = ref.watch(tripCylinderRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTripCylinderChanges());
+      final (cylinders, events, uses) = await (
+        repository.getCylindersForTrip(key.tripId),
+        repository.getEventsForTrip(key.tripId),
+        repository.getTankUsesForTrip(key.tripId),
+      ).wait;
+      return foldCylinderStatesAt(
+        cylinders: cylinders,
+        eventsBySlot: events,
+        usesBySlot: uses,
+        atMillis: key.atMillis,
+        excludeDiveId: key.excludeDiveId,
+      );
+    });

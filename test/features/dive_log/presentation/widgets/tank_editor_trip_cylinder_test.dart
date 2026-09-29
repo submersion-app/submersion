@@ -19,7 +19,6 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.da
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_tank_link.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -54,6 +53,8 @@ TripCylinderState filledSlot(
   double pressure = 200,
   double o2 = 32,
   String bottle = '14',
+  double volume = 11.1,
+  double workingPressure = 207,
 }) {
   final t0 = DateTime.utc(2026, 3, 9, 7);
   return foldCylinderState(
@@ -61,8 +62,8 @@ TripCylinderState filledSlot(
       id: id,
       tripId: 't1',
       label: 'Truck $id',
-      volume: 11.1,
-      workingPressure: 207,
+      volume: volume,
+      workingPressure: workingPressure,
       createdAt: t0,
       updatedAt: t0,
     ),
@@ -87,8 +88,7 @@ Future<void> _pumpEditor(
   WidgetTester tester, {
   required List<EquipmentItem> equipment,
   required Widget editor,
-  String? tripId,
-  List<TripCylinderState> slots = const [],
+  MockSettingsNotifier? settings,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -100,7 +100,9 @@ Future<void> _pumpEditor(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        settingsProvider.overrideWith(
+          (ref) => settings ?? MockSettingsNotifier(),
+        ),
         currentDiverIdProvider.overrideWith(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
@@ -111,12 +113,6 @@ Future<void> _pumpEditor(
         activeEquipmentProvider.overrideWith((ref) async {
           if (ref.watch(_reload) > 0) await Completer<void>().future;
           return equipment;
-        }),
-        // Always present, so a test that pumps twice keeps one override
-        // count (Riverpod refuses a changed count on the same scope).
-        tripCylinderStatesProvider(tripId ?? 't1').overrideWith((ref) async {
-          if (ref.watch(_reload) > 0) await Completer<void>().future;
-          return slots;
         }),
       ].cast(),
       child: MaterialApp(
@@ -138,15 +134,16 @@ Future<void> _pump(
   String? tripId,
   bool suggested = false,
   List<TripCylinderState> slots = const [],
+  Set<String> taken = const {},
 }) => _pumpEditor(
   tester,
   equipment: equipment,
-  tripId: tripId,
-  slots: slots,
   editor: TankEditor(
     tank: tank,
     tankNumber: 1,
-    tripId: tripId,
+    // A dive on a trip gets the trip's slots from the page; none without.
+    tripCylinderStates: tripId == null ? null : slots,
+    takenTripCylinderIds: taken,
     suggested: suggested,
     onChanged: onChanged ?? (_) {},
     onRemove: () {},
@@ -158,20 +155,19 @@ Future<void> _pump(
 Future<void> _pumpHost(
   WidgetTester tester, {
   required ValueNotifier<DiveTank> tank,
-  required String tripId,
   required List<TripCylinderState> slots,
   required void Function(DiveTank) onChanged,
+  MockSettingsNotifier? settings,
 }) => _pumpEditor(
   tester,
   equipment: const [],
-  tripId: tripId,
-  slots: slots,
+  settings: settings,
   editor: ValueListenableBuilder<DiveTank>(
     valueListenable: tank,
     builder: (_, t, _) => TankEditor(
       tank: t,
       tankNumber: 1,
-      tripId: tripId,
+      tripCylinderStates: slots,
       onChanged: onChanged,
       onRemove: () {},
     ),
@@ -278,21 +274,6 @@ void main() {
     );
   });
 
-  testWidgets('a reload keeps showing the linked slot', (tester) async {
-    await _pump(
-      tester,
-      equipment: const [],
-      tripId: 't1',
-      slots: [filledSlot('a')],
-      tank: const DiveTank(id: 'tank-1', tripCylinderId: 'a'),
-    );
-    ProviderScope.containerOf(
-      tester.element(find.byType(TankEditor)),
-    ).read(_reload.notifier).state++;
-    await tester.pump();
-    expect(find.textContaining('Truck a'), findsOneWidget);
-  });
-
   testWidgets('an open editor picks up a link set by the page', (tester) async {
     // The page fills a tank from a slot while its editor is open (a
     // suggestion, or the log-dive shortcut): the fields must show the fill,
@@ -305,7 +286,6 @@ void main() {
     await _pumpHost(
       tester,
       tank: tank,
-      tripId: 't1',
       slots: [filledSlot('a', pressure: 205)],
       onChanged: (t) => changed = t,
     );
@@ -322,4 +302,76 @@ void main() {
     expect(changed!.startPressure, 205);
     expect(changed!.tripCylinderId, 'a');
   });
+
+  testWidgets('picking the slot already linked changes nothing', (
+    tester,
+  ) async {
+    var calls = 0;
+    await _pump(
+      tester,
+      equipment: const [],
+      tripId: 't1',
+      slots: [filledSlot('a', pressure: 60)],
+      tank: const DiveTank(
+        id: 'tank-1',
+        tripCylinderId: 'a',
+        startPressure: 200,
+      ),
+      onChanged: (_) => calls++,
+    );
+    await _openTripCylinderPicker(tester);
+    await tester.tap(find.textContaining('Truck a').last);
+    await tester.pumpAndSettle();
+    expect(calls, 0);
+  });
+
+  testWidgets('slots other tanks hold are not offered', (tester) async {
+    await _pump(
+      tester,
+      equipment: const [],
+      tripId: 't1',
+      slots: [filledSlot('a'), filledSlot('b')],
+      taken: {'b'},
+    );
+    await _openTripCylinderPicker(tester);
+    expect(find.textContaining('Truck a'), findsWidgets);
+    expect(find.textContaining('Truck b'), findsNothing);
+  });
+
+  for (final imperial in [false, true]) {
+    testWidgets('a fill from a slot with no preset drops the old one'
+        '${imperial ? ' (cuft)' : ''}', (tester) async {
+      final settings = MockSettingsNotifier();
+      if (imperial) await settings.setImperial();
+      final hp100 = filledSlot('h', volume: 15.3, workingPressure: 232);
+      final tank = ValueNotifier(
+        const DiveTank(
+          id: 'tank-1',
+          volume: 11.1,
+          workingPressure: 207,
+          startPressure: 200,
+          endPressure: 50,
+          presetName: 'al80',
+        ),
+      );
+      addTearDown(tank.dispose);
+      DiveTank? changed;
+      await _pumpHost(
+        tester,
+        tank: tank,
+        slots: [hp100],
+        settings: settings,
+        onChanged: (t) => changed = t,
+      );
+      tank.value = tankFromTripCylinder(tank.value, hp100);
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'End Pressure'),
+        imperial ? '800' : '60',
+      );
+      await tester.pump();
+      expect(changed!.presetName, isNull);
+      expect(changed!.volume, closeTo(15.3, 0.05));
+    });
+  }
 }

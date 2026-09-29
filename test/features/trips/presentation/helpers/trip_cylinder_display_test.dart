@@ -171,7 +171,7 @@ void main() {
     });
   });
 
-  test('the picker label names bottle, mix, pressure and status', () {
+  test('the picker label names status, mix, pressure and bottle', () {
     final t0 = DateTime.utc(2026, 3, 9);
     final state = foldCylinderState(
       cylinder: TripCylinder(
@@ -199,7 +199,8 @@ void main() {
     );
     expect(
       tripCylinderPickerLabel(l10n, units, state),
-      'Truck 2 · Bottle 14 · EAN32 · ${units.formatPressure(200)} · Full',
+      // The status leads, so a narrow picker cuts the bottle, not the status.
+      'Truck 2 · Full · EAN32 · ${units.formatPressure(200)} · Bottle 14',
     );
   });
 

@@ -107,18 +107,20 @@ String tripCylinderTankLine(
       : '${label.label} · ${l10n.trips_cylinders_bottle(bottle)}';
 }
 
-/// A slot as the tank editor's picker lists it: label, the bottle in it
-/// now, mix, pressure and status.
+/// A slot as the tank editor's picker lists it: label, status, mix,
+/// pressure, then the bottle in it. The status leads because a narrow
+/// picker ellipsizes the end, and the status is what the diver chooses by.
 String tripCylinderPickerLabel(
   AppLocalizations l10n,
   UnitFormatter units,
   TripCylinderState state,
-) => [
-  tripCylinderTankLine(l10n, (
-    label: state.cylinder.label,
-    bottle: state.bottleLabel,
-  )),
-  state.mix == null ? '--' : tripCylinderMixLabel(l10n, state.mix!),
-  state.pressure == null ? '--' : units.formatPressure(state.pressure),
-  tripCylinderStatusLabel(l10n, state.status),
-].join(' · ');
+) {
+  final bottle = state.bottleLabel;
+  return [
+    state.cylinder.label,
+    tripCylinderStatusLabel(l10n, state.status),
+    state.mix == null ? '--' : tripCylinderMixLabel(l10n, state.mix!),
+    state.pressure == null ? '--' : units.formatPressure(state.pressure),
+    if (bottle != state.cylinder.label) l10n.trips_cylinders_bottle(bottle),
+  ].join(' · ');
+}
