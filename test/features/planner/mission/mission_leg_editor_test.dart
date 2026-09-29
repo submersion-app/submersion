@@ -22,6 +22,11 @@ const _leg = MissionLeg(
 /// What the dialog returned the last time it closed.
 MissionLeg? lastResult;
 
+Finder _box(String label) => find.descendant(
+  of: find.widgetWithText(PlanNumberField, label),
+  matching: find.byType(TextField),
+);
+
 Future<void> _open(
   WidgetTester tester, {
   bool openWater = false,
@@ -91,5 +96,66 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect(lastResult!.distanceM, 300);
+  });
+
+  testWidgets('a current of its own is saved; switching back clears it', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await _open(tester);
+    await tester.enterText(_box('Heading'), '45');
+    await tester.enterText(_box('Depth'), '25');
+    await tester.tap(find.text("Use the mission's current"));
+    await tester.pumpAndSettle();
+    await tester.enterText(_box('Current speed'), '30');
+    await tester.enterText(_box('Sets toward'), '200');
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.headingDeg, 45);
+    expect(lastResult!.depthM, 25);
+    expect(lastResult!.current!.speedMps, closeTo(0.5, 1e-9));
+    expect(lastResult!.current!.setsTowardDeg, 200);
+
+    await _open(tester);
+    await tester.tap(find.text("Use the mission's current"));
+    await tester.pumpAndSettle();
+    expect(find.text('Current speed'), findsOneWidget);
+    await tester.tap(find.text("Use the mission's current"));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.current, isNull);
+  });
+
+  testWidgets('a shore exit typed in feet is saved in metres', (tester) async {
+    tester.view.physicalSize = const Size(400, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await _open(
+      tester,
+      openWater: true,
+      settings: const AppSettings(depthUnit: DepthUnit.feet),
+    );
+    await tester.tap(find.text('Shore exit from here'));
+    await tester.pumpAndSettle();
+    await tester.enterText(_box('Surface swim to shore'), '328');
+    await tester.enterText(_box('Walk to the entry'), '164');
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.shoreExit!.surfaceSwimM, closeTo(99.97, 0.01));
+    expect(lastResult!.shoreExit!.walkM, closeTo(49.99, 0.01));
+
+    await _open(tester, openWater: true);
+    await tester.tap(find.text('Shore exit from here'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Shore exit from here'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.shoreExit, isNull);
   });
 }

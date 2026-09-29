@@ -25,6 +25,11 @@ import '../../../helpers/test_app.dart';
 
 MissionMember? lastResult;
 
+Finder _box(String label) => find.descendant(
+  of: find.widgetWithText(PlanNumberField, label),
+  matching: find.byType(TextField),
+);
+
 const _member = MissionMember(
   id: 'm1',
   order: 0,
@@ -277,5 +282,56 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect(lastResult!.sacBottom, 15);
+  });
+
+  testWidgets('name, swim speed and a manual scooter are saved', (
+    tester,
+  ) async {
+    await _open(tester);
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(TextField, 'Diver 1'),
+      ),
+      '  Robin  ',
+    );
+    await tester.enterText(_box('Swim speed'), '30');
+    await tester.enterText(
+      find.ancestor(
+        of: find.text('Scooter name'),
+        matching: find.byType(TextField),
+      ),
+      'My DPV',
+    );
+    await tester.enterText(_box('Rated speed'), '60');
+    await tester.enterText(_box('Burn time'), '90');
+    await tester.enterText(_box('Tow speed factor'), '0.5');
+    await tester.enterText(_box('Tow burn factor'), '1.8');
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    final m = lastResult!;
+    expect(m.displayName, 'Robin');
+    expect(m.swimSpeedMps, closeTo(0.5, 1e-9));
+    expect(m.scooter.name, 'My DPV');
+    expect(m.scooter.ratedSpeedMps, closeTo(1.0, 1e-9));
+    expect(m.scooter.burnTimeSeconds, 90 * 60);
+    expect(m.scooter.towSpeedFactor, 0.5);
+    expect(m.scooter.towBurnFactor, 1.8);
+    expect(m.scooter.equipmentId, isNull);
+  });
+
+  testWidgets('Enter manually unlinks a picked scooter', (tester) async {
+    await _open(tester);
+    await tester.tap(find.text('Choose from equipment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Blacktip'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enter manually'));
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(lastResult!.scooter.equipmentId, isNull);
+    expect(lastResult!.scooter.ratedSpeedMps, 0.9);
   });
 }

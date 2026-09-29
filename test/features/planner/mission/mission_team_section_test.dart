@@ -9,6 +9,10 @@ import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -26,8 +30,11 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _harness() => testApp(
-  overrides: [settingsProvider.overrideWith((ref) => _TestSettingsNotifier())],
+Widget _harness({List<dynamic> overrides = const []}) => testApp(
+  overrides: [
+    settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+    ...overrides,
+  ],
   locale: const Locale('en'),
   child: const SingleChildScrollView(child: PlanSetupAccordion()),
 );
@@ -240,5 +247,135 @@ void main() {
     await tester.enterText(box('Default current'), '0');
     await tester.pump();
     expect(mission().defaultCurrent, isNull);
+  });
+
+  Future<ProviderContainer> openTeam(
+    WidgetTester tester,
+    DpvMission mission, {
+    List<dynamic> overrides = const [],
+  }) async {
+    tester.view.physicalSize = const Size(400, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness(overrides: overrides));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanSetupAccordion)),
+    );
+    container.read(divePlanNotifierProvider.notifier).enableMission(mission);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('DPV team'));
+    await tester.pumpAndSettle();
+    return container;
+  }
+
+  Finder box(String label) => find.descendant(
+    of: find.widgetWithText(PlanNumberField, label),
+    matching: find.byType(TextField),
+  );
+
+  final starter = MissionEdits.starter(
+    legId: 'L1',
+    memberId: 'm1',
+    memberName: 'Sam',
+    sacBottom: 15,
+  );
+
+  testWidgets('open water settings and the current direction are saved', (
+    tester,
+  ) async {
+    final container = await openTeam(
+      tester,
+      starter.copyWith(
+        environment: MissionEnvironment.openWater,
+        defaultCurrent: const CurrentVector(
+          speedMps: 20 / 60,
+          setsTowardDeg: 90,
+        ),
+      ),
+    );
+    DpvMission mission() => container.read(divePlanNotifierProvider).mission!;
+
+    await tester.enterText(box('Sets toward'), '270');
+    await tester.enterText(box('Walking speed'), '60');
+    await tester.enterText(box('Longest surface swim'), '200');
+    await tester.pump();
+    expect(mission().defaultCurrent!.setsTowardDeg, 270);
+    expect(mission().walkSpeedMps, closeTo(1.0, 1e-9));
+    expect(mission().surfaceSwimLimitM, 200);
+
+    // An empty limit means none.
+    await tester.enterText(box('Longest surface swim'), '');
+    await tester.pump();
+    expect(mission().surfaceSwimLimitM, isNull);
+
+    await tester.tap(find.text('Overhead'));
+    await tester.pumpAndSettle();
+    expect(mission().environment, MissionEnvironment.overhead);
+    expect(find.text('Walking speed'), findsNothing);
+  });
+
+  testWidgets('a diver card edits and removes its diver', (tester) async {
+    final container = await openTeam(
+      tester,
+      MissionEdits.addMember(starter, 'm2', name: 'Alex', sacBottom: 18),
+    );
+    DpvMission mission() => container.read(divePlanNotifierProvider).mission!;
+
+    await tester.tap(find.text('Sam'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit diver'), findsOneWidget);
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(TextField, 'Sam'),
+      ),
+      'Samantha',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(mission().team.first.displayName, 'Samantha');
+
+    await tester.tap(find.byTooltip('Remove diver').first);
+    await tester.pumpAndSettle();
+    expect(mission().team.single.displayName, 'Alex');
+    // The last diver cannot be removed.
+    expect(find.byTooltip('Remove diver'), findsNothing);
+  });
+
+  testWidgets('a scooter from equipment shows its battery capacity', (
+    tester,
+  ) async {
+    await openTeam(
+      tester,
+      MissionEdits.updateMember(
+        starter,
+        starter.team.single.copyWith(
+          scooter: const ScooterSpec(
+            equipmentId: 'eq-1',
+            name: 'Blacktip',
+            ratedSpeedMps: 0.9,
+            burnTimeSeconds: 5400,
+          ),
+        ),
+      ),
+      overrides: [
+        equipmentItemProvider('eq-1').overrideWith(
+          (ref) async => EquipmentItem(
+            id: 'eq-1',
+            name: 'Blacktip',
+            type: EquipmentType.dpv,
+            attributes: [
+              EquipmentAttribute.curated(
+                equipmentId: 'eq-1',
+                key: 'battery_capacity_wh',
+                valueNum: 1000,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+    expect(find.textContaining('1000 Wh battery'), findsOneWidget);
   });
 }

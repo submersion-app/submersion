@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
@@ -273,5 +274,66 @@ void main() {
     await tester.tap(find.text('Replace'));
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).mission, isNotNull);
+  });
+
+  testWidgets('tapping a leg edits it, and the profile lists its segments', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Plan as DPV mission'));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanEditorPane)),
+    );
+    final mission = container.read(divePlanNotifierProvider).mission!;
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .updateMission(
+          mission.copyWith(
+            legs: [
+              mission.legs.single.copyWith(
+                label: 'Wall',
+                distanceM: 300,
+                depthM: 20,
+              ),
+            ],
+            team: [
+              mission.team.single.copyWith(
+                scooter: const ScooterSpec(
+                  name: 'S',
+                  ratedSpeedMps: 0.9,
+                  burnTimeSeconds: 5400,
+                ),
+              ),
+            ],
+          ),
+        );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Wall'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit leg'), findsOneWidget);
+    await tester.enterText(
+      find.descendant(
+        of: find.widgetWithText(PlanNumberField, 'Distance'),
+        matching: find.byType(TextField),
+      ),
+      '450',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(
+      container.read(divePlanNotifierProvider).mission!.legs.single.distanceM,
+      450,
+    );
+
+    await tester.tap(find.text('Generated profile'));
+    await tester.pumpAndSettle();
+    final segments = container.read(divePlanNotifierProvider).segments;
+    expect(find.textContaining(' min'), findsNWidgets(segments.length));
   });
 }
