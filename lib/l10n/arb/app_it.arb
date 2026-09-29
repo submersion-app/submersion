@@ -7119,6 +7119,11 @@
       }
     }
   },
+  "trips_gear_title": "Attrezzatura",
+  "trips_gear_none": "Nessuna attrezzatura preparata",
+  "trips_gear_add": "Aggiungi attrezzatura",
+  "trips_gear_remove": "Togli",
+  "trips_gear_failed": "Impossibile modificare l'attrezzatura. Riprova.",
   "trips_cylinders_title": "Bombole",
   "trips_cylinders_summary": "Piene {full} · Parziali {partial} · Vuote {empty}",
   "@trips_cylinders_summary": {

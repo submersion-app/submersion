@@ -40668,6 +40668,36 @@ abstract class AppLocalizations {
   /// **'{count} rebreathers, lowest {minutes} min scrubber margin'**
   String trips_scrubber_bannerCount(int count, String minutes);
 
+  /// No description provided for @trips_gear_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get trips_gear_title;
+
+  /// No description provided for @trips_gear_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No gear packed yet'**
+  String get trips_gear_none;
+
+  /// No description provided for @trips_gear_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add gear'**
+  String get trips_gear_add;
+
+  /// No description provided for @trips_gear_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpack'**
+  String get trips_gear_remove;
+
+  /// No description provided for @trips_gear_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not change the gear. Try again.'**
+  String get trips_gear_failed;
+
   /// No description provided for @trips_cylinders_title.
   ///
   /// In en, this message translates to:

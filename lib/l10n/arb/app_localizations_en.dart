@@ -25021,6 +25021,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => 'Gear';
+
+  @override
+  String get trips_gear_none => 'No gear packed yet';
+
+  @override
+  String get trips_gear_add => 'Add gear';
+
+  @override
+  String get trips_gear_remove => 'Unpack';
+
+  @override
+  String get trips_gear_failed => 'Could not change the gear. Try again.';
+
+  @override
   String get trips_cylinders_title => 'Cylinders';
 
   @override

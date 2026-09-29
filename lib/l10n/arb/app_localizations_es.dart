@@ -13006,7 +13006,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get passport_trip_unassign => 'Quitar de este viaje';
 
   @override
-  String get passport_trip_onBoard => 'En el tablero de cilindros del viaje';
+  String get passport_trip_onBoard => 'En el tablero de botellas del viaje';
 
   @override
   String get passport_trip_failed =>
@@ -25444,6 +25444,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count rebreathers, el menor con $minutes min de margen de absorbente';
   }
+
+  @override
+  String get trips_gear_title => 'Equipo';
+
+  @override
+  String get trips_gear_none => 'Aún no hay equipo preparado';
+
+  @override
+  String get trips_gear_add => 'Añadir equipo';
+
+  @override
+  String get trips_gear_remove => 'Quitar';
+
+  @override
+  String get trips_gear_failed =>
+      'No se pudo cambiar el equipo. Inténtalo de nuevo.';
 
   @override
   String get trips_cylinders_title => 'Botellas';

@@ -25118,6 +25118,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => 'المعدات';
+
+  @override
+  String get trips_gear_none => 'لم تُجهز أي معدات بعد';
+
+  @override
+  String get trips_gear_add => 'إضافة معدات';
+
+  @override
+  String get trips_gear_remove => 'إزالة';
+
+  @override
+  String get trips_gear_failed => 'تعذر تغيير المعدات. حاول مرة أخرى.';
+
+  @override
   String get trips_cylinders_title => 'الأسطوانات';
 
   @override

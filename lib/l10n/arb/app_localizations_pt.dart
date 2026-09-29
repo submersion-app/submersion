@@ -25427,6 +25427,22 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => 'Equipamento';
+
+  @override
+  String get trips_gear_none => 'Nenhum equipamento preparado ainda';
+
+  @override
+  String get trips_gear_add => 'Adicionar equipamento';
+
+  @override
+  String get trips_gear_remove => 'Remover';
+
+  @override
+  String get trips_gear_failed =>
+      'Não foi possível alterar o equipamento. Tente novamente.';
+
+  @override
   String get trips_cylinders_title => 'Cilindros';
 
   @override

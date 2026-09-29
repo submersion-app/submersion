@@ -24138,6 +24138,21 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => '装备';
+
+  @override
+  String get trips_gear_none => '尚未打包任何装备';
+
+  @override
+  String get trips_gear_add => '添加装备';
+
+  @override
+  String get trips_gear_remove => '移除';
+
+  @override
+  String get trips_gear_failed => '无法更改装备，请重试。';
+
+  @override
   String get trips_cylinders_title => '气瓶';
 
   @override

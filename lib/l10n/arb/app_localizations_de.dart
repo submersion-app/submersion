@@ -25377,6 +25377,22 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => 'Ausrüstung';
+
+  @override
+  String get trips_gear_none => 'Noch keine Ausrüstung gepackt';
+
+  @override
+  String get trips_gear_add => 'Ausrüstung hinzufügen';
+
+  @override
+  String get trips_gear_remove => 'Entfernen';
+
+  @override
+  String get trips_gear_failed =>
+      'Die Ausrüstung konnte nicht geändert werden. Versuche es erneut.';
+
+  @override
   String get trips_cylinders_title => 'Flaschen';
 
   @override

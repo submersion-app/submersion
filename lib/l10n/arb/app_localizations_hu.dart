@@ -25347,6 +25347,22 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => 'Felszerelés';
+
+  @override
+  String get trips_gear_none => 'Még nincs bepakolt felszerelés';
+
+  @override
+  String get trips_gear_add => 'Felszerelés hozzáadása';
+
+  @override
+  String get trips_gear_remove => 'Kivétel';
+
+  @override
+  String get trips_gear_failed =>
+      'Nem sikerült módosítani a felszerelést. Próbáld újra.';
+
+  @override
   String get trips_cylinders_title => 'Palackok';
 
   @override

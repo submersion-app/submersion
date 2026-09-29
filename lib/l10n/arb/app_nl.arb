@@ -7225,6 +7225,11 @@
       }
     }
   },
+  "trips_gear_title": "Uitrusting",
+  "trips_gear_none": "Nog geen uitrusting ingepakt",
+  "trips_gear_add": "Uitrusting toevoegen",
+  "trips_gear_remove": "Eruit halen",
+  "trips_gear_failed": "Kan de uitrusting niet wijzigen. Probeer het opnieuw.",
   "trips_cylinders_title": "Flessen",
   "trips_cylinders_summary": "Vol {full} · Deels {partial} · Leeg {empty}",
   "@trips_cylinders_summary": {

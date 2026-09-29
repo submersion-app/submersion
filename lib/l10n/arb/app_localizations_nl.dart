@@ -25235,6 +25235,22 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => 'Uitrusting';
+
+  @override
+  String get trips_gear_none => 'Nog geen uitrusting ingepakt';
+
+  @override
+  String get trips_gear_add => 'Uitrusting toevoegen';
+
+  @override
+  String get trips_gear_remove => 'Eruit halen';
+
+  @override
+  String get trips_gear_failed =>
+      'Kan de uitrusting niet wijzigen. Probeer het opnieuw.';
+
+  @override
   String get trips_cylinders_title => 'Flessen';
 
   @override

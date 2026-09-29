@@ -7123,6 +7123,11 @@
       }
     }
   },
+  "trips_gear_title": "Felszerelés",
+  "trips_gear_none": "Még nincs bepakolt felszerelés",
+  "trips_gear_add": "Felszerelés hozzáadása",
+  "trips_gear_remove": "Kivétel",
+  "trips_gear_failed": "Nem sikerült módosítani a felszerelést. Próbáld újra.",
   "trips_cylinders_title": "Palackok",
   "trips_cylinders_summary": "Tele {full} · Részben {partial} · Üres {empty}",
   "@trips_cylinders_summary": {

@@ -4164,7 +4164,7 @@
   "passport_trip_more": "+{count}",
   "passport_trip_assign": "Preparar para un viaje",
   "passport_trip_unassign": "Quitar de este viaje",
-  "passport_trip_onBoard": "En el tablero de cilindros del viaje",
+  "passport_trip_onBoard": "En el tablero de botellas del viaje",
   "passport_trip_failed": "No se pudo cambiar el viaje. Inténtalo de nuevo.",
   "passport_logFill_notes": "Notas",
   "passport_logFill_invalidMix": "O2 y He deben estar entre 0 y 100 y sumar 100 o menos",
@@ -7225,6 +7225,11 @@
       }
     }
   },
+  "trips_gear_title": "Equipo",
+  "trips_gear_none": "Aún no hay equipo preparado",
+  "trips_gear_add": "Añadir equipo",
+  "trips_gear_remove": "Quitar",
+  "trips_gear_failed": "No se pudo cambiar el equipo. Inténtalo de nuevo.",
   "trips_cylinders_title": "Botellas",
   "trips_cylinders_summary": "Llenas {full} · Parciales {partial} · Vacías {empty}",
   "@trips_cylinders_summary": {

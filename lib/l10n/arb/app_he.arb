@@ -7225,6 +7225,11 @@
       }
     }
   },
+  "trips_gear_title": "ציוד",
+  "trips_gear_none": "עדיין לא נארז ציוד",
+  "trips_gear_add": "הוספת ציוד",
+  "trips_gear_remove": "הסרה",
+  "trips_gear_failed": "לא ניתן לשנות את הציוד. נסו שוב.",
   "trips_cylinders_title": "מכלים",
   "trips_cylinders_summary": "מלאים {full} · חלקיים {partial} · ריקים {empty}",
   "@trips_cylinders_summary": {

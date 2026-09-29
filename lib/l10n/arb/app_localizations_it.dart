@@ -25420,6 +25420,22 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => 'Attrezzatura';
+
+  @override
+  String get trips_gear_none => 'Nessuna attrezzatura preparata';
+
+  @override
+  String get trips_gear_add => 'Aggiungi attrezzatura';
+
+  @override
+  String get trips_gear_remove => 'Togli';
+
+  @override
+  String get trips_gear_failed =>
+      'Impossibile modificare l\'attrezzatura. Riprova.';
+
+  @override
   String get trips_cylinders_title => 'Bombole';
 
   @override

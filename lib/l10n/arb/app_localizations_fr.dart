@@ -25520,6 +25520,22 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => 'Matériel';
+
+  @override
+  String get trips_gear_none => 'Aucun matériel prévu pour l\'instant';
+
+  @override
+  String get trips_gear_add => 'Ajouter du matériel';
+
+  @override
+  String get trips_gear_remove => 'Retirer';
+
+  @override
+  String get trips_gear_failed =>
+      'Impossible de modifier le matériel. Réessayez.';
+
+  @override
   String get trips_cylinders_title => 'Blocs';
 
   @override

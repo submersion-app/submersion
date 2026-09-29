@@ -24812,6 +24812,21 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => 'ציוד';
+
+  @override
+  String get trips_gear_none => 'עדיין לא נארז ציוד';
+
+  @override
+  String get trips_gear_add => 'הוספת ציוד';
+
+  @override
+  String get trips_gear_remove => 'הסרה';
+
+  @override
+  String get trips_gear_failed => 'לא ניתן לשנות את הציוד. נסו שוב.';
+
+  @override
   String get trips_cylinders_title => 'מכלים';
 
   @override
