@@ -45430,6 +45430,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_dives_rating => 'Valutazione';
 
   @override
+  String get query_dives_findings => 'Rilievi di sicurezza';
+
+  @override
   String get query_dives_sac => 'SAC';
 
   @override
@@ -45542,6 +45545,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_entity_equipmentAttributes => 'Attributi dell\'attrezzatura';
+
+  @override
+  String get query_entity_findings => 'Rilievi di sicurezza';
+
+  @override
+  String get query_findings_rule => 'Regola';
 
   @override
   String get query_entity_media => 'Media';

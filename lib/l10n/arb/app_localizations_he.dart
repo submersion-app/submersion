@@ -44541,6 +44541,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_dives_rating => 'דירוג';
 
   @override
+  String get query_dives_findings => 'ממצאי בטיחות';
+
+  @override
   String get query_dives_sac => 'SAC';
 
   @override
@@ -44653,6 +44656,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_entity_equipmentAttributes => 'מאפייני ציוד';
+
+  @override
+  String get query_entity_findings => 'ממצאי בטיחות';
+
+  @override
+  String get query_findings_rule => 'כלל';
 
   @override
   String get query_entity_media => 'מדיה';

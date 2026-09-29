@@ -3,6 +3,8 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
 
 /// The dive's child tables, reachable only through a dive relation
 /// (`tanks.o2 > 32`, `weights[amount >= 2]`, `customFields[key = k]`).
@@ -131,3 +133,30 @@ final mediaQueryEntity = QueryEntity(
     ),
   ],
 );
+
+/// A finding the diver still sees: not dismissed, and from the current
+/// review engine (an older one is replaced when the dive is next reviewed).
+/// Written against the alias `f`.
+const kLiveFindingSql =
+    'f.dismissed_at IS NULL '
+    'AND f.engine_version >= ${SafetyReviewService.engineVersion}';
+
+/// A dive's safety review findings, reached through the dive relation
+/// `findings`. The `rule` reads null for a finding that is not live, so no
+/// condition on it matches a dismissed or superseded finding.
+final findingQueryEntity = QueryEntity(
+  subject: QuerySubject.findings,
+  table: 'dive_safety_findings',
+  fields: [
+    QueryField(
+      key: 'rule',
+      type: FieldType.enumName,
+      sql: "(CASE WHEN ${_live('{r}')} THEN {r}.rule_id END)",
+      emptySql: "(CASE WHEN ${_live('{r}')} THEN {r}.rule_id END) IS NULL",
+      labelKey: 'query_findings_rule',
+      enumValues: [for (final r in SafetyRuleId.values) r.dbValue],
+    ),
+  ],
+);
+
+String _live(String alias) => kLiveFindingSql.replaceAll('f.', '$alias.');

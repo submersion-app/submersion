@@ -45263,6 +45263,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_dives_rating => 'Értékelés';
 
   @override
+  String get query_dives_findings => 'Biztonsági megállapítások';
+
+  @override
   String get query_dives_sac => 'SAC';
 
   @override
@@ -45375,6 +45378,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_entity_equipmentAttributes => 'Felszerelés jellemzői';
+
+  @override
+  String get query_entity_findings => 'Biztonsági megállapítások';
+
+  @override
+  String get query_findings_rule => 'Szabály';
 
   @override
   String get query_entity_media => 'Média';

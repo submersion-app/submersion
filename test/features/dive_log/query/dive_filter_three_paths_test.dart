@@ -64,6 +64,13 @@ void main() {
         const EnumValue('unstable'),
       ),
     ),
+    'typed findings': DiveFilterState(
+      query: ConditionNode(
+        FieldPath(['findings', 'rule']),
+        QueryOp.eq,
+        const EnumValue('rapidAscent'),
+      ),
+    ),
   };
 
   for (final e in cases.entries) {

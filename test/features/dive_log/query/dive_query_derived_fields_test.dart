@@ -9,6 +9,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
@@ -202,5 +203,48 @@ void main() {
       diveFilterTablesTouched(on('sac', const NumberValue(1, null))),
       contains('dive_tanks'),
     );
+  });
+  group('safety findings', () {
+    setUp(() async {
+      Future<void> finding(
+        String id,
+        String diveId,
+        String rule, {
+        int? engine,
+        int? dismissedAt,
+      }) => db
+          .into(db.diveSafetyFindings)
+          .insert(
+            DiveSafetyFindingsCompanion.insert(
+              id: id,
+              diveId: diveId,
+              ruleId: rule,
+              severity: 'caution',
+              engineVersion: engine ?? SafetyReviewService.engineVersion,
+              dismissedAt: Value(dismissedAt),
+              createdAt: now,
+            ),
+          );
+      await finding('f1', 'd1', 'rapidAscent');
+      await finding('f2', 'd2', 'rapidAscent', dismissedAt: now);
+      await finding('f3', 'd2', 'sawtoothProfile');
+      await finding(
+        'f4',
+        'd3',
+        'rapidAscent',
+        engine: SafetyReviewService.engineVersion - 1,
+      );
+    });
+
+    test('a rule matches only live findings of it', () async {
+      // d2's is dismissed and d3's is from an older review engine.
+      expect(await ids('findings.rule = rapidAscent'), {'d1'});
+      expect(await ids('finding.rule = sawtoothProfile'), {'d2'});
+    });
+
+    test('no live finding is :none', () async {
+      expect(await ids('findings:none'), {'d3', 'd4'});
+      expect(await ids('NOT findings.rule = rapidAscent'), {'d2', 'd3', 'd4'});
+    });
   });
 }

@@ -45355,6 +45355,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_dives_rating => 'Bewertung';
 
   @override
+  String get query_dives_findings => 'Sicherheitsbefunde';
+
+  @override
   String get query_dives_sac => 'AMV';
 
   @override
@@ -45467,6 +45470,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_entity_equipmentAttributes => 'Ausrüstungsmerkmale';
+
+  @override
+  String get query_entity_findings => 'Sicherheitsbefunde';
+
+  @override
+  String get query_findings_rule => 'Regel';
 
   @override
   String get query_entity_media => 'Medien';

@@ -119,6 +119,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_finalStop_stable;
     case 'query_dives_finalStop_unstable':
       return l10n.query_dives_finalStop_unstable;
+    case 'query_dives_findings':
+      return l10n.query_dives_findings;
     case 'query_dives_gasCount':
       return l10n.query_dives_gasCount;
     case 'query_dives_gear':
@@ -245,6 +247,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_entity_equipment;
     case 'query_entity_equipmentAttributes':
       return l10n.query_entity_equipmentAttributes;
+    case 'query_entity_findings':
+      return l10n.query_entity_findings;
     case 'query_entity_media':
       return l10n.query_entity_media;
     case 'query_entity_sightings':
@@ -341,6 +345,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_error_inNeedsList;
     case 'query_error_unterminatedQuote':
       return l10n.query_error_unterminatedQuote;
+    case 'query_findings_rule':
+      return l10n.query_findings_rule;
     case 'query_media_caption':
       return l10n.query_media_caption;
     case 'query_media_favorite':

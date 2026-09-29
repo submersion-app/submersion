@@ -72680,6 +72680,12 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Safety findings'**
+  String get query_dives_findings;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'SAC'**
   String get query_dives_sac;
 
@@ -72904,6 +72910,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment attributes'**
   String get query_entity_equipmentAttributes;
+
+  /// Entity label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Safety findings'**
+  String get query_entity_findings;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Rule'**
+  String get query_findings_rule;
 
   /// Field label in the query builder
   ///

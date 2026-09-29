@@ -45095,6 +45095,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_dives_rating => 'التقييم';
 
   @override
+  String get query_dives_findings => 'نتائج السلامة';
+
+  @override
   String get query_dives_sac => 'SAC';
 
   @override
@@ -45207,6 +45210,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_entity_equipmentAttributes => 'خصائص المعدات';
+
+  @override
+  String get query_entity_findings => 'نتائج السلامة';
+
+  @override
+  String get query_findings_rule => 'القاعدة';
 
   @override
   String get query_entity_media => 'الوسائط';

@@ -42833,6 +42833,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_dives_rating => '评分';
 
   @override
+  String get query_dives_findings => '安全发现';
+
+  @override
   String get query_dives_sac => 'SAC';
 
   @override
@@ -42945,6 +42948,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_entity_equipmentAttributes => '装备属性';
+
+  @override
+  String get query_entity_findings => '安全发现';
+
+  @override
+  String get query_findings_rule => '规则';
 
   @override
   String get query_entity_media => '媒体';

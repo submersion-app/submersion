@@ -45450,6 +45450,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get query_dives_rating => 'Avaliação';
 
   @override
+  String get query_dives_findings => 'Constatações de segurança';
+
+  @override
   String get query_dives_sac => 'SAC';
 
   @override
@@ -45562,6 +45565,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get query_entity_equipmentAttributes => 'Atributos do equipamento';
+
+  @override
+  String get query_entity_findings => 'Constatações de segurança';
+
+  @override
+  String get query_findings_rule => 'Regra';
 
   @override
   String get query_entity_media => 'Mídia';
