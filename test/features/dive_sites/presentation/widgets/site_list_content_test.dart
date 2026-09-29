@@ -882,10 +882,13 @@ void main() {
           _makeSite(id: 's1', name: 'Aaa Site'),
           _makeSite(id: 's2', name: 'Bbb Site'),
         ];
-        // Stands in for a dependency of the site rows, such as the diver.
+        // A dependency the rows watch, so bumping it reloads them.
         final reloadTrigger = StateProvider<int>((ref) => 0);
-        // Rows that reload on that dependency and reach the list as they
-        // are, previous value included.
+        // Rows that reach the list as a reload holding its previous value.
+        // Today's sorted chain drops that value (whenData), so this pins the
+        // list's contract rather than a state the real providers produce:
+        // whatever settled state arrives, the prune reads the same rows the
+        // guard checked.
         final reloadingSites = FutureProvider<List<SiteWithDiveCount>>((
           ref,
         ) async {
