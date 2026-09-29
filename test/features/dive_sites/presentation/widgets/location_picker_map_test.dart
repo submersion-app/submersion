@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/location_pic
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 Future<void> _pump(WidgetTester tester, {LatLng? initialLocation}) async {
   final base = await getBaseOverrides();
@@ -26,6 +27,12 @@ Future<void> _pump(WidgetTester tester, {LatLng? initialLocation}) async {
 }
 
 void main() {
+  // The code under test calls Nominatim; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('nominatim.openstreetmap.org');
+  });
+
   testWidgets('renders the FlutterMap with a world view when no location', (
     tester,
   ) async {

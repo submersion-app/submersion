@@ -11,8 +11,15 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/unique_ids.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 void main() {
+  // The code under test calls Open-Meteo; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('api.open-meteo.com');
+  });
+
   late DiveComputerRepository repository;
   late ProfileSeriesRepository profileSeries;
   late AppDatabase db;

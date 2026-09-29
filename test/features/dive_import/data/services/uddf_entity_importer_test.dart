@@ -69,6 +69,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
   ServiceRecordRepository,
 ])
 import 'uddf_entity_importer_test.mocks.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 /// Records [store] calls instead of writing rows, so tests can assert
 /// whether-and-what the importer tried to persist without a database.
@@ -110,6 +111,12 @@ class _FailingImportedFiles extends ImportedFileRepository {
 }
 
 void main() {
+  // The code under test calls Nominatim; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('nominatim.openstreetmap.org');
+  });
+
   final importer = UddfEntityImporter();
   const diverId = 'diver-123';
   final now = DateTime(2024, 1, 15);

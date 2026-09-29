@@ -21,10 +21,18 @@ import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/temp_dir.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 /// Exporting a training log from the course page must render depth and
 /// temperature in the active diver's units, not hardcoded metric.
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   late Directory shareDir;
 
   final course = Course(
