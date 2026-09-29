@@ -279,9 +279,16 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// channel the importer understands. Offering it on the buddies/equipment/
   /// trips tabs would let the user mark a duplicate "decided" and then have it
   /// silently dropped, so those tabs get the base set without it.
+  ///
+  /// A fill already here or deleted here can only be skipped: its id is its
+  /// identity and CsvFillImporter never stores a fill twice, so any other
+  /// choice would be dropped the same way (cylinder passports phase 5).
   @override
   Set<DuplicateAction> duplicateActionsFor(wizard.ImportEntityType type) {
     if (type == wizard.ImportEntityType.sites) return supportedDuplicateActions;
+    if (type == wizard.ImportEntityType.fills) {
+      return const {DuplicateAction.skip};
+    }
     return supportedDuplicateActions.difference(const {
       DuplicateAction.replaceSource,
     });
@@ -694,9 +701,15 @@ class UniversalAdapter implements ImportSourceAdapter {
       entityMatches: dupResult.entityMatches[ui.ImportEntityType.diveTypes],
     );
 
-    // Fills are not checked: their identity is the fill id and the importer
-    // skips one already here (passports phase 5), so a re-import shows the
-    // rows and creates none.
+    // A fill's identity is its id (passports phase 5): one already here or
+    // deleted here is marked, so it starts deselected and the review agrees
+    // with the import, which would skip it anyway.
+    _applyDuplicateIndices(
+      updatedGroups,
+      wizard.ImportEntityType.fills,
+      await _fillsAlreadyHere(payload.entitiesOf(ui.ImportEntityType.fills)),
+    );
+
     return ImportBundle(
       source: bundle.source,
       groups: updatedGroups,
@@ -1768,6 +1781,18 @@ class UniversalAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
   // Helpers — duplicate application
   // ---------------------------------------------------------------------------
+
+  /// Indices of [fills] whose id is already here or was deleted here.
+  Future<Set<int>> _fillsAlreadyHere(List<Map<String, dynamic>> fills) async {
+    final repository = _ref.read(cylinderFillRepositoryProvider);
+    return {
+      for (final (i, fill) in fills.indexed)
+        if (fill['id'] case final String id)
+          if (await repository.getById(id) != null ||
+              await repository.wasDeleted(id))
+            i,
+    };
+  }
 
   void _applyDuplicateIndices(
     Map<wizard.ImportEntityType, EntityGroup> groups,

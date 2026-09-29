@@ -83,12 +83,16 @@ void main() {
       expect(unlinked.passportId, 'pp-foreign');
     });
 
-    // The same file again: the review shows the rows, the import adds none.
+    // The same file again: the review marks both rows as already here, so
+    // they start deselected, and the import adds none.
+    ImportBundle? reviewed;
     final again = await importThroughWizard(
       tester,
       payload: payload,
       diver: _diver(),
+      onReview: (bundle) => reviewed = bundle,
     );
+    expect(reviewed!.groups[ImportEntityType.fills]!.duplicateIndices, {0, 1});
     expect(again.errorMessage, isNull);
     expect(again.importedCounts[ImportEntityType.fills], isNull);
     await tester.runAsync(() async {
@@ -96,6 +100,17 @@ void main() {
         await CylinderFillRepository().getAllVisibleTo(_diverId),
         hasLength(2),
       );
+      // A fill deleted here is marked too: importing it would not bring it
+      // back.
+      await CylinderFillRepository().delete(goldenFills().first.id);
     });
+
+    await importThroughWizard(
+      tester,
+      payload: payload,
+      diver: _diver(),
+      onReview: (bundle) => reviewed = bundle,
+    );
+    expect(reviewed!.groups[ImportEntityType.fills]!.duplicateIndices, {0, 1});
   });
 }

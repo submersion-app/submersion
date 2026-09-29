@@ -163,6 +163,40 @@ void main() {
     },
   );
 
+  test('fromPayload refuses a gas mix the Log fill sheet would', () {
+    expect(CsvFillImporter.fromPayload(row()..['o2Percent'] = 320.0), isNull);
+    expect(
+      CsvFillImporter.fromPayload(
+        row()
+          ..['o2Percent'] = 18.0
+          ..['hePercent'] = 90.0,
+      ),
+      isNull,
+    );
+  });
+
+  test('one import looks each passport id up once, however many fills '
+      'it holds', () async {
+    final passports = _CountingPassports();
+    final counting = CsvFillImporter(passports: passports);
+    final count = await counting.importRows(
+      [
+        row(id: 'a'),
+        row(id: 'b'),
+        row(id: 'c', passportId: 'pp-unknown'),
+        row(id: 'd'),
+      ],
+      selected: {0, 1, 2, 3},
+      diverId: 'd1',
+    );
+    expect(count, 4);
+    expect(passports.lookups, ['pp-1', 'pp-unknown']);
+    for (final id in ['a', 'b', 'd']) {
+      expect((await fills.getById(id))!.equipmentId, 'tank-1');
+    }
+    expect((await fills.getById('c'))!.equipmentId, isNull);
+  });
+
   test(
     'fromPayload reads an unknown source as manual and a missing He as 0',
     () {
@@ -176,6 +210,20 @@ void main() {
       expect(fill.equipmentId, isNull);
     },
   );
+}
+
+/// Counts the passport lookups an import makes.
+class _CountingPassports extends CylinderPassportRepository {
+  final lookups = <String>[];
+
+  @override
+  Future<String?> findEquipmentIdByPassportId(
+    String passportId, {
+    String? diverId,
+  }) {
+    lookups.add(passportId);
+    return super.findEquipmentIdByPassportId(passportId, diverId: diverId);
+  }
 }
 
 /// Throws when asked to store the fill [failId], as a locked database would.

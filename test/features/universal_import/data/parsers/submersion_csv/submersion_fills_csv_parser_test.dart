@@ -94,6 +94,54 @@ void main() {
     },
   );
 
+  test('a gas mix the Log fill sheet would refuse is skipped with an '
+      'error', () async {
+    final csv = CsvFillsWriter(CsvExportUnits.metric).write(goldenFills());
+    final lines = csv.split('\r\n');
+    // Row 2: O2 above 100. Row 3: O2 plus He above 100.
+    lines[1] = lines[1].replaceFirst(',32,0,', ',320,0,');
+    lines[2] = lines[2].replaceFirst(',18,45,', ',18,90,');
+    final payload = await const SubmersionFillsCsvParser().parse(
+      _bytes(lines.join('\r\n')),
+    );
+    expect(payload.entitiesOf(ImportEntityType.fills), isEmpty);
+    final errors = payload.warnings
+        .where((w) => w.severity == ImportWarningSeverity.error)
+        .toList();
+    expect(errors.map((e) => e.message), [
+      'Row 2 has an impossible gas mix (O2 320 %, He 0 %) and was skipped',
+      'Row 3 has an impossible gas mix (O2 18 %, He 90 %) and was skipped',
+    ]);
+    expect(errors.map((e) => e.field), ['O2 %', 'O2 %']);
+  });
+
+  test('a blank fill id is the same on every read, so re-importing a '
+      'hand-made file adds nothing new', () async {
+    final csv = CsvFillsWriter(CsvExportUnits.metric).write(goldenFills());
+    final lines = csv.split('\r\n');
+    lines[1] = lines[1].replaceFirst(
+      '3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11,',
+      ',',
+    );
+    lines[2] = lines[2].replaceFirst(
+      '8a1d4c47-9e2a-4b7d-8c9e-0f113f0c2b8e,',
+      ',',
+    );
+    Future<List<String>> ids(String text) async => [
+      for (final item in (await const SubmersionFillsCsvParser().parse(
+        _bytes(text),
+      )).entitiesOf(ImportEntityType.fills))
+        item['id'] as String,
+    ];
+    final first = await ids(lines.join('\r\n'));
+    expect(await ids(lines.join('\r\n')), first);
+    // Two different fills never share an id.
+    expect(first.toSet(), hasLength(2));
+    // A changed reading is a different fill.
+    lines[1] = lines[1].replaceFirst(',32,0,', ',33,0,');
+    expect((await ids(lines.join('\r\n'))).first, isNot(first.first));
+  });
+
   test('a blank fill id is minted, so a hand-added row imports', () async {
     final csv = CsvFillsWriter(CsvExportUnits.metric).write(goldenFills());
     final lines = csv.split('\r\n');

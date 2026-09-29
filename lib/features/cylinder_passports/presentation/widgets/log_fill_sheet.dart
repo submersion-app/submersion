@@ -203,13 +203,7 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
         : parseDecimal(temperatureText);
 
     final mixInvalid =
-        o2 == null ||
-        he == null ||
-        o2 <= 0 ||
-        o2 > 100 ||
-        he < 0 ||
-        he > 100 ||
-        o2 + he > 100;
+        o2 == null || he == null || !CylinderFill.isPossibleMix(o2, he);
     setState(() {
       _mixError = mixInvalid ? l10n.passport_logFill_invalidMix : null;
       // Null for blank (both optional) and for readable text.
