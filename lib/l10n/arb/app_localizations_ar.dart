@@ -5464,6 +5464,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'إحداثيات GPS';
 
   @override
+  String get diveCenters_section_fillHours => 'ساعات التعبئة';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'متى تملأ المحطة الأسطوانات. يستخدم توقع التعبئة للرحلة وقت الإغلاق.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'يفتح';
+
+  @override
+  String get diveCenters_fillHours_closes => 'يغلق';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'غير محدد';
+
+  @override
+  String get diveCenters_fillHours_clear => 'مسح ساعات التعبئة';
+
+  @override
+  String get diveCenters_fillHours_errorBoth => 'حدد الوقتين معًا أو لا شيء.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'يجب أن يكون وقت الإغلاق بعد وقت الفتح.';
+
+  @override
   String get diveCenters_section_notes => 'ملاحظات';
 
   @override
@@ -25264,6 +25290,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'التخطيط';
 
   @override
+  String get trips_edit_label_diversSharing =>
+      'الغواصون المشتركون في الأسطوانات';
+
+  @override
+  String get trips_edit_hint_diversSharing => 'بما في ذلك أنت. الفراغ يعني 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'غطسات في اليوم';
+
+  @override
+  String get trips_edit_hint_divesPerDay =>
+      'لتوقع التعبئة. الفراغ يعني التقدير.';
+
+  @override
   String get trips_edit_label_expectedDives => 'الغطسات المتوقعة';
 
   @override
@@ -25375,6 +25415,58 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count أجهزة، أدنى هامش منظّف $minutes دقيقة';
+  }
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'اليوم يحتاج إلى $needed، ولديك $full ممتلئة.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'غدًا يحتاج إلى $needed، وسيكون لديك $full ممتلئة.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'املأ قبل $time.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough =>
+      'أسطوانات ممتلئة كافية حتى الغد.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'الغطسات المخططة';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسات',
+      one: '$count غطسة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'الغطسات المخططة، $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'استخدام التقدير';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'غطسات أقل';
+
+  @override
+  String get trips_cylinders_forecast_more => 'غطسات أكثر';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'تعذّر حفظ الخطة: $error';
   }
 
   @override

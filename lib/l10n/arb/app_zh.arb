@@ -1850,6 +1850,14 @@
   "diveCenters_section_contact": "联系人",
   "diveCenters_section_contactInfo": "联系信息",
   "diveCenters_section_gpsCoordinates": "GPS 坐标",
+  "diveCenters_section_fillHours": "充气时间",
+  "diveCenters_fillHours_caption": "气站充气的时间。行程充气预测使用关门时间。",
+  "diveCenters_fillHours_opens": "开门",
+  "diveCenters_fillHours_closes": "关门",
+  "diveCenters_fillHours_notSet": "未设置",
+  "diveCenters_fillHours_clear": "清除充气时间",
+  "diveCenters_fillHours_errorBoth": "请同时设置两个时间，或都不设置。",
+  "diveCenters_fillHours_errorOrder": "关门时间必须晚于开门时间。",
   "diveCenters_section_notes": "备注",
   "diveCenters_snackbar_coordinatesFound": "已从地址获取坐标",
   "diveCenters_snackbar_copiedToClipboard": "已复制到剪贴板",
@@ -7379,6 +7387,10 @@
   "trips_edit_label_cabinType": "舱房类型",
   "trips_edit_label_capacity": "乘客容量",
   "trips_edit_sectionTitle_planning": "计划",
+  "trips_edit_label_diversSharing": "共用气瓶的潜水员",
+  "trips_edit_hint_diversSharing": "包括你自己。留空表示 1。",
+  "trips_edit_label_divesPerDay": "每天潜水次数",
+  "trips_edit_hint_divesPerDay": "用于充气预测。留空表示估算。",
   "trips_edit_label_expectedDives": "预计潜水次数",
   "trips_edit_hint_expectedDives": "留空则根据近期行程估算",
   "trips_edit_label_expectedRuntime": "每次潜水预计运行时间（分钟）",
@@ -7479,6 +7491,65 @@
         "type": "int"
       },
       "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_todayShort": "今天需要 {needed} 个，你有 {full} 个满瓶。",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "明天需要 {needed} 个，届时你有 {full} 个满瓶。",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "请在 {time} 前充气。",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "满瓶足够用到明天。",
+  "trips_cylinders_forecast_daysTitle": "计划潜水",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, other{{count} 次潜水}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "计划潜水，{date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "使用估计值",
+  "trips_cylinders_forecast_fewer": "减少潜水",
+  "trips_cylinders_forecast_more": "增加潜水",
+  "trips_cylinders_forecast_saveError": "无法保存计划：{error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
         "type": "String"
       }
     }

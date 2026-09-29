@@ -213,4 +213,31 @@ void main() {
     );
     expect(l10n.trips_cylinders_action_logDive, 'Log dive');
   });
+
+  test('the forecast strings exist in English', () {
+    expect(
+      l10n.trips_cylinders_forecast_todayShort(4, 2),
+      'Today needs 4, you have 2 full.',
+    );
+    expect(
+      l10n.trips_cylinders_forecast_tomorrowShort(6, 1),
+      "Tomorrow needs 6, you'll have 1 full.",
+    );
+    expect(
+      l10n.trips_cylinders_forecast_fillBefore('5:00 PM'),
+      'Fill before 5:00 PM.',
+    );
+    expect(
+      l10n.trips_cylinders_forecast_enough,
+      'Enough full cylinders through tomorrow.',
+    );
+    expect(l10n.trips_cylinders_forecast_plannedDives(1), '1 dive');
+    expect(l10n.trips_cylinders_forecast_plannedDives(0), '0 dives');
+    expect(l10n.trips_edit_label_diversSharing, 'Divers sharing cylinders');
+    expect(l10n.diveCenters_section_fillHours, 'Fill hours');
+    expect(
+      l10n.diveCenters_fillHours_errorOrder,
+      'Closing time must be after opening time.',
+    );
+  });
 }

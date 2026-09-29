@@ -1756,6 +1756,14 @@
   "diveCenters_section_contact": "יצירת קשר",
   "diveCenters_section_contactInfo": "פרטי קשר",
   "diveCenters_section_gpsCoordinates": "קואורדינטות GPS",
+  "diveCenters_section_fillHours": "שעות מילוי",
+  "diveCenters_fillHours_caption": "מתי התחנה ממלאת מכלים. תחזית המילוי של הטיול משתמשת בשעת הסגירה.",
+  "diveCenters_fillHours_opens": "נפתח",
+  "diveCenters_fillHours_closes": "נסגר",
+  "diveCenters_fillHours_notSet": "לא הוגדר",
+  "diveCenters_fillHours_clear": "ניקוי שעות המילוי",
+  "diveCenters_fillHours_errorBoth": "יש להגדיר את שתי השעות או אף אחת.",
+  "diveCenters_fillHours_errorOrder": "שעת הסגירה חייבת להיות אחרי שעת הפתיחה.",
   "diveCenters_section_notes": "הערות",
   "diveCenters_snackbar_coordinatesFound": "קואורדינטות נמצאו מהכתובת",
   "diveCenters_snackbar_copiedToClipboard": "הועתק ללוח",
@@ -7192,6 +7200,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "תכנון",
+  "trips_edit_label_diversSharing": "צוללים החולקים מכלים",
+  "trips_edit_hint_diversSharing": "כולל אותך. ריק פירושו 1.",
+  "trips_edit_label_divesPerDay": "צלילות ליום",
+  "trips_edit_hint_divesPerDay": "לתחזית המילוי. ריק פירושו הערכה.",
   "trips_edit_label_expectedDives": "צלילות צפויות",
   "trips_edit_hint_expectedDives": "השאר ריק כדי להעריך מהטיולים האחרונים שלך",
   "trips_edit_label_expectedRuntime": "זמן ריצה צפוי לכל צלילה (דקות)",
@@ -7292,6 +7304,65 @@
         "type": "int"
       },
       "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_todayShort": "היום צריך {needed}, יש לך {full} מלאים.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "מחר צריך {needed}, יהיו לך {full} מלאים.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "למלא לפני {time}.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "יש מספיק מכלים מלאים עד מחר.",
+  "trips_cylinders_forecast_daysTitle": "צלילות מתוכננות",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} צלילה} other{{count} צלילות}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "צלילות מתוכננות, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "להשתמש בהערכה",
+  "trips_cylinders_forecast_fewer": "פחות צלילות",
+  "trips_cylinders_forecast_more": "יותר צלילות",
+  "trips_cylinders_forecast_saveError": "לא ניתן לשמור את התוכנית: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
         "type": "String"
       }
     }

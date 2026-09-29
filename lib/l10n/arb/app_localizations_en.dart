@@ -5473,6 +5473,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'GPS Coordinates';
 
   @override
+  String get diveCenters_section_fillHours => 'Fill hours';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'When the station fills cylinders. The trip fill forecast uses the closing time.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'Opens';
+
+  @override
+  String get diveCenters_fillHours_closes => 'Closes';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'Not set';
+
+  @override
+  String get diveCenters_fillHours_clear => 'Clear fill hours';
+
+  @override
+  String get diveCenters_fillHours_errorBoth => 'Set both times, or neither.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'Closing time must be after opening time.';
+
+  @override
   String get diveCenters_section_notes => 'Notes';
 
   @override
@@ -25179,6 +25205,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'Planning';
 
   @override
+  String get trips_edit_label_diversSharing => 'Divers sharing cylinders';
+
+  @override
+  String get trips_edit_hint_diversSharing => 'Including you. Blank means 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'Dives per day';
+
+  @override
+  String get trips_edit_hint_divesPerDay =>
+      'For the fill forecast. Blank means estimate.';
+
+  @override
   String get trips_edit_label_expectedDives => 'Expected dives';
 
   @override
@@ -25281,6 +25320,58 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count rebreathers, lowest $minutes min scrubber margin';
+  }
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'Today needs $needed, you have $full full.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'Tomorrow needs $needed, you\'ll have $full full.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'Fill before $time.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough =>
+      'Enough full cylinders through tomorrow.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'Planned dives';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '$count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'Planned dives, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'Use the estimate';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'Fewer dives';
+
+  @override
+  String get trips_cylinders_forecast_more => 'More dives';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'Couldn\'t save the plan: $error';
   }
 
   @override

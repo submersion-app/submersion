@@ -5556,6 +5556,33 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'GPS koordináták';
 
   @override
+  String get diveCenters_section_fillHours => 'Töltési idő';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'Mikor tölt palackot az állomás. Az út töltési előrejelzése a zárási időt használja.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'Nyit';
+
+  @override
+  String get diveCenters_fillHours_closes => 'Zár';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'Nincs megadva';
+
+  @override
+  String get diveCenters_fillHours_clear => 'Töltési idő törlése';
+
+  @override
+  String get diveCenters_fillHours_errorBoth =>
+      'Adja meg mindkét időpontot, vagy egyiket sem.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'A zárásnak a nyitás után kell lennie.';
+
+  @override
   String get diveCenters_section_notes => 'Jegyzetek';
 
   @override
@@ -25510,6 +25537,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'Tervezés';
 
   @override
+  String get trips_edit_label_diversSharing => 'Palackokon osztozó búvárok';
+
+  @override
+  String get trips_edit_hint_diversSharing => 'Önnel együtt. Üresen 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'Merülés naponta';
+
+  @override
+  String get trips_edit_hint_divesPerDay =>
+      'A töltési előrejelzéshez. Üresen becslés.';
+
+  @override
   String get trips_edit_label_expectedDives => 'Várható merülések';
 
   @override
@@ -25612,6 +25652,57 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count rebreather, a legkisebb szűrőtartalék $minutes perc';
+  }
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'Ma $needed kell, $full teli van.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'Holnap $needed kell, $full teli marad.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'Töltés $time előtt.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough => 'Elég teli palack holnapig.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'Tervezett merülések';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '$count merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'Tervezett merülések, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'Becslés használata';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'Kevesebb merülés';
+
+  @override
+  String get trips_cylinders_forecast_more => 'Több merülés';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'A terv mentése nem sikerült: $error';
   }
 
   @override

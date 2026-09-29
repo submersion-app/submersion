@@ -1756,6 +1756,14 @@
   "diveCenters_section_contact": "Contato",
   "diveCenters_section_contactInfo": "Informações de Contato",
   "diveCenters_section_gpsCoordinates": "Coordenadas GPS",
+  "diveCenters_section_fillHours": "Horário de enchimento",
+  "diveCenters_fillHours_caption": "Quando a estação enche cilindros. A previsão de enchimento da viagem usa a hora de fecho.",
+  "diveCenters_fillHours_opens": "Abre",
+  "diveCenters_fillHours_closes": "Fecha",
+  "diveCenters_fillHours_notSet": "Não definido",
+  "diveCenters_fillHours_clear": "Limpar horário de enchimento",
+  "diveCenters_fillHours_errorBoth": "Defina as duas horas, ou nenhuma.",
+  "diveCenters_fillHours_errorOrder": "A hora de fecho tem de ser depois da de abertura.",
   "diveCenters_section_notes": "Notas",
   "diveCenters_snackbar_coordinatesFound": "Coordenadas encontradas a partir do endereço",
   "diveCenters_snackbar_copiedToClipboard": "Copiado para a área de transferência",
@@ -7192,6 +7200,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Planeamento",
+  "trips_edit_label_diversSharing": "Mergulhadores que partilham cilindros",
+  "trips_edit_hint_diversSharing": "Incluindo você. Em branco significa 1.",
+  "trips_edit_label_divesPerDay": "Mergulhos por dia",
+  "trips_edit_hint_divesPerDay": "Para a previsão de enchimento. Em branco significa estimativa.",
   "trips_edit_label_expectedDives": "Mergulhos previstos",
   "trips_edit_hint_expectedDives": "Deixe vazio para estimar a partir das suas viagens recentes",
   "trips_edit_label_expectedRuntime": "Duração prevista por mergulho (minutos)",
@@ -7292,6 +7304,65 @@
         "type": "int"
       },
       "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_todayShort": "Hoje são precisos {needed}, tem {full} cheios.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "Amanhã são precisos {needed}, terá {full} cheios.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "Encha antes das {time}.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "Cilindros cheios suficientes até amanhã.",
+  "trips_cylinders_forecast_daysTitle": "Mergulhos planeados",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} mergulho} other{{count} mergulhos}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "Mergulhos planeados, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "Usar a estimativa",
+  "trips_cylinders_forecast_fewer": "Menos mergulhos",
+  "trips_cylinders_forecast_more": "Mais mergulhos",
+  "trips_cylinders_forecast_saveError": "Não foi possível guardar o plano: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
         "type": "String"
       }
     }
