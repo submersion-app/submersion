@@ -358,6 +358,17 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerMission_enable => 'Planear como missão DPV';
 
   @override
+  String get plannerMission_enableConfirm => 'Substituir';
+
+  @override
+  String get plannerMission_enableMessage =>
+      'A missão cria o perfil a partir da rota e da equipa, por isso os segmentos deste plano são substituídos. Se desativar a missão mais tarde, fica o perfil da missão, não estes segmentos.';
+
+  @override
+  String get plannerMission_enableTitle =>
+      'Substituir os segmentos por uma missão DPV?';
+
+  @override
   String get plannerMission_environment_openWater => 'Águas abertas';
 
   @override

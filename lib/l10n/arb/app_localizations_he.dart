@@ -355,6 +355,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerMission_enable => 'תכנון כמשימת DPV';
 
   @override
+  String get plannerMission_enableConfirm => 'החלפה';
+
+  @override
+  String get plannerMission_enableMessage =>
+      'המשימה בונה את הפרופיל מהמסלול ומהצוות שלה, ולכן המקטעים של התוכנית הזו יוחלפו. אם תכבה את המשימה מאוחר יותר, יישאר הפרופיל של המשימה ולא המקטעים האלה.';
+
+  @override
+  String get plannerMission_enableTitle => 'להחליף את המקטעים במשימת DPV?';
+
+  @override
   String get plannerMission_environment_openWater => 'מים פתוחים';
 
   @override

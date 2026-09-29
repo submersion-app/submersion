@@ -357,6 +357,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerMission_enable => 'Plannen als DPV-missie';
 
   @override
+  String get plannerMission_enableConfirm => 'Vervangen';
+
+  @override
+  String get plannerMission_enableMessage =>
+      'De missie bouwt het profiel op uit de route en het team, dus de segmenten van dit plan worden vervangen. Als je de missie later uitschakelt, blijft het profiel van de missie behouden, niet deze segmenten.';
+
+  @override
+  String get plannerMission_enableTitle =>
+      'De segmenten vervangen door een DPV-missie?';
+
+  @override
   String get plannerMission_environment_openWater => 'Open water';
 
   @override

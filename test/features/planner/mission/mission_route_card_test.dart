@@ -239,4 +239,39 @@ void main() {
     expect(legs.last.id, first.id);
     expect([for (final l in legs) l.order], [0, 1]);
   });
+
+  testWidgets('turning it on over hand-built segments asks first', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanEditorPane)),
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
+    await tester.pumpAndSettle();
+    final handBuilt = container.read(divePlanNotifierProvider).segments;
+
+    await tester.tap(find.text('Plan as DPV mission'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Replace the segments with a DPV mission?'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).mission, isNull);
+    expect(container.read(divePlanNotifierProvider).segments, handBuilt);
+
+    await tester.tap(find.text('Plan as DPV mission'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Replace'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).mission, isNotNull);
+  });
 }

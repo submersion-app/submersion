@@ -29,36 +29,66 @@ class MissionToggleRow extends ConsumerWidget {
       value: on,
       onChanged: (enable) async {
         if (enable) {
+          // The mission replaces the plan's segments: ask before a
+          // hand-built profile goes.
+          // Read before the dialog: the row may be gone when it closes.
+          final plan = ref.read(divePlanNotifierProvider);
+          final hasSegments = plan.segments.isNotEmpty;
+          if (hasSegments &&
+              !await _confirm(
+                context,
+                title: l10n.plannerMission_enableTitle,
+                message: l10n.plannerMission_enableMessage,
+                confirmLabel: l10n.plannerMission_enableConfirm,
+              )) {
+            return;
+          }
           const uuid = Uuid();
           notifier.enableMission(
             MissionEdits.starter(
               legId: uuid.v4(),
               memberId: uuid.v4(),
               memberName: l10n.plannerMission_team_defaultName(1),
-              sacBottom: ref.read(divePlanNotifierProvider).sacRate,
+              sacBottom: plan.sacRate,
             ),
           );
           return;
         }
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.plannerMission_disableTitle),
-            content: Text(l10n.plannerMission_disableMessage),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.common_action_cancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.plannerMission_disableConfirm),
-              ),
-            ],
-          ),
-        );
-        if (confirmed == true) notifier.disableMission();
+        if (await _confirm(
+          context,
+          title: l10n.plannerMission_disableTitle,
+          message: l10n.plannerMission_disableMessage,
+          confirmLabel: l10n.plannerMission_disableConfirm,
+        )) {
+          notifier.disableMission();
+        }
       },
     );
+  }
+
+  static Future<bool> _confirm(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required String confirmLabel,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(confirmLabel),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
   }
 }

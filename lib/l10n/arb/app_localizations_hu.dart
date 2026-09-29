@@ -357,6 +357,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerMission_enable => 'Tervezés DPV-küldetésként';
 
   @override
+  String get plannerMission_enableConfirm => 'Csere';
+
+  @override
+  String get plannerMission_enableMessage =>
+      'A küldetés az útvonalból és a csapatból építi fel a profilt, ezért a terv szakaszai lecserélődnek. Ha később kikapcsolod a küldetést, a küldetés profilja marad meg, nem ezek a szakaszok.';
+
+  @override
+  String get plannerMission_enableTitle =>
+      'Lecseréled a szakaszokat egy DPV-küldetésre?';
+
+  @override
   String get plannerMission_environment_openWater => 'Nyílt víz';
 
   @override

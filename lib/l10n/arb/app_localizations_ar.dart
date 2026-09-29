@@ -356,6 +356,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerMission_enable => 'التخطيط كمهمة DPV';
 
   @override
+  String get plannerMission_enableConfirm => 'استبدال';
+
+  @override
+  String get plannerMission_enableMessage =>
+      'تبني المهمة الملف الشخصي من مسارها وفريقها، لذا تُستبدل مقاطع هذه الخطة. إذا أوقفت المهمة لاحقاً، يبقى الملف الشخصي للمهمة وليس هذه المقاطع.';
+
+  @override
+  String get plannerMission_enableTitle => 'استبدال المقاطع بمهمة DPV؟';
+
+  @override
   String get plannerMission_environment_openWater => 'المياه المفتوحة';
 
   @override

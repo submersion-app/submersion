@@ -352,6 +352,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerMission_enable => '按 DPV 任务规划';
 
   @override
+  String get plannerMission_enableConfirm => '替换';
+
+  @override
+  String get plannerMission_enableMessage =>
+      '任务会根据其路线和队伍生成剖面，因此此计划的分段将被替换。之后关闭任务时，保留的是任务的剖面，而不是这些分段。';
+
+  @override
+  String get plannerMission_enableTitle => '用 DPV 任务替换这些分段？';
+
+  @override
   String get plannerMission_environment_openWater => '开放水域';
 
   @override

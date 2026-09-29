@@ -632,6 +632,24 @@ abstract class AppLocalizations {
   /// **'Plan as DPV mission'**
   String get plannerMission_enable;
 
+  /// No description provided for @plannerMission_enableConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get plannerMission_enableConfirm;
+
+  /// No description provided for @plannerMission_enableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The mission builds the profile from its route and team, so this plan\'s segments are replaced. Turning the mission off later keeps the mission\'s profile, not these segments.'**
+  String get plannerMission_enableMessage;
+
+  /// No description provided for @plannerMission_enableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the segments with a DPV mission?'**
+  String get plannerMission_enableTitle;
+
   /// No description provided for @plannerMission_environment_openWater.
   ///
   /// In en, this message translates to:
