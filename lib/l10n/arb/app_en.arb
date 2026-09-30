@@ -3248,6 +3248,14 @@
   "diveCenters_section_contact": "Contact",
   "diveCenters_section_contactInfo": "Contact Information",
   "diveCenters_section_gpsCoordinates": "GPS Coordinates",
+  "diveCenters_section_fillHours": "Fill hours",
+  "diveCenters_fillHours_caption": "When the station fills cylinders. The trip fill forecast uses the closing time.",
+  "diveCenters_fillHours_opens": "Opens",
+  "diveCenters_fillHours_closes": "Closes",
+  "diveCenters_fillHours_notSet": "Not set",
+  "diveCenters_fillHours_clear": "Clear fill hours",
+  "diveCenters_fillHours_errorBoth": "Set both times, or neither.",
+  "diveCenters_fillHours_errorOrder": "Closing time must be after opening time.",
   "diveCenters_section_notes": "Notes",
   "diveCenters_snackbar_coordinatesFound": "Coordinates found from address",
   "diveCenters_snackbar_copiedToClipboard": "Copied to clipboard",
@@ -15371,6 +15379,10 @@
   "trips_edit_hint_cabinType": "e.g. Deluxe Double",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Planning",
+  "trips_edit_label_diversSharing": "Divers sharing cylinders",
+  "trips_edit_hint_diversSharing": "Including you. Blank means 1.",
+  "trips_edit_label_divesPerDay": "Dives per day",
+  "trips_edit_hint_divesPerDay": "For the fill forecast. Blank means estimate.",
   "trips_edit_label_expectedDives": "Expected dives",
   "trips_edit_hint_expectedDives": "Leave empty to estimate from your recent trips",
   "trips_edit_label_expectedRuntime": "Expected runtime per dive (minutes)",
@@ -15475,6 +15487,66 @@
       }
     }
   },
+  "trips_cylinders_forecast_todayShort": "Today needs {needed}, you have {full} full.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "Tomorrow needs {needed}, you'll have {full} full.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "Fill before {time}.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "Enough full cylinders through tomorrow.",
+  "trips_cylinders_forecast_daysTitle": "Planned dives",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} dive} other{{count} dives}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "Planned dives, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "Use the estimate",
+  "trips_cylinders_forecast_fewer": "Fewer dives",
+  "trips_cylinders_forecast_more": "More dives",
+  "trips_cylinders_forecast_saveError": "Couldn't save the plan: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "Planned by you",
   "trips_cylinders_title": "Cylinders",
   "trips_cylinders_summary": "Full {full} · Partial {partial} · Empty {empty}",
   "@trips_cylinders_summary": {

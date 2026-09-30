@@ -5576,6 +5576,33 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'GPS-Koordinaten';
 
   @override
+  String get diveCenters_section_fillHours => 'Füllzeiten';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'Wann die Station Flaschen füllt. Die Füllprognose der Reise nutzt die Schließzeit.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'Öffnet';
+
+  @override
+  String get diveCenters_fillHours_closes => 'Schließt';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'Nicht gesetzt';
+
+  @override
+  String get diveCenters_fillHours_clear => 'Füllzeiten löschen';
+
+  @override
+  String get diveCenters_fillHours_errorBoth =>
+      'Setze beide Zeiten oder keine.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'Die Schließzeit muss nach der Öffnungszeit liegen.';
+
+  @override
   String get diveCenters_section_notes => 'Notizen';
 
   @override
@@ -25538,6 +25565,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'Planung';
 
   @override
+  String get trips_edit_label_diversSharing =>
+      'Taucher, die sich Flaschen teilen';
+
+  @override
+  String get trips_edit_hint_diversSharing =>
+      'Dich eingeschlossen. Leer bedeutet 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'Tauchgänge pro Tag';
+
+  @override
+  String get trips_edit_hint_divesPerDay =>
+      'Für die Füllprognose. Leer bedeutet Schätzung.';
+
+  @override
   String get trips_edit_label_expectedDives => 'Erwartete Tauchgänge';
 
   @override
@@ -25641,6 +25683,61 @@ class AppLocalizationsDe extends AppLocalizations {
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count Rebreather, niedrigste Atemkalkreserve $minutes min';
   }
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'Heute werden $needed gebraucht, du hast $full volle.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'Morgen werden $needed gebraucht, du hast dann $full volle.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'Vor $time füllen.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough =>
+      'Genug volle Flaschen bis morgen.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'Geplante Tauchgänge';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '$count Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'Geplante Tauchgänge, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'Schätzung verwenden';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'Weniger Tauchgänge';
+
+  @override
+  String get trips_cylinders_forecast_more => 'Mehr Tauchgänge';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'Plan konnte nicht gespeichert werden: $error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => 'Von dir geplant';
 
   @override
   String get trips_cylinders_title => 'Flaschen';

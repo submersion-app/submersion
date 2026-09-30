@@ -1059,6 +1059,52 @@ void main() {
       expect(find.text('Trip updated successfully'), findsOneWidget);
     });
 
+    testWidgets('editing keeps the fill forecast fields', (tester) async {
+      final notifier = _MockTripListNotifier([]);
+      final router = GoRouter(
+        initialLocation: '/trips/edit',
+        routes: [
+          GoRoute(
+            path: '/trips',
+            builder: (context, state) =>
+                const Scaffold(body: Text('LIST_PAGE')),
+          ),
+          GoRoute(
+            path: '/trips/edit',
+            builder: (context, state) => const TripEditPage(tripId: 'test-id'),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithForecastTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) => notifier),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (ref) async => 'diver-id',
+            ),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Trip Name *'),
+        'Updated Name',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(notifier.lastUpdated?.diversSharingCylinders, 4);
+      expect(notifier.lastUpdated?.divesPerDayTarget, 3);
+    });
+
     testWidgets('save with unchanged dates runs no scan and no diver lookup', (
       tester,
     ) async {
@@ -1295,6 +1341,49 @@ void main() {
       expect(notifier.lastAdded?.expectedRuntimeMinutes, isNull);
     });
 
+    testWidgets('the fill forecast fields save as integers', (tester) async {
+      final notifier = _MockTripListNotifier([]);
+      await _pumpNewTripPage(
+        tester,
+        repository: _CandidateScanRepo(),
+        notifier: notifier,
+        activeDiverId: null,
+      );
+      final sharing = find.widgetWithText(
+        TextFormField,
+        'Divers sharing cylinders',
+      );
+      await tester.ensureVisible(sharing);
+      await tester.enterText(sharing, '3');
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Dives per day'),
+        '2',
+      );
+      await _saveNewTrip(tester, 'Bonaire 2026');
+      expect(notifier.lastAdded?.diversSharingCylinders, 3);
+      expect(notifier.lastAdded?.divesPerDayTarget, 2);
+    });
+
+    testWidgets('blank or non-positive fill forecast fields save as the '
+        'defaults', (tester) async {
+      final notifier = _MockTripListNotifier([]);
+      await _pumpNewTripPage(
+        tester,
+        repository: _CandidateScanRepo(),
+        notifier: notifier,
+        activeDiverId: null,
+      );
+      final sharing = find.widgetWithText(
+        TextFormField,
+        'Divers sharing cylinders',
+      );
+      await tester.ensureVisible(sharing);
+      await tester.enterText(sharing, '0');
+      await _saveNewTrip(tester, 'Bonaire 2026');
+      expect(notifier.lastAdded?.diversSharingCylinders, 1);
+      expect(notifier.lastAdded?.divesPerDayTarget, isNull);
+    });
+
     testWidgets('save errors show error snackbar', (tester) async {
       final notifier = _ThrowingTripListNotifier();
       await tester.pumpWidget(
@@ -1411,12 +1500,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('OPEN_EDIT'));
       await tester.pumpAndSettle();
-      // Scroll down to reveal the Cancel button.
-      await tester.fling(
-        find.byType(TripEditPage),
-        const Offset(0, -500),
-        1000,
-      );
+      // Scroll the Cancel button into view: a fixed fling breaks whenever
+      // the form grows.
+      await tester.ensureVisible(find.byType(OutlinedButton));
       await tester.pumpAndSettle();
       await tester.tap(find.byType(OutlinedButton));
       await tester.pumpAndSettle();
@@ -2032,6 +2118,15 @@ class _MockTripRepositoryWithDstTrip extends _MockTripRepositoryWithTrip {
   }
 }
 
+/// The existing trip with fill forecast fields set, for the keep-on-edit
+/// test.
+class _MockTripRepositoryWithForecastTrip extends _MockTripRepositoryWithTrip {
+  @override
+  Future<Trip?> getTripById(String id) async => (await super.getTripById(
+    id,
+  ))!.copyWith(diversSharingCylinders: 4, divesPerDayTarget: 3);
+}
+
 class _MockTripRepositoryWithTrip implements TripRepository {
   @override
   Future<Trip> createTrip(Trip trip) async => trip;
@@ -2204,6 +2299,7 @@ class _MockTripListNotifier
   int updateCalls = 0;
   int assignCalls = 0;
   Trip? lastAdded;
+  Trip? lastUpdated;
   List<String>? assignedDiveIds;
   String? assignedTripId;
   Set<String>? assignedOldTripIds;
@@ -2221,6 +2317,7 @@ class _MockTripListNotifier
   @override
   Future<void> updateTrip(Trip trip) async {
     updateCalls++;
+    lastUpdated = trip;
   }
 
   @override

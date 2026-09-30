@@ -565,6 +565,11 @@ class UnitFormatter {
     return DateFormat(settings.timeFormat.pattern).format(dateTime);
   }
 
+  /// A time of day given as minutes after midnight (a dive center's fill
+  /// hours), in the diver's 12 or 24 hour format.
+  String formatMinutesOfDay(int minutes) =>
+      formatTime(DateTime(2000, 1, 1, minutes ~/ 60, minutes % 60));
+
   /// Format time to the second, still honouring the 12h/24h preference.
   /// Example: "2:30:07 PM" or "14:30:07"
   ///

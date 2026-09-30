@@ -1767,6 +1767,14 @@
   "diveCenters_section_contact": "Kontakt",
   "diveCenters_section_contactInfo": "Kontaktinformationen",
   "diveCenters_section_gpsCoordinates": "GPS-Koordinaten",
+  "diveCenters_section_fillHours": "Füllzeiten",
+  "diveCenters_fillHours_caption": "Wann die Station Flaschen füllt. Die Füllprognose der Reise nutzt die Schließzeit.",
+  "diveCenters_fillHours_opens": "Öffnet",
+  "diveCenters_fillHours_closes": "Schließt",
+  "diveCenters_fillHours_notSet": "Nicht gesetzt",
+  "diveCenters_fillHours_clear": "Füllzeiten löschen",
+  "diveCenters_fillHours_errorBoth": "Setze beide Zeiten oder keine.",
+  "diveCenters_fillHours_errorOrder": "Die Schließzeit muss nach der Öffnungszeit liegen.",
   "diveCenters_section_notes": "Notizen",
   "diveCenters_snackbar_coordinatesFound": "Koordinaten aus Adresse gefunden",
   "diveCenters_snackbar_copiedToClipboard": "In Zwischenablage kopiert",
@@ -7295,6 +7303,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Planung",
+  "trips_edit_label_diversSharing": "Taucher, die sich Flaschen teilen",
+  "trips_edit_hint_diversSharing": "Dich eingeschlossen. Leer bedeutet 1.",
+  "trips_edit_label_divesPerDay": "Tauchgänge pro Tag",
+  "trips_edit_hint_divesPerDay": "Für die Füllprognose. Leer bedeutet Schätzung.",
   "trips_edit_label_expectedDives": "Erwartete Tauchgänge",
   "trips_edit_hint_expectedDives": "Leer lassen, um aus deinen letzten Reisen zu schätzen",
   "trips_edit_label_expectedRuntime": "Erwartete Laufzeit je Tauchgang (Minuten)",
@@ -7399,6 +7411,66 @@
       }
     }
   },
+  "trips_cylinders_forecast_todayShort": "Heute werden {needed} gebraucht, du hast {full} volle.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "Morgen werden {needed} gebraucht, du hast dann {full} volle.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "Vor {time} füllen.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "Genug volle Flaschen bis morgen.",
+  "trips_cylinders_forecast_daysTitle": "Geplante Tauchgänge",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} Tauchgang} other{{count} Tauchgänge}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "Geplante Tauchgänge, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "Schätzung verwenden",
+  "trips_cylinders_forecast_fewer": "Weniger Tauchgänge",
+  "trips_cylinders_forecast_more": "Mehr Tauchgänge",
+  "trips_cylinders_forecast_saveError": "Plan konnte nicht gespeichert werden: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "Von dir geplant",
   "trips_cylinders_title": "Flaschen",
   "trips_cylinders_summary": "Voll {full} · Teilweise {partial} · Leer {empty}",
   "@trips_cylinders_summary": {

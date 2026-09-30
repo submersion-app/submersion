@@ -377,4 +377,24 @@ void main() {
       });
     });
   });
+
+  test('fill hours round-trip through both mappers and clear', () async {
+    final created = await repository.createDiveCenter(
+      createTestCenter(
+        name: 'Dive Friends',
+      ).copyWith(fillOpensAt: 480, fillClosesAt: 1020),
+    );
+    final byId = await repository.getDiveCenterById(created.id);
+    expect(byId!.fillOpensAt, 480);
+    expect(byId.fillClosesAt, 1020);
+    final found = await repository.searchDiveCenters('Dive Friends');
+    expect(found.single.fillClosesAt, 1020);
+
+    await repository.updateDiveCenter(
+      byId.copyWith(fillOpensAt: null, fillClosesAt: null),
+    );
+    final cleared = await repository.getDiveCenterById(created.id);
+    expect(cleared!.fillOpensAt, isNull);
+    expect(cleared.fillClosesAt, isNull);
+  });
 }

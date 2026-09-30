@@ -34,6 +34,13 @@ class Trips extends Table {
   /// v202: overrides for the scrubber trip-margin estimate (phase 4).
   IntColumn get expectedDives => integer().nullable()();
   IntColumn get expectedRuntimeMinutes => integer().nullable()();
+
+  /// v249: the fill forecast's inputs (issue #2325): how many divers breathe
+  /// from the trip's cylinders, and a dives-per-day target (null derives
+  /// it).
+  IntColumn get diversSharingCylinders =>
+      integer().withDefault(const Constant(1))();
+  IntColumn get divesPerDayTarget => integer().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -82,6 +89,9 @@ class TripItineraryDays extends Table {
   RealColumn get latitude => real().nullable()();
   RealColumn get longitude => real().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// v249: the day's planned dives for the fill forecast; null derives it.
+  IntColumn get plannedDives => integer().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

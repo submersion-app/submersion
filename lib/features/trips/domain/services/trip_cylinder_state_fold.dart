@@ -222,3 +222,19 @@ List<TripCylinderState> foldCylinderStatesAt({
       ],
     ),
 ];
+
+/// The fill station the trip used last: the newest of the slots' latest
+/// fills that names a dive center. The fill sheet's default (the Bonaire
+/// ritual is the same drive-through every morning) and the fill forecast's
+/// station for the deadline.
+String? lastTripFillCenter(List<TripCylinderState> slots) {
+  TripCylinderEvent? latest;
+  for (final s in slots) {
+    final fill = s.lastFill;
+    if (fill == null || fill.diveCenterId == null) continue;
+    if (latest == null || fill.occurredAt.isAfter(latest.occurredAt)) {
+      latest = fill;
+    }
+  }
+  return latest?.diveCenterId;
+}

@@ -1756,6 +1756,14 @@
   "diveCenters_section_contact": "الاتصال",
   "diveCenters_section_contactInfo": "معلومات الاتصال",
   "diveCenters_section_gpsCoordinates": "إحداثيات GPS",
+  "diveCenters_section_fillHours": "ساعات التعبئة",
+  "diveCenters_fillHours_caption": "متى تملأ المحطة الأسطوانات. يستخدم توقع التعبئة للرحلة وقت الإغلاق.",
+  "diveCenters_fillHours_opens": "يفتح",
+  "diveCenters_fillHours_closes": "يغلق",
+  "diveCenters_fillHours_notSet": "غير محدد",
+  "diveCenters_fillHours_clear": "مسح ساعات التعبئة",
+  "diveCenters_fillHours_errorBoth": "حدد الوقتين معًا أو لا شيء.",
+  "diveCenters_fillHours_errorOrder": "يجب أن يكون وقت الإغلاق بعد وقت الفتح.",
   "diveCenters_section_notes": "ملاحظات",
   "diveCenters_snackbar_coordinatesFound": "تم العثور على الإحداثيات من العنوان",
   "diveCenters_snackbar_copiedToClipboard": "تم النسخ إلى الحافظة",
@@ -7192,6 +7200,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "التخطيط",
+  "trips_edit_label_diversSharing": "الغواصون المشتركون في الأسطوانات",
+  "trips_edit_hint_diversSharing": "بما في ذلك أنت. الفراغ يعني 1.",
+  "trips_edit_label_divesPerDay": "غطسات في اليوم",
+  "trips_edit_hint_divesPerDay": "لتوقع التعبئة. الفراغ يعني التقدير.",
   "trips_edit_label_expectedDives": "الغطسات المتوقعة",
   "trips_edit_hint_expectedDives": "اتركه فارغًا للتقدير من رحلاتك الأخيرة",
   "trips_edit_label_expectedRuntime": "مدة التشغيل المتوقعة لكل غطسة (بالدقائق)",
@@ -7296,6 +7308,66 @@
       }
     }
   },
+  "trips_cylinders_forecast_todayShort": "اليوم يحتاج إلى {needed}، ولديك {full} ممتلئة.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "غدًا يحتاج إلى {needed}، وسيكون لديك {full} ممتلئة.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "املأ قبل {time}.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "أسطوانات ممتلئة كافية حتى الغد.",
+  "trips_cylinders_forecast_daysTitle": "الغطسات المخططة",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} غطسة} other{{count} غطسات}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "الغطسات المخططة، {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "استخدام التقدير",
+  "trips_cylinders_forecast_fewer": "غطسات أقل",
+  "trips_cylinders_forecast_more": "غطسات أكثر",
+  "trips_cylinders_forecast_saveError": "تعذّر حفظ الخطة: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "خططتها أنت",
   "trips_cylinders_title": "الأسطوانات",
   "trips_cylinders_summary": "ممتلئة {full} · جزئية {partial} · فارغة {empty}",
   "@trips_cylinders_summary": {
