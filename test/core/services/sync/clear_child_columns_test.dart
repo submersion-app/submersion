@@ -147,4 +147,54 @@ void main() {
       expect(serializer.clearableChildKeys('dives'), isEmpty);
     },
   );
+
+  test(
+    'a composite-key clear binds two variables a row, within the limit',
+    () async {
+      await tearDownTestDatabase();
+      db = setUpLoggingTestDatabase();
+      serializer = SyncDataSerializer();
+      final gear = [for (var i = 0; i < 1000; i++) 'ge$i'];
+      await quietly(() async {
+        await db.customStatement('PRAGMA foreign_keys = OFF');
+        await db.batch(
+          (b) => b.insertAll(db.diveEquipment, [
+            for (final e in gear)
+              DiveEquipmentCompanion.insert(
+                diveId: 'd1',
+                equipmentId: e,
+                viaSetId: const Value('s1'),
+              ),
+          ]),
+        );
+      });
+
+      var updates = 0;
+      final most = await maxBoundVariables(
+        () => runZoned(
+          () => serializer.clearChildColumns('diveEquipment', {
+            for (final e in gear) 'd1|$e': {'viaSetId'},
+          }),
+          zoneSpecification: ZoneSpecification(
+            print: (self, parent, zone, line) {
+              if (line.startsWith('Drift: Sent UPDATE')) updates += 1;
+              parent.print(zone, line);
+            },
+          ),
+        ),
+      );
+
+      expect(updates, 3, reason: '1000 pairs at 450 per statement');
+      expect(most, lessThanOrEqualTo(sqliteVariableLimit));
+      final left = await quietly(
+        () => db
+            .customSelect(
+              'SELECT COUNT(*) AS n FROM dive_equipment '
+              'WHERE via_set_id IS NOT NULL',
+            )
+            .getSingle(),
+      );
+      expect(left.read<int>('n'), 0);
+    },
+  );
 }

@@ -1689,20 +1689,33 @@ class SyncDataSerializer {
     );
   }
 
+  /// The clearable columns of each parent-gated type (see clearableColumns),
+  /// by JSON key. Fixed by the schema, so an adopt's many batches build it
+  /// once; the table itself is looked up per call, since [_db] follows
+  /// whichever database is open.
+  final Map<String, Map<String, String>> _clearableChildColumns = {};
+
+  TableInfo<Table, Object?> _parentGatedTable(String entityType) {
+    final tableName = parentGatedTables[entityType]!;
+    return _db.allTables.firstWhere((t) => t.actualTableName == tableName);
+  }
+
+  Map<String, String> _clearableFor(String entityType) =>
+      _clearableChildColumns.putIfAbsent(
+        entityType,
+        () => clearableColumns(
+          _parentGatedTable(entityType),
+          keyColumns: _parentGatedKeyColumns[entityType] ?? const ['id'],
+        ),
+      );
+
   /// The JSON keys a clear on [entityType] may name (see clearableColumns):
   /// empty for a type outside [parentGatedChildEntities] or one with nothing
   /// clearable, so a caller can skip collecting clears for it (#2644).
-  Set<String> clearableChildKeys(String entityType) {
-    final tableName = parentGatedTables[entityType];
-    if (tableName == null) return const {};
-    final table = _db.allTables.firstWhere(
-      (t) => t.actualTableName == tableName,
-    );
-    return clearableColumns(
-      table,
-      keyColumns: _parentGatedKeyColumns[entityType] ?? const ['id'],
-    ).keys.toSet();
-  }
+  Iterable<String> clearableChildKeys(String entityType) =>
+      parentGatedTables.containsKey(entityType)
+      ? _clearableFor(entityType).keys
+      : const [];
 
   /// Writes deliberate clears on parent-gated children (#2644).
   ///
@@ -1728,11 +1741,9 @@ class SyncDataSerializer {
   ) async {
     final tableName = parentGatedTables[entityType];
     if (tableName == null || clears.isEmpty) return;
-    final table = _db.allTables.firstWhere(
-      (t) => t.actualTableName == tableName,
-    );
+    final table = _parentGatedTable(entityType);
     final keys = _parentGatedKeyColumns[entityType] ?? const ['id'];
-    final clearable = clearableColumns(table, keyColumns: keys);
+    final clearable = _clearableFor(entityType);
     // Rows clearing the same columns, keyed by those columns joined.
     final groups =
         <String, ({List<String> columns, List<List<String>> rows})>{};
