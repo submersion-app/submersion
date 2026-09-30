@@ -420,9 +420,12 @@ class DiveComputerRepository {
         'UPDATE dives SET computer_id = NULL WHERE computer_id = ?',
         [id],
       );
+      // Restamped with the clear, so a peer's older copy cannot put the
+      // deleted computer back (#2644).
       await _db.customStatement(
-        'UPDATE dive_data_sources SET computer_id = NULL WHERE computer_id = ?',
-        [id],
+        'UPDATE dive_data_sources SET computer_id = NULL, hlc = ? '
+        'WHERE computer_id = ?',
+        [await _syncRepository.issueRowClock(), id],
       );
       // The v183 rung drops dive_profiles only once its rows have actually
       // moved into the series table, so a device whose pack threw still
@@ -1639,7 +1642,14 @@ class DiveComputerRepository {
           await (_db.update(_db.diveDataSources)..where(
                 (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
               ))
-              .write(const DiveDataSourcesCompanion(isPrimary: Value(false)));
+              .write(
+                DiveDataSourcesCompanion(
+                  isPrimary: const Value(false),
+                  // A fresh clock, so a peer's older copy cannot make it the
+                  // primary again (#2644).
+                  hlc: Value(await _syncRepository.issueRowClock()),
+                ),
+              );
         }
         final existingSampleTemps = points
             .map((p) => p.temperature)

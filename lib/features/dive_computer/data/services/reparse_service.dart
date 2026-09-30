@@ -547,6 +547,10 @@ class ReparseService {
       db.diveDataSources,
     )..where((t) => t.id.equals(sourceRowId))).write(
       DiveDataSourcesCompanion(
+        // The row's own clock, so this write is newer than any peer's copy
+        // on its own; the stage() after the rewrite marks it for publishing
+        // (#2644).
+        hlc: Value(await _sync.issueRowClock()),
         maxDepth: Value(parsed.maxDepthMeters),
         avgDepth: Value(
           parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
@@ -874,6 +878,9 @@ class ReparseService {
             // before the serial was stored gains it (and a parse that stops
             // reporting one clears the stale value).
             transmitterSerial: Value(tank.transmitterSerial),
+            // A fresh clock, so a peer's newer copy cannot take the cleared
+            // serial back, nor this write's values (#2644).
+            hlc: Value(await _sync.issueRowClock()),
             // A legacy row gains its explicit source index here; a row that
             // already has one keeps it.
             sourceTankIndex: existing.sourceTankIndex == null
@@ -1007,6 +1014,7 @@ class ReparseService {
               ? Value(endpoints.start)
               : const Value.absent(),
           endPressure: needEnd ? Value(endpoints.end) : const Value.absent(),
+          hlc: Value(await _sync.issueRowClock()),
         ),
       );
     }
