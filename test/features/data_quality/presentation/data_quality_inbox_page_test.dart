@@ -125,6 +125,7 @@ QualityFinding _f({
   required QualityCategory category,
   Map<String, Object?> params = const {},
   QualitySeverity severity = QualitySeverity.warning,
+  QualityStatus status = QualityStatus.open,
   int detectorVersion = 1,
 }) => QualityFinding(
   id: id,
@@ -135,7 +136,7 @@ QualityFinding _f({
   detectorVersion: detectorVersion,
   category: category,
   severity: severity,
-  status: QualityStatus.open,
+  status: status,
   params: params,
   createdAt: DateTime.utc(2026, 7, 17),
   updatedAt: DateTime.utc(2026, 7, 17),
@@ -607,6 +608,45 @@ void main() {
     expect(find.text('Duplicates (1)'), findsOneWidget);
     expect(find.text('Profile (0)'), findsOneWidget);
     expect(find.text('Tanks (0)'), findsOneWidget);
+  });
+
+  testWidgets('chip counts leave out closed findings on the filtered dive', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        filterDiveId: 'd1',
+        findings: [
+          _f(
+            id: 'cf-open',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 2},
+          ),
+          _f(
+            id: 'cf-dismissed',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 3},
+            status: QualityStatus.dismissed,
+          ),
+          _f(
+            id: 'cf-resolved',
+            detectorId: 'sample_gap',
+            category: QualityCategory.profile,
+            params: const {'gapCount': 1, 'longestGapSeconds': 30},
+            status: QualityStatus.resolved,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(QualityFindingCard), findsOneWidget);
+    expect(find.text('Time (1)'), findsOneWidget);
+    expect(find.text('Profile (0)'), findsOneWidget);
   });
 
   testWidgets('chip counts span every dive in a comma-separated filter', (

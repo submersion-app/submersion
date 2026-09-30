@@ -566,8 +566,10 @@ class _ChipRow extends ConsumerWidget {
   /// the dive filter, so each count only has to split them by category.
   final List<QualityFinding> findings;
 
-  int _count(QualityChip c) =>
-      findings.where((f) => categoriesFor(c).contains(f.category)).length;
+  int _count(QualityChip c) {
+    final categories = categoriesFor(c);
+    return findings.where((f) => categories.contains(f.category)).length;
+  }
 
   String _label(BuildContext context, QualityChip c) {
     final l10n = context.l10n;
