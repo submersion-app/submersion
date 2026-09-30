@@ -14,6 +14,7 @@ import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
+import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -1686,6 +1687,47 @@ class SyncDataSerializer {
       updates: {_tableNamed(target.table)},
       updateKind: UpdateKind.update,
     );
+  }
+
+  /// Writes a peer's deliberate clears on parent-gated children (#2644).
+  ///
+  /// The upsert that applied each row builds with nullToAbsent, so a null it
+  /// carries never lands. The merge collects the keys a strictly newer copy
+  /// set to null (see isNewerChildCopy) and hands them here; [clears] maps a
+  /// sync record id to those JSON keys. Only nullable columns outside the
+  /// row's key are written, so a malformed payload can neither fail on a
+  /// NOT NULL column nor move a row.
+  ///
+  /// A junction applied lowest-id-per-pair can keep a local id over the
+  /// remote one; its clear then matches no row. Those junctions carry no
+  /// nullable user columns worth clearing.
+  Future<void> clearChildColumns(
+    String entityType,
+    Map<String, Set<String>> clears,
+  ) async {
+    final tableName = parentGatedTables[entityType];
+    if (tableName == null || clears.isEmpty) return;
+    final table = _db.allTables.firstWhere(
+      (t) => t.actualTableName == tableName,
+    );
+    final keys = _parentGatedKeyColumns[entityType] ?? const ['id'];
+    final clearable = clearableColumns(table, keyColumns: keys);
+    for (final MapEntry(key: recordId, value: jsonKeys) in clears.entries) {
+      final columns = {for (final k in jsonKeys) ?clearable[k]};
+      if (columns.isEmpty) continue;
+      final keyValues = keys.length == 1 ? [recordId] : recordId.split('|');
+      if (keyValues.length != keys.length) continue;
+      // customUpdate, not customStatement, so Drift's query streams rebuild
+      // (the same reason as writeFactGroup).
+      await _db.customUpdate(
+        'UPDATE "$tableName" '
+        'SET ${columns.map((c) => '"$c" = NULL').join(', ')} '
+        'WHERE ${keys.map((k) => '"$k" = ?').join(' AND ')}',
+        variables: [for (final v in keyValues) Variable.withString(v)],
+        updates: {table},
+        updateKind: UpdateKind.update,
+      );
+    }
   }
 
   /// The sync record id of a [parentGatedChildEntities] row, in the shape
@@ -3854,6 +3896,9 @@ class SyncDataSerializer {
   /// omitted rather than written, preserving a value set by a non-synced direct
   /// write (e.g. the consolidation `computerId` backfill). Do NOT add
   /// `.toCompanion(false)` to a clockless case -- it reintroduces that clobber.
+  /// A parent-gated child's deliberate clear lands afterwards instead, through
+  /// [clearChildColumns], and only from a copy whose clock is strictly newer
+  /// (#2644).
   Future<void> upsertRecord(
     String entityType,
     Map<String, dynamic> data,
