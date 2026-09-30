@@ -146,9 +146,8 @@ final localFileResolverProvider = Provider<LocalFileResolver>((ref) {
 /// resolver delegates byte fetch to the Phase 3a HTTP stack
 /// ([NetworkUrlResolver]). The provider for that service is co-located
 /// with the URL tab in `url_tab_providers.dart`. The same
-/// [HttpUrlMediaResolver] class also
-/// powers [networkUrlMediaResolverProvider] — see that provider for the
-/// rationale.
+/// [HttpUrlMediaResolver] class also powers
+/// [networkUrlMediaResolverProvider]; see that provider for the rationale.
 final manifestEntryResolverProvider = Provider<HttpUrlMediaResolver>(
   (ref) => HttpUrlMediaResolver(
     sourceType: MediaSourceType.manifestEntry,
