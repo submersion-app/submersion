@@ -47312,6 +47312,12 @@ abstract class AppLocalizations {
   /// **'Could not read file'**
   String get dropTarget_error_readFailed;
 
+  /// Snackbar after a share-sheet import that skipped files it could not read, while the rest were imported
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} file could not be read and was skipped} other{{count} files could not be read and were skipped}}'**
+  String dropTarget_error_someUnreadable(int count);
+
   /// No description provided for @enum_cloudCover_clear.
   ///
   /// In en, this message translates to:

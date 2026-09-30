@@ -19168,6 +19168,8 @@
   "dropTarget_error_unsupportedFile": "Unsupported file type",
   "dropTarget_error_wizardActive": "Finish current import first",
   "dropTarget_error_readFailed": "Could not read file",
+  "dropTarget_error_someUnreadable": "{count, plural, =1{{count} file could not be read and was skipped} other{{count} files could not be read and were skipped}}",
+  "@dropTarget_error_someUnreadable": {"description": "Snackbar after a share-sheet import that skipped files it could not read, while the rest were imported", "placeholders": {"count": {"type": "int"}}},
   "enum_cloudCover_clear": "Clear",
   "enum_cloudCover_partlyCloudy": "Partly Cloudy",
   "enum_cloudCover_mostlyCloudy": "Mostly Cloudy",

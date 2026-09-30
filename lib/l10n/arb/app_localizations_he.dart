@@ -29032,6 +29032,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dropTarget_error_readFailed => 'לא ניתן לקרוא את הקובץ';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן לקרוא $count קבצים והם דולגו',
+      one: 'לא ניתן לקרוא קובץ אחד והוא דולג',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'בהיר';
 
   @override

@@ -3751,6 +3751,7 @@
   "dropTarget_error_unsupportedFile": "Nicht unterstützter Dateityp",
   "dropTarget_error_wizardActive": "Aktuellen Import zuerst abschließen",
   "dropTarget_error_readFailed": "Datei konnte nicht gelesen werden",
+  "dropTarget_error_someUnreadable": "{count, plural, =1{{count} Datei konnte nicht gelesen werden und wurde übersprungen} other{{count} Dateien konnten nicht gelesen werden und wurden übersprungen}}",
   "enum_altitudeGroup_extreme": "Extreme Höhe",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",
   "enum_altitudeGroup_group1": "Höhengruppe 1",

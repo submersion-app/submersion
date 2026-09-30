@@ -29689,6 +29689,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Datei konnte nicht gelesen werden';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Dateien konnten nicht gelesen werden und wurden übersprungen',
+      one: '$count Datei konnte nicht gelesen werden und wurde übersprungen',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'Klar';
 
   @override

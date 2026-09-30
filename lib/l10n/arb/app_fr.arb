@@ -3638,6 +3638,7 @@
   "dropTarget_error_unsupportedFile": "Type de fichier non pris en charge",
   "dropTarget_error_wizardActive": "Terminez l'importation en cours d'abord",
   "dropTarget_error_readFailed": "Impossible de lire le fichier",
+  "dropTarget_error_someUnreadable": "{count, plural, =1{{count} fichier illisible a été ignoré} other{{count} fichiers illisibles ont été ignorés}}",
   "enum_altitudeGroup_extreme": "Altitude extrême",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",
   "enum_altitudeGroup_group1": "Groupe d'altitude 1",

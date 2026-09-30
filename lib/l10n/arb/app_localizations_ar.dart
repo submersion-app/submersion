@@ -29365,6 +29365,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dropTarget_error_readFailed => 'تعذرت قراءة الملف';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذرت قراءة $count ملف وتم تخطيها',
+      many: 'تعذرت قراءة $count ملفًا وتم تخطيها',
+      few: 'تعذرت قراءة $count ملفات وتم تخطيها',
+      two: 'تعذرت قراءة ملفين وتم تخطيهما',
+      one: 'تعذرت قراءة ملف واحد وتم تخطيه',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'صافٍ';
 
   @override

@@ -3740,6 +3740,7 @@
   "dropTarget_error_unsupportedFile": "نوع ملف غير مدعوم",
   "dropTarget_error_wizardActive": "أنهِ الاستيراد الحالي أولاً",
   "dropTarget_error_readFailed": "تعذرت قراءة الملف",
+  "dropTarget_error_someUnreadable": "{count, plural, one{تعذرت قراءة ملف واحد وتم تخطيه} two{تعذرت قراءة ملفين وتم تخطيهما} few{تعذرت قراءة {count} ملفات وتم تخطيها} many{تعذرت قراءة {count} ملفًا وتم تخطيها} other{تعذرت قراءة {count} ملف وتم تخطيها}}",
   "enum_altitudeGroup_extreme": "ارتفاع شديد",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",
   "enum_altitudeGroup_group1": "مجموعة الارتفاع 1",

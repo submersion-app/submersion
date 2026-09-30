@@ -28210,6 +28210,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dropTarget_error_readFailed => '无法读取文件';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文件无法读取，已跳过',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => '清除';
 
   @override

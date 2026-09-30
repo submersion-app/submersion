@@ -29638,6 +29638,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dropTarget_error_readFailed => 'A fájl nem olvasható';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl nem olvasható, ezért kimaradt',
+      one: '$count fájl nem olvasható, ezért kimaradt',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'Tiszta';
 
   @override

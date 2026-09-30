@@ -29830,6 +29830,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Impossible de lire le fichier';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fichiers illisibles ont été ignorés',
+      one: '$count fichier illisible a été ignoré',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'Dégagé';
 
   @override
