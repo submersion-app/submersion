@@ -1310,6 +1310,39 @@ void main() {
       );
       await tester.pump();
       expect(find.byType(QueryFilterButton), findsOneWidget);
+
+      await tester.tap(find.byType(QueryFilterButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(QueryFilterSheet), findsOneWidget);
+    });
+
+    testWidgets('clearing a query that keeps nothing clears only it', (
+      tester,
+    ) async {
+      final overrides = [
+        ...await _buildOverrides(trips: []),
+        tripFilterProvider.overrideWith(
+          (ref) => TripFilterState(query: liveaboard),
+        ),
+      ];
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(QueryNoMatchState),
+          matching: find.byType(OutlinedButton),
+        ),
+      );
+      await tester.pump();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripListContent)),
+      );
+      expect(container.read(tripFilterProvider).query, isNull);
     });
   });
 }

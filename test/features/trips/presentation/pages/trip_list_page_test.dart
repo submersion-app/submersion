@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -270,6 +271,28 @@ void main() {
       // The sort bottom sheet should appear with sort field options
       expect(find.text('Start Date'), findsOneWidget);
       expect(find.text('End Date'), findsOneWidget);
+    });
+
+    testWidgets('table mode query filter button opens the query sheet', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: baseOverrides(viewMode: ListViewMode.table),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(QueryFilterButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(QueryFilterSheet), findsOneWidget);
     });
 
     testWidgets('table mode search button opens search', (tester) async {

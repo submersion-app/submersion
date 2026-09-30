@@ -30,6 +30,19 @@ void main() {
     expect(f.query, regulators);
   });
 
+  test('two other conditions stay joined once the status is lifted', () {
+    final named = ConditionNode(
+      FieldPath(const ['name']),
+      QueryOp.contains,
+      const StringValue('apeks'),
+    );
+    final f = exploreEquipmentFilter(
+      AndNode([regulators, status('retired'), named]),
+    );
+    expect(f.status, EquipmentStatus.retired);
+    expect(f.query, AndNode([regulators, named]));
+  });
+
   test('no status keeps the default view and the whole query', () {
     final f = exploreEquipmentFilter(regulators);
     expect(f.status, isNull);

@@ -64,13 +64,21 @@ void main() {
         ),
       );
 
-  Future<void> dive(String id, String siteId, {double depth = 10}) => db
+  Future<void> dive(
+    String id,
+    String? siteId, {
+    double depth = 10,
+    String? tripId,
+    String? centerId,
+  }) => db
       .into(db.dives)
       .insert(
         DivesCompanion(
           id: Value(id),
           diverId: const Value('me'),
           siteId: Value(siteId),
+          tripId: Value(tripId),
+          diveCenterId: Value(centerId),
           maxDepth: Value(depth),
           diveDateTime: Value(now),
           createdAt: Value(now),
@@ -180,6 +188,133 @@ void main() {
       ListValue(const [EnumValue('retired')]),
     );
     expect((await rows(c)).map((x) => x.id), ['old']);
+  });
+
+  test('trips rank by their dives in the scope', () async {
+    for (final id in ['quiet', 'busy']) {
+      await db
+          .into(db.trips)
+          .insert(
+            TripsCompanion.insert(
+              id: id,
+              name: id,
+              startDate: now,
+              endDate: now,
+              createdAt: now,
+              updatedAt: now,
+            ).copyWith(diverId: const Value('me')),
+          );
+    }
+    await dive('1', null, tripId: 'busy');
+    await dive('2', null, tripId: 'busy');
+    await dive('3', null, tripId: 'quiet');
+    final c = await container();
+    c.read(exploreSubjectProvider.notifier).state = ParsedSubject.trips;
+
+    final r = await rows(c);
+    expect(r.map((x) => x.id), ['busy', 'quiet']);
+    expect(r.map((x) => x.dives), [2, 1]);
+  });
+
+  test('buddies narrow by their own fields and rank by dives', () async {
+    for (final (id, favourite) in [
+      ('amy', true),
+      ('bob', true),
+      ('cy', false),
+    ]) {
+      await db
+          .into(db.buddies)
+          .insert(
+            BuddiesCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: now,
+              updatedAt: now,
+            ).copyWith(
+              diverId: const Value('me'),
+              isFavorite: Value(favourite),
+            ),
+          );
+    }
+    await dive('1', null);
+    for (final (id, buddy) in [('j1', 'bob'), ('j2', 'cy')]) {
+      await db
+          .into(db.diveBuddies)
+          .insert(
+            DiveBuddiesCompanion.insert(
+              id: id,
+              diveId: '1',
+              buddyId: buddy,
+              createdAt: now,
+            ),
+          );
+    }
+    final c = await container();
+    c.read(exploreSubjectProvider.notifier).state = ParsedSubject.buddies;
+    c.read(exploreQueryNodeProvider.notifier).state = ConditionNode(
+      FieldPath(const ['favorite']),
+      QueryOp.eq,
+      const BoolValue(true),
+    );
+
+    final r = await rows(c);
+    expect(r.map((x) => x.id), ['bob', 'amy']);
+    expect(r.map((x) => x.dives), [1, 0]);
+  });
+
+  test('centers rank by their dives in the scope', () async {
+    for (final id in ['a', 'b']) {
+      await db
+          .into(db.diveCenters)
+          .insert(
+            DiveCentersCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: now,
+              updatedAt: now,
+            ).copyWith(diverId: const Value('me')),
+          );
+    }
+    await dive('1', null, centerId: 'b', depth: 30);
+    await dive('2', null, centerId: 'a', depth: 5);
+    final c = await container();
+    c.read(exploreSubjectProvider.notifier).state = ParsedSubject.centers;
+    c.read(exploreDiveScopeProvider.notifier).state = ConditionNode(
+      FieldPath(const ['depth']),
+      QueryOp.gte,
+      const NumberValue(20, null),
+    );
+
+    final r = await rows(c);
+    expect(r.map((x) => x.id), ['b', 'a']);
+    expect(r.map((x) => x.dives), [1, 0]);
+  });
+
+  test('seen species rank by the dives they were seen on', () async {
+    for (final id in ['turtle', 'ray']) {
+      await db
+          .into(db.species)
+          .insert(
+            SpeciesCompanion.insert(id: id, commonName: id, category: 'fish'),
+          );
+    }
+    await dive('1', null);
+    await dive('2', null);
+    for (final (id, d, sp) in [
+      ('s1', '1', 'turtle'),
+      ('s2', '2', 'turtle'),
+      ('s3', '2', 'ray'),
+    ]) {
+      await db
+          .into(db.sightings)
+          .insert(SightingsCompanion.insert(id: id, diveId: d, speciesId: sp));
+    }
+    final c = await container();
+    c.read(exploreSubjectProvider.notifier).state = ParsedSubject.species;
+
+    final r = await rows(c);
+    expect(r.map((x) => x.id), ['turtle', 'ray']);
+    expect(r.map((x) => x.dives), [2, 1]);
   });
 
   test('another subject leaves the dive providers empty', () async {
