@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 
+import '../../../../helpers/clock_expectations.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
@@ -643,6 +644,33 @@ void main() {
       )..where((t) => t.id.equals('tank-t1'))).getSingle();
       expect(after.computerId, targetRow.computerId);
       expect(after.computerId, 'comp-t');
+    });
+
+    test('the tank computer backfill carries a fresh clock (#2644)', () async {
+      await seedDive(
+        't',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        computerId: 'comp-t',
+        serial: 'SER-T',
+        tanks: [tank('tank-t1', o2: 21)],
+      );
+      await seedDive(
+        's',
+        entry: DateTime.utc(2026, 7, 1, 9, 1),
+        computerId: 'comp-s',
+        serial: 'SER-S',
+      );
+      final before = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals('tank-t1'))).getSingle();
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final after = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals('tank-t1'))).getSingle();
+      expect(after.computerId, 'comp-t');
+      expectFresherClock(before.hlc, after.hlc);
     });
 
     test(
