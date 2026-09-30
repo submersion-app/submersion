@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
@@ -32,10 +33,15 @@ class TripRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(TripRepository);
 
-  /// Emits whenever the `trips` table changes so list providers can
-  /// refresh after a sync or any other write.
-  Stream<void> watchTripsChanges() =>
-      _db.tableUpdates(TableUpdateQuery.onTable(_db.trips));
+  /// Emits whenever the `trips` table, or a profile's hidden trips, change,
+  /// so list providers refresh after a sync or any other write (a hide
+  /// changes which trips a profile sees, issue #2594).
+  Stream<void> watchTripsChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.trips),
+      TableUpdateQuery.onTable(_db.tripHides),
+    ]),
+  );
 
   /// Get all trips ordered by start date (most recent first)
   Future<List<domain.Trip>> getAllTrips({String? diverId}) async {
@@ -43,7 +49,7 @@ class TripRepository {
       final query = _db.select(_db.trips)
         ..orderBy([(t) => OrderingTerm.desc(t.startDate)]);
 
-      VisibilityFilter.applyToTrips(query, diverId);
+      VisibilityFilter.applyToTrips(_db, query, diverId);
 
       final rows = await query.get();
       return rows.map(_mapRowToTrip).toList();
@@ -77,6 +83,7 @@ class TripRepository {
       tableAlias: 'trips',
       diverId: diverId,
       conjunction: 'AND',
+      kind: SharedItemKind.trip,
     );
     final variables = [
       Variable.withString(searchTerm),
@@ -619,6 +626,7 @@ class TripRepository {
       tableAlias: 'trips',
       diverId: diverId,
       conjunction: 'AND',
+      kind: SharedItemKind.trip,
     );
     final variables = [
       Variable.withInt(dateMs),
@@ -654,6 +662,7 @@ class TripRepository {
       tableAlias: 't',
       diverId: diverId,
       conjunction: 'WHERE',
+      kind: SharedItemKind.trip,
     );
 
     // Build the JOIN condition: always match trip_id, and also match

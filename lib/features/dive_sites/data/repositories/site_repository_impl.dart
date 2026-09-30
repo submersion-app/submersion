@@ -89,7 +89,7 @@ class SiteRepository {
         final query = _db.select(_db.diveSites)
           ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
-        VisibilityFilter.applyToDiveSites(query, diverId);
+        VisibilityFilter.applyToDiveSites(_db, query, diverId);
 
         final rows = await query.get();
         return sortedByText(rows, (r) => r.name).map(_mapRowToSite).toList();
@@ -100,10 +100,15 @@ class SiteRepository {
     }
   }
 
-  /// Emits whenever the `dive_sites` table changes so list providers can
-  /// refresh after a sync or any other write.
-  Stream<void> watchSitesChanges() =>
-      _db.tableUpdates(TableUpdateQuery.onTable(_db.diveSites));
+  /// Emits whenever the `dive_sites` table, or a profile's hidden sites,
+  /// change, so list providers refresh after a sync or any other write (a
+  /// hide changes which sites a profile sees, issue #2594).
+  Stream<void> watchSitesChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.diveSites),
+      TableUpdateQuery.onTable(_db.siteHides),
+    ]),
+  );
 
   /// Get a single site by ID
   Future<domain.DiveSite?> getSiteById(String id) async {
@@ -1019,7 +1024,7 @@ class SiteRepository {
           )
           ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
-        VisibilityFilter.applyToDiveSites(searchQuery, diverId);
+        VisibilityFilter.applyToDiveSites(_db, searchQuery, diverId);
 
         final rows = await searchQuery.get();
         return sortedByText(rows, (r) => r.name).map(_mapRowToSite).toList();

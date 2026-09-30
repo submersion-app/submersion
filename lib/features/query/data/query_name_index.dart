@@ -68,17 +68,21 @@ class QueryNameIndexLoader {
     QuerySubject.species,
   ];
 
-  /// The tables a change tick must follow: the ref tables, and the share
-  /// table that makes another diver's equipment visible.
+  /// The tables a change tick must follow: the ref tables, the share
+  /// table that makes another diver's equipment visible, and the hides
+  /// that take a shared trip or site out of one diver's view (#2594).
   static Set<String> get tables => {
     for (final s in refSubjects) appQueryRegistry.entityFor(s).table,
     'equipment_shares',
+    'trip_hides',
+    'site_hides',
   };
 
   /// Every row the diver can see: their own, rows with no owner, and rows
   /// another diver shares, by the rules `VisibilityFilter` applies to the
   /// lists (#2046): an `is_shared` flag on sites and trips, an
-  /// `equipment_shares` row for equipment. A subject with no diver column
+  /// `equipment_shares` row for equipment, minus the shared trips and
+  /// sites the diver has hidden (#2594). A subject with no diver column
   /// (species) is global. Table and column names come from the registry's
   /// declared constants; the diver id is bound.
   Future<QueryNameIndex> load({String? diverId}) async {
@@ -108,7 +112,23 @@ class QueryNameIndexLoader {
             break;
         }
       }
-      final where = visible.isEmpty ? '' : 'WHERE ${visible.join(' OR ')}';
+      // A profile's hidden shared trips and sites (issue #2594) leave its
+      // name completion, as they leave its lists.
+      final hides = diverId == null
+          ? null
+          : switch (subject) {
+              QuerySubject.trips => (table: 'trip_hides', column: 'trip_id'),
+              QuerySubject.sites => (table: 'site_hides', column: 'site_id'),
+              _ => null,
+            };
+      if (hides != null) variables.add(Variable<String>(diverId));
+      final clauses = [
+        if (visible.isNotEmpty) '(${visible.join(' OR ')})',
+        if (hides != null)
+          't.${entity.idColumn} NOT IN '
+              '(SELECT ${hides.column} FROM ${hides.table} WHERE diver_id = ?)',
+      ];
+      final where = clauses.isEmpty ? '' : 'WHERE ${clauses.join(' AND ')}';
       final rows = await _db
           .customSelect(
             'SELECT t.${entity.idColumn} AS id, $nameSql AS label '
