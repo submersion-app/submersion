@@ -46,6 +46,8 @@ lets a deliberate clear be told apart from a stale or omitted value.
 | Remote with no `hlc` (tie or older peer) | Never clears. Today's behaviour. |
 | Writers that set a child value without restamping | Fixed in the same change, so no release carries the erase hazard described under "Writers". |
 | Undo paths that restore an older `hlc` | Out of scope; filed as a separate issue. |
+| Adopt (joining or rejoining a library) | Also lands clears, in replay order, beside the media fact clears (added after the whole-branch review). |
+| Nullable columns with a default | Not clearable: a fresh insert fills them, and the gear links' `updated_at` is the age signal the deletion guards read. |
 
 ## Design
 
@@ -102,6 +104,21 @@ Modelled on `writeFactGroup`:
 The `upsertRecord` doc comment keeps its #474 rule (no `.toCompanion(false)`
 on a clockless case) and gains a paragraph naming the clock-gated clear pass
 as the one way a clockless `null` lands.
+
+### 2b. Adopt
+
+Adopt replays the library it joins through the same null-dropping upsert,
+outside `_mergeEntity`, so a column a later change cleared kept its earlier
+value under the clock of the change that cleared it: every later copy of the
+row ties, and the merge rule could never repair it. Both adopt paths (the
+in-memory reference and the streaming production path) now call
+`_landAdoptedChildClears` beside `_landAdoptedFactClears`. Replay order is
+the resolution, so it passes every explicit null a row carries.
+
+Every exported row carries explicit nulls, so `clearChildColumns` groups rows
+by the columns they clear, sends one `UPDATE ... WHERE <key> IN (...)` per
+chunk of ids, and skips rows whose columns are already null. A per-row
+statement made a 2,000-row clear take 2,000 statements; it now takes 3.
 
 ### 3. Writers
 

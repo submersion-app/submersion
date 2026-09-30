@@ -1689,14 +1689,20 @@ class SyncDataSerializer {
     );
   }
 
-  /// Writes a peer's deliberate clears on parent-gated children (#2644).
+  /// Writes deliberate clears on parent-gated children (#2644).
   ///
   /// The upsert that applied each row builds with nullToAbsent, so a null it
   /// carries never lands. The merge collects the keys a strictly newer copy
-  /// set to null (see isNewerChildCopy) and hands them here; [clears] maps a
-  /// sync record id to those JSON keys. Only nullable columns outside the
+  /// set to null (see isNewerChildCopy), and adopt the keys each replayed
+  /// row sets to null, and both hand them here; [clears] maps a sync record
+  /// id to those JSON keys. Only nullable, undefaulted columns outside the
   /// row's key are written, so a malformed payload can neither fail on a
   /// NOT NULL column nor move a row.
+  ///
+  /// Rows clearing the same columns share one statement per chunk of ids,
+  /// and a row whose columns are already null is not rewritten: an adopt
+  /// replays every row, each carrying explicit nulls, and a statement per
+  /// row made a large adopt crawl.
   ///
   /// A junction applied lowest-id-per-pair can keep a local id over the
   /// remote one; its clear then matches no row. Those junctions carry no
@@ -1712,21 +1718,43 @@ class SyncDataSerializer {
     );
     final keys = _parentGatedKeyColumns[entityType] ?? const ['id'];
     final clearable = clearableColumns(table, keyColumns: keys);
+    final keysByColumns = <String, List<List<String>>>{};
     for (final MapEntry(key: recordId, value: jsonKeys) in clears.entries) {
-      final columns = {for (final k in jsonKeys) ?clearable[k]};
+      final columns = {for (final k in jsonKeys) ?clearable[k]}.toList()
+        ..sort();
       if (columns.isEmpty) continue;
       final keyValues = keys.length == 1 ? [recordId] : recordId.split('|');
       if (keyValues.length != keys.length) continue;
-      // customUpdate, not customStatement, so Drift's query streams rebuild
-      // (the same reason as writeFactGroup).
-      await _db.customUpdate(
-        'UPDATE "$tableName" '
-        'SET ${columns.map((c) => '"$c" = NULL').join(', ')} '
-        'WHERE ${keys.map((k) => '"$k" = ?').join(' AND ')}',
-        variables: [for (final v in keyValues) Variable.withString(v)],
-        updates: {table},
-        updateKind: UpdateKind.update,
-      );
+      (keysByColumns[columns.join(',')] ??= []).add(keyValues);
+    }
+    final keyList = keys.length == 1
+        ? '"${keys.single}"'
+        : '(${keys.map((k) => '"$k"').join(', ')})';
+    // A composite key binds a variable per column (see
+    // _fetchParentGatedChildren).
+    final perStatement = 900 ~/ keys.length;
+    for (final MapEntry(key: joined, value: rows) in keysByColumns.entries) {
+      final columns = joined.split(',');
+      for (var i = 0; i < rows.length; i += perStatement) {
+        final chunk = rows.sublist(i, math.min(i + perStatement, rows.length));
+        final placeholders = keys.length == 1
+            ? chunk.map((_) => '?').join(', ')
+            : 'VALUES ${chunk.map((_) => '(${keys.map((_) => '?').join(', ')})').join(', ')}';
+        // customUpdate, not customStatement, so Drift's query streams
+        // rebuild (the same reason as writeFactGroup).
+        await _db.customUpdate(
+          'UPDATE "$tableName" '
+          'SET ${columns.map((c) => '"$c" = NULL').join(', ')} '
+          'WHERE $keyList IN ($placeholders) '
+          'AND (${columns.map((c) => '"$c" IS NOT NULL').join(' OR ')})',
+          variables: [
+            for (final row in chunk)
+              for (final v in row) Variable.withString(v),
+          ],
+          updates: {table},
+          updateKind: UpdateKind.update,
+        );
+      }
     }
   }
 
@@ -3897,8 +3925,8 @@ class SyncDataSerializer {
   /// write (e.g. the consolidation `computerId` backfill). Do NOT add
   /// `.toCompanion(false)` to a clockless case -- it reintroduces that clobber.
   /// A parent-gated child's deliberate clear lands afterwards instead, through
-  /// [clearChildColumns], and only from a copy whose clock is strictly newer
-  /// (#2644).
+  /// [clearChildColumns]: on the merge only from a copy whose clock is
+  /// strictly newer, on adopt in replay order (#2644).
   Future<void> upsertRecord(
     String entityType,
     Map<String, dynamic> data,

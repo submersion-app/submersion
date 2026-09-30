@@ -1,8 +1,12 @@
+import 'dart:async';
+
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
+import '../../../helpers/bound_variables.dart';
 import '../../../helpers/test_database.dart';
 
 /// The write half of #2644: a peer's deliberate clears land as NULL on the
@@ -74,4 +78,56 @@ void main() {
     });
     expect((await tank())['transmitterSerial'], 'SER-1');
   });
+
+  test(
+    'rows clearing the same columns share one statement per chunk',
+    () async {
+      // An adopt replays every tank row, and each carries explicit nulls; a
+      // statement per row made a large adopt crawl.
+      await tearDownTestDatabase();
+      db = setUpLoggingTestDatabase();
+      serializer = SyncDataSerializer();
+      final ids = [for (var i = 0; i < 2000; i++) 'bt$i'];
+      await quietly(() async {
+        await db.customStatement('PRAGMA foreign_keys = OFF');
+        await db.batch(
+          (b) => b.insertAll(db.diveTanks, [
+            for (final id in ids)
+              DiveTanksCompanion.insert(
+                id: id,
+                diveId: 'd1',
+                transmitterSerial: const Value('SER'),
+              ),
+          ]),
+        );
+      });
+
+      var updates = 0;
+      final most = await maxBoundVariables(
+        () => runZoned(
+          () => serializer.clearChildColumns('diveTanks', {
+            for (final id in ids) id: {'transmitterSerial'},
+          }),
+          zoneSpecification: ZoneSpecification(
+            print: (self, parent, zone, line) {
+              if (line.startsWith('Drift: Sent UPDATE')) updates += 1;
+              parent.print(zone, line);
+            },
+          ),
+        ),
+      );
+
+      expect(updates, 3, reason: '2000 ids at 900 per statement');
+      expect(most, lessThanOrEqualTo(sqliteVariableLimit));
+      final left = await quietly(
+        () => db
+            .customSelect(
+              'SELECT COUNT(*) AS n FROM dive_tanks '
+              'WHERE transmitter_serial IS NOT NULL',
+            )
+            .getSingle(),
+      );
+      expect(left.read<int>('n'), 0);
+    },
+  );
 }

@@ -4559,6 +4559,7 @@ class SyncService {
         await _serializer.upsertRecord(entry.key, record);
       }
       await _landAdoptedFactClears(entry.key, entry.value.values);
+      await _landAdoptedChildClears(entry.key, entry.value.values);
     }
 
     await _serializer.repairDanglingForeignKeys();
@@ -4606,6 +4607,35 @@ class SyncService {
         if (clears) await _serializer.writeFactGroup(entityType, id, g, row);
       }
     }
+  }
+
+  /// Lands the explicit clears on parent-gated children an adopt's upsert
+  /// would drop (#2644).
+  ///
+  /// The same gap as [_landAdoptedFactClears]: without this, an adopted row
+  /// keeps a value the library cleared, under the clock of the change that
+  /// cleared it, so every later copy ties and nothing repairs it. As there,
+  /// the replay order is the resolution and there is no local side to weigh;
+  /// [SyncDataSerializer.clearChildColumns] skips the columns already null
+  /// and batches the rest.
+  Future<void> _landAdoptedChildClears(
+    String entityType,
+    Iterable<Map<String, dynamic>> rows,
+  ) async {
+    if (!SyncDataSerializer.parentGatedChildEntities.contains(entityType)) {
+      return;
+    }
+    final clears = <String, Set<String>>{};
+    for (final row in rows) {
+      final id = recordIdForEntity(entityType, row);
+      if (id == null) continue;
+      final nulls = {
+        for (final e in row.entries)
+          if (e.value == null) e.key,
+      };
+      if (nulls.isNotEmpty) clears[id] = nulls;
+    }
+    await _serializer.clearChildColumns(entityType, clears);
   }
 
   /// Test seam: in-memory adopt of [payloads] (the parity reference). Captures
@@ -4674,6 +4704,7 @@ class SyncService {
       if (valid.isEmpty) return;
       await _serializer.upsertRecords(table, valid);
       await _landAdoptedFactClears(table, valid);
+      await _landAdoptedChildClears(table, valid);
     }
 
     // Apply units: each base file and each changeset, ascending by exportedAt

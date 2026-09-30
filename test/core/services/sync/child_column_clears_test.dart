@@ -70,6 +70,21 @@ void main() {
       expect(cols.containsKey('o2Percent'), isFalse, reason: 'NOT NULL');
     });
 
+    test('a nullable column with a default is not clearable', () {
+      final cols = clearableColumns(
+        db.diveEquipment,
+        keyColumns: const ['dive_id', 'equipment_id'],
+      );
+      expect(cols['viaSetId'], 'via_set_id');
+      expect(
+        cols.containsKey('updatedAt'),
+        isFalse,
+        reason:
+            'a fresh insert fills it, and clearing it would erase the age '
+            'signal the deletion guards read',
+      );
+    });
+
     test('every parent-gated table: toJson keys are the camel-case column '
         'names', () async {
       await db.customStatement('PRAGMA foreign_keys = OFF');

@@ -36,14 +36,20 @@ String columnJsonKey(String sqlName) {
 }
 
 /// The columns of [table] a peer's null may clear, keyed by JSON key:
-/// nullable, not one of [keyColumns], and not the row clock. Anything else
-/// in a payload is ignored, so a malformed copy can neither fail on a
-/// NOT NULL column nor move a row's key.
+/// nullable, not one of [keyColumns], not the row clock, and without a
+/// default. Anything else in a payload is ignored, so a malformed copy can
+/// neither fail on a NOT NULL column nor move a row's key. A defaulted
+/// column (the gear links' `updated_at`) is filled by a fresh insert, and
+/// clearing it would erase the age signal the deletion guards read.
 Map<String, String> clearableColumns(
   TableInfo<Table, Object?> table, {
   required List<String> keyColumns,
 }) => {
   for (final c in table.$columns)
-    if (c.$nullable && c.$name != 'hlc' && !keyColumns.contains(c.$name))
+    if (c.$nullable &&
+        c.defaultValue == null &&
+        c.clientDefault == null &&
+        c.$name != 'hlc' &&
+        !keyColumns.contains(c.$name))
       columnJsonKey(c.$name): c.$name,
 };
