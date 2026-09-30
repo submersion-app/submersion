@@ -17,6 +17,8 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/mock_providers.dart';
+
 /// Settings > Shared data lists the shared trips and sites hidden from the
 /// active profile, each with Unhide (issue #2594).
 void main() {
@@ -27,15 +29,17 @@ void main() {
     createdAt: DateTime(2024),
     updatedAt: DateTime(2024),
   );
-  const items = [
+  final items = [
     HiddenItem(
       kind: SharedItemKind.trip,
       id: 'bonaire',
       name: 'Bonaire',
       ownerId: 'a',
       location: 'Kralendijk',
+      startDate: DateTime(2024, 3, 9),
+      endDate: DateTime(2024, 3, 16),
     ),
-    HiddenItem(
+    const HiddenItem(
       kind: SharedItemKind.site,
       id: 'pier',
       name: 'Salt Pier',
@@ -59,6 +63,7 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           hiddenItemsProvider.overrideWith((ref) async => hidden),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           allDiversProvider.overrideWith((_) async => [alice]),
           tripListNotifierProvider.overrideWith((ref) => trips),
           siteListNotifierProvider.overrideWith((ref) => sites),
@@ -82,6 +87,8 @@ void main() {
     expect(find.text('Bonaire'), findsOneWidget);
     expect(find.text('Salt Pier'), findsOneWidget);
     expect(find.textContaining('Shared by Alice'), findsNWidgets(2));
+    // A trip's dates tell two same-named trips apart (issue #2594 review).
+    expect(find.textContaining('Mar 9 - Mar 16, 2024'), findsOneWidget);
 
     await tester.tap(find.text('Unhide').first);
     await tester.pumpAndSettle();

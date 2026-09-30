@@ -293,6 +293,9 @@ void main() {
           isShared: true,
         ),
       ]);
+      // The title counts only what is deleted; the hidden one is only
+      // removed from this profile (issue #2594 review).
+      expect(find.text('Delete 1 item?'), findsOneWidget);
       expect(find.textContaining('1 trip will be deleted.'), findsOneWidget);
       expect(
         find.textContaining(

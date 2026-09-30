@@ -332,8 +332,10 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
+          // Counts only what is deleted: the body lines name the shared
+          // trips that are only removed from this profile.
           deleteCount > 0
-              ? ctx.l10n.common_bulkDelete_title(deleteCount + hideCount)
+              ? ctx.l10n.common_bulkDelete_title(deleteCount)
               : ctx.l10n.sharedItems_bulkRemoveTitle(hideCount),
         ),
         content: Text(

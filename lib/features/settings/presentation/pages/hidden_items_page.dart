@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
@@ -91,6 +93,11 @@ class _HiddenRow extends ConsumerWidget {
     title: Text(item.name),
     subtitle: Text(
       [
+        // A trip's dates tell two same-named trips apart.
+        if (item.kind == SharedItemKind.trip && item.startDate != null)
+          UnitFormatter(
+            ref.watch(settingsProvider),
+          ).formatDateRange(item.startDate, item.endDate, l10n: context.l10n),
         if (item.location case final location? when location.isNotEmpty)
           location,
         context.l10n.sharedItems_sharedBy(
