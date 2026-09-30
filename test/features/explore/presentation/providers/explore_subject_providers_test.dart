@@ -152,6 +152,36 @@ void main() {
     },
   );
 
+  test('retired gear is an answer when the sentence names retired', () async {
+    // The equipment list's unset status hides retired gear; Explore lifts
+    // the named status into that axis instead of contradicting it.
+    for (final (id, status) in [('old', 'retired'), ('kit', 'active')]) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              name: id,
+              type: 'regulator',
+              createdAt: now,
+              updatedAt: now,
+            ).copyWith(
+              status: Value(status),
+              isActive: Value(status == 'active'),
+              diverId: const Value('me'),
+            ),
+          );
+    }
+    final c = await container();
+    c.read(exploreSubjectProvider.notifier).state = ParsedSubject.equipment;
+    c.read(exploreQueryNodeProvider.notifier).state = ConditionNode(
+      FieldPath(const ['status']),
+      QueryOp.inList,
+      ListValue(const [EnumValue('retired')]),
+    );
+    expect((await rows(c)).map((x) => x.id), ['old']);
+  });
+
   test('another subject leaves the dive providers empty', () async {
     await site('a');
     await dive('1', 'a', depth: 30);

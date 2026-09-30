@@ -1,4 +1,6 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -58,6 +60,46 @@ final exploreSubjectCountsProvider = FutureProvider<Map<String, int>>((
       .watch(exploreRepositoryProvider)
       .diveCountsBySubject(subject, scope, diverId: diverId);
 });
+
+/// The equipment list's filter for an Explore query. The list's unset
+/// status hides retired and sold gear, so a status the sentence names
+/// ("my retired regulators") becomes that axis, lifted out of the query,
+/// rather than contradicting it. A negated status, or several, stays in the
+/// query under the default view.
+EquipmentFilterState exploreEquipmentFilter(QueryNode? node) {
+  EquipmentStatus? named(QueryNode n) {
+    if (n is! ConditionNode || n.op != QueryOp.inList) return null;
+    if (n.path != FieldPath(const ['status'])) return null;
+    final v = n.value;
+    if (v is! ListValue || v.items.length != 1) return null;
+    final item = v.items.single;
+    if (item is! EnumValue) return null;
+    return EquipmentStatus.values.where((s) => s.name == item.name).firstOrNull;
+  }
+
+  final parts = switch (node) {
+    null => const <QueryNode>[],
+    AndNode(:final children) => children,
+    _ => [node],
+  };
+  for (final part in parts) {
+    final status = named(part);
+    if (status == null) continue;
+    final rest = [
+      for (final p in parts)
+        if (!identical(p, part)) p,
+    ];
+    return EquipmentFilterState(
+      status: status,
+      query: switch (rest) {
+        [] => null,
+        [final only] => only,
+        _ => AndNode(rest),
+      },
+    );
+  }
+  return EquipmentFilterState(query: node);
+}
 
 /// [items] as ranked rows: most dives in the scope first, then by name.
 AsyncValue<List<ExploreSubjectRow>> _ranked<T extends Object>(
@@ -125,7 +167,7 @@ final exploreSubjectRowsProvider =
               ref.watch(allEquipmentProvider),
               ref.watch(
                 queryFilteredEquipmentIdsProvider((
-                  filter: EquipmentFilterState(query: node),
+                  filter: exploreEquipmentFilter(node),
                   diverId: diverId,
                 )),
               ),

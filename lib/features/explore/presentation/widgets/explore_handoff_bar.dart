@@ -7,10 +7,10 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_query_p
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_subject_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -81,9 +81,8 @@ class ExploreHandoffBar extends ConsumerWidget {
         );
         return '/sites';
       case ParsedSubject.equipment:
-        ref.read(equipmentFilterProvider.notifier).state = EquipmentFilterState(
-          query: node,
-        );
+        ref.read(equipmentFilterProvider.notifier).state =
+            exploreEquipmentFilter(node);
         return '/equipment';
       case ParsedSubject.buddies:
         ref.read(buddyQueryProvider.notifier).state = node;
