@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/database/database.dart' hide Diver;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -21,6 +22,7 @@ void main() {
   });
 
   late SharedPreferences prefs;
+  late AppDatabase db;
   final divers = [
     for (final (id, name) in [('d1', 'Alice'), ('d2', 'Bob')])
       Diver(
@@ -34,7 +36,7 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
-    final db = await setUpTestDatabase();
+    db = await setUpTestDatabase();
     await seedDivers(db, ['d1', 'd2']);
     await seedSite(db, 'pier', owner: 'd1', shared: true, name: 'Salt Pier');
     await seedDive(db, 'b1', diver: 'd2', siteId: 'pier');
@@ -42,7 +44,11 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  Future<void> pump(WidgetTester tester, {required String active}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    required String active,
+    VoidCallback? onDeleted,
+  }) async {
     tester.view.physicalSize = const Size(900, 3200);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -64,7 +70,7 @@ void main() {
               embedded: true,
               onSaved: (id) {},
               onCancel: () {},
-              onDeleted: () {},
+              onDeleted: onDeleted ?? () {},
             ),
           ),
         ),
@@ -124,5 +130,51 @@ void main() {
     await pump(tester, active: 'd1');
     await openLifeSection(tester);
     expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNotNull);
+  });
+
+  testWidgets('removing hides it for this profile, closes, and Undo restores', (
+    tester,
+  ) async {
+    var closed = 0;
+    await pump(tester, active: 'd2', onDeleted: () => closed++);
+    await tester.tap(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    expect(closed, 1);
+    final hides = await db.select(db.siteHides).get();
+    expect((hides.single.siteId, hides.single.diverId), ('pier', 'd2'));
+    expect(find.text('Removed from your profile'), findsOneWidget);
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(await db.select(db.siteHides).get(), isEmpty);
+  });
+
+  testWidgets('an owner whose site changed hands meanwhile is refused', (
+    tester,
+  ) async {
+    var closed = 0;
+    await pump(tester, active: 'd1', onDeleted: () => closed++);
+    // Another device handed the site to d2 after the page loaded.
+    await db.customStatement(
+      "UPDATE dive_sites SET diver_id = 'd2' WHERE id = 'pier'",
+    );
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.delete));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Only its owner can delete this site'), findsOneWidget);
+    expect(closed, 0);
+    expect(
+      await (db.select(
+        db.diveSites,
+      )..where((t) => t.id.equals('pier'))).getSingleOrNull(),
+      isNotNull,
+    );
   });
 }

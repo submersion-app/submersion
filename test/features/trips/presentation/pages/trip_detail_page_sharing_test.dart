@@ -42,6 +42,7 @@ void main() {
   Future<_RecordingTripListNotifier> pump(
     WidgetTester tester, {
     required String active,
+    bool allowed = true,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(390, 844);
@@ -49,7 +50,7 @@ void main() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
     });
-    final notifier = _RecordingTripListNotifier();
+    final notifier = _RecordingTripListNotifier(allowed: allowed);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -116,7 +117,41 @@ void main() {
     expect(notifier.hidden, ['shared-trip']);
     expect(notifier.deleted, isEmpty);
     expect(find.text('Removed from your profile'), findsOneWidget);
-    expect(find.text('Undo'), findsOneWidget);
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(notifier.unhidden, ['shared-trip']);
+  });
+
+  testWidgets('a refused remove stays on the page and says nothing', (
+    tester,
+  ) async {
+    final notifier = await pump(tester, active: 'd2', allowed: false);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove from my profile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.hidden, ['shared-trip']);
+    expect(find.text('Removed from your profile'), findsNothing);
+    expect(find.text('Shared by Alice'), findsOneWidget);
+  });
+
+  testWidgets('an owner whose trip changed hands meanwhile is refused', (
+    tester,
+  ) async {
+    final notifier = await pump(tester, active: 'd1', allowed: false);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.deleted, ['shared-trip']);
+    expect(find.text('Only its owner can delete this trip'), findsOneWidget);
+    expect(find.text('home'), findsNothing);
   });
 
   testWidgets('the owner deletes it, warned about other profiles\' dives', (
@@ -151,25 +186,29 @@ class _FakeHides extends Fake implements ProfileHidesRepository {
 class _RecordingTripListNotifier
     extends StateNotifier<AsyncValue<List<TripWithStats>>>
     implements TripListNotifier {
-  _RecordingTripListNotifier() : super(const AsyncValue.data([]));
+  _RecordingTripListNotifier({this.allowed = true})
+    : super(const AsyncValue.data([]));
 
+  /// What the repository answers: false when it refuses the action.
+  final bool allowed;
   final hidden = <String>[];
   final deleted = <String>[];
+  final unhidden = <String>[];
 
   @override
   Future<bool> hideTrip(String id) async {
     hidden.add(id);
-    return true;
+    return allowed;
   }
 
   @override
   Future<bool> deleteTrip(String id) async {
     deleted.add(id);
-    return true;
+    return allowed;
   }
 
   @override
-  Future<void> unhideTrip(String id) async {}
+  Future<void> unhideTrip(String id) async => unhidden.add(id);
 
   @override
   Future<void> refresh() async {}
