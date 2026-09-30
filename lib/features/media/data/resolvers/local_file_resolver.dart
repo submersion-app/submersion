@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' show Size;
 
 import 'package:flutter/services.dart' show PlatformException;
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
@@ -480,24 +481,26 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
       return _exifExtractor.extract(data.file);
     }
     if (data is BytesData) {
-      // Android: write bytes to a temp file, run extractor, delete.
-      final tmp = File('${Directory.systemTemp.path}/exif_${item.id}.bin');
+      // Android: write bytes to a temp file, run extractor, delete. Each
+      // call gets a directory of its own: a name derived from the item id
+      // alone let two concurrent calls for the same item (or two processes
+      // sharing TMPDIR) overwrite and delete each other's file mid-read.
+      final dir = await Directory.systemTemp.createTemp('exif_');
       try {
+        final tmp = File(p.join(dir.path, 'exif.bin'));
         await tmp.writeAsBytes(data.bytes);
         return await _exifExtractor.extract(tmp);
       } finally {
-        if (await tmp.exists()) {
-          try {
-            await tmp.delete();
-          }
-          // coverage:ignore-start
-          // FileSystemException on a tmpdir delete is not produced by
-          // flutter_test fixtures; cleanup is best-effort either way.
-          on FileSystemException {
-            // Best-effort cleanup.
-          }
-          // coverage:ignore-end
+        try {
+          await dir.delete(recursive: true);
         }
+        // coverage:ignore-start
+        // FileSystemException on a tmpdir delete is not produced by
+        // flutter_test fixtures; cleanup is best-effort either way.
+        on FileSystemException {
+          // Best-effort cleanup.
+        }
+        // coverage:ignore-end
       }
     }
     return null;

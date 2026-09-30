@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:ui' show Size;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/media/data/resolvers/local_file_resolver.dart';
 import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/media/domain/value_objects/verify_result.dar
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 
 /// Stub that bypasses keychain I/O. Always returns null from [read].
 class _NullBookmarkStorage extends LocalBookmarkStorage {
@@ -71,6 +73,28 @@ class _StubPlatform implements LocalMediaPlatform {
       throw UnimplementedError('${invocation.memberName} should not be called');
 }
 
+/// Real extractor that records every file it is handed, and can park the
+/// first call until [releaseFirst] completes so a test can interleave a
+/// second call inside it.
+class _SpyExifExtractor extends ExifExtractor {
+  _SpyExifExtractor({this.holdFirst = false});
+
+  final bool holdFirst;
+  final List<File> files = [];
+  final Completer<void> firstEntered = Completer<void>();
+  final Completer<void> releaseFirst = Completer<void>();
+
+  @override
+  Future<MediaSourceMetadata?> extract(File file) async {
+    files.add(file);
+    if (holdFirst && files.length == 1) {
+      firstEntered.complete();
+      await releaseFirst.future;
+    }
+    return super.extract(file);
+  }
+}
+
 MediaItem _localFile({
   String? localPath,
   String? bookmarkRef,
@@ -100,10 +124,11 @@ LocalFileResolver _resolver() => LocalFileResolver(
 LocalFileResolver _bookmarkResolver({
   required LocalBookmarkStorage bookmarkStorage,
   required LocalMediaPlatform platform,
+  ExifExtractor? exifExtractor,
 }) => LocalFileResolver(
   bookmarkStorage: bookmarkStorage,
   platform: platform,
-  exifExtractor: ExifExtractor(),
+  exifExtractor: exifExtractor ?? ExifExtractor(),
   usesSecurityScopedBookmarks: () => true,
 );
 
@@ -353,18 +378,57 @@ void main() {
     },
   );
 
-  test('extractMetadata cleans up the temp file after BytesData run', () async {
+  test('extractMetadata leaves no scratch file or directory behind after a '
+      'BytesData run', () async {
     final platform = _StubPlatform()
       ..onReadBookmarkBytes = ((blob) async =>
           Uint8List.fromList([0, 1, 2, 3]));
-    final item = _localFile(bookmarkRef: 'ref-cleanup');
+    final extractor = _SpyExifExtractor();
     final r = _bookmarkResolver(
       bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
       platform: platform,
+      exifExtractor: extractor,
     );
-    await r.extractMetadata(item);
-    final tmp = File('${Directory.systemTemp.path}/exif_${item.id}.bin');
-    expect(tmp.existsSync(), isFalse);
+
+    await r.extractMetadata(_localFile(bookmarkRef: 'ref-cleanup'));
+
+    // Check the exact location this call used, rather than rebuilding a
+    // name: a rebuilt path passes trivially the moment the name changes.
+    expect(extractor.files, hasLength(1));
+    final scratch = extractor.files.single;
+    final scratchDir = scratch.parent;
+    expect(scratch.existsSync(), isFalse);
+    // The file lives in a directory of its own, which is removed too; it
+    // never sits directly in the shared system temp directory.
+    expect(p.equals(scratchDir.path, Directory.systemTemp.path), isFalse);
+    expect(scratchDir.existsSync(), isFalse);
+  });
+
+  test('concurrent extractMetadata calls for the same BytesData item both '
+      'return metadata', () async {
+    final platform = _StubPlatform()
+      ..onReadBookmarkBytes = ((blob) async =>
+          Uint8List.fromList([0, 1, 2, 3]));
+    final extractor = _SpyExifExtractor(holdFirst: true);
+    final r = _bookmarkResolver(
+      bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
+      platform: platform,
+      exifExtractor: extractor,
+    );
+    final item = _localFile(bookmarkRef: 'ref-concurrent');
+
+    // Park the first call inside the extractor, after it has written its
+    // scratch file. The second call then writes, extracts and cleans up
+    // in full before the first one reads.
+    final first = r.extractMetadata(item);
+    await extractor.firstEntered.future;
+    final second = await r.extractMetadata(item);
+    extractor.releaseFirst.complete();
+    final firstResult = await first;
+
+    expect(second, isNotNull);
+    expect(firstResult, isNotNull);
+    expect(firstResult!.takenAt, isNotNull);
   });
   // Regression: a sandboxed macOS build can STAT a user file (~/Downloads)
   // but not OPEN it — File.exists() returns true while any read throws
