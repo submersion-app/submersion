@@ -98,15 +98,18 @@ String? otherProfilesDivesLine(
 
 /// A bulk-delete confirmation's lines: what is deleted (and how many of
 /// those are shared, so deleted for every profile), and what is only
-/// removed from the active profile. An empty half has no line.
+/// removed from the active profile. An empty half has no line. A caller
+/// whose dialog already states the delete count passes
+/// [includeDeleteCount] false.
 List<String> bulkDeleteLines(
   AppLocalizations l10n,
   SharedItemKind kind, {
   required int deleteCount,
   required int hideCount,
   int sharedDeleteCount = 0,
+  bool includeDeleteCount = true,
 }) => [
-  if (deleteCount > 0)
+  if (deleteCount > 0 && includeDeleteCount)
     switch (kind) {
       SharedItemKind.trip => l10n.sharedItems_bulkDeleteCount_trips(
         deleteCount,

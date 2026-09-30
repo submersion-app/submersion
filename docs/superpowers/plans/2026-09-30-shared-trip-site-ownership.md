@@ -18,7 +18,7 @@
 - Every new ARB key is added to `app_en.arb` (alphabetical position) and translated into all 11 locales: ar, de, en, es, fr, he, hu, it, nl, pt, zh. Non-English ARB files are grouped by feature, not alphabetical: insert next to a neighbouring key.
 - ARB plurals use `one{...}` and `other{...}` with the `{count}` placeholder inside the text, never `=1{1 ...}` with a hard-coded digit.
 - Never use the em-dash character or the en-dash as prose punctuation in code, comments, strings, commits or the PR.
-- No mention of Claude, Claude Code or Anthropic in commits, the PR or any file.
+- No tool or model attribution in commits, the PR or any file.
 - Paths in tests are built with `p.join`, never a literal `/`.
 - A test that replaces process-wide state restores it in `addTearDown`.
 - Import groups: dart, flutter, packages, then local (`package:submersion/...`).

@@ -450,6 +450,22 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
     return hidden;
   }
 
+  /// Hides other profiles' shared trips [ids] from the active profile only
+  /// (issue #2594), refreshing the list once. Returns how many are hidden
+  /// afterwards.
+  Future<int> hideTrips(List<String> ids) async {
+    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    if (diverId == null) return 0;
+    final hides = _ref.read(profileHidesRepositoryProvider);
+    var hidden = 0;
+    for (final id in ids) {
+      if (await hides.hide(SharedItemKind.trip, id, diverId)) hidden++;
+    }
+    await refresh();
+    _ref.invalidate(hiddenItemsProvider);
+    return hidden;
+  }
+
   /// Shows a hidden trip [id] to the active profile again.
   Future<void> unhideTrip(String id) async {
     final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);

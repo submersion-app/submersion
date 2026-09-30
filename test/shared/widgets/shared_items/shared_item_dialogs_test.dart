@@ -69,6 +69,24 @@ void main() {
     );
   });
 
+  test('bulkDeleteLines can leave the delete count to its caller', () {
+    expect(
+      bulkDeleteLines(
+        l10n,
+        SharedItemKind.site,
+        deleteCount: 2,
+        hideCount: 1,
+        sharedDeleteCount: 1,
+        includeDeleteCount: false,
+      ),
+      [
+        '1 of them is shared with other profiles and will be deleted for '
+            'everyone.',
+        '1 shared site will be removed from your profile only.',
+      ],
+    );
+  });
+
   testWidgets('confirmRemoveFromProfile shows owner, own dives and hint', (
     tester,
   ) async {

@@ -379,6 +379,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     DiveSite site,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
+    // Watched, as the trip page does, so the menu follows the profile once
+    // it has loaded (issue #2594).
+    final canDestroy = canDestroySharedItem(
+      ownerId: site.diverId,
+      activeDiverId: ref.watch(validatedCurrentDiverIdProvider).value,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -464,12 +470,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 displayOptionsMenuItem(context, 'displayOptions'),
                 // Delete for the owner; another profile only removes the
                 // shared site from itself (issue #2594).
-                if (canDestroySharedItem(
-                  ownerId: site.diverId,
-                  activeDiverId: ref
-                      .read(validatedCurrentDiverIdProvider)
-                      .value,
-                ))
+                if (canDestroy)
                   PopupMenuItem(
                     value: 'delete',
                     child: ListTile(

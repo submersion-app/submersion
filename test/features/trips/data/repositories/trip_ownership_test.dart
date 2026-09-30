@@ -64,8 +64,10 @@ void main() {
     expect(await trips.deleteTrip('shared'), isTrue);
   });
 
-  test('a missing trip reports false', () async {
-    expect(await trips.deleteTrip('nope', actingDiverId: 'a'), isFalse);
+  test('a trip already gone counts as deleted, not as refused', () async {
+    // Another device deleted it and sync removed the row meanwhile: the
+    // page must not tell its owner they do not own it.
+    expect(await trips.deleteTrip('nope', actingDiverId: 'a'), isTrue);
   });
 
   test('a non-owner\'s save cannot unshare it but still edits it', () async {

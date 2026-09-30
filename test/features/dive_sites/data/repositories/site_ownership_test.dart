@@ -38,6 +38,25 @@ void main() {
     expect(await tombstoneCount(db, ProfileHidesRepository.siteEntity), 1);
   });
 
+  test('a site already gone counts as deleted, not as refused', () async {
+    expect(await sites.deleteSite('nope', actingDiverId: 'b'), isTrue);
+  });
+
+  test(
+    'merge with a duplicate that is gone still reports it missing',
+    () async {
+      final survivor = (await sites.getSiteById('mine'))!;
+      await expectLater(
+        sites.mergeSites(
+          mergedSite: survivor,
+          siteIds: ['mine', 'gone'],
+          actingDiverId: 'b',
+        ),
+        throwsA(isA<StateError>()),
+      );
+    },
+  );
+
   test('a caller naming no profile deletes as before', () async {
     expect(await sites.deleteSite('theirs'), isTrue);
   });

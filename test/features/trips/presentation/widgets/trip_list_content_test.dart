@@ -48,19 +48,22 @@ class _MockTripListNotifier
   /// Ids bulk delete actually asked to remove.
   final deleted = <String>[];
 
+  /// What the repository answers: false refuses every delete and hide.
+  bool allowed = true;
+
   @override
   Future<bool> deleteTrip(String id) async {
     deleted.add(id);
-    return true;
+    return allowed;
   }
 
-  /// Ids bulk delete hid instead (issue #2594).
+  /// Ids bulk delete hid instead (issue #2594), in one batch.
   final hidden = <String>[];
 
   @override
-  Future<bool> hideTrip(String id) async {
-    hidden.add(id);
-    return true;
+  Future<int> hideTrips(List<String> ids) async {
+    hidden.addAll(ids);
+    return allowed ? ids.length : 0;
   }
 
   @override
@@ -314,6 +317,24 @@ void main() {
       await tester.pumpAndSettle();
       expect(notifier.deleted, ['mine']);
       expect(notifier.hidden, ['theirs']);
+    });
+
+    testWidgets('a bulk action the repository refuses shows no snackbar', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      notifier.allowed = false;
+      await tester.tap(find.text('Remove').hitTestable().last);
+      await tester.pumpAndSettle();
+      expect(notifier.hidden, ['theirs']);
+      expect(find.byType(SnackBar), findsNothing);
     });
 
     testWidgets('only another profile\'s shared trips: a remove, no delete', (

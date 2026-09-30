@@ -382,22 +382,19 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     for (final trip in split.destroy) {
       if (await notifier.deleteTrip(trip.id)) deleted++;
     }
-    var hidden = 0;
-    for (final trip in split.hide) {
-      if (await notifier.hideTrip(trip.id)) hidden++;
-    }
+    final hidden = split.hide.isEmpty
+        ? 0
+        : await notifier.hideTrips([for (final t in split.hide) t.id]);
 
     if (!mounted) return BulkActionOutcome.completed;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          [
-            if (deleted > 0) l10n.common_bulkDelete_snackbar(deleted),
-            if (hidden > 0) l10n.sharedItems_bulkHiddenSnackbar(hidden),
-          ].join(' · '),
-        ),
-      ),
-    );
+    final summary = [
+      if (deleted > 0) l10n.common_bulkDelete_snackbar(deleted),
+      if (hidden > 0) l10n.sharedItems_bulkHiddenSnackbar(hidden),
+    ];
+    // Nothing done (every action refused): no empty snackbar.
+    if (summary.isNotEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(summary.join(' · '))));
+    }
     return BulkActionOutcome.completed;
   }
 

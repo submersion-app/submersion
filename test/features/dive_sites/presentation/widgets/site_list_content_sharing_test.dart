@@ -93,7 +93,13 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('selection_delete')));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('1 site will be deleted.'), findsOneWidget);
+    // The site list's own line states the delete count, with its Undo
+    // window; the shared-item lines do not repeat it.
+    expect(find.textContaining('1 site will be deleted.'), findsNothing);
+    expect(
+      find.textContaining('Are you sure you want to delete 1 site?'),
+      findsOneWidget,
+    );
     expect(
       find.textContaining(
         '1 of them is shared with other profiles and will be deleted for '

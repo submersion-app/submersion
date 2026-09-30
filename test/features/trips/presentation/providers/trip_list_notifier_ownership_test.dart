@@ -69,4 +69,17 @@ void main() {
     );
     expect(await TripRepository().getTripById('shared'), isNull);
   });
+
+  test('hideTrips hides a batch and counts only what it hid', () async {
+    await seedTrip(db, 'second', owner: 'a', shared: true);
+    await seedTrip(db, 'own', owner: 'b', shared: true);
+    final c = await containerFor('b');
+    final hidden = await c.read(tripListNotifierProvider.notifier).hideTrips([
+      'shared',
+      'second',
+      'own',
+    ]);
+    expect(hidden, 2);
+    expect(listed(c), ['own']);
+  });
 }

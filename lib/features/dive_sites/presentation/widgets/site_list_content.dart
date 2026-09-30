@@ -380,6 +380,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               deleteCount: deleteCount,
               hideCount: hideCount,
               sharedDeleteCount: sharedDeleteCount,
+              // The site list's own line below states it, with its Undo.
+              includeDeleteCount: false,
             ),
             if (deleteCount > 0)
               withSiteDeleteUsage(
@@ -425,17 +427,17 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       _deletedSites = deleted;
       _hiddenSiteIds = hideIds;
 
-      if (mounted) {
+      final summary = [
+        if (deleted != null && deleted.sites.isNotEmpty)
+          l10n.diveSites_list_bulkDelete_snackbar(deleted.sites.length),
+        if (hidden > 0) l10n.sharedItems_bulkHiddenSnackbar(hidden),
+      ];
+      // Nothing done (every action refused): no empty snackbar.
+      if (mounted && summary.isNotEmpty) {
         scaffoldMessenger.clearSnackBars();
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text(
-              [
-                if (deleted != null && deleted.sites.isNotEmpty)
-                  l10n.diveSites_list_bulkDelete_snackbar(deleted.sites.length),
-                if (hidden > 0) l10n.sharedItems_bulkHiddenSnackbar(hidden),
-              ].join(' · '),
-            ),
+            content: Text(summary.join(' · ')),
             duration: const Duration(seconds: 5),
             showCloseIcon: true,
             action: SnackBarAction(

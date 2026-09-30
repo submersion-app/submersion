@@ -542,6 +542,26 @@ class SiteRepository {
     ];
   }
 
+  /// Which of [ids] exist and belong to another profile, so [actingDiverId]
+  /// may not destroy them (issue #2594). An id with no row is not listed.
+  Future<List<String>> _notDestroyableSiteIds(
+    List<String> ids,
+    String? actingDiverId,
+  ) async {
+    if (ids.isEmpty || actingDiverId == null) return const [];
+    final rows = await (_db.select(
+      _db.diveSites,
+    )..where((t) => t.id.isIn(ids))).get();
+    return [
+      for (final r in rows)
+        if (!canDestroySharedItem(
+          ownerId: r.diverId,
+          activeDiverId: actingDiverId,
+        ))
+          r.id,
+    ];
+  }
+
   /// Deletes the site rows and, when [cascadeMedia], their media: site-only
   /// rows die with the site (rows + tombstones + blob-delete intents via the
   /// coordinator's enqueue-before-delete path); dive-linked and
@@ -617,14 +637,15 @@ class SiteRepository {
   /// to restore.
   ///
   /// Returns false, with nothing changed, for a site another profile owns
-  /// or one that does not exist (issue #2594).
+  /// (issue #2594). A site already gone (deleted on another device) counts
+  /// as deleted and returns true.
   Future<bool> deleteSite(
     String id, {
     bool cascadeMedia = true,
     String? actingDiverId,
   }) async {
     try {
-      if ((await _destroyableSiteIds([id], actingDiverId)).isEmpty) {
+      if ((await _notDestroyableSiteIds([id], actingDiverId)).isNotEmpty) {
         _log.warning('Refused to delete site $id: another profile owns it');
         return false;
       }
@@ -731,8 +752,12 @@ class SiteRepository {
     final duplicateIds = orderedIds.skip(1).toList(growable: false);
     // Only sites the profile may destroy are merged away (issue #2594); a
     // survivor another profile owns keeps its owner and sharing.
-    final destroyable = await _destroyableSiteIds(duplicateIds, actingDiverId);
-    if (destroyable.length != duplicateIds.length) {
+    // A duplicate that is gone falls through to the 'Sites not found'
+    // check below rather than being taken for another profile's.
+    if ((await _notDestroyableSiteIds(
+      duplicateIds,
+      actingDiverId,
+    )).isNotEmpty) {
       _log.warning('Refused to merge away sites another profile owns');
       return null;
     }

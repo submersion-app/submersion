@@ -2423,6 +2423,9 @@ class _MockTripListNotifier
   Future<bool> hideTrip(String id) async => true;
 
   @override
+  Future<int> hideTrips(List<String> ids) async => ids.length;
+
+  @override
   Future<void> unhideTrip(String id) async {}
 
   @override
@@ -2466,6 +2469,9 @@ class _ThrowingTripListNotifier
 
   @override
   Future<bool> hideTrip(String id) async => true;
+
+  @override
+  Future<int> hideTrips(List<String> ids) async => ids.length;
 
   @override
   Future<void> unhideTrip(String id) async {}

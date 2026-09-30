@@ -318,7 +318,8 @@ class TripRepository {
   /// Delete a trip and all associated child records, when [actingDiverId]
   /// may (issue #2594): its owner, anyone for an ownerless trip, and any
   /// caller that names no profile. Returns false, with nothing changed, for
-  /// a trip another profile owns or one that does not exist.
+  /// a trip another profile owns. A trip already gone (deleted on another
+  /// device) counts as deleted and returns true.
   ///
   /// Removes liveaboard details, itinerary days and the other children,
   /// tombstones every profile's hide of the trip, and clears the trip from
@@ -340,7 +341,7 @@ class TripRepository {
       final row = await (_db.select(
         _db.trips,
       )..where((t) => t.id.equals(id))).getSingleOrNull();
-      if (row == null) return false;
+      if (row == null) return true;
       if (!canDestroySharedItem(
         ownerId: row.diverId,
         activeDiverId: actingDiverId,
