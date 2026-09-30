@@ -26149,6 +26149,78 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'Általad tervezve';
 
   @override
+  String get trips_cylinders_segment_record => 'Kimutatás';
+
+  @override
+  String get trips_cylinders_recordEmpty =>
+      'Még nincs merülés ezekből a palackokból.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count töltés rögzítve',
+      one: '$count töltés rögzítve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés kimaradt',
+      one: '$count merülés kimaradt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count csomagos töltés',
+      one: '$count csomagos töltés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülési palack nincs hozzárendelve',
+      one: '$count merülési palack nincs hozzárendelve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle => 'Nincs palackhoz rendelve';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return '$number. palack';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'Töltve: $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'Mért: $mix';
+  }
+
+  @override
+  String get trips_cylinders_record_exported => 'Gázkimutatás exportálva';
+
+  @override
   String get trips_cylinders_title => 'Palackok';
 
   @override

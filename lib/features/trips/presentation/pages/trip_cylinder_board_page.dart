@@ -10,9 +10,11 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/add_trip_cylinders_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_ledger_view.dart';
+import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_record_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_slot_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_fill_forecast_banner.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_fill_forecast_strip.dart';
@@ -31,6 +33,8 @@ List<String> reorderedIds(List<String> ids, int oldIndex, int newIndex) {
 /// The trip's cylinder board: every slot with its state (reorderable) or
 /// the ledger of every fill and adjustment, with actions to add slots and
 /// to fill several at once.
+enum _BoardView { board, ledger, record }
+
 class TripCylinderBoardPage extends ConsumerStatefulWidget {
   final String tripId;
 
@@ -42,7 +46,7 @@ class TripCylinderBoardPage extends ConsumerStatefulWidget {
 }
 
 class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage> {
-  bool _showLedger = false;
+  _BoardView _view = _BoardView.board;
 
   @override
   Widget build(BuildContext context) {
@@ -97,33 +101,43 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage> {
           ],
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: SegmentedButton<bool>(
+            child: SegmentedButton<_BoardView>(
               key: const Key('board-segment'),
               segments: [
                 ButtonSegment(
-                  value: false,
+                  value: _BoardView.board,
                   label: Text(l10n.trips_cylinders_segment_board),
                 ),
                 ButtonSegment(
-                  value: true,
+                  value: _BoardView.ledger,
                   label: Text(l10n.trips_cylinders_segment_ledger),
                 ),
+                ButtonSegment(
+                  value: _BoardView.record,
+                  label: Text(l10n.trips_cylinders_segment_record),
+                ),
               ],
-              selected: {_showLedger},
-              onSelectionChanged: (s) => setState(() => _showLedger = s.first),
+              selected: {_view},
+              onSelectionChanged: (s) => setState(() => _view = s.first),
             ),
           ),
           Expanded(
-            child: _showLedger
-                ? TripCylinderLedgerView(
-                    tripId: tripId,
-                    states: states,
-                    centerNames: centerNames,
-                  )
-                : TripCylinderBoardList(
-                    states: states,
-                    centerNames: centerNames,
-                  ),
+            child: switch (_view) {
+              _BoardView.board => TripCylinderBoardList(
+                states: states,
+                centerNames: centerNames,
+              ),
+              _BoardView.ledger => TripCylinderLedgerView(
+                tripId: tripId,
+                states: states,
+                centerNames: centerNames,
+              ),
+              _BoardView.record => TripCylinderRecordView(
+                tripId: tripId,
+                tripName: ref.watch(tripByIdProvider(tripId)).value?.name ?? '',
+                centerNames: centerNames,
+              ),
+            },
           ),
         ],
       );

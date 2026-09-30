@@ -7445,6 +7445,66 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Planeado por si",
+  "trips_cylinders_segment_record": "Consumo",
+  "trips_cylinders_recordEmpty": "Ainda não há mergulhos com estes cilindros.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} enchimento registado} other{{count} enchimentos registados}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} mergulho não contado} other{{count} mergulhos não contados}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} enchimento em pacote} other{{count} enchimentos em pacote}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} cilindro de mergulho não ligado} other{{count} cilindros de mergulho não ligados}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "Não ligados a um cilindro",
+  "trips_cylinders_record_tank": "Cilindro {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "Enchido a {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "Analisado {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "Consumo de gás exportado",
   "trips_cylinders_title": "Cilindros",
   "trips_cylinders_summary": "Cheios {full} · Parciais {partial} · Vazios {empty}",
   "@trips_cylinders_summary": {

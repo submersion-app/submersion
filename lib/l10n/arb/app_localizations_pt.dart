@@ -26231,6 +26231,79 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'Planeado por si';
 
   @override
+  String get trips_cylinders_segment_record => 'Consumo';
+
+  @override
+  String get trips_cylinders_recordEmpty =>
+      'Ainda não há mergulhos com estes cilindros.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count enchimentos registados',
+      one: '$count enchimento registado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos não contados',
+      one: '$count mergulho não contado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count enchimentos em pacote',
+      one: '$count enchimento em pacote',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cilindros de mergulho não ligados',
+      one: '$count cilindro de mergulho não ligado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle =>
+      'Não ligados a um cilindro';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'Cilindro $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'Enchido a $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'Analisado $mix';
+  }
+
+  @override
+  String get trips_cylinders_record_exported => 'Consumo de gás exportado';
+
+  @override
   String get trips_cylinders_title => 'Cilindros';
 
   @override

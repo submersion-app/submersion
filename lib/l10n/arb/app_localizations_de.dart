@@ -26181,6 +26181,79 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'Von dir geplant';
 
   @override
+  String get trips_cylinders_segment_record => 'Protokoll';
+
+  @override
+  String get trips_cylinders_recordEmpty =>
+      'Noch keine Tauchgänge mit diesen Flaschen.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Füllungen erfasst',
+      one: '$count Füllung erfasst',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge nicht gezählt',
+      one: '$count Tauchgang nicht gezählt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Füllungen im Paket',
+      one: '$count Füllung im Paket',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgangsflaschen ohne Reiseflasche',
+      one: '$count Tauchgangsflasche ohne Reiseflasche',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle =>
+      'Keiner Flasche zugeordnet';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'Flasche $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'Gefüllt auf $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'Analysiert $mix';
+  }
+
+  @override
+  String get trips_cylinders_record_exported => 'Gasprotokoll exportiert';
+
+  @override
   String get trips_cylinders_title => 'Flaschen';
 
   @override
