@@ -7617,6 +7617,28 @@ class DiveRepository {
           ),
         );
 
+        // Publish the change: nothing was marked here, so a primary chosen
+        // on this device never reached another one (#2644). Every source of
+        // the dive had its flag written, so each is marked, which also
+        // restamps it; the dive row itself was edited above, so it is a
+        // real dive edit and is marked too (#1769 forbids that only for a
+        // child-only change).
+        final sources = await (_db.select(
+          _db.diveDataSources,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        for (final source in sources) {
+          await _syncRepository.markRecordPending(
+            entityType: 'diveDataSources',
+            recordId: source.id,
+            localUpdatedAt: now,
+          );
+        }
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
+        );
+
         // Swap isPrimary on the profile series.
         //
         // Resolve what to promote BEFORE demoting anything (issue #1149).
