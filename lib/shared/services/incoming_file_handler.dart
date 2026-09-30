@@ -2,8 +2,12 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/shared/services/shared_file_unreadable_exception.dart';
+
+const _log = LoggerService('IncomingFileHandler');
 
 /// What the caller should do once [handleIncomingFile] has processed a
 /// file.
@@ -92,4 +96,31 @@ Future<bool> handleIncomingFiles({
 
   await notifier.loadFilesFromPaths(paths);
   return true;
+}
+
+/// Surfaces a failed share-sheet intent: writes [error] to the log and shows
+/// the diver a snackbar, so a share never ends in silence (#2689).
+///
+/// A [SharedFileUnreadableException] whose share still imported other files
+/// reads [someUnreadableMessage] with the number skipped; everything else,
+/// that exception included when nothing was readable, reads
+/// [readFailedMessage].
+void reportIncomingFileError(
+  Object error, {
+  required ScaffoldMessengerState? messenger,
+  String? readFailedMessage,
+  String Function(int count)? someUnreadableMessage,
+}) {
+  _log.warning('A shared file could not be imported', error: error);
+
+  final String message;
+  if (error is SharedFileUnreadableException && !error.nothingReadable) {
+    final count = error.unreadablePaths.length;
+    message =
+        someUnreadableMessage?.call(count) ??
+        '$count file(s) could not be read and were skipped';
+  } else {
+    message = readFailedMessage ?? 'Could not read file';
+  }
+  messenger?.showSnackBar(SnackBar(content: Text(message)));
 }
