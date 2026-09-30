@@ -120,6 +120,13 @@ class FeatureAppBarTitle extends ConsumerWidget {
   Widget _titleBlock() =>
       TitleWithSubtitle(title: _titleText(), subtitle: subtitle);
 
+  static NavDestination? _navDestination(String featureId) {
+    for (final candidate in kNavDestinations) {
+      if (candidate.id == featureId) return candidate;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final color = resolveFeatureAccent(
@@ -128,16 +135,8 @@ class FeatureAppBarTitle extends ConsumerWidget {
       surface: AccentSurface.header,
       featureId: featureId,
     );
-    if (color == null) return _titleBlock();
-
-    NavDestination? destination;
-    for (final candidate in kNavDestinations) {
-      if (candidate.id == featureId) {
-        destination = candidate;
-        break;
-      }
-    }
-    if (destination == null) return _titleBlock();
+    final destination = color == null ? null : _navDestination(featureId);
+    if (color == null || destination == null) return _titleBlock();
 
     return Row(
       mainAxisSize: MainAxisSize.min,

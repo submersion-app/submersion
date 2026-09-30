@@ -241,10 +241,12 @@ void main() {
       EquipmentFilterState? filter,
       bool showAppBar = true,
       EquipmentHeaderToggleBuilder? toggleBuilder,
+      ListViewMode viewMode = ListViewMode.detailed,
     }) async {
       final overrides = await _buildPhoneOverrides(
         items: items,
         filter: filter,
+        viewMode: viewMode,
       );
       await tester.pumpWidget(
         testApp(
@@ -279,6 +281,29 @@ void main() {
       );
 
       expect(find.text('1 of 2 items'), findsOneWidget);
+    });
+
+    testWidgets('table view counts under the toggle until selecting', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        showAppBar: false,
+        viewMode: ListViewMode.table,
+        toggleBuilder: (_) => const Text('Equipment | Sets'),
+      );
+      expect(
+        find.descendant(
+          of: find.byType(EquipmentHeaderBar),
+          matching: find.text('2 items'),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 items'), findsNothing);
     });
 
     testWidgets('the pane header counts under the section toggle', (

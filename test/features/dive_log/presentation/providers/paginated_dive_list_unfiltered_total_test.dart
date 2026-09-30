@@ -166,6 +166,44 @@ void main() {
     expect(state.unfilteredTotalCount, 4);
   });
 
+  // Table mode loads every dive and its filtered subset in full.
+  group('diveTableCountProvider', () {
+    Future<ListEntryCount?> tableCount(ProviderContainer container) async {
+      final sub = container.listen(diveTableCountProvider, (_, _) {});
+      addTearDown(sub.close);
+      for (var i = 0; i < 200; i++) {
+        final count = container.read(diveTableCountProvider);
+        if (count != null) return count;
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      return container.read(diveTableCountProvider);
+    }
+
+    test('counts every dive with no filter', () async {
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+
+      expect(await tableCount(container), const ListEntryCount.unfiltered(3));
+    });
+
+    test('counts the filtered dives against every dive', () async {
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+      container.read(diveFilterProvider.notifier).state = const DiveFilterState(
+        favoritesOnly: true,
+      );
+
+      expect(
+        await tableCount(container),
+        const ListEntryCount.filtered(shown: 1, total: 3),
+      );
+    });
+  });
+
   test('the count is null while the list loads', () {
     final container = makeContainer();
     expect(container.read(diveListCountProvider), isNull);

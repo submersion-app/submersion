@@ -378,12 +378,15 @@ void main() {
         });
 
         testWidgets('follows a custom title (accent $state)', (tester) async {
+          // Built at runtime, not const, the way a header passes a live count.
+          final label = ['12', 'items'].join(' ');
+          final count = SubtitleText(label);
           await tester.pumpWidget(
             _harness(
-              const FeatureAppBarTitle.custom(
+              FeatureAppBarTitle.custom(
                 featureId: 'equipment',
-                subtitle: SubtitleText('12 items'),
-                child: SizedBox(key: customKey, width: 120, height: 20),
+                subtitle: count,
+                child: const SizedBox(key: customKey, width: 120, height: 20),
               ),
               headerOn: headerOn,
             ),
