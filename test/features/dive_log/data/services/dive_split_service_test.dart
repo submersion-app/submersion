@@ -541,12 +541,26 @@ void main() {
     await insertTankPressureSeriesRow('dive-1', sharedTank, 'dc-b');
     final serializer = SyncDataSerializer();
     final published = (await serializer.fetchRecord('diveTanks', sharedTank))!;
+    // This device publishes everything so far; the split's changes are
+    // what the next changeset carries.
+    final base = await serializer.exportChangeset(
+      deviceId: 'test-device',
+      hlcWatermark: null,
+      deletions: await db.select(db.deletionLog).get(),
+    );
+    await db.customStatement('DELETE FROM sync_records');
 
     await service.split(diveId: 'dive-1', sourceId: 'src-b');
 
-    // What the split publishes for the tank: it is marked pending, so the
-    // next changeset carries this row.
-    final sent = (await serializer.fetchRecord('diveTanks', sharedTank))!;
+    final changeset = await serializer.exportChangeset(
+      deviceId: 'test-device',
+      hlcWatermark: base.toHlc,
+      deletions: await db.select(db.deletionLog).get(),
+    );
+    final sent = changeset.data.diveTanks.singleWhere(
+      (t) => t['id'] == sharedTank,
+    );
+    expect(sent.containsKey('computerId'), isTrue);
     expect(sent['computerId'], isNull);
 
     // A peer still holding the tank as it was before the split.
