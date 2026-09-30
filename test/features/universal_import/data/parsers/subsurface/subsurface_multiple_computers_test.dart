@@ -152,6 +152,22 @@ $computers
     });
   });
 
+  test('a computer dated with no time starts at midnight', () async {
+    // The date reader is shared by the dive and each further computer; a
+    // missing time reads as midnight rather than dropping the date.
+    final dives = await parseDives('''
+<dive number='1' date='2025-03-10' duration='40:00 min'>
+$perdix
+${teric(attributes: " date='2025-03-10' time='00:01:00'")}
+</dive>''');
+
+    expect(dives.single['dateTime'], DateTime.utc(2025, 3, 10));
+    final tericReading =
+        (dives.single['additionalComputers'] as List).single
+            as Map<String, dynamic>;
+    expect(tericReading['timeOffsetSeconds'], 60);
+  });
+
   test('a dive with one computer carries no additional computers', () async {
     final dives = await parseDives(dive(perdix));
 
