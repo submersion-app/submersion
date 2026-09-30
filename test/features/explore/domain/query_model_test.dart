@@ -34,7 +34,7 @@ void main() {
   test('parses the sample sentence payload', () {
     final q = ParsedQuery.fromJson(sample());
     expect(q.schemaVersion, kQuerySchemaVersion);
-    expect(q.subject, QuerySubject.dives);
+    expect(q.subject, ParsedSubject.dives);
     expect(q.clauses, hasLength(2));
     expect(q.clauses.first.field, 'depth');
     expect(q.clauses.first.op, ClauseOp.gt);
@@ -194,7 +194,7 @@ void main() {
         'schemaVersion': kQuerySchemaVersion,
         'subject': 'dives',
       }).subject,
-      QuerySubject.dives,
+      ParsedSubject.dives,
     );
   });
 
@@ -234,6 +234,6 @@ void main() {
 
   test('a version 1 parse still reads: every v1 payload is valid v2', () {
     final q = ParsedQuery.fromJson(sample()..['schemaVersion'] = 1);
-    expect(q.subject, QuerySubject.dives);
+    expect(q.subject, ParsedSubject.dives);
   });
 }

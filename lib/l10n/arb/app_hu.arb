@@ -4069,6 +4069,14 @@
   "passport_logFill_station": "Töltőállomás",
   "passport_logFill_analyzer": "Elemző",
   "passport_logFill_analysedHint": "Add meg a mért értékeket",
+  "passport_trip_title": "Utak",
+  "passport_trip_none": "Nincs útra bepakolva",
+  "passport_trip_packedFor": "Bepakolva: {trip}",
+  "passport_trip_more": "+{count}",
+  "passport_trip_assign": "Bepakolás egy útra",
+  "passport_trip_unassign": "Kivétel ebből az útból",
+  "passport_trip_onBoard": "Az út palacktábláján",
+  "passport_trip_failed": "Nem sikerült módosítani az utat. Próbáld újra.",
   "passport_logFill_notes": "Jegyzetek",
   "passport_logFill_invalidMix": "Az O2 és a He értéke 0 és 100 közé essen, összegük legfeljebb 100 lehet",
   "passport_logFill_saveFailed": "A töltés mentése nem sikerült. Próbálja újra.",
@@ -5433,6 +5441,50 @@
   "plannerMission_disableConfirm": "Kikapcsolás",
   "plannerMission_disableMessage": "Az útvonal és a csapat törlődik. A generált profil szerkeszthető, normál szakaszokként megmarad.",
   "plannerMission_disableTitle": "Kikapcsolod a DPV-küldetést?",
+  "plannerMission_results_legRow": "{leg}: {line}",
+  "plannerMission_results_listSeparator": ", ",
+  "plannerMission_results_memberLine": "{name}: {status}",
+  "plannerMission_results_memberLineExits": "{name}: {status} ({exits})",
+  "plannerMission_results_abandonmentUnknown": "Nem sikerült megállapítani, mely pontokról lehet kijutni",
+  "plannerMission_results_safeSurfaceUnknown": "Biztonságos felszín: nem sikerült kiszámítani",
+  "plannerMission_chip_issues": "{count, plural, =1{Küldetés: {count} probléma} other{Küldetés: {count} probléma}}",
+  "plannerMission_factor_battery": "akkumulátortartalék",
+  "plannerMission_factor_blockedByCurrent": "a kijutást elzáró áramlás",
+  "plannerMission_factor_exposure": "oxigénterhelés",
+  "plannerMission_factor_noFeasibleTow": "nincs járható vontatás",
+  "plannerMission_factor_ownGas": "saját gáz",
+  "plannerMission_factor_scenarioFailed": "egy meghibásodási forgatókönyv, amelyet nem sikerült kiszámítani",
+  "plannerMission_factor_surfaceSwimLimit": "a felszíni úszás korlátja",
+  "plannerMission_factor_teamGas": "egy csapattárs gáza",
+  "plannerMission_results_abandonment": "Az utolsó pont, ahonnan mindenki kijut: {waypoint}",
+  "plannerMission_results_assumptions": "Akkumulátortartalék: az üzemidő {reserve}%-a. Akinek a scootere meghibásodik, az első megállóig a saját RMV-jével lélegzik, a terv stresszszorzójával megemelve.",
+  "plannerMission_results_battery": "Akkumulátor: az üzemidő {percent}%-a ({minutes}′), tartalék {reserve}%",
+  "plannerMission_results_bindsAt": "Korlát {waypoint} pontnál: {factor}",
+  "plannerMission_results_blocked": "A küldetés még nem számítható ki:",
+  "plannerMission_results_cannotGetOut": "nem jut ki",
+  "plannerMission_results_computing": "A meghibásodási forgatókönyvek számítása folyamatban",
+  "plannerMission_results_failed": "A küldetést nem sikerült kiszámítani",
+  "plannerMission_results_home": "{distance} egyenesen a bejáratig",
+  "plannerMission_results_legLine": "oda {outSpeed} {outMinutes}′, vissza {backSpeed} {backMinutes}′",
+  "plannerMission_results_legs": "Szakaszok",
+  "plannerMission_results_limitedBy": "Korlátozó tényező {waypoint} pontnál: {factor} ({name}, {scooter})",
+  "plannerMission_results_limitedByDiver": "Korlátozó tényező {waypoint} pontnál: {factor} ({name})",
+  "plannerMission_results_noAbandonment": "Egyik pontról sem lehet minden meghibásodásnál kijutni",
+  "plannerMission_results_noBuddy": "nincs társ",
+  "plannerMission_results_noLimit": "Nincs korlát ezen az útvonalon",
+  "plannerMission_results_notComputed": "nem sikerült kiszámítani",
+  "plannerMission_results_safeSurface": "Biztonságos felszín {minutes}′ alatt",
+  "plannerMission_results_setsCruise": "Ez határozza meg a csapat utazósebességét",
+  "plannerMission_results_surface": "felszín {minutes}′",
+  "plannerMission_results_surfaceViaShore": "felszín a parton át {minutes}′",
+  "plannerMission_results_survives": "kijut",
+  "plannerMission_results_swim": "úszás {minutes}′",
+  "plannerMission_results_title": "Küldetés",
+  "plannerMission_results_tow": "vontatja: {name} {minutes}′",
+  "plannerMission_results_turnPressure": "Visszafordulás {pressure} értéknél",
+  "plannerMission_results_unconstrained": "Bármely scooter meghibásodásakor minden pontról ki lehet jutni",
+  "plannerMission_results_waypointLine": "{distance}, érkezés {minutes}′",
+  "plannerMission_results_waypoints": "Pontok",
   "plannerMission_profile_segment": "{depth}, {minutes} perc",
   "plannerMission_enableConfirm": "Csere",
   "plannerMission_enableMessage": "A küldetés az útvonalból és a csapatból építi fel a profilt, ezért a terv szakaszai lecserélődnek. Ha később kikapcsolod a küldetést, a küldetés profilja marad meg, nem ezek a szakaszok.",
@@ -7210,6 +7262,11 @@
       }
     }
   },
+  "trips_gear_title": "Felszerelés",
+  "trips_gear_none": "Még nincs bepakolt felszerelés",
+  "trips_gear_add": "Felszerelés hozzáadása",
+  "trips_gear_remove": "Kivétel",
+  "trips_gear_failed": "Nem sikerült módosítani a felszerelést. Próbáld újra.",
   "trips_cylinders_forecast_todayShort": "Ma {needed} kell, {full} teli van.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
@@ -7270,6 +7327,66 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Általad tervezve",
+  "trips_cylinders_segment_record": "Kimutatás",
+  "trips_cylinders_recordEmpty": "Még nincs merülés ezekből a palackokból.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} töltés rögzítve} other{{count} töltés rögzítve}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} merülés kimaradt} other{{count} merülés kimaradt}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} csomagos töltés} other{{count} csomagos töltés}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} merülési palack nincs hozzárendelve} other{{count} merülési palack nincs hozzárendelve}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "Nincs palackhoz rendelve",
+  "trips_cylinders_record_tank": "{number}. palack",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "Töltve: {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "Mért: {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "Gázkimutatás exportálva",
   "trips_cylinders_title": "Palackok",
   "trips_cylinders_summary": "Tele {full} · Részben {partial} · Üres {empty}",
   "@trips_cylinders_summary": {

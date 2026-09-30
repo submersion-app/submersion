@@ -102,8 +102,14 @@ extension RungsFromV231 on AppDatabase {
       await _assertDerivedMetricsTable();
     }
     if (from < 247) await reportProgress();
+    // v248: gear packed for a trip (issue #2338). Table-only rung, no
+    // backfill; re-asserted in beforeOpen.
+    if (from < 248) {
+      await _assertTripEquipmentSchema();
+    }
+    if (from < 248) await reportProgress();
     // v249: the trip fill forecast's inputs (issue #2325, PR 4). Columns
-    // only, no backfill; re-asserted in beforeOpen. 248 is held by #2585.
+    // only, no backfill; re-asserted in beforeOpen. 248 is #2585.
     if (from < 249) {
       await _assertTripFillForecastColumns();
     }

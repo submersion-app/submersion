@@ -5,6 +5,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
+import 'package:submersion/features/planner/presentation/providers/mission_issues_provider.dart';
+import 'package:submersion/features/planner/presentation/providers/mission_outcome_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -155,6 +158,7 @@ class PlanStatusChips extends ConsumerWidget {
           ),
         const ContingencyPreviewChip(),
         const FollowingChip(),
+        MissionIssuesChip(onTap: onIssuesTap),
       ],
     );
   }
@@ -235,6 +239,41 @@ class FollowingChip extends ConsumerWidget {
       tint: Theme.of(context).colorScheme.tertiary,
       onTap: () =>
           ref.read(divePlanNotifierProvider.notifier).clearFollowedDive(),
+    );
+  }
+}
+
+/// Blocking DPV mission issues, visible from every tab. Hidden when the plan
+/// has no mission or the mission computes cleanly.
+class MissionIssuesChip extends ConsumerWidget {
+  const MissionIssuesChip({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final missionOn = ref.watch(
+      divePlanNotifierProvider.select((s) => s.mission != null),
+    );
+    // The computed outcome knows every blocking issue, including the plan
+    // engine's own; until it lands, or if it failed, the issues known
+    // without computing stand in, so the chip never waits on the isolate.
+    final known = ref.watch(missionBlockingIssuesProvider);
+    final result = ref.watch(missionOutcomeProvider);
+    // A previous outcome kept while a newer edit computes, or after it
+    // failed, describes an older mission: count what is known now.
+    final outcome = result.isLoading || result.hasError ? null : result.value;
+    if (!missionOn) return const SizedBox.shrink();
+    final blocking = outcome == null
+        ? known.length
+        : outcome.issues
+              .where((i) => i.severity == MissionIssueSeverity.blocking)
+              .length;
+    if (blocking == 0) return const SizedBox.shrink();
+    return PlanChip(
+      label: context.l10n.plannerMission_chip_issues(blocking),
+      tint: Theme.of(context).colorScheme.error,
+      onTap: onTap,
     );
   }
 }

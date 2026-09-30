@@ -218,6 +218,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     TripCylinderEvents,
     // Saved Connections maps (v235, issue #2322)
     ConnectionMaps,
+    // Gear packed for a trip (v248, issue #2338)
+    TripEquipment,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -1004,10 +1006,14 @@ class AppDatabase extends _$AppDatabase {
     // fields read (issue #2195, phase 2). A table with no hlc, never synced,
     // so the floor does not move. 246 is held by #2409 (open).
     247,
+    // v248: trip_equipment, gear packed for a trip (issue #2338).
+    // Table-only rung, no backfill; the floor does not move. 246 is held by
+    // #2409 and 247 went to #2195 (Explore derived metrics).
+    248,
     // v249: the trip fill forecast's inputs (issue #2325, PR 4): trips
     // divers sharing and dives per day, itinerary planned dives, dive
     // center fill hours. Additive columns, so the floor does not move. 248
-    // is held by #2585 (open).
+    // is trip_equipment (#2338).
     249,
   ];
 

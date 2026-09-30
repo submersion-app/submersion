@@ -195,10 +195,8 @@ class DerivedMetricsRepository {
             if (diverId != null) Variable(diverId),
           ],
           readsFrom: {
-            _db.dives,
             _db.diveDerivedMetricsRows,
-            _db.diveProfileSeries,
-            _db.tankPressureSeries,
+            ...diveSourceStampTables(_db),
           },
         )
         .get();

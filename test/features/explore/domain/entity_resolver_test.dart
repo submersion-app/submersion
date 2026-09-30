@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/explore/domain/entity_resolver.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 void main() {
@@ -13,7 +14,7 @@ void main() {
     String? attrKey,
     String? attrChoice,
   }) => NameEntry(
-    kind: k,
+    subject: mentionScope(k).subject,
     label: label,
     ids: ids,
     target: t,
@@ -128,15 +129,15 @@ void main() {
   group('a pinned identity', () {
     // Two buddies with the SAME name: text alone can never tell them apart,
     // so the diver's pick is carried as the entry's identity.
-    const twins = NameIndex([
+    final twins = NameIndex(const [
       NameEntry(
-        kind: MentionKind.buddy,
+        subject: QuerySubject.buddies,
         label: 'John Smith',
         ids: ['john-a'],
         target: NameTarget.buddyId,
       ),
       NameEntry(
-        kind: MentionKind.buddy,
+        subject: QuerySubject.buddies,
         label: 'John Smith',
         ids: ['john-b'],
         target: NameTarget.buddyId,
@@ -180,5 +181,41 @@ void main() {
       );
       expect(res, isA<Ambiguous>());
     });
+  });
+
+  test('a pinned identity keeps its stored format and still wins', () {
+    final index = NameIndex(const [
+      NameEntry(
+        subject: QuerySubject.buddies,
+        label: 'John Smith',
+        ids: ['b1'],
+        target: NameTarget.buddyId,
+        primary: true,
+      ),
+      NameEntry(
+        subject: QuerySubject.buddies,
+        label: 'John Smith',
+        ids: ['b2'],
+        target: NameTarget.buddyId,
+        primary: true,
+      ),
+    ]);
+    final r = resolveMention(
+      const QueryMention(
+        kind: MentionKind.buddy,
+        text: 'John Smith',
+        identity: 'buddyId:b2:::',
+      ),
+      index,
+    );
+    expect((r as Resolved).entry.ids, ['b2']);
+  });
+
+  test('mentionKindOf inverts mentionScope for every target', () {
+    for (final kind in MentionKind.values) {
+      for (final t in mentionScope(kind).targets) {
+        expect(mentionKindOf(t), kind, reason: t.name);
+      }
+    }
   });
 }

@@ -31,6 +31,7 @@ import 'package:submersion/features/equipment/data/repositories/cylinder_gear_li
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 
 /// One item's exposure as [EquipmentRepository.getItemExposure] wires it:
 /// its parent, its parts still fitted, whether it breathes a loop, and the
@@ -616,6 +617,8 @@ class EquipmentRepository {
         // Shares and their event log (issue #2046): deleted and tombstoned
         // before the row, like the tag links, so every peer drops them too.
         await EquipmentShareRepository().deleteForEquipment(id);
+        // Trip packing links (issue #2338), tombstoned like the shares.
+        await TripEquipmentRepository().deleteForEquipment(id);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(

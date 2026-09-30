@@ -8,7 +8,6 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/resolvers/local_file_resolver.dart';
-import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
@@ -79,7 +78,6 @@ void main() {
           MediaSourceType.localFile: LocalFileResolver(
             bookmarkStorage: _NullBookmarkStorage(),
             platform: LocalMediaPlatform(),
-            exifExtractor: ExifExtractor(),
             localDeviceId: () async => 'me',
           ),
         }),

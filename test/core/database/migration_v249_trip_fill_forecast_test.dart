@@ -41,8 +41,10 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 249);
     expect(AppDatabase.migrationVersions, contains(249));
-    expect(AppDatabase.migrationVersions, isNot(contains(248)));
-    expect(AppDatabase.migrationStepCount(247), 1);
+    // 248 (trip_equipment, #2338) sits below this rung.
+    expect(AppDatabase.migrationVersions, contains(248));
+    expect(AppDatabase.migrationStepCount(248), 1);
+    expect(AppDatabase.migrationStepCount(247), 2);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

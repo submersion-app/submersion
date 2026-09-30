@@ -340,6 +340,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerMission_buddyPicker_title => 'Elegir un compañero';
 
   @override
+  String plannerMission_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Misión: $count problemas',
+      one: 'Misión: $count problema',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get plannerMission_current_setsToward => 'Fluye hacia';
 
   @override
@@ -374,6 +385,33 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plannerMission_environment_overhead => 'Techo';
+
+  @override
+  String get plannerMission_factor_battery => 'reserva de batería';
+
+  @override
+  String get plannerMission_factor_blockedByCurrent =>
+      'una corriente que bloquea la salida';
+
+  @override
+  String get plannerMission_factor_exposure => 'exposición al oxígeno';
+
+  @override
+  String get plannerMission_factor_noFeasibleTow => 'ningún remolque viable';
+
+  @override
+  String get plannerMission_factor_ownGas => 'gas propio';
+
+  @override
+  String get plannerMission_factor_scenarioFailed =>
+      'un escenario de avería que no se pudo calcular';
+
+  @override
+  String get plannerMission_factor_surfaceSwimLimit =>
+      'el límite de nado en superficie';
+
+  @override
+  String get plannerMission_factor_teamGas => 'el gas de un compañero';
 
   @override
   String get plannerMission_issue_batteryReserveInvalid =>
@@ -503,6 +541,176 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plannerMission_profile_title => 'Perfil generado';
+
+  @override
+  String plannerMission_results_abandonment(String waypoint) {
+    return 'Último punto desde el que todos pueden salir: $waypoint';
+  }
+
+  @override
+  String get plannerMission_results_abandonmentUnknown =>
+      'No se pudo determinar qué puntos permiten salir';
+
+  @override
+  String plannerMission_results_assumptions(String reserve) {
+    return 'Reserva de batería del $reserve % de la autonomía. El buceador cuyo scooter se avería respira su propio RMV aumentado por el factor de estrés del plan hasta la primera parada.';
+  }
+
+  @override
+  String plannerMission_results_battery(
+    String minutes,
+    String percent,
+    String reserve,
+  ) {
+    return 'Batería $percent % de la autonomía ($minutes′), reserva $reserve %';
+  }
+
+  @override
+  String plannerMission_results_bindsAt(String factor, String waypoint) {
+    return 'Límite en $waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_blocked =>
+      'La misión aún no se puede calcular:';
+
+  @override
+  String get plannerMission_results_cannotGetOut => 'no puede salir';
+
+  @override
+  String get plannerMission_results_computing =>
+      'Calculando los escenarios de avería';
+
+  @override
+  String get plannerMission_results_failed => 'No se pudo calcular la misión';
+
+  @override
+  String plannerMission_results_home(String distance) {
+    return '$distance en línea recta hasta la entrada';
+  }
+
+  @override
+  String plannerMission_results_legLine(
+    String backMinutes,
+    String backSpeed,
+    String outMinutes,
+    String outSpeed,
+  ) {
+    return 'ida $outSpeed $outMinutes′, vuelta $backSpeed $backMinutes′';
+  }
+
+  @override
+  String plannerMission_results_legRow(String leg, String line) {
+    return '$leg: $line';
+  }
+
+  @override
+  String get plannerMission_results_legs => 'Tramos';
+
+  @override
+  String plannerMission_results_limitedBy(
+    String factor,
+    String name,
+    String scooter,
+    String waypoint,
+  ) {
+    return 'Limitado por el $scooter de $name en $waypoint: $factor';
+  }
+
+  @override
+  String plannerMission_results_limitedByDiver(
+    String factor,
+    String name,
+    String waypoint,
+  ) {
+    return 'Limitado por $name en $waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_listSeparator => ', ';
+
+  @override
+  String plannerMission_results_memberLine(String name, String status) {
+    return '$name: $status';
+  }
+
+  @override
+  String plannerMission_results_memberLineExits(
+    String exits,
+    String name,
+    String status,
+  ) {
+    return '$name: $status ($exits)';
+  }
+
+  @override
+  String get plannerMission_results_noAbandonment =>
+      'Ningún punto permite salir ante cualquier avería';
+
+  @override
+  String get plannerMission_results_noBuddy => 'sin compañero';
+
+  @override
+  String get plannerMission_results_noLimit => 'Sin límite en esta ruta';
+
+  @override
+  String get plannerMission_results_notComputed => 'no se pudo calcular';
+
+  @override
+  String plannerMission_results_safeSurface(String minutes) {
+    return 'Superficie segura en $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown =>
+      'Superficie segura: no se pudo calcular';
+
+  @override
+  String get plannerMission_results_setsCruise =>
+      'Marca la velocidad de crucero del equipo';
+
+  @override
+  String plannerMission_results_surface(String minutes) {
+    return 'superficie $minutes′';
+  }
+
+  @override
+  String plannerMission_results_surfaceViaShore(String minutes) {
+    return 'superficie por la orilla $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_survives => 'sale';
+
+  @override
+  String plannerMission_results_swim(String minutes) {
+    return 'nado $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_title => 'Misión';
+
+  @override
+  String plannerMission_results_tow(String minutes, String name) {
+    return 'remolque de $name $minutes′';
+  }
+
+  @override
+  String plannerMission_results_turnPressure(String pressure) {
+    return 'Dar la vuelta a $pressure';
+  }
+
+  @override
+  String get plannerMission_results_unconstrained =>
+      'Desde cada punto se puede salir ante la avería de cualquier scooter';
+
+  @override
+  String plannerMission_results_waypointLine(String distance, String minutes) {
+    return '$distance, llegada $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_waypoints => 'Puntos';
 
   @override
   String get plannerMission_route_addLeg => 'Añadir tramo';
@@ -13306,6 +13514,35 @@ class AppLocalizationsEs extends AppLocalizations {
       'Introduce los valores que analizaste';
 
   @override
+  String get passport_trip_title => 'Viajes';
+
+  @override
+  String get passport_trip_none => 'Sin viaje asignado';
+
+  @override
+  String passport_trip_packedFor(String trip) {
+    return 'Preparado para $trip';
+  }
+
+  @override
+  String passport_trip_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get passport_trip_assign => 'Preparar para un viaje';
+
+  @override
+  String get passport_trip_unassign => 'Quitar de este viaje';
+
+  @override
+  String get passport_trip_onBoard => 'En el tablero de botellas del viaje';
+
+  @override
+  String get passport_trip_failed =>
+      'No se pudo cambiar el viaje. Inténtalo de nuevo.';
+
+  @override
   String get passport_logFill_notes => 'Notas';
 
   @override
@@ -25765,6 +26002,22 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => 'Equipo';
+
+  @override
+  String get trips_gear_none => 'Aún no hay equipo preparado';
+
+  @override
+  String get trips_gear_add => 'Añadir equipo';
+
+  @override
+  String get trips_gear_remove => 'Quitar';
+
+  @override
+  String get trips_gear_failed =>
+      'No se pudo cambiar el equipo. Inténtalo de nuevo.';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Hoy se necesitan $needed, tienes $full llenas.';
   }
@@ -25818,6 +26071,79 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_cylinders_forecast_dayPlanned => 'Planificado por ti';
+
+  @override
+  String get trips_cylinders_segment_record => 'Consumo';
+
+  @override
+  String get trips_cylinders_recordEmpty =>
+      'Aún no hay inmersiones con estas botellas.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cargas registradas',
+      one: '$count carga registrada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones sin contar',
+      one: '$count inmersión sin contar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cargas en paquete',
+      one: '$count carga en paquete',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count botellas de inmersión sin enlazar',
+      one: '$count botella de inmersión sin enlazar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle =>
+      'Sin enlazar a una botella';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'Botella $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'Cargada a $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'Analizado $mix';
+  }
+
+  @override
+  String get trips_cylinders_record_exported => 'Consumo de gas exportado';
 
   @override
   String get trips_cylinders_title => 'Botellas';

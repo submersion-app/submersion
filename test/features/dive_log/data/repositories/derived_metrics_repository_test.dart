@@ -369,4 +369,30 @@ void main() {
       expect(rebuilt!.sourceUpdatedAt, now + (now - 50));
     },
   );
+
+  test('a synced tank row change makes the row stale', () async {
+    // A tank's volume and identity live on dive_tanks, whose own clock is
+    // the only thing a synced copy of it moves.
+    await insertDive('d1', updatedAt: now);
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(id: 't1', diveId: 'd1').copyWith(
+            volume: const Value(11.1),
+            hlc: const Value('000000000005000:000000:peer'),
+          ),
+        );
+    final r = repo();
+    await r.ensureCurrent('d1');
+    expect(await r.staleDiveIds(), isEmpty);
+
+    await (db.update(db.diveTanks)..where((t) => t.id.equals('t1'))).write(
+      const DiveTanksCompanion(
+        volume: Value(12.0),
+        hlc: Value('000000000006000:000000:peer'),
+      ),
+    );
+    expect(await r.staleDiveIds(), ['d1']);
+    expect((await r.ensureCurrent('d1'))!.sourceUpdatedAt, now + 6000);
+  });
 }

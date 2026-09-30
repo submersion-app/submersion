@@ -4069,6 +4069,14 @@
   "passport_logFill_station": "Stazione di ricarica",
   "passport_logFill_analyzer": "Analizzatore",
   "passport_logFill_analysedHint": "Inserisci i valori analizzati",
+  "passport_trip_title": "Viaggi",
+  "passport_trip_none": "Non preparato per un viaggio",
+  "passport_trip_packedFor": "Preparato per {trip}",
+  "passport_trip_more": "+{count}",
+  "passport_trip_assign": "Prepara per un viaggio",
+  "passport_trip_unassign": "Togli da questo viaggio",
+  "passport_trip_onBoard": "Sulla bacheca bombole del viaggio",
+  "passport_trip_failed": "Impossibile modificare il viaggio. Riprova.",
   "passport_logFill_notes": "Note",
   "passport_logFill_invalidMix": "O2 ed He devono essere tra 0 e 100 e sommare al massimo 100",
   "passport_logFill_saveFailed": "Impossibile salvare la ricarica. Riprova.",
@@ -5433,6 +5441,50 @@
   "plannerMission_disableConfirm": "Disattiva",
   "plannerMission_disableMessage": "Il percorso e la squadra vengono rimossi. Il profilo generato resta come segmenti normali modificabili.",
   "plannerMission_disableTitle": "Disattivare la missione DPV?",
+  "plannerMission_results_legRow": "{leg}: {line}",
+  "plannerMission_results_listSeparator": ", ",
+  "plannerMission_results_memberLine": "{name}: {status}",
+  "plannerMission_results_memberLineExits": "{name}: {status} ({exits})",
+  "plannerMission_results_abandonmentUnknown": "Non è stato possibile stabilire da quali punti si può uscire",
+  "plannerMission_results_safeSurfaceUnknown": "Superficie sicura: non è stato possibile calcolarla",
+  "plannerMission_chip_issues": "{count, plural, =1{Missione: {count} problema} other{Missione: {count} problemi}}",
+  "plannerMission_factor_battery": "riserva della batteria",
+  "plannerMission_factor_blockedByCurrent": "una corrente che blocca l'uscita",
+  "plannerMission_factor_exposure": "esposizione all'ossigeno",
+  "plannerMission_factor_noFeasibleTow": "nessun traino praticabile",
+  "plannerMission_factor_ownGas": "il proprio gas",
+  "plannerMission_factor_scenarioFailed": "uno scenario di guasto che non è stato possibile calcolare",
+  "plannerMission_factor_surfaceSwimLimit": "il limite di nuoto in superficie",
+  "plannerMission_factor_teamGas": "il gas di un compagno",
+  "plannerMission_results_abandonment": "Ultimo punto da cui tutti possono uscire: {waypoint}",
+  "plannerMission_results_assumptions": "Riserva della batteria {reserve}% dell'autonomia. Chi ha lo scooter in avaria respira il proprio RMV aumentato del fattore di stress del piano fino alla prima sosta.",
+  "plannerMission_results_battery": "Batteria {percent}% dell'autonomia ({minutes}′), riserva {reserve}%",
+  "plannerMission_results_bindsAt": "Limite a {waypoint}: {factor}",
+  "plannerMission_results_blocked": "La missione non può ancora essere calcolata:",
+  "plannerMission_results_cannotGetOut": "non può uscire",
+  "plannerMission_results_computing": "Calcolo degli scenari di guasto in corso",
+  "plannerMission_results_failed": "Non è stato possibile calcolare la missione",
+  "plannerMission_results_home": "{distance} in linea retta fino all'ingresso",
+  "plannerMission_results_legLine": "andata {outSpeed} {outMinutes}′, ritorno {backSpeed} {backMinutes}′",
+  "plannerMission_results_legs": "Tratti",
+  "plannerMission_results_limitedBy": "Limitato dallo {scooter} di {name} a {waypoint}: {factor}",
+  "plannerMission_results_limitedByDiver": "Limitato da {name} a {waypoint}: {factor}",
+  "plannerMission_results_noAbandonment": "Nessun punto consente di uscire con qualsiasi guasto",
+  "plannerMission_results_noBuddy": "nessun compagno",
+  "plannerMission_results_noLimit": "Nessun limite su questo percorso",
+  "plannerMission_results_notComputed": "non è stato possibile calcolarlo",
+  "plannerMission_results_safeSurface": "Superficie sicura in {minutes}′",
+  "plannerMission_results_setsCruise": "Determina la velocità di crociera della squadra",
+  "plannerMission_results_surface": "superficie {minutes}′",
+  "plannerMission_results_surfaceViaShore": "superficie dalla riva {minutes}′",
+  "plannerMission_results_survives": "esce",
+  "plannerMission_results_swim": "nuoto {minutes}′",
+  "plannerMission_results_title": "Missione",
+  "plannerMission_results_tow": "trainato da {name} {minutes}′",
+  "plannerMission_results_turnPressure": "Inversione a {pressure}",
+  "plannerMission_results_unconstrained": "Da ogni punto si esce con il guasto di qualsiasi scooter",
+  "plannerMission_results_waypointLine": "{distance}, arrivo {minutes}′",
+  "plannerMission_results_waypoints": "Punti",
   "plannerMission_profile_segment": "{depth}, {minutes} min",
   "plannerMission_enableConfirm": "Sostituisci",
   "plannerMission_enableMessage": "La missione costruisce il profilo dal percorso e dalla squadra, quindi i segmenti di questo piano vengono sostituiti. Se in seguito disattivi la missione, resta il profilo della missione, non questi segmenti.",
@@ -7206,6 +7258,11 @@
       }
     }
   },
+  "trips_gear_title": "Attrezzatura",
+  "trips_gear_none": "Nessuna attrezzatura preparata",
+  "trips_gear_add": "Aggiungi attrezzatura",
+  "trips_gear_remove": "Togli",
+  "trips_gear_failed": "Impossibile modificare l'attrezzatura. Riprova.",
   "trips_cylinders_forecast_todayShort": "Oggi ne servono {needed}, ne hai {full} piene.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
@@ -7266,6 +7323,66 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Pianificato da te",
+  "trips_cylinders_segment_record": "Consumi",
+  "trips_cylinders_recordEmpty": "Ancora nessuna immersione con queste bombole.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} ricarica registrata} other{{count} ricariche registrate}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} immersione esclusa} other{{count} immersioni escluse}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} ricarica nel pacchetto} other{{count} ricariche nel pacchetto}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} bombola di immersione non collegata} other{{count} bombole di immersione non collegate}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "Non collegate a una bombola",
+  "trips_cylinders_record_tank": "Bombola {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "Ricaricata a {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "Analizzato {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "Consumi di gas esportati",
   "trips_cylinders_title": "Bombole",
   "trips_cylinders_summary": "Piene {full} · Parziali {partial} · Vuote {empty}",
   "@trips_cylinders_summary": {

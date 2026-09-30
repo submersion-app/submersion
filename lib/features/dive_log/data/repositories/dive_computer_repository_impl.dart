@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
@@ -412,6 +413,15 @@ class DiveComputerRepository {
       // the change.
       await _profileSeries.clearComputer(id);
       await _tankSeries.clearComputer(id);
+      // The tanks too: dive_tanks.computer_id is ON DELETE SET NULL as well,
+      // and the caches' source stamp only sees a tank change through the
+      // clock staging it stamps.
+      await clearTankComputerLinks(
+        _db,
+        _syncRepository,
+        (t) => t.computerId.equals(id),
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
 
       // Clear FK references that would block the delete. dives.computer_id
       // has no ON DELETE action, so leaving it set fails the delete with

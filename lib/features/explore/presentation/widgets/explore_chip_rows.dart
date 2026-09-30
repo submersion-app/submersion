@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/explore/domain/compiled_query.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
+import 'package:submersion/features/explore/domain/explore_compilation.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/presentation/chip_labeler.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -14,7 +14,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// sheet on the Explore filter; the delete icon drops the clause.
 class ExploreUnderstoodRow extends ConsumerWidget {
   const ExploreUnderstoodRow({super.key, required this.compiled});
-  final CompiledQuery compiled;
+  final ExploreCompilation compiled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -59,7 +59,7 @@ class ExploreUnderstoodRow extends ConsumerWidget {
 /// with the reason as tooltip).
 class ExploreAttentionRow extends ConsumerWidget {
   const ExploreAttentionRow({super.key, required this.compiled});
-  final CompiledQuery compiled;
+  final ExploreCompilation compiled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

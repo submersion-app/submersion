@@ -118,6 +118,7 @@ const List<DiverDeleteStep> diverTripAndSiteSteps = [
     entityType: 'tripDayWeather',
     where: _ofDiverTrips,
   ),
+  (table: 'trip_equipment', entityType: 'tripEquipment', where: _ofDiverTrips),
   (table: 'trips', entityType: 'trips', where: 'diver_id = ?1'),
   (table: 'dive_sites', entityType: 'diveSites', where: 'diver_id = ?1'),
 ];
@@ -162,6 +163,11 @@ const List<DiverDeleteStep> diverGearSteps = [
   ),
   // Shares of the diver's gear, and the diver's own shares of other
   // profiles' gear (issue #2046).
+  (
+    table: 'trip_equipment',
+    entityType: 'tripEquipment',
+    where: 'equipment_id IN ($_diverGear)',
+  ),
   (
     table: 'equipment_shares',
     entityType: 'equipmentShares',

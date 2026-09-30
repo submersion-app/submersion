@@ -2,14 +2,21 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/features/explore/domain/compiled_query.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
+import 'package:submersion/features/explore/domain/explore_compilation.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+import '../../domain/explore_query_parts.dart';
 
 class _ScriptedEngine implements NlEngine {
   _ScriptedEngine(this.json);
@@ -49,9 +56,9 @@ class _ThrowingEngine implements NlEngine {
       throw const NlException(NlError.contextExceeded);
 }
 
-Future<NameIndex> _bonaireLoader() async => const NameIndex([
+Future<NameIndex> _bonaireLoader() async => NameIndex(const [
   NameEntry(
-    kind: MentionKind.place,
+    subject: QuerySubject.sites,
     label: 'Bonaire',
     ids: ['s1', 's2'],
     target: NameTarget.sitePlace,
@@ -94,12 +101,16 @@ void main() {
     overrides: [
       nlEngineProvider.overrideWithValue(engine),
       localeProvider.overrideWithValue('en'),
-      unitPrefsProvider.overrideWithValue(const (
-        depth: DepthUnit.meters,
-        temperature: TemperatureUnit.celsius,
-        pressure: PressureUnit.bar,
-      )),
-      nameIndexProvider.overrideWith((ref) => names()),
+      queryUnitPrefsProvider.overrideWithValue(
+        const UnitPrefs(
+          depth: DepthUnit.meters,
+          temperature: TemperatureUnit.celsius,
+          pressure: PressureUnit.bar,
+          weight: WeightUnit.kilograms,
+          volume: VolumeUnit.liters,
+        ),
+      ),
+      exploreNameIndexProvider.overrideWith((ref) => names()),
       recentQueryRecorderProvider.overrideWithValue(
         recorder ?? (sentence, locale, parsed) async {},
       ),
@@ -115,10 +126,10 @@ void main() {
     final s = c.read(exploreQueryProvider);
     expect(s.running, isFalse);
     expect(s.error, isNull);
-    expect(s.compiled!.filter.minDepth, 20);
-    expect(s.compiled!.filter.siteIds, ['s1', 's2']);
+    expect(boundOf(s.compiled!, 'depth', QueryOp.gte), 20);
+    expect(refIdsOf(s.compiled!, ['site']), ['s1', 's2']);
     expect(s.compiled!.unplaced.single.text, 'maybe');
-    expect(c.read(exploreFilterProvider).siteIds, ['s1', 's2']);
+    expect(c.read(exploreFilterProvider).query, s.compiled!.query);
     expect(engine.compileCalls, 1);
   });
 
@@ -128,8 +139,14 @@ void main() {
     final n = c.read(exploreQueryProvider.notifier);
     await n.run('x');
     n.removeChip(c.read(exploreQueryProvider).compiled!.chips.first);
-    expect(c.read(exploreFilterProvider).minDepth, isNull);
-    expect(c.read(exploreFilterProvider).siteIds, ['s1', 's2']);
+    expect(
+      boundIn(c.read(exploreFilterProvider).query, 'depth', QueryOp.gte),
+      isNull,
+    );
+    expect(refIdsIn(c.read(exploreFilterProvider).query, ['site']), [
+      's1',
+      's2',
+    ]);
     expect(engine.compileCalls, 1);
   });
 
@@ -199,13 +216,16 @@ void main() {
     n.resolveWith(
       0,
       const NameEntry(
-        kind: MentionKind.place,
+        subject: QuerySubject.sites,
         label: 'Bonaire',
         ids: ['s1', 's2'],
         target: NameTarget.sitePlace,
       ),
     );
-    expect(c.read(exploreFilterProvider).siteIds, ['s1', 's2']);
+    expect(refIdsIn(c.read(exploreFilterProvider).query, ['site']), [
+      's1',
+      's2',
+    ]);
     expect(c.read(exploreQueryProvider).compiled!.unresolved, isEmpty);
   });
 
@@ -217,7 +237,7 @@ void main() {
     n.resolveWith(
       99,
       const NameEntry(
-        kind: MentionKind.place,
+        subject: QuerySubject.sites,
         label: 'Bonaire',
         ids: ['s1'],
         target: NameTarget.sitePlace,
@@ -253,15 +273,15 @@ void main() {
   });
 
   group('review fixes', () {
-    const twins = NameIndex([
+    final twins = NameIndex(const [
       NameEntry(
-        kind: MentionKind.buddy,
+        subject: QuerySubject.buddies,
         label: 'John Smith',
         ids: ['john-a'],
         target: NameTarget.buddyId,
       ),
       NameEntry(
-        kind: MentionKind.buddy,
+        subject: QuerySubject.buddies,
         label: 'John Smith',
         ids: ['john-b'],
         target: NameTarget.buddyId,
@@ -277,7 +297,14 @@ void main() {
       await n.run('dives with John Smith');
       expect(c.read(exploreQueryProvider).compiled!.unresolved, hasLength(1));
       n.resolveWith(0, twins.entries[1]);
-      expect(c.read(exploreFilterProvider).buddyId, 'john-b');
+      expect(
+        (conditionsIn(c.read(exploreFilterProvider).query, [
+                  'buddies',
+                ], QueryOp.eq).single.value!
+                as RefValue)
+            .id,
+        'john-b',
+      );
       expect(c.read(exploreQueryProvider).compiled!.unresolved, isEmpty);
     });
 
@@ -302,7 +329,7 @@ void main() {
       final s = c.read(exploreQueryProvider);
       expect(s.running, isFalse);
       expect(s.error, isNull);
-      expect(s.compiled!.filter.minDepth, 20);
+      expect(boundOf(s.compiled!, 'depth', QueryOp.gte), 20);
     });
 
     test('a slow reply cannot overwrite a newer request', () async {
@@ -326,8 +353,8 @@ void main() {
       await first;
       final s = c.read(exploreQueryProvider);
       expect(s.sentence, 'second');
-      expect(s.compiled!.filter.minDepth, 40);
-      expect(c.read(exploreFilterProvider).minDepth, 40);
+      expect(boundOf(s.compiled!, 'depth', QueryOp.gte), 40);
+      expect(c.read(exploreFilterProvider).query, s.compiled!.query);
     });
   });
 }

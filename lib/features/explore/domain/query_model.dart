@@ -14,7 +14,7 @@ const int kQuerySchemaVersion = 2;
 /// valid version 2 payload and a diver's recent sentences survive the bump.
 const int kMinReadableQuerySchemaVersion = 1;
 
-enum QuerySubject { dives, equipment, sites, buddies, species, trips, centers }
+enum ParsedSubject { dives, equipment, sites, buddies, species, trips, centers }
 
 enum ClauseOp {
   lt('lt'),
@@ -120,7 +120,7 @@ class QueryTime {
 
 class ParsedQuery {
   final int schemaVersion;
-  final QuerySubject subject;
+  final ParsedSubject subject;
   final List<QueryClause> clauses;
   final List<QueryMention> mentions;
   final QueryTime? time;
@@ -156,7 +156,7 @@ class ParsedQuery {
       );
     }
     final subject = _enumByName(
-      QuerySubject.values,
+      ParsedSubject.values,
       json['subject'],
       'subject',
     );

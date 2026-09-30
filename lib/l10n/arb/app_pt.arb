@@ -4171,6 +4171,14 @@
   "passport_logFill_station": "Estação de carga",
   "passport_logFill_analyzer": "Analisador",
   "passport_logFill_analysedHint": "Insira os valores analisados",
+  "passport_trip_title": "Viagens",
+  "passport_trip_none": "Sem viagem atribuída",
+  "passport_trip_packedFor": "Preparado para {trip}",
+  "passport_trip_more": "+{count}",
+  "passport_trip_assign": "Preparar para uma viagem",
+  "passport_trip_unassign": "Remover desta viagem",
+  "passport_trip_onBoard": "No quadro de cilindros da viagem",
+  "passport_trip_failed": "Não foi possível alterar a viagem. Tente novamente.",
   "passport_logFill_notes": "Notas",
   "passport_logFill_invalidMix": "O2 e He devem estar entre 0 e 100 e somar no máximo 100",
   "passport_logFill_saveFailed": "Não foi possível salvar a carga. Tente novamente.",
@@ -5535,6 +5543,50 @@
   "plannerMission_disableConfirm": "Desativar",
   "plannerMission_disableMessage": "A rota e a equipa são removidas. O perfil gerado fica como segmentos normais que pode editar.",
   "plannerMission_disableTitle": "Desativar a missão DPV?",
+  "plannerMission_results_legRow": "{leg}: {line}",
+  "plannerMission_results_listSeparator": ", ",
+  "plannerMission_results_memberLine": "{name}: {status}",
+  "plannerMission_results_memberLineExits": "{name}: {status} ({exits})",
+  "plannerMission_results_abandonmentUnknown": "Não foi possível determinar de que pontos é possível sair",
+  "plannerMission_results_safeSurfaceUnknown": "Superfície segura: não foi possível calcular",
+  "plannerMission_chip_issues": "{count, plural, =1{Missão: {count} problema} other{Missão: {count} problemas}}",
+  "plannerMission_factor_battery": "reserva de bateria",
+  "plannerMission_factor_blockedByCurrent": "uma corrente que bloqueia a saída",
+  "plannerMission_factor_exposure": "exposição ao oxigénio",
+  "plannerMission_factor_noFeasibleTow": "nenhum reboque viável",
+  "plannerMission_factor_ownGas": "gás próprio",
+  "plannerMission_factor_scenarioFailed": "um cenário de avaria que não foi possível calcular",
+  "plannerMission_factor_surfaceSwimLimit": "o limite de natação à superfície",
+  "plannerMission_factor_teamGas": "o gás de um colega de equipa",
+  "plannerMission_results_abandonment": "Último ponto de onde todos podem sair: {waypoint}",
+  "plannerMission_results_assumptions": "Reserva de bateria de {reserve}% da autonomia. O mergulhador cuja scooter avaria respira o seu próprio RMV aumentado pelo fator de stress do plano até à primeira paragem.",
+  "plannerMission_results_battery": "Bateria {percent}% da autonomia ({minutes}′), reserva {reserve}%",
+  "plannerMission_results_bindsAt": "Limite em {waypoint}: {factor}",
+  "plannerMission_results_blocked": "A missão ainda não pode ser calculada:",
+  "plannerMission_results_cannotGetOut": "não consegue sair",
+  "plannerMission_results_computing": "A calcular os cenários de avaria",
+  "plannerMission_results_failed": "Não foi possível calcular a missão",
+  "plannerMission_results_home": "{distance} em linha reta até à entrada",
+  "plannerMission_results_legLine": "ida {outSpeed} {outMinutes}′, volta {backSpeed} {backMinutes}′",
+  "plannerMission_results_legs": "Troços",
+  "plannerMission_results_limitedBy": "Limitado pela {scooter} de {name} em {waypoint}: {factor}",
+  "plannerMission_results_limitedByDiver": "Limitado por {name} em {waypoint}: {factor}",
+  "plannerMission_results_noAbandonment": "Nenhum ponto permite sair com qualquer avaria",
+  "plannerMission_results_noBuddy": "sem parceiro",
+  "plannerMission_results_noLimit": "Sem limite nesta rota",
+  "plannerMission_results_notComputed": "não foi possível calcular",
+  "plannerMission_results_safeSurface": "Superfície segura em {minutes}′",
+  "plannerMission_results_setsCruise": "Define a velocidade de cruzeiro da equipa",
+  "plannerMission_results_surface": "superfície {minutes}′",
+  "plannerMission_results_surfaceViaShore": "superfície pela margem {minutes}′",
+  "plannerMission_results_survives": "sai",
+  "plannerMission_results_swim": "a nadar {minutes}′",
+  "plannerMission_results_title": "Missão",
+  "plannerMission_results_tow": "rebocado por {name} {minutes}′",
+  "plannerMission_results_turnPressure": "Inverter a {pressure}",
+  "plannerMission_results_unconstrained": "De cada ponto é possível sair com a avaria de qualquer scooter",
+  "plannerMission_results_waypointLine": "{distance}, chegada {minutes}′",
+  "plannerMission_results_waypoints": "Pontos",
   "plannerMission_profile_segment": "{depth}, {minutes} min",
   "plannerMission_enableConfirm": "Substituir",
   "plannerMission_enableMessage": "A missão cria o perfil a partir da rota e da equipa, por isso os segmentos deste plano são substituídos. Se desativar a missão mais tarde, fica o perfil da missão, não estes segmentos.",
@@ -7312,6 +7364,11 @@
       }
     }
   },
+  "trips_gear_title": "Equipamento",
+  "trips_gear_none": "Nenhum equipamento preparado ainda",
+  "trips_gear_add": "Adicionar equipamento",
+  "trips_gear_remove": "Remover",
+  "trips_gear_failed": "Não foi possível alterar o equipamento. Tente novamente.",
   "trips_cylinders_forecast_todayShort": "Hoje são precisos {needed}, tem {full} cheios.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
@@ -7372,6 +7429,66 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Planeado por si",
+  "trips_cylinders_segment_record": "Consumo",
+  "trips_cylinders_recordEmpty": "Ainda não há mergulhos com estes cilindros.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} enchimento registado} other{{count} enchimentos registados}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} mergulho não contado} other{{count} mergulhos não contados}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} enchimento em pacote} other{{count} enchimentos em pacote}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} cilindro de mergulho não ligado} other{{count} cilindros de mergulho não ligados}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "Não ligados a um cilindro",
+  "trips_cylinders_record_tank": "Cilindro {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "Enchido a {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "Analisado {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "Consumo de gás exportado",
   "trips_cylinders_title": "Cilindros",
   "trips_cylinders_summary": "Cheios {full} · Parciais {partial} · Vazios {empty}",
   "@trips_cylinders_summary": {

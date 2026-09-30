@@ -3,19 +3,15 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
-import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
-import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
-import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
-import 'package:submersion/features/planner/domain/services/mission/mission_validator.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_issue_text.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_leg_editor.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_units.dart';
+import 'package:submersion/features/planner/presentation/providers/mission_issues_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -28,10 +24,8 @@ class MissionLegList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Only what the card shows or checks: the route, the profile it
     // generated, and the plan fields the plan check reads (mode, tanks).
-    final (mission, segments, _, _) = ref.watch(
-      divePlanNotifierProvider.select(
-        (s) => (s.mission, s.segments, s.mode, s.tanks),
-      ),
+    final (mission, segments) = ref.watch(
+      divePlanNotifierProvider.select((s) => (s.mission, s.segments)),
     );
     if (mission == null) return const SizedBox.shrink();
     final notifier = ref.read(divePlanNotifierProvider.notifier);
@@ -146,11 +140,10 @@ class MissionLegList extends ConsumerWidget {
             _GeneratedProfileStrip(
               segments: segments,
               units: units,
-              issues: _blockingIssues(
-                context,
-                ref.read(divePlanNotifierProvider),
-                mission,
-              ),
+              issues: [
+                for (final issue in ref.watch(missionBlockingIssuesProvider))
+                  missionIssueText(l10n, issue, mission),
+              ],
             ),
           ],
         ),
@@ -185,25 +178,6 @@ class MissionLegList extends ConsumerWidget {
         ),
     ];
     return lines.join('\n');
-  }
-
-  /// Every blocking issue, as sentences in the order the diver meets them:
-  /// the mission's own, then the plan's, then a leg the current blocks.
-  static List<String> _blockingIssues(
-    BuildContext context,
-    DivePlanState state,
-    DpvMission mission,
-  ) {
-    final cut = const MissionEngine().traversableRoute(mission).cut;
-    return [
-      for (final issue in [
-        ...validateMission(mission),
-        ...validatePlanForMission(divePlanFromState(state)),
-        ?cut,
-      ])
-        if (issue.severity == MissionIssueSeverity.blocking)
-          missionIssueText(context.l10n, issue, mission),
-    ];
   }
 }
 

@@ -97,6 +97,14 @@
   "plannerMission_buddyPicker_empty": "No buddies yet",
   "plannerMission_buddyPicker_me": "Me",
   "plannerMission_buddyPicker_title": "Choose a buddy",
+  "plannerMission_chip_issues": "{count, plural, =1{Mission: {count} issue} other{Mission: {count} issues}}",
+  "@plannerMission_chip_issues": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "plannerMission_current_setsToward": "Sets toward",
   "plannerMission_current_speed": "Current speed",
   "plannerMission_disableConfirm": "Turn off",
@@ -108,6 +116,14 @@
   "plannerMission_enableTitle": "Replace the segments with a DPV mission?",
   "plannerMission_environment_openWater": "Open water",
   "plannerMission_environment_overhead": "Overhead",
+  "plannerMission_factor_battery": "battery reserve",
+  "plannerMission_factor_blockedByCurrent": "a current that blocks the way out",
+  "plannerMission_factor_exposure": "oxygen exposure",
+  "plannerMission_factor_noFeasibleTow": "no workable tow",
+  "plannerMission_factor_ownGas": "own gas",
+  "plannerMission_factor_scenarioFailed": "a failure scenario that could not be computed",
+  "plannerMission_factor_surfaceSwimLimit": "the surface swim limit",
+  "plannerMission_factor_teamGas": "a teammate's gas",
   "plannerMission_issue_batteryReserveInvalid": "The battery reserve must be between 0 and 100%",
   "plannerMission_issue_emptyRoute": "Add at least one leg",
   "plannerMission_issue_emptyTeam": "Add at least one diver",
@@ -208,6 +224,218 @@
     }
   },
   "plannerMission_profile_title": "Generated profile",
+  "plannerMission_results_abandonment": "Last waypoint every diver can get out from: {waypoint}",
+  "@plannerMission_results_abandonment": {
+    "placeholders": {
+      "waypoint": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_abandonmentUnknown": "Which waypoints are survivable could not be worked out",
+  "plannerMission_results_assumptions": "Battery reserve {reserve}% of burn time. A diver whose scooter fails breathes their own RMV raised by the plan's stress ratio until the first stop.",
+  "@plannerMission_results_assumptions": {
+    "placeholders": {
+      "reserve": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_battery": "Battery {percent}% of burn time ({minutes}′), reserve {reserve}%",
+  "@plannerMission_results_battery": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "reserve": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_bindsAt": "Limit at {waypoint}: {factor}",
+  "@plannerMission_results_bindsAt": {
+    "placeholders": {
+      "factor": {
+        "type": "String"
+      },
+      "waypoint": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_blocked": "The mission cannot be computed yet:",
+  "plannerMission_results_cannotGetOut": "cannot get out",
+  "plannerMission_results_computing": "Working out the failure scenarios",
+  "plannerMission_results_failed": "The mission could not be computed",
+  "plannerMission_results_home": "{distance} straight home",
+  "@plannerMission_results_home": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_legLine": "out {outSpeed} {outMinutes}′, back {backSpeed} {backMinutes}′",
+  "@plannerMission_results_legLine": {
+    "placeholders": {
+      "backMinutes": {
+        "type": "String"
+      },
+      "backSpeed": {
+        "type": "String"
+      },
+      "outMinutes": {
+        "type": "String"
+      },
+      "outSpeed": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_legRow": "{leg}: {line}",
+  "@plannerMission_results_legRow": {
+    "placeholders": {
+      "leg": {
+        "type": "String"
+      },
+      "line": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_legs": "Legs",
+  "plannerMission_results_limitedBy": "Limited by {name}'s {scooter} at {waypoint}: {factor}",
+  "@plannerMission_results_limitedBy": {
+    "placeholders": {
+      "factor": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "scooter": {
+        "type": "String"
+      },
+      "waypoint": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_limitedByDiver": "Limited by {name} at {waypoint}: {factor}",
+  "@plannerMission_results_limitedByDiver": {
+    "placeholders": {
+      "factor": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "waypoint": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_listSeparator": ", ",
+  "plannerMission_results_memberLine": "{name}: {status}",
+  "@plannerMission_results_memberLine": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_memberLineExits": "{name}: {status} ({exits})",
+  "@plannerMission_results_memberLineExits": {
+    "placeholders": {
+      "exits": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_noAbandonment": "No waypoint is survivable for every failure",
+  "plannerMission_results_noBuddy": "no buddy",
+  "plannerMission_results_noLimit": "No limit on this route",
+  "plannerMission_results_notComputed": "could not be computed",
+  "plannerMission_results_safeSurface": "Safe surface in {minutes}′",
+  "@plannerMission_results_safeSurface": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_safeSurfaceUnknown": "Safe surface: could not be computed",
+  "plannerMission_results_setsCruise": "Sets the team's cruise speed",
+  "plannerMission_results_surface": "surface {minutes}′",
+  "@plannerMission_results_surface": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_surfaceViaShore": "surface via the shore {minutes}′",
+  "@plannerMission_results_surfaceViaShore": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_survives": "gets out",
+  "plannerMission_results_swim": "swim {minutes}′",
+  "@plannerMission_results_swim": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_title": "Mission",
+  "plannerMission_results_tow": "tow by {name} {minutes}′",
+  "@plannerMission_results_tow": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_turnPressure": "Turn at {pressure}",
+  "@plannerMission_results_turnPressure": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_unconstrained": "Every waypoint is survivable for any single scooter failure",
+  "plannerMission_results_waypointLine": "{distance}, arrive {minutes}′",
+  "@plannerMission_results_waypointLine": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_waypoints": "Waypoints",
   "plannerMission_route_addLeg": "Add leg",
   "plannerMission_route_deleteLeg": "Delete leg",
   "plannerMission_route_editLeg": "Edit leg",
@@ -7529,6 +7757,29 @@
   "passport_logFill_station": "Fill station",
   "passport_logFill_analyzer": "Analyzer",
   "passport_logFill_analysedHint": "Enter your analysed values",
+  "passport_trip_title": "Trips",
+  "passport_trip_none": "Not packed for a trip",
+  "passport_trip_packedFor": "Packed for {trip}",
+  "@passport_trip_packedFor": {
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      }
+    }
+  },
+  "passport_trip_more": "+{count}",
+  "@passport_trip_more": {
+    "description": "A chip for the trips not shown yet, such as +2.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "passport_trip_assign": "Pack for a trip",
+  "passport_trip_unassign": "Unpack from this trip",
+  "passport_trip_onBoard": "On the trip's cylinder board",
+  "passport_trip_failed": "Could not change the trip. Try again.",
   "passport_logFill_notes": "Notes",
   "passport_logFill_invalidMix": "O2 and He must each be 0 to 100 and total 100 or less",
   "passport_logFill_saveFailed": "Could not save the fill. Try again.",
@@ -15499,6 +15750,11 @@
       }
     }
   },
+  "trips_gear_title": "Gear",
+  "trips_gear_none": "No gear packed yet",
+  "trips_gear_add": "Add gear",
+  "trips_gear_remove": "Unpack",
+  "trips_gear_failed": "Could not change the gear. Try again.",
   "trips_cylinders_forecast_todayShort": "Today needs {needed}, you have {full} full.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
@@ -15559,6 +15815,66 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Planned by you",
+  "trips_cylinders_segment_record": "Record",
+  "trips_cylinders_recordEmpty": "No dives breathed from these cylinders yet.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} fill logged} other{{count} fills logged}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} dive left out} other{{count} dives left out}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} package fill} other{{count} package fills}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} dive tank not linked to a cylinder} other{{count} dive tanks not linked to a cylinder}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "Not linked to a cylinder",
+  "trips_cylinders_record_tank": "Tank {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "Filled to {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "Analyzed {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "Gas record exported",
   "trips_cylinders_title": "Cylinders",
   "trips_cylinders_summary": "Full {full} · Partial {partial} · Empty {empty}",
   "@trips_cylinders_summary": {

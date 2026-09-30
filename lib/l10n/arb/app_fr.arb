@@ -4069,6 +4069,14 @@
   "passport_logFill_station": "Station de gonflage",
   "passport_logFill_analyzer": "Analyseur",
   "passport_logFill_analysedHint": "Saisissez les valeurs analysées",
+  "passport_trip_title": "Voyages",
+  "passport_trip_none": "Prévu pour aucun voyage",
+  "passport_trip_packedFor": "Prévu pour {trip}",
+  "passport_trip_more": "+{count}",
+  "passport_trip_assign": "Prévoir pour un voyage",
+  "passport_trip_unassign": "Retirer de ce voyage",
+  "passport_trip_onBoard": "Sur le tableau des blocs du voyage",
+  "passport_trip_failed": "Impossible de modifier le voyage. Réessayez.",
   "passport_logFill_notes": "Notes",
   "passport_logFill_invalidMix": "O2 et He doivent être compris entre 0 et 100 et totaliser 100 au plus",
   "passport_logFill_saveFailed": "Impossible d'enregistrer le gonflage. Réessayez.",
@@ -5433,6 +5441,50 @@
   "plannerMission_disableConfirm": "Désactiver",
   "plannerMission_disableMessage": "L’itinéraire et l’équipe sont supprimés. Le profil généré reste sous forme de segments ordinaires modifiables.",
   "plannerMission_disableTitle": "Désactiver la mission DPV ?",
+  "plannerMission_results_legRow": "{leg} : {line}",
+  "plannerMission_results_listSeparator": ", ",
+  "plannerMission_results_memberLine": "{name} : {status}",
+  "plannerMission_results_memberLineExits": "{name} : {status} ({exits})",
+  "plannerMission_results_abandonmentUnknown": "Impossible de déterminer depuis quels points on peut sortir",
+  "plannerMission_results_safeSurfaceUnknown": "Surface sûre : n’a pas pu être calculée",
+  "plannerMission_chip_issues": "{count, plural, =1{Mission : {count} problème} other{Mission : {count} problèmes}}",
+  "plannerMission_factor_battery": "réserve de batterie",
+  "plannerMission_factor_blockedByCurrent": "un courant qui bloque la sortie",
+  "plannerMission_factor_exposure": "exposition à l’oxygène",
+  "plannerMission_factor_noFeasibleTow": "aucun remorquage possible",
+  "plannerMission_factor_ownGas": "son propre gaz",
+  "plannerMission_factor_scenarioFailed": "un scénario de panne qui n’a pas pu être calculé",
+  "plannerMission_factor_surfaceSwimLimit": "la limite de nage en surface",
+  "plannerMission_factor_teamGas": "le gaz d’un coéquipier",
+  "plannerMission_results_abandonment": "Dernier point d’où tout le monde peut sortir : {waypoint}",
+  "plannerMission_results_assumptions": "Réserve de batterie de {reserve} % de l’autonomie. Le plongeur dont le scooter tombe en panne respire son propre RMV augmenté du facteur de stress du plan jusqu’au premier palier.",
+  "plannerMission_results_battery": "Batterie {percent} % de l’autonomie ({minutes}′), réserve {reserve} %",
+  "plannerMission_results_bindsAt": "Limite à {waypoint} : {factor}",
+  "plannerMission_results_blocked": "La mission ne peut pas encore être calculée :",
+  "plannerMission_results_cannotGetOut": "ne peut pas sortir",
+  "plannerMission_results_computing": "Calcul des scénarios de panne en cours",
+  "plannerMission_results_failed": "La mission n’a pas pu être calculée",
+  "plannerMission_results_home": "{distance} en ligne droite jusqu’à l’entrée",
+  "plannerMission_results_legLine": "aller {outSpeed} {outMinutes}′, retour {backSpeed} {backMinutes}′",
+  "plannerMission_results_legs": "Tronçons",
+  "plannerMission_results_limitedBy": "Limité par le {scooter} de {name} à {waypoint} : {factor}",
+  "plannerMission_results_limitedByDiver": "Limité par {name} à {waypoint} : {factor}",
+  "plannerMission_results_noAbandonment": "Aucun point ne permet de sortir quelle que soit la panne",
+  "plannerMission_results_noBuddy": "pas de binôme",
+  "plannerMission_results_noLimit": "Aucune limite sur cet itinéraire",
+  "plannerMission_results_notComputed": "n’a pas pu être calculé",
+  "plannerMission_results_safeSurface": "Surface sûre dans {minutes}′",
+  "plannerMission_results_setsCruise": "Fixe la vitesse de croisière de l’équipe",
+  "plannerMission_results_surface": "surface {minutes}′",
+  "plannerMission_results_surfaceViaShore": "surface par la rive {minutes}′",
+  "plannerMission_results_survives": "sort",
+  "plannerMission_results_swim": "nage {minutes}′",
+  "plannerMission_results_title": "Mission",
+  "plannerMission_results_tow": "remorqué par {name} {minutes}′",
+  "plannerMission_results_turnPressure": "Demi-tour à {pressure}",
+  "plannerMission_results_unconstrained": "Chaque point permet de sortir quelle que soit la panne de scooter",
+  "plannerMission_results_waypointLine": "{distance}, arrivée {minutes}′",
+  "plannerMission_results_waypoints": "Points",
   "plannerMission_profile_segment": "{depth}, {minutes} min",
   "plannerMission_enableConfirm": "Remplacer",
   "plannerMission_enableMessage": "La mission construit le profil à partir de son itinéraire et de son équipe : les segments de ce plan sont donc remplacés. Si vous désactivez la mission plus tard, c’est le profil de la mission qui est conservé, pas ces segments.",
@@ -7210,6 +7262,11 @@
       }
     }
   },
+  "trips_gear_title": "Matériel",
+  "trips_gear_none": "Aucun matériel prévu pour l'instant",
+  "trips_gear_add": "Ajouter du matériel",
+  "trips_gear_remove": "Retirer",
+  "trips_gear_failed": "Impossible de modifier le matériel. Réessayez.",
   "trips_cylinders_forecast_todayShort": "Aujourd'hui il en faut {needed}, vous en avez {full} pleins.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
@@ -7270,6 +7327,66 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Planifié par vous",
+  "trips_cylinders_segment_record": "Relevé",
+  "trips_cylinders_recordEmpty": "Aucune plongée avec ces blocs pour l’instant.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} gonflage noté} other{{count} gonflages notés}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} plongée non comptée} other{{count} plongées non comptées}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} gonflage forfaitaire} other{{count} gonflages forfaitaires}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} bloc de plongée non relié} other{{count} blocs de plongée non reliés}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "Non reliés à un bloc",
+  "trips_cylinders_record_tank": "Bloc {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "Gonflé à {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "Analysé {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "Relevé de gaz exporté",
   "trips_cylinders_title": "Blocs",
   "trips_cylinders_summary": "Pleins {full} · Entamés {partial} · Vides {empty}",
   "@trips_cylinders_summary": {

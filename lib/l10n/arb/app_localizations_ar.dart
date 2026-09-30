@@ -337,6 +337,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerMission_buddyPicker_title => 'اختر رفيقاً';
 
   @override
+  String plannerMission_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'المهمة: $count مشكلات',
+      one: 'المهمة: $count مشكلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get plannerMission_current_setsToward => 'يتجه نحو';
 
   @override
@@ -370,6 +381,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerMission_environment_overhead => 'بيئة مسقوفة';
+
+  @override
+  String get plannerMission_factor_battery => 'احتياطي البطارية';
+
+  @override
+  String get plannerMission_factor_blockedByCurrent => 'تيار يعيق طريق الخروج';
+
+  @override
+  String get plannerMission_factor_exposure => 'التعرض للأكسجين';
+
+  @override
+  String get plannerMission_factor_noFeasibleTow => 'لا يوجد سحب ممكن';
+
+  @override
+  String get plannerMission_factor_ownGas => 'غازه الخاص';
+
+  @override
+  String get plannerMission_factor_scenarioFailed => 'سيناريو عطل تعذر حسابه';
+
+  @override
+  String get plannerMission_factor_surfaceSwimLimit => 'حد السباحة على السطح';
+
+  @override
+  String get plannerMission_factor_teamGas => 'غاز أحد أفراد الفريق';
 
   @override
   String get plannerMission_issue_batteryReserveInvalid =>
@@ -496,6 +531,173 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerMission_profile_title => 'الملف الشخصي المُنشأ';
+
+  @override
+  String plannerMission_results_abandonment(String waypoint) {
+    return 'آخر نقطة يمكن للجميع الخروج منها: $waypoint';
+  }
+
+  @override
+  String get plannerMission_results_abandonmentUnknown =>
+      'تعذر تحديد النقاط التي يمكن الخروج منها';
+
+  @override
+  String plannerMission_results_assumptions(String reserve) {
+    return 'احتياطي البطارية $reserve% من مدة التشغيل. يتنفس الغواص الذي يتعطل سكوتره معدل RMV الخاص به مضروبًا في معامل الضغط في الخطة حتى أول توقف.';
+  }
+
+  @override
+  String plannerMission_results_battery(
+    String minutes,
+    String percent,
+    String reserve,
+  ) {
+    return 'البطارية $percent% من مدة التشغيل ($minutes′)، الاحتياطي $reserve%';
+  }
+
+  @override
+  String plannerMission_results_bindsAt(String factor, String waypoint) {
+    return 'الحد عند $waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_blocked => 'لا يمكن حساب المهمة بعد:';
+
+  @override
+  String get plannerMission_results_cannotGetOut => 'لا يستطيع الخروج';
+
+  @override
+  String get plannerMission_results_computing => 'جارٍ حساب سيناريوهات الأعطال';
+
+  @override
+  String get plannerMission_results_failed => 'تعذر حساب المهمة';
+
+  @override
+  String plannerMission_results_home(String distance) {
+    return '$distance في خط مستقيم إلى المدخل';
+  }
+
+  @override
+  String plannerMission_results_legLine(
+    String backMinutes,
+    String backSpeed,
+    String outMinutes,
+    String outSpeed,
+  ) {
+    return 'ذهاب $outSpeed $outMinutes′، عودة $backSpeed $backMinutes′';
+  }
+
+  @override
+  String plannerMission_results_legRow(String leg, String line) {
+    return '$leg: $line';
+  }
+
+  @override
+  String get plannerMission_results_legs => 'المقاطع';
+
+  @override
+  String plannerMission_results_limitedBy(
+    String factor,
+    String name,
+    String scooter,
+    String waypoint,
+  ) {
+    return 'يحدّها $scooter الخاص بـ $name عند $waypoint: $factor';
+  }
+
+  @override
+  String plannerMission_results_limitedByDiver(
+    String factor,
+    String name,
+    String waypoint,
+  ) {
+    return 'يحدّها $name عند $waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_listSeparator => '، ';
+
+  @override
+  String plannerMission_results_memberLine(String name, String status) {
+    return '$name: $status';
+  }
+
+  @override
+  String plannerMission_results_memberLineExits(
+    String exits,
+    String name,
+    String status,
+  ) {
+    return '$name: $status ($exits)';
+  }
+
+  @override
+  String get plannerMission_results_noAbandonment =>
+      'لا توجد نقطة يمكن الخروج منها عند كل عطل';
+
+  @override
+  String get plannerMission_results_noBuddy => 'بلا رفيق';
+
+  @override
+  String get plannerMission_results_noLimit => 'لا يوجد حد على هذا المسار';
+
+  @override
+  String get plannerMission_results_notComputed => 'تعذر الحساب';
+
+  @override
+  String plannerMission_results_safeSurface(String minutes) {
+    return 'سطح آمن خلال $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown =>
+      'سطح آمن: تعذر الحساب';
+
+  @override
+  String get plannerMission_results_setsCruise => 'يحدد سرعة الإبحار للفريق';
+
+  @override
+  String plannerMission_results_surface(String minutes) {
+    return 'السطح $minutes′';
+  }
+
+  @override
+  String plannerMission_results_surfaceViaShore(String minutes) {
+    return 'السطح عبر الشاطئ $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_survives => 'يخرج';
+
+  @override
+  String plannerMission_results_swim(String minutes) {
+    return 'سباحة $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_title => 'المهمة';
+
+  @override
+  String plannerMission_results_tow(String minutes, String name) {
+    return 'سحب بواسطة $name $minutes′';
+  }
+
+  @override
+  String plannerMission_results_turnPressure(String pressure) {
+    return 'الاستدارة عند $pressure';
+  }
+
+  @override
+  String get plannerMission_results_unconstrained =>
+      'يمكن الخروج من كل نقطة عند تعطل أي سكوتر';
+
+  @override
+  String plannerMission_results_waypointLine(String distance, String minutes) {
+    return '$distance، الوصول $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_waypoints => 'النقاط';
 
   @override
   String get plannerMission_route_addLeg => 'إضافة مقطع';
@@ -13093,6 +13295,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_logFill_analysedHint => 'أدخل القيم التي حللتها';
 
   @override
+  String get passport_trip_title => 'الرحلات';
+
+  @override
+  String get passport_trip_none => 'غير مجهزة لأي رحلة';
+
+  @override
+  String passport_trip_packedFor(String trip) {
+    return 'مجهزة لرحلة $trip';
+  }
+
+  @override
+  String passport_trip_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get passport_trip_assign => 'تجهيز لرحلة';
+
+  @override
+  String get passport_trip_unassign => 'إزالة من هذه الرحلة';
+
+  @override
+  String get passport_trip_onBoard => 'على لوحة أسطوانات الرحلة';
+
+  @override
+  String get passport_trip_failed => 'تعذر تغيير الرحلة. حاول مرة أخرى.';
+
+  @override
   String get passport_logFill_notes => 'ملاحظات';
 
   @override
@@ -25428,6 +25658,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => 'المعدات';
+
+  @override
+  String get trips_gear_none => 'لم تُجهز أي معدات بعد';
+
+  @override
+  String get trips_gear_add => 'إضافة معدات';
+
+  @override
+  String get trips_gear_remove => 'إزالة';
+
+  @override
+  String get trips_gear_failed => 'تعذر تغيير المعدات. حاول مرة أخرى.';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'اليوم يحتاج إلى $needed، ولديك $full ممتلئة.';
   }
@@ -25481,6 +25726,78 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_cylinders_forecast_dayPlanned => 'خططتها أنت';
+
+  @override
+  String get trips_cylinders_segment_record => 'استهلاك الغاز';
+
+  @override
+  String get trips_cylinders_recordEmpty =>
+      'لا توجد غطسات من هذه الأسطوانات بعد.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تعبئات مسجلة',
+      one: '$count تعبئة مسجلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسات غير محسوبة',
+      one: '$count غطسة غير محسوبة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تعبئات ضمن باقة',
+      one: '$count تعبئة ضمن باقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أسطوانات غطس غير مرتبطة بأسطوانة رحلة',
+      one: '$count أسطوانة غطس غير مرتبطة بأسطوانة رحلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle => 'غير مرتبطة بأسطوانة';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'الأسطوانة $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'مُلئت إلى $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'التحليل $mix';
+  }
+
+  @override
+  String get trips_cylinders_record_exported => 'تم تصدير سجل الغاز';
 
   @override
   String get trips_cylinders_title => 'الأسطوانات';

@@ -349,6 +349,7 @@ class SyncData {
   final List<Map<String, dynamic>> siteTags;
   final List<Map<String, dynamic>> equipmentTags;
   final List<Map<String, dynamic>> equipmentShares;
+  final List<Map<String, dynamic>> tripEquipment;
   final List<Map<String, dynamic>> equipmentOwnershipEvents;
   final List<Map<String, dynamic>> mediaSpecies;
   final List<Map<String, dynamic>> siteFeatures;
@@ -451,6 +452,7 @@ class SyncData {
     this.siteTags = const [],
     this.equipmentTags = const [],
     this.equipmentShares = const [],
+    this.tripEquipment = const [],
     this.equipmentOwnershipEvents = const [],
     this.mediaSpecies = const [],
     this.siteFeatures = const [],
@@ -552,6 +554,7 @@ class SyncData {
     'siteTags': siteTags,
     'equipmentTags': equipmentTags,
     'equipmentShares': equipmentShares,
+    'tripEquipment': tripEquipment,
     'equipmentOwnershipEvents': equipmentOwnershipEvents,
     'mediaSpecies': mediaSpecies,
     'siteFeatures': siteFeatures,
@@ -658,6 +661,7 @@ class SyncData {
       siteTags: _parseList(json['siteTags']),
       equipmentTags: _parseList(json['equipmentTags']),
       equipmentShares: _parseList(json['equipmentShares']),
+      tripEquipment: _parseList(json['tripEquipment']),
       equipmentOwnershipEvents: _parseList(json['equipmentOwnershipEvents']),
       mediaSpecies: _parseList(json['mediaSpecies']),
       siteFeatures: _parseList(json['siteFeatures']),
@@ -1183,6 +1187,7 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
+    (key: 'tripEquipment', table: _db.tripEquipment, blob: false, full: null),
     (
       key: 'equipmentOwnershipEvents',
       table: _db.equipmentOwnershipEvents,
@@ -1589,6 +1594,7 @@ class SyncDataSerializer {
     'siteTags',
     'equipmentTags',
     'equipmentShares',
+    'tripEquipment',
     'equipmentOwnershipEvents',
     'weightPresetEntries',
     'diveCenterGearNotes',
@@ -1832,6 +1838,7 @@ class SyncDataSerializer {
     'siteTags': 'site_tags',
     'equipmentTags': 'equipment_tags',
     'equipmentShares': 'equipment_shares',
+    'tripEquipment': 'trip_equipment',
     'equipmentOwnershipEvents': 'equipment_ownership_events',
     'diveDiveTypes': 'dive_dive_types',
     'weightPresetEntries': 'weight_preset_entries',
@@ -2386,6 +2393,14 @@ class SyncDataSerializer {
           pendingChildren,
         ),
       ),
+      tripEquipment: await _safeExport(
+        'tripEquipment',
+        () async => _withPendingChildren(
+          'tripEquipment',
+          await _exportTripEquipment(hlcSince),
+          pendingChildren,
+        ),
+      ),
       equipmentOwnershipEvents: await _safeExport(
         'equipmentOwnershipEvents',
         () async => _withPendingChildren(
@@ -2891,6 +2906,11 @@ class SyncDataSerializer {
       case 'equipmentShares':
         final row = await (_db.select(
           _db.equipmentShares,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'tripEquipment':
+        final row = await (_db.select(
+          _db.tripEquipment,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'equipmentOwnershipEvents':
@@ -3931,6 +3951,29 @@ class SyncDataSerializer {
         );
   }
 
+  /// Applies one incoming `trip_equipment` row (v248, issue #2338). The
+  /// (trip, item) pair is unique: a peer's copy under another id is
+  /// reconciled to the lower id and then skipped, as
+  /// [_applyEquipmentShareRecord] does.
+  Future<void> _applyTripEquipmentRecord(TripEquipmentRow record) async {
+    await _reconcileJunctionIds(
+      'trip_equipment',
+      parentColumn: 'trip_id',
+      childColumn: 'equipment_id',
+      pairs: [
+        (parent: record.tripId, child: record.equipmentId, id: record.id),
+      ],
+    );
+    await _db
+        .into(_db.tripEquipment)
+        .insert(
+          record,
+          onConflict: DoNothing<$TripEquipmentTable, TripEquipmentRow>(
+            target: const [],
+          ),
+        );
+  }
+
   /// Applies one incoming record.
   ///
   /// HLC-bearing entities (`entityHasUpdatedAt == true`) apply via
@@ -4374,6 +4417,9 @@ class SyncDataSerializer {
         return;
       case 'equipmentShares':
         await _applyEquipmentShareRecord(EquipmentShareRow.fromJson(data));
+        return;
+      case 'tripEquipment':
+        await _applyTripEquipmentRecord(TripEquipmentRow.fromJson(data));
         return;
       case 'equipmentOwnershipEvents':
         await _db
@@ -5538,6 +5584,31 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'tripEquipment':
+        // DoNothing: see [_applyTripEquipmentRecord].
+        final packRows = _lowestIdPerPair(
+          records.map((r) => TripEquipmentRow.fromJson(r)).toList(),
+          (row) => (parent: row.tripId, child: row.equipmentId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          'trip_equipment',
+          parentColumn: 'trip_id',
+          childColumn: 'equipment_id',
+          pairs: [
+            for (final row in packRows)
+              (parent: row.tripId, child: row.equipmentId, id: row.id),
+          ],
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.tripEquipment,
+            packRows,
+            onConflict: DoNothing<$TripEquipmentTable, TripEquipmentRow>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
       case 'equipmentOwnershipEvents':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -6071,6 +6142,8 @@ class SyncDataSerializer {
         return plain(_db.equipmentTags, _db.equipmentTags.id);
       case 'equipmentShares':
         return plain(_db.equipmentShares, _db.equipmentShares.id);
+      case 'tripEquipment':
+        return plain(_db.tripEquipment, _db.tripEquipment.id);
       case 'equipmentOwnershipEvents':
         return plain(
           _db.equipmentOwnershipEvents,
@@ -6473,6 +6546,8 @@ class SyncDataSerializer {
         return _db.equipmentTags;
       case 'equipmentShares':
         return _db.equipmentShares;
+      case 'tripEquipment':
+        return _db.tripEquipment;
       case 'equipmentOwnershipEvents':
         return _db.equipmentOwnershipEvents;
       case 'diveRoles':
@@ -6947,6 +7022,11 @@ class SyncDataSerializer {
       case 'equipmentShares':
         await (_db.delete(
           _db.equipmentShares,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'tripEquipment':
+        await (_db.delete(
+          _db.tripEquipment,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'equipmentOwnershipEvents':
@@ -8339,6 +8419,29 @@ class SyncDataSerializer {
       );
     }
     final rows = await _db.select(_db.equipmentShares).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Packed gear (v248, issue #2338), gated on the parent trip's clock like
+  /// [_exportEquipmentTags] is on the item's. A changed link travels on its
+  /// own pending mark, never by re-stamping the trip.
+  Future<List<Map<String, dynamic>>> _exportTripEquipment(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final trips = await (_db.select(
+        _db.trips,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final tripIds = trips.map((t) => t.id).toSet();
+      if (tripIds.isEmpty) return [];
+      return _childRowsOf(
+        tripIds,
+        (chunk) => (_db.select(
+          _db.tripEquipment,
+        )..where((t) => t.tripId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.tripEquipment).get();
     return rows.map((r) => r.toJson()).toList();
   }
 

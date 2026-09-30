@@ -1,0 +1,90 @@
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/explore/domain/chart_selection.dart';
+import 'package:submersion/features/explore/domain/explore_fields.dart';
+import 'package:submersion/core/query/registry/query_field.dart';
+import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/features/explore/domain/query_model.dart';
+
+enum ChipRef { clause, mention, time }
+
+sealed class ChipPayload {
+  const ChipPayload();
+}
+
+/// A lowered clause. [value] is in storage units: a double, a List of
+/// double (between), a bool (flags), a String or a List of String (enum
+/// fields).
+class ClauseChip extends ChipPayload {
+  final ExploreField field;
+  final ClauseOp op;
+  final Object value;
+  final FieldDimension dimension;
+  const ClauseChip({
+    required this.field,
+    required this.op,
+    required this.value,
+    required this.dimension,
+  });
+}
+
+class MentionChip extends ChipPayload {
+  final MentionKind kind;
+  final NameEntry entry;
+  const MentionChip({required this.kind, required this.entry});
+}
+
+class TimeChip extends ChipPayload {
+  final DateTime? start;
+  final DateTime? end;
+  const TimeChip({this.start, this.end});
+}
+
+/// One chip on the understood row. Removing it drops [ref] at [index] from
+/// the ParsedQuery and recompiles; the query is the editable state.
+class QueryChip {
+  final ChipRef ref;
+  final int index;
+  final ChipPayload payload;
+  const QueryChip({
+    required this.ref,
+    required this.index,
+    required this.payload,
+  });
+}
+
+class UnresolvedMention {
+  final int index;
+  final QueryMention mention;
+  final List<NameEntry> candidates;
+  const UnresolvedMention({
+    required this.index,
+    required this.mention,
+    required this.candidates,
+  });
+}
+
+/// A word or clause the compiler could not place. [reason] is one of
+/// `unknownField`, `invalid`, `outOfRange`, `noAxis`, `unknownTime`,
+/// `subjectNotSupported`, or null for a word the model itself left over.
+class UnplacedItem {
+  final String text;
+  final String? reason;
+  const UnplacedItem(this.text, {this.reason});
+}
+
+class ExploreCompilation {
+  /// The sentence as one query over the dive registry; null when nothing
+  /// was placed (or the subject is not dives).
+  final QueryNode? query;
+  final List<QueryChip> chips;
+  final List<UnresolvedMention> unresolved;
+  final List<UnplacedItem> unplaced;
+  final List<ChartRequest> charts;
+  const ExploreCompilation({
+    required this.query,
+    required this.chips,
+    required this.unresolved,
+    required this.unplaced,
+    required this.charts,
+  });
+}

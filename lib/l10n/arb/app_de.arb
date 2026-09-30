@@ -4182,6 +4182,14 @@
   "passport_logFill_station": "Füllstation",
   "passport_logFill_analyzer": "Analysegerät",
   "passport_logFill_analysedHint": "Gib deine analysierten Werte ein",
+  "passport_trip_title": "Reisen",
+  "passport_trip_none": "Für keine Reise gepackt",
+  "passport_trip_packedFor": "Gepackt für {trip}",
+  "passport_trip_more": "+{count}",
+  "passport_trip_assign": "Für eine Reise packen",
+  "passport_trip_unassign": "Von dieser Reise entfernen",
+  "passport_trip_onBoard": "Auf der Flaschenübersicht der Reise",
+  "passport_trip_failed": "Die Reise konnte nicht geändert werden. Versuche es erneut.",
   "passport_logFill_notes": "Notizen",
   "passport_logFill_invalidMix": "O2 und He müssen jeweils 0 bis 100 sein und zusammen höchstens 100 ergeben",
   "passport_logFill_saveFailed": "Die Füllung konnte nicht gespeichert werden. Bitte erneut versuchen.",
@@ -5638,6 +5646,50 @@
   "plannerMission_disableConfirm": "Ausschalten",
   "plannerMission_disableMessage": "Route und Team werden entfernt. Das erzeugte Profil bleibt als normale, bearbeitbare Segmente erhalten.",
   "plannerMission_disableTitle": "DPV-Mission ausschalten?",
+  "plannerMission_results_legRow": "{leg}: {line}",
+  "plannerMission_results_listSeparator": ", ",
+  "plannerMission_results_memberLine": "{name}: {status}",
+  "plannerMission_results_memberLineExits": "{name}: {status} ({exits})",
+  "plannerMission_results_abandonmentUnknown": "Welche Wegpunkte überlebbar sind, konnte nicht ermittelt werden",
+  "plannerMission_results_safeSurfaceUnknown": "Sichere Oberfläche: konnte nicht berechnet werden",
+  "plannerMission_chip_issues": "{count, plural, =1{Mission: {count} Problem} other{Mission: {count} Probleme}}",
+  "plannerMission_factor_battery": "Akkureserve",
+  "plannerMission_factor_blockedByCurrent": "eine Strömung, die den Rückweg blockiert",
+  "plannerMission_factor_exposure": "Sauerstoffbelastung",
+  "plannerMission_factor_noFeasibleTow": "kein machbares Schleppen",
+  "plannerMission_factor_ownGas": "eigenes Gas",
+  "plannerMission_factor_scenarioFailed": "ein Ausfallszenario, das nicht berechnet werden konnte",
+  "plannerMission_factor_surfaceSwimLimit": "das Limit für Oberflächenschwimmen",
+  "plannerMission_factor_teamGas": "Gas eines Teammitglieds",
+  "plannerMission_results_abandonment": "Letzter Wegpunkt, von dem alle herauskommen: {waypoint}",
+  "plannerMission_results_assumptions": "Akkureserve {reserve} % der Laufzeit. Wessen Scooter ausfällt, atmet bis zum ersten Stopp das eigene AMV, erhöht um den Stressfaktor des Plans.",
+  "plannerMission_results_battery": "Akku {percent} % der Laufzeit ({minutes}′), Reserve {reserve} %",
+  "plannerMission_results_bindsAt": "Limit bei {waypoint}: {factor}",
+  "plannerMission_results_blocked": "Die Mission kann noch nicht berechnet werden:",
+  "plannerMission_results_cannotGetOut": "kommt nicht heraus",
+  "plannerMission_results_computing": "Ausfallszenarien werden berechnet",
+  "plannerMission_results_failed": "Die Mission konnte nicht berechnet werden",
+  "plannerMission_results_home": "{distance} direkt zum Einstieg",
+  "plannerMission_results_legLine": "hin {outSpeed} {outMinutes}′, zurück {backSpeed} {backMinutes}′",
+  "plannerMission_results_legs": "Abschnitte",
+  "plannerMission_results_limitedBy": "Begrenzt durch {scooter} von {name} bei {waypoint}: {factor}",
+  "plannerMission_results_limitedByDiver": "Begrenzt durch {name} bei {waypoint}: {factor}",
+  "plannerMission_results_noAbandonment": "Kein Wegpunkt übersteht jeden Ausfall",
+  "plannerMission_results_noBuddy": "kein Buddy",
+  "plannerMission_results_noLimit": "Kein Limit auf dieser Route",
+  "plannerMission_results_notComputed": "konnte nicht berechnet werden",
+  "plannerMission_results_safeSurface": "Sichere Oberfläche in {minutes}′",
+  "plannerMission_results_setsCruise": "Bestimmt die Reisegeschwindigkeit des Teams",
+  "plannerMission_results_surface": "auftauchen {minutes}′",
+  "plannerMission_results_surfaceViaShore": "auftauchen über das Ufer {minutes}′",
+  "plannerMission_results_survives": "kommt heraus",
+  "plannerMission_results_swim": "schwimmen {minutes}′",
+  "plannerMission_results_title": "Mission",
+  "plannerMission_results_tow": "Schleppen durch {name} {minutes}′",
+  "plannerMission_results_turnPressure": "Umkehren bei {pressure}",
+  "plannerMission_results_unconstrained": "Von jedem Wegpunkt kommen alle heraus, egal welcher Scooter ausfällt",
+  "plannerMission_results_waypointLine": "{distance}, Ankunft {minutes}′",
+  "plannerMission_results_waypoints": "Wegpunkte",
   "plannerMission_profile_segment": "{depth}, {minutes} Min.",
   "plannerMission_enableConfirm": "Ersetzen",
   "plannerMission_enableMessage": "Die Mission erzeugt das Profil aus Route und Team, daher werden die Segmente dieses Plans ersetzt. Wenn du die Mission später ausschaltest, bleibt das Profil der Mission erhalten, nicht diese Segmente.",
@@ -7415,6 +7467,11 @@
       }
     }
   },
+  "trips_gear_title": "Ausrüstung",
+  "trips_gear_none": "Noch keine Ausrüstung gepackt",
+  "trips_gear_add": "Ausrüstung hinzufügen",
+  "trips_gear_remove": "Entfernen",
+  "trips_gear_failed": "Die Ausrüstung konnte nicht geändert werden. Versuche es erneut.",
   "trips_cylinders_forecast_todayShort": "Heute werden {needed} gebraucht, du hast {full} volle.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
@@ -7475,6 +7532,66 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Von dir geplant",
+  "trips_cylinders_segment_record": "Protokoll",
+  "trips_cylinders_recordEmpty": "Noch keine Tauchgänge mit diesen Flaschen.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} Füllung erfasst} other{{count} Füllungen erfasst}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} Tauchgang nicht gezählt} other{{count} Tauchgänge nicht gezählt}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} Füllung im Paket} other{{count} Füllungen im Paket}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} Tauchgangsflasche ohne Reiseflasche} other{{count} Tauchgangsflaschen ohne Reiseflasche}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "Keiner Flasche zugeordnet",
+  "trips_cylinders_record_tank": "Flasche {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "Gefüllt auf {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "Analysiert {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "Gasprotokoll exportiert",
   "trips_cylinders_title": "Flaschen",
   "trips_cylinders_summary": "Voll {full} · Teilweise {partial} · Leer {empty}",
   "@trips_cylinders_summary": {

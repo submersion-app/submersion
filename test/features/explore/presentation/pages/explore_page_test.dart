@@ -5,11 +5,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/pages/explore_page.dart';
@@ -22,6 +27,8 @@ import 'package:submersion/features/explore/data/recent_query_repository.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+
+import '../../domain/explore_query_parts.dart';
 
 class _Engine implements NlEngine {
   _Engine(this.json, {this.downloadStream});
@@ -71,27 +78,31 @@ void main() {
     nlEngineProvider.overrideWithValue(engine),
     explorePlatformSupportedProvider.overrideWithValue(true),
     localeProvider.overrideWithValue('en'),
-    unitPrefsProvider.overrideWithValue(const (
-      depth: DepthUnit.meters,
-      temperature: TemperatureUnit.celsius,
-      pressure: PressureUnit.bar,
-    )),
-    nameIndexProvider.overrideWith(
-      (ref) async => const NameIndex([
+    queryUnitPrefsProvider.overrideWithValue(
+      const UnitPrefs(
+        depth: DepthUnit.meters,
+        temperature: TemperatureUnit.celsius,
+        pressure: PressureUnit.bar,
+        weight: WeightUnit.kilograms,
+        volume: VolumeUnit.liters,
+      ),
+    ),
+    exploreNameIndexProvider.overrideWith(
+      (ref) async => NameIndex(const [
         NameEntry(
-          kind: MentionKind.place,
+          subject: QuerySubject.sites,
           label: 'Bonaire',
           ids: ['s1', 's2'],
           target: NameTarget.sitePlace,
         ),
         NameEntry(
-          kind: MentionKind.species,
+          subject: QuerySubject.species,
           label: 'Green Turtle',
           ids: ['sp1'],
           target: NameTarget.speciesId,
         ),
         NameEntry(
-          kind: MentionKind.species,
+          subject: QuerySubject.species,
           label: 'Hawksbill Turtle',
           ids: ['sp2'],
           target: NameTarget.speciesId,
@@ -162,9 +173,23 @@ void main() {
       expect(find.text('turtles'), findsOneWidget);
       expect(find.text('maybe'), findsOneWidget);
       expect(find.text('2 dives'), findsOneWidget);
-      expect(container.read(exploreFilterProvider).siteIds, ['s1', 's2']);
+      expect(refIdsIn(container.read(exploreFilterProvider).query, ['site']), [
+        's1',
+        's2',
+      ]);
     },
   );
+
+  testWidgets('keeps Explore\'s name index loaded while the page is up', (
+    tester,
+  ) async {
+    // The notifier only reads the index; the page's listener is what keeps
+    // it active, so a dive write reloads the legacy buddy names at once
+    // rather than leaving them a tick stale (#2641).
+    final (container, _) = await pump(tester);
+    expect(container.exists(exploreNameIndexProvider), isTrue);
+    expect(container.read(exploreNameIndexProvider).hasValue, isTrue);
+  });
 
   testWidgets('tapping an unresolved chip offers candidates and resolves', (
     tester,
@@ -175,7 +200,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Green Turtle').last);
     await tester.pumpAndSettle();
-    expect(container.read(exploreFilterProvider).speciesIds, ['sp1']);
+    expect(
+      refIdsIn(container.read(exploreFilterProvider).query, [
+        'sightings',
+        'species',
+      ]),
+      ['sp1'],
+    );
     expect(find.text('turtles'), findsNothing);
   });
 
@@ -187,8 +218,18 @@ void main() {
       find.descendant(of: chip, matching: find.byIcon(Icons.close)),
     );
     await tester.pumpAndSettle();
-    expect(container.read(exploreFilterProvider).minDepth, isNull);
-    expect(container.read(exploreFilterProvider).siteIds, ['s1', 's2']);
+    expect(
+      boundIn(
+        container.read(exploreFilterProvider).query,
+        'depth',
+        QueryOp.gte,
+      ),
+      isNull,
+    );
+    expect(refIdsIn(container.read(exploreFilterProvider).query, ['site']), [
+      's1',
+      's2',
+    ]);
   });
 
   testWidgets('handoffs copy the filter and navigate', (tester) async {
@@ -196,8 +237,39 @@ void main() {
     await ask(tester);
     await tester.tap(find.text('Open in dive list'));
     await tester.pumpAndSettle();
-    expect(container.read(diveFilterProvider).siteIds, ['s1', 's2']);
+    expect(refIdsIn(container.read(diveFilterProvider).query, ['site']), [
+      's1',
+      's2',
+    ]);
     expect(find.text('dive list'), findsOneWidget);
+  });
+
+  testWidgets('the handoff carries named refs', (tester) async {
+    final (container, _) = await pump(tester);
+    await ask(tester);
+    // "turtles" names two species: the diver picks one, as on the page.
+    await tester.tap(find.text('turtles'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Green Turtle').last);
+    await tester.pumpAndSettle();
+    final scope = container.read(exploreQueryNodeProvider);
+    expect(scope, isNotNull);
+    await tester.tap(find.text('Open in dive list'));
+    await tester.pumpAndSettle();
+    final handed = container.read(diveFilterProvider);
+    expect(handed.query, scope);
+    // Only the query: no legacy axis is set beside it.
+    expect(handed.minDepth, isNull);
+    expect(handed.siteIds, isEmpty);
+    final species = conditionsIn(handed.query, [
+      'sightings',
+      'species',
+    ], QueryOp.inList).single;
+    // A named ref, so the dive list's chip reads the name and a saved query
+    // stores it.
+    expect((species.value! as ListValue).items, const [
+      RefValue('sp1', 'Green Turtle'),
+    ]);
   });
 
   testWidgets('insights handoff writes the insights filter', (tester) async {
@@ -205,7 +277,14 @@ void main() {
     await ask(tester);
     await tester.tap(find.text('Open in Insights'));
     await tester.pumpAndSettle();
-    expect(container.read(insightsFilterProvider).minDepth, 20);
+    expect(
+      boundIn(
+        container.read(insightsFilterProvider).query,
+        'depth',
+        QueryOp.gte,
+      ),
+      20,
+    );
     expect(find.text('insights'), findsOneWidget);
   });
 

@@ -104,6 +104,7 @@ void main() {
     'site_tags': 'siteTags',
     'equipment_tags': 'equipmentTags',
     'equipment_shares': 'equipmentShares',
+    'trip_equipment': 'tripEquipment',
     'equipment_ownership_events': 'equipmentOwnershipEvents',
     'dive_safety_reviews': 'diveSafetyReviews',
     'dive_safety_findings': 'diveSafetyFindings',

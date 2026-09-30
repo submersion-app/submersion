@@ -596,6 +596,12 @@ abstract class AppLocalizations {
   /// **'Choose a buddy'**
   String get plannerMission_buddyPicker_title;
 
+  /// No description provided for @plannerMission_chip_issues.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Mission: {count} issue} other{Mission: {count} issues}}'**
+  String plannerMission_chip_issues(int count);
+
   /// No description provided for @plannerMission_current_setsToward.
   ///
   /// In en, this message translates to:
@@ -661,6 +667,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Overhead'**
   String get plannerMission_environment_overhead;
+
+  /// No description provided for @plannerMission_factor_battery.
+  ///
+  /// In en, this message translates to:
+  /// **'battery reserve'**
+  String get plannerMission_factor_battery;
+
+  /// No description provided for @plannerMission_factor_blockedByCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'a current that blocks the way out'**
+  String get plannerMission_factor_blockedByCurrent;
+
+  /// No description provided for @plannerMission_factor_exposure.
+  ///
+  /// In en, this message translates to:
+  /// **'oxygen exposure'**
+  String get plannerMission_factor_exposure;
+
+  /// No description provided for @plannerMission_factor_noFeasibleTow.
+  ///
+  /// In en, this message translates to:
+  /// **'no workable tow'**
+  String get plannerMission_factor_noFeasibleTow;
+
+  /// No description provided for @plannerMission_factor_ownGas.
+  ///
+  /// In en, this message translates to:
+  /// **'own gas'**
+  String get plannerMission_factor_ownGas;
+
+  /// No description provided for @plannerMission_factor_scenarioFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'a failure scenario that could not be computed'**
+  String get plannerMission_factor_scenarioFailed;
+
+  /// No description provided for @plannerMission_factor_surfaceSwimLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'the surface swim limit'**
+  String get plannerMission_factor_surfaceSwimLimit;
+
+  /// No description provided for @plannerMission_factor_teamGas.
+  ///
+  /// In en, this message translates to:
+  /// **'a teammate\'s gas'**
+  String get plannerMission_factor_teamGas;
 
   /// No description provided for @plannerMission_issue_batteryReserveInvalid.
   ///
@@ -865,6 +919,238 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Generated profile'**
   String get plannerMission_profile_title;
+
+  /// No description provided for @plannerMission_results_abandonment.
+  ///
+  /// In en, this message translates to:
+  /// **'Last waypoint every diver can get out from: {waypoint}'**
+  String plannerMission_results_abandonment(String waypoint);
+
+  /// No description provided for @plannerMission_results_abandonmentUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Which waypoints are survivable could not be worked out'**
+  String get plannerMission_results_abandonmentUnknown;
+
+  /// No description provided for @plannerMission_results_assumptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery reserve {reserve}% of burn time. A diver whose scooter fails breathes their own RMV raised by the plan\'s stress ratio until the first stop.'**
+  String plannerMission_results_assumptions(String reserve);
+
+  /// No description provided for @plannerMission_results_battery.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery {percent}% of burn time ({minutes}′), reserve {reserve}%'**
+  String plannerMission_results_battery(
+    String minutes,
+    String percent,
+    String reserve,
+  );
+
+  /// No description provided for @plannerMission_results_bindsAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit at {waypoint}: {factor}'**
+  String plannerMission_results_bindsAt(String factor, String waypoint);
+
+  /// No description provided for @plannerMission_results_blocked.
+  ///
+  /// In en, this message translates to:
+  /// **'The mission cannot be computed yet:'**
+  String get plannerMission_results_blocked;
+
+  /// No description provided for @plannerMission_results_cannotGetOut.
+  ///
+  /// In en, this message translates to:
+  /// **'cannot get out'**
+  String get plannerMission_results_cannotGetOut;
+
+  /// No description provided for @plannerMission_results_computing.
+  ///
+  /// In en, this message translates to:
+  /// **'Working out the failure scenarios'**
+  String get plannerMission_results_computing;
+
+  /// No description provided for @plannerMission_results_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'The mission could not be computed'**
+  String get plannerMission_results_failed;
+
+  /// No description provided for @plannerMission_results_home.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} straight home'**
+  String plannerMission_results_home(String distance);
+
+  /// No description provided for @plannerMission_results_legLine.
+  ///
+  /// In en, this message translates to:
+  /// **'out {outSpeed} {outMinutes}′, back {backSpeed} {backMinutes}′'**
+  String plannerMission_results_legLine(
+    String backMinutes,
+    String backSpeed,
+    String outMinutes,
+    String outSpeed,
+  );
+
+  /// No description provided for @plannerMission_results_legRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{leg}: {line}'**
+  String plannerMission_results_legRow(String leg, String line);
+
+  /// No description provided for @plannerMission_results_legs.
+  ///
+  /// In en, this message translates to:
+  /// **'Legs'**
+  String get plannerMission_results_legs;
+
+  /// No description provided for @plannerMission_results_limitedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited by {name}\'s {scooter} at {waypoint}: {factor}'**
+  String plannerMission_results_limitedBy(
+    String factor,
+    String name,
+    String scooter,
+    String waypoint,
+  );
+
+  /// No description provided for @plannerMission_results_limitedByDiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited by {name} at {waypoint}: {factor}'**
+  String plannerMission_results_limitedByDiver(
+    String factor,
+    String name,
+    String waypoint,
+  );
+
+  /// No description provided for @plannerMission_results_listSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get plannerMission_results_listSeparator;
+
+  /// No description provided for @plannerMission_results_memberLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {status}'**
+  String plannerMission_results_memberLine(String name, String status);
+
+  /// No description provided for @plannerMission_results_memberLineExits.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {status} ({exits})'**
+  String plannerMission_results_memberLineExits(
+    String exits,
+    String name,
+    String status,
+  );
+
+  /// No description provided for @plannerMission_results_noAbandonment.
+  ///
+  /// In en, this message translates to:
+  /// **'No waypoint is survivable for every failure'**
+  String get plannerMission_results_noAbandonment;
+
+  /// No description provided for @plannerMission_results_noBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'no buddy'**
+  String get plannerMission_results_noBuddy;
+
+  /// No description provided for @plannerMission_results_noLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'No limit on this route'**
+  String get plannerMission_results_noLimit;
+
+  /// No description provided for @plannerMission_results_notComputed.
+  ///
+  /// In en, this message translates to:
+  /// **'could not be computed'**
+  String get plannerMission_results_notComputed;
+
+  /// No description provided for @plannerMission_results_safeSurface.
+  ///
+  /// In en, this message translates to:
+  /// **'Safe surface in {minutes}′'**
+  String plannerMission_results_safeSurface(String minutes);
+
+  /// No description provided for @plannerMission_results_safeSurfaceUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Safe surface: could not be computed'**
+  String get plannerMission_results_safeSurfaceUnknown;
+
+  /// No description provided for @plannerMission_results_setsCruise.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets the team\'s cruise speed'**
+  String get plannerMission_results_setsCruise;
+
+  /// No description provided for @plannerMission_results_surface.
+  ///
+  /// In en, this message translates to:
+  /// **'surface {minutes}′'**
+  String plannerMission_results_surface(String minutes);
+
+  /// No description provided for @plannerMission_results_surfaceViaShore.
+  ///
+  /// In en, this message translates to:
+  /// **'surface via the shore {minutes}′'**
+  String plannerMission_results_surfaceViaShore(String minutes);
+
+  /// No description provided for @plannerMission_results_survives.
+  ///
+  /// In en, this message translates to:
+  /// **'gets out'**
+  String get plannerMission_results_survives;
+
+  /// No description provided for @plannerMission_results_swim.
+  ///
+  /// In en, this message translates to:
+  /// **'swim {minutes}′'**
+  String plannerMission_results_swim(String minutes);
+
+  /// No description provided for @plannerMission_results_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission'**
+  String get plannerMission_results_title;
+
+  /// No description provided for @plannerMission_results_tow.
+  ///
+  /// In en, this message translates to:
+  /// **'tow by {name} {minutes}′'**
+  String plannerMission_results_tow(String minutes, String name);
+
+  /// No description provided for @plannerMission_results_turnPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn at {pressure}'**
+  String plannerMission_results_turnPressure(String pressure);
+
+  /// No description provided for @plannerMission_results_unconstrained.
+  ///
+  /// In en, this message translates to:
+  /// **'Every waypoint is survivable for any single scooter failure'**
+  String get plannerMission_results_unconstrained;
+
+  /// No description provided for @plannerMission_results_waypointLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance}, arrive {minutes}′'**
+  String plannerMission_results_waypointLine(String distance, String minutes);
+
+  /// No description provided for @plannerMission_results_waypoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Waypoints'**
+  String get plannerMission_results_waypoints;
 
   /// No description provided for @plannerMission_route_addLeg.
   ///
@@ -21966,6 +22252,54 @@ abstract class AppLocalizations {
   /// **'Enter your analysed values'**
   String get passport_logFill_analysedHint;
 
+  /// No description provided for @passport_trip_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get passport_trip_title;
+
+  /// No description provided for @passport_trip_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Not packed for a trip'**
+  String get passport_trip_none;
+
+  /// No description provided for @passport_trip_packedFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Packed for {trip}'**
+  String passport_trip_packedFor(String trip);
+
+  /// A chip for the trips not shown yet, such as +2.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String passport_trip_more(int count);
+
+  /// No description provided for @passport_trip_assign.
+  ///
+  /// In en, this message translates to:
+  /// **'Pack for a trip'**
+  String get passport_trip_assign;
+
+  /// No description provided for @passport_trip_unassign.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpack from this trip'**
+  String get passport_trip_unassign;
+
+  /// No description provided for @passport_trip_onBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'On the trip\'s cylinder board'**
+  String get passport_trip_onBoard;
+
+  /// No description provided for @passport_trip_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not change the trip. Try again.'**
+  String get passport_trip_failed;
+
   /// No description provided for @passport_logFill_notes.
   ///
   /// In en, this message translates to:
@@ -41192,6 +41526,36 @@ abstract class AppLocalizations {
   /// **'{count} rebreathers, lowest {minutes} min scrubber margin'**
   String trips_scrubber_bannerCount(int count, String minutes);
 
+  /// No description provided for @trips_gear_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get trips_gear_title;
+
+  /// No description provided for @trips_gear_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No gear packed yet'**
+  String get trips_gear_none;
+
+  /// No description provided for @trips_gear_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add gear'**
+  String get trips_gear_add;
+
+  /// No description provided for @trips_gear_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpack'**
+  String get trips_gear_remove;
+
+  /// No description provided for @trips_gear_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not change the gear. Try again.'**
+  String get trips_gear_failed;
+
   /// No description provided for @trips_cylinders_forecast_todayShort.
   ///
   /// In en, this message translates to:
@@ -41263,6 +41627,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Planned by you'**
   String get trips_cylinders_forecast_dayPlanned;
+
+  /// No description provided for @trips_cylinders_segment_record.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get trips_cylinders_segment_record;
+
+  /// No description provided for @trips_cylinders_recordEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives breathed from these cylinders yet.'**
+  String get trips_cylinders_recordEmpty;
+
+  /// No description provided for @trips_cylinders_record_fillsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} fill logged} other{{count} fills logged}}'**
+  String trips_cylinders_record_fillsLogged(int count);
+
+  /// No description provided for @trips_cylinders_record_leftOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive left out} other{{count} dives left out}}'**
+  String trips_cylinders_record_leftOut(int count);
+
+  /// No description provided for @trips_cylinders_record_packageFills.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} package fill} other{{count} package fills}}'**
+  String trips_cylinders_record_packageFills(int count);
+
+  /// No description provided for @trips_cylinders_record_unlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive tank not linked to a cylinder} other{{count} dive tanks not linked to a cylinder}}'**
+  String trips_cylinders_record_unlinked(int count);
+
+  /// No description provided for @trips_cylinders_record_unlinkedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked to a cylinder'**
+  String get trips_cylinders_record_unlinkedTitle;
+
+  /// No description provided for @trips_cylinders_record_tank.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank {number}'**
+  String trips_cylinders_record_tank(int number);
+
+  /// No description provided for @trips_cylinders_record_filled.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled to {pressure}'**
+  String trips_cylinders_record_filled(String pressure);
+
+  /// No description provided for @trips_cylinders_record_analyzed.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzed {mix}'**
+  String trips_cylinders_record_analyzed(String mix);
+
+  /// No description provided for @trips_cylinders_record_exported.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas record exported'**
+  String get trips_cylinders_record_exported;
 
   /// No description provided for @trips_cylinders_title.
   ///

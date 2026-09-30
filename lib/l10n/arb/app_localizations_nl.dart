@@ -338,6 +338,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerMission_buddyPicker_title => 'Kies een buddy';
 
   @override
+  String plannerMission_chip_issues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Missie: $count problemen',
+      one: 'Missie: $count probleem',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get plannerMission_current_setsToward => 'Stroomt richting';
 
   @override
@@ -372,6 +383,33 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerMission_environment_overhead => 'Overhead';
+
+  @override
+  String get plannerMission_factor_battery => 'accureserve';
+
+  @override
+  String get plannerMission_factor_blockedByCurrent =>
+      'een stroming die de weg terug blokkeert';
+
+  @override
+  String get plannerMission_factor_exposure => 'zuurstofbelasting';
+
+  @override
+  String get plannerMission_factor_noFeasibleTow => 'geen haalbare sleep';
+
+  @override
+  String get plannerMission_factor_ownGas => 'eigen gas';
+
+  @override
+  String get plannerMission_factor_scenarioFailed =>
+      'een storingsscenario dat niet kon worden berekend';
+
+  @override
+  String get plannerMission_factor_surfaceSwimLimit =>
+      'de limiet voor zwemmen aan de oppervlakte';
+
+  @override
+  String get plannerMission_factor_teamGas => 'het gas van een teamgenoot';
 
   @override
   String get plannerMission_issue_batteryReserveInvalid =>
@@ -500,6 +538,177 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerMission_profile_title => 'Gegenereerd profiel';
+
+  @override
+  String plannerMission_results_abandonment(String waypoint) {
+    return 'Laatste punt van waaruit iedereen eruit komt: $waypoint';
+  }
+
+  @override
+  String get plannerMission_results_abandonmentUnknown =>
+      'Niet te bepalen vanaf welke punten iedereen eruit komt';
+
+  @override
+  String plannerMission_results_assumptions(String reserve) {
+    return 'Accureserve $reserve% van de looptijd. Wie een scooter verliest, ademt tot de eerste stop het eigen RMV, verhoogd met de stressfactor van het plan.';
+  }
+
+  @override
+  String plannerMission_results_battery(
+    String minutes,
+    String percent,
+    String reserve,
+  ) {
+    return 'Accu $percent% van de looptijd ($minutes′), reserve $reserve%';
+  }
+
+  @override
+  String plannerMission_results_bindsAt(String factor, String waypoint) {
+    return 'Limiet bij $waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_blocked =>
+      'De missie kan nog niet worden berekend:';
+
+  @override
+  String get plannerMission_results_cannotGetOut => 'komt er niet uit';
+
+  @override
+  String get plannerMission_results_computing =>
+      'Storingsscenario\'s worden berekend';
+
+  @override
+  String get plannerMission_results_failed =>
+      'De missie kon niet worden berekend';
+
+  @override
+  String plannerMission_results_home(String distance) {
+    return '$distance in rechte lijn naar de ingang';
+  }
+
+  @override
+  String plannerMission_results_legLine(
+    String backMinutes,
+    String backSpeed,
+    String outMinutes,
+    String outSpeed,
+  ) {
+    return 'heen $outSpeed $outMinutes′, terug $backSpeed $backMinutes′';
+  }
+
+  @override
+  String plannerMission_results_legRow(String leg, String line) {
+    return '$leg: $line';
+  }
+
+  @override
+  String get plannerMission_results_legs => 'Trajecten';
+
+  @override
+  String plannerMission_results_limitedBy(
+    String factor,
+    String name,
+    String scooter,
+    String waypoint,
+  ) {
+    return 'Beperkt door de $scooter van $name bij $waypoint: $factor';
+  }
+
+  @override
+  String plannerMission_results_limitedByDiver(
+    String factor,
+    String name,
+    String waypoint,
+  ) {
+    return 'Beperkt door $name bij $waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_listSeparator => ', ';
+
+  @override
+  String plannerMission_results_memberLine(String name, String status) {
+    return '$name: $status';
+  }
+
+  @override
+  String plannerMission_results_memberLineExits(
+    String exits,
+    String name,
+    String status,
+  ) {
+    return '$name: $status ($exits)';
+  }
+
+  @override
+  String get plannerMission_results_noAbandonment =>
+      'Geen enkel punt doorstaat elke storing';
+
+  @override
+  String get plannerMission_results_noBuddy => 'geen buddy';
+
+  @override
+  String get plannerMission_results_noLimit => 'Geen limiet op deze route';
+
+  @override
+  String get plannerMission_results_notComputed => 'kon niet worden berekend';
+
+  @override
+  String plannerMission_results_safeSurface(String minutes) {
+    return 'Veilig aan de oppervlakte in $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_safeSurfaceUnknown =>
+      'Veilig aan de oppervlakte: kon niet worden berekend';
+
+  @override
+  String get plannerMission_results_setsCruise =>
+      'Bepaalt de kruissnelheid van het team';
+
+  @override
+  String plannerMission_results_surface(String minutes) {
+    return 'oppervlakte $minutes′';
+  }
+
+  @override
+  String plannerMission_results_surfaceViaShore(String minutes) {
+    return 'oppervlakte via de oever $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_survives => 'komt eruit';
+
+  @override
+  String plannerMission_results_swim(String minutes) {
+    return 'zwemmen $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_title => 'Missie';
+
+  @override
+  String plannerMission_results_tow(String minutes, String name) {
+    return 'sleep door $name $minutes′';
+  }
+
+  @override
+  String plannerMission_results_turnPressure(String pressure) {
+    return 'Omkeren bij $pressure';
+  }
+
+  @override
+  String get plannerMission_results_unconstrained =>
+      'Vanaf elk punt komt iedereen eruit, welke scooter ook uitvalt';
+
+  @override
+  String plannerMission_results_waypointLine(String distance, String minutes) {
+    return '$distance, aankomst $minutes′';
+  }
+
+  @override
+  String get plannerMission_results_waypoints => 'Punten';
 
   @override
   String get plannerMission_route_addLeg => 'Traject toevoegen';
@@ -13209,6 +13418,35 @@ class AppLocalizationsNl extends AppLocalizations {
   String get passport_logFill_analysedHint => 'Vul je geanalyseerde waarden in';
 
   @override
+  String get passport_trip_title => 'Reizen';
+
+  @override
+  String get passport_trip_none => 'Niet ingepakt voor een reis';
+
+  @override
+  String passport_trip_packedFor(String trip) {
+    return 'Ingepakt voor $trip';
+  }
+
+  @override
+  String passport_trip_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get passport_trip_assign => 'Inpakken voor een reis';
+
+  @override
+  String get passport_trip_unassign => 'Van deze reis halen';
+
+  @override
+  String get passport_trip_onBoard => 'Op het flessenbord van de reis';
+
+  @override
+  String get passport_trip_failed =>
+      'Kan de reis niet wijzigen. Probeer het opnieuw.';
+
+  @override
   String get passport_logFill_notes => 'Notities';
 
   @override
@@ -25550,6 +25788,22 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_title => 'Uitrusting';
+
+  @override
+  String get trips_gear_none => 'Nog geen uitrusting ingepakt';
+
+  @override
+  String get trips_gear_add => 'Uitrusting toevoegen';
+
+  @override
+  String get trips_gear_remove => 'Eruit halen';
+
+  @override
+  String get trips_gear_failed =>
+      'Kan de uitrusting niet wijzigen. Probeer het opnieuw.';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Vandaag zijn er $needed nodig, je hebt er $full vol.';
   }
@@ -25603,6 +25857,78 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_cylinders_forecast_dayPlanned => 'Door jou gepland';
+
+  @override
+  String get trips_cylinders_segment_record => 'Gasverbruik';
+
+  @override
+  String get trips_cylinders_recordEmpty => 'Nog geen duiken met deze flessen.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vullingen vastgelegd',
+      one: '$count vulling vastgelegd',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken niet meegeteld',
+      one: '$count duik niet meegeteld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vullingen in pakket',
+      one: '$count vulling in pakket',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duikflessen niet gekoppeld',
+      one: '$count duikfles niet gekoppeld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle =>
+      'Niet aan een fles gekoppeld';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'Fles $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'Gevuld tot $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'Geanalyseerd $mix';
+  }
+
+  @override
+  String get trips_cylinders_record_exported => 'Gasverbruik geëxporteerd';
 
   @override
   String get trips_cylinders_title => 'Flessen';

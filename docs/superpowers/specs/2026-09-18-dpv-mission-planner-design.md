@@ -451,16 +451,18 @@ card.
 Blocking mission issues also raise a status chip in `plan_status_chips.dart`
 so they are visible from every tab.
 
-**Providers.** `missionOutcomeProvider` in `plan_canvas_providers.dart` sits
-beside `planOutcomeProvider`, watches the editing state and the engine
-config, and runs the mission engine synchronously as the plan outcome does.
+**Providers.** `missionOutcomeProvider` in `mission_outcome_provider.dart`
+sits beside `planOutcomeProvider`, watches the editing state and the engine
+config, and runs the mission engine through an injectable runner.
 `DivePlanNotifier` gains mission mutations (set mission, add, update, remove,
 reorder leg or member, set reserve, set default current); each regenerates
 the segments through `MissionSegmentBuilder`. On load with a mission present,
 the notifier resolves the scooter overlay through `ScooterSpecResolver`
-and regenerates once. If a measured recompute on a realistic mission exceeds
-about 100 ms on a mid-range phone, the scenario evaluation moves to a compute
-isolate; the move is made only after measuring.
+and regenerates once. The scenario evaluation always runs on a background
+isolate (`Isolate.run`, behind the injectable runner so widget tests run it
+synchronously); decided on 2026-09-28 instead of measuring first, since a
+realistic mission is dozens of full plan-engine runs. The results section
+keeps showing the previous outcome while a newer edit computes.
 
 **Units.** Distance through `UnitFormatter.formatDistance` (the depth unit,
 metres or feet). Scooter, swim and current speed through the equipment

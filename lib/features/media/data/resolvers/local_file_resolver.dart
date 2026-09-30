@@ -2,12 +2,9 @@ import 'dart:io';
 import 'dart:ui' show Size;
 
 import 'package:flutter/services.dart' show PlatformException;
-import 'package:path/path.dart' as p;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
-import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/domain/services/diagnostic_probe.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
@@ -17,7 +14,6 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 
 /// How long a mount-root probe is trusted before it is re-run (#1182).
@@ -57,12 +53,10 @@ const int kLocalResolveConcurrency = 8;
 class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
   final LocalBookmarkStorage _bookmarkStorage;
   final LocalMediaPlatform _platform;
-  final ExifExtractor _exifExtractor;
 
   LocalFileResolver({
     required LocalBookmarkStorage bookmarkStorage,
     required LocalMediaPlatform platform,
-    required ExifExtractor exifExtractor,
     VideoThumbnailService? videoThumbnails,
     VolumeStatus? volumeStatus,
     Duration volumeProbeTtl = kVolumeProbeTtl,
@@ -75,7 +69,6 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
     Future<MediaSourceData?> Function(MediaItem item)? findInLibrary,
   }) : _bookmarkStorage = bookmarkStorage,
        _platform = platform,
-       _exifExtractor = exifExtractor,
        _videoThumbnails = videoThumbnails,
        _localDeviceId = localDeviceId,
        _deviceLabel = deviceLabel,
@@ -473,45 +466,6 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
       }
     }
     return resolve(item);
-  }
-
-  @override
-  Future<MediaSourceMetadata?> extractMetadata(MediaItem item) async {
-    final data = await resolve(item);
-    if (data is FileData) {
-      return _exifExtractor.extract(data.file);
-    }
-    if (data is BytesData) {
-      // Android content URIs and the iOS / macOS bookmark path hand back
-      // bytes, not a file: write them to a temp file, run the extractor,
-      // delete. Each call gets a directory of its own: a name derived from
-      // the item id alone let two concurrent calls for the same item (or two
-      // processes sharing TMPDIR) overwrite and delete each other's file
-      // mid-read. The root is the app's temp dir because hardened-runtime
-      // macOS is denied systemTemp (issue #509).
-      final root = await resolveSyncTempDir();
-      final dir = await root.createTemp('exif_');
-      try {
-        // The extractor picks its readers by extension, so keep the item's;
-        // a neutral name reads every capture as application/octet-stream.
-        final ext = p.extension(item.shareFilename);
-        final tmp = File(p.join(dir.path, 'media$ext'));
-        await tmp.writeAsBytes(data.bytes);
-        return await _exifExtractor.extract(tmp);
-      } finally {
-        try {
-          await dir.delete(recursive: true);
-        }
-        // coverage:ignore-start
-        // FileSystemException on a tmpdir delete is not produced by
-        // flutter_test fixtures; cleanup is best-effort either way.
-        on FileSystemException {
-          // Best-effort cleanup.
-        }
-        // coverage:ignore-end
-      }
-    }
-    return null;
   }
 
   /// The same decision tree as [verify], stopped before any byte read.
