@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show PlatformException;
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/domain/services/diagnostic_probe.dart';
@@ -481,13 +482,20 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
       return _exifExtractor.extract(data.file);
     }
     if (data is BytesData) {
-      // Android: write bytes to a temp file, run extractor, delete. Each
-      // call gets a directory of its own: a name derived from the item id
-      // alone let two concurrent calls for the same item (or two processes
-      // sharing TMPDIR) overwrite and delete each other's file mid-read.
-      final dir = await Directory.systemTemp.createTemp('exif_');
+      // Android content URIs and the iOS / macOS bookmark path hand back
+      // bytes, not a file: write them to a temp file, run the extractor,
+      // delete. Each call gets a directory of its own: a name derived from
+      // the item id alone let two concurrent calls for the same item (or two
+      // processes sharing TMPDIR) overwrite and delete each other's file
+      // mid-read. The root is the app's temp dir because hardened-runtime
+      // macOS is denied systemTemp (issue #509).
+      final root = await resolveSyncTempDir();
+      final dir = await root.createTemp('exif_');
       try {
-        final tmp = File(p.join(dir.path, 'exif.bin'));
+        // The extractor picks its readers by extension, so keep the item's;
+        // a neutral name reads every capture as application/octet-stream.
+        final ext = p.extension(item.shareFilename);
+        final tmp = File(p.join(dir.path, 'media$ext'));
         await tmp.writeAsBytes(data.bytes);
         return await _exifExtractor.extract(tmp);
       } finally {
