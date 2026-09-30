@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/gas_percent.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
@@ -200,12 +201,10 @@ class _RecordRow extends StatelessWidget {
   }
 }
 
-/// "31.8%" or "18/45%" for an analyzed mix.
-String _percent(double o2, double he) {
-  String n(double v) =>
-      v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
-  return he > 0 ? '${n(o2)}/${n(he)}%' : '${n(o2)}%';
-}
+/// "31.8%" or "18/45%" for an analyzed mix, in the locale's convention.
+String _percent(double o2, double he) => he > 0
+    ? '${formatGasPercentValue(o2)}/${formatGasPercent(he)}'
+    : formatGasPercent(o2);
 
 /// The dive tanks that breathe from no trip cylinder; each opens its
 /// dive's editor (decided 2026-09-30: a list, not only the first).

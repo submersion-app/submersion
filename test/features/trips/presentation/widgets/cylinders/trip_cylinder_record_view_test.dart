@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
@@ -38,27 +39,31 @@ void main() {
     updatedAt: at,
   );
 
-  TripGasRecordRow row(String tankId, {String? diver, double? litres}) =>
-      TripGasRecordRow(
-        tank: TripGasRecordTank(
-          tankId: tankId,
-          diveId: 'd-$tankId',
-          entryTime: at,
-          diverId: diver,
-          diverName: diver == null ? null : 'Diver $diver',
-          siteName: 'Salt Pier',
-          startPressure: 200,
-          endPressure: 60,
-          volume: 11.1,
-          gasMix: const GasMix(o2: 32),
-          tripCylinderId: 'a',
-        ),
-        cylinder: slot,
-        bottleLabel: '14',
-        fill: fill,
-        fillPressure: 200,
-        litres: litres,
-      );
+  TripGasRecordRow row(
+    String tankId, {
+    String? diver,
+    double? litres,
+    TripCylinderEvent? fillEvent,
+  }) => TripGasRecordRow(
+    tank: TripGasRecordTank(
+      tankId: tankId,
+      diveId: 'd-$tankId',
+      entryTime: at,
+      diverId: diver,
+      diverName: diver == null ? null : 'Diver $diver',
+      siteName: 'Salt Pier',
+      startPressure: 200,
+      endPressure: 60,
+      volume: 11.1,
+      gasMix: const GasMix(o2: 32),
+      tripCylinderId: 'a',
+    ),
+    cylinder: slot,
+    bottleLabel: '14',
+    fill: fillEvent ?? fill,
+    fillPressure: 200,
+    litres: litres,
+  );
 
   TripGasRecord recordOf({
     List<TripGasRecordRow>? rows,
@@ -84,7 +89,11 @@ void main() {
     multipleDivers: multipleDivers,
   );
 
-  Future<void> pump(WidgetTester tester, TripGasRecord record) async {
+  Future<void> pump(
+    WidgetTester tester,
+    TripGasRecord record, {
+    Locale locale = const Locale('en'),
+  }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -113,7 +122,7 @@ void main() {
           tripGasRecordProvider('t1').overrideWith((ref) async => record),
         ],
         child: MaterialApp.router(
-          locale: const Locale('en'),
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routerConfig: router,
@@ -206,6 +215,67 @@ void main() {
       find.descendant(of: r, matching: find.textContaining('Dive Friends')),
       findsOneWidget,
     );
+  });
+
+  group('the analyzed mix follows the locale (issue #2666)', () {
+    setUp(() {
+      // Number separators resolve against Intl.defaultLocale, which the app
+      // sets from the diver's language; put it back for the next file.
+      final previous = Intl.defaultLocale;
+      Intl.defaultLocale = 'de';
+      addTearDown(() => Intl.defaultLocale = previous);
+    });
+
+    TripGasRecordRow analyzed(double o2, {double? he}) => row(
+      't1',
+      litres: 1554,
+      fillEvent: fill.copyWith(analyzedO2: o2, analyzedHe: he),
+    );
+
+    testWidgets('a nitrox analysis takes the decimal comma', (tester) async {
+      await pump(
+        tester,
+        recordOf(rows: [analyzed(31.8)]),
+        locale: const Locale('de'),
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('record-row-t1')),
+          matching: find.textContaining('Analysiert 31,8%'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a trimix analysis localises both gases', (tester) async {
+      await pump(
+        tester,
+        recordOf(rows: [analyzed(18.5, he: 44.6)]),
+        locale: const Locale('de'),
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('record-row-t1')),
+          matching: find.textContaining('Analysiert 18,5/44,6%'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a whole reading stays whole', (tester) async {
+      await pump(
+        tester,
+        recordOf(rows: [analyzed(21, he: 35)]),
+        locale: const Locale('de'),
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('record-row-t1')),
+          matching: find.textContaining('Analysiert 21/35%'),
+        ),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets('a single-diver trip names no diver', (tester) async {
