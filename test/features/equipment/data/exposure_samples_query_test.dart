@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -333,7 +334,7 @@ void main() {
         .insert(
           DiveSensorSummariesCompanion.insert(
             diveId: 'd1',
-            engineVersion: 1,
+            engineVersion: DiveSensorSummaryService.version,
             sourceUpdatedAt: stamp,
             computedAt: 1,
           ).copyWith(maxDepth: const Value(40.0)),
