@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -50,6 +51,9 @@ class TripGasRecordExportButton extends ConsumerWidget {
           ref.read(settingsProvider),
         );
         final service = ref.read(exportServiceProvider);
+        // This widget adds no render object of its own, so its context
+        // resolves to the button: the iPad share popover points at it.
+        final anchor = shareAnchorFrom(context);
         // No progress dialog around the save path: the native save panel
         // must not open while a modal route is up.
         final messenger = ScaffoldMessenger.of(context);
@@ -60,6 +64,7 @@ class TripGasRecordExportButton extends ConsumerWidget {
                   tripName: tripName,
                   centerNames: centerNames,
                   units: units,
+                  sharePositionOrigin: anchor,
                 )
               : await service.saveTripGasRecordCsvToFile(
                   record,

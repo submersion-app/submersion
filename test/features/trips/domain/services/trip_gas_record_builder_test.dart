@@ -229,6 +229,22 @@ void main() {
     expect(record().slots.map((s) => s.cylinder.id), ['a', 'b']);
   });
 
+  test('a slot with no figure totals null, not 0 L', () {
+    final r = record(
+      tanks: [
+        tank('u1', 'd5', 'a', at(9, 9), volume: null, start: 200, end: 60),
+      ],
+    );
+    final totals = {for (final s in r.slots) s.cylinder.id: s};
+    // Truck 1: one dive, no tank size, so no figure to total.
+    expect(totals['a']!.dives, 1);
+    expect(totals['a']!.leftOut, 1);
+    expect(totals['a']!.litres, isNull);
+    // Truck 2: no dives at all.
+    expect(totals['b']!.dives, 0);
+    expect(totals['b']!.litres, isNull);
+  });
+
   test('fills logged counts every fill on the trip', () {
     expect(record().fillsLogged, 3);
   });

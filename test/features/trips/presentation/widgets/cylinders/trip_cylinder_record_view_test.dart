@@ -62,18 +62,21 @@ void main() {
 
   TripGasRecord recordOf({
     List<TripGasRecordRow>? rows,
+    List<TripGasRecordSlotTotal>? slots,
     List<TripUnlinkedTank> unlinked = const [],
     bool multipleDivers = false,
   }) => TripGasRecord(
     rows: rows ?? [row('t1', litres: 1554)],
-    slots: [
-      TripGasRecordSlotTotal(
-        cylinder: slot,
-        dives: 2,
-        litres: 1554,
-        leftOut: 1,
-      ),
-    ],
+    slots:
+        slots ??
+        [
+          TripGasRecordSlotTotal(
+            cylinder: slot,
+            dives: 2,
+            litres: 1554,
+            leftOut: 1,
+          ),
+        ],
     fillsLogged: 3,
     costs: const [MapEntry('USD', 22.0)],
     packageFills: 1,
@@ -145,6 +148,40 @@ void main() {
         of: totals,
         matching: find.textContaining('1 package fill'),
       ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a slot with no figure reads "--", one with no dives no volume', (
+    tester,
+  ) async {
+    final empty = TripCylinder(
+      id: 'b',
+      tripId: 't1',
+      label: 'Truck 2',
+      createdAt: at,
+      updatedAt: at,
+    );
+    await pump(
+      tester,
+      recordOf(
+        rows: [row('t1'), row('t2')],
+        slots: [
+          TripGasRecordSlotTotal(cylinder: slot, dives: 2, leftOut: 2),
+          TripGasRecordSlotTotal(cylinder: empty, dives: 0, leftOut: 0),
+        ],
+      ),
+    );
+    final totals = find.byKey(const Key('record-totals'));
+    expect(
+      find.descendant(
+        of: totals,
+        matching: find.text('Truck 1 · 2 dives · -- · 2 dives left out'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: totals, matching: find.text('Truck 2 · 0 dives')),
       findsOneWidget,
     );
   });

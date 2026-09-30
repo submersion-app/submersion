@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui' show Rect;
 
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
@@ -372,11 +373,13 @@ class CsvExportService {
   }) => CsvTripGasRecordWriter(units).write(record, centerNames: centerNames);
 
   /// Export the trip gas record to CSV and share via the system sheet.
+  /// [sharePositionOrigin] anchors the iPad popover to the export button.
   Future<String> exportTripGasRecordToCsv(
     TripGasRecord record, {
     required String tripName,
     Map<String, String> centerNames = const {},
     CsvExportUnits units = CsvExportUnits.metric,
+    Rect? sharePositionOrigin,
   }) => saveAndShareFile(
     generateTripGasRecordCsvContent(
       record,
@@ -385,6 +388,7 @@ class CsvExportService {
     ),
     tripGasRecordFileName(tripName, DateTime.now()),
     'text/csv',
+    sharePositionOrigin: sharePositionOrigin,
   );
 
   /// Save the trip gas record CSV to a location the diver picks.

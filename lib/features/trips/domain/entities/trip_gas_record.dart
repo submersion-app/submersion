@@ -136,7 +136,7 @@ class TripGasRecordSlotTotal extends Equatable {
   const TripGasRecordSlotTotal({
     required this.cylinder,
     required this.dives,
-    required this.litres,
+    this.litres,
     required this.leftOut,
   });
 
@@ -145,8 +145,9 @@ class TripGasRecordSlotTotal extends Equatable {
   /// Distinct dives that breathed from the slot.
   final int dives;
 
-  /// Litres over the rows that have a figure.
-  final double litres;
+  /// Litres over the rows that have a figure; null when no row has one, so
+  /// an unmeasured slot never reads as 0 L.
+  final double? litres;
 
   /// Rows with no figure, left out of [litres].
   final int leftOut;

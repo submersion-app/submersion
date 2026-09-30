@@ -231,11 +231,13 @@ class ExportService {
     required String tripName,
     Map<String, String> centerNames = const {},
     CsvExportUnits units = CsvExportUnits.metric,
+    Rect? sharePositionOrigin,
   }) => _csv.exportTripGasRecordToCsv(
     record,
     tripName: tripName,
     centerNames: centerNames,
     units: units,
+    sharePositionOrigin: sharePositionOrigin,
   );
 
   Future<String?> saveTripGasRecordCsvToFile(

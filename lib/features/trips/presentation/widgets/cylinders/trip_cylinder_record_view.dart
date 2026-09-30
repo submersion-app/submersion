@@ -39,49 +39,53 @@ class TripCylinderRecordView extends ConsumerWidget {
       );
     }
     final units = UnitFormatter(ref.watch(settingsProvider));
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 16),
-      children: [
-        _Totals(
+    final header = <Widget>[
+      _Totals(
+        record: record,
+        units: units,
+        trailing: TripGasRecordExportButton(
           record: record,
-          units: units,
-          trailing: TripGasRecordExportButton(
-            record: record,
-            tripName: tripName,
-            centerNames: centerNames,
+          tripName: tripName,
+          centerNames: centerNames,
+        ),
+      ),
+      if (record.unlinked.isNotEmpty)
+        ListTile(
+          key: const Key('record-gaps'),
+          leading: const Icon(Icons.link_off),
+          title: Text(
+            l10n.trips_cylinders_record_unlinked(record.unlinked.length),
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => showUnlinkedTanksSheet(
+            context,
+            record.unlinked,
+            units: units,
+            showDivers: record.multipleDivers,
           ),
         ),
-        if (record.unlinked.isNotEmpty)
-          ListTile(
-            key: const Key('record-gaps'),
-            leading: const Icon(Icons.link_off),
-            title: Text(
-              l10n.trips_cylinders_record_unlinked(record.unlinked.length),
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => showUnlinkedTanksSheet(
-              context,
-              record.unlinked,
-              units: units,
-              showDivers: record.multipleDivers,
-            ),
-          ),
-        const Divider(height: 1),
-        if (record.rows.isEmpty)
-          Padding(
-            key: const Key('record-empty'),
-            padding: const EdgeInsets.all(24),
-            child: Center(child: Text(l10n.trips_cylinders_recordEmpty)),
-          )
-        else
-          for (final r in record.rows)
-            _RecordRow(
-              row: r,
-              units: units,
-              centerName: centerNames[r.diveCenterId],
-              showDiver: record.multipleDivers,
-            ),
-      ],
+      const Divider(height: 1),
+      if (record.rows.isEmpty)
+        Padding(
+          key: const Key('record-empty'),
+          padding: const EdgeInsets.all(24),
+          child: Center(child: Text(l10n.trips_cylinders_recordEmpty)),
+        ),
+    ];
+    // Rows build lazily: a shared liveaboard can log hundreds of tanks.
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 16),
+      itemCount: header.length + record.rows.length,
+      itemBuilder: (_, i) {
+        if (i < header.length) return header[i];
+        final r = record.rows[i - header.length];
+        return _RecordRow(
+          row: r,
+          units: units,
+          centerName: centerNames[r.diveCenterId],
+          showDiver: record.multipleDivers,
+        );
+      },
     );
   }
 }
@@ -128,7 +132,10 @@ class _Totals extends StatelessWidget {
               [
                 s.cylinder.label,
                 l10n.trips_cylinders_linkedDives(s.dives),
-                units.formatVolume(s.litres),
+                if (s.litres case final litres?)
+                  units.formatVolume(litres)
+                else if (s.dives > 0)
+                  '--',
                 if (s.leftOut > 0)
                   l10n.trips_cylinders_record_leftOut(s.leftOut),
               ].join(' · '),

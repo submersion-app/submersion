@@ -16,6 +16,7 @@ import '../../../../../helpers/mock_providers.dart';
 /// Records the record exports without touching the file system.
 class _FakeExportService implements ExportService {
   String? sharedTrip;
+  Rect? shareAnchor;
   String? savedTrip;
   CsvExportUnits? units;
   bool fail = false;
@@ -27,9 +28,11 @@ class _FakeExportService implements ExportService {
     required String tripName,
     Map<String, String> centerNames = const {},
     CsvExportUnits units = CsvExportUnits.metric,
+    Rect? sharePositionOrigin,
   }) async {
     if (fail) throw StateError('disk full');
     sharedTrip = tripName;
+    shareAnchor = sharePositionOrigin;
     this.units = units;
     return 'shared.csv';
   }
@@ -101,6 +104,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(fake.sharedTrip, 'Bonaire');
     expect(fake.units, isNotNull);
+  });
+
+  testWidgets('share points the iPad popover at the button', (tester) async {
+    final fake = await pump(tester);
+    final button = tester.getRect(find.byKey(const Key('record-export')));
+    await tester.tap(find.byKey(const Key('record-export')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+    expect(fake.shareAnchor, button);
   });
 
   testWidgets('save to file goes through the facade', (tester) async {

@@ -22,24 +22,20 @@ TripGasRecord buildTripGasRecord({
   required String defaultCurrency,
 }) {
   final bySlot = {for (final c in cylinders) c.id: c};
-  final ordered = [...tanks]..sort(_byDive);
+  final ordered = [...tanks]
+    ..sort(_inDiveOrder((t) => (t.entryTime, t.diveId, t.tankOrder)));
   final rows = [
     for (final t in ordered)
       if (bySlot[t.tripCylinderId] case final cylinder?)
         _row(t, cylinder, eventsBySlot[cylinder.id] ?? const [], gasModel),
   ];
 
+  final rowsBySlot = <String, List<TripGasRecordRow>>{};
+  for (final r in rows) {
+    (rowsBySlot[r.cylinder.id] ??= []).add(r);
+  }
   final slots = [
-    for (final c in cylinders)
-      () {
-        final mine = rows.where((r) => r.cylinder.id == c.id).toList();
-        return TripGasRecordSlotTotal(
-          cylinder: c,
-          dives: {for (final r in mine) r.tank.diveId}.length,
-          litres: mine.fold(0.0, (sum, r) => sum + (r.litres ?? 0)),
-          leftOut: mine.where((r) => r.litres == null).length,
-        );
-      }(),
+    for (final c in cylinders) _slotTotal(c, rowsBySlot[c.id] ?? const []),
   ];
 
   final fills = [
@@ -63,7 +59,8 @@ TripGasRecord buildTripGasRecord({
       fallbackCode: defaultCurrency,
     ),
     packageFills: fills.where((e) => e.isPackage).length,
-    unlinked: [...unlinked]..sort(_byUnlinked),
+    unlinked: [...unlinked]
+      ..sort(_inDiveOrder((u) => (u.entryTime, u.diveId, u.tankOrder))),
     multipleDivers: divers.length > 1,
   );
 }
@@ -114,16 +111,27 @@ double? _litres(TripGasRecordTank t, GasModel model) {
   return math.max(0, at(start) - at(end));
 }
 
-int _byDive(TripGasRecordTank a, TripGasRecordTank b) {
-  final byTime = a.entryTime.compareTo(b.entryTime);
-  if (byTime != 0) return byTime;
-  final byDive = a.diveId.compareTo(b.diveId);
-  return byDive != 0 ? byDive : a.tankOrder.compareTo(b.tankOrder);
+TripGasRecordSlotTotal _slotTotal(
+  TripCylinder cylinder,
+  List<TripGasRecordRow> rows,
+) {
+  final figures = [for (final r in rows) ?r.litres];
+  return TripGasRecordSlotTotal(
+    cylinder: cylinder,
+    dives: {for (final r in rows) r.tank.diveId}.length,
+    litres: figures.isEmpty ? null : figures.fold<double>(0, (a, b) => a + b),
+    leftOut: rows.length - figures.length,
+  );
 }
 
-int _byUnlinked(TripUnlinkedTank a, TripUnlinkedTank b) {
-  final byTime = a.entryTime.compareTo(b.entryTime);
-  if (byTime != 0) return byTime;
-  final byDive = a.diveId.compareTo(b.diveId);
-  return byDive != 0 ? byDive : a.tankOrder.compareTo(b.tankOrder);
-}
+/// Dive order: entry time, then dive, then tank order, the order the
+/// repository's queries return.
+int Function(T, T) _inDiveOrder<T>((DateTime, String, int) Function(T) key) =>
+    (a, b) {
+      final (aAt, aDive, aOrder) = key(a);
+      final (bAt, bDive, bOrder) = key(b);
+      final byTime = aAt.compareTo(bAt);
+      if (byTime != 0) return byTime;
+      final byDive = aDive.compareTo(bDive);
+      return byDive != 0 ? byDive : aOrder.compareTo(bOrder);
+    };
