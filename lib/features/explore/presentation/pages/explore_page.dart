@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/explore/presentation/widgets/explore_charts.dart';
 import 'package:submersion/features/explore/presentation/widgets/explore_chip_rows.dart';
+import 'package:submersion/features/explore/presentation/widgets/explore_handoff_bar.dart';
 import 'package:submersion/features/explore/presentation/widgets/explore_results_list.dart';
-import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
+import 'package:submersion/features/explore/presentation/widgets/explore_subject_results_list.dart';
+import 'package:submersion/features/explore/domain/query_model.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_subject_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -126,56 +127,32 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                   ExploreAttentionRow(compiled: compiled),
                   const SizedBox(height: 12),
                   Text(
-                    l10n.explore_count(count.value ?? 0),
+                    compiled.subject == ParsedSubject.dives
+                        ? l10n.explore_count(count.value ?? 0)
+                        : l10n.explore_results_count(
+                            ref
+                                    .watch(exploreSubjectRowsProvider)
+                                    .value
+                                    ?.length ??
+                                0,
+                          ),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   ExploreCharts(requests: compiled.charts),
-                  const ExploreResultsList(),
+                  if (compiled.subject == ParsedSubject.dives)
+                    const ExploreResultsList()
+                  else
+                    ExploreSubjectResultsList(subject: compiled.subject),
                 ],
               ],
             ),
           ),
-          if (compiled != null && compiled.query != null)
+          if (compiled != null)
             SafeArea(
               top: false,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          // The published query alone, which the dive list
-                          // shows as query chips: the live scope, not
-                          // compiled.query, so the handoff stays right if
-                          // anything else ever writes it.
-                          ref
-                              .read(diveFilterProvider.notifier)
-                              .state = DiveFilterState(
-                            query: ref.read(exploreQueryNodeProvider),
-                          );
-                          // go, not push: the handoff moves to a shell tab.
-                          context.go('/dives');
-                        },
-                        child: Text(l10n.explore_handoff_diveList),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () {
-                          ref
-                              .read(insightsFilterProvider.notifier)
-                              .state = DiveFilterState(
-                            query: ref.read(exploreQueryNodeProvider),
-                          );
-                          context.go('/insights');
-                        },
-                        child: Text(l10n.explore_handoff_insights),
-                      ),
-                    ),
-                  ],
-                ),
+                child: ExploreHandoffBar(subject: compiled.subject),
               ),
             ),
         ],

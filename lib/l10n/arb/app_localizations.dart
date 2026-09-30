@@ -65934,6 +65934,12 @@ abstract class AppLocalizations {
   /// **'Decompression dive'**
   String get explore_chip_deco;
 
+  /// No description provided for @explore_chip_fieldPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'{field}: {period}'**
+  String explore_chip_fieldPeriod(String field, String period);
+
   /// No description provided for @explore_chip_noDeco.
   ///
   /// In en, this message translates to:
@@ -65993,6 +65999,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Before {end}'**
   String explore_chip_timeBefore(Object end);
+
+  /// No description provided for @explore_chip_viaDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives: {label}'**
+  String explore_chip_viaDives(String label);
+
+  /// No description provided for @explore_chip_withinDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{{field} within {days} day} other{{field} within {days} days}}'**
+  String explore_chip_withinDays(int days, String field);
 
   /// No description provided for @explore_count.
   ///
@@ -66168,6 +66186,12 @@ abstract class AppLocalizations {
   /// **'Open in Insights'**
   String get explore_handoff_insights;
 
+  /// No description provided for @explore_handoff_list.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in list'**
+  String get explore_handoff_list;
+
   /// No description provided for @explore_hint.
   ///
   /// In en, this message translates to:
@@ -66228,6 +66252,12 @@ abstract class AppLocalizations {
   /// **'Recent'**
   String get explore_recent_title;
 
+  /// No description provided for @explore_results_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} result} other{{count} results}}'**
+  String explore_results_count(num count);
+
   /// No description provided for @explore_results_title.
   ///
   /// In en, this message translates to:
@@ -66246,12 +66276,6 @@ abstract class AppLocalizations {
   /// **'Explore needs the on-device model, which is not ready on this device.'**
   String get explore_shortcut_unavailable;
 
-  /// No description provided for @explore_subjectNotSupported.
-  ///
-  /// In en, this message translates to:
-  /// **'Only dives can be searched for now.'**
-  String get explore_subjectNotSupported;
-
   /// No description provided for @explore_title.
   ///
   /// In en, this message translates to:
@@ -66263,6 +66287,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Understood'**
   String get explore_understood_title;
+
+  /// No description provided for @explore_unplaced_reason_countInPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Counting within a period is not supported yet'**
+  String get explore_unplaced_reason_countInPeriod;
 
   /// No description provided for @explore_unplaced_reason_invalid.
   ///

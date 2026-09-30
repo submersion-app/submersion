@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
+import 'package:submersion/features/explore/domain/explore_subject_fields.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/presentation/chip_labeler.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
+import 'package:submersion/features/query/presentation/app_query_labels.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -18,10 +20,11 @@ class ExploreUnderstoodRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (compiled.chips.isEmpty) return const SizedBox.shrink();
+    final labels = AppQueryLabels(context);
     final labeler = ChipLabeler(
       context.l10n,
       UnitFormatter(ref.watch(settingsProvider)),
+      queryLabels: labels,
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,15 +38,16 @@ class ExploreUnderstoodRow extends ConsumerWidget {
           spacing: 8,
           runSpacing: 4,
           children: [
+            // What the sentence asks for comes first, and stays: the model
+            // chose it, and it is not a filter the diver can drop.
+            Chip(
+              key: const ValueKey('explore-subject-chip'),
+              avatar: const Icon(Icons.search, size: 16),
+              label: Text(labels.entity(rootOf(compiled.subject))),
+            ),
             for (final chip in compiled.chips)
-              // Removable, not editable in place. The sentence's parse is the
-              // single source of truth and the filter is derived from it, so
-              // an edit made in the filter sheet could not be reflected back
-              // into the chips and would be silently discarded by the next
-              // chip removal. Editing happens after a handoff, where the list
-              // owns its own filter.
               InputChip(
-                label: Text(labeler.label(chip.payload)),
+                label: Text(labeler.chipLabel(chip)),
                 onDeleted: () =>
                     ref.read(exploreQueryProvider.notifier).removeChip(chip),
                 deleteIcon: const Icon(Icons.close, size: 16),
@@ -103,7 +107,7 @@ class ExploreAttentionRow extends ConsumerWidget {
         'outOfRange' => l10n.explore_unplaced_reason_outOfRange,
         'unknownField' => l10n.explore_unplaced_reason_unknownField,
         'unknownTime' => l10n.explore_unplaced_reason_unknownTime,
-        'subjectNotSupported' => l10n.explore_subjectNotSupported,
+        'countInPeriod' => l10n.explore_unplaced_reason_countInPeriod,
         _ => null,
       };
 

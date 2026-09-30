@@ -40682,6 +40682,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get explore_chip_deco => 'Decompressieduik';
 
   @override
+  String explore_chip_fieldPeriod(String field, String period) {
+    return '$field: $period';
+  }
+
+  @override
   String get explore_chip_noDeco => 'Zonder decompressie';
 
   @override
@@ -40725,6 +40730,22 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String explore_chip_timeBefore(Object end) {
     return 'Voor $end';
+  }
+
+  @override
+  String explore_chip_viaDives(String label) {
+    return 'Duiken: $label';
+  }
+
+  @override
+  String explore_chip_withinDays(int days, String field) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$field binnen $days dagen',
+      one: '$field binnen $days dag',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -40831,6 +40852,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get explore_handoff_insights => 'Openen in Inzichten';
 
   @override
+  String get explore_handoff_list => 'Openen in lijst';
+
+  @override
   String get explore_hint =>
       'Vraag naar je duiken, bijvoorbeeld schildpadden dieper dan 20 m op Bonaire';
 
@@ -40866,6 +40890,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get explore_recent_title => 'Recent';
 
   @override
+  String explore_results_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count resultaten',
+      one: '$count resultaat',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get explore_results_title => 'Overeenkomende duiken';
 
   @override
@@ -40878,14 +40913,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verkennen heeft het model op het apparaat nodig, dat op dit apparaat niet klaar is.';
 
   @override
-  String get explore_subjectNotSupported =>
-      'Voorlopig kunnen alleen duiken worden gezocht.';
-
-  @override
   String get explore_title => 'Verkennen';
 
   @override
   String get explore_understood_title => 'Begrepen';
+
+  @override
+  String get explore_unplaced_reason_countInPeriod =>
+      'Tellen binnen een periode wordt nog niet ondersteund';
 
   @override
   String get explore_unplaced_reason_invalid =>

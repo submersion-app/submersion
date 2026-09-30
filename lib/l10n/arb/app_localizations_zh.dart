@@ -38693,6 +38693,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get explore_chip_deco => '减压潜水';
 
   @override
+  String explore_chip_fieldPeriod(String field, String period) {
+    return '$field：$period';
+  }
+
+  @override
   String get explore_chip_noDeco => '无减压';
 
   @override
@@ -38736,6 +38741,22 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String explore_chip_timeBefore(Object end) {
     return '$end 之前';
+  }
+
+  @override
+  String explore_chip_viaDives(String label) {
+    return '潜水：$label';
+  }
+
+  @override
+  String explore_chip_withinDays(int days, String field) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$field $days 天内',
+      one: '$field $days 天内',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -38835,6 +38856,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get explore_handoff_insights => '在洞察中打开';
 
   @override
+  String get explore_handoff_list => '在列表中打开';
+
+  @override
   String get explore_hint => '询问你的潜水，例如博奈尔 20 米以下的海龟';
 
   @override
@@ -38869,6 +38893,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get explore_recent_title => '最近';
 
   @override
+  String explore_results_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个结果',
+      one: '$count 个结果',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get explore_results_title => '匹配的潜水';
 
   @override
@@ -38880,13 +38915,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get explore_shortcut_unavailable => '探索需要设备端模型，但此设备上的模型尚未就绪。';
 
   @override
-  String get explore_subjectNotSupported => '目前只能搜索潜水记录。';
-
-  @override
   String get explore_title => '探索';
 
   @override
   String get explore_understood_title => '已理解';
+
+  @override
+  String get explore_unplaced_reason_countInPeriod => '暂不支持在某一时段内计数';
 
   @override
   String get explore_unplaced_reason_invalid => '无法读取此值';

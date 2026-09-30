@@ -40128,6 +40128,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get explore_chip_deco => 'צלילת דקומפרסיה';
 
   @override
+  String explore_chip_fieldPeriod(String field, String period) {
+    return '$field: $period';
+  }
+
+  @override
   String get explore_chip_noDeco => 'ללא דקומפרסיה';
 
   @override
@@ -40171,6 +40176,22 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String explore_chip_timeBefore(Object end) {
     return 'לפני $end';
+  }
+
+  @override
+  String explore_chip_viaDives(String label) {
+    return 'צלילות: $label';
+  }
+
+  @override
+  String explore_chip_withinDays(int days, String field) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$field בתוך $days ימים',
+      one: '$field בתוך $days יום',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -40275,6 +40296,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get explore_handoff_insights => 'פתיחה בתובנות';
 
   @override
+  String get explore_handoff_list => 'פתח ברשימה';
+
+  @override
   String get explore_hint =>
       'שאלו על הצלילות שלכם, למשל צבים מתחת ל-20 מ\' בבונייר';
 
@@ -40310,6 +40334,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get explore_recent_title => 'אחרונים';
 
   @override
+  String explore_results_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תוצאות',
+      one: '$count תוצאה',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get explore_results_title => 'צלילות מתאימות';
 
   @override
@@ -40322,13 +40357,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'חקירה דורשת את המודל במכשיר, שאינו מוכן במכשיר זה.';
 
   @override
-  String get explore_subjectNotSupported => 'כרגע ניתן לחפש צלילות בלבד.';
-
-  @override
   String get explore_title => 'חקירה';
 
   @override
   String get explore_understood_title => 'הובן';
+
+  @override
+  String get explore_unplaced_reason_countInPeriod =>
+      'ספירה בתוך תקופה עדיין אינה נתמכת';
 
   @override
   String get explore_unplaced_reason_invalid => 'לא ניתן לקרוא ערך זה';

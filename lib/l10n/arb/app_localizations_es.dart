@@ -40974,6 +40974,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get explore_chip_deco => 'Inmersión con descompresión';
 
   @override
+  String explore_chip_fieldPeriod(String field, String period) {
+    return '$field: $period';
+  }
+
+  @override
   String get explore_chip_noDeco => 'Sin descompresión';
 
   @override
@@ -41017,6 +41022,22 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String explore_chip_timeBefore(Object end) {
     return 'Antes de $end';
+  }
+
+  @override
+  String explore_chip_viaDives(String label) {
+    return 'Inmersiones: $label';
+  }
+
+  @override
+  String explore_chip_withinDays(int days, String field) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$field en $days días',
+      one: '$field en $days día',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -41123,6 +41144,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get explore_handoff_insights => 'Abrir en Análisis';
 
   @override
+  String get explore_handoff_list => 'Abrir en la lista';
+
+  @override
   String get explore_hint =>
       'Pregunta por tus inmersiones, por ejemplo tortugas a más de 20 m en Bonaire';
 
@@ -41158,6 +41182,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get explore_recent_title => 'Recientes';
 
   @override
+  String explore_results_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count resultados',
+      one: '$count resultado',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get explore_results_title => 'Inmersiones coincidentes';
 
   @override
@@ -41170,14 +41205,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Explorar necesita el modelo del dispositivo, que no está listo en este dispositivo.';
 
   @override
-  String get explore_subjectNotSupported =>
-      'Por ahora solo se pueden buscar inmersiones.';
-
-  @override
   String get explore_title => 'Explorar';
 
   @override
   String get explore_understood_title => 'Entendido';
+
+  @override
+  String get explore_unplaced_reason_countInPeriod =>
+      'Aún no se puede contar dentro de un periodo';
 
   @override
   String get explore_unplaced_reason_invalid => 'No se pudo leer este valor';

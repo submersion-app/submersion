@@ -40393,6 +40393,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explore_chip_deco => 'Decompression dive';
 
   @override
+  String explore_chip_fieldPeriod(String field, String period) {
+    return '$field: $period';
+  }
+
+  @override
   String get explore_chip_noDeco => 'No decompression';
 
   @override
@@ -40436,6 +40441,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String explore_chip_timeBefore(Object end) {
     return 'Before $end';
+  }
+
+  @override
+  String explore_chip_viaDives(String label) {
+    return 'Dives: $label';
+  }
+
+  @override
+  String explore_chip_withinDays(int days, String field) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$field within $days days',
+      one: '$field within $days day',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -40542,6 +40563,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explore_handoff_insights => 'Open in Insights';
 
   @override
+  String get explore_handoff_list => 'Open in list';
+
+  @override
   String get explore_hint =>
       'Ask about your dives, for example turtles below 20 m in Bonaire';
 
@@ -40577,6 +40601,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explore_recent_title => 'Recent';
 
   @override
+  String explore_results_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count results',
+      one: '$count result',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get explore_results_title => 'Matching dives';
 
   @override
@@ -40589,14 +40624,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Explore needs the on-device model, which is not ready on this device.';
 
   @override
-  String get explore_subjectNotSupported =>
-      'Only dives can be searched for now.';
-
-  @override
   String get explore_title => 'Explore';
 
   @override
   String get explore_understood_title => 'Understood';
+
+  @override
+  String get explore_unplaced_reason_countInPeriod =>
+      'Counting within a period is not supported yet';
 
   @override
   String get explore_unplaced_reason_invalid => 'Could not read this value';

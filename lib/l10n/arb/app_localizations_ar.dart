@@ -40557,6 +40557,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get explore_chip_deco => 'غطسة تخفيف ضغط';
 
   @override
+  String explore_chip_fieldPeriod(String field, String period) {
+    return '$field: $period';
+  }
+
+  @override
   String get explore_chip_noDeco => 'بدون تخفيف ضغط';
 
   @override
@@ -40600,6 +40605,22 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String explore_chip_timeBefore(Object end) {
     return 'قبل $end';
+  }
+
+  @override
+  String explore_chip_viaDives(String label) {
+    return 'الغطسات: $label';
+  }
+
+  @override
+  String explore_chip_withinDays(int days, String field) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$field خلال $days يوم',
+      one: '$field خلال $days يوم',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -40704,6 +40725,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get explore_handoff_insights => 'فتح في الرؤى';
 
   @override
+  String get explore_handoff_list => 'فتح في القائمة';
+
+  @override
   String get explore_hint =>
       'اسأل عن غطساتك، مثلاً سلاحف أعمق من 20 م في بونير';
 
@@ -40739,6 +40763,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get explore_recent_title => 'الأخيرة';
 
   @override
+  String explore_results_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نتيجة',
+      one: '$count نتيجة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get explore_results_title => 'الغطسات المطابقة';
 
   @override
@@ -40751,13 +40786,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'يحتاج الاستكشاف إلى النموذج على الجهاز، وهو غير جاهز على هذا الجهاز.';
 
   @override
-  String get explore_subjectNotSupported => 'يمكن البحث في الغطسات فقط حاليًا.';
-
-  @override
   String get explore_title => 'استكشاف';
 
   @override
   String get explore_understood_title => 'تم فهمه';
+
+  @override
+  String get explore_unplaced_reason_countInPeriod =>
+      'العدّ ضمن فترة غير مدعوم بعد';
 
   @override
   String get explore_unplaced_reason_invalid => 'تعذّرت قراءة هذه القيمة';

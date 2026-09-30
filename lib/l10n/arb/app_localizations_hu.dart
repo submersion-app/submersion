@@ -40790,6 +40790,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get explore_chip_deco => 'Dekompressziós merülés';
 
   @override
+  String explore_chip_fieldPeriod(String field, String period) {
+    return '$field: $period';
+  }
+
+  @override
   String get explore_chip_noDeco => 'Dekompresszió nélkül';
 
   @override
@@ -40833,6 +40838,22 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String explore_chip_timeBefore(Object end) {
     return '$end előtt';
+  }
+
+  @override
+  String explore_chip_viaDives(String label) {
+    return 'Merülések: $label';
+  }
+
+  @override
+  String explore_chip_withinDays(int days, String field) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$field $days napon belül',
+      one: '$field $days napon belül',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -40939,6 +40960,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get explore_handoff_insights => 'Megnyitás az Elemzésekben';
 
   @override
+  String get explore_handoff_list => 'Megnyitás a listában';
+
+  @override
   String get explore_hint =>
       'Kérdezzen a merüléseiről, például teknősök 20 m alatt Bonaire-en';
 
@@ -40974,6 +40998,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get explore_recent_title => 'Legutóbbi';
 
   @override
+  String explore_results_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count találat',
+      one: '$count találat',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get explore_results_title => 'Egyező merülések';
 
   @override
@@ -40986,14 +41021,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'A felfedezéshez az eszközön futó modell szükséges, amely ezen az eszközön nem áll készen.';
 
   @override
-  String get explore_subjectNotSupported =>
-      'Jelenleg csak merülések kereshetők.';
-
-  @override
   String get explore_title => 'Felfedezés';
 
   @override
   String get explore_understood_title => 'Értelmezve';
+
+  @override
+  String get explore_unplaced_reason_countInPeriod =>
+      'Időszakon belüli számlálás még nem támogatott';
 
   @override
   String get explore_unplaced_reason_invalid =>

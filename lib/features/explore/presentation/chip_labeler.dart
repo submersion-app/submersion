@@ -1,6 +1,8 @@
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/presentation/query_labels.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -15,9 +17,20 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Turns a chip payload into the diver's words: app language, diver units.
 class ChipLabeler {
-  ChipLabeler(this.l10n, this.units);
+  ChipLabeler(this.l10n, this.units, {this.queryLabels});
   final AppLocalizations l10n;
   final UnitFormatter units;
+
+  /// The query language's labels, for another subject's enum values. The
+  /// understood row passes `AppQueryLabels(context)`.
+  final QueryLabels? queryLabels;
+
+  /// A chip as the understood row shows it: a chip about the subject's
+  /// dives says so.
+  String chipLabel(QueryChip chip) {
+    final text = label(chip.payload);
+    return chip.viaDives ? l10n.explore_chip_viaDives(text) : text;
+  }
 
   String label(ChipPayload payload) => switch (payload) {
     ClauseChip() => _clause(payload),
@@ -25,7 +38,15 @@ class ChipLabeler {
     TimeChip(:final start, :final end) => _time(start, end),
   };
 
-  String fieldName(ExploreField f) => switch (f.name) {
+  String fieldName(ExploreField f) {
+    // A phase 3 subject's own field reads as the registry labels it.
+    if (f.root != QuerySubject.dives) {
+      return queryLabelForKey(l10n, f.field!.labelKey);
+    }
+    return _diveFieldName(f);
+  }
+
+  String _diveFieldName(ExploreField f) => switch (f.name) {
     'depth' => l10n.explore_field_depth,
     'avgDepth' => l10n.explore_field_avgDepth,
     'bottomTime' => l10n.explore_field_bottomTime,
@@ -85,6 +106,22 @@ class ChipLabeler {
 
   String _clause(ClauseChip c) {
     final name = fieldName(c.field);
+    if (c.field.kind == ExploreValueKind.days) {
+      return l10n.explore_chip_withinDays(c.value as int, name);
+    }
+    if (c.value case (start: final DateTime? start, end: final DateTime? end)) {
+      final period = switch (c.op) {
+        // Before the period: before its first day.
+        ClauseOp.lt ||
+        ClauseOp.lte => l10n.explore_chip_timeBefore(units.formatDate(start!)),
+        // After the period: from the day after its last.
+        ClauseOp.gt || ClauseOp.gte => l10n.explore_chip_timeSince(
+          units.formatDate(DateTime(end!.year, end.month, end.day + 1)),
+        ),
+        _ => _time(start, end),
+      };
+      return l10n.explore_chip_fieldPeriod(name, period);
+    }
     final v = c.value;
     if (v is bool) {
       return switch (c.field.name) {
@@ -121,7 +158,14 @@ class ChipLabeler {
   /// An enum value in the app language. The catalog's values are the enum
   /// names, so each maps through the same localized names the dive editor
   /// shows; a dive type is the diver's own name and stays as written.
-  String _enumValue(ExploreField field, String v) => switch (field.name) {
+  String _enumValue(ExploreField field, String v) {
+    if (field.root != QuerySubject.dives) {
+      return queryLabels?.enumValue(field.field!, v) ?? v;
+    }
+    return _diveEnumValue(field, v);
+  }
+
+  String _diveEnumValue(ExploreField field, String v) => switch (field.name) {
     'waterType' => WaterType.values.byName(v).localizedName(l10n),
     'diveMode' => DiveMode.values.byName(v).localizedName(l10n),
     'entryMethod' => EntryMethod.values.byName(v).localizedName(l10n),
