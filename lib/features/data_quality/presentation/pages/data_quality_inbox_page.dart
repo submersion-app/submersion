@@ -477,7 +477,9 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                     ),
                   ],
                 ),
-              _ChipRow(chip: chip, findings: all),
+              // Counted off the same scoped set the cards come from, so a
+              // chip's number matches what tapping it shows.
+              _ChipRow(chip: chip, findings: scoped),
               Expanded(
                 child: open.isEmpty
                     ? _EmptyState(
@@ -559,15 +561,13 @@ class _ScanProgressBar extends StatelessWidget {
 class _ChipRow extends ConsumerWidget {
   const _ChipRow({required this.chip, required this.findings});
   final QualityChip chip;
+
+  /// The findings the page can show: already open and already narrowed to
+  /// the dive filter, so each count only has to split them by category.
   final List<QualityFinding> findings;
 
-  int _count(QualityChip c) => findings
-      .where(
-        (f) =>
-            f.status == QualityStatus.open &&
-            categoriesFor(c).contains(f.category),
-      )
-      .length;
+  int _count(QualityChip c) =>
+      findings.where((f) => categoriesFor(c).contains(f.category)).length;
 
   String _label(BuildContext context, QualityChip c) {
     final l10n = context.l10n;

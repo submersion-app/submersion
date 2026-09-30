@@ -551,6 +551,106 @@ void main() {
     },
   );
 
+  testWidgets('chip counts cover only the dives in the deep-link filter', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        filterDiveId: 'd2',
+        findings: [
+          _f(
+            id: 'cc-clock-d2',
+            diveId: 'd2',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 2},
+          ),
+          // A pair anchored on d1 but naming d2 is in scope, so it counts.
+          _f(
+            id: 'cc-dup',
+            diveId: 'd1',
+            relatedDiveId: 'd2',
+            detectorId: 'duplicate',
+            category: QualityCategory.duplicate,
+            params: const {'score': 0.9, 'timeDiffMinutes': 5},
+          ),
+          // Outside the filter: shown nowhere on this page, so counted nowhere.
+          _f(
+            id: 'cc-clock-d1',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 3},
+          ),
+          _f(
+            id: 'cc-gap-d3',
+            diveId: 'd3',
+            detectorId: 'sample_gap',
+            category: QualityCategory.profile,
+            params: const {'gapCount': 1, 'longestGapSeconds': 30},
+          ),
+          _f(
+            id: 'cc-pressure-d3',
+            diveId: 'd3',
+            detectorId: 'pressure_anomaly',
+            category: QualityCategory.pressure,
+            params: const {'startBar': 50.0, 'endBar': 200.0},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(QualityFindingCard), findsNWidgets(2));
+    expect(find.text('Time (1)'), findsOneWidget);
+    expect(find.text('Duplicates (1)'), findsOneWidget);
+    expect(find.text('Profile (0)'), findsOneWidget);
+    expect(find.text('Tanks (0)'), findsOneWidget);
+  });
+
+  testWidgets('chip counts span every dive in a comma-separated filter', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        filterDiveId: 'd1,d2',
+        findings: [
+          _f(
+            id: 'cs-gap-d1',
+            detectorId: 'sample_gap',
+            category: QualityCategory.profile,
+            params: const {'gapCount': 1, 'longestGapSeconds': 30},
+          ),
+          _f(
+            id: 'cs-temp-d2',
+            diveId: 'd2',
+            detectorId: 'temp_anomaly',
+            category: QualityCategory.temperature,
+            params: const {'deltaC': 6.0, 'spikeShaped': true},
+          ),
+          _f(
+            id: 'cs-spike-d3',
+            diveId: 'd3',
+            detectorId: 'depth_spike',
+            category: QualityCategory.profile,
+            params: const {'depth': 55.0, 'atSeconds': 120},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Profile covers profile and temperature: one each from d1 and d2, and
+    // none from d3, which sits outside the imported set.
+    expect(find.text('Profile (2)'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilterChip, 'Profile (2)'));
+    await tester.pumpAndSettle();
+    expect(find.byType(QualityFindingCard), findsNWidgets(2));
+  });
+
   testWidgets('one dive gets one header even when findings interleave', (
     tester,
   ) async {
