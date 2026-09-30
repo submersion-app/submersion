@@ -10,6 +10,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
@@ -587,6 +588,25 @@ class DiverRepository {
         );
         await TankPressureSeriesRepository()
             .clearComputersOfDiverForForeignDives(id);
+        // Tanks of those dives attributed to this diver's computers: the
+        // computers' delete would clear them by ON DELETE SET NULL, with no
+        // clock and so unseen by peers and by the caches' source stamp.
+        await clearTankComputerLinks(
+          _db,
+          _syncRepository,
+          (t) =>
+              t.computerId.isInQuery(
+                _db.selectOnly(_db.diveComputers)
+                  ..addColumns([_db.diveComputers.id])
+                  ..where(_db.diveComputers.diverId.equals(id)),
+              ) &
+              t.diveId.isNotInQuery(
+                _db.selectOnly(_db.dives)
+                  ..addColumns([_db.dives.id])
+                  ..where(_db.dives.diverId.equals(id)),
+              ),
+          now: clearedAt,
+        );
         // dive_data_sources carries no updated_at and no hlc: it is a
         // clockless child that syncs with its parent dive, so the parent is
         // what gets marked (the rule TankPressureRepository follows too).

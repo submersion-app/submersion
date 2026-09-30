@@ -197,12 +197,7 @@ class DiveSensorSummaryRepository {
             Variable.withInt(DiveSensorSummaryService.version),
             if (diverId != null) Variable.withString(diverId),
           ],
-          readsFrom: {
-            _db.dives,
-            _db.diveSensorSummaries,
-            _db.diveProfileSeries,
-            _db.tankPressureSeries,
-          },
+          readsFrom: {_db.diveSensorSummaries, ...diveSourceStampTables(_db)},
         )
         .get();
     return [for (final r in rows) r.read<String>('id')];
