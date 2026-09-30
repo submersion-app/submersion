@@ -7,9 +7,12 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/theme/full_themes/console_theme.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -1244,6 +1247,69 @@ void main() {
           .style!;
 
       expect(effective.fontFamily, titleFamily);
+    });
+  });
+
+  group('query filter (#2365, Explore phase 3)', () {
+    final liveaboard = ConditionNode(
+      FieldPath(const ['tripType']),
+      QueryOp.inList,
+      ListValue(const [EnumValue('liveaboard')]),
+    );
+
+    testWidgets('an active query shows its chips above the trips', (
+      tester,
+    ) async {
+      final overrides = [
+        ...await _buildOverrides(
+          trips: [_makeTrip(id: 't1', name: 'Bali Dive Trip')],
+        ),
+        tripFilterProvider.overrideWith(
+          (ref) => TripFilterState(query: liveaboard),
+        ),
+      ];
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+      final frame = tester.widget<QueryChipsFrame>(
+        find.byType(QueryChipsFrame),
+      );
+      expect(frame.query, liveaboard);
+    });
+
+    testWidgets('a query that keeps nothing blames the query', (tester) async {
+      final overrides = [
+        ...await _buildOverrides(trips: []),
+        tripFilterProvider.overrideWith(
+          (ref) => TripFilterState(query: liveaboard),
+        ),
+      ];
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(QueryNoMatchState), findsOneWidget);
+    });
+
+    testWidgets('the phone app bar offers the query filter', (tester) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Bali Dive Trip')],
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(QueryFilterButton), findsOneWidget);
     });
   });
 }

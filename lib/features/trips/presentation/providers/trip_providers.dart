@@ -63,6 +63,15 @@ final tripFilterProvider = StateProvider<TripFilterState>(
   (ref) => const TripFilterState(),
 );
 
+/// Replaces the trip list's query (#2365), keeping its equipment axis.
+void setTripQuery(WidgetRef ref, QueryNode? query) {
+  final notifier = ref.read(tripFilterProvider.notifier);
+  notifier.state = notifier.state.copyWith(
+    query: query,
+    clearQuery: query == null,
+  );
+}
+
 /// Repository provider
 final tripRepositoryProvider = Provider<TripRepository>((ref) {
   return TripRepository();

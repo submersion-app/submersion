@@ -7,6 +7,8 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -26,7 +28,10 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/query/trip_query_entity.dart';
 import 'package:submersion/features/trips/presentation/widgets/compact_trip_list_tile.dart';
 import 'package:submersion/features/trips/presentation/widgets/dense_trip_list_tile.dart';
 import 'package:submersion/features/trips/presentation/widgets/upcoming_trip_banner.dart';
@@ -154,6 +159,24 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     );
   }
 
+  void _setQuery(QueryNode? query) => setTripQuery(ref, query);
+
+  void _openQueryFilter() => showQueryFilterSheet(
+    context,
+    subject: QuerySubject.trips,
+    root: tripQueryEntity,
+    initial: ref.read(tripFilterProvider).query,
+    onApply: setTripQuery,
+  );
+
+  /// The list body with the query's chips above it (#2365).
+  Widget _withQueryChips(Widget child) => QueryChipsFrame(
+    root: tripQueryEntity,
+    query: ref.watch(tripFilterProvider).query,
+    onChanged: _setQuery,
+    child: child,
+  );
+
   @override
   Widget build(BuildContext context) {
     final filter = ref.watch(tripFilterProvider);
@@ -171,7 +194,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       return tripsAsync.when(
         data: (trips) => trips.isEmpty
             ? _buildEmptyState(context, filter.hasActiveFilters)
-            : _buildTripList(context, ref, trips, filter.hasActiveFilters),
+            : _buildTripList(context, ref, trips, filter.equipmentId != null),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => _buildErrorState(context, error),
       );
@@ -197,7 +220,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
               selection.isActive
                   ? _buildSelectionBar(loadedTrips, SelectionBarShell.pane)
                   : _buildCompactAppBar(context),
-              Expanded(child: buildContent()),
+              Expanded(child: _withQueryChips(buildContent())),
             ],
           ),
         ),
@@ -232,6 +255,10 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                       icon: const Icon(Icons.sort),
                       tooltip: context.l10n.trips_list_tooltip_sort,
                       onPressed: () => _showSortSheet(context),
+                    ),
+                    QueryFilterButton(
+                      active: ref.watch(tripFilterProvider).query != null,
+                      onPressed: _openQueryFilter,
                     ),
                     // The only way into bulk actions: entry by long-press was removed,
                     // so nothing but this control opens selection mode on touch.
@@ -269,7 +296,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                     ),
                   ],
                 ),
-          body: buildContent(),
+          body: _withQueryChips(buildContent()),
           floatingActionButton: selection.isActive
               ? null
               : widget.floatingActionButton,
@@ -381,7 +408,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
           // Built inside the builder so the table's own rows re-render as
           // checks change; building it outside left them on a stale
           // selectedIds while only the bar updated.
-          final tableContent = _buildTableView(context, tripsAsync, filter);
+          final tableContent = _withQueryChips(
+            _buildTableView(context, tripsAsync, filter),
+          );
 
           // Table mode has no app bar of its own, so both bars live here: the
           // contextual one while selecting, and the Select affordance while
@@ -421,7 +450,8 @@ class _TripListContentState extends ConsumerState<TripListContent> {
 
         return Column(
           children: [
-            if (filter.hasActiveFilters) _buildActiveFiltersBar(context, ref),
+            if (filter.equipmentId != null)
+              _buildActiveFiltersBar(context, ref),
             Expanded(
               child: EntityTableView<TripWithStats, TripField>(
                 entities: trips,
@@ -495,6 +525,11 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             icon: const Icon(Icons.sort, size: 20),
             tooltip: context.l10n.trips_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
+          ),
+          QueryFilterButton(
+            active: ref.watch(tripFilterProvider).query != null,
+            compact: true,
+            onPressed: _openQueryFilter,
           ),
           // The only way into bulk actions: entry by long-press was removed,
           // so nothing but this control opens selection mode on touch.
@@ -696,6 +731,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
   }
 
   Widget _buildEmptyState(BuildContext context, bool hasActiveFilters) {
+    if (ref.watch(tripFilterProvider).query != null) {
+      return QueryNoMatchState(onClear: () => _setQuery(null));
+    }
     if (hasActiveFilters) {
       return Center(
         child: Column(
