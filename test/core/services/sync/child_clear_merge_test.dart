@@ -150,5 +150,67 @@ void main() {
     // the changeset and the clear still wins then.
     expect(row['hlc'], local['hlc']);
     expect(row['transmitterSerial'], 'SER-1');
+
+    // With the fault gone, the next sync pulls the same changeset again and
+    // the clear lands.
+    await db.customStatement('DROP TRIGGER fail_clear');
+    final retry = await SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    ).performSync();
+    expect(retry.status, isNot(SyncResultStatus.error));
+    final after = (await SyncDataSerializer().fetchRecord('diveTanks', 't1'))!;
+    expect(after['transmitterSerial'], isNull);
+  });
+
+  test(
+    'a pending local row with a clock takes a newer copy, clear included',
+    () async {
+      // Both clocks present, so the ordinary resolution orders them and the
+      // peer's newer copy wins the row, its clear with it.
+      await SyncRepository().markRecordPending(
+        entityType: 'diveTanks',
+        recordId: 't1',
+        localUpdatedAt: 2,
+      );
+      final pending = Hlc.parse(
+        (await SyncDataSerializer().fetchRecord('diveTanks', 't1'))!['hlc']
+            as String,
+      );
+      final row = await pull({
+        ...local,
+        'transmitterSerial': null,
+        'hlc': Hlc(pending.physicalTime + 1000, 0, 'peer-b').toString(),
+      });
+      expect(row['transmitterSerial'], isNull);
+    },
+  );
+
+  test('a newer copy linking gear deleted here leaves no link', () async {
+    // The parent-deletion guard nulls a nullable reference to a parent this
+    // device deleted, and from a newer copy that null is a clear. The merge's
+    // dangling-reference repair nulls the same link independently (the
+    // parent is always missing here), so this pins the outcome both give: no
+    // link to deleted gear, and no failed sync. Here the gear was deleted
+    // without the set-null cascade, as a library from before it was.
+    await db.customStatement(
+      "INSERT INTO equipment (id, name, type, created_at, updated_at) "
+      "VALUES ('e1', 'Cylinder', 'tank', 1, 1)",
+    );
+    await db.customStatement(
+      "UPDATE dive_tanks SET equipment_id = 'e1' WHERE id = 't1'",
+    );
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+    await db.customStatement("DELETE FROM equipment WHERE id = 'e1'");
+    await db.customStatement('PRAGMA foreign_keys = ON');
+    await SyncRepository().logDeletion(entityType: 'equipment', recordId: 'e1');
+
+    final row = await pull({
+      ...local,
+      'equipmentId': 'e1',
+      'hlc': shifted(1000).toString(),
+    });
+    expect(row['equipmentId'], isNull);
   });
 }
