@@ -20,6 +20,7 @@ import 'package:submersion/features/trips/presentation/widgets/trip_summary_widg
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
 
 class TripListPage extends ConsumerWidget {
   const TripListPage({super.key});
@@ -51,6 +52,7 @@ class TripListPage extends ConsumerWidget {
         child: TableModeLayout(
           sectionKey: 'trips',
           appBarTitle: context.l10n.nav_trips,
+          appBarSubtitle: tripListCountLabel(context, ref),
           tableContent: const TripListContent(showAppBar: false),
           detailBuilder: (context, tripId) => TripDetailPage(
             tripId: tripId,

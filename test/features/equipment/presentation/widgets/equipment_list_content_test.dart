@@ -38,6 +38,8 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
 
 import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -226,6 +228,83 @@ bool _badgeIsVisible(WidgetTester tester) {
 }
 
 void main() {
+  // The title's subtitle counts the list (#2669), under the plain title on a
+  // standalone app bar and under the Equipment / Sets toggle in the pane.
+  group('entry count subtitle', () {
+    final items = [
+      _makeEquipment(id: 'e1', name: 'Primary Reg'),
+      _makeEquipment(id: 'e2', name: 'Wing', type: EquipmentType.bcd),
+    ];
+
+    Future<void> pump(
+      WidgetTester tester, {
+      EquipmentFilterState? filter,
+      bool showAppBar = true,
+      EquipmentHeaderToggleBuilder? toggleBuilder,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        items: items,
+        filter: filter,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: EquipmentListContent(
+            showAppBar: showAppBar,
+            toggleBuilder: toggleBuilder,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('app bar counts the list', (tester) async {
+      await pump(tester);
+
+      expect(
+        find.descendant(
+          of: find.byType(FeatureAppBarTitle),
+          matching: find.text('2 items'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('app bar counts a filtered list against the default view', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        filter: const EquipmentFilterState(type: EquipmentType.bcd),
+      );
+
+      expect(find.text('1 of 2 items'), findsOneWidget);
+    });
+
+    testWidgets('the pane header counts under the section toggle', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        showAppBar: false,
+        toggleBuilder: (_) => const Text('Equipment | Sets'),
+      );
+
+      expect(
+        find.descendant(
+          of: find.byType(EquipmentHeaderBar),
+          matching: find.text('2 items'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester.getRect(find.text('2 items')).top,
+        greaterThanOrEqualTo(
+          tester.getRect(find.text('Equipment | Sets')).bottom,
+        ),
+      );
+    });
+  });
   group('bulk actions', () {
     late _CapturingEquipmentNotifier notifier;
 

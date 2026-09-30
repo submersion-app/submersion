@@ -62,6 +62,7 @@ import 'package:submersion/features/equipment/presentation/widgets/dense_equipme
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_list_count_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/bulk_equipment_tag_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -397,6 +398,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 EquipmentHeaderBar(
                   toggleBuilder: widget.toggleBuilder,
                   actionsBuilder: _buildHeaderActions,
+                  subtitle: equipmentListCountLabel(context, ref),
                 ),
               if (filter.hasActiveFilters)
                 _buildActiveFiltersBar(context, filter),
@@ -419,6 +421,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                   title: FeatureAppBarTitle(
                     featureId: 'equipment',
                     title: context.l10n.equipment_appBar_title,
+                    subtitle: equipmentListCountLabel(context, ref),
                   ),
                   actions: [
                     IconButton(
@@ -725,6 +728,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               EquipmentHeaderBar(
                 toggleBuilder: widget.toggleBuilder,
                 actionsBuilder: _noActions,
+                subtitle: selection.isActive
+                    ? null
+                    : equipmentListCountLabel(context, ref),
               ),
             // Table mode has no app bar of its own, so both bars live here:
             // the contextual one while selecting, and the Select affordance

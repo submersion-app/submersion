@@ -25,6 +25,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_query_p
 import 'package:submersion/features/buddies/presentation/widgets/buddy_search_delegate.dart';
 import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
 
 class BuddyListPage extends ConsumerWidget {
   const BuddyListPage({super.key});
@@ -56,6 +57,7 @@ class BuddyListPage extends ConsumerWidget {
         child: TableModeLayout(
           sectionKey: 'buddies',
           appBarTitle: context.l10n.nav_buddies,
+          appBarSubtitle: buddyListCountLabel(context, ref),
           tableContent: const BuddyListContent(showAppBar: false),
           detailBuilder: (context, buddyId) => BuddyDetailPage(
             buddyId: buddyId,

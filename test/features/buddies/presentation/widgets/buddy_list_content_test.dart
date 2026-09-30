@@ -26,6 +26,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -140,6 +141,37 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // The title's subtitle counts the list (#2669), in both the phone app bar
+  // and the desktop pane header.
+  group('entry count subtitle', () {
+    for (final showAppBar in const [true, false]) {
+      testWidgets('${showAppBar ? 'app bar' : 'compact bar'} counts the list', (
+        tester,
+      ) async {
+        final overrides = await _buildPhoneOverrides(
+          buddies: [
+            _makeBuddy(id: 'b1', name: 'Ann'),
+            _makeBuddy(id: 'b2', name: 'Bo'),
+          ],
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: BuddyListContent(showAppBar: showAppBar),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(
+            of: find.byType(FeatureAppBarTitle),
+            matching: find.text('2 buddies'),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+  });
   group('selection contract', () {
     testWidgets('satisfies the shared selection contract', (tester) async {
       final all = <BuddyWithDiveCount>[
