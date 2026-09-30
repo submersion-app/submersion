@@ -27,6 +27,8 @@ import 'package:submersion/features/media_store/data/media_deletion_coordinator.
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 
 /// Result returned by [DiverRepository.deleteDiverWithReassignment].
 ///
@@ -550,6 +552,20 @@ class DiverRepository {
               localUpdatedAt: now,
             );
           }
+
+          // The heir now owns these; its own hides of them would leave it
+          // owning items it cannot see (issue #2594).
+          final hides = ProfileHidesRepository();
+          await hides.deleteHides(
+            SharedItemKind.trip,
+            sharedTripIds,
+            diverId: targetId,
+          );
+          await hides.deleteHides(
+            SharedItemKind.site,
+            sharedSiteIds,
+            diverId: targetId,
+          );
         }
 
         // Step 0b: Plan the media cascade (issue #1954). Here, after the
