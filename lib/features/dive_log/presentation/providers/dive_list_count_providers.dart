@@ -1,6 +1,10 @@
+import 'package:flutter/widgets.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/models/list_entry_count.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// The dive list's entry count, read from the loaded page state rather than
 /// the live filter: a filter change reaches [diveFilterProvider] before the
@@ -24,3 +28,13 @@ final diveTableCountProvider = Provider<ListEntryCount?>(
     total: () => ref.watch(diveListNotifierProvider),
   ),
 );
+
+/// The subtitle under the dive list's title for [count]: "812 dives", or
+/// "34 of 812 dives" while a filter is active. Shared by the list and table
+/// views, which count from different providers.
+SubtitleText? diveCountSubtitle(BuildContext context, ListEntryCount? count) =>
+    count?.subtitle(
+      all: context.l10n.diveLog_listPage_count,
+      filtered: context.l10n.diveLog_listPage_countFiltered,
+      compactFiltered: context.l10n.common_listCount_shownOfTotal,
+    );

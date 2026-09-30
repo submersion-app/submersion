@@ -174,13 +174,10 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       return TableModeLayout(
         sectionKey: 'dives',
         appBarTitle: context.l10n.nav_dives,
-        appBarSubtitle: ref
-            .watch(diveTableCountProvider)
-            ?.subtitle(
-              all: context.l10n.diveLog_listPage_count,
-              filtered: context.l10n.diveLog_listPage_countFiltered,
-              compactFiltered: context.l10n.common_listCount_shownOfTotal,
-            ),
+        appBarSubtitle: diveCountSubtitle(
+          context,
+          ref.watch(diveTableCountProvider),
+        ),
         tableContent: const DiveListContent(showAppBar: false),
         detailBuilder: (context, id) {
           final state = GoRouterState.of(context);

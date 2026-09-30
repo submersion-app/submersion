@@ -1151,13 +1151,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   /// "812 dives", or "34 of 812 dives" while a filter is active (#2669);
   /// null until the first page loads.
-  SubtitleText? _countSubtitle(BuildContext context) => ref
-      .watch(diveListCountProvider)
-      ?.subtitle(
-        all: context.l10n.diveLog_listPage_count,
-        filtered: context.l10n.diveLog_listPage_countFiltered,
-        compactFiltered: context.l10n.common_listCount_shownOfTotal,
-      );
+  SubtitleText? _countSubtitle(BuildContext context) =>
+      diveCountSubtitle(context, ref.watch(diveListCountProvider));
 
   AppBar _buildAppBar(
     BuildContext context,

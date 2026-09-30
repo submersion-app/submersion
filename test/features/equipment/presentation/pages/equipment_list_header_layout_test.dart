@@ -141,11 +141,12 @@ Future<void> _pump(
 
 final _switcher = find.byKey(const ValueKey('equipment_section_toggle'));
 
-/// Whether [a] and [b] share a row: their vertical spans overlap. Not a
-/// centre match, since the list's entry count (#2669) sits under the toggle
-/// and lifts it above the centre of the icons beside it.
+/// Whether [a] shares a row with [b]: [a]'s vertical centre lies within
+/// [b]'s span. Not a centre match, since the list's entry count (#2669) sits
+/// under the toggle and lifts it above the centre of the icons beside it;
+/// not a bare overlap either, which a toggle stacked above would also pass.
 bool _overlapVertically(Rect a, Rect b) =>
-    a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
+    a.center.dy > b.top && a.center.dy < b.bottom;
 
 /// The toggle precedes the actions: strictly above them, or to their left on a
 /// shared row.
