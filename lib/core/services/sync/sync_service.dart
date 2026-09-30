@@ -3179,14 +3179,15 @@ class SyncService {
         if (!hasUpdatedAt) {
           final local = localById[recordId];
           var rowFromRemote = true;
+          // Parsed once: the stale-copy guard and the child clears read both.
+          final remoteHlc = clockGuarded ? _extractHlc(record) : null;
+          final localHlc = clockGuarded ? _extractHlc(local) : null;
           if (clockGuarded) {
-            final remoteHlc = _extractHlc(record);
             if (remoteHlc != null) SyncClock.instance.receive(remoteHlc);
             for (final g in factGroups) {
               final factClock = _parseHlc(record[g.clockKey]);
               if (factClock != null) SyncClock.instance.receive(factClock);
             }
-            final localHlc = _extractHlc(local);
             // A copy strictly older than the local row is stale: a peer's
             // snapshot taken before this device's newer edit to the same
             // child, which the blind upsert used to write over it. An exact
@@ -3207,7 +3208,13 @@ class SyncService {
             if (!rowFromRemote) continue;
             toUpsert.add(recordToApply);
             applied += 1;
-            final cleared = _childClears(entityType, recordToApply, local);
+            final cleared = _childClears(
+              entityType,
+              recordToApply,
+              local,
+              remoteHlc: remoteHlc,
+              localHlc: localHlc,
+            );
             if (cleared.isNotEmpty) childClears[recordId] = cleared;
             continue;
           }
@@ -3556,21 +3563,21 @@ class SyncService {
   }
 
   /// The keys a parent-gated child's [remote] copy clears on [local]: its
-  /// explicit nulls, when the copy's clock is strictly newer (#2644). Empty
-  /// for anything else, including a row this device does not have yet.
+  /// explicit nulls, when the copy's clock ([remoteHlc], against the local
+  /// row's [localHlc]) is strictly newer (#2644). Empty for anything else,
+  /// including a row this device does not have yet.
   Set<String> _childClears(
     String entityType,
     Map<String, dynamic> remote,
-    Map<String, dynamic>? local,
-  ) {
+    Map<String, dynamic>? local, {
+    required Hlc? remoteHlc,
+    required Hlc? localHlc,
+  }) {
     if (local == null ||
         !SyncDataSerializer.parentGatedChildEntities.contains(entityType)) {
       return const {};
     }
-    if (!isNewerChildCopy(
-      remote: _extractHlc(remote),
-      local: _extractHlc(local),
-    )) {
+    if (!isNewerChildCopy(remote: remoteHlc, local: localHlc)) {
       return const {};
     }
     return explicitlyClearedKeys(remote: remote, local: local);

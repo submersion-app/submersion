@@ -1733,14 +1733,19 @@ class SyncDataSerializer {
     );
     final keys = _parentGatedKeyColumns[entityType] ?? const ['id'];
     final clearable = clearableColumns(table, keyColumns: keys);
-    final keysByColumns = <String, List<List<String>>>{};
+    // Rows clearing the same columns, keyed by those columns joined.
+    final groups =
+        <String, ({List<String> columns, List<List<String>> rows})>{};
     for (final MapEntry(key: recordId, value: jsonKeys) in clears.entries) {
       final columns = {for (final k in jsonKeys) ?clearable[k]}.toList()
         ..sort();
       if (columns.isEmpty) continue;
       final keyValues = keys.length == 1 ? [recordId] : recordId.split('|');
       if (keyValues.length != keys.length) continue;
-      (keysByColumns[columns.join(',')] ??= []).add(keyValues);
+      (groups[columns.join(',')] ??= (
+        columns: columns,
+        rows: [],
+      )).rows.add(keyValues);
     }
     final keyList = keys.length == 1
         ? '"${keys.single}"'
@@ -1748,8 +1753,7 @@ class SyncDataSerializer {
     // A composite key binds a variable per column (see
     // _fetchParentGatedChildren).
     final perStatement = 900 ~/ keys.length;
-    for (final MapEntry(key: joined, value: rows) in keysByColumns.entries) {
-      final columns = joined.split(',');
+    for (final (:columns, :rows) in groups.values) {
       for (var i = 0; i < rows.length; i += perStatement) {
         final chunk = rows.sublist(i, math.min(i + perStatement, rows.length));
         final placeholders = keys.length == 1
