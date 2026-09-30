@@ -11,7 +11,9 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
@@ -160,10 +162,21 @@ class TripRepository {
   }
 
   /// Update an existing trip
-  Future<void> updateTrip(domain.Trip trip) async {
+  Future<void> updateTrip(domain.Trip trip, {String? actingDiverId}) async {
     try {
       _log.info('Updating trip: ${trip.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
+      // Only the owner changes sharing (issue #2594): another profile's save
+      // keeps the stored flag, whatever its page state says.
+      final stored = await (_db.select(
+        _db.trips,
+      )..where((t) => t.id.equals(trip.id))).getSingleOrNull();
+      final maySetSharing =
+          stored == null ||
+          canDestroySharedItem(
+            ownerId: stored.diverId,
+            activeDiverId: actingDiverId,
+          );
 
       await (_db.update(_db.trips)..where((t) => t.id.equals(trip.id))).write(
         TripsCompanion(
@@ -175,7 +188,7 @@ class TripRepository {
           liveaboardName: Value(trip.liveaboardName),
           notes: Value(trip.notes),
           tripType: Value(trip.tripType.name),
-          isShared: Value(trip.isShared),
+          isShared: maySetSharing ? Value(trip.isShared) : const Value.absent(),
           // Value(null) writes SQL NULL, so clearing the flight time works.
           returnFlightAt: Value(trip.returnFlightAt?.millisecondsSinceEpoch),
           expectedDives: Value(trip.expectedDives),
@@ -218,9 +231,25 @@ class TripRepository {
     }
   }
 
-  /// Flip the shared state of a single trip. Marks it pending for sync.
-  Future<void> setShared(String id, bool isShared) async {
+  /// Flip the shared state of a single trip, when [actingDiverId] may
+  /// (issue #2594). Returns false, with nothing changed, for a trip another
+  /// profile owns or one that does not exist. Marks it pending for sync.
+  Future<bool> setShared(
+    String id,
+    bool isShared, {
+    String? actingDiverId,
+  }) async {
     try {
+      final row = await (_db.select(
+        _db.trips,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      if (row == null ||
+          !canDestroySharedItem(
+            ownerId: row.diverId,
+            activeDiverId: actingDiverId,
+          )) {
+        return false;
+      }
       _log.info('Setting trip $id isShared=$isShared');
       final now = DateTime.now().millisecondsSinceEpoch;
       await (_db.update(_db.trips)..where((t) => t.id.equals(id))).write(
@@ -232,6 +261,7 @@ class TripRepository {
         localUpdatedAt: now,
       );
       SyncEventBus.notifyLocalChange();
+      return true;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to set shared flag on trip $id',
@@ -285,9 +315,15 @@ class TripRepository {
     }
   }
 
-  /// Delete a trip and all associated child records.
-  /// Removes liveaboard details, itinerary days, and dive associations
-  /// before deleting the trip itself.
+  /// Delete a trip and all associated child records, when [actingDiverId]
+  /// may (issue #2594): its owner, anyone for an ownerless trip, and any
+  /// caller that names no profile. Returns false, with nothing changed, for
+  /// a trip another profile owns or one that does not exist.
+  ///
+  /// Removes liveaboard details, itinerary days and the other children,
+  /// tombstones every profile's hide of the trip, and clears the trip from
+  /// every profile's dives, stamped and marked pending, before deleting the
+  /// trip itself.
   ///
   /// The whole cascade runs in one transaction so a failure partway through
   /// (e.g. a checklist delete throwing) rolls back every prior step instead
@@ -299,9 +335,21 @@ class TripRepository {
   /// method's own notify is deferred until after the transaction commits so
   /// listeners never observe a rolled-back delete as "changed".
   // stats-scope-exempt: deletion cascade
-  Future<void> deleteTrip(String id) async {
+  Future<bool> deleteTrip(String id, {String? actingDiverId}) async {
     try {
+      final row = await (_db.select(
+        _db.trips,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      if (row == null) return false;
+      if (!canDestroySharedItem(
+        ownerId: row.diverId,
+        activeDiverId: actingDiverId,
+      )) {
+        _log.warning('Refused to delete trip $id: another profile owns it');
+        return false;
+      }
       _log.info('Deleting trip: $id');
+      final now = DateTime.now().millisecondsSinceEpoch;
 
       await _db.transaction(() async {
         // Delete child records with non-nullable FKs first
@@ -314,12 +362,10 @@ class TripRepository {
         // Packed gear (issue #2338): deleted and tombstoned before the trip.
         await TripEquipmentRepository().deleteByTripId(id);
 
-        // Remove trip association from dives (nullable FK)
-        await _db.customUpdate(
-          'UPDATE dives SET trip_id = NULL WHERE trip_id = ?',
-          variables: [Variable.withString(id)],
-          updates: {_db.dives},
-        );
+        // Every profile's hide of the trip (issue #2594), tombstoned.
+        await ProfileHidesRepository().deleteHides(SharedItemKind.trip, [id]);
+        // Every profile's dives lose the trip, stamped and marked pending.
+        await clearDiveTripLinks(_db, _syncRepository, [id], now: now);
 
         // Delete the trip
         await (_db.delete(_db.trips)..where((t) => t.id.equals(id))).go();
@@ -328,6 +374,7 @@ class TripRepository {
 
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted trip: $id');
+      return true;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to delete trip: $id',

@@ -2003,10 +2003,10 @@ class _MockTripRepository implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip) async {}
+  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
 
   @override
   Future<Trip?> getTripById(String id) async => null;
@@ -2059,7 +2059,11 @@ class _MockTripRepository implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<void> setShared(String id, bool isShared) async {}
+  Future<bool> setShared(
+    String id,
+    bool isShared, {
+    String? actingDiverId,
+  }) async => true;
 
   @override
   Future<int> shareAllForDiver(String diverId) async => 0;
@@ -2132,10 +2136,10 @@ class _MockTripRepositoryWithTrip implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip) async {}
+  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
 
   @override
   Future<Trip?> getTripById(String id) async {
@@ -2198,7 +2202,11 @@ class _MockTripRepositoryWithTrip implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<void> setShared(String id, bool isShared) async {}
+  Future<bool> setShared(
+    String id,
+    bool isShared, {
+    String? actingDiverId,
+  }) async => true;
 
   @override
   Future<int> shareAllForDiver(String diverId) async => 0;
@@ -2213,10 +2221,10 @@ class _MockTripRepositoryWithSharedTrip implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip) async {}
+  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
 
   @override
   Future<Trip?> getTripById(String id) async {
@@ -2279,7 +2287,11 @@ class _MockTripRepositoryWithSharedTrip implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<void> setShared(String id, bool isShared) async {}
+  Future<bool> setShared(
+    String id,
+    bool isShared, {
+    String? actingDiverId,
+  }) async => true;
 
   @override
   Future<int> shareAllForDiver(String diverId) async => 0;
@@ -2382,10 +2394,10 @@ class _SlowTripRepository implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip) async {}
+  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
 
   @override
   Future<Trip?> getTripById(String id) async {
@@ -2448,7 +2460,11 @@ class _SlowTripRepository implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<void> setShared(String id, bool isShared) async {}
+  Future<bool> setShared(
+    String id,
+    bool isShared, {
+    String? actingDiverId,
+  }) async => true;
 
   @override
   Future<int> shareAllForDiver(String diverId) async => 0;
@@ -2463,10 +2479,10 @@ class _ErrorTripRepository implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip) async {}
+  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
 
   @override
   Future<Trip?> getTripById(String id) async {
@@ -2521,7 +2537,11 @@ class _ErrorTripRepository implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<void> setShared(String id, bool isShared) async {}
+  Future<bool> setShared(
+    String id,
+    bool isShared, {
+    String? actingDiverId,
+  }) async => true;
 
   @override
   Future<int> shareAllForDiver(String diverId) async => 0;
