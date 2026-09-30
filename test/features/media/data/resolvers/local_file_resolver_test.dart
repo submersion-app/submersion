@@ -6,7 +6,6 @@ import 'dart:ui' show Size;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/resolvers/local_file_resolver.dart';
 import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
-import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/data/services/volume_status.dart';
@@ -90,7 +89,6 @@ MediaItem _localFile({
 LocalFileResolver _resolver() => LocalFileResolver(
   bookmarkStorage: _NullBookmarkStorage(),
   platform: LocalMediaPlatform(),
-  exifExtractor: ExifExtractor(),
 );
 
 /// Resolver pinned to the security-scoped-bookmark branch (the iOS / macOS
@@ -103,7 +101,6 @@ LocalFileResolver _bookmarkResolver({
 }) => LocalFileResolver(
   bookmarkStorage: bookmarkStorage,
   platform: platform,
-  exifExtractor: ExifExtractor(),
   usesSecurityScopedBookmarks: () => true,
 );
 
@@ -231,7 +228,6 @@ void main() {
       final r = LocalFileResolver(
         bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
         platform: _StubPlatform(),
-        exifExtractor: ExifExtractor(),
         usesSecurityScopedBookmarks: () => false,
       );
       final data = await r.resolve(_localFile(bookmarkRef: 'ref-123'));
@@ -267,25 +263,6 @@ void main() {
     final v = await r.verify(_localFile(localPath: f.path));
     expect(v.toString(), contains('available'));
   });
-
-  test('extractMetadata returns null when no file to read', () async {
-    final r = _resolver();
-    final meta = await r.extractMetadata(_localFile());
-    expect(meta, isNull);
-  });
-
-  test(
-    'extractMetadata over FileData returns metadata with mtime fallback',
-    () async {
-      final f = File('${tempDir.path}/photo.jpg')..writeAsBytesSync([0]);
-      final r = _resolver();
-      final meta = await r.extractMetadata(_localFile(localPath: f.path));
-      expect(meta, isNotNull);
-      // Mtime fallback for files without parseable EXIF.
-      expect(meta!.takenAt, isNotNull);
-      expect(meta.mimeType, 'image/jpeg');
-    },
-  );
 
   test('verify returns available when file exists at localPath', () async {
     final f = File('${tempDir.path}/p.jpg')..writeAsBytesSync([0]);
@@ -335,37 +312,6 @@ void main() {
     expect((data as UnavailableData).kind, UnavailableKind.notFound);
   });
 
-  test(
-    'extractMetadata over BytesData round-trips through a temp file',
-    () async {
-      final platform = _StubPlatform()
-        ..onReadBookmarkBytes = ((blob) async =>
-            Uint8List.fromList([0, 1, 2, 3]));
-      final r = _bookmarkResolver(
-        bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
-        platform: platform,
-      );
-      final meta = await r.extractMetadata(_localFile(bookmarkRef: 'ref-1'));
-      // BytesData branch writes a temp file, runs extractor, deletes — so we
-      // expect a non-null metadata. Mtime fallback covers the takenAt field.
-      expect(meta, isNotNull);
-      expect(meta!.takenAt, isNotNull);
-    },
-  );
-
-  test('extractMetadata cleans up the temp file after BytesData run', () async {
-    final platform = _StubPlatform()
-      ..onReadBookmarkBytes = ((blob) async =>
-          Uint8List.fromList([0, 1, 2, 3]));
-    final item = _localFile(bookmarkRef: 'ref-cleanup');
-    final r = _bookmarkResolver(
-      bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2])),
-      platform: platform,
-    );
-    await r.extractMetadata(item);
-    final tmp = File('${Directory.systemTemp.path}/exif_${item.id}.bin');
-    expect(tmp.existsSync(), isFalse);
-  });
   // Regression: a sandboxed macOS build can STAT a user file (~/Downloads)
   // but not OPEN it — File.exists() returns true while any read throws
   // EPERM. The resolver must probe readability, not existence, before
@@ -464,7 +410,6 @@ void main() {
         LocalFileResolver(
           bookmarkStorage: _NullBookmarkStorage(),
           platform: LocalMediaPlatform(),
-          exifExtractor: ExifExtractor(),
           volumeStatus: VolumeStatus(
             directoryExists: (_) async => volumeOnline,
           ),
@@ -511,7 +456,6 @@ void main() {
         resolver: LocalFileResolver(
           bookmarkStorage: _NullBookmarkStorage(),
           platform: LocalMediaPlatform(),
-          exifExtractor: ExifExtractor(),
           volumeStatus: _FakeMountVolumeStatus(
             directoryExists: (path) async {
               probes.add(path);
@@ -584,7 +528,6 @@ void main() {
       final r = LocalFileResolver(
         bookmarkStorage: _NullBookmarkStorage(),
         platform: LocalMediaPlatform(),
-        exifExtractor: ExifExtractor(),
         volumeStatus: _FakeMountVolumeStatus(
           directoryExists: (path) async {
             probes.add(path);
@@ -615,7 +558,6 @@ void main() {
       final r = LocalFileResolver(
         bookmarkStorage: _NullBookmarkStorage(),
         platform: LocalMediaPlatform(),
-        exifExtractor: ExifExtractor(),
         // The REAL volume-root heuristics. tempDir is anchored to the boot
         // volume by _bootVolumeTemp, because $TMPDIR may point at a RAM disk
         // under /Volumes on a developer machine.
@@ -639,7 +581,6 @@ void main() {
       final r = LocalFileResolver(
         bookmarkStorage: _NullBookmarkStorage(),
         platform: LocalMediaPlatform(),
-        exifExtractor: ExifExtractor(),
         volumeStatus: _FakeMountVolumeStatus(
           directoryExists: (_) async =>
               throw const FileSystemException('probe blew up'),
@@ -659,7 +600,6 @@ void main() {
     }) => LocalFileResolver(
       bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([9])),
       platform: platform,
-      exifExtractor: ExifExtractor(),
       gate: gate,
       usesSecurityScopedBookmarks: () => true,
     );
@@ -731,7 +671,6 @@ void main() {
         final r = LocalFileResolver(
           bookmarkStorage: _EchoBookmarkStorage(),
           platform: platform,
-          exifExtractor: ExifExtractor(),
           gate: MediaFetchGate(maxConcurrent: 4),
           usesSecurityScopedBookmarks: () => true,
         );
@@ -812,20 +751,6 @@ void main() {
         VerifyResult.available,
       );
     });
-
-    test('extractMetadata does not re-enter the gate', () async {
-      final f = File('${tempDir.path}/photo.jpg')..writeAsBytesSync([1, 2, 3]);
-      final r = LocalFileResolver(
-        bookmarkStorage: _NullBookmarkStorage(),
-        platform: LocalMediaPlatform(),
-        exifExtractor: ExifExtractor(),
-        gate: MediaFetchGate(maxConcurrent: 1),
-      );
-
-      await r
-          .extractMetadata(_localFile(localPath: f.path))
-          .timeout(const Duration(seconds: 5));
-    });
   });
 
   /// Only notFound and unauthenticated flip `MediaItem.isOrphaned`, so a slow
@@ -842,7 +767,6 @@ void main() {
       final resolver = LocalFileResolver(
         bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList([1, 2, 3])),
         platform: platform,
-        exifExtractor: ExifExtractor(),
         usesSecurityScopedBookmarks: () => true,
         gate: MediaFetchGate(
           maxConcurrent: 1,
@@ -881,7 +805,6 @@ void main() {
     LocalFileResolver phone() => LocalFileResolver(
       bookmarkStorage: _NullBookmarkStorage(),
       platform: LocalMediaPlatform(),
-      exifExtractor: ExifExtractor(),
       localDeviceId: () async => 'phone',
     );
 
@@ -907,7 +830,6 @@ void main() {
         final labelled = LocalFileResolver(
           bookmarkStorage: _NullBookmarkStorage(),
           platform: LocalMediaPlatform(),
-          exifExtractor: ExifExtractor(),
           localDeviceId: () async => 'phone',
           deviceLabel: (id) async => id == 'desktop' ? "Eric's MacBook" : null,
         );
@@ -923,7 +845,6 @@ void main() {
         final throwing = LocalFileResolver(
           bookmarkStorage: _NullBookmarkStorage(),
           platform: LocalMediaPlatform(),
-          exifExtractor: ExifExtractor(),
           localDeviceId: () async => 'phone',
           deviceLabel: (id) async => throw StateError('no prefs'),
         );
@@ -967,7 +888,6 @@ void main() {
       final r = LocalFileResolver(
         bookmarkStorage: _NullBookmarkStorage(),
         platform: LocalMediaPlatform(),
-        exifExtractor: ExifExtractor(),
         localDeviceId: () async => throw StateError('no database'),
       );
       final data = await r.resolve(desktopRow());

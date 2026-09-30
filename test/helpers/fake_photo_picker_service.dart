@@ -142,8 +142,16 @@ class FakePhotoPickerService
   Future<String?> getFilePath(String assetId) async => null;
 
   @override
-  Future<MediaSourceMetadata?> getAssetMetadata(String assetId) =>
-      metadata(assetId);
+  Future<MediaSourceMetadata?> getAssetMetadata(String assetId) async {
+    final a = _visible(assetId);
+    if (a == null) return null;
+    return MediaSourceMetadata(
+      takenAt: a.takenAt,
+      width: a.width,
+      height: a.height,
+      mimeType: a.type == AssetType.video ? 'video/quicktime' : 'image/jpeg',
+    );
+  }
 
   // GalleryAssetReader
 
@@ -160,18 +168,6 @@ class FakePhotoPickerService
 
   @override
   Future<bool> exists(String assetId) async => _visible(assetId) != null;
-
-  @override
-  Future<MediaSourceMetadata?> metadata(String assetId) async {
-    final a = _visible(assetId);
-    if (a == null) return null;
-    return MediaSourceMetadata(
-      takenAt: a.takenAt,
-      width: a.width,
-      height: a.height,
-      mimeType: a.type == AssetType.video ? 'video/quicktime' : 'image/jpeg',
-    );
-  }
 
   // CloudIdentifierSource
 

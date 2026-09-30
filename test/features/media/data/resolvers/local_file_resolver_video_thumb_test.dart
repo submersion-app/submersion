@@ -4,7 +4,6 @@ import 'dart:ui' show Size;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/resolvers/local_file_resolver.dart';
-import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
@@ -48,7 +47,6 @@ void main() {
   LocalFileResolver resolver(VideoThumbnailService thumbs) => LocalFileResolver(
     bookmarkStorage: LocalBookmarkStorage(),
     platform: LocalMediaPlatform(),
-    exifExtractor: ExifExtractor(),
     videoThumbnails: thumbs,
   );
 

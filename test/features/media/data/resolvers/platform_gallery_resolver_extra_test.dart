@@ -137,20 +137,6 @@ void main() {
   );
 
   test(
-    'extractMetadata returns null when AssetResolutionService is unavailable',
-    () async {
-      final r = PlatformGalleryResolver(
-        localDeviceId: () async => 'this-device',
-        resolutionService: _FakeService(
-          const ResolutionResult(status: ResolutionStatus.unavailable),
-        ),
-      );
-      final m = await r.extractMetadata(_gallery());
-      expect(m, isNull);
-    },
-  );
-
-  test(
     'verify returns notFound when AssetResolutionService is unavailable',
     () async {
       final r = PlatformGalleryResolver(
