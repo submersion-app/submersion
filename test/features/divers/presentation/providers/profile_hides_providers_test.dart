@@ -7,11 +7,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
 import '../../../../helpers/shared_items_fixture.dart';
 import '../../../../helpers/test_database.dart';
 
-/// The active profile's hidden trips and sites (issue #2594).
+/// The active profile's hidden trips and sites (issues #2594, #2678).
 void main() {
   late AppDatabase db;
   late SharedPreferences prefs;
@@ -46,5 +47,25 @@ void main() {
       (await container.read(hiddenItemsProvider.future)).single.id,
       'shared',
     );
+  });
+
+  test('drops a hidden trip once its owner unshares it', () async {
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'b'),
+      ],
+    );
+    addTearDown(container.dispose);
+    await container
+        .read(profileHidesRepositoryProvider)
+        .hide(SharedItemKind.trip, 'shared', 'b');
+    final sub = container.listen(hiddenItemsProvider, (_, _) {});
+    addTearDown(sub.close);
+    expect(await container.read(hiddenItemsProvider.future), hasLength(1));
+
+    await TripRepository().setShared('shared', false, actingDiverId: 'a');
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(await container.read(hiddenItemsProvider.future), isEmpty);
   });
 }

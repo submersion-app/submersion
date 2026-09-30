@@ -82,6 +82,26 @@ void main() {
     expect(await repository.hiddenItems('a'), isEmpty);
   });
 
+  test('hiddenItems leaves out an item its owner has unshared', () async {
+    await repository.hide(SharedItemKind.trip, 'shared', 'b');
+    await repository.hide(SharedItemKind.site, 'pier', 'b');
+    await db.customStatement('UPDATE trips SET is_shared = 0');
+    await db.customStatement('UPDATE dive_sites SET is_shared = 0');
+
+    expect(await repository.hiddenItems('b'), isEmpty);
+    // The hides stay, so a re-share keeps the item hidden (issue #2678).
+    expect(await db.select(db.tripHides).get(), hasLength(1));
+    expect(await db.select(db.siteHides).get(), hasLength(1));
+  });
+
+  test('hiddenItems lists an unshared item again once re-shared', () async {
+    await repository.hide(SharedItemKind.trip, 'shared', 'b');
+    await db.customStatement('UPDATE trips SET is_shared = 0');
+    await db.customStatement('UPDATE trips SET is_shared = 1');
+
+    expect((await repository.hiddenItems('b')).single.id, 'shared');
+  });
+
   test('deleteHides removes every profile\'s hides of an item', () async {
     await seedDivers(db, ['c']);
     await repository.hide(SharedItemKind.trip, 'shared', 'b');

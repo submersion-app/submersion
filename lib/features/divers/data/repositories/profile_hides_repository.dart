@@ -191,13 +191,17 @@ class ProfileHidesRepository {
     }
   }
 
-  /// [diverId]'s hidden trips (newest first), then sites (by name).
+  /// [diverId]'s hidden trips (newest first), then sites (by name). Only
+  /// items still shared: the hide of one its owner has since unshared
+  /// stays, so a re-share keeps it hidden, but lists nothing until then
+  /// (issue #2678).
   Future<List<HiddenItem>> hiddenItems(String diverId) async {
     final trips = await _db
         .customSelect(
           'SELECT t.id, t.name, t.diver_id, t.start_date, t.end_date, '
           't.location FROM trip_hides h JOIN trips t ON t.id = h.trip_id '
-          'WHERE h.diver_id = ? ORDER BY t.start_date DESC',
+          'WHERE h.diver_id = ? AND t.is_shared = 1 '
+          'ORDER BY t.start_date DESC',
           variables: [Variable.withString(diverId)],
         )
         .get();
@@ -205,7 +209,8 @@ class ProfileHidesRepository {
         .customSelect(
           'SELECT s.id, s.name, s.diver_id, s.region, s.country '
           'FROM site_hides h JOIN dive_sites s ON s.id = h.site_id '
-          'WHERE h.diver_id = ? ORDER BY s.name COLLATE NOCASE',
+          'WHERE h.diver_id = ? AND s.is_shared = 1 '
+          'ORDER BY s.name COLLATE NOCASE',
           variables: [Variable.withString(diverId)],
         )
         .get();
