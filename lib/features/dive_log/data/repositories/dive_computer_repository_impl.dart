@@ -1851,6 +1851,10 @@ class DiveComputerRepository {
                   endPressure: tank.endPressure == null
                       ? Value(endpoints.end)
                       : const Value.absent(),
+                  // The tank was inserted with no clock; without one, any
+                  // peer's stamped copy is newer and could clear these
+                  // pressures (#2644).
+                  hlc: Value(await _syncRepository.issueRowClock()),
                 ),
               );
               _log.info(
