@@ -39,11 +39,9 @@ class _FakeSafPort implements BackupSafPort {
   Future<String?> resolveTree(String treeUri) async => tree;
 }
 
-/// Per-file temp root, so the backup service's fixed `Submersion/Backups`
-/// subtree does not collide with the other suites that mock path_provider the
-/// same way. `flutter test` runs files in parallel isolates against one real
-/// $TMPDIR, so sharing it let one suite truncate or encrypt another's artifact
-/// mid-assert.
+/// Per-file root for the mocked path_provider. Test processes run in parallel
+/// against one real $TMPDIR, so returning it directly would put every backup
+/// suite's fixed `Submersion/Backups` subtree in the same place.
 final _isolatedTempDir = Directory.systemTemp.createTempSync(
   'target_lease_pp_',
 );

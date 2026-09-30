@@ -232,9 +232,6 @@ void main() {
   Future<String> tempBackupPath(String tag) async {
     final tmp = _scratchBackupFile('notifier_restore_${tag}_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
     return tmp.path;
   }
 
@@ -242,9 +239,6 @@ void main() {
     final container = makeContainer();
     final tmp = _scratchBackupFile('notifier_restore_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
 
     await container
         .read(backupOperationProvider.notifier)
@@ -271,9 +265,6 @@ void main() {
     );
     final tmp = _scratchBackupFile('notifier_restore_migration_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
 
     await container
         .read(backupOperationProvider.notifier)
@@ -369,9 +360,6 @@ void main() {
     final container = makeContainer();
     final tmp = _scratchBackupFile('notifier_enc_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
 
     await expectLater(
       container
@@ -403,9 +391,6 @@ void main() {
     final container = makeContainer();
     final tmp = _scratchBackupFile('notifier_wrongpw_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
 
     // A wrong secret must propagate (not become an error state), so the
     // dialog stays open with its inline error instead of closing on success.
