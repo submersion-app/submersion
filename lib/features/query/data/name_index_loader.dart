@@ -31,6 +31,8 @@ class NameIndexLoader {
     QuerySubject.diveTypes,
     QuerySubject.equipment,
     QuerySubject.species,
+    // A buddy's certification is a ref (`buddies.certifications`).
+    QuerySubject.certifications,
   ];
 
   /// The columns read beside the name, for alternates and places.

@@ -155,6 +155,7 @@ void main() {
     expect(NameIndexLoader.tables, {
       'equipment_shares',
       'dives',
+      'certifications',
       'site_types',
       'dive_sites',
       'trips',
@@ -254,5 +255,15 @@ void main() {
     );
     final index = await load();
     expect(index.resolve(QuerySubject.equipment, 'apeks xtx50')?.id, 'g-blank');
+  });
+
+  test('a certification is a ref the typed language can name', () async {
+    // `buddies.certifications = "Rescue Diver"` resolves through the index.
+    final index = await load();
+    expect(
+      index.resolve(QuerySubject.certifications, 'rescue diver'),
+      const RefValue('c1', 'Rescue Diver'),
+    );
+    expect(index.refs(QuerySubject.certifications), isNotEmpty);
   });
 }
