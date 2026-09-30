@@ -542,9 +542,12 @@ class DiveComputerRepository {
 
       final sourceIds = matched.map((r) => r.read<String>('id')).toList();
       final sourcePh = List.filled(sourceIds.length, '?').join(', ');
+      // With a fresh clock: a peer's newer copy of the source, still
+      // orphaned, would otherwise clear the link again (#2644).
       await _db.customStatement(
-        'UPDATE dive_data_sources SET computer_id = ? WHERE id IN ($sourcePh)',
-        [computerId, ...sourceIds],
+        'UPDATE dive_data_sources SET computer_id = ?, hlc = ? '
+        'WHERE id IN ($sourcePh)',
+        [computerId, await _syncRepository.issueRowClock(), ...sourceIds],
       );
 
       // Restore the dive's primary-computer link where the matched source is

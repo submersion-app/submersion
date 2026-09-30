@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 
+import '../../../../helpers/clock_expectations.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/unique_ids.dart';
 import '../../../../helpers/fake_hosts.dart';
@@ -585,6 +586,34 @@ void main() {
         expect(series.computerId, equals(created.id));
       },
     );
+
+    test('relinked sources carry a fresh clock (#2644)', () async {
+      final oldId = await insertComputer(
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-12345',
+      );
+      final diveId = await insertDive(computerId: oldId);
+      await insertDataSource(
+        diveId: diveId,
+        computerId: oldId,
+        isPrimary: true,
+        computerModel: 'Shearwater Perdix',
+        computerSerial: 'SN-12345',
+        sourceFormat: 'dive_computer',
+      );
+      await repository.deleteComputer(oldId);
+      Future<DiveDataSourcesData> source() => (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).getSingle();
+      final before = await source();
+
+      final created = await repository.createComputer(newComputer());
+
+      final after = await source();
+      expect(after.computerId, created.id);
+      expectFresherClock(before.hlc, after.hlc);
+    });
 
     test('does not relink without a serial number', () async {
       final oldId = await insertComputer(
