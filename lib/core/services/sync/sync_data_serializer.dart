@@ -1689,6 +1689,21 @@ class SyncDataSerializer {
     );
   }
 
+  /// The JSON keys a clear on [entityType] may name (see clearableColumns):
+  /// empty for a type outside [parentGatedChildEntities] or one with nothing
+  /// clearable, so a caller can skip collecting clears for it (#2644).
+  Set<String> clearableChildKeys(String entityType) {
+    final tableName = parentGatedTables[entityType];
+    if (tableName == null) return const {};
+    final table = _db.allTables.firstWhere(
+      (t) => t.actualTableName == tableName,
+    );
+    return clearableColumns(
+      table,
+      keyColumns: _parentGatedKeyColumns[entityType] ?? const ['id'],
+    ).keys.toSet();
+  }
+
   /// Writes deliberate clears on parent-gated children (#2644).
   ///
   /// The upsert that applied each row builds with nullToAbsent, so a null it

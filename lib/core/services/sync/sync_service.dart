@@ -4617,21 +4617,22 @@ class SyncService {
   /// cleared it, so every later copy ties and nothing repairs it. As there,
   /// the replay order is the resolution and there is no local side to weigh;
   /// [SyncDataSerializer.clearChildColumns] skips the columns already null
-  /// and batches the rest.
+  /// and batches the rest. Only the keys a clear may touch are collected, and
+  /// a table with none (the tag and type links) is skipped outright, since an
+  /// adopt replays every row.
   Future<void> _landAdoptedChildClears(
     String entityType,
     Iterable<Map<String, dynamic>> rows,
   ) async {
-    if (!SyncDataSerializer.parentGatedChildEntities.contains(entityType)) {
-      return;
-    }
+    final clearable = _serializer.clearableChildKeys(entityType);
+    if (clearable.isEmpty) return;
     final clears = <String, Set<String>>{};
     for (final row in rows) {
       final id = recordIdForEntity(entityType, row);
       if (id == null) continue;
       final nulls = {
-        for (final e in row.entries)
-          if (e.value == null) e.key,
+        for (final k in clearable)
+          if (row.containsKey(k) && row[k] == null) k,
       };
       if (nulls.isNotEmpty) clears[id] = nulls;
     }

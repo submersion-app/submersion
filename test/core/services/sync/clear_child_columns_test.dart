@@ -130,4 +130,21 @@ void main() {
       expect(left.read<int>('n'), 0);
     },
   );
+
+  test(
+    'clearableChildKeys names what a clear may touch, empty when nothing',
+    () {
+      expect(
+        serializer.clearableChildKeys('diveTanks'),
+        containsAll(<String>['transmitterSerial', 'computerId']),
+      );
+      expect(
+        serializer.clearableChildKeys('diveTanks'),
+        isNot(contains('hlc')),
+      );
+      // A junction with no nullable user column, and a type outside the set.
+      expect(serializer.clearableChildKeys('diveDiveTypes'), isEmpty);
+      expect(serializer.clearableChildKeys('dives'), isEmpty);
+    },
+  );
 }
