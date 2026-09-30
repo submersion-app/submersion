@@ -377,7 +377,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       // cylinder passports phase 5) has nothing to decide: it is skipped by
       // default and never holds the Import button.
       final choices = _adapter.duplicateActionsFor(type);
-      if (choices.length == 1 && choices.contains(DuplicateAction.skip)) {
+      if (setEquals(choices, const {DuplicateAction.skip})) {
         for (final index in pendingForType) {
           duplicateActions.putIfAbsent(type, () => {})[index] =
               DuplicateAction.skip;

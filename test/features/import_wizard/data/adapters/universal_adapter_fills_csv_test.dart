@@ -6,11 +6,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Diver;
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_fills_writer.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart'
     show ImportFormat;
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
@@ -65,13 +69,27 @@ void main() {
     expect(detected, ImportFormat.submersionFillsCsv);
     final payload = await parserForFormat(detected).parse(bytes);
 
+    ImportBundle? firstReview;
     final result = await importThroughWizard(
       tester,
       payload: payload,
       diver: _diver(),
+      onReview: (bundle) => firstReview = bundle,
     );
     expect(result.errorMessage, isNull);
     expect(result.importedCounts[ImportEntityType.fills], 2);
+    // Each row leads with when the fill was made, so a cylinder's fills
+    // (one passport id) read apart, down to two on the same day.
+    final rows = firstReview!.groups[ImportEntityType.fills]!.items;
+    const units = UnitFormatter(AppSettings());
+    expect(rows.map((r) => r.title), [
+      units.formatDateTime(DateTime(2025, 3, 15, 9, 5)),
+      units.formatDateTime(DateTime(2025, 3, 16, 14, 30)),
+    ]);
+    expect(rows.map((r) => r.subtitle), [
+      'pp-al80, ${const GasMix(o2: 32).name}',
+      'pp-foreign, ${const GasMix(o2: 18, he: 45).name}',
+    ]);
 
     await tester.runAsync(() async {
       final fills = CylinderFillRepository();

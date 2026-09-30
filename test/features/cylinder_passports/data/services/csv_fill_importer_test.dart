@@ -197,6 +197,26 @@ void main() {
     expect((await fills.getById('c'))!.equipmentId, isNull);
   });
 
+  test('one import asks which ids are known once, not row by row, and '
+      'still stores a repeated id once', () async {
+    await importer.importRows(
+      [row(id: 'old')],
+      selected: {0},
+      diverId: 'd1',
+    );
+    await fills.delete('old');
+    final counting = _CountingFills();
+    final count = await CsvFillImporter(fills: counting).importRows(
+      [row(id: 'a'), row(id: 'old'), row(id: 'b'), row(id: 'a')],
+      selected: {0, 1, 2, 3},
+      diverId: 'd1',
+    );
+    expect(count, 2);
+    expect(counting.rowLookups, 0);
+    expect(counting.knownIdsCalls, 1);
+    expect(await fills.getById('old'), isNull);
+  });
+
   test(
     'fromPayload reads an unknown source as manual and a missing He as 0',
     () {
@@ -210,6 +230,30 @@ void main() {
       expect(fill.equipmentId, isNull);
     },
   );
+}
+
+/// Counts the fill lookups an import makes.
+class _CountingFills extends CylinderFillRepository {
+  var rowLookups = 0;
+  var knownIdsCalls = 0;
+
+  @override
+  Future<CylinderFill?> getById(String id) {
+    rowLookups++;
+    return super.getById(id);
+  }
+
+  @override
+  Future<bool> wasDeleted(String id) {
+    rowLookups++;
+    return super.wasDeleted(id);
+  }
+
+  @override
+  Future<Set<String>> knownIds(Iterable<String> ids) {
+    knownIdsCalls++;
+    return super.knownIds(ids);
+  }
 }
 
 /// Counts the passport lookups an import makes.

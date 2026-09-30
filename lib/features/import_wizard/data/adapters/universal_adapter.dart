@@ -1532,10 +1532,11 @@ class UniversalAdapter implements ImportSourceAdapter {
     final o2 = asDoubleOrNull(data['o2Percent']);
     final he = asDoubleOrNull(data['hePercent']) ?? 0;
     final mix = o2 == null ? '' : GasMix(o2: o2, he: he).name;
-    final when = filledAt == null ? '' : _units.formatDate(filledAt);
+    // Led by when the fill was made: a cylinder's fills share one passport
+    // id, and two can fall on the same day.
     return EntityItem(
-      title: passportId.isEmpty ? mix : passportId,
-      subtitle: [when, mix].where((s) => s.isNotEmpty).join(', '),
+      title: filledAt == null ? passportId : _units.formatDateTime(filledAt),
+      subtitle: [passportId, mix].where((s) => s.isNotEmpty).join(', '),
     );
   }
 

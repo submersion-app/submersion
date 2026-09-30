@@ -87,12 +87,18 @@ class SubmersionFillsCsvParser implements ImportParser {
       final passportId = table.text(row, 'Passport ID');
       final date = table.date(row, 'Date');
       final o2 = table.number(row, 'O2 %');
+      // A blank He means none; a He that is there but unreadable is a gas
+      // the row cannot name, never quietly helium-free.
+      final heWritten = table.text(row, 'He %') != null;
+      final heRead = table.number(row, 'He %');
       final (missing, field) = passportId == null
           ? ('passport id', 'Passport ID')
           : date == null
           ? ('readable date', 'Date')
           : o2 == null
           ? ('readable O2 %', 'O2 %')
+          : heWritten && heRead == null
+          ? ('readable He %', 'He %')
           : (null, null);
       if (missing != null) {
         warnings.add(
@@ -108,7 +114,7 @@ class SubmersionFillsCsvParser implements ImportParser {
         continue;
       }
 
-      final he = table.number(row, 'He %') ?? 0.0;
+      final he = heRead ?? 0.0;
       if (!CylinderFill.isPossibleMix(o2!, he)) {
         warnings.add(
           ImportWarning(
@@ -132,7 +138,7 @@ class SubmersionFillsCsvParser implements ImportParser {
           row,
           i,
           ImportEntityType.fills,
-          numbers: const ['He %', 'Pressure', 'Temperature'],
+          numbers: const ['Pressure', 'Temperature'],
           times: const ['Time'],
         ),
       );

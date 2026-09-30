@@ -31,16 +31,24 @@ class CsvFillImporter {
     required Set<int> selected,
     required String diverId,
   }) async {
-    var count = 0;
+    final fills = [
+      for (final (i, item) in items.indexed)
+        if (selected.contains(i)) ?fromPayload(item),
+    ];
+    // One query tells which ids are already here or were deleted here; the
+    // ids stored below join it, so a repeated row is skipped too.
+    final known = {
+      ...await _fills.knownIds([for (final fill in fills) fill.id]),
+    };
     // A file usually holds many fills of the same few cylinders, so each
     // passport id is looked up once per import.
     final linked = <String, String?>{};
-    for (var i = 0; i < items.length; i++) {
-      if (!selected.contains(i)) continue;
-      final fill = fromPayload(items[i]);
-      if (fill == null) continue;
+    var count = 0;
+    for (final fill in fills) {
+      if (!known.add(fill.id)) continue;
       try {
-        if (await _importIfNew(fill, diverId, linked) != null) count++;
+        await _store(fill, diverId, linked);
+        count++;
       } catch (e) {
         // One bad row must not abort the import; it is logged so a failed
         // row is told apart from one skipped as already here.
@@ -50,27 +58,24 @@ class CsvFillImporter {
     return count;
   }
 
-  /// The stored fill, or null when [fill] is already here or was deleted.
-  /// [linked] caches the cylinder found for each passport id.
-  Future<CylinderFill?> _importIfNew(
+  /// Stores [fill] for [diverId], linked to the cylinder holding its
+  /// passport id. [linked] caches the cylinder found for each passport id.
+  Future<CylinderFill> _store(
     CylinderFill fill,
     String diverId,
     Map<String, String?> linked,
   ) async {
-    if (await _fills.getById(fill.id) != null) return null;
-    if (await _fills.wasDeleted(fill.id)) return null;
     if (!linked.containsKey(fill.passportId)) {
       linked[fill.passportId] = await _passports.findEquipmentIdByPassportId(
         fill.passportId,
         diverId: diverId,
       );
     }
-    final equipmentId = linked[fill.passportId];
     final now = DateTime.now();
     return _fills.create(
       fill.copyWith(
         diverId: diverId,
-        equipmentId: equipmentId,
+        equipmentId: linked[fill.passportId],
         createdAt: now,
         updatedAt: now,
       ),

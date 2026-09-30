@@ -119,6 +119,27 @@ void main() {
     expect(errors.map((e) => e.field), ['O2 %', 'O2 %', 'He %']);
   });
 
+  test('a mistyped He is skipped with an error, not read as helium-free, '
+      'while a blank He still means none', () async {
+    final csv = CsvFillsWriter(CsvExportUnits.metric).write(goldenFills());
+    final lines = csv.split('\r\n');
+    lines[1] = lines[1].replaceFirst(',32,0,', ',32,,');
+    lines[2] = lines[2].replaceFirst(',18,45,', ',18,4S,');
+    final payload = await const SubmersionFillsCsvParser().parse(
+      _bytes(lines.join('\r\n')),
+    );
+    final items = payload.entitiesOf(ImportEntityType.fills);
+    expect(items.map((f) => f['passportId']), ['pp-al80']);
+    expect(items.single['hePercent'], 0.0);
+    final errors = payload.warnings
+        .where((w) => w.severity == ImportWarningSeverity.error)
+        .toList();
+    expect(errors.map((e) => e.message), [
+      'Row 3 has no readable He % and was skipped',
+    ]);
+    expect(errors.single.field, 'He %');
+  });
+
   test('a blank fill id is the same on every read, so re-importing a '
       'hand-made file adds nothing new', () async {
     final csv = CsvFillsWriter(CsvExportUnits.metric).write(goldenFills());
