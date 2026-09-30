@@ -615,6 +615,42 @@ void main() {
       expectFresherClock(before.hlc, after.hlc);
     });
 
+    test('a relinked source that is not the dive primary is published '
+        '(#2644)', () async {
+      // Its dive is only staged when the source is the primary, so the
+      // source must be marked pending itself or no changeset carries it.
+      final oldId = await insertComputer(
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-12345',
+      );
+      final diveId = await insertDive(computerId: oldId);
+      await insertDataSource(
+        diveId: diveId,
+        computerId: oldId,
+        isPrimary: false,
+        computerModel: 'Shearwater Perdix',
+        computerSerial: 'SN-12345',
+        sourceFormat: 'dive_computer',
+      );
+      await repository.deleteComputer(oldId);
+      await db.customStatement('DELETE FROM sync_records');
+
+      await repository.createComputer(newComputer());
+
+      final source = await (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).getSingle();
+      final pending =
+          await (db.select(db.syncRecords)..where(
+                (r) =>
+                    r.entityType.equals('diveDataSources') &
+                    r.recordId.equals(source.id),
+              ))
+              .get();
+      expect(pending, isNotEmpty);
+    });
+
     test('does not relink without a serial number', () async {
       final oldId = await insertComputer(
         manufacturer: 'Shearwater',

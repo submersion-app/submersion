@@ -542,13 +542,23 @@ class DiveComputerRepository {
 
       final sourceIds = matched.map((r) => r.read<String>('id')).toList();
       final sourcePh = List.filled(sourceIds.length, '?').join(', ');
-      // With a fresh clock: a peer's newer copy of the source, still
-      // orphaned, would otherwise clear the link again (#2644).
       await _db.customStatement(
-        'UPDATE dive_data_sources SET computer_id = ?, hlc = ? '
-        'WHERE id IN ($sourcePh)',
-        [computerId, await _syncRepository.issueRowClock(), ...sourceIds],
+        'UPDATE dive_data_sources SET computer_id = ? WHERE id IN ($sourcePh)',
+        [computerId, ...sourceIds],
       );
+      // Each source is published on its own, which also gives it a fresh
+      // clock (#2644): its dive is staged below only when the source is the
+      // primary, so a secondary source would otherwise never leave this
+      // device, and a peer's newer copy, still orphaned, would clear the
+      // link again.
+      final relinkedAt = DateTime.now().millisecondsSinceEpoch;
+      for (final id in sourceIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'diveDataSources',
+          recordId: id,
+          localUpdatedAt: relinkedAt,
+        );
+      }
 
       // Restore the dive's primary-computer link where the matched source is
       // the dive's primary and no live computer claims the dive.

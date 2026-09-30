@@ -135,7 +135,7 @@ is re-staged for a child (#1769).
 | `DiveConsolidationService.apply`, first-consolidation backfill | `dive_tanks.computer_id` |
 | `DiveComputerMergeRepository._repointDiveOwnedTables` | `dive_data_sources.computer_id` |
 | `DiveComputerMergeRepository._repointDiveOwnedTables` | `dive_tanks.computer_id` |
-| `DiveComputerRepositoryImpl._relinkOrphanedRows` (raw SQL) | `dive_data_sources.computer_id` |
+| `DiveComputerRepositoryImpl._relinkOrphanedRows` (raw SQL) | `dive_data_sources.computer_id`; marked pending per source instead of stamped inline, since its dive is staged only when the source is the primary |
 | `DiveComputerRepositoryImpl.importProfile`, pressure fill | `dive_tanks.start_pressure`, `end_pressure` |
 
 Writes of NOT NULL columns (`dive_data_sources.is_primary`) cannot be erased
