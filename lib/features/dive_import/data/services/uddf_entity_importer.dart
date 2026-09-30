@@ -10,7 +10,9 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/services/csv_fill_importer.dart';
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
+import 'package:submersion/features/dive_import/data/services/additional_computer_writer.dart';
 import 'package:submersion/features/dive_import/data/services/import_map_readers.dart';
+import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_import/domain/import_source_file.dart';
 import 'package:submersion/features/dive_import/domain/resyncable_import_formats.dart';
@@ -2179,6 +2181,18 @@ class UddfEntityImporter {
       }
     }
 
+    // The further computers a dive was worn with, so each source row they
+    // become links to its own device (issue #2672).
+    for (final i in selected) {
+      for (final entry in AdditionalComputerWriter.entriesOf(items[i])) {
+        await register(
+          model: entry['diveComputerModel'] as String?,
+          serial: entry['diveComputerSerial'] as String?,
+          firmware: entry['diveComputerFirmware'] as String?,
+        );
+      }
+    }
+
     return idByKey;
   }
 
@@ -2430,39 +2444,8 @@ class UddfEntityImporter {
       // Build profile (include setpoint/ppO2 sensor readings)
       final profileData = diveData['profile'] as List<Map<String, dynamic>>?;
       final profile =
-          profileData
-              ?.map(
-                (p) => DiveProfilePoint(
-                  timestamp: p['timestamp'] as int? ?? 0,
-                  depth: asDoubleOrNull(p['depth']) ?? 0.0,
-                  temperature: asDoubleOrNull(p['temperature']),
-                  heartRate: p['heartRate'] as int?,
-                  cns: asDoubleOrNull(p['cns']),
-                  ndl: p['ndl'] as int?,
-                  tts: p['tts'] as int?,
-                  ceiling: asDoubleOrNull(p['ceiling']),
-                  rbt: p['rbt'] as int?,
-                  decoType: p['decoType'] as int?,
-                  setpoint: asDoubleOrNull(p['setpoint']),
-                  ppO2: asDoubleOrNull(p['ppO2']),
-                  o2Sensor1: asDoubleOrNull(p['o2Sensor1']),
-                  o2Sensor2: asDoubleOrNull(p['o2Sensor2']),
-                  o2Sensor3: asDoubleOrNull(p['o2Sensor3']),
-                  o2Sensor4: asDoubleOrNull(p['o2Sensor4']),
-                  o2Sensor5: asDoubleOrNull(p['o2Sensor5']),
-                  o2Sensor6: asDoubleOrNull(p['o2Sensor6']),
-                  // UDDF carries no millivolt field; these arrive only via the
-                  // libdivecomputer path that shares this map (issue #810).
-                  o2SensorMv1: p['o2SensorMv1'] as int?,
-                  o2SensorMv2: p['o2SensorMv2'] as int?,
-                  o2SensorMv3: p['o2SensorMv3'] as int?,
-                  o2SensorMv4: p['o2SensorMv4'] as int?,
-                  o2SensorMv5: p['o2SensorMv5'] as int?,
-                  o2SensorMv6: p['o2SensorMv6'] as int?,
-                ),
-              )
-              .toList() ??
-          [];
+          profileData?.map(profilePointFromImport).toList() ??
+          <DiveProfilePoint>[];
 
       // Build tanks
       final tanks = _buildTanks(diveData);
@@ -3055,6 +3038,29 @@ class UddfEntityImporter {
         }
       }
 
+      // Every further computer the dive was worn with (issue #2672). After
+      // the primary source, never before: that row adopts the dive's
+      // unattributed samples only while it is the dive's sole source.
+      await AdditionalComputerWriter(
+        diveRepository: repos.diveRepository,
+        tankPressureRepository: repos.tankPressureRepository,
+      ).write(
+        diveData: diveData,
+        diveId: diveId,
+        entryTime: dive.entryTime,
+        tanks: tanks,
+        primaryComputerId: computerId,
+        computerIdFor: (entry) =>
+            computerIdByKey[computerKeyFor(
+              entry['diveComputerModel'] as String?,
+              entry['diveComputerSerial'] as String?,
+            )],
+        sourceFileName: diveSourceFileName,
+        sourceFileFormat: diveSourceFormat?.name ?? 'uddf',
+        now: now,
+        onSkippedEvent: _log.warning,
+      );
+
       count++;
       onProgress?.call(ImportPhase.dives, count, selected.length);
     }
@@ -3305,29 +3311,7 @@ class UddfEntityImporter {
     String diveId,
     TankPressureRepository repository,
   ) async {
-    final pressuresByTank =
-        <String, List<({int timestamp, double pressure})>>{};
-
-    for (final p in profileData) {
-      final timestamp = p['timestamp'] as int? ?? 0;
-
-      final allTankPressures =
-          p['allTankPressures'] as List<Map<String, dynamic>>?;
-      if (allTankPressures != null && allTankPressures.isNotEmpty) {
-        for (final tp in allTankPressures) {
-          final pressure = tp['pressure'] as double?;
-          final tankIdx = tp['tankIndex'] as int? ?? 0;
-          if (pressure != null && tankIdx >= 0 && tankIdx < tanks.length) {
-            final tankId = tanks[tankIdx].id;
-            pressuresByTank.putIfAbsent(tankId, () => []).add((
-              timestamp: timestamp,
-              pressure: pressure,
-            ));
-          }
-        }
-      }
-    }
-
+    final pressuresByTank = tankPressuresFromImport(profileData, tanks);
     if (pressuresByTank.isNotEmpty) {
       await repository.insertTankPressures(diveId, pressuresByTank);
     }

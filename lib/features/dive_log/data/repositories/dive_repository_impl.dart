@@ -4887,6 +4887,8 @@ class DiveRepository {
                 value: Value(event.value),
                 tankId: Value(event.tankId),
                 source: Value(event.source.name),
+                // Which computer logged it; null reads as the primary's.
+                computerId: Value(event.computerId),
                 // Preserve the domain entity's own createdAt (e.g., from dive computer
                 // clock) rather than substituting wall-clock `now` — unlike GasSwitches,
                 // profile events carry meaningful source timestamps used for sync dedup.
@@ -7404,6 +7406,50 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to save computer readings',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Insert a further computer's recording of a dive whose primary source
+  /// already exists: the non-primary [reading], its [profile] as a series
+  /// owned by that row, and its [events] (issue #2672).
+  ///
+  /// Unlike [saveComputerReading] this adopts nothing. The dive's
+  /// unattributed series belong to its primary source; these samples arrive
+  /// already attributed to [reading]. [profile] and [events] must be on the
+  /// dive's timeline, and [events] carry the computer that logged them.
+  Future<void> saveAdditionalComputerReading({
+    required DiveDataSourcesCompanion reading,
+    required List<domain.DiveProfilePoint> profile,
+    List<ProfileEvent> events = const [],
+  }) async {
+    try {
+      await _db.transaction(() async {
+        await _db
+            .into(_db.diveDataSources)
+            .insert(reading.copyWith(isPrimary: const Value(false)));
+        if (profile.isNotEmpty) {
+          await _profileSeries.insertSeries(
+            diveId: reading.diveId.value,
+            computerId: reading.computerId.present
+                ? reading.computerId.value
+                : null,
+            sourceId: reading.id.value,
+            isPrimary: false,
+            samples: [
+              for (final point in profile) profileSampleFromPoint(point),
+            ],
+          );
+        }
+        await insertProfileEvents(events);
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to save additional computer reading',
         error: e,
         stackTrace: stackTrace,
       );
