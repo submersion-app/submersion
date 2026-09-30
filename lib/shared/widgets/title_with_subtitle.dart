@@ -60,6 +60,8 @@ class TitleWithSubtitle extends StatelessWidget {
       ),
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
+      // The rendered Text resolves font fallback by locale; measure the same.
+      locale: Localizations.maybeLocaleOf(context),
       maxLines: 1,
     )..layout();
     final fits = painter.width <= maxWidth;
