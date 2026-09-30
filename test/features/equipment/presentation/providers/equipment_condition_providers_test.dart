@@ -507,9 +507,9 @@ void main() {
 
   test('a summary built from the synced series is current', () async {
     // Series never re-stamp their dive (#1769). A summary rebuilt after a
-    // synced profile carries the series' stamp; reading it as stale would
-    // request it again on every review and never save a marker.
-    // The dive's stamp (5) plus its series' (9).
+    // synced profile carries a stamp that includes the series (here the
+    // dive's 5 plus the series' 9); reading it as stale would request it
+    // again on every review and never save a marker.
     await ccrWithDive(summaryStamp: 5 + 9);
     await db
         .into(db.diveProfileSeries)
