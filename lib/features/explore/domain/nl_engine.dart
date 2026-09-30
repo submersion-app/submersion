@@ -1,4 +1,4 @@
-import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
+import 'package:submersion/features/explore/domain/explore_fields.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 enum NlAvailability {
@@ -47,8 +47,8 @@ abstract class NlEngine {
 abstract final class NlPrompt {
   static Map<String, Object?> vocabulary() => {
     'schemaVersion': kQuerySchemaVersion,
-    'subjects': QuerySubject.values.map((s) => s.name).toList(),
-    'fields': DiveFieldCatalog.jsonNames,
+    'subjects': ParsedSubject.values.map((s) => s.name).toList(),
+    'fields': [for (final f in kExploreFields) f.name],
     'ops': ClauseOp.values.map((o) => o.jsonName).toList(),
     'units': ClauseUnit.values.map((u) => u.jsonName).toList(),
     'mentionKinds': MentionKind.values.map((k) => k.name).toList(),
@@ -56,8 +56,8 @@ abstract final class NlPrompt {
 
   /// A catalog field's values as prose, "a, b or c", so the prompt lists
   /// exactly what the compiler accepts. Every listed field has at least two.
-  static String _oneOf(ExploreDiveField field) {
-    final values = DiveFieldCatalog.spec(field).enumValues!;
+  static String _oneOf(String name) {
+    final values = exploreField(name)!.enumValues!;
     return '${values.take(values.length - 1).join(', ')} or ${values.last}';
   }
 
@@ -71,7 +71,7 @@ Shape:
 subject is one of: dives, equipment, sites, buddies, species, trips, centers. Use "dives" unless the sentence clearly asks for another kind of thing.
 
 A clause is {"field", "op", "value", "unit", "text"}. text is the words of the sentence the clause came from. Fields:
-depth: maximum depth of the dive. avgDepth: average depth. bottomTime: minutes of bottom time. waterTemp: water temperature. airTemp: air temperature. visibility: underwater visibility distance. rating: 1 to 5 stars. o2: oxygen percent of the gas. diveNumber: the dive's number. waterType: ${_oneOf(ExploreDiveField.waterType)}. diveMode: ${_oneOf(ExploreDiveField.diveMode)}. entryMethod: ${_oneOf(ExploreDiveField.entryMethod)}. currentStrength: ${_oneOf(ExploreDiveField.currentStrength)}. favorite: true. deco: true or false. noBuddy: true. weekday: ${kWeekdayTokens.join(', ')}. diveType: the name of a dive type. sac: gas consumption rate, as pressure per minute at the surface. sacTrend: whether gas consumption was ${_oneOf(ExploreDiveField.sacTrend)} through the dive. sacChange: percent change in gas consumption from the first half of the dive to the second; a rise is a positive number. finalStop: ${_oneOf(ExploreDiveField.finalStop)}, for the last safety or decompression stop. finalStopExcursion: how far the diver drifted from the depth of the last stop. finalStopDuration: minutes spent at the last stop. finding: a safety finding, ${_oneOf(ExploreDiveField.finding)}.
+depth: maximum depth of the dive. avgDepth: average depth. bottomTime: minutes of bottom time. waterTemp: water temperature. airTemp: air temperature. visibility: underwater visibility distance. rating: 1 to 5 stars. o2: oxygen percent of the gas. diveNumber: the dive's number. waterType: ${_oneOf('waterType')}. diveMode: ${_oneOf('diveMode')}. entryMethod: ${_oneOf('entryMethod')}. currentStrength: ${_oneOf('currentStrength')}. favorite: true. deco: true or false. noBuddy: true. weekday: ${kWeekdayTokens.join(', ')}. diveType: the name of a dive type. sac: gas consumption rate, as pressure per minute at the surface. sacTrend: whether gas consumption was ${_oneOf('sacTrend')} through the dive. sacChange: percent change in gas consumption from the first half of the dive to the second; a rise is a positive number. finalStop: ${_oneOf('finalStop')}, for the last safety or decompression stop. finalStopExcursion: how far the diver drifted from the depth of the last stop. finalStopDuration: minutes spent at the last stop. finding: a safety finding, ${_oneOf('finding')}.
 
 op is one of: lt, lte, gt, gte, eq, between, in, not. "below 20m" on depth means deeper, so op gt. "shallower than" means op lt. between takes value [low, high]. in takes a list. not excludes one value.
 unit is one of: ${ClauseUnit.values.map((u) => u.jsonName).join(', ')}. Omit unit when the sentence gives none; never convert numbers.

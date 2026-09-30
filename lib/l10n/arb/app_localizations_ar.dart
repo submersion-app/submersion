@@ -25728,6 +25728,78 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'خططتها أنت';
 
   @override
+  String get trips_cylinders_segment_record => 'استهلاك الغاز';
+
+  @override
+  String get trips_cylinders_recordEmpty =>
+      'لا توجد غطسات من هذه الأسطوانات بعد.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تعبئات مسجلة',
+      one: '$count تعبئة مسجلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسات غير محسوبة',
+      one: '$count غطسة غير محسوبة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تعبئات ضمن باقة',
+      one: '$count تعبئة ضمن باقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أسطوانات غطس غير مرتبطة بأسطوانة رحلة',
+      one: '$count أسطوانة غطس غير مرتبطة بأسطوانة رحلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle => 'غير مرتبطة بأسطوانة';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'الأسطوانة $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'مُلئت إلى $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'التحليل $mix';
+  }
+
+  @override
+  String get trips_cylinders_record_exported => 'تم تصدير سجل الغاز';
+
+  @override
   String get trips_cylinders_title => 'الأسطوانات';
 
   @override

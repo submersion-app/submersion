@@ -7429,6 +7429,66 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "תוכנן על ידך",
+  "trips_cylinders_segment_record": "רישום",
+  "trips_cylinders_recordEmpty": "עדיין אין צלילות מהמכלים האלה.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} מילוי נרשם} other{{count} מילויים נרשמו}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} צלילה לא נספרה} other{{count} צלילות לא נספרו}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} מילוי בחבילה} other{{count} מילויים בחבילה}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} מכל צלילה לא מקושר} other{{count} מכלי צלילה לא מקושרים}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "לא מקושרים למכל",
+  "trips_cylinders_record_tank": "מכל {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "מולא ל־{pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "נותח {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "רישום הגז יוצא",
   "trips_cylinders_title": "מכלים",
   "trips_cylinders_summary": "מלאים {full} · חלקיים {partial} · ריקים {empty}",
   "@trips_cylinders_summary": {

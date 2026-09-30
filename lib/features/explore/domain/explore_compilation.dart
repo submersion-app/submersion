@@ -1,7 +1,8 @@
-import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
-import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
+import 'package:submersion/features/explore/domain/explore_fields.dart';
+import 'package:submersion/core/query/registry/query_field.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 enum ChipRef { clause, mention, time }
@@ -14,7 +15,7 @@ sealed class ChipPayload {
 /// double (between), a bool (flags), a String or a List of String (enum
 /// fields).
 class ClauseChip extends ChipPayload {
-  final ExploreDiveField field;
+  final ExploreField field;
   final ClauseOp op;
   final Object value;
   final FieldDimension dimension;
@@ -71,14 +72,16 @@ class UnplacedItem {
   const UnplacedItem(this.text, {this.reason});
 }
 
-class CompiledQuery {
-  final DiveFilterState filter;
+class ExploreCompilation {
+  /// The sentence as one query over the dive registry; null when nothing
+  /// was placed (or the subject is not dives).
+  final QueryNode? query;
   final List<QueryChip> chips;
   final List<UnresolvedMention> unresolved;
   final List<UnplacedItem> unplaced;
   final List<ChartRequest> charts;
-  const CompiledQuery({
-    required this.filter,
+  const ExploreCompilation({
+    required this.query,
     required this.chips,
     required this.unresolved,
     required this.unplaced,

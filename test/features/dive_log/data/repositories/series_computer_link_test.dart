@@ -332,6 +332,42 @@ void main() {
       },
     );
 
+    test('deleteComputer clears and stages the tanks that named it, '
+        'not their dive', () async {
+      // The FK's ON DELETE SET NULL would clear the tank's computer with no
+      // clock: peers would never learn, and the caches keyed on the tank's
+      // clock would keep a summary attributed to the deleted computer.
+      await (db.update(db.diveTanks)..where((t) => t.id.equals('tank-mine')))
+          .write(const DiveTanksCompanion(computerId: Value('comp-a')));
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('d-mine'))).getSingle();
+
+      await DiveComputerRepository().deleteComputer('comp-a');
+
+      final tank = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals('tank-mine'))).getSingle();
+      expect(tank.computerId, isNull);
+      expect(tank.hlc, isNotNull);
+      final pending = await db.select(db.syncRecords).get();
+      expect(
+        pending.where(
+          (r) => r.entityType == 'diveTanks' && r.recordId == 'tank-mine',
+        ),
+        hasLength(1),
+      );
+      expect(
+        pending.where((r) => r.entityType == 'dives'),
+        isEmpty,
+        reason: 'the parent dive is never staged for a child change (#1769)',
+      );
+      final after = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('d-mine'))).getSingle();
+      expect(after.updatedAt, dive.updatedAt);
+    });
+
     test('deleteComputer survives a leftover legacy dive_profiles', () async {
       // v183 drops dive_profiles only once its rows have moved, so a device
       // whose pack threw keeps the table, and its computer_id FK carries no

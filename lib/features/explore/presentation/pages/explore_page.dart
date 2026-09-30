@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/explore/presentation/widgets/explore_charts.dart';
 import 'package:submersion/features/explore/presentation/widgets/explore_chip_rows.dart';
@@ -52,6 +53,9 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
     final availability = ref.watch(exploreAvailabilityProvider).value;
     final count = ref.watch(exploreCountProvider);
     final compiled = state.compiled;
+    // Listened while the page is up, so a dive write refreshes the legacy
+    // buddy names now rather than on the next read; the notifier only reads.
+    ref.listen(exploreNameIndexProvider, (_, _) {});
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.explore_title)),
@@ -135,7 +139,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
               ],
             ),
           ),
-          if (compiled != null && compiled.filter.hasActiveFilters)
+          if (compiled != null && compiled.query != null)
             SafeArea(
               top: false,
               child: Padding(
@@ -145,11 +149,15 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () {
-                          // The live filter, not compiled.filter: they agree
-                          // today, and reading the published one keeps the
-                          // handoff correct if anything else ever writes it.
-                          ref.read(diveFilterProvider.notifier).state = ref
-                              .read(exploreFilterProvider);
+                          // The published query alone, which the dive list
+                          // shows as query chips: the live scope, not
+                          // compiled.query, so the handoff stays right if
+                          // anything else ever writes it.
+                          ref
+                              .read(diveFilterProvider.notifier)
+                              .state = DiveFilterState(
+                            query: ref.read(exploreQueryNodeProvider),
+                          );
                           // go, not push: the handoff moves to a shell tab.
                           context.go('/dives');
                         },
@@ -160,8 +168,11 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                     Expanded(
                       child: FilledButton(
                         onPressed: () {
-                          ref.read(insightsFilterProvider.notifier).state = ref
-                              .read(exploreFilterProvider);
+                          ref
+                              .read(insightsFilterProvider.notifier)
+                              .state = DiveFilterState(
+                            query: ref.read(exploreQueryNodeProvider),
+                          );
                           context.go('/insights');
                         },
                         child: Text(l10n.explore_handoff_insights),

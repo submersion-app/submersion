@@ -17,8 +17,9 @@ const _chunkSize = 400;
 ///
 /// Call it inside the deleting transaction, before the items go. The schema
 /// sets both links null on delete (v202, v210), but that write reaches no
-/// peer. `dive_tanks` has no clock of its own; a pending tank is exported on
-/// its own (SyncDataSerializer.parentGatedChildEntities). The parent dive is
+/// peer. `dive_tanks` has no `updated_at`; staging a tank stamps its `hlc`,
+/// and a pending tank is exported on its own
+/// (SyncDataSerializer.parentGatedChildEntities). The parent dive is
 /// deliberately NOT staged: re-stamping it would make this device's whole
 /// dive row win under last-writer-wins and overwrite a newer edit to that
 /// dive made on another device, although the dive itself did not change.

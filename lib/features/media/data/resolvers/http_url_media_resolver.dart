@@ -12,14 +12,13 @@
 //   `resolveThumbnail({required Size target})`, plus
 //   `canResolveOnThisDevice`). The plan explicitly permits skipping the
 //   facade in that case, so this implementation calls the concrete
-//   `NetworkUrlResolver` (HTTP) and `UrlMetadataExtractor` (EXIF over HTTP)
-//   directly.
+//   `NetworkUrlResolver` (HTTP) directly.
 //
-// - The resolver remains intentionally thin in 3b: per the plan, the
-//   manifest-aware behaviour (skip EXIF when the manifest already provided
-//   `takenAt` / `lat` / `lon`) lives in the eager fetch pipeline (Task 10),
-//   not here. `extractMetadata` always runs the network EXIF probe; the
-//   pipeline decides whether to call it for a given item.
+// - Metadata extraction is not the resolver's job. The eager fetch pipeline
+//   (`NetworkFetchPipeline`) runs `UrlMetadataExtractor` itself before the
+//   row exists, including the manifest-aware skip when the feed already
+//   provided every field the extractor would fill (`takenAt`, `width`,
+//   `height`, `lat`, `lon`).
 //
 // - Originally registered only for [MediaSourceType.manifestEntry]. The
 //   class was later renamed to [HttpUrlMediaResolver] and the source-type
@@ -31,12 +30,10 @@
 import 'dart:ui' show Size;
 
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
-import 'package:submersion/features/media/data/services/url_metadata_extractor.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 
 /// Resolver for HTTP(S) URL-backed [MediaItem]s.
@@ -44,34 +41,28 @@ import 'package:submersion/features/media/domain/value_objects/verify_result.dar
 /// Both [MediaSourceType.manifestEntry] and [MediaSourceType.networkUrl]
 /// items are HTTP(S) URLs — the only difference is provenance (how the
 /// URL arrived: a manifest feed vs. ad-hoc bulk import). From the
-/// resolver's perspective the byte transport, EXIF probe, and
-/// reachability check are identical, so a single implementation handles
+/// resolver's perspective the byte transport and reachability check
+/// are identical, so a single implementation handles
 /// both. The [sourceType] parameter is supplied at construction time so
 /// the [MediaSourceResolverRegistry] can register a separate instance
 /// per source type while sharing this code path.
 ///
-/// The implementation reuses the Phase 3a HTTP stack: a
-/// [NetworkUrlResolver] for byte fetches plus a [UrlMetadataExtractor]
-/// for the range-GET + EXIF probe. `resolve` returns a [NetworkData]
-/// handle (URL + auth headers) so that `cached_network_image` handles
-/// the actual byte transport and disk cache. `extractMetadata` runs the
-/// unconditional EXIF probe; the eager fetch pipeline gates it on
-/// whether the manifest already supplied the fields. `verify` reuses
-/// the same range-fetch path — a 200/206 means the entry is reachable,
-/// a 401 means credentials are missing, anything else is treated as
-/// `notFound`.
+/// The implementation reuses the Phase 3a HTTP stack's
+/// [NetworkUrlResolver] for byte fetches. `resolve` returns a
+/// [NetworkData] handle (URL + auth headers) so that
+/// `cached_network_image` handles the actual byte transport and disk
+/// cache. `verify` issues a one-byte range fetch: a 200/206 means the
+/// entry is reachable, a 401 means credentials are missing, a 404 or 410
+/// means it is gone, and anything else is a transient error.
 class HttpUrlMediaResolver implements MediaSourceResolver {
   HttpUrlMediaResolver({
     required MediaSourceType sourceType,
     required NetworkUrlResolver networkUrlResolver,
-    required UrlMetadataExtractor urlMetadataExtractor,
   }) : _sourceType = sourceType,
-       _networkUrlResolver = networkUrlResolver,
-       _urlMetadataExtractor = urlMetadataExtractor;
+       _networkUrlResolver = networkUrlResolver;
 
   final MediaSourceType _sourceType;
   final NetworkUrlResolver _networkUrlResolver;
-  final UrlMetadataExtractor _urlMetadataExtractor;
 
   @override
   MediaSourceType get sourceType => _sourceType;
@@ -108,24 +99,6 @@ class HttpUrlMediaResolver implements MediaSourceResolver {
     MediaItem item, {
     required Size target,
   }) => resolve(item);
-
-  @override
-  Future<MediaSourceMetadata?> extractMetadata(MediaItem item) async {
-    final raw = item.url;
-    if (raw == null || raw.isEmpty) return null;
-    final uri = Uri.tryParse(raw);
-    if (uri == null) return null;
-    final result = await _urlMetadataExtractor.extract(uri);
-    if (result.failure != null) return null;
-    return MediaSourceMetadata(
-      takenAt: result.takenAt,
-      latitude: result.lat,
-      longitude: result.lon,
-      width: result.width,
-      height: result.height,
-      mimeType: result.contentType ?? 'application/octet-stream',
-    );
-  }
 
   @override
   Future<VerifyResult> verify(MediaItem item) async {

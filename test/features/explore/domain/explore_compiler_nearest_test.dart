@@ -1,26 +1,30 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/features/explore/domain/name_index.dart';
-import 'package:submersion/features/explore/domain/query_compiler.dart';
+import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/features/explore/domain/explore_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 /// "Did you mean" searches the kinds the resolver searches: a misspelt place
 /// can be a site, and a misspelt site can be a place.
 void main() {
-  const units = (
+  const units = UnitPrefs(
     depth: DepthUnit.meters,
     temperature: TemperatureUnit.celsius,
     pressure: PressureUnit.bar,
+    weight: WeightUnit.kilograms,
+    volume: VolumeUnit.liters,
   );
-  const names = NameIndex([
+  final names = NameIndex(const [
     NameEntry(
-      kind: MentionKind.site,
+      subject: QuerySubject.sites,
       label: 'Salt Pier',
       ids: ['s-salt'],
       target: NameTarget.siteId,
     ),
     NameEntry(
-      kind: MentionKind.place,
+      subject: QuerySubject.sites,
       label: 'Bonaire',
       ids: ['s-salt'],
       target: NameTarget.sitePlace,
@@ -28,7 +32,7 @@ void main() {
   ]);
 
   List<String> suggestions(String kind, String text) {
-    final q = QueryCompiler.compile(
+    final q = ExploreCompiler.compile(
       ParsedQuery.fromJson({
         'schemaVersion': kQuerySchemaVersion,
         'subject': 'dives',
@@ -36,7 +40,11 @@ void main() {
           {'kind': kind, 'text': text},
         ],
       }),
-      CompilerContext(units: units, names: names, now: DateTime(2026, 9, 28)),
+      ExploreCompilerContext(
+        units: units,
+        names: names,
+        now: DateTime(2026, 9, 28),
+      ),
     );
     return q.unresolved.single.candidates.map((e) => e.label).toList();
   }

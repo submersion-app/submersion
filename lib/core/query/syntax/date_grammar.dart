@@ -1,6 +1,5 @@
-/// Copied from Explore's time grammar (`lib/features/explore/domain/
-/// time_grammar.dart` on the Explore branch); PR 5 of #2365 deletes that
-/// copy once both land on main.
+/// The date phrases the typed language and Explore's sentences share
+/// (#2365).
 ///
 /// A small deterministic grammar over the words a diver types for a period
 /// (`2025`, `2025-03`, `2025-03-14`, `last 90 days`, `since 2024`, ...).

@@ -107,11 +107,4 @@ void main() {
       expect(await resolver.verify(row('A-1')), VerifyResult.notFound);
     },
   );
-
-  test('metadata comes from the reader', () async {
-    final meta = await resolver.extractMetadata(row('A-1'));
-    expect(meta, isNotNull);
-    expect(meta!.width, 4032);
-    expect(meta.takenAt, taken);
-  });
 }

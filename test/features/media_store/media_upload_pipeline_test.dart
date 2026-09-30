@@ -17,7 +17,6 @@ import 'package:submersion/features/media/domain/entities/media_item.dart'
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
@@ -115,10 +114,6 @@ class _FakeLocalFileResolver implements MediaSourceResolver {
     domain.MediaItem item, {
     required Size target,
   }) async => thumbnailData ?? data;
-
-  @override
-  Future<MediaSourceMetadata?> extractMetadata(domain.MediaItem item) async =>
-      null;
 
   @override
   Future<VerifyResult> verify(domain.MediaItem item) async =>

@@ -6,7 +6,6 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
@@ -58,9 +57,6 @@ class ConnectorMediaResolver implements MediaSourceResolver {
     required Size target,
   }) =>
       _resolveRendition(item, size: 'thumbnail2x', kind: MediaCacheKind.thumb);
-
-  @override
-  Future<MediaSourceMetadata?> extractMetadata(MediaItem item) async => null;
 
   @override
   Future<VerifyResult> verify(MediaItem item) async {
