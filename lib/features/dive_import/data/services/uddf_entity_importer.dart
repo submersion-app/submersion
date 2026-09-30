@@ -2364,6 +2364,10 @@ class UddfEntityImporter {
     // One instance for the run: its lookup cache collapses a batch of dives
     // at the same location into a single elevation request.
     final altitudeEnricher = DiveAltitudeEnricher();
+    final additionalComputers = AdditionalComputerWriter(
+      diveRepository: repos.diveRepository,
+      tankPressureRepository: repos.tankPressureRepository,
+    );
 
     // Register the computers this batch names, once per distinct device,
     // before any dive is written. The filter, the statistics SQL, and "View
@@ -3041,10 +3045,7 @@ class UddfEntityImporter {
       // Every further computer the dive was worn with (issue #2672). After
       // the primary source, never before: that row adopts the dive's
       // unattributed samples only while it is the dive's sole source.
-      await AdditionalComputerWriter(
-        diveRepository: repos.diveRepository,
-        tankPressureRepository: repos.tankPressureRepository,
-      ).write(
+      await additionalComputers.write(
         diveData: diveData,
         diveId: diveId,
         entryTime: dive.entryTime,

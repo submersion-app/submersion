@@ -7431,6 +7431,14 @@ class DiveRepository {
         await _db
             .into(_db.diveDataSources)
             .insert(reading.copyWith(isPrimary: const Value(false)));
+        // Incremental export sends a source row only for a dive modified
+        // since the last sync or as a pending record of its own. The dive may
+        // already have gone out, so the row has to be pending itself.
+        await _syncRepository.markRecordPending(
+          entityType: 'diveDataSources',
+          recordId: reading.id.value,
+          localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+        );
         if (profile.isNotEmpty) {
           await _profileSeries.insertSeries(
             diveId: reading.diveId.value,

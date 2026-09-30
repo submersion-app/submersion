@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion;
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
@@ -27,6 +28,7 @@ class AdditionalComputerWriter {
   final DiveRepository _dives;
   final TankPressureRepository _tankPressures;
   static const _uuid = Uuid();
+  static const _log = LoggerService('AdditionalComputerWriter');
 
   /// The further computers a parsed dive map carries; empty when none.
   static List<Map<String, dynamic>> entriesOf(Map<String, dynamic> diveData) {
@@ -45,6 +47,10 @@ class AdditionalComputerWriter {
   /// computer. [entryTime] is the dive's start: each computer's is offset
   /// from it by its `timeOffsetSeconds`, and so are its samples and events,
   /// putting them on the dive's timeline as a consolidation does.
+  ///
+  /// Best-effort per computer: the dive is already committed, so a throw
+  /// here would abort the rest of the import. A computer that cannot be
+  /// written is logged and skipped, and the others are still written.
   Future<void> write({
     required Map<String, dynamic> diveData,
     required String diveId,
@@ -59,77 +65,110 @@ class AdditionalComputerWriter {
   }) async {
     final usedComputerIds = {?primaryComputerId};
     for (final entry in entriesOf(diveData)) {
-      final offset = entry['timeOffsetSeconds'] as int? ?? 0;
       var computerId = computerIdFor(entry);
       if (computerId != null && !usedComputerIds.add(computerId)) {
         computerId = null;
       }
-      final duration = entry['duration'] as Duration?;
-      final start = entryTime?.add(Duration(seconds: offset));
-      final profileData =
-          (entry['profile'] as List?)?.cast<Map<String, dynamic>>() ??
-          const <Map<String, dynamic>>[];
-      final eventMaps =
-          (entry['events'] as List?)?.cast<Map<String, dynamic>>() ??
-          const <Map<String, dynamic>>[];
-      final sourceId = _uuid.v4();
-
-      await _dives.saveAdditionalComputerReading(
-        reading: DiveDataSourcesCompanion(
-          id: Value(sourceId),
-          diveId: Value(diveId),
-          isPrimary: const Value(false),
-          computerId: Value(computerId),
-          computerModel: Value(entry['diveComputerModel'] as String?),
-          computerSerial: Value(entry['diveComputerSerial'] as String?),
-          sourceFileName: Value(sourceFileName),
-          sourceFileFormat: Value(sourceFileFormat),
-          maxDepth: Value(asDoubleOrNull(entry['maxDepth'])),
-          avgDepth: Value(asDoubleOrNull(entry['avgDepth'])),
-          duration: Value(duration?.inSeconds),
-          waterTemp: Value(asDoubleOrNull(entry['waterTemp'])),
-          entryTime: Value(start),
-          exitTime: Value(
-            start != null && duration != null ? start.add(duration) : null,
-          ),
-          timeOffsetSeconds: Value(offset),
-          decoAlgorithm: Value(entry['decoAlgorithm'] as String?),
-          gradientFactorLow: Value(entry['gradientFactorLow'] as int?),
-          gradientFactorHigh: Value(entry['gradientFactorHigh'] as int?),
-          importedAt: Value(now),
-          createdAt: Value(now),
-        ),
-        profile: [
-          for (final p in profileData)
-            profilePointFromImport(p, offsetSeconds: offset),
-        ],
-        events: [
-          for (final event in profileEventsFromParsed(
-            diveId: diveId,
-            eventMaps: eventMaps,
-            now: now,
-            onSkipped: onSkippedEvent,
-          ))
-            event.copyWith(
-              timestamp: event.timestamp + offset,
-              computerId: computerId,
-            ),
-        ],
-      );
-
-      final pressures = tankPressuresFromImport(
-        profileData,
-        tanks,
-        offsetSeconds: offset,
-      );
-      if (pressures.isNotEmpty) {
-        await _tankPressures.insertTankPressures(
-          diveId,
-          pressures,
-          sourceId: sourceId,
+      try {
+        await _writeOne(
+          entry,
+          diveId: diveId,
+          entryTime: entryTime,
+          tanks: tanks,
           computerId: computerId,
+          sourceFileName: sourceFileName,
+          sourceFileFormat: sourceFileFormat,
+          now: now,
+          onSkippedEvent: onSkippedEvent,
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to import the ${entry['diveComputerModel'] ?? 'unnamed'} '
+          'computer of dive $diveId; the dive keeps its other computers',
+          error: e,
+          stackTrace: stackTrace,
         );
       }
+    }
+  }
+
+  Future<void> _writeOne(
+    Map<String, dynamic> entry, {
+    required String diveId,
+    required DateTime? entryTime,
+    required List<DiveTank> tanks,
+    required String? computerId,
+    required String? sourceFileName,
+    required String sourceFileFormat,
+    required DateTime now,
+    void Function(String message)? onSkippedEvent,
+  }) async {
+    final offset = entry['timeOffsetSeconds'] as int? ?? 0;
+    final duration = entry['duration'] as Duration?;
+    final start = entryTime?.add(Duration(seconds: offset));
+    final profileData =
+        (entry['profile'] as List?)?.cast<Map<String, dynamic>>() ??
+        const <Map<String, dynamic>>[];
+    final eventMaps =
+        (entry['events'] as List?)?.cast<Map<String, dynamic>>() ??
+        const <Map<String, dynamic>>[];
+    final sourceId = _uuid.v4();
+
+    await _dives.saveAdditionalComputerReading(
+      reading: DiveDataSourcesCompanion(
+        id: Value(sourceId),
+        diveId: Value(diveId),
+        isPrimary: const Value(false),
+        computerId: Value(computerId),
+        computerModel: Value(entry['diveComputerModel'] as String?),
+        computerSerial: Value(entry['diveComputerSerial'] as String?),
+        sourceFileName: Value(sourceFileName),
+        sourceFileFormat: Value(sourceFileFormat),
+        maxDepth: Value(asDoubleOrNull(entry['maxDepth'])),
+        avgDepth: Value(asDoubleOrNull(entry['avgDepth'])),
+        duration: Value(duration?.inSeconds),
+        waterTemp: Value(asDoubleOrNull(entry['waterTemp'])),
+        entryTime: Value(start),
+        exitTime: Value(
+          start != null && duration != null ? start.add(duration) : null,
+        ),
+        timeOffsetSeconds: Value(offset),
+        decoAlgorithm: Value(entry['decoAlgorithm'] as String?),
+        gradientFactorLow: Value(entry['gradientFactorLow'] as int?),
+        gradientFactorHigh: Value(entry['gradientFactorHigh'] as int?),
+        importedAt: Value(now),
+        createdAt: Value(now),
+      ),
+      profile: [
+        for (final p in profileData)
+          profilePointFromImport(p, offsetSeconds: offset),
+      ],
+      events: [
+        for (final event in profileEventsFromParsed(
+          diveId: diveId,
+          eventMaps: eventMaps,
+          now: now,
+          onSkipped: onSkippedEvent,
+        ))
+          event.copyWith(
+            timestamp: event.timestamp + offset,
+            computerId: computerId,
+          ),
+      ],
+    );
+
+    final pressures = tankPressuresFromImport(
+      profileData,
+      tanks,
+      offsetSeconds: offset,
+    );
+    if (pressures.isNotEmpty) {
+      await _tankPressures.insertTankPressures(
+        diveId,
+        pressures,
+        sourceId: sourceId,
+        computerId: computerId,
+      );
     }
   }
 }

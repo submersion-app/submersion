@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -71,6 +72,24 @@ void main() {
     expect(series.single.sourceId, 'src-teric');
     expect(series.single.isPrimary, isFalse);
     expect(await db.select(db.diveProfileEvents).get(), hasLength(1));
+  });
+
+  test('marks the source row pending, even with no events', () async {
+    // Incremental sync exports a source row only for a dive modified since
+    // the last sync or as a pending record of its own. With no events or
+    // pressures nothing else re-marks the dive, so the row must be.
+    await repository.saveAdditionalComputerReading(
+      reading: reading('src-teric'),
+      profile: profile,
+    );
+
+    final pending = await SyncRepository().getPendingRecords();
+    expect(
+      pending.where(
+        (r) => r.entityType == 'diveDataSources' && r.recordId == 'src-teric',
+      ),
+      hasLength(1),
+    );
   });
 
   test('a failed write leaves nothing of that computer behind', () async {
