@@ -154,6 +154,54 @@ void main() {
     await tester.pumpAndSettle();
     expect(counts, (mine: 0, others: 0));
   });
+
+  testWidgets('readSharingContext reads the profile and the profile count', (
+    tester,
+  ) async {
+    late ({String? activeDiverId, int diverCount}) sharing;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((_) async => 'a'),
+          allDiversProvider.overrideWith((_) async => divers),
+        ],
+        child: Consumer(
+          builder: (context, ref, _) {
+            readSharingContext(ref).then((c) => sharing = c);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(sharing, (activeDiverId: 'a', diverCount: 1));
+  });
+
+  testWidgets('readSharingContext falls back when the reads fail', (
+    tester,
+  ) async {
+    late ({String? activeDiverId, int diverCount}) sharing;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith(
+            (_) async => throw StateError('no profile'),
+          ),
+          allDiversProvider.overrideWith(
+            (_) async => throw StateError('no divers'),
+          ),
+        ],
+        child: Consumer(
+          builder: (context, ref, _) {
+            readSharingContext(ref).then((c) => sharing = c);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(sharing, (activeDiverId: null, diverCount: 0));
+  });
 }
 
 class _Hides extends Fake implements ProfileHidesRepository {

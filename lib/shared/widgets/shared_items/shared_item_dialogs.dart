@@ -38,6 +38,37 @@ Future<({int mine, int others})> readDiveLinkCounts(
   }
 }
 
+/// The active profile and how many profiles exist, for splitting a bulk
+/// selection and choosing its warning (issue #2594). A failed read gives
+/// no profile and no count, so the split treats every item as the
+/// caller's to delete, as before sharing existed; the repositories still
+/// refuse another profile's item.
+Future<({String? activeDiverId, int diverCount})> readSharingContext(
+  WidgetRef ref,
+) async {
+  String? activeDiverId;
+  var diverCount = 0;
+  try {
+    activeDiverId = await ref.read(validatedCurrentDiverIdProvider.future);
+  } catch (e, stackTrace) {
+    _log.warning(
+      'Could not read the active profile',
+      error: e,
+      stackTrace: stackTrace,
+    );
+  }
+  try {
+    diverCount = (await ref.read(allDiversProvider.future)).length;
+  } catch (e, stackTrace) {
+    _log.warning(
+      'Could not count the profiles',
+      error: e,
+      stackTrace: stackTrace,
+    );
+  }
+  return (activeDiverId: activeDiverId, diverCount: diverCount);
+}
+
 /// The owning profile's name, or a neutral fallback for a profile that is
 /// gone or unknown (issue #2594).
 String sharedItemOwnerName(

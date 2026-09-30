@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -20,6 +21,7 @@ import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -90,6 +92,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   bool get _isSelectionMode => _selection.value.isActive;
   Set<String> get _selectedIds => _selection.value.checkedIds;
   ({List<DiveSite> sites, SiteLinks links})? _deletedSites;
+
+  /// Another profile's shared sites the last bulk delete hid instead of
+  /// deleting (issue #2594), for its Undo.
+  List<String> _hiddenSiteIds = const [];
   MergeSnapshot? _mergeSnapshot;
 
   @override
@@ -251,9 +257,35 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
 
   Future<BulkActionOutcome> _startMerge() async {
     final selectedCount = _selectedIds.length;
+    // A merge destroys every site but the first (issue #2594): another
+    // profile's shared site may only be the survivor, so at most one fits.
+    final sharing = await readSharingContext(ref);
+    final selected = await ref
+        .read(siteRepositoryProvider)
+        .getSitesByIds(_selectedIds.toList());
+    final notOwned = [
+      for (final s in selected)
+        if (!canDestroySharedItem(
+          ownerId: s.diverId,
+          activeDiverId: sharing.activeDiverId,
+        ))
+          s.id,
+    ];
+    if (!mounted) return BulkActionOutcome.cancelled;
+    if (notOwned.length > 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.sharedItems_mergeTooManyShared)),
+      );
+      return BulkActionOutcome.cancelled;
+    }
+    final orderedIds = [
+      ...notOwned,
+      for (final id in _selectedIds)
+        if (!notOwned.contains(id)) id,
+    ];
     final result = await context.push<SiteMergeResult>(
       '/sites/merge',
-      extra: _selectedIds.toList(),
+      extra: orderedIds,
     );
 
     if (result == null) return BulkActionOutcome.cancelled;
@@ -310,19 +342,52 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     // while the usage is read, and the delete must remove exactly the sites
     // the dialog described.
     final idsToDelete = _selectedIds.toList();
-    final count = idsToDelete.length;
-    final usage = await readSiteDeleteUsage(ref, idsToDelete);
-    if (!mounted) return BulkActionOutcome.cancelled;
+    // Another profile's shared sites are hidden, not deleted, and the
+    // owner's shared ones are named as going for everyone (issue #2594).
+    final sharing = await readSharingContext(ref);
+    final split = splitForBulkDelete(
+      await ref.read(siteRepositoryProvider).getSitesByIds(idsToDelete),
+      ownerOf: (s) => s.diverId,
+      isSharedOf: (s) => s.isShared,
+      activeDiverId: sharing.activeDiverId,
+    );
+    final destroyIds = [for (final s in split.destroy) s.id];
+    final hideIds = [for (final s in split.hide) s.id];
+    final deleteCount = destroyIds.length;
+    final hideCount = hideIds.length;
+    final sharedDeleteCount = sharing.diverCount >= 2
+        ? split.destroy.where((s) => s.isShared).length
+        : 0;
+    final usage = deleteCount > 0
+        ? await readSiteDeleteUsage(ref, destroyIds)
+        : const SiteUsage();
+    if (!mounted || deleteCount + hideCount == 0) {
+      return BulkActionOutcome.cancelled;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(context.l10n.diveSites_list_bulkDelete_title),
+        title: Text(
+          deleteCount > 0
+              ? context.l10n.diveSites_list_bulkDelete_title
+              : context.l10n.sharedItems_bulkRemoveTitle(hideCount),
+        ),
         content: Text(
-          withSiteDeleteUsage(
-            context.l10n,
-            context.l10n.diveSites_list_bulkDelete_content(count),
-            usage,
-          ),
+          [
+            ...bulkDeleteLines(
+              context.l10n,
+              SharedItemKind.site,
+              deleteCount: deleteCount,
+              hideCount: hideCount,
+              sharedDeleteCount: sharedDeleteCount,
+            ),
+            if (deleteCount > 0)
+              withSiteDeleteUsage(
+                context.l10n,
+                context.l10n.diveSites_list_bulkDelete_content(deleteCount),
+                usage,
+              ),
+          ].join('\n\n'),
         ),
         actions: [
           TextButton(
@@ -331,10 +396,16 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
+            style: deleteCount > 0
+                ? FilledButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                  )
+                : null,
+            child: Text(
+              deleteCount > 0
+                  ? context.l10n.diveSites_list_bulkDelete_confirm
+                  : context.l10n.common_action_remove,
             ),
-            child: Text(context.l10n.diveSites_list_bulkDelete_confirm),
           ),
         ],
       ),
@@ -342,44 +413,54 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
 
     if (confirmed == true && mounted) {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final l10n = context.l10n;
+      final notifier = ref.read(siteListNotifierProvider.notifier);
       _exitSelectionMode();
 
-      final deleted = await ref
-          .read(siteListNotifierProvider.notifier)
-          .bulkDeleteSites(idsToDelete);
+      final deleted = deleteCount > 0
+          ? await notifier.bulkDeleteSites(destroyIds)
+          : null;
+      final hidden = hideCount > 0 ? await notifier.hideSites(hideIds) : 0;
 
       _deletedSites = deleted;
+      _hiddenSiteIds = hideIds;
 
       if (mounted) {
         scaffoldMessenger.clearSnackBars();
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(
-              context.l10n.diveSites_list_bulkDelete_snackbar(
-                deleted.sites.length,
-              ),
+              [
+                if (deleted != null && deleted.sites.isNotEmpty)
+                  l10n.diveSites_list_bulkDelete_snackbar(deleted.sites.length),
+                if (hidden > 0) l10n.sharedItems_bulkHiddenSnackbar(hidden),
+              ].join(' · '),
             ),
             duration: const Duration(seconds: 5),
             showCloseIcon: true,
             action: SnackBarAction(
-              label: context.l10n.diveSites_list_bulkDelete_undo,
+              label: l10n.diveSites_list_bulkDelete_undo,
               onPressed: () async {
                 final toRestore = _deletedSites;
+                final toUnhide = _hiddenSiteIds;
                 if (toRestore != null && toRestore.sites.isNotEmpty) {
-                  await ref
-                      .read(siteListNotifierProvider.notifier)
-                      .restoreSites(toRestore.sites, links: toRestore.links);
-                  _deletedSites = null;
-                  if (mounted) {
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          context.l10n.diveSites_list_bulkDelete_restored,
-                        ),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  }
+                  await notifier.restoreSites(
+                    toRestore.sites,
+                    links: toRestore.links,
+                  );
+                }
+                if (toUnhide.isNotEmpty) {
+                  await notifier.unhideSites(toUnhide);
+                }
+                _deletedSites = null;
+                _hiddenSiteIds = const [];
+                if (mounted) {
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.diveSites_list_bulkDelete_restored),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
                 }
               },
             ),
