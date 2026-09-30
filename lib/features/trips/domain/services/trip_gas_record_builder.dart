@@ -120,7 +120,10 @@ TripGasRecordSlotTotal _slotTotal(
     cylinder: cylinder,
     dives: {for (final r in rows) r.tank.diveId}.length,
     litres: figures.isEmpty ? null : figures.fold<double>(0, (a, b) => a + b),
-    leftOut: rows.length - figures.length,
+    leftOut: {
+      for (final r in rows)
+        if (r.litres == null) r.tank.diveId,
+    }.length,
   );
 }
 

@@ -103,4 +103,47 @@ void main() {
     expect(record.costs.single.key, 'USD');
     expect(record.unlinked.single.tankId, 't2');
   });
+
+  test('linking a tank refreshes the record', () async {
+    final at = DateTime.utc(2026, 3, 9, 7);
+    final slot = await cylinders.createCylinder(
+      TripCylinder(
+        id: '',
+        tripId: tripId,
+        label: 'Truck 1',
+        workingPressure: 207,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'd1',
+            diveDateTime: DateTime.utc(2026, 3, 9, 9).millisecondsSinceEpoch,
+            tripId: Value(tripId),
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await db
+        .into(db.diveTanks)
+        .insert(DiveTanksCompanion.insert(id: 't1', diveId: 'd1'));
+    // Auto-disposed: keep it alive across the write, as the open tab does.
+    final sub = container.listen(tripGasRecordProvider(tripId), (_, _) {});
+    addTearDown(sub.close);
+    final before = await container.read(tripGasRecordProvider(tripId).future);
+    expect(before.unlinked.single.tankId, 't1');
+    expect(before.rows, isEmpty);
+
+    await (db.update(db.diveTanks)..where((t) => t.id.equals('t1'))).write(
+      DiveTanksCompanion(tripCylinderId: Value(slot.id)),
+    );
+    await pumpEventQueue();
+
+    final after = await container.read(tripGasRecordProvider(tripId).future);
+    expect(after.unlinked, isEmpty);
+    expect(after.rows.single.tank.tankId, 't1');
+  });
 }

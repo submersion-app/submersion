@@ -245,6 +245,28 @@ void main() {
     expect(totals['b']!.litres, isNull);
   });
 
+  test('left out counts dives, not tanks', () {
+    // Two computers' rows for one cylinder on one dive, neither sized.
+    final r = record(
+      tanks: [
+        tank('u1', 'd5', 'a', at(9, 9), volume: null, start: 200, end: 60),
+        tank(
+          'u2',
+          'd5',
+          'a',
+          at(9, 9),
+          order: 1,
+          volume: null,
+          start: 200,
+          end: 60,
+        ),
+      ],
+    );
+    final truck1 = r.slots.firstWhere((s) => s.cylinder.id == 'a');
+    expect(truck1.dives, 1);
+    expect(truck1.leftOut, 1);
+  });
+
   test('fills logged counts every fill on the trip', () {
     expect(record().fillsLogged, 3);
   });

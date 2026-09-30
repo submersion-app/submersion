@@ -237,29 +237,31 @@ Future<void> showUnlinkedTanksSheet(
             ),
             const Divider(height: 1),
             Expanded(
-              child: ListView(
+              // Lazy: before any link, every tank on the trip is a gap.
+              child: ListView.builder(
                 controller: scrollController,
-                children: [
-                  for (final t in tanks)
-                    ListTile(
-                      key: Key('unlinked-${t.tankId}'),
-                      title: Text(
-                        [
-                          units.formatDateTime(t.entryTime, l10n: l10n),
-                          ?t.siteName,
-                          if (showDivers) ?t.diverName,
-                        ].join(' · '),
-                      ),
-                      subtitle: Text(
-                        l10n.trips_cylinders_record_tank(t.tankOrder + 1),
-                      ),
-                      trailing: const Icon(Icons.edit),
-                      onTap: () {
-                        Navigator.of(sheetContext).pop();
-                        context.push('/dives/${t.diveId}/edit');
-                      },
+                itemCount: tanks.length,
+                itemBuilder: (_, i) {
+                  final t = tanks[i];
+                  return ListTile(
+                    key: Key('unlinked-${t.tankId}'),
+                    title: Text(
+                      [
+                        units.formatDateTime(t.entryTime, l10n: l10n),
+                        ?t.siteName,
+                        if (showDivers) ?t.diverName,
+                      ].join(' · '),
                     ),
-                ],
+                    subtitle: Text(
+                      l10n.trips_cylinders_record_tank(t.tankOrder + 1),
+                    ),
+                    trailing: const Icon(Icons.edit),
+                    onTap: () {
+                      Navigator.of(sheetContext).pop();
+                      context.push('/dives/${t.diveId}/edit');
+                    },
+                  );
+                },
               ),
             ),
           ],

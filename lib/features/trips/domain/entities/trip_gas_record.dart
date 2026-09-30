@@ -149,7 +149,8 @@ class TripGasRecordSlotTotal extends Equatable {
   /// an unmeasured slot never reads as 0 L.
   final double? litres;
 
-  /// Rows with no figure, left out of [litres].
+  /// Distinct dives with a row that has no figure, left out of [litres]
+  /// (counted as dives, as the header says).
   final int leftOut;
 
   @override
