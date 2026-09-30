@@ -60,8 +60,36 @@ final Map<String, PlanEngineConfig Function(PlanEngineConfig)> _copyOneField = {
 
 /// A config with every field away from its default, so a field that
 /// resolvedFor or copyWith fails to carry over shows up as a changed value.
-PlanEngineConfig _everyFieldChanged() =>
-    _copyOneField.values.fold(PlanEngineConfig(), (config, f) => f(config));
+///
+/// Built with the constructor, never copyWith: a copyWith that dropped a
+/// field's `?? this.x` fallback would otherwise reset that field while the
+/// fixture was being built, and every test below would compare defaults.
+/// The parameters are the fields a plan can override, so resolvedFor
+/// expectations are built the same way.
+PlanEngineConfig _everyFieldChanged({
+  double ppO2Working = 1.2,
+  double ppO2Deco = 1.5,
+  bool o2Narcotic = false,
+  double bestMixEndMeters = 35,
+  double buddyFactor = 1.5,
+}) => PlanEngineConfig(
+  ppO2Working: ppO2Working,
+  ppO2Deco: ppO2Deco,
+  cnsWarningThreshold: 70,
+  o2Narcotic: o2Narcotic,
+  endLimitMeters: 40,
+  bestMixEndMeters: bestMixEndMeters,
+  otuLimit: 250,
+  o2MetabolicRateLpm: 0.8,
+  loopVolumeLiters: 7,
+  buddyFactor: buddyFactor,
+  scrInjectionRateLpm: 10,
+  pscrO2ConsumptionMlMin: 800,
+  pscrSacMlMin: 18000,
+  pscrRatio: 90,
+  cnsMethod: CnsCalculationMethod.subsurface,
+  gasModel: GasModel.ideal,
+);
 
 /// A plan that overrides nothing: its nullable gas options are unset, and
 /// the two it always supplies (`sacFactor`, `bestMixEndMeters`) sit at their
@@ -156,10 +184,18 @@ void main() {
     });
   }
 
+  test('the every-field fixture differs from the defaults in every field', () {
+    final changed = _everyFieldChanged().props;
+    final defaults = PlanEngineConfig().props;
+    expect(changed, hasLength(_declaredFields().length));
+    for (var i = 0; i < changed.length; i++) {
+      expect(changed[i], isNot(defaults[i]), reason: 'props[$i]');
+    }
+  });
+
   group('copyWith', () {
     test('with no arguments keeps every field', () {
       final config = _everyFieldChanged();
-      expect(config, isNot(PlanEngineConfig()));
       expect(config.copyWith(), config);
     });
 
@@ -181,13 +217,8 @@ void main() {
       // other field is the config's own.
       expect(
         resolved,
-        config.copyWith(
-          buddyFactor: plan.sacFactor,
-          bestMixEndMeters: plan.bestMixEndMeters,
-        ),
+        _everyFieldChanged(buddyFactor: 2.0, bestMixEndMeters: 30.0),
       );
-      expect(resolved.buddyFactor, 2.0);
-      expect(resolved.bestMixEndMeters, 30.0);
     });
 
     test('a plan with overrides replaces exactly the fields it sets', () {
@@ -202,7 +233,7 @@ void main() {
 
       expect(
         config.resolvedFor(plan),
-        config.copyWith(
+        _everyFieldChanged(
           ppO2Working: 1.3,
           ppO2Deco: 1.55,
           o2Narcotic: true,
