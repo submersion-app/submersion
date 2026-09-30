@@ -3,9 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/database.dart' hide DiveSite;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -30,7 +32,10 @@ void main() {
   tearDown(tearDownTestDatabase);
 
   /// Pumps the list as profile d2 and returns what a merge was asked for.
-  Future<List<List<String>>> pump(WidgetTester tester) async {
+  Future<List<List<String>>> pump(
+    WidgetTester tester, {
+    SiteRepository? repository,
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(500, 1200);
     addTearDown(() {
@@ -60,6 +65,8 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd2'),
+          if (repository != null)
+            siteRepositoryProvider.overrideWithValue(repository),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -155,4 +162,46 @@ void main() {
 
     expect(merges.single.first, 'theirs');
   });
+
+  testWidgets('a failed read before the bulk delete says so and deletes '
+      'nothing', (tester) async {
+    await seedSite(db, 'mine', owner: 'd2', name: 'Alpha');
+    await pump(tester, repository: _UnreadableSites());
+    await select(tester, ['Alpha']);
+    await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('selection_delete')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(await SiteRepository().getSiteById('mine'), isNotNull);
+  });
+
+  testWidgets('a failed read before a merge says so and merges nothing', (
+    tester,
+  ) async {
+    await seedSite(db, 'a', owner: 'd2', name: 'Alpha');
+    await seedSite(db, 'b', owner: 'd2', name: 'Bravo');
+    final merges = await pump(tester, repository: _UnreadableSites());
+    await select(tester, ['Alpha', 'Bravo']);
+    await tester.tap(find.byIcon(Icons.merge_type));
+    await tester.pumpAndSettle();
+
+    expect(merges, isEmpty);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+  });
+}
+
+/// A site repository whose lookup by ids fails, as a database error would.
+class _UnreadableSites extends SiteRepository {
+  @override
+  Future<List<DiveSite>> getSitesByIds(List<String> ids) async =>
+      throw StateError('database unavailable');
 }

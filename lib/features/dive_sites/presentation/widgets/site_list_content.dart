@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -41,6 +42,8 @@ import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the site list, used in master-detail layout.
+final _log = LoggerService.forClass(SiteListContent);
+
 class SiteListContent extends ConsumerStatefulWidget {
   final void Function(String?)? onItemSelected;
   final String? selectedId;
@@ -255,14 +258,35 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     _handleItemTap(sites[index].site);
   }
 
+  /// The checked sites with their owners, read before a merge or bulk
+  /// delete decides what it may do to each (issue #2594). A failed read
+  /// logs, tells the diver to try again and returns null, so the action
+  /// stops before its dialog rather than failing unseen.
+  Future<List<DiveSite>?> _readSelectedSites(List<String> ids) async {
+    try {
+      return await ref.read(siteRepositoryProvider).getSitesByIds(ids);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not read the selected sites',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.common_error_tryAgain)),
+        );
+      }
+      return null;
+    }
+  }
+
   Future<BulkActionOutcome> _startMerge() async {
     final selectedCount = _selectedIds.length;
     // A merge destroys every site but the first (issue #2594): another
     // profile's shared site may only be the survivor, so at most one fits.
     final sharing = await readSharingContext(ref);
-    final selected = await ref
-        .read(siteRepositoryProvider)
-        .getSitesByIds(_selectedIds.toList());
+    final selected = await _readSelectedSites(_selectedIds.toList());
+    if (selected == null) return BulkActionOutcome.cancelled;
     final notOwned = [
       for (final s in selected)
         if (!canDestroySharedItem(
@@ -345,8 +369,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     // Another profile's shared sites are hidden, not deleted, and the
     // owner's shared ones are named as going for everyone (issue #2594).
     final sharing = await readSharingContext(ref);
+    final selectedSites = await _readSelectedSites(idsToDelete);
+    if (selectedSites == null) return BulkActionOutcome.cancelled;
     final split = splitForBulkDelete(
-      await ref.read(siteRepositoryProvider).getSitesByIds(idsToDelete),
+      selectedSites,
       ownerOf: (s) => s.diverId,
       isSharedOf: (s) => s.isShared,
       activeDiverId: sharing.activeDiverId,
