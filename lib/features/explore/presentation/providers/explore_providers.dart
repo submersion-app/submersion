@@ -363,6 +363,9 @@ final exploreChartDataProvider =
                 filter: filter,
               ),
             );
+          // Drawn from the ranked rows (explore_charts.dart), never here.
+          case ChartKind.subjectCounts:
+            return const ExploreChartData();
           case ChartKind.entityCounts:
             final rows = switch (request.entityKind) {
               MentionKind.species => (await stats.getMostCommonSightings(

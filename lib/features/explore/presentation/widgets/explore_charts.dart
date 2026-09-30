@@ -49,6 +49,7 @@ class _ExploreChartCard extends ConsumerWidget {
       ChartKind.entityCounts => l10n.explore_chart_entityCounts(
         _kindName(l10n, request.entityKind),
       ),
+      ChartKind.subjectCounts => '',
     };
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),

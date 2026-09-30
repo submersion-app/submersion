@@ -7,6 +7,9 @@ enum ChartKind {
   bottomTimeTrend,
   sacTrend,
   entityCounts,
+
+  /// A non-dive subject's one chart: dives in the scope per result row.
+  subjectCounts,
 }
 
 class ChartRequest {

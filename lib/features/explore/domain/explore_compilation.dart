@@ -45,10 +45,16 @@ class QueryChip {
   final ChipRef ref;
   final int index;
   final ChipPayload payload;
+
+  /// Whether this chip narrows the subject through its dives (a dive field,
+  /// another kind's mention or a period under sites, say) rather than the
+  /// subject's own rows. Always false for dives.
+  final bool viaDives;
   const QueryChip({
     required this.ref,
     required this.index,
     required this.payload,
+    this.viaDives = false,
   });
 }
 
@@ -65,7 +71,7 @@ class UnresolvedMention {
 
 /// A word or clause the compiler could not place. [reason] is one of
 /// `unknownField`, `invalid`, `outOfRange`, `noAxis`, `unknownTime`,
-/// `subjectNotSupported`, or null for a word the model itself left over.
+/// `countInPeriod`, or null for a word the model itself left over.
 class UnplacedItem {
   final String text;
   final String? reason;
@@ -73,15 +79,25 @@ class UnplacedItem {
 }
 
 class ExploreCompilation {
-  /// The sentence as one query over the dive registry; null when nothing
-  /// was placed (or the subject is not dives).
+  /// What the sentence asks for.
+  final ParsedSubject subject;
+
+  /// The sentence as one query rooted at [subject]'s registry entity; null
+  /// when nothing was placed.
   final QueryNode? query;
+
+  /// For a non-dive subject, the dive-level part it reaches through its
+  /// dives (a dive field, another kind's mention, a period): the ranking
+  /// counts these dives. Null for dives, or when the sentence has none.
+  final QueryNode? diveScope;
   final List<QueryChip> chips;
   final List<UnresolvedMention> unresolved;
   final List<UnplacedItem> unplaced;
   final List<ChartRequest> charts;
   const ExploreCompilation({
+    this.subject = ParsedSubject.dives,
     required this.query,
+    this.diveScope,
     required this.chips,
     required this.unresolved,
     required this.unplaced,
