@@ -37,9 +37,9 @@ LoweredClause lowerClause(
   };
 }
 
-/// A date field compared with a time phrase: before the period is before
-/// its first day, after it is after its last, and eq is within it. A bare
-/// number is a year.
+/// A date field compared with a time phrase: lt is before the period and
+/// lte up to its end, gt is after the period and gte from its start, and eq
+/// is within it. A bare number is a year.
 LoweredClause _date(QueryClause c, ExploreField field, DateTime now) {
   final text = switch (c.value) {
     final String s => s,
@@ -54,10 +54,10 @@ LoweredClause _date(QueryClause c, ExploreField field, DateTime now) {
       ConditionNode(FieldPath([key]), op, DateValue(d));
   final nodes = <QueryNode>[
     ...switch (c.op) {
-      ClauseOp.lt ||
-      ClauseOp.lte => [if (range.start != null) at(QueryOp.lt, range.start!)],
-      ClauseOp.gt ||
-      ClauseOp.gte => [if (range.end != null) at(QueryOp.gt, range.end!)],
+      ClauseOp.lt => [if (range.start != null) at(QueryOp.lt, range.start!)],
+      ClauseOp.lte => [if (range.end != null) at(QueryOp.lte, range.end!)],
+      ClauseOp.gt => [if (range.end != null) at(QueryOp.gt, range.end!)],
+      ClauseOp.gte => [if (range.start != null) at(QueryOp.gte, range.start!)],
       _ => [
         if (range.start != null) at(QueryOp.gte, range.start!),
         if (range.end != null) at(QueryOp.lte, range.end!),

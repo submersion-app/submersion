@@ -110,14 +110,20 @@ class ChipLabeler {
       return l10n.explore_chip_withinDays(c.value as int, name);
     }
     if (c.value case (start: final DateTime? start, end: final DateTime? end)) {
+      DateTime dayAfter(DateTime d) => DateTime(d.year, d.month, d.day + 1);
       final period = switch (c.op) {
         // Before the period: before its first day.
-        ClauseOp.lt ||
-        ClauseOp.lte => l10n.explore_chip_timeBefore(units.formatDate(start!)),
-        // After the period: from the day after its last.
-        ClauseOp.gt || ClauseOp.gte => l10n.explore_chip_timeSince(
-          units.formatDate(DateTime(end!.year, end.month, end.day + 1)),
+        ClauseOp.lt => l10n.explore_chip_timeBefore(units.formatDate(start!)),
+        // Up to the period's end: before the day after it.
+        ClauseOp.lte => l10n.explore_chip_timeBefore(
+          units.formatDate(dayAfter(end!)),
         ),
+        // After the period: from the day after its last.
+        ClauseOp.gt => l10n.explore_chip_timeSince(
+          units.formatDate(dayAfter(end!)),
+        ),
+        // From the period's start.
+        ClauseOp.gte => l10n.explore_chip_timeSince(units.formatDate(start!)),
         _ => _time(start, end),
       };
       return l10n.explore_chip_fieldPeriod(name, period);

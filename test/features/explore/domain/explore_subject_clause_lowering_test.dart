@@ -52,6 +52,20 @@ void main() {
       ]);
     });
 
+    test('since a year includes the year', () {
+      final r = lower(ParsedSubject.sites, 'lastDived', 'gte', '2022');
+      expect(r.nodes, [
+        cond('lastDived', QueryOp.gte, DateValue(DateTime(2022))),
+      ]);
+    });
+
+    test('up to a year includes the year', () {
+      final r = lower(ParsedSubject.species, 'lastSeen', 'lte', '2022');
+      expect(r.nodes, [
+        cond('lastSeen', QueryOp.lte, DateValue(DateTime(2022, 12, 31))),
+      ]);
+    });
+
     test('eq is within the period', () {
       final r = lower(ParsedSubject.species, 'lastSeen', 'eq', 'last year');
       expect(r.nodes, [
