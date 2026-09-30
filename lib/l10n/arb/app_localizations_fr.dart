@@ -26146,6 +26146,78 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'Planifié par vous';
 
   @override
+  String get trips_cylinders_segment_record => 'Relevé';
+
+  @override
+  String get trips_cylinders_recordEmpty =>
+      'Aucune plongée avec ces blocs pour l’instant.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gonflages notés',
+      one: '$count gonflage noté',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées non comptées',
+      one: '$count plongée non comptée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gonflages forfaitaires',
+      one: '$count gonflage forfaitaire',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count blocs de plongée non reliés',
+      one: '$count bloc de plongée non relié',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle => 'Non reliés à un bloc';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'Bloc $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'Gonflé à $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'Analysé $mix';
+  }
+
+  @override
+  String get trips_cylinders_record_exported => 'Relevé de gaz exporté';
+
+  @override
   String get trips_cylinders_title => 'Blocs';
 
   @override

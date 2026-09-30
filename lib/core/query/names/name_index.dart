@@ -139,6 +139,14 @@ class NameIndex implements NameResolver, NameEntries {
 
   static final NameIndex empty = NameIndex(const []);
 
+  /// This index with [more] after its own entries. Primary names still sort
+  /// first, but ties of primacy and rank keep load order, so an added entry
+  /// never shadows an existing one of the same standing: Explore adds its
+  /// legacy buddy names (rank 1, not primary) this way, behind every linked
+  /// buddy.
+  NameIndex followedBy(Iterable<NameEntry> more) =>
+      NameIndex([...entries, ...more]);
+
   final List<NameEntry> entries;
   final _bySubject = <QuerySubject, List<NameEntry>>{};
   final _labels = <QuerySubject, Map<String, String>>{};

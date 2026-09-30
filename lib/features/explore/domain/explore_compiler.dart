@@ -1,6 +1,5 @@
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/names/name_index.dart';
-import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/syntax/date_grammar.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
@@ -91,7 +90,7 @@ abstract final class ExploreCompiler {
     final unplaced = <UnplacedItem>[];
     final nodes = <QueryNode>[];
 
-    final numericFields = <String>[];
+    final trends = <ChartKind>[];
     for (var i = 0; i < query.clauses.length; i++) {
       final c = query.clauses[i];
       final r = lowerClause(c, exploreField(c.field), ctx.units, now: ctx.now);
@@ -101,9 +100,7 @@ abstract final class ExploreCompiler {
       }
       nodes.addAll(r.nodes);
       chips.add(QueryChip(ref: ChipRef.clause, index: i, payload: r.chip!));
-      if (r.chip!.dimension != FieldDimension.none) {
-        numericFields.add(r.chip!.field.name);
-      }
+      if (r.chip!.field.trend case final trend?) trends.add(trend);
     }
 
     final resolved = <NameEntry>[];
@@ -147,7 +144,7 @@ abstract final class ExploreCompiler {
       unresolved: unresolved,
       unplaced: unplaced,
       charts: selectCharts(
-        numericFields: numericFields,
+        trends: trends,
         resolvedEntityCounts: {
           for (final e in entityIds.entries) e.key: e.value.length,
         },

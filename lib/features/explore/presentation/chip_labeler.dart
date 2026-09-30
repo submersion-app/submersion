@@ -12,6 +12,7 @@ import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/features/explore/domain/explore_fields.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
+import 'package:submersion/features/explore/presentation/explore_label_lookup.dart';
 import 'package:submersion/features/query/presentation/query_label_lookup.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -38,49 +39,8 @@ class ChipLabeler {
     TimeChip(:final start, :final end) => _time(start, end),
   };
 
-  String fieldName(ExploreField f) {
-    // A phase 3 subject's own field reads as the registry labels it.
-    if (f.root != QuerySubject.dives) {
-      return queryLabelForKey(l10n, f.field!.labelKey);
-    }
-    return _diveFieldName(f);
-  }
-
-  String _diveFieldName(ExploreField f) => switch (f.name) {
-    'depth' => l10n.explore_field_depth,
-    'avgDepth' => l10n.explore_field_avgDepth,
-    'bottomTime' => l10n.explore_field_bottomTime,
-    'waterTemp' => l10n.explore_field_waterTemp,
-    'airTemp' => l10n.explore_field_airTemp,
-    'visibility' => l10n.explore_field_visibility,
-    'rating' => l10n.explore_field_rating,
-    'o2' => l10n.explore_field_o2,
-    'diveNumber' => l10n.explore_field_diveNumber,
-    'waterType' => l10n.explore_field_waterType,
-    'diveMode' => l10n.explore_field_diveMode,
-    'entryMethod' => l10n.explore_field_entryMethod,
-    'currentStrength' => l10n.explore_field_currentStrength,
-    'favorite' => l10n.explore_chip_favorite,
-    'deco' => l10n.explore_chip_deco,
-    'noBuddy' => l10n.explore_chip_noBuddy,
-    'weekday' => l10n.explore_field_weekday,
-    'diveType' => l10n.explore_field_diveType,
-    'sac' => queryLabelForKey(l10n, 'query_dives_sac'),
-    'sacTrend' => queryLabelForKey(l10n, 'query_dives_sacTrend'),
-    'sacChange' => queryLabelForKey(l10n, 'query_dives_sacChange'),
-    'finalStop' => queryLabelForKey(l10n, 'query_dives_finalStop'),
-    'finalStopExcursion' => queryLabelForKey(
-      l10n,
-      'query_dives_finalStopExcursion',
-    ),
-    'finalStopDuration' => queryLabelForKey(
-      l10n,
-      'query_dives_finalStopDuration',
-    ),
-    'finding' => queryLabelForKey(l10n, 'query_dives_findings'),
-    // Every field in kExploreFields has an arm above (chip_labeler_test).
-    _ => f.name,
-  };
+  /// The field's name in the app language, through its own label key.
+  String fieldName(ExploreField f) => exploreLabelForKey(l10n, f.labelKey);
 
   String _op(ClauseOp op) => switch (op) {
     ClauseOp.gt => l10n.explore_op_gt,
@@ -130,11 +90,8 @@ class ChipLabeler {
     }
     final v = c.value;
     if (v is bool) {
-      return switch (c.field.name) {
-        'deco' => v ? l10n.explore_chip_deco : l10n.explore_chip_noDeco,
-        'noBuddy' => l10n.explore_chip_noBuddy,
-        _ => l10n.explore_chip_favorite,
-      };
+      final off = c.field.offLabelKey;
+      return v || off == null ? name : exploreLabelForKey(l10n, off);
     }
     if (v is List && v.isNotEmpty && v.first is num) {
       return l10n.explore_chip_between(
@@ -145,7 +102,7 @@ class ChipLabeler {
     }
     if (v is List || v is String) {
       final raw = v is List ? v.whereType<String>() : [v as String];
-      final values = raw.map((e) => _enumValue(c.field, e)).join(', ');
+      final values = raw.map((e) => enumValue(c.field, e)).join(', ');
       return c.op == ClauseOp.not
           ? l10n.explore_chip_enumNot(name, values)
           : l10n.explore_chip_enum(name, values);
@@ -164,7 +121,8 @@ class ChipLabeler {
   /// An enum value in the app language. The catalog's values are the enum
   /// names, so each maps through the same localized names the dive editor
   /// shows; a dive type is the diver's own name and stays as written.
-  String _enumValue(ExploreField field, String v) {
+  String enumValue(ExploreField field, String v) {
+    // A phase 3 subject's own enum reads as the query language labels it.
     if (field.root != QuerySubject.dives) {
       return queryLabels?.enumValue(field.field!, v) ?? v;
     }
@@ -180,8 +138,7 @@ class ChipLabeler {
       // 1 January 2024 was a Monday.
       DateTime(2024, 1, kWeekdayTokens.indexOf(v) + 1),
     ),
-    'sacTrend' ||
-    'finalStop' => queryLabelForKey(l10n, 'query_dives_${field.name}_$v'),
+    'sacTrend' || 'finalStop' => queryLabelForKey(l10n, '${field.labelKey}_$v'),
     'finding' => switch (SafetyRuleId.fromDbValue(v)) {
       final rule? => safetyRuleLabel(rule, l10n),
       null => v,

@@ -24731,6 +24731,73 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => '由你计划';
 
   @override
+  String get trips_cylinders_segment_record => '用气';
+
+  @override
+  String get trips_cylinders_recordEmpty => '还没有使用这些气瓶的潜水。';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已记录 $count 次充气',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水未计入',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次套餐充气',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个潜水气瓶未关联行程气瓶',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle => '未关联气瓶';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return '气瓶 $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return '充至 $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return '分析 $mix';
+  }
+
+  @override
+  String get trips_cylinders_record_exported => '用气记录已导出';
+
+  @override
   String get trips_cylinders_title => '气瓶';
 
   @override

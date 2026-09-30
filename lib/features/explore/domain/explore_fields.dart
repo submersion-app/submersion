@@ -4,6 +4,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 
@@ -39,6 +40,9 @@ class ExploreField {
     this.path,
     this.kind, {
     this.root = QuerySubject.dives,
+    required this.labelKey,
+    this.offLabelKey,
+    this.trend,
     this.wholeNumbers = false,
     this.bounds,
     this.tokens,
@@ -52,6 +56,18 @@ class ExploreField {
 
   /// The registry entity [path] starts from: dives, or a phase 3 subject.
   final QuerySubject root;
+
+  /// The ARB key of the chip's name for this field, resolved through
+  /// `exploreLabelForKey`. Required, so a new field cannot show its raw name
+  /// (#2641); a key with no string is caught by the lookup's guard test.
+  final String labelKey;
+
+  /// A flag's label when it is false ("No decompression"); without one, a
+  /// flag reads [labelKey] either way.
+  final String? offLabelKey;
+
+  /// The trend chart a clause on this field draws, if any.
+  final ChartKind? trend;
 
   /// Bounds round to whole numbers, as the filter axes they replace did.
   final bool wholeNumbers;
@@ -104,63 +120,167 @@ class ExploreField {
 
 /// Every field the model may name, in the prompt's order.
 const List<ExploreField> kExploreFields = [
-  ExploreField('depth', ['depth'], ExploreValueKind.number),
-  ExploreField('avgDepth', ['avgDepth'], ExploreValueKind.number),
+  ExploreField(
+    'depth',
+    ['depth'],
+    ExploreValueKind.number,
+    labelKey: 'explore_field_depth',
+    trend: ChartKind.depthTrend,
+  ),
+  ExploreField(
+    'avgDepth',
+    ['avgDepth'],
+    ExploreValueKind.number,
+    labelKey: 'explore_field_avgDepth',
+  ),
   ExploreField(
     'bottomTime',
     ['bottomTime'],
     ExploreValueKind.number,
+    labelKey: 'explore_field_bottomTime',
+    trend: ChartKind.bottomTimeTrend,
     wholeNumbers: true,
     bounds: (min: 0, max: 24 * 60),
   ),
-  ExploreField('waterTemp', ['waterTemp'], ExploreValueKind.number),
-  ExploreField('airTemp', ['airTemp'], ExploreValueKind.number),
+  ExploreField(
+    'waterTemp',
+    ['waterTemp'],
+    ExploreValueKind.number,
+    labelKey: 'explore_field_waterTemp',
+    trend: ChartKind.waterTempTrend,
+  ),
+  ExploreField(
+    'airTemp',
+    ['airTemp'],
+    ExploreValueKind.number,
+    labelKey: 'explore_field_airTemp',
+  ),
   ExploreField(
     'visibility',
     ['visibility'],
     ExploreValueKind.number,
+    labelKey: 'explore_field_visibility',
     bounds: (min: 0, max: 200),
   ),
   ExploreField(
     'rating',
     ['rating'],
     ExploreValueKind.number,
+    labelKey: 'explore_field_rating',
     wholeNumbers: true,
   ),
   ExploreField(
     'o2',
     ['tanks', 'o2'],
     ExploreValueKind.number,
+    labelKey: 'explore_field_o2',
     bounds: (min: 1, max: 100),
   ),
-  ExploreField('diveNumber', ['diveNumber'], ExploreValueKind.number),
-  ExploreField('waterType', ['waterType'], ExploreValueKind.enumName),
-  ExploreField('diveMode', ['diveMode'], ExploreValueKind.enumName),
-  ExploreField('entryMethod', ['entryMethod'], ExploreValueKind.enumName),
-  ExploreField('currentStrength', [
+  ExploreField(
+    'diveNumber',
+    ['diveNumber'],
+    ExploreValueKind.number,
+    labelKey: 'explore_field_diveNumber',
+  ),
+  ExploreField(
+    'waterType',
+    ['waterType'],
+    ExploreValueKind.enumName,
+    labelKey: 'explore_field_waterType',
+  ),
+  ExploreField(
+    'diveMode',
+    ['diveMode'],
+    ExploreValueKind.enumName,
+    labelKey: 'explore_field_diveMode',
+  ),
+  ExploreField(
+    'entryMethod',
+    ['entryMethod'],
+    ExploreValueKind.enumName,
+    labelKey: 'explore_field_entryMethod',
+  ),
+  ExploreField(
     'currentStrength',
-  ], ExploreValueKind.enumName),
-  ExploreField('favorite', ['favorite'], ExploreValueKind.flag),
-  ExploreField('deco', ['deco'], ExploreValueKind.flag),
-  ExploreField('noBuddy', ['buddies'], ExploreValueKind.flag),
+    ['currentStrength'],
+    ExploreValueKind.enumName,
+    labelKey: 'explore_field_currentStrength',
+  ),
+  ExploreField(
+    'favorite',
+    ['favorite'],
+    ExploreValueKind.flag,
+    labelKey: 'explore_chip_favorite',
+  ),
+  ExploreField(
+    'deco',
+    ['deco'],
+    ExploreValueKind.flag,
+    labelKey: 'explore_chip_deco',
+    offLabelKey: 'explore_chip_noDeco',
+  ),
+  ExploreField(
+    'noBuddy',
+    ['buddies'],
+    ExploreValueKind.flag,
+    labelKey: 'explore_chip_noBuddy',
+  ),
   ExploreField(
     'weekday',
     ['weekday'],
     ExploreValueKind.enumName,
+    labelKey: 'explore_field_weekday',
     tokens: kWeekdayTokens,
   ),
-  ExploreField('diveType', ['types', 'name'], ExploreValueKind.typeName),
-  ExploreField('sac', ['sac'], ExploreValueKind.number),
-  ExploreField('sacTrend', ['sacTrend'], ExploreValueKind.enumName),
-  ExploreField('sacChange', ['sacChange'], ExploreValueKind.number),
-  ExploreField('finalStop', ['finalStop'], ExploreValueKind.enumName),
-  ExploreField('finalStopExcursion', [
+  ExploreField(
+    'diveType',
+    ['types', 'name'],
+    ExploreValueKind.typeName,
+    labelKey: 'explore_field_diveType',
+  ),
+  ExploreField(
+    'sac',
+    ['sac'],
+    ExploreValueKind.number,
+    labelKey: 'query_dives_sac',
+    trend: ChartKind.sacTrend,
+  ),
+  ExploreField(
+    'sacTrend',
+    ['sacTrend'],
+    ExploreValueKind.enumName,
+    labelKey: 'query_dives_sacTrend',
+  ),
+  ExploreField(
+    'sacChange',
+    ['sacChange'],
+    ExploreValueKind.number,
+    labelKey: 'query_dives_sacChange',
+  ),
+  ExploreField(
+    'finalStop',
+    ['finalStop'],
+    ExploreValueKind.enumName,
+    labelKey: 'query_dives_finalStop',
+  ),
+  ExploreField(
     'finalStopExcursion',
-  ], ExploreValueKind.number),
-  ExploreField('finalStopDuration', [
+    ['finalStopExcursion'],
+    ExploreValueKind.number,
+    labelKey: 'query_dives_finalStopExcursion',
+  ),
+  ExploreField(
     'finalStopDuration',
-  ], ExploreValueKind.number),
-  ExploreField('finding', ['findings', 'rule'], ExploreValueKind.enumName),
+    ['finalStopDuration'],
+    ExploreValueKind.number,
+    labelKey: 'query_dives_finalStopDuration',
+  ),
+  ExploreField(
+    'finding',
+    ['findings', 'rule'],
+    ExploreValueKind.enumName,
+    labelKey: 'query_dives_findings',
+  ),
 ];
 
 ExploreField? exploreField(String name) {

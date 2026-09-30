@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/explore/presentation/widgets/explore_charts.dart';
 import 'package:submersion/features/explore/presentation/widgets/explore_chip_rows.dart';
@@ -53,6 +54,9 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
     final availability = ref.watch(exploreAvailabilityProvider).value;
     final count = ref.watch(exploreCountProvider);
     final compiled = state.compiled;
+    // Listened while the page is up, so a dive write refreshes the legacy
+    // buddy names now rather than on the next read; the notifier only reads.
+    ref.listen(exploreNameIndexProvider, (_, _) {});
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.explore_title)),

@@ -16,6 +16,8 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.da
     as domain;
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart'
     show TripCylinderTankUse;
+import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart'
+    show TripGasRecordTank, TripUnlinkedTank;
 
 /// Reads and writes the cylinder slots of a trip and their ledger, and reads
 /// the lean facts the state fold needs from the dive log.
@@ -563,6 +565,117 @@ class TripCylinderRepository {
       (out[r.read<String>('trip_cylinder_id')] ??= []).add(use);
     }
     return out;
+  }
+
+  /// The trip's linked dive tanks for the gas record: the lean facts the
+  /// fold reads plus the diver, the site and the tank's size. Every diver's
+  /// tanks (decided 2026-09-30), in dive order, then tank order.
+  Future<List<TripGasRecordTank>> getGasRecordTanksForTrip(
+    String tripId,
+  ) async {
+    final rows = await _db
+        .customSelect(
+          '''
+          -- stats-scope-exempt: the record counts every dive on the trip,
+          -- as the board does
+          SELECT t.id AS tank_id, t.dive_id,
+                 COALESCE(d.entry_time, d.dive_date_time) AS entry_ms,
+                 d.diver_id, v.name AS diver_name, s.name AS site_name,
+                 t.tank_order, t.volume, t.start_pressure, t.end_pressure,
+                 t.o2_percent, t.he_percent, t.trip_cylinder_id
+          FROM dive_tanks t
+          JOIN dives d ON d.id = t.dive_id
+          LEFT JOIN divers v ON v.id = d.diver_id
+          LEFT JOIN dive_sites s ON s.id = d.site_id
+          WHERE d.trip_id = ?1
+            AND t.trip_cylinder_id IN
+                (SELECT id FROM trip_cylinders WHERE trip_id = ?1)
+          ORDER BY entry_ms ASC, t.dive_id ASC, t.tank_order ASC
+          ''',
+          variables: [Variable.withString(tripId)],
+          readsFrom: {
+            _db.diveTanks,
+            _db.dives,
+            _db.divers,
+            _db.diveSites,
+            _db.tripCylinders,
+          },
+        )
+        .get();
+    return [
+      for (final r in rows)
+        TripGasRecordTank(
+          tankId: r.read<String>('tank_id'),
+          diveId: r.read<String>('dive_id'),
+          entryTime: DateTime.fromMillisecondsSinceEpoch(
+            r.read<int>('entry_ms'),
+            isUtc: true,
+          ),
+          diverId: r.readNullable<String>('diver_id'),
+          diverName: r.readNullable<String>('diver_name'),
+          siteName: r.readNullable<String>('site_name'),
+          tankOrder: r.read<int>('tank_order'),
+          volume: r.readNullable<double>('volume'),
+          startPressure: r.readNullable<double>('start_pressure'),
+          endPressure: r.readNullable<double>('end_pressure'),
+          gasMix: GasMix(
+            o2: r.read<double>('o2_percent'),
+            he: r.read<double>('he_percent'),
+          ),
+          tripCylinderId: r.read<String>('trip_cylinder_id'),
+        ),
+    ];
+  }
+
+  /// Tanks on the trip's dives that breathe from no slot of the trip: no
+  /// link, or a link to another trip's slot. Planned dives are left out:
+  /// no gas was breathed on them.
+  Future<List<TripUnlinkedTank>> getUnlinkedTanksForTrip(String tripId) async {
+    final rows = await _db
+        .customSelect(
+          '''
+          -- stats-scope-exempt: the gaps count every dive on the trip, as
+          -- the board does
+          SELECT t.id AS tank_id, t.dive_id,
+                 COALESCE(d.entry_time, d.dive_date_time) AS entry_ms,
+                 d.diver_id, v.name AS diver_name, s.name AS site_name,
+                 t.tank_order
+          FROM dive_tanks t
+          JOIN dives d ON d.id = t.dive_id
+          LEFT JOIN divers v ON v.id = d.diver_id
+          LEFT JOIN dive_sites s ON s.id = d.site_id
+          WHERE d.trip_id = ?1
+            AND d.is_planned = 0
+            AND (t.trip_cylinder_id IS NULL
+                 OR t.trip_cylinder_id NOT IN
+                    (SELECT id FROM trip_cylinders WHERE trip_id = ?1))
+          ORDER BY entry_ms ASC, t.dive_id ASC, t.tank_order ASC
+          ''',
+          variables: [Variable.withString(tripId)],
+          readsFrom: {
+            _db.diveTanks,
+            _db.dives,
+            _db.divers,
+            _db.diveSites,
+            _db.tripCylinders,
+          },
+        )
+        .get();
+    return [
+      for (final r in rows)
+        TripUnlinkedTank(
+          tankId: r.read<String>('tank_id'),
+          diveId: r.read<String>('dive_id'),
+          entryTime: DateTime.fromMillisecondsSinceEpoch(
+            r.read<int>('entry_ms'),
+            isUtc: true,
+          ),
+          diverId: r.readNullable<String>('diver_id'),
+          diverName: r.readNullable<String>('diver_name'),
+          siteName: r.readNullable<String>('site_name'),
+          tankOrder: r.read<int>('tank_order'),
+        ),
+    ];
   }
 
   /// Rounds of dives logged on the trip on [day]'s calendar date, in the

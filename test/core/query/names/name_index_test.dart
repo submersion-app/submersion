@@ -164,4 +164,29 @@ void main() {
     ]);
     expect(index.candidates(QuerySubject.sites, 'Salt Pie'), ['Salt Pier']);
   });
+
+  test('followedBy adds entries after its own, primaries still first', () {
+    // Explore adds the legacy buddy names this way (#2641): a legacy text at
+    // rank 1 sorts after every linked buddy's name, and after an alternate
+    // of the same rank that was already there.
+    final base = NameIndex([
+      _row(QuerySubject.buddies, 'b2', 'Cid'),
+      _row(QuerySubject.buddies, 'b1', 'Ana A', primary: false, rank: 1),
+    ]);
+    const legacy = NameEntry(
+      subject: QuerySubject.buddies,
+      label: 'Ana',
+      ids: [],
+      target: NameTarget.legacyBuddyName,
+      rank: 1,
+    );
+    final index = base.followedBy(const [legacy]);
+    expect(index.forSubject(QuerySubject.buddies).map((e) => e.label), [
+      'Cid',
+      'Ana A',
+      'Ana',
+    ]);
+    expect(index.refs(QuerySubject.buddies), base.refs(QuerySubject.buddies));
+    expect(base.entries, hasLength(2));
+  });
 }

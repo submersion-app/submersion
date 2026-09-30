@@ -26073,6 +26073,79 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'Planificado por ti';
 
   @override
+  String get trips_cylinders_segment_record => 'Consumo';
+
+  @override
+  String get trips_cylinders_recordEmpty =>
+      'Aún no hay inmersiones con estas botellas.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cargas registradas',
+      one: '$count carga registrada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones sin contar',
+      one: '$count inmersión sin contar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cargas en paquete',
+      one: '$count carga en paquete',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count botellas de inmersión sin enlazar',
+      one: '$count botella de inmersión sin enlazar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle =>
+      'Sin enlazar a una botella';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'Botella $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'Cargada a $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'Analizado $mix';
+  }
+
+  @override
+  String get trips_cylinders_record_exported => 'Consumo de gas exportado';
+
+  @override
   String get trips_cylinders_title => 'Botellas';
 
   @override

@@ -22,9 +22,11 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_gas_record_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -92,6 +94,7 @@ void main() {
     bool settle = true,
     FillForecast? forecast,
     ItineraryDayRepository? itinerary,
+    TripGasRecord? record,
   }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
@@ -110,6 +113,8 @@ void main() {
           tripFillForecastProvider(
             tripId,
           ).overrideWith((ref) async => forecast),
+          if (record != null)
+            tripGasRecordProvider(tripId).overrideWith((ref) async => record),
           if (itinerary != null)
             itineraryDayRepositoryProvider.overrideWithValue(itinerary),
           if (repository != null)
@@ -629,6 +634,25 @@ void main() {
       '3 dives',
     );
     handle.dispose();
+  });
+  testWidgets('the board has a Record segment', (tester) async {
+    final a = await slot('Truck 1', 0);
+    await fill(a.id);
+    await pumpBoard(
+      tester,
+      record: const TripGasRecord(
+        rows: [],
+        slots: [],
+        fillsLogged: 1,
+        costs: [],
+        packageFills: 0,
+        unlinked: [],
+        multipleDivers: false,
+      ),
+    );
+    await tester.tap(find.text('Record'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('record-empty')), findsOneWidget);
   });
 }
 

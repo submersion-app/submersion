@@ -4,6 +4,7 @@ import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
+import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/explore_fields.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
@@ -181,6 +182,32 @@ void main() {
       groundClause(1.5, ClauseUnit.bar, FieldDimension.pressureRate, _imperial),
       closeTo(1.5, 1e-9),
     );
+  });
+
+  test('each trend chart is drawn for exactly one numeric field', () {
+    expect(
+      {
+        for (final f in kExploreFields)
+          if (f.trend != null) f.name: f.trend,
+      },
+      {
+        'depth': ChartKind.depthTrend,
+        'waterTemp': ChartKind.waterTempTrend,
+        'bottomTime': ChartKind.bottomTimeTrend,
+        'sac': ChartKind.sacTrend,
+      },
+    );
+    for (final f in kExploreFields.where((f) => f.trend != null)) {
+      expect(f.kind, ExploreValueKind.number, reason: f.name);
+      expect(f.trend!.isTrend, isTrue, reason: f.name);
+    }
+  });
+
+  test('only a flag has a label for its off value', () {
+    for (final f in kExploreFields.where((f) => f.offLabelKey != null)) {
+      expect(f.kind, ExploreValueKind.flag, reason: f.name);
+    }
+    expect(exploreField('deco')!.offLabelKey, 'explore_chip_noDeco');
   });
 
   test('an unknown name is null', () => expect(exploreField('nope'), isNull));

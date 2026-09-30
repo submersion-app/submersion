@@ -3,7 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
-import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
@@ -70,7 +70,7 @@ void main() {
       overrides: [
         ...overrides,
         localeProvider.overrideWithValue('en'),
-        queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+        exploreNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
       ].cast(),
     );
     addTearDown(c.dispose);

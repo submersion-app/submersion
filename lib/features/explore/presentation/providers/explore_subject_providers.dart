@@ -16,6 +16,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_q
 import 'package:submersion/features/explore/data/explore_repository.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_repository_provider.dart';
 import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
 import 'package:submersion/features/marine_life/query/species_query_entity.dart';
 import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';

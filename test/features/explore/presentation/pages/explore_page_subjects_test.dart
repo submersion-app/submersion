@@ -9,10 +9,10 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_query_p
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/pages/explore_page.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_subject_providers.dart';
-import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -73,7 +73,7 @@ void main() {
           nlEngineProvider.overrideWithValue(_Engine(json)),
           explorePlatformSupportedProvider.overrideWithValue(true),
           localeProvider.overrideWithValue('en'),
-          queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+          exploreNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
           recentQueryRecorderProvider.overrideWithValue((s, l, p) async {}),
           recentQueriesProvider.overrideWith((ref) async => const []),
           exploreSubjectCountsProvider.overrideWith((ref) async => const {}),

@@ -34,13 +34,13 @@ void main() {
     expect(bonaire.rank, 0);
   });
 
-  test('a legacy buddy name is a sentence-only buddy entry', () async {
+  test('legacy buddy names stay out of the shared index', () async {
+    // They are Explore's alone (#2641): the fixture's d2 has legacy 'Bob'.
     final index = await load();
-    final bob = index
-        .forSubject(QuerySubject.buddies)
-        .singleWhere((e) => e.target == NameTarget.legacyBuddyName);
-    expect(bob.label, 'Bob');
-    expect(bob.rank, 1);
+    expect(
+      index.entries.where((e) => e.target == NameTarget.legacyBuddyName),
+      isEmpty,
+    );
     expect(index.resolve(QuerySubject.buddies, 'Bob'), isNull);
   });
 
@@ -151,10 +151,10 @@ void main() {
     expect(index.resolve(QuerySubject.equipment, 'loaner bcd')?.id, 'g-lent');
   });
 
-  test('the tables it reads are the ref tables, the share table and dives', () {
+  test('the tables it follows are the ref tables and the share table', () {
+    // Not dives: a dive write must not reload the shared index (#2641).
     expect(NameIndexLoader.tables, {
       'equipment_shares',
-      'dives',
       'certifications',
       'site_types',
       'dive_sites',

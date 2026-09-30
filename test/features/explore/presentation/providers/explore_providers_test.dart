@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
-import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
@@ -110,7 +110,7 @@ void main() {
           volume: VolumeUnit.liters,
         ),
       ),
-      queryNameIndexProvider.overrideWith((ref) => names()),
+      exploreNameIndexProvider.overrideWith((ref) => names()),
       recentQueryRecorderProvider.overrideWithValue(
         recorder ?? (sentence, locale, parsed) async {},
       ),

@@ -3,6 +3,8 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
@@ -116,5 +118,30 @@ class ExploreRepository {
       GROUP BY ${link.id}
       ''', variables: params.map((p) => Variable(p)).toList()).get();
     return {for (final r in rows) r.read<String>('id'): r.read<int>('n')};
+  }
+
+  /// The distinct legacy `dives.buddy` texts, as sentence-only buddies.
+  /// Explore's alone (#2641): kept out of the shared name index, whose
+  /// reload would otherwise follow every dive write.
+  Future<List<NameEntry>> legacyBuddyNames({String? diverId}) async {
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT buddy FROM dives '
+          "WHERE buddy IS NOT NULL AND buddy <> '' $diverFilter "
+          'ORDER BY buddy',
+          variables: [if (diverId != null) Variable<String>(diverId)],
+        )
+        .get();
+    return [
+      for (final r in rows)
+        NameEntry(
+          subject: QuerySubject.buddies,
+          label: r.read<String>('buddy'),
+          ids: const [],
+          target: NameTarget.legacyBuddyName,
+          rank: 1,
+        ),
+    ];
   }
 }

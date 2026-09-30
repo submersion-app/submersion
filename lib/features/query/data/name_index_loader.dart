@@ -12,7 +12,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Loads the one [NameIndex] Explore and the typed language share (#2365):
 /// every visible row by its registry name, the alternate labels a sentence
-/// may use, places, attribute choices and legacy buddy names.
+/// may use, places and attribute choices. Legacy buddy names are Explore's
+/// alone and load beside it, so a dive write never reloads this (#2641).
 class NameIndexLoader {
   NameIndexLoader(this._db);
 
@@ -45,13 +46,11 @@ class NameIndexLoader {
   /// The place columns in rank order: country 0, region 1, island 2, city 3.
   static const _placeColumns = ['country', 'region', 'island', 'city'];
 
-  /// The tables a change tick must follow: the ref tables, the share table
-  /// that makes another diver's equipment visible, and dives, whose legacy
-  /// buddy text is a name.
+  /// The tables a change tick must follow: the ref tables and the share
+  /// table that makes another diver's equipment visible.
   static Set<String> get tables => {
     for (final s in refSubjects) appQueryRegistry.entityFor(s).table,
     'equipment_shares',
-    'dives',
   };
 
   Future<NameIndex> load({
@@ -60,10 +59,9 @@ class NameIndexLoader {
   }) async {
     // Independent reads: issue them together, as the database serves them
     // in turn anyway, and keep the subjects' order for the entries.
-    final (rowsBySubject, legacy) = await (
-      Future.wait([for (final s in refSubjects) _rows(s, diverId)]),
-      _legacyBuddyNames(diverId),
-    ).wait;
+    final rowsBySubject = await Future.wait([
+      for (final s in refSubjects) _rows(s, diverId),
+    ]);
     final entries = <NameEntry>[];
     var siteRows = const <QueryRow>[];
     for (var i = 0; i < refSubjects.length; i++) {
@@ -76,7 +74,6 @@ class NameIndexLoader {
     }
     entries.addAll(_places(siteRows));
     entries.addAll(_attributeChoices(l10n));
-    entries.addAll(legacy);
     final seen = <String>{};
     return NameIndex([
       for (final e in entries)
@@ -176,29 +173,6 @@ class NameIndexLoader {
               attrChoice: choice,
             ),
   ];
-
-  /// The distinct legacy `dives.buddy` texts, as sentence-only buddies.
-  Future<List<NameEntry>> _legacyBuddyNames(String? diverId) async {
-    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
-    final rows = await _db
-        .customSelect(
-          'SELECT DISTINCT buddy FROM dives '
-          "WHERE buddy IS NOT NULL AND buddy <> '' $diverFilter "
-          'ORDER BY buddy',
-          variables: [if (diverId != null) Variable<String>(diverId)],
-        )
-        .get();
-    return [
-      for (final r in rows)
-        NameEntry(
-          subject: QuerySubject.buddies,
-          label: r.read<String>('buddy'),
-          ids: const [],
-          target: NameTarget.legacyBuddyName,
-          rank: 1,
-        ),
-    ];
-  }
 
   /// One row's entries: its registry name (the primary, when it has one)
   /// and the alternate labels a sentence may use for it. A row with no name

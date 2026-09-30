@@ -3,6 +3,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/explore/data/explore_repository.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/features/explore/domain/explore_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
@@ -26,9 +27,13 @@ void main() {
   tearDown(tearDownTestDatabase);
 
   Future<Set<String>> ids(ParsedQuery q) async {
-    final names = await NameIndexLoader(
+    // Explore's index: the shared names, then the legacy buddy texts.
+    final shared = await NameIndexLoader(
       db,
     ).load(diverId: 'me', l10n: l10nForLocaleTag('en'));
+    final names = shared.followedBy(
+      await ExploreRepository(db: db).legacyBuddyNames(diverId: 'me'),
+    );
     final compiled = ExploreCompiler.compile(
       q,
       ExploreCompilerContext(
@@ -145,6 +150,16 @@ void main() {
       'd1',
       'd2',
       'd3',
+    });
+  });
+
+  test('a linked buddy wins over a legacy text with the same name', () async {
+    // d4 has no linked buddy; its legacy text names Ana, who is linked on
+    // d1 and d5. The linked buddy is tried first, so d4 is not found.
+    await db.customStatement("UPDATE dives SET buddy = 'Ana' WHERE id = 'd4'");
+    expect(await ids(q(mentions: [_m(MentionKind.buddy, 'Ana')])), {
+      'd1',
+      'd5',
     });
   });
 

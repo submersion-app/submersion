@@ -11,6 +11,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 void main() {
@@ -296,5 +297,41 @@ void main() {
     final r = tripFillForecastLines(l10n, units, forecastOf(deadline: 1020));
     expect(r.short, isFalse);
     expect(r.lines, ['Enough full cylinders through tomorrow.']);
+  });
+
+  test('the gas record strings exist in English', () {
+    expect(l10n.trips_cylinders_segment_record, 'Record');
+    expect(
+      l10n.trips_cylinders_recordEmpty,
+      'No dives breathed from these cylinders yet.',
+    );
+    expect(l10n.trips_cylinders_record_fillsLogged(1), '1 fill logged');
+    expect(l10n.trips_cylinders_record_fillsLogged(3), '3 fills logged');
+    expect(l10n.trips_cylinders_record_leftOut(1), '1 dive left out');
+    expect(l10n.trips_cylinders_record_packageFills(2), '2 package fills');
+    expect(
+      l10n.trips_cylinders_record_unlinked(3),
+      '3 dive tanks not linked to a cylinder',
+    );
+    expect(l10n.trips_cylinders_record_tank(2), 'Tank 2');
+    expect(l10n.trips_cylinders_record_filled('200 bar'), 'Filled to 200 bar');
+    expect(l10n.trips_cylinders_record_analyzed('31.8%'), 'Analyzed 31.8%');
+  });
+
+  test('the board segment labels differ in every locale', () async {
+    // Board, Ledger and Record side by side: two with one word leave the
+    // diver guessing which is the gas record.
+    for (final locale in AppLocalizations.supportedLocales) {
+      final l = await AppLocalizations.delegate.load(locale);
+      expect(
+        {
+          l.trips_cylinders_segment_board,
+          l.trips_cylinders_segment_ledger,
+          l.trips_cylinders_segment_record,
+        },
+        hasLength(3),
+        reason: '$locale',
+      );
+    }
   });
 }

@@ -10,6 +10,7 @@ import 'package:submersion/features/explore/domain/explore_subject_fields.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/chip_labeler.dart';
+import 'package:submersion/features/explore/presentation/explore_label_lookup.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_de.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -49,9 +50,14 @@ void main() {
     ClauseOp op = ClauseOp.gte,
   }) => ClauseChip(field: f, op: op, value: v, dimension: d);
 
-  test('every catalog field has a label', () {
+  test('every catalog field\'s label keys resolve to a string', () {
+    // A key with no string would come back as itself; a new field cannot
+    // leave its label out, as labelKey is required (#2641).
     for (final f in kExploreFields) {
-      expect(metric.fieldName(f), isNotEmpty, reason: f.name);
+      for (final key in [f.labelKey, ?f.offLabelKey]) {
+        expect(exploreLabelForKey(l10n, key), isNot(key), reason: f.name);
+      }
+      expect(metric.fieldName(f), exploreLabelForKey(l10n, f.labelKey));
     }
   });
 
@@ -238,13 +244,18 @@ void main() {
 
   test('every catalog enum value has a label', () {
     // The catalog reads its values from the query registry; the labeler
-    // maps them through the Dart enums. Every value must make that trip.
+    // maps them through the Dart enums. Every value must make that trip:
+    // a value with no arm would come back as its raw name (#2641).
     for (final field in kExploreFields) {
+      if (field.kind != ExploreValueKind.enumName) continue;
       final values = field.enumValues;
-      if (values == null) continue;
-      for (final v in values) {
-        final label = metric.label(chip(field, [v], op: ClauseOp.inList));
-        expect(label, isNotEmpty, reason: '${field.name} $v');
+      expect(values, isNotEmpty, reason: field.name);
+      for (final v in values!) {
+        expect(
+          metric.enumValue(field, v),
+          isNot(v),
+          reason: '${field.name} $v',
+        );
       }
     }
   });
