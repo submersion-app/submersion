@@ -706,6 +706,74 @@ void main() {
     });
   });
 
+  group('share toggle ownership (issue #2594)', () {
+    final twoDivers = [
+      for (final (id, name) in [('d1', 'Alice'), ('d2', 'Bob')])
+        Diver(
+          id: id,
+          name: name,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+    ];
+
+    Future<SwitchListTile> shareSwitch(
+      WidgetTester tester, {
+      required String active,
+    }) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithOwnedSharedTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            allDiversProvider.overrideWith((_) async => twoDivers),
+            validatedCurrentDiverIdProvider.overrideWith((_) async => active),
+            shareByDefaultProvider.overrideWith((_) async => true),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-shared'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Share with all dive profiles'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      return tester.widget<SwitchListTile>(
+        find.byWidgetPredicate(
+          (w) =>
+              w is SwitchListTile &&
+              w.title is Text &&
+              (w.title as Text).data == 'Share with all dive profiles',
+        ),
+      );
+    }
+
+    testWidgets('is locked for another profile, naming the owner', (
+      tester,
+    ) async {
+      final tile = await shareSwitch(tester, active: 'd2');
+      expect(tile.onChanged, isNull);
+      expect(find.text('Only Alice can change sharing'), findsOneWidget);
+    });
+
+    testWidgets('stays open for the owner', (tester) async {
+      final tile = await shareSwitch(tester, active: 'd1');
+      expect(tile.onChanged, isNotNull);
+      expect(find.text('Only Alice can change sharing'), findsNothing);
+    });
+  });
+
   group('TripEditPage - liveaboard vessel section', () {
     testWidgets('shows vessel details fields when type is liveaboard', (
       tester,
@@ -2216,6 +2284,22 @@ class _MockTripRepositoryWithTrip implements TripRepository {
 }
 
 /// Mock repository that returns a SHARED test trip (for unshare confirmation tests).
+/// A shared trip owned by profile `d1` (issue #2594).
+class _MockTripRepositoryWithOwnedSharedTrip
+    extends _MockTripRepositoryWithSharedTrip {
+  @override
+  Future<Trip?> getTripById(String id) async => Trip(
+    id: 'test-shared',
+    name: 'Shared Trip',
+    startDate: DateTime(2024, 1, 15),
+    endDate: DateTime(2024, 1, 22),
+    diverId: 'd1',
+    isShared: true,
+    createdAt: DateTime(2024),
+    updatedAt: DateTime(2024),
+  );
+}
+
 class _MockTripRepositoryWithSharedTrip implements TripRepository {
   @override
   Future<Trip> createTrip(Trip trip) async => trip;

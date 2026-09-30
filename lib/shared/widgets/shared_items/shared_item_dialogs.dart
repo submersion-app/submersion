@@ -1,9 +1,42 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+final _log = LoggerService.forClass(SharedItemKind);
+
+/// The dives linked to a shared trip or site, split into the active
+/// profile's and every other profile's, for the delete and remove
+/// confirmations (issue #2594). The counts only inform the confirmation,
+/// so a failed read opens it without them rather than blocking it, as
+/// `readSiteDeleteUsage` does.
+Future<({int mine, int others})> readDiveLinkCounts(
+  WidgetRef ref,
+  SharedItemKind kind,
+  String id,
+) async {
+  try {
+    final activeDiverId = await ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    return await ref
+        .read(profileHidesRepositoryProvider)
+        .diveLinkCounts(kind, id, activeDiverId);
+  } catch (e, stackTrace) {
+    _log.warning(
+      'Could not count the dives linked to a shared ${kind.name}',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return (mine: 0, others: 0);
+  }
+}
 
 /// The owning profile's name, or a neutral fallback for a profile that is
 /// gone or unknown (issue #2594).

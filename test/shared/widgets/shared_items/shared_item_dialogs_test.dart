@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
@@ -96,4 +100,67 @@ void main() {
     await tester.pumpAndSettle();
     expect(await result, isTrue);
   });
+
+  testWidgets('readDiveLinkCounts reads the active profile\'s split', (
+    tester,
+  ) async {
+    late ({int mine, int others}) counts;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((_) async => 'b'),
+          profileHidesRepositoryProvider.overrideWithValue(_Hides()),
+        ],
+        child: Consumer(
+          builder: (context, ref, _) {
+            readDiveLinkCounts(
+              ref,
+              SharedItemKind.trip,
+              't1',
+            ).then((c) => counts = c);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(counts, (mine: 2, others: 5));
+  });
+
+  testWidgets('readDiveLinkCounts falls back to none when the read fails', (
+    tester,
+  ) async {
+    late ({int mine, int others}) counts;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith(
+            (_) async => throw StateError('no profile'),
+          ),
+          profileHidesRepositoryProvider.overrideWithValue(_Hides()),
+        ],
+        child: Consumer(
+          builder: (context, ref, _) {
+            readDiveLinkCounts(
+              ref,
+              SharedItemKind.trip,
+              't1',
+            ).then((c) => counts = c);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(counts, (mine: 0, others: 0));
+  });
+}
+
+class _Hides extends Fake implements ProfileHidesRepository {
+  @override
+  Future<({int mine, int others})> diveLinkCounts(
+    SharedItemKind kind,
+    String id,
+    String? diverId,
+  ) async => diverId == 'b' ? (mine: 2, others: 5) : (mine: 0, others: 0);
 }
