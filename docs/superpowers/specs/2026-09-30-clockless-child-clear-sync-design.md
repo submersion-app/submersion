@@ -65,7 +65,9 @@ In the clockless branch, for an entity in `parentGatedChildEntities`:
   A key the remote omits is never cleared.
 - After the batch upsert succeeds, and inside the same `try`, the merge calls
   `SyncDataSerializer.clearChildColumns(entityType, clears)`. If it throws, the
-  batch counts as failed, the same accounting as a failed upsert.
+  failure is rethrown so the payload rolls back and is re-applied next sync,
+  the same handling as the media fact writes: the upsert already wrote the
+  peer's clock, so counting the batch failed would lose the clear.
 
 **Trade-off.** Children now resolve like the HLC entities already do:
 whole-row last-writer-wins. Suppose device A stamps `computer_id` on a tank,

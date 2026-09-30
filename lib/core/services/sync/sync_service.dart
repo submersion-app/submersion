@@ -12,6 +12,7 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/media_resolution_hints.dart';
@@ -3013,6 +3014,9 @@ class SyncService {
           ])
         : const <String, Map<String, dynamic>>{};
     final toUpsert = <Map<String, dynamic>>[];
+    // A parent-gated child's deliberate clears, by record id: written after
+    // the batched upsert, which drops nulls (#2644).
+    final childClears = <String, Set<String>>{};
     // Fact groups written after the batched upsert with explicit values, so
     // a peer's cleared stamp lands (the upsert drops nulls; spec 5.1).
     // [inBatch] records whether this row also went into the batched upsert,
@@ -3203,6 +3207,8 @@ class SyncService {
             if (!rowFromRemote) continue;
             toUpsert.add(recordToApply);
             applied += 1;
+            final cleared = _childClears(entityType, recordToApply, local);
+            if (cleared.isNotEmpty) childClears[recordId] = cleared;
             continue;
           }
           // Facts resolve per group by their own clocks (spec 5.1): a stale
@@ -3404,6 +3410,25 @@ class SyncService {
       }
     }
 
+    // Rethrown for the same reason as the fact writes: the batch has already
+    // written each row with the peer's clock, so a swallowed failure would
+    // leave the row looking applied, the next copy would tie, and the clear
+    // would be lost for good. Throwing rolls the payload back so the
+    // changeset is re-applied next sync.
+    if (!batchFailed && childClears.isNotEmpty) {
+      try {
+        await _serializer.clearChildColumns(entityType, childClears);
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to write cleared columns for $entityType; rolling back the '
+          'payload so the changeset is re-applied next sync',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        rethrow;
+      }
+    }
+
     // After the writes, so a row the batch failed to write is not treated
     // as if it had landed. The cache is another database and outside this
     // payload's transaction: if the payload later rolls back, the only
@@ -3533,6 +3558,27 @@ class SyncService {
   /// Parse a record's Hybrid Logical Clock, or null if absent/blank (rows
   /// written before the HLC rollout). Malformed values are treated as absent
   /// so a bad value can never crash the merge.
+  /// The keys a parent-gated child's [remote] copy clears on [local]: its
+  /// explicit nulls, when the copy's clock is strictly newer (#2644). Empty
+  /// for anything else, including a row this device does not have yet.
+  Set<String> _childClears(
+    String entityType,
+    Map<String, dynamic> remote,
+    Map<String, dynamic>? local,
+  ) {
+    if (local == null ||
+        !SyncDataSerializer.parentGatedChildEntities.contains(entityType)) {
+      return const {};
+    }
+    if (!isNewerChildCopy(
+      remote: _extractHlc(remote),
+      local: _extractHlc(local),
+    )) {
+      return const {};
+    }
+    return explicitlyClearedKeys(remote: remote, local: local);
+  }
+
   Hlc? _extractHlc(Map<String, dynamic>? data) => _parseHlc(data?['hlc']);
 
   /// [raw] as an HLC, or null when absent, blank or malformed.
