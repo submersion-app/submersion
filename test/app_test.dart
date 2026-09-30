@@ -10,6 +10,8 @@ import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
+import 'package:submersion/features/universal_import/data/models/detection_result.dart';
+import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -150,6 +152,28 @@ class _PendingNavTrackImport implements NavTrackImportService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// An import that cannot read any file it is handed.
+class _UnreadableImport extends UniversalImportNotifier {
+  _UnreadableImport(super.ref);
+
+  @override
+  Future<DetectionResult> loadFileFromBytes(Uint8List bytes, String fileName) =>
+      Future.error(const FormatException('unreadable'));
+}
+
+/// An import that takes any batch of files at once, so a share that
+/// reaches it too early shows up without waiting on real parsing.
+class _InstantBatchImport extends UniversalImportNotifier {
+  _InstantBatchImport(super.ref);
+
+  final loadedBatches = <List<String>>[];
+
+  @override
+  Future<void> loadFilesFromPaths(List<String> paths) async {
+    loadedBatches.add(paths);
+  }
 }
 
 /// Minimal router wired to the real [rootNavigatorKey] so the app-root adopt
@@ -480,29 +504,36 @@ void main() {
   });
 
   group('a file shared through the share sheet', () {
-    /// Hands [fileName], holding [bytes], to the app as the share intent that
+    /// Hands [files] (name to contents) to the app as the share intent that
     /// launched it, through the share plugin's own test hook.
-    void shareOnLaunch(String fileName, List<int> bytes) {
+    void shareOnLaunch(Map<String, List<int>> files) {
       final original = ReceiveSharingIntent.instance;
       addTearDown(() => ReceiveSharingIntent.instance = original);
       final dir = Directory.systemTemp.createTempSync('share_intent_');
       addTearDown(() => dir.deleteSync(recursive: true));
-      final file = File(p.join(dir.path, fileName))..writeAsBytesSync(bytes);
+      final shared = [
+        for (final MapEntry(key: name, value: bytes) in files.entries)
+          SharedMediaFile(
+            path: (File(p.join(dir.path, name))..writeAsBytesSync(bytes)).path,
+            type: SharedMediaType.file,
+          ),
+      ];
       final stream = StreamController<List<SharedMediaFile>>();
       addTearDown(stream.close);
       ReceiveSharingIntent.setMockValues(
-        initialMedia: [
-          SharedMediaFile(path: file.path, type: SharedMediaType.file),
-        ],
+        initialMedia: shared,
         mediaStream: stream.stream,
       );
     }
 
     /// Lets the share handler's file reads finish. They are real I/O, which
     /// completes outside the fake clock, and each continuation then needs a
-    /// frame to run in.
-    Future<void> settleShare(WidgetTester tester) async {
-      for (var i = 0; i < 8; i++) {
+    /// frame to run in. With [until], keeps going (within a bound) until it
+    /// finds something, so a slow runner does not fail the expectation;
+    /// without it, gives the share a fixed spell to do something it must not.
+    Future<void> settleShare(WidgetTester tester, {Finder? until}) async {
+      for (var i = 0; i < (until == null ? 8 : 100); i++) {
+        if (until != null && until.evaluate().isNotEmpty) return;
         await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 20)),
         );
@@ -511,10 +542,12 @@ void main() {
     }
 
     final encBytes = File(
-      'test/fixtures/nav_tracks/seacraft_enc3_short.csv',
+      p.join('test', 'fixtures', 'nav_tracks', 'seacraft_enc3_short.csv'),
     ).readAsBytesSync();
     final uddfBytes =
         '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits;
+    final review = find.byType(NavTrackImportReviewPage);
+    final wizard = find.text('import wizard');
 
     List<Override> withDiver() => [
       diverCountProvider.overrideWith((ref) async => 1),
@@ -524,82 +557,109 @@ void main() {
       navTrackImportServiceProvider.overrideWithValue(_PendingNavTrackImport()),
     ];
 
+    /// A router whose async top-level redirect waits on [gate], like the
+    /// app's own: go_router builds no Navigator until it resolves, which is
+    /// where a cold start from the share sheet lands.
+    GoRouter coldStartRouter(Completer<void> gate) => GoRouter(
+      navigatorKey: rootNavigatorKey,
+      redirect: (context, state) async {
+        await gate.future;
+        return null;
+      },
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: SizedBox.shrink()),
+        ),
+      ],
+    );
+
+    /// A router that starts on first-run setup, with the import wizard to
+    /// go to once setup is left.
+    GoRouter setupRouter() => GoRouter(
+      navigatorKey: rootNavigatorKey,
+      initialLocation: '/welcome',
+      routes: [
+        GoRoute(
+          path: '/welcome',
+          builder: (context, state) => const Scaffold(body: Text('setup')),
+        ),
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: SizedBox.shrink()),
+        ),
+        GoRoute(
+          path: '/transfer/import-wizard',
+          builder: (context, state) =>
+              const Scaffold(body: Text('import wizard')),
+        ),
+      ],
+    );
+
     testWidgets('a Seacraft route opens its review in the running app', (
       tester,
     ) async {
-      shareOnLaunch('005.DAT.csv', encBytes);
+      shareOnLaunch({'005.DAT.csv': encBytes});
       await pumpApp(
         tester,
         _DrivableSyncNotifier(const SyncState()),
         extraOverrides: withDiver(),
       );
-      await settleShare(tester);
+      await settleShare(tester, until: review);
 
-      expect(find.byType(NavTrackImportReviewPage), findsOneWidget);
+      expect(review, findsOneWidget);
     });
 
     testWidgets(
       'a Seacraft route shared before the navigator is built opens its '
       'review once it is (#2690)',
       (tester) async {
-        shareOnLaunch('005.DAT.csv', encBytes);
+        shareOnLaunch({'005.DAT.csv': encBytes});
         final gate = Completer<void>();
-        // An async top-level redirect, like the app's own: go_router builds
-        // no Navigator until it resolves, which is where a cold start from
-        // the share sheet lands.
-        final router = GoRouter(
-          navigatorKey: rootNavigatorKey,
-          redirect: (context, state) async {
-            await gate.future;
-            return null;
-          },
-          routes: [
-            GoRoute(
-              path: '/',
-              builder: (context, state) =>
-                  const Scaffold(body: SizedBox.shrink()),
-            ),
-          ],
-        );
         await pumpApp(
           tester,
           _DrivableSyncNotifier(const SyncState()),
-          router: router,
+          router: coldStartRouter(gate),
           extraOverrides: withDiver(),
         );
         await settleShare(tester);
         expect(rootNavigatorKey.currentContext, isNull);
 
         gate.complete();
+        await settleShare(tester, until: review);
+
+        expect(review, findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a shared file that fails once the navigator is built still says so',
+      (tester) async {
+        shareOnLaunch({'dive.uddf': uddfBytes});
+        final gate = Completer<void>();
+        await pumpApp(
+          tester,
+          _DrivableSyncNotifier(const SyncState()),
+          router: coldStartRouter(gate),
+          extraOverrides: [
+            ...withDiver(),
+            universalImportNotifierProvider.overrideWith(_UnreadableImport.new),
+          ],
+        );
         await settleShare(tester);
 
-        expect(find.byType(NavTrackImportReviewPage), findsOneWidget);
+        gate.complete();
+        final message = find.text('Could not read file');
+        await settleShare(tester, until: message);
+
+        expect(message, findsOneWidget);
       },
     );
 
     testWidgets('a dive log shared during setup opens the import wizard once '
         'setup is left', (tester) async {
-      shareOnLaunch('dive.uddf', uddfBytes);
-      final router = GoRouter(
-        navigatorKey: rootNavigatorKey,
-        initialLocation: '/welcome',
-        routes: [
-          GoRoute(
-            path: '/welcome',
-            builder: (context, state) => const Scaffold(body: Text('setup')),
-          ),
-          GoRoute(
-            path: '/',
-            builder: (context, state) =>
-                const Scaffold(body: SizedBox.shrink()),
-          ),
-          GoRoute(
-            path: '/transfer/import-wizard',
-            builder: (context, state) =>
-                const Scaffold(body: Text('import wizard')),
-          ),
-        ],
-      );
+      shareOnLaunch({'dive.uddf': uddfBytes});
+      final router = setupRouter();
       await pumpApp(
         tester,
         _DrivableSyncNotifier(const SyncState()),
@@ -611,12 +671,42 @@ void main() {
         ],
       );
       await settleShare(tester);
-      expect(find.text('import wizard'), findsNothing);
+      expect(wizard, findsNothing);
 
       router.go('/');
-      await settleShare(tester);
+      await settleShare(tester, until: wizard);
 
-      expect(find.text('import wizard'), findsOneWidget);
+      expect(wizard, findsOneWidget);
+    });
+
+    testWidgets('several dive logs shared during setup open the import '
+        'wizard once setup is left', (tester) async {
+      shareOnLaunch({'first.uddf': uddfBytes, 'second.uddf': uddfBytes});
+      final router = setupRouter();
+      late _InstantBatchImport import;
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        router: router,
+        extraOverrides: [
+          diverCountProvider.overrideWith((ref) async => 1),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          universalImportNotifierProvider.overrideWith(
+            (ref) => import = _InstantBatchImport(ref),
+          ),
+        ],
+      );
+      await settleShare(tester);
+      expect(wizard, findsNothing);
+
+      router.go('/');
+      await settleShare(tester, until: wizard);
+
+      expect(wizard, findsOneWidget);
+      expect(import.loadedBatches.single.map(p.basename), [
+        'first.uddf',
+        'second.uddf',
+      ]);
     });
   });
 

@@ -114,9 +114,11 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     registerUpdateMenuChannel(ref);
     registerDisplayZoomMenuChannel(ref);
     _fileShareHandler = FileShareHandler(
-      // Each waits for the navigator, which a share that cold-started the
-      // app arrives ahead of (#2690). The handler awaits the wait too, so
-      // its "Could not read file" snackbar still covers work that had to.
+      // Each waits until the app can open the page it leads to (see
+      // _updateNavigationReady): a share that cold-started the app arrives
+      // ahead of the navigator (#2690), and one on a fresh install ahead of
+      // the end of setup. The handler awaits the wait too, so its "Could
+      // not read file" snackbar still covers work that had to.
       onFileReceived: (bytes, fileName) =>
           _sharedFiles.run(() => _handleIncomingFile(bytes, fileName)),
       onFilesReceived: (paths) =>
