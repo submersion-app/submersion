@@ -52,6 +52,7 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_history_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
@@ -946,6 +947,10 @@ void main() {
     (
       name: 'queryNameIndexProvider',
       read: (c) => c.read(queryNameIndexProvider.future),
+    ),
+    (
+      name: 'exploreLegacyBuddyNamesProvider',
+      read: (c) => c.read(exploreLegacyBuddyNamesProvider.future),
     ),
     (
       name: 'savedQueriesProvider',

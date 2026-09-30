@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
-import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -87,7 +87,7 @@ void main() {
         volume: VolumeUnit.liters,
       ),
     ),
-    queryNameIndexProvider.overrideWith(
+    exploreNameIndexProvider.overrideWith(
       (ref) async => NameIndex(const [
         NameEntry(
           subject: QuerySubject.sites,

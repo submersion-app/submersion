@@ -9,7 +9,6 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/explore/data/explore_repository.dart';
 import 'package:submersion/features/explore/data/recent_query_repository.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
@@ -19,10 +18,11 @@ import 'package:submersion/features/explore/domain/entity_resolver.dart';
 import 'package:submersion/features/explore/domain/explore_compiler.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_repository_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
-import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 
 /// Explore's own scope, so editing chips never rescopes the dive list or
@@ -32,10 +32,6 @@ final exploreQueryNodeProvider = StateProvider<QueryNode?>((ref) => null);
 /// The scope as the repositories take it: the query alone, no legacy axis.
 final exploreFilterProvider = Provider<DiveFilterState>(
   (ref) => DiveFilterState(query: ref.watch(exploreQueryNodeProvider)),
-);
-
-final exploreRepositoryProvider = Provider<ExploreRepository>(
-  (ref) => ExploreRepository(),
 );
 
 final recentQueryRepositoryProvider = Provider<RecentQueryRepository>(
@@ -228,14 +224,14 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
   /// False when a newer request superseded [request] while the name index
   /// loaded, in which case nothing is published.
   Future<bool> _compileAndPublish(ParsedQuery parsed, int request) async {
-    final names = await _ref.read(queryNameIndexProvider.future);
+    final names = await _ref.read(exploreNameIndexProvider.future);
     if (request != _request) return false;
     _publish(parsed, names);
     return true;
   }
 
   void _compileSync(ParsedQuery parsed) {
-    final names = _ref.read(queryNameIndexProvider).value ?? NameIndex.empty;
+    final names = _ref.read(exploreNameIndexProvider).value ?? NameIndex.empty;
     _publish(parsed, names);
   }
 
