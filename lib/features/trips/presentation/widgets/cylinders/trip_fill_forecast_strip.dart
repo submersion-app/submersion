@@ -138,13 +138,19 @@ Future<({int? plannedDives})?> showTripDayPlanDialog(
                 icon: const Icon(Icons.remove_circle_outline),
                 onPressed: count > 0 ? () => setState(() => count--) : null,
               ),
-              SizedBox(
-                width: 48,
-                child: Text(
-                  '$count',
-                  key: const Key('plan-count'),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall,
+              // Spoken as "3 dives", and again after each fewer or more.
+              Semantics(
+                liveRegion: true,
+                label: l10n.trips_cylinders_forecast_plannedDives(count),
+                excludeSemantics: true,
+                child: SizedBox(
+                  width: 48,
+                  child: Text(
+                    '$count',
+                    key: const Key('plan-count'),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                 ),
               ),
               IconButton(

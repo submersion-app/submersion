@@ -20,7 +20,13 @@ import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 
 class TripRepository {
+  TripRepository({ItineraryDayRepository? itineraryDays})
+    : _itineraryDays = itineraryDays ?? ItineraryDayRepository();
+
   AppDatabase get _db => DatabaseService.instance.database;
+
+  /// The trip's itinerary, which a date change and a delete also touch.
+  final ItineraryDayRepository _itineraryDays;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(TripRepository);
@@ -180,7 +186,7 @@ class TripRepository {
       // longer covers (#2325). Cleanup only: the trip is saved, so a
       // failure here is logged rather than reported as a failed save.
       try {
-        await ItineraryDayRepository().deleteBarePlanDaysOutside(
+        await _itineraryDays.deleteBarePlanDaysOutside(
           trip.id,
           trip.startDate,
           trip.endDate,
@@ -292,7 +298,7 @@ class TripRepository {
       await _db.transaction(() async {
         // Delete child records with non-nullable FKs first
         await LiveaboardDetailsRepository().deleteByTripId(id);
-        await ItineraryDayRepository().deleteByTripId(id);
+        await _itineraryDays.deleteByTripId(id);
         await TripChecklistRepository().deleteByTripId(id);
         await TripDayWeatherRepository().deleteByTripId(id);
         // Slots, their ledger and the links on the tanks that used them.

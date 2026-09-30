@@ -160,15 +160,25 @@ class ItineraryDayRepository {
     try {
       var written = const <String>[];
       await _db.transaction(() async {
-        final rows = await (_db.select(
-          _db.tripItineraryDays,
-        )..where((t) => t.tripId.equals(tripId))).get();
-        // Every row the date has: two devices that planned it offline leave
-        // two, and the forecast reads whichever it meets last.
+        // Every row the date has (its local calendar day): two devices that
+        // planned it offline leave two, and the forecast reads whichever it
+        // meets last.
+        final from = day.millisecondsSinceEpoch;
+        final to = DateTime(
+          day.year,
+          day.month,
+          day.day + 1,
+        ).millisecondsSinceEpoch;
         final existing = [
-          for (final r in rows)
-            if (tripDay(DateTime.fromMillisecondsSinceEpoch(r.date)) == day)
-              r.id,
+          for (final r
+              in await (_db.select(_db.tripItineraryDays)..where(
+                    (t) =>
+                        t.tripId.equals(tripId) &
+                        t.date.isBiggerOrEqualValue(from) &
+                        t.date.isSmallerThanValue(to),
+                  ))
+                  .get())
+            r.id,
         ];
         if (existing.isNotEmpty) {
           await (_db.update(

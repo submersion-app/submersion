@@ -607,6 +607,29 @@ void main() {
     );
     expect(chip.onPressed, isNotNull);
   });
+
+  testWidgets('the plan count reads as dives to a screen reader', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    final a = await slot('Truck 1', 0);
+    await fill(a.id);
+    await pumpBoard(
+      tester,
+      forecast: forecastWithDays([
+        FillForecastDay(date: DateTime(2026, 3, 10), plannedDives: 2),
+      ]),
+    );
+    await tester.tap(find.byKey(const Key('forecast-day-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('plan-more')));
+    await tester.pump();
+    expect(
+      tester.getSemantics(find.byKey(const Key('plan-count'))).label,
+      '3 dives',
+    );
+    handle.dispose();
+  });
 }
 
 /// Holds each reorder until the test releases it, then writes it for real.

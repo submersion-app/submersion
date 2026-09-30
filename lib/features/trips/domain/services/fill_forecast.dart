@@ -193,10 +193,9 @@ FillForecast? computeFillForecast(FillForecastInputs inputs) {
 /// default. A fraction rounds up (decided 2026-09-29): a bottle too many,
 /// never one too few. A zero or negative number counts as unset.
 int _perDiveDay(FillForecastInputs inputs, DateTime start, DateTime end) {
-  int? positive(int? v) => v != null && v > 0 ? v : null;
-  final target = positive(inputs.divesPerDayTarget);
+  final target = positiveOverride(inputs.divesPerDayTarget);
   if (target != null) return target;
-  final expected = positive(inputs.expectedDives);
+  final expected = positiveOverride(inputs.expectedDives);
   if (expected != null) {
     final diveDays = tripDiveDayCount(
       start: start,
@@ -205,8 +204,7 @@ int _perDiveDay(FillForecastInputs inputs, DateTime start, DateTime end) {
     );
     if (diveDays > 0) return (expected / diveDays).ceil();
   }
-  final history = inputs.divesPerDiveDayHistory;
-  return (history.isEmpty ? defaultDivesPerDiveDay : medianOf(history)).ceil();
+  return estimatedDivesPerDiveDay(inputs.divesPerDiveDayHistory).ceil();
 }
 
 /// Pure. When the forecast next changes by itself: at the fill deadline

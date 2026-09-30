@@ -20,9 +20,8 @@ const scrubberCautionFraction = 0.2;
 /// use; null without a rating. A zero or negative override counts as
 /// unset, the same rule the trip form applies when it saves.
 ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
-  int? positive(int? v) => v != null && v > 0 ? v : null;
-  final divesOverride = positive(inputs.expectedDivesOverride);
-  final minutesOverride = positive(inputs.runtimeMinutesOverride);
+  final divesOverride = positiveOverride(inputs.expectedDivesOverride);
+  final minutesOverride = positiveOverride(inputs.runtimeMinutesOverride);
   final rated = inputs.ratedMinutes;
   final remaining = rated == null
       ? 0.0
@@ -35,7 +34,7 @@ ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
     expectedDivesN = 0;
   } else {
     final history = inputs.divesPerDiveDayHistory;
-    final perDay = history.isEmpty ? defaultDivesPerDiveDay : medianOf(history);
+    final perDay = estimatedDivesPerDiveDay(history);
     expectedDives = (inputs.itineraryDiveDays * perDay).ceil();
     expectedDivesN = history.length;
   }
@@ -80,6 +79,16 @@ ScrubberMargin computeScrubberMargin(ScrubberMarginInputs inputs) {
     caution: caution,
   );
 }
+
+/// A zero or negative override counts as unset: the rule the trip form
+/// applies when it saves, shared by every estimate that reads one.
+int? positiveOverride(int? v) => v != null && v > 0 ? v : null;
+
+/// Dives per dive day from the diver's recent trips: their median, else
+/// [defaultDivesPerDiveDay]. Shared by the scrubber margin and the fill
+/// forecast so the two never disagree about the same diver.
+double estimatedDivesPerDiveDay(List<double> history) =>
+    history.isEmpty ? defaultDivesPerDiveDay : medianOf(history);
 
 /// The median of [values]; the mean of the middle two for an even count.
 /// [values] must not be empty.
