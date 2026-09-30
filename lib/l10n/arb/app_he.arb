@@ -12352,6 +12352,8 @@
   "explore_pickCandidate_title": "למה התכוונתם ב\"{text}\"?",
   "explore_recent_title": "אחרונים",
   "explore_results_count": "{count, plural, =1{{count} תוצאה} other{{count} תוצאות}}",
+  "explore_results_subjectTitle": "התאמות",
+  "explore_results_subjectTruncated": "מוצגים {count} הראשונים. פתח ברשימה כדי לראות את כולם.",
   "explore_results_title": "צלילות מתאימות",
   "explore_results_truncated": "מוצגים {count} הראשונים. פתחו את רשימת הצלילות לכולן.",
   "explore_shortcut_unavailable": "חקירה דורשת את המודל במכשיר, שאינו מוכן במכשיר זה.",

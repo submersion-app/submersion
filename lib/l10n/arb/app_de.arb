@@ -12464,6 +12464,8 @@
   "explore_pickCandidate_title": "Was meinten Sie mit \"{text}\"?",
   "explore_recent_title": "Zuletzt",
   "explore_results_count": "{count, plural, =1{{count} Ergebnis} other{{count} Ergebnisse}}",
+  "explore_results_subjectTitle": "Treffer",
+  "explore_results_subjectTruncated": "Die ersten {count} werden angezeigt. In der Liste öffnen, um alle zu sehen.",
   "explore_results_title": "Passende Tauchgänge",
   "explore_results_truncated": "Die ersten {count} werden angezeigt. In der Tauchgangsliste öffnen, um alle zu sehen.",
   "explore_shortcut_unavailable": "Erkunden benötigt das Modell auf dem Gerät, das auf diesem Gerät nicht bereit ist.",

@@ -109,6 +109,9 @@ void main() {
     expect(find.byKey(const ValueKey('explore-subject-chip')), findsOneWidget);
     expect(find.text('Buddies'), findsWidgets);
     expect(find.text('1 result'), findsOneWidget);
+    // A buddies answer is not headed as dives.
+    expect(find.text('Matching dives'), findsNothing);
+    expect(find.text('Matches'), findsOneWidget);
     expect(find.byKey(const ValueKey('explore-row-b1')), findsOneWidget);
     expect(find.text('Open in dive list'), findsNothing);
 

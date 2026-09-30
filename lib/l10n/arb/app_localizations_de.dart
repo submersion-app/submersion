@@ -41101,6 +41101,14 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get explore_results_subjectTitle => 'Treffer';
+
+  @override
+  String explore_results_subjectTruncated(Object count) {
+    return 'Die ersten $count werden angezeigt. In der Liste öffnen, um alle zu sehen.';
+  }
+
+  @override
   String get explore_results_title => 'Passende Tauchgänge';
 
   @override

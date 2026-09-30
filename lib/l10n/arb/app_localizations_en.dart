@@ -40612,6 +40612,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get explore_results_subjectTitle => 'Matches';
+
+  @override
+  String explore_results_subjectTruncated(Object count) {
+    return 'Showing the first $count. Open in the list for all of them.';
+  }
+
+  @override
   String get explore_results_title => 'Matching dives';
 
   @override

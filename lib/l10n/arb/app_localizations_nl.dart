@@ -40901,6 +40901,14 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get explore_results_subjectTitle => 'Overeenkomsten';
+
+  @override
+  String explore_results_subjectTruncated(Object count) {
+    return 'De eerste $count worden getoond. Open de lijst voor alle resultaten.';
+  }
+
+  @override
   String get explore_results_title => 'Overeenkomende duiken';
 
   @override

@@ -12352,6 +12352,8 @@
   "explore_pickCandidate_title": "¿A qué te referías con \"{text}\"?",
   "explore_recent_title": "Recientes",
   "explore_results_count": "{count, plural, =1{{count} resultado} other{{count} resultados}}",
+  "explore_results_subjectTitle": "Coincidencias",
+  "explore_results_subjectTruncated": "Mostrando los primeros {count}. Abre la lista para verlos todos.",
   "explore_results_title": "Inmersiones coincidentes",
   "explore_results_truncated": "Mostrando los primeros {count}. Abre la lista de inmersiones para verlos todos.",
   "explore_shortcut_unavailable": "Explorar necesita el modelo del dispositivo, que no está listo en este dispositivo.",

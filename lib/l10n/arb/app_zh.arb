@@ -12352,6 +12352,8 @@
   "explore_pickCandidate_title": "\"{text}\" 指的是哪一个？",
   "explore_recent_title": "最近",
   "explore_results_count": "{count, plural, =1{{count} 个结果} other{{count} 个结果}}",
+  "explore_results_subjectTitle": "匹配结果",
+  "explore_results_subjectTruncated": "仅显示前 {count} 项。在列表中打开以查看全部。",
   "explore_results_title": "匹配的潜水",
   "explore_results_truncated": "显示前 {count} 条。在潜水列表中查看全部。",
   "explore_shortcut_unavailable": "探索需要设备端模型，但此设备上的模型尚未就绪。",

@@ -41193,6 +41193,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get explore_results_subjectTitle => 'Coincidencias';
+
+  @override
+  String explore_results_subjectTruncated(Object count) {
+    return 'Mostrando los primeros $count. Abre la lista para verlos todos.';
+  }
+
+  @override
   String get explore_results_title => 'Inmersiones coincidentes';
 
   @override

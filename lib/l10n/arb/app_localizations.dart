@@ -66258,6 +66258,18 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{{count} result} other{{count} results}}'**
   String explore_results_count(num count);
 
+  /// No description provided for @explore_results_subjectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches'**
+  String get explore_results_subjectTitle;
+
+  /// No description provided for @explore_results_subjectTruncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the first {count}. Open in the list for all of them.'**
+  String explore_results_subjectTruncated(Object count);
+
   /// No description provided for @explore_results_title.
   ///
   /// In en, this message translates to:

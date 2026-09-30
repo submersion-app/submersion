@@ -41172,6 +41172,14 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get explore_results_subjectTitle => 'Corrispondenze';
+
+  @override
+  String explore_results_subjectTruncated(Object count) {
+    return 'Mostrati i primi $count. Apri l\'elenco per vederli tutti.';
+  }
+
+  @override
   String get explore_results_title => 'Immersioni corrispondenti';
 
   @override

@@ -40345,6 +40345,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get explore_results_subjectTitle => 'התאמות';
+
+  @override
+  String explore_results_subjectTruncated(Object count) {
+    return 'מוצגים $count הראשונים. פתח ברשימה כדי לראות את כולם.';
+  }
+
+  @override
   String get explore_results_title => 'צלילות מתאימות';
 
   @override

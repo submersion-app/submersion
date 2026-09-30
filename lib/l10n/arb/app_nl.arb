@@ -12352,6 +12352,8 @@
   "explore_pickCandidate_title": "Wat bedoelde je met \"{text}\"?",
   "explore_recent_title": "Recent",
   "explore_results_count": "{count, plural, =1{{count} resultaat} other{{count} resultaten}}",
+  "explore_results_subjectTitle": "Overeenkomsten",
+  "explore_results_subjectTruncated": "De eerste {count} worden getoond. Open de lijst voor alle resultaten.",
   "explore_results_title": "Overeenkomende duiken",
   "explore_results_truncated": "De eerste {count} worden getoond. Open de duiklijst voor alle duiken.",
   "explore_shortcut_unavailable": "Verkennen heeft het model op het apparaat nodig, dat op dit apparaat niet klaar is.",

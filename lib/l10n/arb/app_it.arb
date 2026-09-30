@@ -12352,6 +12352,8 @@
   "explore_pickCandidate_title": "Cosa intendevi con \"{text}\"?",
   "explore_recent_title": "Recenti",
   "explore_results_count": "{count, plural, =1{{count} risultato} other{{count} risultati}}",
+  "explore_results_subjectTitle": "Corrispondenze",
+  "explore_results_subjectTruncated": "Mostrati i primi {count}. Apri l'elenco per vederli tutti.",
   "explore_results_title": "Immersioni corrispondenti",
   "explore_results_truncated": "Mostrate le prime {count}. Apri l'elenco immersioni per vederle tutte.",
   "explore_shortcut_unavailable": "Esplora richiede il modello sul dispositivo, che non è pronto su questo dispositivo.",

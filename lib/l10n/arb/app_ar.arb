@@ -12352,6 +12352,8 @@
   "explore_pickCandidate_title": "ماذا قصدت بـ \"{text}\"؟",
   "explore_recent_title": "الأخيرة",
   "explore_results_count": "{count, plural, =1{{count} نتيجة} other{{count} نتيجة}}",
+  "explore_results_subjectTitle": "النتائج المطابقة",
+  "explore_results_subjectTruncated": "يُعرض أول {count}. افتح القائمة لعرضها كلها.",
   "explore_results_title": "الغطسات المطابقة",
   "explore_results_truncated": "عرض أول {count}. افتح قائمة الغطسات لرؤيتها كلها.",
   "explore_shortcut_unavailable": "يحتاج الاستكشاف إلى النموذج على الجهاز، وهو غير جاهز على هذا الجهاز.",

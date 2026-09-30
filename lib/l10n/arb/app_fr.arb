@@ -12352,6 +12352,8 @@
   "explore_pickCandidate_title": "Que vouliez-vous dire par \"{text}\" ?",
   "explore_recent_title": "Récents",
   "explore_results_count": "{count, plural, =1{{count} résultat} other{{count} résultats}}",
+  "explore_results_subjectTitle": "Correspondances",
+  "explore_results_subjectTruncated": "Affichage des {count} premiers. Ouvrez la liste pour les voir tous.",
   "explore_results_title": "Plongées correspondantes",
   "explore_results_truncated": "Affichage des {count} premiers. Ouvrez la liste des plongées pour les voir toutes.",
   "explore_shortcut_unavailable": "Explorer nécessite le modèle sur l'appareil, qui n'est pas prêt sur cet appareil.",

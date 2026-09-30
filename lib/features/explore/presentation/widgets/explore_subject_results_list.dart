@@ -47,7 +47,7 @@ class ExploreSubjectResultsList extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
-              context.l10n.explore_results_title,
+              context.l10n.explore_results_subjectTitle,
               style: Theme.of(context).textTheme.labelLarge,
             ),
           ),
@@ -60,7 +60,7 @@ class ExploreSubjectResultsList extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                context.l10n.explore_results_truncated(_shown),
+                context.l10n.explore_results_subjectTruncated(_shown),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),

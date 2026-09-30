@@ -38904,6 +38904,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get explore_results_subjectTitle => '匹配结果';
+
+  @override
+  String explore_results_subjectTruncated(Object count) {
+    return '仅显示前 $count 项。在列表中打开以查看全部。';
+  }
+
+  @override
   String get explore_results_title => '匹配的潜水';
 
   @override

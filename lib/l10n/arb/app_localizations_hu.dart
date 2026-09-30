@@ -41009,6 +41009,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get explore_results_subjectTitle => 'Találatok';
+
+  @override
+  String explore_results_subjectTruncated(Object count) {
+    return 'Az első $count látható. Az összeshez nyissa meg a listát.';
+  }
+
+  @override
   String get explore_results_title => 'Egyező merülések';
 
   @override

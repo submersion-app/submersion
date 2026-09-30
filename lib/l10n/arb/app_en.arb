@@ -24805,6 +24805,8 @@
   "explore_pickCandidate_title": "Which did you mean by \"{text}\"?",
   "explore_recent_title": "Recent",
   "explore_results_count": "{count, plural, =1{{count} result} other{{count} results}}",
+  "explore_results_subjectTitle": "Matches",
+  "explore_results_subjectTruncated": "Showing the first {count}. Open in the list for all of them.",
   "explore_results_title": "Matching dives",
   "explore_results_truncated": "Showing the first {count}. Open in the dive list for all of them.",
   "explore_shortcut_unavailable": "Explore needs the on-device model, which is not ready on this device.",

@@ -40774,6 +40774,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get explore_results_subjectTitle => 'النتائج المطابقة';
+
+  @override
+  String explore_results_subjectTruncated(Object count) {
+    return 'يُعرض أول $count. افتح القائمة لعرضها كلها.';
+  }
+
+  @override
   String get explore_results_title => 'الغطسات المطابقة';
 
   @override
