@@ -499,9 +499,10 @@ gave every subject a registry, a query-driven list and one name index.
 - Results are ordered by the active diver's dives in that scope, then by
   name, and the one chart is that count per row. "Who have I dived with most"
   is answered by that order, not by a sort in the schema.
-- A count with a period ("more than 10 times this year") is unplaced with the
-  reason `countInPeriod`: a count over a scoped relation is outside the query
-  language, and the registry count is all time.
+- A count or a first or last date together with a dive part ("more than 10
+  times this year", "last dived before 2022 in Bonaire") is unplaced with the
+  reason `aggregateWithScope`: an aggregate over a scoped relation is outside
+  the query language, and the registry fields are over all of a row's dives.
 - A mention of the subject's own kind matches rows by their stored name; no
   registry entity has an id field.
 - `dueWithinDays` is `serviceDueWithin`, a date bound the compiler computes

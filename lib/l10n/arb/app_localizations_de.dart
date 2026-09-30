@@ -41119,8 +41119,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get explore_understood_title => 'Verstanden';
 
   @override
-  String get explore_unplaced_reason_countInPeriod =>
-      'Zählen innerhalb eines Zeitraums wird noch nicht unterstützt';
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'Noch nicht mit Bedingungen zu den Tauchgängen kombinierbar';
 
   @override
   String get explore_unplaced_reason_invalid =>

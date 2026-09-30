@@ -41190,8 +41190,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get explore_understood_title => 'Compreso';
 
   @override
-  String get explore_unplaced_reason_countInPeriod =>
-      'Il conteggio in un periodo non è ancora supportato';
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'Non ancora combinabile con condizioni sulle immersioni';
 
   @override
   String get explore_unplaced_reason_invalid =>

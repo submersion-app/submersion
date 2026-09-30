@@ -41211,8 +41211,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get explore_understood_title => 'Entendido';
 
   @override
-  String get explore_unplaced_reason_countInPeriod =>
-      'Aún no se puede contar dentro de un periodo';
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'Aún no se puede combinar con condiciones sobre las inmersiones';
 
   @override
   String get explore_unplaced_reason_invalid => 'No se pudo leer este valor';

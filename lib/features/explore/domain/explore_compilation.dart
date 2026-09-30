@@ -71,7 +71,7 @@ class UnresolvedMention {
 
 /// A word or clause the compiler could not place. [reason] is one of
 /// `unknownField`, `invalid`, `outOfRange`, `noAxis`, `unknownTime`,
-/// `countInPeriod`, or null for a word the model itself left over.
+/// `aggregateWithScope`, or null for a word the model itself left over.
 class UnplacedItem {
   final String text;
   final String? reason;

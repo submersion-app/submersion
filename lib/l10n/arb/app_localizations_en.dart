@@ -40630,8 +40630,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explore_understood_title => 'Understood';
 
   @override
-  String get explore_unplaced_reason_countInPeriod =>
-      'Counting within a period is not supported yet';
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'Can\'t be combined with conditions on the dives yet';
 
   @override
   String get explore_unplaced_reason_invalid => 'Could not read this value';

@@ -107,7 +107,7 @@ class ExploreAttentionRow extends ConsumerWidget {
         'outOfRange' => l10n.explore_unplaced_reason_outOfRange,
         'unknownField' => l10n.explore_unplaced_reason_unknownField,
         'unknownTime' => l10n.explore_unplaced_reason_unknownTime,
-        'countInPeriod' => l10n.explore_unplaced_reason_countInPeriod,
+        'aggregateWithScope' => l10n.explore_unplaced_reason_aggregateWithScope,
         _ => null,
       };
 

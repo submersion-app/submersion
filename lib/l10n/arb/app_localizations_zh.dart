@@ -38921,7 +38921,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get explore_understood_title => '已理解';
 
   @override
-  String get explore_unplaced_reason_countInPeriod => '暂不支持在某一时段内计数';
+  String get explore_unplaced_reason_aggregateWithScope => '暂不能与潜水条件一起使用';
 
   @override
   String get explore_unplaced_reason_invalid => '无法读取此值';

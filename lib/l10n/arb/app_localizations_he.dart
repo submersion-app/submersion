@@ -40363,8 +40363,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get explore_understood_title => 'הובן';
 
   @override
-  String get explore_unplaced_reason_countInPeriod =>
-      'ספירה בתוך תקופה עדיין אינה נתמכת';
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'עדיין לא ניתן לשלב עם תנאים על הצלילות';
 
   @override
   String get explore_unplaced_reason_invalid => 'לא ניתן לקרוא ערך זה';

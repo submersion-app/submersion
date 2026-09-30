@@ -12357,7 +12357,7 @@
   "explore_shortcut_unavailable": "A felfedezéshez az eszközön futó modell szükséges, amely ezen az eszközön nem áll készen.",
   "explore_title": "Felfedezés",
   "explore_understood_title": "Értelmezve",
-  "explore_unplaced_reason_countInPeriod": "Időszakon belüli számlálás még nem támogatott",
+  "explore_unplaced_reason_aggregateWithScope": "Még nem kombinálható a merülésekre vonatkozó feltételekkel",
   "explore_unplaced_reason_invalid": "Ezt az értéket nem sikerült beolvasni",
   "explore_unplaced_reason_noAxis": "Még nem kereshető",
   "explore_unplaced_reason_outOfRange": "Az érték a tartományon kívül esik",

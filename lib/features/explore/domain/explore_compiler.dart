@@ -38,6 +38,14 @@ abstract final class ExploreCompiler {
       ? _dives(query, ctx)
       : _subject(query, ctx);
 
+  /// The registry fields computed over all of a row's dives.
+  static const _aggregates = {
+    'diveCount',
+    'lastDived',
+    'firstSeen',
+    'lastSeen',
+  };
+
   static QueryNode? _and(List<QueryNode> nodes) => switch (nodes) {
     [] => null,
     [final only] => only,
@@ -150,8 +158,9 @@ abstract final class ExploreCompiler {
   /// A sentence about another subject (phase 3). Its own fields, own-kind
   /// mentions and (for trips) its period lower onto the subject's rows;
   /// every other part is about its dives and lowers into [diveScope],
-  /// reached through the subject's counted dives. A count cannot be said of
-  /// a scope yet, so with one it is unplaced rather than counted all time.
+  /// reached through the subject's counted dives. A count or a first or
+  /// last date cannot be said of a scope yet, so with one it is unplaced
+  /// rather than taken over all time.
   static ExploreCompilation _subject(
     ParsedQuery query,
     ExploreCompilerContext ctx,
@@ -201,8 +210,11 @@ abstract final class ExploreCompiler {
         diveEntries.isNotEmpty || timeViaDives || clauses.any((c) => c.$2);
 
     for (final (i, isViaDives, r, c) in clauses) {
-      if (r.chip!.field.name == 'diveCount' && hasDivePart) {
-        unplaced.add(UnplacedItem(c.text, reason: 'countInPeriod'));
+      // A count or a first or last date is over all the row's dives, so
+      // with a dive part it would answer another question than the
+      // sentence asked.
+      if (_aggregates.contains(r.chip!.field.name) && hasDivePart) {
+        unplaced.add(UnplacedItem(c.text, reason: 'aggregateWithScope'));
         continue;
       }
       (isViaDives ? viaDives : own).addAll(r.nodes);

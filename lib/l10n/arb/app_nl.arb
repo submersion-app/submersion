@@ -12357,7 +12357,7 @@
   "explore_shortcut_unavailable": "Verkennen heeft het model op het apparaat nodig, dat op dit apparaat niet klaar is.",
   "explore_title": "Verkennen",
   "explore_understood_title": "Begrepen",
-  "explore_unplaced_reason_countInPeriod": "Tellen binnen een periode wordt nog niet ondersteund",
+  "explore_unplaced_reason_aggregateWithScope": "Nog niet te combineren met voorwaarden op de duiken",
   "explore_unplaced_reason_invalid": "Deze waarde kon niet worden gelezen",
   "explore_unplaced_reason_noAxis": "Nog niet doorzoekbaar",
   "explore_unplaced_reason_outOfRange": "Waarde buiten bereik",

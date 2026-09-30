@@ -12357,7 +12357,7 @@
   "explore_shortcut_unavailable": "Explorer nécessite le modèle sur l'appareil, qui n'est pas prêt sur cet appareil.",
   "explore_title": "Explorer",
   "explore_understood_title": "Compris",
-  "explore_unplaced_reason_countInPeriod": "Le comptage sur une période n'est pas encore pris en charge",
+  "explore_unplaced_reason_aggregateWithScope": "Pas encore combinable avec des conditions sur les plongées",
   "explore_unplaced_reason_invalid": "Impossible de lire cette valeur",
   "explore_unplaced_reason_noAxis": "Pas encore consultable",
   "explore_unplaced_reason_outOfRange": "Valeur hors limites",

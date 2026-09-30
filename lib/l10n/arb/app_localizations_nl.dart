@@ -40919,8 +40919,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get explore_understood_title => 'Begrepen';
 
   @override
-  String get explore_unplaced_reason_countInPeriod =>
-      'Tellen binnen een periode wordt nog niet ondersteund';
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'Nog niet te combineren met voorwaarden op de duiken';
 
   @override
   String get explore_unplaced_reason_invalid =>

@@ -12357,7 +12357,7 @@
   "explore_shortcut_unavailable": "يحتاج الاستكشاف إلى النموذج على الجهاز، وهو غير جاهز على هذا الجهاز.",
   "explore_title": "استكشاف",
   "explore_understood_title": "تم فهمه",
-  "explore_unplaced_reason_countInPeriod": "العدّ ضمن فترة غير مدعوم بعد",
+  "explore_unplaced_reason_aggregateWithScope": "لا يمكن دمجه مع شروط الغطسات بعد",
   "explore_unplaced_reason_invalid": "تعذّرت قراءة هذه القيمة",
   "explore_unplaced_reason_noAxis": "غير قابل للبحث بعد",
   "explore_unplaced_reason_outOfRange": "القيمة خارج النطاق",

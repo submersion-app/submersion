@@ -12357,7 +12357,7 @@
   "explore_shortcut_unavailable": "Explorar precisa do modelo no dispositivo, que não está pronto neste dispositivo.",
   "explore_title": "Explorar",
   "explore_understood_title": "Compreendido",
-  "explore_unplaced_reason_countInPeriod": "Ainda não é possível contar dentro de um período",
+  "explore_unplaced_reason_aggregateWithScope": "Ainda não é possível combinar com condições sobre os mergulhos",
   "explore_unplaced_reason_invalid": "Não foi possível ler este valor",
   "explore_unplaced_reason_noAxis": "Ainda não pesquisável",
   "explore_unplaced_reason_outOfRange": "Valor fora do intervalo",

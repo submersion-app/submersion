@@ -12469,7 +12469,7 @@
   "explore_shortcut_unavailable": "Erkunden benötigt das Modell auf dem Gerät, das auf diesem Gerät nicht bereit ist.",
   "explore_title": "Erkunden",
   "explore_understood_title": "Verstanden",
-  "explore_unplaced_reason_countInPeriod": "Zählen innerhalb eines Zeitraums wird noch nicht unterstützt",
+  "explore_unplaced_reason_aggregateWithScope": "Noch nicht mit Bedingungen zu den Tauchgängen kombinierbar",
   "explore_unplaced_reason_invalid": "Dieser Wert konnte nicht gelesen werden",
   "explore_unplaced_reason_noAxis": "Noch nicht durchsuchbar",
   "explore_unplaced_reason_outOfRange": "Wert außerhalb des Bereichs",

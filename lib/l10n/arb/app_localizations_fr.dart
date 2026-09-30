@@ -41292,8 +41292,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get explore_understood_title => 'Compris';
 
   @override
-  String get explore_unplaced_reason_countInPeriod =>
-      'Le comptage sur une période n\'est pas encore pris en charge';
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'Pas encore combinable avec des conditions sur les plongées';
 
   @override
   String get explore_unplaced_reason_invalid =>

@@ -24810,7 +24810,7 @@
   "explore_shortcut_unavailable": "Explore needs the on-device model, which is not ready on this device.",
   "explore_title": "Explore",
   "explore_understood_title": "Understood",
-  "explore_unplaced_reason_countInPeriod": "Counting within a period is not supported yet",
+  "explore_unplaced_reason_aggregateWithScope": "Can't be combined with conditions on the dives yet",
   "explore_unplaced_reason_invalid": "Could not read this value",
   "explore_unplaced_reason_noAxis": "Not searchable yet",
   "explore_unplaced_reason_outOfRange": "Value out of range",

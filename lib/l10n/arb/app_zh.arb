@@ -12357,7 +12357,7 @@
   "explore_shortcut_unavailable": "探索需要设备端模型，但此设备上的模型尚未就绪。",
   "explore_title": "探索",
   "explore_understood_title": "已理解",
-  "explore_unplaced_reason_countInPeriod": "暂不支持在某一时段内计数",
+  "explore_unplaced_reason_aggregateWithScope": "暂不能与潜水条件一起使用",
   "explore_unplaced_reason_invalid": "无法读取此值",
   "explore_unplaced_reason_noAxis": "尚不可搜索",
   "explore_unplaced_reason_outOfRange": "值超出范围",

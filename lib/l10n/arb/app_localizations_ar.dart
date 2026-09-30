@@ -40792,8 +40792,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get explore_understood_title => 'تم فهمه';
 
   @override
-  String get explore_unplaced_reason_countInPeriod =>
-      'العدّ ضمن فترة غير مدعوم بعد';
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'لا يمكن دمجه مع شروط الغطسات بعد';
 
   @override
   String get explore_unplaced_reason_invalid => 'تعذّرت قراءة هذه القيمة';

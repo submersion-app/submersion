@@ -12357,7 +12357,7 @@
   "explore_shortcut_unavailable": "חקירה דורשת את המודל במכשיר, שאינו מוכן במכשיר זה.",
   "explore_title": "חקירה",
   "explore_understood_title": "הובן",
-  "explore_unplaced_reason_countInPeriod": "ספירה בתוך תקופה עדיין אינה נתמכת",
+  "explore_unplaced_reason_aggregateWithScope": "עדיין לא ניתן לשלב עם תנאים על הצלילות",
   "explore_unplaced_reason_invalid": "לא ניתן לקרוא ערך זה",
   "explore_unplaced_reason_noAxis": "עדיין לא ניתן לחפש",
   "explore_unplaced_reason_outOfRange": "ערך מחוץ לטווח",

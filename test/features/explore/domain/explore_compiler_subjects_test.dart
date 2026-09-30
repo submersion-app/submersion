@@ -221,7 +221,19 @@ void main() {
       clauses: [clause('diveCount', 'gt', 10)],
       time: 'this year',
     );
-    expect(q.unplaced.single.reason, 'countInPeriod');
+    expect(q.unplaced.single.reason, 'aggregateWithScope');
+    expect(q.chips.single.ref, ChipRef.time);
+  });
+
+  test('a last-dived date with a dive part is unplaced, not all time', () {
+    // The registry date is the newest dive anywhere, not the newest dive
+    // this year, so with a scope it would answer another question.
+    final q = compile(
+      'buddies',
+      clauses: [clause('lastDived', 'lt', '2022')],
+      time: 'this year',
+    );
+    expect(q.unplaced.single.reason, 'aggregateWithScope');
     expect(q.chips.single.ref, ChipRef.time);
   });
 

@@ -41198,8 +41198,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get explore_understood_title => 'Compreendido';
 
   @override
-  String get explore_unplaced_reason_countInPeriod =>
-      'Ainda não é possível contar dentro de um período';
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'Ainda não é possível combinar com condições sobre os mergulhos';
 
   @override
   String get explore_unplaced_reason_invalid =>

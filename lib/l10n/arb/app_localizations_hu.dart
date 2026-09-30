@@ -41027,8 +41027,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get explore_understood_title => 'Értelmezve';
 
   @override
-  String get explore_unplaced_reason_countInPeriod =>
-      'Időszakon belüli számlálás még nem támogatott';
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'Még nem kombinálható a merülésekre vonatkozó feltételekkel';
 
   @override
   String get explore_unplaced_reason_invalid =>

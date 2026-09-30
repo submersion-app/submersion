@@ -66288,11 +66288,11 @@ abstract class AppLocalizations {
   /// **'Understood'**
   String get explore_understood_title;
 
-  /// No description provided for @explore_unplaced_reason_countInPeriod.
+  /// No description provided for @explore_unplaced_reason_aggregateWithScope.
   ///
   /// In en, this message translates to:
-  /// **'Counting within a period is not supported yet'**
-  String get explore_unplaced_reason_countInPeriod;
+  /// **'Can\'t be combined with conditions on the dives yet'**
+  String get explore_unplaced_reason_aggregateWithScope;
 
   /// No description provided for @explore_unplaced_reason_invalid.
   ///
