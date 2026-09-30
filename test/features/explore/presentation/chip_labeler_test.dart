@@ -9,6 +9,7 @@ import 'package:submersion/features/explore/domain/explore_fields.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/chip_labeler.dart';
+import 'package:submersion/features/explore/presentation/explore_label_lookup.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_de.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -48,9 +49,14 @@ void main() {
     ClauseOp op = ClauseOp.gte,
   }) => ClauseChip(field: f, op: op, value: v, dimension: d);
 
-  test('every catalog field has a label', () {
+  test('every catalog field\'s label keys resolve to a string', () {
+    // A key with no string would come back as itself; a new field cannot
+    // leave its label out, as labelKey is required (#2641).
     for (final f in kExploreFields) {
-      expect(metric.fieldName(f), isNotEmpty, reason: f.name);
+      for (final key in [f.labelKey, ?f.offLabelKey]) {
+        expect(exploreLabelForKey(l10n, key), isNot(key), reason: f.name);
+      }
+      expect(metric.fieldName(f), exploreLabelForKey(l10n, f.labelKey));
     }
   });
 

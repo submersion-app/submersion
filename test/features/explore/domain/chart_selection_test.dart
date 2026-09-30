@@ -5,30 +5,42 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 void main() {
   test('always starts with dives over time', () {
     final charts = selectCharts(
-      numericFields: const [],
+      trends: const [],
       resolvedEntityCounts: const {},
     );
     expect(charts.map((c) => c.kind), [ChartKind.divesOverTime]);
   });
 
-  test(
-    'adds one trend per numeric field in catalog order, capped at three',
-    () {
-      final charts = selectCharts(
-        numericFields: const ['bottomTime', 'depth', 'waterTemp', 'rating'],
-        resolvedEntityCounts: const {MentionKind.place: 3},
-      );
-      expect(charts.map((c) => c.kind), [
-        ChartKind.divesOverTime,
+  test('adds each trend once in chart order, capped at three', () {
+    final charts = selectCharts(
+      trends: const [
+        ChartKind.bottomTimeTrend,
         ChartKind.depthTrend,
         ChartKind.waterTempTrend,
-      ]);
-    },
-  );
+        ChartKind.depthTrend,
+      ],
+      resolvedEntityCounts: const {MentionKind.place: 3},
+    );
+    expect(charts.map((c) => c.kind), [
+      ChartKind.divesOverTime,
+      ChartKind.depthTrend,
+      ChartKind.waterTempTrend,
+    ]);
+  });
+
+  test('a kind that is not a trend is ignored', () {
+    expect(
+      selectCharts(
+        trends: const [ChartKind.entityCounts, ChartKind.divesOverTime],
+        resolvedEntityCounts: const {},
+      ).map((c) => c.kind),
+      [ChartKind.divesOverTime],
+    );
+  });
 
   test('entity counts appear only for kinds with several ids', () {
     final charts = selectCharts(
-      numericFields: const [],
+      trends: const [],
       resolvedEntityCounts: const {
         MentionKind.place: 3,
         MentionKind.species: 1,
@@ -48,7 +60,7 @@ void main() {
       MentionKind.computer,
     ]) {
       final charts = selectCharts(
-        numericFields: const [],
+        trends: const [],
         resolvedEntityCounts: {kind: 3},
       );
       expect(charts.map((c) => c.kind), [
@@ -59,7 +71,7 @@ void main() {
 
   test('sites and places share one site-count chart', () {
     final charts = selectCharts(
-      numericFields: const [],
+      trends: const [],
       resolvedEntityCounts: const {MentionKind.site: 2, MentionKind.place: 3},
     );
     expect(charts.where((c) => c.kind == ChartKind.entityCounts), hasLength(1));
@@ -73,7 +85,7 @@ void main() {
       MentionKind.gear,
     ]) {
       final charts = selectCharts(
-        numericFields: const [],
+        trends: const [],
         resolvedEntityCounts: {kind: 2},
       );
       expect(charts.last.entityKind, kind, reason: kind.name);
@@ -83,7 +95,7 @@ void main() {
   test('a SAC clause draws a SAC chart', () {
     expect(
       selectCharts(
-        numericFields: const ['sac'],
+        trends: const [ChartKind.sacTrend],
         resolvedEntityCounts: const {},
       ),
       contains(const ChartRequest(ChartKind.sacTrend)),

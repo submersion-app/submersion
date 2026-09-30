@@ -10,6 +10,7 @@ import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/features/explore/domain/explore_fields.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
+import 'package:submersion/features/explore/presentation/explore_label_lookup.dart';
 import 'package:submersion/features/query/presentation/query_label_lookup.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -25,41 +26,8 @@ class ChipLabeler {
     TimeChip(:final start, :final end) => _time(start, end),
   };
 
-  String fieldName(ExploreField f) => switch (f.name) {
-    'depth' => l10n.explore_field_depth,
-    'avgDepth' => l10n.explore_field_avgDepth,
-    'bottomTime' => l10n.explore_field_bottomTime,
-    'waterTemp' => l10n.explore_field_waterTemp,
-    'airTemp' => l10n.explore_field_airTemp,
-    'visibility' => l10n.explore_field_visibility,
-    'rating' => l10n.explore_field_rating,
-    'o2' => l10n.explore_field_o2,
-    'diveNumber' => l10n.explore_field_diveNumber,
-    'waterType' => l10n.explore_field_waterType,
-    'diveMode' => l10n.explore_field_diveMode,
-    'entryMethod' => l10n.explore_field_entryMethod,
-    'currentStrength' => l10n.explore_field_currentStrength,
-    'favorite' => l10n.explore_chip_favorite,
-    'deco' => l10n.explore_chip_deco,
-    'noBuddy' => l10n.explore_chip_noBuddy,
-    'weekday' => l10n.explore_field_weekday,
-    'diveType' => l10n.explore_field_diveType,
-    'sac' => queryLabelForKey(l10n, 'query_dives_sac'),
-    'sacTrend' => queryLabelForKey(l10n, 'query_dives_sacTrend'),
-    'sacChange' => queryLabelForKey(l10n, 'query_dives_sacChange'),
-    'finalStop' => queryLabelForKey(l10n, 'query_dives_finalStop'),
-    'finalStopExcursion' => queryLabelForKey(
-      l10n,
-      'query_dives_finalStopExcursion',
-    ),
-    'finalStopDuration' => queryLabelForKey(
-      l10n,
-      'query_dives_finalStopDuration',
-    ),
-    'finding' => queryLabelForKey(l10n, 'query_dives_findings'),
-    // Every field in kExploreFields has an arm above (chip_labeler_test).
-    _ => f.name,
-  };
+  /// The field's name in the app language, through its own label key.
+  String fieldName(ExploreField f) => exploreLabelForKey(l10n, f.labelKey);
 
   String _op(ClauseOp op) => switch (op) {
     ClauseOp.gt => l10n.explore_op_gt,
@@ -87,11 +55,8 @@ class ChipLabeler {
     final name = fieldName(c.field);
     final v = c.value;
     if (v is bool) {
-      return switch (c.field.name) {
-        'deco' => v ? l10n.explore_chip_deco : l10n.explore_chip_noDeco,
-        'noBuddy' => l10n.explore_chip_noBuddy,
-        _ => l10n.explore_chip_favorite,
-      };
+      final off = c.field.offLabelKey;
+      return v || off == null ? name : exploreLabelForKey(l10n, off);
     }
     if (v is List && v.isNotEmpty && v.first is num) {
       return l10n.explore_chip_between(
