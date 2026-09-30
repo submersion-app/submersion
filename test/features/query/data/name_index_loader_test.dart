@@ -246,4 +246,13 @@ void main() {
       expect(entries.single.primary, isTrue);
     },
   );
+
+  test('an item with no name is still found by its brand and model', () async {
+    await db.customStatement(
+      "INSERT INTO equipment (id, name, brand, model, type, created_at, "
+      "updated_at) VALUES ('g-blank', '', 'Apeks', 'XTX50', 'regulator', 0, 0)",
+    );
+    final index = await load();
+    expect(index.resolve(QuerySubject.equipment, 'apeks xtx50')?.id, 'g-blank');
+  });
 }

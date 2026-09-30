@@ -56,31 +56,25 @@ class NameIndexLoader {
     String? diverId,
     required AppLocalizations l10n,
   }) async {
+    // Independent reads: issue them together, as the database serves them
+    // in turn anyway, and keep the subjects' order for the entries.
+    final (rowsBySubject, legacy) = await (
+      Future.wait([for (final s in refSubjects) _rows(s, diverId)]),
+      _legacyBuddyNames(diverId),
+    ).wait;
     final entries = <NameEntry>[];
     var siteRows = const <QueryRow>[];
-    for (final subject in refSubjects) {
-      final rows = await _rows(subject, diverId);
+    for (var i = 0; i < refSubjects.length; i++) {
+      final subject = refSubjects[i];
+      final rows = rowsBySubject[i];
       if (subject == QuerySubject.sites) siteRows = rows;
       for (final row in rows) {
-        final id = row.read<String>('id');
-        final label = row.read<String?>('label');
-        if (label == null || label.isEmpty) continue;
-        entries.add(
-          NameEntry(
-            subject: subject,
-            label: label,
-            ids: [id],
-            target: rowTargetFor(subject),
-            rank: _primaryRank(subject, id, label, row, l10n),
-            primary: true,
-          ),
-        );
-        entries.addAll(_alternates(subject, id, label, row, l10n));
+        entries.addAll(_rowEntries(subject, row, l10n));
       }
     }
     entries.addAll(_places(siteRows));
     entries.addAll(_attributeChoices(l10n));
-    entries.addAll(await _legacyBuddyNames(diverId));
+    entries.addAll(legacy);
     final seen = <String>{};
     return NameIndex([
       for (final e in entries)
@@ -204,37 +198,40 @@ class NameIndexLoader {
     ];
   }
 
-  /// A row's own name ranks 0 for sentences, except a species': built-ins
-  /// rank ahead of custom species, as Explore ranked them. A built-in whose
-  /// localized name differs has that name at rank 0 (an alternate) and its
-  /// stored name at 1; in a locale where the two agree (English) the stored
-  /// name itself is the rank-0 built-in label.
-  static int _primaryRank(
+  /// One row's entries: its registry name (the primary, when it has one)
+  /// and the alternate labels a sentence may use for it. A row with no name
+  /// still keeps its alternates, so an item saved without a name is found by
+  /// its brand and model.
+  ///
+  /// Ranks, for sentences: a row's own name is 0, except a species'. Built-in
+  /// species rank ahead of custom ones, as Explore ranked them: a built-in's
+  /// localized name is its rank-0 label (an alternate, the stored name then
+  /// ranking 1), and where the two agree (English) the stored name itself is
+  /// rank 0.
+  static Iterable<NameEntry> _rowEntries(
     QuerySubject subject,
-    String id,
-    String label,
-    QueryRow row,
-    AppLocalizations l10n,
-  ) {
-    if (subject != QuerySubject.species) return 0;
-    final builtIn = (row.read<int?>('is_built_in') ?? 0) == 1;
-    if (!builtIn) return 1;
-    final localized = builtInSpeciesName(l10n, id);
-    return localized == null || localized == label ? 0 : 1;
-  }
-
-  Iterable<NameEntry> _alternates(
-    QuerySubject subject,
-    String id,
-    String label,
     QueryRow row,
     AppLocalizations l10n,
   ) sync* {
+    final id = row.read<String>('id');
+    final label = row.read<String?>('label') ?? '';
+    final species = subject == QuerySubject.species;
+    final builtIn = species && (row.read<int?>('is_built_in') ?? 0) == 1;
+    final localized = builtIn ? builtInSpeciesName(l10n, id) : null;
+    final distinctLocalized = localized != null && localized != label;
+    if (label.isNotEmpty) {
+      yield NameEntry(
+        subject: subject,
+        label: label,
+        ids: [id],
+        target: rowTargetFor(subject),
+        rank: !species || (builtIn && !distinctLocalized) ? 0 : 1,
+        primary: true,
+      );
+    }
     switch (subject) {
       case QuerySubject.species:
-        final builtIn = (row.read<int?>('is_built_in') ?? 0) == 1;
-        final localized = builtIn ? builtInSpeciesName(l10n, id) : null;
-        if (localized != null && localized != label) {
+        if (distinctLocalized) {
           yield NameEntry(
             subject: subject,
             label: localized,
