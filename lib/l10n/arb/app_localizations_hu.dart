@@ -45859,6 +45859,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_buddies_certifications => 'Minősítések';
 
   @override
+  String get query_buddies_diveCount => 'Közös merülések';
+
+  @override
   String get query_buddies_dives => 'Merülések';
 
   @override
@@ -45866,6 +45869,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_buddies_favorite => 'Kedvenc';
+
+  @override
+  String get query_buddies_lastDived => 'Utolsó közös merülés';
 
   @override
   String get query_buddies_name => 'Név';
@@ -45889,7 +45895,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_centers_country => 'Ország';
 
   @override
+  String get query_centers_diveCount => 'Merülések száma';
+
+  @override
   String get query_centers_dives => 'Merülések';
+
+  @override
+  String get query_centers_lastDived => 'Utolsó merülés';
 
   @override
   String get query_centers_name => 'Név';
@@ -46264,13 +46276,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_equipment_brand => 'Márka';
 
   @override
+  String get query_equipment_diveCount => 'Merülések használatban';
+
+  @override
   String get query_equipment_dives => 'Merülések';
+
+  @override
+  String get query_equipment_lastDived => 'Utoljára használva';
 
   @override
   String get query_equipment_model => 'Modell';
 
   @override
   String get query_equipment_name => 'Név';
+
+  @override
+  String get query_equipment_nextServiceDue => 'Következő szerviz';
 
   @override
   String get query_equipment_serialNumber => 'Sorozatszám';
@@ -46342,10 +46363,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_sites_difficulty => 'Nehézség';
 
   @override
+  String get query_sites_diveCount => 'Merülések száma';
+
+  @override
   String get query_sites_dives => 'Merülések';
 
   @override
   String get query_sites_island => 'Sziget';
+
+  @override
+  String get query_sites_lastDived => 'Utolsó merülés';
 
   @override
   String get query_sites_maxDepth => 'Maximális mélység';
@@ -46378,10 +46405,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_species_description => 'Leírás';
 
   @override
+  String get query_species_diveCount => 'Megfigyeléses merülések';
+
+  @override
   String get query_species_dives => 'Merülések';
 
   @override
   String get query_species_expectedSites => 'Várható helyszíneken';
+
+  @override
+  String get query_species_firstSeen => 'Először látva';
+
+  @override
+  String get query_species_lastSeen => 'Utoljára látva';
 
   @override
   String get query_species_name => 'Név';
@@ -46418,6 +46454,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_tanks_volume => 'Térfogat';
+
+  @override
+  String get query_trips_diveCount => 'Merülések száma';
 
   @override
   String get query_trips_dives => 'Merülések';

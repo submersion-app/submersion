@@ -45362,6 +45362,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_buddies_certifications => 'Certifications';
 
   @override
+  String get query_buddies_diveCount => 'Dives together';
+
+  @override
   String get query_buddies_dives => 'Dives';
 
   @override
@@ -45369,6 +45372,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_buddies_favorite => 'Favorite';
+
+  @override
+  String get query_buddies_lastDived => 'Last dived together';
 
   @override
   String get query_buddies_name => 'Name';
@@ -45392,7 +45398,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_centers_country => 'Country';
 
   @override
+  String get query_centers_diveCount => 'Dive count';
+
+  @override
   String get query_centers_dives => 'Dives';
+
+  @override
+  String get query_centers_lastDived => 'Last dived';
 
   @override
   String get query_centers_name => 'Name';
@@ -45767,13 +45779,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_equipment_brand => 'Brand';
 
   @override
+  String get query_equipment_diveCount => 'Dives used';
+
+  @override
   String get query_equipment_dives => 'Dives';
+
+  @override
+  String get query_equipment_lastDived => 'Last used';
 
   @override
   String get query_equipment_model => 'Model';
 
   @override
   String get query_equipment_name => 'Name';
+
+  @override
+  String get query_equipment_nextServiceDue => 'Next service due';
 
   @override
   String get query_equipment_serialNumber => 'Serial number';
@@ -45845,10 +45866,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_sites_difficulty => 'Difficulty';
 
   @override
+  String get query_sites_diveCount => 'Dive count';
+
+  @override
   String get query_sites_dives => 'Dives';
 
   @override
   String get query_sites_island => 'Island';
+
+  @override
+  String get query_sites_lastDived => 'Last dived';
 
   @override
   String get query_sites_maxDepth => 'Max depth';
@@ -45881,10 +45908,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_species_description => 'Description';
 
   @override
+  String get query_species_diveCount => 'Dives seen on';
+
+  @override
   String get query_species_dives => 'Dives';
 
   @override
   String get query_species_expectedSites => 'Expected at sites';
+
+  @override
+  String get query_species_firstSeen => 'First seen';
+
+  @override
+  String get query_species_lastSeen => 'Last seen';
 
   @override
   String get query_species_name => 'Name';
@@ -45921,6 +45957,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_tanks_volume => 'Volume';
+
+  @override
+  String get query_trips_diveCount => 'Dive count';
 
   @override
   String get query_trips_dives => 'Dives';

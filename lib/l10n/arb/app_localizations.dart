@@ -73517,6 +73517,12 @@ abstract class AppLocalizations {
   /// **'Certifications'**
   String get query_buddies_certifications;
 
+  /// Field label in the query builder: how many counted dives the diver made with this buddy
+  ///
+  /// In en, this message translates to:
+  /// **'Dives together'**
+  String get query_buddies_diveCount;
+
   /// Query builder: a buddy's dives
   ///
   /// In en, this message translates to:
@@ -73534,6 +73540,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Favorite'**
   String get query_buddies_favorite;
+
+  /// Field label in the query builder: the date of the newest counted dive with this buddy
+  ///
+  /// In en, this message translates to:
+  /// **'Last dived together'**
+  String get query_buddies_lastDived;
 
   /// Field label in the query builder
   ///
@@ -73577,11 +73589,23 @@ abstract class AppLocalizations {
   /// **'Country'**
   String get query_centers_country;
 
+  /// Field label in the query builder: how many counted dives were made with the center
+  ///
+  /// In en, this message translates to:
+  /// **'Dive count'**
+  String get query_centers_diveCount;
+
   /// Query builder: dives made with a dive center
   ///
   /// In en, this message translates to:
   /// **'Dives'**
   String get query_centers_dives;
+
+  /// Field label in the query builder: the date of the newest counted dive with the center
+  ///
+  /// In en, this message translates to:
+  /// **'Last dived'**
+  String get query_centers_lastDived;
 
   /// Field label in the query builder
   ///
@@ -74327,11 +74351,23 @@ abstract class AppLocalizations {
   /// **'Brand'**
   String get query_equipment_brand;
 
+  /// Field label in the query builder: how many counted dives the item was used on
+  ///
+  /// In en, this message translates to:
+  /// **'Dives used'**
+  String get query_equipment_diveCount;
+
   /// Relation label in the query builder: the dives an item was used on
   ///
   /// In en, this message translates to:
   /// **'Dives'**
   String get query_equipment_dives;
+
+  /// Field label in the query builder: the date of the newest counted dive the item was used on
+  ///
+  /// In en, this message translates to:
+  /// **'Last used'**
+  String get query_equipment_lastDived;
 
   /// Field label in the query builder
   ///
@@ -74344,6 +74380,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name'**
   String get query_equipment_name;
+
+  /// Field label in the query builder: the date the item's next service falls due
+  ///
+  /// In en, this message translates to:
+  /// **'Next service due'**
+  String get query_equipment_nextServiceDue;
 
   /// Field label in the query builder
   ///
@@ -74483,6 +74525,12 @@ abstract class AppLocalizations {
   /// **'Difficulty'**
   String get query_sites_difficulty;
 
+  /// Field label in the query builder: how many counted dives the site has
+  ///
+  /// In en, this message translates to:
+  /// **'Dive count'**
+  String get query_sites_diveCount;
+
   /// Relation label in the query builder: the dives at a site
   ///
   /// In en, this message translates to:
@@ -74494,6 +74542,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Island'**
   String get query_sites_island;
+
+  /// Field label in the query builder: the date of the site's newest counted dive
+  ///
+  /// In en, this message translates to:
+  /// **'Last dived'**
+  String get query_sites_lastDived;
 
   /// Field label in the query builder
   ///
@@ -74555,6 +74609,12 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get query_species_description;
 
+  /// Field label in the query builder: how many counted dives the species was seen on
+  ///
+  /// In en, this message translates to:
+  /// **'Dives seen on'**
+  String get query_species_diveCount;
+
   /// Query builder: the dives a species was sighted on
   ///
   /// In en, this message translates to:
@@ -74566,6 +74626,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expected at sites'**
   String get query_species_expectedSites;
+
+  /// Field label in the query builder: the date of the first counted dive the species was seen on
+  ///
+  /// In en, this message translates to:
+  /// **'First seen'**
+  String get query_species_firstSeen;
+
+  /// Field label in the query builder: the date of the newest counted dive the species was seen on
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen'**
+  String get query_species_lastSeen;
 
   /// Field label in the query builder
   ///
@@ -74638,6 +74710,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Volume'**
   String get query_tanks_volume;
+
+  /// Field label in the query builder: how many counted dives the trip has
+  ///
+  /// In en, this message translates to:
+  /// **'Dive count'**
+  String get query_trips_diveCount;
 
   /// Relation label in the query builder: the dives on a trip
   ///

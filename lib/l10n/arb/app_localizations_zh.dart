@@ -43386,6 +43386,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_buddies_certifications => '证书';
 
   @override
+  String get query_buddies_diveCount => '共同潜水次数';
+
+  @override
   String get query_buddies_dives => '潜水';
 
   @override
@@ -43393,6 +43396,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_buddies_favorite => '收藏';
+
+  @override
+  String get query_buddies_lastDived => '最近一起潜水';
 
   @override
   String get query_buddies_name => '名称';
@@ -43416,7 +43422,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_centers_country => '国家';
 
   @override
+  String get query_centers_diveCount => '潜水次数';
+
+  @override
   String get query_centers_dives => '潜水';
+
+  @override
+  String get query_centers_lastDived => '最近潜水';
 
   @override
   String get query_centers_name => '名称';
@@ -43791,13 +43803,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_equipment_brand => '品牌';
 
   @override
+  String get query_equipment_diveCount => '使用潜水次数';
+
+  @override
   String get query_equipment_dives => '潜水';
+
+  @override
+  String get query_equipment_lastDived => '最近使用';
 
   @override
   String get query_equipment_model => '型号';
 
   @override
   String get query_equipment_name => '名称';
+
+  @override
+  String get query_equipment_nextServiceDue => '下次保养到期';
 
   @override
   String get query_equipment_serialNumber => '序列号';
@@ -43869,10 +43890,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_sites_difficulty => '难度';
 
   @override
+  String get query_sites_diveCount => '潜水次数';
+
+  @override
   String get query_sites_dives => '潜水';
 
   @override
   String get query_sites_island => '岛屿';
+
+  @override
+  String get query_sites_lastDived => '最近潜水';
 
   @override
   String get query_sites_maxDepth => '最大深度';
@@ -43905,10 +43932,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_species_description => '描述';
 
   @override
+  String get query_species_diveCount => '目击潜水次数';
+
+  @override
   String get query_species_dives => '潜水';
 
   @override
   String get query_species_expectedSites => '预期出现的潜点';
+
+  @override
+  String get query_species_firstSeen => '首次见到';
+
+  @override
+  String get query_species_lastSeen => '最近见到';
 
   @override
   String get query_species_name => '名称';
@@ -43945,6 +43981,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_tanks_volume => '容量';
+
+  @override
+  String get query_trips_diveCount => '潜水次数';
 
   @override
   String get query_trips_dives => '潜水';

@@ -45959,6 +45959,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_buddies_certifications => 'Zertifizierungen';
 
   @override
+  String get query_buddies_diveCount => 'Gemeinsame Tauchgänge';
+
+  @override
   String get query_buddies_dives => 'Tauchgänge';
 
   @override
@@ -45966,6 +45969,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_buddies_favorite => 'Favorit';
+
+  @override
+  String get query_buddies_lastDived => 'Zuletzt gemeinsam getaucht';
 
   @override
   String get query_buddies_name => 'Name';
@@ -45989,7 +45995,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_centers_country => 'Land';
 
   @override
+  String get query_centers_diveCount => 'Anzahl Tauchgänge';
+
+  @override
   String get query_centers_dives => 'Tauchgänge';
+
+  @override
+  String get query_centers_lastDived => 'Zuletzt getaucht';
 
   @override
   String get query_centers_name => 'Name';
@@ -46364,13 +46376,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_equipment_brand => 'Marke';
 
   @override
+  String get query_equipment_diveCount => 'Tauchgänge im Einsatz';
+
+  @override
   String get query_equipment_dives => 'Tauchgänge';
+
+  @override
+  String get query_equipment_lastDived => 'Zuletzt verwendet';
 
   @override
   String get query_equipment_model => 'Modell';
 
   @override
   String get query_equipment_name => 'Name';
+
+  @override
+  String get query_equipment_nextServiceDue => 'Nächste Wartung fällig';
 
   @override
   String get query_equipment_serialNumber => 'Seriennummer';
@@ -46442,10 +46463,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_sites_difficulty => 'Schwierigkeitsgrad';
 
   @override
+  String get query_sites_diveCount => 'Anzahl Tauchgänge';
+
+  @override
   String get query_sites_dives => 'Tauchgänge';
 
   @override
   String get query_sites_island => 'Insel';
+
+  @override
+  String get query_sites_lastDived => 'Zuletzt betaucht';
 
   @override
   String get query_sites_maxDepth => 'Maximale Tiefe';
@@ -46478,10 +46505,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_species_description => 'Beschreibung';
 
   @override
+  String get query_species_diveCount => 'Tauchgänge mit Sichtung';
+
+  @override
   String get query_species_dives => 'Tauchgänge';
 
   @override
   String get query_species_expectedSites => 'Erwartet an Tauchplätzen';
+
+  @override
+  String get query_species_firstSeen => 'Zuerst gesehen';
+
+  @override
+  String get query_species_lastSeen => 'Zuletzt gesehen';
 
   @override
   String get query_species_name => 'Name';
@@ -46518,6 +46554,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_tanks_volume => 'Volumen';
+
+  @override
+  String get query_trips_diveCount => 'Anzahl Tauchgänge';
 
   @override
   String get query_trips_dives => 'Tauchgänge';

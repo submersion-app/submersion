@@ -45122,6 +45122,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_buddies_certifications => 'הסמכות';
 
   @override
+  String get query_buddies_diveCount => 'צלילות משותפות';
+
+  @override
   String get query_buddies_dives => 'צלילות';
 
   @override
@@ -45129,6 +45132,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_buddies_favorite => 'מועדף';
+
+  @override
+  String get query_buddies_lastDived => 'צלילה משותפת אחרונה';
 
   @override
   String get query_buddies_name => 'שם';
@@ -45152,7 +45158,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_centers_country => 'מדינה';
 
   @override
+  String get query_centers_diveCount => 'מספר צלילות';
+
+  @override
   String get query_centers_dives => 'צלילות';
+
+  @override
+  String get query_centers_lastDived => 'צלילה אחרונה';
 
   @override
   String get query_centers_name => 'שם';
@@ -45527,13 +45539,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_equipment_brand => 'מותג';
 
   @override
+  String get query_equipment_diveCount => 'צלילות בשימוש';
+
+  @override
   String get query_equipment_dives => 'צלילות';
+
+  @override
+  String get query_equipment_lastDived => 'שימוש אחרון';
 
   @override
   String get query_equipment_model => 'דגם';
 
   @override
   String get query_equipment_name => 'שם';
+
+  @override
+  String get query_equipment_nextServiceDue => 'הטיפול הבא';
 
   @override
   String get query_equipment_serialNumber => 'מספר סידורי';
@@ -45605,10 +45626,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_sites_difficulty => 'רמת קושי';
 
   @override
+  String get query_sites_diveCount => 'מספר צלילות';
+
+  @override
   String get query_sites_dives => 'צלילות';
 
   @override
   String get query_sites_island => 'אי';
+
+  @override
+  String get query_sites_lastDived => 'צלילה אחרונה';
 
   @override
   String get query_sites_maxDepth => 'עומק מרבי';
@@ -45641,10 +45668,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_species_description => 'תיאור';
 
   @override
+  String get query_species_diveCount => 'צלילות עם תצפית';
+
+  @override
   String get query_species_dives => 'צלילות';
 
   @override
   String get query_species_expectedSites => 'צפוי באתרים';
+
+  @override
+  String get query_species_firstSeen => 'נצפה לראשונה';
+
+  @override
+  String get query_species_lastSeen => 'נצפה לאחרונה';
 
   @override
   String get query_species_name => 'שם';
@@ -45681,6 +45717,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_tanks_volume => 'נפח';
+
+  @override
+  String get query_trips_diveCount => 'מספר צלילות';
 
   @override
   String get query_trips_dives => 'צלילות';

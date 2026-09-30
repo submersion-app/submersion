@@ -45673,6 +45673,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_buddies_certifications => 'الشهادات';
 
   @override
+  String get query_buddies_diveCount => 'غطسات مشتركة';
+
+  @override
   String get query_buddies_dives => 'الغطسات';
 
   @override
@@ -45680,6 +45683,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_buddies_favorite => 'مفضّل';
+
+  @override
+  String get query_buddies_lastDived => 'آخر غطسة مشتركة';
 
   @override
   String get query_buddies_name => 'الاسم';
@@ -45703,7 +45709,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_centers_country => 'البلد';
 
   @override
+  String get query_centers_diveCount => 'عدد الغطسات';
+
+  @override
   String get query_centers_dives => 'الغطسات';
+
+  @override
+  String get query_centers_lastDived => 'آخر غطسة';
 
   @override
   String get query_centers_name => 'الاسم';
@@ -46078,13 +46090,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_equipment_brand => 'العلامة التجارية';
 
   @override
+  String get query_equipment_diveCount => 'غطسات الاستخدام';
+
+  @override
   String get query_equipment_dives => 'الغطسات';
+
+  @override
+  String get query_equipment_lastDived => 'آخر استخدام';
 
   @override
   String get query_equipment_model => 'الطراز';
 
   @override
   String get query_equipment_name => 'الاسم';
+
+  @override
+  String get query_equipment_nextServiceDue => 'موعد الصيانة التالية';
 
   @override
   String get query_equipment_serialNumber => 'الرقم التسلسلي';
@@ -46156,10 +46177,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_sites_difficulty => 'الصعوبة';
 
   @override
+  String get query_sites_diveCount => 'عدد الغطسات';
+
+  @override
   String get query_sites_dives => 'الغطسات';
 
   @override
   String get query_sites_island => 'الجزيرة';
+
+  @override
+  String get query_sites_lastDived => 'آخر غطسة';
 
   @override
   String get query_sites_maxDepth => 'أقصى عمق';
@@ -46192,10 +46219,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_species_description => 'الوصف';
 
   @override
+  String get query_species_diveCount => 'غطسات المشاهدة';
+
+  @override
   String get query_species_dives => 'الغطسات';
 
   @override
   String get query_species_expectedSites => 'متوقع في المواقع';
+
+  @override
+  String get query_species_firstSeen => 'أول مشاهدة';
+
+  @override
+  String get query_species_lastSeen => 'آخر مشاهدة';
 
   @override
   String get query_species_name => 'الاسم';
@@ -46232,6 +46268,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_tanks_volume => 'الحجم';
+
+  @override
+  String get query_trips_diveCount => 'عدد الغطسات';
 
   @override
   String get query_trips_dives => 'الغطسات';

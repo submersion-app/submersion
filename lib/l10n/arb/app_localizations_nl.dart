@@ -45743,6 +45743,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_buddies_certifications => 'Brevetten';
 
   @override
+  String get query_buddies_diveCount => 'Samen gedoken';
+
+  @override
   String get query_buddies_dives => 'Duiken';
 
   @override
@@ -45750,6 +45753,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_buddies_favorite => 'Favoriet';
+
+  @override
+  String get query_buddies_lastDived => 'Laatst samen gedoken';
 
   @override
   String get query_buddies_name => 'Naam';
@@ -45773,7 +45779,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_centers_country => 'Land';
 
   @override
+  String get query_centers_diveCount => 'Aantal duiken';
+
+  @override
   String get query_centers_dives => 'Duiken';
+
+  @override
+  String get query_centers_lastDived => 'Laatst gedoken';
 
   @override
   String get query_centers_name => 'Naam';
@@ -46148,13 +46160,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_equipment_brand => 'Merk';
 
   @override
+  String get query_equipment_diveCount => 'Duiken gebruikt';
+
+  @override
   String get query_equipment_dives => 'Duiken';
+
+  @override
+  String get query_equipment_lastDived => 'Laatst gebruikt';
 
   @override
   String get query_equipment_model => 'Model';
 
   @override
   String get query_equipment_name => 'Naam';
+
+  @override
+  String get query_equipment_nextServiceDue => 'Volgend onderhoud';
 
   @override
   String get query_equipment_serialNumber => 'Serienummer';
@@ -46226,10 +46247,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_sites_difficulty => 'Moeilijkheidsgraad';
 
   @override
+  String get query_sites_diveCount => 'Aantal duiken';
+
+  @override
   String get query_sites_dives => 'Duiken';
 
   @override
   String get query_sites_island => 'Eiland';
+
+  @override
+  String get query_sites_lastDived => 'Laatst gedoken';
 
   @override
   String get query_sites_maxDepth => 'Maximale diepte';
@@ -46262,10 +46289,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_species_description => 'Beschrijving';
 
   @override
+  String get query_species_diveCount => 'Duiken met waarneming';
+
+  @override
   String get query_species_dives => 'Duiken';
 
   @override
   String get query_species_expectedSites => 'Verwacht op duikplekken';
+
+  @override
+  String get query_species_firstSeen => 'Eerst gezien';
+
+  @override
+  String get query_species_lastSeen => 'Laatst gezien';
 
   @override
   String get query_species_name => 'Naam';
@@ -46302,6 +46338,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_tanks_volume => 'Volume';
+
+  @override
+  String get query_trips_diveCount => 'Aantal duiken';
 
   @override
   String get query_trips_dives => 'Duiken';
