@@ -2333,7 +2333,13 @@ class _MockTripListNotifier
   }
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id) async => true;
+
+  @override
+  Future<bool> hideTrip(String id) async => true;
+
+  @override
+  Future<void> unhideTrip(String id) async {}
 
   @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}
@@ -2372,7 +2378,13 @@ class _ThrowingTripListNotifier
   Future<void> updateTrip(Trip trip) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id) async => true;
+
+  @override
+  Future<bool> hideTrip(String id) async => true;
+
+  @override
+  Future<void> unhideTrip(String id) async {}
 
   @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}

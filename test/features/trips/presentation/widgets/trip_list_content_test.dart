@@ -49,7 +49,10 @@ class _MockTripListNotifier
   final deleted = <String>[];
 
   @override
-  Future<void> deleteTrip(String id) async => deleted.add(id);
+  Future<bool> deleteTrip(String id) async {
+    deleted.add(id);
+    return true;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
