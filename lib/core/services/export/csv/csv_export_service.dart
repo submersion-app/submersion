@@ -12,6 +12,7 @@ import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_fills_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_sites_writer.dart';
+import 'package:submersion/core/services/export/csv/csv_trip_gas_record_writer.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 
 /// Handles all CSV export operations: share, generate content, and save to file.
 class CsvExportService {
@@ -356,6 +358,58 @@ class CsvExportService {
       mimeType: 'text/csv',
     );
 
+    if (result == null) return null;
+    return savedFileLocation(result);
+  }
+
+  // ==================== Trip gas record (issue #2325) ====================
+
+  /// Generate the trip gas record CSV (without sharing).
+  String generateTripGasRecordCsvContent(
+    TripGasRecord record, {
+    Map<String, String> centerNames = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => CsvTripGasRecordWriter(units).write(record, centerNames: centerNames);
+
+  /// Export the trip gas record to CSV and share via the system sheet.
+  Future<String> exportTripGasRecordToCsv(
+    TripGasRecord record, {
+    required String tripName,
+    Map<String, String> centerNames = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => saveAndShareFile(
+    generateTripGasRecordCsvContent(
+      record,
+      centerNames: centerNames,
+      units: units,
+    ),
+    tripGasRecordFileName(tripName, DateTime.now()),
+    'text/csv',
+  );
+
+  /// Save the trip gas record CSV to a location the diver picks.
+  Future<String?> saveTripGasRecordCsvToFile(
+    TripGasRecord record, {
+    required String tripName,
+    Map<String, String> centerNames = const {},
+    required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) async {
+    final result = await FilePicker.saveFile(
+      dialogTitle: dialogTitle,
+      fileName: tripGasRecordFileName(tripName, DateTime.now()),
+      type: FileType.custom,
+      bytes: Uint8List.fromList(
+        utf8.encode(
+          generateTripGasRecordCsvContent(
+            record,
+            centerNames: centerNames,
+            units: units,
+          ),
+        ),
+      ),
+      mimeType: 'text/csv',
+    );
     if (result == null) return null;
     return savedFileLocation(result);
   }

@@ -52,6 +52,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 
 export 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
 export 'package:submersion/core/services/export/models/export_service_record.dart';
@@ -222,6 +223,32 @@ class ExportService {
   }) => _csv.generateFillsCsvContent(
     fills,
     equipmentById: equipmentById,
+    units: units,
+  );
+
+  Future<String> exportTripGasRecordToCsv(
+    TripGasRecord record, {
+    required String tripName,
+    Map<String, String> centerNames = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.exportTripGasRecordToCsv(
+    record,
+    tripName: tripName,
+    centerNames: centerNames,
+    units: units,
+  );
+
+  Future<String?> saveTripGasRecordCsvToFile(
+    TripGasRecord record, {
+    required String tripName,
+    Map<String, String> centerNames = const {},
+    required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.saveTripGasRecordCsvToFile(
+    record,
+    tripName: tripName,
+    centerNames: centerNames,
+    dialogTitle: dialogTitle,
     units: units,
   );
 

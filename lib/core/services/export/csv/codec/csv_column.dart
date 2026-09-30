@@ -110,4 +110,18 @@ abstract final class CsvColumns {
     CsvQuantity.temperature,
     metricDecimals: 1,
   );
+
+  /// Trip gas record (issue #2325): the fill in effect at the dive.
+  static const recordFillPressure = CsvColumn(
+    'Fill Pressure',
+    CsvQuantity.pressure,
+    metricDecimals: 1,
+  );
+
+  /// Trip gas record: free gas breathed from the tank.
+  static const gasBreathed = CsvColumn(
+    'Gas Breathed',
+    CsvQuantity.volume,
+    metricDecimals: 0,
+  );
 }
