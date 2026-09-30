@@ -28690,6 +28690,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_shareAll_noneToShare => '没有可共享的内容。';
 
   @override
+  String get settings_hiddenItems_empty => '此资料中没有隐藏任何内容。';
+
+  @override
+  String get settings_hiddenItems_sites => '潜点';
+
+  @override
+  String get settings_hiddenItems_title => '在此资料中隐藏';
+
+  @override
+  String get settings_hiddenItems_trips => '旅行';
+
+  @override
+  String get settings_hiddenItems_unhide => '取消隐藏';
+
+  @override
   String get settings_sharedData_sectionTitle => '共享数据';
 
   @override
@@ -28721,6 +28736,161 @@ class AppLocalizationsZh extends AppLocalizations {
   String trips_deleteShared_body(String name) {
     return '「$name」已与其他潜水员资料共享。在此处删除会对所有人生效。';
   }
+
+  @override
+  String sharedItems_bulkDeleteCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将删除 $count 个潜点。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkDeleteCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将删除 $count 个旅行。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHiddenSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已从您的资料中移除 $count 项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个共享潜点将仅从您的资料中移除。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个共享旅行将仅从您的资料中移除。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkRemoveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '要从您的资料中移除 $count 项吗？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '其中 $count 个已与其他资料共享，将对所有人删除。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '其中 $count 个已与其他资料共享，将对所有人删除。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_mergeTooManyShared =>
+      '所选潜点中只能有一个属于其他资料。请取消选择其他潜点后再合并。';
+
+  @override
+  String get sharedItems_notOwner_site => '只有所有者可以删除此潜点';
+
+  @override
+  String get sharedItems_notOwner_trip => '只有所有者可以删除此旅行';
+
+  @override
+  String sharedItems_otherProfilesDives_site(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '其他资料中的 $count 次潜水将失去此潜点。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_otherProfilesDives_trip(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '其他资料中的 $count 次潜水将失去此旅行。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_ownerUnknown => '其他潜水员资料';
+
+  @override
+  String get sharedItems_removeAction => '从我的资料中移除';
+
+  @override
+  String sharedItems_removeBody(String owner) {
+    return '它仍保留在 $owner 的日志和其他所有资料中，只是在这里隐藏。';
+  }
+
+  @override
+  String sharedItems_removeOwnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '您有 $count 次潜水仍与其关联。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_removeRestoreHint => '您可以在“设置 > 共享数据”中恢复它。';
+
+  @override
+  String sharedItems_removeTitle(String name) {
+    return '要从您的资料中移除「$name」吗？';
+  }
+
+  @override
+  String get sharedItems_removedSnackbar => '已从您的资料中移除';
+
+  @override
+  String sharedItems_shareOwnerOnly(String owner) {
+    return '只有 $owner 可以更改共享设置';
+  }
+
+  @override
+  String sharedItems_sharedBy(String owner) {
+    return '由 $owner 共享';
+  }
+
+  @override
+  String get sharedItems_undo => '撤消';
 
   @override
   String get sites_deleteShared_title => '删除共享潜点？';

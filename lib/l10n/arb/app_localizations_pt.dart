@@ -30249,6 +30249,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_shareAll_noneToShare => 'Nada para partilhar.';
 
   @override
+  String get settings_hiddenItems_empty => 'Nada está oculto neste perfil.';
+
+  @override
+  String get settings_hiddenItems_sites => 'Locais';
+
+  @override
+  String get settings_hiddenItems_title => 'Ocultos neste perfil';
+
+  @override
+  String get settings_hiddenItems_trips => 'Viagens';
+
+  @override
+  String get settings_hiddenItems_unhide => 'Mostrar';
+
+  @override
   String get settings_sharedData_sectionTitle => 'Dados partilhados';
 
   @override
@@ -30281,6 +30296,179 @@ class AppLocalizationsPt extends AppLocalizations {
   String trips_deleteShared_body(String name) {
     return '«$name» está partilhada com outros perfis de mergulho. Eliminá-la aqui remove-a para todos.';
   }
+
+  @override
+  String sharedItems_bulkDeleteCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count locais serão eliminados.',
+      one: '$count local será eliminado.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkDeleteCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count viagens serão eliminadas.',
+      one: '$count viagem será eliminada.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHiddenSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens removidos do teu perfil',
+      one: '$count item removido do teu perfil',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count locais partilhados serão removidos apenas do teu perfil.',
+      one: '$count local partilhado será removido apenas do teu perfil.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count viagens partilhadas serão removidas apenas do teu perfil.',
+      one: '$count viagem partilhada será removida apenas do teu perfil.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkRemoveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remover $count itens do teu perfil?',
+      one: 'Remover $count item do teu perfil?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count deles estão partilhados com outros perfis e serão eliminados para todos.',
+      one:
+          '$count deles está partilhado com outros perfis e será eliminado para todos.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count delas estão partilhadas com outros perfis e serão eliminadas para todos.',
+      one:
+          '$count delas está partilhada com outros perfis e será eliminada para todos.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_mergeTooManyShared =>
+      'Só um dos locais selecionados pode pertencer a outro perfil. Desmarca os outros para os juntar.';
+
+  @override
+  String get sharedItems_notOwner_site =>
+      'Só o proprietário pode eliminar este local';
+
+  @override
+  String get sharedItems_notOwner_trip =>
+      'Só o proprietário pode eliminar esta viagem';
+
+  @override
+  String sharedItems_otherProfilesDives_site(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos noutros perfis perderão este local.',
+      one: '$count mergulho noutro perfil perderá este local.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_otherProfilesDives_trip(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos noutros perfis perderão esta viagem.',
+      one: '$count mergulho noutro perfil perderá esta viagem.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_ownerUnknown => 'outro perfil de mergulho';
+
+  @override
+  String get sharedItems_removeAction => 'Remover do meu perfil';
+
+  @override
+  String sharedItems_removeBody(String owner) {
+    return 'Mantém-se no registo de $owner e em todos os outros perfis. Só fica oculto aqui.';
+  }
+
+  @override
+  String sharedItems_removeOwnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dos teus mergulhos mantêm-se ligados.',
+      one: '$count dos teus mergulhos mantém-se ligado.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_removeRestoreHint =>
+      'Podes recuperá-lo em Configurações > Dados partilhados.';
+
+  @override
+  String sharedItems_removeTitle(String name) {
+    return 'Remover «$name» do teu perfil?';
+  }
+
+  @override
+  String get sharedItems_removedSnackbar => 'Removido do teu perfil';
+
+  @override
+  String sharedItems_shareOwnerOnly(String owner) {
+    return 'Só $owner pode alterar a partilha';
+  }
+
+  @override
+  String sharedItems_sharedBy(String owner) {
+    return 'Partilhado por $owner';
+  }
+
+  @override
+  String get sharedItems_undo => 'Desfazer';
 
   @override
   String get sites_deleteShared_title => 'Eliminar local partilhado?';

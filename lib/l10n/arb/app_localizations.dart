@@ -48144,6 +48144,36 @@ abstract class AppLocalizations {
   /// **'Nothing to share.'**
   String get settings_shareAll_noneToShare;
 
+  /// Empty state of the hidden items page.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is hidden from this profile.'**
+  String get settings_hiddenItems_empty;
+
+  /// Group header for hidden sites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get settings_hiddenItems_sites;
+
+  /// Settings row and page title listing the shared trips and sites hidden from the active profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden from this profile'**
+  String get settings_hiddenItems_title;
+
+  /// Group header for hidden trips.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get settings_hiddenItems_trips;
+
+  /// Button that shows a hidden shared trip or site to the active profile again.
+  ///
+  /// In en, this message translates to:
+  /// **'Unhide'**
+  String get settings_hiddenItems_unhide;
+
   /// Section header for shared data controls
   ///
   /// In en, this message translates to:
@@ -48197,6 +48227,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\'{name}\' is shared with other dive profiles. Deleting it here removes it for everyone.'**
   String trips_deleteShared_body(String name);
+
+  /// Bulk delete confirmation line counting sites that will be deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} site will be deleted.} other{{count} sites will be deleted.}}'**
+  String sharedItems_bulkDeleteCount_sites(int count);
+
+  /// Bulk delete confirmation line counting trips that will be deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} trip will be deleted.} other{{count} trips will be deleted.}}'**
+  String sharedItems_bulkDeleteCount_trips(int count);
+
+  /// Snackbar counting the shared items a bulk action hid from the active profile.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item removed from your profile} other{{count} items removed from your profile}}'**
+  String sharedItems_bulkHiddenSnackbar(int count);
+
+  /// Bulk delete confirmation line counting other profiles' shared sites that are only hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} shared site will be removed from your profile only.} other{{count} shared sites will be removed from your profile only.}}'**
+  String sharedItems_bulkHideCount_sites(int count);
+
+  /// Bulk delete confirmation line counting other profiles' shared trips that are only hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} shared trip will be removed from your profile only.} other{{count} shared trips will be removed from your profile only.}}'**
+  String sharedItems_bulkHideCount_trips(int count);
+
+  /// Bulk confirmation title when every selected item is another profile's shared item and is only hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Remove {count} item from your profile?} other{Remove {count} items from your profile?}}'**
+  String sharedItems_bulkRemoveTitle(int count);
+
+  /// Bulk delete confirmation line counting the deleted sites that are shared, so deleted for every profile.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} of them is shared with other profiles and will be deleted for everyone.} other{{count} of them are shared with other profiles and will be deleted for everyone.}}'**
+  String sharedItems_bulkSharedWarning_sites(int count);
+
+  /// Bulk delete confirmation line counting the deleted trips that are shared, so deleted for every profile.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} of them is shared with other profiles and will be deleted for everyone.} other{{count} of them are shared with other profiles and will be deleted for everyone.}}'**
+  String sharedItems_bulkSharedWarning_trips(int count);
+
+  /// Shown when a merge selection holds more than one site owned by another profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Only one of the selected sites can belong to another profile. Deselect the others to merge.'**
+  String get sharedItems_mergeTooManyShared;
+
+  /// Shown when a delete of a shared site is refused because another profile owns it.
+  ///
+  /// In en, this message translates to:
+  /// **'Only its owner can delete this site'**
+  String get sharedItems_notOwner_site;
+
+  /// Shown when a delete of a shared trip is refused because another profile owns it.
+  ///
+  /// In en, this message translates to:
+  /// **'Only its owner can delete this trip'**
+  String get sharedItems_notOwner_trip;
+
+  /// Owner's delete confirmation line counting other profiles' dives that lose the site.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive in another profile will lose this site.} other{{count} dives in other profiles will lose this site.}}'**
+  String sharedItems_otherProfilesDives_site(int count);
+
+  /// Owner's delete confirmation line counting other profiles' dives that lose the trip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive in another profile will lose this trip.} other{{count} dives in other profiles will lose this trip.}}'**
+  String sharedItems_otherProfilesDives_trip(int count);
+
+  /// Stands in for the owner name when the owning profile is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'another profile'**
+  String get sharedItems_ownerUnknown;
+
+  /// Menu action that hides another profile's shared trip or site from the active profile only.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from my profile'**
+  String get sharedItems_removeAction;
+
+  /// Explains that hiding a shared item leaves it in the owner's log and every other profile.
+  ///
+  /// In en, this message translates to:
+  /// **'It stays in {owner}\'s log and in every other profile. It is only hidden here.'**
+  String sharedItems_removeBody(String owner);
+
+  /// Line counting the active profile's own dives that keep their link to the hidden trip or site.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} of your dives stays linked to it.} other{{count} of your dives stay linked to it.}}'**
+  String sharedItems_removeOwnDives(int count);
+
+  /// Tells the diver where to restore a hidden shared trip or site.
+  ///
+  /// In en, this message translates to:
+  /// **'You can bring it back from Settings > Shared data.'**
+  String get sharedItems_removeRestoreHint;
+
+  /// Title of the confirmation for hiding a shared trip or site from the active profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove \'{name}\' from your profile?'**
+  String sharedItems_removeTitle(String name);
+
+  /// Snackbar after hiding a shared trip or site from the active profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from your profile'**
+  String get sharedItems_removedSnackbar;
+
+  /// Helper under the disabled share switch when another profile owns the trip or site.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {owner} can change sharing'**
+  String sharedItems_shareOwnerOnly(String owner);
+
+  /// Line on a shared trip or site owned by another diver profile, naming the owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared by {owner}'**
+  String sharedItems_sharedBy(String owner);
+
+  /// Snackbar action that undoes hiding a shared trip or site.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get sharedItems_undo;
 
   /// Title of the strengthened delete confirmation dialog shown when the dive site being deleted is shared with other dive profiles.
   ///

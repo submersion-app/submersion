@@ -29869,6 +29869,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_shareAll_noneToShare => 'لا يوجد شيء لمشاركته.';
 
   @override
+  String get settings_hiddenItems_empty => 'لا يوجد شيء مخفي عن هذا الملف.';
+
+  @override
+  String get settings_hiddenItems_sites => 'المواقع';
+
+  @override
+  String get settings_hiddenItems_title => 'مخفي عن هذا الملف';
+
+  @override
+  String get settings_hiddenItems_trips => 'الرحلات';
+
+  @override
+  String get settings_hiddenItems_unhide => 'إظهار';
+
+  @override
   String get settings_sharedData_sectionTitle => 'البيانات المشتركة';
 
   @override
@@ -29901,6 +29916,173 @@ class AppLocalizationsAr extends AppLocalizations {
   String trips_deleteShared_body(String name) {
     return '«$name» مشتركة مع ملفات غوص أخرى. حذفها من هنا يزيلها للجميع.';
   }
+
+  @override
+  String sharedItems_bulkDeleteCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سيتم حذف $count مواقع.',
+      one: 'سيتم حذف $count موقع.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkDeleteCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سيتم حذف $count رحلات.',
+      one: 'سيتم حذف $count رحلة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHiddenSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إزالة $count عناصر من ملفك',
+      one: 'تمت إزالة $count عنصر من ملفك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستتم إزالة $count مواقع مشتركة من ملفك فقط.',
+      one: 'ستتم إزالة $count موقع مشترك من ملفك فقط.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستتم إزالة $count رحلات مشتركة من ملفك فقط.',
+      one: 'ستتم إزالة $count رحلة مشتركة من ملفك فقط.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkRemoveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة $count عناصر من ملفك؟',
+      one: 'إزالة $count عنصر من ملفك؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.',
+      one: '$count منها مشترك مع ملفات غوص أخرى وسيُحذف للجميع.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.',
+      one: '$count منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_mergeTooManyShared =>
+      'يمكن أن ينتمي موقع واحد فقط من المواقع المحددة إلى ملف غوص آخر. ألغِ تحديد المواقع الأخرى للدمج.';
+
+  @override
+  String get sharedItems_notOwner_site => 'يمكن لمالك هذا الموقع فقط حذفه';
+
+  @override
+  String get sharedItems_notOwner_trip => 'يمكن لمالك هذه الرحلة فقط حذفها';
+
+  @override
+  String sharedItems_otherProfilesDives_site(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستفقد $count غطسات في ملفات غوص أخرى هذا الموقع.',
+      one: 'ستفقد $count غطسة في ملف غوص آخر هذا الموقع.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_otherProfilesDives_trip(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستفقد $count غطسات في ملفات غوص أخرى هذه الرحلة.',
+      one: 'ستفقد $count غطسة في ملف غوص آخر هذه الرحلة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_ownerUnknown => 'ملف غوص آخر';
+
+  @override
+  String get sharedItems_removeAction => 'إزالة من ملفي';
+
+  @override
+  String sharedItems_removeBody(String owner) {
+    return 'سيبقى في سجل $owner وفي كل ملف غوص آخر. سيُخفى هنا فقط.';
+  }
+
+  @override
+  String sharedItems_removeOwnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستبقى $count من غطساتك مرتبطة به.',
+      one: 'ستبقى $count من غطساتك مرتبطة به.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_removeRestoreHint =>
+      'يمكنك استعادته من الإعدادات > البيانات المشتركة.';
+
+  @override
+  String sharedItems_removeTitle(String name) {
+    return 'إزالة «$name» من ملفك؟';
+  }
+
+  @override
+  String get sharedItems_removedSnackbar => 'تمت الإزالة من ملفك';
+
+  @override
+  String sharedItems_shareOwnerOnly(String owner) {
+    return 'يمكن لـ $owner فقط تغيير المشاركة';
+  }
+
+  @override
+  String sharedItems_sharedBy(String owner) {
+    return 'تمت المشاركة بواسطة $owner';
+  }
+
+  @override
+  String get sharedItems_undo => 'تراجع';
 
   @override
   String get sites_deleteShared_title => 'حذف الموقع المشترك؟';

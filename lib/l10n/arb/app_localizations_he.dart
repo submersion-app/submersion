@@ -29531,6 +29531,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_shareAll_noneToShare => 'אין מה לשתף.';
 
   @override
+  String get settings_hiddenItems_empty => 'אין פריטים מוסתרים בפרופיל זה.';
+
+  @override
+  String get settings_hiddenItems_sites => 'אתרים';
+
+  @override
+  String get settings_hiddenItems_title => 'מוסתרים בפרופיל זה';
+
+  @override
+  String get settings_hiddenItems_trips => 'טיולים';
+
+  @override
+  String get settings_hiddenItems_unhide => 'הצג';
+
+  @override
   String get settings_sharedData_sectionTitle => 'נתונים משותפים';
 
   @override
@@ -29563,6 +29578,173 @@ class AppLocalizationsHe extends AppLocalizations {
   String trips_deleteShared_body(String name) {
     return '«$name» משותף עם פרופילי צלילה אחרים. מחיקה כאן תסיר אותו עבור כולם.';
   }
+
+  @override
+  String sharedItems_bulkDeleteCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים יימחקו.',
+      one: '$count אתר יימחק.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkDeleteCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיולים יימחקו.',
+      one: '$count טיול יימחק.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHiddenSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים הוסרו מהפרופיל שלך',
+      one: '$count פריט הוסר מהפרופיל שלך',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים משותפים יוסרו מהפרופיל שלך בלבד.',
+      one: '$count אתר משותף יוסר מהפרופיל שלך בלבד.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיולים משותפים יוסרו מהפרופיל שלך בלבד.',
+      one: '$count טיול משותף יוסר מהפרופיל שלך בלבד.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkRemoveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'להסיר $count פריטים מהפרופיל שלך?',
+      one: 'להסיר $count פריט מהפרופיל שלך?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מהם משותפים עם פרופילים אחרים ויימחקו עבור כולם.',
+      one: '$count מהם משותף עם פרופילים אחרים ויימחק עבור כולם.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מהם משותפים עם פרופילים אחרים ויימחקו עבור כולם.',
+      one: '$count מהם משותף עם פרופילים אחרים ויימחק עבור כולם.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_mergeTooManyShared =>
+      'רק אחד מהאתרים שנבחרו יכול להשתייך לפרופיל אחר. בטל את בחירת האחרים כדי למזג.';
+
+  @override
+  String get sharedItems_notOwner_site => 'רק הבעלים יכול למחוק את האתר הזה';
+
+  @override
+  String get sharedItems_notOwner_trip => 'רק הבעלים יכול למחוק את הטיול הזה';
+
+  @override
+  String sharedItems_otherProfilesDives_site(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות בפרופילים אחרים יאבדו את האתר הזה.',
+      one: '$count צלילה בפרופיל אחר תאבד את האתר הזה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_otherProfilesDives_trip(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות בפרופילים אחרים יאבדו את הטיול הזה.',
+      one: '$count צלילה בפרופיל אחר תאבד את הטיול הזה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_ownerUnknown => 'פרופיל צלילה אחר';
+
+  @override
+  String get sharedItems_removeAction => 'הסרה מהפרופיל שלי';
+
+  @override
+  String sharedItems_removeBody(String owner) {
+    return 'הוא יישאר ביומן של $owner ובכל פרופיל אחר. הוא מוסתר רק כאן.';
+  }
+
+  @override
+  String sharedItems_removeOwnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מהצלילות שלך נשארות מקושרות אליו.',
+      one: '$count מהצלילות שלך נשארת מקושרת אליו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_removeRestoreHint =>
+      'אפשר להחזיר אותו מהגדרות > נתונים משותפים.';
+
+  @override
+  String sharedItems_removeTitle(String name) {
+    return 'להסיר את «$name» מהפרופיל שלך?';
+  }
+
+  @override
+  String get sharedItems_removedSnackbar => 'הוסר מהפרופיל שלך';
+
+  @override
+  String sharedItems_shareOwnerOnly(String owner) {
+    return 'רק $owner יכול לשנות את השיתוף';
+  }
+
+  @override
+  String sharedItems_sharedBy(String owner) {
+    return 'שותף על ידי $owner';
+  }
+
+  @override
+  String get sharedItems_undo => 'בטל';
 
   @override
   String get sites_deleteShared_title => 'למחוק את האתר המשותף?';

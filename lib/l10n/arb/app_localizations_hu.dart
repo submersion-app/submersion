@@ -30149,6 +30149,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_shareAll_noneToShare => 'Nincs mit megosztani.';
 
   @override
+  String get settings_hiddenItems_empty =>
+      'Ebben a profilban semmi sincs elrejtve.';
+
+  @override
+  String get settings_hiddenItems_sites => 'Helyek';
+
+  @override
+  String get settings_hiddenItems_title => 'Ebben a profilban elrejtve';
+
+  @override
+  String get settings_hiddenItems_trips => 'Utak';
+
+  @override
+  String get settings_hiddenItems_unhide => 'Megjelenítés';
+
+  @override
   String get settings_sharedData_sectionTitle => 'Megosztott adatok';
 
   @override
@@ -30182,6 +30198,179 @@ class AppLocalizationsHu extends AppLocalizations {
   String trips_deleteShared_body(String name) {
     return 'A(z) „$name\" meg van osztva más búvárprofilokkal. Ha itt törlöd, mindenkinél eltávolítódik.';
   }
+
+  @override
+  String sharedItems_bulkDeleteCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hely törlődik.',
+      one: '$count hely törlődik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkDeleteCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count út törlődik.',
+      one: '$count út törlődik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHiddenSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem eltávolítva a profilodból',
+      one: '$count elem eltávolítva a profilodból',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count megosztott hely csak a profilodból lesz eltávolítva.',
+      one: '$count megosztott hely csak a profilodból lesz eltávolítva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count megosztott út csak a profilodból lesz eltávolítva.',
+      one: '$count megosztott út csak a profilodból lesz eltávolítva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkRemoveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eltávolítasz $count elemet a profilodból?',
+      one: 'Eltávolítasz $count elemet a profilodból?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Ezek közül $count meg van osztva más profilokkal, és mindenkinél törlődik.',
+      one:
+          'Ezek közül $count meg van osztva más profilokkal, és mindenkinél törlődik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Ezek közül $count meg van osztva más profilokkal, és mindenkinél törlődik.',
+      one:
+          'Ezek közül $count meg van osztva más profilokkal, és mindenkinél törlődik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_mergeTooManyShared =>
+      'A kijelölt helyek közül csak egy tartozhat másik profilhoz. Az egyesítéshez szüntesd meg a többi kijelölését.';
+
+  @override
+  String get sharedItems_notOwner_site =>
+      'Ezt a helyet csak a tulajdonosa törölheti';
+
+  @override
+  String get sharedItems_notOwner_trip =>
+      'Ezt az utat csak a tulajdonosa törölheti';
+
+  @override
+  String sharedItems_otherProfilesDives_site(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés más profilokban elveszíti ezt a helyet.',
+      one: '$count merülés egy másik profilban elveszíti ezt a helyet.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_otherProfilesDives_trip(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés más profilokban elveszíti ezt az utat.',
+      one: '$count merülés egy másik profilban elveszíti ezt az utat.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_ownerUnknown => 'egy másik búvárprofil';
+
+  @override
+  String get sharedItems_removeAction => 'Eltávolítás a profilomból';
+
+  @override
+  String sharedItems_removeBody(String owner) {
+    return 'Megmarad $owner naplójában és minden más profilban. Csak itt lesz elrejtve.';
+  }
+
+  @override
+  String sharedItems_removeOwnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülésed továbbra is hozzá kapcsolódik.',
+      one: '$count merülésed továbbra is hozzá kapcsolódik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_removeRestoreHint =>
+      'Visszahozhatod a Beállítások > Megosztott adatok menüben.';
+
+  @override
+  String sharedItems_removeTitle(String name) {
+    return 'Eltávolítod a(z) „$name\" elemet a profilodból?';
+  }
+
+  @override
+  String get sharedItems_removedSnackbar => 'Eltávolítva a profilodból';
+
+  @override
+  String sharedItems_shareOwnerOnly(String owner) {
+    return 'Csak $owner módosíthatja a megosztást';
+  }
+
+  @override
+  String sharedItems_sharedBy(String owner) {
+    return 'Megosztotta: $owner';
+  }
+
+  @override
+  String get sharedItems_undo => 'Visszavonás';
 
   @override
   String get sites_deleteShared_title => 'Megosztott helyszín törlése?';
