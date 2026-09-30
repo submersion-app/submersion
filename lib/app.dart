@@ -39,6 +39,7 @@ import 'package:submersion/features/settings/presentation/widgets/adopt_replaced
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
 import 'package:submersion/shared/services/incoming_file_handler.dart';
+import 'package:submersion/shared/services/navigation_ready_gate.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -99,7 +100,10 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   late final PassportLinkDispatcher _passportLinks;
   late final GoRouter _linkRouter;
   bool _hasDivers = false;
-  bool _linkReadyRetryScheduled = false;
+  bool _navigationReadyRetryScheduled = false;
+
+  /// Share-sheet files wait here until the app can show the page they open.
+  final _sharedFiles = NavigationReadyGate();
   late final AppLifecycleListener _lifecycleListener;
 
   @override
@@ -110,8 +114,13 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     registerUpdateMenuChannel(ref);
     registerDisplayZoomMenuChannel(ref);
     _fileShareHandler = FileShareHandler(
-      onFileReceived: _handleIncomingFile,
-      onFilesReceived: _handleIncomingFiles,
+      // Each waits for the navigator, which a share that cold-started the
+      // app arrives ahead of (#2690). The handler awaits the wait too, so
+      // its "Could not read file" snackbar still covers work that had to.
+      onFileReceived: (bytes, fileName) =>
+          _sharedFiles.run(() => _handleIncomingFile(bytes, fileName)),
+      onFilesReceived: (paths) =>
+          _sharedFiles.run(() => _handleIncomingFiles(paths)),
       onError: (_) {
         final l10n = _scaffoldMessengerKey.currentContext != null
             ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
@@ -131,16 +140,16 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       alreadyHandled: (text) =>
           ref.read(recentPassportTagsProvider).takeJustHandled(text),
     );
-    // A tag tapped on a fresh install waits until setup is over, and one
-    // tapped with the app closed waits for the navigator to exist.
+    // A tag tapped or a file shared on a fresh install waits until setup is
+    // over, and one arriving with the app closed waits for the navigator.
     _linkRouter = ref.read(appRouterProvider);
-    _linkRouter.routeInformationProvider.addListener(_updatePassportLinkReady);
+    _linkRouter.routeInformationProvider.addListener(_updateNavigationReady);
     // The SQL count, not the profile list: this listener lives all session,
     // and keeping the list alive would re-hydrate every profile on each
     // divers-table write.
     ref.listenManual<AsyncValue<int>>(diverCountProvider, (_, next) {
       _hasDivers = (next.value ?? 0) > 0;
-      _updatePassportLinkReady();
+      _updateNavigationReady();
     }, fireImmediately: true);
     // The serviceDue query field reads a cache of the service engine's
     // verdicts, and any list can reach it through a relation (a dive's
@@ -162,9 +171,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   @override
   void dispose() {
-    _linkRouter.routeInformationProvider.removeListener(
-      _updatePassportLinkReady,
-    );
+    _linkRouter.routeInformationProvider.removeListener(_updateNavigationReady);
     unawaited(_passportLinks.dispose());
     _fileShareHandler.dispose();
     _lifecycleListener.dispose();
@@ -390,32 +397,45 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         // to wherever the drop happened instead of closing the app (#647).
         router.push('/transfer/import-wizard');
       case IncomingFileOutcome.navigateToNavTrackReview:
+        // The share gate held this until the navigator was built, so a
+        // missing one here means the app is going away, not starting.
         final navContext = rootNavigatorKey.currentContext;
-        if (navContext != null && navContext.mounted) {
-          await navigateToNavTrackReview(navContext, bytes, fileName: fileName);
+        if (navContext == null || !navContext.mounted) {
+          LoggerService.forClass(
+            SubmersionApp,
+          ).warning('A shared route arrived with no navigator to review it in');
+          return;
         }
+        // Not awaited: the review stays open until the diver leaves it, and
+        // the share gate must not hold the next shared file until then.
+        unawaited(
+          navigateToNavTrackReview(navContext, bytes, fileName: fileName),
+        );
       case IncomingFileOutcome.none:
         break;
     }
   }
 
-  /// Whether a passport link can open now: a diver exists, setup is no
-  /// longer on screen (the wizard writes the diver before it finishes, and
-  /// finishing replaces the whole stack), and the root navigator is built
-  /// (go_router builds none until its async redirect resolves).
-  void _updatePassportLinkReady() {
+  /// Whether a passport link or a shared file can open its page now: a
+  /// diver exists, setup is no longer on screen (the wizard writes the diver
+  /// before it finishes, and finishing replaces the whole stack), and the
+  /// root navigator is built (go_router builds none until its async redirect
+  /// resolves).
+  void _updateNavigationReady() {
     if (!mounted) return;
     final settled =
         _hasDivers &&
         _linkRouter.routeInformationProvider.value.uri.path != '/welcome';
     final navigatorBuilt = rootNavigatorKey.currentContext != null;
-    _passportLinks.setReady(settled && navigatorBuilt);
+    final ready = settled && navigatorBuilt;
+    _passportLinks.setReady(ready);
+    _sharedFiles.setReady(ready);
     // One pending retry at most, however many updates arrive meanwhile.
-    if (settled && !navigatorBuilt && !_linkReadyRetryScheduled) {
-      _linkReadyRetryScheduled = true;
+    if (settled && !navigatorBuilt && !_navigationReadyRetryScheduled) {
+      _navigationReadyRetryScheduled = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _linkReadyRetryScheduled = false;
-        _updatePassportLinkReady();
+        _navigationReadyRetryScheduled = false;
+        _updateNavigationReady();
       });
     }
   }

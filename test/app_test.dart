@@ -1,10 +1,17 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
@@ -132,6 +139,17 @@ class _PushableLinks implements IncomingLinkSource {
 
   @override
   Stream<String> get links => controller.stream;
+}
+
+/// A route import whose parse never finishes, so the review page it opens
+/// stays on its loading state.
+class _PendingNavTrackImport implements NavTrackImportService {
+  @override
+  Future<NavTrackImportPreview> prepare(Uint8List bytes, {String? fileName}) =>
+      Completer<NavTrackImportPreview>().future;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Minimal router wired to the real [rootNavigatorKey] so the app-root adopt
@@ -459,6 +477,147 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
     expect(find.text('That is not a cylinder tag'), findsOneWidget);
+  });
+
+  group('a file shared through the share sheet', () {
+    /// Hands [fileName], holding [bytes], to the app as the share intent that
+    /// launched it, through the share plugin's own test hook.
+    void shareOnLaunch(String fileName, List<int> bytes) {
+      final original = ReceiveSharingIntent.instance;
+      addTearDown(() => ReceiveSharingIntent.instance = original);
+      final dir = Directory.systemTemp.createTempSync('share_intent_');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final file = File(p.join(dir.path, fileName))..writeAsBytesSync(bytes);
+      final stream = StreamController<List<SharedMediaFile>>();
+      addTearDown(stream.close);
+      ReceiveSharingIntent.setMockValues(
+        initialMedia: [
+          SharedMediaFile(path: file.path, type: SharedMediaType.file),
+        ],
+        mediaStream: stream.stream,
+      );
+    }
+
+    /// Lets the share handler's file reads finish. They are real I/O, which
+    /// completes outside the fake clock, and each continuation then needs a
+    /// frame to run in.
+    Future<void> settleShare(WidgetTester tester) async {
+      for (var i = 0; i < 8; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+    }
+
+    final encBytes = File(
+      'test/fixtures/nav_tracks/seacraft_enc3_short.csv',
+    ).readAsBytesSync();
+    final uddfBytes =
+        '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits;
+
+    List<Override> withDiver() => [
+      diverCountProvider.overrideWith((ref) async => 1),
+      validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      // The review page parses on open; a parse that never finishes keeps
+      // it on its loading state, away from the database.
+      navTrackImportServiceProvider.overrideWithValue(_PendingNavTrackImport()),
+    ];
+
+    testWidgets('a Seacraft route opens its review in the running app', (
+      tester,
+    ) async {
+      shareOnLaunch('005.DAT.csv', encBytes);
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        extraOverrides: withDiver(),
+      );
+      await settleShare(tester);
+
+      expect(find.byType(NavTrackImportReviewPage), findsOneWidget);
+    });
+
+    testWidgets(
+      'a Seacraft route shared before the navigator is built opens its '
+      'review once it is (#2690)',
+      (tester) async {
+        shareOnLaunch('005.DAT.csv', encBytes);
+        final gate = Completer<void>();
+        // An async top-level redirect, like the app's own: go_router builds
+        // no Navigator until it resolves, which is where a cold start from
+        // the share sheet lands.
+        final router = GoRouter(
+          navigatorKey: rootNavigatorKey,
+          redirect: (context, state) async {
+            await gate.future;
+            return null;
+          },
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, state) =>
+                  const Scaffold(body: SizedBox.shrink()),
+            ),
+          ],
+        );
+        await pumpApp(
+          tester,
+          _DrivableSyncNotifier(const SyncState()),
+          router: router,
+          extraOverrides: withDiver(),
+        );
+        await settleShare(tester);
+        expect(rootNavigatorKey.currentContext, isNull);
+
+        gate.complete();
+        await settleShare(tester);
+
+        expect(find.byType(NavTrackImportReviewPage), findsOneWidget);
+      },
+    );
+
+    testWidgets('a dive log shared during setup opens the import wizard once '
+        'setup is left', (tester) async {
+      shareOnLaunch('dive.uddf', uddfBytes);
+      final router = GoRouter(
+        navigatorKey: rootNavigatorKey,
+        initialLocation: '/welcome',
+        routes: [
+          GoRoute(
+            path: '/welcome',
+            builder: (context, state) => const Scaffold(body: Text('setup')),
+          ),
+          GoRoute(
+            path: '/',
+            builder: (context, state) =>
+                const Scaffold(body: SizedBox.shrink()),
+          ),
+          GoRoute(
+            path: '/transfer/import-wizard',
+            builder: (context, state) =>
+                const Scaffold(body: Text('import wizard')),
+          ),
+        ],
+      );
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        router: router,
+        extraOverrides: [
+          // Setup has just written the diver row but is still on screen.
+          diverCountProvider.overrideWith((ref) async => 1),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+      );
+      await settleShare(tester);
+      expect(find.text('import wizard'), findsNothing);
+
+      router.go('/');
+      await settleShare(tester);
+
+      expect(find.text('import wizard'), findsOneWidget);
+    });
   });
 
   testWidgets('NFC turned on in the system settings is noticed on return', (
