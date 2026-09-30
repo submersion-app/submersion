@@ -8,9 +8,12 @@ import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 
 import '../../../../helpers/bound_variables.dart';
+import '../../../../helpers/fake_cloud_storage_provider.dart';
+import '../../../../helpers/peer_pull.dart';
 import '../../../../helpers/test_database.dart';
 
 /// A re-parse rewrites its source row, the dive's tanks, events and gas
@@ -329,5 +332,43 @@ void main() {
     await Future<void>.delayed(Duration.zero);
 
     expect(notifications, 1);
+  });
+
+  test('a transmitter serial the re-parse clears is cleared on a peer '
+      '(#2644)', () async {
+    await seedPublishedDive();
+    await db.customStatement(
+      "UPDATE dive_tanks SET transmitter_serial = '111111' WHERE id = 'kept'",
+    );
+    final watermark = await publishEverything();
+    final published = (await serializer.fetchRecord('diveTanks', 'kept'))!;
+
+    // parsedDive() reports no transmitter serial for tank 0.
+    await reparse();
+
+    final sent = (await nextChangeset(
+      watermark,
+    )).data.diveTanks.singleWhere((t) => t['id'] == 'kept');
+    expect(sent.containsKey('transmitterSerial'), isTrue);
+    expect(sent['transmitterSerial'], isNull);
+
+    // A peer still holding the tank as it was published.
+    await db.customUpdate(
+      'UPDATE dive_tanks SET transmitter_serial = ?, hlc = ? WHERE id = ?',
+      variables: [
+        Variable.withString('111111'),
+        Variable<String>(published['hlc'] as String?),
+        Variable.withString('kept'),
+      ],
+    );
+    await db.customStatement('DELETE FROM sync_records');
+
+    final result = await pullPeerPayload(
+      FakeCloudStorageProvider(),
+      SyncData(diveTanks: [sent]),
+    );
+    expect(result.status, isNot(SyncResultStatus.error));
+    final onPeer = (await serializer.fetchRecord('diveTanks', 'kept'))!;
+    expect(onPeer['transmitterSerial'], isNull);
   });
 }

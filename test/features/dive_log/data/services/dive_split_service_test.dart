@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -10,6 +12,8 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 
+import '../../../../helpers/fake_cloud_storage_provider.dart';
+import '../../../../helpers/peer_pull.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
@@ -523,6 +527,46 @@ void main() {
     expect(tombstones.map((t) => t.recordId), isNot(contains(sharedTank)));
 
     expect(await fkViolations(), isEmpty);
+  });
+
+  test('the computer a split clears on a shared tank is cleared on a peer '
+      '(#2644)', () async {
+    await insertDive('dive-1', computerId: 'dc-a');
+    await insertSource('src-a', 'dive-1', 'dc-a', isPrimary: true);
+    await insertSource('src-b', 'dive-1', 'dc-b', isPrimary: false);
+    await insertProfileSeriesRow('dive-1', 'dc-a', isPrimary: true);
+    await insertProfileSeriesRow('dive-1', 'dc-b', isPrimary: false);
+    final sharedTank = await insertTank('dive-1', 'dc-b');
+    await insertTankPressureSeriesRow('dive-1', sharedTank, 'dc-a');
+    await insertTankPressureSeriesRow('dive-1', sharedTank, 'dc-b');
+    final serializer = SyncDataSerializer();
+    final published = (await serializer.fetchRecord('diveTanks', sharedTank))!;
+
+    await service.split(diveId: 'dive-1', sourceId: 'src-b');
+
+    // What the split publishes for the tank: it is marked pending, so the
+    // next changeset carries this row.
+    final sent = (await serializer.fetchRecord('diveTanks', sharedTank))!;
+    expect(sent['computerId'], isNull);
+
+    // A peer still holding the tank as it was before the split.
+    await db.customUpdate(
+      'UPDATE dive_tanks SET computer_id = ?, hlc = ? WHERE id = ?',
+      variables: [
+        Variable.withString('dc-b'),
+        Variable<String>(published['hlc'] as String?),
+        Variable.withString(sharedTank),
+      ],
+    );
+    await db.customStatement('DELETE FROM sync_records');
+
+    final result = await pullPeerPayload(
+      FakeCloudStorageProvider(),
+      SyncData(diveTanks: [sent]),
+    );
+    expect(result.status, isNot(SyncResultStatus.error));
+    final onPeer = (await serializer.fetchRecord('diveTanks', sharedTank))!;
+    expect(onPeer['computerId'], isNull);
   });
 
   test('a gas switch pins its tank to the original dive', () async {
