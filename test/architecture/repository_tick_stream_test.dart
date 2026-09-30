@@ -26,6 +26,7 @@ import 'package:submersion/features/trips/data/repositories/trip_cylinder_reposi
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/universal_import/data/repositories/csv_preset_repository.dart';
 import 'package:submersion/features/weight_planner/data/repositories/weight_history_repository.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 
 import '../helpers/test_database.dart';
@@ -195,6 +196,8 @@ void main() {
           EquipmentShareRepository().watchChanges(),
       'TripEquipmentRepository.watchChanges': () =>
           TripEquipmentRepository().watchChanges(),
+      'ProfileHidesRepository.watchChanges': () =>
+          ProfileHidesRepository().watchChanges(),
       'ServiceScheduleRepository.watchSchedulesChanges': () =>
           ServiceScheduleRepository().watchSchedulesChanges(),
       'CylinderConfigRepository.watchConfigsChanges': () =>
