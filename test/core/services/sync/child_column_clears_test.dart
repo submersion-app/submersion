@@ -13,8 +13,8 @@ import '../../../helpers/test_database.dart';
 /// clear and which column it names.
 void main() {
   group('isNewerChildCopy', () {
-    final base = Hlc(1000, 0, 'a');
-    final later = Hlc(2000, 0, 'b');
+    const base = Hlc(1000, 0, 'a');
+    const later = Hlc(2000, 0, 'b');
 
     test('a copy with no clock is never newer', () {
       expect(isNewerChildCopy(remote: null, local: base), isFalse);
