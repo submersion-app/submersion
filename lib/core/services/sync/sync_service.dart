@@ -1651,6 +1651,9 @@ class SyncService {
             records: data.tripEquipment,
             hasUpdatedAt: false,
           ),
+          // After their parents (trips, sites and divers), issue #2594.
+          (type: 'tripHides', records: data.tripHides, hasUpdatedAt: false),
+          (type: 'siteHides', records: data.siteHides, hasUpdatedAt: false),
           (
             type: 'equipmentOwnershipEvents',
             records: data.equipmentOwnershipEvents,
@@ -2585,6 +2588,8 @@ class SyncService {
     'equipmentTags': false,
     'equipmentShares': false,
     'tripEquipment': false,
+    'tripHides': false,
+    'siteHides': false,
     'equipmentOwnershipEvents': false,
     'mediaSpecies': false,
     'siteFeatures': true,
@@ -2836,6 +2841,15 @@ class SyncService {
     'tripEquipment': [
       (field: 'tripId', parent: 'trips', nullable: false),
       (field: 'equipmentId', parent: 'equipment', nullable: false),
+    ],
+    // v250: a profile's hidden shared trips and sites (issue #2594).
+    'tripHides': [
+      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'diverId', parent: 'divers', nullable: false),
+    ],
+    'siteHides': [
+      (field: 'siteId', parent: 'diveSites', nullable: false),
+      (field: 'diverId', parent: 'divers', nullable: false),
     ],
     'equipmentOwnershipEvents': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),

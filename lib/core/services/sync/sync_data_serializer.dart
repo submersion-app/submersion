@@ -349,6 +349,8 @@ class SyncData {
   final List<Map<String, dynamic>> equipmentTags;
   final List<Map<String, dynamic>> equipmentShares;
   final List<Map<String, dynamic>> tripEquipment;
+  final List<Map<String, dynamic>> tripHides;
+  final List<Map<String, dynamic>> siteHides;
   final List<Map<String, dynamic>> equipmentOwnershipEvents;
   final List<Map<String, dynamic>> mediaSpecies;
   final List<Map<String, dynamic>> siteFeatures;
@@ -452,6 +454,8 @@ class SyncData {
     this.equipmentTags = const [],
     this.equipmentShares = const [],
     this.tripEquipment = const [],
+    this.tripHides = const [],
+    this.siteHides = const [],
     this.equipmentOwnershipEvents = const [],
     this.mediaSpecies = const [],
     this.siteFeatures = const [],
@@ -554,6 +558,8 @@ class SyncData {
     'equipmentTags': equipmentTags,
     'equipmentShares': equipmentShares,
     'tripEquipment': tripEquipment,
+    'tripHides': tripHides,
+    'siteHides': siteHides,
     'equipmentOwnershipEvents': equipmentOwnershipEvents,
     'mediaSpecies': mediaSpecies,
     'siteFeatures': siteFeatures,
@@ -661,6 +667,8 @@ class SyncData {
       equipmentTags: _parseList(json['equipmentTags']),
       equipmentShares: _parseList(json['equipmentShares']),
       tripEquipment: _parseList(json['tripEquipment']),
+      tripHides: _parseList(json['tripHides']),
+      siteHides: _parseList(json['siteHides']),
       equipmentOwnershipEvents: _parseList(json['equipmentOwnershipEvents']),
       mediaSpecies: _parseList(json['mediaSpecies']),
       siteFeatures: _parseList(json['siteFeatures']),
@@ -1187,6 +1195,8 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'tripEquipment', table: _db.tripEquipment, blob: false, full: null),
+    (key: 'tripHides', table: _db.tripHides, blob: false, full: null),
+    (key: 'siteHides', table: _db.siteHides, blob: false, full: null),
     (
       key: 'equipmentOwnershipEvents',
       table: _db.equipmentOwnershipEvents,
@@ -1594,6 +1604,8 @@ class SyncDataSerializer {
     'equipmentTags',
     'equipmentShares',
     'tripEquipment',
+    'tripHides',
+    'siteHides',
     'equipmentOwnershipEvents',
     'weightPresetEntries',
     'diveCenterGearNotes',
@@ -1739,6 +1751,8 @@ class SyncDataSerializer {
     'equipmentTags': 'equipment_tags',
     'equipmentShares': 'equipment_shares',
     'tripEquipment': 'trip_equipment',
+    'tripHides': 'trip_hides',
+    'siteHides': 'site_hides',
     'equipmentOwnershipEvents': 'equipment_ownership_events',
     'diveDiveTypes': 'dive_dive_types',
     'weightPresetEntries': 'weight_preset_entries',
@@ -2301,6 +2315,22 @@ class SyncDataSerializer {
           pendingChildren,
         ),
       ),
+      tripHides: await _safeExport(
+        'tripHides',
+        () async => _withPendingChildren(
+          'tripHides',
+          await _exportTripHides(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      siteHides: await _safeExport(
+        'siteHides',
+        () async => _withPendingChildren(
+          'siteHides',
+          await _exportSiteHides(hlcSince),
+          pendingChildren,
+        ),
+      ),
       equipmentOwnershipEvents: await _safeExport(
         'equipmentOwnershipEvents',
         () async => _withPendingChildren(
@@ -2811,6 +2841,16 @@ class SyncDataSerializer {
       case 'tripEquipment':
         final row = await (_db.select(
           _db.tripEquipment,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'tripHides':
+        final row = await (_db.select(
+          _db.tripHides,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'siteHides':
+        final row = await (_db.select(
+          _db.siteHides,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'equipmentOwnershipEvents':
@@ -3874,6 +3914,41 @@ class SyncDataSerializer {
         );
   }
 
+  /// Applies one incoming `trip_hides` row (v250, issue #2594). The
+  /// (trip, profile) pair is unique: a peer's copy under another id is
+  /// reconciled to the lower id and then skipped, as
+  /// [_applyTripEquipmentRecord] does.
+  Future<void> _applyTripHideRecord(TripHideRow record) async {
+    await _reconcileJunctionIds(
+      'trip_hides',
+      parentColumn: 'trip_id',
+      childColumn: 'diver_id',
+      pairs: [(parent: record.tripId, child: record.diverId, id: record.id)],
+    );
+    await _db
+        .into(_db.tripHides)
+        .insert(
+          record,
+          onConflict: DoNothing<$TripHidesTable, TripHideRow>(target: const []),
+        );
+  }
+
+  /// As [_applyTripHideRecord], for `site_hides`.
+  Future<void> _applySiteHideRecord(SiteHideRow record) async {
+    await _reconcileJunctionIds(
+      'site_hides',
+      parentColumn: 'site_id',
+      childColumn: 'diver_id',
+      pairs: [(parent: record.siteId, child: record.diverId, id: record.id)],
+    );
+    await _db
+        .into(_db.siteHides)
+        .insert(
+          record,
+          onConflict: DoNothing<$SiteHidesTable, SiteHideRow>(target: const []),
+        );
+  }
+
   /// Applies one incoming record.
   ///
   /// HLC-bearing entities (`entityHasUpdatedAt == true`) apply via
@@ -4317,6 +4392,12 @@ class SyncDataSerializer {
         return;
       case 'tripEquipment':
         await _applyTripEquipmentRecord(TripEquipmentRow.fromJson(data));
+        return;
+      case 'tripHides':
+        await _applyTripHideRecord(TripHideRow.fromJson(data));
+        return;
+      case 'siteHides':
+        await _applySiteHideRecord(SiteHideRow.fromJson(data));
         return;
       case 'equipmentOwnershipEvents':
         await _db
@@ -5506,6 +5587,56 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'tripHides':
+        // DoNothing: see [_applyTripHideRecord].
+        final tripHideRows = _lowestIdPerPair(
+          records.map((r) => TripHideRow.fromJson(r)).toList(),
+          (row) => (parent: row.tripId, child: row.diverId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          'trip_hides',
+          parentColumn: 'trip_id',
+          childColumn: 'diver_id',
+          pairs: [
+            for (final row in tripHideRows)
+              (parent: row.tripId, child: row.diverId, id: row.id),
+          ],
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.tripHides,
+            tripHideRows,
+            onConflict: DoNothing<$TripHidesTable, TripHideRow>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
+      case 'siteHides':
+        // DoNothing: see [_applySiteHideRecord].
+        final siteHideRows = _lowestIdPerPair(
+          records.map((r) => SiteHideRow.fromJson(r)).toList(),
+          (row) => (parent: row.siteId, child: row.diverId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          'site_hides',
+          parentColumn: 'site_id',
+          childColumn: 'diver_id',
+          pairs: [
+            for (final row in siteHideRows)
+              (parent: row.siteId, child: row.diverId, id: row.id),
+          ],
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.siteHides,
+            siteHideRows,
+            onConflict: DoNothing<$SiteHidesTable, SiteHideRow>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
       case 'equipmentOwnershipEvents':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -6041,6 +6172,10 @@ class SyncDataSerializer {
         return plain(_db.equipmentShares, _db.equipmentShares.id);
       case 'tripEquipment':
         return plain(_db.tripEquipment, _db.tripEquipment.id);
+      case 'tripHides':
+        return plain(_db.tripHides, _db.tripHides.id);
+      case 'siteHides':
+        return plain(_db.siteHides, _db.siteHides.id);
       case 'equipmentOwnershipEvents':
         return plain(
           _db.equipmentOwnershipEvents,
@@ -6445,6 +6580,10 @@ class SyncDataSerializer {
         return _db.equipmentShares;
       case 'tripEquipment':
         return _db.tripEquipment;
+      case 'tripHides':
+        return _db.tripHides;
+      case 'siteHides':
+        return _db.siteHides;
       case 'equipmentOwnershipEvents':
         return _db.equipmentOwnershipEvents;
       case 'diveRoles':
@@ -6924,6 +7063,16 @@ class SyncDataSerializer {
       case 'tripEquipment':
         await (_db.delete(
           _db.tripEquipment,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'tripHides':
+        await (_db.delete(
+          _db.tripHides,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'siteHides':
+        await (_db.delete(
+          _db.siteHides,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'equipmentOwnershipEvents':
@@ -8339,6 +8488,46 @@ class SyncDataSerializer {
       );
     }
     final rows = await _db.select(_db.tripEquipment).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Hidden shared trips (v250, issue #2594), gated on the parent trip's
+  /// clock like [_exportTripEquipment]. A hide travels on its own pending
+  /// mark, never by re-stamping the trip.
+  Future<List<Map<String, dynamic>>> _exportTripHides(String? hlcSince) async {
+    if (hlcSince != null) {
+      final trips = await (_db.select(
+        _db.trips,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final tripIds = trips.map((t) => t.id).toSet();
+      if (tripIds.isEmpty) return [];
+      return _childRowsOf(
+        tripIds,
+        (chunk) => (_db.select(
+          _db.tripHides,
+        )..where((t) => t.tripId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.tripHides).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// As [_exportTripHides], for hidden shared sites.
+  Future<List<Map<String, dynamic>>> _exportSiteHides(String? hlcSince) async {
+    if (hlcSince != null) {
+      final sites = await (_db.select(
+        _db.diveSites,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final siteIds = sites.map((s) => s.id).toSet();
+      if (siteIds.isEmpty) return [];
+      return _childRowsOf(
+        siteIds,
+        (chunk) => (_db.select(
+          _db.siteHides,
+        )..where((t) => t.siteId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.siteHides).get();
     return rows.map((r) => r.toJson()).toList();
   }
 
