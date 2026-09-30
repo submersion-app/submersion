@@ -61,14 +61,19 @@ void main() {
     await (db.update(db.dives)..where((d) => d.id.equals('d4'))).write(
       const DivesCompanion(buddy: Value('Dee')),
     );
-    // The tick is debounced; give it a moment.
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-
+    // The tick is debounced; poll, bounded, until the reload lands.
+    var index = await c.read(exploreNameIndexProvider.future);
+    for (var i = 0; i < 300 && !legacyLabels(index).contains('Dee'); i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      index = await c.read(exploreNameIndexProvider.future);
+    }
+    expect(legacyLabels(index), ['Bob', 'Dee']);
+    // Had the shared index followed dives, the same tick would have reloaded
+    // it by now; wait out one more debounce window to be sure it did not.
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     expect(
       identical(await c.read(queryNameIndexProvider.future), shared),
       isTrue,
     );
-    final index = await c.read(exploreNameIndexProvider.future);
-    expect(legacyLabels(index), ['Bob', 'Dee']);
   });
 }

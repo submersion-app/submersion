@@ -243,13 +243,18 @@ void main() {
 
   test('every catalog enum value has a label', () {
     // The catalog reads its values from the query registry; the labeler
-    // maps them through the Dart enums. Every value must make that trip.
+    // maps them through the Dart enums. Every value must make that trip:
+    // a value with no arm would come back as its raw name (#2641).
     for (final field in kExploreFields) {
+      if (field.kind != ExploreValueKind.enumName) continue;
       final values = field.enumValues;
-      if (values == null) continue;
-      for (final v in values) {
-        final label = metric.label(chip(field, [v], op: ClauseOp.inList));
-        expect(label, isNotEmpty, reason: '${field.name} $v');
+      expect(values, isNotEmpty, reason: field.name);
+      for (final v in values!) {
+        expect(
+          metric.enumValue(field, v),
+          isNot(v),
+          reason: '${field.name} $v',
+        );
       }
     }
   });

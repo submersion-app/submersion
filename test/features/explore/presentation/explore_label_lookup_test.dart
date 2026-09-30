@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/explore/presentation/explore_label_lookup.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -12,7 +13,11 @@ void main() {
 
   test('every plain explore field and chip key resolves through it', () {
     final arb =
-        jsonDecode(File('lib/l10n/arb/app_en.arb').readAsStringSync())
+        jsonDecode(
+              File(
+                p.join('lib', 'l10n', 'arb', 'app_en.arb'),
+              ).readAsStringSync(),
+            )
             as Map<String, dynamic>;
     // Keys with placeholders generate methods, not getters, and are not in
     // the lookup.

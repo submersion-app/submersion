@@ -139,9 +139,11 @@ class NameIndex implements NameResolver, NameEntries {
 
   static final NameIndex empty = NameIndex(const []);
 
-  /// This index with [more] after its own entries. Ties within a rank keep
-  /// load order, so an added entry never shadows one already here: Explore
-  /// adds its legacy buddy names this way, behind every linked buddy.
+  /// This index with [more] after its own entries. Primary names still sort
+  /// first, but ties of primacy and rank keep load order, so an added entry
+  /// never shadows an existing one of the same standing: Explore adds its
+  /// legacy buddy names (rank 1, not primary) this way, behind every linked
+  /// buddy.
   NameIndex followedBy(Iterable<NameEntry> more) =>
       NameIndex([...entries, ...more]);
 

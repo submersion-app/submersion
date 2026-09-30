@@ -67,7 +67,7 @@ class ChipLabeler {
     }
     if (v is List || v is String) {
       final raw = v is List ? v.whereType<String>() : [v as String];
-      final values = raw.map((e) => _enumValue(c.field, e)).join(', ');
+      final values = raw.map((e) => enumValue(c.field, e)).join(', ');
       return c.op == ClauseOp.not
           ? l10n.explore_chip_enumNot(name, values)
           : l10n.explore_chip_enum(name, values);
@@ -86,7 +86,7 @@ class ChipLabeler {
   /// An enum value in the app language. The catalog's values are the enum
   /// names, so each maps through the same localized names the dive editor
   /// shows; a dive type is the diver's own name and stays as written.
-  String _enumValue(ExploreField field, String v) => switch (field.name) {
+  String enumValue(ExploreField field, String v) => switch (field.name) {
     'waterType' => WaterType.values.byName(v).localizedName(l10n),
     'diveMode' => DiveMode.values.byName(v).localizedName(l10n),
     'entryMethod' => EntryMethod.values.byName(v).localizedName(l10n),
