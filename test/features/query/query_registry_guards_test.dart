@@ -44,13 +44,26 @@ void main() {
           if (f.boolSql != null) substituteRow(f.boolSql!.whenTrue, 'r0'),
           if (f.boolSql != null) substituteRow(f.boolSql!.whenFalse, 'r0'),
         ];
+        // A diver token compiles both ways the compiler writes it.
         for (final fragment in fragments) {
-          final sql = 'SELECT 1 FROM ${e.table} r0 WHERE $fragment';
-          await expectLater(
-            db.customSelect(sql).get(),
-            completes,
-            reason: '${e.subject}.${f.key}: $sql',
-          );
+          for (final scoped in [false, true]) {
+            final sql =
+                'SELECT 1 FROM ${e.table} r0 WHERE '
+                '${substituteDiver(fragment, scoped: scoped)}';
+            await expectLater(
+              db
+                  .customSelect(
+                    sql,
+                    variables: [
+                      for (final _ in '?'.allMatches(sql))
+                        const Variable<String>('me'),
+                    ],
+                  )
+                  .get(),
+              completes,
+              reason: '${e.subject}.${f.key}: $sql',
+            );
+          }
         }
       }
     }

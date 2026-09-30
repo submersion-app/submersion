@@ -3,10 +3,12 @@ import 'package:submersion/core/query/registry/query_field.dart';
 
 /// A subject's counted dives, as a FROM/WHERE fragment over the alias `ad`
 /// (no other registry fragment uses it): the dives [linkSql] ties to the
-/// row `{r}`, inside the stats scope, so a count is the one the list tiles
-/// show. [linkSql] is written against `{r}` and `ad`.
+/// row `{r}`, inside the stats scope and the active diver's alone when the
+/// compile names one, so a count is the one the list tiles show. [linkSql]
+/// is written against `{r}` and `ad`.
 String _counted(String linkSql) =>
-    'FROM dives ad WHERE $linkSql${DiveStatsScope.and(alias: 'ad')}';
+    'FROM dives ad WHERE $linkSql${DiveStatsScope.and(alias: 'ad')}'
+    '{diver:ad}';
 
 /// How many counted dives the row has. Never unrecorded: `:none` is none.
 QueryField diveCountField(

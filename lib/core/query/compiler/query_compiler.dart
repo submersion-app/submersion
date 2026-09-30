@@ -46,13 +46,19 @@ class CompiledQuery {
 /// reject throws [QueryCompileError], which is a programming error, not
 /// user input. Every value is a bind parameter; only registry fragments and
 /// aliases are interpolated.
+///
+/// [diverId] narrows every dive the query reaches from outside the root to
+/// that diver's: a hop into an entity with `scopesHopsToDiver`, and a
+/// field's own dive subquery (`{diver:<alias>}`). The root itself stays the
+/// caller's to scope. Null reads every diver's, as a query always did.
 CompiledQuery compileQuery(
   QueryNode? node,
   QueryEntity root,
   QueryRegistry registry, {
   String rootAlias = 'r0',
+  String? diverId,
 }) {
-  final ctx = _Ctx(registry)..tables.add(root.table);
+  final ctx = _Ctx(registry, diverId)..tables.add(root.table);
   final where = node == null ? '' : ctx.emit(node, root, rootAlias);
   return CompiledQuery(
     where: where,
@@ -66,6 +72,7 @@ CompiledQuery compileQuery(
 
 class _Ctx {
   final QueryRegistry registry;
+  final String? diverId;
   final params = <Object?>[];
   final tables = <String>{};
   int _aliasCounter = 0;
@@ -74,7 +81,7 @@ class _Ctx {
   /// counts against [kMaxPathHops] like a path does.
   int _depth = 0;
 
-  _Ctx(this.registry);
+  _Ctx(this.registry, this.diverId);
 
   String nextAlias() => 'r${++_aliasCounter}';
 
@@ -151,10 +158,36 @@ class _Ctx {
     final filter = rel.targetFilterSql == null
         ? ''
         : ' AND (${substituteJoin(rel.targetFilterSql!, fromAlias, to)})';
+    // Bound before [rest], whose binds come after it in the text.
+    final scope = _hopScope(target, to);
     final rest = hops.length == 1 && inner == null
         ? ''
         : ' AND ${_hops(hops.sublist(1), to, inner)}';
-    return 'EXISTS (SELECT 1 FROM ${target.table} $to WHERE $join$filter$rest)';
+    return 'EXISTS (SELECT 1 FROM ${target.table} $to '
+        'WHERE $join$filter$scope$rest)';
+  }
+
+  /// The active diver's rows alone, on a hop into an entity that asks for
+  /// it; binds the diver.
+  String _hopScope(QueryEntity target, String alias) {
+    final column = target.diverScopeColumn;
+    if (diverId == null || !target.scopesHopsToDiver || column == null) {
+      return '';
+    }
+    params.add(diverId);
+    return ' AND $alias.$column = ?';
+  }
+
+  /// A field fragment over [alias], its diver token bound in place. Call it
+  /// where the fragment is written, so its binds precede the value's.
+  String _field(String template, String alias) {
+    final row = substituteRow(template, alias);
+    if (diverId != null) {
+      for (final _ in kDiverToken.allMatches(row)) {
+        params.add(diverId);
+      }
+    }
+    return substituteDiver(row, scoped: diverId != null);
   }
 
   String _scoped(
@@ -223,21 +256,23 @@ class _Ctx {
       case QueryOp.neq:
         // Like scalar `!=`, `site != X` needs a related row: a dive with no
         // site is not "a site other than X" (`site:none` asks for that).
-        params.add((value as RefValue).id);
+        // Bound inside the hop, after any diver scope the hop binds.
         final sym = op == QueryOp.eq ? '=' : '!=';
-        final hit = _hops(
-          res.hops,
-          alias,
-          (a) => '$a.${target.idColumn} $sym ?',
-        );
+        final hit = _hops(res.hops, alias, (a) {
+          params.add((value as RefValue).id);
+          return '$a.${target.idColumn} $sym ?';
+        });
         return '($hit)';
       case QueryOp.inList:
         final items = (value as ListValue).items;
-        for (final v in items) {
-          params.add((v as RefValue).id);
-        }
         final ph = List.filled(items.length, '?').join(', ');
-        return '(${_hops(res.hops, alias, (a) => '$a.${target.idColumn} IN ($ph)')})';
+        final hit = _hops(res.hops, alias, (a) {
+          for (final v in items) {
+            params.add((v as RefValue).id);
+          }
+          return '$a.${target.idColumn} IN ($ph)';
+        });
+        return '($hit)';
       case QueryOp.isSet:
         // `:any` is the exact complement of `:none`, so a relation whose
         // emptiness counts a legacy scalar (buddies, weights) counts it as
@@ -272,12 +307,14 @@ class _Ctx {
     QueryValue? value,
     String alias,
   ) {
-    final col = substituteRow(f.sql, alias);
+    // Each read of the column is expanded where it is written, before the
+    // value it is compared with is bound (its diver token binds too).
+    String col() => _field(f.sql, alias);
     switch (op) {
       case QueryOp.isEmpty:
-        return '(${substituteRow(f.emptySql, alias)})';
+        return '(${_field(f.emptySql, alias)})';
       case QueryOp.isSet:
-        return '(NOT (${substituteRow(f.emptySql, alias)}))';
+        return '(NOT (${_field(f.emptySql, alias)}))';
       case QueryOp.between:
         // A reversed pair (from JSON or the builder) still means the range.
         final items = _ascending((value as ListValue).items);
@@ -286,20 +323,22 @@ class _Ctx {
       case QueryOp.inList:
         if (value is DateRangeValue) return _dateRange(col, value, f);
         final items = (value as ListValue).items;
+        final c = col();
         if (f.type == FieldType.text) {
           for (final v in items) {
             params.add((v as StringValue).value);
           }
           final ph = List.filled(items.length, 'LOWER(?)').join(', ');
-          return '(LOWER($col) IN ($ph))';
+          return '(LOWER($c) IN ($ph))';
         }
         for (final v in items) {
           params.add(_bind(f, v));
         }
-        return '($col IN (${List.filled(items.length, '?').join(', ')}))';
+        return '($c IN (${List.filled(items.length, '?').join(', ')}))';
       case QueryOp.contains:
+        final c = col();
         params.add('%${escapeLike((value as StringValue).value)}%');
-        return "($col LIKE ? ESCAPE '\\')";
+        return "($c LIKE ? ESCAPE '\\')";
       case QueryOp.eq:
       case QueryOp.neq:
         return _equality(f, col, op, value!, alias);
@@ -319,7 +358,7 @@ class _Ctx {
 
   String _equality(
     QueryField f,
-    String col,
+    String Function() col,
     QueryOp op,
     QueryValue value,
     String alias,
@@ -329,29 +368,37 @@ class _Ctx {
       final want = (value as BoolValue).value == positive;
       if (f.boolSql != null) {
         final sql = want ? f.boolSql!.whenTrue : f.boolSql!.whenFalse;
-        return '(${substituteRow(sql, alias)})';
+        return '(${_field(sql, alias)})';
       }
+      final c = col();
       params.add(want ? 1 : 0);
-      return '($col = ?)';
+      return '($c = ?)';
     }
     if (f.type == FieldType.date) {
       final day = (value as DateValue).day;
-      params
-        ..add(_ms(day, f.dateFrame))
-        ..add(_ms(_plusDay(day), f.dateFrame));
-      final eq = '($col >= ? AND $col < ?)';
+      final from = col();
+      params.add(_ms(day, f.dateFrame));
+      final to = col();
+      params.add(_ms(_plusDay(day), f.dateFrame));
+      final eq = '($from >= ? AND $to < ?)';
       return positive ? eq : '(NOT $eq)';
     }
     if (f.type == FieldType.text) {
+      final c = col();
       params.add((value as StringValue).value);
-      return positive
-          ? '(LOWER($col) = LOWER(?))'
-          : '(LOWER($col) != LOWER(?))';
+      return positive ? '(LOWER($c) = LOWER(?))' : '(LOWER($c) != LOWER(?))';
     }
-    params.add(_bind(f, value));
+    if (positive) {
+      final c = col();
+      params.add(_bind(f, value));
+      return '($c = ?)';
+    }
     // SQL's `col != ?` is already false for NULL; the explicit test keeps
     // the intent readable in the plan and matches the golden.
-    return positive ? '($col = ?)' : '(($col) IS NOT NULL AND $col != ?)';
+    final present = col();
+    final c = col();
+    params.add(_bind(f, value));
+    return '(($present) IS NOT NULL AND $c != ?)';
   }
 
   static List<QueryValue> _ascending(List<QueryValue> pair) {
@@ -363,7 +410,8 @@ class _Ctx {
     return reversed ? [pair[1], pair[0]] : pair;
   }
 
-  String _cmp(QueryField f, String col, String sym, QueryValue v) {
+  String _cmp(QueryField f, String Function() read, String sym, QueryValue v) {
+    final col = read();
     if (f.type == FieldType.date) {
       final day = (v as DateValue).day;
       // Half-open day bounds: `<= day` keeps the whole day, `> day` starts
@@ -387,11 +435,12 @@ class _Ctx {
     return '$col $sym ?';
   }
 
-  String _dateRange(String col, DateRangeValue r, QueryField f) {
-    params
-      ..add(_ms(r.start, f.dateFrame))
-      ..add(_ms(_plusDay(r.end), f.dateFrame));
-    return '($col >= ? AND $col < ?)';
+  String _dateRange(String Function() col, DateRangeValue r, QueryField f) {
+    final from = col();
+    params.add(_ms(r.start, f.dateFrame));
+    final to = col();
+    params.add(_ms(_plusDay(r.end), f.dateFrame));
+    return '($from >= ? AND $to < ?)';
   }
 
   Object? _bind(QueryField f, QueryValue v) => switch (v) {

@@ -7,7 +7,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/explore/domain/explore_subject_lowering.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_subject_providers.dart';
@@ -70,12 +72,13 @@ void main() {
     double depth = 10,
     String? tripId,
     String? centerId,
+    String diverId = 'me',
   }) => db
       .into(db.dives)
       .insert(
         DivesCompanion(
           id: Value(id),
-          diverId: const Value('me'),
+          diverId: Value(diverId),
           siteId: Value(siteId),
           tripId: Value(tripId),
           diveCenterId: Value(centerId),
@@ -159,6 +162,42 @@ void main() {
       expect((await rows(c)).map((x) => x.id).toSet(), {'mine', 'theirs'});
     },
   );
+
+  test("a partner's dives at a shared site are not the diver's", () async {
+    // Their three deep dives there; one shallow dive of mine.
+    await site('theirs', diverId: 'other', shared: true);
+    for (final id in ['p1', 'p2', 'p3']) {
+      await dive(id, 'theirs', depth: 30, diverId: 'other');
+    }
+    await dive('m1', 'theirs', depth: 5);
+    final c = await container();
+    c.read(exploreSubjectProvider.notifier).state = ParsedSubject.sites;
+
+    // "Sites I dived at least three times": the count is mine.
+    c.read(exploreQueryNodeProvider.notifier).state = ConditionNode(
+      FieldPath(const ['diveCount']),
+      QueryOp.gte,
+      const NumberValue(3, null),
+    );
+    expect(await rows(c), isEmpty);
+
+    // "Sites where I dived deeper than 20 m": the dives are mine.
+    final deep = ConditionNode(
+      FieldPath(const ['depth']),
+      QueryOp.gte,
+      const NumberValue(20, null),
+    );
+    c.read(exploreDiveScopeProvider.notifier).state = deep;
+    c.read(exploreQueryNodeProvider.notifier).state = countedDives([deep]);
+    expect(await rows(c), isEmpty);
+
+    // With no condition the site is there, its tile and rank agreeing.
+    c.read(exploreDiveScopeProvider.notifier).state = null;
+    c.read(exploreQueryNodeProvider.notifier).state = null;
+    final r = (await rows(c)).single;
+    expect(r.dives, 1);
+    expect((r.item as SiteWithDiveCount).diveCount, 1);
+  });
 
   test('retired gear is an answer when the sentence names retired', () async {
     // The equipment list's unset status hides retired gear; Explore lifts
