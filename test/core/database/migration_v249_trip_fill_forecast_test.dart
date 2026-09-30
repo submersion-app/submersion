@@ -39,12 +39,14 @@ void main() {
   test('v249 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 249);
+    // Relaxed once v250 (profile hides, #2594) landed on top; the newest
+    // rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(249));
     expect(AppDatabase.migrationVersions, contains(249));
     // 248 (trip_equipment, #2338) sits below this rung.
     expect(AppDatabase.migrationVersions, contains(248));
-    expect(AppDatabase.migrationStepCount(248), 1);
-    expect(AppDatabase.migrationStepCount(247), 2);
+    expect(AppDatabase.migrationStepCount(248), 2);
+    expect(AppDatabase.migrationStepCount(247), 3);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

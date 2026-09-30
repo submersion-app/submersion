@@ -81,4 +81,14 @@ extension SiteMigrations on AppDatabase {
     }
     await Migrator(this).createTable(diveCenterGearNotes);
   }
+
+  /// The site_hides table (v250, issue #2594). Called from the v250 rung
+  /// and the beforeOpen backstop. Skipped on a partial migration-test
+  /// fixture that lacks a parent table.
+  Future<void> _assertSiteHidesSchema() async {
+    for (final parent in const ['dive_sites', 'divers']) {
+      if (!await _tableExists(parent)) return;
+    }
+    await Migrator(this).createTable(siteHides);
+  }
 }
