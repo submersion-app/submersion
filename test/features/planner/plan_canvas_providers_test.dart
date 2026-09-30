@@ -37,6 +37,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(endLimit: value);
 
   @override
+  Future<void> setO2Narcotic(bool value) async =>
+      state = state.copyWith(o2Narcotic: value);
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -57,7 +61,7 @@ ProviderContainer _container({int? gfLow, int? gfHigh, double? endLimit}) {
 }
 
 /// A stand-in for the planner's real dependents (the plan outcome, the
-/// bailout and rock-bottom checks, the DPV mission), counting how often
+/// bailout and contingency checks, the range table), counting how often
 /// [planEngineConfigProvider] makes it rebuild.
 ({Provider<PlanEngineConfig> provider, int Function() builds})
 _countingDependent() {
@@ -267,29 +271,32 @@ void main() {
   });
 
   group('planEngineConfig rebuilds only for its own inputs (issue #2632)', () {
-    test('a theme change does not rebuild its dependents', () async {
-      final container = _container();
-      final dependent = _countingDependent();
-      container.listen(dependent.provider, (_, _) {});
-      final before = container.read(planEngineConfigProvider);
-      expect(dependent.builds(), 1);
+    test(
+      'a theme or map style change does not rebuild its dependents',
+      () async {
+        final container = _container();
+        final dependent = _countingDependent();
+        container.listen(dependent.provider, (_, _) {});
+        final before = container.read(planEngineConfigProvider);
+        expect(dependent.builds(), 1);
 
-      await container
-          .read(settingsProvider.notifier)
-          .setThemeMode(ThemeMode.dark);
-      await container
-          .read(settingsProvider.notifier)
-          .setMapStyle(MapStyle.esriSatellite);
-      container.read(dependent.provider);
+        await container
+            .read(settingsProvider.notifier)
+            .setThemeMode(ThemeMode.dark);
+        await container
+            .read(settingsProvider.notifier)
+            .setMapStyle(MapStyle.esriSatellite);
+        container.read(dependent.provider);
 
-      expect(container.read(settingsProvider).themeMode, ThemeMode.dark);
-      expect(dependent.builds(), 1);
-      expect(
-        identical(container.read(planEngineConfigProvider), before),
-        isTrue,
-        reason: 'an unrelated setting must not rebuild the config itself',
-      );
-    });
+        expect(container.read(settingsProvider).themeMode, ThemeMode.dark);
+        expect(dependent.builds(), 1);
+        expect(
+          identical(container.read(planEngineConfigProvider), before),
+          isTrue,
+          reason: 'an unrelated setting must not rebuild the config itself',
+        );
+      },
+    );
 
     test('an END limit change still rebuilds its dependents', () async {
       final container = _container();
@@ -301,6 +308,20 @@ void main() {
       container.read(dependent.provider);
 
       expect(container.read(planEngineConfigProvider).endLimitMeters, 40);
+      expect(dependent.builds(), 2);
+    });
+
+    test('an O2-narcotic change still rebuilds its dependents', () async {
+      final container = _container();
+      final dependent = _countingDependent();
+      container.listen(dependent.provider, (_, _) {});
+      expect(container.read(planEngineConfigProvider).o2Narcotic, isTrue);
+      expect(dependent.builds(), 1);
+
+      await container.read(settingsProvider.notifier).setO2Narcotic(false);
+      container.read(dependent.provider);
+
+      expect(container.read(planEngineConfigProvider).o2Narcotic, isFalse);
       expect(dependent.builds(), 2);
     });
   });
