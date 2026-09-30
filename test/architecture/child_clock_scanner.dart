@@ -53,10 +53,16 @@ final _sqlSetsHlc = RegExp(r'\bhlc\s*=', caseSensitive: false);
 /// also the Drift getter, to SQL table name) that do not restamp the row.
 ///
 /// A write restamps its row when the companion it writes sets `hlc`, when its
-/// raw SQL assigns `hlc`, or when the enclosing member marks the same entity
-/// type pending (`markRecordPending(entityType: '<type>', ...)`, which stamps
-/// the clock). Anything else needs `// child-clock: <reason>` above the
-/// statement, for a row stamped somewhere the scan cannot see.
+/// raw SQL assigns `hlc`, or when the same entity type is marked pending
+/// (`markRecordPending(entityType: '<type>', ...)`, which stamps the clock)
+/// either anywhere in the block holding the write, or as a plain statement of
+/// a block around it in the same member (a write in a branch, then the mark
+/// after the branch). A mark nested in some other loop or branch does not
+/// count: syntax cannot tell whether it is for these rows, and the
+/// consolidation marks the tanks it inserts in one branch while updating
+/// others in another.
+/// Anything else needs `// child-clock: <reason>` above the statement, for a
+/// row stamped somewhere the scan cannot see.
 ///
 /// Parsing is syntactic, as in the other guards here: tables are recognized
 /// by the getter name inside `update(...)` and by the table name after SQL
@@ -82,7 +88,7 @@ ChildWriteScan scanChildWrites({
       childWrites += 1;
       if (write.stamped) continue;
       final member = _enclosingMember(write.node);
-      if (member != null && _marksPending(member, write.entityType)) continue;
+      if (_markedNearby(write.node, write.entityType)) continue;
       final statement = _statementStart(write.node);
       final line = result.lineInfo.getLocation(statement).lineNumber;
       if (_hasMarker(lines, line)) continue;
@@ -218,10 +224,50 @@ String _memberName(Declaration member) => switch (member) {
   _ => '<unit>',
 };
 
-bool _marksPending(Declaration member, String entityType) {
-  final finder = _PendingMarks();
-  member.accept(finder);
-  return finder.entityTypes.contains(entityType);
+/// Whether [entityType] is marked pending anywhere in the innermost block
+/// around [node], or as a plain statement of an enclosing block in the same
+/// member.
+bool _markedNearby(AstNode node, String entityType) {
+  var innermost = true;
+  for (AstNode? n = node.parent; n != null; n = n.parent) {
+    if (n is Declaration) return false;
+    if (n is! Block) continue;
+    if (innermost) {
+      final finder = _PendingMarks();
+      n.accept(finder);
+      if (finder.entityTypes.contains(entityType)) return true;
+      innermost = false;
+    } else if (n.statements.any((s) => _isPendingMark(s, entityType))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/// `[await] markRecordPending(entityType: '<type>', ...);` as a statement of
+/// its own.
+/// Only the statement's own call: a statement that merely contains a mark
+/// (`await db.transaction(() async { ... })`) must not vouch for writes
+/// elsewhere in it.
+bool _isPendingMark(Statement statement, String entityType) {
+  if (statement is! ExpressionStatement) return false;
+  var e = statement.expression;
+  if (e is AwaitExpression) e = e.expression;
+  return e is MethodInvocation && _marksEntity(e) == entityType;
+}
+
+/// The literal entity type a `markRecordPending(entityType: '<type>')` call
+/// names, or null for any other call.
+String? _marksEntity(MethodInvocation node) {
+  if (node.methodName.name != 'markRecordPending') return null;
+  for (final a in node.argumentList.arguments) {
+    if (a is NamedArgument &&
+        a.name.lexeme == 'entityType' &&
+        a.argumentExpression is SimpleStringLiteral) {
+      return (a.argumentExpression as SimpleStringLiteral).value;
+    }
+  }
+  return null;
 }
 
 class _PendingMarks extends RecursiveAstVisitor<void> {
@@ -229,15 +275,8 @@ class _PendingMarks extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.name == 'markRecordPending') {
-      for (final a in node.argumentList.arguments) {
-        if (a is NamedArgument &&
-            a.name.lexeme == 'entityType' &&
-            a.argumentExpression is SimpleStringLiteral) {
-          entityTypes.add((a.argumentExpression as SimpleStringLiteral).value);
-        }
-      }
-    }
+    final type = _marksEntity(node);
+    if (type != null) entityTypes.add(type);
     super.visitMethodInvocation(node);
   }
 }
