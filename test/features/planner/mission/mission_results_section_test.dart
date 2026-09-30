@@ -555,7 +555,8 @@ void main() {
     expect(find.textContaining(RegExp(r'^Samantha Richardson：')), findsWidgets);
     expect(find.textContaining(RegExp(r'^Erster Abzweig：')), findsOneWidget);
     expect(find.textContaining('（'), findsWidgets);
-    expect(find.textContaining(RegExp(r'^\S+: ')), findsNothing);
+    // No English colon-space anywhere in the Chinese section.
+    expect(find.textContaining(': '), findsNothing);
   });
 
   /// Computes the first mission, then fails every later one.

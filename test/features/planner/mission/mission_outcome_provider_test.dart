@@ -1,3 +1,4 @@
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -135,83 +136,90 @@ void main() {
     );
   });
 
-  test('an engine exception is not retried', () async {
-    var calls = 0;
-    final container = ProviderContainer(
-      overrides: [
-        missionEngineRunnerProvider.overrideWithValue((
-          plan,
-          mission,
-          config,
-        ) async {
-          calls++;
-          throw const FormatException('scenario');
-        }),
-      ],
-    );
-    addTearDown(container.dispose);
-    final sub = container.listen(missionOutcomeProvider, (_, _) {});
-    addTearDown(sub.close);
-    _buildMission(container);
-    await expectLater(
-      container.read(missionOutcomeProvider.future),
-      throwsA(isA<FormatException>()),
-    );
-    // Riverpod's default retry would have run it again within this window.
-    await Future<void>.delayed(const Duration(milliseconds: 800));
-    expect(calls, 1);
-  });
-
-  test('renaming the plan does not recompute the mission', () async {
+  /// A container whose runner counts its calls, listened so it recomputes
+  /// on each edit as the canvas does. Built inside [fakeAsync], so the
+  /// settle delay and Riverpod's retry backoff run on the synthetic clock.
+  (ProviderContainer, int Function()) countingContainer(
+    Future<MissionOutcome> Function(
+      domain.DivePlan plan,
+      DpvMission mission,
+      PlanEngineConfig config,
+    )
+    run,
+  ) {
     var calls = 0;
     final container = ProviderContainer(
       overrides: [
         missionEngineRunnerProvider.overrideWithValue((plan, mission, config) {
           calls++;
-          return _syncRunner(plan, mission, config);
+          return run(plan, mission, config);
         }),
       ],
     );
-    addTearDown(container.dispose);
-    final sub = container.listen(missionOutcomeProvider, (_, _) {});
-    addTearDown(sub.close);
-    _buildMission(container);
-    await container.read(missionOutcomeProvider.future);
-    final before = calls;
-    container.read(divePlanNotifierProvider.notifier).updateName('Wall run');
-    await Future<void>.delayed(const Duration(milliseconds: 400));
-    expect(calls, before);
-  });
+    container.listen(missionOutcomeProvider, (_, _) {});
+    return (container, () => calls);
+  }
 
-  test('edits typed in quick succession compute once', () async {
-    var calls = 0;
-    final container = ProviderContainer(
-      overrides: [
-        missionEngineRunnerProvider.overrideWithValue((plan, mission, config) {
-          calls++;
-          return _syncRunner(plan, mission, config);
-        }),
-      ],
-    );
-    addTearDown(container.dispose);
-    final sub = container.listen(missionOutcomeProvider, (_, _) {});
-    addTearDown(sub.close);
-    _buildMission(container);
-    await container.read(missionOutcomeProvider.future);
-    final before = calls;
-    final notifier = container.read(divePlanNotifierProvider.notifier);
-    // "1", "12", "120": three keystrokes a few milliseconds apart.
-    for (final metres in [1.0, 12.0, 120.0]) {
-      final mission = container.read(divePlanNotifierProvider).mission!;
-      notifier.updateMission(
-        MissionEdits.updateLeg(
-          mission,
-          mission.legs.single.copyWith(distanceM: metres),
-        ),
+  test('an engine exception is not retried', () {
+    fakeAsync((async) {
+      final (container, calls) = countingContainer(
+        (plan, mission, config) async =>
+            throw const FormatException('scenario'),
       );
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-    }
-    await container.read(missionOutcomeProvider.future);
-    expect(calls, before + 1);
+      _buildMission(container);
+      // A minute covers every retry Riverpod's default backoff would make.
+      async.elapse(const Duration(minutes: 1));
+      expect(container.read(missionOutcomeProvider).hasError, isTrue);
+      expect(calls(), 1);
+      container.dispose();
+    });
+  });
+
+  test('renaming the plan does not recompute the mission', () {
+    fakeAsync((async) {
+      final (container, calls) = countingContainer(_syncRunner);
+      _buildMission(container);
+      async.elapse(const Duration(seconds: 1));
+      final before = calls();
+      expect(before, 1);
+      container.read(divePlanNotifierProvider.notifier).updateName('Wall run');
+      async.elapse(const Duration(seconds: 1));
+      expect(calls(), before);
+      container.dispose();
+    });
+  });
+
+  test('edits typed in quick succession compute once', () {
+    fakeAsync((async) {
+      final (container, calls) = countingContainer(_syncRunner);
+      _buildMission(container);
+      async.elapse(const Duration(seconds: 1));
+      final before = calls();
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      // "1", "12", "120": three keystrokes 20 ms apart, well inside the
+      // settle delay.
+      for (final metres in [1.0, 12.0, 120.0]) {
+        final mission = container.read(divePlanNotifierProvider).mission!;
+        notifier.updateMission(
+          MissionEdits.updateLeg(
+            mission,
+            mission.legs.single.copyWith(distanceM: metres),
+          ),
+        );
+        async.elapse(const Duration(milliseconds: 20));
+      }
+      async.elapse(const Duration(seconds: 1));
+      expect(calls(), before + 1);
+      expect(
+        container
+            .read(missionOutcomeProvider)
+            .value!
+            .waypoints
+            .single
+            .cumulativeDistanceM,
+        120,
+      );
+      container.dispose();
+    });
   });
 }
