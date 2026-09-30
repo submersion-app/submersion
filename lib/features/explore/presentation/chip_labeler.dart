@@ -95,8 +95,7 @@ class ChipLabeler {
       // 1 January 2024 was a Monday.
       DateTime(2024, 1, kWeekdayTokens.indexOf(v) + 1),
     ),
-    'sacTrend' ||
-    'finalStop' => queryLabelForKey(l10n, 'query_dives_${field.name}_$v'),
+    'sacTrend' || 'finalStop' => queryLabelForKey(l10n, '${field.labelKey}_$v'),
     'finding' => switch (SafetyRuleId.fromDbValue(v)) {
       final rule? => safetyRuleLabel(rule, l10n),
       null => v,

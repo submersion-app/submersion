@@ -199,6 +199,7 @@ void main() {
     );
     for (final f in kExploreFields.where((f) => f.trend != null)) {
       expect(f.kind, ExploreValueKind.number, reason: f.name);
+      expect(f.trend!.isTrend, isTrue, reason: f.name);
     }
   });
 
