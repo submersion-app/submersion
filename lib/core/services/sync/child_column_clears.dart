@@ -24,8 +24,10 @@ Set<String> explicitlyClearedKeys({
 };
 
 /// The key Drift's generated `toJson` uses for the SQL column [sqlName]: its
-/// camel-case form (`transmitter_serial` becomes `transmitterSerial`). A
-/// test pins this for every parent-gated table.
+/// camel-case form (`transmitter_serial` becomes `transmitterSerial`). The
+/// project has no build.yaml renames and no `named()` overrides, so the
+/// mapping is mechanical; a test pins it for every parent-gated table. The
+/// serializer's schema-default fills use it too.
 String columnJsonKey(String sqlName) {
   final parts = sqlName.split('_');
   return [

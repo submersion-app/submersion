@@ -8670,26 +8670,10 @@ class SyncDataSerializer {
       // defaults (e.g. currentDateAndTime) can't be evaluated here and keep
       // today's behavior.
       if (value is bool || value is num || value is String) {
-        fills.add(MapEntry(_jsonKeyForSqlColumn(column.name), () => value));
+        fills.add(MapEntry(columnJsonKey(column.name), () => value));
       }
     }
     return fills;
-  }
-
-  /// Maps a Drift SQL column name (snake_case of the Dart getter) back to the
-  /// getter name, which is the generated `fromJson`/`toJson` key. The project
-  /// has no build.yaml renames and no `named()` overrides, so the mapping is
-  /// mechanical; a wrong key would only add an ignored extra entry, never
-  /// overwrite a real one (fills skip keys already present).
-  static String _jsonKeyForSqlColumn(String sqlName) {
-    final parts = sqlName.split('_');
-    final buffer = StringBuffer(parts.first);
-    for (final part in parts.skip(1)) {
-      if (part.isEmpty) continue;
-      buffer.write(part[0].toUpperCase());
-      buffer.write(part.substring(1));
-    }
-    return buffer.toString();
   }
 
   /// Applies default values for DiverSettings fields that may be missing
