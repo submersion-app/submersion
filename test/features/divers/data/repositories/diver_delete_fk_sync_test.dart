@@ -231,6 +231,27 @@ void main() {
             diveId: 'dive-b',
           ).copyWith(computerId: const Value('comp-a')),
         );
+    // Alice's own dive and tank go with her: staging the tank first would
+    // export an upsert for a row the same delete removes.
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'dive-a',
+            diverId: const Value('diver-a'),
+            diveDateTime: stale,
+            createdAt: stale,
+            updatedAt: stale,
+          ),
+        );
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'tank-a',
+            diveId: 'dive-a',
+          ).copyWith(computerId: const Value('comp-a')),
+        );
 
     await repository.deleteDiverWithReassignment('diver-a');
 
@@ -243,6 +264,7 @@ void main() {
     expect(tank.readNullable<String>('hlc'), isNotNull);
     expect(await pendingCountFor('diveTanks', 'tank-b'), 1);
     expect(await pendingCountFor('dives', 'dive-b'), 0);
+    expect(await pendingCountFor('diveTanks', 'tank-a'), 0);
   });
 
   test('a cleared data source marks its own dive pending', () async {

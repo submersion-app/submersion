@@ -567,7 +567,7 @@ class DiverRepository {
         // a change a peer has to see: without a fresh updated_at and a
         // pending mark the peer keeps the old computerId and its next
         // last-writer-wins update carries that dangling reference back. The
-        // series calls below already stamp and mark for themselves.
+        // series and tank calls below stamp and mark for themselves.
         final clearedAt = DateTime.now().millisecondsSinceEpoch;
         final foreignDiveIds = await _idsOf(
           'SELECT id FROM dives '
