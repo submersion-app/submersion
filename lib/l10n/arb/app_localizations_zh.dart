@@ -5293,6 +5293,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'GPS 坐标';
 
   @override
+  String get diveCenters_section_fillHours => '充气时间';
+
+  @override
+  String get diveCenters_fillHours_caption => '气站充气的时间。行程充气预测使用关门时间。';
+
+  @override
+  String get diveCenters_fillHours_opens => '开门';
+
+  @override
+  String get diveCenters_fillHours_closes => '关门';
+
+  @override
+  String get diveCenters_fillHours_notSet => '未设置';
+
+  @override
+  String get diveCenters_fillHours_clear => '清除充气时间';
+
+  @override
+  String get diveCenters_fillHours_errorBoth => '请同时设置两个时间，或都不设置。';
+
+  @override
+  String get diveCenters_fillHours_errorOrder => '关门时间必须晚于开门时间。';
+
+  @override
   String get diveCenters_section_notes => '备注';
 
   @override
@@ -24323,6 +24347,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => '计划';
 
   @override
+  String get trips_edit_label_diversSharing => '共用气瓶的潜水员';
+
+  @override
+  String get trips_edit_hint_diversSharing => '包括你自己。留空表示 1。';
+
+  @override
+  String get trips_edit_label_divesPerDay => '每天潜水次数';
+
+  @override
+  String get trips_edit_hint_divesPerDay => '用于充气预测。留空表示估算。';
+
+  @override
   String get trips_edit_label_expectedDives => '预计潜水次数';
 
   @override
@@ -24433,6 +24469,59 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_gear_failed => '无法更改装备，请重试。';
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return '今天需要 $needed 个，你有 $full 个满瓶。';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return '明天需要 $needed 个，届时你有 $full 个满瓶。';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return '请在 $time 前充气。';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough => '满瓶足够用到明天。';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => '计划潜水';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return '计划潜水，$date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => '使用估计值';
+
+  @override
+  String get trips_cylinders_forecast_fewer => '减少潜水';
+
+  @override
+  String get trips_cylinders_forecast_more => '增加潜水';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return '无法保存计划：$error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => '由你计划';
 
   @override
   String get trips_cylinders_title => '气瓶';

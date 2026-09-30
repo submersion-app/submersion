@@ -108,5 +108,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertTripEquipmentSchema();
     }
     if (from < 248) await reportProgress();
+    // v249: the trip fill forecast's inputs (issue #2325, PR 4). Columns
+    // only, no backfill; re-asserted in beforeOpen. 248 is #2585.
+    if (from < 249) {
+      await _assertTripFillForecastColumns();
+    }
+    if (from < 249) await reportProgress();
   }
 }

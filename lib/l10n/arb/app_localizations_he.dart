@@ -5435,6 +5435,33 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'קואורדינטות GPS';
 
   @override
+  String get diveCenters_section_fillHours => 'שעות מילוי';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'מתי התחנה ממלאת מכלים. תחזית המילוי של הטיול משתמשת בשעת הסגירה.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'נפתח';
+
+  @override
+  String get diveCenters_fillHours_closes => 'נסגר';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'לא הוגדר';
+
+  @override
+  String get diveCenters_fillHours_clear => 'ניקוי שעות המילוי';
+
+  @override
+  String get diveCenters_fillHours_errorBoth =>
+      'יש להגדיר את שתי השעות או אף אחת.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'שעת הסגירה חייבת להיות אחרי שעת הפתיחה.';
+
+  @override
   String get diveCenters_section_notes => 'הערות';
 
   @override
@@ -24997,6 +25024,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'תכנון';
 
   @override
+  String get trips_edit_label_diversSharing => 'צוללים החולקים מכלים';
+
+  @override
+  String get trips_edit_hint_diversSharing => 'כולל אותך. ריק פירושו 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'צלילות ליום';
+
+  @override
+  String get trips_edit_hint_divesPerDay => 'לתחזית המילוי. ריק פירושו הערכה.';
+
+  @override
   String get trips_edit_label_expectedDives => 'צלילות צפויות';
 
   @override
@@ -25115,6 +25154,60 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_gear_failed => 'לא ניתן לשנות את הציוד. נסו שוב.';
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'היום צריך $needed, יש לך $full מלאים.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'מחר צריך $needed, יהיו לך $full מלאים.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'למלא לפני $time.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough => 'יש מספיק מכלים מלאים עד מחר.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'צלילות מתוכננות';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: '$count צלילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'צלילות מתוכננות, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'להשתמש בהערכה';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'פחות צלילות';
+
+  @override
+  String get trips_cylinders_forecast_more => 'יותר צלילות';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'לא ניתן לשמור את התוכנית: $error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => 'תוכנן על ידך';
 
   @override
   String get trips_cylinders_title => 'מכלים';

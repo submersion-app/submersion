@@ -32,12 +32,14 @@ class DiveSensorSummaryService {
   static const int version = 1;
 
   /// Whether [summary] describes the dive as it is now: built by this
-  /// engine version from the dive's current `updated_at` ([diveUpdatedAt]).
-  /// A stale row describes an older version of the dive and must not be
-  /// read until the rebuild the scheduler queues for it lands.
-  static bool isCurrent(DiveSensorSummary summary, int diveUpdatedAt) =>
+  /// engine version from the dive's current source stamp ([sourceStamp],
+  /// the `diveSourceStampSql` of the dive and its series, which an
+  /// exposure sample carries as its `updatedAt`). A stale row describes an
+  /// older version of the dive and must not be read until the rebuild the
+  /// scheduler queues for it lands.
+  static bool isCurrent(DiveSensorSummary summary, int sourceStamp) =>
       summary.engineVersion >= version &&
-      summary.sourceUpdatedAt == diveUpdatedAt;
+      summary.sourceUpdatedAt == sourceStamp;
 
   /// Cells report `o2Sensor1` to `o2Sensor6`.
   static const int slotCount = 6;

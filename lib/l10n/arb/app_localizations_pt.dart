@@ -5568,6 +5568,33 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'Coordenadas GPS';
 
   @override
+  String get diveCenters_section_fillHours => 'Horário de enchimento';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'Quando a estação enche cilindros. A previsão de enchimento da viagem usa a hora de fecho.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'Abre';
+
+  @override
+  String get diveCenters_fillHours_closes => 'Fecha';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'Não definido';
+
+  @override
+  String get diveCenters_fillHours_clear => 'Limpar horário de enchimento';
+
+  @override
+  String get diveCenters_fillHours_errorBoth =>
+      'Defina as duas horas, ou nenhuma.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'A hora de fecho tem de ser depois da de abertura.';
+
+  @override
   String get diveCenters_section_notes => 'Notas';
 
   @override
@@ -25617,6 +25644,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'Planeamento';
 
   @override
+  String get trips_edit_label_diversSharing =>
+      'Mergulhadores que partilham cilindros';
+
+  @override
+  String get trips_edit_hint_diversSharing =>
+      'Incluindo você. Em branco significa 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'Mergulhos por dia';
+
+  @override
+  String get trips_edit_hint_divesPerDay =>
+      'Para a previsão de enchimento. Em branco significa estimativa.';
+
+  @override
   String get trips_edit_label_expectedDives => 'Mergulhos previstos';
 
   @override
@@ -25736,6 +25778,61 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get trips_gear_failed =>
       'Não foi possível alterar o equipamento. Tente novamente.';
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'Hoje são precisos $needed, tem $full cheios.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'Amanhã são precisos $needed, terá $full cheios.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'Encha antes das $time.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough =>
+      'Cilindros cheios suficientes até amanhã.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'Mergulhos planeados';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'Mergulhos planeados, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'Usar a estimativa';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'Menos mergulhos';
+
+  @override
+  String get trips_cylinders_forecast_more => 'Mais mergulhos';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'Não foi possível guardar o plano: $error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => 'Planeado por si';
 
   @override
   String get trips_cylinders_title => 'Cilindros';

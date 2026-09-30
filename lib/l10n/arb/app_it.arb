@@ -1756,6 +1756,14 @@
   "diveCenters_section_contact": "Contatto",
   "diveCenters_section_contactInfo": "Informazioni di Contatto",
   "diveCenters_section_gpsCoordinates": "Coordinate GPS",
+  "diveCenters_section_fillHours": "Orari di ricarica",
+  "diveCenters_fillHours_caption": "Quando la stazione ricarica le bombole. La previsione di ricarica del viaggio usa l'orario di chiusura.",
+  "diveCenters_fillHours_opens": "Apre",
+  "diveCenters_fillHours_closes": "Chiude",
+  "diveCenters_fillHours_notSet": "Non impostato",
+  "diveCenters_fillHours_clear": "Cancella orari di ricarica",
+  "diveCenters_fillHours_errorBoth": "Imposta entrambi gli orari o nessuno.",
+  "diveCenters_fillHours_errorOrder": "L'orario di chiusura deve seguire quello di apertura.",
   "diveCenters_section_notes": "Note",
   "diveCenters_snackbar_coordinatesFound": "Coordinate trovate dall'indirizzo",
   "diveCenters_snackbar_copiedToClipboard": "Copiato negli appunti",
@@ -7094,6 +7102,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Pianificazione",
+  "trips_edit_label_diversSharing": "Subacquei che condividono le bombole",
+  "trips_edit_hint_diversSharing": "Te compreso. Vuoto significa 1.",
+  "trips_edit_label_divesPerDay": "Immersioni al giorno",
+  "trips_edit_hint_divesPerDay": "Per la previsione di ricarica. Vuoto significa stima.",
   "trips_edit_label_expectedDives": "Immersioni previste",
   "trips_edit_hint_expectedDives": "Lascia vuoto per stimare dai tuoi viaggi recenti",
   "trips_edit_label_expectedRuntime": "Durata prevista per immersione (minuti)",
@@ -7203,6 +7215,66 @@
   "trips_gear_add": "Aggiungi attrezzatura",
   "trips_gear_remove": "Togli",
   "trips_gear_failed": "Impossibile modificare l'attrezzatura. Riprova.",
+  "trips_cylinders_forecast_todayShort": "Oggi ne servono {needed}, ne hai {full} piene.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "Domani ne servono {needed}, ne avrai {full} piene.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "Ricarica prima delle {time}.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "Bombole piene sufficienti fino a domani.",
+  "trips_cylinders_forecast_daysTitle": "Immersioni pianificate",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} immersione} other{{count} immersioni}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "Immersioni pianificate, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "Usa la stima",
+  "trips_cylinders_forecast_fewer": "Meno immersioni",
+  "trips_cylinders_forecast_more": "Più immersioni",
+  "trips_cylinders_forecast_saveError": "Impossibile salvare il piano: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "Pianificato da te",
   "trips_cylinders_title": "Bombole",
   "trips_cylinders_summary": "Piene {full} · Parziali {partial} · Vuote {empty}",
   "@trips_cylinders_summary": {

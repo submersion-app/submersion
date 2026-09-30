@@ -1756,6 +1756,14 @@
   "diveCenters_section_contact": "Contact",
   "diveCenters_section_contactInfo": "Contactinformatie",
   "diveCenters_section_gpsCoordinates": "GPS coördinaten",
+  "diveCenters_section_fillHours": "Vultijden",
+  "diveCenters_fillHours_caption": "Wanneer het station flessen vult. De vulprognose van de reis gebruikt de sluitingstijd.",
+  "diveCenters_fillHours_opens": "Opent",
+  "diveCenters_fillHours_closes": "Sluit",
+  "diveCenters_fillHours_notSet": "Niet ingesteld",
+  "diveCenters_fillHours_clear": "Vultijden wissen",
+  "diveCenters_fillHours_errorBoth": "Stel beide tijden in, of geen van beide.",
+  "diveCenters_fillHours_errorOrder": "De sluitingstijd moet na de openingstijd liggen.",
   "diveCenters_section_notes": "Notities",
   "diveCenters_snackbar_coordinatesFound": "Coördinaten gevonden via adres",
   "diveCenters_snackbar_copiedToClipboard": "Gekopieerd naar klembord",
@@ -7200,6 +7208,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Planning",
+  "trips_edit_label_diversSharing": "Duikers die flessen delen",
+  "trips_edit_hint_diversSharing": "Jij meegerekend. Leeg betekent 1.",
+  "trips_edit_label_divesPerDay": "Duiken per dag",
+  "trips_edit_hint_divesPerDay": "Voor de vulprognose. Leeg betekent schatting.",
   "trips_edit_label_expectedDives": "Verwachte duiken",
   "trips_edit_hint_expectedDives": "Laat leeg om te schatten op basis van je recente reizen",
   "trips_edit_label_expectedRuntime": "Verwachte looptijd per duik (minuten)",
@@ -7309,6 +7321,66 @@
   "trips_gear_add": "Uitrusting toevoegen",
   "trips_gear_remove": "Eruit halen",
   "trips_gear_failed": "Kan de uitrusting niet wijzigen. Probeer het opnieuw.",
+  "trips_cylinders_forecast_todayShort": "Vandaag zijn er {needed} nodig, je hebt er {full} vol.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "Morgen zijn er {needed} nodig, je hebt er dan {full} vol.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "Vul voor {time}.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "Genoeg volle flessen tot en met morgen.",
+  "trips_cylinders_forecast_daysTitle": "Geplande duiken",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} duik} other{{count} duiken}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "Geplande duiken, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "Schatting gebruiken",
+  "trips_cylinders_forecast_fewer": "Minder duiken",
+  "trips_cylinders_forecast_more": "Meer duiken",
+  "trips_cylinders_forecast_saveError": "Plan kon niet worden opgeslagen: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "Door jou gepland",
   "trips_cylinders_title": "Flessen",
   "trips_cylinders_summary": "Vol {full} · Deels {partial} · Leeg {empty}",
   "@trips_cylinders_summary": {

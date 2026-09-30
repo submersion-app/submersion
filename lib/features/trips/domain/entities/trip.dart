@@ -24,6 +24,12 @@ class Trip extends Equatable {
   /// recent history.
   final int? expectedDives;
   final int? expectedRuntimeMinutes;
+
+  /// Fill forecast inputs (issue #2325, v249): the divers breathing from the
+  /// trip's cylinders (at least 1), and a dives-per-day target (null derives
+  /// it from the itinerary, the expected dives or recent trips).
+  final int diversSharingCylinders;
+  final int? divesPerDayTarget;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -42,6 +48,8 @@ class Trip extends Equatable {
     this.returnFlightAt,
     this.expectedDives,
     this.expectedRuntimeMinutes,
+    this.diversSharingCylinders = 1,
+    this.divesPerDayTarget,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -142,6 +150,8 @@ class Trip extends Equatable {
     Object? returnFlightAt = _undefined,
     Object? expectedDives = _undefined,
     Object? expectedRuntimeMinutes = _undefined,
+    int? diversSharingCylinders,
+    Object? divesPerDayTarget = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -170,6 +180,11 @@ class Trip extends Equatable {
       expectedRuntimeMinutes: expectedRuntimeMinutes == _undefined
           ? this.expectedRuntimeMinutes
           : expectedRuntimeMinutes as int?,
+      diversSharingCylinders:
+          diversSharingCylinders ?? this.diversSharingCylinders,
+      divesPerDayTarget: divesPerDayTarget == _undefined
+          ? this.divesPerDayTarget
+          : divesPerDayTarget as int?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -191,6 +206,8 @@ class Trip extends Equatable {
     returnFlightAt,
     expectedDives,
     expectedRuntimeMinutes,
+    diversSharingCylinders,
+    divesPerDayTarget,
     createdAt,
     updatedAt,
   ];

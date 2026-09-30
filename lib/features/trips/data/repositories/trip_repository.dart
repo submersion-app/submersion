@@ -21,7 +21,13 @@ import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 
 class TripRepository {
+  TripRepository({ItineraryDayRepository? itineraryDays})
+    : _itineraryDays = itineraryDays ?? ItineraryDayRepository();
+
   AppDatabase get _db => DatabaseService.instance.database;
+
+  /// The trip's itinerary, which a date change and a delete also touch.
+  final ItineraryDayRepository _itineraryDays;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(TripRepository);
@@ -120,6 +126,8 @@ class TripRepository {
               ),
               expectedDives: Value(trip.expectedDives),
               expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
+              diversSharingCylinders: Value(trip.diversSharingCylinders),
+              divesPerDayTarget: Value(trip.divesPerDayTarget),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -165,6 +173,8 @@ class TripRepository {
           returnFlightAt: Value(trip.returnFlightAt?.millisecondsSinceEpoch),
           expectedDives: Value(trip.expectedDives),
           expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
+          diversSharingCylinders: Value(trip.diversSharingCylinders),
+          divesPerDayTarget: Value(trip.divesPerDayTarget),
           updatedAt: Value(now),
         ),
       );
@@ -173,6 +183,22 @@ class TripRepository {
         recordId: trip.id,
         localUpdatedAt: now,
       );
+      // A shortened or moved trip drops the plan-only itinerary days it no
+      // longer covers (#2325). Cleanup only: the trip is saved, so a
+      // failure here is logged rather than reported as a failed save.
+      try {
+        await _itineraryDays.deleteBarePlanDaysOutside(
+          trip.id,
+          trip.startDate,
+          trip.endDate,
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to drop plan-only itinerary days for trip: ${trip.id}',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
       SyncEventBus.notifyLocalChange();
       _log.info('Updated trip: ${trip.id}');
     } catch (e, stackTrace) {
@@ -273,7 +299,7 @@ class TripRepository {
       await _db.transaction(() async {
         // Delete child records with non-nullable FKs first
         await LiveaboardDetailsRepository().deleteByTripId(id);
-        await ItineraryDayRepository().deleteByTripId(id);
+        await _itineraryDays.deleteByTripId(id);
         await TripChecklistRepository().deleteByTripId(id);
         await TripDayWeatherRepository().deleteByTripId(id);
         // Slots, their ledger and the links on the tanks that used them.
@@ -697,6 +723,8 @@ class TripRepository {
           : null,
       expectedDives: row.expectedDives,
       expectedRuntimeMinutes: row.expectedRuntimeMinutes,
+      diversSharingCylinders: row.diversSharingCylinders,
+      divesPerDayTarget: row.divesPerDayTarget,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
@@ -728,6 +756,8 @@ class TripRepository {
           : null,
       expectedDives: data['expected_dives'] as int?,
       expectedRuntimeMinutes: data['expected_runtime_minutes'] as int?,
+      diversSharingCylinders: (data['divers_sharing_cylinders'] as int?) ?? 1,
+      divesPerDayTarget: data['dives_per_day_target'] as int?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(data['created_at'] as int),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(data['updated_at'] as int),
     );

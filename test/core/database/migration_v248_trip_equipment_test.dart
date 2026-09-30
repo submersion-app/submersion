@@ -31,10 +31,12 @@ void main() {
               .get())
           .isNotEmpty;
 
-  test('v248 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 248);
-    expect(AppDatabase.migrationVersions.last, 248);
-    expect(AppDatabase.migrationStepCount(247), 1);
+  test('v248 is at or below the current schema version and in the '
+      'ladder', () {
+    // Relaxed once v249 (the trip fill forecast) landed on top; the newest
+    // rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(248));
+    expect(AppDatabase.migrationVersions, contains(248));
   });
 
   test('upgrading from v247 creates trip_equipment and its index', () async {

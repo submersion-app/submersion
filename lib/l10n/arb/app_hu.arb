@@ -1756,6 +1756,14 @@
   "diveCenters_section_contact": "Kapcsolat",
   "diveCenters_section_contactInfo": "Kapcsolati információk",
   "diveCenters_section_gpsCoordinates": "GPS koordináták",
+  "diveCenters_section_fillHours": "Töltési idő",
+  "diveCenters_fillHours_caption": "Mikor tölt palackot az állomás. Az út töltési előrejelzése a zárási időt használja.",
+  "diveCenters_fillHours_opens": "Nyit",
+  "diveCenters_fillHours_closes": "Zár",
+  "diveCenters_fillHours_notSet": "Nincs megadva",
+  "diveCenters_fillHours_clear": "Töltési idő törlése",
+  "diveCenters_fillHours_errorBoth": "Adja meg mindkét időpontot, vagy egyiket sem.",
+  "diveCenters_fillHours_errorOrder": "A zárásnak a nyitás után kell lennie.",
   "diveCenters_section_notes": "Jegyzetek",
   "diveCenters_snackbar_coordinatesFound": "Koordináták megtalálva a címből",
   "diveCenters_snackbar_copiedToClipboard": "Vágólapra másolva",
@@ -7098,6 +7106,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Tervezés",
+  "trips_edit_label_diversSharing": "Palackokon osztozó búvárok",
+  "trips_edit_hint_diversSharing": "Önnel együtt. Üresen 1.",
+  "trips_edit_label_divesPerDay": "Merülés naponta",
+  "trips_edit_hint_divesPerDay": "A töltési előrejelzéshez. Üresen becslés.",
   "trips_edit_label_expectedDives": "Várható merülések",
   "trips_edit_hint_expectedDives": "Hagyd üresen, hogy a legutóbbi utazásaidból becsüljük",
   "trips_edit_label_expectedRuntime": "Várható futásidő merülésenként (perc)",
@@ -7207,6 +7219,66 @@
   "trips_gear_add": "Felszerelés hozzáadása",
   "trips_gear_remove": "Kivétel",
   "trips_gear_failed": "Nem sikerült módosítani a felszerelést. Próbáld újra.",
+  "trips_cylinders_forecast_todayShort": "Ma {needed} kell, {full} teli van.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "Holnap {needed} kell, {full} teli marad.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "Töltés {time} előtt.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "Elég teli palack holnapig.",
+  "trips_cylinders_forecast_daysTitle": "Tervezett merülések",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} merülés} other{{count} merülés}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "Tervezett merülések, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "Becslés használata",
+  "trips_cylinders_forecast_fewer": "Kevesebb merülés",
+  "trips_cylinders_forecast_more": "Több merülés",
+  "trips_cylinders_forecast_saveError": "A terv mentése nem sikerült: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "Általad tervezve",
   "trips_cylinders_title": "Palackok",
   "trips_cylinders_summary": "Tele {full} · Részben {partial} · Üres {empty}",
   "@trips_cylinders_summary": {

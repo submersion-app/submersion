@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
@@ -7,6 +8,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -212,5 +214,87 @@ void main() {
       "Suggested from the trip's full cylinders",
     );
     expect(l10n.trips_cylinders_action_logDive, 'Log dive');
+  });
+
+  test('the forecast strings exist in English', () {
+    expect(
+      l10n.trips_cylinders_forecast_todayShort(4, 2),
+      'Today needs 4, you have 2 full.',
+    );
+    expect(
+      l10n.trips_cylinders_forecast_tomorrowShort(6, 1),
+      "Tomorrow needs 6, you'll have 1 full.",
+    );
+    expect(
+      l10n.trips_cylinders_forecast_fillBefore('5:00 PM'),
+      'Fill before 5:00 PM.',
+    );
+    expect(
+      l10n.trips_cylinders_forecast_enough,
+      'Enough full cylinders through tomorrow.',
+    );
+    expect(l10n.trips_cylinders_forecast_plannedDives(1), '1 dive');
+    expect(l10n.trips_cylinders_forecast_plannedDives(0), '0 dives');
+    expect(l10n.trips_edit_label_diversSharing, 'Divers sharing cylinders');
+    expect(l10n.diveCenters_section_fillHours, 'Fill hours');
+    expect(
+      l10n.diveCenters_fillHours_errorOrder,
+      'Closing time must be after opening time.',
+    );
+  });
+
+  FillForecast forecastOf({
+    int todayShortfall = 0,
+    int tomorrowShortfall = 0,
+    int? deadline,
+  }) => FillForecast(
+    fullCount: 2,
+    partialCount: 0,
+    todayDemand: 4,
+    tomorrowDemand: 6,
+    tomorrowSupply: 1,
+    todayShortfall: todayShortfall,
+    tomorrowShortfall: tomorrowShortfall,
+    deadlineMinutes: deadline,
+    remainingDemand: 10,
+    days: const [],
+  );
+
+  test('a time of day in the diver\'s format', () {
+    expect(units.formatMinutesOfDay(1020), '5:00 PM');
+    expect(
+      const UnitFormatter(
+        AppSettings(timeFormat: TimeFormat.twentyFourHour),
+      ).formatMinutesOfDay(1020),
+      '17:00',
+    );
+  });
+
+  test('forecast lines: both shortfalls, today first, with the deadline', () {
+    final r = tripFillForecastLines(
+      l10n,
+      units,
+      forecastOf(todayShortfall: 2, tomorrowShortfall: 5, deadline: 1020),
+    );
+    expect(r.short, isTrue);
+    expect(r.lines, [
+      'Today needs 4, you have 2 full. Fill before 5:00 PM.',
+      "Tomorrow needs 6, you'll have 1 full.",
+    ]);
+  });
+
+  test('forecast lines: tomorrow alone, no deadline', () {
+    final r = tripFillForecastLines(
+      l10n,
+      units,
+      forecastOf(tomorrowShortfall: 5),
+    );
+    expect(r.lines, ["Tomorrow needs 6, you'll have 1 full."]);
+  });
+
+  test('forecast lines: enough', () {
+    final r = tripFillForecastLines(l10n, units, forecastOf(deadline: 1020));
+    expect(r.short, isFalse);
+    expect(r.lines, ['Enough full cylinders through tomorrow.']);
   });
 }

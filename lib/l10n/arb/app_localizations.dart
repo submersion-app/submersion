@@ -8986,6 +8986,54 @@ abstract class AppLocalizations {
   /// **'GPS Coordinates'**
   String get diveCenters_section_gpsCoordinates;
 
+  /// No description provided for @diveCenters_section_fillHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill hours'**
+  String get diveCenters_section_fillHours;
+
+  /// No description provided for @diveCenters_fillHours_caption.
+  ///
+  /// In en, this message translates to:
+  /// **'When the station fills cylinders. The trip fill forecast uses the closing time.'**
+  String get diveCenters_fillHours_caption;
+
+  /// No description provided for @diveCenters_fillHours_opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens'**
+  String get diveCenters_fillHours_opens;
+
+  /// No description provided for @diveCenters_fillHours_closes.
+  ///
+  /// In en, this message translates to:
+  /// **'Closes'**
+  String get diveCenters_fillHours_closes;
+
+  /// No description provided for @diveCenters_fillHours_notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get diveCenters_fillHours_notSet;
+
+  /// No description provided for @diveCenters_fillHours_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear fill hours'**
+  String get diveCenters_fillHours_clear;
+
+  /// No description provided for @diveCenters_fillHours_errorBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Set both times, or neither.'**
+  String get diveCenters_fillHours_errorBoth;
+
+  /// No description provided for @diveCenters_fillHours_errorOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing time must be after opening time.'**
+  String get diveCenters_fillHours_errorOrder;
+
   /// No description provided for @diveCenters_section_notes.
   ///
   /// In en, this message translates to:
@@ -41034,6 +41082,30 @@ abstract class AppLocalizations {
   /// **'Planning'**
   String get trips_edit_sectionTitle_planning;
 
+  /// No description provided for @trips_edit_label_diversSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Divers sharing cylinders'**
+  String get trips_edit_label_diversSharing;
+
+  /// No description provided for @trips_edit_hint_diversSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Including you. Blank means 1.'**
+  String get trips_edit_hint_diversSharing;
+
+  /// No description provided for @trips_edit_label_divesPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives per day'**
+  String get trips_edit_label_divesPerDay;
+
+  /// No description provided for @trips_edit_hint_divesPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'For the fill forecast. Blank means estimate.'**
+  String get trips_edit_hint_divesPerDay;
+
   /// No description provided for @trips_edit_label_expectedDives.
   ///
   /// In en, this message translates to:
@@ -41179,6 +41251,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not change the gear. Try again.'**
   String get trips_gear_failed;
+
+  /// No description provided for @trips_cylinders_forecast_todayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Today needs {needed}, you have {full} full.'**
+  String trips_cylinders_forecast_todayShort(int needed, int full);
+
+  /// No description provided for @trips_cylinders_forecast_tomorrowShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow needs {needed}, you\'ll have {full} full.'**
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full);
+
+  /// No description provided for @trips_cylinders_forecast_fillBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill before {time}.'**
+  String trips_cylinders_forecast_fillBefore(String time);
+
+  /// No description provided for @trips_cylinders_forecast_enough.
+  ///
+  /// In en, this message translates to:
+  /// **'Enough full cylinders through tomorrow.'**
+  String get trips_cylinders_forecast_enough;
+
+  /// No description provided for @trips_cylinders_forecast_daysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dives'**
+  String get trips_cylinders_forecast_daysTitle;
+
+  /// No description provided for @trips_cylinders_forecast_plannedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive} other{{count} dives}}'**
+  String trips_cylinders_forecast_plannedDives(int count);
+
+  /// No description provided for @trips_cylinders_forecast_dayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dives, {date}'**
+  String trips_cylinders_forecast_dayTitle(String date);
+
+  /// No description provided for @trips_cylinders_forecast_useEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the estimate'**
+  String get trips_cylinders_forecast_useEstimate;
+
+  /// No description provided for @trips_cylinders_forecast_fewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer dives'**
+  String get trips_cylinders_forecast_fewer;
+
+  /// No description provided for @trips_cylinders_forecast_more.
+  ///
+  /// In en, this message translates to:
+  /// **'More dives'**
+  String get trips_cylinders_forecast_more;
+
+  /// No description provided for @trips_cylinders_forecast_saveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the plan: {error}'**
+  String trips_cylinders_forecast_saveError(String error);
+
+  /// No description provided for @trips_cylinders_forecast_dayPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned by you'**
+  String get trips_cylinders_forecast_dayPlanned;
 
   /// No description provided for @trips_cylinders_title.
   ///

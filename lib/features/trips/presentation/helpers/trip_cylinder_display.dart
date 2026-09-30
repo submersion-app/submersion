@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_labels.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -123,4 +124,32 @@ String tripCylinderPickerLabel(
     state.pressure == null ? '--' : units.formatPressure(state.pressure),
     if (bottle != state.cylinder.label) l10n.trips_cylinders_bottle(bottle),
   ].join(' · ');
+}
+
+/// The forecast in words (decided 2026-09-29): today's shortfall, then
+/// tomorrow's, the first of them ending with the fill deadline; or, with no
+/// shortfall, that the full cylinders last through tomorrow.
+({List<String> lines, bool short}) tripFillForecastLines(
+  AppLocalizations l10n,
+  UnitFormatter units,
+  FillForecast f,
+) {
+  final lines = [
+    if (f.caution)
+      l10n.trips_cylinders_forecast_todayShort(f.todayDemand, f.fullCount),
+    if (f.fillRunNeeded)
+      l10n.trips_cylinders_forecast_tomorrowShort(
+        f.tomorrowDemand,
+        f.tomorrowSupply,
+      ),
+  ];
+  if (lines.isEmpty) {
+    return (lines: [l10n.trips_cylinders_forecast_enough], short: false);
+  }
+  final deadline = f.deadlineMinutes;
+  if (deadline == null) return (lines: lines, short: true);
+  final fill = l10n.trips_cylinders_forecast_fillBefore(
+    units.formatMinutesOfDay(deadline),
+  );
+  return (lines: ['${lines.first} $fill', ...lines.skip(1)], short: true);
 }
