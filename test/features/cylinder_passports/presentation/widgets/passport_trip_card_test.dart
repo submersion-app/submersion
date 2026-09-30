@@ -84,12 +84,15 @@ void main() {
     expect(fake.unpacked, [('a', 'tank')]);
   });
 
-  testWidgets('a slot-only trip shows without Unassign', (tester) async {
+  testWidgets('a slot-only trip shows by name, without Unassign, never as '
+      'packed', (tester) async {
     final (l10n, _) = await pump(
       tester,
       trips: [packed('a', slot: true, isPacked: false)],
     );
-    expect(find.text(l10n.passport_trip_packedFor('Trip a')), findsOneWidget);
+    // Only packing says "Packed for"; a board slot is the trip alone.
+    expect(find.text('Trip a'), findsOneWidget);
+    expect(find.text(l10n.passport_trip_packedFor('Trip a')), findsNothing);
     expect(find.byTooltip(l10n.passport_trip_unassign), findsNothing);
     expect(find.byTooltip(l10n.passport_trip_onBoard), findsOneWidget);
   });

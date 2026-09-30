@@ -124,13 +124,7 @@ class _TripDetailContent extends ConsumerWidget {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
-          TripHeaderCards(
-            children: [
-              TripGearAlertsPanel(trip: trip),
-              TripCylindersCard(trip: trip),
-              TripGearCard(trip: trip),
-            ],
-          ),
+          _headerCards(trip),
           Expanded(child: body),
         ],
       );
@@ -143,13 +137,7 @@ class _TripDetailContent extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          TripHeaderCards(
-            children: [
-              TripGearAlertsPanel(trip: trip),
-              TripCylindersCard(trip: trip),
-              TripGearCard(trip: trip),
-            ],
-          ),
+          _headerCards(trip),
           Expanded(child: body),
         ],
       ),
@@ -216,13 +204,7 @@ class _TripDetailContent extends ConsumerWidget {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
-          TripHeaderCards(
-            children: [
-              TripGearAlertsPanel(trip: trip),
-              TripCylindersCard(trip: trip),
-              TripGearCard(trip: trip),
-            ],
-          ),
+          _headerCards(trip),
           Expanded(child: tabbedBody),
         ],
       );
@@ -235,13 +217,7 @@ class _TripDetailContent extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          TripHeaderCards(
-            children: [
-              TripGearAlertsPanel(trip: trip),
-              TripCylindersCard(trip: trip),
-              TripGearCard(trip: trip),
-            ],
-          ),
+          _headerCards(trip),
           Expanded(child: tabbedBody),
         ],
       ),
@@ -389,6 +365,15 @@ class _TripDetailContent extends ConsumerWidget {
           Center(child: Text(context.l10n.trips_detail_dives_errorLoading)),
     );
   }
+
+  /// The cards above the trip's story, the same in every layout.
+  Widget _headerCards(Trip trip) => TripHeaderCards(
+    children: [
+      TripGearAlertsPanel(trip: trip),
+      TripCylindersCard(trip: trip),
+      TripGearCard(trip: trip),
+    ],
+  );
 
   Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref, Trip trip) {
     final colorScheme = Theme.of(context).colorScheme;

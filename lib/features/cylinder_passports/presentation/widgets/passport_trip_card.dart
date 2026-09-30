@@ -97,7 +97,11 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
         p.packed ? Icons.luggage_outlined : Icons.propane_tank_outlined,
         size: 18,
       ),
-      label: Text(l10n.passport_trip_packedFor(p.trip.name)),
+      // Only a packed trip says "Packed for"; a slot on the trip's cylinder
+      // board is named alone, and its tooltip says why.
+      label: Text(
+        p.packed ? l10n.passport_trip_packedFor(p.trip.name) : p.trip.name,
+      ),
       visualDensity: VisualDensity.compact,
       onPressed: () => context.push('/trips/${p.trip.id}'),
       onDeleted: p.packed ? () => _unpack(p.trip) : null,
