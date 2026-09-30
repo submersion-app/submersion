@@ -3555,9 +3555,6 @@ class SyncService {
     return null;
   }
 
-  /// Parse a record's Hybrid Logical Clock, or null if absent/blank (rows
-  /// written before the HLC rollout). Malformed values are treated as absent
-  /// so a bad value can never crash the merge.
   /// The keys a parent-gated child's [remote] copy clears on [local]: its
   /// explicit nulls, when the copy's clock is strictly newer (#2644). Empty
   /// for anything else, including a row this device does not have yet.
@@ -3579,6 +3576,9 @@ class SyncService {
     return explicitlyClearedKeys(remote: remote, local: local);
   }
 
+  /// Parse a record's Hybrid Logical Clock, or null if absent/blank (rows
+  /// written before the HLC rollout). Malformed values are treated as absent
+  /// so a bad value can never crash the merge.
   Hlc? _extractHlc(Map<String, dynamic>? data) => _parseHlc(data?['hlc']);
 
   /// [raw] as an HLC, or null when absent, blank or malformed.
