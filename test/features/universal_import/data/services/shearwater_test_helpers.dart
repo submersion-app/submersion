@@ -26,7 +26,11 @@ Uint8List createShearwaterTestDb({
       includeLogData: includeLogData,
     );
   } finally {
-    tempDir.deleteSync(recursive: true);
+    try {
+      tempDir.deleteSync(recursive: true);
+    } on FileSystemException {
+      // Best-effort: never hide the fixture's own error behind cleanup.
+    }
   }
 }
 

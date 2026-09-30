@@ -429,9 +429,13 @@ void main() {
     // deleted or overwrote the file another was reading.
     group('concurrent calls', () {
       const calls = 50;
-      final bytes = createShearwaterTestDb(
-        dives: const [ShearwaterTestDive(diveId: 'concurrent-1')],
-      );
+      late Uint8List bytes;
+
+      setUpAll(() {
+        bytes = createShearwaterTestDb(
+          dives: const [ShearwaterTestDive(diveId: 'concurrent-1')],
+        );
+      });
 
       test('every concurrent format check recognises the database', () async {
         final results = await Future.wait([

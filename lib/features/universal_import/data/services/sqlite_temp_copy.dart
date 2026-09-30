@@ -12,6 +12,9 @@ import 'package:sqlite3/sqlite3.dart';
 /// millisecond (or microsecond) would share a path, and each would delete or
 /// overwrite the file the other was still reading. [prefix] only makes the
 /// directory recognisable in the temp folder.
+///
+/// [body] must be synchronous: the database is closed and the copy deleted as
+/// soon as it returns.
 Future<T> withTempSqliteCopy<T>(
   Uint8List bytes, {
   required String prefix,
@@ -23,7 +26,9 @@ Future<T> withTempSqliteCopy<T>(
     await tmpFile.writeAsBytes(bytes);
     final db = sqlite3.open(tmpFile.path, mode: OpenMode.readOnly);
     try {
-      return body(db);
+      final result = body(db);
+      assert(result is! Future, 'body must not be async; the db closes first');
+      return result;
     } finally {
       db.close();
     }
