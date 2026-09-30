@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
+import 'package:submersion/core/query/syntax/date_grammar.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/features/explore/domain/explore_fields.dart';
@@ -16,8 +17,14 @@ LoweredClause _fail(String error) =>
     (nodes: const [], chip: null, error: error);
 
 /// One model clause as query nodes on its registry path (#2365 PR 5). The
-/// model chose the words; units, bounds and values are decided here.
-LoweredClause lowerClause(QueryClause c, ExploreField? field, UnitPrefs units) {
+/// model chose the words; units, bounds and values are decided here. [now]
+/// anchors the date and days kinds.
+LoweredClause lowerClause(
+  QueryClause c,
+  ExploreField? field,
+  UnitPrefs units, {
+  DateTime? now,
+}) {
   if (field == null) return _fail('unknownField');
   if (!field.ops.contains(c.op)) return _fail('invalid');
   return switch (field.kind) {
@@ -25,7 +32,75 @@ LoweredClause lowerClause(QueryClause c, ExploreField? field, UnitPrefs units) {
     ExploreValueKind.flag => _flag(c, field),
     ExploreValueKind.enumName => _enum(c, field),
     ExploreValueKind.typeName => _typeName(c, field),
+    ExploreValueKind.date => _date(c, field, now ?? DateTime.now()),
+    ExploreValueKind.days => _days(c, field, now ?? DateTime.now()),
   };
+}
+
+/// A date field compared with a time phrase: before the period is before
+/// its first day, after it is after its last, and eq is within it. A bare
+/// number is a year.
+LoweredClause _date(QueryClause c, ExploreField field, DateTime now) {
+  final text = switch (c.value) {
+    final String s => s,
+    final num n => '${n.toInt()}',
+    _ => null,
+  };
+  if (text == null) return _fail('invalid');
+  final range = parseDateText(text, now: now);
+  if (range == null) return _fail('unknownTime');
+  final key = field.path.last;
+  ConditionNode at(QueryOp op, DateTime d) =>
+      ConditionNode(FieldPath([key]), op, DateValue(d));
+  final nodes = <QueryNode>[
+    ...switch (c.op) {
+      ClauseOp.lt ||
+      ClauseOp.lte => [if (range.start != null) at(QueryOp.lt, range.start!)],
+      ClauseOp.gt ||
+      ClauseOp.gte => [if (range.end != null) at(QueryOp.gt, range.end!)],
+      _ => [
+        if (range.start != null) at(QueryOp.gte, range.start!),
+        if (range.end != null) at(QueryOp.lte, range.end!),
+      ],
+    },
+  ];
+  if (nodes.isEmpty) return _fail('invalid');
+  return (
+    nodes: nodes,
+    chip: ClauseChip(
+      field: field,
+      op: c.op,
+      value: (start: range.start, end: range.end),
+      dimension: FieldDimension.none,
+    ),
+    error: null,
+  );
+}
+
+/// "Within N days" from today, inclusive: the date field on or before
+/// today plus N. An overdue date is already before it, so it matches.
+LoweredClause _days(QueryClause c, ExploreField field, DateTime now) {
+  final raw = c.value;
+  if (raw is! num) return _fail('invalid');
+  if (raw < 0 || raw > 3650) return _fail('outOfRange');
+  final days = raw.round();
+  final until = DateTime(now.year, now.month, now.day + days);
+  return (
+    nodes: [
+      ConditionNode(
+        FieldPath([field.path.last]),
+        QueryOp.lte,
+        DateValue(until),
+      ),
+    ],
+    chip: ClauseChip(
+      field: field,
+      op: ClauseOp.lte,
+      value: days,
+      dimension: FieldDimension.none,
+    ),
+    error: null,
+  );
 }
 
 List<String> _strings(Object raw) =>
@@ -154,9 +229,11 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
     if (!field.accepts(v)) return _fail('outOfRange');
     switch (c.op) {
       case ClauseOp.lt:
+        hi = field.strictCount ? v.ceilToDouble() - 1 : v;
       case ClauseOp.lte:
         hi = v;
       case ClauseOp.gt:
+        lo = field.strictCount ? v.floorToDouble() + 1 : v;
       case ClauseOp.gte:
         lo = v;
       case ClauseOp.eq:
@@ -203,6 +280,11 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
             bounds.length == 1 ? bounds.single : AndNode(bounds),
           ),
         ];
+  // A strict count reports the bound it applies: "more than 2" is 3.
+  if (field.strictCount) {
+    if (c.op == ClauseOp.gt) chipValue = lo!;
+    if (c.op == ClauseOp.lt) chipValue = hi!;
+  }
   // The chip reports the op the query ACTUALLY applies: every bound is
   // inclusive, so a strict "deeper than 20" shows as "at least 20".
   return (

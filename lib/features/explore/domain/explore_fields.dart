@@ -1,9 +1,9 @@
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
-import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 
@@ -19,7 +19,7 @@ const List<String> kWeekdayTokens = [
   'sun',
 ];
 
-enum ExploreValueKind { number, enumName, flag, typeName }
+enum ExploreValueKind { number, enumName, flag, typeName, date, days }
 
 const Set<ClauseOp> _ordering = {
   ClauseOp.lt,
@@ -31,22 +31,27 @@ const Set<ClauseOp> _ordering = {
 };
 const Set<ClauseOp> _membership = {ClauseOp.eq, ClauseOp.inList, ClauseOp.not};
 
-/// One field the model may name (#2365 PR 5): its word, the dive registry
-/// path it lowers onto, and everything else read from the registry.
+/// One field the model may name (#2365 PR 5): its word, the registry path
+/// it lowers onto from [root], and everything else read from the registry.
 class ExploreField {
   const ExploreField(
     this.name,
     this.path,
     this.kind, {
+    this.root = QuerySubject.dives,
     this.wholeNumbers = false,
     this.bounds,
     this.tokens,
+    this.strictCount = false,
   });
 
   /// The model's word: part of the stored JSON contract, never renamed.
   final String name;
   final List<String> path;
   final ExploreValueKind kind;
+
+  /// The registry entity [path] starts from: dives, or a phase 3 subject.
+  final QuerySubject root;
 
   /// Bounds round to whole numbers, as the filter axes they replace did.
   final bool wholeNumbers;
@@ -57,10 +62,18 @@ class ExploreField {
   /// The model's tokens when they differ from the registry's enum names.
   final List<String>? tokens;
 
+  /// A count said with a strict word: "more than twice" is at least three,
+  /// where a measured value's "more than 20 m" stays at least 20.
+  final bool strictCount;
+
   /// The registry field at [path], or null for a relation (noBuddy).
   QueryField? get field => _resolved.putIfAbsent(
-    path.join('.'),
-    () => resolvePath(appQueryRegistry, diveQueryEntity, FieldPath(path)).field,
+    '${root.name}:${path.join('.')}',
+    () => resolvePath(
+      appQueryRegistry,
+      appQueryRegistry.entityFor(root),
+      FieldPath(path),
+    ).field,
   );
 
   /// Resolved registry fields by path: the registry never changes at run
@@ -73,10 +86,11 @@ class ExploreField {
   List<String>? get enumValues => tokens ?? field?.enumValues;
 
   Set<ClauseOp> get ops => switch (kind) {
-    ExploreValueKind.number => _ordering,
+    ExploreValueKind.number || ExploreValueKind.date => _ordering,
     ExploreValueKind.enumName => _membership,
     ExploreValueKind.flag => const {ClauseOp.eq},
     ExploreValueKind.typeName => const {ClauseOp.eq, ClauseOp.inList},
+    ExploreValueKind.days => const {ClauseOp.lt, ClauseOp.lte, ClauseOp.eq},
   };
 
   /// Whether a grounded value is plausible: the registry's sanity, else
