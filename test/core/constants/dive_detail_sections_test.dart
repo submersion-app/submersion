@@ -15,7 +15,7 @@ void main() {
       // 2026-09-10-underwater-nav-track-design.md, "Dive detail section").
       // Its localized switches use plain English literals rather than new
       // ARB keys, on purpose -- a later l10n pass adds those, per the spec.
-      expect(DiveDetailSectionId.values.length, 24);
+      expect(DiveDetailSectionId.values.length, 25);
     });
 
     test('values match expected IDs', () {

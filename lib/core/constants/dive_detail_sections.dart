@@ -39,6 +39,7 @@ enum DiveDetailSectionId {
   tags,
   notes,
   customFields,
+  diveLab,
   dataSources;
 
   /// The pre-split id that carried both [decoStatus] and [tissueLoading].
@@ -74,6 +75,7 @@ enum DiveDetailSectionId {
       tags => 'Tags',
       notes => 'Notes',
       customFields => 'Custom Fields',
+      diveLab => 'What if',
       dataSources => 'Data Sources',
     };
   }
@@ -106,6 +108,7 @@ enum DiveDetailSectionId {
       tags => 'Dive tags',
       notes => 'Dive notes/description',
       customFields => 'User-defined custom fields',
+      diveLab => 'Saved what-if scenarios from the Dive Lab',
       dataSources => 'Connected dive computers, source management',
     };
   }
@@ -137,6 +140,7 @@ enum DiveDetailSectionId {
       tags => Icons.label_outline,
       notes => Icons.notes,
       customFields => Icons.tune,
+      diveLab => Icons.science_outlined,
       dataSources => Icons.watch_outlined,
     };
   }
@@ -167,6 +171,7 @@ enum DiveDetailSectionId {
       tags => l10n.diveDetailSection_tags_name,
       notes => l10n.diveDetailSection_notes_name,
       customFields => l10n.diveDetailSection_customFields_name,
+      diveLab => l10n.diveDetailSection_diveLab_name,
       dataSources => l10n.diveDetailSection_dataSources_name,
     };
   }
@@ -197,6 +202,7 @@ enum DiveDetailSectionId {
       tags => l10n.diveDetailSection_tags_description,
       notes => l10n.diveDetailSection_notes_description,
       customFields => l10n.diveDetailSection_customFields_description,
+      diveLab => l10n.diveDetailSection_diveLab_description,
       dataSources => l10n.diveDetailSection_dataSources_description,
     };
   }
@@ -299,6 +305,7 @@ class DiveDetailSectionConfig {
       id: DiveDetailSectionId.customFields,
       visible: true,
     ),
+    DiveDetailSectionConfig(id: DiveDetailSectionId.diveLab, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.dataSources, visible: true),
   ];
 

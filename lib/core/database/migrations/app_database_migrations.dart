@@ -34,6 +34,7 @@ part 'helpers/derived_metrics_migrations.dart';
 part 'helpers/dive_migrations.dart';
 part 'helpers/dive_plan_migrations.dart';
 part 'helpers/dive_profile_migrations.dart';
+part 'helpers/dive_lab_migrations.dart';
 part 'helpers/diver_migrations.dart';
 part 'helpers/equipment_migrations.dart';
 part 'helpers/equipment_condition_migrations.dart';

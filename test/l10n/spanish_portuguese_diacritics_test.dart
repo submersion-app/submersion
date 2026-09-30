@@ -51,6 +51,10 @@ void main() {
         'the adjective completo, and the past tense completó',
       ),
       // Narrow enough to pin: the bare spelling belongs to these keys only.
+      'perdida': _Homograph(
+        'the adjective perdida, lost, and the noun pérdida, a loss',
+        keys: {'diveLab_chip_loseTank', 'diveLab_handoff_note_lostTankKept'},
+      ),
       'fallo': _Homograph(
         'the noun fallo, and the past tense falló',
         keys: {

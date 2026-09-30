@@ -168,6 +168,11 @@ extension BeforeOpenBackstops on AppDatabase {
     // (parallel-branch version-collision self-heal; idempotent).
     await _assertConnectionMapsSchema();
 
+    // v236 backstop: re-assert the dive_scenarios table and its index. A
+    // database that arrives by restore or sync-adopt never runs onUpgrade,
+    // and one already past 236 skips the v236 rung.
+    await _assertDiveScenariosSchema();
+
     // v238 backstop: re-assert the saved_queries table. A database that
     // arrives by restore or sync-adopt never runs onUpgrade, and one
     // already at 239 or later skips the v238 rung.

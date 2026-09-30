@@ -42,6 +42,14 @@ extension RungsFromV231 on AppDatabase {
       await _assertConnectionMapsSchema();
     }
     if (from < 235) await reportProgress();
+    // v236: dive_scenarios (Dive Lab saved scenarios). A new synced
+    // table, so onUpgrade need only create it; idempotent and re-asserted
+    // in the beforeOpen backstop, which is what reaches a database
+    // already past 236.
+    if (from < 236) {
+      await _assertDiveScenariosSchema();
+    }
+    if (from < 236) await reportProgress();
     // v237: diver_settings.show_dive_figure (issue #2326). Column-only
     // rung, default off, no backfill.
     if (from < 237) {
