@@ -2681,6 +2681,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_title => '潜伴';
 
   @override
+  String buddies_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 位潜伴',
+      one: '$count 位潜伴',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 位潜伴',
+      one: '$total 位潜伴',
+    );
+    return '$shown / $_temp0';
+  }
+
+  @override
   String get buddies_title_add => '添加潜伴';
 
   @override
@@ -2817,6 +2839,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get certifications_appBar_title => '证书';
+
+  @override
+  String certifications_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个证书',
+      one: '$count 个证书',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certifications_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 个证书',
+      one: '$total 个证书',
+    );
+    return '$shown / $_temp0';
+  }
 
   @override
   String get certifications_detail_action_delete => '删除';
@@ -4423,6 +4467,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_title => '培训课程';
 
   @override
+  String courses_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 门课程',
+      one: '$count 门课程',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String courses_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 门课程',
+      one: '$total 门课程',
+    );
+    return '$shown / $_temp0';
+  }
+
+  @override
   String get courses_title_edit => '编辑课程';
 
   @override
@@ -5568,6 +5634,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveCenters_title => '潜水中心';
+
+  @override
+  String diveCenters_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个潜水中心',
+      one: '$count 个潜水中心',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveCenters_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 个潜水中心',
+      one: '$total 个潜水中心',
+    );
+    return '$shown / $_temp0';
+  }
 
   @override
   String get diveCenters_title_add => '添加潜水中心';
@@ -7454,6 +7542,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_listPage_compactTitle => '潜水';
+
+  @override
+  String diveLog_listPage_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 次潜水',
+      one: '$total 次潜水',
+    );
+    return '$shown / $_temp0';
+  }
 
   @override
   String diveLog_listPage_errorLoading(Object error) {
@@ -10470,6 +10580,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_list_appBar_title => '潜水点';
 
   @override
+  String diveSites_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个潜水地点',
+      one: '$count 个潜水地点',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 个潜水地点',
+      one: '$total 个潜水地点',
+    );
+    return '$shown / $_temp0';
+  }
+
+  @override
   String get diveSites_list_bulkDelete_cancel => '取消';
 
   @override
@@ -12506,6 +12638,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_appBar_title => '装备';
+
+  @override
+  String equipment_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件装备',
+      one: '$count 件装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 件装备',
+      one: '$total 件装备',
+    );
+    return '$shown / $_temp0';
+  }
 
   @override
   String get equipment_bulkTags_action => '编辑标签';
@@ -23950,6 +24104,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_appBar_title => '旅行';
+
+  @override
+  String trips_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次旅行',
+      one: '$count 次旅行',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 次旅行',
+      one: '$total 次旅行',
+    );
+    return '$shown / $_temp0';
+  }
 
   @override
   String get trips_appBar_tripPhotos => '旅行照片';

@@ -320,5 +320,90 @@ void main() {
         );
       }
     });
+
+    // A list's entry count ("34 of 812 dives") sits under its title.
+    group('subtitle', () {
+      for (final headerOn in [false, true]) {
+        final state = headerOn ? 'on' : 'off';
+
+        testWidgets('renders below the title with the accent $state', (
+          tester,
+        ) async {
+          await tester.pumpWidget(
+            _harness(
+              const FeatureAppBarTitle(
+                featureId: 'dives',
+                title: 'Dives',
+                subtitle: '34 of 812 dives',
+              ),
+              headerOn: headerOn,
+            ),
+          );
+
+          expect(find.text('Dives'), findsOneWidget);
+          expect(find.text('34 of 812 dives'), findsOneWidget);
+          expect(
+            tester.getRect(find.text('34 of 812 dives')).top,
+            greaterThanOrEqualTo(tester.getRect(find.text('Dives')).bottom),
+          );
+          expect(
+            tester.getRect(find.text('34 of 812 dives')).left,
+            tester.getRect(find.text('Dives')).left,
+          );
+        });
+
+        testWidgets('is one muted line that ellipsises (accent $state)', (
+          tester,
+        ) async {
+          await tester.pumpWidget(
+            _harness(
+              const FeatureAppBarTitle(
+                featureId: 'dives',
+                title: 'Dives',
+                subtitle: '34 of 812 dives',
+              ),
+              headerOn: headerOn,
+            ),
+          );
+
+          final context = tester.element(find.text('34 of 812 dives'));
+          final text = tester.widget<Text>(find.text('34 of 812 dives'));
+          expect(text.maxLines, 1);
+          expect(text.overflow, TextOverflow.ellipsis);
+          expect(
+            text.style?.color,
+            Theme.of(context).colorScheme.onSurfaceVariant,
+          );
+        });
+
+        testWidgets('follows a custom title (accent $state)', (tester) async {
+          await tester.pumpWidget(
+            _harness(
+              const FeatureAppBarTitle.custom(
+                featureId: 'equipment',
+                subtitle: '12 items',
+                child: SizedBox(key: customKey, width: 120, height: 20),
+              ),
+              headerOn: headerOn,
+            ),
+          );
+
+          expect(
+            tester.getRect(find.text('12 items')).top,
+            greaterThanOrEqualTo(tester.getRect(find.byKey(customKey)).bottom),
+          );
+        });
+      }
+
+      testWidgets('adds no second line when null', (tester) async {
+        await tester.pumpWidget(
+          _harness(
+            const FeatureAppBarTitle(featureId: 'dives', title: 'Dives'),
+          ),
+        );
+
+        expect(find.byType(Text), findsOneWidget);
+      });
+    });
   });
 }

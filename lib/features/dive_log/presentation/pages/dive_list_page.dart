@@ -21,6 +21,7 @@ import 'package:submersion/features/data_quality/presentation/providers/data_qua
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
@@ -173,6 +174,12 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       return TableModeLayout(
         sectionKey: 'dives',
         appBarTitle: context.l10n.nav_dives,
+        appBarSubtitle: ref
+            .watch(diveTableCountProvider)
+            ?.label(
+              all: context.l10n.diveLog_listPage_count,
+              filtered: context.l10n.diveLog_listPage_countFiltered,
+            ),
         tableContent: const DiveListContent(showAppBar: false),
         detailBuilder: (context, id) {
           final state = GoRouterState.of(context);

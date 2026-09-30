@@ -2808,6 +2808,28 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_title => 'Buddies';
 
   @override
+  String buddies_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count buddies',
+      one: '$count buddy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total buddies',
+      one: '$total buddy',
+    );
+    return '$shown van $_temp0';
+  }
+
+  @override
   String get buddies_title_add => 'Buddy toevoegen';
 
   @override
@@ -2951,6 +2973,28 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get certifications_appBar_title => 'Certificeringen';
+
+  @override
+  String certifications_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count certificeringen',
+      one: '$count certificering',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certifications_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total certificeringen',
+      one: '$total certificering',
+    );
+    return '$shown van $_temp0';
+  }
 
   @override
   String get certifications_detail_action_delete => 'Verwijderen';
@@ -4628,6 +4672,28 @@ class AppLocalizationsNl extends AppLocalizations {
   String get courses_title => 'Trainingscursussen';
 
   @override
+  String courses_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cursussen',
+      one: '$count cursus',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String courses_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total cursussen',
+      one: '$total cursus',
+    );
+    return '$shown van $_temp0';
+  }
+
+  @override
   String get courses_title_edit => 'Cursus bewerken';
 
   @override
@@ -5820,6 +5886,28 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveCenters_title => 'Duikcentra';
+
+  @override
+  String diveCenters_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duikcentra',
+      one: '$count duikcentrum',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveCenters_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total duikcentra',
+      one: '$total duikcentrum',
+    );
+    return '$shown van $_temp0';
+  }
 
   @override
   String get diveCenters_title_add => 'Duikcentrum toevoegen';
@@ -7782,6 +7870,28 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_listPage_compactTitle => 'Duiken';
+
+  @override
+  String diveLog_listPage_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total duiken',
+      one: '$total duik',
+    );
+    return '$shown van $_temp0';
+  }
 
   @override
   String diveLog_listPage_errorLoading(Object error) {
@@ -10906,6 +11016,28 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_list_appBar_title => 'Duikstekken';
 
   @override
+  String diveSites_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stekken',
+      one: '$count stek',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total stekken',
+      one: '$total stek',
+    );
+    return '$shown van $_temp0';
+  }
+
+  @override
   String get diveSites_list_bulkDelete_cancel => 'Annuleren';
 
   @override
@@ -12999,6 +13131,28 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_appBar_title => 'Uitrusting';
+
+  @override
+  String equipment_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total items',
+      one: '$total item',
+    );
+    return '$shown van $_temp0';
+  }
 
   @override
   String get equipment_bulkTags_action => 'Tags bewerken';
@@ -25051,6 +25205,28 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_appBar_title => 'Reizen';
+
+  @override
+  String trips_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reizen',
+      one: '$count reis',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total reizen',
+      one: '$total reis',
+    );
+    return '$shown van $_temp0';
+  }
 
   @override
   String get trips_appBar_tripPhotos => 'Reisfoto\'s';

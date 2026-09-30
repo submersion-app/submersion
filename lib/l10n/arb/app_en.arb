@@ -1720,6 +1720,27 @@
   "buddies_summary_totalBuddies": "Total Buddies",
   "buddies_summary_withCertification": "With Certification",
   "buddies_title": "Buddies",
+  "buddies_list_count": "{count, plural, =1{{count} buddy} other{{count} buddies}}",
+  "@buddies_list_count": {
+    "description": "List entry count under the title when no filter is active.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buddies_list_countFiltered": "{shown} of {total, plural, =1{{total} buddy} other{{total} buddies}}",
+  "@buddies_list_countFiltered": {
+    "description": "List entry count under the title while a filter is active.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "buddies_title_add": "Add Buddy",
   "buddies_title_edit": "Edit Buddy",
   "buddies_title_singular": "Buddy",
@@ -1886,6 +1907,27 @@
   "certifications_appBar_certificationWallet": "Certification Wallet",
   "certifications_appBar_editCertification": "Edit Certification",
   "certifications_appBar_title": "Certifications",
+  "certifications_list_count": "{count, plural, =1{{count} certification} other{{count} certifications}}",
+  "@certifications_list_count": {
+    "description": "List entry count under the title when no filter is active.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "certifications_list_countFiltered": "{shown} of {total, plural, =1{{total} certification} other{{total} certifications}}",
+  "@certifications_list_countFiltered": {
+    "description": "List entry count under the title while a filter is active.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "certifications_detail_action_delete": "Delete",
   "certifications_detail_appBar_title": "Certification",
   "certifications_detail_courseCompleted": "Completed",
@@ -2760,6 +2802,27 @@
   "courses_summary_title": "Training Courses",
   "courses_summary_total": "Total",
   "courses_title": "Training Courses",
+  "courses_list_count": "{count, plural, =1{{count} course} other{{count} courses}}",
+  "@courses_list_count": {
+    "description": "List entry count under the title when no filter is active.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courses_list_countFiltered": "{shown} of {total, plural, =1{{total} course} other{{total} courses}}",
+  "@courses_list_countFiltered": {
+    "description": "List entry count under the title while a filter is active.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "courses_title_edit": "Edit Course",
   "courses_title_new": "New Course",
   "courses_title_singular": "Course",
@@ -3501,6 +3564,27 @@
   "diveCenters_summary_totalCenters": "Total Centers",
   "diveCenters_summary_withGps": "With GPS",
   "diveCenters_title": "Dive Centers",
+  "diveCenters_list_count": "{count, plural, =1{{count} dive center} other{{count} dive centers}}",
+  "@diveCenters_list_count": {
+    "description": "List entry count under the title when no filter is active.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveCenters_list_countFiltered": "{shown} of {total, plural, =1{{total} dive center} other{{total} dive centers}}",
+  "@diveCenters_list_countFiltered": {
+    "description": "List entry count under the title while a filter is active.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "diveCenters_title_add": "Add Dive Center",
   "diveCenters_title_edit": "Edit Dive Center",
   "diveCenters_title_import": "Import Dive Center",
@@ -4324,6 +4408,27 @@
   },
   "diveLog_listPage_appBar_diveMap": "Dive Map",
   "diveLog_listPage_compactTitle": "Dives",
+  "diveLog_listPage_count": "{count, plural, =1{{count} dive} other{{count} dives}}",
+  "@diveLog_listPage_count": {
+    "description": "List entry count under the title when no filter is active.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_listPage_countFiltered": "{shown} of {total, plural, =1{{total} dive} other{{total} dives}}",
+  "@diveLog_listPage_countFiltered": {
+    "description": "List entry count under the title while a filter is active.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_listPage_errorLoading": "Error: {error}",
   "diveLog_listPage_bottomSheet_importFromComputer": "Import from Computer",
   "diveLog_listPage_bottomSheet_scanPaperLog": "Scan Paper Log",
@@ -6300,6 +6405,27 @@
   "diveSites_list_activeFilter_hasDives": "Has dives",
   "diveSites_list_activeFilter_region": "Region: {region}",
   "diveSites_list_appBar_title": "Dive Sites",
+  "diveSites_list_count": "{count, plural, =1{{count} site} other{{count} sites}}",
+  "@diveSites_list_count": {
+    "description": "List entry count under the title when no filter is active.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveSites_list_countFiltered": "{shown} of {total, plural, =1{{total} site} other{{total} sites}}",
+  "@diveSites_list_countFiltered": {
+    "description": "List entry count under the title while a filter is active.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "diveSites_list_bulkDelete_cancel": "Cancel",
   "diveSites_list_bulkDelete_confirm": "Delete",
   "diveSites_list_bulkDelete_content": "Are you sure you want to delete {count} {count, plural, =1{site} other{sites}}? This action can be undone within 5 seconds.",
@@ -7498,6 +7624,27 @@
   "enum_weightType_mixed": "Mixed/Combined",
   "enum_weightType_trimWeights": "Trim Weights",
   "equipment_appBar_title": "Equipment",
+  "equipment_list_count": "{count, plural, =1{{count} item} other{{count} items}}",
+  "@equipment_list_count": {
+    "description": "List entry count under the title when no filter is active.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_list_countFiltered": "{shown} of {total, plural, =1{{total} item} other{{total} items}}",
+  "@equipment_list_countFiltered": {
+    "description": "List entry count under the title while a filter is active.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "equipment_bulkTags_action": "Edit tags",
   "equipment_bulkTags_adding": "adding to all {total}",
   "@equipment_bulkTags_adding": {
@@ -15411,6 +15558,27 @@
     }
   },
   "trips_appBar_title": "Trips",
+  "trips_list_count": "{count, plural, =1{{count} trip} other{{count} trips}}",
+  "@trips_list_count": {
+    "description": "List entry count under the title when no filter is active.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_list_countFiltered": "{shown} of {total, plural, =1{{total} trip} other{{total} trips}}",
+  "@trips_list_countFiltered": {
+    "description": "List entry count under the title while a filter is active.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "trips_appBar_tripPhotos": "Trip Photos",
   "trips_detail_action_delete": "Delete",
   "trips_detail_action_export": "Export",

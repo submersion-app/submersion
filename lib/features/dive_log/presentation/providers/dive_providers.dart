@@ -790,6 +790,10 @@ class PaginatedDiveListNotifier
 
   Future<void> loadFirstPage() => _enqueuePaging(_loadFirstPage);
 
+  /// An optimistic change to [PaginatedDiveListState.unfilteredTotalCount],
+  /// which stays null for rows loaded with no filter active.
+  static int? _shifted(int? count, int by) => count == null ? null : count + by;
+
   /// A filter naming gear.serviceDue reads the service cache: each load waits
   /// for it to mirror the engine, so no page shows an empty cache or the
   /// previous diver's verdicts (#2365).
@@ -821,9 +825,14 @@ class PaginatedDiveListNotifier
           disabledSafetyRules: _ref.read(safetyReviewDisabledRulesProvider),
         ),
         _repository.getDiveCount(diverId: _currentDiverId, filter: filter),
+        if (filter.hasActiveFilters)
+          _repository.getDiveCount(diverId: _currentDiverId),
       ]);
       final dives = results[0] as List<DiveSummary>;
       final totalCount = results[1] as int;
+      final unfilteredTotalCount = filter.hasActiveFilters
+          ? results[2] as int
+          : null;
       _currentOffset = dives.length;
 
       if (!mounted) return;
@@ -833,6 +842,7 @@ class PaginatedDiveListNotifier
           hasMore: dives.length >= _pageSize,
           nextCursor: _isDateSort ? _cursorFromLastDive(dives) : null,
           totalCount: totalCount,
+          unfilteredTotalCount: unfilteredTotalCount,
         ),
       );
       // Pre-load downsampled profiles for mini charts (fire and forget)
@@ -991,9 +1001,14 @@ class PaginatedDiveListNotifier
           disabledSafetyRules: _ref.read(safetyReviewDisabledRulesProvider),
         ),
         _repository.getDiveCount(diverId: _currentDiverId, filter: filter),
+        if (filter.hasActiveFilters)
+          _repository.getDiveCount(diverId: _currentDiverId),
       ]);
       final fetched = results[0] as List<DiveSummary>;
       final totalCount = results[1] as int;
+      final unfilteredTotalCount = filter.hasActiveFilters
+          ? results[2] as int
+          : null;
       final hasMore = fetched.length > limit;
       final dives = hasMore ? fetched.sublist(0, limit) : fetched;
       _currentOffset = dives.length;
@@ -1018,6 +1033,7 @@ class PaginatedDiveListNotifier
           hasMore: hasMore,
           nextCursor: _isDateSort ? _cursorFromLastDive(dives) : null,
           totalCount: totalCount,
+          unfilteredTotalCount: unfilteredTotalCount,
           isLoadingMore: flags?.isLoadingMore ?? false,
           loadMoreFailed: flags?.loadMoreFailed ?? false,
         ),
@@ -1107,6 +1123,7 @@ class PaginatedDiveListNotifier
         current.copyWith(
           dives: [summary, ...current.dives],
           totalCount: current.totalCount + 1,
+          unfilteredTotalCount: _shifted(current.unfilteredTotalCount, 1),
         ),
       );
     } else {
@@ -1153,6 +1170,7 @@ class PaginatedDiveListNotifier
         current.copyWith(
           dives: current.dives.where((d) => d.id != id).toList(),
           totalCount: current.totalCount - 1,
+          unfilteredTotalCount: _shifted(current.unfilteredTotalCount, -1),
         ),
       );
     } else {
@@ -1177,6 +1195,10 @@ class PaginatedDiveListNotifier
         current.copyWith(
           dives: current.dives.where((d) => !idSet.contains(d.id)).toList(),
           totalCount: current.totalCount - ids.length,
+          unfilteredTotalCount: _shifted(
+            current.unfilteredTotalCount,
+            -ids.length,
+          ),
         ),
       );
     } else {
