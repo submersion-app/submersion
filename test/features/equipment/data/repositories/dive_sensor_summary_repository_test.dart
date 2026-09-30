@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_field_table.dart';
@@ -402,6 +403,31 @@ void main() {
       );
       expect(await repo.staleDiveIds(), ['d1']);
       expect((await repo.ensureCurrent('d1'))!.sourceUpdatedAt, 1000 + 2004);
+    });
+
+    test('a tank row applied by sync moves the stamp', () async {
+      // The peer side, through the real apply: the merge writes the remote
+      // row's clock onto the local tank, and that is the only term a
+      // tank-only change moves.
+      await insertDive('d1', updatedAt: 1000);
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(id: 't1', diveId: 'd1').copyWith(
+              transmitterSerial: const Value('111'),
+              hlc: const Value('000000000002000:000000:peer'),
+            ),
+          );
+      await repo.ensureCurrent('d1');
+      final remote =
+          (await SyncDataSerializer().fetchRecord('diveTanks', 't1'))!
+            ..['transmitterSerial'] = '222'
+            ..['hlc'] = '000000000003000:000001:peer';
+
+      await SyncDataSerializer().upsertRecord('diveTanks', remote);
+
+      expect(await repo.staleDiveIds(), ['d1']);
+      expect((await repo.ensureCurrent('d1'))!.sourceUpdatedAt, 1000 + 3001);
     });
 
     test('a tank without a clock adds nothing to the stamp', () async {

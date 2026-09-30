@@ -22,8 +22,10 @@ import 'package:submersion/core/database/database.dart';
 /// `dive_tanks` has no `updated_at`, so a tank counts through its `hlc`
 /// (see `Hlc.toString`: a 15-digit physical time, a colon, a 6-digit
 /// counter, the node). Staging a tank for sync stamps a new one, and a
-/// synced copy brings its own, so a tank write that moves no clock is one no
-/// peer would learn of either. The physical times and the counters are
+/// synced copy brings its own, so a tank row that arrives alone still moves
+/// the stamp. A writer that changes a tank without staging it must re-stamp
+/// the dive instead (the dive editor and the bulk tank edits do), or the
+/// stamp does not move. The physical times and the counters are
 /// summed apart: packed into one number a tank's clock is near 2e18, and a
 /// few of them would overflow SQLite's 64-bit integers. A tank with no clock
 /// adds nothing.
