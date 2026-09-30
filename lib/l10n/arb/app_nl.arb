@@ -10424,6 +10424,7 @@
   "settings_visibilityScale_customHelp": "Voer per niveau de kortste afstand in die nog meetelt.",
   "insights_conditions_visibility_legacySuffix": "{band} (vastgelegd vóór meting)",
   "common_selection_countSelected": "{count} geselecteerd",
+  "common_listCount_shownOfTotal": "{shown} van {total}",
   "common_selection_enterTooltip": "Items selecteren",
   "common_selection_exitTooltip": "Selectie beëindigen",
   "common_selection_selectAllTooltip": "Alles selecteren",

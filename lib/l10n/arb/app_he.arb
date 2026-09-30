@@ -10424,6 +10424,7 @@
   "settings_visibilityScale_customHelp": "הזן לכל דרגה את המרחק הקצר ביותר שעדיין נחשב לה.",
   "insights_conditions_visibility_legacySuffix": "{band} (נרשם לפני מדידה)",
   "common_selection_countSelected": "{count} נבחרו",
+  "common_listCount_shownOfTotal": "{shown} מתוך {total}",
   "common_selection_enterTooltip": "בחירת פריטים",
   "common_selection_exitTooltip": "יציאה מבחירה",
   "common_selection_selectAllTooltip": "בחר הכול",

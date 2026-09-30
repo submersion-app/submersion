@@ -10424,6 +10424,7 @@
   "settings_visibilityScale_customHelp": "Introduza a distância mais curta que ainda conta para cada nível.",
   "insights_conditions_visibility_legacySuffix": "{band} (registado antes da medição)",
   "common_selection_countSelected": "{count} selecionados",
+  "common_listCount_shownOfTotal": "{shown} de {total}",
   "common_selection_enterTooltip": "Selecionar itens",
   "common_selection_exitTooltip": "Sair da seleção",
   "common_selection_selectAllTooltip": "Selecionar tudo",

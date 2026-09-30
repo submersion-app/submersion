@@ -10424,6 +10424,7 @@
   "settings_visibilityScale_customHelp": "Add meg minden szinthez a legrövidebb távolságot, amely még oda számít.",
   "insights_conditions_visibility_legacySuffix": "{band} (mérés előtt rögzítve)",
   "common_selection_countSelected": "{count} kijelölve",
+  "common_listCount_shownOfTotal": "{shown} / {total}",
   "common_selection_enterTooltip": "Elemek kijelölése",
   "common_selection_exitTooltip": "Kijelölés befejezése",
   "common_selection_selectAllTooltip": "Összes kijelölése",

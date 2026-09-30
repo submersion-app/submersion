@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/models/list_entry_count.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 String _all(int count) => '$count dives';
 String _filtered(int shown, int total) => '$shown of $total dives';
+String _compact(int shown, int total) => '$shown of $total';
 
 void main() {
   group('ListEntryCount.label', () {
@@ -44,6 +46,29 @@ void main() {
           0,
         ).label(all: _all, filtered: _filtered),
         '0 dives',
+      );
+    });
+  });
+
+  // The short form a narrow title falls back to drops the noun: the title
+  // above it already names the list.
+  group('ListEntryCount.subtitle', () {
+    test('pairs the full label with a noun-free compact one', () {
+      expect(
+        const ListEntryCount.filtered(
+          shown: 34,
+          total: 812,
+        ).subtitle(all: _all, filtered: _filtered, compactFiltered: _compact),
+        const SubtitleText('34 of 812 dives', compact: '34 of 812'),
+      );
+    });
+
+    test('an unfiltered compact form is the bare count', () {
+      expect(
+        const ListEntryCount.unfiltered(
+          812,
+        ).subtitle(all: _all, filtered: _filtered, compactFiltered: _compact),
+        const SubtitleText('812 dives', compact: '812'),
       );
     });
   });

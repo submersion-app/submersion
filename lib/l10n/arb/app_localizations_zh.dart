@@ -32677,6 +32677,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String common_listCount_shownOfTotal(int shown, int total) {
+    return '$shown / $total';
+  }
+
+  @override
   String get common_selection_enterTooltip => '选择项目';
 
   @override

@@ -9,6 +9,7 @@ import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/title_with_subtitle.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// A shared layout widget that manages the table mode state machine for all
 /// entity sections (Dives, Sites, Buddies, etc.).
@@ -36,7 +37,7 @@ class TableModeLayout extends ConsumerWidget {
   final String appBarTitle;
 
   /// Optional muted line under [appBarTitle], such as the entry count.
-  final String? appBarSubtitle;
+  final SubtitleText? appBarSubtitle;
 
   /// The table content widget (EntityTableView or similar).
   final Widget tableContent;
@@ -392,7 +393,7 @@ class TableModeLayout extends ConsumerWidget {
 /// [router.go], preventing the pushed page from being clobbered.
 class _TableModeMaster extends StatefulWidget {
   final String appBarTitle;
-  final String? appBarSubtitle;
+  final SubtitleText? appBarSubtitle;
   final Widget tableContent;
   final Widget? mapContent;
   final Widget? profilePanelContent;

@@ -176,9 +176,10 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         appBarTitle: context.l10n.nav_dives,
         appBarSubtitle: ref
             .watch(diveTableCountProvider)
-            ?.label(
+            ?.subtitle(
               all: context.l10n.diveLog_listPage_count,
               filtered: context.l10n.diveLog_listPage_countFiltered,
+              compactFiltered: context.l10n.common_listCount_shownOfTotal,
             ),
         tableContent: const DiveListContent(showAppBar: false),
         detailBuilder: (context, id) {

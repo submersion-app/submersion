@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/shared/widgets/title_with_subtitle.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// Pane width at or above which the section toggle and the action icons share
 /// a single row.
@@ -54,7 +55,7 @@ class EquipmentHeaderBar extends StatelessWidget {
 
   /// A muted line under the toggle, such as the list's entry count. Only
   /// shown with a toggle: without one the bar has no title to sit under.
-  final String? subtitle;
+  final SubtitleText? subtitle;
 
   @override
   Widget build(BuildContext context) {

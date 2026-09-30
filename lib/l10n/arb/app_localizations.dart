@@ -54678,6 +54678,12 @@ abstract class AppLocalizations {
   /// **'{count} selected'**
   String common_selection_countSelected(Object count);
 
+  /// A list's filtered entry count without its noun, for a header too narrow for the full one.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total}'**
+  String common_listCount_shownOfTotal(int shown, int total);
+
   /// No description provided for @common_selection_enterTooltip.
   ///
   /// In en, this message translates to:

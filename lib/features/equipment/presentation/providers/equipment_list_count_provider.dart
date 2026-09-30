@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_q
 import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/models/list_entry_count.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// The equipment list's entry count (#2669). Null until the list loads.
 ///
@@ -33,9 +34,11 @@ final equipmentListCountProvider = Provider<ListEntryCount?>((ref) {
 
 /// The subtitle under the equipment list's title: "40 items", or
 /// "3 of 40 items" while a filter is active.
-String? equipmentListCountLabel(BuildContext context, WidgetRef ref) => ref
-    .watch(equipmentListCountProvider)
-    ?.label(
-      all: context.l10n.equipment_list_count,
-      filtered: context.l10n.equipment_list_countFiltered,
-    );
+SubtitleText? equipmentListCountLabel(BuildContext context, WidgetRef ref) =>
+    ref
+        .watch(equipmentListCountProvider)
+        ?.subtitle(
+          all: context.l10n.equipment_list_count,
+          filtered: context.l10n.equipment_list_countFiltered,
+          compactFiltered: context.l10n.common_listCount_shownOfTotal,
+        );

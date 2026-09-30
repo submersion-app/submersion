@@ -33629,6 +33629,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String common_listCount_shownOfTotal(int shown, int total) {
+    return '$shown מתוך $total';
+  }
+
+  @override
   String get common_selection_enterTooltip => 'בחירת פריטים';
 
   @override

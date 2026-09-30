@@ -22348,6 +22348,18 @@
     }
   },
   "common_selection_countSelected": "{count} selected",
+  "common_listCount_shownOfTotal": "{shown} of {total}",
+  "@common_listCount_shownOfTotal": {
+    "description": "A list's filtered entry count without its noun, for a header too narrow for the full one.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "common_selection_enterTooltip": "Select items",
   "common_selection_exitTooltip": "Exit selection",
   "common_selection_selectAllTooltip": "Select all",

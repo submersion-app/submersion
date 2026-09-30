@@ -34432,6 +34432,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String common_listCount_shownOfTotal(int shown, int total) {
+    return '$shown di $total';
+  }
+
+  @override
   String get common_selection_enterTooltip => 'Seleziona elementi';
 
   @override

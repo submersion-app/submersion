@@ -10424,6 +10424,7 @@
   "settings_visibilityScale_customHelp": "أدخل لكل تصنيف أقصر مسافة لا تزال تُحتسب ضمنه.",
   "insights_conditions_visibility_legacySuffix": "{band} (مسجلة قبل القياس)",
   "common_selection_countSelected": "{count} محدد",
+  "common_listCount_shownOfTotal": "{shown} من {total}",
   "common_selection_enterTooltip": "تحديد العناصر",
   "common_selection_exitTooltip": "إنهاء التحديد",
   "common_selection_selectAllTooltip": "تحديد الكل",

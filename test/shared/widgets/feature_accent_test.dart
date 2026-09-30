@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 Widget _harness(
   Widget child, {
@@ -334,7 +335,7 @@ void main() {
               const FeatureAppBarTitle(
                 featureId: 'dives',
                 title: 'Dives',
-                subtitle: '34 of 812 dives',
+                subtitle: SubtitleText('34 of 812 dives'),
               ),
               headerOn: headerOn,
             ),
@@ -360,7 +361,7 @@ void main() {
               const FeatureAppBarTitle(
                 featureId: 'dives',
                 title: 'Dives',
-                subtitle: '34 of 812 dives',
+                subtitle: SubtitleText('34 of 812 dives'),
               ),
               headerOn: headerOn,
             ),
@@ -381,7 +382,7 @@ void main() {
             _harness(
               const FeatureAppBarTitle.custom(
                 featureId: 'equipment',
-                subtitle: '12 items',
+                subtitle: SubtitleText('12 items'),
                 child: SizedBox(key: customKey, width: 120, height: 20),
               ),
               headerOn: headerOn,

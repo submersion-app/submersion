@@ -5,6 +5,7 @@ import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/title_with_subtitle.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// The three user-toggleable surfaces that can show feature accent colors.
 enum AccentSurface { nav, header, list }
@@ -97,7 +98,7 @@ class FeatureAppBarTitle extends ConsumerWidget {
 
   /// A second, muted line under the title, such as a list's entry count
   /// ("34 of 812 dives"). Pre-localized like [title]; null adds no line.
-  final String? subtitle;
+  final SubtitleText? subtitle;
 
   /// A title is a single line that ellipsises, never a paragraph.
   ///

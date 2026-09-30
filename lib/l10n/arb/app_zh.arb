@@ -10424,6 +10424,7 @@
   "settings_visibilityScale_customHelp": "为每个等级输入仍可计入该等级的最短距离。",
   "insights_conditions_visibility_legacySuffix": "{band}（测量功能之前记录）",
   "common_selection_countSelected": "已选择 {count} 项",
+  "common_listCount_shownOfTotal": "{shown} / {total}",
   "common_selection_enterTooltip": "选择项目",
   "common_selection_exitTooltip": "退出选择",
   "common_selection_selectAllTooltip": "全选",

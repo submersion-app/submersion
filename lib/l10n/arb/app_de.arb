@@ -10536,6 +10536,7 @@
   "settings_visibilityScale_customHelp": "Gib für jede Stufe die kürzeste Entfernung ein, die noch dazu zählt.",
   "insights_conditions_visibility_legacySuffix": "{band} (vor der Messung erfasst)",
   "common_selection_countSelected": "{count} ausgewählt",
+  "common_listCount_shownOfTotal": "{shown} von {total}",
   "common_selection_enterTooltip": "Elemente auswählen",
   "common_selection_exitTooltip": "Auswahl beenden",
   "common_selection_selectAllTooltip": "Alle auswählen",

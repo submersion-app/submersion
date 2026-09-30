@@ -7,6 +7,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// Mock SettingsNotifier that doesn't access the database
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
@@ -95,7 +96,7 @@ Widget _buildRoutedTestWidget({
 Widget _buildLayout({
   String sectionKey = 'dives',
   String appBarTitle = 'Dives',
-  String? appBarSubtitle,
+  SubtitleText? appBarSubtitle,
   Widget? mapContent,
   Widget? profilePanelContent,
   Widget? columnSettingsAction,
@@ -352,7 +353,9 @@ void main() {
       ) async {
         await tester.pumpWidget(
           _buildTestWidget(
-            child: _buildLayout(appBarSubtitle: '34 of 812 dives'),
+            child: _buildLayout(
+              appBarSubtitle: const SubtitleText('34 of 812 dives'),
+            ),
           ),
         );
         await tester.pumpAndSettle();
@@ -372,7 +375,9 @@ void main() {
             overrides: [
               tableDetailsPaneProvider('dives').overrideWith((_) => true),
             ],
-            child: _buildLayout(appBarSubtitle: '34 of 812 dives'),
+            child: _buildLayout(
+              appBarSubtitle: const SubtitleText('34 of 812 dives'),
+            ),
           ),
         );
         await tester.pumpAndSettle();

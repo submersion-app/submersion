@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// How many entries a list shows, against how many it holds with no filter.
 ///
@@ -29,6 +30,17 @@ class ListEntryCount {
     required String Function(int count) all,
     required String Function(int shown, int total) filtered,
   }) => isFiltered ? filtered(shown, total) : all(shown);
+
+  /// [label] as a header subtitle, with a compact form for narrow headers:
+  /// [compactFiltered] ("34 of 812") while filtered, else the bare count.
+  SubtitleText subtitle({
+    required String Function(int count) all,
+    required String Function(int shown, int total) filtered,
+    required String Function(int shown, int total) compactFiltered,
+  }) => SubtitleText(
+    label(all: all, filtered: filtered),
+    compact: isFiltered ? compactFiltered(shown, total) : '$shown',
+  );
 
   @override
   bool operator ==(Object other) =>
