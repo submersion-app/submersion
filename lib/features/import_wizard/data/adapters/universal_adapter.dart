@@ -1782,15 +1782,18 @@ class UniversalAdapter implements ImportSourceAdapter {
   // Helpers — duplicate application
   // ---------------------------------------------------------------------------
 
-  /// Indices of [fills] whose id is already here or was deleted here.
+  /// Indices of [fills] whose id is already here or was deleted here, or
+  /// repeats an earlier row of this import (two files holding the same
+  /// fill): the importer stores each id once, so the review marks the rest.
   Future<Set<int>> _fillsAlreadyHere(List<Map<String, dynamic>> fills) async {
-    final repository = _ref.read(cylinderFillRepositoryProvider);
+    final ids = [for (final fill in fills) fill['id'] as String?];
+    final known = await _ref
+        .read(cylinderFillRepositoryProvider)
+        .knownIds(ids.nonNulls);
+    final seen = <String>{};
     return {
-      for (final (i, fill) in fills.indexed)
-        if (fill['id'] case final String id)
-          if (await repository.getById(id) != null ||
-              await repository.wasDeleted(id))
-            i,
+      for (final (i, id) in ids.indexed)
+        if (id != null && (known.contains(id) || !seen.add(id))) i,
     };
   }
 

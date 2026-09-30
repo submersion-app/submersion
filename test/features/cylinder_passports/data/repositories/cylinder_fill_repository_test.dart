@@ -224,6 +224,23 @@ void main() {
     expect(await repo.wasDeleted('f-1'), isTrue);
   });
 
+  test('knownIds names the ids stored here or deleted here, in one '
+      'pass', () async {
+    final at = DateTime(2026, 9, 28);
+    await repo.create(fill('live', at));
+    await repo.delete((await repo.create(fill('gone', at))).id);
+    expect(await repo.knownIds(['live', 'gone', 'new']), {'live', 'gone'});
+    expect(await repo.knownIds(const []), isEmpty);
+  });
+
+  test('knownIds finds ids past the first slice of a long list', () async {
+    final at = DateTime(2026, 9, 28);
+    await repo.create(fill('early', at));
+    await repo.create(fill('late', at));
+    final ids = ['early', for (var i = 0; i < 1100; i++) 'absent-$i', 'late'];
+    expect(await repo.knownIds(ids), {'early', 'late'});
+  });
+
   test('getAllVisibleTo reads the diver\'s own, shared and unlinked fills, '
       'newest first', () async {
     final t = DateTime.now().millisecondsSinceEpoch;

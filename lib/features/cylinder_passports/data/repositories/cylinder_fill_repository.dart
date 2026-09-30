@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -69,6 +70,34 @@ class CylinderFillRepository {
               ..limit(1))
             .getSingleOrNull();
     return row != null;
+  }
+
+  /// Which of [ids] are stored here or were deleted here, two queries per
+  /// 500 ids rather than two per id (the fills CSV review, passports
+  /// phase 5). The slices keep each query under older SQLite builds' limit
+  /// of 999 bound variables.
+  Future<Set<String>> knownIds(Iterable<String> ids) async {
+    final known = <String>{};
+    for (final slice in ids.toSet().slices(500)) {
+      known.addAll(
+        await (_db.selectOnly(_db.cylinderFills)
+              ..addColumns([_db.cylinderFills.id])
+              ..where(_db.cylinderFills.id.isIn(slice)))
+            .map((r) => r.read(_db.cylinderFills.id)!)
+            .get(),
+      );
+      known.addAll(
+        await (_db.selectOnly(_db.deletionLog)
+              ..addColumns([_db.deletionLog.recordId])
+              ..where(
+                _db.deletionLog.entityType.equals(entity) &
+                    _db.deletionLog.recordId.isIn(slice),
+              ))
+            .map((r) => r.read(_db.deletionLog.recordId)!)
+            .get(),
+      );
+    }
+    return known;
   }
 
   Future<CylinderFill?> getById(String id) async {

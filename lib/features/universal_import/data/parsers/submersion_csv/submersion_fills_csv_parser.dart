@@ -32,12 +32,27 @@ class SubmersionFillsCsvParser implements ImportParser {
   /// give every hand-added fill a new id and import it again.
   static const _handAddedFillNamespace = '981bbd69-603c-439d-9b29-b35c4d869922';
 
+  /// What makes a hand-added row the same fill: its cylinder, time and
+  /// readings. Notes, station, analyzer and source are left out, so
+  /// correcting one of them and importing again adds nothing.
+  static const _identityKeys = [
+    'passportId',
+    'filledAt',
+    'o2Percent',
+    'hePercent',
+    'pressureBar',
+    'temperatureC',
+  ];
+
   /// The id of a row without one: the same readings always get the same id.
   static String _idFor(Map<String, dynamic> fill) => _uuid.v5(
     _handAddedFillNamespace,
     [
-      for (final MapEntry(:key, :value) in fill.entries)
-        '$key=${value is DateTime ? value.toIso8601String() : value}',
+      for (final key in _identityKeys)
+        '$key=${switch (fill[key]) {
+          final DateTime at => at.toIso8601String(),
+          final value => value ?? '',
+        }}',
     ].join('\n'),
   );
 
@@ -104,7 +119,9 @@ class SubmersionFillsCsvParser implements ImportParser {
                 'skipped',
             entityType: ImportEntityType.fills,
             itemIndex: i,
-            field: 'O2 %',
+            // Helium out of range on its own is the He cell's fault; any
+            // other impossible mix is reported against O2.
+            field: he < 0 || he > 100 ? 'He %' : 'O2 %',
           ),
         );
         continue;

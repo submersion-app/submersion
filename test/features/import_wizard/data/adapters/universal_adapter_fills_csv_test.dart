@@ -113,4 +113,33 @@ void main() {
     );
     expect(reviewed!.groups[ImportEntityType.fills]!.duplicateIndices, {0, 1});
   });
+
+  testWidgets('a fill repeated in one import is marked after its first '
+      'row', (tester) async {
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    await tester.runAsync(() => DiverRepository().createDiver(_diver()));
+
+    // Two exports holding the same fill, as a batch of two files would.
+    final bytes = Uint8List.fromList(
+      utf8.encode(
+        CsvFillsWriter(
+          CsvExportUnits.metric,
+        ).write([...goldenFills(), goldenFills().first]),
+      ),
+    );
+    final payload = await parserForFormat(
+      ImportFormat.submersionFillsCsv,
+    ).parse(bytes);
+
+    ImportBundle? reviewed;
+    final result = await importThroughWizard(
+      tester,
+      payload: payload,
+      diver: _diver(),
+      onReview: (bundle) => reviewed = bundle,
+    );
+    expect(reviewed!.groups[ImportEntityType.fills]!.duplicateIndices, {2});
+    expect(result.importedCounts[ImportEntityType.fills], 2);
+  });
 }

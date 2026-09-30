@@ -98,8 +98,9 @@ void main() {
       'error', () async {
     final csv = CsvFillsWriter(CsvExportUnits.metric).write(goldenFills());
     final lines = csv.split('\r\n');
-    // Row 2: O2 above 100. Row 3: O2 plus He above 100.
+    // Row 2: O2 above 100. Row 3: O2 plus He above 100. Row 4: He below 0.
     lines[1] = lines[1].replaceFirst(',32,0,', ',320,0,');
+    lines.insert(3, lines[1].replaceFirst(',320,0,', ',32,-5,'));
     lines[2] = lines[2].replaceFirst(',18,45,', ',18,90,');
     final payload = await const SubmersionFillsCsvParser().parse(
       _bytes(lines.join('\r\n')),
@@ -111,8 +112,11 @@ void main() {
     expect(errors.map((e) => e.message), [
       'Row 2 has an impossible gas mix (O2 320 %, He 0 %) and was skipped',
       'Row 3 has an impossible gas mix (O2 18 %, He 90 %) and was skipped',
+      'Row 4 has an impossible gas mix (O2 32 %, He -5 %) and was skipped',
     ]);
-    expect(errors.map((e) => e.field), ['O2 %', 'O2 %']);
+    // The column at fault: O2 out of range or the two together name O2 %,
+    // helium out of range on its own names He %.
+    expect(errors.map((e) => e.field), ['O2 %', 'O2 %', 'He %']);
   });
 
   test('a blank fill id is the same on every read, so re-importing a '
@@ -137,6 +141,13 @@ void main() {
     expect(await ids(lines.join('\r\n')), first);
     // Two different fills never share an id.
     expect(first.toSet(), hasLength(2));
+    // A corrected note, station or analyzer is still the same fill.
+    final edited = [...lines];
+    edited[1] = edited[1]
+        .replaceFirst('Topped off after analysis', 'Topped off, analysed')
+        .replaceFirst('Blue Hole Dive Center', 'Blue Hole')
+        .replaceFirst('Analox O2EII', 'Analox');
+    expect(await ids(edited.join('\r\n')), first);
     // A changed reading is a different fill.
     lines[1] = lines[1].replaceFirst(',32,0,', ',33,0,');
     expect((await ids(lines.join('\r\n'))).first, isNot(first.first));
