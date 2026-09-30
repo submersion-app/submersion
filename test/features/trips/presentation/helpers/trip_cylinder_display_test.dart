@@ -297,4 +297,23 @@ void main() {
     expect(r.short, isFalse);
     expect(r.lines, ['Enough full cylinders through tomorrow.']);
   });
+
+  test('the gas record strings exist in English', () {
+    expect(l10n.trips_cylinders_segment_record, 'Record');
+    expect(
+      l10n.trips_cylinders_recordEmpty,
+      'No dives breathed from these cylinders yet.',
+    );
+    expect(l10n.trips_cylinders_record_fillsLogged(1), '1 fill logged');
+    expect(l10n.trips_cylinders_record_fillsLogged(3), '3 fills logged');
+    expect(l10n.trips_cylinders_record_leftOut(1), '1 dive left out');
+    expect(l10n.trips_cylinders_record_packageFills(2), '2 package fills');
+    expect(
+      l10n.trips_cylinders_record_unlinked(3),
+      '3 dive tanks not linked to a cylinder',
+    );
+    expect(l10n.trips_cylinders_record_tank(2), 'Tank 2');
+    expect(l10n.trips_cylinders_record_filled('200 bar'), 'Filled to 200 bar');
+    expect(l10n.trips_cylinders_record_analyzed('31.8%'), 'Analyzed 31.8%');
+  });
 }

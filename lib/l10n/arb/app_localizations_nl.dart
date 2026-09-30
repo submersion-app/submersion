@@ -25605,6 +25605,75 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'Door jou gepland';
 
   @override
+  String get trips_cylinders_segment_record => 'Overzicht';
+
+  @override
+  String get trips_cylinders_recordEmpty => 'Nog geen duiken met deze flessen.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vullingen vastgelegd',
+      one: '$count vulling vastgelegd',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken niet meegeteld',
+      one: '$count duik niet meegeteld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vullingen in pakket',
+      one: '$count vulling in pakket',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duikflessen niet gekoppeld',
+      one: '$count duikfles niet gekoppeld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle =>
+      'Niet aan een fles gekoppeld';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'Fles $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'Gevuld tot $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'Geanalyseerd $mix';
+  }
+
+  @override
   String get trips_cylinders_title => 'Flessen';
 
   @override

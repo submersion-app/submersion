@@ -25177,6 +25177,74 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'תוכנן על ידך';
 
   @override
+  String get trips_cylinders_segment_record => 'רישום';
+
+  @override
+  String get trips_cylinders_recordEmpty => 'עדיין אין צלילות מהמכלים האלה.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מילויים נרשמו',
+      one: '$count מילוי נרשם',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות לא נספרו',
+      one: '$count צלילה לא נספרה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מילויים בחבילה',
+      one: '$count מילוי בחבילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מכלי צלילה לא מקושרים',
+      one: '$count מכל צלילה לא מקושר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle => 'לא מקושרים למכל';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'מכל $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'מולא ל־$pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'נותח $mix';
+  }
+
+  @override
   String get trips_cylinders_title => 'מכלים';
 
   @override

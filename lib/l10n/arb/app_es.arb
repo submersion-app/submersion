@@ -7372,6 +7372,65 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Planificado por ti",
+  "trips_cylinders_segment_record": "Registro",
+  "trips_cylinders_recordEmpty": "Aún no hay inmersiones con estas botellas.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} carga registrada} other{{count} cargas registradas}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} inmersión sin contar} other{{count} inmersiones sin contar}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} carga en paquete} other{{count} cargas en paquete}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} botella de inmersión sin enlazar} other{{count} botellas de inmersión sin enlazar}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "Sin enlazar a una botella",
+  "trips_cylinders_record_tank": "Botella {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "Cargada a {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "Analizado {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
   "trips_cylinders_title": "Botellas",
   "trips_cylinders_summary": "Llenas {full} · Parciales {partial} · Vacías {empty}",
   "@trips_cylinders_summary": {

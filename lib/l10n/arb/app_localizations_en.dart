@@ -25388,6 +25388,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'Planned by you';
 
   @override
+  String get trips_cylinders_segment_record => 'Record';
+
+  @override
+  String get trips_cylinders_recordEmpty =>
+      'No dives breathed from these cylinders yet.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fills logged',
+      one: '$count fill logged',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives left out',
+      one: '$count dive left out',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count package fills',
+      one: '$count package fill',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dive tanks not linked to a cylinder',
+      one: '$count dive tank not linked to a cylinder',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle => 'Not linked to a cylinder';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'Tank $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'Filled to $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'Analyzed $mix';
+  }
+
+  @override
   String get trips_cylinders_title => 'Cylinders';
 
   @override

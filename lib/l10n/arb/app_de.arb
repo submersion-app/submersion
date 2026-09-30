@@ -7475,6 +7475,65 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Von dir geplant",
+  "trips_cylinders_segment_record": "Protokoll",
+  "trips_cylinders_recordEmpty": "Noch keine Tauchgänge mit diesen Flaschen.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} Füllung erfasst} other{{count} Füllungen erfasst}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} Tauchgang nicht gezählt} other{{count} Tauchgänge nicht gezählt}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} Füllung im Paket} other{{count} Füllungen im Paket}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} Tauchgangsflasche ohne Reiseflasche} other{{count} Tauchgangsflaschen ohne Reiseflasche}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "Keiner Flasche zugeordnet",
+  "trips_cylinders_record_tank": "Flasche {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "Gefüllt auf {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "Analysiert {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
   "trips_cylinders_title": "Flaschen",
   "trips_cylinders_summary": "Voll {full} · Teilweise {partial} · Leer {empty}",
   "@trips_cylinders_summary": {

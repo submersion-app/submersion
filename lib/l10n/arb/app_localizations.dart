@@ -41264,6 +41264,66 @@ abstract class AppLocalizations {
   /// **'Planned by you'**
   String get trips_cylinders_forecast_dayPlanned;
 
+  /// No description provided for @trips_cylinders_segment_record.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get trips_cylinders_segment_record;
+
+  /// No description provided for @trips_cylinders_recordEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives breathed from these cylinders yet.'**
+  String get trips_cylinders_recordEmpty;
+
+  /// No description provided for @trips_cylinders_record_fillsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} fill logged} other{{count} fills logged}}'**
+  String trips_cylinders_record_fillsLogged(int count);
+
+  /// No description provided for @trips_cylinders_record_leftOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive left out} other{{count} dives left out}}'**
+  String trips_cylinders_record_leftOut(int count);
+
+  /// No description provided for @trips_cylinders_record_packageFills.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} package fill} other{{count} package fills}}'**
+  String trips_cylinders_record_packageFills(int count);
+
+  /// No description provided for @trips_cylinders_record_unlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive tank not linked to a cylinder} other{{count} dive tanks not linked to a cylinder}}'**
+  String trips_cylinders_record_unlinked(int count);
+
+  /// No description provided for @trips_cylinders_record_unlinkedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked to a cylinder'**
+  String get trips_cylinders_record_unlinkedTitle;
+
+  /// No description provided for @trips_cylinders_record_tank.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank {number}'**
+  String trips_cylinders_record_tank(int number);
+
+  /// No description provided for @trips_cylinders_record_filled.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled to {pressure}'**
+  String trips_cylinders_record_filled(String pressure);
+
+  /// No description provided for @trips_cylinders_record_analyzed.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzed {mix}'**
+  String trips_cylinders_record_analyzed(String mix);
+
   /// No description provided for @trips_cylinders_title.
   ///
   /// In en, this message translates to:

@@ -25792,6 +25792,76 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'Pianificato da te';
 
   @override
+  String get trips_cylinders_segment_record => 'Registro';
+
+  @override
+  String get trips_cylinders_recordEmpty =>
+      'Ancora nessuna immersione con queste bombole.';
+
+  @override
+  String trips_cylinders_record_fillsLogged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ricariche registrate',
+      one: '$count ricarica registrata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni escluse',
+      one: '$count immersione esclusa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_packageFills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ricariche nel pacchetto',
+      one: '$count ricarica nel pacchetto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_record_unlinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bombole di immersione non collegate',
+      one: '$count bombola di immersione non collegata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_record_unlinkedTitle =>
+      'Non collegate a una bombola';
+
+  @override
+  String trips_cylinders_record_tank(int number) {
+    return 'Bombola $number';
+  }
+
+  @override
+  String trips_cylinders_record_filled(String pressure) {
+    return 'Ricaricata a $pressure';
+  }
+
+  @override
+  String trips_cylinders_record_analyzed(String mix) {
+    return 'Analizzato $mix';
+  }
+
+  @override
   String get trips_cylinders_title => 'Bombole';
 
   @override
