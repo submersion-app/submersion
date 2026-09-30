@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -647,6 +648,7 @@ void main() {
     });
 
     test('the tank computer backfill carries a fresh clock (#2644)', () async {
+      addTearDown(SyncClock.instance.reset);
       await seedDive(
         't',
         entry: DateTime.utc(2026, 7, 1, 9),

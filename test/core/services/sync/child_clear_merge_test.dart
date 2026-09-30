@@ -4,6 +4,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -44,7 +45,10 @@ void main() {
     // This device has published; what follows is a peer's payload.
     await SyncRepository().clearAllSyncRecords();
   });
-  tearDown(() => DatabaseService.instance.resetForTesting());
+  tearDown(() {
+    DatabaseService.instance.resetForTesting();
+    SyncClock.instance.reset();
+  });
 
   Future<Map<String, dynamic>> pull(Map<String, dynamic> theirs) async {
     final result = await pullPeerPayload(cloud, SyncData(diveTanks: [theirs]));

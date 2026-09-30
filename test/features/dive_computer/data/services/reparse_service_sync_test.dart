@@ -6,6 +6,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
@@ -336,6 +337,7 @@ void main() {
 
   test('a transmitter serial the re-parse clears is cleared on a peer '
       '(#2644)', () async {
+    addTearDown(SyncClock.instance.reset);
     await seedPublishedDive();
     await db.customStatement(
       "UPDATE dive_tanks SET transmitter_serial = '111111' WHERE id = 'kept'",

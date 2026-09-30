@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -531,6 +532,7 @@ void main() {
 
   test('the computer a split clears on a shared tank is cleared on a peer '
       '(#2644)', () async {
+    addTearDown(SyncClock.instance.reset);
     await insertDive('dive-1', computerId: 'dc-a');
     await insertSource('src-a', 'dive-1', 'dc-a', isPrimary: true);
     await insertSource('src-b', 'dive-1', 'dc-b', isPrimary: false);

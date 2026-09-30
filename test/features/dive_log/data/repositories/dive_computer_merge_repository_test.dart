@@ -4,6 +4,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_merge_repository.dart';
 
@@ -735,6 +736,7 @@ void main() {
   test(
     're-pointed tanks and data sources carry a fresh clock (#2644)',
     () async {
+      addTearDown(SyncClock.instance.reset);
       await insertComputer(id: 'a');
       await insertComputer(id: 'b', name: 'ssss');
       await insertDive('d1', computerId: 'b');

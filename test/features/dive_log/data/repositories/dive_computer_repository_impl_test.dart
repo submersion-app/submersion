@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
@@ -588,6 +589,7 @@ void main() {
     );
 
     test('relinked sources carry a fresh clock (#2644)', () async {
+      addTearDown(SyncClock.instance.reset);
       final oldId = await insertComputer(
         manufacturer: 'Shearwater',
         model: 'Perdix',
@@ -617,6 +619,7 @@ void main() {
 
     test('a relinked source that is not the dive primary is published '
         '(#2644)', () async {
+      addTearDown(SyncClock.instance.reset);
       // Its dive is only staged when the source is the primary, so the
       // source must be marked pending itself or no changeset carries it.
       final oldId = await insertComputer(
