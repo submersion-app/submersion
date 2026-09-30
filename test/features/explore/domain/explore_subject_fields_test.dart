@@ -15,6 +15,18 @@ void main() {
     }
   });
 
+  test('a field over all of the row\'s dives says it is an aggregate', () {
+    // The compiler unplaces an aggregate beside a dive scope; one it does
+    // not know about would silently answer over all time instead.
+    for (final f in [
+      ...kExploreFields,
+      ...kExploreSubjectFields.values.expand((l) => l),
+    ]) {
+      final overDives = f.field?.sql.contains('FROM dives ad') ?? false;
+      expect(f.aggregate, overDives, reason: '${f.root.name}.${f.name}');
+    }
+  });
+
   test('the kinds match the registry types', () {
     for (final f in kExploreSubjectFields.values.expand((l) => l)) {
       final type = f.field!.type;

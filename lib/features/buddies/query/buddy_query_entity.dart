@@ -4,6 +4,11 @@ import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/query/dive_aggregate_fields.dart';
 
+/// A counted dive the buddy was on.
+const _buddyDiveLink =
+    'ad.id IN (SELECT j.dive_id FROM dive_buddies j '
+    'WHERE j.buddy_id = {r}.id)';
+
 /// Every field and relation a buddy query can name (#2365). The buddy list's
 /// query roots here; dive paths reach it through `buddies`.
 final buddyQueryEntity = QueryEntity(
@@ -52,17 +57,11 @@ final buddyQueryEntity = QueryEntity(
       emptySql: '0',
       labelKey: 'query_buddies_favorite',
     ),
-    diveCountField(
-      'buddies',
-      'ad.id IN (SELECT j.dive_id FROM dive_buddies j '
-          'WHERE j.buddy_id = {r}.id)',
-      tables: const ['dive_buddies'],
-    ),
+    diveCountField('buddies', _buddyDiveLink, tables: const ['dive_buddies']),
     diveDateField(
       'buddies',
       'lastDived',
-      'ad.id IN (SELECT j.dive_id FROM dive_buddies j '
-          'WHERE j.buddy_id = {r}.id)',
+      _buddyDiveLink,
       tables: const ['dive_buddies'],
     ),
   ],

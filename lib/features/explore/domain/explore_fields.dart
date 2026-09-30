@@ -47,6 +47,7 @@ class ExploreField {
     this.bounds,
     this.tokens,
     this.strictCount = false,
+    this.aggregate = false,
   });
 
   /// The model's word: part of the stored JSON contract, never renamed.
@@ -81,6 +82,11 @@ class ExploreField {
   /// A count said with a strict word: "more than twice" is at least three,
   /// where a measured value's "more than 20 m" stays at least 20.
   final bool strictCount;
+
+  /// A value computed over all of a row's dives (a count, a first or last
+  /// date). With a dive scope it would answer another question than the
+  /// sentence asked, so the compiler unplaces it there.
+  final bool aggregate;
 
   /// The registry field at [path], or null for a relation (noBuddy).
   QueryField? get field => _resolved.putIfAbsent(

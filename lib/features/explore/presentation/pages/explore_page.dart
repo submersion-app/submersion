@@ -151,7 +151,8 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
               ],
             ),
           ),
-          if (compiled != null)
+          // Nothing placed is nothing to hand off, and no strip for it.
+          if (compiled != null && compiled.query != null)
             SafeArea(
               top: false,
               child: Padding(

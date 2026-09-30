@@ -37,14 +37,6 @@ abstract final class ExploreCompiler {
       ? _dives(query, ctx)
       : _subject(query, ctx);
 
-  /// The registry fields computed over all of a row's dives.
-  static const _aggregates = {
-    'diveCount',
-    'lastDived',
-    'firstSeen',
-    'lastSeen',
-  };
-
   static QueryNode? _and(List<QueryNode> nodes) => switch (nodes) {
     [] => null,
     [final only] => only,
@@ -210,7 +202,7 @@ abstract final class ExploreCompiler {
       // A count or a first or last date is over all the row's dives, so
       // with a dive part it would answer another question than the
       // sentence asked.
-      if (_aggregates.contains(r.chip!.field.name) && hasDivePart) {
+      if (r.chip!.field.aggregate && hasDivePart) {
         unplaced.add(UnplacedItem(c.text, reason: 'aggregateWithScope'));
         continue;
       }

@@ -44,6 +44,8 @@ class _ExploreChartCard extends ConsumerWidget {
         for (final r in rows.take(10))
           if (r.dives > 0) (label: r.name, count: r.dives),
       ];
+      // No row has a dive in the scope: the rows say so, not an empty card.
+      if (bars.isEmpty) return const SizedBox.shrink();
       return Card(
         margin: const EdgeInsets.symmetric(vertical: 8),
         child: Padding(

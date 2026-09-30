@@ -83,7 +83,9 @@ LoweredClause _days(QueryClause c, ExploreField field, DateTime now) {
   final raw = c.value;
   if (raw is! num) return _fail('invalid');
   if (raw < 0 || raw > 3650) return _fail('outOfRange');
-  final days = raw.round();
+  // "Fewer than 30 days" stops before the thirtieth, as a strict count does.
+  final days = c.op == ClauseOp.lt ? raw.ceil() - 1 : raw.round();
+  if (days < 0) return _fail('outOfRange');
   final until = DateTime(now.year, now.month, now.day + days);
   return (
     nodes: [

@@ -5,6 +5,11 @@ import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/query/dive_aggregate_fields.dart';
 
+/// A counted dive the species was seen on.
+const _sightingDiveLink =
+    'ad.id IN (SELECT s.dive_id FROM sightings s '
+    'WHERE s.species_id = {r}.id)';
+
 QueryField _text(String key, String column) => QueryField(
   key: key,
   type: FieldType.text,
@@ -46,25 +51,18 @@ final speciesQueryEntity = QueryEntity(
       emptySql: '0',
       labelKey: 'query_species_builtIn',
     ),
-    diveCountField(
-      'species',
-      'ad.id IN (SELECT s.dive_id FROM sightings s '
-          'WHERE s.species_id = {r}.id)',
-      tables: const ['sightings'],
-    ),
+    diveCountField('species', _sightingDiveLink, tables: const ['sightings']),
     diveDateField(
       'species',
       'firstSeen',
-      'ad.id IN (SELECT s.dive_id FROM sightings s '
-          'WHERE s.species_id = {r}.id)',
+      _sightingDiveLink,
       first: true,
       tables: const ['sightings'],
     ),
     diveDateField(
       'species',
       'lastSeen',
-      'ad.id IN (SELECT s.dive_id FROM sightings s '
-          'WHERE s.species_id = {r}.id)',
+      _sightingDiveLink,
       tables: const ['sightings'],
     ),
   ],

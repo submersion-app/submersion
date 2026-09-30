@@ -89,6 +89,22 @@ void main() {
       expect(r.chip!.value, 30);
     });
 
+    test('fewer than 30 days leaves out the thirtieth', () {
+      final r = lower(ParsedSubject.equipment, 'serviceDueWithin', 'lt', 30);
+      expect(r.nodes, [
+        cond('nextServiceDue', QueryOp.lte, DateValue(DateTime(2026, 10, 29))),
+      ]);
+      // The chip reports the window it applies.
+      expect(r.chip!.value, 29);
+    });
+
+    test('fewer than zero days is no window', () {
+      expect(
+        lower(ParsedSubject.equipment, 'serviceDueWithin', 'lt', 0).error,
+        'outOfRange',
+      );
+    });
+
     test('a negative or huge number of days is out of range', () {
       expect(
         lower(ParsedSubject.equipment, 'serviceDueWithin', 'lte', -3).error,

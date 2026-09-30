@@ -21,6 +21,7 @@ ExploreField _diveCount(QuerySubject root) => ExploreField(
   root: root,
   wholeNumbers: true,
   strictCount: true,
+  aggregate: true,
 );
 
 ExploreField _lastDived(QuerySubject root) => ExploreField(
@@ -29,6 +30,7 @@ ExploreField _lastDived(QuerySubject root) => ExploreField(
   ExploreValueKind.date,
   labelKey: 'query_${root.name}_lastDived',
   root: root,
+  aggregate: true,
 );
 
 /// Each non-dive subject's own fields, in the prompt's order (phase 3).
@@ -119,6 +121,7 @@ final Map<ParsedSubject, List<ExploreField>> kExploreSubjectFields = {
       ExploreValueKind.date,
       labelKey: 'query_species_firstSeen',
       root: QuerySubject.species,
+      aggregate: true,
     ),
     const ExploreField(
       'lastSeen',
@@ -126,6 +129,7 @@ final Map<ParsedSubject, List<ExploreField>> kExploreSubjectFields = {
       ExploreValueKind.date,
       labelKey: 'query_species_lastSeen',
       root: QuerySubject.species,
+      aggregate: true,
     ),
   ],
   ParsedSubject.trips: [

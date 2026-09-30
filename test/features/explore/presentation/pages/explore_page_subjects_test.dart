@@ -9,6 +9,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_query_p
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/pages/explore_page.dart';
+import 'package:submersion/features/explore/presentation/widgets/explore_handoff_bar.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
@@ -51,7 +52,11 @@ void main() {
       '{"schemaVersion":$kQuerySchemaVersion,"subject":"buddies",$body,'
       '"mentions":[],"unplaced":[]}';
 
-  Future<ProviderContainer> pump(WidgetTester tester, String json) async {
+  Future<ProviderContainer> pump(
+    WidgetTester tester,
+    String json, {
+    List<ExploreSubjectRow>? rows,
+  }) async {
     final router = GoRouter(
       initialLocation: '/dives/explore',
       routes: [
@@ -77,7 +82,9 @@ void main() {
           recentQueryRecorderProvider.overrideWithValue((s, l, p) async {}),
           recentQueriesProvider.overrideWith((ref) async => const []),
           exploreSubjectCountsProvider.overrideWith((ref) async => const {}),
-          exploreSubjectRowsProvider.overrideWithValue(AsyncValue.data([ana])),
+          exploreSubjectRowsProvider.overrideWithValue(
+            AsyncValue.data(rows ?? [ana]),
+          ),
         ],
       ),
     );
@@ -134,6 +141,25 @@ void main() {
     await pump(tester, parse('"clauses":[],"time":null'));
     await ask(tester);
     expect(find.byKey(const ValueKey('explore-handoff-list')), findsNothing);
+    // Nor the padded strip it would sit in.
+    expect(find.byType(ExploreHandoffBar), findsNothing);
+    expect(find.byKey(const ValueKey('explore-row-b1')), findsOneWidget);
+  });
+
+  testWidgets('no row with a dive draws no count chart', (tester) async {
+    final idle = ExploreSubjectRow(
+      id: 'b1',
+      name: 'Ana',
+      dives: 0,
+      item: ana.item,
+    );
+    await pump(
+      tester,
+      parse('"clauses":[],"time":{"text":"this year"}'),
+      rows: [idle],
+    );
+    await ask(tester);
+    expect(find.text('Dives per buddy'), findsNothing);
     expect(find.byKey(const ValueKey('explore-row-b1')), findsOneWidget);
   });
 
