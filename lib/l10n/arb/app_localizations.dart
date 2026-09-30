@@ -995,6 +995,12 @@ abstract class AppLocalizations {
     String outSpeed,
   );
 
+  /// No description provided for @plannerMission_results_legRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{leg}: {line}'**
+  String plannerMission_results_legRow(String leg, String line);
+
   /// No description provided for @plannerMission_results_legs.
   ///
   /// In en, this message translates to:
@@ -1020,6 +1026,28 @@ abstract class AppLocalizations {
     String factor,
     String name,
     String waypoint,
+  );
+
+  /// No description provided for @plannerMission_results_listSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get plannerMission_results_listSeparator;
+
+  /// No description provided for @plannerMission_results_memberLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {status}'**
+  String plannerMission_results_memberLine(String name, String status);
+
+  /// No description provided for @plannerMission_results_memberLineExits.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {status} ({exits})'**
+  String plannerMission_results_memberLineExits(
+    String exits,
+    String name,
+    String status,
   );
 
   /// No description provided for @plannerMission_results_noAbandonment.

@@ -600,6 +600,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String plannerMission_results_legRow(String leg, String line) {
+    return '$leg : $line';
+  }
+
+  @override
   String get plannerMission_results_legs => 'Tronçons';
 
   @override
@@ -619,6 +624,23 @@ class AppLocalizationsFr extends AppLocalizations {
     String waypoint,
   ) {
     return 'Limité par $name à $waypoint : $factor';
+  }
+
+  @override
+  String get plannerMission_results_listSeparator => ', ';
+
+  @override
+  String plannerMission_results_memberLine(String name, String status) {
+    return '$name : $status';
+  }
+
+  @override
+  String plannerMission_results_memberLineExits(
+    String exits,
+    String name,
+    String status,
+  ) {
+    return '$name : $status ($exits)';
   }
 
   @override

@@ -591,6 +591,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String plannerMission_results_legRow(String leg, String line) {
+    return '$leg: $line';
+  }
+
+  @override
   String get plannerMission_results_legs => 'קטעים';
 
   @override
@@ -610,6 +615,23 @@ class AppLocalizationsHe extends AppLocalizations {
     String waypoint,
   ) {
     return 'מוגבל על ידי $name ב$waypoint: $factor';
+  }
+
+  @override
+  String get plannerMission_results_listSeparator => ', ';
+
+  @override
+  String plannerMission_results_memberLine(String name, String status) {
+    return '$name: $status';
+  }
+
+  @override
+  String plannerMission_results_memberLineExits(
+    String exits,
+    String name,
+    String status,
+  ) {
+    return '$name: $status ($exits)';
   }
 
   @override

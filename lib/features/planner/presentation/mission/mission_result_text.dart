@@ -23,8 +23,10 @@ String missionFactorLabel(AppLocalizations l10n, MissionBindingFactor f) =>
     };
 
 /// "Limited by Sam's Blacktip at T: battery reserve", or the unconstrained
-/// sentence when no member binds anywhere on the route.
-String missionConstraintText(
+/// sentence when no member binds anywhere on the route. Null when [outcome]
+/// predates the latest edit and names a diver or leg the mission no longer
+/// has; the caller says a newer result is coming, or nothing if it failed.
+String? missionConstraintText(
   AppLocalizations l10n,
   MissionOutcome outcome,
   DpvMission mission,
@@ -35,9 +37,7 @@ String missionConstraintText(
   // An outcome computed before the latest edit can name a diver or waypoint
   // the mission no longer has; its replacement is on the way.
   final leg = missionLegAt(outcome, mission, c.waypointIndex);
-  if (member == null || leg == null) {
-    return l10n.plannerMission_results_computing;
-  }
+  if (member == null || leg == null) return null;
   final waypoint = missionLegName(l10n, leg);
   final factor = missionFactorLabel(l10n, c.factor);
   final scooter = member.scooter.name.trim();

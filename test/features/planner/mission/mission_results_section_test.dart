@@ -73,13 +73,14 @@ Future<ProviderContainer> _pump(
   required double width,
   DpvMission? mission,
   MissionEngineRunner runner = _syncRunner,
+  Locale locale = const Locale('en'),
 }) async {
   tester.view.physicalSize = Size(width, 2400);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     testApp(
-      locale: const Locale('en'),
+      locale: locale,
       overrides: [
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
         missionSettleDelayProvider.overrideWithValue(Duration.zero),
@@ -543,5 +544,60 @@ void main() {
       find.text('A failure scenario could not be computed'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('composed lines use the language\'s own punctuation', (
+    tester,
+  ) async {
+    await _pump(tester, width: 400, locale: const Locale('zh'));
+    // Member and leg rows join their parts with a full-width colon, and a
+    // member's working exits sit in full-width parentheses.
+    expect(find.textContaining(RegExp(r'^Samantha Richardson：')), findsWidgets);
+    expect(find.textContaining(RegExp(r'^Erster Abzweig：')), findsOneWidget);
+    expect(find.textContaining('（'), findsWidgets);
+    expect(find.textContaining(RegExp(r'^\S+: ')), findsNothing);
+  });
+
+  /// Computes the first mission, then fails every later one.
+  MissionEngineRunner firstThenThrow() {
+    var calls = 0;
+    return (plan, mission, config) async {
+      calls++;
+      if (calls == 1) return _syncRunner(plan, mission, config);
+      throw StateError('isolate');
+    };
+  }
+
+  testWidgets('after a failed recompute nothing says it is still working', (
+    tester,
+  ) async {
+    final container = await _pump(
+      tester,
+      width: 400,
+      mission: cavernThenT(),
+      runner: firstThenThrow(),
+    );
+    expect(abandonment(tester), endsWith(': Cavern'));
+    final mission = container.read(divePlanNotifierProvider).mission!;
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .updateMission(MissionEdits.removeLeg(mission, 'L1'));
+    await tester.pumpAndSettle();
+    expect(find.text('The mission could not be computed'), findsOneWidget);
+    expect(find.text('Working out the failure scenarios'), findsNothing);
+  });
+
+  testWidgets('a tow by a diver removed since reads no empty name', (
+    tester,
+  ) async {
+    final container = await _pump(tester, width: 400, runner: firstOnly());
+    expect(find.textContaining('tow by Alexandra 1'), findsWidgets);
+    final mission = container.read(divePlanNotifierProvider).mission!;
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .updateMission(MissionEdits.removeMember(mission, 'm1'));
+    await tester.pump();
+    expect(find.textContaining('tow by  '), findsNothing);
+    expect(find.textContaining('tow by Alexandra 1'), findsNothing);
   });
 }

@@ -15,6 +15,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class MissionMemberResultCard extends StatelessWidget {
   const MissionMemberResultCard({
     required this.outcome,
+    required this.staleText,
     super.key,
     required this.member,
     required this.result,
@@ -25,6 +26,10 @@ class MissionMemberResultCard extends StatelessWidget {
   /// The outcome [result] belongs to, which maps its waypoint index to a
   /// leg id.
   final MissionOutcome outcome;
+
+  /// What the limit line says when [outcome] predates the latest edit and
+  /// names a leg the mission no longer has; null leaves the line out.
+  final String? staleText;
   final MissionMember member;
   final MemberOutcome result;
   final DpvMission mission;
@@ -40,6 +45,16 @@ class MissionMemberResultCard extends StatelessWidget {
     final binding = result.bindingFactor;
     final bindingIndex = result.bindingWaypointIndex;
     final bindingLeg = missionLegAt(outcome, mission, bindingIndex);
+    final bindingText = binding == null || bindingIndex == null
+        ? l10n.plannerMission_results_noLimit
+        // A leg removed since this outcome: never "no limit".
+        : bindingLeg == null
+        ? staleText
+        // Placeholders are alphabetical: factor, waypoint.
+        : l10n.plannerMission_results_bindsAt(
+            missionFactorLabel(l10n, binding),
+            missionLegName(l10n, bindingLeg),
+          );
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -81,19 +96,8 @@ class MissionMemberResultCard extends StatelessWidget {
                 l10n.plannerMission_results_setsCruise,
                 style: theme.textTheme.bodySmall,
               ),
-            Text(
-              binding == null || bindingIndex == null
-                  ? l10n.plannerMission_results_noLimit
-                  // A leg removed since this outcome: never "no limit".
-                  : bindingLeg == null
-                  ? l10n.plannerMission_results_computing
-                  // Placeholders are alphabetical: factor, waypoint.
-                  : l10n.plannerMission_results_bindsAt(
-                      missionFactorLabel(l10n, binding),
-                      missionLegName(l10n, bindingLeg),
-                    ),
-              style: theme.textTheme.bodySmall,
-            ),
+            if (bindingText != null)
+              Text(bindingText, style: theme.textTheme.bodySmall),
             if (result.turnPressureBar != null)
               Text(
                 l10n.plannerMission_results_turnPressure(

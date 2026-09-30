@@ -34,8 +34,8 @@ class MissionWaypointList extends StatelessWidget {
     String? name(String memberId) =>
         mission.team.where((t) => t.id == memberId).firstOrNull?.displayName;
 
-    // The exits that work, as a parenthesised suffix, or nothing.
-    String exitsSuffix(MemberWaypointOutcome m) {
+    // The exits that work, joined the language's way; empty when none.
+    String exitsList(MemberWaypointOutcome m) {
       final parts = <String>[
         if (m.swim.feasible)
           l10n.plannerMission_results_swim(
@@ -44,11 +44,14 @@ class MissionWaypointList extends StatelessWidget {
         if (m.tow == null)
           l10n.plannerMission_results_noBuddy
         else if (m.tow!.feasible)
-          // Placeholders are alphabetical: minutes, name.
-          l10n.plannerMission_results_tow(
-            ceilMinutes(m.tow!.knownExitSeconds!).toString(),
-            name(m.tow!.towerId!) ?? '',
-          ),
+          // A tower removed since this outcome tows nobody: left out until
+          // the new result lands.
+          if (name(m.tow!.towerId!) case final tower?)
+            // Placeholders are alphabetical: minutes, name.
+            l10n.plannerMission_results_tow(
+              ceilMinutes(m.tow!.knownExitSeconds!).toString(),
+              tower,
+            ),
         if (m.surface != null && m.surface!.feasible)
           (m.surface!.viaShore
               ? l10n.plannerMission_results_surfaceViaShore
@@ -56,7 +59,7 @@ class MissionWaypointList extends StatelessWidget {
             ceilMinutes(m.surface!.knownExitSeconds!).toString(),
           ),
       ];
-      return parts.isEmpty ? '' : ' (${parts.join(', ')})';
+      return parts.join(l10n.plannerMission_results_listSeparator);
     }
 
     // A scenario whose computation threw is unknown, not the water's
@@ -113,9 +116,20 @@ class MissionWaypointList extends StatelessWidget {
                   for (final m in w.members)
                     if (name(m.memberId) case final memberName?)
                       Text(
-                        '$memberName: '
-                        '${status(m)}'
-                        '${exitsSuffix(m)}',
+                        switch (exitsList(m)) {
+                          '' => l10n.plannerMission_results_memberLine(
+                            memberName,
+                            status(m),
+                          ),
+                          // Placeholders are alphabetical: exits, name,
+                          // status.
+                          final exits =>
+                            l10n.plannerMission_results_memberLineExits(
+                              exits,
+                              memberName,
+                              status(m),
+                            ),
+                        },
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: m.survivable ? null : theme.colorScheme.error,
                         ),

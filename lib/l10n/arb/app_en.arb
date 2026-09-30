@@ -295,6 +295,17 @@
       }
     }
   },
+  "plannerMission_results_legRow": "{leg}: {line}",
+  "@plannerMission_results_legRow": {
+    "placeholders": {
+      "leg": {
+        "type": "String"
+      },
+      "line": {
+        "type": "String"
+      }
+    }
+  },
   "plannerMission_results_legs": "Legs",
   "plannerMission_results_limitedBy": "Limited by {name}'s {scooter} at {waypoint}: {factor}",
   "@plannerMission_results_limitedBy": {
@@ -323,6 +334,32 @@
         "type": "String"
       },
       "waypoint": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_listSeparator": ", ",
+  "plannerMission_results_memberLine": "{name}: {status}",
+  "@plannerMission_results_memberLine": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerMission_results_memberLineExits": "{name}: {status} ({exits})",
+  "@plannerMission_results_memberLineExits": {
+    "placeholders": {
+      "exits": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "status": {
         "type": "String"
       }
     }

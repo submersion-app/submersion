@@ -579,6 +579,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerMission_results_legRow(String leg, String line) {
+    return '$leg：$line';
+  }
+
+  @override
   String get plannerMission_results_legs => '航段';
 
   @override
@@ -598,6 +603,23 @@ class AppLocalizationsZh extends AppLocalizations {
     String waypoint,
   ) {
     return '受限于 $name，位于 $waypoint：$factor';
+  }
+
+  @override
+  String get plannerMission_results_listSeparator => '，';
+
+  @override
+  String plannerMission_results_memberLine(String name, String status) {
+    return '$name：$status';
+  }
+
+  @override
+  String plannerMission_results_memberLineExits(
+    String exits,
+    String name,
+    String status,
+  ) {
+    return '$name：$status（$exits）';
   }
 
   @override

@@ -73,7 +73,7 @@ void main() {
   );
 
   test(
-    'a constraint naming a diver no longer on the team reads as computing',
+    'a constraint naming a diver no longer on the team is left to the caller',
     () {
       const stale = MissionOutcome(
         segments: [],
@@ -89,10 +89,7 @@ void main() {
         ),
         issues: [],
       );
-      expect(
-        missionConstraintText(l10n, stale, mission),
-        'Working out the failure scenarios',
-      );
+      expect(missionConstraintText(l10n, stale, mission), isNull);
     },
   );
 

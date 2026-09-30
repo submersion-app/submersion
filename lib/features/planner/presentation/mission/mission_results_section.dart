@@ -84,37 +84,42 @@ class MissionResultsSection extends ConsumerWidget {
     }
     final abandonment = outcome.abandonmentIndex;
     final abandonmentLeg = missionLegAt(outcome, mission, abandonment);
+    // What a line this outcome can no longer fill says: that a newer result
+    // is coming, or nothing once it failed (the line above says so).
+    final staleText = result.hasError
+        ? null
+        : l10n.plannerMission_results_computing;
+    final constraint =
+        missionConstraintText(l10n, outcome, mission) ?? staleText;
+    final abandonmentText =
+        // No survivable waypoint because its scenarios could not be
+        // computed is unknown, not a verdict about the water.
+        abandonment == null &&
+            outcome.waypoints.isNotEmpty &&
+            outcome.waypoints.first.members.any(scenarioUnknown)
+        ? l10n.plannerMission_results_abandonmentUnknown
+        : abandonment == null
+        ? l10n.plannerMission_results_noAbandonment
+        // A leg removed since this outcome.
+        : abandonmentLeg == null
+        ? staleText
+        : l10n.plannerMission_results_abandonment(
+            missionLegName(l10n, abandonmentLeg),
+          );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ?status,
-        Text(
-          missionConstraintText(l10n, outcome, mission),
-          style: theme.textTheme.bodyMedium,
-        ),
+        if (constraint != null)
+          Text(constraint, style: theme.textTheme.bodyMedium),
         Text(
           l10n.plannerMission_results_assumptions(
             settingPercent(mission.batteryReserveFraction),
           ),
           style: theme.textTheme.bodySmall,
         ),
-        Text(
-          // No survivable waypoint because its scenarios could not be
-          // computed is unknown, not a verdict about the water.
-          abandonment == null &&
-                  outcome.waypoints.isNotEmpty &&
-                  outcome.waypoints.first.members.any(scenarioUnknown)
-              ? l10n.plannerMission_results_abandonmentUnknown
-              : abandonment == null
-              ? l10n.plannerMission_results_noAbandonment
-              // A leg removed since this outcome: its answer is on the way.
-              : abandonmentLeg == null
-              ? l10n.plannerMission_results_computing
-              : l10n.plannerMission_results_abandonment(
-                  missionLegName(l10n, abandonmentLeg),
-                ),
-          style: theme.textTheme.bodySmall,
-        ),
+        if (abandonmentText != null)
+          Text(abandonmentText, style: theme.textTheme.bodySmall),
         // Warnings and notes: a scenario that could not be computed, a
         // scooter whose equipment item is gone. A warning raised once per
         // failed scenario reads the same each time, so each sentence shows
@@ -130,6 +135,7 @@ class MissionResultsSection extends ConsumerWidget {
               case final member?)
             MissionMemberResultCard(
               outcome: outcome,
+              staleText: staleText,
               member: member,
               result: result,
               mission: mission,
