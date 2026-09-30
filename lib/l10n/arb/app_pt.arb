@@ -7372,7 +7372,7 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Planeado por si",
-  "trips_cylinders_segment_record": "Registo",
+  "trips_cylinders_segment_record": "Consumo",
   "trips_cylinders_recordEmpty": "Ainda não há mergulhos com estes cilindros.",
   "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} enchimento registado} other{{count} enchimentos registados}}",
   "@trips_cylinders_record_fillsLogged": {
@@ -7431,6 +7431,7 @@
       }
     }
   },
+  "trips_cylinders_record_exported": "Consumo de gás exportado",
   "trips_cylinders_title": "Cilindros",
   "trips_cylinders_summary": "Cheios {full} · Parciais {partial} · Vazios {empty}",
   "@trips_cylinders_summary": {

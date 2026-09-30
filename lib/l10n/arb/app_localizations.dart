@@ -41324,6 +41324,12 @@ abstract class AppLocalizations {
   /// **'Analyzed {mix}'**
   String trips_cylinders_record_analyzed(String mix);
 
+  /// No description provided for @trips_cylinders_record_exported.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas record exported'**
+  String get trips_cylinders_record_exported;
+
   /// No description provided for @trips_cylinders_title.
   ///
   /// In en, this message translates to:

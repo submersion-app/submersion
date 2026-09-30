@@ -25245,6 +25245,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_record_exported => 'רישום הגז יוצא';
+
+  @override
   String get trips_cylinders_title => 'מכלים';
 
   @override

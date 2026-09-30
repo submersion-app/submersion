@@ -7372,7 +7372,7 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Door jou gepland",
-  "trips_cylinders_segment_record": "Overzicht",
+  "trips_cylinders_segment_record": "Gasverbruik",
   "trips_cylinders_recordEmpty": "Nog geen duiken met deze flessen.",
   "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} vulling vastgelegd} other{{count} vullingen vastgelegd}}",
   "@trips_cylinders_record_fillsLogged": {
@@ -7431,6 +7431,7 @@
       }
     }
   },
+  "trips_cylinders_record_exported": "Gasverbruik geëxporteerd",
   "trips_cylinders_title": "Flessen",
   "trips_cylinders_summary": "Vol {full} · Deels {partial} · Leeg {empty}",
   "@trips_cylinders_summary": {

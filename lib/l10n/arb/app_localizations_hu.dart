@@ -25719,7 +25719,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'Általad tervezve';
 
   @override
-  String get trips_cylinders_segment_record => 'Napló';
+  String get trips_cylinders_segment_record => 'Kimutatás';
 
   @override
   String get trips_cylinders_recordEmpty =>
@@ -25786,6 +25786,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String trips_cylinders_record_analyzed(String mix) {
     return 'Mért: $mix';
   }
+
+  @override
+  String get trips_cylinders_record_exported => 'Gázkimutatás exportálva';
 
   @override
   String get trips_cylinders_title => 'Palackok';

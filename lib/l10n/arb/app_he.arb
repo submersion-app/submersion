@@ -7431,6 +7431,7 @@
       }
     }
   },
+  "trips_cylinders_record_exported": "רישום הגז יוצא",
   "trips_cylinders_title": "מכלים",
   "trips_cylinders_summary": "מלאים {full} · חלקיים {partial} · ריקים {empty}",
   "@trips_cylinders_summary": {

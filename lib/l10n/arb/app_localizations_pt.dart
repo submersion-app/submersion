@@ -25801,7 +25801,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'Planeado por si';
 
   @override
-  String get trips_cylinders_segment_record => 'Registo';
+  String get trips_cylinders_segment_record => 'Consumo';
 
   @override
   String get trips_cylinders_recordEmpty =>
@@ -25869,6 +25869,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String trips_cylinders_record_analyzed(String mix) {
     return 'Analisado $mix';
   }
+
+  @override
+  String get trips_cylinders_record_exported => 'Consumo de gás exportado';
 
   @override
   String get trips_cylinders_title => 'Cilindros';

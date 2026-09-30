@@ -24490,7 +24490,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => '由你计划';
 
   @override
-  String get trips_cylinders_segment_record => '记录';
+  String get trips_cylinders_segment_record => '用气';
 
   @override
   String get trips_cylinders_recordEmpty => '还没有使用这些气瓶的潜水。';
@@ -24552,6 +24552,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String trips_cylinders_record_analyzed(String mix) {
     return '分析 $mix';
   }
+
+  @override
+  String get trips_cylinders_record_exported => '用气记录已导出';
 
   @override
   String get trips_cylinders_title => '气瓶';

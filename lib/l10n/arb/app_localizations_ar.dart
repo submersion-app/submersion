@@ -25483,7 +25483,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'خططتها أنت';
 
   @override
-  String get trips_cylinders_segment_record => 'السجل';
+  String get trips_cylinders_segment_record => 'استهلاك الغاز';
 
   @override
   String get trips_cylinders_recordEmpty =>
@@ -25550,6 +25550,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String trips_cylinders_record_analyzed(String mix) {
     return 'التحليل $mix';
   }
+
+  @override
+  String get trips_cylinders_record_exported => 'تم تصدير سجل الغاز';
 
   @override
   String get trips_cylinders_title => 'الأسطوانات';

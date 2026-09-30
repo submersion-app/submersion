@@ -25820,6 +25820,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_record_exported => 'Gasprotokoll exportiert';
+
+  @override
   String get trips_cylinders_title => 'Flaschen';
 
   @override

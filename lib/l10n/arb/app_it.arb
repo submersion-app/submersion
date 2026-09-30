@@ -7266,7 +7266,7 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Pianificato da te",
-  "trips_cylinders_segment_record": "Registro",
+  "trips_cylinders_segment_record": "Consumi",
   "trips_cylinders_recordEmpty": "Ancora nessuna immersione con queste bombole.",
   "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} ricarica registrata} other{{count} ricariche registrate}}",
   "@trips_cylinders_record_fillsLogged": {
@@ -7325,6 +7325,7 @@
       }
     }
   },
+  "trips_cylinders_record_exported": "Consumi di gas esportati",
   "trips_cylinders_title": "Bombole",
   "trips_cylinders_summary": "Piene {full} · Parziali {partial} · Vuote {empty}",
   "@trips_cylinders_summary": {

@@ -7559,7 +7559,7 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "由你计划",
-  "trips_cylinders_segment_record": "记录",
+  "trips_cylinders_segment_record": "用气",
   "trips_cylinders_recordEmpty": "还没有使用这些气瓶的潜水。",
   "trips_cylinders_record_fillsLogged": "{count, plural, other{已记录 {count} 次充气}}",
   "@trips_cylinders_record_fillsLogged": {
@@ -7618,6 +7618,7 @@
       }
     }
   },
+  "trips_cylinders_record_exported": "用气记录已导出",
   "trips_cylinders_title": "气瓶",
   "trips_cylinders_summary": "满瓶 {full} · 部分 {partial} · 空瓶 {empty}",
   "@trips_cylinders_summary": {

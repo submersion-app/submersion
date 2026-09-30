@@ -25605,7 +25605,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_cylinders_forecast_dayPlanned => 'Door jou gepland';
 
   @override
-  String get trips_cylinders_segment_record => 'Overzicht';
+  String get trips_cylinders_segment_record => 'Gasverbruik';
 
   @override
   String get trips_cylinders_recordEmpty => 'Nog geen duiken met deze flessen.';
@@ -25672,6 +25672,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String trips_cylinders_record_analyzed(String mix) {
     return 'Geanalyseerd $mix';
   }
+
+  @override
+  String get trips_cylinders_record_exported => 'Gasverbruik geëxporteerd';
 
   @override
   String get trips_cylinders_title => 'Flessen';

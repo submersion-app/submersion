@@ -7329,6 +7329,7 @@
       }
     }
   },
+  "trips_cylinders_record_exported": "Relevé de gaz exporté",
   "trips_cylinders_title": "Blocs",
   "trips_cylinders_summary": "Pleins {full} · Entamés {partial} · Vides {empty}",
   "@trips_cylinders_summary": {

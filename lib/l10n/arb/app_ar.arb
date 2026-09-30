@@ -7372,7 +7372,7 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "خططتها أنت",
-  "trips_cylinders_segment_record": "السجل",
+  "trips_cylinders_segment_record": "استهلاك الغاز",
   "trips_cylinders_recordEmpty": "لا توجد غطسات من هذه الأسطوانات بعد.",
   "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} تعبئة مسجلة} other{{count} تعبئات مسجلة}}",
   "@trips_cylinders_record_fillsLogged": {
@@ -7431,6 +7431,7 @@
       }
     }
   },
+  "trips_cylinders_record_exported": "تم تصدير سجل الغاز",
   "trips_cylinders_title": "الأسطوانات",
   "trips_cylinders_summary": "ممتلئة {full} · جزئية {partial} · فارغة {empty}",
   "@trips_cylinders_summary": {

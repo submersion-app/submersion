@@ -7270,7 +7270,7 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Általad tervezve",
-  "trips_cylinders_segment_record": "Napló",
+  "trips_cylinders_segment_record": "Kimutatás",
   "trips_cylinders_recordEmpty": "Még nincs merülés ezekből a palackokból.",
   "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} töltés rögzítve} other{{count} töltés rögzítve}}",
   "@trips_cylinders_record_fillsLogged": {
@@ -7329,6 +7329,7 @@
       }
     }
   },
+  "trips_cylinders_record_exported": "Gázkimutatás exportálva",
   "trips_cylinders_title": "Palackok",
   "trips_cylinders_summary": "Tele {full} · Részben {partial} · Üres {empty}",
   "@trips_cylinders_summary": {

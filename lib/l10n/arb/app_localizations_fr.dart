@@ -25960,6 +25960,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_record_exported => 'Relevé de gaz exporté';
+
+  @override
   String get trips_cylinders_title => 'Blocs';
 
   @override

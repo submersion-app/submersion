@@ -15618,6 +15618,7 @@
       }
     }
   },
+  "trips_cylinders_record_exported": "Gas record exported",
   "trips_cylinders_title": "Cylinders",
   "trips_cylinders_summary": "Full {full} · Partial {partial} · Empty {empty}",
   "@trips_cylinders_summary": {

@@ -11,6 +11,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 void main() {
@@ -315,5 +316,22 @@ void main() {
     expect(l10n.trips_cylinders_record_tank(2), 'Tank 2');
     expect(l10n.trips_cylinders_record_filled('200 bar'), 'Filled to 200 bar');
     expect(l10n.trips_cylinders_record_analyzed('31.8%'), 'Analyzed 31.8%');
+  });
+
+  test('the board segment labels differ in every locale', () async {
+    // Board, Ledger and Record side by side: two with one word leave the
+    // diver guessing which is the gas record.
+    for (final locale in AppLocalizations.supportedLocales) {
+      final l = await AppLocalizations.delegate.load(locale);
+      expect(
+        {
+          l.trips_cylinders_segment_board,
+          l.trips_cylinders_segment_ledger,
+          l.trips_cylinders_segment_record,
+        },
+        hasLength(3),
+        reason: '$locale',
+      );
+    }
   });
 }

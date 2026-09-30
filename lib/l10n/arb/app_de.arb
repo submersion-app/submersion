@@ -7534,6 +7534,7 @@
       }
     }
   },
+  "trips_cylinders_record_exported": "Gasprotokoll exportiert",
   "trips_cylinders_title": "Flaschen",
   "trips_cylinders_summary": "Voll {full} · Teilweise {partial} · Leer {empty}",
   "@trips_cylinders_summary": {

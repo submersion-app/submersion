@@ -7372,7 +7372,7 @@
     }
   },
   "trips_cylinders_forecast_dayPlanned": "Planificado por ti",
-  "trips_cylinders_segment_record": "Registro",
+  "trips_cylinders_segment_record": "Consumo",
   "trips_cylinders_recordEmpty": "Aún no hay inmersiones con estas botellas.",
   "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} carga registrada} other{{count} cargas registradas}}",
   "@trips_cylinders_record_fillsLogged": {
@@ -7431,6 +7431,7 @@
       }
     }
   },
+  "trips_cylinders_record_exported": "Consumo de gas exportado",
   "trips_cylinders_title": "Botellas",
   "trips_cylinders_summary": "Llenas {full} · Parciales {partial} · Vacías {empty}",
   "@trips_cylinders_summary": {
