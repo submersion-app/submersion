@@ -330,4 +330,43 @@ void main() {
       expect(await r.staleDiveIds(), isEmpty);
     },
   );
+
+  test(
+    'a synced series older than the dive still makes the row stale',
+    () async {
+      // The profile rewritten on one device, the dive edited later on
+      // another, then a sync: the series' updated_at is older than the
+      // dive's, and the stamp must still move.
+      await insertDive('d1', updatedAt: now);
+      await db
+          .into(db.diveTanks)
+          .insert(DiveTanksCompanion.insert(id: 't1', diveId: 'd1'));
+      await db
+          .into(db.tankPressureSeries)
+          .insert(
+            TankPressureSeriesCompanion.insert(
+              id: 's1',
+              diveId: 'd1',
+              tankId: 't1',
+              sampleCount: 2,
+              startTimestamp: 0,
+              endTimestamp: 600,
+              codecVersion: 1,
+              samples: Uint8List.fromList([1]),
+              createdAt: now - 100,
+              updatedAt: now - 100,
+            ),
+          );
+      final r = repo();
+      await r.ensureCurrent('d1');
+      expect(await r.staleDiveIds(), isEmpty);
+
+      await (db.update(db.tankPressureSeries)..where((t) => t.id.equals('s1')))
+          .write(TankPressureSeriesCompanion(updatedAt: Value(now - 50)));
+      expect(await r.staleDiveIds(), ['d1']);
+      final rebuilt = await r.ensureCurrent('d1');
+      expect(runs, 2);
+      expect(rebuilt!.sourceUpdatedAt, now + (now - 50));
+    },
+  );
 }

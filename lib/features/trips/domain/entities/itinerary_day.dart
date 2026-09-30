@@ -14,6 +14,10 @@ class ItineraryDay extends Equatable {
   final double? latitude;
   final double? longitude;
   final String notes;
+
+  /// Planned dives on this day for the fill forecast (v249). Null derives
+  /// it; an explicit 0 is a rest day.
+  final int? plannedDives;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -27,6 +31,7 @@ class ItineraryDay extends Equatable {
     this.latitude,
     this.longitude,
     this.notes = '',
+    this.plannedDives,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -84,6 +89,7 @@ class ItineraryDay extends Equatable {
     Object? latitude = _undefined,
     Object? longitude = _undefined,
     String? notes,
+    Object? plannedDives = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -99,6 +105,9 @@ class ItineraryDay extends Equatable {
           ? this.longitude
           : longitude as double?,
       notes: notes ?? this.notes,
+      plannedDives: plannedDives == _undefined
+          ? this.plannedDives
+          : plannedDives as int?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -115,6 +124,7 @@ class ItineraryDay extends Equatable {
     latitude,
     longitude,
     notes,
+    plannedDives,
     createdAt,
     updatedAt,
   ];

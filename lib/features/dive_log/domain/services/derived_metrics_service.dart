@@ -50,8 +50,10 @@ abstract final class DerivedMetricsService {
   /// it or away from it, is transit rather than the stop.
   static const double transitMeters = kFinalStopUnstableMeters / 2;
 
-  static bool isCurrent(DiveDerivedMetrics m, int diveUpdatedAt) =>
-      m.engineVersion >= version && m.sourceUpdatedAt == diveUpdatedAt;
+  /// Whether [m] was built by this engine from the dive as it is now;
+  /// [sourceStamp] is the dive's `diveSourceStampSql`.
+  static bool isCurrent(DiveDerivedMetrics m, int sourceStamp) =>
+      m.engineVersion >= version && m.sourceUpdatedAt == sourceStamp;
 
   static DiveDerivedMetrics compute({
     required String diveId,

@@ -5568,6 +5568,33 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'Coordenadas GPS';
 
   @override
+  String get diveCenters_section_fillHours => 'Horário de enchimento';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'Quando a estação enche cilindros. A previsão de enchimento da viagem usa a hora de fecho.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'Abre';
+
+  @override
+  String get diveCenters_fillHours_closes => 'Fecha';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'Não definido';
+
+  @override
+  String get diveCenters_fillHours_clear => 'Limpar horário de enchimento';
+
+  @override
+  String get diveCenters_fillHours_errorBoth =>
+      'Defina as duas horas, ou nenhuma.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'A hora de fecho tem de ser depois da de abertura.';
+
+  @override
   String get diveCenters_section_notes => 'Notas';
 
   @override
@@ -24673,6 +24700,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Exportar inventário de equipamentos e informações de manutenção';
 
   @override
+  String get transfer_csvExport_descriptionFills =>
+      'Cada enchimento registado num passaporte de garrafa, com análise, pressão e estação';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       'Cada verificação OK e cada problema reportado, com mergulho, etiquetas e nota';
 
@@ -24693,6 +24724,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'CSV de Equipamentos';
 
   @override
+  String get transfer_csvExport_optionFillsTitle =>
+      'CSV de enchimentos de garrafa';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle =>
       'CSV de verificações de equipamento';
 
@@ -24709,6 +24744,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Equipamentos';
+
+  @override
+  String get transfer_csvExport_typeFills => 'Enchimentos de garrafa';
 
   @override
   String get transfer_csvExport_typeObservations =>
@@ -25588,6 +25626,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'Planeamento';
 
   @override
+  String get trips_edit_label_diversSharing =>
+      'Mergulhadores que partilham cilindros';
+
+  @override
+  String get trips_edit_hint_diversSharing =>
+      'Incluindo você. Em branco significa 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'Mergulhos por dia';
+
+  @override
+  String get trips_edit_hint_divesPerDay =>
+      'Para a previsão de enchimento. Em branco significa estimativa.';
+
+  @override
   String get trips_edit_label_expectedDives => 'Mergulhos previstos';
 
   @override
@@ -25691,6 +25744,61 @@ class AppLocalizationsPt extends AppLocalizations {
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count rebreathers, a menor margem de absorvente é de $minutes min';
   }
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'Hoje são precisos $needed, tem $full cheios.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'Amanhã são precisos $needed, terá $full cheios.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'Encha antes das $time.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough =>
+      'Cilindros cheios suficientes até amanhã.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'Mergulhos planeados';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'Mergulhos planeados, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'Usar a estimativa';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'Menos mergulhos';
+
+  @override
+  String get trips_cylinders_forecast_more => 'Mais mergulhos';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'Não foi possível guardar o plano: $error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => 'Planeado por si';
 
   @override
   String get trips_cylinders_title => 'Cilindros';
@@ -28122,6 +28230,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveImport_uddf_media => 'Fotos';
+
+  @override
+  String get diveImport_uddf_fills => 'Enchimentos';
 
   @override
   String get diveImport_uddf_title => 'Importar de UDDF';
@@ -42996,6 +43107,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'A exportar verificações de equipamento para CSV...';
 
   @override
+  String get settings_export_progress_fillsCsv =>
+      'A exportar enchimentos de garrafa para CSV...';
+
+  @override
   String get settings_export_progress_pdf =>
       'Gerando diário de mergulho em PDF...';
 
@@ -43069,6 +43184,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'A preparar CSV de verificações de equipamento...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv =>
+      'A preparar CSV de enchimentos de garrafa...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'Preparando arquivo UDDF...';
 
@@ -43088,6 +43207,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_export_empty_observations =>
       'Sem verificações de equipamento para exportar';
+
+  @override
+  String get settings_export_empty_fills =>
+      'Sem enchimentos de garrafa para exportar';
 
   @override
   String get settings_export_empty_data => 'Nenhum dado para exportar';
@@ -43115,6 +43238,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_export_success_observations =>
       'Verificações de equipamento exportadas';
+
+  @override
+  String get settings_export_success_fills =>
+      'Enchimentos de garrafa exportados';
 
   @override
   String get settings_export_success_pdf =>
@@ -43175,6 +43302,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'CSV de verificações de equipamento guardado';
 
   @override
+  String get settings_export_saved_fillsCsv =>
+      'CSV de enchimentos de garrafa guardado';
+
+  @override
   String get settings_export_saved_uddf => 'Arquivo UDDF salvo com sucesso';
 
   @override
@@ -43200,6 +43331,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_export_saveObservationsCsvDialogTitle =>
       'Salvar CSV de verificações de equipamento';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle =>
+      'Guardar CSV de enchimentos de garrafa';
 
   @override
   String backup_operation_created(String size) {

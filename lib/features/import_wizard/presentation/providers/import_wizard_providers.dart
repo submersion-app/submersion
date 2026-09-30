@@ -373,6 +373,18 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
         }
       }
 
+      // A duplicate whose only possible action is Skip (a fill already here,
+      // cylinder passports phase 5) has nothing to decide: it is skipped by
+      // default and never holds the Import button.
+      final choices = _adapter.duplicateActionsFor(type);
+      if (setEquals(choices, const {DuplicateAction.skip})) {
+        for (final index in pendingForType) {
+          duplicateActions.putIfAbsent(type, () => {})[index] =
+              DuplicateAction.skip;
+        }
+        pendingForType = const {};
+      }
+
       if (pendingForType.isNotEmpty) {
         pendingReview[type] = pendingForType;
       }

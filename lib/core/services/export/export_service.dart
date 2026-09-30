@@ -30,6 +30,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
@@ -206,6 +207,35 @@ class ExportService {
     List<ObservationExportRow> rows, {
     required String dialogTitle,
   }) => _csv.saveObservationsCsvToFile(rows, dialogTitle: dialogTitle);
+
+  Future<String> exportFillsToCsv(
+    List<CylinderFill> fills, {
+    Map<String, EquipmentItem> equipmentById = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) =>
+      _csv.exportFillsToCsv(fills, equipmentById: equipmentById, units: units);
+
+  String generateFillsCsvContent(
+    List<CylinderFill> fills, {
+    Map<String, EquipmentItem> equipmentById = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.generateFillsCsvContent(
+    fills,
+    equipmentById: equipmentById,
+    units: units,
+  );
+
+  Future<String?> saveFillsCsvToFile(
+    List<CylinderFill> fills, {
+    Map<String, EquipmentItem> equipmentById = const {},
+    required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => _csv.saveFillsCsvToFile(
+    fills,
+    equipmentById: equipmentById,
+    dialogTitle: dialogTitle,
+    units: units,
+  );
 
   // ==================== PDF Export ====================
 

@@ -5585,6 +5585,34 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'Coordonnées GPS';
 
   @override
+  String get diveCenters_section_fillHours => 'Horaires de remplissage';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'Quand la station remplit les blocs. La prévision de remplissage du voyage utilise l\'heure de fermeture.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'Ouverture';
+
+  @override
+  String get diveCenters_fillHours_closes => 'Fermeture';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'Non défini';
+
+  @override
+  String get diveCenters_fillHours_clear =>
+      'Effacer les horaires de remplissage';
+
+  @override
+  String get diveCenters_fillHours_errorBoth =>
+      'Indiquez les deux heures, ou aucune.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'L\'heure de fermeture doit suivre l\'heure d\'ouverture.';
+
+  @override
   String get diveCenters_section_notes => 'Notes';
 
   @override
@@ -24761,6 +24789,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Exporter l\'inventaire d\'équipement et les informations de service';
 
   @override
+  String get transfer_csvExport_descriptionFills =>
+      'Chaque gonflage consigné sur un passeport de bloc, avec son analyse, sa pression et sa station';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       'Chaque vérification OK et chaque problème signalé, avec la plongée, les étiquettes et la note';
 
@@ -24781,6 +24813,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'CSV Équipement';
 
   @override
+  String get transfer_csvExport_optionFillsTitle => 'CSV des gonflages de bloc';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle =>
       'CSV des bilans d\'équipement';
 
@@ -24797,6 +24832,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Équipement';
+
+  @override
+  String get transfer_csvExport_typeFills => 'Gonflages de bloc';
 
   @override
   String get transfer_csvExport_typeObservations => 'Bilans d\'équipement';
@@ -25680,6 +25718,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'Planification';
 
   @override
+  String get trips_edit_label_diversSharing => 'Plongeurs partageant les blocs';
+
+  @override
+  String get trips_edit_hint_diversSharing => 'Vous compris. Vide signifie 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'Plongées par jour';
+
+  @override
+  String get trips_edit_hint_divesPerDay =>
+      'Pour la prévision de remplissage. Vide signifie estimer.';
+
+  @override
   String get trips_edit_label_expectedDives => 'Plongées prévues';
 
   @override
@@ -25783,6 +25834,61 @@ class AppLocalizationsFr extends AppLocalizations {
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count recycleurs, la plus faible marge de chaux est de $minutes min';
   }
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'Aujourd\'hui il en faut $needed, vous en avez $full pleins.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'Demain il en faut $needed, vous en aurez $full pleins.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'Remplir avant $time.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough =>
+      'Assez de blocs pleins jusqu\'à demain.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'Plongées planifiées';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées',
+      one: '$count plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'Plongées planifiées, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'Utiliser l\'estimation';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'Moins de plongées';
+
+  @override
+  String get trips_cylinders_forecast_more => 'Plus de plongées';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'Impossible d\'enregistrer le plan : $error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => 'Planifié par vous';
 
   @override
   String get trips_cylinders_title => 'Blocs';
@@ -28222,6 +28328,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveImport_uddf_media => 'Photos';
+
+  @override
+  String get diveImport_uddf_fills => 'Gonflages';
 
   @override
   String get diveImport_uddf_title => 'Import depuis UDDF';
@@ -43095,6 +43204,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Export des bilans d\'équipement en CSV...';
 
   @override
+  String get settings_export_progress_fillsCsv =>
+      'Export des gonflages de bloc en CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'Génération du carnet PDF...';
 
   @override
@@ -43168,6 +43281,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Préparation du CSV des bilans d\'équipement...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv =>
+      'Préparation du CSV des gonflages de bloc...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'Préparation du fichier UDDF...';
 
@@ -43186,6 +43303,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_export_empty_observations =>
       'Aucun bilan d\'équipement à exporter';
+
+  @override
+  String get settings_export_empty_fills => 'Aucun gonflage de bloc à exporter';
 
   @override
   String get settings_export_empty_data => 'Aucune donnée à exporter';
@@ -43212,6 +43332,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_export_success_observations =>
       'Bilans d\'équipement exportés';
+
+  @override
+  String get settings_export_success_fills => 'Gonflages de bloc exportés';
 
   @override
   String get settings_export_success_pdf => 'Carnet PDF généré avec succès';
@@ -43272,6 +43395,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'CSV des bilans d\'équipement enregistré';
 
   @override
+  String get settings_export_saved_fillsCsv =>
+      'CSV des gonflages de bloc enregistré';
+
+  @override
   String get settings_export_saved_uddf =>
       'Fichier UDDF enregistré avec succès';
 
@@ -43299,6 +43426,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_export_saveObservationsCsvDialogTitle =>
       'Enregistrer le CSV des bilans d’équipement';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle =>
+      'Enregistrer le CSV des gonflages de bloc';
 
   @override
   String backup_operation_created(String size) {

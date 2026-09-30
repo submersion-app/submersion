@@ -8986,6 +8986,54 @@ abstract class AppLocalizations {
   /// **'GPS Coordinates'**
   String get diveCenters_section_gpsCoordinates;
 
+  /// No description provided for @diveCenters_section_fillHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill hours'**
+  String get diveCenters_section_fillHours;
+
+  /// No description provided for @diveCenters_fillHours_caption.
+  ///
+  /// In en, this message translates to:
+  /// **'When the station fills cylinders. The trip fill forecast uses the closing time.'**
+  String get diveCenters_fillHours_caption;
+
+  /// No description provided for @diveCenters_fillHours_opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens'**
+  String get diveCenters_fillHours_opens;
+
+  /// No description provided for @diveCenters_fillHours_closes.
+  ///
+  /// In en, this message translates to:
+  /// **'Closes'**
+  String get diveCenters_fillHours_closes;
+
+  /// No description provided for @diveCenters_fillHours_notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get diveCenters_fillHours_notSet;
+
+  /// No description provided for @diveCenters_fillHours_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear fill hours'**
+  String get diveCenters_fillHours_clear;
+
+  /// No description provided for @diveCenters_fillHours_errorBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Set both times, or neither.'**
+  String get diveCenters_fillHours_errorBoth;
+
+  /// No description provided for @diveCenters_fillHours_errorOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing time must be after opening time.'**
+  String get diveCenters_fillHours_errorOrder;
+
   /// No description provided for @diveCenters_section_notes.
   ///
   /// In en, this message translates to:
@@ -39414,6 +39462,12 @@ abstract class AppLocalizations {
   /// **'Export equipment inventory and service info'**
   String get transfer_csvExport_descriptionEquipment;
 
+  /// Subtitle of the cylinder fills option in the CSV export sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Every fill logged on a cylinder passport, with its analysis, pressure and filler'**
+  String get transfer_csvExport_descriptionFills;
+
   /// No description provided for @transfer_csvExport_descriptionObservations.
   ///
   /// In en, this message translates to:
@@ -39450,6 +39504,12 @@ abstract class AppLocalizations {
   /// **'Equipment CSV'**
   String get transfer_csvExport_optionEquipmentTitle;
 
+  /// Title of the share-or-save sheet for the cylinder fills CSV
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder fills CSV'**
+  String get transfer_csvExport_optionFillsTitle;
+
   /// No description provided for @transfer_csvExport_optionObservationsTitle.
   ///
   /// In en, this message translates to:
@@ -39479,6 +39539,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment'**
   String get transfer_csvExport_typeEquipment;
+
+  /// Name of the cylinder fills option in the CSV export sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder fills'**
+  String get transfer_csvExport_typeFills;
 
   /// No description provided for @transfer_csvExport_typeObservations.
   ///
@@ -40986,6 +41052,30 @@ abstract class AppLocalizations {
   /// **'Planning'**
   String get trips_edit_sectionTitle_planning;
 
+  /// No description provided for @trips_edit_label_diversSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Divers sharing cylinders'**
+  String get trips_edit_label_diversSharing;
+
+  /// No description provided for @trips_edit_hint_diversSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Including you. Blank means 1.'**
+  String get trips_edit_hint_diversSharing;
+
+  /// No description provided for @trips_edit_label_divesPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives per day'**
+  String get trips_edit_label_divesPerDay;
+
+  /// No description provided for @trips_edit_hint_divesPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'For the fill forecast. Blank means estimate.'**
+  String get trips_edit_hint_divesPerDay;
+
   /// No description provided for @trips_edit_label_expectedDives.
   ///
   /// In en, this message translates to:
@@ -41101,6 +41191,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} rebreathers, lowest {minutes} min scrubber margin'**
   String trips_scrubber_bannerCount(int count, String minutes);
+
+  /// No description provided for @trips_cylinders_forecast_todayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Today needs {needed}, you have {full} full.'**
+  String trips_cylinders_forecast_todayShort(int needed, int full);
+
+  /// No description provided for @trips_cylinders_forecast_tomorrowShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow needs {needed}, you\'ll have {full} full.'**
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full);
+
+  /// No description provided for @trips_cylinders_forecast_fillBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill before {time}.'**
+  String trips_cylinders_forecast_fillBefore(String time);
+
+  /// No description provided for @trips_cylinders_forecast_enough.
+  ///
+  /// In en, this message translates to:
+  /// **'Enough full cylinders through tomorrow.'**
+  String get trips_cylinders_forecast_enough;
+
+  /// No description provided for @trips_cylinders_forecast_daysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dives'**
+  String get trips_cylinders_forecast_daysTitle;
+
+  /// No description provided for @trips_cylinders_forecast_plannedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive} other{{count} dives}}'**
+  String trips_cylinders_forecast_plannedDives(int count);
+
+  /// No description provided for @trips_cylinders_forecast_dayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dives, {date}'**
+  String trips_cylinders_forecast_dayTitle(String date);
+
+  /// No description provided for @trips_cylinders_forecast_useEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the estimate'**
+  String get trips_cylinders_forecast_useEstimate;
+
+  /// No description provided for @trips_cylinders_forecast_fewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer dives'**
+  String get trips_cylinders_forecast_fewer;
+
+  /// No description provided for @trips_cylinders_forecast_more.
+  ///
+  /// In en, this message translates to:
+  /// **'More dives'**
+  String get trips_cylinders_forecast_more;
+
+  /// No description provided for @trips_cylinders_forecast_saveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the plan: {error}'**
+  String trips_cylinders_forecast_saveError(String error);
+
+  /// No description provided for @trips_cylinders_forecast_dayPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned by you'**
+  String get trips_cylinders_forecast_dayPlanned;
 
   /// No description provided for @trips_cylinders_title.
   ///
@@ -44839,6 +45001,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photos'**
   String get diveImport_uddf_media;
+
+  /// Entity type label for cylinder fills in the import wizard
+  ///
+  /// In en, this message translates to:
+  /// **'Fills'**
+  String get diveImport_uddf_fills;
 
   /// No description provided for @diveImport_uddf_title.
   ///
@@ -68891,6 +69059,12 @@ abstract class AppLocalizations {
   /// **'Exporting gear check-ins to CSV...'**
   String get settings_export_progress_observationsCsv;
 
+  /// Progress message while the cylinder fills CSV is generated for sharing
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting cylinder fills to CSV...'**
+  String get settings_export_progress_fillsCsv;
+
   /// No description provided for @settings_export_progress_pdf.
   ///
   /// In en, this message translates to:
@@ -69005,6 +69179,12 @@ abstract class AppLocalizations {
   /// **'Preparing gear check-ins CSV...'**
   String get settings_export_progress_preparingObservationsCsv;
 
+  /// Progress message while the cylinder fills CSV is generated for saving
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing cylinder fills CSV...'**
+  String get settings_export_progress_preparingFillsCsv;
+
   /// No description provided for @settings_export_progress_preparingUddf.
   ///
   /// In en, this message translates to:
@@ -69040,6 +69220,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No gear check-ins to export'**
   String get settings_export_empty_observations;
+
+  /// Shown when the diver has no fills to put in the CSV
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinder fills to export'**
+  String get settings_export_empty_fills;
 
   /// No description provided for @settings_export_empty_data.
   ///
@@ -69082,6 +69268,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gear check-ins exported'**
   String get settings_export_success_observations;
+
+  /// Shown after the cylinder fills CSV was shared
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder fills exported'**
+  String get settings_export_success_fills;
 
   /// No description provided for @settings_export_success_pdf.
   ///
@@ -69143,6 +69335,12 @@ abstract class AppLocalizations {
   /// **'Gear check-ins CSV saved'**
   String get settings_export_saved_observationsCsv;
 
+  /// Shown after the cylinder fills CSV was saved to a chosen location
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder fills CSV saved'**
+  String get settings_export_saved_fillsCsv;
+
   /// No description provided for @settings_export_saved_uddf.
   ///
   /// In en, this message translates to:
@@ -69190,6 +69388,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save Gear Check-ins CSV'**
   String get settings_export_saveObservationsCsvDialogTitle;
+
+  /// Title of the system save dialog for the cylinder fills CSV
+  ///
+  /// In en, this message translates to:
+  /// **'Save Cylinder Fills CSV'**
+  String get settings_export_saveFillsCsvDialogTitle;
 
   /// No description provided for @backup_operation_created.
   ///

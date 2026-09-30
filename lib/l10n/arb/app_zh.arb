@@ -1850,6 +1850,14 @@
   "diveCenters_section_contact": "联系人",
   "diveCenters_section_contactInfo": "联系信息",
   "diveCenters_section_gpsCoordinates": "GPS 坐标",
+  "diveCenters_section_fillHours": "充气时间",
+  "diveCenters_fillHours_caption": "气站充气的时间。行程充气预测使用关门时间。",
+  "diveCenters_fillHours_opens": "开门",
+  "diveCenters_fillHours_closes": "关门",
+  "diveCenters_fillHours_notSet": "未设置",
+  "diveCenters_fillHours_clear": "清除充气时间",
+  "diveCenters_fillHours_errorBoth": "请同时设置两个时间，或都不设置。",
+  "diveCenters_fillHours_errorOrder": "关门时间必须晚于开门时间。",
   "diveCenters_section_notes": "备注",
   "diveCenters_snackbar_coordinatesFound": "已从地址获取坐标",
   "diveCenters_snackbar_copiedToClipboard": "已复制到剪贴板",
@@ -2207,6 +2215,7 @@
   "diveImport_uddf_tabTypes": "类型",
   "diveImport_uddf_tags": "标签",
   "diveImport_uddf_media": "照片",
+  "diveImport_uddf_fills": "充气记录",
   "diveImport_uddf_title": "从 UDDF 导入",
   "diveImport_uddf_toggleDiveSelection": "切换潜水记录选择",
   "diveImport_uddf_toggleEntitySelection": "切换 {name} 的选择",
@@ -7188,17 +7197,20 @@
   "transfer_csvExport_dataTypeHeader": "数据类型",
   "transfer_csvExport_descriptionDives": "将所有潜水日志导出为电子表格",
   "transfer_csvExport_descriptionEquipment": "导出装备库存和维护信息",
+  "transfer_csvExport_descriptionFills": "气瓶护照上记录的每次充气，含气体分析、压力和充气站",
   "transfer_csvExport_descriptionObservations": "每条正常检查和报告的问题，含潜水、标签和备注",
   "transfer_csvExport_descriptionSites": "导出潜水点位置和详情",
   "transfer_csvExport_dialogTitle": "导出 CSV",
   "transfer_csvExport_exportButton": "导出 CSV",
   "transfer_csvExport_optionDivesTitle": "潜水 CSV",
   "transfer_csvExport_optionEquipmentTitle": "装备 CSV",
+  "transfer_csvExport_optionFillsTitle": "气瓶充气记录 CSV",
   "transfer_csvExport_optionObservationsTitle": "装备检查记录 CSV",
   "transfer_csvExport_optionSitesTitle": "潜水点 CSV",
   "transfer_csvExport_semanticLabel": "导出 {typeName}",
   "transfer_csvExport_typeDives": "潜水",
   "transfer_csvExport_typeEquipment": "装备",
+  "transfer_csvExport_typeFills": "气瓶充气记录",
   "transfer_csvExport_typeObservations": "装备检查记录",
   "transfer_csvExport_typeSites": "潜水点",
   "transfer_csvExport_unitsHeader": "单位",
@@ -7379,6 +7391,10 @@
   "trips_edit_label_cabinType": "舱房类型",
   "trips_edit_label_capacity": "乘客容量",
   "trips_edit_sectionTitle_planning": "计划",
+  "trips_edit_label_diversSharing": "共用气瓶的潜水员",
+  "trips_edit_hint_diversSharing": "包括你自己。留空表示 1。",
+  "trips_edit_label_divesPerDay": "每天潜水次数",
+  "trips_edit_hint_divesPerDay": "用于充气预测。留空表示估算。",
   "trips_edit_label_expectedDives": "预计潜水次数",
   "trips_edit_hint_expectedDives": "留空则根据近期行程估算",
   "trips_edit_label_expectedRuntime": "每次潜水预计运行时间（分钟）",
@@ -7483,6 +7499,66 @@
       }
     }
   },
+  "trips_cylinders_forecast_todayShort": "今天需要 {needed} 个，你有 {full} 个满瓶。",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "明天需要 {needed} 个，届时你有 {full} 个满瓶。",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "请在 {time} 前充气。",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "满瓶足够用到明天。",
+  "trips_cylinders_forecast_daysTitle": "计划潜水",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, other{{count} 次潜水}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "计划潜水，{date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "使用估计值",
+  "trips_cylinders_forecast_fewer": "减少潜水",
+  "trips_cylinders_forecast_more": "增加潜水",
+  "trips_cylinders_forecast_saveError": "无法保存计划：{error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "由你计划",
   "trips_cylinders_title": "气瓶",
   "trips_cylinders_summary": "满瓶 {full} · 部分 {partial} · 空瓶 {empty}",
   "@trips_cylinders_summary": {
@@ -12746,6 +12822,7 @@
   "settings_export_progress_sitesCsv": "正在将潜水点导出为 CSV...",
   "settings_export_progress_equipmentCsv": "正在将装备导出为 CSV...",
   "settings_export_progress_observationsCsv": "正在将装备检查记录导出为 CSV...",
+  "settings_export_progress_fillsCsv": "正在将气瓶充气记录导出为 CSV...",
   "settings_export_progress_pdf": "正在生成 PDF 潜水日志...",
   "settings_export_progress_loadingSignatures": "正在加载签名...",
   "settings_export_progress_loadingProfiles": "正在加载潜水剖面...",
@@ -12765,12 +12842,14 @@
   "settings_export_progress_preparingSitesCsv": "正在准备潜水点 CSV...",
   "settings_export_progress_preparingEquipmentCsv": "正在准备装备 CSV...",
   "settings_export_progress_preparingObservationsCsv": "正在准备装备检查记录 CSV...",
+  "settings_export_progress_preparingFillsCsv": "正在准备气瓶充气记录 CSV...",
   "settings_export_progress_preparingUddf": "正在准备 UDDF 文件...",
   "settings_export_progress_preparingPdf": "正在准备 PDF...",
   "settings_export_empty_dives": "没有可导出的潜水记录",
   "settings_export_empty_sites": "没有可导出的潜水点",
   "settings_export_empty_equipment": "没有可导出的装备",
   "settings_export_empty_observations": "没有可导出的装备检查记录",
+  "settings_export_empty_fills": "没有可导出的气瓶充气记录",
   "settings_export_empty_data": "没有可导出的数据",
   "settings_export_empty_diveSites": "没有可导出的潜水点",
   "settings_export_saveFailed": "保存失败：{error}",
@@ -12778,6 +12857,7 @@
   "settings_export_success_sites": "潜水点导出成功",
   "settings_export_success_equipment": "装备导出成功",
   "settings_export_success_observations": "装备检查记录已导出",
+  "settings_export_success_fills": "气瓶充气记录已导出",
   "settings_export_success_pdf": "PDF 潜水日志生成成功",
   "settings_export_success_uddf": "UDDF 文件生成成功",
   "settings_export_success_excel": "Excel 文件导出成功",
@@ -12788,6 +12868,7 @@
   "settings_export_saved_sitesCsv": "潜水点 CSV 保存成功",
   "settings_export_saved_equipmentCsv": "装备 CSV 保存成功",
   "settings_export_saved_observationsCsv": "装备检查记录 CSV 已保存",
+  "settings_export_saved_fillsCsv": "气瓶充气记录 CSV 已保存",
   "settings_export_saved_uddf": "UDDF 文件保存成功",
   "settings_export_saved_pdf": "PDF 保存成功",
   "settings_export_cancelled_save": "已取消保存",
@@ -12931,6 +13012,7 @@
   "settings_export_saveSitesCsvDialogTitle": "保存潜水点 CSV",
   "settings_export_saveEquipmentCsvDialogTitle": "保存装备 CSV",
   "settings_export_saveObservationsCsvDialogTitle": "保存装备检查记录 CSV",
+  "settings_export_saveFillsCsvDialogTitle": "保存气瓶充气记录 CSV",
   "backup_operation_created": "已创建备份：{size}",
   "backup_operation_backupFailed": "备份失败：{error}",
   "backup_operation_restoring": "正在恢复备份...",

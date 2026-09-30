@@ -5473,6 +5473,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'GPS Coordinates';
 
   @override
+  String get diveCenters_section_fillHours => 'Fill hours';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'When the station fills cylinders. The trip fill forecast uses the closing time.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'Opens';
+
+  @override
+  String get diveCenters_fillHours_closes => 'Closes';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'Not set';
+
+  @override
+  String get diveCenters_fillHours_clear => 'Clear fill hours';
+
+  @override
+  String get diveCenters_fillHours_errorBoth => 'Set both times, or neither.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'Closing time must be after opening time.';
+
+  @override
   String get diveCenters_section_notes => 'Notes';
 
   @override
@@ -24278,6 +24304,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Export equipment inventory and service info';
 
   @override
+  String get transfer_csvExport_descriptionFills =>
+      'Every fill logged on a cylinder passport, with its analysis, pressure and filler';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       'Every OK check and reported issue, with its dive, tags and note';
 
@@ -24298,6 +24328,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'Equipment CSV';
 
   @override
+  String get transfer_csvExport_optionFillsTitle => 'Cylinder fills CSV';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle => 'Gear check-ins CSV';
 
   @override
@@ -24313,6 +24346,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Equipment';
+
+  @override
+  String get transfer_csvExport_typeFills => 'Cylinder fills';
 
   @override
   String get transfer_csvExport_typeObservations => 'Gear check-ins';
@@ -25179,6 +25215,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'Planning';
 
   @override
+  String get trips_edit_label_diversSharing => 'Divers sharing cylinders';
+
+  @override
+  String get trips_edit_hint_diversSharing => 'Including you. Blank means 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'Dives per day';
+
+  @override
+  String get trips_edit_hint_divesPerDay =>
+      'For the fill forecast. Blank means estimate.';
+
+  @override
   String get trips_edit_label_expectedDives => 'Expected dives';
 
   @override
@@ -25282,6 +25331,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count rebreathers, lowest $minutes min scrubber margin';
   }
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'Today needs $needed, you have $full full.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'Tomorrow needs $needed, you\'ll have $full full.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'Fill before $time.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough =>
+      'Enough full cylinders through tomorrow.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'Planned dives';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '$count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'Planned dives, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'Use the estimate';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'Fewer dives';
+
+  @override
+  String get trips_cylinders_forecast_more => 'More dives';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'Couldn\'t save the plan: $error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => 'Planned by you';
 
   @override
   String get trips_cylinders_title => 'Cylinders';
@@ -27682,6 +27786,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveImport_uddf_media => 'Photos';
+
+  @override
+  String get diveImport_uddf_fills => 'Fills';
 
   @override
   String get diveImport_uddf_title => 'Import from UDDF';
@@ -42372,6 +42479,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Exporting gear check-ins to CSV...';
 
   @override
+  String get settings_export_progress_fillsCsv =>
+      'Exporting cylinder fills to CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'Generating PDF logbook...';
 
   @override
@@ -42442,6 +42553,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Preparing gear check-ins CSV...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv =>
+      'Preparing cylinder fills CSV...';
+
+  @override
   String get settings_export_progress_preparingUddf => 'Preparing UDDF file...';
 
   @override
@@ -42459,6 +42574,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_export_empty_observations =>
       'No gear check-ins to export';
+
+  @override
+  String get settings_export_empty_fills => 'No cylinder fills to export';
 
   @override
   String get settings_export_empty_data => 'No data to export';
@@ -42483,6 +42601,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_export_success_observations => 'Gear check-ins exported';
+
+  @override
+  String get settings_export_success_fills => 'Cylinder fills exported';
 
   @override
   String get settings_export_success_pdf =>
@@ -42540,6 +42661,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Gear check-ins CSV saved';
 
   @override
+  String get settings_export_saved_fillsCsv => 'Cylinder fills CSV saved';
+
+  @override
   String get settings_export_saved_uddf => 'UDDF file saved successfully';
 
   @override
@@ -42564,6 +42688,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_export_saveObservationsCsvDialogTitle =>
       'Save Gear Check-ins CSV';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle =>
+      'Save Cylinder Fills CSV';
 
   @override
   String backup_operation_created(String size) {

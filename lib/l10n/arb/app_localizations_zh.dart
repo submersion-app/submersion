@@ -5293,6 +5293,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'GPS 坐标';
 
   @override
+  String get diveCenters_section_fillHours => '充气时间';
+
+  @override
+  String get diveCenters_fillHours_caption => '气站充气的时间。行程充气预测使用关门时间。';
+
+  @override
+  String get diveCenters_fillHours_opens => '开门';
+
+  @override
+  String get diveCenters_fillHours_closes => '关门';
+
+  @override
+  String get diveCenters_fillHours_notSet => '未设置';
+
+  @override
+  String get diveCenters_fillHours_clear => '清除充气时间';
+
+  @override
+  String get diveCenters_fillHours_errorBoth => '请同时设置两个时间，或都不设置。';
+
+  @override
+  String get diveCenters_fillHours_errorOrder => '关门时间必须晚于开门时间。';
+
+  @override
   String get diveCenters_section_notes => '备注';
 
   @override
@@ -23416,6 +23440,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_csvExport_descriptionEquipment => '导出装备库存和维护信息';
 
   @override
+  String get transfer_csvExport_descriptionFills => '气瓶护照上记录的每次充气，含气体分析、压力和充气站';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       '每条正常检查和报告的问题，含潜水、标签和备注';
 
@@ -23435,6 +23462,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => '装备 CSV';
 
   @override
+  String get transfer_csvExport_optionFillsTitle => '气瓶充气记录 CSV';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle => '装备检查记录 CSV';
 
   @override
@@ -23450,6 +23480,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => '装备';
+
+  @override
+  String get transfer_csvExport_typeFills => '气瓶充气记录';
 
   @override
   String get transfer_csvExport_typeObservations => '装备检查记录';
@@ -24295,6 +24328,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => '计划';
 
   @override
+  String get trips_edit_label_diversSharing => '共用气瓶的潜水员';
+
+  @override
+  String get trips_edit_hint_diversSharing => '包括你自己。留空表示 1。';
+
+  @override
+  String get trips_edit_label_divesPerDay => '每天潜水次数';
+
+  @override
+  String get trips_edit_hint_divesPerDay => '用于充气预测。留空表示估算。';
+
+  @override
   String get trips_edit_label_expectedDives => '预计潜水次数';
 
   @override
@@ -24390,6 +24435,59 @@ class AppLocalizationsZh extends AppLocalizations {
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count 台呼吸器，最低吸收剂余量 $minutes 分钟';
   }
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return '今天需要 $needed 个，你有 $full 个满瓶。';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return '明天需要 $needed 个，届时你有 $full 个满瓶。';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return '请在 $time 前充气。';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough => '满瓶足够用到明天。';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => '计划潜水';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return '计划潜水，$date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => '使用估计值';
+
+  @override
+  String get trips_cylinders_forecast_fewer => '减少潜水';
+
+  @override
+  String get trips_cylinders_forecast_more => '增加潜水';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return '无法保存计划：$error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => '由你计划';
 
   @override
   String get trips_cylinders_title => '气瓶';
@@ -26683,6 +26781,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveImport_uddf_media => '照片';
+
+  @override
+  String get diveImport_uddf_fills => '充气记录';
 
   @override
   String get diveImport_uddf_title => '从 UDDF 导入';
@@ -40540,6 +40641,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_export_progress_observationsCsv => '正在将装备检查记录导出为 CSV...';
 
   @override
+  String get settings_export_progress_fillsCsv => '正在将气瓶充气记录导出为 CSV...';
+
+  @override
   String get settings_export_progress_pdf => '正在生成 PDF 潜水日志...';
 
   @override
@@ -40600,6 +40704,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '正在准备装备检查记录 CSV...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv => '正在准备气瓶充气记录 CSV...';
+
+  @override
   String get settings_export_progress_preparingUddf => '正在准备 UDDF 文件...';
 
   @override
@@ -40616,6 +40723,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_export_empty_observations => '没有可导出的装备检查记录';
+
+  @override
+  String get settings_export_empty_fills => '没有可导出的气瓶充气记录';
 
   @override
   String get settings_export_empty_data => '没有可导出的数据';
@@ -40639,6 +40749,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_export_success_observations => '装备检查记录已导出';
+
+  @override
+  String get settings_export_success_fills => '气瓶充气记录已导出';
 
   @override
   String get settings_export_success_pdf => 'PDF 潜水日志生成成功';
@@ -40689,6 +40802,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_export_saved_observationsCsv => '装备检查记录 CSV 已保存';
 
   @override
+  String get settings_export_saved_fillsCsv => '气瓶充气记录 CSV 已保存';
+
+  @override
   String get settings_export_saved_uddf => 'UDDF 文件保存成功';
 
   @override
@@ -40711,6 +40827,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_export_saveObservationsCsvDialogTitle => '保存装备检查记录 CSV';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle => '保存气瓶充气记录 CSV';
 
   @override
   String backup_operation_created(String size) {

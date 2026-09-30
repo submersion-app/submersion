@@ -10,8 +10,10 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_cylinders_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -77,6 +79,7 @@ void main() {
     bool current = false,
     MockSettingsNotifier? settings,
     Future<List<TripCylinderState>>? loading,
+    FillForecast? forecast,
   }) {
     final router = GoRouter(
       routes: [
@@ -102,6 +105,7 @@ void main() {
         tripCylinderStatesProvider(
           't1',
         ).overrideWith((ref) => loading ?? Future.value(slots)),
+        tripFillForecastProvider('t1').overrideWith((ref) async => forecast),
       ],
       child: MaterialApp.router(
         locale: const Locale('en'),
@@ -178,5 +182,43 @@ void main() {
     await tester.pumpWidget(host(const [], current: true));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('cylinders-set-up')), findsOneWidget);
+  });
+
+  FillForecast shortForecast() => const FillForecast(
+    fullCount: 1,
+    partialCount: 0,
+    todayDemand: 2,
+    tomorrowDemand: 4,
+    tomorrowSupply: 0,
+    todayShortfall: 1,
+    tomorrowShortfall: 4,
+    deadlineMinutes: 1020,
+    remainingDemand: 12,
+    days: [],
+  );
+
+  testWidgets('a short forecast shows both lines in the error colour', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(states(), current: true, forecast: shortForecast()),
+    );
+    await tester.pumpAndSettle();
+    final today = find.text(
+      'Today needs 2, you have 1 full. Fill before 5:00 PM.',
+    );
+    expect(today, findsOneWidget);
+    expect(find.text("Tomorrow needs 4, you'll have 0 full."), findsOneWidget);
+    final context = tester.element(today);
+    expect(
+      tester.widget<Text>(today).style?.color,
+      Theme.of(context).colorScheme.error,
+    );
+  });
+
+  testWidgets('no forecast, no line', (tester) async {
+    await tester.pumpWidget(host(states(), current: true));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('trip-cylinders-forecast')), findsNothing);
   });
 }

@@ -74,6 +74,7 @@ MediaItem _localFile({
   String? localPath,
   String? bookmarkRef,
   String? originDeviceId,
+  String? originalFilename,
 }) => MediaItem(
   id: 'x',
   mediaType: MediaType.photo,
@@ -81,6 +82,7 @@ MediaItem _localFile({
   localPath: localPath,
   bookmarkRef: bookmarkRef,
   originDeviceId: originDeviceId,
+  originalFilename: originalFilename,
   takenAt: DateTime.utc(2024, 1, 1),
   createdAt: DateTime.utc(2024, 1, 1),
   updatedAt: DateTime.utc(2024, 1, 1),

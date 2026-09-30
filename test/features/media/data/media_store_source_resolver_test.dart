@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart' show Size;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/media/data/resolvers/media_store_source_resolver.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -23,6 +24,16 @@ MediaItem item({
   updatedAt: DateTime.utc(2026, 6, 1),
 );
 
+/// A file path inside a fresh per-test temp directory, removed on teardown.
+///
+/// CI runs test files in parallel processes that share one system temp dir,
+/// so a fixed name directly under it can collide across processes.
+File tempFile(String name) {
+  final dir = Directory.systemTemp.createTempSync('media_store_src_');
+  addTearDown(() => dir.deleteSync(recursive: true));
+  return File(p.join(dir.path, name));
+}
+
 void main() {
   test(
     'resolve returns UnavailableData(unauthenticated) with no store',
@@ -38,7 +49,7 @@ void main() {
     'resolve delegates to the remote resolve with thumbnail false',
     () async {
       bool? seenThumbnail;
-      final file = File('${Directory.systemTemp.path}/store-src-test.jpg');
+      final file = tempFile('store-src-test.jpg');
       final resolver = MediaStoreSourceResolver(
         remote: () => (mediaItem, {required bool thumbnail}) async {
           seenThumbnail = thumbnail;
@@ -53,7 +64,7 @@ void main() {
 
   test('resolveThumbnail asks for the thumbnail variant', () async {
     bool? seenThumbnail;
-    final file = File('${Directory.systemTemp.path}/store-src-test.jpg');
+    final file = tempFile('store-src-test.jpg');
     final resolver = MediaStoreSourceResolver(
       remote: () => (mediaItem, {required bool thumbnail}) async {
         seenThumbnail = thumbnail;
@@ -98,7 +109,7 @@ void main() {
 
   test('a photo thumbnail still degrades to the original', () async {
     final seen = <bool>[];
-    final file = File('${Directory.systemTemp.path}/store-src-test.jpg');
+    final file = tempFile('store-src-test.jpg');
     final resolver = MediaStoreSourceResolver(
       remote: () => (mediaItem, {required bool thumbnail}) async {
         seen.add(thumbnail);
@@ -116,7 +127,7 @@ void main() {
   });
 
   test('a video thumbnail that the store does have is served', () async {
-    final file = File('${Directory.systemTemp.path}/store-src-poster.jpg');
+    final file = tempFile('store-src-poster.jpg');
     final seen = <bool>[];
     final resolver = MediaStoreSourceResolver(
       remote: () => (mediaItem, {required bool thumbnail}) async {

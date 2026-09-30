@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -1047,7 +1048,9 @@ class EquipmentRepository {
           .customSelect(
             '''
         SELECT d.id AS dive_id,
-               d.updated_at AS updated_at,
+               -- The dive and its synced series (#1769): the stamp a
+               -- current summary was built from, and the fingerprint's.
+               ${diveSourceStampSql()} AS updated_at,
                d.dive_date_time AS date_ms,
                -- The first positive length: a manual zero runtime beside
                -- a real bottom time is no figure, and must not count the
@@ -1102,7 +1105,7 @@ class EquipmentRepository {
         ) je
         JOIN dives d ON d.id = je.dive_id
         LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
-          AND s.source_updated_at = d.updated_at
+          AND s.source_updated_at = ${diveSourceStampSql()}
           AND s.engine_version >= ?6
         WHERE (je.via_parent = 0 OR ?3 IS NULL OR d.dive_date_time >= ?3)
           AND (?4 IS NULL OR d.dive_date_time >= ?4)
@@ -1425,7 +1428,9 @@ class EquipmentRepository {
         )
         SELECT je.owner_id AS owner_id,
                d.id AS dive_id,
-               d.updated_at AS updated_at,
+               -- The dive and its synced series (#1769): the stamp a
+               -- current summary was built from, and the fingerprint's.
+               ${diveSourceStampSql()} AS updated_at,
                d.dive_date_time AS date_ms,
                CASE
                  WHEN d.runtime > 0 THEN d.runtime
@@ -1484,7 +1489,7 @@ class EquipmentRepository {
         JOIN owners o ON o.owner_id = je.owner_id
         JOIN dives d ON d.id = je.dive_id
         LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
-          AND s.source_updated_at = d.updated_at
+          AND s.source_updated_at = ${diveSourceStampSql()}
           AND s.engine_version >= ?
         WHERE (je.via_parent = 0 OR o.installed_since IS NULL
           OR d.dive_date_time >= o.installed_since)

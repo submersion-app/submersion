@@ -5556,6 +5556,33 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'GPS koordináták';
 
   @override
+  String get diveCenters_section_fillHours => 'Töltési idő';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'Mikor tölt palackot az állomás. Az út töltési előrejelzése a zárási időt használja.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'Nyit';
+
+  @override
+  String get diveCenters_fillHours_closes => 'Zár';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'Nincs megadva';
+
+  @override
+  String get diveCenters_fillHours_clear => 'Töltési idő törlése';
+
+  @override
+  String get diveCenters_fillHours_errorBoth =>
+      'Adja meg mindkét időpontot, vagy egyiket sem.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'A zárásnak a nyitás után kell lennie.';
+
+  @override
   String get diveCenters_section_notes => 'Jegyzetek';
 
   @override
@@ -24596,6 +24623,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felszerelés leltárazása és szervizinformációk exportálása';
 
   @override
+  String get transfer_csvExport_descriptionFills =>
+      'Minden palackútlevélen naplózott töltés az elemzéssel, nyomással és a töltőállomással';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       'Minden OK ellenőrzés és jelentett probléma a merüléssel, címkékkel és megjegyzéssel';
 
@@ -24616,6 +24647,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'Felszerelés CSV';
 
   @override
+  String get transfer_csvExport_optionFillsTitle => 'Palacktöltések CSV';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle =>
       'Felszerelés-ellenőrzések CSV';
 
@@ -24632,6 +24666,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Felszerelés';
+
+  @override
+  String get transfer_csvExport_typeFills => 'Palacktöltések';
 
   @override
   String get transfer_csvExport_typeObservations => 'Felszerelés-ellenőrzések';
@@ -25510,6 +25547,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'Tervezés';
 
   @override
+  String get trips_edit_label_diversSharing => 'Palackokon osztozó búvárok';
+
+  @override
+  String get trips_edit_hint_diversSharing => 'Önnel együtt. Üresen 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'Merülés naponta';
+
+  @override
+  String get trips_edit_hint_divesPerDay =>
+      'A töltési előrejelzéshez. Üresen becslés.';
+
+  @override
   String get trips_edit_label_expectedDives => 'Várható merülések';
 
   @override
@@ -25613,6 +25663,60 @@ class AppLocalizationsHu extends AppLocalizations {
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count rebreather, a legkisebb szűrőtartalék $minutes perc';
   }
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'Ma $needed kell, $full teli van.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'Holnap $needed kell, $full teli marad.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'Töltés $time előtt.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough => 'Elég teli palack holnapig.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'Tervezett merülések';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '$count merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'Tervezett merülések, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'Becslés használata';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'Kevesebb merülés';
+
+  @override
+  String get trips_cylinders_forecast_more => 'Több merülés';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'A terv mentése nem sikerült: $error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => 'Általad tervezve';
 
   @override
   String get trips_cylinders_title => 'Palackok';
@@ -28041,6 +28145,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveImport_uddf_media => 'Fényképek';
+
+  @override
+  String get diveImport_uddf_fills => 'Töltések';
 
   @override
   String get diveImport_uddf_title => 'Importálás UDDF-ből';
@@ -42811,6 +42918,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felszerelés-ellenőrzések exportálása CSV-be...';
 
   @override
+  String get settings_export_progress_fillsCsv =>
+      'Palacktöltések exportálása CSV-be...';
+
+  @override
   String get settings_export_progress_pdf => 'PDF merülési napló készítése...';
 
   @override
@@ -42884,6 +42995,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felszerelés-ellenőrzések CSV előkészítése...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv =>
+      'Palacktöltések CSV előkészítése...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'UDDF-fájl előkészítése...';
 
@@ -42903,6 +43018,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_export_empty_observations =>
       'Nincs exportálható felszerelés-ellenőrzés';
+
+  @override
+  String get settings_export_empty_fills => 'Nincs exportálható palacktöltés';
 
   @override
   String get settings_export_empty_data => 'Nincs exportálható adat';
@@ -42930,6 +43048,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_export_success_observations =>
       'Felszerelés-ellenőrzések exportálva';
+
+  @override
+  String get settings_export_success_fills => 'Palacktöltések exportálva';
 
   @override
   String get settings_export_success_pdf =>
@@ -42989,6 +43110,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felszerelés-ellenőrzések CSV mentve';
 
   @override
+  String get settings_export_saved_fillsCsv => 'Palacktöltések CSV mentve';
+
+  @override
   String get settings_export_saved_uddf => 'Az UDDF-fájl mentve';
 
   @override
@@ -43015,6 +43139,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_export_saveObservationsCsvDialogTitle =>
       'Felszerelés-ellenőrzések CSV-fájljának mentése';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle =>
+      'Palacktöltések CSV mentése';
 
   @override
   String backup_operation_created(String size) {

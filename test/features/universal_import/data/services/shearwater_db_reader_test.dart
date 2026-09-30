@@ -423,5 +423,39 @@ void main() {
         expect(withData, isNotEmpty);
       });
     });
+
+    // Each call copies the bytes to a temp file. A temp name built from the
+    // clock is shared by calls started in the same millisecond, so one call
+    // deleted or overwrote the file another was reading.
+    group('concurrent calls', () {
+      const calls = 50;
+      late Uint8List bytes;
+
+      setUpAll(() {
+        bytes = createShearwaterTestDb(
+          dives: const [ShearwaterTestDive(diveId: 'concurrent-1')],
+        );
+      });
+
+      test('every concurrent format check recognises the database', () async {
+        final results = await Future.wait([
+          for (var i = 0; i < calls; i++)
+            ShearwaterDbReader.isShearwaterCloudDb(bytes),
+        ]);
+
+        expect(results, everyElement(isTrue));
+      });
+
+      test('every concurrent read returns the dive', () async {
+        final results = await Future.wait([
+          for (var i = 0; i < calls; i++) ShearwaterDbReader.readDives(bytes),
+        ]);
+
+        expect(
+          results.map((dives) => dives.map((d) => d.diveId).toList()),
+          everyElement(['concurrent-1']),
+        );
+      });
+    });
   });
 }

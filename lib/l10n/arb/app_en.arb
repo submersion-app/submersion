@@ -3248,6 +3248,14 @@
   "diveCenters_section_contact": "Contact",
   "diveCenters_section_contactInfo": "Contact Information",
   "diveCenters_section_gpsCoordinates": "GPS Coordinates",
+  "diveCenters_section_fillHours": "Fill hours",
+  "diveCenters_fillHours_caption": "When the station fills cylinders. The trip fill forecast uses the closing time.",
+  "diveCenters_fillHours_opens": "Opens",
+  "diveCenters_fillHours_closes": "Closes",
+  "diveCenters_fillHours_notSet": "Not set",
+  "diveCenters_fillHours_clear": "Clear fill hours",
+  "diveCenters_fillHours_errorBoth": "Set both times, or neither.",
+  "diveCenters_fillHours_errorOrder": "Closing time must be after opening time.",
   "diveCenters_section_notes": "Notes",
   "diveCenters_snackbar_coordinatesFound": "Coordinates found from address",
   "diveCenters_snackbar_copiedToClipboard": "Copied to clipboard",
@@ -15018,17 +15026,29 @@
   "transfer_csvExport_dataTypeHeader": "Data Type",
   "transfer_csvExport_descriptionDives": "Export all dive logs as a spreadsheet",
   "transfer_csvExport_descriptionEquipment": "Export equipment inventory and service info",
+  "transfer_csvExport_descriptionFills": "Every fill logged on a cylinder passport, with its analysis, pressure and filler",
+  "@transfer_csvExport_descriptionFills": {
+    "description": "Subtitle of the cylinder fills option in the CSV export sheet"
+  },
   "transfer_csvExport_descriptionObservations": "Every OK check and reported issue, with its dive, tags and note",
   "transfer_csvExport_descriptionSites": "Export dive site locations and details",
   "transfer_csvExport_dialogTitle": "Export CSV",
   "transfer_csvExport_exportButton": "Export CSV",
   "transfer_csvExport_optionDivesTitle": "Dives CSV",
   "transfer_csvExport_optionEquipmentTitle": "Equipment CSV",
+  "transfer_csvExport_optionFillsTitle": "Cylinder fills CSV",
+  "@transfer_csvExport_optionFillsTitle": {
+    "description": "Title of the share-or-save sheet for the cylinder fills CSV"
+  },
   "transfer_csvExport_optionObservationsTitle": "Gear check-ins CSV",
   "transfer_csvExport_optionSitesTitle": "Sites CSV",
   "transfer_csvExport_semanticLabel": "Export {typeName}",
   "transfer_csvExport_typeDives": "Dives",
   "transfer_csvExport_typeEquipment": "Equipment",
+  "transfer_csvExport_typeFills": "Cylinder fills",
+  "@transfer_csvExport_typeFills": {
+    "description": "Name of the cylinder fills option in the CSV export sheet"
+  },
   "transfer_csvExport_typeObservations": "Gear check-ins",
   "transfer_csvExport_typeSites": "Sites",
   "transfer_csvExport_unitsHeader": "Units",
@@ -15371,6 +15391,10 @@
   "trips_edit_hint_cabinType": "e.g. Deluxe Double",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Planning",
+  "trips_edit_label_diversSharing": "Divers sharing cylinders",
+  "trips_edit_hint_diversSharing": "Including you. Blank means 1.",
+  "trips_edit_label_divesPerDay": "Dives per day",
+  "trips_edit_hint_divesPerDay": "For the fill forecast. Blank means estimate.",
   "trips_edit_label_expectedDives": "Expected dives",
   "trips_edit_hint_expectedDives": "Leave empty to estimate from your recent trips",
   "trips_edit_label_expectedRuntime": "Expected runtime per dive (minutes)",
@@ -15475,6 +15499,66 @@
       }
     }
   },
+  "trips_cylinders_forecast_todayShort": "Today needs {needed}, you have {full} full.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "Tomorrow needs {needed}, you'll have {full} full.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "Fill before {time}.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "Enough full cylinders through tomorrow.",
+  "trips_cylinders_forecast_daysTitle": "Planned dives",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} dive} other{{count} dives}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "Planned dives, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "Use the estimate",
+  "trips_cylinders_forecast_fewer": "Fewer dives",
+  "trips_cylinders_forecast_more": "More dives",
+  "trips_cylinders_forecast_saveError": "Couldn't save the plan: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "Planned by you",
   "trips_cylinders_title": "Cylinders",
   "trips_cylinders_summary": "Full {full} · Partial {partial} · Empty {empty}",
   "@trips_cylinders_summary": {
@@ -17934,6 +18018,10 @@
   "diveImport_uddf_media": "Photos",
   "@diveImport_uddf_media": {
     "description": "Entity type label for photos referenced by an imported logbook"
+  },
+  "diveImport_uddf_fills": "Fills",
+  "@diveImport_uddf_fills": {
+    "description": "Entity type label for cylinder fills in the import wizard"
   },
   "diveImport_uddf_title": "Import from UDDF",
   "diveImport_uddf_toggleDiveSelection": "Toggle selection for dive",
@@ -26222,6 +26310,10 @@
   "settings_export_progress_sitesCsv": "Exporting sites to CSV...",
   "settings_export_progress_equipmentCsv": "Exporting equipment to CSV...",
   "settings_export_progress_observationsCsv": "Exporting gear check-ins to CSV...",
+  "settings_export_progress_fillsCsv": "Exporting cylinder fills to CSV...",
+  "@settings_export_progress_fillsCsv": {
+    "description": "Progress message while the cylinder fills CSV is generated for sharing"
+  },
   "settings_export_progress_pdf": "Generating PDF logbook...",
   "settings_export_progress_loadingSignatures": "Loading signatures...",
   "settings_export_progress_loadingProfiles": "Loading dive profiles...",
@@ -26241,12 +26333,20 @@
   "settings_export_progress_preparingSitesCsv": "Preparing sites CSV...",
   "settings_export_progress_preparingEquipmentCsv": "Preparing equipment CSV...",
   "settings_export_progress_preparingObservationsCsv": "Preparing gear check-ins CSV...",
+  "settings_export_progress_preparingFillsCsv": "Preparing cylinder fills CSV...",
+  "@settings_export_progress_preparingFillsCsv": {
+    "description": "Progress message while the cylinder fills CSV is generated for saving"
+  },
   "settings_export_progress_preparingUddf": "Preparing UDDF file...",
   "settings_export_progress_preparingPdf": "Preparing PDF...",
   "settings_export_empty_dives": "No dives to export",
   "settings_export_empty_sites": "No sites to export",
   "settings_export_empty_equipment": "No equipment to export",
   "settings_export_empty_observations": "No gear check-ins to export",
+  "settings_export_empty_fills": "No cylinder fills to export",
+  "@settings_export_empty_fills": {
+    "description": "Shown when the diver has no fills to put in the CSV"
+  },
   "settings_export_empty_data": "No data to export",
   "settings_export_empty_diveSites": "No dive sites to export",
   "settings_export_saveFailed": "Save failed: {error}",
@@ -26254,6 +26354,10 @@
   "settings_export_success_sites": "Sites exported successfully",
   "settings_export_success_equipment": "Equipment exported successfully",
   "settings_export_success_observations": "Gear check-ins exported",
+  "settings_export_success_fills": "Cylinder fills exported",
+  "@settings_export_success_fills": {
+    "description": "Shown after the cylinder fills CSV was shared"
+  },
   "settings_export_success_pdf": "PDF logbook generated successfully",
   "settings_export_success_uddf": "UDDF file generated successfully",
   "settings_export_success_excel": "Excel file exported successfully",
@@ -26264,6 +26368,10 @@
   "settings_export_saved_sitesCsv": "Sites CSV saved successfully",
   "settings_export_saved_equipmentCsv": "Equipment CSV saved successfully",
   "settings_export_saved_observationsCsv": "Gear check-ins CSV saved",
+  "settings_export_saved_fillsCsv": "Cylinder fills CSV saved",
+  "@settings_export_saved_fillsCsv": {
+    "description": "Shown after the cylinder fills CSV was saved to a chosen location"
+  },
   "settings_export_saved_uddf": "UDDF file saved successfully",
   "settings_export_saved_pdf": "PDF saved successfully",
   "settings_export_cancelled_save": "Save cancelled",
@@ -26272,6 +26380,10 @@
   "settings_export_saveSitesCsvDialogTitle": "Save Sites CSV",
   "settings_export_saveEquipmentCsvDialogTitle": "Save Equipment CSV",
   "settings_export_saveObservationsCsvDialogTitle": "Save Gear Check-ins CSV",
+  "settings_export_saveFillsCsvDialogTitle": "Save Cylinder Fills CSV",
+  "@settings_export_saveFillsCsvDialogTitle": {
+    "description": "Title of the system save dialog for the cylinder fills CSV"
+  },
   "backup_operation_created": "Backup created: {size}",
   "backup_operation_backupFailed": "Backup failed: {error}",
   "backup_operation_restoring": "Restoring backup...",

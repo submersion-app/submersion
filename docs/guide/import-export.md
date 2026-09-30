@@ -91,12 +91,24 @@ Export dives to a spreadsheet:
 5. Select date range
 6. Export
 
-Exported CSV includes:
+The Export CSV sheet offers five files: dives, sites, equipment, cylinder
+fills and gear check-ins. Each unit-bearing file can be written in your
+units (named in every column header) or in metric with ISO dates.
+
+The dives CSV includes:
 
 - All standard dive fields
 - Tank information
 - Site details
 - Equipment links
+
+The dives, sites, equipment and cylinder fills files are self-describing:
+the import wizard recognises each by its headers and re-imports it without
+column mapping, alone or together with the others. A cylinder fills file
+carries each fill's id, so importing it twice adds nothing, and a fill you
+deleted stays deleted. A fill whose passport id matches one of your
+cylinders lands on that cylinder; any other fill waits under its passport
+id until a cylinder gets that id.
 
 ## PDF Export
 

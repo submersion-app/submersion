@@ -105,7 +105,17 @@ String _validDb(String dir, String name) {
   return path;
 }
 
+/// Per-file root for the mocked path_provider. Test processes run in parallel
+/// against one real $TMPDIR, so returning it directly would put every backup
+/// suite's fixed `Submersion/Backups` subtree in the same place.
+final _isolatedTempDir = Directory.systemTemp.createTempSync('saf_io_pp_');
+
 void main() {
+  tearDownAll(() {
+    if (_isolatedTempDir.existsSync()) {
+      _isolatedTempDir.deleteSync(recursive: true);
+    }
+  });
   TestWidgetsFlutterBinding.ensureInitialized();
   late BackupPreferences prefs;
   late Directory tmp;
@@ -114,7 +124,7 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (call) async => Directory.systemTemp.path,
+          (call) async => _isolatedTempDir.path,
         );
   });
   tearDownAll(clearPathAndShareChannelMocks);

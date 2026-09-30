@@ -5435,6 +5435,33 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'קואורדינטות GPS';
 
   @override
+  String get diveCenters_section_fillHours => 'שעות מילוי';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'מתי התחנה ממלאת מכלים. תחזית המילוי של הטיול משתמשת בשעת הסגירה.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'נפתח';
+
+  @override
+  String get diveCenters_fillHours_closes => 'נסגר';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'לא הוגדר';
+
+  @override
+  String get diveCenters_fillHours_clear => 'ניקוי שעות המילוי';
+
+  @override
+  String get diveCenters_fillHours_errorBoth =>
+      'יש להגדיר את שתי השעות או אף אחת.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'שעת הסגירה חייבת להיות אחרי שעת הפתיחה.';
+
+  @override
   String get diveCenters_section_notes => 'הערות';
 
   @override
@@ -24071,6 +24098,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'ייצא מלאי ציוד ופרטי תחזוקה';
 
   @override
+  String get transfer_csvExport_descriptionFills =>
+      'כל מילוי שנרשם בדרכון מכל, עם הניתוח, הלחץ ותחנת המילוי';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       'כל בדיקה תקינה וכל בעיה שדווחה, עם הצלילה, התגיות וההערה';
 
@@ -24091,6 +24122,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'CSV ציוד';
 
   @override
+  String get transfer_csvExport_optionFillsTitle => 'CSV מילויי מכלים';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle => 'CSV של בדיקות ציוד';
 
   @override
@@ -24106,6 +24140,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'ציוד';
+
+  @override
+  String get transfer_csvExport_typeFills => 'מילויי מכלים';
 
   @override
   String get transfer_csvExport_typeObservations => 'בדיקות ציוד';
@@ -24969,6 +25006,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'תכנון';
 
   @override
+  String get trips_edit_label_diversSharing => 'צוללים החולקים מכלים';
+
+  @override
+  String get trips_edit_hint_diversSharing => 'כולל אותך. ריק פירושו 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'צלילות ליום';
+
+  @override
+  String get trips_edit_hint_divesPerDay => 'לתחזית המילוי. ריק פירושו הערכה.';
+
+  @override
   String get trips_edit_label_expectedDives => 'צלילות צפויות';
 
   @override
@@ -25072,6 +25121,60 @@ class AppLocalizationsHe extends AppLocalizations {
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count ריברידרים, מרווח הסופג הנמוך ביותר $minutes דק\'';
   }
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'היום צריך $needed, יש לך $full מלאים.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'מחר צריך $needed, יהיו לך $full מלאים.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'למלא לפני $time.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough => 'יש מספיק מכלים מלאים עד מחר.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'צלילות מתוכננות';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: '$count צלילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'צלילות מתוכננות, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'להשתמש בהערכה';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'פחות צלילות';
+
+  @override
+  String get trips_cylinders_forecast_more => 'יותר צלילות';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'לא ניתן לשמור את התוכנית: $error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => 'תוכנן על ידך';
 
   @override
   String get trips_cylinders_title => 'מכלים';
@@ -27459,6 +27562,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveImport_uddf_media => 'תמונות';
+
+  @override
+  String get diveImport_uddf_fills => 'מילויים';
 
   @override
   String get diveImport_uddf_title => 'ייבוא מ-UDDF';
@@ -42154,6 +42260,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'מייצא בדיקות ציוד ל-CSV...';
 
   @override
+  String get settings_export_progress_fillsCsv => 'מייצא מילויי מכלים ל-CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'יוצר יומן צלילות בפורמט PDF...';
 
   @override
@@ -42219,6 +42328,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'מכין CSV של בדיקות ציוד...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv =>
+      'מכין CSV מילויי מכלים...';
+
+  @override
   String get settings_export_progress_preparingUddf => 'מכין קובץ UDDF...';
 
   @override
@@ -42235,6 +42348,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_export_empty_observations => 'אין בדיקות ציוד לייצוא';
+
+  @override
+  String get settings_export_empty_fills => 'אין מילויי מכלים לייצוא';
 
   @override
   String get settings_export_empty_data => 'אין נתונים לייצוא';
@@ -42258,6 +42374,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_export_success_observations => 'בדיקות הציוד יוצאו';
+
+  @override
+  String get settings_export_success_fills => 'מילויי המכלים יוצאו';
 
   @override
   String get settings_export_success_pdf =>
@@ -42314,6 +42433,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'קובץ ה-CSV של בדיקות הציוד נשמר';
 
   @override
+  String get settings_export_saved_fillsCsv => 'CSV מילויי המכלים נשמר';
+
+  @override
   String get settings_export_saved_uddf => 'קובץ UDDF נשמר בהצלחה';
 
   @override
@@ -42338,6 +42460,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_export_saveObservationsCsvDialogTitle =>
       'שמירת קובץ ה-CSV של בדיקות הציוד';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle =>
+      'שמירת CSV מילויי מכלים';
 
   @override
   String backup_operation_created(String size) {

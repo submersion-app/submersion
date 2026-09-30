@@ -7,6 +7,9 @@ part of 'app_database_migrations.dart';
 /// asserted again here.
 extension BeforeOpenBackstops on AppDatabase {
   Future<void> _beforeOpen(OpeningDetails details) async {
+    // v249 backstop: the trip fill forecast's columns.
+    await _assertTripFillForecastColumns();
+
     // v240 backstop: the events-by-dive index.
     await _assertProfileEventsDiveIdIndex();
 

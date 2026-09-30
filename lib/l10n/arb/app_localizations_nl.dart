@@ -5527,6 +5527,33 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'GPS coördinaten';
 
   @override
+  String get diveCenters_section_fillHours => 'Vultijden';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'Wanneer het station flessen vult. De vulprognose van de reis gebruikt de sluitingstijd.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'Opent';
+
+  @override
+  String get diveCenters_fillHours_closes => 'Sluit';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'Niet ingesteld';
+
+  @override
+  String get diveCenters_fillHours_clear => 'Vultijden wissen';
+
+  @override
+  String get diveCenters_fillHours_errorBoth =>
+      'Stel beide tijden in, of geen van beide.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'De sluitingstijd moet na de openingstijd liggen.';
+
+  @override
   String get diveCenters_section_notes => 'Notities';
 
   @override
@@ -24482,6 +24509,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Exporteer uitrustingsinventaris en onderhoudsinformatie';
 
   @override
+  String get transfer_csvExport_descriptionFills =>
+      'Elke vulling die op een flespaspoort is gelogd, met analyse, druk en vulstation';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       'Elke OK-controle en elk gemeld probleem, met duik, labels en notitie';
 
@@ -24502,6 +24533,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'Uitrusting CSV';
 
   @override
+  String get transfer_csvExport_optionFillsTitle => 'CSV met flesvullingen';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle =>
       'CSV van uitrusting-check-ins';
 
@@ -24518,6 +24552,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Uitrusting';
+
+  @override
+  String get transfer_csvExport_typeFills => 'Flesvullingen';
 
   @override
   String get transfer_csvExport_typeObservations => 'Uitrusting-check-ins';
@@ -25394,6 +25431,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'Planning';
 
   @override
+  String get trips_edit_label_diversSharing => 'Duikers die flessen delen';
+
+  @override
+  String get trips_edit_hint_diversSharing =>
+      'Jij meegerekend. Leeg betekent 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'Duiken per dag';
+
+  @override
+  String get trips_edit_hint_divesPerDay =>
+      'Voor de vulprognose. Leeg betekent schatting.';
+
+  @override
   String get trips_edit_label_expectedDives => 'Verwachte duiken';
 
   @override
@@ -25497,6 +25548,61 @@ class AppLocalizationsNl extends AppLocalizations {
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count rebreathers, laagste scrubbermarge $minutes min';
   }
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'Vandaag zijn er $needed nodig, je hebt er $full vol.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'Morgen zijn er $needed nodig, je hebt er dan $full vol.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'Vul voor $time.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough =>
+      'Genoeg volle flessen tot en met morgen.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'Geplande duiken';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'Geplande duiken, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'Schatting gebruiken';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'Minder duiken';
+
+  @override
+  String get trips_cylinders_forecast_more => 'Meer duiken';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'Plan kon niet worden opgeslagen: $error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => 'Door jou gepland';
 
   @override
   String get trips_cylinders_title => 'Flessen';
@@ -27921,6 +28027,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveImport_uddf_media => 'Foto\'s';
+
+  @override
+  String get diveImport_uddf_fills => 'Vullingen';
 
   @override
   String get diveImport_uddf_title => 'Importeren vanuit UDDF';
@@ -42707,6 +42816,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Uitrusting-check-ins exporteren naar CSV...';
 
   @override
+  String get settings_export_progress_fillsCsv =>
+      'Flesvullingen exporteren naar CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'PDF-logboek genereren...';
 
   @override
@@ -42778,6 +42891,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'CSV van uitrusting-check-ins voorbereiden...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv =>
+      'CSV met flesvullingen voorbereiden...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'UDDF-bestand voorbereiden...';
 
@@ -42797,6 +42914,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_export_empty_observations =>
       'Geen uitrusting-check-ins om te exporteren';
+
+  @override
+  String get settings_export_empty_fills =>
+      'Geen flesvullingen om te exporteren';
 
   @override
   String get settings_export_empty_data => 'Geen gegevens om te exporteren';
@@ -42824,6 +42945,9 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_export_success_observations =>
       'Uitrusting-check-ins geëxporteerd';
+
+  @override
+  String get settings_export_success_fills => 'Flesvullingen geëxporteerd';
 
   @override
   String get settings_export_success_pdf => 'PDF-logboek succesvol gegenereerd';
@@ -42885,6 +43009,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'CSV van uitrusting-check-ins opgeslagen';
 
   @override
+  String get settings_export_saved_fillsCsv =>
+      'CSV met flesvullingen opgeslagen';
+
+  @override
   String get settings_export_saved_uddf => 'UDDF-bestand succesvol opgeslagen';
 
   @override
@@ -42910,6 +43038,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_export_saveObservationsCsvDialogTitle =>
       'CSV van uitrusting-check-ins opslaan';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle =>
+      'CSV met flesvullingen opslaan';
 
   @override
   String backup_operation_created(String size) {

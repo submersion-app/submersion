@@ -1756,6 +1756,14 @@
   "diveCenters_section_contact": "יצירת קשר",
   "diveCenters_section_contactInfo": "פרטי קשר",
   "diveCenters_section_gpsCoordinates": "קואורדינטות GPS",
+  "diveCenters_section_fillHours": "שעות מילוי",
+  "diveCenters_fillHours_caption": "מתי התחנה ממלאת מכלים. תחזית המילוי של הטיול משתמשת בשעת הסגירה.",
+  "diveCenters_fillHours_opens": "נפתח",
+  "diveCenters_fillHours_closes": "נסגר",
+  "diveCenters_fillHours_notSet": "לא הוגדר",
+  "diveCenters_fillHours_clear": "ניקוי שעות המילוי",
+  "diveCenters_fillHours_errorBoth": "יש להגדיר את שתי השעות או אף אחת.",
+  "diveCenters_fillHours_errorOrder": "שעת הסגירה חייבת להיות אחרי שעת הפתיחה.",
   "diveCenters_section_notes": "הערות",
   "diveCenters_snackbar_coordinatesFound": "קואורדינטות נמצאו מהכתובת",
   "diveCenters_snackbar_copiedToClipboard": "הועתק ללוח",
@@ -2011,6 +2019,7 @@
   "diveImport_uddf_tabTypes": "סוגים",
   "diveImport_uddf_tags": "תגיות",
   "diveImport_uddf_media": "תמונות",
+  "diveImport_uddf_fills": "מילויים",
   "diveImport_uddf_title": "ייבוא מ-UDDF",
   "diveImport_uddf_toggleDiveSelection": "החלף בחירת צלילה",
   "diveImport_uddf_toggleEntitySelection": "החלף בחירה עבור {name}",
@@ -7016,17 +7025,20 @@
   "transfer_csvExport_dataTypeHeader": "סוג נתונים",
   "transfer_csvExport_descriptionDives": "ייצא את כל יומני הצלילה כגיליון אלקטרוני",
   "transfer_csvExport_descriptionEquipment": "ייצא מלאי ציוד ופרטי תחזוקה",
+  "transfer_csvExport_descriptionFills": "כל מילוי שנרשם בדרכון מכל, עם הניתוח, הלחץ ותחנת המילוי",
   "transfer_csvExport_descriptionObservations": "כל בדיקה תקינה וכל בעיה שדווחה, עם הצלילה, התגיות וההערה",
   "transfer_csvExport_descriptionSites": "ייצא מיקומי אתרי צלילה ופרטים",
   "transfer_csvExport_dialogTitle": "ייצוא CSV",
   "transfer_csvExport_exportButton": "ייצא CSV",
   "transfer_csvExport_optionDivesTitle": "CSV צלילות",
   "transfer_csvExport_optionEquipmentTitle": "CSV ציוד",
+  "transfer_csvExport_optionFillsTitle": "CSV מילויי מכלים",
   "transfer_csvExport_optionObservationsTitle": "CSV של בדיקות ציוד",
   "transfer_csvExport_optionSitesTitle": "CSV אתרים",
   "transfer_csvExport_semanticLabel": "ייצא {typeName}",
   "transfer_csvExport_typeDives": "צלילות",
   "transfer_csvExport_typeEquipment": "ציוד",
+  "transfer_csvExport_typeFills": "מילויי מכלים",
   "transfer_csvExport_typeObservations": "בדיקות ציוד",
   "transfer_csvExport_typeSites": "אתרים",
   "transfer_csvExport_unitsHeader": "יחידות",
@@ -7192,6 +7204,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "תכנון",
+  "trips_edit_label_diversSharing": "צוללים החולקים מכלים",
+  "trips_edit_hint_diversSharing": "כולל אותך. ריק פירושו 1.",
+  "trips_edit_label_divesPerDay": "צלילות ליום",
+  "trips_edit_hint_divesPerDay": "לתחזית המילוי. ריק פירושו הערכה.",
   "trips_edit_label_expectedDives": "צלילות צפויות",
   "trips_edit_hint_expectedDives": "השאר ריק כדי להעריך מהטיולים האחרונים שלך",
   "trips_edit_label_expectedRuntime": "זמן ריצה צפוי לכל צלילה (דקות)",
@@ -7296,6 +7312,66 @@
       }
     }
   },
+  "trips_cylinders_forecast_todayShort": "היום צריך {needed}, יש לך {full} מלאים.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "מחר צריך {needed}, יהיו לך {full} מלאים.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "למלא לפני {time}.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "יש מספיק מכלים מלאים עד מחר.",
+  "trips_cylinders_forecast_daysTitle": "צלילות מתוכננות",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} צלילה} other{{count} צלילות}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "צלילות מתוכננות, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "להשתמש בהערכה",
+  "trips_cylinders_forecast_fewer": "פחות צלילות",
+  "trips_cylinders_forecast_more": "יותר צלילות",
+  "trips_cylinders_forecast_saveError": "לא ניתן לשמור את התוכנית: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "תוכנן על ידך",
   "trips_cylinders_title": "מכלים",
   "trips_cylinders_summary": "מלאים {full} · חלקיים {partial} · ריקים {empty}",
   "@trips_cylinders_summary": {
@@ -12746,6 +12822,7 @@
   "settings_export_progress_sitesCsv": "מייצא אתרים ל-CSV...",
   "settings_export_progress_equipmentCsv": "מייצא ציוד ל-CSV...",
   "settings_export_progress_observationsCsv": "מייצא בדיקות ציוד ל-CSV...",
+  "settings_export_progress_fillsCsv": "מייצא מילויי מכלים ל-CSV...",
   "settings_export_progress_pdf": "יוצר יומן צלילות בפורמט PDF...",
   "settings_export_progress_loadingSignatures": "טוען חתימות...",
   "settings_export_progress_loadingProfiles": "טוען פרופילי צלילה...",
@@ -12765,12 +12842,14 @@
   "settings_export_progress_preparingSitesCsv": "מכין CSV של אתרים...",
   "settings_export_progress_preparingEquipmentCsv": "מכין CSV של ציוד...",
   "settings_export_progress_preparingObservationsCsv": "מכין CSV של בדיקות ציוד...",
+  "settings_export_progress_preparingFillsCsv": "מכין CSV מילויי מכלים...",
   "settings_export_progress_preparingUddf": "מכין קובץ UDDF...",
   "settings_export_progress_preparingPdf": "מכין PDF...",
   "settings_export_empty_dives": "אין צלילות לייצוא",
   "settings_export_empty_sites": "אין אתרים לייצוא",
   "settings_export_empty_equipment": "אין ציוד לייצוא",
   "settings_export_empty_observations": "אין בדיקות ציוד לייצוא",
+  "settings_export_empty_fills": "אין מילויי מכלים לייצוא",
   "settings_export_empty_data": "אין נתונים לייצוא",
   "settings_export_empty_diveSites": "אין אתרי צלילה לייצוא",
   "settings_export_saveFailed": "השמירה נכשלה: {error}",
@@ -12778,6 +12857,7 @@
   "settings_export_success_sites": "האתרים יוצאו בהצלחה",
   "settings_export_success_equipment": "הציוד יוצא בהצלחה",
   "settings_export_success_observations": "בדיקות הציוד יוצאו",
+  "settings_export_success_fills": "מילויי המכלים יוצאו",
   "settings_export_success_pdf": "יומן הצלילות בפורמט PDF נוצר בהצלחה",
   "settings_export_success_uddf": "קובץ UDDF נוצר בהצלחה",
   "settings_export_success_excel": "קובץ Excel יוצא בהצלחה",
@@ -12788,6 +12868,7 @@
   "settings_export_saved_sitesCsv": "CSV של האתרים נשמר בהצלחה",
   "settings_export_saved_equipmentCsv": "CSV של הציוד נשמר בהצלחה",
   "settings_export_saved_observationsCsv": "קובץ ה-CSV של בדיקות הציוד נשמר",
+  "settings_export_saved_fillsCsv": "CSV מילויי המכלים נשמר",
   "settings_export_saved_uddf": "קובץ UDDF נשמר בהצלחה",
   "settings_export_saved_pdf": "קובץ PDF נשמר בהצלחה",
   "settings_export_cancelled_save": "השמירה בוטלה",
@@ -12931,6 +13012,7 @@
   "settings_export_saveSitesCsvDialogTitle": "שמירת CSV של האתרים",
   "settings_export_saveEquipmentCsvDialogTitle": "שמירת CSV של הציוד",
   "settings_export_saveObservationsCsvDialogTitle": "שמירת קובץ ה-CSV של בדיקות הציוד",
+  "settings_export_saveFillsCsvDialogTitle": "שמירת CSV מילויי מכלים",
   "backup_operation_created": "נוצר גיבוי: {size}",
   "backup_operation_backupFailed": "הגיבוי נכשל: {error}",
   "backup_operation_restoring": "משחזר גיבוי...",

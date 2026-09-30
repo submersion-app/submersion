@@ -10,9 +10,11 @@ import 'package:submersion/core/services/export/csv/codec/csv_text.dart'
     as csv_text;
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
+import 'package:submersion/core/services/export/csv/csv_fills_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_sites_writer.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
@@ -294,6 +296,57 @@ class CsvExportService {
     );
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'equipment_export_$dateStr.csv';
+
+    final result = await FilePicker.saveFile(
+      dialogTitle: dialogTitle,
+      fileName: fileName,
+      type: FileType.custom,
+      bytes: Uint8List.fromList(utf8.encode(csvContent)),
+      mimeType: 'text/csv',
+    );
+
+    if (result == null) return null;
+    return savedFileLocation(result);
+  }
+
+  // ==================== Cylinder fills (passports phase 5) ====================
+
+  /// Export cylinder fills to CSV format and share via system sheet.
+  /// [equipmentById] supplies the linked cylinder's name and serial.
+  Future<String> exportFillsToCsv(
+    List<CylinderFill> fills, {
+    Map<String, EquipmentItem> equipmentById = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) async {
+    final csvData = generateFillsCsvContent(
+      fills,
+      equipmentById: equipmentById,
+      units: units,
+    );
+    return saveAndShareFile(csvData, 'fills_export.csv', 'text/csv');
+  }
+
+  /// Generate CSV content for cylinder fills (without sharing).
+  String generateFillsCsvContent(
+    List<CylinderFill> fills, {
+    Map<String, EquipmentItem> equipmentById = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => CsvFillsWriter(units).write(fills, equipmentById: equipmentById);
+
+  /// Save cylinder fills CSV to a user-selected location.
+  Future<String?> saveFillsCsvToFile(
+    List<CylinderFill> fills, {
+    Map<String, EquipmentItem> equipmentById = const {},
+    required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) async {
+    final csvContent = generateFillsCsvContent(
+      fills,
+      equipmentById: equipmentById,
+      units: units,
+    );
+    final dateStr = _dateFormat.format(DateTime.now());
+    final fileName = 'fills_export_$dateStr.csv';
 
     final result = await FilePicker.saveFile(
       dialogTitle: dialogTitle,

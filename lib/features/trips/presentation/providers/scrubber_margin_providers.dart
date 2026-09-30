@@ -17,6 +17,7 @@ import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/services/scrubber_margin_service.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 
 /// The built-in service kind whose clock marks the last repack: its baseline
 /// date, else its newest record.
@@ -75,7 +76,11 @@ final tripScrubberMarginsProvider =
           .where((k) => k.id == scrubberRepackKindId)
           .firstOrNull;
       final days = await itinerary.getByTripId(trip.id);
-      final diveDays = days.where((d) => d.dayType == DayType.diveDay).length;
+      final diveDays = tripDiveDayCount(
+        start: trip.startDate,
+        end: trip.endDate,
+        itinerary: days,
+      );
       final history = ref.watch(tripHistoryRepositoryProvider);
       final divesPerDay = await history.divesPerDiveDay(
         diverId: diverId,
@@ -168,9 +173,10 @@ final tripScrubberMarginsProvider =
               consumedMinutes: consumed,
               consumedSince: baseline,
               expectedDivesOverride: trip.expectedDives,
-              // Only a missing itinerary falls back to the calendar: one
-              // with no dive days (a crossing, a port stay) expects none.
-              itineraryDiveDays: days.isEmpty ? trip.durationDays : diveDays,
+              // Day by day: a day the itinerary types otherwise expects no
+              // dives, and a day it does not cover is a dive day, so a trip
+              // with no itinerary counts the calendar.
+              itineraryDiveDays: diveDays,
               divesPerDiveDayHistory: divesPerDay,
               runtimeMinutesOverride: trip.expectedRuntimeMinutes,
               scrubberMinutesHistory: [

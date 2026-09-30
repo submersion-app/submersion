@@ -133,6 +133,14 @@ class PayloadDiverExpander {
     }
     out[ImportEntityType.media] = media;
 
+    // A fill is keyed by passport id, not by a dive, so every fill goes to
+    // the primary profile (cylinder passports phase 5).
+    out[ImportEntityType.fills] = [
+      if (primary != null)
+        for (final fill in source.entitiesOf(ImportEntityType.fills))
+          {...fill, DiverTarget.itemKey: primary},
+    ];
+
     _addNameTags(out, source.sourceDivers);
 
     return ImportPayload(

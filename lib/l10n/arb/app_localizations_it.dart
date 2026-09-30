@@ -5568,6 +5568,33 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveCenters_section_gpsCoordinates => 'Coordinate GPS';
 
   @override
+  String get diveCenters_section_fillHours => 'Orari di ricarica';
+
+  @override
+  String get diveCenters_fillHours_caption =>
+      'Quando la stazione ricarica le bombole. La previsione di ricarica del viaggio usa l\'orario di chiusura.';
+
+  @override
+  String get diveCenters_fillHours_opens => 'Apre';
+
+  @override
+  String get diveCenters_fillHours_closes => 'Chiude';
+
+  @override
+  String get diveCenters_fillHours_notSet => 'Non impostato';
+
+  @override
+  String get diveCenters_fillHours_clear => 'Cancella orari di ricarica';
+
+  @override
+  String get diveCenters_fillHours_errorBoth =>
+      'Imposta entrambi gli orari o nessuno.';
+
+  @override
+  String get diveCenters_fillHours_errorOrder =>
+      'L\'orario di chiusura deve seguire quello di apertura.';
+
+  @override
   String get diveCenters_section_notes => 'Note';
 
   @override
@@ -24664,6 +24691,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Esporta inventario attrezzatura e informazioni sulla manutenzione';
 
   @override
+  String get transfer_csvExport_descriptionFills =>
+      'Ogni ricarica registrata su un passaporto bombola, con analisi, pressione e stazione';
+
+  @override
   String get transfer_csvExport_descriptionObservations =>
       'Ogni controllo OK e ogni problema segnalato, con immersione, etichette e nota';
 
@@ -24684,6 +24715,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'CSV Attrezzatura';
 
   @override
+  String get transfer_csvExport_optionFillsTitle =>
+      'CSV delle ricariche bombola';
+
+  @override
   String get transfer_csvExport_optionObservationsTitle =>
       'CSV dei controlli attrezzatura';
 
@@ -24700,6 +24735,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get transfer_csvExport_typeEquipment => 'Attrezzatura';
+
+  @override
+  String get transfer_csvExport_typeFills => 'Ricariche bombola';
 
   @override
   String get transfer_csvExport_typeObservations => 'Controlli attrezzatura';
@@ -25580,6 +25618,20 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trips_edit_sectionTitle_planning => 'Pianificazione';
 
   @override
+  String get trips_edit_label_diversSharing =>
+      'Subacquei che condividono le bombole';
+
+  @override
+  String get trips_edit_hint_diversSharing => 'Te compreso. Vuoto significa 1.';
+
+  @override
+  String get trips_edit_label_divesPerDay => 'Immersioni al giorno';
+
+  @override
+  String get trips_edit_hint_divesPerDay =>
+      'Per la previsione di ricarica. Vuoto significa stima.';
+
+  @override
   String get trips_edit_label_expectedDives => 'Immersioni previste';
 
   @override
@@ -25683,6 +25735,61 @@ class AppLocalizationsIt extends AppLocalizations {
   String trips_scrubber_bannerCount(int count, String minutes) {
     return '$count rebreather, il margine più basso è $minutes min';
   }
+
+  @override
+  String trips_cylinders_forecast_todayShort(int needed, int full) {
+    return 'Oggi ne servono $needed, ne hai $full piene.';
+  }
+
+  @override
+  String trips_cylinders_forecast_tomorrowShort(int needed, int full) {
+    return 'Domani ne servono $needed, ne avrai $full piene.';
+  }
+
+  @override
+  String trips_cylinders_forecast_fillBefore(String time) {
+    return 'Ricarica prima delle $time.';
+  }
+
+  @override
+  String get trips_cylinders_forecast_enough =>
+      'Bombole piene sufficienti fino a domani.';
+
+  @override
+  String get trips_cylinders_forecast_daysTitle => 'Immersioni pianificate';
+
+  @override
+  String trips_cylinders_forecast_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '$count immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_forecast_dayTitle(String date) {
+    return 'Immersioni pianificate, $date';
+  }
+
+  @override
+  String get trips_cylinders_forecast_useEstimate => 'Usa la stima';
+
+  @override
+  String get trips_cylinders_forecast_fewer => 'Meno immersioni';
+
+  @override
+  String get trips_cylinders_forecast_more => 'Più immersioni';
+
+  @override
+  String trips_cylinders_forecast_saveError(String error) {
+    return 'Impossibile salvare il piano: $error';
+  }
+
+  @override
+  String get trips_cylinders_forecast_dayPlanned => 'Pianificato da te';
 
   @override
   String get trips_cylinders_title => 'Bombole';
@@ -28117,6 +28224,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveImport_uddf_media => 'Foto';
+
+  @override
+  String get diveImport_uddf_fills => 'Ricariche';
 
   @override
   String get diveImport_uddf_title => 'Importa da UDDF';
@@ -42979,6 +43089,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Esportazione dei controlli attrezzatura in CSV...';
 
   @override
+  String get settings_export_progress_fillsCsv =>
+      'Esportazione delle ricariche bombola in CSV...';
+
+  @override
   String get settings_export_progress_pdf => 'Generazione del logbook PDF...';
 
   @override
@@ -43052,6 +43166,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Preparazione del CSV dei controlli attrezzatura...';
 
   @override
+  String get settings_export_progress_preparingFillsCsv =>
+      'Preparazione del CSV delle ricariche bombola...';
+
+  @override
   String get settings_export_progress_preparingUddf =>
       'Preparazione del file UDDF...';
 
@@ -43071,6 +43189,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_export_empty_observations =>
       'Nessun controllo attrezzatura da esportare';
+
+  @override
+  String get settings_export_empty_fills =>
+      'Nessuna ricarica bombola da esportare';
 
   @override
   String get settings_export_empty_data => 'Nessun dato da esportare';
@@ -43098,6 +43220,9 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_export_success_observations =>
       'Controlli attrezzatura esportati';
+
+  @override
+  String get settings_export_success_fills => 'Ricariche bombola esportate';
 
   @override
   String get settings_export_success_pdf => 'Logbook PDF generato con successo';
@@ -43154,6 +43279,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'CSV dei controlli attrezzatura salvato';
 
   @override
+  String get settings_export_saved_fillsCsv =>
+      'CSV delle ricariche bombola salvato';
+
+  @override
   String get settings_export_saved_uddf => 'File UDDF salvato con successo';
 
   @override
@@ -43178,6 +43307,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_export_saveObservationsCsvDialogTitle =>
       'Salva CSV dei controlli attrezzatura';
+
+  @override
+  String get settings_export_saveFillsCsvDialogTitle =>
+      'Salva CSV delle ricariche bombola';
 
   @override
   String backup_operation_created(String size) {

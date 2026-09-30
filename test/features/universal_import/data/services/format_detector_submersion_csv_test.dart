@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
+import 'package:submersion/core/services/export/csv/csv_fills_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_sites_writer.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
@@ -42,6 +43,12 @@ void main() {
             .detect(_bytes(CsvEquipmentWriter(units).write(goldenEquipment())))
             .format,
         ImportFormat.submersionEquipmentCsv,
+      );
+      expect(
+        detector
+            .detect(_bytes(CsvFillsWriter(units).write(goldenFills())))
+            .format,
+        ImportFormat.submersionFillsCsv,
       );
     });
   }

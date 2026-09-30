@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart';
 
 /// Creates a minimal Shearwater Cloud SQLite database as bytes.
@@ -14,8 +15,31 @@ Uint8List createShearwaterTestDb({
   bool includeDiveDetails = true,
   bool includeLogData = true,
 }) {
-  final tempPath =
-      '${Directory.systemTemp.path}/sw_test_${DateTime.now().millisecondsSinceEpoch}.db';
+  // A directory of its own per fixture: a name built from the clock collides
+  // with a fixture built in the same millisecond by another test process.
+  final tempDir = Directory.systemTemp.createTempSync('sw_test_');
+  try {
+    return _writeFixture(
+      p.join(tempDir.path, 'fixture.db'),
+      dives: dives,
+      includeDiveDetails: includeDiveDetails,
+      includeLogData: includeLogData,
+    );
+  } finally {
+    try {
+      tempDir.deleteSync(recursive: true);
+    } on FileSystemException {
+      // Best-effort: never hide the fixture's own error behind cleanup.
+    }
+  }
+}
+
+Uint8List _writeFixture(
+  String tempPath, {
+  required List<ShearwaterTestDive> dives,
+  required bool includeDiveDetails,
+  required bool includeLogData,
+}) {
   final db = sqlite3.open(tempPath);
   try {
     if (includeDiveDetails) {
@@ -146,9 +170,7 @@ Uint8List createShearwaterTestDb({
     db.close();
   }
 
-  final bytes = File(tempPath).readAsBytesSync();
-  File(tempPath).deleteSync();
-  return bytes;
+  return File(tempPath).readAsBytesSync();
 }
 
 /// Compresses [rawData] as gzip with the 4-byte LE length prefix that

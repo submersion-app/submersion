@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_field_table.dart';
@@ -83,7 +87,8 @@ void main() {
     expect(summary, isNotNull);
     expect(summary!.maxDepth, 22);
     expect(summary.minTemperature, 4);
-    expect(summary.sourceUpdatedAt, 1000);
+    // The dive's stamp plus its one profile series'.
+    expect(summary.sourceUpdatedAt, 2000);
     expect(summary.engineVersion, DiveSensorSummaryService.version);
     expect(summary.scrubberConsumedMinutes, 50);
 
@@ -96,6 +101,33 @@ void main() {
     await repo.ensureCurrent('d1');
     await repo.ensureCurrent('d1');
     expect(runs, 1);
+  });
+
+  test('a current row is served from the stamp and the row alone', () async {
+    // The stamp is read before anything the row is built from, so a write
+    // landing mid-build leaves the row stale rather than current. The
+    // current path therefore never reads the dive: two statements, the
+    // stamp and the stored row.
+    await tearDownTestDatabase();
+    db = AppDatabase(NativeDatabase.memory(logStatements: true));
+    DatabaseService.instance.setTestDatabase(db);
+    repo = DiveSensorSummaryRepository(
+      db: db,
+      runner: (input) async => computeSensorSummaryFromBlobs(input),
+    );
+    await insertDive('d1');
+    await repo.ensureCurrent('d1');
+
+    final logged = <String>[];
+    await runZoned(
+      () => repo.ensureCurrent('d1'),
+      zoneSpecification: ZoneSpecification(
+        print: (self, parent, zone, line) => logged.add(line),
+      ),
+    );
+    final statements = logged.where((l) => l.startsWith('Drift: Sent'));
+    expect(statements, hasLength(2));
+    expect(statements.where((l) => l.contains('FROM "dives"')), isEmpty);
   });
 
   test('a row whose source_updated_at differs is recomputed', () async {
@@ -247,6 +279,101 @@ void main() {
         expect(await repo.countStale(), 3);
       },
     );
+
+    test('a synced profile series change makes the row stale', () async {
+      // Series are synced child rows that never re-stamp their dive
+      // (#1769): a new profile arriving by sync leaves dives.updated_at
+      // alone, and the summary must still read as stale.
+      await insertDive('d1', updatedAt: 1000);
+      await insertProfile('d1', const [
+        ProfileSample(timestamp: 0, depth: 0),
+        ProfileSample(timestamp: 60, depth: 12),
+      ]);
+      await repo.ensureCurrent('d1');
+      expect(await repo.staleDiveIds(), isEmpty);
+
+      await (db.delete(
+        db.diveProfileSeries,
+      )..where((t) => t.diveId.equals('d1'))).go();
+      await ProfileSeriesRepository(database: db).insertSeries(
+        diveId: 'd1',
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 0),
+          ProfileSample(timestamp: 60, depth: 30),
+        ],
+        now: 5000,
+      );
+
+      expect(await repo.staleDiveIds(), ['d1']);
+      final rebuilt = await repo.ensureCurrent('d1');
+      expect(runs, 2);
+      expect(rebuilt!.maxDepth, 30);
+      expect(rebuilt.sourceUpdatedAt, 1000 + 5000);
+      expect(await repo.staleDiveIds(), isEmpty);
+      await repo.ensureCurrent('d1');
+      expect(runs, 2);
+    });
+
+    test('a synced tank pressure series makes the row stale', () async {
+      await insertDive('d1', updatedAt: 1000);
+      await repo.ensureCurrent('d1');
+      await db
+          .into(db.diveTanks)
+          .insert(DiveTanksCompanion.insert(id: 't1', diveId: 'd1'));
+      await TankPressureSeriesRepository(database: db).insertSeries(
+        diveId: 'd1',
+        tankId: 't1',
+        samples: const [
+          TankPressureSample(timestamp: 0, pressure: 200),
+          TankPressureSample(timestamp: 600, pressure: 150),
+        ],
+        now: 5000,
+      );
+
+      expect(await repo.staleDiveIds(), ['d1']);
+      expect(await repo.countStale(), 1);
+      expect((await repo.ensureCurrent('d1'))!.sourceUpdatedAt, 1000 + 5000);
+      expect(runs, 2);
+    });
+
+    test('removing a series older than the dive makes the row stale', () async {
+      // The dive was edited after its profile was written; the latest
+      // stamp would not move when the profile goes, the sum does.
+      await insertDive('d1', updatedAt: 1000);
+      await ProfileSeriesRepository(database: db).insertSeries(
+        diveId: 'd1',
+        samples: const [ProfileSample(timestamp: 0, depth: 9)],
+        now: 500,
+      );
+      await repo.ensureCurrent('d1');
+      expect(await repo.staleDiveIds(), isEmpty);
+
+      await (db.delete(
+        db.diveProfileSeries,
+      )..where((t) => t.diveId.equals('d1'))).go();
+      expect(await repo.staleDiveIds(), ['d1']);
+    });
+
+    test('a synced series older than the dive makes the row stale', () async {
+      // Device B rewrites the profile at 800, device A edits the dive's
+      // buddy at 1000 and builds its summary, then B's series arrives: its
+      // updated_at is older than the dive's, and the row must still read
+      // as stale.
+      await insertDive('d1', updatedAt: 1000);
+      await ProfileSeriesRepository(database: db).insertSeries(
+        diveId: 'd1',
+        samples: const [ProfileSample(timestamp: 0, depth: 12)],
+        now: 500,
+      );
+      await repo.ensureCurrent('d1');
+      await (db.update(db.diveProfileSeries)
+            ..where((t) => t.diveId.equals('d1')))
+          .write(const DiveProfileSeriesCompanion(updatedAt: Value(800)));
+
+      expect(await repo.staleDiveIds(), ['d1']);
+      expect((await repo.ensureCurrent('d1'))!.sourceUpdatedAt, 1000 + 800);
+      expect(await repo.staleDiveIds(), isEmpty);
+    });
 
     test('scopes to a diver when asked', () async {
       await insertDiver('a');
