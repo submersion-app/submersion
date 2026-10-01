@@ -614,6 +614,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
             .where((b) => b.buddy.id == buddy.id)
             .map((b) => b.role)
             .firstOrNull;
+        final certLine = buddyCertificationLineL10n(buddy, context.l10n);
 
         return ListTile(
           // Selection wins over the photo: a checked row must read as checked
@@ -639,9 +640,29 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                   ).colorScheme.onSurfaceVariant,
                 ),
           title: Text(buddy.name),
-          subtitle: buddyCertificationLineL10n(buddy, context.l10n) == null
+          isThreeLine: certLine != null && isSelected,
+          // The role chip sits under the name rather than in trailing: a
+          // ListTile measures trailing before the title, so a text-bearing
+          // chip there squeezes the name to one fragment per line on a
+          // phone or in a longer translation (issue #2717).
+          subtitle: certLine == null && !isSelected
               ? null
-              : Text(buddyCertificationLineL10n(buddy, context.l10n)!),
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (certLine != null) Text(certLine),
+                    if (isSelected)
+                      Chip(
+                        label: Text(
+                          selectedRole?.localizedName(context.l10n) ??
+                              context.l10n.diveRole_builtin_buddy,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                  ],
+                ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -661,14 +682,6 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                 iconSize: 20,
                 unselectedColor: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              if (isSelected)
-                Chip(
-                  label: Text(
-                    selectedRole?.localizedName(context.l10n) ??
-                        context.l10n.diveRole_builtin_buddy,
-                  ),
-                  visualDensity: VisualDensity.compact,
-                ),
             ],
           ),
           onTap: () {

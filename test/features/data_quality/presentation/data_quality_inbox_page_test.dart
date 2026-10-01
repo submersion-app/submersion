@@ -1052,7 +1052,7 @@ void main() {
       await tester.pumpWidget(_scope(prefs, findings: [f]));
       await tester.pumpAndSettle();
 
-      // The trailing primary action of the card.
+      // The primary action under the finding's detail.
       await tester.tap(find.byType(FilledButton).first);
       await tester.pumpAndSettle();
 

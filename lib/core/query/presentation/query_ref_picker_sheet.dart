@@ -101,15 +101,6 @@ class _RefPickerSheetState extends State<_RefPickerSheet> {
               widget.title,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            trailing: widget.multi
-                ? FilledButton(
-                    onPressed: () => Navigator.of(context).pop([
-                      for (final r in widget.entries)
-                        if (_selected.contains(r.id)) r,
-                    ]),
-                    child: Text(widget.doneLabel!),
-                  )
-                : null,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -145,6 +136,28 @@ class _RefPickerSheetState extends State<_RefPickerSheet> {
               },
             ),
           ),
+          // Done is pinned under the list rather than in the header tile's
+          // trailing: a ListTile measures trailing before the title, so a
+          // text button there squeezes the sheet title in a longer
+          // translation (issue #2717). Matches the confirm bar of
+          // QueryFilterSheet.
+          if (widget.multi)
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).pop([
+                      for (final r in widget.entries)
+                        if (_selected.contains(r.id)) r,
+                    ]),
+                    child: Text(widget.doneLabel!),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

@@ -548,60 +548,82 @@ class BackupSettingsPage extends ConsumerWidget {
         // Cloud backup switch it is mutually exclusive with.
         ListTile(
           title: Text(context.l10n.backup_location_title),
-          subtitle: Text(
-            cloudDestination ??
-                ref.read(backupSettingsProvider.notifier).locationLabel ??
-                settings.backupLocation ??
-                context.l10n.backup_location_default,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: TextButton(
-            onPressed: () async {
-              final BackupFolderPick? picked;
-              if (Platform.isIOS) {
-                // iOS: capture a security-scoped bookmark directly -- a bare
-                // file_picker path would lose its scope on the next launch.
-                picked = await BackupBookmarkService.pickFolder();
-              } else if (Platform.isAndroid) {
-                // Android: pick a SAF tree (content:// URI). A file_picker path
-                // is unwritable under scoped storage, so persist the URI + its
-                // display name and skip the bookmark flow entirely. Native +
-                // platform-gated, so the branch body is excluded from coverage;
-                // setSafBackupLocation itself is unit-tested separately.
-                // coverage:ignore-start
-                final folder = await SubmersionSaf.pickFolder();
-                if (folder != null) {
-                  await ref
-                      .read(backupSettingsProvider.notifier)
-                      .setSafBackupLocation(folder.uri, folder.displayName);
-                }
-                return;
-                // coverage:ignore-end
-              } else {
-                final path = await FilePicker.getDirectoryPath(
-                  dialogTitle: context.l10n.backup_location_title,
-                );
-                picked = path == null
-                    ? null
-                    : BackupFolderPick(
-                        path: path,
-                        bookmark: BackupBookmarkService.isSupported
-                            ? await BackupBookmarkService.createBookmark(path)
-                            : null,
+          subtitle: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                cloudDestination ??
+                    ref.read(backupSettingsProvider.notifier).locationLabel ??
+                    settings.backupLocation ??
+                    context.l10n.backup_location_default,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    alignment: AlignmentDirectional.centerStart,
+                  ),
+                  onPressed: () async {
+                    final BackupFolderPick? picked;
+                    if (Platform.isIOS) {
+                      // iOS: capture a security-scoped bookmark directly --
+                      // a bare file_picker path would lose its scope on the
+                      // next launch.
+                      picked = await BackupBookmarkService.pickFolder();
+                    } else if (Platform.isAndroid) {
+                      // Android: pick a SAF tree (content:// URI). A
+                      // file_picker path is unwritable under scoped storage,
+                      // so persist the URI + its display name and skip the
+                      // bookmark flow entirely. Native + platform-gated, so
+                      // the branch body is excluded from coverage;
+                      // setSafBackupLocation itself is unit-tested separately.
+                      // coverage:ignore-start
+                      final folder = await SubmersionSaf.pickFolder();
+                      if (folder != null) {
+                        await ref
+                            .read(backupSettingsProvider.notifier)
+                            .setSafBackupLocation(
+                              folder.uri,
+                              folder.displayName,
+                            );
+                      }
+                      return;
+                      // coverage:ignore-end
+                    } else {
+                      final path = await FilePicker.getDirectoryPath(
+                        dialogTitle: context.l10n.backup_location_title,
                       );
-              }
-              if (picked != null) {
-                await ref
-                    .read(backupSettingsProvider.notifier)
-                    .setBackupLocationWithBookmark(
-                      picked.path,
-                      picked.bookmark,
-                    );
-              }
-            },
-            child: Text(context.l10n.backup_location_change),
+                      picked = path == null
+                          ? null
+                          : BackupFolderPick(
+                              path: path,
+                              bookmark: BackupBookmarkService.isSupported
+                                  ? await BackupBookmarkService.createBookmark(
+                                      path,
+                                    )
+                                  : null,
+                            );
+                    }
+                    if (picked != null) {
+                      await ref
+                          .read(backupSettingsProvider.notifier)
+                          .setBackupLocationWithBookmark(
+                            picked.path,
+                            picked.bookmark,
+                          );
+                    }
+                  },
+                  child: Text(context.l10n.backup_location_change),
+                ),
+              ),
+            ],
           ),
+          isThreeLine: true,
         ),
         // Cloud sync
         if (cloudProvider != null)

@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
+import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
@@ -35,14 +38,46 @@ Future<void> _pumpPane(
   WidgetTester tester,
   FilesTabState state, {
   bool flat = false,
+  String? assignableDiveId,
+  List<dynamic>? overrides,
 }) async {
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),
-      child: FileReviewPane(state: state, flat: flat),
+      overrides: overrides,
+      child: FileReviewPane(
+        state: state,
+        flat: flat,
+        assignableDiveId: assignableDiveId,
+      ),
     ),
   );
   await tester.pumpAndSettle();
+}
+
+/// Fails loudly if the bulk action reaches past the notifier method under
+/// test into any collaborator.
+class _UnusedDependency
+    implements MediaRepository, LocalBookmarkStorage, LocalMediaPlatform {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} should not be called');
+}
+
+/// Records the dive ids passed to [assignAllUnmatched] instead of mutating
+/// state, so a test can see exactly what the pane's bulk action dispatched.
+class _RecordingFilesTabNotifier extends FilesTabNotifier {
+  _RecordingFilesTabNotifier()
+    : super(
+        mediaRepository: _UnusedDependency(),
+        bookmarkStorage: _UnusedDependency(),
+        platform: _UnusedDependency(),
+      );
+
+  final List<String> assignedDiveIds = [];
+
+  @override
+  void assignAllUnmatched(String diveId) => assignedDiveIds.add(diveId);
 }
 
 void main() {
@@ -113,5 +148,56 @@ void main() {
     expect(find.byTooltip('Choose a dive'), findsNothing);
     expect(find.byTooltip('Add to this dive'), findsNothing);
     expect(find.byIcon(Icons.add_link), findsNothing);
+  });
+
+  testWidgets('the Unmatched header keeps its chevron and its bulk action '
+      'assigns without collapsing the group', (tester) async {
+    // The bulk action lives in the header's subtitle, not its trailing:
+    // trailing would replace the expand chevron and, measured before the
+    // title, squeeze "Unmatched" to one fragment per line (issue #2717).
+    // Inside the header it must still take its own tap rather than toggling
+    // the group shut.
+    final notifier = _RecordingFilesTabNotifier();
+    final state = FilesTabState.initial().copyWith(
+      files: [_ef('/a.jpg'), _ef('/b.jpg'), _ef('/c.jpg')],
+      match: MatchedSelection(
+        matched: {
+          'd1': [_ef('/a.jpg')],
+        },
+        unmatched: [_ef('/b.jpg'), _ef('/c.jpg')],
+      ),
+    );
+
+    await _pumpPane(
+      tester,
+      state,
+      assignableDiveId: 'd1',
+      overrides: [filesTabNotifierProvider.overrideWith((ref) => notifier)],
+    );
+
+    final unmatchedTile = find.ancestor(
+      of: find.text('Unmatched'),
+      matching: find.byType(ExpansionTile),
+    );
+    expect(unmatchedTile, findsOneWidget);
+    expect(
+      find.descendant(
+        of: unmatchedTile,
+        matching: find.byIcon(Icons.expand_more),
+      ),
+      findsOneWidget,
+      reason: 'the bulk action must not replace the expand chevron',
+    );
+
+    await tester.tap(find.text('Add all 2 to this dive'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.assignedDiveIds, ['d1']);
+    expect(
+      find.text('b.jpg'),
+      findsOneWidget,
+      reason: 'tapping the action must not collapse the Unmatched group',
+    );
+    expect(find.text('c.jpg'), findsOneWidget);
   });
 }

@@ -71,23 +71,39 @@ class _NotificationPermissionCardState
   @override
   Widget build(BuildContext context) {
     final refused = ref.watch(notificationPromptRefusedProvider);
+    final l10n = context.l10n;
 
     return ListTile(
       leading: const Icon(Icons.warning, color: Colors.orange),
-      title: Text(context.l10n.settings_notifications_disabled_title),
-      subtitle: Text(
-        refused
-            ? context.l10n.settings_notifications_disabled_subtitle
-            : context.l10n.settings_notifications_disabled_subtitleUnrequested,
+      title: Text(l10n.settings_notifications_disabled_title),
+      subtitle: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            refused
+                ? l10n.settings_notifications_disabled_subtitle
+                : l10n.settings_notifications_disabled_subtitleUnrequested,
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+                alignment: AlignmentDirectional.centerStart,
+              ),
+              onPressed: refused ? _openSettings : _request,
+              child: Text(
+                refused
+                    ? l10n.settings_notifications_disabled_openSettingsButton
+                    : l10n.settings_notifications_disabled_continueButton,
+              ),
+            ),
+          ),
+        ],
       ),
-      trailing: TextButton(
-        onPressed: refused ? _openSettings : _request,
-        child: Text(
-          refused
-              ? context.l10n.settings_notifications_disabled_openSettingsButton
-              : context.l10n.settings_notifications_disabled_continueButton,
-        ),
-      ),
+      isThreeLine: true,
     );
   }
 

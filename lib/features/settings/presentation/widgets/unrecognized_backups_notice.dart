@@ -44,11 +44,28 @@ class UnrecognizedBackupsNotice extends ConsumerWidget {
       title: Text(
         context.l10n.settings_storageUsage_unrecognized_title(entries.length),
       ),
-      subtitle: Text(formatBytes(bytes)),
-      trailing: TextButton(
-        onPressed: () => _review(context, ref),
-        child: Text(context.l10n.settings_storageUsage_unrecognized_action),
+      subtitle: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(formatBytes(bytes)),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+                alignment: AlignmentDirectional.centerStart,
+              ),
+              onPressed: () => _review(context, ref),
+              child: Text(
+                context.l10n.settings_storageUsage_unrecognized_action,
+              ),
+            ),
+          ),
+        ],
       ),
+      isThreeLine: true,
       onTap: () => _review(context, ref),
     );
   }

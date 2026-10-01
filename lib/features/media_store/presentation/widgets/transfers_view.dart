@@ -128,6 +128,18 @@ class _TransferTile extends ConsumerWidget {
         l10n.settings_mediaStorage_transfers_state_pending,
       ),
     };
+    // A row that already carries an error can be retried even while it is
+    // still 'pending': its automatic backoff can stretch to a day or more
+    // (see markFailed's retryAfter), and waiting that out is not something
+    // to force on someone who is looking at the failure right now.
+    //
+    // Restricted to 'pending' on purpose: markTransferring does not clear
+    // errorMessage, so an in-flight row can still carry an earlier attempt's
+    // error. Offering Retry there would let a tap flip a row the worker is
+    // actively uploading back to pending and have it processed twice.
+    final canRetry =
+        entry.state == 'failed' ||
+        (entry.state == 'pending' && entry.errorMessage != null);
     return ListTile(
       // The state icon becomes the checkbox in selection mode.
       leading: SelectionLeading(
@@ -142,6 +154,7 @@ class _TransferTile extends ConsumerWidget {
         ),
       ),
       title: Text(label),
+      isThreeLine: canRetry,
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -162,25 +175,25 @@ class _TransferTile extends ConsumerWidget {
                     : null,
               ),
             ),
+          // Retry sits on its own line under the row's text rather than in
+          // trailing: a ListTile measures trailing before the title, so a
+          // text button there squeezes the row in a longer translation
+          // (issue #2717).
+          if (canRetry)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  alignment: AlignmentDirectional.centerStart,
+                ),
+                onPressed: () => _retry(ref, entry),
+                child: Text(l10n.settings_mediaStorage_transfers_retry),
+              ),
+            ),
         ],
       ),
-      // A row that already carries an error can be retried even while it is
-      // still 'pending': its automatic backoff can stretch to a day or more
-      // (see markFailed's retryAfter), and waiting that out is not something
-      // to force on someone who is looking at the failure right now.
-      //
-      // Restricted to 'pending' on purpose: markTransferring does not clear
-      // errorMessage, so an in-flight row can still carry an earlier attempt's
-      // error. Offering Retry there would let a tap flip a row the worker is
-      // actively uploading back to pending and have it processed twice.
-      trailing:
-          (entry.state == 'failed' ||
-              (entry.state == 'pending' && entry.errorMessage != null))
-          ? TextButton(
-              onPressed: () => _retry(ref, entry),
-              child: Text(l10n.settings_mediaStorage_transfers_retry),
-            )
-          : null,
     );
   }
 

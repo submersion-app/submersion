@@ -55,6 +55,12 @@ class FileReviewPane extends ConsumerWidget {
       state.match.unmatched.length,
     );
 
+    final unmatchedCount = Text(
+      context.l10n.media_photoPicker_files_groupCount(
+        state.match.unmatched.length,
+      ),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -99,26 +105,41 @@ class FileReviewPane extends ConsumerWidget {
                   title: Text(
                     context.l10n.media_photoPicker_files_unmatchedGroupTitle,
                   ),
-                  subtitle: Text(
-                    context.l10n.media_photoPicker_files_groupCount(
-                      state.match.unmatched.length,
-                    ),
-                  ),
                   initiallyExpanded: true,
-                  // Without this the only thing a user could do with a photo
-                  // the matcher rejected was remove it -- commit() never sees
-                  // the unmatched bucket.
-                  trailing: assignableDiveId == null
-                      ? null
-                      : TextButton(
-                          onPressed: () => ref
-                              .read(filesTabNotifierProvider.notifier)
-                              .assignAllUnmatched(assignableDiveId!),
-                          child: Text(
-                            context.l10n.media_photoPicker_files_addAllToDive(
-                              state.match.unmatched.length,
+                  // Without the bulk action the only thing a user could do
+                  // with a photo the matcher rejected was remove it, since
+                  // commit() never sees the unmatched bucket. It sits under
+                  // the count rather than in trailing: trailing replaces the
+                  // expand chevron, and the header measures it before the
+                  // title, so the label squeezed "Unmatched" to one fragment
+                  // per line in German (issue #2717).
+                  subtitle: assignableDiveId == null
+                      ? unmatchedCount
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            unmatchedCount,
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: TextButton(
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  visualDensity: VisualDensity.compact,
+                                  alignment: AlignmentDirectional.centerStart,
+                                ),
+                                onPressed: () => ref
+                                    .read(filesTabNotifierProvider.notifier)
+                                    .assignAllUnmatched(assignableDiveId!),
+                                child: Text(
+                                  context.l10n
+                                      .media_photoPicker_files_addAllToDive(
+                                        state.match.unmatched.length,
+                                      ),
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                   children: [
                     for (final f in state.match.unmatched)

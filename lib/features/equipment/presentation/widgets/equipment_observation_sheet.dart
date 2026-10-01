@@ -392,26 +392,40 @@ class _EditorState extends ConsumerState<_Editor> {
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.scuba_diving),
             title: Text(l10n.equipmentObservation_sheet_diveLabel),
-            subtitle: draft.diveId == null
-                ? Text(l10n.equipmentObservation_sheet_noDive)
-                : _DiveLabel(diveId: draft.diveId!),
-            trailing: Row(
+            // "Pick dive" sits on its own line under the current dive rather
+            // than in trailing: a ListTile lays trailing out at its natural
+            // width first, so a translated label there starves the title
+            // (issue #2717). Only the fixed-width clear button stays there.
+            subtitle: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // The picker's dismissal keeps the current dive, so going
-                // back to a bench note needs its own control.
-                if (draft.diveId != null)
-                  IconButton(
+                draft.diveId == null
+                    ? Text(l10n.equipmentObservation_sheet_noDive)
+                    : _DiveLabel(diveId: draft.diveId!),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      alignment: AlignmentDirectional.centerStart,
+                    ),
+                    onPressed: _pickDive,
+                    child: Text(l10n.equipmentObservation_sheet_pickDive),
+                  ),
+                ),
+              ],
+            ),
+            // The picker's dismissal keeps the current dive, so going back to
+            // a bench note needs its own control.
+            trailing: draft.diveId == null
+                ? null
+                : IconButton(
                     icon: const Icon(Icons.close),
                     tooltip: l10n.equipmentObservation_sheet_noDive,
                     onPressed: () => setState(() => draft.diveId = null),
                   ),
-                TextButton(
-                  onPressed: _pickDive,
-                  child: Text(l10n.equipmentObservation_sheet_pickDive),
-                ),
-              ],
-            ),
           ),
         ListTile(
           contentPadding: EdgeInsets.zero,

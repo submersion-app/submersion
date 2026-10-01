@@ -141,26 +141,44 @@ class _ReassignSheet extends ConsumerWidget {
               '${units.formatPressure(points.last.pressure)}, '
               '${l10n.diveLog_reassignSheet_readings(points.length)}'
               '${serial != null ? ', ${l10n.transmitters_serial(serial)}' : ''}';
+    final showMove = !twoOnly && points.isNotEmpty;
+    // "Move to" sits on its own line under the series summary rather than in
+    // trailing: a ListTile lays trailing out at its natural width first, so a
+    // translated label there starves the tank name (issue #2717).
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: const Icon(Icons.show_chart),
       title: Text(title),
-      subtitle: Text(subtitle),
-      trailing: twoOnly || points.isEmpty
-          ? null
-          : TextButton(
-              child: Text(l10n.diveLog_reassignSheet_moveTo),
-              onPressed: () async {
-                final target = await showReassignTankPicker(
-                  context,
-                  ref,
-                  diveId: dive.id,
-                  excludeTankId: tank.id,
-                );
-                if (target == null || !context.mounted) return;
-                Navigator.of(context).pop();
-                await onExchange(tank.id, target);
-              },
+      subtitle: !showMove
+          ? Text(subtitle)
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(subtitle),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      alignment: AlignmentDirectional.centerStart,
+                    ),
+                    child: Text(l10n.diveLog_reassignSheet_moveTo),
+                    onPressed: () async {
+                      final target = await showReassignTankPicker(
+                        context,
+                        ref,
+                        diveId: dive.id,
+                        excludeTankId: tank.id,
+                      );
+                      if (target == null || !context.mounted) return;
+                      Navigator.of(context).pop();
+                      await onExchange(tank.id, target);
+                    },
+                  ),
+                ),
+              ],
             ),
     );
   }

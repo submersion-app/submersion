@@ -273,11 +273,23 @@ class _SuccessView extends StatelessWidget {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.rule),
                     title: Text(l10n.dataQuality_summary_flagged(count)),
-                    trailing: TextButton(
-                      onPressed: () => context.push(
-                        '/dives/quality?dive=${importedDiveIds.join(',')}',
+                    // The action sits on its own line under the label rather
+                    // than in trailing: a ListTile measures trailing before
+                    // the title, so a text button there squeezes the label
+                    // in a longer translation (issue #2717).
+                    subtitle: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                          alignment: AlignmentDirectional.centerStart,
+                        ),
+                        onPressed: () => context.push(
+                          '/dives/quality?dive=${importedDiveIds.join(',')}',
+                        ),
+                        child: Text(l10n.dataQuality_summary_review),
                       ),
-                      child: Text(l10n.dataQuality_summary_review),
                     ),
                   );
                 },
