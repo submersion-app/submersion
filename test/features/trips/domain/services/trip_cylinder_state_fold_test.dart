@@ -207,6 +207,43 @@ void main() {
         expect(s.status, TripCylinderStatus.full);
         expect(s.pressure, 200);
       });
+
+      test('two fills on one instant in it resolve by id', () {
+        // Saved together: same second, same rank. Query order must not
+        // decide which bottle the slot holds.
+        final a = stamped(fill(60, label: '3'), 20, id: 'fa');
+        final b = stamped(fill(60, label: '9'), 20, id: 'fb');
+        for (final events in [
+          [a, b],
+          [b, a],
+        ]) {
+          final s = fold(events: events, uses: [dive(60)]);
+          expect(s.lastFill!.id, 'fb');
+          expect(s.bottleLabel, '9');
+        }
+      });
+
+      test('before 1970 the minute still floors', () {
+        // 23:59:35 on 1969-12-31 is a negative epoch; truncating toward
+        // zero would put the fill in 00:00 and after its 23:59 dive.
+        final dusk = DateTime.utc(1969, 12, 31, 23, 59);
+        final s = fold(
+          events: [
+            fill(0).copyWith(occurredAt: dusk.add(const Duration(seconds: 35))),
+          ],
+          uses: [
+            TripCylinderTankUse(
+              tankId: 'k',
+              diveId: 'd',
+              entryTime: dusk,
+              startPressure: 200,
+              endPressure: 60,
+            ),
+          ],
+        );
+        expect(s.pressure, 60);
+        expect(s.lastUse!.diveId, 'd');
+      });
     });
 
     test('mark empty is empty', () {

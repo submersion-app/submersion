@@ -36,15 +36,15 @@ class _Item {
   _Item({required this.at, required this.rank, this.event, this.use})
     : minute = _minuteOf(at);
 
-  /// Breaks a tie on instant and rank, so every replica folds the same rows
-  /// in the same order whatever order the query returned them in.
+  /// Breaks a tie on minute, rank and instant, so every replica folds the
+  /// same rows in the same order whatever order the query returned them in.
   String get tieKey => event?.id ?? use!.tankId;
 }
 
 /// Pure. Walks the slot's fills, adjustments and linked dive tanks in time
 /// order (in a dive's own minute: its fills, the dive, then corrections)
-/// and reports where that leaves it. Nothing is stored; a corrected fill time or a late import
-/// re-sorts on the next read.
+/// and reports where that leaves it. Nothing is stored; a corrected fill
+/// time or a late import re-sorts on the next read.
 ///
 /// Rules, applied in order down the timeline:
 /// - A fill sets the pressure (its own, else the working pressure), the mix
