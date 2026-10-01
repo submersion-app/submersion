@@ -244,4 +244,114 @@ void main() {
     expect(items.map((i) => i.id), ['b', 'a'], reason: 'caller order intact');
     expect(existing, hasLength(1));
   });
+
+  group('overwrites (issue #2563)', () {
+    test('a different spec on a claimed tank is listed, not applied', () {
+      // A 1.5 L O2 cylinder already on the dive and a configuration saying
+      // 2 L: the fill-only ops cannot express the change, so before #2563
+      // the apply reported "already matches" and changed nothing.
+      final plan = applier.plan(
+        existing: [
+          tank(
+            id: 't1',
+            role: TankRole.oxygenSupply,
+            volume: 1.5,
+            pressure: 200,
+            material: TankMaterial.aluminum,
+            startPressure: 180,
+            name: 'Old O2',
+          ),
+        ],
+        items: [
+          cfg(
+            id: 'a',
+            role: TankRole.oxygenSupply,
+            o2: 100,
+            volume: 2,
+            pressure: 232,
+            material: TankMaterial.steel,
+            startPressure: 200,
+            label: 'O2',
+          ),
+        ],
+      );
+
+      expect(plan.ops, isEmpty, reason: 'nothing is null, nothing to fill');
+      final overwrite = plan.overwrites.single;
+      expect(overwrite.tankId, 't1');
+      expect(overwrite.tankRole, TankRole.oxygenSupply);
+      expect(overwrite.volumeL?.from, 1.5);
+      expect(overwrite.volumeL?.to, 2);
+      expect(overwrite.workingPressureBar?.from, 200);
+      expect(overwrite.workingPressureBar?.to, 232);
+      expect(overwrite.tankMaterial?.from, TankMaterial.aluminum);
+      expect(overwrite.tankMaterial?.to, TankMaterial.steel);
+      expect(overwrite.tankName?.from, 'Old O2');
+      expect(overwrite.tankName?.to, 'O2');
+      expect(plan.isNoOp, isFalse);
+    });
+
+    test('equal specs, and values the config leaves blank, are no change', () {
+      final plan = applier.plan(
+        existing: [
+          tank(
+            id: 't1',
+            role: TankRole.bailout,
+            volume: 11.1,
+            pressure: 207,
+            material: TankMaterial.aluminum,
+            name: 'AL80',
+          ),
+        ],
+        items: [
+          // 11.1 L stored through a unit round trip is not a change.
+          cfg(id: 'a', role: TankRole.bailout, volume: 11.100001, label: ' '),
+        ],
+      );
+
+      expect(plan.overwrites, isEmpty);
+    });
+
+    test('only the columns that differ are carried', () {
+      final plan = applier.plan(
+        existing: [
+          tank(id: 't1', role: TankRole.diluent, volume: 3, pressure: 232),
+        ],
+        items: [cfg(id: 'a', role: TankRole.diluent, volume: 2, pressure: 232)],
+      );
+
+      final overwrite = plan.overwrites.single;
+      expect(overwrite.volumeL?.to, 2);
+      expect(overwrite.workingPressureBar, isNull);
+      expect(overwrite.tankMaterial, isNull);
+      expect(overwrite.tankName, isNull);
+    });
+
+    test('a null column is filled, never listed as an overwrite', () {
+      final plan = applier.plan(
+        existing: [tank(id: 't1', role: TankRole.diluent, volume: 3)],
+        items: [cfg(id: 'a', role: TankRole.diluent, volume: 2, pressure: 232)],
+      );
+
+      expect(plan.ops.whereType<FillTank>().single.workingPressureBar, 232);
+      expect(plan.overwrites.single.workingPressureBar, isNull);
+      expect(plan.overwrites.single.volumeL?.to, 2);
+    });
+
+    test('a different start pressure is never an overwrite', () {
+      // Start pressure is a reading of this dive (a transmitter, the diver's
+      // gauge), not a property of the cylinder the configuration describes.
+      final plan = applier.plan(
+        existing: [
+          tank(id: 't1', role: TankRole.diluent, volume: 2, startPressure: 150),
+        ],
+        items: [
+          cfg(id: 'a', role: TankRole.diluent, volume: 2, startPressure: 200),
+        ],
+      );
+
+      expect(plan.overwrites, isEmpty);
+      expect(plan.ops, isEmpty);
+    });
+  });
 }

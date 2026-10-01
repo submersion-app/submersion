@@ -73,9 +73,11 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_for_dive_date.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
 import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
@@ -652,6 +654,7 @@ class UddfEntityImporter {
       sourceFileBytes: sourceFileBytes,
       sourceFilesById: sourceFilesById,
       retainSourceDiveNumbers: retainSourceDiveNumbers,
+      sourceHasTrips: data.trips.isNotEmpty,
       now: now,
       dataSourcesByDiveRef: data.dataSourcesByDiveRef,
       onProgress: onProgress,
@@ -2318,6 +2321,7 @@ class UddfEntityImporter {
     Uint8List? sourceFileBytes,
     Map<String, ImportSourceFile> sourceFilesById = const {},
     bool retainSourceDiveNumbers = false,
+    bool sourceHasTrips = false,
     required DateTime now,
     Map<String, List<Map<String, dynamic>>> dataSourcesByDiveRef = const {},
     ImportProgressCallback? onProgress,
@@ -2440,6 +2444,10 @@ class UddfEntityImporter {
       return storedIdByKey[key];
     }
 
+    // The trips the diver can see, read on the first dive placed by date.
+    // Trips are imported before dives, so the file's own are here.
+    List<Trip>? diverTrips;
+
     for (final i in sortedSelected) {
       if (cancelToken?.isCancelled ?? false) break;
 
@@ -2556,7 +2564,23 @@ class UddfEntityImporter {
         }
       }
 
-      final dateTime = diveData['dateTime'] as DateTime? ?? now;
+      final sourceDateTime = diveData['dateTime'] as DateTime?;
+      final dateTime = sourceDateTime ?? now;
+      // A dive with no trip joins the diver's trip whose dates cover it
+      // (#2618). MacDive has no trips at all, so every trip the diver had
+      // made showed 0 dives after a MacDive import. A file that has trips
+      // leaves a dive out of them on purpose, so only a dive whose own trip
+      // was not imported is placed by date there. An undated dive would be
+      // placed by the import clock, so it is not placed at all.
+      // A merged batch says per dive whether its own file had trips.
+      final fileHasTrips =
+          diveData[PayloadMerger.sourceHasTripsKey] as bool? ?? sourceHasTrips;
+      if (linkedTripId == null &&
+          sourceDateTime != null &&
+          (tripRef != null || !fileHasTrips)) {
+        diverTrips ??= await repos.tripRepository.getAllTrips(diverId: diverId);
+        linkedTripId = tripForDiveDate(sourceDateTime, diverTrips)?.id;
+      }
       // CSV imports provide only 'duration' (used as bottomTime); fall back
       // to it for runtime so the total dive time is populated.
       final durationValue = diveData['duration'] as Duration?;

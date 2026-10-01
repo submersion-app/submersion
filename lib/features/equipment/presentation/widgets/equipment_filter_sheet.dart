@@ -57,6 +57,7 @@ String _severityKey(ServiceDueFilter severity) => switch (severity) {
 class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   // Local draft, mirroring EquipmentFilterState.
   EquipmentStatus? _status;
+  bool _allStatuses = false;
   ServiceDueFilter? _serviceDue;
   EquipmentType? _type;
   List<EquipmentAttrCondition> _attrConditions = const [];
@@ -71,6 +72,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     super.initState();
     final filter = widget.ref.read(equipmentFilterProvider);
     _status = filter.status;
+    _allStatuses = filter.allStatuses;
     _serviceDue = filter.serviceDue;
     _type = filter.type;
     _attrConditions = filter.attrConditions;
@@ -210,12 +212,25 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
           spacing: 8,
           runSpacing: 8,
           children: [
+            // The default view: everything but retired and sold gear (#636).
+            ChoiceChip(
+              key: const ValueKey('equipment_filter_status_current'),
+              label: Text(context.l10n.equipment_list_filterCurrent),
+              selected: !_allStatuses && _status == null && _serviceDue == null,
+              onSelected: (_) => setState(() {
+                _status = null;
+                _allStatuses = false;
+                _serviceDue = null;
+              }),
+            ),
+            // Every status, retired and sold included (#2590).
             ChoiceChip(
               key: const ValueKey('equipment_filter_status_all'),
               label: Text(context.l10n.equipment_list_filterAll),
-              selected: _status == null && _serviceDue == null,
+              selected: _allStatuses,
               onSelected: (_) => setState(() {
                 _status = null;
+                _allStatuses = true;
                 _serviceDue = null;
               }),
             ),
@@ -230,7 +245,10 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                 selected: _serviceDue == severity,
                 onSelected: (selected) => setState(() {
                   _serviceDue = selected ? severity : null;
-                  if (selected) _status = null;
+                  if (selected) {
+                    _status = null;
+                    _allStatuses = false;
+                  }
                 }),
               ),
             // needsService is excluded: the computed Service Due choice above
@@ -244,7 +262,10 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                 selected: _status == status,
                 onSelected: (selected) => setState(() {
                   _status = selected ? status : null;
-                  if (selected) _serviceDue = null;
+                  if (selected) {
+                    _serviceDue = null;
+                    _allStatuses = false;
+                  }
                 }),
               ),
           ],
@@ -349,6 +370,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   void _clearAll() {
     setState(() {
       _status = null;
+      _allStatuses = false;
       _serviceDue = null;
       _type = null;
       _attrConditions = const [];
@@ -363,6 +385,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
         .read(equipmentFilterProvider.notifier)
         .state = EquipmentFilterState(
       status: _status,
+      allStatuses: _allStatuses,
       serviceDue: _serviceDue,
       type: _type,
       attrConditions: _attrConditions,

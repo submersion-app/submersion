@@ -1135,6 +1135,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_color_slate => 'Slate';
 
   @override
+  String get equipment_color_black => 'Black';
+
+  @override
+  String get equipment_color_white => 'White';
+
+  @override
   String get equipment_color_none => 'None';
 
   @override
@@ -1371,9 +1377,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_story_openGallery => 'Open trip photos';
 
   @override
-  String trips_story_generateItineraryError(String error) {
-    return 'Couldn\'t generate itinerary: $error';
-  }
+  String get trips_story_generateItineraryError =>
+      'Couldn\'t generate the itinerary. Try again.';
 
   @override
   String get trips_dayType_diveDay => 'Dive Day';
@@ -14392,6 +14397,51 @@ class AppLocalizationsEn extends AppLocalizations {
       'This dive already matches the configuration';
 
   @override
+  String cylinderConfigs_applyUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'updated $count',
+      one: 'updated $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteTitle => 'Replace cylinder details?';
+
+  @override
+  String cylinderConfigs_overwriteBody(String name) {
+    return 'Applying $name changes cylinders already on this dive:';
+  }
+
+  @override
+  String cylinderConfigs_overwriteTank(int number, String role) {
+    return 'Tank $number · $role';
+  }
+
+  @override
+  String cylinderConfigs_overwriteChange(String field, String from, String to) {
+    return '$field: $from → $to';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteKeepsGas =>
+      'Gas mixes and start pressures already on the dive are kept.';
+
+  @override
+  String get cylinderConfigs_overwriteConfirm => 'Replace';
+
+  @override
+  String get cylinderConfigs_fieldVolume => 'Volume';
+
+  @override
+  String get cylinderConfigs_fieldWorkingPressure => 'Working pressure';
+
+  @override
+  String get cylinderConfigs_fieldMaterial => 'Material';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configurations';
 
   @override
@@ -15087,6 +15137,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_list_filterAll => 'All Equipment';
+
+  @override
+  String get equipment_list_filterCurrent => 'Current Equipment';
 
   @override
   String get equipment_list_filterServiceDue => 'Service Due';
@@ -18307,6 +18360,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_import_review_noMatch => 'No matching dive';
+
+  @override
+  String get media_import_review_noCaptureTime => 'No capture date found';
+
+  @override
+  String get media_import_review_noMatchFileDate =>
+      'No matching dive by the file date; the file has no capture date';
 
   @override
   String get media_import_review_skipped => 'Not imported';
@@ -25106,6 +25166,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_detail_dives_errorLoading => 'Unable to load dives';
 
   @override
+  String get trips_detail_error_loading => 'Couldn\'t load the trip.';
+
+  @override
   String get trips_detail_dives_unknownSite => 'Unknown Site';
 
   @override
@@ -25154,14 +25217,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add dives first to link photos';
 
   @override
-  String trips_detail_scan_errorLinking(Object error) {
-    return 'Error linking photos: $error';
-  }
+  String get trips_detail_scan_errorLinking =>
+      'Couldn\'t link the photos. Try again.';
 
   @override
-  String trips_detail_scan_errorScanning(Object error) {
-    return 'Error scanning: $error';
-  }
+  String get trips_detail_scan_errorScanning =>
+      'Couldn\'t scan for photos. Try again.';
 
   @override
   String trips_detail_scan_linkedPhotos(Object count) {
@@ -25235,9 +25296,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_diveScan_deselectAll => 'Deselect all';
 
   @override
-  String trips_diveScan_error(String error) {
-    return 'Error scanning for dives: $error';
-  }
+  String get trips_diveScan_error => 'Couldn\'t scan for dives. Try again.';
 
   @override
   String get trips_diveScan_findButton => 'Find matching dives';
@@ -25370,14 +25429,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_edit_snackBar_added => 'Trip added successfully';
 
   @override
-  String trips_edit_snackBar_errorLoading(Object error) {
-    return 'Error loading trip: $error';
-  }
+  String get trips_edit_snackBar_errorLoading =>
+      'Couldn\'t load the trip. Try again.';
 
   @override
-  String trips_edit_snackBar_errorSaving(Object error) {
-    return 'Error saving trip: $error';
-  }
+  String get trips_edit_snackBar_errorSaving =>
+      'Couldn\'t save the trip. Try again.';
 
   @override
   String get trips_edit_snackBar_updated => 'Trip updated successfully';
@@ -25418,19 +25475,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_gallery_empty_title => 'No photos in this trip';
 
   @override
-  String trips_gallery_errorLinking(Object error) {
-    return 'Error linking photos: $error';
-  }
+  String get trips_gallery_errorLinking =>
+      'Couldn\'t link the photos. Try again.';
 
   @override
-  String trips_gallery_errorScanning(Object error) {
-    return 'Error scanning: $error';
-  }
+  String get trips_gallery_errorScanning =>
+      'Couldn\'t scan for photos. Try again.';
 
   @override
-  String trips_gallery_error_loading(Object error) {
-    return 'Error loading photos: $error';
-  }
+  String get trips_gallery_error_loading => 'Couldn\'t load the photos.';
 
   @override
   String trips_gallery_linkedPhotos(Object count) {
@@ -25479,9 +25532,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_list_empty_title => 'No trips added yet';
 
   @override
-  String trips_list_error_loading(Object error) {
-    return 'Error loading trips: $error';
-  }
+  String get trips_list_error_loading => 'Couldn\'t load your trips.';
 
   @override
   String get trips_list_fab_addTrip => 'Add Trip';
@@ -25553,9 +25604,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_picker_empty_title => 'No trips yet';
 
   @override
-  String trips_picker_error(Object error) {
-    return 'Error loading trips: $error';
-  }
+  String get trips_picker_error => 'Couldn\'t load your trips.';
 
   @override
   String get trips_picker_hint => 'Tap to select a trip';
@@ -25587,6 +25636,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String trips_search_noResults(Object query) {
     return 'No trips found for \"$query\"';
   }
+
+  @override
+  String get trips_search_error => 'Couldn\'t search your trips.';
 
   @override
   String get trips_search_tooltip_back => 'Back';
@@ -25864,9 +25916,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_cylinders_forecast_more => 'More dives';
 
   @override
-  String trips_cylinders_forecast_saveError(String error) {
-    return 'Couldn\'t save the plan: $error';
-  }
+  String get trips_cylinders_forecast_saveError =>
+      'Couldn\'t save the plan. Try again.';
 
   @override
   String get trips_cylinders_forecast_dayPlanned => 'Planned by you';
@@ -25942,6 +25993,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_cylinders_record_exported => 'Gas record exported';
+
+  @override
+  String get trips_cylinders_record_exportFailed =>
+      'Couldn\'t export the gas record. Try again.';
 
   @override
   String get trips_cylinders_title => 'Cylinders';
@@ -26309,6 +26364,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_itinerary_noDives => 'No dives';
+
+  @override
+  String get trips_itinerary_error_loading => 'Couldn\'t load the itinerary.';
+
+  @override
+  String get trips_itinerary_daySaveError =>
+      'Couldn\'t save the day. Try again.';
 
   @override
   String get trips_vesselType_catamaran => 'Catamaran';

@@ -446,6 +446,42 @@ void main() {
       expect(payload.warnings, isEmpty);
     });
 
+    test('a deco dive keeps its gas switch from the raw download', () async {
+      final payload = await MacDiveDiveMapper.toPayload(
+        _decoDiveLogbook(),
+        fetchDescriptors: _fakeDescriptors,
+        parseRaw: (v, p, m, d) async => _decoParsedDive(),
+      );
+
+      final dive = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['gasSwitches'], [
+        {'timestamp': 1800, 'depth': 21.0, 'tankIndex': 1},
+      ]);
+      // MacDive's own tank list is kept as it is.
+      final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+      expect(tanks, hasLength(2));
+      expect(tanks[1]['name'], 'AL40');
+    });
+
+    test(
+      'a switch to a gas MacDive did not list gets its own cylinder',
+      () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _decoDiveLogbook(listDecoGas: false),
+          fetchDescriptors: _fakeDescriptors,
+          parseRaw: (v, p, m, d) async => _decoParsedDive(),
+        );
+
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+        expect(tanks, hasLength(2));
+        expect(tanks[1]['gasMix'], const GasMix(o2: 50.0));
+        expect(dive['gasSwitches'], [
+          {'timestamp': 1800, 'depth': 21.0, 'tankIndex': 1},
+        ]);
+      },
+    );
+
     test(
       'Suunto EON Steel Black ZRAWDATA is passed through unmodified',
       () async {
@@ -1757,7 +1793,10 @@ MacDiveRawLogbook _multiDiverLogbook({bool singleDiver = false}) {
   );
 }
 
-pigeon.ParsedDive _parsedDive({required List<pigeon.ProfileSample> samples}) {
+pigeon.ParsedDive _parsedDive({
+  required List<pigeon.ProfileSample> samples,
+  List<pigeon.GasMix> gasMixes = const [],
+}) {
   return pigeon.ParsedDive(
     fingerprint: 'fp',
     dateTimeYear: 2026,
@@ -1771,10 +1810,65 @@ pigeon.ParsedDive _parsedDive({required List<pigeon.ProfileSample> samples}) {
     durationSeconds: 3100,
     samples: samples,
     tanks: [],
-    gasMixes: [],
+    gasMixes: gasMixes,
     events: [],
   );
 }
+
+/// One Shearwater dive with a raw download whose MacDive tank list holds the
+/// trimix back gas and, unless [listDecoGas] is false, the EAN50 deco gas.
+MacDiveRawLogbook _decoDiveLogbook({bool listDecoGas = true}) {
+  return MacDiveRawLogbook(
+    dives: [
+      MacDiveRawDive(
+        pk: 1,
+        uuid: 'deco-dive',
+        computer: 'Shearwater Teric',
+        rawDataBlob: _compressedFixture,
+      ),
+    ],
+    sitesByPk: const {},
+    buddiesByPk: const {},
+    tagsByPk: const {},
+    gearByPk: const {},
+    tanksByPk: const {
+      1: MacDiveRawTank(pk: 1, uuid: 'tank-1', name: 'D12'),
+      2: MacDiveRawTank(pk: 2, uuid: 'tank-2', name: 'AL40'),
+    },
+    gasesByPk: const {
+      1: MacDiveRawGas(pk: 1, uuid: 'gas-1', oxygen: 21.0, helium: 35.0),
+      2: MacDiveRawGas(pk: 2, uuid: 'gas-2', oxygen: 50.0, helium: 0.0),
+    },
+    tankAndGases: [
+      const MacDiveRawTankAndGas(diveFk: 1, tankFk: 1, gasFk: 1),
+      if (listDecoGas)
+        const MacDiveRawTankAndGas(diveFk: 1, tankFk: 2, gasFk: 2, order: 1),
+    ],
+    crittersByPk: const {},
+    certifications: const [],
+    serviceRecords: const [],
+    events: const [],
+    diveToBuddyPks: const {},
+    diveToTagPks: const {},
+    diveToGearPks: const {},
+    diveToCritterPks: const {},
+    unitsPreference: 'Metric',
+  );
+}
+
+/// A deco dive's raw parse: trimix 21/35 to depth, EAN50 from 21 m.
+pigeon.ParsedDive _decoParsedDive() => _parsedDive(
+  gasMixes: [
+    pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 35.0),
+    pigeon.GasMix(index: 1, o2Percent: 50.0, hePercent: 0.0),
+  ],
+  samples: [
+    pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0, gasMixIndex: 0),
+    pigeon.ProfileSample(timeSeconds: 900, depthMeters: 25.4, gasMixIndex: 0),
+    pigeon.ProfileSample(timeSeconds: 1800, depthMeters: 21.0, gasMixIndex: 1),
+    pigeon.ProfileSample(timeSeconds: 3100, depthMeters: 0.0, gasMixIndex: 1),
+  ],
+);
 
 /// One dive whose only interesting column is `ZSURFACEINTERVAL`.
 MacDiveRawLogbook _surfaceIntervalLogbook(double surfaceInterval) {

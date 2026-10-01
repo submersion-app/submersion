@@ -282,6 +282,8 @@
   "equipment_color_stone": "Pedra",
   "equipment_color_zinc": "Zinco",
   "equipment_color_slate": "Ardósia",
+  "equipment_color_black": "Preto",
+  "equipment_color_white": "Branco",
   "equipment_color_none": "Nenhuma",
   "equipment_color_sheetTitle": "Escolha uma cor",
   "equipment_setEdit_figureSwitch_subtitle": "Mostrar o equipamento deste conjunto num mergulhador",
@@ -342,14 +344,7 @@
   "trips_story_checklistProgress": "{done} de {total} concluído",
   "trips_story_generateItinerary": "Gerar itinerário",
   "trips_story_openGallery": "Abrir fotos da viagem",
-  "trips_story_generateItineraryError": "Não foi possível gerar o itinerário: {error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "Não foi possível gerar o itinerário. Tente novamente.",
   "trips_dayType_diveDay": "Dia de mergulho",
   "trips_dayType_seaDay": "Dia no mar",
   "trips_dayType_portDay": "Dia no porto",
@@ -4308,6 +4303,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "Este mergulho já corresponde à configuração",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{{count} atualizada} other{{count} atualizadas}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "Substituir os dados das garrafas?",
+  "cylinderConfigs_overwriteBody": "Aplicar {name} altera garrafas que já estão neste mergulho:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "Cilindro {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "As misturas de gás e as pressões iniciais do mergulho são mantidas.",
+  "cylinderConfigs_overwriteConfirm": "Substituir",
+  "cylinderConfigs_fieldVolume": "Volume",
+  "cylinderConfigs_fieldWorkingPressure": "Pressão de trabalho",
+  "cylinderConfigs_fieldMaterial": "Material",
   "cylinderConfigs_sectionTitle": "Configurações",
   "equipment_serviceClocks_hoursSource": "Calculado a partir do tempo de mergulho registado",
   "equipment_serviceClocks_hoursLeft": "Restam {remaining} de {total} horas",
@@ -4520,6 +4562,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Nada esta com manutenção atrasada.",
   "equipment_list_errorLoading": "Erro ao carregar equipamento: {error}",
   "equipment_list_filterAll": "Todos os Equipamentos",
+  "equipment_list_filterCurrent": "Equipamentos Atuais",
   "equipment_list_filterServiceDue": "Manutenção Pendente",
   "equipment_list_filterServiceDueSoon": "Em Breve",
   "equipment_list_filterServiceOverdue": "Atrasada",
@@ -5362,6 +5405,8 @@
   "media_import_review_chooseSite": "Escolher local",
   "media_import_review_ambiguous": "Vários mergulhos correspondem",
   "media_import_review_noMatch": "Nenhum mergulho correspondente",
+  "media_import_review_noCaptureTime": "Nenhuma data de captura encontrada",
+  "media_import_review_noMatchFileDate": "Nenhum mergulho corresponde à data do arquivo; o arquivo não tem data de captura",
   "media_import_review_skipped": "Não importado",
   "media_import_review_linkChip": "Vincular a #{number}",
   "media_import_review_linkToDive": "Vincular a um mergulho",
@@ -6161,7 +6206,7 @@
   "settings_manage_weightPresets": "Predefinições de lastro",
   "settings_manage_weightPresets_subtitle": "Conjuntos de pesos reutilizáveis para um mergulho",
   "weightPresets_page_title": "Predefinições de lastro",
-  "weightPresets_page_empty": "Guarde um lastro no editor de mergulho e ele aparecerá aqui para reutilizar.",
+  "weightPresets_page_empty": "Guarde um lastro no editor de mergulho ou toque em + para criar um aqui.",
   "weightPresets_action_rename": "Renomear",
   "weightPresets_action_new": "New preset",
   "weightPresets_action_edit": "Edit",
@@ -6263,7 +6308,7 @@
   "settings_section_appearance_title": "Aparência",
   "settings_section_data_subtitle": "Backup, restauração e armazenamento",
   "settings_section_data_title": "Dados",
-  "settings_section_decompression_subtitle": "Fatores de gradiente",
+  "settings_section_decompression_subtitle": "GF, fontes de dados e narcose",
   "settings_section_decompression_title": "Descompressão",
   "settings_section_diverProfile_subtitle": "Mergulhador ativo e perfis",
   "settings_section_diverProfile_title": "Perfil do Mergulhador",
@@ -7114,7 +7159,7 @@
   "transfer_csvExport_unitsMine": "Minhas unidades",
   "transfer_csvExport_unitsMineDescription": "Valores nas suas configurações de unidade, data e hora, indicadas no cabeçalho de cada coluna",
   "transfer_detail_backTooltip": "Voltar para transferência",
-  "transfer_export_aboutContent": "Exporte seus dados de mergulho em vários formatos. PDF cria um logbook imprimível. UDDF é um formato universal compatível com a maioria dos softwares de registro de mergulho. Arquivos CSV podem ser abertos em aplicativos de planilha.",
+  "transfer_export_aboutContent": "Exporte seus dados de mergulho em vários formatos. PDF cria um logbook imprimível. UDDF é um formato universal compatível com a maioria dos softwares de registro de mergulho. Arquivos CSV e Excel podem ser abertos em aplicativos de planilha. Você também pode fazer backup de todo o seu banco de dados em Configurações > Backup e restauração.",
   "transfer_export_aboutTitle": "Sobre Exportação",
   "transfer_export_backupLink": "Ir para Backup e restauração",
   "transfer_export_completed": "Exportação concluída",
@@ -7144,7 +7189,7 @@
   "transfer_export_uddfTitle": "Exportação UDDF",
   "transfer_import_aboutContent": "Use \"Importar Dados\" para a melhor experiência -- ele detecta automaticamente o formato do arquivo e o aplicativo de origem. As opções de formato individual abaixo também estão disponíveis para acesso direto.",
   "transfer_import_aboutTitle": "Sobre Importação",
-  "transfer_import_fileImportSemanticLabel": "Importar dados com detecção automática",
+  "transfer_import_fileImportSemanticLabel": "Importar dados de mergulho de um arquivo",
   "transfer_import_fileImportSubtitle": "Detecta automaticamente CSV, UDDF, FIT e mais",
   "transfer_import_fileImportTitle": "Importar Dados",
   "transfer_import_sectionHeader": "Importar Dados",
@@ -7199,6 +7244,7 @@
   "trips_detail_dialog_deleteTitle": "Excluir Viagem?",
   "trips_detail_dives_empty": "Nenhum mergulho nesta viagem ainda",
   "trips_detail_dives_errorLoading": "Não foi possível carregar os mergulhos",
+  "trips_detail_error_loading": "Não foi possível carregar a viagem.",
   "trips_detail_dives_unknownSite": "Ponto Desconhecido",
   "trips_detail_dives_viewAll": "Ver Todos ({count})",
   "trips_detail_durationDays": "{days} dias",
@@ -7219,8 +7265,8 @@
   "trips_detail_label_vesselType": "Type",
   "trips_detail_scan_accessDenied": "Acesso a biblioteca de fotos negado",
   "trips_detail_scan_addDivesFirst": "Adicione mergulhos primeiro para vincular fotos",
-  "trips_detail_scan_errorLinking": "Erro ao vincular fotos: {error}",
-  "trips_detail_scan_errorScanning": "Erro ao escanear: {error}",
+  "trips_detail_scan_errorLinking": "Não foi possível vincular as fotos. Tente novamente.",
+  "trips_detail_scan_errorScanning": "Não foi possível procurar fotos. Tente novamente.",
   "trips_detail_scan_linkedPhotos": "{count} fotos vinculadas",
   "trips_detail_scan_linkingPhotos": "Vinculando fotos...",
   "trips_detail_sectionTitle_dailyBreakdown": "Daily Breakdown",
@@ -7437,14 +7483,7 @@
   "trips_cylinders_forecast_useEstimate": "Usar a estimativa",
   "trips_cylinders_forecast_fewer": "Menos mergulhos",
   "trips_cylinders_forecast_more": "Mais mergulhos",
-  "trips_cylinders_forecast_saveError": "Não foi possível guardar o plano: {error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "Não foi possível guardar o plano. Tente novamente.",
   "trips_cylinders_forecast_dayPlanned": "Planeado por si",
   "trips_cylinders_segment_record": "Consumo",
   "trips_cylinders_recordEmpty": "Ainda não há mergulhos com estes cilindros.",
@@ -7506,6 +7545,7 @@
     }
   },
   "trips_cylinders_record_exported": "Consumo de gás exportado",
+  "trips_cylinders_record_exportFailed": "Não foi possível exportar o consumo de gás. Tente novamente.",
   "trips_cylinders_title": "Cilindros",
   "trips_cylinders_summary": "Cheios {full} · Parciais {partial} · Vazios {empty}",
   "@trips_cylinders_summary": {
@@ -7706,8 +7746,8 @@
   "trips_edit_sectionTitle_vessel": "Vessel Details",
   "trips_edit_semanticLabel_save": "Salvar viagem",
   "trips_edit_snackBar_added": "Viagem adicionada com sucesso",
-  "trips_edit_snackBar_errorLoading": "Erro ao carregar viagem: {error}",
-  "trips_edit_snackBar_errorSaving": "Erro ao salvar viagem: {error}",
+  "trips_edit_snackBar_errorLoading": "Não foi possível carregar a viagem. Tente novamente.",
+  "trips_edit_snackBar_errorSaving": "Não foi possível salvar a viagem. Tente novamente.",
   "trips_edit_snackBar_updated": "Viagem atualizada com sucesso",
   "trips_edit_validation_nameRequired": "Por favor, insira um nome para a viagem",
   "trips_edit_validation_vesselRequired": "Vessel name is required for liveaboard trips",
@@ -7718,9 +7758,9 @@
   "trips_gallery_diveSection_title": "Mergulho #{number} - {site}",
   "trips_gallery_empty_subtitle": "Toque no ícone da câmera para escanear sua galeria",
   "trips_gallery_empty_title": "Nenhuma foto nesta viagem",
-  "trips_gallery_errorLinking": "Erro ao vincular fotos: {error}",
-  "trips_gallery_errorScanning": "Erro ao escanear: {error}",
-  "trips_gallery_error_loading": "Erro ao carregar fotos: {error}",
+  "trips_gallery_errorLinking": "Não foi possível vincular as fotos. Tente novamente.",
+  "trips_gallery_errorScanning": "Não foi possível procurar fotos. Tente novamente.",
+  "trips_gallery_error_loading": "Não foi possível carregar as fotos.",
   "trips_gallery_linkedPhotos": "{count} fotos vinculadas",
   "trips_gallery_linkingPhotos": "Vinculando fotos...",
   "trips_gallery_tooltip_scan": "Escanear galeria do dispositivo",
@@ -7730,6 +7770,8 @@
   "trips_itinerary_diveCount": "{count, plural, =1{{count} mergulho} other{{count} mergulhos}}",
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_noDives": "No dives",
+  "trips_itinerary_error_loading": "Não foi possível carregar o itinerário.",
+  "trips_itinerary_daySaveError": "Não foi possível guardar o dia. Tente novamente.",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_list_button_retry": "Tentar novamente",
@@ -7739,7 +7781,7 @@
   "trips_list_empty_filtered_title": "Nenhuma viagem corresponde aos seus filtros",
   "trips_list_empty_subtitle": "Crie viagens para agrupar seus mergulhos por destino",
   "trips_list_empty_title": "Nenhuma viagem adicionada ainda",
-  "trips_list_error_loading": "Erro ao carregar viagens: {error}",
+  "trips_list_error_loading": "Não foi possível carregar as suas viagens.",
   "trips_list_fab_addTrip": "Adicionar Viagem",
   "trips_list_filters_clearAll": "Limpar tudo",
   "trips_list_inProgress": "Em andamento",
@@ -7761,7 +7803,7 @@
   "trips_picker_clearTooltip": "Limpar seleção",
   "trips_picker_empty_createButton": "Criar Viagem",
   "trips_picker_empty_title": "Nenhuma viagem ainda",
-  "trips_picker_error": "Erro ao carregar viagens: {error}",
+  "trips_picker_error": "Não foi possível carregar as suas viagens.",
   "trips_picker_hint": "Toque para selecionar uma viagem",
   "trips_picker_newTrip": "Nova Viagem",
   "trips_picker_noSelection": "Nenhuma viagem selecionada",
@@ -7771,6 +7813,7 @@
   "trips_search_empty_hint": "Buscar por nome, localização ou resort",
   "trips_search_fieldLabel": "Buscar viagens...",
   "trips_search_noResults": "Nenhuma viagem encontrada para \"{query}\"",
+  "trips_search_error": "Não foi possível buscar as suas viagens.",
   "trips_search_tooltip_back": "Voltar",
   "trips_search_tooltip_clear": "Limpar busca",
   "trips_summary_header_subtitle": "Selecione uma viagem da lista para ver detalhes",
@@ -8065,14 +8108,7 @@
     }
   },
   "trips_diveScan_deselectAll": "Desmarcar tudo",
-  "trips_diveScan_error": "Erro ao procurar mergulhos: {error}",
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_diveScan_error": "Não foi possível procurar mergulhos. Tente novamente.",
   "trips_diveScan_findButton": "Encontrar mergulhos correspondentes",
   "trips_diveScan_groupOtherTrips": "Em outras viagens ({count})",
   "@trips_diveScan_groupOtherTrips": {

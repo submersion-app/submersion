@@ -1532,7 +1532,8 @@ void main() {
       );
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Error saving trip'), findsOneWidget);
+      expect(find.text("Couldn't save the trip. Try again."), findsOneWidget);
+      expect(find.textContaining('boom'), findsNothing);
     });
   });
 
@@ -1828,7 +1829,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('Error loading trip'), findsOneWidget);
+      expect(find.text("Couldn't load the trip. Try again."), findsOneWidget);
+      expect(find.textContaining('not found'), findsNothing);
     });
   });
 

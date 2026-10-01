@@ -80,32 +80,37 @@ class TripRepository {
 
   /// Search trips by name or location
   Future<List<domain.Trip>> searchTrips(String query, {String? diverId}) async {
-    final searchTerm = '%${query.toLowerCase()}%';
-    final vis = VisibilityFilter.sqlFragment(
-      tableAlias: 'trips',
-      diverId: diverId,
-      conjunction: 'AND',
-      kind: SharedItemKind.trip,
-    );
-    final variables = [
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-      ...vis.variables,
-    ];
+    try {
+      final searchTerm = '%${query.toLowerCase()}%';
+      final vis = VisibilityFilter.sqlFragment(
+        tableAlias: 'trips',
+        diverId: diverId,
+        conjunction: 'AND',
+        kind: SharedItemKind.trip,
+      );
+      final variables = [
+        Variable.withString(searchTerm),
+        Variable.withString(searchTerm),
+        Variable.withString(searchTerm),
+        Variable.withString(searchTerm),
+        ...vis.variables,
+      ];
 
-    final results = await _db.customSelect('''
-      SELECT * FROM trips
-      WHERE (LOWER(name) LIKE ?
-         OR LOWER(location) LIKE ?
-         OR LOWER(resort_name) LIKE ?
-         OR LOWER(liveaboard_name) LIKE ?)
-      ${vis.whereClause}
-      ORDER BY start_date DESC
-    ''', variables: variables).get();
+      final results = await _db.customSelect('''
+        SELECT * FROM trips
+        WHERE (LOWER(name) LIKE ?
+           OR LOWER(location) LIKE ?
+           OR LOWER(resort_name) LIKE ?
+           OR LOWER(liveaboard_name) LIKE ?)
+        ${vis.whereClause}
+        ORDER BY start_date DESC
+      ''', variables: variables).get();
 
-    return results.map((row) => _mapDataToTrip(row.data)).toList();
+      return results.map((row) => _mapDataToTrip(row.data)).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to search trips', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
   }
 
   /// Create a new trip
@@ -394,21 +399,30 @@ class TripRepository {
     String tripId, {
     String? diverId,
   }) async {
-    final diverClause = diverId != null ? 'AND diver_id = ?' : '';
-    final variables = [
-      Variable.withString(tripId),
-      if (diverId != null) Variable.withString(diverId),
-    ];
-    final results = await _db.customSelect('''
-      -- stats-scope-exempt: drives the trip's displayed dive list, which
-      -- shows excluded dives like the logbook does
-      SELECT id FROM dives
-      WHERE trip_id = ?
-      $diverClause
-      ORDER BY dive_date_time DESC
-    ''', variables: variables).get();
+    try {
+      final diverClause = diverId != null ? 'AND diver_id = ?' : '';
+      final variables = [
+        Variable.withString(tripId),
+        if (diverId != null) Variable.withString(diverId),
+      ];
+      final results = await _db.customSelect('''
+        -- stats-scope-exempt: drives the trip's displayed dive list, which
+        -- shows excluded dives like the logbook does
+        SELECT id FROM dives
+        WHERE trip_id = ?
+        $diverClause
+        ORDER BY dive_date_time DESC
+      ''', variables: variables).get();
 
-    return results.map((row) => row.data['id'] as String).toList();
+      return results.map((row) => row.data['id'] as String).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dive ids for trip: $tripId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   /// Get dive count for a trip.
@@ -647,16 +661,26 @@ class TripRepository {
       Variable.withString(tripId),
       if (diverId != null) Variable.withString(diverId),
     ];
-    final statsResult = await _db.customSelect('''
-      SELECT
-        COUNT(*) as dive_count,
-        COALESCE(SUM(COALESCE(runtime, bottom_time)), 0) as total_runtime,
-        MAX(max_depth) as max_depth,
-        AVG(max_depth) as avg_depth
-      FROM dives
-      WHERE trip_id = ?
-      $diverClause${DiveStatsScope.and(alias: 'dives')}
-    ''', variables: variables).getSingle();
+    final QueryRow statsResult;
+    try {
+      statsResult = await _db.customSelect('''
+        SELECT
+          COUNT(*) as dive_count,
+          COALESCE(SUM(COALESCE(runtime, bottom_time)), 0) as total_runtime,
+          MAX(max_depth) as max_depth,
+          AVG(max_depth) as avg_depth
+        FROM dives
+        WHERE trip_id = ?
+        $diverClause${DiveStatsScope.and(alias: 'dives')}
+      ''', variables: variables).getSingle();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get stats for trip: $tripId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
 
     return domain.TripWithStats(
       trip: trip,
@@ -667,9 +691,18 @@ class TripRepository {
     );
   }
 
-  /// Find trip that contains a specific date
+  /// Find the trip whose dates cover [date]'s calendar day; when trips
+  /// overlap, the one that started last.
+  ///
+  /// Days are compared, not instants, as in `tripForDiveDate`: a trip ends
+  /// at midnight of its last day, so comparing the instant missed a dive made
+  /// later that day, and a start carrying a time of day missed a dive made
+  /// earlier on the first (#2618). The day is read from [date]'s own
+  /// components, which are the wall clock both for the dive editor's local
+  /// time and for a dive's wall-clock-as-UTC time.
   Future<domain.Trip?> findTripForDate(DateTime date, {String? diverId}) async {
-    final dateMs = date.millisecondsSinceEpoch;
+    final dayStart = DateTime(date.year, date.month, date.day);
+    final nextDay = DateTime(date.year, date.month, date.day + 1);
     final vis = VisibilityFilter.sqlFragment(
       tableAlias: 'trips',
       diverId: diverId,
@@ -677,8 +710,8 @@ class TripRepository {
       kind: SharedItemKind.trip,
     );
     final variables = [
-      Variable.withInt(dateMs),
-      Variable.withInt(dateMs),
+      Variable.withInt(nextDay.millisecondsSinceEpoch - 1),
+      Variable.withInt(dayStart.millisecondsSinceEpoch),
       ...vis.variables,
     ];
 
@@ -706,55 +739,64 @@ class TripRepository {
   Future<List<domain.TripWithStats>> getAllTripsWithStats({
     String? diverId,
   }) async {
-    final vis = VisibilityFilter.sqlFragment(
-      tableAlias: 't',
-      diverId: diverId,
-      conjunction: 'WHERE',
-      kind: SharedItemKind.trip,
-    );
-
-    // Build the JOIN condition: always match trip_id, and also match
-    // diver_id when a specific diver is requested so that stats on shared
-    // trips reflect only that diver's dives.
-    // The statistics scope goes in the ON clause, not a WHERE: this is a
-    // LEFT JOIN and a WHERE would turn it inner, dropping every trip that
-    // has no in-scope dives instead of showing it with a zero count.
-    final scope = DiveStatsScope.and(alias: 'd');
-    final joinClause = diverId != null
-        ? 'LEFT JOIN dives d ON d.trip_id = t.id AND d.diver_id = ?$scope'
-        : 'LEFT JOIN dives d ON d.trip_id = t.id$scope';
-
-    // When diverId is provided, prepend its variable before the visibility
-    // filter variables so the positional binding lines up with joinClause.
-    final variables = [
-      if (diverId != null) Variable.withString(diverId),
-      ...vis.variables,
-    ];
-
-    final rows = await _db.customSelect('''
-      SELECT
-        t.*,
-        COUNT(DISTINCT d.id) AS dive_count,
-        COALESCE(SUM(COALESCE(d.runtime, d.bottom_time)), 0) AS total_runtime,
-        MAX(d.max_depth) AS max_depth,
-        AVG(d.avg_depth) AS avg_depth
-      FROM trips t
-      $joinClause
-      ${vis.whereClause}
-      GROUP BY t.id
-      ORDER BY t.start_date DESC
-    ''', variables: variables).get();
-
-    return rows.map((row) {
-      final trip = _mapDataToTrip(row.data);
-      return domain.TripWithStats(
-        trip: trip,
-        diveCount: row.data['dive_count'] as int,
-        totalRuntime: row.data['total_runtime'] as int,
-        maxDepth: row.data['max_depth'] as double?,
-        avgDepth: row.data['avg_depth'] as double?,
+    try {
+      final vis = VisibilityFilter.sqlFragment(
+        tableAlias: 't',
+        diverId: diverId,
+        conjunction: 'WHERE',
+        kind: SharedItemKind.trip,
       );
-    }).toList();
+
+      // Build the JOIN condition: always match trip_id, and also match
+      // diver_id when a specific diver is requested so that stats on shared
+      // trips reflect only that diver's dives.
+      // The statistics scope goes in the ON clause, not a WHERE: this is a
+      // LEFT JOIN and a WHERE would turn it inner, dropping every trip that
+      // has no in-scope dives instead of showing it with a zero count.
+      final scope = DiveStatsScope.and(alias: 'd');
+      final joinClause = diverId != null
+          ? 'LEFT JOIN dives d ON d.trip_id = t.id AND d.diver_id = ?$scope'
+          : 'LEFT JOIN dives d ON d.trip_id = t.id$scope';
+
+      // When diverId is provided, prepend its variable before the visibility
+      // filter variables so the positional binding lines up with joinClause.
+      final variables = [
+        if (diverId != null) Variable.withString(diverId),
+        ...vis.variables,
+      ];
+
+      final rows = await _db.customSelect('''
+        SELECT
+          t.*,
+          COUNT(DISTINCT d.id) AS dive_count,
+          COALESCE(SUM(COALESCE(d.runtime, d.bottom_time)), 0) AS total_runtime,
+          MAX(d.max_depth) AS max_depth,
+          AVG(d.avg_depth) AS avg_depth
+        FROM trips t
+        $joinClause
+        ${vis.whereClause}
+        GROUP BY t.id
+        ORDER BY t.start_date DESC
+      ''', variables: variables).get();
+
+      return rows.map((row) {
+        final trip = _mapDataToTrip(row.data);
+        return domain.TripWithStats(
+          trip: trip,
+          diveCount: row.data['dive_count'] as int,
+          totalRuntime: row.data['total_runtime'] as int,
+          maxDepth: row.data['max_depth'] as double?,
+          avgDepth: row.data['avg_depth'] as double?,
+        );
+      }).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get all trips with stats',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   domain.Trip _mapRowToTrip(Trip row) {

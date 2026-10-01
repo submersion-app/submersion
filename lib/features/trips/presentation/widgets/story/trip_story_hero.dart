@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
@@ -9,6 +10,8 @@ import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+const _log = LoggerService('tripStoryHero');
 
 /// Story header: trip identity plus mode-specific extras (countdown and
 /// checklist for planned trips, progress line for in-progress trips, empty
@@ -208,13 +211,16 @@ class _GenerateItineraryButtonState
       await ref.read(itineraryDayRepositoryProvider).saveAll(days);
       ref.invalidate(itineraryDaysProvider(trip.id));
       ref.invalidate(tripStoryProvider(trip.id));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to generate trip itinerary',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              context.l10n.trips_story_generateItineraryError('$e'),
-            ),
+            content: Text(context.l10n.trips_story_generateItineraryError),
           ),
         );
       }

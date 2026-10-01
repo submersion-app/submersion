@@ -515,6 +515,19 @@ class ShearwaterDiveMapper {
       gf99Samples,
     );
 
+    // Gas switches live only in the parsed samples, and a deco bottle without
+    // a transmitter is missing from the metadata's tank list (#2608).
+    final gas = ParsedDiveProfileMapper.gasSwitches(
+      parsed,
+      (merged['tanks'] as List<Map<String, dynamic>>?) ?? const [],
+      profile: merged['profile'] as List<Map<String, dynamic>>,
+    );
+    if (gas.gasSwitches.isNotEmpty) {
+      merged['tanks'] = gas.tanks;
+      merged['gasSwitches'] = gas.gasSwitches;
+      merged['profile'] = gas.profile;
+    }
+
     // Extract water temperature from profile samples if not already set
     if (merged['waterTemp'] == null) {
       final coldest = ParsedDiveProfileMapper.minSampleTemperature(parsed);

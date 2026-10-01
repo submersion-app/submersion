@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
+
+const _log = LoggerService('tripGasRecordExport');
 
 /// The Record header's export: the destination sheet (share or save, with
 /// the CSV units toggle), then the record's rows as a CSV through the
@@ -84,9 +87,14 @@ class TripGasRecordExportButton extends ConsumerWidget {
           messenger.showSnackBar(
             SnackBar(content: Text(l10n.trips_cylinders_record_exported)),
           );
-        } catch (e) {
+        } catch (e, stackTrace) {
+          _log.error(
+            'Failed to export trip gas record',
+            error: e,
+            stackTrace: stackTrace,
+          );
           messenger.showSnackBar(
-            SnackBar(content: Text(l10n.diveLog_export_failed('$e'))),
+            SnackBar(content: Text(l10n.trips_cylinders_record_exportFailed)),
           );
         }
       },

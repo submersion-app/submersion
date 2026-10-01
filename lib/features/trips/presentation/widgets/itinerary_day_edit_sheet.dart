@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
+
+const _log = LoggerService('itineraryDayEditSheet');
 
 /// Shows a modal bottom sheet to edit an itinerary day's type, port name,
 /// and notes. Persists changes via ItineraryDayRepository and invalidates
@@ -78,10 +81,15 @@ class _ItineraryDayEditSheetState
       if (mounted) {
         Navigator.of(context).pop();
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to save itinerary day',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${context.l10n.common_label_error}: $e')),
+          SnackBar(content: Text(context.l10n.trips_itinerary_daySaveError)),
         );
         setState(() => _isSaving = false);
       }

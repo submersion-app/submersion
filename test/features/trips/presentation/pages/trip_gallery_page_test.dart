@@ -84,7 +84,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Error loading photos'), findsOneWidget);
+      expect(find.text("Couldn't load the photos."), findsOneWidget);
+      expect(find.textContaining('Network error'), findsNothing);
     });
 
     testWidgets('shows empty state when no photos', (tester) async {
