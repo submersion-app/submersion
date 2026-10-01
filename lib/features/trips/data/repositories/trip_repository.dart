@@ -667,9 +667,18 @@ class TripRepository {
     );
   }
 
-  /// Find trip that contains a specific date
+  /// Find the trip whose dates cover [date]'s calendar day; when trips
+  /// overlap, the one that started last.
+  ///
+  /// Days are compared, not instants, as in `tripForDiveDate`: a trip ends
+  /// at midnight of its last day, so comparing the instant missed a dive made
+  /// later that day, and a start carrying a time of day missed a dive made
+  /// earlier on the first (#2618). The day is read from [date]'s own
+  /// components, which are the wall clock both for the dive editor's local
+  /// time and for a dive's wall-clock-as-UTC time.
   Future<domain.Trip?> findTripForDate(DateTime date, {String? diverId}) async {
-    final dateMs = date.millisecondsSinceEpoch;
+    final dayStart = DateTime(date.year, date.month, date.day);
+    final nextDay = DateTime(date.year, date.month, date.day + 1);
     final vis = VisibilityFilter.sqlFragment(
       tableAlias: 'trips',
       diverId: diverId,
@@ -677,8 +686,8 @@ class TripRepository {
       kind: SharedItemKind.trip,
     );
     final variables = [
-      Variable.withInt(dateMs),
-      Variable.withInt(dateMs),
+      Variable.withInt(nextDay.millisecondsSinceEpoch - 1),
+      Variable.withInt(dayStart.millisecondsSinceEpoch),
       ...vis.variables,
     ];
 
