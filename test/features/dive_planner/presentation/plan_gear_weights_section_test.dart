@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/buoyancy/weight_observation.dart';
+import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -320,4 +321,105 @@ void main() {
 
     expect(find.text('Add gear to predict your weighting'), findsOneWidget);
   });
+
+  group('issue #2060', () {
+    List<Object> overridesFor(List<Object> base) => [
+      ...base,
+      weightObservationsProvider.overrideWith((ref) async => observations),
+      allEquipmentProvider.overrideWith((ref) async => const [suitItem]),
+      activeEquipmentProvider.overrideWith((ref) async => const [suitItem]),
+      latestDiverWeightProvider.overrideWith((ref) async => entry),
+      latestDiverHeightProvider.overrideWith((ref) async => null),
+    ];
+
+    Future<ProviderContainer> pumpSeeded(
+      WidgetTester tester,
+      List<Object> overrides, {
+      Locale? locale,
+    }) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: locale,
+          child: const SingleChildScrollView(child: PlanGearWeightsSection()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanGearWeightsSection)),
+      );
+      container.read(divePlanNotifierProvider.notifier)
+        ..addTank(
+          const DiveTank(
+            id: 't1',
+            volume: 11.1,
+            workingPressure: 207,
+            material: TankMaterial.aluminum,
+            presetName: 'al80',
+          ),
+        )
+        ..addSimplePlan(maxDepth: 18, bottomTimeMinutes: 40)
+        ..setEquipmentIds(['suit']);
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    testWidgets('the prediction row fits a phone in French', (tester) async {
+      // The reporter's 384 dp wide phone. The test font's glyphs are wider
+      // than Roboto's, which stands in for a large system font size.
+      tester.view.physicalSize = const Size(1080, 2340);
+      tester.view.devicePixelRatio = 2.8125;
+      addTearDown(tester.view.reset);
+
+      await pumpSeeded(
+        tester,
+        overridesFor(await getBaseOverrides()),
+        locale: const Locale('fr'),
+      );
+
+      // The accept label is wider than the card on its own line: it must
+      // wrap below the prediction, not crush it to a zero-width column.
+      expect(tester.takeException(), isNull);
+      final predicted = find.textContaining('Prédit');
+      expect(predicted, findsOneWidget);
+      expect(tester.getSize(predicted).width, greaterThan(50));
+      expect(find.text('Utiliser comme lestage prévu'), findsOneWidget);
+    });
+
+    testWidgets('a failing buoyancy computation keeps the card usable', (
+      tester,
+    ) async {
+      await pumpSeeded(tester, [
+        ...overridesFor(await getBaseOverrides()),
+        planResultsProvider.overrideWith(
+          (ref) => throw StateError('deco engine failed'),
+        ),
+      ]);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(ErrorWidget), findsNothing);
+      expect(find.text('5mm Suit'), findsOneWidget);
+      expect(find.textContaining('Predicted:'), findsOneWidget);
+    });
+
+    testWidgets('a failing weight prediction keeps the card usable', (
+      tester,
+    ) async {
+      await pumpSeeded(tester, [
+        ...overridesFor(await getBaseOverrides()),
+        weightCalibrationProvider.overrideWith((ref) async => _ThrowingModel()),
+      ]);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(ErrorWidget), findsNothing);
+      expect(find.text('5mm Suit'), findsOneWidget);
+      expect(find.textContaining('Predicted:'), findsNothing);
+    });
+  });
+}
+
+class _ThrowingModel extends Fake implements FittedWeightModel {
+  @override
+  WeightPrediction predict(RigSpec rig) =>
+      throw StateError('prediction failed');
 }

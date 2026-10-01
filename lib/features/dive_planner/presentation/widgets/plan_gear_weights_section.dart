@@ -206,16 +206,20 @@ class PlanGearWeightsSection extends ConsumerWidget {
               ),
             if (prediction != null) ...[
               const SizedBox(height: 8),
-              Row(
+              // A Wrap, not a Row: in a long locale on a phone the accept
+              // label alone is wider than the card, and a Row would squeeze
+              // the prediction to a zero-width column (issue #2060). Here the
+              // button drops to its own line instead.
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Expanded(
-                    child: Text(
-                      context.l10n.planner_gearWeights_predicted(
-                        units.formatWeight(prediction.totalKg),
-                      ),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  Text(
+                    context.l10n.planner_gearWeights_predicted(
+                      units.formatWeight(prediction.totalKg),
+                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   TextButton(
@@ -258,11 +262,13 @@ class PlanGearWeightsSection extends ConsumerWidget {
                     color: theme.colorScheme.primary,
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    context.l10n.planner_gearWeights_planned(
-                      units.formatWeight(state.plannedWeightKg!),
+                  Flexible(
+                    child: Text(
+                      context.l10n.planner_gearWeights_planned(
+                        units.formatWeight(state.plannedWeightKg!),
+                      ),
+                      style: theme.textTheme.bodySmall,
                     ),
-                    style: theme.textTheme.bodySmall,
                   ),
                 ],
               ),
