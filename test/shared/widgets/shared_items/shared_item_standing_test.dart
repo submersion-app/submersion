@@ -38,14 +38,14 @@ void main() {
     await pump(tester, ownerId: 'a');
     expect(find.text('unknown'), findsOneWidget);
     active.settle('a');
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('owner'), findsOneWidget);
   });
 
   testWidgets('another profile\'s item stands as other', (tester) async {
     await pump(tester, ownerId: 'a');
     active.settle('b');
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('other'), findsOneWidget);
   });
 
@@ -53,7 +53,7 @@ void main() {
       'the provider still holds the previous one', (tester) async {
     await pump(tester, ownerId: 'a');
     active.settle('a');
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('owner'), findsOneWidget);
 
     container(tester).invalidate(validatedCurrentDiverIdProvider);
@@ -62,14 +62,14 @@ void main() {
     expect(find.text('unknown'), findsOneWidget);
 
     active.settle('b');
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('other'), findsOneWidget);
   });
 
   testWidgets('is unknown when the profile cannot be read', (tester) async {
     await pump(tester, ownerId: 'a');
     active.reads.last.completeError(StateError('database unavailable'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('unknown'), findsOneWidget);
   });
 
@@ -78,7 +78,7 @@ void main() {
   ) async {
     await pump(tester, ownerId: null);
     active.settle('a');
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('owner'), findsOneWidget);
   });
 }
