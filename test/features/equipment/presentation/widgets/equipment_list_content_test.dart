@@ -283,7 +283,9 @@ void main() {
       expect(find.text('1 of 2 items'), findsOneWidget);
     });
 
-    testWidgets('table view counts under the toggle until selecting', (
+    // Table view keeps the count while selecting, as every list's table
+    // mode does: it describes the list, the selection bar the selection.
+    testWidgets('table view keeps the count under the toggle while selecting', (
       tester,
     ) async {
       await pump(
@@ -303,7 +305,13 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('enter_selection')));
       await tester.pumpAndSettle();
 
-      expect(find.text('2 items'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(EquipmentHeaderBar),
+          matching: find.text('2 items'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('the pane header counts under the section toggle', (

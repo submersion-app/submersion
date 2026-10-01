@@ -728,9 +728,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               EquipmentHeaderBar(
                 toggleBuilder: widget.toggleBuilder,
                 actionsBuilder: _noActions,
-                subtitle: selection.isActive
-                    ? null
-                    : equipmentListCountLabel(context, ref),
+                // Kept while selecting, as every list's table mode does.
+                subtitle: equipmentListCountLabel(context, ref),
               ),
             // Table mode has no app bar of its own, so both bars live here:
             // the contextual one while selecting, and the Select affordance
