@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
+import 'package:submersion/features/dive_log/domain/entities/bulk_edit_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
@@ -254,6 +255,54 @@ void main() {
       expect(rows.single.equipmentId, 'cyl1');
     },
   );
+
+  group('undoing a tank replace keeps each tank\'s source (#2716)', () {
+    Future<BulkEditSnapshot> replaceAttributedTank() async {
+      await seed('d1');
+      await diveRepo.bulkAddTank(['d1'], tank('OrigTank'));
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: 'src-1',
+              diveId: 'd1',
+              importedAt: DateTime.utc(2026),
+              createdAt: DateTime.utc(2026),
+            ),
+          );
+      await (db.update(db.diveTanks)..where((t) => t.diveId.equals('d1')))
+          .write(const DiveTanksCompanion(sourceId: Value('src-1')));
+      return service.apply(
+        BulkEditRequest(
+          diveIds: const ['d1'],
+          ops: [
+            TanksOp(mode: BulkCollectionMode.replace, tanks: [tank('NewTank')]),
+          ],
+        ),
+      );
+    }
+
+    Future<DiveTank> restored() => (db.select(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals('d1'))).getSingle();
+
+    test('the source comes back with the tank', () async {
+      final snap = await replaceAttributedTank();
+      await service.undo(snap);
+      final row = await restored();
+      expect(row.tankName, 'OrigTank');
+      expect(row.sourceId, 'src-1');
+    });
+
+    test('a source deleted since the edit is not written back', () async {
+      final snap = await replaceAttributedTank();
+      await diveRepo.deleteComputerReading('src-1');
+      await service.undo(snap);
+      final row = await restored();
+      expect(row.tankName, 'OrigTank');
+      expect(row.sourceId, isNull);
+    });
+  });
 
   test('a bulk template never writes a cylinder link', () async {
     // The link belongs to the transmitter registry, which knows which

@@ -143,6 +143,62 @@ void main() {
     expect(moved.values, [newSource]);
   });
 
+  test(
+    'splitting off a computer\'s primary leaves a hand-added tank',
+    () async {
+      // The only source of a downloaded dive claims a tank the diver added
+      // (it is that source's); split by a computer moves by the computer
+      // rule, as before, so the hand-added tank stays on the dive.
+      for (final id in ['teric', 'perdix']) {
+        await db
+            .into(db.diveComputers)
+            .insert(
+              DiveComputersCompanion.insert(
+                id: id,
+                name: id,
+                createdAt: 1,
+                updatedAt: 1,
+              ),
+            );
+      }
+      await seedFileImport(
+        'f1',
+        'tank-f1',
+        DateTime.utc(2026, 7, 18, 18),
+        o2: 32,
+      );
+      await (db.update(db.diveTanks)..where((t) => t.id.equals('tank-f1')))
+          .write(const DiveTanksCompanion(computerId: Value('teric')));
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(id: 'hand', diveId: 'f1').copyWith(
+              tankOrder: const Value(1),
+              sourceId: const Value('src-f1'),
+            ),
+          );
+      await (db.update(db.diveDataSources)..where((s) => s.id.equals('src-f1')))
+          .write(const DiveDataSourcesCompanion(computerId: Value('teric')));
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: 'src-p',
+              diveId: 'f1',
+              importedAt: DateTime.utc(2026, 7, 18),
+              createdAt: DateTime.utc(2026, 7, 18),
+            ).copyWith(computerId: const Value('perdix')),
+          );
+
+      final newDiveId = await DiveSplitService(
+        diveRepo,
+      ).split(diveId: 'f1', sourceId: 'src-f1');
+
+      expect(await tankSources(newDiveId), hasLength(1));
+      expect((await tankSources('f1')).keys, contains('hand'));
+    },
+  );
+
   test('undo restores each dive\'s tanks with their own sources', () async {
     await seedFileImport(
       'f1',

@@ -86,9 +86,9 @@ class DiveSplitService {
     // series) and no events move. This follows the retired unlinkComputer's
     // convention. Pressure series are the exception: one that names the
     // source moves with it whatever its computer, cloning the tank it sits
-    // on (issue #2440). So are tanks: one that names the source is its
-    // (issue #2716), and an unattributed one falls back to the computer
-    // rule.
+    // on (issue #2440). So are a computer-less source's tanks: one with no
+    // computer that names the source is its (issue #2716). A source with a
+    // computer moves its tanks by the computer rule, as before.
 
     bool ownedByComputer(String? computerId) =>
         source.computerId != null && computerId == source.computerId;
@@ -134,9 +134,12 @@ class DiveSplitService {
       final allTanks = await (_db.select(
         _db.diveTanks,
       )..where((t) => t.diveId.equals(diveId))).get();
-      bool tankBelongsToSource(DiveTank t) => t.sourceId == null
+      // A source with a computer keeps the computer rule exactly; only a
+      // computer-less one, which that rule can never match, claims the
+      // computer-less tanks that name it.
+      bool tankBelongsToSource(DiveTank t) => source.computerId != null
           ? ownedByComputer(t.computerId)
-          : t.sourceId == source.id;
+          : t.computerId == null && t.sourceId == source.id;
 
       // 1. New dive: copy the original row, attribute it to the source's
       // computer, override summary fields with the source's snapshot, and

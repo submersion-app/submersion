@@ -6545,6 +6545,7 @@ class DiveRepository {
     int order, {
     bool withLink = false,
     Set<String> validSlots = const {},
+    Set<String> validSources = const {},
   }) => DiveTanksCompanion(
     id: Value(id),
     diveId: Value(diveId),
@@ -6572,6 +6573,12 @@ class DiveRepository {
     // template copied from a linked tank must not stamp that cylinder onto
     // every dive it lands on, so only a restore writes it.
     equipmentId: withLink ? Value(t.equipmentId) : const Value.absent(),
+    // The data source the row came from (v251, issue #2716): written by the
+    // import and download paths, so a template never carries one, and a
+    // restore puts back only a source the dive still has.
+    sourceId: withLink
+        ? Value(validSources.contains(t.sourceId) ? t.sourceId : null)
+        : const Value.absent(),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).
@@ -6764,6 +6771,16 @@ class DiveRepository {
       final validSlots = restoreLinks
           ? await _tripCylinderIdsForDive(diveId)
           : const <String>{};
+      // Likewise a restored source link (v251), whose source may have been
+      // deleted since.
+      final validSources = restoreLinks
+          ? {
+              for (final s in await (_db.select(
+                _db.diveDataSources,
+              )..where((s) => s.diveId.equals(diveId))).get())
+                s.id,
+            }
+          : const <String>{};
       final existing = await (_db.select(
         _db.diveTanks,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -6788,6 +6805,7 @@ class DiveRepository {
                 i,
                 withLink: restoreLinks,
                 validSlots: validSlots,
+                validSources: validSources,
               ),
             );
         await _syncRepository.markRecordPending(
