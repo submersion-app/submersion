@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
@@ -272,5 +273,49 @@ void main() {
     );
 
     expect(seriesIn(xml), isEmpty);
+  });
+
+  test('skips rows that name nothing it could restore', () {
+    // Untrusted input: a row with no dive or tank ref, a series with no
+    // readable sample, and a tank row naming neither source nor computer.
+    final uddf = XmlDocument.parse('''
+<uddf>
+  <applicationdata>
+    <submersion>
+      <tanksources>
+        <tank diveref="dive_a" tankref="tank_1" source="0"/>
+        <tank diveref="dive_a" tankref="tank_2"/>
+        <tank tankref="tank_3" source="1"/>
+      </tanksources>
+      <tankpressureseries>
+        <series diveref="dive_a" tankref="tank_1" source="x">
+          <sample divetime="0" pressure="200"/>
+          <sample divetime="ten" pressure="190"/>
+        </series>
+        <series diveref="dive_a" tankref="tank_2">
+          <sample divetime="0" pressure="high"/>
+        </series>
+        <series diveref="dive_a">
+          <sample divetime="0" pressure="200"/>
+        </series>
+      </tankpressureseries>
+    </submersion>
+  </applicationdata>
+</uddf>''').rootElement;
+
+    expect(UddfSourceAttribution.parseTanks(uddf), {
+      'dive_a': [
+        {'tankRef': 'tank_1', 'sourceOrdinal': 0, 'computerOrdinal': null},
+      ],
+    });
+    final series = UddfSourceAttribution.parseSeries(uddf);
+    expect(series.keys, ['dive_a']);
+    expect(series['dive_a'], hasLength(1));
+    expect(series['dive_a']!.single['tankRef'], 'tank_1');
+    // An unreadable ordinal is no ordinal, not a guess.
+    expect(series['dive_a']!.single['sourceOrdinal'], isNull);
+    expect(series['dive_a']!.single['samples'], const [
+      (timestamp: 0, pressure: 200.0),
+    ]);
   });
 }
