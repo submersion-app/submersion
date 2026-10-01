@@ -132,6 +132,30 @@ void main() {
     expect(inputs.single.hadDecoObligation, isFalse);
   });
 
+  test('a ceiling-only source keeps its deco when a second computer on the '
+      'dive records deco types and no deco stop', () async {
+    // Two computers disagree: a FIT import logs only a ceiling (no deco
+    // types), a second computer logs NDL throughout. The ceiling-only
+    // series still recorded an obligation, and the no-fly window must not
+    // shrink because the other computer stayed out of deco.
+    await insertDive(
+      'two-computers',
+      exitTime: now.subtract(const Duration(hours: 1)),
+    );
+    await insertProfilePoint('two-computers', ceiling: 3.0);
+    await seriesRepository.insertSeries(
+      diveId: 'two-computers',
+      isPrimary: false,
+      samples: const [ProfileSample(timestamp: 60, depth: 20.0, decoType: 0)],
+      now: now.millisecondsSinceEpoch,
+    );
+
+    final inputs = await repository.getNoFlyDiveInputs(
+      since: now.subtract(const Duration(hours: 48)),
+    );
+    expect(inputs.single.hadDecoObligation, isTrue);
+  });
+
   test('a recorded deco stop event counts as deco', () async {
     await insertDive(
       'event-deco',

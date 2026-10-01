@@ -14,7 +14,9 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.
 /// not touched.
 ///
 /// Only series with both a deco type and a positive ceiling can hold one, so
-/// the scan reads no other blob. The sync stamp (`updated_at`, `hlc`) does
+/// the scan reads no other blob, and it reads those one at a time: every
+/// deco dive from a dive computer qualifies, so loading them together could
+/// hold a whole log's deco profiles in memory at once. The sync stamp (`updated_at`, `hlc`) does
 /// not move: every device runs this same rewrite, so they agree without a
 /// sync round, and moving it would make every device send every affected
 /// series to every other. A blob that does not decode (corrupt, or written
@@ -26,14 +28,20 @@ Future<int> scrubSafetyStopCeilings(DatabaseConnectionUser db) async {
   const codec = ProfileSeriesCodec();
   final candidates = await db
       .customSelect(
-        'SELECT id, samples FROM dive_profile_series '
+        'SELECT id FROM dive_profile_series '
         'WHERE has_deco_type = 1 AND has_positive_ceiling = 1',
       )
       .get();
   var rewritten = 0;
-  for (final row in candidates) {
-    final id = row.read<String>('id');
+  for (final candidate in candidates) {
+    final id = candidate.read<String>('id');
     try {
+      final row = await db
+          .customSelect(
+            'SELECT samples FROM dive_profile_series WHERE id = ?',
+            variables: [Variable<String>(id)],
+          )
+          .getSingle();
       final samples = codec.decode(row.read<Uint8List>('samples'));
       final scrubbed = [
         for (final sample in samples) sample.withoutSafetyStopCeiling(),
