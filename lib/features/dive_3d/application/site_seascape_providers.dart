@@ -19,12 +19,14 @@ import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart'
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/site_active_path_overlay_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_seascape_geometry_service.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/wall_highlight_builder.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_path_adapter.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -476,4 +478,86 @@ final siteSeascapePatchLayerProvider = FutureProvider.autoDispose
         stage: request.stage,
         detailLimitReached: detailLimitReached,
       );
+    });
+
+/// Which kind of entity [siteActivePathOverlayProvider] is placing.
+enum PathOverlaySource { dive, navTrack }
+
+/// Request key for [siteActivePathOverlayProvider]: the site providing the
+/// terrain/projection, the dive or route providing the path, and which of
+/// the two [pathId] refers to.
+typedef SiteActivePathOverlayRequest = ({
+  String siteId,
+  String pathId,
+  PathOverlaySource source,
+});
+
+/// The one dive's or route's path that `SiteTerrainPane` is playing back on
+/// top of the site scene, placed with the SAME projection as the site's own
+/// terrain (reconstructed from [SiteSeascapeReady.axisInputs], exactly how
+/// [siteSeascapePatchLayerProvider] above reconstructs it for the LOD patch)
+/// -- never the path's own, differently-scaled projection, or the path would
+/// land in the wrong place relative to the site's terrain and markers.
+///
+/// Also reports [hasLinkedRoute]: the dive case's "show measured route"
+/// toggle only makes sense when a linked route actually exists to switch to.
+/// Always false for [PathOverlaySource.navTrack] -- a route IS the recorded
+/// path, there is no alternative to toggle.
+final siteActivePathOverlayProvider = FutureProvider.autoDispose
+    .family<
+      ({SiteActivePathOverlay overlay, bool hasLinkedRoute})?,
+      SiteActivePathOverlayRequest
+    >((ref, request) async {
+      final base = await ref.watch(siteSeascapeProvider(request.siteId).future);
+      if (base is! SiteSeascapeReady) return null;
+
+      final site = await ref.watch(siteProvider(request.siteId).future);
+      final center = site?.location;
+      if (center == null) return null;
+
+      ReckonedPath? path;
+      GeoPoint? anchorPoint;
+      var hasLinkedRoute = false;
+      switch (request.source) {
+        case PathOverlaySource.dive:
+          path = await ref.watch(
+            spatialReckonedPathProvider(request.pathId).future,
+          );
+          if (path == null || path.points.length < 2) return null;
+          final route = await ref.watch(
+            primaryNavTrackForDiveProvider(request.pathId).future,
+          );
+          hasLinkedRoute = route != null && route.points.length >= 2;
+          final dive = await ref.watch(diveProvider(request.pathId).future);
+          anchorPoint = path.provenance == PathProvenance.measured
+              ? (route?.anchor ?? dive?.entryLocation)
+              : dive?.entryLocation;
+        case PathOverlaySource.navTrack:
+          final track = await ref.watch(
+            navTrackByIdProvider(request.pathId).future,
+          );
+          if (track == null || track.points.length < 2) return null;
+          path = NavTrackPathAdapter.toReckonedPath(track);
+          if (path.points.length < 2) return null;
+          anchorPoint = track.anchor;
+      }
+
+      final proj = SpatialProjection(
+        minEast: base.axisInputs.minEast,
+        maxEast: base.axisInputs.maxEast,
+        minNorth: base.axisInputs.minNorth,
+        maxNorth: base.axisInputs.maxNorth,
+        maxDepth: base.axisInputs.maxDepth,
+        verticalExaggeration: base.axisInputs.verticalExaggeration,
+      );
+      final anchor = anchorPoint == null
+          ? (east: 0.0, north: 0.0)
+          : enuOffsetMeters(center, anchorPoint);
+      final overlay = buildSiteActivePathOverlay(
+        path: path,
+        anchor: anchor,
+        projection: proj,
+      );
+      if (overlay == null) return null;
+      return (overlay: overlay, hasLinkedRoute: hasLinkedRoute);
     });
