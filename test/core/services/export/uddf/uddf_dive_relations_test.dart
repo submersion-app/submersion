@@ -8,7 +8,9 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
@@ -164,13 +166,13 @@ Future<UddfDiveRelations> _loadRelationsPerDive(List<Dive> dives) async {
   final tags = TagRepository();
   final diveRepository = DiveRepository();
   final computers = DiveComputerRepository();
-  final pressures = TankPressureRepository();
   final diveBuddies = <String, List<BuddyWithRole>>{};
   final diveTags = <String, List<Tag>>{};
   final diveWeights = <String, List<DiveWeight>>{};
   final diveGasSwitches = <String, List<GasSwitchWithTank>>{};
   final diveProfileEvents = <String, List<ProfileEvent>>{};
-  final diveTankPressures = <String, Map<String, List<TankPressurePoint>>>{};
+  final tankSeries = TankPressureSeriesRepository();
+  final diveTankPressures = <String, DiveTankPressureExport>{};
   for (final dive in dives) {
     final buddiesForDive = await buddies.getBuddiesForDive(dive.id);
     if (buddiesForDive.isNotEmpty) diveBuddies[dive.id] = buddiesForDive;
@@ -185,8 +187,13 @@ Future<UddfDiveRelations> _loadRelationsPerDive(List<Dive> dives) async {
           .map(mapDiveProfileEventToProfileEvent)
           .toList();
     }
-    final tankPressures = await pressures.getTankPressuresForDive(dive.id);
-    if (tankPressures.isNotEmpty) diveTankPressures[dive.id] = tankPressures;
+    final series = await tankSeries.getSeriesForDive(dive.id);
+    if (series.isNotEmpty) {
+      diveTankPressures[dive.id] = DiveTankPressureExport(
+        series: series,
+        primarySourceId: await tankSeries.primarySourceId(dive.id),
+      );
+    }
   }
   return UddfDiveRelations(
     diveBuddies: diveBuddies,

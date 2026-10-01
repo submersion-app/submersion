@@ -5009,8 +5009,15 @@ class DiveRepository {
 
   /// Lightweight trailing-window query for the flying-after-diving
   /// classifier: end time (exit time, else entry/date + runtime) plus a
-  /// had-deco flag derived from the recorded profile series (a recorded
-  /// deco stop or a positive ceiling on any series of the dive).
+  /// had-deco flag derived from the recorded profile: a recorded deco stop
+  /// or `decoStopStart` event, or a positive ceiling on a series that
+  /// records no deco type. A series that records deco types says what its
+  /// stops were, so a safety stop stored as a ceiling before #2550 does not
+  /// make a no-deco dive a deco dive. Unlike the Deco filter
+  /// ([decoSignalCondition]) the ceiling rule is applied per series, never
+  /// across them: a second computer's deco types must not cancel the
+  /// obligation a ceiling-only source (a FIT file) recorded, since that
+  /// would shorten the no-fly window.
   // stats-scope-exempt: flying-after-diving safety, an excluded dive still off-gassed
   Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
     required DateTime since,
@@ -5024,8 +5031,11 @@ class DiveRepository {
             'COALESCE(d.exit_time, '
             'COALESCE(d.entry_time, d.dive_date_time) '
             '+ COALESCE(d.runtime, 0) * 1000) AS end_ms, '
-            'EXISTS(SELECT 1 FROM dive_profile_series s WHERE s.dive_id = d.id '
-            'AND (s.has_deco_stop = 1 OR s.has_positive_ceiling = 1)) '
+            '(EXISTS(SELECT 1 FROM dive_profile_series s '
+            'WHERE s.dive_id = d.id AND (s.has_deco_stop = 1 '
+            'OR (s.has_deco_type = 0 AND s.has_positive_ceiling = 1))) '
+            'OR EXISTS(SELECT 1 FROM dive_profile_events e '
+            "WHERE e.dive_id = d.id AND e.event_type = 'decoStopStart')) "
             'AS had_deco '
             'FROM dives d '
             'WHERE COALESCE(d.exit_time, '
@@ -5036,7 +5046,11 @@ class DiveRepository {
               Variable(since.millisecondsSinceEpoch),
               if (diverId != null) Variable(diverId),
             ],
-            readsFrom: {_db.dives, _db.diveProfileSeries},
+            readsFrom: {
+              _db.dives,
+              _db.diveProfileSeries,
+              _db.diveProfileEvents,
+            },
           )
           .get();
       return [
@@ -7471,6 +7485,31 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to save computer readings',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Writes the data source and computer a backup recorded for each tank in
+  /// [byTank] (issues #2492, #2716), once the restored source rows exist.
+  /// See [restoreTankLinks].
+  Future<void> restoreTankAttribution(
+    Map<String, ({String? sourceId, String? computerId})> byTank,
+  ) async {
+    if (byTank.isEmpty) return;
+    try {
+      await restoreTankLinks(
+        _db,
+        _syncRepository,
+        byTank,
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to restore tank attribution',
         error: e,
         stackTrace: stackTrace,
       );

@@ -28386,6 +28386,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_scan_bluetoothUnavailable =>
+      'O Bluetooth está desligado ou indisponível. Ligue-o e toque em Tentar novamente, ou conecte-se pela aba Cabo USB.';
+
+  @override
   String get diveComputer_scan_emptyStateInstructions =>
       'Certifique-se de que seu computador de mergulho:\n• Está ligado\n• Está no modo de emparelhamento Bluetooth\n• Está perto do seu dispositivo';
 

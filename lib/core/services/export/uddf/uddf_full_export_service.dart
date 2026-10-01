@@ -35,6 +35,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 
 /// Handles comprehensive UDDF export of all application data.
 class UddfFullExportService {
@@ -81,7 +82,7 @@ class UddfFullExportService {
     List<EquipmentComponent>? components,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
-    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
@@ -357,7 +358,8 @@ class UddfFullExportService {
                         weightList,
                         trips,
                         gasSwitchList,
-                        tankPressures: diveTankPressures?[dive.id],
+                        tankPressures:
+                            diveTankPressures?[dive.id]?.displayedByTank,
                       );
                     }
                   },
@@ -389,6 +391,8 @@ class UddfFullExportService {
           courses: courses,
           dataSources: sources,
           dataSourceDumps: encodedById,
+          attributedDives: dives,
+          diveTankPressures: diveTankPressures ?? const {},
           components: components,
           gearLinkDives: dives,
           diveBuddies: diveBuddies,
@@ -440,7 +444,7 @@ class UddfFullExportService {
     Map<String, List<DiveWeight>>? diveWeights,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
     Map<String, List<ProfileEvent>>? diveProfileEvents,
-    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    Map<String, DiveTankPressureExport>? diveTankPressures,
     UddfExportOptions options = const UddfExportOptions(),
   }) => _generateAllDataXml(
     dives: dives,
@@ -505,7 +509,7 @@ class UddfFullExportService {
     List<EquipmentComponent>? components,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
-    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
@@ -584,7 +588,7 @@ class UddfFullExportService {
     List<EquipmentComponent>? components,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
-    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
     UddfExportOptions options = const UddfExportOptions(),
   }) async {

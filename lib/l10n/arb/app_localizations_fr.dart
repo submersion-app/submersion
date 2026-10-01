@@ -28480,6 +28480,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_scan_bluetoothUnavailable =>
+      'Le Bluetooth est désactivé ou indisponible. Activez-le et touchez Réessayer, ou connectez-vous avec l\'onglet Câble USB.';
+
+  @override
   String get diveComputer_scan_emptyStateInstructions =>
       'Assurez-vous que votre ordinateur de plongée est :\n• Allumé\n• En mode d\'appairage Bluetooth\n• Proche de votre appareil';
 

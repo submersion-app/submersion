@@ -158,7 +158,9 @@ class _BluetoothScanTab extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    discoveryState.errorMessage!,
+                    discoveryState.bluetoothUnavailable
+                        ? context.l10n.diveComputer_scan_bluetoothUnavailable
+                        : discoveryState.errorMessage!,
                     style: TextStyle(color: colorScheme.onErrorContainer),
                   ),
                 ),

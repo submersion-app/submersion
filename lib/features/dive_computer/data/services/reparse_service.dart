@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
+import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
@@ -727,7 +728,7 @@ class ReparseService {
     ppO2: s.ppo2,
     cns: s.cns,
     ndl: s.decoType == 0 ? s.decoTime : null,
-    ceiling: s.decoType != null && s.decoType != 0 ? s.decoDepth : null,
+    ceiling: decoStopCeiling(s.decoType, s.decoDepth),
     rbt: libdcRbtToSeconds(s.rbt),
     decoType: s.decoType,
     tts: s.tts,

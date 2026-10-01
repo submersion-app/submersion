@@ -1045,12 +1045,18 @@ class AppDatabase extends _$AppDatabase {
     // nav_tracks.diver_id (#2703); 253 is
     // dive_safety_reviews.inputs_hash (#2592).
     254,
+    // v255: drops the ceilings safety stop samples carried from every
+    // stored profile series (issue #2550): a safety stop is no deco
+    // obligation, and its depth drew a deco stop band. Rewrites blobs in
+    // place without moving their sync stamp; an older peer's copy still
+    // reads as a safety stop, so the floor does not move. 254 is
+    // dive_tanks.role_source (#2595), 253 safety review inputs (#2592).
+    255,
     // v256: dives.computer_tissue_json, the tissue state a dive computer
     // reports for the dive (import of Garmin, Shearwater, Suunto, Ratio and
     // UDDF tissue data, issue #1977). Additive nullable column, no
     // backfill, so the floor stays. Renumbered from 220 and then 241: main
-    // shipped 220 to 254 while this was open, and 255 is held by
-    // #2762.
+    // shipped 220 to 255 while this was open.
     256,
   ];
 

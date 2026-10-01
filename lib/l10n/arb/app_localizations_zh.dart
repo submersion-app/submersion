@@ -26903,6 +26903,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_scan_bluetoothUnavailable =>
+      '蓝牙已关闭或不可用。请开启蓝牙后点击重试，或使用 USB 线缆标签页连接。';
+
+  @override
   String get diveComputer_scan_emptyStateInstructions =>
       '请确保您的潜水电脑:\n• 已开启\n• 处于蓝牙配对模式\n• 靠近您的设备';
 

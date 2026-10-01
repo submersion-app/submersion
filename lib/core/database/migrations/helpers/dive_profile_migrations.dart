@@ -2,6 +2,26 @@ part of '../app_database_migrations.dart';
 
 /// Profile series, profile events and the legacy sample tables.
 extension DiveProfileMigrations on AppDatabase {
+  /// v255: drops safety stop ceilings from the stored series (#2550).
+  /// Guarded on the columns it reads and writes, as the other helpers are,
+  /// for migration fixtures that build only part of the schema.
+  Future<void> _scrubSafetyStopCeilings() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('dive_profile_series')",
+    ).get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.containsAll(const [
+      'id',
+      'samples',
+      'codec_version',
+      'has_deco_type',
+      'has_positive_ceiling',
+    ])) {
+      return;
+    }
+    await scrubSafetyStopCeilings(this);
+  }
+
   /// Idempotent DDL for tank_pressure_series.source_id (v241, issue #2440).
   Future<void> _assertTankSeriesSourceIdColumn() async {
     final cols = await customSelect(

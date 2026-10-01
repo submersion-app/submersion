@@ -152,6 +152,15 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankRoleSourceColumn();
     }
     if (from < 254) await reportProgress();
+    // v255: a safety stop is no decompression ceiling (issue #2550). Drops
+    // the ceilings safety stop samples carried from every stored series.
+    // Rung only: new imports no longer write them, and every reader ignores
+    // one that still arrives from an older peer. 254 is dive_tanks.role_source
+    // (#2595), 253 safety review inputs (#2592).
+    if (from < 255) {
+      await _scrubSafetyStopCeilings();
+    }
+    if (from < 255) await reportProgress();
     // v256: dives.computer_tissue_json (issue #1977). Column-only rung, no
     // backfill: null reads as "the computer reported no tissue state".
     if (from < 256) {

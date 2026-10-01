@@ -8444,6 +8444,7 @@
   "diveComputer_pinCode_submit": "Envoyer",
   "diveComputer_pinCode_title": "Code PIN requis",
   "diveComputer_scan_bluetoothSemanticLabel": "Appareil Bluetooth : {name}",
+  "diveComputer_scan_bluetoothUnavailable": "Le Bluetooth est désactivé ou indisponible. Activez-le et touchez Réessayer, ou connectez-vous avec l'onglet Câble USB.",
   "diveComputer_scan_emptyStateInstructions": "Assurez-vous que votre ordinateur de plongée est :\n• Allumé\n• En mode d'appairage Bluetooth\n• Proche de votre appareil",
   "diveComputer_scan_knownBadge": "Connu",
   "diveComputer_scan_lookingForDevicesTitle": "Recherche d'appareils",

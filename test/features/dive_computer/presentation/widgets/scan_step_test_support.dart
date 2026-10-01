@@ -83,13 +83,19 @@ class TestDiscoveryNotifier extends DiscoveryNotifier {
 
 /// Pumps [ScanStepWidget] inside a localized MaterialApp with the platform
 /// dependent providers replaced by fakes.
+///
+/// [discoveryNotifier] replaces the default [TestDiscoveryNotifier], for a
+/// test that needs the scan itself to run.
 Widget buildScanStepTestWidget({
   Map<String, List<DeviceModel>> usbDevices = const {},
+  DiscoveryNotifier Function()? discoveryNotifier,
 }) {
   return ProviderScope(
     overrides: [
       usbDevicesByManufacturerProvider.overrideWith((ref) async => usbDevices),
-      discoveryNotifierProvider.overrideWith((ref) => TestDiscoveryNotifier()),
+      discoveryNotifierProvider.overrideWith(
+        (ref) => discoveryNotifier?.call() ?? TestDiscoveryNotifier(),
+      ),
     ],
     child: MaterialApp(
       // Pinned so finders on English literals do not depend on the host

@@ -8547,6 +8547,7 @@
   "diveComputer_pinCode_submit": "Senden",
   "diveComputer_pinCode_title": "PIN-Code erforderlich",
   "diveComputer_scan_bluetoothSemanticLabel": "Bluetooth-Gerät: {name}",
+  "diveComputer_scan_bluetoothUnavailable": "Bluetooth ist ausgeschaltet oder nicht verfügbar. Schalten Sie es ein und tippen Sie auf Wiederholen, oder verbinden Sie sich über den Tab USB-Kabel.",
   "diveComputer_scan_emptyStateInstructions": "Stellen Sie sicher, dass Ihr Tauchcomputer:\n• Eingeschaltet ist\n• Im Bluetooth-Kopplungsmodus ist\n• Sich in der Nähe Ihres Geräts befindet",
   "diveComputer_scan_knownBadge": "Bekannt",
   "diveComputer_scan_lookingForDevicesTitle": "Gerätesuche",

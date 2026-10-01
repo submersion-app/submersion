@@ -9,12 +9,15 @@ import 'export_logbook_fixture.dart';
 /// database that [seed] fills and that returns the ids worth asking about.
 ///
 /// [batched] must return a map holding exactly the ids that have
-/// something, each with what [single] returns for it.
+/// something, each with what [single] returns for it, in one statement per
+/// chunk of ids plus [extraStatements], such as a follow-up read over only
+/// the ids that had something: a fixed number, never one per id.
 void batchedReadTests<V>({
   required Future<List<String>> Function() seed,
   required Future<Map<String, V>> Function(List<String> ids) batched,
   required Future<V> Function(String id) single,
   required bool Function(V value) holdsNothing,
+  int extraStatements = 0,
 }) {
   late List<String> ids;
 
@@ -43,9 +46,13 @@ void batchedReadTests<V>({
     },
   );
 
-  test('costs one statement however many ids it is given', () async {
+  test('costs the same statements however many ids it is given', () async {
     final (_, statements) = await captureStatements(() => batched(ids));
-    expect(statements, hasLength(1), reason: statements.join('\n'));
+    expect(
+      statements,
+      hasLength(1 + extraStatements),
+      reason: statements.join('\n'),
+    );
   });
 
   test('splits a long id list into bounded statements', () async {
@@ -59,7 +66,11 @@ void batchedReadTests<V>({
     final (result, statements) = await captureStatements(() => batched(long));
 
     expect(chunks, greaterThan(1));
-    expect(statements, hasLength(chunks), reason: statements.join('\n'));
+    expect(
+      statements,
+      hasLength(chunks + extraStatements),
+      reason: statements.join('\n'),
+    );
     for (final id in ids) {
       final expected = await silently(() => single(id));
       if (!holdsNothing(expected)) expect(result[id], expected, reason: id);

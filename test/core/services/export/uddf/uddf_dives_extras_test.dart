@@ -21,6 +21,9 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
+
+import '../../../../helpers/tank_pressure_export_fixtures.dart';
 
 final _epoch = DateTime(2024, 1, 1);
 final _row = BuddyWithRole(
@@ -109,20 +112,21 @@ class _Roles extends Fake implements DiveRoleRepository {
   }
 }
 
-const _pressures = {
-  'd1': {
-    'tank-a': [
+final _pressures = {
+  'd1': testPressureExport({
+    'tank-a': const [
       TankPressurePoint(tankId: 'tank-a', timestamp: 0, pressure: 200.0),
     ],
-  },
+  }),
 };
 
 class _TankPressures extends Fake implements TankPressureRepository {
   final calls = <List<String>>[];
 
   @override
-  Future<Map<String, Map<String, List<TankPressurePoint>>>>
-  getTankPressuresForDives(List<String> diveIds) async {
+  Future<Map<String, DiveTankPressureExport>> getTankPressuresForDives(
+    List<String> diveIds,
+  ) async {
     calls.add(diveIds);
     return _pressures;
   }

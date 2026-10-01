@@ -12,6 +12,7 @@ import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/dive_type_mapper.dart';
@@ -631,6 +632,28 @@ class UddfFullImportService {
         dive['sourceUuid'] as String?,
       );
       if (entries.isNotEmpty) dive['dataSources'] = entries;
+    }
+
+    // Which source recorded each tank and each tank pressure series (issue
+    // #2492), on the dive's own map for the same reason.
+    for (final (key, byDiveRef) in [
+      (
+        UddfSourceAttribution.tanksKey,
+        UddfSourceAttribution.parseTanks(uddfElement),
+      ),
+      (
+        UddfSourceAttribution.seriesKey,
+        UddfSourceAttribution.parseSeries(uddfElement),
+      ),
+    ]) {
+      if (byDiveRef.isEmpty) continue;
+      for (final dive in dives) {
+        final rows = UddfImportResult.sourcesForDive(
+          byDiveRef,
+          dive['sourceUuid'] as String?,
+        );
+        if (rows.isNotEmpty) dive[key] = rows;
+      }
     }
 
     _harvestCustomDiveTypes(dives, customDiveTypes);
@@ -2601,18 +2624,20 @@ class UddfFullImportService {
               'mapping to decoType=2 because the sample still indicates a deco stop.',
             );
           }
-          point['decoType'] = safetyKinds.contains(kind) ? 1 : 2;
+          final isSafetyStop = safetyKinds.contains(kind);
+          point['decoType'] = isSafetyStop ? 1 : 2;
 
           // Map the computer's stop depth to the sample ceiling. UDDF is SI, so
           // `decodepth` is metres and needs no conversion. Unlike Subsurface's
           // delta-encoded stopdepth, `<decostop>` is present on every in-stop
           // waypoint, so there is nothing to carry forward: a waypoint with no
           // decostop is simply no obligation (null ceiling). A non-positive
-          // depth is treated as no stop.
+          // depth is treated as no stop. A safety stop is not an obligation
+          // either, so its depth is no ceiling (#2550).
           final decoDepth = double.tryParse(
             decoStop.getAttribute('decodepth') ?? '',
           );
-          if (decoDepth != null && decoDepth > 0) {
+          if (!isSafetyStop && decoDepth != null && decoDepth > 0) {
             point['ceiling'] = decoDepth;
           }
         }

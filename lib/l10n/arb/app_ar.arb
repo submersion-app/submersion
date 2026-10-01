@@ -8444,6 +8444,7 @@
   "diveComputer_pinCode_submit": "إرسال",
   "diveComputer_pinCode_title": "رمز PIN مطلوب",
   "diveComputer_scan_bluetoothSemanticLabel": "جهاز Bluetooth: {name}",
+  "diveComputer_scan_bluetoothUnavailable": "Bluetooth متوقف أو غير متاح. شغّله واضغط على إعادة المحاولة، أو اتصل عبر علامة التبويب كابل USB.",
   "diveComputer_scan_emptyStateInstructions": "تأكد من أن كمبيوتر الغوص:\n• قيد التشغيل\n• في وضع إقران Bluetooth\n• قريب من جهازك",
   "diveComputer_scan_knownBadge": "معروف",
   "diveComputer_scan_lookingForDevicesTitle": "البحث عن الأجهزة",

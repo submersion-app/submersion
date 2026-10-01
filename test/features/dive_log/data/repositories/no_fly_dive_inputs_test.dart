@@ -115,6 +115,70 @@ void main() {
     expect(inputs.single.hadDecoObligation, isTrue);
   });
 
+  test('a safety stop ceiling on a series with deco types is no deco '
+      '(#2550)', () async {
+    // A series stored before the import fix kept a safety stop's depth as
+    // its ceiling. The computer reported deco types and never a deco stop,
+    // so the dive had no obligation: the same rule the Deco filter uses.
+    await insertDive(
+      'safety-stop-dive',
+      exitTime: now.subtract(const Duration(hours: 1)),
+    );
+    await insertProfilePoint('safety-stop-dive', decoType: 1, ceiling: 5.0);
+
+    final inputs = await repository.getNoFlyDiveInputs(
+      since: now.subtract(const Duration(hours: 48)),
+    );
+    expect(inputs.single.hadDecoObligation, isFalse);
+  });
+
+  test('a ceiling-only source keeps its deco when a second computer on the '
+      'dive records deco types and no deco stop', () async {
+    // Two computers disagree: a FIT import logs only a ceiling (no deco
+    // types), a second computer logs NDL throughout. The ceiling-only
+    // series still recorded an obligation, and the no-fly window must not
+    // shrink because the other computer stayed out of deco.
+    await insertDive(
+      'two-computers',
+      exitTime: now.subtract(const Duration(hours: 1)),
+    );
+    await insertProfilePoint('two-computers', ceiling: 3.0);
+    await seriesRepository.insertSeries(
+      diveId: 'two-computers',
+      isPrimary: false,
+      samples: const [ProfileSample(timestamp: 60, depth: 20.0, decoType: 0)],
+      now: now.millisecondsSinceEpoch,
+    );
+
+    final inputs = await repository.getNoFlyDiveInputs(
+      since: now.subtract(const Duration(hours: 48)),
+    );
+    expect(inputs.single.hadDecoObligation, isTrue);
+  });
+
+  test('a recorded deco stop event counts as deco', () async {
+    await insertDive(
+      'event-deco',
+      exitTime: now.subtract(const Duration(hours: 1)),
+    );
+    await db
+        .into(db.diveProfileEvents)
+        .insert(
+          DiveProfileEventsCompanion.insert(
+            id: 'evt-1',
+            diveId: 'event-deco',
+            timestamp: 600,
+            eventType: 'decoStopStart',
+            createdAt: now.millisecondsSinceEpoch,
+          ),
+        );
+
+    final inputs = await repository.getNoFlyDiveInputs(
+      since: now.subtract(const Duration(hours: 48)),
+    );
+    expect(inputs.single.hadDecoObligation, isTrue);
+  });
+
   test('dive without profile counts as no-deco', () async {
     await insertDive('bare', exitTime: now.subtract(const Duration(hours: 1)));
     final inputs = await repository.getNoFlyDiveInputs(
