@@ -156,6 +156,19 @@ class TripCylinderRepository {
               .get())
           .toSet();
 
+  /// The equipment on [tripId]'s slots (rental slots carry none), for the
+  /// trip's gear alerts (issue #2727).
+  Future<Set<String>> equipmentIdsForTrip(String tripId) async =>
+      (await (_db.selectOnly(_db.tripCylinders)
+                ..addColumns([_db.tripCylinders.equipmentId])
+                ..where(
+                  _db.tripCylinders.tripId.equals(tripId) &
+                      _db.tripCylinders.equipmentId.isNotNull(),
+                ))
+              .map((r) => r.read(_db.tripCylinders.equipmentId)!)
+              .get())
+          .toSet();
+
   Future<domain.TripCylinder> createCylinder(
     domain.TripCylinder cylinder,
   ) async {

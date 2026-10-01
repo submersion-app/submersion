@@ -2,7 +2,12 @@ import 'package:drift/drift.dart' show Value, Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
-    show AppDatabase, DiveSitesCompanion, DivesCompanion, DiveTanksCompanion;
+    show
+        AppDatabase,
+        DiveSitesCompanion,
+        DivesCompanion,
+        DiveTanksCompanion,
+        EquipmentCompanion;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
@@ -219,6 +224,40 @@ void main() {
 
       expect(await repository.getCylindersForTrip(tripId), isEmpty);
       expect(await repository.getCylindersForTrip(otherTripId), hasLength(1));
+    });
+
+    test('equipmentIdsForTrip lists the gear on the trip slots', () async {
+      // The trip-side mirror of tripIdsForEquipment: the trip's service
+      // alerts cover the tanks on its board (issue #2727).
+      for (final id in ['al80', 'hp100', 'steel']) {
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion.insert(
+                id: id,
+                name: id,
+                type: 'tank',
+                createdAt: 1,
+                updatedAt: 1,
+              ),
+            );
+      }
+      await repository.createCylinder(
+        slot(label: 'A').copyWith(equipmentId: 'al80'),
+      );
+      await repository.createCylinder(
+        slot(label: 'B').copyWith(equipmentId: 'hp100'),
+      );
+      // A rental slot carries no equipment; another trip's slot is not ours.
+      await repository.createCylinder(slot(label: 'Rental'));
+      await repository.createCylinder(
+        slot(
+          label: 'Other',
+        ).copyWith(tripId: otherTripId, equipmentId: 'steel'),
+      );
+
+      expect(await repository.equipmentIdsForTrip(tripId), {'al80', 'hp100'});
+      expect(await repository.equipmentIdsForTrip(otherTripId), {'steel'});
     });
   });
 
