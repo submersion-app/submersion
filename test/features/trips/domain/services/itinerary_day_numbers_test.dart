@@ -81,7 +81,11 @@ void main() {
 
     test('a day kept before a later start is day 1, as in the story', () {
       final rows = [
-        _row('kept', DateTime(2026, 3, 5), storedNumber: 1),
+        _row(
+          'kept',
+          DateTime(2026, 3, 5),
+          storedNumber: 1,
+        ).copyWith(portName: 'Hurghada'),
         _row('first', DateTime(2026, 3, 7), storedNumber: 3),
       ];
 
@@ -105,6 +109,23 @@ void main() {
       );
 
       expect(_numbers(numbered), {'first': 2});
+    });
+
+    test('leaves out a plan-only day outside the trip, as the story '
+        'does (#2663)', () {
+      final rows = [
+        _row('bare-before', DateTime(2026, 3, 5), storedNumber: 1),
+        _row('first', DateTime(2026, 3, 7), storedNumber: 3),
+        _row('bare-after', DateTime(2026, 3, 11), storedNumber: 7),
+      ];
+
+      final numbered = numberItineraryDays(
+        trip: _trip(DateTime(2026, 3, 7), DateTime(2026, 3, 9)),
+        dives: const [],
+        itineraryDays: rows,
+      );
+
+      expect(_numbers(numbered), {'first': 1});
     });
 
     test('counts calendar days across a daylight-saving change', () {
@@ -141,7 +162,12 @@ void main() {
       final trip = _trip(DateTime(2026, 3, 7), DateTime(2026, 3, 12));
       final dives = [Dive(id: 'd1', dateTime: DateTime(2026, 3, 13, 9))];
       final rows = [
-        _row('before', DateTime(2026, 3, 4), storedNumber: 9),
+        _row(
+          'before',
+          DateTime(2026, 3, 4),
+          storedNumber: 9,
+        ).copyWith(notes: 'Transfer'),
+        _row('bare', DateTime(2026, 3, 2), storedNumber: 1),
         _row('mid', DateTime(2026, 3, 10), storedNumber: 1),
         _row('after', DateTime(2026, 3, 14), storedNumber: 2),
       ];
@@ -161,6 +187,10 @@ void main() {
         today: DateTime(2026, 6, 1),
       );
 
+      expect(
+        numbered.map((d) => d.id),
+        story.days.map((s) => s.itineraryDay?.id).nonNulls,
+      );
       for (final day in numbered) {
         final storyDay = story.days.singleWhere(
           (s) => s.itineraryDay?.id == day.id,

@@ -13,6 +13,10 @@ import 'package:submersion/features/trips/domain/services/trip_story_builder.dar
 /// before a later start, or a trip dive before it, is day 1, as it is in the
 /// story. Days are counted by calendar, so a daylight-saving change inside
 /// the trip never shifts them.
+///
+/// Only the rows the story shows are listed ([tripStoryItinerary]): a row
+/// outside the trip that carries nothing but a plan is not part of the trip
+/// (#2663), and numbering it would give a day before the start day 0.
 List<ItineraryDay> numberItineraryDays({
   required Trip trip,
   required List<Dive> dives,
@@ -23,7 +27,7 @@ List<ItineraryDay> numberItineraryDays({
     dives: dives,
     itineraryDays: itineraryDays,
   );
-  final byDate = List<ItineraryDay>.of(itineraryDays)
+  final byDate = tripStoryItinerary(trip, itineraryDays)
     ..sort((a, b) {
       final byDay = a.date.compareTo(b.date);
       return byDay != 0 ? byDay : a.id.compareTo(b.id);
