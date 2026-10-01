@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/database/database.dart' hide Diver;
@@ -170,6 +171,64 @@ void main() {
 
     expect(find.text('Only its owner can delete this site'), findsOneWidget);
     expect(closed, 0);
+    expect(
+      await (db.select(
+        db.diveSites,
+      )..where((t) => t.id.equals('pier'))).getSingleOrNull(),
+      isNotNull,
+    );
+  });
+
+  testWidgets('a merge the repository refuses stays on the page and says so', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 3200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await seedSite(db, 'mine', owner: 'd2', name: 'My Pier');
+    // 'pier' (seeded above) is Alice's: Bob may not merge it away.
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          allDiversProvider.overrideWith((_) async => divers),
+          validatedCurrentDiverIdProvider.overrideWith((_) async => 'd2'),
+          shareByDefaultProvider.overrideWith((_) async => false),
+        ],
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: GoRouter(
+            initialLocation: '/merge',
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (_, _) => const Scaffold(body: Text('SITES')),
+                routes: [
+                  GoRoute(
+                    path: 'merge',
+                    builder: (_, _) =>
+                        const SiteEditPage(mergeSiteIds: ['mine', 'pier']),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save').first);
+    // The save spinner runs while the confirmation is open: no settling.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.text('Merge').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('SITES'), findsNothing);
+    expect(find.text('Only its owner can delete this site'), findsOneWidget);
     expect(
       await (db.select(
         db.diveSites,

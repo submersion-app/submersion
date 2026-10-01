@@ -632,11 +632,9 @@ class SiteListNotifier
   Future<int> hideSites(List<String> ids) async {
     final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return 0;
-    final hides = _ref.read(profileHidesRepositoryProvider);
-    var hidden = 0;
-    for (final id in ids) {
-      if (await hides.hide(SharedItemKind.site, id, diverId)) hidden++;
-    }
+    final hidden = await _ref
+        .read(profileHidesRepositoryProvider)
+        .hideAll(SharedItemKind.site, ids, diverId);
     await _loadSites();
     _invalidateSiteProviders(ids);
     _ref.invalidate(hiddenItemsProvider);
