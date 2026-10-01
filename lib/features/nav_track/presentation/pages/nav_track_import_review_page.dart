@@ -583,13 +583,14 @@ class _DiveLinkPicker extends StatelessWidget {
     final theme = Theme.of(context);
     final fallback = candidates.isEmpty;
     final candidateIds = {for (final dive in candidates) dive.id};
-    final rows = [...fallback ? nearby.take(inlineNearbyCount) : candidates];
-    // The current choice is always visible, even when it came from the
-    // sheet or from the caller rather than from the rows above.
+    final offered = fallback ? nearby.take(inlineNearbyCount) : candidates;
     final current = selected;
-    if (current != null && rows.every((d) => d.id != current.id)) {
-      rows.add(current);
-    }
+    final rows = [
+      ...offered,
+      // The current choice is always visible, even when it came from the
+      // sheet or from the caller rather than from the rows above.
+      if (current != null && offered.every((d) => d.id != current.id)) current,
+    ];
     return RadioGroup<String?>(
       groupValue: selected?.id,
       onChanged: (id) => onChanged(rows.where((d) => d.id == id).firstOrNull),

@@ -68,16 +68,17 @@ class NavTrackMatcher {
     required List<Dive> dives,
     int limit = nearestLimit,
   }) {
-    int startOf(Dive dive) =>
-        dive.effectiveEntryTime.millisecondsSinceEpoch ~/ 1000;
-    final sorted = [...dives]
-      ..sort((a, b) {
-        final byDistance = (startOf(a) - routeStartSeconds).abs().compareTo(
-          (startOf(b) - routeStartSeconds).abs(),
-        );
-        return byDistance != 0 ? byDistance : startOf(a).compareTo(startOf(b));
-      });
-    return sorted.take(limit).toList();
+    final byStart = [
+      for (final dive in dives)
+        (dive, dive.effectiveEntryTime.millisecondsSinceEpoch ~/ 1000),
+    ];
+    byStart.sort((a, b) {
+      final byDistance = (a.$2 - routeStartSeconds).abs().compareTo(
+        (b.$2 - routeStartSeconds).abs(),
+      );
+      return byDistance != 0 ? byDistance : a.$2.compareTo(b.$2);
+    });
+    return [for (final (dive, _) in byStart.take(limit)) dive];
   }
 
   static int _diveEndSeconds(Dive dive, int diveStartSeconds) {
