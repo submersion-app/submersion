@@ -156,7 +156,7 @@ extension RungsFromV231 on AppDatabase {
     // the ceilings safety stop samples carried from every stored series.
     // Rung only: new imports no longer write them, and every reader ignores
     // one that still arrives from an older peer. 254 is dive_tanks.role_source
-    // (#2595); 253 is held by #2748.
+    // (#2595), 253 safety review inputs (#2592).
     if (from < 255) {
       await _scrubSafetyStopCeilings();
     }

@@ -121,11 +121,11 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 255);
     expect(AppDatabase.migrationVersions, contains(255));
-    // 254 (dive_tanks.role_source, #2595) sits directly below this rung;
-    // 253 is held by an open branch (#2748).
-    expect(AppDatabase.migrationVersions, contains(254));
+    // 254 (dive_tanks.role_source, #2595) sits directly below this rung,
+    // and 253 (safety review inputs, #2592) below that.
+    expect(AppDatabase.migrationVersions, containsAll([253, 254]));
     expect(AppDatabase.migrationStepCount(254), 1);
-    expect(AppDatabase.migrationStepCount(252), 2);
+    expect(AppDatabase.migrationStepCount(252), 3);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

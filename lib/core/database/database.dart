@@ -1050,7 +1050,7 @@ class AppDatabase extends _$AppDatabase {
     // obligation, and its depth drew a deco stop band. Rewrites blobs in
     // place without moving their sync stamp; an older peer's copy still
     // reads as a safety stop, so the floor does not move. 254 is
-    // dive_tanks.role_source (#2595); 253 is held by #2748.
+    // dive_tanks.role_source (#2595), 253 safety review inputs (#2592).
     255,
   ];
 
