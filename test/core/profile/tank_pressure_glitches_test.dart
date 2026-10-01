@@ -432,6 +432,47 @@ void main() {
       );
     });
 
+    test('a sparse series that drains into near zero is believed', () {
+      // Five minutes between readings: a 10 bar step is the gas breathed in
+      // that gap, as the glitch scan's own span rule holds for a dip.
+      final series = <PressureReading>[
+        for (final (i, bar) in [40.0, 31.0, 22.0, 13.0, 3.0].indexed)
+          (t: i * 300, bar: bar),
+      ];
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: 3.0,
+          otherBar: 40,
+          readings: series,
+          atStart: false,
+        ),
+        3.0,
+      );
+    });
+
+    test('a non-finite other end is no real pressure', () {
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: 0.3,
+          otherBar: double.infinity,
+          readings: const [],
+          atStart: false,
+        ),
+        0.3,
+      );
+    });
+
+    test('a non-finite series reading never becomes the replacement', () {
+      final series = withValues(draining(), {29: double.infinity});
+      final resolved = replaceNearZeroEndpoint(
+        reportedBar: 0.3,
+        otherBar: 200,
+        readings: series,
+        atStart: false,
+      );
+      expect(resolved, closeTo(200 - 28 * 0.3, 1e-9));
+    });
+
     test('a non-finite value is resolved like a near-zero one', () {
       expect(
         replaceNearZeroEndpoint(

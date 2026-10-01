@@ -191,10 +191,11 @@ double? replaceGlitchedEndpoint({
 /// either and is treated the same way. Such a value is resolved from
 /// [readings]:
 ///
-/// * where the first or last clean reading is itself above that bound, the
-///   series contradicts the value and that reading replaces it. A series
-///   that drops straight to near zero and stays there until the log ends is
-///   a dropout nothing came after, so the reading before the drop counts as
+/// * where the first or last clean, finite reading is itself at or above
+///   that bound, the series contradicts the value and that reading replaces
+///   it. A series that drops straight to near zero within
+///   [kPressureGlitchMaxSeconds] and stays there until the log ends is a
+///   dropout nothing came after, so the reading before the drop counts as
 ///   its last;
 /// * where the clean reading is near zero as well, the series agrees and the
 ///   value is kept;
@@ -217,24 +218,32 @@ double? replaceNearZeroEndpoint({
     return reportedBar;
   }
   if (readings.isNotEmpty) {
-    final clean = _cleanReadings(
-      readings,
-      scan ?? scanPressureGlitches(readings),
-    );
+    final clean = [
+      for (final r in _cleanReadings(
+        readings,
+        scan ?? scanPressureGlitches(readings),
+      ))
+        if (r.bar.isFinite) r,
+    ];
     if (clean.isNotEmpty) {
       final seriesBar = atStart ? clean.first.bar : _lastRealBar(clean);
       return seriesBar >= kPressureGlitchNearZeroBar ? seriesBar : reportedBar;
     }
   }
   final otherIsReal =
-      otherBar != null && otherBar >= kPressureGlitchNearZeroBar;
+      otherBar != null &&
+      otherBar.isFinite &&
+      otherBar >= kPressureGlitchNearZeroBar;
   return otherIsReal ? null : reportedBar;
 }
 
 /// The last reading of the clean, time-ordered series [clean], or the one
 /// before a near-zero run that closes it when that run starts with a drop of
-/// more than [kPressureGlitchMinDipBar]. A cylinder drained into near zero
-/// reading by reading keeps its last reading: the series shows it emptying.
+/// more than [kPressureGlitchMinDipBar] within [kPressureGlitchMaxSeconds].
+/// A cylinder drained into near zero reading by reading keeps its last
+/// reading: the series shows it emptying. So does a sparse series, where the
+/// drop may have happened at any point of a long gap and is as likely the
+/// gas breathed in it, as the dip rule of [scanPressureGlitches] holds.
 double _lastRealBar(List<PressureReading> clean) {
   var k = clean.length - 1;
   while (k > 0 && clean[k].bar < kPressureGlitchNearZeroBar) {
@@ -245,7 +254,8 @@ double _lastRealBar(List<PressureReading> clean) {
   final before = clean[k].bar;
   final dropsStraightDown =
       before >= kPressureGlitchNearZeroBar &&
-      before - clean[k + 1].bar > kPressureGlitchMinDipBar;
+      before - clean[k + 1].bar > kPressureGlitchMinDipBar &&
+      clean[k + 1].t - clean[k].t <= kPressureGlitchMaxSeconds;
   return dropsStraightDown ? before : last;
 }
 
