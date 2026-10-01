@@ -1807,33 +1807,14 @@ class SyncDataSerializer {
     }
   }
 
-  /// The sync record id of a [parentGatedChildEntities] row, in the shape
-  /// SyncService.recordIdForEntity uses (a composite key is joined with
-  /// `|`). Mirrored here rather than imported because sync_service.dart
-  /// imports this file; a test pins that the two agree.
+  /// The sync record id of a [parentGatedChildEntities] row: the
+  /// [syncRecordId] the merge keys it by (a composite key is joined with
+  /// `|`).
   @visibleForTesting
   static String? parentGatedRecordId(
     String entityType,
     Map<String, dynamic> row,
-  ) {
-    String? composite(Object? left, Object? right) =>
-        left is String && right is String ? '$left|$right' : null;
-    switch (entityType) {
-      case 'diveSafetyReviews':
-        return row['diveId'] as String?;
-      case 'diveEquipment':
-        return row['id'] as String? ??
-            composite(row['diveId'], row['equipmentId']);
-      case 'equipmentSetItems':
-        return row['id'] as String? ??
-            composite(row['setId'], row['equipmentId']);
-      case 'divePlanEquipment':
-        return row['id'] as String? ??
-            composite(row['planId'], row['equipmentId']);
-      default:
-        return row['id'] as String?;
-    }
-  }
+  ) => syncRecordId(entityType, row);
 
   /// The SQL table of each [parentGatedChildEntities] type. A test pins it
   /// to SyncRepository.hlcTargets, which stamps the same tables.
