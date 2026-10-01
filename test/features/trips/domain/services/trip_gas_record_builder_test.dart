@@ -178,6 +178,27 @@ void main() {
     expect(r.rows.single.fill!.id, 'f2');
   });
 
+  test('a fill stamped with seconds in the dive\'s minute counts for it', () {
+    // Bottle 22 saved at 07:00:35 with the fill sheet's default "now"; the
+    // dive typed in at 07:00 (issue #2662).
+    final r = buildTripGasRecord(
+      cylinders: [a],
+      eventsBySlot: {
+        'a': [
+          events['a']![0],
+          events['a']![1].copyWith(
+            occurredAt: at(11, 7).add(const Duration(seconds: 35)),
+          ),
+        ],
+      },
+      tanks: [tank('t9', 'd9', 'a', at(11, 7), start: 207, end: 80)],
+      gasModel: GasModel.ideal,
+      defaultCurrency: 'USD',
+    );
+    expect(r.rows.single.fill!.id, 'f2');
+    expect(r.rows.single.bottleLabel, '22');
+  });
+
   test('a dive before any fill has no fill and no fill pressure', () {
     final r = record(
       tanks: [tank('t0', 'd0', 'a', at(8, 9), start: 200, end: 50)],

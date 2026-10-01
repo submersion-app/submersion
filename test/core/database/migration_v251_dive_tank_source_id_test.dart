@@ -106,9 +106,10 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 251);
     expect(AppDatabase.migrationVersions, contains(251));
-    // 250 is claimed by open PRs (#2675, #2562), so this rung sits right
-    // above 249 for now.
-    expect(AppDatabase.migrationStepCount(249), 1);
+    // 250 (profile hides, #2594) sits below this rung.
+    expect(AppDatabase.migrationVersions, contains(250));
+    expect(AppDatabase.migrationStepCount(250), 1);
+    expect(AppDatabase.migrationStepCount(249), 2);
   });
 
   test('the column is additive and did not move the sync floor', () {

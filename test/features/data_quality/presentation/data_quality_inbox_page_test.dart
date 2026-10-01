@@ -125,6 +125,7 @@ QualityFinding _f({
   required QualityCategory category,
   Map<String, Object?> params = const {},
   QualitySeverity severity = QualitySeverity.warning,
+  QualityStatus status = QualityStatus.open,
   int detectorVersion = 1,
 }) => QualityFinding(
   id: id,
@@ -135,7 +136,7 @@ QualityFinding _f({
   detectorVersion: detectorVersion,
   category: category,
   severity: severity,
-  status: QualityStatus.open,
+  status: status,
   params: params,
   createdAt: DateTime.utc(2026, 7, 17),
   updatedAt: DateTime.utc(2026, 7, 17),
@@ -550,6 +551,335 @@ void main() {
       expect(find.text('Depth spike'), findsNothing);
     },
   );
+
+  testWidgets('chip counts cover only the dives in the deep-link filter', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        filterDiveId: 'd2',
+        findings: [
+          _f(
+            id: 'cc-clock-d2',
+            diveId: 'd2',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 2},
+          ),
+          // A pair anchored on d1 but naming d2 is in scope, so it counts.
+          _f(
+            id: 'cc-dup',
+            diveId: 'd1',
+            relatedDiveId: 'd2',
+            detectorId: 'duplicate',
+            category: QualityCategory.duplicate,
+            params: const {'score': 0.9, 'timeDiffMinutes': 5},
+          ),
+          // Outside the filter: shown nowhere on this page, so counted nowhere.
+          _f(
+            id: 'cc-clock-d1',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 3},
+          ),
+          _f(
+            id: 'cc-gap-d3',
+            diveId: 'd3',
+            detectorId: 'sample_gap',
+            category: QualityCategory.profile,
+            params: const {'gapCount': 1, 'longestGapSeconds': 30},
+          ),
+          _f(
+            id: 'cc-pressure-d3',
+            diveId: 'd3',
+            detectorId: 'pressure_anomaly',
+            category: QualityCategory.pressure,
+            params: const {'startBar': 50.0, 'endBar': 200.0},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(QualityFindingCard), findsNWidgets(2));
+    expect(find.text('Time (1)'), findsOneWidget);
+    expect(find.text('Duplicates (1)'), findsOneWidget);
+    expect(find.text('Profile (0)'), findsOneWidget);
+    expect(find.text('Tanks (0)'), findsOneWidget);
+  });
+
+  testWidgets('chip counts leave out closed findings on the filtered dive', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        filterDiveId: 'd1',
+        findings: [
+          _f(
+            id: 'cf-open',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 2},
+          ),
+          _f(
+            id: 'cf-dismissed',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 3},
+            status: QualityStatus.dismissed,
+          ),
+          _f(
+            id: 'cf-resolved',
+            detectorId: 'sample_gap',
+            category: QualityCategory.profile,
+            params: const {'gapCount': 1, 'longestGapSeconds': 30},
+            status: QualityStatus.resolved,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(QualityFindingCard), findsOneWidget);
+    expect(find.text('Time (1)'), findsOneWidget);
+    expect(find.text('Profile (0)'), findsOneWidget);
+  });
+
+  testWidgets('chip counts span every dive in a comma-separated filter', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        filterDiveId: 'd1,d2',
+        findings: [
+          _f(
+            id: 'cs-gap-d1',
+            detectorId: 'sample_gap',
+            category: QualityCategory.profile,
+            params: const {'gapCount': 1, 'longestGapSeconds': 30},
+          ),
+          _f(
+            id: 'cs-temp-d2',
+            diveId: 'd2',
+            detectorId: 'temp_anomaly',
+            category: QualityCategory.temperature,
+            params: const {'deltaC': 6.0, 'spikeShaped': true},
+          ),
+          _f(
+            id: 'cs-spike-d3',
+            diveId: 'd3',
+            detectorId: 'depth_spike',
+            category: QualityCategory.profile,
+            params: const {'depth': 55.0, 'atSeconds': 120},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Profile covers profile and temperature: one each from d1 and d2, and
+    // none from d3, which sits outside the imported set.
+    expect(find.text('Profile (2)'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilterChip, 'Profile (2)'));
+    await tester.pumpAndSettle();
+    expect(find.byType(QualityFindingCard), findsNWidgets(2));
+  });
+
+  bool chipSelected(WidgetTester tester, String label) => tester
+      .widget<FilterChip>(find.widgetWithText(FilterChip, label))
+      .selected;
+
+  testWidgets('each visit to the inbox starts on the All chip', (tester) async {
+    final prefs = await _prefs();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: _overrides(
+          prefs,
+          findings: [
+            _f(
+              id: 'v-clock',
+              detectorId: 'clock_offset',
+              category: QualityCategory.time,
+              params: const {'offsetHours': 2},
+            ),
+          ],
+        ).cast(),
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const SizedBox.shrink(),
+        ),
+      ),
+    );
+    Future<void> openInbox() async {
+      unawaited(
+        navigatorKey.currentState!.push(
+          MaterialPageRoute<void>(builder: (_) => const DataQualityInboxPage()),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await openInbox();
+    await tester.tap(find.widgetWithText(FilterChip, 'Tanks (0)'));
+    await tester.pumpAndSettle();
+    expect(chipSelected(tester, 'Tanks (0)'), isTrue);
+
+    navigatorKey.currentState!.pop();
+    await tester.pumpAndSettle();
+    await openInbox();
+
+    expect(chipSelected(tester, 'All'), isTrue);
+    expect(find.byType(QualityFindingCard), findsOneWidget);
+  });
+
+  testWidgets('the chip survives opening a dive and coming back', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: _overrides(
+          prefs,
+          findings: [
+            _f(
+              id: 's-clock',
+              detectorId: 'clock_offset',
+              category: QualityCategory.time,
+              params: const {'offsetHours': 2},
+            ),
+          ],
+        ).cast(),
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DataQualityInboxPage(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, 'Time (1)'));
+    await tester.pumpAndSettle();
+
+    // A route pushed over the inbox (a dive, say) keeps it mounted, so the
+    // diver comes back to the category they were working through.
+    unawaited(
+      navigatorKey.currentState!.push(
+        MaterialPageRoute<void>(builder: (_) => const SizedBox.shrink()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    navigatorKey.currentState!.pop();
+    await tester.pumpAndSettle();
+
+    expect(chipSelected(tester, 'Time (1)'), isTrue);
+  });
+
+  testWidgets('an inbox stacked on another keeps its own chip', (tester) async {
+    // Library inbox -> a dive -> that dive's Data Quality link mounts a second
+    // inbox over the first; each must keep its own selection.
+    final prefs = await _prefs();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: _overrides(
+          prefs,
+          findings: [
+            _f(
+              id: 'k-clock',
+              detectorId: 'clock_offset',
+              category: QualityCategory.time,
+              params: const {'offsetHours': 2},
+            ),
+          ],
+        ).cast(),
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DataQualityInboxPage(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, 'Tanks (0)'));
+    await tester.pumpAndSettle();
+
+    unawaited(
+      navigatorKey.currentState!.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const DataQualityInboxPage(filterDiveId: 'd1'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(chipSelected(tester, 'All'), isTrue);
+    expect(find.byType(QualityFindingCard), findsOneWidget);
+
+    navigatorKey.currentState!.pop();
+    await tester.pumpAndSettle();
+    expect(chipSelected(tester, 'Tanks (0)'), isTrue);
+  });
+
+  testWidgets('a chip that hides every finding says so and offers the rest', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        filterDiveId: 'd1',
+        findings: [
+          _f(
+            id: 'e-clock',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 2},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, 'Tanks (0)'));
+    await tester.pumpAndSettle();
+
+    // The dive still has a Time finding, so the page must not call it clean.
+    expect(find.byType(QualityFindingCard), findsNothing);
+    expect(find.text('All clear'), findsNothing);
+    expect(find.text('No findings in this category'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextButton, 'Show all findings'));
+    await tester.pumpAndSettle();
+
+    expect(chipSelected(tester, 'All'), isTrue);
+    expect(find.byType(QualityFindingCard), findsOneWidget);
+  });
+
+  testWidgets('with nothing in scope the inbox still reads All clear', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(_scope(prefs));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, 'Tanks (0)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('All clear'), findsOneWidget);
+    expect(find.text('No findings in this category'), findsNothing);
+  });
 
   testWidgets('one dive gets one header even when findings interleave', (
     tester,

@@ -114,8 +114,15 @@ extension RungsFromV231 on AppDatabase {
       await _assertTripFillForecastColumns();
     }
     if (from < 249) await reportProgress();
+    // v250: a profile's hidden shared trips and sites (issue #2594).
+    // Table-only rung, no backfill; re-asserted in beforeOpen.
+    if (from < 250) {
+      await _assertTripHidesSchema();
+      await _assertSiteHidesSchema();
+    }
+    if (from < 250) await reportProgress();
     // v251: dive_tanks.source_id (issue #2716), backfilled where the
-    // source is unambiguous. 250 is claimed by open PRs (#2675, #2562).
+    // source is unambiguous. 250 is profile hides (#2594).
     if (from < 251) {
       await _assertDiveTankSourceIdColumn();
       await _backfillDiveTankSourceIds();

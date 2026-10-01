@@ -57,6 +57,16 @@ class DiveMergeSnapshot {
   final List<DiveProfileSeriesRow> profileSeriesRows;
   final List<TankPressureSeriesRow> tankSeriesRows;
 
+  /// The sync key (entity type, record id) of every data source, tide record
+  /// and gear link, the children an undo restores by a verbatim batch insert
+  /// and then marks pending (#2670).
+  List<(String, String)> get batchRestoredChildKeys => [
+    for (final r in dataSourceRows) ('diveDataSources', r.id),
+    for (final r in tideRows) ('tideRecords', r.id),
+    for (final r in equipmentRows)
+      ('diveEquipment', '${r.diveId}|${r.equipmentId}'),
+  ];
+
   /// Reads (does not mutate) every row belonging to [diveIds] so a merge
   /// can later be applied and, if needed, undone.
   static Future<DiveMergeSnapshot> capture(

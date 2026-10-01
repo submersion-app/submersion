@@ -128,6 +128,10 @@ class TripGasRecordRow extends Equatable {
   /// pressure is missing.
   final double? litres;
 
+  /// The bottle a fill named, or null when [bottleLabel] is only the slot's
+  /// label, which the board's lines leave out the same way.
+  String? get namedBottle => bottleLabel == cylinder.label ? null : bottleLabel;
+
   GasMix? get orderedMix => fill?.orderedMix;
   GasMix? get analyzedMix => fill?.analyzedMix;
   String? get diveCenterId => fill?.diveCenterId;

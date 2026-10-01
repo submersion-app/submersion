@@ -37,8 +37,9 @@ void main() {
   );
 
   test('v249 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v251 (dive_tanks.source_id, #2716) landed on top; the
-    // newest rung owns the exact assertions.
+    // Relaxed once v250 (profile hides, #2594) and v251
+    // (dive_tanks.source_id, #2716) landed on top; the newest rung owns
+    // the exact assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(249));
     expect(AppDatabase.migrationVersions, contains(249));
     // 248 (trip_equipment, #2338) sits below this rung.

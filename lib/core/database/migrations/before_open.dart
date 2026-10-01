@@ -184,6 +184,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // v248 backstop: trip_equipment and its item index (idempotent).
     await _assertTripEquipmentSchema();
 
+    // v250 backstop: trip_hides and site_hides (idempotent).
+    await _assertTripHidesSchema();
+    await _assertSiteHidesSchema();
+
     // v122 backstop: re-assert service ledger schema + built-in kinds.
     // The legacy backfill is NOT here (onUpgrade only) -- re-running it
     // would resurrect user-deleted schedules.

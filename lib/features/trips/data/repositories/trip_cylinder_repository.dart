@@ -46,16 +46,27 @@ class TripCylinderRepository {
   /// or the dive tanks and dives that consume them. A sync pull that
   /// rewrites a tank row never touches the dives row, so dive_tanks is
   /// watched on its own.
-  Stream<void> watchTripCylinderChanges() => _db.tableUpdates(
+  Stream<void> watchTripCylinderChanges() =>
+      _db.tableUpdates(TableUpdateQuery.allOf(_boardTables));
+
+  /// The board's changes plus the divers: the gas record names each tank's
+  /// diver, and a rename writes only the divers row. The board itself shows
+  /// no diver, so it keeps the narrower stream.
+  Stream<void> watchGasRecordChanges() => _db.tableUpdates(
     TableUpdateQuery.allOf([
-      TableUpdateQuery.onTable(_db.tripCylinders),
-      TableUpdateQuery.onTable(_db.tripCylinderEvents),
-      TableUpdateQuery.onTable(_db.diveTanks),
-      TableUpdateQuery.onTable(_db.dives),
-      // Tank uses carry the dive's site name.
-      TableUpdateQuery.onTable(_db.diveSites),
+      ..._boardTables,
+      TableUpdateQuery.onTable(_db.divers),
     ]),
   );
+
+  List<TableUpdateQuery> get _boardTables => [
+    TableUpdateQuery.onTable(_db.tripCylinders),
+    TableUpdateQuery.onTable(_db.tripCylinderEvents),
+    TableUpdateQuery.onTable(_db.diveTanks),
+    TableUpdateQuery.onTable(_db.dives),
+    // Tank uses carry the dive's site name.
+    TableUpdateQuery.onTable(_db.diveSites),
+  ];
 
   /// Changes to the slots or the ledger only. The ledger reads neither
   /// dives, tanks nor sites, so it need not refetch when those change.
