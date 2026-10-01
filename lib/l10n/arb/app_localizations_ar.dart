@@ -21399,7 +21399,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'احفظ أوزانًا من محرر الغطسة وستظهر هنا لإعادة الاستخدام.';
+      'احفظ أوزانًا من محرر الغطسة، أو انقر على + لإنشاء مجموعة هنا.';
 
   @override
   String get weightPresets_action_rename => 'إعادة تسمية';
@@ -21756,7 +21756,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_section_data_title => 'البيانات';
 
   @override
-  String get settings_section_decompression_subtitle => 'عوامل التدرج';
+  String get settings_section_decompression_subtitle =>
+      'GF، مصادر البيانات والتخدير';
 
   @override
   String get settings_section_decompression_title => 'تخفيف الضغط';
@@ -24848,7 +24849,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'قم بتصدير بيانات الغوص بصيغ متعددة. ينشئ PDF سجل غوص قابل للطباعة. UDDF هو تنسيق عالمي متوافق مع معظم برامج تسجيل الغوص. يمكن فتح ملفات CSV في تطبيقات جداول البيانات.';
+      'قم بتصدير بيانات الغوص بصيغ متعددة. ينشئ PDF سجل غوص قابل للطباعة. UDDF هو تنسيق عالمي متوافق مع معظم برامج تسجيل الغوص. يمكن فتح ملفات CSV وExcel في تطبيقات جداول البيانات. يمكنك أيضًا نسخ قاعدة بياناتك بالكامل احتياطيًا من الإعدادات > نسخ احتياطي واستعادة.';
 
   @override
   String get transfer_export_backupLink =>
@@ -24950,7 +24951,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transfer_import_fileImportSemanticLabel =>
-      'استيراد البيانات مع الكشف التلقائي';
+      'استيراد بيانات الغوص من ملف';
 
   @override
   String get transfer_import_fileImportSubtitle =>

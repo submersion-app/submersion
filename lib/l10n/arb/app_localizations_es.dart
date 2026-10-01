@@ -21734,7 +21734,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'Guarda un lastre desde el editor de inmersiones y aparecerá aquí para reutilizarlo.';
+      'Guarda un lastre desde el editor de inmersiones o toca + para crear uno aquí.';
 
   @override
   String get weightPresets_action_rename => 'Renombrar';
@@ -22095,7 +22095,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_section_data_title => 'Datos';
 
   @override
-  String get settings_section_decompression_subtitle => 'Factores de gradiente';
+  String get settings_section_decompression_subtitle =>
+      'GF, fuentes de datos y narcosis';
 
   @override
   String get settings_section_decompression_title => 'Descompresión';
@@ -25179,7 +25180,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'Exporta tus datos de buceo en varios formatos. PDF crea un libro de registro imprimible. UDDF es un formato universal compatible con la mayoría del software de registro de buceo. Los archivos CSV se pueden abrir en aplicaciones de hojas de cálculo.';
+      'Exporta tus datos de buceo en varios formatos. PDF crea un libro de registro imprimible. UDDF es un formato universal compatible con la mayoría del software de registro de buceo. Los archivos CSV y Excel se pueden abrir en aplicaciones de hojas de cálculo. También puedes hacer una copia de seguridad de toda tu base de datos desde Configuración > Respaldo y Restauración.';
 
   @override
   String get transfer_export_backupLink =>
@@ -25283,7 +25284,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get transfer_import_fileImportSemanticLabel =>
-      'Importar datos con detección automática';
+      'Importar datos de buceo desde un archivo';
 
   @override
   String get transfer_import_fileImportSubtitle =>

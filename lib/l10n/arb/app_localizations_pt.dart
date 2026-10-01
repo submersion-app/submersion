@@ -21733,7 +21733,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'Guarde um lastro no editor de mergulho e ele aparecerá aqui para reutilizar.';
+      'Guarde um lastro no editor de mergulho ou toque em + para criar um aqui.';
 
   @override
   String get weightPresets_action_rename => 'Renomear';
@@ -22095,7 +22095,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_section_data_title => 'Dados';
 
   @override
-  String get settings_section_decompression_subtitle => 'Fatores de gradiente';
+  String get settings_section_decompression_subtitle =>
+      'GF, fontes de dados e narcose';
 
   @override
   String get settings_section_decompression_title => 'Descompressão';
@@ -25169,7 +25170,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'Exporte seus dados de mergulho em vários formatos. PDF cria um logbook imprimível. UDDF é um formato universal compatível com a maioria dos softwares de registro de mergulho. Arquivos CSV podem ser abertos em aplicativos de planilha.';
+      'Exporte seus dados de mergulho em vários formatos. PDF cria um logbook imprimível. UDDF é um formato universal compatível com a maioria dos softwares de registro de mergulho. Arquivos CSV e Excel podem ser abertos em aplicativos de planilha. Você também pode fazer backup de todo o seu banco de dados em Configurações > Backup e restauração.';
 
   @override
   String get transfer_export_backupLink => 'Ir para Backup e restauração';
@@ -25271,7 +25272,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transfer_import_fileImportSemanticLabel =>
-      'Importar dados com detecção automática';
+      'Importar dados de mergulho de um arquivo';
 
   @override
   String get transfer_import_fileImportSubtitle =>

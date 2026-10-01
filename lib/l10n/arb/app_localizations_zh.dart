@@ -20658,7 +20658,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get weightPresets_page_title => '配重预设';
 
   @override
-  String get weightPresets_page_empty => '在潜水编辑器中保存一份配重，它就会出现在这里供重复使用。';
+  String get weightPresets_page_empty => '在潜水编辑器中保存一份配重，或点按 + 在此新建一份。';
 
   @override
   String get weightPresets_action_rename => '重命名';
@@ -23892,7 +23892,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      '以多种格式导出您的潜水数据。PDF 可创建可打印的潜水日志。UDDF 是与大多数潜水日志软件兼容的通用格式。CSV 文件可在电子表格应用中打开。';
+      '以多种格式导出您的潜水数据。PDF 可创建可打印的潜水日志。UDDF 是与大多数潜水日志软件兼容的通用格式。CSV 和 Excel 文件可在电子表格应用中打开。您也可以在「设置 > 备份与恢复」中备份整个数据库。';
 
   @override
   String get transfer_export_backupLink => '前往备份与恢复';

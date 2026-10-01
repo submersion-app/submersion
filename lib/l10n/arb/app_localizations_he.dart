@@ -21223,7 +21223,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'שמור משקולות מעורך הצלילה והן יופיעו כאן לשימוש חוזר.';
+      'שמור משקולות מעורך הצלילה, או הקש על + כדי ליצור סט כאן.';
 
   @override
   String get weightPresets_action_rename => 'שנה שם';
@@ -21576,7 +21576,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_section_data_title => 'נתונים';
 
   @override
-  String get settings_section_decompression_subtitle => 'גורמי שיפוע';
+  String get settings_section_decompression_subtitle =>
+      'GF, מקורות נתונים ונרקוזה';
 
   @override
   String get settings_section_decompression_title => 'דקומפרסיה';
@@ -24560,7 +24561,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'ייצא את נתוני הצלילה שלך בפורמטים שונים. PDF יוצר יומן צלילות להדפסה. UDDF הוא פורמט אוניברסלי התואם לרוב תוכנות יומני הצלילה. ניתן לפתוח קבצי CSV ביישומי גיליונות אלקטרוניים.';
+      'ייצא את נתוני הצלילה שלך בפורמטים שונים. PDF יוצר יומן צלילות להדפסה. UDDF הוא פורמט אוניברסלי התואם לרוב תוכנות יומני הצלילה. ניתן לפתוח קבצי CSV ו-Excel ביישומי גיליונות אלקטרוניים. ניתן גם לגבות את כל מסד הנתונים שלך דרך הגדרות > גיבוי ושחזור.';
 
   @override
   String get transfer_export_backupLink => 'עבור לגיבוי ושחזור';
@@ -24660,7 +24661,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transfer_import_fileImportSemanticLabel =>
-      'ייבא נתונים עם זיהוי אוטומטי';
+      'ייבא נתוני צלילה מקובץ';
 
   @override
   String get transfer_import_fileImportSubtitle =>

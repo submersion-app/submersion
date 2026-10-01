@@ -21732,7 +21732,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'Salva una zavorra dall\'editor dell\'immersione e comparirà qui per riutilizzarla.';
+      'Salva una zavorra dall\'editor dell\'immersione oppure tocca + per crearne una qui.';
 
   @override
   String get weightPresets_action_rename => 'Rinomina';
@@ -22091,7 +22091,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_section_data_title => 'Dati';
 
   @override
-  String get settings_section_decompression_subtitle => 'Fattori di gradiente';
+  String get settings_section_decompression_subtitle =>
+      'GF, fonti dei dati e narcosi';
 
   @override
   String get settings_section_decompression_title => 'Decompressione';
@@ -25161,7 +25162,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'Esporta i tuoi dati di immersione in vari formati. Il PDF crea un logbook stampabile. L\'UDDF è un formato universale compatibile con la maggior parte dei software di registrazione immersioni. I file CSV possono essere aperti nelle applicazioni di fogli di calcolo.';
+      'Esporta i tuoi dati di immersione in vari formati. Il PDF crea un logbook stampabile. L\'UDDF è un formato universale compatibile con la maggior parte dei software di registrazione immersioni. I file CSV ed Excel possono essere aperti nelle applicazioni di fogli di calcolo. Puoi anche eseguire il backup dell\'intero database da Impostazioni > Backup e ripristino.';
 
   @override
   String get transfer_export_backupLink => 'Vai a Backup e ripristino';
@@ -25263,7 +25264,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get transfer_import_fileImportSemanticLabel =>
-      'Importa dati con rilevamento automatico';
+      'Importa dati di immersione da file';
 
   @override
   String get transfer_import_fileImportSubtitle =>

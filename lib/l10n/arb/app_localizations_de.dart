@@ -17657,7 +17657,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_diveMediaSection_thumbnailLabel =>
-      'Foto anzeigen. Lange drücken zum Trennen';
+      'Foto anzeigen. Lange drücken zum Auswählen';
 
   @override
   String get media_diveMediaSection_title => 'Fotos & Video';
@@ -17860,10 +17860,10 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Fotos',
-      one: 'Foto',
+      other: 'Fotos konnten',
+      one: 'Foto konnte',
     );
-    return '$_temp0 konnte nicht importiert werden';
+    return '$_temp0 nicht importiert werden';
   }
 
   @override
@@ -21707,7 +21707,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'Speichere eine Bleimenge im Tauchgang-Editor, dann erscheint sie hier zur Wiederverwendung.';
+      'Speichere eine Bleimenge im Tauchgang-Editor oder tippe auf +, um hier eine anzulegen.';
 
   @override
   String get weightPresets_action_rename => 'Umbenennen';
@@ -22067,7 +22067,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_section_data_title => 'Daten';
 
   @override
-  String get settings_section_decompression_subtitle => 'Gradientenfaktoren';
+  String get settings_section_decompression_subtitle =>
+      'GF, Datenquellen & Narkose';
 
   @override
   String get settings_section_decompression_title => 'Dekompression';
@@ -23257,7 +23258,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Deko-Daten konnten nicht geladen werden';
 
   @override
-  String get insights_profile_deco_noDeco => 'Kein Deko';
+  String get insights_profile_deco_noDeco => 'Keine Deko';
 
   @override
   String get insights_profile_deco_notRecorded => 'Nicht erfasst';
@@ -25119,7 +25120,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'Exportieren Sie Ihre Tauchdaten in verschiedenen Formaten. PDF erstellt ein druckbares Tauchlogbuch. UDDF ist ein universelles Format, das mit den meisten Tauchlog-Programmen kompatibel ist. CSV-Dateien können in Tabellenkalkulationen geöffnet werden.';
+      'Exportieren Sie Ihre Tauchdaten in verschiedenen Formaten. PDF erstellt ein druckbares Tauchlogbuch. UDDF ist ein universelles Format, das mit den meisten Tauchlog-Programmen kompatibel ist. CSV- und Excel-Dateien können in Tabellenkalkulationen geöffnet werden. Unter Einstellungen > Sicherung und Wiederherstellung können Sie außerdem Ihre gesamte Datenbank sichern.';
 
   @override
   String get transfer_export_backupLink => 'Zu Sicherung & Wiederherstellung';
@@ -25222,7 +25223,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_import_fileImportSemanticLabel =>
-      'Daten mit automatischer Erkennung importieren';
+      'Tauchdaten aus Datei importieren';
 
   @override
   String get transfer_import_fileImportSubtitle =>
@@ -37110,7 +37111,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der schwerste Knochenfisch mit über 2 Tonnen Gewicht. Gelegentlich von Tauchern an Putzerstationen vor Bali und Galapagos gesichtet.';
 
   @override
-  String get species_lingcod_name => 'Lingcod';
+  String get species_lingcod_name => 'Lengdorsch';
 
   @override
   String get species_lingcod_desc =>
@@ -39457,7 +39458,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Grünrückiger Barsch mit dunklem Seitenstreifen und riesigem Maul, lauert an Baumstämmen und Krautkanten warmer Seen.';
 
   @override
-  String get species_smallmouth_bass_name => 'Großer Schwarzbarsch';
+  String get species_smallmouth_bass_name => 'Schwarzbarsch';
 
   @override
   String get species_smallmouth_bass_desc =>
@@ -39871,18 +39872,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bandförmiger silberner Amazonasfisch mit zwei Kinnbarteln, der aus dem Wasser springt, um Insekten von Zweigen zu schnappen.';
 
   @override
-  String get species_red_bellied_piranha_name => 'Diamant-Piranha';
+  String get species_red_bellied_piranha_name => 'Roter Piranha';
 
   @override
   String get species_red_bellied_piranha_desc =>
       'Hochrückiger silberner Fisch mit karmesinrotem Bauch und messerscharfen Zähnen, zieht in Schwärmen durch Amazonas-Altwasser.';
 
   @override
-  String get species_black_piranha_name => 'Roter Piranha';
+  String get species_black_piranha_name => 'Schwarzer Piranha';
 
   @override
   String get species_black_piranha_desc =>
-      'Große einzelgängerische Piranha mit roten Augen und dunklem rautenförmigem Körper, lauert in klaren felsigen Amazonas-Nebenflüssen.';
+      'Großer einzelgängerischer Piranha mit roten Augen und dunklem rautenförmigem Körper, lauert in klaren felsigen Amazonas-Nebenflüssen.';
 
   @override
   String get species_red_bellied_pacu_name => 'Gamitana-Scheibensalmler';
@@ -40011,7 +40012,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Robuster olivfarbener Fisch, der Luft atmet und auf seinen stacheligen Kiemendeckeln über Land zwischen austrocknenden Tümpeln kriecht.';
 
   @override
-  String get species_golden_mahseer_name => 'Riesenbarbe';
+  String get species_golden_mahseer_name => 'Goldener Mahseer';
 
   @override
   String get species_golden_mahseer_desc =>
@@ -44796,7 +44797,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_edit_excludeFromGasStatsHelp =>
-      'Lasse diesen Tauchgang nur aus AMV-, RMV- und Gasgemisch-Statistiken heraus. Nützlich, wenn der Gaswert nicht repräsentativ ist.';
+      'Lasse diesen Tauchgang nur aus Druckverbrauch-, AMV- und Gasgemisch-Statistiken heraus. Nützlich, wenn der Gaswert nicht repräsentativ ist.';
 
   @override
   String get diveLog_badge_excludedFromStats =>
