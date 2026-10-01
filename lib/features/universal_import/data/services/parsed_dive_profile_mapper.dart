@@ -1,5 +1,8 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
+import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Converts a libdivecomputer [pigeon.ParsedDive] into the profile-sample
 /// maps the import pipeline consumes.
@@ -94,6 +97,67 @@ class ParsedDiveProfileMapper {
       return sampleMap;
     }).toList();
   }
+
+  /// The gas switches of [parsed], addressed to positions in [tanks], the
+  /// tank maps the source file itself lists for the dive.
+  ///
+  /// libdivecomputer reports a gas change as a new `gasMixIndex` on the
+  /// samples ([breathedGasSequence]), numbered against its own gas list, while
+  /// the source keeps a tank list of its own. Each gas is matched to the first
+  /// listed tank carrying the same mix. A dive that switches gas gets a
+  /// pressureless cylinder appended for every gas it breathed that the source
+  /// never listed, starting gas included: Shearwater Cloud lists only tanks
+  /// with a transmitter, so a deco bottle usually has no tank of its own, and
+  /// a switch needs a cylinder to point to.
+  ///
+  /// Returns [tanks] itself, unchanged, when the dive never switched gas.
+  static ({
+    List<Map<String, dynamic>> tanks,
+    List<Map<String, dynamic>> gasSwitches,
+  })
+  gasSwitches(pigeon.ParsedDive parsed, List<Map<String, dynamic>> tanks) {
+    final sequence = breathedGasSequence(parsed);
+    if (sequence.length < 2) return (tanks: tanks, gasSwitches: const []);
+
+    final resolvedTanks = [...tanks];
+    final positionOfGas = <int, int>{};
+    int positionOf(int gasIndex) => positionOfGas.putIfAbsent(gasIndex, () {
+      final gas = parsed.gasMixes[gasIndex];
+      final listed = resolvedTanks.indexWhere(
+        (t) => _sameGas(t['gasMix'] as GasMix?, gas),
+      );
+      if (listed >= 0) return listed;
+      resolvedTanks.add(<String, dynamic>{
+        'gasMix': GasMix(o2: gas.o2Percent, he: gas.hePercent),
+        'role': openCircuitTankRole(gas.o2Percent, gas.hePercent),
+        'order': resolvedTanks.length,
+      });
+      return resolvedTanks.length - 1;
+    });
+
+    // Resolved in breathing order, so on a source with no tanks the starting
+    // gas lands first, where the gas-usage timeline expects it.
+    final positions = [for (final g in sequence) positionOf(g.gasIndex)];
+    return (
+      tanks: resolvedTanks,
+      gasSwitches: [
+        for (var i = 1; i < sequence.length; i++)
+          <String, dynamic>{
+            'timestamp': sequence[i].timeSeconds,
+            'depth': sequence[i].depthMeters,
+            'tankIndex': positions[i],
+          },
+      ],
+    );
+  }
+
+  /// Whether [listed] is the same mix as [gas]. The native bridges compute
+  /// percentages as `fraction * 100.0`, so a whole-percent mix can arrive a
+  /// few ULPs off; half a percentage point separates any two real mixes.
+  static bool _sameGas(GasMix? listed, pigeon.GasMix gas) =>
+      listed != null &&
+      (listed.o2 - gas.o2Percent).abs() < 0.5 &&
+      (listed.he - gas.hePercent).abs() < 0.5;
 
   /// The coldest sample temperature, or null when no sample carried one.
   /// Used as a water-temperature fallback when the source metadata has none.

@@ -60,7 +60,30 @@ List<GasSwitchEvent> resolveGasSwitches(pigeon.ParsedDive parsed) {
   if (gasIndexToTankIndex.isEmpty) {
     return const [];
   }
+  return [
+    for (final change in breathedGasSequence(parsed).skip(1))
+      if (gasIndexToTankIndex[change.gasIndex] case final tankIndex?)
+        GasSwitchEvent(
+          timeSeconds: change.timeSeconds,
+          depth: change.depthMeters,
+          toTankIndex: tankIndex,
+        ),
+  ];
+}
 
+/// One entry of [breathedGasSequence]: the sample at which the diver started
+/// breathing the gas mix at position [gasIndex] in `ParsedDive.gasMixes`.
+typedef BreathedGas = ({int timeSeconds, double depthMeters, int gasIndex});
+
+/// The gases [parsed] was breathed on, in order: the starting gas first, then
+/// one entry for every later change to a different gas mix.
+///
+/// Every entry after the first is a gas switch. Callers that number cylinders
+/// their own way (the file importers, whose tank lists come from the source
+/// file rather than from libdivecomputer) map each gas index themselves;
+/// [resolveGasSwitches] maps it onto the cylinders of [resolveParsedTanks].
+List<BreathedGas> breathedGasSequence(pigeon.ParsedDive parsed) {
+  final gasCount = parsed.gasMixes.length;
   // Sort by time, tie-broken by original order, so the same raw bytes always
   // yield identical switches (List.sort is not guaranteed stable).
   final indexed =
@@ -70,36 +93,33 @@ List<GasSwitchEvent> resolveGasSwitches(pigeon.ParsedDive parsed) {
           return byTime != 0 ? byTime : a.$1.compareTo(b.$1);
         });
 
-  final switches = <GasSwitchEvent>[];
-  int? previousGasIndex;
+  final sequence = <BreathedGas>[];
   for (final (_, s) in indexed) {
     final gasIndex = s.gasMixIndex;
-    // Treat a sample with no usable gas (null, or an index that maps to no
-    // cylinder, e.g. an out-of-range/sentinel value) as carrying no gas info:
-    // skip it without disturbing the baseline, so a stray value can't suppress
-    // or fabricate a later switch.
-    if (gasIndex == null || !gasIndexToTankIndex.containsKey(gasIndex)) {
+    // Treat a sample with no usable gas (null, or an index that names no gas
+    // mix, e.g. an out-of-range/sentinel value) as carrying no gas info: skip
+    // it without disturbing the baseline, so a stray value can't suppress or
+    // fabricate a later switch.
+    if (gasIndex == null || gasIndex < 0 || gasIndex >= gasCount) {
       continue;
     }
-    if (previousGasIndex == null) {
-      // Baseline: the starting gas, represented by the starting tank.
-      previousGasIndex = gasIndex;
+    if (sequence.isNotEmpty && sequence.last.gasIndex == gasIndex) {
       continue;
     }
-    if (gasIndex == previousGasIndex) {
-      continue;
-    }
-    previousGasIndex = gasIndex;
-    switches.add(
-      GasSwitchEvent(
-        timeSeconds: s.timeSeconds,
-        depth: s.depthMeters,
-        toTankIndex: gasIndexToTankIndex[gasIndex]!,
-      ),
-    );
+    sequence.add((
+      timeSeconds: s.timeSeconds,
+      depthMeters: s.depthMeters,
+      gasIndex: gasIndex,
+    ));
   }
-  return switches;
+  return sequence;
 }
+
+/// The [TankRole] an open-circuit cylinder holding this gas gets when the
+/// computer reported no usage for it: deco at 41% O2 or more without helium,
+/// back gas otherwise. The same rule [resolveParsedTanks] applies.
+TankRole openCircuitTankRole(double o2Percent, double hePercent) =>
+    TankRole.values.byName(_inferRole(null, o2Percent, hePercent));
 
 /// The resolved cylinders plus the map from each gas-mix index to the cylinder
 /// index that holds it, so tank labeling and gas-switch derivation share one

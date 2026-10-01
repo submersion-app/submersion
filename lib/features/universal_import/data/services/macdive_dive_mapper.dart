@@ -520,6 +520,17 @@ class MacDiveDiveMapper {
       if (map['runtime'] == null && parsed.durationSeconds > 0) {
         map['runtime'] = Duration(seconds: parsed.durationSeconds);
       }
+      // The raw download is the only column that records when the diver
+      // switched gas: `ZSAMPLES` carries no gas channel, and a `ZEVENT` row
+      // has no column naming a gas (#2608).
+      final gas = ParsedDiveProfileMapper.gasSwitches(
+        parsed,
+        (map['tanks'] as List<Map<String, dynamic>>?) ?? const [],
+      );
+      if (gas.gasSwitches.isNotEmpty) {
+        map['tanks'] = gas.tanks;
+        map['gasSwitches'] = gas.gasSwitches;
+      }
       return true;
     }
     return false;
