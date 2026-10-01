@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -127,14 +128,20 @@ Future<void> _pump(
 /// the root navigator (the global drop target and the OS share intent);
 /// otherwise it is pushed from the origin page on the shell's navigator (the
 /// routes list, a dive's route section, the import wizard, the GPS logger).
+///
+/// [overRootLevelPage] first opens a page that, like Add Buddy, lives on the
+/// root navigator above the whole shell, then pushes the review from the
+/// root navigator's own context, as the OS share intent does.
 Future<GoRouter> _pumpWithRouter(
   WidgetTester tester, {
   required NavTrackImportPreview preview,
   NavTrackImportService? service,
   List<EquipmentItem>? equipment,
   bool fromAboveShell = false,
+  bool overRootLevelPage = false,
 }) async {
   final base = await getBaseOverrides();
+  final rootNavigatorKey = GlobalKey<NavigatorState>();
   void openReview(BuildContext context) {
     Navigator.of(context).push<void>(
       MaterialPageRoute(
@@ -148,7 +155,7 @@ Future<GoRouter> _pumpWithRouter(
   }
 
   final router = GoRouter(
-    navigatorKey: GlobalKey<NavigatorState>(),
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/origin',
     routes: [
       ShellRoute(
@@ -187,6 +194,12 @@ Future<GoRouter> _pumpWithRouter(
           ),
         ],
       ),
+      GoRoute(
+        path: '/root-level',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) =>
+            const Scaffold(body: Text('ROOT_LEVEL_PAGE')),
+      ),
     ],
   );
   await tester.pumpWidget(
@@ -206,11 +219,17 @@ Future<GoRouter> _pumpWithRouter(
     ),
   );
   await tester.pumpAndSettle();
-  await tester.tap(
-    find.text(
-      fromAboveShell ? 'OPEN_REVIEW_ABOVE_SHELL' : 'OPEN_REVIEW_IN_SHELL',
-    ),
-  );
+  if (overRootLevelPage) {
+    unawaited(router.push('/root-level'));
+    await tester.pumpAndSettle();
+    openReview(rootNavigatorKey.currentContext!);
+  } else {
+    await tester.tap(
+      find.text(
+        fromAboveShell ? 'OPEN_REVIEW_ABOVE_SHELL' : 'OPEN_REVIEW_IN_SHELL',
+      ),
+    );
+  }
   await tester.pumpAndSettle();
   return router;
 }
@@ -569,8 +588,14 @@ void main() {
       await tester.pumpAndSettle();
 
       // No navigation to a route that was never created; the failure is
-      // surfaced instead.
+      // surfaced instead, and Save is offered again rather than left
+      // disabled (#2693).
       expect(find.text('ROUTE_DETAIL_PAGE'), findsNothing);
+      expect(find.textContaining('commit failed'), findsOneWidget);
+      final save = tester.widget<FilledButton>(
+        find.byKey(const ValueKey('nav-track-import-save')),
+      );
+      expect(save.onPressed, isNotNull);
     },
   );
 
@@ -611,6 +636,34 @@ void main() {
       },
     );
   }
+
+  testWidgets(
+    'a save from the share intent over a root-level page (Add Buddy) closes '
+    'that page too, so the new route is not opened underneath it',
+    (tester) async {
+      final router = await _pumpWithRouter(
+        tester,
+        preview: _preview(),
+        service: _RecordingImportService(),
+        overRootLevelPage: true,
+      );
+
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NavTrackImportReviewPage), findsNothing);
+      expect(find.text('ROUTE_DETAIL_PAGE').hitTestable(), findsOneWidget);
+      expect(find.text('ROOT_LEVEL_PAGE'), findsNothing);
+      expect(router.state.uri.path, '/nav-routes/new-route-id');
+
+      // Back leads to the shell page underneath, not to the closed page.
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('ORIGIN_PAGE').hitTestable(), findsOneWidget);
+    },
+  );
 
   testWidgets('hands the ticked duplicate to commit as the route to replace', (
     tester,

@@ -258,8 +258,6 @@ class _NavTrackImportReviewPageState
 
   Future<void> _save(NavTrackImportPreview preview) async {
     final l10n = context.l10n;
-    final router = GoRouter.of(context);
-    final navigator = Navigator.of(context);
     setState(() {
       _busy = true;
       _error = null;
@@ -289,7 +287,14 @@ class _NavTrackImportReviewPageState
       // otherwise), so a router `go` can neither remove it nor leave the new
       // route anything to return to (#2693). Leave this page itself, then
       // PUSH (not go) so back returns to where the import began (#647).
-      navigator.pop();
+      //
+      // The new route lives in the shell, so anything still on the root
+      // navigator above the shell (a page such as Add Buddy that the share
+      // intent interrupted, or a dialog) would cover it; close those too.
+      final router = GoRouter.of(context);
+      final rootNavigator = Navigator.of(context, rootNavigator: true);
+      Navigator.of(context).pop();
+      rootNavigator.popUntil((route) => route.isFirst);
       router.push('/nav-routes/$id');
     } on NavTrackParseException catch (e) {
       setState(() {
