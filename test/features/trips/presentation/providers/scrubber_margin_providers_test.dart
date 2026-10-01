@@ -23,8 +23,9 @@ import 'package:submersion/features/trips/presentation/providers/scrubber_margin
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
-/// One margin per active rebreather, computed as of the trip start from
-/// the repack record, the loop dives since it, and the diver's history.
+/// One margin per active rebreather with an enabled repack clock, computed
+/// as of the trip start from the repack record, the loop dives since it,
+/// and the diver's history.
 void main() {
   late AppDatabase db;
   late ProviderContainer container;
