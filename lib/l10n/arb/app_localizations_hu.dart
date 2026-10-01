@@ -29814,6 +29814,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dropTarget_error_readFailed => 'A fájl nem olvasható';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl nem olvasható, ezért kimaradt',
+      one: '$count fájl nem olvasható, ezért kimaradt',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'Tiszta';
 
   @override
@@ -30540,6 +30551,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'A profilodban elrejtve';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'A kijelölt helyek közül csak egy tartozhat másik profilhoz. Az egyesítéshez szüntesd meg a többi kijelölését.';
 
@@ -30619,6 +30633,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedItems_undo => 'Visszavonás';
+
+  @override
+  String get sharedItems_unhideAction => 'Megjelenítés a profilomban';
 
   @override
   String get sites_deleteShared_title => 'Megosztott helyszín törlése?';

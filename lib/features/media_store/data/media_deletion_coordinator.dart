@@ -47,14 +47,60 @@ class MediaDeletionCoordinator {
   /// row relinked in the meantime, even during the queue write below,
   /// survives. Its intent was already enqueued; that is harmless by the
   /// same refcount that covers a crash between enqueue and delete.
+  ///
+  /// [holdRemoteDelete] leaves the worker alone, for a delete the user can
+  /// still undo: the intents wait for the next drain, and an undo that puts
+  /// the rows back first turns them into no-ops (issue #2718).
   Future<void> deleteMediaItems(
     List<MediaItem> items, {
     bool Function(MediaData row)? keepIf,
+    bool holdRemoteDelete = false,
   }) => _delete(
     [for (final item in items) item.id],
     {for (final item in items) item.id: item},
     keepIf: keepIf,
+    kick: !holdRemoteDelete,
   );
+
+  /// Undo for a held [deleteMediaItems] (issue #2718): [rows] are media the
+  /// undo has put back. An intent still held for a row's hash no-ops at
+  /// drain time now that the row exists again. One that has drained, is
+  /// draining, or failed partway may have taken some of the remote blobs,
+  /// so the row's upload stamps cannot be trusted: they are cleared and a
+  /// re-upload queued, the Verify Library sweep's repair (spec 6.2). Like
+  /// the delete, no media-store problem may fail the undo; a row this
+  /// misses waits for the sweep.
+  Future<void> repairRestoredMedia(List<MediaData> rows) async {
+    var queued = false;
+    for (final row in rows) {
+      final hash = row.contentHash;
+      final hasOriginal = row.remoteUploadedAt != null;
+      final hasThumb = row.remoteThumbUploadedAt != null;
+      final hasRendition = row.remoteCompressedUploadedAt != null;
+      if (hash == null || hash.isEmpty) continue;
+      if (!hasOriginal && !hasThumb && !hasRendition) continue;
+      // Untyped catch for the same reason as [_delete].
+      try {
+        if (await _queue().hasHeldDelete(hash)) continue;
+        if (hasOriginal) await _mediaRepository.clearRemoteUploaded(row.id);
+        if (hasThumb) {
+          await _mediaRepository.clearRemoteThumbUploaded(row.id);
+        }
+        if (hasRendition) {
+          await _mediaRepository.clearRemoteCompressed(row.id);
+        }
+        await _queue().enqueueRepairUpload(mediaId: row.id);
+        queued = true;
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Could not repair restored media ${row.id} (sweep will reconcile)',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    if (queued) await _kick('repair after undo');
+  }
 
   /// [known] short-circuits the per-id read for callers that already hold
   /// the row; ids absent from it are read back as before.
@@ -62,6 +108,7 @@ class MediaDeletionCoordinator {
     List<String> ids,
     Map<String, MediaItem> known, {
     bool Function(MediaData row)? keepIf,
+    bool kick = true,
   }) async {
     var enqueued = false;
     for (final id in ids) {
@@ -87,12 +134,16 @@ class MediaDeletionCoordinator {
     } else {
       await _mediaRepository.deleteMultipleMedia(ids);
     }
-    if (enqueued && _kickWorker != null) {
-      try {
-        await _kickWorker();
-      } catch (e) {
-        _log.warning('Worker kick after media delete failed', error: e);
-      }
+    if (enqueued && kick) await _kick('media delete');
+  }
+
+  Future<void> _kick(String after) async {
+    final kickWorker = _kickWorker;
+    if (kickWorker == null) return;
+    try {
+      await kickWorker();
+    } catch (e) {
+      _log.warning('Worker kick after $after failed', error: e);
     }
   }
 

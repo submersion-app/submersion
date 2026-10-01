@@ -2,6 +2,9 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_children.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_row_restore.dart';
 
 /// How many dives and dive plans a delete of some sites would leave without
 /// a site (issue #1952), for its confirmation.
@@ -12,7 +15,9 @@ class SiteUsage {
   const SiteUsage({this.dives = 0, this.plans = 0});
 }
 
-/// The links a site delete cleared, so an undo can point them back.
+/// Everything a site delete cleared or removed with the sites, so an undo
+/// can put it back: dive and plan links, hides, cascaded children and
+/// media.
 class SiteLinks {
   /// Dive id -> the site it was logged at.
   final Map<String, String> diveSiteIds;
@@ -24,11 +29,47 @@ class SiteLinks {
   /// whose stamp differs was edited since, and the undo leaves it alone.
   final int clearedAt;
 
+  /// Every profile's hide of the sites (issue #2680): the owner's delete
+  /// removes them, so its undo puts them back.
+  final List<ProfileHide> hides;
+
+  /// The sites' species, features, types and tags (issue #2718).
+  final SiteChildren children;
+
+  /// The site-only media the delete removed (issue #2718).
+  final MediaRowsSnapshot media;
+
+  /// Media id -> the site it was linked to, for every media row at the
+  /// sites: the ones the delete removed and the ones it only unlinked.
+  final Map<String, String> mediaSiteIds;
+
   const SiteLinks({
     this.diveSiteIds = const {},
     this.planSiteIds = const {},
     this.clearedAt = 0,
+    this.hides = const [],
+    this.children = const SiteChildren(),
+    this.media = const MediaRowsSnapshot(),
+    this.mediaSiteIds = const {},
   });
+
+  SiteLinks copyWith({
+    Map<String, String>? diveSiteIds,
+    Map<String, String>? planSiteIds,
+    int? clearedAt,
+    List<ProfileHide>? hides,
+    SiteChildren? children,
+    MediaRowsSnapshot? media,
+    Map<String, String>? mediaSiteIds,
+  }) => SiteLinks(
+    diveSiteIds: diveSiteIds ?? this.diveSiteIds,
+    planSiteIds: planSiteIds ?? this.planSiteIds,
+    clearedAt: clearedAt ?? this.clearedAt,
+    hides: hides ?? this.hides,
+    children: children ?? this.children,
+    media: media ?? this.media,
+    mediaSiteIds: mediaSiteIds ?? this.mediaSiteIds,
+  );
 }
 
 /// Counts every dive and plan at [siteIds]. Every dive counts, excluded and

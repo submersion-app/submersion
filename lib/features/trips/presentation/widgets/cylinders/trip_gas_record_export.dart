@@ -9,22 +9,25 @@ import 'package:submersion/features/settings/presentation/providers/csv_unit_mod
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 
 /// The Record header's export: the destination sheet (share or save, with
 /// the CSV units toggle), then the record's rows as a CSV through the
 /// export facade, so tests can override it like every export surface.
+/// The trip is read when the export starts, so a name still loading is
+/// waited for rather than left out of the file name.
 class TripGasRecordExportButton extends ConsumerWidget {
   const TripGasRecordExportButton({
     super.key,
     required this.record,
-    required this.tripName,
+    required this.tripId,
     required this.centerNames,
   });
 
   final TripGasRecord record;
-  final String tripName;
+  final String tripId;
   final Map<String, String> centerNames;
 
   @override
@@ -58,6 +61,8 @@ class TripGasRecordExportButton extends ConsumerWidget {
         // must not open while a modal route is up.
         final messenger = ScaffoldMessenger.of(context);
         try {
+          final trip = await ref.read(tripByIdProvider(tripId).future);
+          final tripName = trip?.name ?? '';
           final path = choice.destination == ExportDestination.share
               ? await service.exportTripGasRecordToCsv(
                   record,

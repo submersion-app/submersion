@@ -178,6 +178,27 @@ void main() {
     expect(r.rows.single.fill!.id, 'f2');
   });
 
+  test('a fill stamped with seconds in the dive\'s minute counts for it', () {
+    // Bottle 22 saved at 07:00:35 with the fill sheet's default "now"; the
+    // dive typed in at 07:00 (issue #2662).
+    final r = buildTripGasRecord(
+      cylinders: [a],
+      eventsBySlot: {
+        'a': [
+          events['a']![0],
+          events['a']![1].copyWith(
+            occurredAt: at(11, 7).add(const Duration(seconds: 35)),
+          ),
+        ],
+      },
+      tanks: [tank('t9', 'd9', 'a', at(11, 7), start: 207, end: 80)],
+      gasModel: GasModel.ideal,
+      defaultCurrency: 'USD',
+    );
+    expect(r.rows.single.fill!.id, 'f2');
+    expect(r.rows.single.bottleLabel, '22');
+  });
+
   test('a dive before any fill has no fill and no fill pressure', () {
     final r = record(
       tanks: [tank('t0', 'd0', 'a', at(8, 9), start: 200, end: 50)],
@@ -265,6 +286,45 @@ void main() {
     final truck1 = r.slots.firstWhere((s) => s.cylinder.id == 'a');
     expect(truck1.dives, 1);
     expect(truck1.leftOut, 1);
+  });
+
+  test('two computers\' copies of one cylinder make one row', () {
+    // Issue #2661: each computer logged its own row for the cylinder and
+    // both link to Truck 1, so its gas must count once, not twice.
+    final r = record(
+      tanks: [
+        tank('u1', 'd5', 'a', at(9, 9), start: 200, end: 60),
+        tank('u2', 'd5', 'a', at(9, 9), order: 1, start: 198, end: 61),
+      ],
+    );
+    expect(r.rows.map((row) => row.tank.tankId), ['u1']);
+    final truck1 = r.slots.firstWhere((s) => s.cylinder.id == 'a');
+    expect(truck1.dives, 1);
+    expect(truck1.litres, closeTo(1554, 0.001));
+  });
+
+  test('the copy with a figure stands for the cylinder', () {
+    // The first computer logged no pressures; the second did.
+    final r = record(
+      tanks: [
+        tank('u1', 'd5', 'a', at(9, 9)),
+        tank('u2', 'd5', 'a', at(9, 9), order: 1, start: 200, end: 60),
+      ],
+    );
+    expect(r.rows.map((row) => row.tank.tankId), ['u2']);
+    final truck1 = r.slots.firstWhere((s) => s.cylinder.id == 'a');
+    expect(truck1.leftOut, 0);
+    expect(truck1.litres, closeTo(1554, 0.001));
+  });
+
+  test('one dive on two slots keeps both rows', () {
+    final r = record(
+      tanks: [
+        tank('u1', 'd5', 'a', at(9, 9), start: 200, end: 60),
+        tank('u2', 'd5', 'b', at(9, 9), order: 1, start: 210, end: 100),
+      ],
+    );
+    expect(r.rows.map((row) => row.tank.tankId), ['u1', 'u2']);
   });
 
   test('fills logged counts every fill on the trip', () {
