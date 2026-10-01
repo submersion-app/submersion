@@ -39,17 +39,100 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<void> seedDive(String id, int diveDateTimeMs, {int? exitTimeMs}) => db
+  Future<void> seedDive(
+    String id,
+    int diveDateTimeMs, {
+    int? exitTimeMs,
+    String? diverId,
+  }) => db
       .into(db.dives)
       .insert(
         DivesCompanion.insert(
           id: id,
+          diverId: Value(diverId),
           diveDateTime: diveDateTimeMs,
           exitTime: Value(exitTimeMs),
           createdAt: diveDateTimeMs,
           updatedAt: diveDateTimeMs,
         ),
       );
+
+  group('scoped to the active diver', () {
+    late NavTrackImportService mine;
+    final routeStart = DateTime.utc(2025, 1, 15, 16, 16, 7);
+
+    setUp(() async {
+      for (final id in ['me', 'buddy']) {
+        await db.customStatement(
+          "INSERT INTO divers (id, name, created_at, updated_at) "
+          "VALUES ('$id', '$id', 1, 1)",
+        );
+      }
+      mine = NavTrackImportService(
+        routeRepository: routeRepo,
+        diveRepository: diveRepo,
+        currentDiverId: () async => 'me',
+      );
+    });
+
+    test('proposes only the active diver\'s overlapping dive', () async {
+      for (final (id, diver) in [('my-dive', 'me'), ('buddy-dive', 'buddy')]) {
+        await seedDive(
+          id,
+          routeStart.millisecondsSinceEpoch,
+          exitTimeMs: routeStart
+              .add(const Duration(hours: 1))
+              .millisecondsSinceEpoch,
+          diverId: diver,
+        );
+      }
+
+      final preview = await mine.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.candidateDives.map((d) => d.id), ['my-dive']);
+    });
+
+    test('offers only the active diver\'s dives as nearest', () async {
+      final earlier = routeStart.subtract(const Duration(hours: 2));
+      await seedDive(
+        'buddy-dive',
+        earlier.millisecondsSinceEpoch,
+        diverId: 'buddy',
+      );
+      await seedDive(
+        'my-dive',
+        earlier.subtract(const Duration(days: 1)).millisecondsSinceEpoch,
+        diverId: 'me',
+      );
+
+      final preview = await mine.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.candidateDives, isEmpty);
+      expect(preview.nearbyDives.map((d) => d.id), ['my-dive']);
+    });
+
+    test('an unlinked route belongs to the diver who imported it', () async {
+      final preview = await mine.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+      final id = await mine.commit(
+        parsed: preview.parsed,
+        sourceRef: preview.sourceRef,
+      );
+
+      final owner = await db
+          .customSelect("SELECT diver_id FROM nav_tracks WHERE id = '$id'")
+          .getSingle();
+      expect(owner.read<String?>('diver_id'), 'me');
+    });
+  });
 
   group('prepare', () {
     test('parses a real ENC3 fixture and reports its stats', () async {

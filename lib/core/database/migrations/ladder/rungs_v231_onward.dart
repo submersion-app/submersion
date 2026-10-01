@@ -114,5 +114,14 @@ extension RungsFromV231 on AppDatabase {
       await _assertTripFillForecastColumns();
     }
     if (from < 249) await reportProgress();
+    // v252: nav_tracks.diver_id, the route's owner (issue #2691 follow-up),
+    // backfilled from each linked route's dive. The column is re-asserted in
+    // beforeOpen; the backfill stays in the rung. 250 is held by open PRs
+    // #2675 and #2562.
+    if (from < 252) {
+      await _assertNavTrackDiverIdColumn();
+      await _backfillNavTrackDiverIds();
+    }
+    if (from < 252) await reportProgress();
   }
 }

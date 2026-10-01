@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
@@ -17,9 +18,10 @@ import '../../../helpers/test_database.dart';
 void main() {
   late SyncDataSerializer serializer;
   late NavTrackRepository repo;
+  late AppDatabase db;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     serializer = SyncDataSerializer();
     repo = NavTrackRepository();
   });
@@ -65,6 +67,30 @@ void main() {
     expect(restored.points.first.north, closeTo(0, 1e-9));
     expect(restored.points[1].east, closeTo(5, 1e-9));
     expect(restored.points.last.depth, closeTo(8.9, 1e-9));
+  });
+
+  test('a route\'s owner (v252 diver_id) travels with it', () async {
+    await db.customStatement(
+      "INSERT INTO divers (id, name, created_at, updated_at) "
+      "VALUES ('me', 'me', 1, 1)",
+    );
+    final id = await repo.insertImportedRoute(
+      points: samplePoints(),
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: '008.DAT.csv',
+      diverId: 'me',
+    );
+
+    final fetched = await serializer.fetchRecord('navTracks', id);
+    expect(fetched!['diverId'], 'me');
+
+    await serializer.deleteRecord('navTracks', id);
+    await serializer.upsertRecord('navTracks', fetched);
+
+    final row = await db
+        .customSelect("SELECT diver_id FROM nav_tracks WHERE id = '$id'")
+        .getSingle();
+    expect(row.read<String?>('diver_id'), 'me');
   });
 
   test(

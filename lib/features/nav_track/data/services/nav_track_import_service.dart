@@ -61,12 +61,20 @@ class NavTrackImportPreview {
 class NavTrackImportService {
   final NavTrackRepository _routeRepository;
   final DiveRepository _diveRepository;
+  final Future<String?> Function() _currentDiverId;
 
+  /// [currentDiverId] resolves the active diver, whose dives the review
+  /// proposes and who owns the new route. Omitted (or resolving to null),
+  /// every dive is considered and the route is ownerless.
   NavTrackImportService({
     NavTrackRepository? routeRepository,
     DiveRepository? diveRepository,
+    Future<String?> Function()? currentDiverId,
   }) : _routeRepository = routeRepository ?? NavTrackRepository(),
-       _diveRepository = diveRepository ?? DiveRepository();
+       _diveRepository = diveRepository ?? DiveRepository(),
+       _currentDiverId = currentDiverId ?? _noDiver;
+
+  static Future<String?> _noDiver() async => null;
 
   /// Parses [bytes] as a Seacraft ENC CSV. Throws [NavTrackParseException]
   /// (with its [NavTrackParseReason]) on anything the diver needs to act on;
@@ -83,7 +91,9 @@ class NavTrackImportService {
     final routeStartSeconds = parsed.points.first.timestamp;
     final routeEndSeconds = parsed.points.last.timestamp;
 
-    final dives = await _diveRepository.getAllDives();
+    final dives = await _diveRepository.getAllDives(
+      diverId: await _currentDiverId(),
+    );
     final candidates = NavTrackMatcher.candidatesFor(
       routeStartSeconds: routeStartSeconds,
       routeEndSeconds: routeEndSeconds,
@@ -142,6 +152,7 @@ class NavTrackImportService {
       deviceName: deviceName,
       name: name,
       diveId: dive?.id,
+      diverId: await _currentDiverId(),
       siteId: siteId,
       equipmentId: equipmentId,
     );

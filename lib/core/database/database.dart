@@ -229,7 +229,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 249;
+  static const int currentSchemaVersion = 252;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1015,6 +1015,10 @@ class AppDatabase extends _$AppDatabase {
     // center fill hours. Additive columns, so the floor does not move. 248
     // is trip_equipment (#2338).
     249,
+    // v252: nav_tracks.diver_id, the route's owner, backfilled from each
+    // linked route's dive (issue #2691 follow-up). Additive nullable column,
+    // so the floor does not move. 250 is held by open PRs #2675 and #2562, 251 by issue #2716.
+    252,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
