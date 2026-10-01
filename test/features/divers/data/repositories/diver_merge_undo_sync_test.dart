@@ -225,4 +225,34 @@ void main() {
       reason: 'the undo must reach B, which already held the merge',
     );
   });
+
+  test('a merge undone before any sync leaves a peer unchanged', () async {
+    dbB = await setUpTestDatabase();
+    dbA = await setUpTestDatabase();
+
+    switchTo(dbA);
+    await seed(dbA);
+    await sync('A seed push');
+    final beforeMerge = await library(dbA);
+
+    switchTo(dbB);
+    await sync('B seed pull');
+
+    // The undo republishes every row it restores, and tombstones the share
+    // the merge created, which no peer ever received.
+    switchTo(dbA);
+    final repo = DiverMergeRepository();
+    await repo.undoMerge(
+      await repo.mergeDivers(keeperId: 'keep', duplicateId: 'dup'),
+    );
+    await sync('A merge-and-undo push');
+
+    switchTo(dbB);
+    await sync('B pull');
+    expect(await library(dbB), beforeMerge);
+
+    switchTo(dbA);
+    await sync('A pull');
+    expect(await library(dbA), beforeMerge);
+  });
 }

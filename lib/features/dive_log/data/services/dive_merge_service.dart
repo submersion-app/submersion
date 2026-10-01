@@ -704,12 +704,7 @@ class DiveMergeService {
       // Marked pending like every other restored child, for a fresh clock:
       // the verbatim rows carry their pre-operation clocks, which a peer
       // holding a newer copy refuses as stale (#2670).
-      for (final (entityType, recordId) in [
-        for (final r in snapshot.dataSourceRows) ('diveDataSources', r.id),
-        for (final r in snapshot.tideRows) ('tideRecords', r.id),
-        for (final r in snapshot.equipmentRows)
-          ('diveEquipment', '${r.diveId}|${r.equipmentId}'),
-      ]) {
+      for (final (entityType, recordId) in snapshot.batchRestoredChildKeys) {
         await _sync.markRecordPending(
           entityType: entityType,
           recordId: recordId,

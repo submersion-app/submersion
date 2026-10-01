@@ -188,7 +188,7 @@ class DiverMergeRepository {
         } else {
           // Additive data: capture each row's id, repoint onto the keeper,
           // THEN mark pending so the sync queue reflects the final
-          // (repointed) state -- matches the buddy-merge precedent.
+          // (repointed) state, as the buddy merge does.
           final ids = await _rowIds(table, duplicateId);
           for (final id in ids) {
             repointed.add((table: table, rowId: id));
@@ -343,16 +343,20 @@ class DiverMergeRepository {
         .get();
     final dropped = [for (final r in rows) r.data];
     for (final row in dropped) {
-      final id = row['id'] as String;
-      await _db.customStatement('DELETE FROM equipment_shares WHERE id = ?', [
-        id,
-      ]);
-      await _syncRepository.logDeletion(
-        entityType: 'equipmentShares',
-        recordId: id,
-      );
+      await _deleteShare(row['id'] as String);
     }
     return dropped;
+  }
+
+  /// Deletes one share and tombstones it.
+  Future<void> _deleteShare(String id) async {
+    await _db.customStatement('DELETE FROM equipment_shares WHERE id = ?', [
+      id,
+    ]);
+    await _syncRepository.logDeletion(
+      entityType: 'equipmentShares',
+      recordId: id,
+    );
   }
 
   /// The duplicate's remaining shares (after [_dropCollidingShares]), each
@@ -369,14 +373,7 @@ class DiverMergeRepository {
     final deleted = await _rowsByDiverId(_sharesTable, duplicateId);
     final created = <String>[];
     for (final row in deleted) {
-      final id = row['id'] as String;
-      await _db.customStatement('DELETE FROM equipment_shares WHERE id = ?', [
-        id,
-      ]);
-      await _syncRepository.logDeletion(
-        entityType: 'equipmentShares',
-        recordId: id,
-      );
+      await _deleteShare(row['id'] as String);
       final newId = _uuid.v4();
       await _insertRowMap(_sharesTable, {
         ...row,
@@ -512,13 +509,7 @@ class DiverMergeRepository {
 
       // Shares the merge created go, and the ones it deleted come back.
       for (final id in snapshot.createdShareIds) {
-        await _db.customStatement('DELETE FROM equipment_shares WHERE id = ?', [
-          id,
-        ]);
-        await _syncRepository.logDeletion(
-          entityType: 'equipmentShares',
-          recordId: id,
-        );
+        await _deleteShare(id);
       }
       for (final row in snapshot.deletedShareRows) {
         await _restoreDeletedRow(_sharesTable, row, now: now);
