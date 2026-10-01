@@ -1158,6 +1158,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// [_validatedDiverId] when its reads return.
   int _loadGeneration = 0;
 
+  /// The generation of the last load that assigned [state]. A load that
+  /// fails after this point (a preference write, say) has already left the
+  /// right diver's settings in place.
+  int _landedGeneration = 0;
+
   /// Completes once [state] holds the CURRENT diver's settings.
   ///
   /// Unlike [initialLoad], this covers the reload after a diver switch: until
@@ -1238,7 +1243,48 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     });
   }
 
+  /// Runs one load, falling back to the defaults when it fails before it
+  /// lands.
+  ///
+  /// Callers of [settingsLoaded] and [initialLoad] proceed on whatever a
+  /// failed load leaves in [state]. At startup that is the defaults, but
+  /// after a diver switch it would be the PREVIOUS diver's settings, which
+  /// analyses would then compute and save results from (issue #2564). And
+  /// with [_validatedDiverId] already naming the new diver, the next setter
+  /// would write those settings into a row that was never read. So a failed
+  /// load leaves the defaults and no diver to save to, as at startup.
+  /// Device-local preferences belong to no diver and are kept.
   Future<void> _initializeAndLoad(int generation) async {
+    try {
+      await _resolveDiverAndLoad(generation);
+    } catch (_) {
+      if (_isCurrentLoad(generation) && _landedGeneration != generation) {
+        _validatedDiverId = null;
+        // Only an EARLIER load's settings need replacing. When none has
+        // landed (a failed startup load) state already holds the defaults.
+        if (_landedGeneration != 0) {
+          state = _withDeviceLocalPrefs(const AppSettings());
+        }
+      }
+      rethrow;
+    }
+  }
+
+  /// [settings] carrying the device-local (not per-diver) preferences held
+  /// in [state]: the ones [_loadSettings] reads from SharedPreferences.
+  AppSettings _withDeviceLocalPrefs(AppSettings settings) => settings.copyWith(
+    hiddenHomeChips: state.hiddenHomeChips,
+    homeCardOrder: state.homeCardOrder,
+    hiddenHomeCards: state.hiddenHomeCards,
+    pscrRatio: state.pscrRatio,
+    profileMetricsFollowViewport: state.profileMetricsFollowViewport,
+    o2CellUnit: state.o2CellUnit,
+    perdixOverlayEnabled: state.perdixOverlayEnabled,
+    perdixOverlayX: state.perdixOverlayX,
+    perdixOverlayY: state.perdixOverlayY,
+  );
+
+  Future<void> _resolveDiverAndLoad(int generation) async {
     // Get current diver ID directly (more reliable than going through FutureProvider)
     final currentId = _ref.read(currentDiverIdProvider);
     final repository = _ref.read(diverRepositoryProvider);
@@ -1327,6 +1373,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         perdixOverlayY: perdixOverlayY,
         seascapeAppearance: seascapeAppearance,
       );
+      _landedGeneration = generation;
       await _writeCachedTheme(prefs);
       return;
     }
@@ -1359,6 +1406,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       perdixOverlayY: perdixOverlayY,
       seascapeAppearance: adoptLegacySeascape ? seascapeAppearance : null,
     );
+    _landedGeneration = generation;
     if (adoptLegacySeascape) {
       // Write through immediately so the adopted value syncs.
       await _repository.updateSettingsForDiver(diverId, state);

@@ -13,8 +13,11 @@ import '../../../../helpers/test_database.dart';
 
 /// Holds a diver's settings read until that diver's gate completes, so a test
 /// can keep one load in flight while another starts and finishes.
+///
+/// A diver in [failing] has a read that throws instead.
 class _GatedSettingsRepository extends DiverSettingsRepository {
   final gates = <String, Completer<void>>{};
+  final failing = <String>{};
 
   @override
   Future<AppSettings> getOrCreateSettingsForDiver(
@@ -23,6 +26,9 @@ class _GatedSettingsRepository extends DiverSettingsRepository {
   }) async {
     final gate = gates[diverId];
     if (gate != null) await gate.future;
+    if (failing.contains(diverId)) {
+      throw StateError('settings read failed for $diverId');
+    }
     return super.getOrCreateSettingsForDiver(
       diverId,
       defaultSettings: defaultSettings,
@@ -61,7 +67,10 @@ void main() {
     diverA = await createDiver('A', 20);
     diverB = await createDiver('B', 35);
     diverC = await createDiver('C', 50);
-    SharedPreferences.setMockInitialValues({currentDiverIdKey: diverA});
+    SharedPreferences.setMockInitialValues({
+      currentDiverIdKey: diverA,
+      SettingsKeys.hiddenHomeChips: ['planner'],
+    });
     final prefs = await SharedPreferences.getInstance();
     settingsRepository = _GatedSettingsRepository();
     container = ProviderContainer(
@@ -125,6 +134,30 @@ void main() {
     await pumpEventQueue();
 
     expect(container.read(settingsProvider).gfLow, 50);
+  });
+
+  // The wait's callers proceed on whatever a failed load leaves in state.
+  // After a switch that must not be the previous diver's settings, and the
+  // new diver's row, never read, must not be overwritten by the next change.
+  test("a failed reload falls back to the defaults, not the previous diver's "
+      'settings, and writes nothing to the new diver\'s row', () async {
+    final notifier = container.read(settingsProvider.notifier);
+    await notifier.settingsLoaded;
+    expect(container.read(settingsProvider).gfLow, 20);
+
+    settingsRepository.failing.add(diverB);
+    await switchTo(diverB);
+    await expectLater(notifier.settingsLoaded, throwsA(isA<StateError>()));
+
+    final held = container.read(settingsProvider);
+    expect(held.gfLow, const AppSettings().gfLow);
+    expect(held.hiddenHomeChips, {
+      'planner',
+    }, reason: 'device-local preferences belong to no diver and are kept');
+
+    await notifier.setGfLow(45);
+    final stored = await DiverSettingsRepository().getSettingsForDiver(diverB);
+    expect(stored!.gfLow, 35, reason: "B's row must not take the fallback");
   });
 
   // The post-restore safety sweep awaits initialLoad on a fresh container,
