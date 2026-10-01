@@ -790,6 +790,12 @@ class PaginatedDiveListNotifier
 
   Future<void> loadFirstPage() => _enqueuePaging(_loadFirstPage);
 
+  /// Whether the loaded rows came from a filtered query. An add or an edit
+  /// can then move a dive into or out of the filter, which only the query can
+  /// tell, so those reload the loaded pages rather than patch them (#2669).
+  bool get _loadedUnderFilter =>
+      state.valueOrNull?.unfilteredTotalCount != null;
+
   /// An optimistic change to [PaginatedDiveListState.unfilteredTotalCount],
   /// which stays null for rows loaded with no filter active.
   static int? _shifted(int? count, int by) => count == null ? null : count + by;
@@ -1120,7 +1126,7 @@ class PaginatedDiveListNotifier
     final current = state.valueOrNull;
     if (_diverSwitches != diverSwitches) {
       await loadFirstPage();
-    } else if (current != null && current.unfilteredTotalCount != null) {
+    } else if (_loadedUnderFilter) {
       await _silentReloadLoadedPages();
     } else if (current != null) {
       final summary = DiveSummary.fromDive(newDive);
@@ -1144,9 +1150,12 @@ class PaginatedDiveListNotifier
     final oldDive = await _repository.getDiveById(dive.id);
     await _repository.updateDive(dive);
 
-    // Optimistic: replace the item in the list by ID
+    // Optimistic: replace the item in the list by ID, unless a filter decides
+    // whether the edited dive still belongs in it.
     final current = state.valueOrNull;
-    if (current != null) {
+    if (_loadedUnderFilter) {
+      await _silentReloadLoadedPages();
+    } else if (current != null) {
       final summary = DiveSummary.fromDive(dive);
       final updated = current.dives.map((d) {
         return d.id == dive.id ? summary : d;
@@ -1243,6 +1252,7 @@ class PaginatedDiveListNotifier
     }
 
     await _repository.toggleFavorite(diveId);
+    if (_loadedUnderFilter) await _silentReloadLoadedPages();
     _ref.invalidate(diveProvider(diveId));
     _invalidateOldProvider();
   }
@@ -1258,6 +1268,7 @@ class PaginatedDiveListNotifier
     }
 
     await _repository.setFavorite(diveId, isFavorite);
+    if (_loadedUnderFilter) await _silentReloadLoadedPages();
     _ref.invalidate(diveProvider(diveId));
     _invalidateOldProvider();
   }

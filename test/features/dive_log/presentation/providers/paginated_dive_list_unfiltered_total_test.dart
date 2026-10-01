@@ -170,6 +170,65 @@ void main() {
     expect(state.dives.map((d) => d.id), ['a']);
   });
 
+  // An edit can move a dive into or out of the active filter, so under a
+  // filter the rows and count come from the query, not an in-place patch.
+  group('edits under a filter', () {
+    Future<ProviderContainer> favorites() async {
+      final container = makeContainer();
+      await waitFor(container, (s) => s.dives.length == 3);
+      container.read(diveFilterProvider.notifier).state = const DiveFilterState(
+        favoritesOnly: true,
+      );
+      await waitFor(container, (s) => s.dives.length == 1);
+      return container;
+    }
+
+    void expectListed(ProviderContainer container, List<String> ids) {
+      final state = container.read(paginatedDiveListProvider).value!;
+      expect(state.dives.map((d) => d.id), ids);
+      expect(state.totalCount, ids.length);
+      expect(state.unfilteredTotalCount, 3);
+    }
+
+    test('unfavoriting a listed dive drops it and its count', () async {
+      final container = await favorites();
+
+      await container
+          .read(paginatedDiveListProvider.notifier)
+          .setFavorite('a', false);
+      await settleTrips(container);
+
+      expectListed(container, []);
+    });
+
+    test('favoriting an unlisted dive brings it in', () async {
+      final container = await favorites();
+
+      await container
+          .read(paginatedDiveListProvider.notifier)
+          .toggleFavorite('b');
+      await settleTrips(container);
+
+      expect(
+        container.read(paginatedDiveListProvider).value!.dives.map((d) => d.id),
+        unorderedEquals(['a', 'b']),
+      );
+      expect(container.read(paginatedDiveListProvider).value!.totalCount, 2);
+    });
+
+    test('an edit that leaves the filter drops the dive', () async {
+      final container = await favorites();
+      final dive = await DiveRepository().getDiveById('a');
+
+      await container
+          .read(paginatedDiveListProvider.notifier)
+          .updateDive(dive!.copyWith(isFavorite: false));
+      await settleTrips(container);
+
+      expectListed(container, []);
+    });
+  });
+
   // Table mode loads every dive and its filtered subset in full.
   group('diveTableCountProvider', () {
     Future<ListEntryCount?> tableCount(ProviderContainer container) async {
