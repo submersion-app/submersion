@@ -1603,6 +1603,9 @@ class DiveRepository {
                 hePercent: Value(tank.gasMix.he),
                 tankOrder: Value(tank.order),
                 tankRole: Value(tank.role.name),
+                // Whoever built the tank says where its role came from:
+                // null for one the diver made (issue #2595).
+                roleSource: Value(tank.roleSource?.name),
                 tankMaterial: Value(tank.material?.name),
                 tankName: Value(tank.name),
                 presetName: Value(tank.presetName),
@@ -1954,6 +1957,9 @@ class DiveRepository {
                     hePercent: Value(tank.gasMix.he),
                     tankOrder: Value(tank.order),
                     tankRole: Value(tank.role.name),
+                    // As in createDive: a tank the diver added carries none,
+                    // a downloaded one appended by a fill carries its own.
+                    roleSource: Value(tank.roleSource?.name),
                     tankMaterial: Value(tank.material?.name),
                     tankName: Value(tank.name),
                     presetName: Value(tank.presetName),

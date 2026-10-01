@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
@@ -135,7 +136,8 @@ class PlannedDiveFillService {
 
   /// Planned tanks matched by transmitter serial first, then by gas mix
   /// (0.5 percent), receive the downloaded pressures; unmatched downloaded
-  /// tanks are appended with fresh ids, since updateDive rejects blank ones.
+  /// tanks are appended with fresh ids, since updateDive rejects blank ones,
+  /// keeping the role the computer resolved.
   List<DiveTank> _mergeTanks(
     List<DiveTank> planned,
     List<DownloadedTank> downloaded,
@@ -181,6 +183,14 @@ class PlannedDiveFillService {
           volume: d.volumeLiters,
           startPressure: d.startPressure,
           endPressure: d.endPressure,
+          // The role the computer resolved, and whether it was only read
+          // off the transmitter's name (issue #2595); a planned tank above
+          // keeps the role the diver planned.
+          role: TankRole.values.firstWhere(
+            (r) => r.name == d.role,
+            orElse: () => TankRole.backGas,
+          ),
+          roleSource: d.roleSource,
           transmitterSerial: d.transmitterSerial,
           order: merged.length,
         ),

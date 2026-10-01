@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     hide Dive, DiveTank, Diver;
 import 'package:submersion/features/dive_computer/data/services/planned_dive_fill_service.dart';
@@ -181,6 +182,34 @@ void main() {
     final filled = await dives.getDiveById(planned.id);
     expect(filled?.tanks, hasLength(2));
     expect(filled?.tanks.map((t) => t.gasMix.o2), containsAll([32.0, 50.0]));
+  });
+
+  test('an unmatched downloaded tank keeps its role and where it came '
+      'from (#2595)', () async {
+    final planned = await plannedDive();
+    await service.fill(
+      plannedDiveId: planned.id,
+      dive: download(
+        tanks: const [
+          DownloadedTank(index: 0, o2Percent: 32, startPressure: 200),
+          DownloadedTank(
+            index: 1,
+            o2Percent: 100,
+            startPressure: 180,
+            role: 'oxygenSupply',
+            roleSource: TankRoleSource.transmitterName,
+            transmitterSerial: '180777',
+          ),
+        ],
+      ),
+      computerId: computerId,
+    );
+    final filled = await dives.getDiveById(planned.id);
+    final oxygen = filled!.tanks.singleWhere((t) => t.gasMix.o2 == 100);
+    expect(oxygen.role, TankRole.oxygenSupply);
+    expect(oxygen.roleSource, TankRoleSource.transmitterName);
+    final planned32 = filled.tanks.singleWhere((t) => t.gasMix.o2 == 32);
+    expect(planned32.role, TankRole.backGas, reason: 'the plan keeps its own');
   });
 
   test('a data source with the fingerprint exists after the fill', () async {

@@ -112,8 +112,12 @@ void main() {
       dive.copyWith(
         tanks: [
           ...dive.tanks,
-          // A copy of the flagged tank, as a duplicate action would make.
-          dive.tanks.single.copyWith(id: 'new-tank', order: 1),
+          const DiveTank(
+            id: 'new-tank',
+            gasMix: GasMix(o2: 21.0),
+            role: TankRole.bailout,
+            order: 1,
+          ),
         ],
       ),
     );
@@ -121,5 +125,47 @@ void main() {
       database.diveTanks,
     )..where((t) => t.id.equals('new-tank'))).get();
     expect(rows.single.roleSource, isNull);
+  });
+
+  test('a new tank that carries a source stores it', () async {
+    // The planned-dive fill appends downloaded tanks this way.
+    final dive = await diveWithNameDerivedOxygen();
+    await repository.updateDive(
+      dive.copyWith(
+        tanks: [
+          ...dive.tanks,
+          const DiveTank(
+            id: 'new-tank',
+            gasMix: GasMix(o2: 15.0, he: 55.0),
+            role: TankRole.diluent,
+            roleSource: TankRoleSource.transmitterName,
+            order: 1,
+          ),
+        ],
+      ),
+    );
+    final rows = await (database.select(
+      database.diveTanks,
+    )..where((t) => t.id.equals('new-tank'))).get();
+    expect(rows.single.roleSource, 'transmitterName');
+  });
+
+  test('createDive stores a source the tank carries', () async {
+    final created = await repository.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime.utc(2026, 9, 13, 8),
+        tanks: const [
+          DiveTank(
+            id: '',
+            gasMix: GasMix(o2: 100.0),
+            role: TankRole.oxygenSupply,
+            roleSource: TankRoleSource.transmitterName,
+          ),
+        ],
+      ),
+    );
+    final reread = await repository.getDiveById(created.id);
+    expect(reread!.tanks.single.roleSource, TankRoleSource.transmitterName);
   });
 }
