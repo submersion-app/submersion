@@ -38,6 +38,12 @@ void main() {
       // getTripById - rethrows
       await expectLater(repository.getTripById('t1'), throwsA(anything));
 
+      // getAllTripsWithStats - rethrows
+      await expectLater(repository.getAllTripsWithStats(), throwsA(anything));
+
+      // getDiveIdsForTrip - rethrows
+      await expectLater(repository.getDiveIdsForTrip('t1'), throwsA(anything));
+
       // createTrip - rethrows
       await expectLater(repository.createTrip(trip), throwsA(anything));
 
