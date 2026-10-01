@@ -106,6 +106,16 @@ void main() {
       expect(firstTank(result)['endPressure'], closeTo(80.0, 1e-9));
     });
 
+    test('both rules apply to one tank', () {
+      // The start matches the 3.9 bar lead-in (#2441); the end matches no
+      // reading (#2687).
+      final result = replaceGlitchedTankPressures(
+        payloadWith(dive(start: 3.9, end: 2.5)),
+      );
+      expect(firstTank(result)['startPressure'], closeTo(199.5, 1e-9));
+      expect(firstTank(result)['endPressure'], closeTo(80.0, 1e-9));
+    });
+
     test('an end with no series is cleared when the start is real', () {
       final result = replaceGlitchedTankPressures(
         payloadWith({

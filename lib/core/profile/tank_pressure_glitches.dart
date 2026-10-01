@@ -128,8 +128,15 @@ PressureGlitchScan scanPressureGlitches(List<PressureReading> readings) {
 
 /// [readings] without the readings [scanPressureGlitches] finds, or the same
 /// list when it finds none.
-List<PressureReading> withoutPressureGlitches(List<PressureReading> readings) {
-  final scan = scanPressureGlitches(readings);
+List<PressureReading> withoutPressureGlitches(List<PressureReading> readings) =>
+    _cleanReadings(readings, scanPressureGlitches(readings));
+
+/// [readings] without the readings [scan] marks, or the same list when it
+/// marks none.
+List<PressureReading> _cleanReadings(
+  List<PressureReading> readings,
+  PressureGlitchScan scan,
+) {
   if (scan.glitchIndices.isEmpty) return readings;
   return [
     for (var i = 0; i < readings.length; i++)
@@ -163,10 +170,7 @@ double? replaceGlitchedEndpoint({
   if (reportedBar == null) return null;
   scan ??= scanPressureGlitches(readings);
   if (scan.glitchIndices.isEmpty) return reportedBar;
-  final clean = [
-    for (var i = 0; i < readings.length; i++)
-      if (!scan.glitchIndices.contains(i)) readings[i],
-  ];
+  final clean = _cleanReadings(readings, scan);
   if (clean.isEmpty) return reportedBar;
   final replacement = atStart ? clean.first.bar : clean.last.bar;
   final matchesLowGlitch = scan.glitchIndices.any(
@@ -183,10 +187,15 @@ double? replaceGlitchedEndpoint({
 /// A value below [kPressureGlitchNearZeroBar] is what a transmitter that lost
 /// its signal logs, and a source can report one as a header pressure even
 /// when no reading of its series matches it, which [replaceGlitchedEndpoint]
-/// requires (issue #2687). Such a value is resolved from [readings]:
+/// requires (issue #2687). A value that is not finite describes no cylinder
+/// either and is treated the same way. Such a value is resolved from
+/// [readings]:
 ///
 /// * where the first or last clean reading is itself above that bound, the
-///   series contradicts the value and that reading replaces it;
+///   series contradicts the value and that reading replaces it. A series
+///   that drops straight to near zero and stays there until the log ends is
+///   a dropout nothing came after, so the reading before the drop counts as
+///   its last;
 /// * where the clean reading is near zero as well, the series agrees and the
 ///   value is kept;
 /// * where there is no series, the value is cleared to null when [otherBar]
@@ -203,23 +212,41 @@ double? replaceNearZeroEndpoint({
   required bool atStart,
   PressureGlitchScan? scan,
 }) {
-  if (reportedBar == null || reportedBar >= kPressureGlitchNearZeroBar) {
+  if (reportedBar == null ||
+      (reportedBar.isFinite && reportedBar >= kPressureGlitchNearZeroBar)) {
     return reportedBar;
   }
   if (readings.isNotEmpty) {
-    scan ??= scanPressureGlitches(readings);
-    final clean = [
-      for (var i = 0; i < readings.length; i++)
-        if (!scan.glitchIndices.contains(i)) readings[i],
-    ];
+    final clean = _cleanReadings(
+      readings,
+      scan ?? scanPressureGlitches(readings),
+    );
     if (clean.isNotEmpty) {
-      final seriesBar = atStart ? clean.first.bar : clean.last.bar;
+      final seriesBar = atStart ? clean.first.bar : _lastRealBar(clean);
       return seriesBar >= kPressureGlitchNearZeroBar ? seriesBar : reportedBar;
     }
   }
   final otherIsReal =
       otherBar != null && otherBar >= kPressureGlitchNearZeroBar;
   return otherIsReal ? null : reportedBar;
+}
+
+/// The last reading of the clean, time-ordered series [clean], or the one
+/// before a near-zero run that closes it when that run starts with a drop of
+/// more than [kPressureGlitchMinDipBar]. A cylinder drained into near zero
+/// reading by reading keeps its last reading: the series shows it emptying.
+double _lastRealBar(List<PressureReading> clean) {
+  var k = clean.length - 1;
+  while (k > 0 && clean[k].bar < kPressureGlitchNearZeroBar) {
+    k--;
+  }
+  final last = clean.last.bar;
+  if (k == clean.length - 1) return last;
+  final before = clean[k].bar;
+  final dropsStraightDown =
+      before >= kPressureGlitchNearZeroBar &&
+      before - clean[k + 1].bar > kPressureGlitchMinDipBar;
+  return dropsStraightDown ? before : last;
 }
 
 /// The first and last clean reading of a tank pressure series, in any order,

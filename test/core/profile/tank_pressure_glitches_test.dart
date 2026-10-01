@@ -415,6 +415,44 @@ void main() {
       );
     });
 
+    test('a series that drops to near zero and stays there is a dropout', () {
+      // The transmitter lost its signal for the rest of the log: nothing
+      // follows the drop to show it was a misread, so the scan keeps it, but
+      // no cylinder loses 190 bar between two readings.
+      final series = withValues(draining(), {27: 0.3, 28: 0.3, 29: 0.3});
+      expect(scanPressureGlitches(series).glitchIndices, isEmpty);
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: 0.3,
+          otherBar: 200,
+          readings: series,
+          atStart: false,
+        ),
+        closeTo(200 - 26 * 0.3, 1e-9),
+      );
+    });
+
+    test('a non-finite value is resolved like a near-zero one', () {
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: double.nan,
+          otherBar: 200,
+          readings: const [],
+          atStart: false,
+        ),
+        isNull,
+      );
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: double.infinity,
+          otherBar: 60,
+          readings: draining(),
+          atStart: true,
+        ),
+        200,
+      );
+    });
+
     test('a value at the near-zero bound is a real pressure and kept', () {
       expect(
         replaceNearZeroEndpoint(
