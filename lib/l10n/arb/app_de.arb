@@ -293,6 +293,8 @@
   "equipment_color_stone": "Stein",
   "equipment_color_zinc": "Zink",
   "equipment_color_slate": "Schiefer",
+  "equipment_color_black": "Schwarz",
+  "equipment_color_white": "Weiß",
   "equipment_color_none": "Keine",
   "equipment_color_sheetTitle": "Farbe wählen",
   "equipment_setEdit_figureSwitch_subtitle": "Die Ausrüstung dieses Sets an einem Taucher zeigen",
@@ -353,14 +355,7 @@
   "trips_story_checklistProgress": "{done} von {total} erledigt",
   "trips_story_generateItinerary": "Reiseplan erstellen",
   "trips_story_openGallery": "Reisefotos öffnen",
-  "trips_story_generateItineraryError": "Reiseplan konnte nicht erstellt werden: {error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "Der Reiseplan konnte nicht erstellt werden. Versuche es erneut.",
   "trips_dayType_diveDay": "Tauchtag",
   "trips_dayType_seaDay": "Seetag",
   "trips_dayType_portDay": "Hafentag",
@@ -4332,6 +4327,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "Dieser Tauchgang entspricht bereits der Konfiguration",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{{count} aktualisiert} other{{count} aktualisiert}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "Flaschendaten ersetzen?",
+  "cylinderConfigs_overwriteBody": "Das Anwenden von {name} ändert Flaschen, die bereits in diesem Tauchgang erfasst sind:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "Flasche {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "Gasgemische und Anfangsdrücke des Tauchgangs bleiben erhalten.",
+  "cylinderConfigs_overwriteConfirm": "Ersetzen",
+  "cylinderConfigs_fieldVolume": "Volumen",
+  "cylinderConfigs_fieldWorkingPressure": "Betriebsdruck",
+  "cylinderConfigs_fieldMaterial": "Material",
   "cylinderConfigs_sectionTitle": "Konfigurationen",
   "equipment_serviceClocks_hoursSource": "Aus der protokollierten Tauchzeit berechnet",
   "equipment_serviceClocks_hoursLeft": "{remaining} von {total} Stunden übrig",
@@ -4622,6 +4664,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Nichts ist überfällig.",
   "equipment_list_errorLoading": "Fehler beim Laden der Ausrüstung: {error}",
   "equipment_list_filterAll": "Gesamte Ausrüstung",
+  "equipment_list_filterCurrent": "Aktuelle Ausrüstung",
   "equipment_list_filterServiceDue": "Wartung fällig",
   "equipment_list_filterServiceDueSoon": "Bald fällig",
   "equipment_list_filterServiceOverdue": "Überfällig",
@@ -5271,7 +5314,7 @@
   "media_diveMediaSection_errorLoading": "Fehler beim Laden der Medien",
   "media_diveMediaSection_selectAllButton": "Alle auswählen",
   "media_diveMediaSection_selectedCount": "{count} ausgewählt",
-  "media_diveMediaSection_thumbnailLabel": "Foto anzeigen. Lange drücken zum Trennen",
+  "media_diveMediaSection_thumbnailLabel": "Foto anzeigen. Lange drücken zum Auswählen",
   "media_diveMediaSection_title": "Fotos & Video",
   "media_diveMediaSection_replaceButton": "Neu verknüpfen",
   "media_diveMediaSection_replaceEditedContent": "Der Inhalt dieser Datei unterscheidet sich vom Original. Beim Neuverknüpfen wird sie erneut in Ihren Medienspeicher hochgeladen.",
@@ -5307,7 +5350,7 @@
   "mediaImport_reviewSitesAction": "Tauchplätze prüfen",
   "media_gpsBanner_title": "GPS in Fotos gefunden",
   "media_import_allAlreadyLinked": "{count, plural, =1{1 Foto bereits mit diesem Tauchgang verknüpft} other{{count} Fotos bereits mit diesem Tauchgang verknüpft}}",
-  "media_import_failedToImport": "{count, plural, =1{Foto} other{Fotos}} konnte nicht importiert werden",
+  "media_import_failedToImport": "{count, plural, =1{Foto konnte} other{Fotos konnten}} nicht importiert werden",
   "media_import_failedToImportError": "Fotos konnten nicht importiert werden: {error}",
   "media_import_importedAndFailed": "{imported} importiert, {failed} fehlgeschlagen",
   "media_import_importedAndSkipped": "{imported, plural, =1{1 Foto importiert} other{{imported} Fotos importiert}} ({skipped} bereits verknüpft)",
@@ -5465,6 +5508,8 @@
   "media_import_review_chooseSite": "Tauchplatz wählen",
   "media_import_review_ambiguous": "Mehrere Tauchgänge passen",
   "media_import_review_noMatch": "Kein passender Tauchgang",
+  "media_import_review_noCaptureTime": "Kein Aufnahmedatum gefunden",
+  "media_import_review_noMatchFileDate": "Kein passender Tauchgang zum Dateidatum; die Datei hat kein Aufnahmedatum",
   "media_import_review_skipped": "Nicht importiert",
   "media_import_review_linkChip": "Mit #{number} verknüpfen",
   "media_import_review_linkToDive": "Mit Tauchgang verknüpfen",
@@ -6264,7 +6309,7 @@
   "settings_manage_weightPresets": "Bleivorlagen",
   "settings_manage_weightPresets_subtitle": "Wiederverwendbare Bleimengen für einen Tauchgang",
   "weightPresets_page_title": "Bleivorlagen",
-  "weightPresets_page_empty": "Speichere eine Bleimenge im Tauchgang-Editor, dann erscheint sie hier zur Wiederverwendung.",
+  "weightPresets_page_empty": "Speichere eine Bleimenge im Tauchgang-Editor oder tippe auf +, um hier eine anzulegen.",
   "weightPresets_action_rename": "Umbenennen",
   "weightPresets_action_new": "New preset",
   "weightPresets_action_edit": "Edit",
@@ -6366,7 +6411,7 @@
   "settings_section_appearance_title": "Darstellung",
   "settings_section_data_subtitle": "Sicherung, Wiederherstellung & Speicher",
   "settings_section_data_title": "Daten",
-  "settings_section_decompression_subtitle": "Gradientenfaktoren",
+  "settings_section_decompression_subtitle": "GF, Datenquellen & Narkose",
   "settings_section_decompression_title": "Dekompression",
   "settings_section_diverProfile_subtitle": "Aktiver Taucher & Profile",
   "settings_section_diverProfile_title": "Taucherprofil",
@@ -6738,7 +6783,7 @@
   "insights_profile_deco_decoRate": "Deko-Rate",
   "insights_profile_deco_empty": "Keine Deko-Daten verfügbar",
   "insights_profile_deco_error": "Deko-Daten konnten nicht geladen werden",
-  "insights_profile_deco_noDeco": "Kein Deko",
+  "insights_profile_deco_noDeco": "Keine Deko",
   "insights_profile_deco_notRecorded": "Nicht erfasst",
   "insights_profile_deco_notRecordedHint": "{count} Tauchgänge haben keine erfassten oder berechenbaren Deko-Daten und sind von der Rate ausgenommen",
   "insights_profile_deco_semanticLabel": "Dekompressionsrate: {percentage}% der Tauchgänge erforderten Deko-Stopps",
@@ -7217,7 +7262,7 @@
   "transfer_csvExport_unitsMine": "Meine Einheiten",
   "transfer_csvExport_unitsMineDescription": "Werte in den eigenen Einheiten-, Datums- und Zeiteinstellungen, in jeder Spaltenüberschrift angegeben",
   "transfer_detail_backTooltip": "Zurück zur Übertragung",
-  "transfer_export_aboutContent": "Exportieren Sie Ihre Tauchdaten in verschiedenen Formaten. PDF erstellt ein druckbares Tauchlogbuch. UDDF ist ein universelles Format, das mit den meisten Tauchlog-Programmen kompatibel ist. CSV-Dateien können in Tabellenkalkulationen geöffnet werden.",
+  "transfer_export_aboutContent": "Exportieren Sie Ihre Tauchdaten in verschiedenen Formaten. PDF erstellt ein druckbares Tauchlogbuch. UDDF ist ein universelles Format, das mit den meisten Tauchlog-Programmen kompatibel ist. CSV- und Excel-Dateien können in Tabellenkalkulationen geöffnet werden. Unter Einstellungen > Sicherung und Wiederherstellung können Sie außerdem Ihre gesamte Datenbank sichern.",
   "transfer_export_aboutTitle": "Über Export",
   "transfer_export_backupLink": "Zu Sicherung & Wiederherstellung",
   "transfer_export_completed": "Export abgeschlossen",
@@ -7247,7 +7292,7 @@
   "transfer_export_uddfTitle": "UDDF-Export",
   "transfer_import_aboutContent": "Verwenden Sie \"Daten importieren\" für das beste Ergebnis - das Dateiformat und die Quell-App werden automatisch erkannt. Die einzelnen Formatoptionen unten stehen auch für den direkten Zugriff zur Verfügung.",
   "transfer_import_aboutTitle": "Über Import",
-  "transfer_import_fileImportSemanticLabel": "Daten mit automatischer Erkennung importieren",
+  "transfer_import_fileImportSemanticLabel": "Tauchdaten aus Datei importieren",
   "transfer_import_fileImportSubtitle": "Erkennt automatisch CSV, UDDF, FIT und mehr",
   "transfer_import_fileImportTitle": "Daten importieren",
   "transfer_import_sectionHeader": "Daten importieren",
@@ -7302,6 +7347,7 @@
   "trips_detail_dialog_deleteTitle": "Reise löschen?",
   "trips_detail_dives_empty": "Noch keine Tauchgänge in dieser Reise",
   "trips_detail_dives_errorLoading": "Tauchgänge konnten nicht geladen werden",
+  "trips_detail_error_loading": "Die Reise konnte nicht geladen werden.",
   "trips_detail_dives_unknownSite": "Unbekannter Tauchplatz",
   "trips_detail_dives_viewAll": "Alle anzeigen ({count})",
   "trips_detail_durationDays": "{days} Tage",
@@ -7322,8 +7368,8 @@
   "trips_detail_label_vesselType": "Type",
   "trips_detail_scan_accessDenied": "Zugriff auf Fotobibliothek verweigert",
   "trips_detail_scan_addDivesFirst": "Fügen Sie zuerst Tauchgänge hinzu, um Fotos zu verknüpfen",
-  "trips_detail_scan_errorLinking": "Fehler beim Verknüpfen der Fotos: {error}",
-  "trips_detail_scan_errorScanning": "Fehler beim Scannen: {error}",
+  "trips_detail_scan_errorLinking": "Die Fotos konnten nicht verknüpft werden. Versuche es erneut.",
+  "trips_detail_scan_errorScanning": "Die Fotos konnten nicht gescannt werden. Versuche es erneut.",
   "trips_detail_scan_linkedPhotos": "{count} Fotos verknüpft",
   "trips_detail_scan_linkingPhotos": "Fotos werden verknüpft...",
   "trips_detail_sectionTitle_dailyBreakdown": "Daily Breakdown",
@@ -7540,14 +7586,7 @@
   "trips_cylinders_forecast_useEstimate": "Schätzung verwenden",
   "trips_cylinders_forecast_fewer": "Weniger Tauchgänge",
   "trips_cylinders_forecast_more": "Mehr Tauchgänge",
-  "trips_cylinders_forecast_saveError": "Plan konnte nicht gespeichert werden: {error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "Der Plan konnte nicht gespeichert werden. Versuche es erneut.",
   "trips_cylinders_forecast_dayPlanned": "Von dir geplant",
   "trips_cylinders_segment_record": "Protokoll",
   "trips_cylinders_recordEmpty": "Noch keine Tauchgänge mit diesen Flaschen.",
@@ -7609,6 +7648,7 @@
     }
   },
   "trips_cylinders_record_exported": "Gasprotokoll exportiert",
+  "trips_cylinders_record_exportFailed": "Das Gasprotokoll konnte nicht exportiert werden. Versuche es erneut.",
   "trips_cylinders_title": "Flaschen",
   "trips_cylinders_summary": "Voll {full} · Teilweise {partial} · Leer {empty}",
   "@trips_cylinders_summary": {
@@ -7809,8 +7849,8 @@
   "trips_edit_sectionTitle_vessel": "Vessel Details",
   "trips_edit_semanticLabel_save": "Reise speichern",
   "trips_edit_snackBar_added": "Reise erfolgreich hinzugefügt",
-  "trips_edit_snackBar_errorLoading": "Fehler beim Laden der Reise: {error}",
-  "trips_edit_snackBar_errorSaving": "Fehler beim Speichern der Reise: {error}",
+  "trips_edit_snackBar_errorLoading": "Die Reise konnte nicht geladen werden. Versuche es erneut.",
+  "trips_edit_snackBar_errorSaving": "Die Reise konnte nicht gespeichert werden. Versuche es erneut.",
   "trips_edit_snackBar_updated": "Reise erfolgreich aktualisiert",
   "trips_edit_validation_nameRequired": "Bitte geben Sie einen Reisenamen ein",
   "trips_edit_validation_vesselRequired": "Vessel name is required for liveaboard trips",
@@ -7821,9 +7861,9 @@
   "trips_gallery_diveSection_title": "Tauchgang #{number} - {site}",
   "trips_gallery_empty_subtitle": "Tippen Sie auf das Kamerasymbol, um Ihre Galerie zu durchsuchen",
   "trips_gallery_empty_title": "Keine Fotos in dieser Reise",
-  "trips_gallery_errorLinking": "Fehler beim Verknüpfen der Fotos: {error}",
-  "trips_gallery_errorScanning": "Fehler beim Scannen: {error}",
-  "trips_gallery_error_loading": "Fehler beim Laden der Fotos: {error}",
+  "trips_gallery_errorLinking": "Die Fotos konnten nicht verknüpft werden. Versuche es erneut.",
+  "trips_gallery_errorScanning": "Die Fotos konnten nicht gescannt werden. Versuche es erneut.",
+  "trips_gallery_error_loading": "Die Fotos konnten nicht geladen werden.",
   "trips_gallery_linkedPhotos": "{count} Fotos verknüpft",
   "trips_gallery_linkingPhotos": "Fotos werden verknüpft...",
   "trips_gallery_tooltip_scan": "Gerätegalerie durchsuchen",
@@ -7833,6 +7873,8 @@
   "trips_itinerary_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_noDives": "No dives",
+  "trips_itinerary_error_loading": "Der Reiseplan konnte nicht geladen werden.",
+  "trips_itinerary_daySaveError": "Der Tag konnte nicht gespeichert werden. Versuche es erneut.",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_list_button_retry": "Erneut versuchen",
@@ -7842,7 +7884,7 @@
   "trips_list_empty_filtered_title": "Keine Reisen entsprechen Ihren Filtern",
   "trips_list_empty_subtitle": "Erstellen Sie Reisen, um Ihre Tauchgänge nach Reiseziel zu gruppieren",
   "trips_list_empty_title": "Noch keine Reisen hinzugefügt",
-  "trips_list_error_loading": "Fehler beim Laden der Reisen: {error}",
+  "trips_list_error_loading": "Deine Reisen konnten nicht geladen werden.",
   "trips_list_fab_addTrip": "Reise hinzufügen",
   "trips_list_filters_clearAll": "Alle löschen",
   "trips_list_inProgress": "Läuft gerade",
@@ -7864,7 +7906,7 @@
   "trips_picker_clearTooltip": "Auswahl löschen",
   "trips_picker_empty_createButton": "Reise erstellen",
   "trips_picker_empty_title": "Noch keine Reisen",
-  "trips_picker_error": "Fehler beim Laden der Reisen: {error}",
+  "trips_picker_error": "Deine Reisen konnten nicht geladen werden.",
   "trips_picker_hint": "Tippen, um eine Reise auszuwählen",
   "trips_picker_newTrip": "Neue Reise",
   "trips_picker_noSelection": "Keine Reise ausgewählt",
@@ -7874,6 +7916,7 @@
   "trips_search_empty_hint": "Nach Name, Ort oder Resort suchen",
   "trips_search_fieldLabel": "Reisen durchsuchen...",
   "trips_search_noResults": "Keine Reisen gefunden für \"{query}\"",
+  "trips_search_error": "Deine Reisen konnten nicht durchsucht werden.",
   "trips_search_tooltip_back": "Zurück",
   "trips_search_tooltip_clear": "Suche löschen",
   "trips_summary_header_subtitle": "Wählen Sie eine Reise aus der Liste, um Details anzuzeigen",
@@ -8168,14 +8211,7 @@
     }
   },
   "trips_diveScan_deselectAll": "Alle abwählen",
-  "trips_diveScan_error": "Fehler beim Suchen nach Tauchgängen: {error}",
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_diveScan_error": "Die Suche nach Tauchgängen ist fehlgeschlagen. Versuche es erneut.",
   "trips_diveScan_findButton": "Passende Tauchgänge finden",
   "trips_diveScan_groupOtherTrips": "In anderen Reisen ({count})",
   "@trips_diveScan_groupOtherTrips": {
@@ -11367,7 +11403,7 @@
   "species_king_angelfish_desc": "Großer dunkelblauer Kaiserfisch mit weißer Querbinde und gelber Schwanzflosse, im Ostpazifik und um Galapagos verbreitet.",
   "species_ocean_sunfish_name": "Mondfisch",
   "species_ocean_sunfish_desc": "Der schwerste Knochenfisch mit über 2 Tonnen Gewicht. Gelegentlich von Tauchern an Putzerstationen vor Bali und Galapagos gesichtet.",
-  "species_lingcod_name": "Lingcod",
+  "species_lingcod_name": "Lengdorsch",
   "species_lingcod_desc": "Großer gefleckter Raubgrünling an den Felsriffen des pazifischen Nordwestens, oft beim Bewachen seiner Laichballen.",
   "species_wolf_eel_name": "Wolfsaal",
   "species_wolf_eel_desc": "Großer grauer Wolfsaal mit wulstigem Kopf und kräftigen Kiefern, in Felshöhlen des pazifischen Nordwestens.",
@@ -12035,7 +12071,7 @@
   "species_ruffe_desc": "Kleiner, marmorierter Barsch mit durchgehender stacheliger Rückenflosse, häufig auf weichen Böden europäischer Seen.",
   "species_largemouth_bass_name": "Forellenbarsch",
   "species_largemouth_bass_desc": "Grünrückiger Barsch mit dunklem Seitenstreifen und riesigem Maul, lauert an Baumstämmen und Krautkanten warmer Seen.",
-  "species_smallmouth_bass_name": "Großer Schwarzbarsch",
+  "species_smallmouth_bass_name": "Schwarzbarsch",
   "species_smallmouth_bass_desc": "Bronzefarbener Barsch mit schwachen Querbinden, steht über Fels und Kies in klaren, kühlen Seen und Flüssen.",
   "species_rock_bass_name": "Steinbarsch",
   "species_rock_bass_desc": "Gedrungener rotäugiger Sonnenbarsch mit Reihen dunkler Flecken, versteckt sich zwischen Felsblöcken klarer Bäche und Seen.",
@@ -12153,10 +12189,10 @@
   "species_arapaima_desc": "Einer der größten Süßwasserfische, ein gepanzerter Amazonasriese mit rot gesprenkeltem Schwanz, der zum Luftholen auftaucht.",
   "species_silver_arowana_name": "Arowana",
   "species_silver_arowana_desc": "Bandförmiger silberner Amazonasfisch mit zwei Kinnbarteln, der aus dem Wasser springt, um Insekten von Zweigen zu schnappen.",
-  "species_red_bellied_piranha_name": "Diamant-Piranha",
+  "species_red_bellied_piranha_name": "Roter Piranha",
   "species_red_bellied_piranha_desc": "Hochrückiger silberner Fisch mit karmesinrotem Bauch und messerscharfen Zähnen, zieht in Schwärmen durch Amazonas-Altwasser.",
-  "species_black_piranha_name": "Roter Piranha",
-  "species_black_piranha_desc": "Große einzelgängerische Piranha mit roten Augen und dunklem rautenförmigem Körper, lauert in klaren felsigen Amazonas-Nebenflüssen.",
+  "species_black_piranha_name": "Schwarzer Piranha",
+  "species_black_piranha_desc": "Großer einzelgängerischer Piranha mit roten Augen und dunklem rautenförmigem Körper, lauert in klaren felsigen Amazonas-Nebenflüssen.",
   "species_red_bellied_pacu_name": "Gamitana-Scheibensalmler",
   "species_red_bellied_pacu_desc": "Piranhaähnlicher Früchtefresser mit flachen Mahlzähnen und rotem Bauch, sammelt sich unter überfluteten Waldbäumen.",
   "species_tambaqui_name": "Schwarzer Pacu",
@@ -12193,7 +12229,7 @@
   "species_giant_snakehead_desc": "Großer, aggressiver Schlangenkopffisch, gestreift als Jungfisch und dunkel als Erwachsener, verteidigt seine leuchtend roten Jungen in südostasiatischen Seen.",
   "species_climbing_perch_name": "Kletterfisch",
   "species_climbing_perch_desc": "Robuster olivfarbener Fisch, der Luft atmet und auf seinen stacheligen Kiemendeckeln über Land zwischen austrocknenden Tümpeln kriecht.",
-  "species_golden_mahseer_name": "Riesenbarbe",
+  "species_golden_mahseer_name": "Goldener Mahseer",
   "species_golden_mahseer_desc": "Goldschuppiger Karpfen der Himalaya-Flüsse, ein kraftvoller Schwimmer, der in schnellen klaren Kolken unterhalb von Stromschnellen steht.",
   "species_koi_name": "Koi-Karpfen",
   "species_koi_desc": "Zierkarpfen, in Japan in weißen, roten, schwarzen und goldenen Mustern gezüchtet, zu Hause in Teichen und warmen klaren Seen.",
@@ -13502,7 +13538,7 @@
   "diveLog_edit_excludeFromStats": "Von Statistiken ausschließen",
   "diveLog_edit_excludeFromStatsHelp": "Behalte diesen Tauchgang im Logbuch, lasse ihn aber aus jeder Statistik heraus, einschließlich der Tauchgangszahl.",
   "diveLog_edit_excludeFromGasStats": "Von Gasstatistiken ausschließen",
-  "diveLog_edit_excludeFromGasStatsHelp": "Lasse diesen Tauchgang nur aus AMV-, RMV- und Gasgemisch-Statistiken heraus. Nützlich, wenn der Gaswert nicht repräsentativ ist.",
+  "diveLog_edit_excludeFromGasStatsHelp": "Lasse diesen Tauchgang nur aus Druckverbrauch-, AMV- und Gasgemisch-Statistiken heraus. Nützlich, wenn der Gaswert nicht repräsentativ ist.",
   "diveLog_badge_excludedFromStats": "Von Statistiken ausgeschlossen",
   "diveLog_badge_excludedFromGasStats": "Von Gasstatistiken ausgeschlossen",
   "diveLog_bulkEdit_fieldExcludeFromStats": "Von Statistiken ausschließen",

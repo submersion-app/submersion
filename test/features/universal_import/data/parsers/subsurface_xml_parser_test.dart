@@ -81,6 +81,24 @@ void main() {
       expect(dives[0]['dateTime'], DateTime.utc(2025, 11, 13, 7, 23, 58));
       expect(dives[0]['diveNumber'], 5);
     });
+
+    test('a two-digit year is not the year 91 (#2617)', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='5' date='91-11-13' time='07:23:58' duration='10:00 min'>
+  <divecomputer model='Test'>
+  <depth max='8.0 m' mean='4.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives[0]['dateTime'], DateTime.utc(1991, 11, 13, 7, 23, 58));
+    });
   });
 
   group('dive metadata', () {

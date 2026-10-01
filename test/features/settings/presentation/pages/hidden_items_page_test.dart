@@ -110,6 +110,25 @@ void main() {
     expect(sites.unhidden, ['pier']);
   });
 
+  testWidgets('an unshared item is not called shared (issue #2678)', (
+    tester,
+  ) async {
+    // A hide on the profile's own private trip, which only sync leaves.
+    await pumpPage(tester, const [
+      HiddenItem(
+        kind: SharedItemKind.trip,
+        id: 'mine',
+        name: 'Mine',
+        ownerId: 'a',
+        location: 'Kralendijk',
+        isShared: false,
+      ),
+    ]);
+    expect(find.text('Kralendijk'), findsOneWidget);
+    expect(find.textContaining('Shared by'), findsNothing);
+    expect(find.text('Unhide'), findsOneWidget);
+  });
+
   testWidgets('a failed Unhide keeps the row and says to try again '
       '(issue #2677)', (tester) async {
     final (trips, sites) = await pumpPage(tester, items);

@@ -282,6 +282,8 @@
   "equipment_color_stone": "岩石灰",
   "equipment_color_zinc": "锌灰色",
   "equipment_color_slate": "石板灰",
+  "equipment_color_black": "黑色",
+  "equipment_color_white": "白色",
   "equipment_color_none": "无",
   "equipment_color_sheetTitle": "选择颜色",
   "equipment_setEdit_figureSwitch_subtitle": "在潜水员图上显示此套装的装备",
@@ -342,14 +344,7 @@
   "trips_story_checklistProgress": "已完成 {done}/{total}",
   "trips_story_generateItinerary": "生成行程",
   "trips_story_openGallery": "打开行程照片",
-  "trips_story_generateItineraryError": "无法生成行程：{error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "无法生成行程，请重试。",
   "trips_dayType_diveDay": "潜水日",
   "trips_dayType_seaDay": "海上日",
   "trips_dayType_portDay": "港口日",
@@ -651,13 +646,6 @@
   "@trips_diveScan_currentTrip": {
     "placeholders": {
       "tripName": {
-        "type": "String"
-      }
-    }
-  },
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
         "type": "String"
       }
     }
@@ -4454,6 +4442,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "该潜水已与配置一致",
+  "cylinderConfigs_applyUpdated": "{count, plural, other{更新 {count} 个}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "替换气瓶参数？",
+  "cylinderConfigs_overwriteBody": "应用 {name} 将更改此潜水中已有的气瓶：",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "气瓶 {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}：{from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "潜水中已有的混合气和起始压力保持不变。",
+  "cylinderConfigs_overwriteConfirm": "替换",
+  "cylinderConfigs_fieldVolume": "容积",
+  "cylinderConfigs_fieldWorkingPressure": "工作压力",
+  "cylinderConfigs_fieldMaterial": "材质",
   "cylinderConfigs_sectionTitle": "配置",
   "equipment_serviceClocks_hoursSource": "根据已记录的潜水时间计算",
   "equipment_serviceClocks_hoursLeft": "剩余 {remaining}/{total} 小时",
@@ -4666,6 +4701,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "没有装备维护逾期。",
   "equipment_list_errorLoading": "加载装备出错：{error}",
   "equipment_list_filterAll": "全部装备",
+  "equipment_list_filterCurrent": "当前装备",
   "equipment_list_filterServiceDue": "需要维护",
   "equipment_list_filterServiceDueSoon": "即将到期",
   "equipment_list_filterServiceOverdue": "已逾期",
@@ -5530,6 +5566,8 @@
   "media_import_review_chooseSite": "选择潜点",
   "media_import_review_ambiguous": "多次潜水匹配",
   "media_import_review_noMatch": "没有匹配的潜水",
+  "media_import_review_noCaptureTime": "未找到拍摄日期",
+  "media_import_review_noMatchFileDate": "没有与文件日期匹配的潜水；该文件没有拍摄日期",
   "media_import_review_skipped": "未导入",
   "media_import_review_linkChip": "关联到 #{number}",
   "media_import_review_linkToDive": "关联到潜水",
@@ -6345,7 +6383,7 @@
   "settings_manage_weightPresets": "配重预设",
   "settings_manage_weightPresets_subtitle": "可重复使用的潜水配重组合",
   "weightPresets_page_title": "配重预设",
-  "weightPresets_page_empty": "在潜水编辑器中保存一份配重，它就会出现在这里供重复使用。",
+  "weightPresets_page_empty": "在潜水编辑器中保存一份配重，或点按 + 在此新建一份。",
   "weightPresets_action_rename": "重命名",
   "weightPresets_action_new": "New preset",
   "weightPresets_action_edit": "Edit",
@@ -7286,7 +7324,7 @@
   "transfer_csvExport_unitsMine": "我的单位",
   "transfer_csvExport_unitsMineDescription": "按你的单位、日期和时间设置输出，并在每列标题中注明",
   "transfer_detail_backTooltip": "返回传输",
-  "transfer_export_aboutContent": "以多种格式导出您的潜水数据。PDF 可创建可打印的潜水日志。UDDF 是与大多数潜水日志软件兼容的通用格式。CSV 文件可在电子表格应用中打开。",
+  "transfer_export_aboutContent": "以多种格式导出您的潜水数据。PDF 可创建可打印的潜水日志。UDDF 是与大多数潜水日志软件兼容的通用格式。CSV 和 Excel 文件可在电子表格应用中打开。您也可以在「设置 > 备份与恢复」中备份整个数据库。",
   "transfer_export_aboutTitle": "关于导出",
   "transfer_export_backupLink": "前往备份与恢复",
   "transfer_export_completed": "导出完成",
@@ -7371,6 +7409,7 @@
   "trips_detail_dialog_deleteTitle": "删除旅行？",
   "trips_detail_dives_empty": "此旅行暂无潜水记录",
   "trips_detail_dives_errorLoading": "无法加载潜水记录",
+  "trips_detail_error_loading": "无法加载旅行。",
   "trips_detail_dives_unknownSite": "未知潜水点",
   "trips_detail_dives_viewAll": "查看全部 ({count})",
   "trips_detail_durationDays": "{days} 天",
@@ -7391,8 +7430,8 @@
   "trips_detail_label_vesselType": "类型",
   "trips_detail_scan_accessDenied": "相册访问被拒绝",
   "trips_detail_scan_addDivesFirst": "请先添加潜水以关联照片",
-  "trips_detail_scan_errorLinking": "关联照片时出错：{error}",
-  "trips_detail_scan_errorScanning": "扫描出错: {error}",
+  "trips_detail_scan_errorLinking": "无法关联照片，请重试。",
+  "trips_detail_scan_errorScanning": "无法扫描照片，请重试。",
   "trips_detail_scan_linkedPhotos": "已关联 {count} 照片",
   "trips_detail_scan_linkingPhotos": "正在关联照片...",
   "trips_detail_sectionTitle_dailyBreakdown": "每日分解",
@@ -7426,7 +7465,7 @@
   "trips_diveScan_cancel": "取消",
   "trips_diveScan_currentTrip": "当前旅行：{tripName}",
   "trips_diveScan_deselectAll": "取消全选",
-  "trips_diveScan_error": "扫描潜水时出错：{error}",
+  "trips_diveScan_error": "无法扫描潜水，请重试。",
   "trips_diveScan_findButton": "查找匹配的潜水",
   "trips_diveScan_groupOtherTrips": "在其他旅行中（{count}）",
   "trips_diveScan_groupUnassigned": "未分配（{count}）",
@@ -7624,14 +7663,7 @@
   "trips_cylinders_forecast_useEstimate": "使用估计值",
   "trips_cylinders_forecast_fewer": "减少潜水",
   "trips_cylinders_forecast_more": "增加潜水",
-  "trips_cylinders_forecast_saveError": "无法保存计划：{error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "无法保存计划，请重试。",
   "trips_cylinders_forecast_dayPlanned": "由你计划",
   "trips_cylinders_segment_record": "用气",
   "trips_cylinders_recordEmpty": "还没有使用这些气瓶的潜水。",
@@ -7693,6 +7725,7 @@
     }
   },
   "trips_cylinders_record_exported": "用气记录已导出",
+  "trips_cylinders_record_exportFailed": "无法导出用气记录，请重试。",
   "trips_cylinders_title": "气瓶",
   "trips_cylinders_summary": "满瓶 {full} · 部分 {partial} · 空瓶 {empty}",
   "@trips_cylinders_summary": {
@@ -7893,8 +7926,8 @@
   "trips_edit_sectionTitle_vessel": "船只详情",
   "trips_edit_semanticLabel_save": "保存旅行",
   "trips_edit_snackBar_added": "旅行添加成功",
-  "trips_edit_snackBar_errorLoading": "加载旅行时出错：{error}",
-  "trips_edit_snackBar_errorSaving": "保存旅行时出错：{error}",
+  "trips_edit_snackBar_errorLoading": "无法加载旅行，请重试。",
+  "trips_edit_snackBar_errorSaving": "无法保存旅行，请重试。",
   "trips_edit_snackBar_updated": "旅行更新成功",
   "trips_edit_validation_nameRequired": "请输入旅行名称",
   "trips_edit_validation_vesselRequired": "船宿旅行需要填写船只名称",
@@ -7905,9 +7938,9 @@
   "trips_gallery_diveSection_title": "潜水 #{number} - {site}",
   "trips_gallery_empty_subtitle": "点击相机图标以扫描您的相册",
   "trips_gallery_empty_title": "此旅行暂无照片",
-  "trips_gallery_errorLinking": "关联照片时出错：{error}",
-  "trips_gallery_errorScanning": "扫描出错: {error}",
-  "trips_gallery_error_loading": "加载照片时出错：{error}",
+  "trips_gallery_errorLinking": "无法关联照片，请重试。",
+  "trips_gallery_errorScanning": "无法扫描照片，请重试。",
+  "trips_gallery_error_loading": "无法加载照片。",
   "trips_gallery_linkedPhotos": "已关联 {count} 照片",
   "trips_gallery_linkingPhotos": "正在关联照片...",
   "trips_gallery_tooltip_scan": "扫描设备图库",
@@ -7917,6 +7950,8 @@
   "trips_itinerary_diveCount": "{count, plural, =1{1 次潜水} other{{count} 次潜水}}",
   "trips_itinerary_editDay": "编辑日程",
   "trips_itinerary_noDives": "无潜水",
+  "trips_itinerary_error_loading": "无法加载行程。",
+  "trips_itinerary_daySaveError": "无法保存日程，请重试。",
   "trips_itinerary_notes_label": "备注",
   "trips_itinerary_portName_label": "港口/锚地",
   "trips_list_button_retry": "重试",
@@ -7926,7 +7961,7 @@
   "trips_list_empty_filtered_title": "没有匹配筛选条件的旅行",
   "trips_list_empty_subtitle": "创建旅行以按目的地组织您的潜水",
   "trips_list_empty_title": "尚未添加旅行",
-  "trips_list_error_loading": "加载旅行时出错：{error}",
+  "trips_list_error_loading": "无法加载旅行。",
   "trips_list_fab_addTrip": "添加旅行",
   "trips_list_filters_clearAll": "清除全部",
   "trips_list_inProgress": "进行中",
@@ -7948,7 +7983,7 @@
   "trips_picker_clearTooltip": "清除选择",
   "trips_picker_empty_createButton": "创建旅行",
   "trips_picker_empty_title": "暂无旅行",
-  "trips_picker_error": "加载旅行时出错：{error}",
+  "trips_picker_error": "无法加载旅行。",
   "trips_picker_hint": "点击选择旅行",
   "trips_picker_newTrip": "新建旅行",
   "trips_picker_noSelection": "无旅行已选择",
@@ -7958,6 +7993,7 @@
   "trips_search_empty_hint": "按名称、地点或度假村搜索",
   "trips_search_fieldLabel": "搜索旅行...",
   "trips_search_noResults": "未找到「{query}」的旅行",
+  "trips_search_error": "无法搜索旅行。",
   "trips_search_tooltip_back": "返回",
   "trips_search_tooltip_clear": "清除搜索",
   "trips_summary_header_subtitle": "从列表中选择一个旅行以查看详情",

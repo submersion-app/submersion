@@ -1146,6 +1146,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_color_slate => 'Ardósia';
 
   @override
+  String get equipment_color_black => 'Preto';
+
+  @override
+  String get equipment_color_white => 'Branco';
+
+  @override
   String get equipment_color_none => 'Nenhuma';
 
   @override
@@ -1384,9 +1390,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_story_openGallery => 'Abrir fotos da viagem';
 
   @override
-  String trips_story_generateItineraryError(String error) {
-    return 'Não foi possível gerar o itinerário: $error';
-  }
+  String get trips_story_generateItineraryError =>
+      'Não foi possível gerar o itinerário. Tente novamente.';
 
   @override
   String get trips_dayType_diveDay => 'Dia de mergulho';
@@ -14541,6 +14546,52 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este mergulho já corresponde à configuração';
 
   @override
+  String cylinderConfigs_applyUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count atualizadas',
+      one: '$count atualizada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteTitle =>
+      'Substituir os dados das garrafas?';
+
+  @override
+  String cylinderConfigs_overwriteBody(String name) {
+    return 'Aplicar $name altera garrafas que já estão neste mergulho:';
+  }
+
+  @override
+  String cylinderConfigs_overwriteTank(int number, String role) {
+    return 'Cilindro $number · $role';
+  }
+
+  @override
+  String cylinderConfigs_overwriteChange(String field, String from, String to) {
+    return '$field: $from → $to';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteKeepsGas =>
+      'As misturas de gás e as pressões iniciais do mergulho são mantidas.';
+
+  @override
+  String get cylinderConfigs_overwriteConfirm => 'Substituir';
+
+  @override
+  String get cylinderConfigs_fieldVolume => 'Volume';
+
+  @override
+  String get cylinderConfigs_fieldWorkingPressure => 'Pressão de trabalho';
+
+  @override
+  String get cylinderConfigs_fieldMaterial => 'Material';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configurações';
 
   @override
@@ -15246,6 +15297,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_list_filterAll => 'Todos os Equipamentos';
+
+  @override
+  String get equipment_list_filterCurrent => 'Equipamentos Atuais';
 
   @override
   String get equipment_list_filterServiceDue => 'Manutenção Pendente';
@@ -18535,6 +18589,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_import_review_noMatch => 'Nenhum mergulho correspondente';
 
   @override
+  String get media_import_review_noCaptureTime =>
+      'Nenhuma data de captura encontrada';
+
+  @override
+  String get media_import_review_noMatchFileDate =>
+      'Nenhum mergulho corresponde à data do arquivo; o arquivo não tem data de captura';
+
+  @override
   String get media_import_review_skipped => 'Não importado';
 
   @override
@@ -21733,7 +21795,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'Guarde um lastro no editor de mergulho e ele aparecerá aqui para reutilizar.';
+      'Guarde um lastro no editor de mergulho ou toque em + para criar um aqui.';
 
   @override
   String get weightPresets_action_rename => 'Renomear';
@@ -22095,7 +22157,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_section_data_title => 'Dados';
 
   @override
-  String get settings_section_decompression_subtitle => 'Fatores de gradiente';
+  String get settings_section_decompression_subtitle =>
+      'GF, fontes de dados e narcose';
 
   @override
   String get settings_section_decompression_title => 'Descompressão';
@@ -25169,7 +25232,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'Exporte seus dados de mergulho em vários formatos. PDF cria um logbook imprimível. UDDF é um formato universal compatível com a maioria dos softwares de registro de mergulho. Arquivos CSV podem ser abertos em aplicativos de planilha.';
+      'Exporte seus dados de mergulho em vários formatos. PDF cria um logbook imprimível. UDDF é um formato universal compatível com a maioria dos softwares de registro de mergulho. Arquivos CSV e Excel podem ser abertos em aplicativos de planilha. Você também pode fazer backup de todo o seu banco de dados em Configurações > Backup e restauração.';
 
   @override
   String get transfer_export_backupLink => 'Ir para Backup e restauração';
@@ -25271,7 +25334,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transfer_import_fileImportSemanticLabel =>
-      'Importar dados com detecção automática';
+      'Importar dados de mergulho de um arquivo';
 
   @override
   String get transfer_import_fileImportSubtitle =>
@@ -25454,6 +25517,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível carregar os mergulhos';
 
   @override
+  String get trips_detail_error_loading =>
+      'Não foi possível carregar a viagem.';
+
+  @override
   String get trips_detail_dives_unknownSite => 'Ponto Desconhecido';
 
   @override
@@ -25504,14 +25571,12 @@ class AppLocalizationsPt extends AppLocalizations {
       'Adicione mergulhos primeiro para vincular fotos';
 
   @override
-  String trips_detail_scan_errorLinking(Object error) {
-    return 'Erro ao vincular fotos: $error';
-  }
+  String get trips_detail_scan_errorLinking =>
+      'Não foi possível vincular as fotos. Tente novamente.';
 
   @override
-  String trips_detail_scan_errorScanning(Object error) {
-    return 'Erro ao escanear: $error';
-  }
+  String get trips_detail_scan_errorScanning =>
+      'Não foi possível procurar fotos. Tente novamente.';
 
   @override
   String trips_detail_scan_linkedPhotos(Object count) {
@@ -25585,9 +25650,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_diveScan_deselectAll => 'Desmarcar tudo';
 
   @override
-  String trips_diveScan_error(String error) {
-    return 'Erro ao procurar mergulhos: $error';
-  }
+  String get trips_diveScan_error =>
+      'Não foi possível procurar mergulhos. Tente novamente.';
 
   @override
   String get trips_diveScan_findButton => 'Encontrar mergulhos correspondentes';
@@ -25721,14 +25785,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_edit_snackBar_added => 'Viagem adicionada com sucesso';
 
   @override
-  String trips_edit_snackBar_errorLoading(Object error) {
-    return 'Erro ao carregar viagem: $error';
-  }
+  String get trips_edit_snackBar_errorLoading =>
+      'Não foi possível carregar a viagem. Tente novamente.';
 
   @override
-  String trips_edit_snackBar_errorSaving(Object error) {
-    return 'Erro ao salvar viagem: $error';
-  }
+  String get trips_edit_snackBar_errorSaving =>
+      'Não foi possível salvar a viagem. Tente novamente.';
 
   @override
   String get trips_edit_snackBar_updated => 'Viagem atualizada com sucesso';
@@ -25772,19 +25834,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_gallery_empty_title => 'Nenhuma foto nesta viagem';
 
   @override
-  String trips_gallery_errorLinking(Object error) {
-    return 'Erro ao vincular fotos: $error';
-  }
+  String get trips_gallery_errorLinking =>
+      'Não foi possível vincular as fotos. Tente novamente.';
 
   @override
-  String trips_gallery_errorScanning(Object error) {
-    return 'Erro ao escanear: $error';
-  }
+  String get trips_gallery_errorScanning =>
+      'Não foi possível procurar fotos. Tente novamente.';
 
   @override
-  String trips_gallery_error_loading(Object error) {
-    return 'Erro ao carregar fotos: $error';
-  }
+  String get trips_gallery_error_loading =>
+      'Não foi possível carregar as fotos.';
 
   @override
   String trips_gallery_linkedPhotos(Object count) {
@@ -25834,9 +25893,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_list_empty_title => 'Nenhuma viagem adicionada ainda';
 
   @override
-  String trips_list_error_loading(Object error) {
-    return 'Erro ao carregar viagens: $error';
-  }
+  String get trips_list_error_loading =>
+      'Não foi possível carregar as suas viagens.';
 
   @override
   String get trips_list_fab_addTrip => 'Adicionar Viagem';
@@ -25908,9 +25966,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_picker_empty_title => 'Nenhuma viagem ainda';
 
   @override
-  String trips_picker_error(Object error) {
-    return 'Erro ao carregar viagens: $error';
-  }
+  String get trips_picker_error => 'Não foi possível carregar as suas viagens.';
 
   @override
   String get trips_picker_hint => 'Toque para selecionar uma viagem';
@@ -25943,6 +25999,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String trips_search_noResults(Object query) {
     return 'Nenhuma viagem encontrada para \"$query\"';
   }
+
+  @override
+  String get trips_search_error => 'Não foi possível buscar as suas viagens.';
 
   @override
   String get trips_search_tooltip_back => 'Voltar';
@@ -26223,9 +26282,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_cylinders_forecast_more => 'Mais mergulhos';
 
   @override
-  String trips_cylinders_forecast_saveError(String error) {
-    return 'Não foi possível guardar o plano: $error';
-  }
+  String get trips_cylinders_forecast_saveError =>
+      'Não foi possível guardar o plano. Tente novamente.';
 
   @override
   String get trips_cylinders_forecast_dayPlanned => 'Planeado por si';
@@ -26302,6 +26360,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get trips_cylinders_record_exported => 'Consumo de gás exportado';
+
+  @override
+  String get trips_cylinders_record_exportFailed =>
+      'Não foi possível exportar o consumo de gás. Tente novamente.';
 
   @override
   String get trips_cylinders_title => 'Cilindros';
@@ -26672,6 +26734,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get trips_itinerary_noDives => 'No dives';
+
+  @override
+  String get trips_itinerary_error_loading =>
+      'Não foi possível carregar o itinerário.';
+
+  @override
+  String get trips_itinerary_daySaveError =>
+      'Não foi possível guardar o dia. Tente novamente.';
 
   @override
   String get trips_vesselType_catamaran => 'Catamaran';

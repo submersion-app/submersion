@@ -101,6 +101,12 @@ class VisibilityFilter {
     );
   }
 
+  /// The owner-or-shared half of [sqlFragment], with the viewer named by
+  /// any SQL expression [viewer]: `?`, or a column such as a hide's
+  /// `h.diver_id` (issue #2678). Parenthesised, with no conjunction.
+  static String ownerOrSharedSql(String tableAlias, String viewer) =>
+      '($tableAlias.diver_id = $viewer OR $tableAlias.is_shared = 1)';
+
   /// Returns a SQL fragment and its variables for raw-SQL composition:
   /// owner-or-shared, minus the items [diverId] has hidden (issue #2594).
   ///
@@ -126,7 +132,7 @@ class VisibilityFilter {
       SharedItemKind.site => ('site_hides', 'site_id'),
     };
     final clause =
-        ' $conjunction ($tableAlias.diver_id = ? OR $tableAlias.is_shared = 1)'
+        ' $conjunction ${ownerOrSharedSql(tableAlias, '?')}'
         ' AND $tableAlias.id NOT IN '
         '(SELECT $column FROM $hides WHERE diver_id = ?)';
     return SqlFragment(

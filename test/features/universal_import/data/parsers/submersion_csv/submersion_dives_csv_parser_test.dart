@@ -163,6 +163,23 @@ void main() {
     expect(dives.first['dateTime'], DateTime.utc(2007, 9, 9, 9, 5));
   });
 
+  test('a two-digit year under a numeric header is not the year 91', () async {
+    // A spreadsheet kept the MM/DD/YYYY order but saved the year as two
+    // digits. Read literally, 12/05/91 is the year 91, which the Clock &
+    // timezone check then reports as dated before 1950 (#2617).
+    const numericDates = AppSettings(
+      dateFormat: DateFormatPreference.mmddyyyy,
+      timeFormat: TimeFormat.twentyFourHour,
+    );
+    final csv = CsvDivesWriter(
+      CsvExportUnits.fromSettings(numericDates),
+    ).write(goldenDives()).replaceAll('03/15/2025', '12/05/91');
+    final payload = await const SubmersionDivesCsvParser().parse(_bytes(csv));
+    expect(payload.warnings, isEmpty);
+    final dives = payload.entitiesOf(ImportEntityType.dives);
+    expect(dives.first['dateTime'], DateTime.utc(1991, 12, 5, 9, 5));
+  });
+
   test('a hand-edited unreadable number is left out with a warning', () async {
     final csv = CsvDivesWriter(
       CsvExportUnits.metric,

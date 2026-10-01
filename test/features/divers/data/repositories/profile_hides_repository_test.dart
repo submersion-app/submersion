@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
 import '../../../../helpers/shared_items_fixture.dart';
 import '../../../../helpers/test_database.dart';
@@ -103,6 +105,62 @@ void main() {
       (SharedItemKind.site, 'pier', 'Salt Pier', 'a'),
     ]);
     expect(await repository.hiddenItems('a'), isEmpty);
+  });
+
+  group('an item its owner unshares (issue #2678)', () {
+    Future<void> unshare({required bool shared}) async {
+      expect(
+        await TripRepository().setShared('shared', shared, actingDiverId: 'a'),
+        isTrue,
+      );
+      expect(
+        await SiteRepository().setShared('pier', shared, actingDiverId: 'a'),
+        isTrue,
+      );
+    }
+
+    setUp(() async {
+      await repository.hide(SharedItemKind.trip, 'shared', 'b');
+      await repository.hide(SharedItemKind.site, 'pier', 'b');
+    });
+
+    test('drops out of hiddenItems; its hides stay', () async {
+      await unshare(shared: false);
+
+      expect(await repository.hiddenItems('b'), isEmpty);
+      expect(await db.select(db.tripHides).get(), hasLength(1));
+      expect(await db.select(db.siteHides).get(), hasLength(1));
+    });
+
+    test('is listed, still hidden, once re-shared', () async {
+      await unshare(shared: false);
+      await unshare(shared: true);
+
+      expect(
+        (await repository.hiddenItems('b')).map((i) => (i.id, i.isShared)),
+        [('shared', true), ('pier', true)],
+      );
+    });
+  });
+
+  test('hiddenItems keeps a hide that hides an item from its owner', () async {
+    // Only sync can leave this: a hide written on one device lands after
+    // another device reassigned the item to the hiding profile. The hide
+    // still keeps the item from its owner, so Unhide must stay reachable.
+    await seedSite(db, 'reef', owner: 'a');
+    await db.customStatement(
+      "INSERT INTO trip_hides (id, trip_id, diver_id, created_at) "
+      "VALUES ('h1', 'private', 'a', $kSharedTs)",
+    );
+    await db.customStatement(
+      "INSERT INTO site_hides (id, site_id, diver_id, created_at) "
+      "VALUES ('h2', 'reef', 'a', $kSharedTs)",
+    );
+
+    expect((await repository.hiddenItems('a')).map((i) => (i.id, i.isShared)), [
+      ('private', false),
+      ('reef', false),
+    ]);
   });
 
   test('deleteHides removes every profile\'s hides of an item', () async {

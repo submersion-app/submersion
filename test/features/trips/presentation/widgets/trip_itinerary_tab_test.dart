@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
@@ -34,6 +35,14 @@ ItineraryDay _row(String id, DateTime date, int storedNumber) => ItineraryDay(
   updatedAt: DateTime(2026, 1, 1),
 );
 
+/// An updateDay that fails the way a locked database does.
+class _FailingItineraryRepo extends ItineraryDayRepository {
+  @override
+  Future<void> updateDay(ItineraryDay day) async {
+    throw StateError('database is locked');
+  }
+}
+
 /// [reload], when given, is what every itinerary load after the first
 /// returns, so a test can hold a reload open; [tripAfter] is likewise what
 /// every trip read after the first returns.
@@ -43,6 +52,8 @@ Future<void> _pumpTab(
   required List<ItineraryDay> days,
   Future<List<ItineraryDay>>? reload,
   Trip? tripAfter,
+  Object? loadError,
+  List<Object> extra = const [],
 }) async {
   var loads = 0;
   var tripReads = 0;
@@ -58,12 +69,14 @@ Future<void> _pumpTab(
           (ref) async =>
               tripReads++ == 0 || tripAfter == null ? trip : tripAfter,
         ),
-        itineraryDaysProvider('trip-1').overrideWith(
-          (ref) async => loads++ == 0 || reload == null ? days : reload,
-        ),
+        itineraryDaysProvider('trip-1').overrideWith((ref) async {
+          if (loadError != null) throw loadError;
+          return loads++ == 0 || reload == null ? days : reload;
+        }),
         divesForTripProvider(
           'trip-1',
         ).overrideWith((ref) async => const <Dive>[]),
+        ...extra,
       ].cast(),
       child: const MaterialApp(
         locale: Locale('en'),
@@ -155,5 +168,42 @@ void main() {
 
     expect(find.text('Day 1'), findsOneWidget);
     expect(find.text('Day 3'), findsOneWidget);
+  });
+
+  testWidgets('a failed itinerary load says so without the exception', (
+    tester,
+  ) async {
+    await _pumpTab(
+      tester,
+      trip: _trip(DateTime(2026, 3, 6)),
+      days: staleRows,
+      loadError: StateError('database is locked'),
+    );
+
+    expect(find.text("Couldn't load the itinerary."), findsOneWidget);
+    expect(find.textContaining('database is locked'), findsNothing);
+  });
+
+  testWidgets('a failed day save says so without the exception', (
+    tester,
+  ) async {
+    await _pumpTab(
+      tester,
+      trip: _trip(DateTime(2026, 3, 6)),
+      days: staleRows,
+      extra: [
+        itineraryDayRepositoryProvider.overrideWithValue(
+          _FailingItineraryRepo(),
+        ),
+      ],
+    );
+
+    await tester.tap(find.text('Day 4'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text("Couldn't save the day. Try again."), findsOneWidget);
+    expect(find.textContaining('database is locked'), findsNothing);
   });
 }

@@ -79,7 +79,12 @@ void main() {
     }
   }
 
-  Future<void> diveAt(String id, DateTime wallClock, {String? diver}) => db
+  Future<void> diveAt(
+    String id,
+    DateTime wallClock, {
+    String? diver,
+    bool planned = false,
+  }) => db
       .into(db.dives)
       .insert(
         DivesCompanion.insert(
@@ -89,7 +94,7 @@ void main() {
           diverId: Value(diver),
           createdAt: 1,
           updatedAt: 1,
-        ),
+        ).copyWith(isPlanned: Value(planned)),
       );
 
   Future<T> at<T>(DateTime instant, Future<T> Function() body) =>
@@ -161,6 +166,17 @@ void main() {
     );
     expect(
       await cylinders.countTripDiveRoundsOn(tripId, DateTime(2026, 3, 11)),
+      1,
+    );
+  });
+
+  test('a planned dive is not a dive already logged today', () async {
+    // Issue #2660: a dive planned for this afternoon has used no gas yet,
+    // so it must not lower today's remaining demand.
+    await diveAt('morning', DateTime.utc(2026, 3, 10, 8));
+    await diveAt('afternoon', DateTime.utc(2026, 3, 10, 14), planned: true);
+    expect(
+      await cylinders.countTripDiveRoundsOn(tripId, DateTime(2026, 3, 10)),
       1,
     );
   });

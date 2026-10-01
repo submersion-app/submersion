@@ -71,15 +71,65 @@ class FillTank extends CylinderConfigOp {
       tankName == null;
 }
 
-/// The result of planning an apply: the operations to persist, plus the
-/// counts a caller reports back to the diver.
+/// One spec column whose value on the dive differs from the configuration.
+class SpecChange<T> {
+  final T from;
+  final T to;
+
+  const SpecChange(this.from, this.to);
+}
+
+/// Replace spec columns that already hold a DIFFERENT value on an existing
+/// row. Every field is nullable and null means "this column already agrees".
+///
+/// Never part of [CylinderConfigPlan.ops]: a FillTank only writes into a
+/// gap, but this replaces something the diver or a dive computer put there,
+/// so callers show the diver these changes and apply them only on consent
+/// (issue #2563). Like [FillTank] it has no gas fields, and no start
+/// pressure either: that is a reading of this dive, not a property of the
+/// cylinder a configuration describes.
+class OverwriteTank extends CylinderConfigOp {
+  final String tankId;
+  final TankRole tankRole;
+  final SpecChange<double>? volumeL;
+  final SpecChange<double>? workingPressureBar;
+  final SpecChange<TankMaterial>? tankMaterial;
+  final SpecChange<String>? tankName;
+
+  const OverwriteTank({
+    required this.tankId,
+    required this.tankRole,
+    this.volumeL,
+    this.workingPressureBar,
+    this.tankMaterial,
+    this.tankName,
+  });
+
+  bool get isEmpty =>
+      volumeL == null &&
+      workingPressureBar == null &&
+      tankMaterial == null &&
+      tankName == null;
+
+  /// Whether the cylinder itself changes, not just its label. A tank preset
+  /// name no longer describes a cylinder whose size or material changed.
+  bool get changesCylinder =>
+      volumeL != null || workingPressureBar != null || tankMaterial != null;
+}
+
+/// The result of planning an apply: the operations to persist, the
+/// overwrites to offer the diver, plus the counts a caller reports back.
 class CylinderConfigPlan {
   final List<CylinderConfigOp> ops;
+
+  /// Differences on claimed tanks that [ops] deliberately leaves alone.
+  final List<OverwriteTank> overwrites;
   final int insertedCount;
   final int keptCount;
 
   const CylinderConfigPlan({
     required this.ops,
+    this.overwrites = const [],
     required this.insertedCount,
     required this.keptCount,
   });
@@ -95,6 +145,24 @@ class CylinderConfigPlan {
 class CylinderConfigApplier {
   const CylinderConfigApplier();
 
+  // Specs reach both sides through unit conversion (a cylinder entered in
+  // cubic feet or psi), so an exact comparison would offer to "change" a
+  // cylinder to the value it already holds.
+  static const _volumeToleranceL = 0.01;
+  static const _pressureToleranceBar = 0.5;
+
+  /// A change only when both sides hold a value: a null on the dive is a
+  /// fill, and a null in the configuration has nothing to offer.
+  static SpecChange<double>? _differs(
+    double? current,
+    double? wanted,
+    double tolerance,
+  ) {
+    if (current == null || wanted == null) return null;
+    if ((current - wanted).abs() <= tolerance) return null;
+    return SpecChange(current, wanted);
+  }
+
   CylinderConfigPlan plan({
     required List<ExistingTank> existing,
     required List<CylinderConfigItem> items,
@@ -104,6 +172,7 @@ class CylinderConfigApplier {
 
     final claimed = <String>{};
     final ops = <CylinderConfigOp>[];
+    final overwrites = <OverwriteTank>[];
     var inserted = 0;
     var kept = 0;
 
@@ -148,10 +217,37 @@ class CylinderConfigApplier {
         tankName: match.tankName == null ? item.label : null,
       );
       if (!fill.isEmpty) ops.add(fill);
+
+      final label = item.label?.trim();
+      final overwrite = OverwriteTank(
+        tankId: match.id,
+        tankRole: match.tankRole,
+        volumeL: _differs(match.volumeL, item.volumeL, _volumeToleranceL),
+        workingPressureBar: _differs(
+          match.workingPressureBar,
+          item.workingPressureBar,
+          _pressureToleranceBar,
+        ),
+        tankMaterial:
+            match.tankMaterial != null &&
+                item.tankMaterial != null &&
+                match.tankMaterial != item.tankMaterial
+            ? SpecChange(match.tankMaterial!, item.tankMaterial!)
+            : null,
+        tankName:
+            match.tankName != null &&
+                label != null &&
+                label.isNotEmpty &&
+                match.tankName!.trim() != label
+            ? SpecChange(match.tankName!, label)
+            : null,
+      );
+      if (!overwrite.isEmpty) overwrites.add(overwrite);
     }
 
     return CylinderConfigPlan(
       ops: ops,
+      overwrites: overwrites,
       insertedCount: inserted,
       keptCount: kept,
     );

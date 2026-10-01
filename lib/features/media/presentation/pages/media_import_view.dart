@@ -5,14 +5,13 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/services/media_import_service.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
-import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/entities/import_candidate.dart';
-import 'package:submersion/features/media/domain/value_objects/import_preview.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/presentation/helpers/asset_import_candidate.dart';
 import 'package:submersion/features/media/presentation/helpers/offer_site_review_after_import.dart';
 
 /// The Import console section: launches the three-tab picker with no dive
@@ -128,17 +127,7 @@ class MediaImportView extends ConsumerWidget {
   Future<void> _launch(BuildContext context, WidgetRef ref) async {
     final assets = await (launchOverride?.call(context) ?? _pick(context));
     if (assets.isEmpty || !context.mounted) return;
-    final candidates = [
-      for (final a in assets)
-        ImportCandidate(
-          key: a.id,
-          title: a.filename ?? a.id,
-          // The same value the import persists as takenAt, so the match
-          // shown here is the match the row would get.
-          takenAt: TripMediaScanner.toWallClockUtc(a.createDateTime),
-          preview: AssetImportPreview(a.id),
-        ),
-    ];
+    final candidates = [for (final a in assets) importCandidateForAsset(a)];
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => MediaImportReviewPage(

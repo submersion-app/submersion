@@ -128,6 +128,34 @@ void main() {
     expect(await selected(const EquipmentFilterState()), defaultView);
   });
 
+  test(
+    'All Equipment selects every item, retired and sold too (#2590)',
+    () async {
+      final visible = {
+        for (final e in await EquipmentRepository().getAllEquipment(
+          diverId: 'me',
+        ))
+          e.id,
+      };
+      final all = await selected(const EquipmentFilterState(allStatuses: true));
+      expect(all, visible);
+      expect(all, containsAll(['old', 'shelved', 'gone']));
+      expect(all, containsAll(defaultView));
+    },
+  );
+
+  test('All Equipment still narrows by the other axes', () async {
+    expect(
+      await selected(
+        const EquipmentFilterState(
+          allStatuses: true,
+          type: EquipmentType.regulator,
+        ),
+      ),
+      {'old', 'shelved', 'gone'},
+    );
+  });
+
   test('each status view selects its gear', () async {
     expect(
       await selected(

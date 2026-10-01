@@ -1146,6 +1146,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_color_slate => 'Schiefer';
 
   @override
+  String get equipment_color_black => 'Schwarz';
+
+  @override
+  String get equipment_color_white => 'Weiß';
+
+  @override
   String get equipment_color_none => 'Keine';
 
   @override
@@ -1382,9 +1388,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_story_openGallery => 'Reisefotos öffnen';
 
   @override
-  String trips_story_generateItineraryError(String error) {
-    return 'Reiseplan konnte nicht erstellt werden: $error';
-  }
+  String get trips_story_generateItineraryError =>
+      'Der Reiseplan konnte nicht erstellt werden. Versuche es erneut.';
 
   @override
   String get trips_dayType_diveDay => 'Tauchtag';
@@ -14542,6 +14547,51 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dieser Tauchgang entspricht bereits der Konfiguration';
 
   @override
+  String cylinderConfigs_applyUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count aktualisiert',
+      one: '$count aktualisiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteTitle => 'Flaschendaten ersetzen?';
+
+  @override
+  String cylinderConfigs_overwriteBody(String name) {
+    return 'Das Anwenden von $name ändert Flaschen, die bereits in diesem Tauchgang erfasst sind:';
+  }
+
+  @override
+  String cylinderConfigs_overwriteTank(int number, String role) {
+    return 'Flasche $number · $role';
+  }
+
+  @override
+  String cylinderConfigs_overwriteChange(String field, String from, String to) {
+    return '$field: $from → $to';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteKeepsGas =>
+      'Gasgemische und Anfangsdrücke des Tauchgangs bleiben erhalten.';
+
+  @override
+  String get cylinderConfigs_overwriteConfirm => 'Ersetzen';
+
+  @override
+  String get cylinderConfigs_fieldVolume => 'Volumen';
+
+  @override
+  String get cylinderConfigs_fieldWorkingPressure => 'Betriebsdruck';
+
+  @override
+  String get cylinderConfigs_fieldMaterial => 'Material';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Konfigurationen';
 
   @override
@@ -15244,6 +15294,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_list_filterAll => 'Gesamte Ausrüstung';
+
+  @override
+  String get equipment_list_filterCurrent => 'Aktuelle Ausrüstung';
 
   @override
   String get equipment_list_filterServiceDue => 'Wartung fällig';
@@ -17657,7 +17710,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_diveMediaSection_thumbnailLabel =>
-      'Foto anzeigen. Lange drücken zum Trennen';
+      'Foto anzeigen. Lange drücken zum Auswählen';
 
   @override
   String get media_diveMediaSection_title => 'Fotos & Video';
@@ -17860,10 +17913,10 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Fotos',
-      one: 'Foto',
+      other: 'Fotos konnten',
+      one: 'Foto konnte',
     );
-    return '$_temp0 konnte nicht importiert werden';
+    return '$_temp0 nicht importiert werden';
   }
 
   @override
@@ -18519,6 +18572,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_import_review_noMatch => 'Kein passender Tauchgang';
+
+  @override
+  String get media_import_review_noCaptureTime => 'Kein Aufnahmedatum gefunden';
+
+  @override
+  String get media_import_review_noMatchFileDate =>
+      'Kein passender Tauchgang zum Dateidatum; die Datei hat kein Aufnahmedatum';
 
   @override
   String get media_import_review_skipped => 'Nicht importiert';
@@ -21707,7 +21767,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get weightPresets_page_empty =>
-      'Speichere eine Bleimenge im Tauchgang-Editor, dann erscheint sie hier zur Wiederverwendung.';
+      'Speichere eine Bleimenge im Tauchgang-Editor oder tippe auf +, um hier eine anzulegen.';
 
   @override
   String get weightPresets_action_rename => 'Umbenennen';
@@ -22067,7 +22127,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_section_data_title => 'Daten';
 
   @override
-  String get settings_section_decompression_subtitle => 'Gradientenfaktoren';
+  String get settings_section_decompression_subtitle =>
+      'GF, Datenquellen & Narkose';
 
   @override
   String get settings_section_decompression_title => 'Dekompression';
@@ -23257,7 +23318,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Deko-Daten konnten nicht geladen werden';
 
   @override
-  String get insights_profile_deco_noDeco => 'Kein Deko';
+  String get insights_profile_deco_noDeco => 'Keine Deko';
 
   @override
   String get insights_profile_deco_notRecorded => 'Nicht erfasst';
@@ -25119,7 +25180,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      'Exportieren Sie Ihre Tauchdaten in verschiedenen Formaten. PDF erstellt ein druckbares Tauchlogbuch. UDDF ist ein universelles Format, das mit den meisten Tauchlog-Programmen kompatibel ist. CSV-Dateien können in Tabellenkalkulationen geöffnet werden.';
+      'Exportieren Sie Ihre Tauchdaten in verschiedenen Formaten. PDF erstellt ein druckbares Tauchlogbuch. UDDF ist ein universelles Format, das mit den meisten Tauchlog-Programmen kompatibel ist. CSV- und Excel-Dateien können in Tabellenkalkulationen geöffnet werden. Unter Einstellungen > Sicherung und Wiederherstellung können Sie außerdem Ihre gesamte Datenbank sichern.';
 
   @override
   String get transfer_export_backupLink => 'Zu Sicherung & Wiederherstellung';
@@ -25222,7 +25283,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_import_fileImportSemanticLabel =>
-      'Daten mit automatischer Erkennung importieren';
+      'Tauchdaten aus Datei importieren';
 
   @override
   String get transfer_import_fileImportSubtitle =>
@@ -25407,6 +25468,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tauchgänge konnten nicht geladen werden';
 
   @override
+  String get trips_detail_error_loading =>
+      'Die Reise konnte nicht geladen werden.';
+
+  @override
   String get trips_detail_dives_unknownSite => 'Unbekannter Tauchplatz';
 
   @override
@@ -25456,14 +25521,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Fügen Sie zuerst Tauchgänge hinzu, um Fotos zu verknüpfen';
 
   @override
-  String trips_detail_scan_errorLinking(Object error) {
-    return 'Fehler beim Verknüpfen der Fotos: $error';
-  }
+  String get trips_detail_scan_errorLinking =>
+      'Die Fotos konnten nicht verknüpft werden. Versuche es erneut.';
 
   @override
-  String trips_detail_scan_errorScanning(Object error) {
-    return 'Fehler beim Scannen: $error';
-  }
+  String get trips_detail_scan_errorScanning =>
+      'Die Fotos konnten nicht gescannt werden. Versuche es erneut.';
 
   @override
   String trips_detail_scan_linkedPhotos(Object count) {
@@ -25537,9 +25600,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_diveScan_deselectAll => 'Alle abwählen';
 
   @override
-  String trips_diveScan_error(String error) {
-    return 'Fehler beim Suchen nach Tauchgängen: $error';
-  }
+  String get trips_diveScan_error =>
+      'Die Suche nach Tauchgängen ist fehlgeschlagen. Versuche es erneut.';
 
   @override
   String get trips_diveScan_findButton => 'Passende Tauchgänge finden';
@@ -25672,14 +25734,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_edit_snackBar_added => 'Reise erfolgreich hinzugefügt';
 
   @override
-  String trips_edit_snackBar_errorLoading(Object error) {
-    return 'Fehler beim Laden der Reise: $error';
-  }
+  String get trips_edit_snackBar_errorLoading =>
+      'Die Reise konnte nicht geladen werden. Versuche es erneut.';
 
   @override
-  String trips_edit_snackBar_errorSaving(Object error) {
-    return 'Fehler beim Speichern der Reise: $error';
-  }
+  String get trips_edit_snackBar_errorSaving =>
+      'Die Reise konnte nicht gespeichert werden. Versuche es erneut.';
 
   @override
   String get trips_edit_snackBar_updated => 'Reise erfolgreich aktualisiert';
@@ -25723,19 +25783,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_gallery_empty_title => 'Keine Fotos in dieser Reise';
 
   @override
-  String trips_gallery_errorLinking(Object error) {
-    return 'Fehler beim Verknüpfen der Fotos: $error';
-  }
+  String get trips_gallery_errorLinking =>
+      'Die Fotos konnten nicht verknüpft werden. Versuche es erneut.';
 
   @override
-  String trips_gallery_errorScanning(Object error) {
-    return 'Fehler beim Scannen: $error';
-  }
+  String get trips_gallery_errorScanning =>
+      'Die Fotos konnten nicht gescannt werden. Versuche es erneut.';
 
   @override
-  String trips_gallery_error_loading(Object error) {
-    return 'Fehler beim Laden der Fotos: $error';
-  }
+  String get trips_gallery_error_loading =>
+      'Die Fotos konnten nicht geladen werden.';
 
   @override
   String trips_gallery_linkedPhotos(Object count) {
@@ -25785,9 +25842,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_list_empty_title => 'Noch keine Reisen hinzugefügt';
 
   @override
-  String trips_list_error_loading(Object error) {
-    return 'Fehler beim Laden der Reisen: $error';
-  }
+  String get trips_list_error_loading =>
+      'Deine Reisen konnten nicht geladen werden.';
 
   @override
   String get trips_list_fab_addTrip => 'Reise hinzufügen';
@@ -25859,9 +25915,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_picker_empty_title => 'Noch keine Reisen';
 
   @override
-  String trips_picker_error(Object error) {
-    return 'Fehler beim Laden der Reisen: $error';
-  }
+  String get trips_picker_error => 'Deine Reisen konnten nicht geladen werden.';
 
   @override
   String get trips_picker_hint => 'Tippen, um eine Reise auszuwählen';
@@ -25893,6 +25947,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String trips_search_noResults(Object query) {
     return 'Keine Reisen gefunden für \"$query\"';
   }
+
+  @override
+  String get trips_search_error =>
+      'Deine Reisen konnten nicht durchsucht werden.';
 
   @override
   String get trips_search_tooltip_back => 'Zurück';
@@ -26173,9 +26231,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_cylinders_forecast_more => 'Mehr Tauchgänge';
 
   @override
-  String trips_cylinders_forecast_saveError(String error) {
-    return 'Plan konnte nicht gespeichert werden: $error';
-  }
+  String get trips_cylinders_forecast_saveError =>
+      'Der Plan konnte nicht gespeichert werden. Versuche es erneut.';
 
   @override
   String get trips_cylinders_forecast_dayPlanned => 'Von dir geplant';
@@ -26252,6 +26309,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_cylinders_record_exported => 'Gasprotokoll exportiert';
+
+  @override
+  String get trips_cylinders_record_exportFailed =>
+      'Das Gasprotokoll konnte nicht exportiert werden. Versuche es erneut.';
 
   @override
   String get trips_cylinders_title => 'Flaschen';
@@ -26623,6 +26684,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_itinerary_noDives => 'No dives';
+
+  @override
+  String get trips_itinerary_error_loading =>
+      'Der Reiseplan konnte nicht geladen werden.';
+
+  @override
+  String get trips_itinerary_daySaveError =>
+      'Der Tag konnte nicht gespeichert werden. Versuche es erneut.';
 
   @override
   String get trips_vesselType_catamaran => 'Catamaran';
@@ -37110,7 +37179,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der schwerste Knochenfisch mit über 2 Tonnen Gewicht. Gelegentlich von Tauchern an Putzerstationen vor Bali und Galapagos gesichtet.';
 
   @override
-  String get species_lingcod_name => 'Lingcod';
+  String get species_lingcod_name => 'Lengdorsch';
 
   @override
   String get species_lingcod_desc =>
@@ -39457,7 +39526,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Grünrückiger Barsch mit dunklem Seitenstreifen und riesigem Maul, lauert an Baumstämmen und Krautkanten warmer Seen.';
 
   @override
-  String get species_smallmouth_bass_name => 'Großer Schwarzbarsch';
+  String get species_smallmouth_bass_name => 'Schwarzbarsch';
 
   @override
   String get species_smallmouth_bass_desc =>
@@ -39871,18 +39940,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bandförmiger silberner Amazonasfisch mit zwei Kinnbarteln, der aus dem Wasser springt, um Insekten von Zweigen zu schnappen.';
 
   @override
-  String get species_red_bellied_piranha_name => 'Diamant-Piranha';
+  String get species_red_bellied_piranha_name => 'Roter Piranha';
 
   @override
   String get species_red_bellied_piranha_desc =>
       'Hochrückiger silberner Fisch mit karmesinrotem Bauch und messerscharfen Zähnen, zieht in Schwärmen durch Amazonas-Altwasser.';
 
   @override
-  String get species_black_piranha_name => 'Roter Piranha';
+  String get species_black_piranha_name => 'Schwarzer Piranha';
 
   @override
   String get species_black_piranha_desc =>
-      'Große einzelgängerische Piranha mit roten Augen und dunklem rautenförmigem Körper, lauert in klaren felsigen Amazonas-Nebenflüssen.';
+      'Großer einzelgängerischer Piranha mit roten Augen und dunklem rautenförmigem Körper, lauert in klaren felsigen Amazonas-Nebenflüssen.';
 
   @override
   String get species_red_bellied_pacu_name => 'Gamitana-Scheibensalmler';
@@ -40011,7 +40080,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Robuster olivfarbener Fisch, der Luft atmet und auf seinen stacheligen Kiemendeckeln über Land zwischen austrocknenden Tümpeln kriecht.';
 
   @override
-  String get species_golden_mahseer_name => 'Riesenbarbe';
+  String get species_golden_mahseer_name => 'Goldener Mahseer';
 
   @override
   String get species_golden_mahseer_desc =>
@@ -44796,7 +44865,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_edit_excludeFromGasStatsHelp =>
-      'Lasse diesen Tauchgang nur aus AMV-, RMV- und Gasgemisch-Statistiken heraus. Nützlich, wenn der Gaswert nicht repräsentativ ist.';
+      'Lasse diesen Tauchgang nur aus Druckverbrauch-, AMV- und Gasgemisch-Statistiken heraus. Nützlich, wenn der Gaswert nicht repräsentativ ist.';
 
   @override
   String get diveLog_badge_excludedFromStats =>

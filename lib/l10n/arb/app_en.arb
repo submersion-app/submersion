@@ -656,6 +656,8 @@
   "equipment_color_stone": "Stone",
   "equipment_color_zinc": "Zinc",
   "equipment_color_slate": "Slate",
+  "equipment_color_black": "Black",
+  "equipment_color_white": "White",
   "equipment_color_none": "None",
   "equipment_color_sheetTitle": "Choose a color",
   "equipment_setEdit_geofencesTitle": "Geofences",
@@ -893,14 +895,7 @@
   },
   "trips_story_generateItinerary": "Generate itinerary",
   "trips_story_openGallery": "Open trip photos",
-  "trips_story_generateItineraryError": "Couldn't generate itinerary: {error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "Couldn't generate the itinerary. Try again.",
   "trips_dayType_diveDay": "Dive Day",
   "trips_dayType_seaDay": "Sea Day",
   "trips_dayType_portDay": "Port Day",
@@ -8414,6 +8409,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "This dive already matches the configuration",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{updated {count}} other{updated {count}}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "Replace cylinder details?",
+  "cylinderConfigs_overwriteBody": "Applying {name} changes cylinders already on this dive:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "Tank {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "Gas mixes and start pressures already on the dive are kept.",
+  "cylinderConfigs_overwriteConfirm": "Replace",
+  "cylinderConfigs_fieldVolume": "Volume",
+  "cylinderConfigs_fieldWorkingPressure": "Working pressure",
+  "cylinderConfigs_fieldMaterial": "Material",
   "cylinderConfigs_sectionTitle": "Configurations",
   "equipment_serviceClocks_hoursSource": "Counted from logged dive time",
   "equipment_serviceClocks_hoursLeft": "{remaining} of {total} hours left",
@@ -8912,6 +8954,9 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Nothing is overdue for service.",
   "equipment_list_errorLoading": "Error loading equipment: {error}",
   "equipment_list_filterAll": "All Equipment",
+  "@equipment_list_filterAll": {"description": "Status chip that narrows by no status. On the Equipment list it shows every item, retired and sold included; in the dive gear picker, every item the picker offers."},
+  "equipment_list_filterCurrent": "Current Equipment",
+  "@equipment_list_filterCurrent": {"description": "Equipment filter status chip for the default view: every item except retired and sold gear"},
   "equipment_list_filterServiceDue": "Service Due",
   "equipment_list_filterServiceDueSoon": "Due Soon",
   "equipment_list_filterServiceOverdue": "Overdue",
@@ -11230,6 +11275,14 @@
   "media_import_review_noMatch": "No matching dive",
   "@media_import_review_noMatch": {
     "description": "Review row subtitle when no dive matches the timestamp"
+  },
+  "media_import_review_noCaptureTime": "No capture date found",
+  "@media_import_review_noCaptureTime": {
+    "description": "Review row subtitle when the file has no capture date to match a dive by"
+  },
+  "media_import_review_noMatchFileDate": "No matching dive by the file date; the file has no capture date",
+  "@media_import_review_noMatchFileDate": {
+    "description": "Review row subtitle when no dive matches and the only date was the file's modified time, because the file carries no capture date"
   },
   "media_import_review_skipped": "Not imported",
   "@media_import_review_skipped": {
@@ -15589,6 +15642,7 @@
   "trips_detail_dialog_deleteTitle": "Delete Trip?",
   "trips_detail_dives_empty": "No dives in this trip yet",
   "trips_detail_dives_errorLoading": "Unable to load dives",
+  "trips_detail_error_loading": "Couldn't load the trip.",
   "trips_detail_dives_unknownSite": "Unknown Site",
   "trips_detail_dives_viewAll": "View All ({count})",
   "trips_detail_durationDays": "{days} days",
@@ -15603,8 +15657,8 @@
   "trips_detail_label_resort": "Resort",
   "trips_detail_scan_accessDenied": "Photo library access denied",
   "trips_detail_scan_addDivesFirst": "Add dives first to link photos",
-  "trips_detail_scan_errorLinking": "Error linking photos: {error}",
-  "trips_detail_scan_errorScanning": "Error scanning: {error}",
+  "trips_detail_scan_errorLinking": "Couldn't link the photos. Try again.",
+  "trips_detail_scan_errorScanning": "Couldn't scan for photos. Try again.",
   "trips_detail_scan_linkedPhotos": "Linked {count} photos",
   "trips_detail_scan_linkingPhotos": "Linking photos...",
   "trips_detail_sectionTitle_details": "Trip Details",
@@ -15647,14 +15701,7 @@
     }
   },
   "trips_diveScan_deselectAll": "Deselect all",
-  "trips_diveScan_error": "Error scanning for dives: {error}",
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_diveScan_error": "Couldn't scan for dives. Try again.",
   "trips_diveScan_findButton": "Find matching dives",
   "trips_diveScan_groupOtherTrips": "On other trips ({count})",
   "@trips_diveScan_groupOtherTrips": {
@@ -15716,8 +15763,8 @@
   "trips_edit_sectionTitle_notes": "Notes",
   "trips_edit_semanticLabel_save": "Save trip",
   "trips_edit_snackBar_added": "Trip added successfully",
-  "trips_edit_snackBar_errorLoading": "Error loading trip: {error}",
-  "trips_edit_snackBar_errorSaving": "Error saving trip: {error}",
+  "trips_edit_snackBar_errorLoading": "Couldn't load the trip. Try again.",
+  "trips_edit_snackBar_errorSaving": "Couldn't save the trip. Try again.",
   "trips_edit_snackBar_updated": "Trip updated successfully",
   "trips_edit_validation_nameRequired": "Please enter a trip name",
   "trips_gallery_accessDenied": "Photo library access denied",
@@ -15727,9 +15774,9 @@
   "trips_gallery_diveSection_title": "Dive #{number} - {site}",
   "trips_gallery_empty_subtitle": "Tap the camera icon to scan your gallery",
   "trips_gallery_empty_title": "No photos in this trip",
-  "trips_gallery_errorLinking": "Error linking photos: {error}",
-  "trips_gallery_errorScanning": "Error scanning: {error}",
-  "trips_gallery_error_loading": "Error loading photos: {error}",
+  "trips_gallery_errorLinking": "Couldn't link the photos. Try again.",
+  "trips_gallery_errorScanning": "Couldn't scan for photos. Try again.",
+  "trips_gallery_error_loading": "Couldn't load the photos.",
   "trips_gallery_linkedPhotos": "Linked {count} photos",
   "trips_gallery_linkingPhotos": "Linking photos...",
   "trips_gallery_tooltip_scan": "Scan device gallery",
@@ -15748,7 +15795,7 @@
   "trips_list_empty_filtered_title": "No trips match your filters",
   "trips_list_empty_subtitle": "Create trips to group your dives by destination",
   "trips_list_empty_title": "No trips added yet",
-  "trips_list_error_loading": "Error loading trips: {error}",
+  "trips_list_error_loading": "Couldn't load your trips.",
   "trips_list_fab_addTrip": "Add Trip",
   "trips_list_filters_clearAll": "Clear all",
   "trips_list_inProgress": "In progress",
@@ -15770,7 +15817,7 @@
   "trips_picker_clearTooltip": "Clear selection",
   "trips_picker_empty_createButton": "Create Trip",
   "trips_picker_empty_title": "No trips yet",
-  "trips_picker_error": "Error loading trips: {error}",
+  "trips_picker_error": "Couldn't load your trips.",
   "trips_picker_hint": "Tap to select a trip",
   "trips_picker_newTrip": "New Trip",
   "trips_picker_noSelection": "No trip selected",
@@ -15780,6 +15827,7 @@
   "trips_search_empty_hint": "Search by name, location, or resort",
   "trips_search_fieldLabel": "Search trips...",
   "trips_search_noResults": "No trips found for \"{query}\"",
+  "trips_search_error": "Couldn't search your trips.",
   "trips_search_tooltip_back": "Back",
   "trips_search_tooltip_clear": "Clear search",
   "trips_summary_header_subtitle": "Select a trip from the list to view details",
@@ -15974,14 +16022,7 @@
   "trips_cylinders_forecast_useEstimate": "Use the estimate",
   "trips_cylinders_forecast_fewer": "Fewer dives",
   "trips_cylinders_forecast_more": "More dives",
-  "trips_cylinders_forecast_saveError": "Couldn't save the plan: {error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "Couldn't save the plan. Try again.",
   "trips_cylinders_forecast_dayPlanned": "Planned by you",
   "trips_cylinders_segment_record": "Record",
   "trips_cylinders_recordEmpty": "No dives breathed from these cylinders yet.",
@@ -16043,6 +16084,7 @@
     }
   },
   "trips_cylinders_record_exported": "Gas record exported",
+  "trips_cylinders_record_exportFailed": "Couldn't export the gas record. Try again.",
   "trips_cylinders_title": "Cylinders",
   "trips_cylinders_summary": "Full {full} · Partial {partial} · Empty {empty}",
   "@trips_cylinders_summary": {
@@ -16270,6 +16312,8 @@
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_noDives": "No dives",
+  "trips_itinerary_error_loading": "Couldn't load the itinerary.",
+  "trips_itinerary_daySaveError": "Couldn't save the day. Try again.",
   "trips_vesselType_catamaran": "Catamaran",
   "trips_vesselType_motorYacht": "Motor Yacht",
   "trips_vesselType_sailingYacht": "Sailing Yacht",
@@ -16295,20 +16339,6 @@
       }
     }
   },
-  "@trips_detail_scan_errorLinking": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_detail_scan_errorScanning": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
   "@trips_detail_scan_linkedPhotos": {
     "placeholders": {
       "count": {
@@ -16319,20 +16349,6 @@
   "@trips_edit_durationDays": {
     "placeholders": {
       "days": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_edit_snackBar_errorLoading": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_edit_snackBar_errorSaving": {
-    "placeholders": {
-      "error": {
         "type": "Object"
       }
     }
@@ -16354,37 +16370,9 @@
       }
     }
   },
-  "@trips_gallery_errorLinking": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_gallery_errorScanning": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_gallery_error_loading": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
   "@trips_gallery_linkedPhotos": {
     "placeholders": {
       "count": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_list_error_loading": {
-    "placeholders": {
-      "error": {
         "type": "Object"
       }
     }
@@ -16406,13 +16394,6 @@
   "@trips_photos_moreIndicator_semanticLabel": {
     "placeholders": {
       "count": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_picker_error": {
-    "placeholders": {
-      "error": {
         "type": "Object"
       }
     }
