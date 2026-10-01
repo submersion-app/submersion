@@ -16,6 +16,8 @@ import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/shared_items_fixture.dart';
+
 /// Pumps a fresh-trip page behind a router, so the `context.pop(savedId)` that
 /// follows a successful save has somewhere to go. Creating a trip always
 /// triggers the post-save scan (`datesChanged` is `!isEditing`), which keeps
@@ -720,6 +722,7 @@ void main() {
     Future<SwitchListTile> shareSwitch(
       WidgetTester tester, {
       required String active,
+      GatedActiveProfile? activeProfile,
     }) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -731,7 +734,9 @@ void main() {
               return _MockTripListNotifier([]);
             }),
             allDiversProvider.overrideWith((_) async => twoDivers),
-            validatedCurrentDiverIdProvider.overrideWith((_) async => active),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (_) => activeProfile?.read() ?? Future.value(active),
+            ),
             shareByDefaultProvider.overrideWith((_) async => true),
           ],
           child: const MaterialApp(
@@ -764,6 +769,27 @@ void main() {
     ) async {
       final tile = await shareSwitch(tester, active: 'd2');
       expect(tile.onChanged, isNull);
+      expect(find.text('Only Alice can change sharing'), findsOneWidget);
+    });
+
+    testWidgets('is hidden while a profile switch re-reads the profile '
+        '(issue #2677 review)', (tester) async {
+      final activeProfile = GatedActiveProfile.settled('d1');
+      final tile = await shareSwitch(
+        tester,
+        active: 'd1',
+        activeProfile: activeProfile,
+      );
+      expect(tile.onChanged, isNotNull);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(TripEditPage)),
+      ).invalidate(validatedCurrentDiverIdProvider);
+      await tester.pump();
+      expect(find.text('Share with all dive profiles'), findsNothing);
+
+      activeProfile.settle('d2');
+      await tester.pumpAndSettle();
       expect(find.text('Only Alice can change sharing'), findsOneWidget);
     });
 

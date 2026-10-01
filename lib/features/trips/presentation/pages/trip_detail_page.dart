@@ -29,6 +29,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_item_standing.dart';
 
 class TripDetailPage extends ConsumerStatefulWidget {
   final String tripId;
@@ -464,10 +465,7 @@ class _TripDetailContent extends ConsumerWidget {
     // Lightroom scan hidden pending Adobe review (lightroomUiEnabled).
     final hasLightroomAccount =
         lightroomUiEnabled && ref.watch(lightroomAccountProvider).value != null;
-    final canDestroy = canDestroySharedItem(
-      ownerId: trip.diverId,
-      activeDiverId: ref.watch(validatedCurrentDiverIdProvider).value,
-    );
+    final standing = watchSharedItemStanding(ref, ownerId: trip.diverId);
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
@@ -559,7 +557,9 @@ class _TripDetailContent extends ConsumerWidget {
         ),
         // Delete for the owner; another profile only removes the shared
         // trip from itself (issue #2594).
-        if (canDestroy)
+        // Delete for the owner, Remove for another profile, and neither
+        // until the active profile has settled.
+        if (standing == SharedItemStanding.owner)
           PopupMenuItem(
             value: 'delete',
             child: Row(
@@ -573,7 +573,7 @@ class _TripDetailContent extends ConsumerWidget {
               ],
             ),
           )
-        else
+        else if (standing == SharedItemStanding.other)
           PopupMenuItem(
             value: 'remove',
             child: Row(

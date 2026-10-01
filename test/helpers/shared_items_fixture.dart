@@ -148,3 +148,31 @@ class FailingProfileHides extends ProfileHidesRepository {
     return super.unhide(kind, id, diverId);
   }
 }
+
+/// The active profile, read through gates a test completes one at a time,
+/// so it can hold `validatedCurrentDiverIdProvider` mid-reload: a profile
+/// switch keeps the previous profile in `.value` until the new read lands.
+/// Override with `overrideWith((_) => active.read())`.
+class GatedActiveProfile {
+  GatedActiveProfile();
+
+  /// The first read lands at once with [first], so a page can load before
+  /// the test holds a later read open.
+  GatedActiveProfile.settled(String? first)
+    : _first = first,
+      _settleFirst = true;
+
+  String? _first;
+  bool _settleFirst = false;
+  final reads = <Completer<String?>>[];
+
+  Future<String?> read() {
+    final read = Completer<String?>();
+    if (reads.isEmpty && _settleFirst) read.complete(_first);
+    reads.add(read);
+    return read.future;
+  }
+
+  /// Completes the latest read with [diverId].
+  void settle(String? diverId) => reads.last.complete(diverId);
+}

@@ -13,6 +13,7 @@ import 'package:submersion/features/divers/presentation/providers/profile_hides_
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/shared_items_fixture.dart';
 
 /// A shared site's page offers Delete to its owner and "Remove from my
 /// profile" to everyone else (issue #2594).
@@ -37,6 +38,7 @@ void main() {
     WidgetTester tester, {
     required String active,
     bool failHides = false,
+    GatedActiveProfile? activeProfile,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(390, 844);
@@ -54,7 +56,9 @@ void main() {
           siteProvider(site.id).overrideWith((ref) async => site),
           siteDiveCountProvider(site.id).overrideWith((ref) async => 0),
           allDiversProvider.overrideWith((_) async => divers),
-          validatedCurrentDiverIdProvider.overrideWith((_) async => active),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (_) => activeProfile?.read() ?? Future.value(active),
+          ),
           profileHidesRepositoryProvider.overrideWithValue(_FakeHides()),
           siteListNotifierProvider.overrideWith((ref) => notifier),
         ],
@@ -137,6 +141,29 @@ void main() {
       find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('while a profile switch re-reads the profile, the menu offers '
+      'neither Delete nor Remove (issue #2677 review)', (tester) async {
+    final activeProfile = GatedActiveProfile.settled('d1');
+    await pump(tester, active: 'd1', activeProfile: activeProfile);
+    ProviderScope.containerOf(
+      tester.element(find.byType(SiteDetailPage)),
+    ).invalidate(validatedCurrentDiverIdProvider);
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete'), findsNothing);
+    expect(find.text('Remove from my profile'), findsNothing);
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+
+    activeProfile.settle('d2');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Remove from my profile'), findsOneWidget);
   });
 
   testWidgets('the owner deletes it, warned about other profiles\' dives', (

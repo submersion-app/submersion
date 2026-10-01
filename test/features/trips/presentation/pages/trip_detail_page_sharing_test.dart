@@ -15,6 +15,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/shared_items_fixture.dart';
 
 /// A shared trip's page offers Delete to its owner and "Remove from my
 /// profile" to everyone else (issue #2594).
@@ -44,6 +45,7 @@ void main() {
     required String active,
     bool allowed = true,
     bool failHides = false,
+    GatedActiveProfile? activeProfile,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(390, 844);
@@ -68,7 +70,9 @@ void main() {
           tripListNotifierProvider.overrideWith((ref) => notifier),
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           allDiversProvider.overrideWith((_) async => divers),
-          validatedCurrentDiverIdProvider.overrideWith((_) async => active),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (_) => activeProfile?.read() ?? Future.value(active),
+          ),
           profileHidesRepositoryProvider.overrideWithValue(_FakeHides()),
         ],
         // The page pops through go_router after a remove, so it sits one
@@ -187,6 +191,30 @@ void main() {
     await tester.pumpAndSettle();
     expect(notifier.unhidden, ['shared-trip']);
     expect(find.text('Something went wrong. Please try again.'), findsNothing);
+  });
+
+  testWidgets('while a profile switch re-reads the profile, the menu offers '
+      'neither Delete nor Remove (issue #2677 review)', (tester) async {
+    final activeProfile = GatedActiveProfile.settled('d1');
+    await pump(tester, active: 'd1', activeProfile: activeProfile);
+    ProviderScope.containerOf(
+      tester.element(find.byType(TripDetailPage)),
+    ).invalidate(validatedCurrentDiverIdProvider);
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete'), findsNothing);
+    expect(find.text('Remove from my profile'), findsNothing);
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+
+    activeProfile.settle('d2');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Remove from my profile'), findsOneWidget);
+    expect(find.text('Delete'), findsNothing);
   });
 
   testWidgets('an owner whose trip changed hands meanwhile is refused', (

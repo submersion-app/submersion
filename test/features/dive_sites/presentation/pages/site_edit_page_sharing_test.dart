@@ -51,6 +51,7 @@ void main() {
     required String active,
     VoidCallback? onDeleted,
     FailingProfileHides? hides,
+    GatedActiveProfile? activeProfile,
   }) async {
     tester.view.physicalSize = const Size(900, 3200);
     tester.view.devicePixelRatio = 1.0;
@@ -60,7 +61,9 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           allDiversProvider.overrideWith((_) async => divers),
-          validatedCurrentDiverIdProvider.overrideWith((_) async => active),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (_) => activeProfile?.read() ?? Future.value(active),
+          ),
           shareByDefaultProvider.overrideWith((_) async => false),
           if (hides != null)
             profileHidesRepositoryProvider.overrideWithValue(hides),
@@ -109,6 +112,30 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text("Remove 'Salt Pier' from your profile?"), findsOneWidget);
     expect(find.textContaining('1 of your dives stays linked'), findsOneWidget);
+  });
+
+  testWidgets('while a profile switch re-reads the profile, offers neither '
+      'Delete nor Remove (issue #2677 review)', (tester) async {
+    final activeProfile = GatedActiveProfile.settled('d1');
+    await pump(tester, active: 'd1', activeProfile: activeProfile);
+    expect(find.widgetWithIcon(IconButton, Icons.delete), findsOneWidget);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(SiteEditPage)),
+    ).invalidate(validatedCurrentDiverIdProvider);
+    await tester.pump();
+    expect(find.widgetWithIcon(IconButton, Icons.delete), findsNothing);
+    expect(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+      findsNothing,
+    );
+
+    activeProfile.settle('d2');
+    await tester.pumpAndSettle();
+    expect(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+      findsOneWidget,
+    );
   });
 
   testWidgets('another profile cannot change sharing', (tester) async {
