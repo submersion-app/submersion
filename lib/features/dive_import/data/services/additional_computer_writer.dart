@@ -7,7 +7,6 @@ import 'package:submersion/features/dive_import/data/services/imported_profile_r
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:uuid/uuid.dart';
 
 /// Writes the further computers a parsed dive carries under
@@ -37,36 +36,39 @@ class AdditionalComputerWriter {
     return raw.whereType<Map<String, dynamic>>().toList();
   }
 
-  /// Writes every entry of [diveData] onto the stored dive [diveId].
+  /// Writes each of [computers] (entries shaped as [entriesOf] returns them)
+  /// onto the stored dive [diveId], returning how many were written.
   ///
-  /// [primaryComputerId] is the registered computer of the dive's primary
-  /// source. Two rows of one dive that share a computer collapse into one
-  /// source on read, so an entry resolving to a computer already on the dive
-  /// (two of one model with no serial) is written with none rather than
+  /// [usedComputerIds] are the registered computers the dive's sources
+  /// already name. Two rows of one dive that share a computer collapse into
+  /// one source on read, so an entry resolving to a computer already on the
+  /// dive (two of one model with no serial) is written with none rather than
   /// hidden behind the other. [computerIdFor] resolves an entry's registered
   /// computer. [entryTime] is the dive's start: each computer's is offset
   /// from it by its `timeOffsetSeconds`, and so are its samples and events,
-  /// putting them on the dive's timeline as a consolidation does.
+  /// putting them on the dive's timeline as a consolidation does. [tankIds]
+  /// are the dive's tanks in order, which a sample's `tankIndex` names.
   ///
   /// Best-effort per computer: the dive is already committed, so a throw
   /// here would abort the rest of the import. A computer that cannot be
   /// written is logged and skipped, and the others are still written.
-  Future<void> write({
-    required Map<String, dynamic> diveData,
+  Future<int> write({
+    required List<Map<String, dynamic>> computers,
     required String diveId,
     required DateTime? entryTime,
-    required List<DiveTank> tanks,
-    required String? primaryComputerId,
+    required List<String> tankIds,
+    required Iterable<String> usedComputerIds,
     required String? Function(Map<String, dynamic> entry) computerIdFor,
     required String? sourceFileName,
     required String sourceFileFormat,
     required DateTime now,
     void Function(String message)? onSkippedEvent,
   }) async {
-    final usedComputerIds = {?primaryComputerId};
-    for (final entry in entriesOf(diveData)) {
+    final used = {...usedComputerIds};
+    var written = 0;
+    for (final entry in computers) {
       var computerId = computerIdFor(entry);
-      if (computerId != null && !usedComputerIds.add(computerId)) {
+      if (computerId != null && !used.add(computerId)) {
         computerId = null;
       }
       try {
@@ -74,13 +76,14 @@ class AdditionalComputerWriter {
           entry,
           diveId: diveId,
           entryTime: entryTime,
-          tanks: tanks,
+          tankIds: tankIds,
           computerId: computerId,
           sourceFileName: sourceFileName,
           sourceFileFormat: sourceFileFormat,
           now: now,
           onSkippedEvent: onSkippedEvent,
         );
+        written++;
       } catch (e, stackTrace) {
         _log.error(
           'Failed to import the ${entry['diveComputerModel'] ?? 'unnamed'} '
@@ -90,13 +93,14 @@ class AdditionalComputerWriter {
         );
       }
     }
+    return written;
   }
 
   Future<void> _writeOne(
     Map<String, dynamic> entry, {
     required String diveId,
     required DateTime? entryTime,
-    required List<DiveTank> tanks,
+    required List<String> tankIds,
     required String? computerId,
     required String? sourceFileName,
     required String sourceFileFormat,
@@ -159,7 +163,7 @@ class AdditionalComputerWriter {
 
     final pressures = tankPressuresFromImport(
       profileData,
-      tanks,
+      tankIds,
       offsetSeconds: offset,
     );
     if (pressures.isNotEmpty) {

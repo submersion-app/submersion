@@ -73,16 +73,11 @@ void main() {
       diveRepository: _FailingForModel('Shearwater Teric'),
       tankPressureRepository: TankPressureRepository(),
     ).write(
-      diveData: {
-        'additionalComputers': [
-          computer('Shearwater Teric'),
-          computer('Suunto D5'),
-        ],
-      },
+      computers: [computer('Shearwater Teric'), computer('Suunto D5')],
       diveId: 'dive-1',
       entryTime: null,
-      tanks: const [],
-      primaryComputerId: null,
+      tankIds: const [],
+      usedComputerIds: const [],
       computerIdFor: (_) => null,
       sourceFileName: 'log.ssrf',
       sourceFileFormat: 'subsurfaceXml',

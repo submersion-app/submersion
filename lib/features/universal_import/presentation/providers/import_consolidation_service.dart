@@ -65,12 +65,21 @@ class ConsolidationSummary {
 /// decode, so `apply` refused before writing anything. The freshly-imported
 /// dive is not at fault, so it is KEPT standalone (counted in
 /// [ConsolidationSummary.keptStandalone]) rather than deleted.
+///
+/// [attachMissingComputers], when given, is asked first for each index with
+/// its match's id. Returning true means it added to the match whatever
+/// computers the imported dive has and the match lacks, so the standalone
+/// copy is deleted and no fold runs (issue #2672). That is the re-import of a
+/// dive imported before the importer kept every computer: both copies share
+/// the first computer, which [DiveConsolidationService.apply] refuses. A
+/// throw is handled like a failed fold.
 Future<ConsolidationSummary> performConsolidations({
   required Set<int> indices,
   required Map<int, String> diveIdByIndex,
   required ImportDuplicateResult? duplicateResult,
   required DiveConsolidationService consolidationService,
   required DiveRepository diveRepository,
+  Future<bool> Function(int index, String targetDiveId)? attachMissingComputers,
 }) async {
   var consolidated = 0;
   var failed = 0;
@@ -85,6 +94,14 @@ Future<ConsolidationSummary> performConsolidations({
     if (newDiveId == null) continue;
 
     try {
+      if (attachMissingComputers != null &&
+          await attachMissingComputers(index, matchResult.diveId)) {
+        // The match now holds everything this copy brought.
+        await diveRepository.bulkDeleteDives([newDiveId]);
+        consolidated++;
+        removedDiveIds.add(newDiveId);
+        continue;
+      }
       await consolidationService.apply(
         targetDiveId: matchResult.diveId,
         secondaryDiveIds: [newDiveId],

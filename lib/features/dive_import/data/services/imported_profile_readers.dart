@@ -38,12 +38,12 @@ DiveProfilePoint profilePointFromImport(
 );
 
 /// The per-tank pressure readings in parsed profile samples, keyed by the id
-/// of the stored tank each `tankIndex` names and moved [offsetSeconds] along
-/// the dive's timeline. Readings for a tank index the dive does not have are
-/// dropped.
+/// in [tankIds] (the dive's tanks in order) each `tankIndex` names, and
+/// moved [offsetSeconds] along the dive's timeline. Readings for a tank index
+/// the dive does not have are dropped.
 Map<String, List<({int timestamp, double pressure})>> tankPressuresFromImport(
   List<Map<String, dynamic>> profileData,
-  List<DiveTank> tanks, {
+  List<String> tankIds, {
   int offsetSeconds = 0,
 }) {
   final pressuresByTank = <String, List<({int timestamp, double pressure})>>{};
@@ -55,8 +55,8 @@ Map<String, List<({int timestamp, double pressure})>> tankPressuresFromImport(
     for (final tp in allTankPressures) {
       final pressure = tp['pressure'] as double?;
       final tankIdx = tp['tankIndex'] as int? ?? 0;
-      if (pressure != null && tankIdx >= 0 && tankIdx < tanks.length) {
-        pressuresByTank.putIfAbsent(tanks[tankIdx].id, () => []).add((
+      if (pressure != null && tankIdx >= 0 && tankIdx < tankIds.length) {
+        pressuresByTank.putIfAbsent(tankIds[tankIdx], () => []).add((
           timestamp: timestamp,
           pressure: pressure,
         ));

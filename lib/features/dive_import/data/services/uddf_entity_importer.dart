@@ -3046,11 +3046,11 @@ class UddfEntityImporter {
       // the primary source, never before: that row adopts the dive's
       // unattributed samples only while it is the dive's sole source.
       await additionalComputers.write(
-        diveData: diveData,
+        computers: AdditionalComputerWriter.entriesOf(diveData),
         diveId: diveId,
         entryTime: dive.entryTime,
-        tanks: tanks,
-        primaryComputerId: computerId,
+        tankIds: [for (final tank in tanks) tank.id],
+        usedComputerIds: {?computerId},
         computerIdFor: (entry) =>
             computerIdByKey[computerKeyFor(
               entry['diveComputerModel'] as String?,
@@ -3312,7 +3312,9 @@ class UddfEntityImporter {
     String diveId,
     TankPressureRepository repository,
   ) async {
-    final pressuresByTank = tankPressuresFromImport(profileData, tanks);
+    final pressuresByTank = tankPressuresFromImport(profileData, [
+      for (final tank in tanks) tank.id,
+    ]);
     if (pressuresByTank.isNotEmpty) {
       await repository.insertTankPressures(diveId, pressuresByTank);
     }

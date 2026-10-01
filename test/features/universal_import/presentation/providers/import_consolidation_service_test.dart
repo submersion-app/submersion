@@ -392,4 +392,79 @@ void main() {
       },
     );
   });
+
+  // A dive imported before the importer kept every computer, re-imported with
+  // Consolidate: both copies share the first computer, which the fold
+  // refuses, so the missing computers are attached instead (issue #2672).
+  group('performConsolidations attaching missing computers', () {
+    const matches = ImportDuplicateResult(
+      diveMatches: {
+        0: DiveMatchResult(
+          diveId: 'existing-dive-1',
+          score: 0.95,
+          timeDifferenceMs: 0,
+        ),
+      },
+    );
+
+    test('attaches, drops the standalone copy, and skips the fold', () async {
+      final attached = <(int, String)>[];
+      final summary = await performConsolidations(
+        indices: {0},
+        diveIdByIndex: {0: 'new-dive-1'},
+        duplicateResult: matches,
+        consolidationService: mockConsolidationService,
+        diveRepository: mockDiveRepository,
+        attachMissingComputers: (index, targetDiveId) async {
+          attached.add((index, targetDiveId));
+          return true;
+        },
+      );
+
+      expect(attached, [(0, 'existing-dive-1')]);
+      expect(summary.consolidated, 1);
+      expect(summary.removedDiveIds, {'new-dive-1'});
+      verify(mockDiveRepository.bulkDeleteDives(['new-dive-1'])).called(1);
+      verifyNever(
+        mockConsolidationService.apply(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryDiveIds: anyNamed('secondaryDiveIds'),
+        ),
+      );
+    });
+
+    test('a dive the callback declines takes the normal fold', () async {
+      final summary = await performConsolidations(
+        indices: {0},
+        diveIdByIndex: {0: 'new-dive-1'},
+        duplicateResult: matches,
+        consolidationService: mockConsolidationService,
+        diveRepository: mockDiveRepository,
+        attachMissingComputers: (_, _) async => false,
+      );
+
+      expect(summary.consolidated, 1);
+      verify(
+        mockConsolidationService.apply(
+          targetDiveId: 'existing-dive-1',
+          secondaryDiveIds: ['new-dive-1'],
+        ),
+      ).called(1);
+    });
+
+    test('a failed attach is counted and its copy removed', () async {
+      final summary = await performConsolidations(
+        indices: {0},
+        diveIdByIndex: {0: 'new-dive-1'},
+        duplicateResult: matches,
+        consolidationService: mockConsolidationService,
+        diveRepository: mockDiveRepository,
+        attachMissingComputers: (_, _) async => throw StateError('db'),
+      );
+
+      expect(summary.consolidated, 0);
+      expect(summary.failed, 1);
+      expect(summary.removedDiveIds, {'new-dive-1'});
+    });
+  });
 }
