@@ -481,6 +481,9 @@ bool _isComputerDecoSample(DiveProfilePoint point) =>
   // leaving a stop depth of zero through a stop and a no-stop time of zero
   // for the rest of the dive.
   final hasComputerNdl = profile.any((p) => p.ndl != null && p.ndl! > 0);
+  // A deco flag is a reading in its own right: some sources (DAN DL7, Diving
+  // Log, the Cressi Leonardo) record the obligation but no NDL numbers.
+  final hasComputerDeco = profile.any(_isComputerDecoSample);
   final hasComputerCeiling = profile.any(
     (p) => p.ceiling != null && p.ceiling! > 0,
   );
@@ -490,7 +493,9 @@ bool _isComputerDecoSample(DiveProfilePoint point) =>
   // seconds); a null sample is the computer blanking its display.
   final hasComputerGtr = profile.any((p) => p.rbt != null);
 
-  final useNdl = ndlSource == MetricDataSource.computer && hasComputerNdl;
+  final useNdl =
+      ndlSource == MetricDataSource.computer &&
+      (hasComputerNdl || hasComputerDeco);
   final useCeiling =
       ceilingSource == MetricDataSource.computer && hasComputerCeiling;
   final useTts = ttsSource == MetricDataSource.computer && hasComputerTts;
@@ -550,8 +555,12 @@ bool _isComputerDecoSample(DiveProfilePoint point) =>
                 (ndl == null || ndl <= 0)) {
               return _ndlInDeco;
             }
-            return ndl ??
-                (i < analysis.ndlCurve.length ? analysis.ndlCurve[i] : 0);
+            final calculated = i < analysis.ndlCurve.length
+                ? analysis.ndlCurve[i]
+                : 0;
+            // Without one positive reading the stored NDLs are zero
+            // placeholders, not readings, so only the deco flag is taken.
+            return hasComputerNdl ? ndl ?? calculated : calculated;
           })
         : null,
     ceilingCurve: useCeiling

@@ -82,6 +82,45 @@ void main() {
     expect(result.hadDecoObligation, isTrue);
   });
 
+  test('a deco flag alone counts as computer NDL data', () {
+    // DAN DL7 and Diving Log imports can record the in-deco flag with no NDL
+    // readings at all, so no sample has a positive NDL.
+    final flagOnly = [
+      for (var i = 0; i < profile.length; i++)
+        i < 40 ? profile[i] : profile[i].copyWith(decoType: 2),
+    ];
+
+    final (result, info) = overlayComputerDecoData(
+      base,
+      flagOnly,
+      ndlSource: MetricDataSource.computer,
+    );
+
+    expect(info.ndlActual, MetricDataSource.computer);
+    expect(result.ndlCurve[10], base.ndlCurve[10]);
+    expect(result.ndlCurve[50], lessThan(0));
+  });
+
+  test('a deco flag does not make an all-zero NDL series a reading', () {
+    // The Cressi Leonardo logs a zero NDL for the whole dive next to its deco
+    // bit; outside the stop those zeros still are not readings.
+    final leonardo = [
+      for (var i = 0; i < profile.length; i++)
+        i < 40
+            ? profile[i].copyWith(ndl: 0, decoType: 0)
+            : profile[i].copyWith(ndl: 0, decoType: 2),
+    ];
+
+    final (result, _) = overlayComputerDecoData(
+      base,
+      leonardo,
+      ndlSource: MetricDataSource.computer,
+    );
+
+    expect(result.ndlCurve[10], base.ndlCurve[10]);
+    expect(result.ndlCurve[50], lessThan(0));
+  });
+
   test('a safety stop sample keeps the calculated fallback', () {
     final (result, _) = overlayComputerDecoData(
       base,
