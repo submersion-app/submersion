@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -53,6 +55,41 @@ void main() {
         owner: null,
       ),
       isTrue,
+    );
+  });
+
+  // A reload (a diver switch, a divers-table change) keeps the previous
+  // profile's id while it runs; deciding on it would follow the profile
+  // the diver just left (issue #2682 review).
+  test('canDestroySharedItemOnceKnown is unknown while the profile '
+      'reloads', () async {
+    final reload = Completer<String?>();
+    var reads = 0;
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith(
+          (_) => reads++ == 0 ? Future.value('d1') : reload.future,
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.listen(validatedCurrentDiverIdProvider, (_, _) {});
+    await container.read(validatedCurrentDiverIdProvider.future);
+
+    container.invalidate(validatedCurrentDiverIdProvider);
+    final reloading = container.read(validatedCurrentDiverIdProvider);
+    expect(reloading.isLoading, isTrue);
+    expect(reloading.value, 'd1');
+    expect(canDestroySharedItemOnceKnown(reloading, ownerId: 'd1'), isNull);
+
+    reload.complete('d2');
+    await container.read(validatedCurrentDiverIdProvider.future);
+    expect(
+      canDestroySharedItemOnceKnown(
+        container.read(validatedCurrentDiverIdProvider),
+        ownerId: 'd1',
+      ),
+      isFalse,
     );
   });
 
