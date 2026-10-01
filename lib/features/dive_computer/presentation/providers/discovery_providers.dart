@@ -88,7 +88,8 @@ class DiscoveryState {
 
   /// Whether [errorMessage] is there because the Bluetooth radio is off or
   /// missing, which the scan step words in the user's language instead of
-  /// showing the platform's error text. Cleared with [errorMessage].
+  /// showing the platform's error text. Cleared with [errorMessage], and
+  /// dropped by any new [errorMessage] that does not set it.
   final bool bluetoothUnavailable;
   final String? customDeviceName;
 
@@ -121,9 +122,12 @@ class DiscoveryState {
       discoveredDevices: discoveredDevices ?? this.discoveredDevices,
       isScanning: isScanning ?? this.isScanning,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      // A new error message without its own flag replaces the reason too,
+      // so the banner never words a different error as Bluetooth being off.
       bluetoothUnavailable: clearError
           ? false
-          : (bluetoothUnavailable ?? this.bluetoothUnavailable),
+          : (bluetoothUnavailable ??
+                (errorMessage != null ? false : this.bluetoothUnavailable)),
       customDeviceName: customDeviceName ?? this.customDeviceName,
     );
   }

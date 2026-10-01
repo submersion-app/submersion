@@ -32,15 +32,22 @@ class BleScanner {
   void SetOnDeviceDiscovered(DeviceCallback callback);
   void SetOnComplete(CompleteCallback callback);
 
-  // Starts the advertisement watcher. Returns a description of the failure
-  // when Windows refuses to scan, which is what happens with the Bluetooth
-  // radio off or missing, or nullopt once the watcher is running.
+  // Why Windows refused to start a scan.
+  struct StartFailure {
+    // The radio is off or missing, as opposed to any other failure.
+    bool radio_unavailable;
+    // HRESULT code and message, for the log and the error reply.
+    std::string reason;
+  };
+
+  // Starts the advertisement watcher. Returns the failure when Windows
+  // refuses to scan, or nullopt once the watcher is running.
   //
   // WinRT reports that refusal as a winrt::hresult_error, which does not
   // derive from std::exception. The pigeon handler that calls this only
   // catches std::exception, so an error let out of here reaches
   // std::terminate and the whole app aborts (issue #2507).
-  std::optional<std::string> Start();
+  std::optional<StartFailure> Start();
 
   // Never throws, for the same reason.
   void Stop();

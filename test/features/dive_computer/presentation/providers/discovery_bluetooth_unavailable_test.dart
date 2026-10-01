@@ -76,4 +76,30 @@ void main() {
       expect(notifier.state.isScanning, isTrue);
     });
   });
+
+  group('DiscoveryState.copyWith', () {
+    test('a new error message drops a stale Bluetooth-off flag', () {
+      const bluetoothOff = DiscoveryState(
+        errorMessage: 'Bluetooth is unavailable',
+        bluetoothUnavailable: true,
+      );
+
+      final next = bluetoothOff.copyWith(errorMessage: 'Permissions denied');
+
+      expect(next.bluetoothUnavailable, isFalse);
+      expect(next.errorMessage, 'Permissions denied');
+    });
+
+    test('an unrelated update keeps the flag', () {
+      const bluetoothOff = DiscoveryState(
+        errorMessage: 'Bluetooth is unavailable',
+        bluetoothUnavailable: true,
+      );
+
+      expect(
+        bluetoothOff.copyWith(isScanning: false).bluetoothUnavailable,
+        isTrue,
+      );
+    });
+  });
 }

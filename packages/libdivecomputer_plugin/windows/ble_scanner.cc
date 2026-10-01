@@ -1,6 +1,7 @@
 #include "ble_scanner.h"
 
 #include <cctype>
+#include <cstdint>
 #include <cstdio>
 #include <string>
 
@@ -13,6 +14,10 @@ namespace libdivecomputer_plugin {
 namespace {
 
 constexpr char kBleCategory[] = "BLE";
+
+// HRESULT_FROM_WIN32(ERROR_DEVICE_NOT_AVAILABLE): what Start() throws with
+// the Bluetooth radio off or missing (the #2507 crash dump).
+constexpr int32_t kDeviceNotAvailable = static_cast<int32_t>(0x800710DF);
 
 // HRESULT code plus message, as ble_io_stream.cc logs them. The code is what
 // a bug report can be searched on; the message alone is localized.
@@ -67,7 +72,7 @@ uint32_t BleScanner::ParsePelagicModelCode(const std::string& name) {
     return (upper0 << 8) | upper1;
 }
 
-std::optional<std::string> BleScanner::Start() {
+std::optional<BleScanner::StartFailure> BleScanner::Start() {
     {
         std::lock_guard<std::mutex> lock(seen_mutex_);
         seen_addresses_.clear();
@@ -85,8 +90,8 @@ std::optional<std::string> BleScanner::Start() {
         stopped_token_ = watcher_.Stopped(
             {this, &BleScanner::OnWatcherStopped});
 
-        // Throws 0x800710DF (ERROR_DEVICE_NOT_AVAILABLE) when the Bluetooth
-        // radio is off or there is none.
+        // Throws kDeviceNotAvailable when the Bluetooth radio is off or
+        // there is none.
         watcher_.Start();
         return std::nullopt;
     } catch (const winrt::hresult_error& e) {
@@ -94,7 +99,9 @@ std::optional<std::string> BleScanner::Start() {
         NativeLogger::Error(kBleCategory,
                             "BLE scan could not start: " + reason);
         Stop();
-        return reason;
+        return StartFailure{
+            static_cast<int32_t>(e.code()) == kDeviceNotAvailable,
+            reason};
     }
 }
 
