@@ -16,11 +16,26 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// pressure. False while loading, when there are segments to show, and when a
 /// pressure series was recorded but produced no segment, since "only start and
 /// end pressures" would then be untrue.
-bool sacSegmentsLackRecordedPressure(ProfileAnalysis? analysis, Dive dive) {
+///
+/// [computerId] is the computer the analysis was scoped to on a multi-source
+/// dive (null for a single source). Only that computer's cylinders and the
+/// unattributed ones count, the same set `computeAnalysisForProfile` reads:
+/// another computer's start/end pair says nothing about what this source
+/// recorded, and that computer may well have logged a full pressure series.
+bool sacSegmentsLackRecordedPressure(
+  ProfileAnalysis? analysis,
+  Dive dive, {
+  String? computerId,
+}) {
   if (analysis == null) return false;
   if (analysis.sacSegments?.isNotEmpty ?? false) return false;
   if (analysis.sacCurve != null) return false;
   return dive.tanks.any((tank) {
+    if (computerId != null &&
+        tank.computerId != null &&
+        tank.computerId != computerId) {
+      return false;
+    }
     final start = tank.startPressure;
     final end = tank.endPressure;
     return start != null && end != null && start > end;

@@ -94,6 +94,47 @@ void main() {
     );
   });
 
+  group('scoped to one computer, as per-source analysis is', () {
+    // On a multi-source dive the analysis sees only that computer's tanks
+    // plus unattributed ones; another computer's cylinder says nothing about
+    // what this source recorded.
+    final otherComputersTank = startEndOnly.copyWith(computerId: 'a');
+    final ownTankNoPressures = noPressures.copyWith(id: 'own', computerId: 'b');
+
+    test('ignores another computer\'s cylinder', () {
+      expect(
+        sacSegmentsLackRecordedPressure(
+          noPressureAnalysis,
+          diveWith([otherComputersTank, ownTankNoPressures]),
+          computerId: 'b',
+        ),
+        isFalse,
+      );
+    });
+
+    test('counts the computer\'s own cylinder', () {
+      expect(
+        sacSegmentsLackRecordedPressure(
+          noPressureAnalysis,
+          diveWith([otherComputersTank, ownTankNoPressures]),
+          computerId: 'a',
+        ),
+        isTrue,
+      );
+    });
+
+    test('counts an unattributed cylinder', () {
+      expect(
+        sacSegmentsLackRecordedPressure(
+          noPressureAnalysis,
+          diveWith([startEndOnly, ownTankNoPressures]),
+          computerId: 'b',
+        ),
+        isTrue,
+      );
+    });
+  });
+
   test('false when no cylinder has any gas use to report', () {
     for (final tanks in const [
       <DiveTank>[],

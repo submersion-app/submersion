@@ -687,6 +687,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// layout on every reload.
   bool _hasSacSegments(WidgetRef ref, Dive dive) {
     if (dive.profile.isEmpty) return false;
+    final computerId = ref.watch(
+      activeSourceProfileProvider(dive.id).select((p) => p?.computerId),
+    );
     final hasSegments = ref.watch(
       sourceProfileAnalysisProvider((
         diveId: dive.id,
@@ -694,7 +697,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       )).select(
         (a) =>
             (a.value?.sacSegments?.isNotEmpty ?? false) ||
-            sacSegmentsLackRecordedPressure(a.value, dive),
+            sacSegmentsLackRecordedPressure(
+              a.value,
+              dive,
+              computerId: computerId,
+            ),
       ),
     );
     return hasSegments ||
@@ -2538,7 +2545,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // pairing gate in _hasSacSegments does.
     if (analysis == null ||
         (analysis.sacSegments == null || analysis.sacSegments!.isEmpty)) {
-      if (!sacSegmentsLackRecordedPressure(currentAsync.value, dive)) {
+      if (!sacSegmentsLackRecordedPressure(
+        currentAsync.value,
+        dive,
+        // The computer the analysis was scoped to; null on a single source.
+        computerId: ref.watch(
+          activeSourceProfileProvider(dive.id).select((p) => p?.computerId),
+        ),
+      )) {
         return const SizedBox.shrink();
       }
       return CollapsibleCardSection(
