@@ -252,10 +252,16 @@ _ResolvedCylinders _resolveCylinders(
 String? _transmitterSerial(int? serial) =>
     serial == null || serial <= 0 ? null : '$serial';
 
+/// The O2 percentage at or above which a gas with no reported usage is a deco
+/// gas. Shared by [_inferRole] and [_inferSensorlessRoles] so the two never
+/// disagree on it.
+const double _decoMinO2Percent = 41.0;
+
 /// Infer a cylinder [TankRole] (returned as its `.name`). The computer's tank
 /// [usage] (libdivecomputer `dc_usage_t`: 1=oxygen, 2=diluent) is authoritative
 /// when present; otherwise fall back to an open-circuit gas heuristic where a
-/// mix of 41% O2 or more is a deco gas. Everything else is back gas.
+/// mix of [_decoMinO2Percent] O2 or more is a deco gas. Everything else is
+/// back gas.
 ///
 /// Helium does not change the answer: an accelerated-deco gas is often a
 /// trimix such as 50/20, blended to soften the helium swing at the switch,
@@ -267,7 +273,7 @@ String _inferRole(int? usage, double o2Percent) {
     case 2: // DC_USAGE_DILUENT
       return TankRole.diluent.name;
   }
-  if (o2Percent >= 41.0) {
+  if (o2Percent >= _decoMinO2Percent) {
     return TankRole.deco.name;
   }
   return TankRole.backGas.name;
@@ -295,7 +301,8 @@ String _inferRole(int? usage, double o2Percent) {
 ///    only loses the helium tie-break gets no automatic Bailout role and
 ///    falls through to the next rule.
 /// 2. Deco: every still-unassigned gas at or above the same 41% O2
-///    threshold [_inferRole] uses for open circuit becomes [TankRole.deco].
+///    threshold [_inferRole] uses for open circuit ([_decoMinO2Percent])
+///    becomes [TankRole.deco].
 /// 3. Stage: everything still unassigned becomes [TankRole.stage].
 ///
 /// On any other recognized dive mode, a gas with no reported usage keeps
@@ -355,7 +362,7 @@ Map<int, String> _inferSensorlessRoles(
     }
     for (final i in unranked) {
       if (roles.containsKey(i)) continue;
-      roles[i] = gasMixes[i].o2Percent >= 41.0
+      roles[i] = gasMixes[i].o2Percent >= _decoMinO2Percent
           ? TankRole.deco.name
           : TankRole.stage.name;
     }
