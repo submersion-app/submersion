@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -17,6 +18,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_import/data/services/additional_computer_writer.dart';
+import 'package:submersion/features/dive_import/data/services/missing_computer_attacher.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -1113,6 +1116,10 @@ class UniversalAdapter implements ImportSourceAdapter {
         duplicateResult: ImportDuplicateResult(diveMatches: reached.matches),
         consolidationService: _ref.read(diveConsolidationServiceProvider),
         diveRepository: repos.diveRepository,
+        attachMissingComputers: _missingComputerAttacherFor(
+          payload,
+          notifierState,
+        ),
       );
       consolidated = summary.consolidated;
       removedDiveIds = summary.removedDiveIds;
@@ -1819,6 +1826,44 @@ class UniversalAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
   // Helpers — import
   // ---------------------------------------------------------------------------
+
+  /// Adds to a matched dive the computers its re-imported copy carries and it
+  /// lacks, for a dive imported before the importer kept every computer
+  /// (issue #2672). [performConsolidations] asks this before folding.
+  Future<MatchAttachment> Function(int index, String targetDiveId)
+  _missingComputerAttacherFor(
+    ImportPayload payload,
+    UniversalImportState notifierState,
+  ) {
+    final dives = payload.entitiesOf(ui.ImportEntityType.dives);
+    final filesById = batchSourceFiles(notifierState.files);
+    // Built on first use: most imports carry no further computers and never
+    // reach the database through here.
+    late final attacher = MissingComputerAttacher(
+      db: DatabaseService.instance.database,
+    );
+    return (index, targetDiveId) async {
+      if (index < 0 || index >= dives.length) {
+        return MatchAttachment.notApplicable;
+      }
+      final dive = dives[index];
+      if (AdditionalComputerWriter.entriesOf(dive).isEmpty) {
+        return MatchAttachment.notApplicable;
+      }
+      // A batch stamps each dive with the file it came from.
+      final file = filesById[dive['_sourceFileId']];
+      final format =
+          file?.format ??
+          notifierState.options?.format ??
+          notifierState.detectionResult?.format;
+      return attacher.attachToMatch(
+        targetDiveId: targetDiveId,
+        diveData: dive,
+        sourceFileName: file?.fileName ?? notifierState.fileName,
+        sourceFileFormat: format?.name ?? 'uddf',
+      );
+    };
+  }
 
   /// Build a map of import-list index → existing site ID for sites the user
   /// chose to overwrite ([DuplicateAction.replaceSource]).

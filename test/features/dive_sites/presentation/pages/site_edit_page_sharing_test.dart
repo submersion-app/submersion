@@ -3,9 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart' hide Diver;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -153,6 +155,29 @@ void main() {
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
     expect(await db.select(db.siteHides).get(), isEmpty);
+  });
+
+  testWidgets('a site already hidden here offers Unhide, not Remove (#2679)', (
+    tester,
+  ) async {
+    await ProfileHidesRepository().hide(SharedItemKind.site, 'pier', 'd2');
+    var closed = 0;
+    await pump(tester, active: 'd2', onDeleted: () => closed++);
+    expect(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+      findsNothing,
+    );
+
+    await tester.tap(find.byTooltip('Show in my profile'));
+    await tester.pumpAndSettle();
+
+    expect(await db.select(db.siteHides).get(), isEmpty);
+    expect(closed, 0);
+    expect(find.byType(SnackBar), findsNothing);
+    expect(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+      findsOneWidget,
+    );
   });
 
   testWidgets('an owner whose site changed hands meanwhile is refused', (
