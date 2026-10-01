@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The shared trips and sites the active profile has hidden from itself,
 /// each with Unhide (issue #2594).
@@ -91,32 +92,47 @@ class _HiddenRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => ListTile(
     title: Text(item.name),
-    subtitle: Text(
-      [
-        // A trip's dates tell two same-named trips apart.
-        if (item.kind == SharedItemKind.trip && item.startDate != null)
-          UnitFormatter(
-            ref.watch(settingsProvider),
-          ).formatDateRange(item.startDate, item.endDate, l10n: context.l10n),
-        if (item.location case final location? when location.isNotEmpty)
-          location,
-        context.l10n.sharedItems_sharedBy(
-          sharedItemOwnerName(divers, item.ownerId, context.l10n),
+    // Unhide sits on its own line under the details rather than in trailing:
+    // a ListTile lays trailing out at its natural width first, so a
+    // translated label there squeezes the item name (issue #2717).
+    isThreeLine: true,
+    subtitle: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          [
+            // A trip's dates tell two same-named trips apart.
+            if (item.kind == SharedItemKind.trip && item.startDate != null)
+              UnitFormatter(ref.watch(settingsProvider)).formatDateRange(
+                item.startDate,
+                item.endDate,
+                l10n: context.l10n,
+              ),
+            if (item.location case final location? when location.isNotEmpty)
+              location,
+            context.l10n.sharedItems_sharedBy(
+              sharedItemOwnerName(divers, item.ownerId, context.l10n),
+            ),
+          ].join(' · '),
         ),
-      ].join(' · '),
-    ),
-    trailing: TextButton(
-      onPressed: () => runHideChange(
-        ScaffoldMessenger.of(context),
-        context.l10n,
-        () => switch (item.kind) {
-          SharedItemKind.trip =>
-            ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
-          SharedItemKind.site =>
-            ref.read(siteListNotifierProvider.notifier).unhideSites([item.id]),
-        },
-      ),
-      child: Text(context.l10n.settings_hiddenItems_unhide),
+        TileSubtitleAction(
+          // A failed unhide keeps the row and says so (issue #2677).
+          onPressed: () => runHideChange(
+            ScaffoldMessenger.of(context),
+            context.l10n,
+            () => switch (item.kind) {
+              SharedItemKind.trip =>
+                ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
+              SharedItemKind.site =>
+                ref.read(siteListNotifierProvider.notifier).unhideSites([
+                  item.id,
+                ]),
+            },
+          ),
+          label: context.l10n.settings_hiddenItems_unhide,
+        ),
+      ],
     ),
   );
 }
