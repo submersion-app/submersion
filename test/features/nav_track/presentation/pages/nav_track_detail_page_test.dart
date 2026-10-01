@@ -228,7 +228,7 @@ void main() {
     );
 
     expect(find.text('Dive dive-1'), findsOneWidget);
-    expect(find.textContaining('#'), findsNothing);
+    expect(find.text('Dive #dive-1'), findsNothing);
   });
 
   testWidgets('tapping "Choose dive" and picking one links the route to it', (

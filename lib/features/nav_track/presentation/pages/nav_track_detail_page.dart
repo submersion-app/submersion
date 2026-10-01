@@ -15,6 +15,7 @@ import 'package:submersion/features/maps/presentation/widgets/submersion_tile_la
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
+import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -458,16 +459,12 @@ class _LinkCard extends ConsumerWidget {
         onAction: onChooseDive,
       );
     }
-    final diveNumber = ref.watch(diveProvider(diveId)).value?.diveNumber;
+    final dive = ref.watch(diveProvider(diveId)).value;
     return Card(
       child: ListTile(
         key: const ValueKey('nav-track-linked-dive'),
         leading: const Icon(Icons.link),
-        title: Text(
-          diveNumber != null
-              ? l10n.navTrack_common_diveNumber(diveNumber.toString())
-              : l10n.navTrack_common_diveById(diveId),
-        ),
+        title: Text(navTrackDiveLabel(l10n, diveId, dive)),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/dives/$diveId'),
       ),

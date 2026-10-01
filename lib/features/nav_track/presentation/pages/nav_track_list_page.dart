@@ -16,6 +16,7 @@ import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_t
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
+import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_parse_error_text.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
@@ -385,11 +386,11 @@ class NavTrackListRow extends ConsumerWidget {
   String _linkLabel(AppLocalizations l10n, WidgetRef ref) {
     final diveId = route.diveId;
     if (diveId == null) return l10n.navTrack_common_unlinked;
-    final dive = ref.watch(diveProvider(diveId)).value;
-    if (dive == null) return l10n.navTrack_common_diveById(diveId);
-    return dive.diveNumber != null
-        ? l10n.navTrack_common_diveNumber(dive.diveNumber.toString())
-        : l10n.navTrack_common_diveById(diveId);
+    return navTrackDiveLabel(
+      l10n,
+      diveId,
+      ref.watch(diveProvider(diveId)).value,
+    );
   }
 
   /// The link chip: a plain chip for an unlinked route, or one that opens
