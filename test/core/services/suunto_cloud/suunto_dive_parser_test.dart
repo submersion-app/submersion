@@ -235,6 +235,17 @@ void main() {
       expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
     });
 
+    test('treats a Z header as a declared zero offset, not a missing one', () {
+      // Z declares UTC, so there is no zone for the samples to be off by;
+      // the gap is real and the sample clock stands.
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T11:44:00Z'),
+        samples: samplesFrom('13:44', 'Z'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
     test('rounds to quarter hours when the header declares no offset', () {
       final result = SuuntoDiveParser.parse(
         header: headerAt('2026-04-19T13:44:00'),

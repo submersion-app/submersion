@@ -582,9 +582,10 @@ class SuuntoDiveParser {
   /// offset in one direction or the other, so the correction is whichever
   /// of none, `+offset` and `-offset` leaves the smallest remainder. Any real
   /// gap between the header and the first sample survives as that remainder.
-  /// A header with no offset to go on falls back to rounding the gap to whole
-  /// quarter hours, the granularity of every real offset, once it reaches
-  /// [_minZoneError].
+  /// A `Z` header declares a zero offset, so it never corrects. Only a header
+  /// with no designator at all, and so no offset to go on, falls back to
+  /// rounding the gap to whole quarter hours, the granularity of every real
+  /// offset, once it reaches [_minZoneError].
   ///
   /// Zero when either clock is missing or they already agree, which leaves
   /// the app's JSON export, whose samples carry the header's clock, exactly
@@ -598,7 +599,7 @@ class SuuntoDiveParser {
     final gap = Duration(
       milliseconds: headerStart.millisecondsSinceEpoch - firstSampleMs,
     );
-    if (headerOffset != null && headerOffset != Duration.zero) {
+    if (headerOffset != null) {
       var best = Duration.zero;
       for (final candidate in [headerOffset, -headerOffset]) {
         if ((gap - candidate).abs() < (gap - best).abs()) best = candidate;
