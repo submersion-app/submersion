@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
@@ -30,6 +31,9 @@ void main() {
   });
 
   tearDown(() async {
+    // The undo's pending marks configure the process-wide clock from this
+    // database; drop it so the next file in the isolate seeds its own.
+    SyncClock.instance.reset();
     await tearDownTestDatabase();
   });
 
