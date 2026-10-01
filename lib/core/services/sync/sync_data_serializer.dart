@@ -14,6 +14,7 @@ import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
+import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -1692,6 +1693,105 @@ class SyncDataSerializer {
       updates: {_tableNamed(target.table)},
       updateKind: UpdateKind.update,
     );
+  }
+
+  /// The clearable columns of each parent-gated type (see clearableColumns),
+  /// by JSON key. Fixed by the schema, so an adopt's many batches build it
+  /// once; the table itself is looked up per call, since [_db] follows
+  /// whichever database is open.
+  final Map<String, Map<String, String>> _clearableChildColumns = {};
+
+  TableInfo<Table, Object?> _parentGatedTable(String entityType) {
+    final tableName = parentGatedTables[entityType]!;
+    return _db.allTables.firstWhere((t) => t.actualTableName == tableName);
+  }
+
+  Map<String, String> _clearableFor(String entityType) =>
+      _clearableChildColumns.putIfAbsent(
+        entityType,
+        () => clearableColumns(
+          _parentGatedTable(entityType),
+          keyColumns: _parentGatedKeyColumns[entityType] ?? const ['id'],
+        ),
+      );
+
+  /// The JSON keys a clear on [entityType] may name (see clearableColumns):
+  /// empty for a type outside [parentGatedChildEntities] or one with nothing
+  /// clearable, so a caller can skip collecting clears for it (#2644).
+  Iterable<String> clearableChildKeys(String entityType) =>
+      parentGatedTables.containsKey(entityType)
+      ? _clearableFor(entityType).keys
+      : const [];
+
+  /// Writes deliberate clears on parent-gated children (#2644).
+  ///
+  /// The upsert that applied each row builds with nullToAbsent, so a null it
+  /// carries never lands. The merge collects the keys a strictly newer copy
+  /// set to null (see isNewerChildCopy), and adopt the keys each replayed
+  /// row sets to null, and both hand them here; [clears] maps a sync record
+  /// id to those JSON keys. Only nullable, undefaulted columns outside the
+  /// row's key are written, so a malformed payload can neither fail on a
+  /// NOT NULL column nor move a row.
+  ///
+  /// Rows clearing the same columns share one statement per chunk of ids,
+  /// and a row whose columns are already null is not rewritten: an adopt
+  /// replays every row, each carrying explicit nulls, and a statement per
+  /// row made a large adopt crawl.
+  ///
+  /// A junction applied lowest-id-per-pair can keep a local id over the
+  /// remote one; its clear then matches no row. Those junctions carry no
+  /// nullable user columns worth clearing.
+  Future<void> clearChildColumns(
+    String entityType,
+    Map<String, Set<String>> clears,
+  ) async {
+    final tableName = parentGatedTables[entityType];
+    if (tableName == null || clears.isEmpty) return;
+    final table = _parentGatedTable(entityType);
+    final keys = _parentGatedKeyColumns[entityType] ?? const ['id'];
+    final clearable = _clearableFor(entityType);
+    // Rows clearing the same columns, keyed by those columns joined.
+    final groups =
+        <String, ({List<String> columns, List<List<String>> rows})>{};
+    for (final MapEntry(key: recordId, value: jsonKeys) in clears.entries) {
+      final columns = {for (final k in jsonKeys) ?clearable[k]}.toList()
+        ..sort();
+      if (columns.isEmpty) continue;
+      final keyValues = keys.length == 1 ? [recordId] : recordId.split('|');
+      if (keyValues.length != keys.length) continue;
+      (groups[columns.join(',')] ??= (
+        columns: columns,
+        rows: [],
+      )).rows.add(keyValues);
+    }
+    final keyList = keys.length == 1
+        ? '"${keys.single}"'
+        : '(${keys.map((k) => '"$k"').join(', ')})';
+    // A composite key binds a variable per column (see
+    // _fetchParentGatedChildren).
+    final perStatement = 900 ~/ keys.length;
+    for (final (:columns, :rows) in groups.values) {
+      for (var i = 0; i < rows.length; i += perStatement) {
+        final chunk = rows.sublist(i, math.min(i + perStatement, rows.length));
+        final placeholders = keys.length == 1
+            ? chunk.map((_) => '?').join(', ')
+            : 'VALUES ${chunk.map((_) => '(${keys.map((_) => '?').join(', ')})').join(', ')}';
+        // customUpdate, not customStatement, so Drift's query streams
+        // rebuild (the same reason as writeFactGroup).
+        await _db.customUpdate(
+          'UPDATE "$tableName" '
+          'SET ${columns.map((c) => '"$c" = NULL').join(', ')} '
+          'WHERE $keyList IN ($placeholders) '
+          'AND (${columns.map((c) => '"$c" IS NOT NULL').join(' OR ')})',
+          variables: [
+            for (final row in chunk)
+              for (final v in row) Variable.withString(v),
+          ],
+          updates: {table},
+          updateKind: UpdateKind.update,
+        );
+      }
+    }
   }
 
   /// The sync record id of a [parentGatedChildEntities] row, in the shape
@@ -3897,6 +3997,9 @@ class SyncDataSerializer {
   /// omitted rather than written, preserving a value set by a non-synced direct
   /// write (e.g. the consolidation `computerId` backfill). Do NOT add
   /// `.toCompanion(false)` to a clockless case -- it reintroduces that clobber.
+  /// A parent-gated child's deliberate clear lands afterwards instead, through
+  /// [clearChildColumns]: on the merge only from a copy whose clock is
+  /// strictly newer, on adopt in replay order (#2644).
   Future<void> upsertRecord(
     String entityType,
     Map<String, dynamic> data,
@@ -8700,26 +8803,10 @@ class SyncDataSerializer {
       // defaults (e.g. currentDateAndTime) can't be evaluated here and keep
       // today's behavior.
       if (value is bool || value is num || value is String) {
-        fills.add(MapEntry(_jsonKeyForSqlColumn(column.name), () => value));
+        fills.add(MapEntry(columnJsonKey(column.name), () => value));
       }
     }
     return fills;
-  }
-
-  /// Maps a Drift SQL column name (snake_case of the Dart getter) back to the
-  /// getter name, which is the generated `fromJson`/`toJson` key. The project
-  /// has no build.yaml renames and no `named()` overrides, so the mapping is
-  /// mechanical; a wrong key would only add an ignored extra entry, never
-  /// overwrite a real one (fills skip keys already present).
-  static String _jsonKeyForSqlColumn(String sqlName) {
-    final parts = sqlName.split('_');
-    final buffer = StringBuffer(parts.first);
-    for (final part in parts.skip(1)) {
-      if (part.isEmpty) continue;
-      buffer.write(part[0].toUpperCase());
-      buffer.write(part.substring(1));
-    }
-    return buffer.toString();
   }
 
   /// Applies default values for DiverSettings fields that may be missing

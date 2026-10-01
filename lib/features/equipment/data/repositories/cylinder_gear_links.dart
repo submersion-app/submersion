@@ -44,11 +44,22 @@ Future<void> clearCylinderGearLinks(
             ))
             .get();
     if (tanks.isEmpty) continue;
-    await (db.update(db.diveTanks)..where((t) => t.equipmentId.isIn(chunk)))
-        .write(const DiveTanksCompanion(equipmentId: Value(null)));
-    await (db.update(db.diveTanks)
-          ..where((t) => t.regulatorEquipmentId.isIn(chunk)))
-        .write(const DiveTanksCompanion(regulatorEquipmentId: Value(null)));
+    // Stamped in the write as well as marked below, so the clear carries its
+    // own clock and a peer's older copy cannot restore the link (#2644).
+    final clearedAt = await syncRepository.issueRowClock();
+    await (db.update(
+      db.diveTanks,
+    )..where((t) => t.equipmentId.isIn(chunk))).write(
+      DiveTanksCompanion(equipmentId: const Value(null), hlc: Value(clearedAt)),
+    );
+    await (db.update(
+      db.diveTanks,
+    )..where((t) => t.regulatorEquipmentId.isIn(chunk))).write(
+      DiveTanksCompanion(
+        regulatorEquipmentId: const Value(null),
+        hlc: Value(clearedAt),
+      ),
+    );
     tankIds.addAll(tanks.map((t) => t.id));
   }
   for (final id in tankIds) {

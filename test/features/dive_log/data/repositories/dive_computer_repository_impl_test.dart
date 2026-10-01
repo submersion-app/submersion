@@ -3,12 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 
+import '../../../../helpers/clock_expectations.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/unique_ids.dart';
 import '../../../../helpers/fake_hosts.dart';
@@ -585,6 +587,72 @@ void main() {
         expect(series.computerId, equals(created.id));
       },
     );
+
+    test('relinked sources carry a fresh clock (#2644)', () async {
+      addTearDown(SyncClock.instance.reset);
+      final oldId = await insertComputer(
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-12345',
+      );
+      final diveId = await insertDive(computerId: oldId);
+      await insertDataSource(
+        diveId: diveId,
+        computerId: oldId,
+        isPrimary: true,
+        computerModel: 'Shearwater Perdix',
+        computerSerial: 'SN-12345',
+        sourceFormat: 'dive_computer',
+      );
+      await repository.deleteComputer(oldId);
+      Future<DiveDataSourcesData> source() => (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).getSingle();
+      final before = await source();
+
+      final created = await repository.createComputer(newComputer());
+
+      final after = await source();
+      expect(after.computerId, created.id);
+      expectFresherClock(before.hlc, after.hlc);
+    });
+
+    test('a relinked source that is not the dive primary is published '
+        '(#2644)', () async {
+      addTearDown(SyncClock.instance.reset);
+      // Its dive is only staged when the source is the primary, so the
+      // source must be marked pending itself or no changeset carries it.
+      final oldId = await insertComputer(
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-12345',
+      );
+      final diveId = await insertDive(computerId: oldId);
+      await insertDataSource(
+        diveId: diveId,
+        computerId: oldId,
+        isPrimary: false,
+        computerModel: 'Shearwater Perdix',
+        computerSerial: 'SN-12345',
+        sourceFormat: 'dive_computer',
+      );
+      await repository.deleteComputer(oldId);
+      await db.customStatement('DELETE FROM sync_records');
+
+      await repository.createComputer(newComputer());
+
+      final source = await (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).getSingle();
+      final pending =
+          await (db.select(db.syncRecords)..where(
+                (r) =>
+                    r.entityType.equals('diveDataSources') &
+                    r.recordId.equals(source.id),
+              ))
+              .get();
+      expect(pending, isNotEmpty);
+    });
 
     test('does not relink without a serial number', () async {
       final oldId = await insertComputer(
@@ -1807,4 +1875,34 @@ void main() {
       expect(pending.single.syncStatus, 'pending');
     });
   });
+
+  test(
+    'deleting a computer publishes the sources it detaches (#2644)',
+    () async {
+      addTearDown(SyncClock.instance.reset);
+      final computerId = await insertComputer();
+      final diveId = await insertDive(computerId: computerId);
+      await insertDataSource(
+        diveId: diveId,
+        computerId: computerId,
+        isPrimary: true,
+      );
+      await db.customStatement('DELETE FROM sync_records');
+
+      await repository.deleteComputer(computerId);
+
+      final source = await (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).getSingle();
+      expect(source.computerId, isNull);
+      final pending =
+          await (db.select(db.syncRecords)..where(
+                (r) =>
+                    r.entityType.equals('diveDataSources') &
+                    r.recordId.equals(source.id),
+              ))
+              .get();
+      expect(pending, isNotEmpty, reason: 'the cleared link never left here');
+    },
+  );
 }

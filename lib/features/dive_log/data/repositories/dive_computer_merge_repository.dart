@@ -310,11 +310,23 @@ class DiveComputerMergeRepository {
     )..where((t) => t.computerId.isIn(fromIds))).write(
       db.DivesCompanion(computerId: Value(toId), updatedAt: Value(now)),
     );
-    await (_db.update(_db.diveDataSources)
-          ..where((t) => t.computerId.isIn(fromIds)))
-        .write(db.DiveDataSourcesCompanion(computerId: Value(toId)));
-    await (_db.update(_db.diveTanks)..where((t) => t.computerId.isIn(fromIds)))
-        .write(db.DiveTanksCompanion(computerId: Value(toId)));
+    // Fresh clocks on the moved sources and tanks, like the events below:
+    // this is an edit to them, and a peer's newer copy still naming the old
+    // computer, or none, must not win over it (#2644).
+    final repointedAt = await _syncRepository.issueRowClock();
+    await (_db.update(
+      _db.diveDataSources,
+    )..where((t) => t.computerId.isIn(fromIds))).write(
+      db.DiveDataSourcesCompanion(
+        computerId: Value(toId),
+        hlc: Value(repointedAt),
+      ),
+    );
+    await (_db.update(
+      _db.diveTanks,
+    )..where((t) => t.computerId.isIn(fromIds))).write(
+      db.DiveTanksCompanion(computerId: Value(toId), hlc: Value(repointedAt)),
+    );
     // A fresh clock on the moved events: re-pointed onto the survivor, they
     // join any scope tombstone it already has on their dive (#1926), and
     // with their old clocks a relayed copy of that scope would delete them.
