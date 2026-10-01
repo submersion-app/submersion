@@ -6,6 +6,7 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 
 import '../../../../core/services/export/uddf/uddf_raw_data_round_trip_test.dart'
     show buildRepositories, createTestDiver;
@@ -228,5 +229,38 @@ void main() {
 
     final dives = await DiveRepository().getAllDives(diverId: diverId);
     expect(dives.single.tripId, isNull);
+  });
+
+  test('in a merged batch each dive follows its own file', () async {
+    // A Subsurface file with trips imported together with a MacDive library:
+    // the batch has trips, yet the MacDive dives were never left out of one.
+    final diverId = await createTestDiver();
+    final trip = await existingTrip('bonaire', diverId);
+
+    await import(
+      UddfImportResult(
+        trips: [
+          {
+            'uddfId': 'f0:trip_1',
+            'name': 'Elsewhere',
+            'startDate': DateTime(2026, 5, 1),
+            'endDate': DateTime(2026, 5, 3),
+          },
+        ],
+        dives: [
+          {
+            ...dive(DateTime.utc(2026, 3, 9, 9)),
+            PayloadMerger.sourceHasTripsKey: true,
+          },
+          {
+            ...dive(DateTime.utc(2026, 3, 10, 9)),
+            PayloadMerger.sourceHasTripsKey: false,
+          },
+        ],
+      ),
+      diverId,
+    );
+
+    expect(await tripIdByDay(diverId), {9: null, 10: trip.id});
   });
 }

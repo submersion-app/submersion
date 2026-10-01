@@ -76,6 +76,7 @@ import 'package:submersion/features/trips/domain/services/trip_for_dive_date.dar
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
 import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
@@ -2570,9 +2571,12 @@ class UddfEntityImporter {
       // leaves a dive out of them on purpose, so only a dive whose own trip
       // was not imported is placed by date there. An undated dive would be
       // placed by the import clock, so it is not placed at all.
+      // A merged batch says per dive whether its own file had trips.
+      final fileHasTrips =
+          diveData[PayloadMerger.sourceHasTripsKey] as bool? ?? sourceHasTrips;
       if (linkedTripId == null &&
           sourceDateTime != null &&
-          (tripRef != null || !sourceHasTrips)) {
+          (tripRef != null || !fileHasTrips)) {
         diverTrips ??= await repos.tripRepository.getAllTrips(diverId: diverId);
         linkedTripId = tripForDiveDate(sourceDateTime, diverTrips)?.id;
       }

@@ -49,6 +49,12 @@ class _Survivor {
 class PayloadMerger {
   const PayloadMerger();
 
+  /// Dive map key: whether the dive's own file had trips (#2618). A file
+  /// with trips leaves a dive out of them on purpose, a file with none says
+  /// nothing, and the batch's trip list mixes the two, so the importer reads
+  /// this per dive to decide whether to place a tripless dive by date.
+  static const sourceHasTripsKey = '_sourceHasTrips';
+
   /// Dive map fields holding a single entity reference.
   static final _scalarRefFields = diveScalarRefTypes.keys.toList();
 
@@ -191,6 +197,9 @@ class PayloadMerger {
           }
 
           if (type == ImportEntityType.dives) {
+            item[sourceHasTripsKey] = input.payload
+                .entitiesOf(ImportEntityType.trips)
+                .isNotEmpty;
             (entities[type] ??= []).add(item);
             continue;
           }
