@@ -151,6 +151,31 @@ $computers
     expect(rows[1].computerId, isNull);
   });
 
+  test('rows a Combine left on one computer count once', () async {
+    // Two provenance rows sharing a registered computer read as one source,
+    // so they hold one identity, not two: the dive still lacks the second
+    // computer of an unserialised pair.
+    final dive = await parse(
+      '${computer(model: 'Shearwater Perdix')}\n'
+      '${computer(model: 'Shearwater Perdix', depth: 30.4)}',
+    );
+    final diveId = await importTheOldWay(dive);
+    final primary = (await sourcesOf(diveId)).single;
+    expect(primary.computerId, isNotNull);
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          primary
+              .toCompanion(false)
+              .copyWith(
+                id: const Value('combined-half'),
+                isPrimary: const Value(false),
+              ),
+        );
+
+    expect(await attach(diveId, dive), 1);
+  });
+
   test('re-bases the computer onto the dive it joins', () async {
     // The same dive read from a file whose clock put it two minutes later:
     // the added computer's samples land where they happened on this dive.
@@ -188,6 +213,22 @@ $computers
 
       expect(await attachToMatch(diveId, dive), MatchAttachment.attached);
       expect(await sourcesOf(diveId), hasLength(2));
+    });
+
+    test('a match that already has every computer is not this path', () async {
+      // Nothing to attach, so the normal consolidation decides, exactly as
+      // it did before this path existed.
+      final dive = await parse(perdixAndTeric);
+      final data = UddfImportResult(dives: [dive]);
+      await UddfEntityImporter().import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: buildRepositories(),
+        diverId: await createTestDiver(),
+      );
+      final diveId = (await DiveRepository().getAllDives()).single.id;
+
+      expect(await attachToMatch(diveId, dive), MatchAttachment.notApplicable);
     });
 
     test('a match without the first computer is not this path', () async {

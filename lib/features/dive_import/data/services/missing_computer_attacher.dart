@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_import/data/services/additional_compute
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
 
 /// What [MissingComputerAttacher.attachToMatch] did with a matched dive.
 enum MatchAttachment {
@@ -86,10 +87,7 @@ class MissingComputerAttacher {
     final sources = await (_db.select(
       _db.diveDataSources,
     )..where((t) => t.diveId.equals(diveId))).get();
-    final missing = missingComputers(diveData, [
-      for (final s in sources)
-        UddfEntityImporter.computerKeyFor(s.computerModel, s.computerSerial),
-    ]);
+    final missing = missingComputers(diveData, _identitiesOf(sources));
     if (missing.isEmpty) return nothing;
 
     final tanks =
@@ -194,9 +192,31 @@ class MissingComputerAttacher {
       sourceFileName: sourceFileName,
       sourceFileFormat: sourceFileFormat,
     );
+    // Nothing to add leaves the pairing to a normal consolidation, exactly
+    // as before this path existed; only the upgrade bypasses the fold.
+    if (result.missing == 0) return MatchAttachment.notApplicable;
     return result.written == result.missing
         ? MatchAttachment.attached
         : MatchAttachment.incomplete;
+  }
+
+  /// One identity per source the dive shows, not per row: the rows a Combine
+  /// carried over share a strand and read as one source, so counting each
+  /// would claim an incoming computer the dive does not hold. Strands follow
+  /// the rule the repository's own reads use.
+  static List<String?> _identitiesOf(List<DiveDataSourcesData> sources) {
+    final seenStrands = <String>{};
+    return [
+      for (final s in sources)
+        if (seenStrands.add(
+          dataSourceStrandKey(
+            rowId: s.id,
+            computerId: s.computerId,
+            mergeSourceSlot: s.mergeSourceSlot,
+          ),
+        ))
+          UddfEntityImporter.computerKeyFor(s.computerModel, s.computerSerial),
+    ];
   }
 
   /// The further computers of [diveData] that [presentKeys] (the identity of
