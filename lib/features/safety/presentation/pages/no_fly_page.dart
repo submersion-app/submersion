@@ -113,7 +113,7 @@ class NoFlyStatusCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final now = NoFlyService.wallClockNowUtc();
+    final now = DateTime.now().toUtc();
     final active = status != null && status!.isActiveAt(now);
 
     if (!active) {
@@ -127,14 +127,12 @@ class NoFlyStatusCard extends ConsumerWidget {
     }
 
     final remaining = status!.remaining(now);
-    final until = status!.until;
-    // Wall-clock-as-UTC values format their components directly -- no
-    // toLocal(), matching how dive times are displayed everywhere. The weekday
-    // has no ordering to respect, so it stays locale-derived; the clock half
-    // goes through the diver's 12h/24h preference.
+    final untilLocal = status!.until.toLocal();
+    // The weekday has no ordering to respect, so it stays locale-derived; the
+    // clock half goes through the diver's 12h/24h preference.
     final units = UnitFormatter(ref.watch(settingsProvider));
     final untilText =
-        '${DateFormat.E().format(until)} ${units.formatTime(until)}';
+        '${DateFormat.E().format(untilLocal)} ${units.formatTime(untilLocal)}';
 
     return Card(
       child: Padding(

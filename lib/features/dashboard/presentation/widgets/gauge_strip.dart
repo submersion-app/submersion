@@ -200,7 +200,7 @@ class GaugeStrip extends ConsumerWidget {
 
     if (_shown(hidden, HomeChipType.noFly)) {
       final noFly = g.noFlyStatus;
-      final now = NoFlyService.wallClockNowUtc();
+      final now = DateTime.now().toUtc();
       if (noFly != null && noFly.isActiveAt(now)) {
         final remaining = noFly.remaining(now);
         chips.add(
