@@ -277,8 +277,7 @@ class SiteRepository {
       }
       // Only the owner changes sharing (issue #2594): another profile's save
       // keeps the stored flag, whatever its page state says.
-      if ((await _destroyableSiteIds([site.id], actingDiverId)).isEmpty &&
-          await getSiteById(site.id) != null) {
+      if ((await _siteOwnership([site.id], actingDiverId)).refused.isNotEmpty) {
         companion = companion.copyWith(isShared: const Value.absent());
       }
 
@@ -452,7 +451,7 @@ class SiteRepository {
     String? actingDiverId,
   }) async {
     try {
-      if ((await _destroyableSiteIds([id], actingDiverId)).isEmpty) {
+      if ((await _siteOwnership([id], actingDiverId)).allowed.isEmpty) {
         return false;
       }
       _log.info('Setting site $id isShared=$isShared');
@@ -520,46 +519,29 @@ class SiteRepository {
     }
   }
 
-  /// Which of [ids] [actingDiverId] may destroy (issue #2594): its own,
-  /// ownerless ones, and all of them for a caller that names no profile.
-  Future<List<String>> _destroyableSiteIds(
+  /// The existing sites among [ids], split by whether [actingDiverId] may
+  /// destroy them (issue #2594): its own, ownerless ones, and all of them
+  /// for a caller that names no profile, against the other profiles'. An
+  /// id with no row is in neither list.
+  Future<({List<String> allowed, List<String> refused})> _siteOwnership(
     List<String> ids,
     String? actingDiverId,
   ) async {
-    if (ids.isEmpty) return const [];
+    if (ids.isEmpty) {
+      return (allowed: const <String>[], refused: const <String>[]);
+    }
     final rows = await (_db.select(
       _db.diveSites,
     )..where((t) => t.id.isIn(ids))).get();
-    final owners = {for (final r in rows) r.id: r.diverId};
-    return [
-      for (final id in ids)
-        if (owners.containsKey(id) &&
-            canDestroySharedItem(
-              ownerId: owners[id],
-              activeDiverId: actingDiverId,
-            ))
-          id,
-    ];
-  }
-
-  /// Which of [ids] exist and belong to another profile, so [actingDiverId]
-  /// may not destroy them (issue #2594). An id with no row is not listed.
-  Future<List<String>> _notDestroyableSiteIds(
-    List<String> ids,
-    String? actingDiverId,
-  ) async {
-    if (ids.isEmpty || actingDiverId == null) return const [];
-    final rows = await (_db.select(
-      _db.diveSites,
-    )..where((t) => t.id.isIn(ids))).get();
-    return [
-      for (final r in rows)
-        if (!canDestroySharedItem(
-          ownerId: r.diverId,
-          activeDiverId: actingDiverId,
-        ))
-          r.id,
-    ];
+    final allowed = <String>[];
+    final refused = <String>[];
+    for (final r in rows) {
+      (canDestroySharedItem(ownerId: r.diverId, activeDiverId: actingDiverId)
+              ? allowed
+              : refused)
+          .add(r.id);
+    }
+    return (allowed: allowed, refused: refused);
   }
 
   /// Deletes the site rows and, when [cascadeMedia], their media: site-only
@@ -645,10 +627,14 @@ class SiteRepository {
     String? actingDiverId,
   }) async {
     try {
-      if ((await _notDestroyableSiteIds([id], actingDiverId)).isNotEmpty) {
+      final ownership = await _siteOwnership([id], actingDiverId);
+      if (ownership.refused.isNotEmpty) {
         _log.warning('Refused to delete site $id: another profile owns it');
         return false;
       }
+      // Already gone (deleted on another device): nothing to delete, and no
+      // tombstone for the peers, as deleteTrip does.
+      if (ownership.allowed.isEmpty) return true;
       _log.info('Deleting site: $id');
       await _deleteSiteRows([id], cascadeMedia: cascadeMedia);
       SyncEventBus.notifyLocalChange();
@@ -709,7 +695,7 @@ class SiteRepository {
   }) async {
     if (ids.isEmpty) return const SiteLinks();
     try {
-      final allowed = await _destroyableSiteIds(ids, actingDiverId);
+      final allowed = (await _siteOwnership(ids, actingDiverId)).allowed;
       if (allowed.length < ids.length) {
         _log.warning(
           'Bulk delete skipped ${ids.length - allowed.length} sites another '
@@ -754,10 +740,10 @@ class SiteRepository {
     // survivor another profile owns keeps its owner and sharing.
     // A duplicate that is gone falls through to the 'Sites not found'
     // check below rather than being taken for another profile's.
-    if ((await _notDestroyableSiteIds(
+    if ((await _siteOwnership(
       duplicateIds,
       actingDiverId,
-    )).isNotEmpty) {
+    )).refused.isNotEmpty) {
       _log.warning('Refused to merge away sites another profile owns');
       return null;
     }

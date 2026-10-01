@@ -46,6 +46,24 @@ void main() {
     expect(await db.select(db.tripHides).get(), isEmpty);
   });
 
+  test('hideAll hides a batch in one go and counts what is hidden', () async {
+    await seedTrip(db, 'shared2', owner: 'a', shared: true);
+    await repository.hide(SharedItemKind.trip, 'shared', 'b');
+    final hidden = await repository.hideAll(SharedItemKind.trip, [
+      'shared',
+      'shared2',
+      'private',
+      'nope',
+    ], 'b');
+    // 'shared' was already hidden, 'shared2' is new; the unshared and the
+    // missing trip are refused.
+    expect(hidden, 2);
+    expect((await db.select(db.tripHides).get()).map((h) => h.tripId).toSet(), {
+      'shared',
+      'shared2',
+    });
+  });
+
   test('unhide deletes and tombstones the row', () async {
     await repository.hide(SharedItemKind.site, 'pier', 'b');
     await repository.unhide(SharedItemKind.site, 'pier', 'b');

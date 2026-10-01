@@ -456,11 +456,9 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
   Future<int> hideTrips(List<String> ids) async {
     final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return 0;
-    final hides = _ref.read(profileHidesRepositoryProvider);
-    var hidden = 0;
-    for (final id in ids) {
-      if (await hides.hide(SharedItemKind.trip, id, diverId)) hidden++;
-    }
+    final hidden = await _ref
+        .read(profileHidesRepositoryProvider)
+        .hideAll(SharedItemKind.trip, ids, diverId);
     await refresh();
     _ref.invalidate(hiddenItemsProvider);
     return hidden;

@@ -201,6 +201,24 @@ void main() {
     expect(sibling?.site?.id, site.id);
   });
 
+  test('another profile\'s private site is not shared by the mirror', () async {
+    // Ann made her site private after Eric logged a dive there: only Ann
+    // changes its sharing (issue #2594), so the sibling goes without it.
+    final ann = await diver('Ann');
+    final site = await sites.createSite(
+      DiveSite(id: '', name: 'Ann Reef', diverId: ann),
+    );
+    final dive = await sourceDive(site: site);
+    final outcome = await service.mirror(
+      sourceDiveId: dive.id,
+      targetDiverIds: [chris],
+    );
+    expect((await sites.getSiteById(site.id))?.isShared, isFalse);
+    expect(outcome.sharedSiteId, isNull);
+    final sibling = await dives.getDiveById(outcome.createdDiveIds.single);
+    expect(sibling?.site, isNull);
+  });
+
   test(
     'candidates is empty once a sibling exists, and mirror is idempotent',
     () async {
