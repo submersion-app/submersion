@@ -118,38 +118,51 @@ Future<void> _pump(
   await tester.pumpAndSettle();
 }
 
+/// Where the review page is opened from, which decides the navigator it is
+/// pushed on and what sits beneath it.
+enum _ReviewHost {
+  /// A page on the shell's navigator: the routes list, a dive's route
+  /// section, the import wizard, the GPS logger.
+  shellPage('the shell navigator (routes list, dive section, wizard)'),
+
+  /// The shell's own chrome, which resolves to the root navigator: the
+  /// global drop target.
+  shellChrome('the root navigator (drop target)'),
+
+  /// The root navigator's own context (the OS share intent) while a page
+  /// that, like Add Buddy, lives on the root navigator covers the shell.
+  rootLevelPage('the share intent over a root-level page (Add Buddy)'),
+
+  /// The root navigator's own context while a dialog is open on it.
+  rootDialog('the share intent over a dialog');
+
+  const _ReviewHost(this.description);
+
+  final String description;
+}
+
 /// Like [_pump], but with a real `GoRouter` laid out like the app's: a
 /// `ShellRoute` whose nested navigator hosts both the page the import starts
-/// from and `/nav-routes/:id` as siblings. The review page is pushed
-/// imperatively on top of the origin page, exactly as every real entry point
-/// does, so a successful save has to leave that pushed page itself.
-///
-/// [fromAboveShell] pushes it from the shell's own chrome, which resolves to
-/// the root navigator (the global drop target and the OS share intent);
-/// otherwise it is pushed from the origin page on the shell's navigator (the
-/// routes list, a dive's route section, the import wizard, the GPS logger).
-///
-/// [overRootLevelPage] first opens a page that, like Add Buddy, lives on the
-/// root navigator above the whole shell, then pushes the review from the
-/// root navigator's own context, as the OS share intent does.
+/// from and `/nav-routes/:id` as siblings, plus a root-level page above the
+/// shell. The review page is opened through [navigateToNavTrackReview] from
+/// [host], exactly as every real entry point does, so a successful save has
+/// to leave that pushed page itself.
 Future<GoRouter> _pumpWithRouter(
   WidgetTester tester, {
   required NavTrackImportPreview preview,
   NavTrackImportService? service,
   List<EquipmentItem>? equipment,
-  bool fromAboveShell = false,
-  bool overRootLevelPage = false,
+  _ReviewHost host = _ReviewHost.shellPage,
 }) async {
   final base = await getBaseOverrides();
   final rootNavigatorKey = GlobalKey<NavigatorState>();
   void openReview(BuildContext context) {
-    Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        builder: (_) => NavTrackImportReviewPage(
-          bytes: Uint8List(0),
-          fileName: '005.DAT.csv',
-          preview: preview,
-        ),
+    unawaited(
+      navigateToNavTrackReview(
+        context,
+        Uint8List(0),
+        fileName: '005.DAT.csv',
+        preview: preview,
       ),
     );
   }
@@ -219,16 +232,24 @@ Future<GoRouter> _pumpWithRouter(
     ),
   );
   await tester.pumpAndSettle();
-  if (overRootLevelPage) {
-    unawaited(router.push('/root-level'));
-    await tester.pumpAndSettle();
-    openReview(rootNavigatorKey.currentContext!);
-  } else {
-    await tester.tap(
-      find.text(
-        fromAboveShell ? 'OPEN_REVIEW_ABOVE_SHELL' : 'OPEN_REVIEW_IN_SHELL',
-      ),
-    );
+  switch (host) {
+    case _ReviewHost.shellPage:
+      await tester.tap(find.text('OPEN_REVIEW_IN_SHELL'));
+    case _ReviewHost.shellChrome:
+      await tester.tap(find.text('OPEN_REVIEW_ABOVE_SHELL'));
+    case _ReviewHost.rootLevelPage:
+      unawaited(router.push('/root-level'));
+      await tester.pumpAndSettle();
+      openReview(rootNavigatorKey.currentContext!);
+    case _ReviewHost.rootDialog:
+      unawaited(
+        showDialog<void>(
+          context: rootNavigatorKey.currentContext!,
+          builder: (_) => const AlertDialog(content: Text('ROOT_DIALOG')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      openReview(rootNavigatorKey.currentContext!);
   }
   await tester.pumpAndSettle();
   return router;
@@ -604,19 +625,20 @@ void main() {
   // navigator it stayed on top of the new route with Save disabled; pushed
   // on the shell's navigator it vanished, but `go` had replaced the stack
   // and left the new route with no way back.
-  for (final fromAboveShell in [false, true]) {
-    final origin = fromAboveShell
-        ? 'the root navigator (drop target, share intent)'
-        : "the shell's navigator (routes list, dive section, wizard)";
+  //
+  // Anything else on the root navigator above the shell (a root-level page
+  // such as Add Buddy, a dialog) would cover the new shell route, so it is
+  // closed too, and back leads to the shell page underneath.
+  for (final host in _ReviewHost.values) {
     testWidgets(
-      'a successful save pushed from $origin closes the review and opens '
-      'the new route above the page the import started from',
+      'a successful save opened from ${host.description} closes the review '
+      'and opens the new route above the page the import started from',
       (tester) async {
         final router = await _pumpWithRouter(
           tester,
           preview: _preview(),
           service: _RecordingImportService(),
-          fromAboveShell: fromAboveShell,
+          host: host,
         );
 
         await tester.drag(find.byType(ListView), const Offset(0, -400));
@@ -625,6 +647,8 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(NavTrackImportReviewPage), findsNothing);
+        expect(find.text('ROOT_LEVEL_PAGE'), findsNothing);
+        expect(find.text('ROOT_DIALOG'), findsNothing);
         expect(find.text('ROUTE_DETAIL_PAGE').hitTestable(), findsOneWidget);
         expect(router.state.uri.path, '/nav-routes/new-route-id');
 
@@ -636,34 +660,6 @@ void main() {
       },
     );
   }
-
-  testWidgets(
-    'a save from the share intent over a root-level page (Add Buddy) closes '
-    'that page too, so the new route is not opened underneath it',
-    (tester) async {
-      final router = await _pumpWithRouter(
-        tester,
-        preview: _preview(),
-        service: _RecordingImportService(),
-        overRootLevelPage: true,
-      );
-
-      await tester.drag(find.byType(ListView), const Offset(0, -400));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(NavTrackImportReviewPage), findsNothing);
-      expect(find.text('ROUTE_DETAIL_PAGE').hitTestable(), findsOneWidget);
-      expect(find.text('ROOT_LEVEL_PAGE'), findsNothing);
-      expect(router.state.uri.path, '/nav-routes/new-route-id');
-
-      // Back leads to the shell page underneath, not to the closed page.
-      await tester.tap(find.byType(BackButton));
-      await tester.pumpAndSettle();
-      expect(find.text('ORIGIN_PAGE').hitTestable(), findsOneWidget);
-    },
-  );
 
   testWidgets('hands the ticked duplicate to commit as the route to replace', (
     tester,
