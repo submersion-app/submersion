@@ -53,7 +53,9 @@ class EquipmentFilterState {
   final bool allStatuses;
 
   /// Show only gear with a service clock due, optionally narrowed to one
-  /// severity. Null shows every status. Mutually exclusive with [status].
+  /// severity. Null means the status axis is not a service-due view; which
+  /// statuses show is then [status] or [allStatuses]. Mutually exclusive
+  /// with both.
   final ServiceDueFilter? serviceDue;
 
   /// Narrow to a single gear category, or null for every category.
