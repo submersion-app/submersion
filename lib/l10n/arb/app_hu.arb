@@ -10270,6 +10270,8 @@
   "dataQuality_neverScanned": "A merülési naplódat még nem vizsgáltuk át",
   "dataQuality_empty_title": "Minden rendben",
   "dataQuality_empty_subtitle": "Nincs adatminőségi észlelés. Vizsgáld át a könyvtáradat, hogy ellenőrizd az importált merüléseket.",
+  "dataQuality_empty_chipFiltered": "Nincs észlelés ebben a kategóriában",
+  "dataQuality_empty_showAll": "Összes észlelés megjelenítése",
   "dataQuality_banner_newChecks": "Új minőségi ellenőrzések érhetők el",
   "dataQuality_banner_rescan": "Újraellenőrzés",
   "dataQuality_action_dismiss": "Elvetés",

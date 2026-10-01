@@ -10270,6 +10270,8 @@
   "dataQuality_neverScanned": "Je logboek is nog niet gescand",
   "dataQuality_empty_title": "Alles in orde",
   "dataQuality_empty_subtitle": "Geen bevindingen over datakwaliteit. Scan je bibliotheek om geïmporteerde duiken op problemen te controleren.",
+  "dataQuality_empty_chipFiltered": "Geen bevindingen in deze categorie",
+  "dataQuality_empty_showAll": "Alle bevindingen tonen",
   "dataQuality_banner_newChecks": "Er zijn nieuwe kwaliteitscontroles beschikbaar",
   "dataQuality_banner_rescan": "Opnieuw scannen",
   "dataQuality_action_dismiss": "Negeren",

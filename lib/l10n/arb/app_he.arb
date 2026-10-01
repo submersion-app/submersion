@@ -10270,6 +10270,8 @@
   "dataQuality_neverScanned": "יומן הצלילה שלך עדיין לא נסרק",
   "dataQuality_empty_title": "הכול תקין",
   "dataQuality_empty_subtitle": "אין ממצאים לגבי איכות הנתונים. סרוק את הספרייה כדי לבדוק אם יש בעיות בצלילות המיובאות.",
+  "dataQuality_empty_chipFiltered": "אין ממצאים בקטגוריה זו",
+  "dataQuality_empty_showAll": "הצג את כל הממצאים",
   "dataQuality_banner_newChecks": "זמינות בדיקות איכות חדשות",
   "dataQuality_banner_rescan": "סריקה מחדש",
   "dataQuality_action_dismiss": "התעלם",

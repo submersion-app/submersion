@@ -83,7 +83,7 @@ void main() {
   test('a dive without a profile comes through untouched', () {
     final source = {
       'tanks': <Map<String, dynamic>>[
-        {'order': 0, 'startPressure': 3.9, 'endPressure': 80.0},
+        {'order': 0, 'startPressure': 210.0, 'endPressure': 80.0},
       ],
     };
     final result = replaceGlitchedTankPressures(payloadWith(source));
@@ -91,5 +91,82 @@ void main() {
       identical(result.entitiesOf(ImportEntityType.dives).single, source),
       isTrue,
     );
+  });
+
+  // Issue #2687: a near-zero header pressure that matches no reading of the
+  // series is no less a dropout than one that does.
+  group('near-zero endpoints', () {
+    test('an end the series contradicts takes its last clean reading', () {
+      // 2.5 bar is more than the match tolerance away from both the 3.9 bar
+      // lead-in and the 0.8 bar dropout, so no glitch rule claims it.
+      final result = replaceGlitchedTankPressures(
+        payloadWith(dive(start: 200, end: 2.5)),
+      );
+      expect(firstTank(result)['startPressure'], 200);
+      expect(firstTank(result)['endPressure'], closeTo(80.0, 1e-9));
+    });
+
+    test('both rules apply to one tank', () {
+      // The start matches the 3.9 bar lead-in (#2441); the end matches no
+      // reading (#2687).
+      final result = replaceGlitchedTankPressures(
+        payloadWith(dive(start: 3.9, end: 2.5)),
+      );
+      expect(firstTank(result)['startPressure'], closeTo(199.5, 1e-9));
+      expect(firstTank(result)['endPressure'], closeTo(80.0, 1e-9));
+    });
+
+    test('an end with no series is cleared when the start is real', () {
+      final result = replaceGlitchedTankPressures(
+        payloadWith({
+          'tanks': <Map<String, dynamic>>[
+            {'order': 0, 'startPressure': 200.0, 'endPressure': 0.46},
+          ],
+        }),
+      );
+      expect(firstTank(result)['startPressure'], 200.0);
+      expect(firstTank(result).containsKey('endPressure'), isTrue);
+      expect(firstTank(result)['endPressure'], isNull);
+    });
+
+    test('a start with no series is cleared when the end is real', () {
+      final result = replaceGlitchedTankPressures(
+        payloadWith({
+          'tanks': <Map<String, dynamic>>[
+            {'order': 0, 'startPressure': 0.4, 'endPressure': 60.0},
+          ],
+        }),
+      );
+      expect(firstTank(result)['startPressure'], isNull);
+      expect(firstTank(result)['endPressure'], 60.0);
+    });
+
+    test('a tank without its own series is judged without one', () {
+      // Tank 1 has no readings, though tank 0 does.
+      final source = dive(start: 200, end: 80.5);
+      source['tanks'] = <Map<String, dynamic>>[
+        ...(source['tanks'] as List<Map<String, dynamic>>),
+        {'order': 1, 'startPressure': 190.0, 'endPressure': 0.34},
+      ];
+      final result = replaceGlitchedTankPressures(payloadWith(source));
+      final tanks =
+          result.entitiesOf(ImportEntityType.dives).single['tanks'] as List;
+      expect(tanks[0]['endPressure'], 80.5);
+      expect(tanks[1]['startPressure'], 190.0);
+      expect(tanks[1]['endPressure'], isNull);
+    });
+
+    test('a tank near zero at both ends is left alone', () {
+      final source = {
+        'tanks': <Map<String, dynamic>>[
+          {'order': 0, 'startPressure': 0.3, 'endPressure': 0.2},
+        ],
+      };
+      final result = replaceGlitchedTankPressures(payloadWith(source));
+      expect(
+        identical(result.entitiesOf(ImportEntityType.dives).single, source),
+        isTrue,
+      );
+    });
   });
 }

@@ -33951,6 +33951,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataQuality_empty_title => 'Todo en orden';
 
   @override
+  String get dataQuality_empty_chipFiltered =>
+      'No hay hallazgos en esta categoría';
+
+  @override
+  String get dataQuality_empty_showAll => 'Mostrar todos los hallazgos';
+
+  @override
   String get dataQuality_empty_subtitle =>
       'Sin hallazgos de calidad de datos. Analiza tu biblioteca para comprobar si las inmersiones importadas tienen problemas.';
 

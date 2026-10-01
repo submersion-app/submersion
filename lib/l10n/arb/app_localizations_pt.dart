@@ -33927,6 +33927,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dataQuality_empty_title => 'Tudo em ordem';
 
   @override
+  String get dataQuality_empty_chipFiltered =>
+      'Sem constatações nesta categoria';
+
+  @override
+  String get dataQuality_empty_showAll => 'Mostrar todas as constatações';
+
+  @override
   String get dataQuality_empty_subtitle =>
       'Sem constatações de qualidade dos dados. Analise a sua biblioteca para verificar problemas nos mergulhos importados.';
 

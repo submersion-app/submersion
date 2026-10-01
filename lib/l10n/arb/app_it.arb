@@ -10270,6 +10270,8 @@
   "dataQuality_neverScanned": "Il tuo logbook non è ancora stato analizzato",
   "dataQuality_empty_title": "Tutto a posto",
   "dataQuality_empty_subtitle": "Nessun rilievo sulla qualità dei dati. Analizza la libreria per controllare le immersioni importate.",
+  "dataQuality_empty_chipFiltered": "Nessun rilievo in questa categoria",
+  "dataQuality_empty_showAll": "Mostra tutti i rilievi",
   "dataQuality_banner_newChecks": "Sono disponibili nuovi controlli di qualità",
   "dataQuality_banner_rescan": "Analizza di nuovo",
   "dataQuality_action_dismiss": "Ignora",

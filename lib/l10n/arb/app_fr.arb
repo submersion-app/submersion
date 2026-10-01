@@ -10270,6 +10270,8 @@
   "dataQuality_neverScanned": "Votre carnet de plongée n'a pas encore été analysé",
   "dataQuality_empty_title": "Tout est en ordre",
   "dataQuality_empty_subtitle": "Aucune anomalie de qualité des données. Analysez votre bibliothèque pour vérifier les plongées importées.",
+  "dataQuality_empty_chipFiltered": "Aucune anomalie dans cette catégorie",
+  "dataQuality_empty_showAll": "Afficher toutes les anomalies",
   "dataQuality_banner_newChecks": "De nouveaux contrôles de qualité sont disponibles",
   "dataQuality_banner_rescan": "Relancer l'analyse",
   "dataQuality_action_dismiss": "Ignorer",

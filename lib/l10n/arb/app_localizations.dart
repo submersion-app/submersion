@@ -53796,6 +53796,18 @@ abstract class AppLocalizations {
   /// **'All clear'**
   String get dataQuality_empty_title;
 
+  /// No description provided for @dataQuality_empty_chipFiltered.
+  ///
+  /// In en, this message translates to:
+  /// **'No findings in this category'**
+  String get dataQuality_empty_chipFiltered;
+
+  /// No description provided for @dataQuality_empty_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all findings'**
+  String get dataQuality_empty_showAll;
+
   /// No description provided for @dataQuality_empty_subtitle.
   ///
   /// In en, this message translates to:

@@ -21979,6 +21979,8 @@
   },
   "dataQuality_neverScanned": "Your logbook has not been scanned yet",
   "dataQuality_empty_title": "All clear",
+  "dataQuality_empty_chipFiltered": "No findings in this category",
+  "dataQuality_empty_showAll": "Show all findings",
   "dataQuality_empty_subtitle": "No data quality findings. Scan your library to check imported dives for problems.",
   "dataQuality_banner_newChecks": "New quality checks are available",
   "dataQuality_banner_rescan": "Rescan",

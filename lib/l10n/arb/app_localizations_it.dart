@@ -33926,6 +33926,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dataQuality_empty_title => 'Tutto a posto';
 
   @override
+  String get dataQuality_empty_chipFiltered =>
+      'Nessun rilievo in questa categoria';
+
+  @override
+  String get dataQuality_empty_showAll => 'Mostra tutti i rilievi';
+
+  @override
   String get dataQuality_empty_subtitle =>
       'Nessun rilievo sulla qualità dei dati. Analizza la libreria per controllare le immersioni importate.';
 

@@ -33497,6 +33497,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_empty_title => 'كل شيء على ما يرام';
 
   @override
+  String get dataQuality_empty_chipFiltered => 'لا توجد نتائج في هذه الفئة';
+
+  @override
+  String get dataQuality_empty_showAll => 'عرض كل النتائج';
+
+  @override
   String get dataQuality_empty_subtitle =>
       'لا توجد نتائج تخص جودة البيانات. افحص مكتبتك للتحقق من مشكلات الغوصات المستوردة.';
 

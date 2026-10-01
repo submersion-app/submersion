@@ -33139,6 +33139,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_empty_title => 'הכול תקין';
 
   @override
+  String get dataQuality_empty_chipFiltered => 'אין ממצאים בקטגוריה זו';
+
+  @override
+  String get dataQuality_empty_showAll => 'הצג את כל הממצאים';
+
+  @override
   String get dataQuality_empty_subtitle =>
       'אין ממצאים לגבי איכות הנתונים. סרוק את הספרייה כדי לבדוק אם יש בעיות בצלילות המיובאות.';
 

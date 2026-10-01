@@ -10270,6 +10270,8 @@
   "dataQuality_neverScanned": "لم يتم فحص سجل الغوص الخاص بك بعد",
   "dataQuality_empty_title": "كل شيء على ما يرام",
   "dataQuality_empty_subtitle": "لا توجد نتائج تخص جودة البيانات. افحص مكتبتك للتحقق من مشكلات الغوصات المستوردة.",
+  "dataQuality_empty_chipFiltered": "لا توجد نتائج في هذه الفئة",
+  "dataQuality_empty_showAll": "عرض كل النتائج",
   "dataQuality_banner_newChecks": "تتوفر فحوصات جودة جديدة",
   "dataQuality_banner_rescan": "إعادة الفحص",
   "dataQuality_action_dismiss": "تجاهل",
