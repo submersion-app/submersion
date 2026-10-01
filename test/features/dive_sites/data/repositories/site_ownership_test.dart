@@ -79,10 +79,15 @@ void main() {
     expect(await db.select(db.siteHides).get(), isEmpty);
 
     await sites.createSite(site);
+    await clearPendingMarks(db);
     await sites.restoreSiteLinks(links);
     final back = (await db.select(db.siteHides).get()).single;
     expect((back.id, back.siteId, back.diverId), (hide.id, 'theirs', 'b'));
     expect(await tombstoneCount(db, ProfileHidesRepository.siteEntity), 0);
+    expect(
+      await pendingCount(db, ProfileHidesRepository.siteEntity, hide.id),
+      1,
+    );
   });
 
   test('undoing the owner\'s merge brings back every profile\'s hide of a '

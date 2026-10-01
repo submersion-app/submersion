@@ -279,9 +279,9 @@ class ProfileHidesRepository {
   /// Undo for a delete of the items: puts [hides] (what [deleteHides]
   /// returned) back under their own ids, stamped and marked pending, and
   /// drops their tombstones, which would otherwise ride the next changeset
-  /// beside the rows and delete them on every peer. The items must exist
-  /// again. A hide whose item or profile is gone is skipped, as is one
-  /// whose profile has hidden the item again since. Notifies nothing.
+  /// beside the rows and delete them on every peer. Re-create the items
+  /// first: a hide whose item or profile does not exist is skipped, as is
+  /// one whose profile has hidden the item again since. Notifies nothing.
   Future<void> restoreHides(
     SharedItemKind kind,
     List<ProfileHide> hides,

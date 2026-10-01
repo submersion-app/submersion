@@ -164,6 +164,20 @@ void main() {
       expect(await tombstoneCount(db, ProfileHidesRepository.siteEntity), 0);
     });
 
+    test('puts a trip hide back too', () async {
+      await repository.hide(SharedItemKind.trip, 'shared', 'b');
+      final removed = await db.transaction(
+        () => repository.deleteHides(SharedItemKind.trip, ['shared']),
+      );
+      await repository.restoreHides(SharedItemKind.trip, removed);
+      final row = (await db.select(db.tripHides).get()).single;
+      expect(
+        (row.id, row.tripId, row.diverId),
+        (removed.single.id, 'shared', 'b'),
+      );
+      expect(await tombstoneCount(db, ProfileHidesRepository.tripEntity), 0);
+    });
+
     test('skips a hide whose item is gone', () async {
       final removed = await hideThenDelete();
       await db.customStatement("DELETE FROM dive_sites WHERE id = 'pier'");
