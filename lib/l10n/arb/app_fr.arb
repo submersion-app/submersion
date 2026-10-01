@@ -4418,6 +4418,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Rien n'est en retard de révision.",
   "equipment_list_errorLoading": "Erreur de chargement de l'équipement : {error}",
   "equipment_list_filterAll": "Tout l'équipement",
+  "equipment_list_filterCurrent": "Équipement actuel",
   "equipment_list_filterServiceDue": "Révision due",
   "equipment_list_filterServiceDueSoon": "Bientôt due",
   "equipment_list_filterServiceOverdue": "En retard",

@@ -4520,6 +4520,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Nada tiene el servicio vencido.",
   "equipment_list_errorLoading": "Error al cargar el equipo: {error}",
   "equipment_list_filterAll": "Todo el equipo",
+  "equipment_list_filterCurrent": "Equipo actual",
   "equipment_list_filterServiceDue": "Servicio pendiente",
   "equipment_list_filterServiceDueSoon": "Próximo",
   "equipment_list_filterServiceOverdue": "Vencido",

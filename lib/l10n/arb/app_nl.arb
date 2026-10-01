@@ -4520,6 +4520,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Niets is achterstallig voor service.",
   "equipment_list_errorLoading": "Fout bij laden van uitrusting: {error}",
   "equipment_list_filterAll": "Alle uitrusting",
+  "equipment_list_filterCurrent": "Huidige uitrusting",
   "equipment_list_filterServiceDue": "Service nodig",
   "equipment_list_filterServiceDueSoon": "Binnenkort",
   "equipment_list_filterServiceOverdue": "Achterstallig",

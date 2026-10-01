@@ -4622,6 +4622,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Nichts ist überfällig.",
   "equipment_list_errorLoading": "Fehler beim Laden der Ausrüstung: {error}",
   "equipment_list_filterAll": "Gesamte Ausrüstung",
+  "equipment_list_filterCurrent": "Aktuelle Ausrüstung",
   "equipment_list_filterServiceDue": "Wartung fällig",
   "equipment_list_filterServiceDueSoon": "Bald fällig",
   "equipment_list_filterServiceOverdue": "Überfällig",

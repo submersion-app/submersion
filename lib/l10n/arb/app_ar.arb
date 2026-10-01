@@ -4520,6 +4520,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "لا شيء متأخر عن الصيانة.",
   "equipment_list_errorLoading": "خطأ في تحميل المعدات: {error}",
   "equipment_list_filterAll": "جميع المعدات",
+  "equipment_list_filterCurrent": "المعدات الحالية",
   "equipment_list_filterServiceDue": "الصيانة مستحقة",
   "equipment_list_filterServiceDueSoon": "قريبًا",
   "equipment_list_filterServiceOverdue": "متأخرة",

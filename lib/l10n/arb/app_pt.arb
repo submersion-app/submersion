@@ -4520,6 +4520,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Nada esta com manutenção atrasada.",
   "equipment_list_errorLoading": "Erro ao carregar equipamento: {error}",
   "equipment_list_filterAll": "Todos os Equipamentos",
+  "equipment_list_filterCurrent": "Equipamentos Atuais",
   "equipment_list_filterServiceDue": "Manutenção Pendente",
   "equipment_list_filterServiceDueSoon": "Em Breve",
   "equipment_list_filterServiceOverdue": "Atrasada",

@@ -4418,6 +4418,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Semminek sem járt le a szervize.",
   "equipment_list_errorLoading": "Hiba a felszerelés betöltésekor: {error}",
   "equipment_list_filterAll": "Összes felszerelés",
+  "equipment_list_filterCurrent": "Jelenlegi felszerelés",
   "equipment_list_filterServiceDue": "Szerviz esedékes",
   "equipment_list_filterServiceDueSoon": "Hamarosan",
   "equipment_list_filterServiceOverdue": "Lejárt",

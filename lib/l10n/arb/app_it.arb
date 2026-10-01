@@ -4418,6 +4418,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Nulla ha la manutenzione scaduta.",
   "equipment_list_errorLoading": "Errore nel caricamento dell'attrezzatura: {error}",
   "equipment_list_filterAll": "Tutta l'attrezzatura",
+  "equipment_list_filterCurrent": "Attrezzatura attuale",
   "equipment_list_filterServiceDue": "Manutenzione prevista",
   "equipment_list_filterServiceDueSoon": "In scadenza",
   "equipment_list_filterServiceOverdue": "Scaduta",

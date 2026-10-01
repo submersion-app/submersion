@@ -15,7 +15,9 @@ import 'mock_providers.dart' show Override;
 Override fakeEquipmentQueryIds() =>
     queryFilteredEquipmentIdsProvider.overrideWith((ref, key) async {
       final f = key.filter;
-      final List<EquipmentItem> base = f.serviceDue != null
+      final List<EquipmentItem> base = f.allStatuses
+          ? await ref.watch(allEquipmentProvider.future)
+          : f.serviceDue != null
           ? await ref.watch(serviceDueEquipmentProvider(f.serviceDue!).future)
           : f.status == null
           ? await ref.watch(activeEquipmentProvider.future)

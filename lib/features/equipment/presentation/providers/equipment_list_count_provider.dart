@@ -14,16 +14,19 @@ import 'package:submersion/shared/models/subtitle_text.dart';
 ///
 /// The total is the default view, not every item: with no filter the list
 /// hides retired gear, so "3 of 40 items" counts against the 40 it shows
-/// unfiltered rather than a number that includes gear it never lists.
+/// unfiltered rather than a number that includes gear it never lists. Under
+/// All Equipment (#2590) the list does show every item, so the total does
+/// too; otherwise the shown count could exceed it.
 final equipmentListCountProvider = Provider<ListEntryCount?>((ref) {
+  final filter = ref.watch(effectiveEquipmentFilterProvider);
   return listEntryCount(
     shown: ref.watch(filteredEquipmentProvider),
-    isFiltered: ref.watch(effectiveEquipmentFilterProvider).hasActiveFilters,
+    isFiltered: filter.hasActiveFilters,
     total: () => narrowByIds(
       ref.watch(allEquipmentProvider),
       ref.watch(
         queryFilteredEquipmentIdsProvider((
-          filter: const EquipmentFilterState(),
+          filter: EquipmentFilterState(allStatuses: filter.allStatuses),
           diverId: ref.watch(validatedCurrentDiverIdProvider).value,
         )),
       ),

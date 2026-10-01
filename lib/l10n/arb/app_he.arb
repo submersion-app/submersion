@@ -4418,6 +4418,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "שום דבר לא באיחור בטיפול.",
   "equipment_list_errorLoading": "שגיאה בטעינת ציוד: {error}",
   "equipment_list_filterAll": "כל הציוד",
+  "equipment_list_filterCurrent": "ציוד נוכחי",
   "equipment_list_filterServiceDue": "טיפול נדרש",
   "equipment_list_filterServiceDueSoon": "בקרוב",
   "equipment_list_filterServiceOverdue": "באיחור",

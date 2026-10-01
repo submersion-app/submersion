@@ -14932,6 +14932,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_filterAll => 'כל הציוד';
 
   @override
+  String get equipment_list_filterCurrent => 'ציוד נוכחי';
+
+  @override
   String get equipment_list_filterServiceDue => 'טיפול נדרש';
 
   @override

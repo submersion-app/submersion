@@ -15246,6 +15246,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_list_filterAll => 'Gesamte Ausrüstung';
 
   @override
+  String get equipment_list_filterCurrent => 'Aktuelle Ausrüstung';
+
+  @override
   String get equipment_list_filterServiceDue => 'Wartung fällig';
 
   @override

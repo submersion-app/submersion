@@ -46,18 +46,46 @@ void main() {
   test('no status keeps the default view and the whole query', () {
     final f = exploreEquipmentFilter(regulators);
     expect(f.status, isNull);
+    expect(f.allStatuses, isFalse);
     expect(f.query, regulators);
   });
 
-  test('a negated or several statuses stay in the query', () {
+  test('no query keeps the default view', () {
+    final f = exploreEquipmentFilter(null);
+    expect(f.status, isNull);
+    expect(f.allStatuses, isFalse);
+    expect(f.query, isNull);
+  });
+
+  // The default view hides retired and sold gear (#636), so a status the
+  // query decides on its own reads every status instead (#2590): otherwise
+  // "retired or sold gear" found nothing and "gear that is not active" lost
+  // its retired and sold items.
+  test('a negated status stays in the query over every status', () {
     final not = NotNode(status('retired'));
-    expect(exploreEquipmentFilter(not).status, isNull);
-    expect(exploreEquipmentFilter(not).query, not);
+    final f = exploreEquipmentFilter(not);
+    expect(f.status, isNull);
+    expect(f.allStatuses, isTrue);
+    expect(f.query, not);
+  });
+
+  test('several statuses stay in the query over every status', () {
     final two = ConditionNode(
       FieldPath(const ['status']),
       QueryOp.inList,
       ListValue(const [EnumValue('retired'), EnumValue('sold')]),
     );
-    expect(exploreEquipmentFilter(two).status, isNull);
+    final f = exploreEquipmentFilter(AndNode([regulators, two]));
+    expect(f.status, isNull);
+    expect(f.allStatuses, isTrue);
+    expect(f.query, AndNode([regulators, two]));
+  });
+
+  test('a status inside an Or reads every status', () {
+    final either = OrNode([status('retired'), regulators]);
+    final f = exploreEquipmentFilter(either);
+    expect(f.status, isNull);
+    expect(f.allStatuses, isTrue);
+    expect(f.query, either);
   });
 }

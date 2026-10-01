@@ -4666,6 +4666,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "没有装备维护逾期。",
   "equipment_list_errorLoading": "加载装备出错：{error}",
   "equipment_list_filterAll": "全部装备",
+  "equipment_list_filterCurrent": "当前装备",
   "equipment_list_filterServiceDue": "需要维护",
   "equipment_list_filterServiceDueSoon": "即将到期",
   "equipment_list_filterServiceOverdue": "已逾期",

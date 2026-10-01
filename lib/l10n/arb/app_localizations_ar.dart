@@ -15037,6 +15037,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_filterAll => 'جميع المعدات';
 
   @override
+  String get equipment_list_filterCurrent => 'المعدات الحالية';
+
+  @override
   String get equipment_list_filterServiceDue => 'الصيانة مستحقة';
 
   @override

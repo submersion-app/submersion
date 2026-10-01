@@ -27,8 +27,9 @@ enum ServiceDueFilter {
 /// Four axes:
 ///
 /// - Status decides which provider the list reads: the default active-gear
-///   view, the computed service-due list, or one [EquipmentStatus]. Those are
-///   mutually exclusive because the list can only read one source.
+///   view, every status at once, the computed service-due list, or one
+///   [EquipmentStatus]. Those are mutually exclusive because the list can
+///   only read one source.
 /// - Type narrows the result client-side, so status and category compose with
 ///   AND semantics.
 /// - Attribute conditions (#1805) narrow the selected category by its choice
@@ -45,6 +46,11 @@ class EquipmentFilterState {
   /// The status to show, or null for the default view. The default hides
   /// retired gear; the Retired status is the way to see it (#636).
   final EquipmentStatus? status;
+
+  /// Show gear of every status, retired and sold included (issue #2590),
+  /// instead of the default view. Mutually exclusive with [status] and
+  /// [serviceDue].
+  final bool allStatuses;
 
   /// Show only gear with a service clock due, optionally narrowed to one
   /// severity. Null shows every status. Mutually exclusive with [status].
@@ -70,6 +76,7 @@ class EquipmentFilterState {
 
   const EquipmentFilterState({
     this.status,
+    this.allStatuses = false,
     this.serviceDue,
     this.type,
     this.attrConditions = const [],
@@ -80,6 +87,11 @@ class EquipmentFilterState {
          !(serviceDue != null && status != null),
          'The status axis is a single choice: service due or a status, never '
          'both -- the list reads one provider.',
+       ),
+       assert(
+         !(allStatuses && (status != null || serviceDue != null)),
+         'The status axis is a single choice: every status, service due or '
+         'one status, never two of them.',
        );
 
   /// Whether the panel is narrowing anything, i.e. whether the top-bar icon
@@ -93,14 +105,18 @@ class EquipmentFilterState {
       query != null;
 
   /// Whether the status axis is anything other than the default view.
-  bool get hasStatusFilter => status != null || serviceDue != null;
+  bool get hasStatusFilter =>
+      allStatuses || status != null || serviceDue != null;
 
-  /// Copy with per-axis clearing. Clearing the status axis resets both of its
-  /// values, since they are one choice to the diver. A new or cleared
+  /// Copy with per-axis clearing. Clearing the status axis resets all of its
+  /// values, since they are one choice to the diver; for the same reason a
+  /// status or severity turns [allStatuses] off, and [allStatuses] turns
+  /// them off. A new or cleared
   /// category drops the attribute conditions unless new ones are given,
   /// because they belong to the category.
   EquipmentFilterState copyWith({
     EquipmentStatus? status,
+    bool? allStatuses,
     ServiceDueFilter? serviceDue,
     EquipmentType? type,
     List<EquipmentAttrCondition>? attrConditions,
@@ -115,9 +131,16 @@ class EquipmentFilterState {
   }) {
     final nextType = clearType ? null : (type ?? this.type);
     final categoryChanged = nextType != this.type;
+    final nextAll =
+        !clearStatus &&
+        (allStatuses ??
+            (status == null && serviceDue == null && this.allStatuses));
     return EquipmentFilterState(
-      status: clearStatus ? null : (status ?? this.status),
-      serviceDue: clearStatus ? null : (serviceDue ?? this.serviceDue),
+      status: clearStatus || nextAll ? null : (status ?? this.status),
+      allStatuses: nextAll,
+      serviceDue: clearStatus || nextAll
+          ? null
+          : (serviceDue ?? this.serviceDue),
       type: nextType,
       attrConditions: clearAttrConditions
           ? const []
@@ -135,6 +158,7 @@ class EquipmentFilterState {
       identical(this, other) ||
       other is EquipmentFilterState &&
           other.status == status &&
+          other.allStatuses == allStatuses &&
           other.serviceDue == serviceDue &&
           other.type == type &&
           listEquals(other.attrConditions, attrConditions) &&
@@ -145,6 +169,7 @@ class EquipmentFilterState {
   @override
   int get hashCode => Object.hash(
     status,
+    allStatuses,
     serviceDue,
     type,
     Object.hashAll(attrConditions),
@@ -155,7 +180,8 @@ class EquipmentFilterState {
 
   @override
   String toString() =>
-      'EquipmentFilterState(status: $status, serviceDue: $serviceDue, '
+      'EquipmentFilterState(status: $status, allStatuses: $allStatuses, '
+      'serviceDue: $serviceDue, '
       'type: $type, attrConditions: $attrConditions, tagIds: $tagIds, '
       'owner: $owner, query: $query)';
 }
