@@ -242,6 +242,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.widgetWithText(TextField, '1.5'), findsNothing);
+
+      // The fresh row starts collapsed; reopening it shows the new size.
+      expect(find.byType(TextField), findsNothing);
+      final row = find.text('Tank 1 · O₂ Supply');
+      await tester.ensureVisible(row);
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(TextField, '2'), findsOneWidget);
     });
 
     testWidgets('cancelling the prompt leaves the dive untouched', (
