@@ -29541,6 +29541,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dropTarget_error_readFailed => 'تعذرت قراءة الملف';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذرت قراءة $count ملف وتم تخطيها',
+      many: 'تعذرت قراءة $count ملفًا وتم تخطيها',
+      few: 'تعذرت قراءة $count ملفات وتم تخطيها',
+      two: 'تعذرت قراءة ملفين وتم تخطيهما',
+      one: 'تعذرت قراءة ملف واحد وتم تخطيه',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'صافٍ';
 
   @override
@@ -30254,6 +30268,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'مخفي عن ملفك';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'يمكن أن ينتمي موقع واحد فقط من المواقع المحددة إلى ملف غوص آخر. ألغِ تحديد المواقع الأخرى للدمج.';
 
@@ -30331,6 +30348,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedItems_undo => 'تراجع';
+
+  @override
+  String get sharedItems_unhideAction => 'إظهار في ملفي';
 
   @override
   String get sites_deleteShared_title => 'حذف الموقع المشترك؟';

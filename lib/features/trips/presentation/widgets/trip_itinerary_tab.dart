@@ -25,10 +25,15 @@ class TripItineraryTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final daysAsync = ref.watch(itineraryDaysProvider(tripId));
+    final daysAsync = ref.watch(numberedItineraryDaysProvider(tripId));
     final divesAsync = ref.watch(divesForTripProvider(tripId));
 
+    // Keep the list on a reload: the numbered itinerary rebuilds whenever
+    // the itinerary, the trip or its dives change (an edit-sheet save among
+    // them), and `when` shows its loading branch on a reload by default,
+    // which would swap the list for a spinner and lose the scroll position.
     return daysAsync.when(
+      skipLoadingOnReload: true,
       data: (days) => divesAsync.when(
         data: (dives) => _buildTimeline(context, ref, days, dives),
         loading: () => const Center(child: CircularProgressIndicator()),

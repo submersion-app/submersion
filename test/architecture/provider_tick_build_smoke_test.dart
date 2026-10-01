@@ -28,6 +28,7 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -587,6 +588,11 @@ void main() {
     (
       name: 'hiddenItemsProvider',
       read: (c) => c.read(hiddenItemsProvider.future),
+    ),
+    (
+      name: 'isHiddenProvider',
+      read: (c) =>
+          c.read(isHiddenProvider((kind: SharedItemKind.trip, id: _id)).future),
     ),
     (
       name: 'equipmentOwnershipEventsProvider',

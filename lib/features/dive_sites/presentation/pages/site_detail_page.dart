@@ -215,7 +215,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             const SizedBox(height: kSiteDetailCardGap),
           ],
           SiteDetailHeader(site: site),
-          SharedByBanner(ownerId: site.diverId, isShared: site.isShared),
+          SharedByBanner(
+            kind: SharedItemKind.site,
+            itemId: site.id,
+            ownerId: site.diverId,
+            isShared: site.isShared,
+          ),
           const SizedBox(height: kSiteDetailCardGap),
           SiteDetailSectionList(
             sections: sections,
@@ -385,6 +390,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       ownerId: site.diverId,
       activeDiverId: ref.watch(validatedCurrentDiverIdProvider).value,
     );
+    // A site this profile already removed offers Unhide (issue #2679).
+    final hidden = watchHiddenHere(
+      ref,
+      SharedItemKind.site,
+      site.id,
+      canDestroy: canDestroy,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -482,6 +494,15 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                       contentPadding: EdgeInsets.zero,
                     ),
                   )
+                else if (hidden)
+                  PopupMenuItem(
+                    value: 'unhide',
+                    child: ListTile(
+                      leading: const Icon(Icons.visibility_outlined),
+                      title: Text(context.l10n.sharedItems_unhideAction),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  )
                 else
                   PopupMenuItem(
                     value: 'remove',
@@ -515,6 +536,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     }
     if (action == 'remove') {
       await _removeFromProfile(context, ref, site);
+      return;
+    }
+    if (action == 'unhide') {
+      await ref.read(siteListNotifierProvider.notifier).unhideSites([site.id]);
       return;
     }
     if (action == 'delete') {
