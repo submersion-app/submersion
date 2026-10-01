@@ -527,10 +527,21 @@ if [ -z "${real}" ]; then
   exit 127
 fi
 
-# The subcommand is the first argument that is not a flag.
+# The subcommand is the first argument that is neither a flag nor the value
+# of a global option that takes one as a separate argument (from
+# `flutter -h -v`; the `--opt=value` forms are a single argument already).
 is_test=0
+skip_value=0
 for a in "$@"; do
+  if [ "${skip_value}" = 1 ]; then
+    skip_value=0
+    continue
+  fi
   case "${a}" in
+    -d|--device-id|--wrap-column|--packages|--debug-logs-dir|\
+    --local-engine|--local-engine-src-path|--local-engine-host|--local-web-sdk)
+      skip_value=1
+      continue ;;
     -*) continue ;;
     test) is_test=1 ;;
   esac
