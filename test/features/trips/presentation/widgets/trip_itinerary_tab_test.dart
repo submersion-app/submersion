@@ -35,14 +35,17 @@ ItineraryDay _row(String id, DateTime date, int storedNumber) => ItineraryDay(
 );
 
 /// [reload], when given, is what every itinerary load after the first
-/// returns, so a test can hold a reload open.
+/// returns, so a test can hold a reload open; [tripAfter] is likewise what
+/// every trip read after the first returns.
 Future<void> _pumpTab(
   WidgetTester tester, {
   required Trip? trip,
   required List<ItineraryDay> days,
   Future<List<ItineraryDay>>? reload,
+  Trip? tripAfter,
 }) async {
   var loads = 0;
+  var tripReads = 0;
   tester.view.physicalSize = const Size(800, 2000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
@@ -51,7 +54,10 @@ Future<void> _pumpTab(
     ProviderScope(
       overrides: [
         ...overrides,
-        tripByIdProvider('trip-1').overrideWith((ref) async => trip),
+        tripByIdProvider('trip-1').overrideWith(
+          (ref) async =>
+              tripReads++ == 0 || tripAfter == null ? trip : tripAfter,
+        ),
         itineraryDaysProvider('trip-1').overrideWith(
           (ref) async => loads++ == 0 || reload == null ? days : reload,
         ),
@@ -96,6 +102,28 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Edit Day 4'), findsOneWidget);
+  });
+
+  testWidgets('renumbers the open tab when the trip start moves', (
+    tester,
+  ) async {
+    await _pumpTab(
+      tester,
+      trip: _trip(DateTime(2026, 3, 7)),
+      days: staleRows,
+      // The trip as a later read sees it: the start moved a day earlier, as
+      // a sync from another device would move it.
+      tripAfter: _trip(DateTime(2026, 3, 6)),
+    );
+    expect(find.text('Day 3'), findsOneWidget);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(TripItineraryTab)),
+    ).invalidate(tripByIdProvider('trip-1'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Day 4'), findsOneWidget);
+    expect(find.text('Day 3'), findsNothing);
   });
 
   testWidgets('keeps the list on screen while an edit reloads it', (

@@ -16,7 +16,7 @@ DateTime _dateOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 /// Pure. The first and last calendar day of the trip story: the trip range,
 /// extended to cover any dive or itinerary day outside it (e.g. trip dates
 /// edited after the itinerary was generated) so their content isn't silently
-/// dropped from the story. The story numbers its days from [start], and the
+/// dropped from the story. The story numbers its days from `start`, and the
 /// itinerary numbers its rows the same way (numberItineraryDays).
 ({DateTime start, DateTime end}) tripStoryDaySpan({
   required Trip trip,
