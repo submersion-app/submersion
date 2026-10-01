@@ -9,6 +9,7 @@ import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/insights/data/repositories/deco_classification_cache.dart';
 import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
@@ -290,6 +291,34 @@ void main() {
     expect(stats.decoCount, 1, reason: 'the pass still answers');
     final cached = await cacheDb.select(cacheDb.decoClassificationCache).get();
     expect(cached, isEmpty, reason: 'but keeps nothing under those settings');
+  });
+
+  // Copilot review on #2748: an analysis that records no inputs cannot show
+  // it ran on the diver's settings, so it is not cached under them.
+  test('an analysis that records no inputs is not cached', () async {
+    await insertDive('deep');
+    await insertBareProfile('deep', 40, 25);
+    final (depths, times) = _square(40, 25);
+    final unstamped = ProfileAnalysisService().analyze(
+      diveId: 'deep',
+      depths: depths,
+      timestamps: times,
+    );
+    expect(unstamped.inputsFingerprint, isNull);
+
+    final container = ProviderContainer(
+      overrides: [
+        ...(await getBaseOverrides()),
+        profileAnalysisProvider('deep').overrideWith((ref) async => unstamped),
+      ].cast(),
+    );
+    addTearDown(container.dispose);
+
+    final stats = await container.read(decoObligationStatsProvider.future);
+
+    expect(stats.decoCount, 1, reason: 'the pass still answers');
+    final cached = await cacheDb.select(cacheDb.decoClassificationCache).get();
+    expect(cached, isEmpty);
   });
 
   test('editing a dive invalidates its cached classification', () async {

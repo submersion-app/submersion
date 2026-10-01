@@ -120,13 +120,13 @@ class DecoClassificationService {
 
           final hadDeco = analysis.hadDecoObligation;
           results[diveId] = hadDeco;
-          // Cached only when the analysis ran on the diver's own settings.
-          // One drawn on a chart source toggle, or on settings that moved
-          // since the hashes above were taken, still answers this pass but
-          // is not kept under a fingerprint it does not match.
-          final ranOn = analysis.inputsFingerprint;
+          // Cached only when the analysis shows it ran on the diver's own
+          // settings. One drawn on a chart source toggle, on settings that
+          // moved since the hashes above were taken, or recording no inputs
+          // at all still answers this pass but is not kept under a
+          // fingerprint it does not match.
           if (settingsLoaded &&
-              (ranOn == null || ranOn == settingsFingerprint)) {
+              analysis.inputsFingerprint == settingsFingerprint) {
             await cache.put(
               diveId,
               hadDeco: hadDeco,

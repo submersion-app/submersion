@@ -148,7 +148,7 @@ void main() {
       final analysis = analyzeFixture(
         depths: profile.depths,
         timestamps: profile.timestamps,
-      );
+      ).copyWith(inputsFingerprint: defaultFingerprint());
       final container = ProviderContainer(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
@@ -265,6 +265,64 @@ void main() {
       expect(result, isNull, reason: 'only what is stored is shown');
     },
   );
+
+  // Copilot review on #2748: a review this build cannot judge is kept. One
+  // from a newer engine, or carrying a fingerprint format newer than this
+  // build writes, came from a newer peer; recomputing it here would overwrite
+  // it, and the peer would recompute it back on every sync.
+  for (final (label, version, hash) in [
+    ('a newer engine', SafetyReviewService.engineVersion + 1, 'a9;gf=1/1'),
+    (
+      'a newer fingerprint format',
+      SafetyReviewService.engineVersion,
+      'a9;gf=1/1',
+    ),
+  ]) {
+    test('keeps a review stored by $label', () async {
+      final stored = storedReview(version, inputsHash: hash);
+      final repo = _FakeRepo(stored: stored);
+      final profile = rapidAscentProfile();
+      final analysis = analyzeFixture(
+        depths: profile.depths,
+        timestamps: profile.timestamps,
+      ).copyWith(inputsFingerprint: defaultFingerprint());
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          safetyFindingsRepositoryProvider.overrideWithValue(repo),
+          safetyReviewEnabledProvider.overrideWithValue(true),
+          profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = await container.read(safetyReviewProvider('d1').future);
+      expect(repo.saved, isNull);
+      expect(result, stored);
+    });
+  }
+
+  test('does not save from an analysis that records no inputs', () async {
+    final repo = _FakeRepo();
+    final profile = rapidAscentProfile();
+    final analysis = analyzeFixture(
+      depths: profile.depths,
+      timestamps: profile.timestamps,
+    );
+    expect(analysis.inputsFingerprint, isNull);
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        safetyFindingsRepositoryProvider.overrideWithValue(repo),
+        safetyReviewEnabledProvider.overrideWithValue(true),
+        profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(safetyReviewProvider('d1').future);
+    expect(repo.saved, isNull);
+  });
 
   // Regression: a freshly synced library imports safety review/finding rows
   // straight into their tables (SyncDataSerializer.insertOnConflictUpdate),

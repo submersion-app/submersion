@@ -82,4 +82,12 @@ void main() {
     expect(base.gfLowFraction, 0.5);
     expect(base.gfHighFraction, 0.85);
   });
+
+  test('isNewerFormat recognises only a later format version', () {
+    expect(AnalysisSettings.isNewerFormat(base.fingerprint), isFalse);
+    expect(AnalysisSettings.isNewerFormat('a2;gf=50/85'), isTrue);
+    expect(AnalysisSettings.isNewerFormat('a10;x'), isTrue);
+    expect(AnalysisSettings.isNewerFormat('a0;x'), isFalse);
+    expect(AnalysisSettings.isNewerFormat('not-a-fingerprint'), isFalse);
+  });
 }

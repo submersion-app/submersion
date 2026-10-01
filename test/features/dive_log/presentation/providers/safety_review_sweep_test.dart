@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_sweep.dart';
@@ -26,6 +27,18 @@ class _RecordingRepo extends SafetyFindingsRepository {
   Future<SafetyReview> saveReview(SafetyReview review) async {
     saved.add(review.diveId);
     return review;
+  }
+}
+
+/// The fingerprint of the settings [MockSettingsNotifier] starts with.
+String _defaultFingerprint() {
+  final container = ProviderContainer(
+    overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
+  );
+  try {
+    return container.read(diverAnalysisSettingsProvider).fingerprint;
+  } finally {
+    container.dispose();
   }
 }
 
@@ -81,10 +94,12 @@ void main() {
   /// dive produces a persistable review.
   ProviderContainer makeContainer(_RecordingRepo repo) {
     final profile = rapidAscentProfile();
+    // Stamped with the loaded settings' fingerprint, as the real pipeline
+    // does: a review is saved only from an analysis that records them.
     final analysis = analyzeFixture(
       depths: profile.depths,
       timestamps: profile.timestamps,
-    );
+    ).copyWith(inputsFingerprint: _defaultFingerprint());
     final container = ProviderContainer(
       overrides: [
         // Loaded settings: a review is persisted only once the diver's
@@ -210,10 +225,12 @@ void main() {
   test('counts a failing dive and still sweeps the rest', () async {
     final repo = _RecordingRepo();
     final profile = rapidAscentProfile();
+    // Stamped with the loaded settings' fingerprint, as the real pipeline
+    // does: a review is saved only from an analysis that records them.
     final analysis = analyzeFixture(
       depths: profile.depths,
       timestamps: profile.timestamps,
-    );
+    ).copyWith(inputsFingerprint: _defaultFingerprint());
     final container = ProviderContainer(
       overrides: [
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),

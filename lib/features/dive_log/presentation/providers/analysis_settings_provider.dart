@@ -67,10 +67,11 @@ class AnalysisSettings {
   /// result. Equal settings give equal fingerprints on every device and run,
   /// so a synced result is not recomputed by a peer with the same settings.
   ///
-  /// The leading version names the format: add a field and bump it, and every
-  /// stored fingerprint stops matching once, which is what a new input needs.
+  /// The leading version names the format: add a field and bump
+  /// [fingerprintFormat], and every stored fingerprint stops matching once,
+  /// which is what a new input needs.
   String get fingerprint => [
-    'a1',
+    'a$fingerprintFormat',
     'gf=$gfLow/$gfHigh',
     'ppo2=${_num(ppO2MaxWorking)}/${_num(ppO2MaxDeco)}',
     'cnsw=$cnsWarningThreshold',
@@ -82,6 +83,20 @@ class AnalysisSettings {
     'src=${ndlSource.name}/${ttsSource.name}/${cnsSource.name}/'
         '${decoStopSource.name}/${gtrSource.name}',
   ].join(';');
+
+  /// The [fingerprint] format this build writes.
+  static const int fingerprintFormat = 1;
+
+  /// Whether [fingerprint] was written in a format newer than this build's,
+  /// by a newer peer. This build cannot tell whether such a fingerprint
+  /// matches its own settings, so a result stored under it is kept rather
+  /// than recomputed: recomputing would overwrite it, and the newer peer
+  /// would recompute it back on every sync.
+  static bool isNewerFormat(String fingerprint) {
+    final match = RegExp(r'^a(\d+);').firstMatch(fingerprint);
+    if (match == null) return false;
+    return int.parse(match.group(1)!) > fingerprintFormat;
+  }
 
   /// Whole values print without a fraction so `3` and `3.0` cannot differ.
   static String _num(double v) =>
