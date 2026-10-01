@@ -68,6 +68,7 @@ class TripUnlinkedTank extends Equatable {
     this.siteName,
     this.tankOrder = 0,
     this.computerId,
+    this.sourceId,
   });
 
   final String tankId;
@@ -82,6 +83,10 @@ class TripUnlinkedTank extends Equatable {
   /// source. On a dive from two computers it tells their rows apart.
   final String? computerId;
 
+  /// The data source the tank row came from (v251); null is the dive's
+  /// primary source. Tells apart two sources that name no computer.
+  final String? sourceId;
+
   @override
   List<Object?> get props => [
     tankId,
@@ -92,6 +97,7 @@ class TripUnlinkedTank extends Equatable {
     siteName,
     tankOrder,
     computerId,
+    sourceId,
   ];
 }
 

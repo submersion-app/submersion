@@ -285,9 +285,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final selectedCount = _selectedIds.length;
     // A merge destroys every site but the first (issue #2594): another
     // profile's shared site may only be the survivor, so at most one fits.
-    final sharing = await readSharingContext(ref);
+    final sharing = await readSharingContext(ref, context);
+    if (sharing == null) return BulkActionOutcome.failed;
     final selected = await _readSelectedSites(_selectedIds.toList());
-    if (selected == null) return BulkActionOutcome.cancelled;
+    if (selected == null) return BulkActionOutcome.failed;
     final notOwned = [
       for (final s in selected)
         if (!canDestroySharedItem(
@@ -369,9 +370,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final idsToDelete = _selectedIds.toList();
     // Another profile's shared sites are hidden, not deleted, and the
     // owner's shared ones are named as going for everyone (issue #2594).
-    final sharing = await readSharingContext(ref);
+    final sharing = await readSharingContext(ref, context);
+    if (sharing == null) return BulkActionOutcome.failed;
     final selectedSites = await _readSelectedSites(idsToDelete);
-    if (selectedSites == null) return BulkActionOutcome.cancelled;
+    if (selectedSites == null) return BulkActionOutcome.failed;
     final split = splitForBulkDelete(
       selectedSites,
       ownerOf: (s) => s.diverId,
@@ -449,18 +451,84 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       final deleted = deleteCount > 0
           ? await notifier.bulkDeleteSites(destroyIds)
           : null;
-      final hidden = hideCount > 0 ? await notifier.hideSites(hideIds) : 0;
+      // Null when the hide failed: the summary says so beside the deletes.
+      final hidden = hideCount > 0
+          ? await tryHideChange(() => notifier.hideSites(hideIds))
+          : 0;
 
       _deletedSites = deleted;
+      // Even after a failed hide: it may have been written before the
+      // refresh failed, and an unhide of one not hidden does nothing.
       _hiddenSiteIds = hideIds;
 
       final summary = [
         if (deleted != null && deleted.sites.isNotEmpty)
           l10n.diveSites_list_bulkDelete_snackbar(deleted.sites.length),
-        if (hidden > 0) l10n.sharedItems_bulkHiddenSnackbar(hidden),
+        if (hidden case final n? when n > 0)
+          l10n.sharedItems_bulkHiddenSnackbar(n),
+        if (hidden == null) l10n.common_error_tryAgain,
       ];
-      // Nothing done (every action refused): no empty snackbar.
-      if (mounted && summary.isNotEmpty) {
+      // Only a failed hide to report: nothing for Undo to take back.
+      if (hidden == null && (deleted?.sites.isEmpty ?? true)) {
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text(l10n.common_error_tryAgain)),
+        );
+        return BulkActionOutcome.completed;
+      }
+      // Takes back what the bulk delete did, clearing each half once it is
+      // back. Anything left says so, even once the list has closed, and
+      // offers Undo again for the rest (issue #2677).
+      Future<void> undo() async {
+        final toRestore = _deletedSites;
+        if (toRestore == null || toRestore.sites.isEmpty) {
+          _deletedSites = null;
+        } else {
+          try {
+            await notifier.restoreSites(
+              toRestore.sites,
+              links: toRestore.links,
+            );
+            _deletedSites = null;
+          } catch (e, stackTrace) {
+            _log.error(
+              'Could not restore the deleted sites',
+              error: e,
+              stackTrace: stackTrace,
+            );
+          }
+        }
+        final toUnhide = _hiddenSiteIds;
+        if (toUnhide.isEmpty ||
+            await tryHideChange(
+                  () => notifier.unhideSites(toUnhide).then((_) => true),
+                ) ==
+                true) {
+          _hiddenSiteIds = const [];
+        }
+        if (_deletedSites != null || _hiddenSiteIds.isNotEmpty) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(l10n.common_error_tryAgain),
+              action: SnackBarAction(
+                label: l10n.diveSites_list_bulkDelete_undo,
+                onPressed: undo,
+              ),
+            ),
+          );
+        } else if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(l10n.diveSites_list_bulkDelete_restored),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+
+      // Nothing done (every action refused): no empty snackbar. A failure
+      // says so even once the list has closed.
+      if ((mounted || hidden == null) && summary.isNotEmpty) {
         scaffoldMessenger.clearSnackBars();
         scaffoldMessenger.showSnackBar(
           SnackBar(
@@ -469,29 +537,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             showCloseIcon: true,
             action: SnackBarAction(
               label: l10n.diveSites_list_bulkDelete_undo,
-              onPressed: () async {
-                final toRestore = _deletedSites;
-                final toUnhide = _hiddenSiteIds;
-                if (toRestore != null && toRestore.sites.isNotEmpty) {
-                  await notifier.restoreSites(
-                    toRestore.sites,
-                    links: toRestore.links,
-                  );
-                }
-                if (toUnhide.isNotEmpty) {
-                  await notifier.unhideSites(toUnhide);
-                }
-                _deletedSites = null;
-                _hiddenSiteIds = const [];
-                if (mounted) {
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.diveSites_list_bulkDelete_restored),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
+              onPressed: undo,
             ),
           ),
         );

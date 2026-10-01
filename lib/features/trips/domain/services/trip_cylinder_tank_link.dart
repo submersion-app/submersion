@@ -26,25 +26,41 @@ DiveTank tankFromTripCylinder(DiveTank tank, TripCylinderState slot) {
 }
 
 /// Pure. The slots [tank] cannot take because a sibling on its dive holds
-/// them. Only a sibling from the same computer counts: one computer's two
-/// tanks are two cylinders, but another computer's tank may be that
-/// computer's copy of this very cylinder, a row consolidation did not
-/// merge, and must be able to share its slot (issue #2661).
+/// them. Only a sibling from the same recording counts: one recording's two
+/// tanks are two cylinders, but another recording's tank may be its copy of
+/// this very cylinder, a row consolidation did not merge, and must be able
+/// to share its slot (issue #2661).
 ///
-/// A tank with no computer (one the diver added, or one written before
-/// attribution) is the dive's own, [primaryComputerId] (`Dive.computerId`),
-/// as on `dive_tanks.computer_id`: a download stamps its computer on every
-/// tank it writes, so without this a hand-added tank would pass for another
-/// computer and could share a downloaded tank's slot.
+/// A recording is the tank's computer when it names one. Otherwise it is
+/// the tank's data source when that is not the primary (issue #2716: two
+/// consolidated sources that name no computer). Otherwise the tank is the
+/// dive's own: a hand-added tank, one written before attribution, or the
+/// primary source's, all of which are the primary recording, by
+/// [primaryComputerId] (`Dive.computerId`) when the dive has one, else by
+/// [primarySourceId]. A download stamps its computer on every tank it
+/// writes, so without this a hand-added tank would pass for another
+/// recording and could share a downloaded tank's slot.
 Set<String> tripCylinderIdsTakenFor(
   DiveTank tank,
   List<DiveTank> tanks, {
   required String? primaryComputerId,
+  required String? primarySourceId,
 }) {
-  String? computerOf(DiveTank t) => t.computerId ?? primaryComputerId;
+  final primary = primaryComputerId != null
+      ? 'computer:$primaryComputerId'
+      : 'source:$primarySourceId';
+  String recordingOf(DiveTank t) {
+    if (t.computerId case final computerId?) return 'computer:$computerId';
+    final sourceId = t.sourceId;
+    if (sourceId != null && sourceId != primarySourceId) {
+      return 'source:$sourceId';
+    }
+    return primary;
+  }
+
   return {
     for (final t in tanks)
-      if (t.id != tank.id && computerOf(t) == computerOf(tank))
+      if (t.id != tank.id && recordingOf(t) == recordingOf(tank))
         ?t.tripCylinderId,
   };
 }

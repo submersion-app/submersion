@@ -52,35 +52,97 @@ bool watchHiddenHere(
     (ref.watch(isHiddenProvider((kind: kind, id: id))).value ?? false);
 
 /// The active profile and how many profiles exist, for splitting a bulk
-/// selection and choosing its warning (issue #2594). A failed read gives
-/// no profile and no count, so the split treats every item as the
-/// caller's to delete, as before sharing existed; the repositories still
-/// refuse another profile's item.
-Future<({String? activeDiverId, int diverCount})> readSharingContext(
+/// selection and choosing its warning (issue #2594). A failed read of
+/// either logs, tells the diver to try again and gives null, so the bulk
+/// action stops before its dialog (issue #2682): read as "no profile", the
+/// split would offer to delete another profile's shared items too, and a
+/// missing count would drop the owner's "deleted for everyone" line.
+Future<({String? activeDiverId, int diverCount})?> readSharingContext(
   WidgetRef ref,
+  BuildContext context,
 ) async {
-  String? activeDiverId;
-  var diverCount = 0;
   try {
-    activeDiverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    // One after the other, not `.wait`: both are cached app-wide, and a
+    // ParallelWaitError would log the wait's stack, not the failing read's.
+    final activeDiverId = await ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    final divers = await ref.read(allDiversProvider.future);
+    return (activeDiverId: activeDiverId, diverCount: divers.length);
   } catch (e, stackTrace) {
-    _log.warning(
-      'Could not read the active profile',
+    _log.error(
+      'Could not read the active profile or count the profiles',
       error: e,
       stackTrace: stackTrace,
     );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.common_error_tryAgain)),
+      );
+    }
+    return null;
   }
-  try {
-    diverCount = (await ref.read(allDiversProvider.future)).length;
-  } catch (e, stackTrace) {
-    _log.warning(
-      'Could not count the profiles',
-      error: e,
-      stackTrace: stackTrace,
-    );
-  }
-  return (activeDiverId: activeDiverId, diverCount: diverCount);
 }
+
+/// [canDestroySharedItem] for a page that watches the active profile: null
+/// while the profile is loading (a reload too, which still carries the
+/// previous profile's id) or cannot be read, so the page offers
+/// neither Delete nor Remove and keeps sharing locked until it knows
+/// (issue #2682). Read as "no profile", an unknown profile would offer
+/// another profile's item its Delete. An ownerless item needs no profile.
+bool? canDestroySharedItemOnceKnown(
+  AsyncValue<String?> activeDiver, {
+  required String? ownerId,
+}) {
+  if (ownerId == null) return true;
+  if (activeDiver.isLoading || activeDiver.hasError || !activeDiver.hasValue) {
+    return null;
+  }
+  return canDestroySharedItem(
+    ownerId: ownerId,
+    activeDiverId: activeDiver.value,
+  );
+}
+
+/// Runs [change], a hide or unhide of a shared trip or site, and gives its
+/// result, or null when it failed (issue #2677). A failure is logged, then
+/// [onFailed] runs; without it the failure is left to the caller, as a
+/// bulk action does when it joins it into its own summary.
+Future<T?> tryHideChange<T>(
+  Future<T> Function() change, {
+  VoidCallback? onFailed,
+}) async {
+  try {
+    return await change();
+  } catch (e, stackTrace) {
+    _log.warning(
+      'Could not hide or unhide a shared item',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    onFailed?.call();
+    return null;
+  }
+}
+
+/// [tryHideChange], telling the diver through [messenger] to try again
+/// when it fails, so the caller only leaves the page as it was. The
+/// messenger, read before any await, still reaches the diver after the
+/// page that offered the change has closed, as it has for an Undo. The
+/// message replaces the one showing, so repeated failures do not queue.
+Future<T?> runHideChange<T>(
+  ScaffoldMessengerState messenger,
+  AppLocalizations l10n,
+  Future<T> Function() change,
+) => tryHideChange(
+  change,
+  onFailed: () {
+    if (!messenger.mounted) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.common_error_tryAgain)));
+  },
+);
 
 /// The owning profile's name, or a neutral fallback for a profile that is
 /// gone or unknown (issue #2594).
@@ -150,7 +212,9 @@ List<String> bulkDeleteLines(
 /// The whole "Remove from my profile" flow for another profile's shared
 /// trip or site (issue #2594): count the profile's own linked dives,
 /// confirm, [hide], then [onRemoved] (close the page) and a snackbar whose
-/// Undo calls [unhide]. Nothing happens past a refused [hide].
+/// Undo calls [unhide]. Nothing happens past a refused [hide]. A failed
+/// [hide] says to try again and leaves the page as it was; a failed
+/// [unhide] says so and offers Undo again (issue #2677).
 Future<void> removeSharedItemFromProfile(
   BuildContext context,
   WidgetRef ref, {
@@ -174,15 +238,24 @@ Future<void> removeSharedItemFromProfile(
   if (!confirmed || !context.mounted) return;
   final messenger = ScaffoldMessenger.of(context);
   final l10n = context.l10n;
-  if (!await hide()) return;
+  if (await runHideChange(messenger, l10n, hide) != true) return;
   if (!context.mounted) return;
   onRemoved();
-  messenger.showSnackBar(
+  void offerUndo(String message) => messenger.showSnackBar(
     SnackBar(
-      content: Text(l10n.sharedItems_removedSnackbar),
-      action: SnackBarAction(label: l10n.sharedItems_undo, onPressed: unhide),
+      content: Text(message),
+      action: SnackBarAction(
+        label: l10n.sharedItems_undo,
+        onPressed: () async {
+          final undone = await tryHideChange(() => unhide().then((_) => true));
+          if (undone == null && messenger.mounted) {
+            offerUndo(l10n.common_error_tryAgain);
+          }
+        },
+      ),
     ),
   );
+  offerUndo(l10n.sharedItems_removedSnackbar);
 }
 
 /// Confirms hiding another profile's shared trip or site from the active

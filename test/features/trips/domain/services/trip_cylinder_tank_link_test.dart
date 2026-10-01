@@ -181,17 +181,24 @@ void main() {
 
     test('a slot a sibling from the same computer holds is taken', () {
       expect(
-        tripCylinderIdsTakenFor(primaryStage, [
-          primary,
+        tripCylinderIdsTakenFor(
           primaryStage,
-        ], primaryComputerId: null),
+          [primary, primaryStage],
+          primaryComputerId: null,
+          primarySourceId: null,
+        ),
         {'a'},
       );
     });
 
     test('the tank\'s own link is not taken from it', () {
       expect(
-        tripCylinderIdsTakenFor(primary, [primary], primaryComputerId: null),
+        tripCylinderIdsTakenFor(
+          primary,
+          [primary],
+          primaryComputerId: null,
+          primarySourceId: null,
+        ),
         isEmpty,
       );
     });
@@ -200,11 +207,12 @@ void main() {
       // Issue #2661: the second computer's row for one cylinder must be
       // able to share the slot the first computer's row holds.
       expect(
-        tripCylinderIdsTakenFor(perdix, [
-          primary,
-          primaryStage,
+        tripCylinderIdsTakenFor(
           perdix,
-        ], primaryComputerId: null),
+          [primary, primaryStage, perdix],
+          primaryComputerId: null,
+          primarySourceId: null,
+        ),
         isEmpty,
       );
     });
@@ -219,19 +227,97 @@ void main() {
       );
       const added = DiveTank(id: 'd2', order: 1, tripCylinderId: 'b');
       expect(
-        tripCylinderIdsTakenFor(added, [
-          downloaded,
+        tripCylinderIdsTakenFor(
           added,
-        ], primaryComputerId: 'teric'),
+          [downloaded, added],
+          primaryComputerId: 'teric',
+          primarySourceId: null,
+        ),
         {'a'},
       );
       expect(
-        tripCylinderIdsTakenFor(downloaded, [
+        tripCylinderIdsTakenFor(
           downloaded,
-          added,
-        ], primaryComputerId: 'teric'),
+          [downloaded, added],
+          primaryComputerId: 'teric',
+          primarySourceId: null,
+        ),
         {'b'},
       );
+    });
+
+    group('sources that name no computer (#2716)', () {
+      // A consolidated pair of computer-less file imports: the primary's
+      // tank names the primary source, the copy names the other.
+      const primaryTank = DiveTank(
+        id: 'f1',
+        sourceId: 'src-1',
+        tripCylinderId: 'a',
+      );
+      const copy = DiveTank(id: 'f2', order: 1, sourceId: 'src-2');
+
+      test('another source\'s copy can share the slot', () {
+        expect(
+          tripCylinderIdsTakenFor(
+            copy,
+            [primaryTank, copy],
+            primaryComputerId: null,
+            primarySourceId: 'src-1',
+          ),
+          isEmpty,
+        );
+      });
+
+      test('a hand-added tank is the primary source\'s', () {
+        const added = DiveTank(id: 'x', order: 2);
+        expect(
+          tripCylinderIdsTakenFor(
+            added,
+            [primaryTank, copy, added],
+            primaryComputerId: null,
+            primarySourceId: 'src-1',
+          ),
+          {'a'},
+        );
+      });
+
+      test('a computer-less copy on a computer\'s dive can share', () {
+        // The primary is a download (its tank names the computer); the
+        // folded-in file names none.
+        const downloaded = DiveTank(
+          id: 'd1',
+          computerId: 'teric',
+          sourceId: 'src-1',
+          tripCylinderId: 'a',
+        );
+        expect(
+          tripCylinderIdsTakenFor(
+            copy,
+            [downloaded, copy],
+            primaryComputerId: 'teric',
+            primarySourceId: 'src-1',
+          ),
+          isEmpty,
+        );
+      });
+
+      test('two tanks of one computer-less source still cannot share', () {
+        const copyStage = DiveTank(
+          id: 'f3',
+          order: 2,
+          sourceId: 'src-2',
+          tripCylinderId: 'b',
+        );
+        expect(
+          tripCylinderIdsTakenFor(
+            copy,
+            [primaryTank, copy, copyStage],
+            primaryComputerId: null,
+            primarySourceId: 'src-1',
+          ),
+          {'b'},
+        );
+      });
     });
 
     test('two tanks of one secondary computer still cannot share', () {
@@ -242,11 +328,12 @@ void main() {
         tripCylinderId: 'b',
       );
       expect(
-        tripCylinderIdsTakenFor(perdix, [
-          primary,
+        tripCylinderIdsTakenFor(
           perdix,
-          perdixStage,
-        ], primaryComputerId: null),
+          [primary, perdix, perdixStage],
+          primaryComputerId: null,
+          primarySourceId: null,
+        ),
         {'b'},
       );
     });

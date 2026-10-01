@@ -121,5 +121,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertSiteHidesSchema();
     }
     if (from < 250) await reportProgress();
+    // v251: dive_tanks.source_id (issue #2716), backfilled where the
+    // source is unambiguous. 250 is profile hides (#2594).
+    if (from < 251) {
+      await _assertDiveTankSourceIdColumn();
+      await _backfillDiveTankSourceIds();
+    }
+    if (from < 251) await reportProgress();
   }
 }

@@ -129,6 +129,34 @@ void main() {
     expect(find.text('Unhide'), findsOneWidget);
   });
 
+  testWidgets('a failed Unhide keeps the row and says to try again '
+      '(issue #2677)', (tester) async {
+    final (trips, sites) = await pumpPage(tester, items);
+    trips.fail = true;
+    sites.fail = true;
+
+    await tester.tap(find.text('Unhide').first);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Bonaire'), findsOneWidget);
+
+    // A second failure replaces the first message rather than queueing.
+    await tester.tap(find.text('Unhide').last);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    expect(find.text('Something went wrong. Please try again.'), findsNothing);
+    expect(trips.unhidden, isEmpty);
+    expect(sites.unhidden, isEmpty);
+  });
+
   testWidgets('says so when nothing is hidden', (tester) async {
     await pumpPage(tester, const []);
     expect(find.text('Nothing is hidden from this profile.'), findsOneWidget);
@@ -175,8 +203,14 @@ class _Trips extends StateNotifier<AsyncValue<List<TripWithStats>>>
 
   final unhidden = <String>[];
 
+  /// An unhide throws, as a database error does (issue #2677).
+  bool fail = false;
+
   @override
-  Future<void> unhideTrip(String id) async => unhidden.add(id);
+  Future<void> unhideTrip(String id) async {
+    if (fail) throw StateError('database unavailable');
+    unhidden.add(id);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -188,8 +222,14 @@ class _Sites extends StateNotifier<AsyncValue<List<DiveSite>>>
 
   final unhidden = <String>[];
 
+  /// An unhide throws, as a database error does (issue #2677).
+  bool fail = false;
+
   @override
-  Future<void> unhideSites(List<String> ids) async => unhidden.addAll(ids);
+  Future<void> unhideSites(List<String> ids) async {
+    if (fail) throw StateError('database unavailable');
+    unhidden.addAll(ids);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

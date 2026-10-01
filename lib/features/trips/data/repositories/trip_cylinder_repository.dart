@@ -68,6 +68,11 @@ class TripCylinderRepository {
     TableUpdateQuery.onTable(_db.diveSites),
   ];
 
+  /// Changes to the slots alone: which equipment sits on a trip's board
+  /// reads nothing else, so dive and ledger writes need not refetch it.
+  Stream<void> watchSlotChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.tripCylinders));
+
   /// Changes to the slots or the ledger only. The ledger reads neither
   /// dives, tanks nor sites, so it need not refetch when those change.
   Stream<void> watchLedgerChanges() => _db.tableUpdates(
@@ -153,6 +158,19 @@ class TripCylinderRepository {
                 ..addColumns([_db.tripCylinders.tripId])
                 ..where(_db.tripCylinders.equipmentId.equals(equipmentId)))
               .map((r) => r.read(_db.tripCylinders.tripId)!)
+              .get())
+          .toSet();
+
+  /// The equipment on [tripId]'s slots (rental slots carry none), for the
+  /// trip's gear alerts (issue #2727).
+  Future<Set<String>> equipmentIdsForTrip(String tripId) async =>
+      (await (_db.selectOnly(_db.tripCylinders)
+                ..addColumns([_db.tripCylinders.equipmentId])
+                ..where(
+                  _db.tripCylinders.tripId.equals(tripId) &
+                      _db.tripCylinders.equipmentId.isNotNull(),
+                ))
+              .map((r) => r.read(_db.tripCylinders.equipmentId)!)
               .get())
           .toSet();
 
@@ -650,7 +668,7 @@ class TripCylinderRepository {
           SELECT t.id AS tank_id, t.dive_id,
                  COALESCE(d.entry_time, d.dive_date_time) AS entry_ms,
                  d.diver_id, v.name AS diver_name, s.name AS site_name,
-                 t.tank_order, t.computer_id
+                 t.tank_order, t.computer_id, t.source_id
           FROM dive_tanks t
           JOIN dives d ON d.id = t.dive_id
           LEFT JOIN divers v ON v.id = d.diver_id
@@ -686,6 +704,7 @@ class TripCylinderRepository {
           siteName: r.readNullable<String>('site_name'),
           tankOrder: r.read<int>('tank_order'),
           computerId: r.readNullable<String>('computer_id'),
+          sourceId: r.readNullable<String>('source_id'),
         ),
     ];
   }

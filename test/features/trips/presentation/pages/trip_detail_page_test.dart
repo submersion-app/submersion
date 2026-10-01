@@ -333,6 +333,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // No active profile, as before sharing: every action is the owner's.
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
             tripWithStatsProvider(testTrip.id).overrideWith((ref) {
               return Future.value(testTripWithStats);
             }),
@@ -483,6 +485,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
+              // No active profile, as before sharing: every action is the owner's.
+              validatedCurrentDiverIdProvider.overrideWith((_) async => null),
               tripWithStatsProvider(sharedTrip.id).overrideWith((ref) {
                 return Future.value(sharedTripWithStats);
               }),
@@ -863,6 +867,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // No active profile, as before sharing: every action is the owner's.
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
             tripWithStatsProvider(
               embeddedTrip.id,
             ).overrideWith((ref) async => embeddedStats),

@@ -79,6 +79,12 @@ void main() {
   Future<Map<String, Set<String>>> takenAfterLinking() async {
     final dive = (await diveRepo.getDiveById('f1'))!;
     expect(dive.tanks, hasLength(2), reason: 'the copies were not merged');
+    final primarySource =
+        (await (db.select(db.diveDataSources)..where(
+                  (s) => s.diveId.equals('f1') & s.isPrimary.equals(true),
+                ))
+                .getSingle())
+            .id;
     final tanks = [
       for (final t in dive.tanks)
         t.id == 'tank-f1' ? t.copyWith(tripCylinderId: 'a') : t,
@@ -89,6 +95,7 @@ void main() {
           t,
           tanks,
           primaryComputerId: dive.computerId,
+          primarySourceId: primarySource,
         ),
     };
   }
@@ -133,27 +140,30 @@ void main() {
     expect(taken[copy], isEmpty);
   });
 
-  test('files naming no computer: nothing tells the copies apart', () async {
-    // The remaining limit: no computer on either side, so both copies
-    // resolve to "no computer" and the slot stays taken.
-    await seedFileImport(
-      'f1',
-      'tank-f1',
-      DateTime.utc(2026, 7, 18, 18),
-      o2: 32,
-      computerId: null,
-    );
-    await seedFileImport(
-      'f2',
-      'tank-f2',
-      DateTime.utc(2026, 7, 18, 18, 1),
-      o2: 31,
-      computerId: null,
-    );
-    await service.apply(targetDiveId: 'f1', secondaryDiveIds: ['f2']);
+  test(
+    'files naming no computer: their sources tell the copies apart',
+    () async {
+      // Issue #2716: no computer on either side, so each copy is told apart
+      // by the data source it came from, and can share the slot.
+      await seedFileImport(
+        'f1',
+        'tank-f1',
+        DateTime.utc(2026, 7, 18, 18),
+        o2: 32,
+        computerId: null,
+      );
+      await seedFileImport(
+        'f2',
+        'tank-f2',
+        DateTime.utc(2026, 7, 18, 18, 1),
+        o2: 31,
+        computerId: null,
+      );
+      await service.apply(targetDiveId: 'f1', secondaryDiveIds: ['f2']);
 
-    final taken = await takenAfterLinking();
-    final copy = taken.keys.singleWhere((id) => id != 'tank-f1');
-    expect(taken[copy], {'a'});
-  });
+      final taken = await takenAfterLinking();
+      final copy = taken.keys.singleWhere((id) => id != 'tank-f1');
+      expect(taken[copy], isEmpty);
+    },
+  );
 }
