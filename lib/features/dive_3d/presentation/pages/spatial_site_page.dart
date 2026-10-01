@@ -56,7 +56,7 @@ class SpatialSitePage extends ConsumerWidget {
     // the standalone implementation's own expensive terrain/path fetch,
     // only to discard it a frame later once the dive (with a site) actually
     // resolves and this switches to SiteTerrainPane instead (code review).
-    if (diveAsync.isLoading && !diveAsync.hasValue) {
+    if (!diveAsync.hasSettled) {
       return Scaffold(
         appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
         body: const Center(child: CircularProgressIndicator()),

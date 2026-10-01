@@ -88,10 +88,17 @@ terrain via a free-floating anchor point (`route.anchor`, see
      limitation (no site record to hang markers/features/LOD off), not a
      regression, so it is kept as-is and documented rather than solved.
    The dive case never needs this second path (a dive always has a site).
-6. **`SpatialSitePage` and `NavTrackSeascapePage` become thin wrappers**
-   around `SiteTerrainPane`: `Scaffold`/`AppBar` plus assembling the
-   `playbackContext`. Their current standalone viewport/timeline/scrub code
-   is deleted once the pane absorbs it.
+6. **`SpatialSitePage` and `NavTrackSeascapePage` become routers**, not pure
+   wrappers: when the dive/route has a site, they render a thin
+   `Scaffold`/`AppBar` wrapper around `SiteTerrainPane` with the matching
+   `playbackContext`; when it does not (a dive with no site, or a route with
+   no `siteId`), they fall back to their existing standalone implementation
+   unchanged. Revised from the original plan to unconditionally delete that
+   code: the standalone path is still the ONLY implementation for the
+   siteless case (decision 5's "route without siteId" branch), so deleting
+   it outright would have left that case with nothing to render. Kept, not
+   removed; only renamed to `_DiveSeascapeStandalone` /
+   `_NavTrackSeascapeStandalone`.
 7. **Single PR covers all three** (dive, site, nav-track) - not phased, per
    explicit request on the issue to not defer the nav-track case - but
    implemented as separate, independently committed steps within that PR

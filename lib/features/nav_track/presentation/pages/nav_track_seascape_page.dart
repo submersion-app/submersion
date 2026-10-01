@@ -37,7 +37,7 @@ class NavTrackSeascapePage extends ConsumerWidget {
     // the standalone implementation's own terrain fetch, only to discard it
     // a frame later once the route (with a site) resolves and this switches
     // to SiteTerrainPane instead (code review).
-    if (trackAsync.isLoading && !trackAsync.hasValue) {
+    if (!trackAsync.hasSettled) {
       return Scaffold(
         appBar: AppBar(title: Text(context.l10n.navTrack_seascape_title)),
         body: const Center(child: CircularProgressIndicator()),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
@@ -19,23 +21,39 @@ void main() {
     'a dive with a site routes to SiteTerrainPane with a dive playback context',
     (tester) async {
       final overrides = await getBaseOverrides();
+      // Never completes until told to: lets the assertion below observe the
+      // frame BEFORE diveProvider resolves, so a regression that reads
+      // .valueOrNull before the dive settles (routing to the standalone
+      // implementation's own expensive fetch while still loading) would
+      // actually fail this test instead of passing once everything settles.
+      final completer = Completer<Dive>();
+      addTearDown(() {
+        if (!completer.isCompleted) {
+          completer.complete(
+            Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 28)),
+          );
+        }
+      });
       await tester.pumpWidget(
         testApp(
           overrides: [
             ...overrides,
-            diveProvider('d1').overrideWith(
-              (ref) async => Dive(
-                id: 'd1',
-                dateTime: DateTime.utc(2026, 7, 28),
-                site: _site,
-              ),
-            ),
+            diveProvider('d1').overrideWith((ref) => completer.future),
             siteSeascapeProvider(
               'site-1',
             ).overrideWith((ref) async => const SiteSeascapeNoCoordinates()),
           ],
           child: const SpatialSitePage(diveId: 'd1'),
         ),
+      );
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(SiteTerrainPane), findsNothing);
+      expect(find.byType(Dive3dInteractiveViewport), findsNothing);
+
+      completer.complete(
+        Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 28), site: _site),
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));

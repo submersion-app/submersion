@@ -518,7 +518,14 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                           playbackContext,
                           activePath?.hasLinkedRoute ?? false,
                         ),
-                        if (playbackContext != null) _timeline(),
+                        // Gated on activePath, not just playbackContext: a
+                        // dive/route whose path has fewer than two usable
+                        // points (siteActivePathOverlayProvider then
+                        // returns null) would otherwise show a playable
+                        // timeline with no path for it to actually move
+                        // along (code review).
+                        if (playbackContext != null && activePath != null)
+                          _timeline(),
                       ],
                     ),
                   ),

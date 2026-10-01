@@ -273,7 +273,7 @@ class SiteSeascapePatchLayer {
 
   /// The grid [layers] was built from -- exposed so a consumer can build
   /// its own hover picker against the patch's finer terrain (see
-  /// site_terrain_pane.dart's `_PatchAwareHoverPicker`) instead of only ever
+  /// patch_aware_hover_picker.dart's `PatchAwareHoverPicker`) instead of only ever
   /// picking against the coarser base grid even where the patch visually
   /// covers it.
   final BathymetryGrid grid;
@@ -527,7 +527,16 @@ final siteActivePathOverlayProvider = FutureProvider.autoDispose
           final route = await ref.watch(
             primaryNavTrackForDiveProvider(request.pathId).future,
           );
-          hasLinkedRoute = route != null && route.points.length >= 2;
+          // Mirrors spatialReckonedPathProvider's own check (spatial_
+          // providers.dart): the raw sample count is not enough, the
+          // adapter truncates to the active underwater/surfaceReckoned
+          // range and can legitimately adapt down to fewer than two
+          // points even when the raw route has plenty. Checking
+          // route.points.length alone would show the toggle for a route
+          // that silently has no effect when switched on.
+          hasLinkedRoute =
+              route != null &&
+              NavTrackPathAdapter.toReckonedPath(route).points.length >= 2;
           final dive = await ref.watch(diveProvider(request.pathId).future);
           anchorPoint = path.provenance == PathProvenance.measured
               ? (route?.anchor ?? dive?.entryLocation)

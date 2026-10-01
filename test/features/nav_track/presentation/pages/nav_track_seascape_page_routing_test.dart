@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
@@ -26,13 +28,18 @@ void main() {
     'a route with a site routes to SiteTerrainPane with a nav-track playback context',
     (tester) async {
       final overrides = await getBaseOverrides();
+      // Never completes until told to: lets the assertion below observe
+      // the frame BEFORE navTrackByIdProvider resolves (see the matching
+      // dive-side test for why this matters).
+      final completer = Completer<NavTrack>();
+      addTearDown(() {
+        if (!completer.isCompleted) completer.complete(_track(id: 't1'));
+      });
       await tester.pumpWidget(
         testApp(
           overrides: [
             ...overrides,
-            navTrackByIdProvider(
-              't1',
-            ).overrideWith((ref) async => _track(id: 't1', siteId: 'site-1')),
+            navTrackByIdProvider('t1').overrideWith((ref) => completer.future),
             siteSeascapeProvider(
               'site-1',
             ).overrideWith((ref) async => const SiteSeascapeNoCoordinates()),
@@ -40,6 +47,12 @@ void main() {
           child: const NavTrackSeascapePage(trackId: 't1'),
         ),
       );
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(SiteTerrainPane), findsNothing);
+
+      completer.complete(_track(id: 't1', siteId: 'site-1'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
