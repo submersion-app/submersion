@@ -71,13 +71,9 @@ TripGasRecordRow _row(
   List<TripCylinderEvent> events,
   GasModel gasModel,
 ) {
-  final atMillis = t.entryTime.millisecondsSinceEpoch;
   final state = foldCylinderState(
     cylinder: cylinder,
-    events: [
-      for (final e in events)
-        if (e.occurredAt.millisecondsSinceEpoch <= atMillis) e,
-    ],
+    events: tripCylinderEventsUpTo(events, t.entryTime.millisecondsSinceEpoch),
     uses: const [],
   );
   final fill = state.lastFill;
