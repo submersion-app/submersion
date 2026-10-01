@@ -377,6 +377,54 @@ void main() {
     );
   });
 
+  test('pausing the repack clock takes its margin off an open trip', () async {
+    // The clocks card pauses through updateSchedule; the paused state
+    // must reach the trip like a removal does.
+    final ccr = await rebreather();
+    final t = await trip('T', DateTime(2026, 6, 1), DateTime(2026, 6, 5));
+    final sub = container.listen(tripScrubberMarginsProvider(t.id), (_, _) {});
+    addTearDown(sub.close);
+    Future<List<ScrubberMargin>> margins() =>
+        container.read(tripScrubberMarginsProvider(t.id).future);
+    expect(await margins(), hasLength(1));
+
+    final schedules = ServiceScheduleRepository();
+    final clock = (await schedules.getSchedulesForEquipment(
+      ccr.id,
+    )).singleWhere((s) => s.serviceKindId == 'scrubber-repack');
+    await schedules.updateSchedule(clock.copyWith(enabled: false));
+    var now = await margins();
+    for (var i = 0; i < 50 && now.isNotEmpty; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      now = await margins();
+    }
+    expect(now, isEmpty);
+  });
+
+  test('with no rated duration the repack clock\'s hours rate the '
+      'scrubber', () async {
+    // The rating falls back to the clock's own hours interval: its
+    // override, else the repack kind's default.
+    final ccr = await EquipmentRepository().createEquipment(
+      const EquipmentItem(id: '', name: 'CCR', type: EquipmentType.rebreather),
+    );
+    final schedules = ServiceScheduleRepository();
+    final clock = (await schedules.getSchedulesForEquipment(
+      ccr.id,
+    )).singleWhere((s) => s.serviceKindId == 'scrubber-repack');
+    Future<double?> rated(String name) async {
+      final t = await trip(name, DateTime(2026, 6, 1), DateTime(2026, 6, 5));
+      return (await container.read(
+        tripScrubberMarginsProvider(t.id).future,
+      )).single.ratedMinutes;
+    }
+
+    // The built-in kind's default is 3 hours.
+    expect(await rated('default'), 180);
+    await schedules.updateSchedule(clock.copyWith(intervalHours: 4.0));
+    expect(await rated('override'), 240);
+  });
+
   test('an itinerary with no dive days expects no dives', () async {
     // A crossing or a port stay is a real itinerary. Only an EMPTY one
     // falls back to the calendar days; this one says no dives.
