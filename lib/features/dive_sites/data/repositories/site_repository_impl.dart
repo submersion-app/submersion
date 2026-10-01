@@ -1161,9 +1161,19 @@ class SiteRepository {
   /// Durations coalesce runtime to bottom time, matching
   /// `InsightsRepository.getSiteDiveStatistics`; a dive carrying neither
   /// is counted but contributes to neither duration figure.
-  Future<Map<String, SiteDiveAggregate>> getDiveAggregatesBySite() async {
+  Future<Map<String, SiteDiveAggregate>> getDiveAggregatesBySite() =>
+      _diveAggregatesBySite();
+
+  /// [getDiveAggregatesBySite] over [diverId]'s dives alone when named: a
+  /// shared site holds several divers' dives, and each diver's list shows
+  /// their own, as a shared trip's stats do.
+  Future<Map<String, SiteDiveAggregate>> _diveAggregatesBySite({
+    String? diverId,
+  }) async {
     try {
-      final result = await _db.customSelect('''
+      final result = await _db
+          .customSelect(
+            '''
         SELECT site_id,
                COUNT(*) AS dive_count,
                MAX(dive_date_time) AS last_dived,
@@ -1174,8 +1184,12 @@ class SiteRepository {
                AVG(COALESCE(runtime, bottom_time)) AS avg_duration_seconds
         FROM dives
         WHERE site_id IS NOT NULL${DiveStatsScope.and(alias: 'dives')}
+          ${diverId == null ? '' : 'AND diver_id = ?'}
         GROUP BY site_id
-      ''').get();
+      ''',
+            variables: [if (diverId != null) Variable.withString(diverId)],
+          )
+          .get();
 
       // Local, not UTC: this matches how lastDivedAt has always been read
       // back here, so the two dates on one aggregate agree with each other.
@@ -1244,7 +1258,7 @@ class SiteRepository {
     try {
       return await PerfTimer.measure('getSitesWithDiveCounts', () async {
         final sites = await getAllSites(diverId: diverId);
-        final aggregates = await getDiveAggregatesBySite();
+        final aggregates = await _diveAggregatesBySite(diverId: diverId);
         final featureTypes = await getFeatureTypesBySite();
         // Two grouped reads for every site at once (issue #1765), so the
         // list's statement count does not grow with the number of sites.

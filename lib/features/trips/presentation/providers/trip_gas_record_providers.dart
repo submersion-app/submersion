@@ -5,13 +5,13 @@ import 'package:submersion/features/trips/domain/services/trip_gas_record_builde
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 
 /// The trip's gas record (spec "Phase 3 gas record"). Rebuilds when the
-/// trip's slots, fills, dives, tanks or sites change, and when the diver's
-/// gas model or default currency does. Auto-disposed: only the Record tab
-/// reads it.
+/// trip's slots, fills, dives, tanks, sites or divers change, and when the
+/// diver's gas model or default currency does. Auto-disposed: only the
+/// Record tab reads it.
 final tripGasRecordProvider = FutureProvider.autoDispose
     .family<TripGasRecord, String>((ref, tripId) async {
       final repository = ref.watch(tripCylinderRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchTripCylinderChanges());
+      ref.invalidateSelfWhen(repository.watchGasRecordChanges());
       final gasModel = ref.watch(gasModelProvider);
       final currency = ref.watch(defaultCurrencyProvider);
       final (cylinders, events, tanks, unlinked) = await (

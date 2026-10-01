@@ -20,6 +20,7 @@ import 'package:submersion/features/courses/domain/models/course_filter_state.da
 import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -135,6 +136,37 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // The title's subtitle counts the list (#2669), in both the phone app bar
+  // and the desktop pane header.
+  group('entry count subtitle', () {
+    for (final showAppBar in const [true, false]) {
+      testWidgets('${showAppBar ? 'app bar' : 'compact bar'} counts the list', (
+        tester,
+      ) async {
+        final overrides = await _buildPhoneOverrides(
+          courses: [
+            _makeCourse(id: 'c1', name: 'Rescue'),
+            _makeCourse(id: 'c2', name: 'Deep'),
+          ],
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: CourseListContent(showAppBar: showAppBar),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(
+            of: find.byType(FeatureAppBarTitle),
+            matching: find.text('2 courses'),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+  });
   group('bulk delete', () {
     late _MockCourseListNotifier notifier;
 

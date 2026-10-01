@@ -266,11 +266,12 @@ class ItineraryDayRepository {
   }
 
   /// Deletes the trip's itinerary days outside [start] to [end] that carry
-  /// nothing but a plan: a dive day with no port, position or notes. A
-  /// single planned day (the board's day strip) left outside a shortened or
-  /// moved trip would otherwise stretch the trip story to a day the trip no
-  /// longer has, and a shore trip has no screen to remove it. Days with any
-  /// content stay, as orphaned days always have.
+  /// nothing but a plan ([isBarePlanDay]). A single planned day (the board's
+  /// day strip) left outside a shortened or moved trip is a dead row, and a
+  /// shore trip has no screen to remove it. Days with any content stay, as
+  /// orphaned days always have. Cleanup only: rows that reach the database
+  /// by another path (sync, import) stay until the trip is next saved on
+  /// this device, and the trip story ignores them meanwhile (#2663).
   Future<void> deleteBarePlanDaysOutside(
     String tripId,
     DateTime start,
@@ -280,12 +281,7 @@ class ItineraryDayRepository {
     final last = tripDay(end);
     final bare = (await getByTripId(tripId)).where((d) {
       final day = tripDay(d.date);
-      return (day.isBefore(first) || day.isAfter(last)) &&
-          d.dayType == DayType.diveDay &&
-          (d.portName ?? '').isEmpty &&
-          d.latitude == null &&
-          d.longitude == null &&
-          d.notes.isEmpty;
+      return (day.isBefore(first) || day.isAfter(last)) && isBarePlanDay(d);
     }).toList();
     if (bare.isEmpty) return;
     await _db.transaction(() async {

@@ -3,12 +3,21 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
+import 'package:submersion/features/dive_log/query/dive_aggregate_fields.dart';
 
 /// Minimal in PR 1 (enough for `gear.type` and the suit-thickness lowering
 /// through `gear[attributes[...]]`); PR 3 of #2365 completes it.
 /// The local cache table (v242) the `serviceDue` field reads; a compiled
 /// query names it in `tablesTouched` exactly when it reads the verdicts.
 const serviceStatusTable = 'equipment_service_status';
+
+/// A counted dive this item was on: linked through dive_equipment, or a
+/// cylinder matched through dive_tanks (the dive gear union).
+const _gearDiveLink =
+    'ad.id IN (SELECT de.dive_id FROM dive_equipment de '
+    'WHERE de.equipment_id = {r}.id '
+    'UNION SELECT dt.dive_id FROM dive_tanks dt '
+    'WHERE dt.equipment_id = {r}.id)';
 
 final equipmentQueryEntity = QueryEntity(
   subject: QuerySubject.equipment,
@@ -78,6 +87,32 @@ final equipmentQueryEntity = QueryEntity(
       emptySql: '0',
       labelKey: 'query_equipment_serviceDue',
       enumValues: ['ok', 'dueSoon', 'overdue'],
+      tables: [serviceStatusTable],
+    ),
+    diveCountField(
+      'equipment',
+      _gearDiveLink,
+      tables: const ['dive_equipment', 'dive_tanks'],
+    ),
+    diveDateField(
+      'equipment',
+      'lastDived',
+      _gearDiveLink,
+      tables: const ['dive_equipment', 'dive_tanks'],
+    ),
+    // The worst service clock's next due instant, from the same cache
+    // `serviceDue` reads: "due within 30 days" is a bound on this date.
+    const QueryField(
+      key: 'nextServiceDue',
+      type: FieldType.date,
+      dateFrame: DateFrame.localInstant,
+      sql:
+          '(SELECT s.due_date FROM $serviceStatusTable s '
+          'WHERE s.equipment_id = {r}.id)',
+      emptySql:
+          'NOT EXISTS (SELECT 1 FROM $serviceStatusTable s '
+          'WHERE s.equipment_id = {r}.id AND s.due_date IS NOT NULL)',
+      labelKey: 'query_equipment_nextServiceDue',
       tables: [serviceStatusTable],
     ),
   ],

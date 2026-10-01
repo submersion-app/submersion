@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_sites/domain/services/site_location_bac
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_list_count_provider.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 final _log = LoggerService.forClass(SiteListContent);
@@ -637,6 +638,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                   title: FeatureAppBarTitle(
                     featureId: 'sites',
                     title: context.l10n.diveSites_list_appBar_title,
+                    subtitle: siteListCountLabel(context, ref),
                   ),
                   actions: [
                     IconButton(
@@ -926,6 +928,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             child: FeatureAppBarTitle(
               featureId: 'sites',
               title: context.l10n.diveSites_list_appBar_title,
+              subtitle: siteListCountLabel(context, ref),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/core/utils/gas_percent.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
@@ -57,12 +58,7 @@ class TripCylinderRecordView extends ConsumerWidget {
             l10n.trips_cylinders_record_unlinked(record.unlinked.length),
           ),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => showUnlinkedTanksSheet(
-            context,
-            record.unlinked,
-            units: units,
-            showDivers: record.multipleDivers,
-          ),
+          onTap: () => showUnlinkedTanksSheet(context, tripId: tripId),
         ),
       const Divider(height: 1),
       if (record.rows.isEmpty)
@@ -200,20 +196,18 @@ class _RecordRow extends StatelessWidget {
   }
 }
 
-/// "31.8%" or "18/45%" for an analyzed mix.
-String _percent(double o2, double he) {
-  String n(double v) =>
-      v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
-  return he > 0 ? '${n(o2)}/${n(he)}%' : '${n(o2)}%';
-}
+/// "31.8%" or "18/45%" for an analyzed mix, in the locale's convention.
+String _percent(double o2, double he) => he > 0
+    ? '${formatGasPercentValue(o2)}/${formatGasPercent(he)}'
+    : formatGasPercent(o2);
 
 /// The dive tanks that breathe from no trip cylinder; each opens its
-/// dive's editor (decided 2026-09-30: a list, not only the first).
+/// dive's editor (decided 2026-09-30: a list, not only the first). The
+/// sheet reads the trip's record and the settings rather than copies, so a
+/// tank linked or a diver renamed while it is open shows at once.
 Future<void> showUnlinkedTanksSheet(
-  BuildContext context,
-  List<TripUnlinkedTank> tanks, {
-  required UnitFormatter units,
-  required bool showDivers,
+  BuildContext context, {
+  required String tripId,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -237,28 +231,36 @@ Future<void> showUnlinkedTanksSheet(
             ),
             const Divider(height: 1),
             Expanded(
-              // Lazy: before any link, every tank on the trip is a gap.
-              child: ListView.builder(
-                controller: scrollController,
-                itemCount: tanks.length,
-                itemBuilder: (_, i) {
-                  final t = tanks[i];
-                  return ListTile(
-                    key: Key('unlinked-${t.tankId}'),
-                    title: Text(
-                      [
-                        units.formatDateTime(t.entryTime, l10n: l10n),
-                        ?t.siteName,
-                        if (showDivers) ?t.diverName,
-                      ].join(' · '),
-                    ),
-                    subtitle: Text(
-                      l10n.trips_cylinders_record_tank(t.tankOrder + 1),
-                    ),
-                    trailing: const Icon(Icons.edit),
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      context.push('/dives/${t.diveId}/edit');
+              child: Consumer(
+                builder: (_, ref, _) {
+                  final record = ref.watch(tripGasRecordProvider(tripId)).value;
+                  final tanks = record?.unlinked ?? const <TripUnlinkedTank>[];
+                  final showDivers = record?.multipleDivers ?? false;
+                  final units = UnitFormatter(ref.watch(settingsProvider));
+                  // Lazy: before any link, every tank on the trip is a gap.
+                  return ListView.builder(
+                    controller: scrollController,
+                    itemCount: tanks.length,
+                    itemBuilder: (_, i) {
+                      final t = tanks[i];
+                      return ListTile(
+                        key: Key('unlinked-${t.tankId}'),
+                        title: Text(
+                          [
+                            units.formatDateTime(t.entryTime, l10n: l10n),
+                            ?t.siteName,
+                            if (showDivers) ?t.diverName,
+                          ].join(' · '),
+                        ),
+                        subtitle: Text(
+                          l10n.trips_cylinders_record_tank(t.tankOrder + 1),
+                        ),
+                        trailing: const Icon(Icons.edit),
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          context.push('/dives/${t.diveId}/edit');
+                        },
+                      );
                     },
                   );
                 },

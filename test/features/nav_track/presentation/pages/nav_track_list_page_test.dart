@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,16 +10,23 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
+import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_match_service.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
+import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_list_page.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_shape_thumbnail.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/mock_providers.dart';
 
 /// Records `delete` calls instead of touching a real database.
@@ -90,6 +99,58 @@ NavTrack _route({
   createdAt: DateTime(2026, 8, 22),
   updatedAt: DateTime(2026, 8, 22),
 );
+
+/// Parses nothing: hands back a fixed preview, so the import button's flow
+/// can be followed past the file picker without a real Seacraft ENC file.
+class _PreparedImportService implements NavTrackImportService {
+  int prepareCount = 0;
+
+  @override
+  Future<NavTrackImportPreview> prepare(
+    Uint8List bytes, {
+    String? fileName,
+  }) async {
+    prepareCount++;
+    const points = [
+      NavTrackPoint(
+        timestamp: 1755856800,
+        north: 0,
+        east: 0,
+        depth: 5,
+        distance: 0,
+        speed: 0.3,
+      ),
+      NavTrackPoint(
+        timestamp: 1755857400,
+        north: 40,
+        east: 0,
+        depth: 5,
+        distance: 40,
+        speed: 0.3,
+      ),
+    ];
+    return NavTrackImportPreview(
+      parsed: const ParsedNavTrack(points: points),
+      stats: NavTrackStats.of(points),
+      segmentation: NavTrackSegmenter.classify(points),
+      candidateDives: const [],
+      duplicateOfRouteId: null,
+      sourceRef: fileName ?? '',
+    );
+  }
+
+  @override
+  Future<String> commit({
+    required ParsedNavTrack parsed,
+    required String sourceRef,
+    Dive? dive,
+    String? siteId,
+    String? name,
+    String? deviceName,
+    String? equipmentId,
+    String? replacingRouteId,
+  }) async => throw UnimplementedError();
+}
 
 Future<_RecordingNavTrackRepository> _pump(
   WidgetTester tester, {
@@ -460,4 +521,40 @@ void main() {
       },
     );
   });
+
+  testWidgets(
+    'importing a file opens the review page with the preview it already '
+    'parsed, through the shared review entry point',
+    (tester) async {
+      final original = FilePickerPlatform.instance;
+      addTearDown(() => FilePickerPlatform.instance = original);
+      FilePickerPlatform.instance = MockFilePickerPlatform()
+        ..pickFilesResult = [
+          FakePlatformFile.contentUri(
+            Uri.parse('content://picked/005.DAT.csv'),
+            name: '005.DAT.csv',
+            bytes: Uint8List.fromList([1]),
+          ),
+        ];
+      final service = _PreparedImportService();
+      await _pump(
+        tester,
+        routes: const [],
+        extraOverrides: [
+          navTrackImportServiceProvider.overrideWithValue(service),
+        ],
+      );
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-import')));
+      await tester.pumpAndSettle();
+
+      final review = tester.widget<NavTrackImportReviewPage>(
+        find.byType(NavTrackImportReviewPage),
+      );
+      expect(review.fileName, '005.DAT.csv');
+      expect(review.preview, isNotNull);
+      // Parsed once by the list page; the review page reuses that preview.
+      expect(service.prepareCount, 1);
+    },
+  );
 }
