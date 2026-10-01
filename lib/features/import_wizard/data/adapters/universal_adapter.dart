@@ -1830,7 +1830,7 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// Adds to a matched dive the computers its re-imported copy carries and it
   /// lacks, for a dive imported before the importer kept every computer
   /// (issue #2672). [performConsolidations] asks this before folding.
-  Future<bool> Function(int index, String targetDiveId)
+  Future<MatchAttachment> Function(int index, String targetDiveId)
   _missingComputerAttacherFor(
     ImportPayload payload,
     UniversalImportState notifierState,
@@ -1843,9 +1843,13 @@ class UniversalAdapter implements ImportSourceAdapter {
       db: DatabaseService.instance.database,
     );
     return (index, targetDiveId) async {
-      if (index < 0 || index >= dives.length) return false;
+      if (index < 0 || index >= dives.length) {
+        return MatchAttachment.notApplicable;
+      }
       final dive = dives[index];
-      if (AdditionalComputerWriter.entriesOf(dive).isEmpty) return false;
+      if (AdditionalComputerWriter.entriesOf(dive).isEmpty) {
+        return MatchAttachment.notApplicable;
+      }
       // A batch stamps each dive with the file it came from.
       final file = filesById[dive['_sourceFileId']];
       final format =

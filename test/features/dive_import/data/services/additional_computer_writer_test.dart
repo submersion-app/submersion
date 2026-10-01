@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_import/data/services/additional_computer_writer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 
@@ -21,6 +20,8 @@ class _FailingForModel implements DiveRepository {
   Future<void> saveAdditionalComputerReading({
     required DiveDataSourcesCompanion reading,
     required List<DiveProfilePoint> profile,
+    Map<String, List<({int timestamp, double pressure})>> tankPressures =
+        const {},
     List<ProfileEvent> events = const [],
   }) async {
     if (reading.computerModel.value == model) {
@@ -29,6 +30,7 @@ class _FailingForModel implements DiveRepository {
     return _real.saveAdditionalComputerReading(
       reading: reading,
       profile: profile,
+      tankPressures: tankPressures,
       events: events,
     );
   }
@@ -71,7 +73,6 @@ void main() {
     // the rest of the logbook import. A further computer is best-effort.
     await AdditionalComputerWriter(
       diveRepository: _FailingForModel('Shearwater Teric'),
-      tankPressureRepository: TankPressureRepository(),
     ).write(
       computers: [computer('Shearwater Teric'), computer('Suunto D5')],
       diveId: 'dive-1',

@@ -123,13 +123,11 @@ class TankPressureRepository {
   /// and stamps it with an hlc, so no separate per-sample sync bookkeeping is
   /// needed here.
   /// [sourceId] names the data source the readings came from (issue #2440);
-  /// null when it is not known yet. [computerId] names the computer that
-  /// logged them; null for the dive's primary recording.
+  /// null when it is not known yet.
   Future<void> insertTankPressures(
     String diveId,
     Map<String, List<({int timestamp, double pressure})>> pressuresByTank, {
     String? sourceId,
-    String? computerId,
   }) async {
     if (pressuresByTank.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -146,7 +144,6 @@ class TankPressureRepository {
         await _tankSeries.insertSeries(
           diveId: diveId,
           tankId: entry.key,
-          computerId: computerId,
           sourceId: sourceId,
           samples: [
             for (final point in entry.value)

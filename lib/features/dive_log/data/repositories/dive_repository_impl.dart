@@ -20,6 +20,8 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample_point.dart';
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
+    show TankPressureSample;
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -7415,7 +7417,11 @@ class DiveRepository {
 
   /// Insert a further computer's recording of a dive whose primary source
   /// already exists: the non-primary [reading], its [profile] as a series
-  /// owned by that row, and its [events] (issue #2672).
+  /// owned by that row, its [tankPressures] (keyed by tank id) and its
+  /// [events] (issue #2672).
+  ///
+  /// All of it in one transaction. A source left without its pressures would
+  /// read as present to the next resync, which would then never retry them.
   ///
   /// Unlike [saveComputerReading] this adopts nothing. The dive's
   /// unattributed series belong to its primary source; these samples arrive
@@ -7424,8 +7430,13 @@ class DiveRepository {
   Future<void> saveAdditionalComputerReading({
     required DiveDataSourcesCompanion reading,
     required List<domain.DiveProfilePoint> profile,
+    Map<String, List<({int timestamp, double pressure})>> tankPressures =
+        const {},
     List<ProfileEvent> events = const [],
   }) async {
+    final computerId = reading.computerId.present
+        ? reading.computerId.value
+        : null;
     try {
       await _db.transaction(() async {
         await _db
@@ -7442,13 +7453,27 @@ class DiveRepository {
         if (profile.isNotEmpty) {
           await _profileSeries.insertSeries(
             diveId: reading.diveId.value,
-            computerId: reading.computerId.present
-                ? reading.computerId.value
-                : null,
+            computerId: computerId,
             sourceId: reading.id.value,
             isPrimary: false,
             samples: [
               for (final point in profile) profileSampleFromPoint(point),
+            ],
+          );
+        }
+        for (final entry in tankPressures.entries) {
+          if (entry.value.isEmpty) continue;
+          await _tankSeries.insertSeries(
+            diveId: reading.diveId.value,
+            tankId: entry.key,
+            computerId: computerId,
+            sourceId: reading.id.value,
+            samples: [
+              for (final point in entry.value)
+                TankPressureSample(
+                  timestamp: point.timestamp,
+                  pressure: point.pressure,
+                ),
             ],
           );
         }

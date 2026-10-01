@@ -2366,7 +2366,6 @@ class UddfEntityImporter {
     final altitudeEnricher = DiveAltitudeEnricher();
     final additionalComputers = AdditionalComputerWriter(
       diveRepository: repos.diveRepository,
-      tankPressureRepository: repos.tankPressureRepository,
     );
 
     // Register the computers this batch names, once per distinct device,

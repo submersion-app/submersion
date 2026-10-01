@@ -5,7 +5,21 @@ import 'package:submersion/features/dive_import/data/services/additional_compute
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+
+/// What [MissingComputerAttacher.attachToMatch] did with a matched dive.
+enum MatchAttachment {
+  /// The match does not record the incoming dive's first computer, or the
+  /// incoming dive carries no further ones: a normal consolidation's case.
+  notApplicable,
+
+  /// Every computer the match lacked was added. The incoming copy has
+  /// nothing left to contribute.
+  attached,
+
+  /// At least one computer the match lacked could not be written, so the
+  /// incoming copy holds the only copy of it and must be kept.
+  incomplete,
+}
 
 /// Adds to a stored dive the further computers a fresh parse of its file
 /// carries and the dive does not have yet (issue #2672).
@@ -19,13 +33,10 @@ class MissingComputerAttacher {
   MissingComputerAttacher({
     required AppDatabase db,
     DiveRepository? diveRepository,
-    TankPressureRepository? tankPressureRepository,
     DiveComputerRepository? diveComputerRepository,
   }) : _db = db,
        _writer = AdditionalComputerWriter(
          diveRepository: diveRepository ?? DiveRepository(),
-         tankPressureRepository:
-             tankPressureRepository ?? TankPressureRepository(database: db),
        ),
        _computers = diveComputerRepository ?? DiveComputerRepository();
 
@@ -47,13 +58,30 @@ class MissingComputerAttacher {
     required String? sourceFileName,
     required String sourceFileFormat,
     DateTime? now,
+  }) async => (await _attach(
+    diveId: diveId,
+    diveData: diveData,
+    sourceFileName: sourceFileName,
+    sourceFileFormat: sourceFileFormat,
+    now: now,
+  )).written;
+
+  /// [attach], also reporting how many computers the dive lacked: the writer
+  /// skips one it cannot write, so the two can differ.
+  Future<({int missing, int written})> _attach({
+    required String diveId,
+    required Map<String, dynamic> diveData,
+    required String? sourceFileName,
+    required String sourceFileFormat,
+    DateTime? now,
   }) async {
-    if (AdditionalComputerWriter.entriesOf(diveData).isEmpty) return 0;
+    const nothing = (missing: 0, written: 0);
+    if (AdditionalComputerWriter.entriesOf(diveData).isEmpty) return nothing;
 
     final dive = await (_db.select(
       _db.dives,
     )..where((t) => t.id.equals(diveId))).getSingleOrNull();
-    if (dive == null) return 0;
+    if (dive == null) return nothing;
 
     final sources = await (_db.select(
       _db.diveDataSources,
@@ -62,7 +90,7 @@ class MissingComputerAttacher {
       for (final s in sources)
         UddfEntityImporter.computerKeyFor(s.computerModel, s.computerSerial),
     ]);
-    if (missing.isEmpty) return 0;
+    if (missing.isEmpty) return nothing;
 
     final tanks =
         await (_db.select(_db.diveTanks)
@@ -102,7 +130,7 @@ class MissingComputerAttacher {
         ? 0
         : parsedStart.difference(diveStart).inSeconds;
 
-    return _writer.write(
+    final written = await _writer.write(
       computers: [
         for (final entry in missing)
           {
@@ -123,28 +151,31 @@ class MissingComputerAttacher {
       now: now ?? DateTime.now(),
       onSkippedEvent: _log.warning,
     );
+    return (missing: missing.length, written: written);
   }
 
   /// The re-import of a dive imported before the importer kept every
   /// computer, matched to that older copy and flagged Consolidate.
   ///
   /// When [targetDiveId] already records [diveData]'s first computer and the
-  /// parse carries further ones, adds those the dive lacks and returns true:
-  /// the incoming dive has nothing else to contribute, and a fold would be
-  /// refused for sharing that computer. Returns false, writing nothing, for
-  /// any other pairing, which a normal consolidation handles.
-  Future<bool> attachToMatch({
+  /// parse carries further ones, adds those the dive lacks: a fold would be
+  /// refused for sharing that computer. [MatchAttachment.incomplete] when one
+  /// of them could not be written. Any other pairing writes nothing and is
+  /// [MatchAttachment.notApplicable], for a normal consolidation to handle.
+  Future<MatchAttachment> attachToMatch({
     required String targetDiveId,
     required Map<String, dynamic> diveData,
     required String? sourceFileName,
     required String sourceFileFormat,
   }) async {
-    if (AdditionalComputerWriter.entriesOf(diveData).isEmpty) return false;
+    if (AdditionalComputerWriter.entriesOf(diveData).isEmpty) {
+      return MatchAttachment.notApplicable;
+    }
     final firstKey = UddfEntityImporter.computerKeyFor(
       diveData['diveComputerModel'] as String?,
       diveData['diveComputerSerial'] as String?,
     );
-    if (firstKey == null) return false;
+    if (firstKey == null) return MatchAttachment.notApplicable;
     final sources = await (_db.select(
       _db.diveDataSources,
     )..where((t) => t.diveId.equals(targetDiveId))).get();
@@ -156,14 +187,16 @@ class MissingComputerAttacher {
           ) ==
           firstKey,
     );
-    if (!recordsFirst) return false;
-    await attach(
+    if (!recordsFirst) return MatchAttachment.notApplicable;
+    final result = await _attach(
       diveId: targetDiveId,
       diveData: diveData,
       sourceFileName: sourceFileName,
       sourceFileFormat: sourceFileFormat,
     );
-    return true;
+    return result.written == result.missing
+        ? MatchAttachment.attached
+        : MatchAttachment.incomplete;
   }
 
   /// The further computers of [diveData] that [presentKeys] (the identity of

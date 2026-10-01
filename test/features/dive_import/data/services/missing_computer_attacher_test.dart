@@ -7,6 +7,8 @@ import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/features/dive_import/data/services/missing_computer_attacher.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 
@@ -168,8 +170,12 @@ $computers
   });
 
   group('attachToMatch', () {
-    Future<bool> attachToMatch(String diveId, Map<String, dynamic> dive) =>
-        MissingComputerAttacher(db: db).attachToMatch(
+    Future<MatchAttachment> attachToMatch(
+      String diveId,
+      Map<String, dynamic> dive, {
+      DiveRepository? diveRepository,
+    }) => MissingComputerAttacher(db: db, diveRepository: diveRepository)
+        .attachToMatch(
           targetDiveId: diveId,
           diveData: dive,
           sourceFileName: 'log.ssrf',
@@ -180,7 +186,7 @@ $computers
       final dive = await parse(perdixAndTeric);
       final diveId = await importTheOldWay(dive);
 
-      expect(await attachToMatch(diveId, dive), isTrue);
+      expect(await attachToMatch(diveId, dive), MatchAttachment.attached);
       expect(await sourcesOf(diveId), hasLength(2));
     });
 
@@ -190,7 +196,24 @@ $computers
       final diveId = await importTheOldWay(other);
       final dive = await parse(perdixAndTeric);
 
-      expect(await attachToMatch(diveId, dive), isFalse);
+      expect(await attachToMatch(diveId, dive), MatchAttachment.notApplicable);
+      expect(await sourcesOf(diveId), hasLength(1));
+    });
+
+    test('a computer that could not be written is incomplete', () async {
+      // The incoming copy then holds the only copy of that computer, so the
+      // caller must keep it rather than delete it as consolidated.
+      final dive = await parse(perdixAndTeric);
+      final diveId = await importTheOldWay(dive);
+
+      expect(
+        await attachToMatch(
+          diveId,
+          dive,
+          diveRepository: _FailingAdditionalComputers(),
+        ),
+        MatchAttachment.incomplete,
+      );
       expect(await sourcesOf(diveId), hasLength(1));
     });
 
@@ -200,7 +223,7 @@ $computers
       );
       final diveId = await importTheOldWay(dive);
 
-      expect(await attachToMatch(diveId, dive), isFalse);
+      expect(await attachToMatch(diveId, dive), MatchAttachment.notApplicable);
     });
   });
 
@@ -213,4 +236,19 @@ $computers
     expect(await attach(diveId, dive), 0);
     expect(await sourcesOf(diveId), hasLength(1));
   });
+}
+
+/// Refuses every further computer, as a database error would.
+class _FailingAdditionalComputers implements DiveRepository {
+  @override
+  Future<void> saveAdditionalComputerReading({
+    required DiveDataSourcesCompanion reading,
+    required List<DiveProfilePoint> profile,
+    Map<String, List<({int timestamp, double pressure})>> tankPressures =
+        const {},
+    List<ProfileEvent> events = const [],
+  }) async => throw StateError('unwritable');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

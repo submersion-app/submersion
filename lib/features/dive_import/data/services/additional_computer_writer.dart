@@ -6,7 +6,6 @@ import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:uuid/uuid.dart';
 
 /// Writes the further computers a parsed dive carries under
@@ -18,14 +17,10 @@ import 'package:uuid/uuid.dart';
 /// does. The dive itself, and its primary source, come from the first
 /// computer; this runs after that primary source exists.
 class AdditionalComputerWriter {
-  AdditionalComputerWriter({
-    required DiveRepository diveRepository,
-    required TankPressureRepository tankPressureRepository,
-  }) : _dives = diveRepository,
-       _tankPressures = tankPressureRepository;
+  AdditionalComputerWriter({required DiveRepository diveRepository})
+    : _dives = diveRepository;
 
   final DiveRepository _dives;
-  final TankPressureRepository _tankPressures;
   static const _uuid = Uuid();
   static const _log = LoggerService('AdditionalComputerWriter');
 
@@ -147,6 +142,11 @@ class AdditionalComputerWriter {
         for (final p in profileData)
           profilePointFromImport(p, offsetSeconds: offset),
       ],
+      tankPressures: tankPressuresFromImport(
+        profileData,
+        tankIds,
+        offsetSeconds: offset,
+      ),
       events: [
         for (final event in profileEventsFromParsed(
           diveId: diveId,
@@ -160,19 +160,5 @@ class AdditionalComputerWriter {
           ),
       ],
     );
-
-    final pressures = tankPressuresFromImport(
-      profileData,
-      tankIds,
-      offsetSeconds: offset,
-    );
-    if (pressures.isNotEmpty) {
-      await _tankPressures.insertTankPressures(
-        diveId,
-        pressures,
-        sourceId: sourceId,
-        computerId: computerId,
-      );
-    }
   }
 }

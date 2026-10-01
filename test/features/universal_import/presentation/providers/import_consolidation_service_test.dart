@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:submersion/features/dive_import/data/services/missing_computer_attacher.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
@@ -417,7 +418,7 @@ void main() {
         diveRepository: mockDiveRepository,
         attachMissingComputers: (index, targetDiveId) async {
           attached.add((index, targetDiveId));
-          return true;
+          return MatchAttachment.attached;
         },
       );
 
@@ -440,7 +441,7 @@ void main() {
         duplicateResult: matches,
         consolidationService: mockConsolidationService,
         diveRepository: mockDiveRepository,
-        attachMissingComputers: (_, _) async => false,
+        attachMissingComputers: (_, _) async => MatchAttachment.notApplicable,
       );
 
       expect(summary.consolidated, 1);
@@ -450,6 +451,29 @@ void main() {
           secondaryDiveIds: ['new-dive-1'],
         ),
       ).called(1);
+    });
+
+    test('an incomplete attach keeps the copy and skips the fold', () async {
+      // A computer the match still lacks exists only in that copy.
+      final summary = await performConsolidations(
+        indices: {0},
+        diveIdByIndex: {0: 'new-dive-1'},
+        duplicateResult: matches,
+        consolidationService: mockConsolidationService,
+        diveRepository: mockDiveRepository,
+        attachMissingComputers: (_, _) async => MatchAttachment.incomplete,
+      );
+
+      expect(summary.consolidated, 0);
+      expect(summary.keptStandalone, 1);
+      expect(summary.removedDiveIds, isEmpty);
+      verifyNever(mockDiveRepository.bulkDeleteDives(any));
+      verifyNever(
+        mockConsolidationService.apply(
+          targetDiveId: anyNamed('targetDiveId'),
+          secondaryDiveIds: anyNamed('secondaryDiveIds'),
+        ),
+      );
     });
 
     test('a failed attach is counted and its copy removed', () async {

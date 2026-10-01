@@ -4,6 +4,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 
@@ -90,6 +91,52 @@ void main() {
       ),
       hasLength(1),
     );
+  });
+
+  test('writes its tank pressures owned by the same source', () async {
+    await db
+        .into(db.diveTanks)
+        .insert(
+          const DiveTanksCompanion(
+            id: Value('tank-1'),
+            diveId: Value('dive-1'),
+          ),
+        );
+
+    await repository.saveAdditionalComputerReading(
+      reading: reading('src-teric'),
+      profile: profile,
+      tankPressures: {
+        'tank-1': [
+          (timestamp: 0, pressure: 201.0),
+          (timestamp: 2400, pressure: 61.0),
+        ],
+      },
+    );
+
+    final series = await TankPressureSeriesRepository().getSeriesForDive(
+      'dive-1',
+    );
+    expect(series.single.tankId, 'tank-1');
+    expect(series.single.sourceId, 'src-teric');
+  });
+
+  test('a failed pressure write takes the whole computer with it', () async {
+    // A resync would see a source left behind as present and never retry
+    // its pressures, so the row and its profile must not outlive them.
+    await expectLater(
+      repository.saveAdditionalComputerReading(
+        reading: reading('src-teric'),
+        profile: profile,
+        tankPressures: {
+          'no-such-tank': [(timestamp: 0, pressure: 201.0)],
+        },
+      ),
+      throwsA(anything),
+    );
+
+    expect(await db.select(db.diveDataSources).get(), isEmpty);
+    expect(await ProfileSeriesRepository().getSeriesForDive('dive-1'), isEmpty);
   });
 
   test('a failed write leaves nothing of that computer behind', () async {
