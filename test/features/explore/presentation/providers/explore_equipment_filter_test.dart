@@ -81,6 +81,20 @@ void main() {
     expect(f.query, AndNode([regulators, two]));
   });
 
+  // The default view also pins the legacy active flag, so a query on it
+  // contradicts that view the same way.
+  test('a query on the active flag reads every status', () {
+    final inactive = ConditionNode(
+      FieldPath(const ['active']),
+      QueryOp.eq,
+      const BoolValue(false),
+    );
+    final f = exploreEquipmentFilter(AndNode([regulators, inactive]));
+    expect(f.status, isNull);
+    expect(f.allStatuses, isTrue);
+    expect(f.query, AndNode([regulators, inactive]));
+  });
+
   test('a status inside an Or reads every status', () {
     final either = OrNode([status('retired'), regulators]);
     final f = exploreEquipmentFilter(either);
