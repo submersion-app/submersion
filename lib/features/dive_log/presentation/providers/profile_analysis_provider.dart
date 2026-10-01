@@ -425,6 +425,21 @@ ProfileAnalysisService _resolveAnalysisService(
   );
 }
 
+/// The NDL the calculated curve holds while in deco (see
+/// [BuhlmannAlgorithm.calculateNdl]); the chart, tooltip and safety review
+/// all read a negative NDL as a deco obligation.
+const int _ndlInDeco = -1;
+
+/// Whether the computer reported a deco or deep stop at [point].
+///
+/// Computers report a no-stop time only while out of deco; at a stop the
+/// sample carries the stop instead, so its stored NDL is null. Such a sample
+/// is in deco by the computer's own model, which may disagree with the
+/// calculated one (VPM, RGBM, other gradient factors), so it must not fall
+/// back to the calculated NDL (#2551). A safety stop is not deco.
+bool _isComputerDecoSample(DiveProfilePoint point) =>
+    point.decoType == 2 || point.decoType == 3;
+
 /// Overlays computer-reported decompression data onto a calculated
 /// [ProfileAnalysis].
 ///
@@ -432,7 +447,8 @@ ProfileAnalysisService _resolveAnalysisService(
 /// controlled by its own [MetricDataSource] parameter. When a source is
 /// [MetricDataSource.computer] and computer data exists in the profile,
 /// those values take priority over the Buhlmann-calculated values. Points
-/// without computer data fall back to the calculated values.
+/// without computer data fall back to the calculated values, except that a
+/// computer NDL sample at a deco or deep stop reads as in deco.
 ///
 /// The deco stop band ([decoStopSource]) resolves against the incoming
 /// (calculated) [ProfileAnalysis.decoStopCurve] rather than against the
@@ -528,7 +544,11 @@ ProfileAnalysisService _resolveAnalysisService(
             profile.length,
             (i) =>
                 profile[i].ndl ??
-                (i < analysis.ndlCurve.length ? analysis.ndlCurve[i] : 0),
+                (_isComputerDecoSample(profile[i])
+                    ? _ndlInDeco
+                    : (i < analysis.ndlCurve.length
+                          ? analysis.ndlCurve[i]
+                          : 0)),
           )
         : null,
     ceilingCurve: useCeiling
