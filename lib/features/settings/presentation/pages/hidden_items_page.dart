@@ -106,12 +106,16 @@ class _HiddenRow extends ConsumerWidget {
       ].join(' · '),
     ),
     trailing: TextButton(
-      onPressed: () => switch (item.kind) {
-        SharedItemKind.trip =>
-          ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
-        SharedItemKind.site =>
-          ref.read(siteListNotifierProvider.notifier).unhideSites([item.id]),
-      },
+      onPressed: () => runHideChange(
+        ScaffoldMessenger.of(context),
+        context.l10n,
+        () => switch (item.kind) {
+          SharedItemKind.trip =>
+            ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
+          SharedItemKind.site =>
+            ref.read(siteListNotifierProvider.notifier).unhideSites([item.id]),
+        },
+      ),
       child: Text(context.l10n.settings_hiddenItems_unhide),
     ),
   );

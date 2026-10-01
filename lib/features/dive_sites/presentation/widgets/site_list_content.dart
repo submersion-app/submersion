@@ -448,16 +448,30 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       final deleted = deleteCount > 0
           ? await notifier.bulkDeleteSites(destroyIds)
           : null;
-      final hidden = hideCount > 0 ? await notifier.hideSites(hideIds) : 0;
+      // Null when the hide failed: the summary says so beside the deletes.
+      final hidden = hideCount > 0
+          ? await tryHideChange(() => notifier.hideSites(hideIds))
+          : 0;
 
       _deletedSites = deleted;
-      _hiddenSiteIds = hideIds;
+      // A failed hide hid nothing for Undo to show again.
+      _hiddenSiteIds = hidden == null ? const [] : hideIds;
 
       final summary = [
         if (deleted != null && deleted.sites.isNotEmpty)
           l10n.diveSites_list_bulkDelete_snackbar(deleted.sites.length),
-        if (hidden > 0) l10n.sharedItems_bulkHiddenSnackbar(hidden),
+        if (hidden case final n? when n > 0)
+          l10n.sharedItems_bulkHiddenSnackbar(n),
+        if (hidden == null) l10n.common_error_tryAgain,
       ];
+      // Only a failed hide to report: nothing for Undo to take back.
+      if (mounted && summary.length == 1 && hidden == null) {
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text(l10n.common_error_tryAgain)),
+        );
+        return BulkActionOutcome.completed;
+      }
       // Nothing done (every action refused): no empty snackbar.
       if (mounted && summary.isNotEmpty) {
         scaffoldMessenger.clearSnackBars();
@@ -477,12 +491,17 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                     links: toRestore.links,
                   );
                 }
-                if (toUnhide.isNotEmpty) {
-                  await notifier.unhideSites(toUnhide);
-                }
+                final unhidden =
+                    toUnhide.isEmpty ||
+                    await runHideChange(scaffoldMessenger, l10n, () async {
+                          await notifier.unhideSites(toUnhide);
+                          return true;
+                        }) ==
+                        true;
                 _deletedSites = null;
                 _hiddenSiteIds = const [];
-                if (mounted) {
+                // A failed unhide has said so: not everything is back.
+                if (unhidden && mounted) {
                   scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text(l10n.diveSites_list_bulkDelete_restored),

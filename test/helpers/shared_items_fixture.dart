@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 
 /// Rows for the shared trip and site tests (issue #2594): profiles, trips
 /// and sites with an owner and a share flag, dives linked to them, and the
@@ -110,3 +112,27 @@ Future<int> tombstoneCount(AppDatabase db, String entityType) async =>
             )
             .getSingle())
         .read<int>('n');
+
+/// The real hides repository, whose hide or unhide can be made to throw as
+/// a database error does (issue #2677).
+class FailingProfileHides extends ProfileHidesRepository {
+  bool failHide = false;
+  bool failUnhide = false;
+
+  // [hide] writes through [hideAll], so failing here fails both.
+  @override
+  Future<int> hideAll(
+    SharedItemKind kind,
+    List<String> ids,
+    String diverId,
+  ) async {
+    if (failHide) throw StateError('database unavailable');
+    return super.hideAll(kind, ids, diverId);
+  }
+
+  @override
+  Future<void> unhide(SharedItemKind kind, String id, String diverId) async {
+    if (failUnhide) throw StateError('database unavailable');
+    return super.unhide(kind, id, diverId);
+  }
+}

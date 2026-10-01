@@ -69,6 +69,47 @@ Future<({String? activeDiverId, int diverCount})> readSharingContext(
   return (activeDiverId: activeDiverId, diverCount: diverCount);
 }
 
+/// Runs [change], a hide or unhide of a shared trip or site, and gives its
+/// result, or null when it failed (issue #2677). A failure is logged and
+/// otherwise left to the caller, as a bulk action does when it joins it
+/// into its own summary.
+Future<T?> tryHideChange<T>(Future<T> Function() change) async {
+  try {
+    return await change();
+  } catch (e, stackTrace) {
+    _logHideChangeFailed(e, stackTrace);
+    return null;
+  }
+}
+
+/// [tryHideChange], telling the diver through [messenger] to try again
+/// when it fails, so the caller only leaves the page as it was. The
+/// messenger, read before any await, still reaches the diver after the
+/// page that offered the change has closed, as it has for an Undo.
+Future<T?> runHideChange<T>(
+  ScaffoldMessengerState messenger,
+  AppLocalizations l10n,
+  Future<T> Function() change,
+) async {
+  try {
+    return await change();
+  } catch (e, stackTrace) {
+    _logHideChangeFailed(e, stackTrace);
+    if (messenger.mounted) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.common_error_tryAgain)),
+      );
+    }
+    return null;
+  }
+}
+
+void _logHideChangeFailed(Object error, StackTrace stackTrace) => _log.warning(
+  'Could not hide or unhide a shared item',
+  error: error,
+  stackTrace: stackTrace,
+);
+
 /// The owning profile's name, or a neutral fallback for a profile that is
 /// gone or unknown (issue #2594).
 String sharedItemOwnerName(
@@ -137,7 +178,9 @@ List<String> bulkDeleteLines(
 /// The whole "Remove from my profile" flow for another profile's shared
 /// trip or site (issue #2594): count the profile's own linked dives,
 /// confirm, [hide], then [onRemoved] (close the page) and a snackbar whose
-/// Undo calls [unhide]. Nothing happens past a refused [hide].
+/// Undo calls [unhide]. Nothing happens past a refused [hide]; a failed
+/// [hide] or [unhide] says to try again and leaves the page as it was
+/// (issue #2677).
 Future<void> removeSharedItemFromProfile(
   BuildContext context,
   WidgetRef ref, {
@@ -161,13 +204,16 @@ Future<void> removeSharedItemFromProfile(
   if (!confirmed || !context.mounted) return;
   final messenger = ScaffoldMessenger.of(context);
   final l10n = context.l10n;
-  if (!await hide()) return;
+  if (await runHideChange(messenger, l10n, hide) != true) return;
   if (!context.mounted) return;
   onRemoved();
   messenger.showSnackBar(
     SnackBar(
       content: Text(l10n.sharedItems_removedSnackbar),
-      action: SnackBarAction(label: l10n.sharedItems_undo, onPressed: unhide),
+      action: SnackBarAction(
+        label: l10n.sharedItems_undo,
+        onPressed: () => runHideChange(messenger, l10n, unhide),
+      ),
     ),
   );
 }

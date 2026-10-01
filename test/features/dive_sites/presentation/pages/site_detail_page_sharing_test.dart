@@ -36,6 +36,7 @@ void main() {
   Future<(_RecordingSiteListNotifier, List<String>)> pump(
     WidgetTester tester, {
     required String active,
+    bool failHides = false,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(390, 844);
@@ -43,7 +44,7 @@ void main() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
     });
-    final notifier = _RecordingSiteListNotifier();
+    final notifier = _RecordingSiteListNotifier()..failHides = failHides;
     final closed = <String>[];
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
@@ -100,6 +101,44 @@ void main() {
     expect(find.text('Removed from your profile'), findsOneWidget);
   });
 
+  testWidgets('a failed remove stays on the page and says to try again', (
+    tester,
+  ) async {
+    final (_, closed) = await pump(tester, active: 'd2', failHides: true);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove from my profile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    expect(closed, isEmpty);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Removed from your profile'), findsNothing);
+    expect(find.text('Shared by Alice'), findsOneWidget);
+  });
+
+  testWidgets('a failed Undo says to try again', (tester) async {
+    final (notifier, _) = await pump(tester, active: 'd2');
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove from my profile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    notifier.failHides = true;
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('the owner deletes it, warned about other profiles\' dives', (
     tester,
   ) async {
@@ -137,8 +176,12 @@ class _RecordingSiteListNotifier
   final hidden = <String>[];
   final deleted = <String>[];
 
+  /// A hide or unhide throws, as a database error does (issue #2677).
+  bool failHides = false;
+
   @override
   Future<int> hideSites(List<String> ids) async {
+    if (failHides) throw StateError('database unavailable');
     hidden.addAll(ids);
     return ids.length;
   }
@@ -150,7 +193,9 @@ class _RecordingSiteListNotifier
   }
 
   @override
-  Future<void> unhideSites(List<String> ids) async {}
+  Future<void> unhideSites(List<String> ids) async {
+    if (failHides) throw StateError('database unavailable');
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

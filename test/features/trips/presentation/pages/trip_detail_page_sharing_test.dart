@@ -43,6 +43,7 @@ void main() {
     WidgetTester tester, {
     required String active,
     bool allowed = true,
+    bool failHides = false,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(390, 844);
@@ -50,7 +51,10 @@ void main() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
     });
-    final notifier = _RecordingTripListNotifier(allowed: allowed);
+    final notifier = _RecordingTripListNotifier(
+      allowed: allowed,
+      failHides: failHides,
+    );
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -139,6 +143,44 @@ void main() {
     expect(find.text('Shared by Alice'), findsOneWidget);
   });
 
+  testWidgets('a failed remove stays on the page and says to try again', (
+    tester,
+  ) async {
+    await pump(tester, active: 'd2', failHides: true);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove from my profile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Removed from your profile'), findsNothing);
+    expect(find.text('Shared by Alice'), findsOneWidget);
+    expect(find.text('home'), findsNothing);
+  });
+
+  testWidgets('a failed Undo says to try again', (tester) async {
+    final notifier = await pump(tester, active: 'd2');
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove from my profile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    notifier.failHides = true;
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('an owner whose trip changed hands meanwhile is refused', (
     tester,
   ) async {
@@ -187,17 +229,21 @@ class _FakeHides extends Fake implements ProfileHidesRepository {
 class _RecordingTripListNotifier
     extends StateNotifier<AsyncValue<List<TripWithStats>>>
     implements TripListNotifier {
-  _RecordingTripListNotifier({this.allowed = true})
+  _RecordingTripListNotifier({this.allowed = true, this.failHides = false})
     : super(const AsyncValue.data([]));
 
   /// What the repository answers: false when it refuses the action.
   final bool allowed;
+
+  /// A hide or unhide throws, as a database error does (issue #2677).
+  bool failHides;
   final hidden = <String>[];
   final deleted = <String>[];
   final unhidden = <String>[];
 
   @override
   Future<bool> hideTrip(String id) async {
+    if (failHides) throw StateError('database unavailable');
     hidden.add(id);
     return allowed;
   }
@@ -209,7 +255,10 @@ class _RecordingTripListNotifier
   }
 
   @override
-  Future<void> unhideTrip(String id) async => unhidden.add(id);
+  Future<void> unhideTrip(String id) async {
+    if (failHides) throw StateError('database unavailable');
+    unhidden.add(id);
+  }
 
   @override
   Future<void> refresh() async {}

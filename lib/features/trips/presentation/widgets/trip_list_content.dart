@@ -382,14 +382,19 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     for (final trip in split.destroy) {
       if (await notifier.deleteTrip(trip.id)) deleted++;
     }
+    // Null when the hide failed: the summary says so beside the deletes.
     final hidden = split.hide.isEmpty
         ? 0
-        : await notifier.hideTrips([for (final t in split.hide) t.id]);
+        : await tryHideChange(
+            () => notifier.hideTrips([for (final t in split.hide) t.id]),
+          );
 
     if (!mounted) return BulkActionOutcome.completed;
     final summary = [
       if (deleted > 0) l10n.common_bulkDelete_snackbar(deleted),
-      if (hidden > 0) l10n.sharedItems_bulkHiddenSnackbar(hidden),
+      if (hidden case final n? when n > 0)
+        l10n.sharedItems_bulkHiddenSnackbar(n),
+      if (hidden == null) l10n.common_error_tryAgain,
     ];
     // Nothing done (every action refused): no empty snackbar.
     if (summary.isNotEmpty) {

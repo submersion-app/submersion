@@ -60,8 +60,12 @@ class _MockTripListNotifier
   /// Ids bulk delete hid instead (issue #2594), in one batch.
   final hidden = <String>[];
 
+  /// A hide throws, as a database error does (issue #2677).
+  bool failHides = false;
+
   @override
   Future<int> hideTrips(List<String> ids) async {
+    if (failHides) throw StateError('database unavailable');
     hidden.addAll(ids);
     return allowed ? ids.length : 0;
   }
@@ -335,6 +339,47 @@ void main() {
       await tester.pumpAndSettle();
       expect(notifier.hidden, ['theirs']);
       expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('a failed hide keeps the delete count and says to try again '
+        '(issue #2677)', (tester) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2', isShared: true),
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      notifier.failHides = true;
+      await tester.tap(find.text('Delete').hitTestable().last);
+      await tester.pumpAndSettle();
+      expect(notifier.deleted, ['mine']);
+      expect(
+        find.text('1 deleted · Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a failed hide alone says only to try again (issue #2677)', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      notifier.failHides = true;
+      await tester.tap(find.text('Remove').hitTestable().last);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('only another profile\'s shared trips: a remove, no delete', (

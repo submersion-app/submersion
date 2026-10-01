@@ -8,6 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -49,6 +50,7 @@ void main() {
     WidgetTester tester, {
     required String active,
     VoidCallback? onDeleted,
+    FailingProfileHides? hides,
   }) async {
     tester.view.physicalSize = const Size(900, 3200);
     tester.view.devicePixelRatio = 1.0;
@@ -60,6 +62,8 @@ void main() {
           allDiversProvider.overrideWith((_) async => divers),
           validatedCurrentDiverIdProvider.overrideWith((_) async => active),
           shareByDefaultProvider.overrideWith((_) async => false),
+          if (hides != null)
+            profileHidesRepositoryProvider.overrideWithValue(hides),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -153,6 +157,54 @@ void main() {
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
     expect(await db.select(db.siteHides).get(), isEmpty);
+  });
+
+  testWidgets('a failed remove stays on the page and says to try again', (
+    tester,
+  ) async {
+    var closed = 0;
+    await pump(
+      tester,
+      active: 'd2',
+      onDeleted: () => closed++,
+      hides: FailingProfileHides()..failHide = true,
+    );
+    await tester.tap(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    expect(closed, 0);
+    expect(await db.select(db.siteHides).get(), isEmpty);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Removed from your profile'), findsNothing);
+  });
+
+  testWidgets('a failed Undo keeps the hide and says to try again', (
+    tester,
+  ) async {
+    final hides = FailingProfileHides();
+    await pump(tester, active: 'd2', hides: hides);
+    await tester.tap(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    hides.failUnhide = true;
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(await db.select(db.siteHides).get(), hasLength(1));
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('an owner whose site changed hands meanwhile is refused', (

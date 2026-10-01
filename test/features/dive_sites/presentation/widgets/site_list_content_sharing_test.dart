@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -35,6 +36,7 @@ void main() {
   Future<List<List<String>>> pump(
     WidgetTester tester, {
     SiteRepository? repository,
+    FailingProfileHides? hides,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(500, 1200);
@@ -67,6 +69,8 @@ void main() {
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd2'),
           if (repository != null)
             siteRepositoryProvider.overrideWithValue(repository),
+          if (hides != null)
+            profileHidesRepositoryProvider.overrideWithValue(hides),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -132,6 +136,76 @@ void main() {
     await tester.pumpAndSettle();
     expect(await repository.getSiteById('mine'), isNotNull);
     expect(await db.select(db.siteHides).get(), isEmpty);
+  });
+
+  Future<void> confirmBulkDelete(
+    WidgetTester tester,
+    List<String> names,
+  ) async {
+    await select(tester, names);
+    await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('selection_delete')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(AlertDialog),
+            matching: find.byType(FilledButton),
+          )
+          .hitTestable(),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  group('a hide that fails (issue #2677)', () {
+    const tryAgain = 'Something went wrong. Please try again.';
+
+    testWidgets('keeps the delete and its Undo, and says to try again', (
+      tester,
+    ) async {
+      await seedSite(db, 'mine', owner: 'd2', shared: true, name: 'Alpha');
+      await seedSite(db, 'theirs', owner: 'd1', shared: true, name: 'Bravo');
+      await pump(tester, hides: FailingProfileHides()..failHide = true);
+      await confirmBulkDelete(tester, ['Alpha', 'Bravo']);
+
+      final repository = SiteRepository();
+      expect(await repository.getSiteById('mine'), isNull);
+      expect(await db.select(db.siteHides).get(), isEmpty);
+      expect(find.text('Deleted 1 site · $tryAgain'), findsOneWidget);
+
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(await repository.getSiteById('mine'), isNotNull);
+      expect(find.text('Sites restored'), findsOneWidget);
+    });
+
+    testWidgets('with nothing deleted says only to try again, with no Undo', (
+      tester,
+    ) async {
+      await seedSite(db, 'theirs', owner: 'd1', shared: true, name: 'Bravo');
+      await pump(tester, hides: FailingProfileHides()..failHide = true);
+      await confirmBulkDelete(tester, ['Bravo']);
+
+      expect(await db.select(db.siteHides).get(), isEmpty);
+      expect(find.text(tryAgain), findsOneWidget);
+      expect(find.text('Undo'), findsNothing);
+    });
+
+    testWidgets('in Undo keeps the hide and says to try again', (tester) async {
+      await seedSite(db, 'theirs', owner: 'd1', shared: true, name: 'Bravo');
+      final hides = FailingProfileHides();
+      await pump(tester, hides: hides);
+      await confirmBulkDelete(tester, ['Bravo']);
+      expect(await db.select(db.siteHides).get(), hasLength(1));
+
+      hides.failUnhide = true;
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(await db.select(db.siteHides).get(), hasLength(1));
+      expect(find.text(tryAgain), findsOneWidget);
+      expect(find.text('Sites restored'), findsNothing);
+    });
   });
 
   testWidgets('merge refuses two sites another profile owns', (tester) async {
