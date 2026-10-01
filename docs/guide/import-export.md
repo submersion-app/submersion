@@ -253,6 +253,14 @@ When duplicates are found:
 - **Replace** - Overwrite existing
 - **Import Anyway** - Create duplicates
 
+## Trips
+
+An imported dive the file puts in a trip keeps that trip. A dive the file
+puts in no trip (MacDive has no trips at all) joins your trip whose dates
+cover the day of the dive, so trips you made before importing fill up with
+their dives. Where trips overlap, the one that started last is used. A dive
+outside every trip stays without one.
+
 ## Export Tips
 
 ### Regular Backups

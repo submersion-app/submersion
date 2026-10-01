@@ -72,6 +72,7 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_for_dive_date.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -2439,6 +2440,10 @@ class UddfEntityImporter {
       return storedIdByKey[key];
     }
 
+    // The trips the diver can see, read on the first dive the file puts in
+    // no trip. Trips are imported before dives, so the file's own are here.
+    List<Trip>? diverTrips;
+
     for (final i in sortedSelected) {
       if (cancelToken?.isCancelled ?? false) break;
 
@@ -2556,6 +2561,13 @@ class UddfEntityImporter {
       }
 
       final dateTime = diveData['dateTime'] as DateTime? ?? now;
+      // A dive the file puts in no trip joins the diver's trip whose dates
+      // cover it (#2618). MacDive has no trips at all, so every trip the
+      // diver had made showed 0 dives after a MacDive import.
+      if (linkedTripId == null) {
+        diverTrips ??= await repos.tripRepository.getAllTrips(diverId: diverId);
+        linkedTripId = tripForDiveDate(dateTime, diverTrips)?.id;
+      }
       // CSV imports provide only 'duration' (used as bottomTime); fall back
       // to it for runtime so the total dive time is populated.
       final durationValue = diveData['duration'] as Duration?;

@@ -169,6 +169,13 @@ void main() {
       mockDiveRepo.getNextDiveNumber(diverId: anyNamed('diverId')),
     ).thenAnswer((_) async => 1);
 
+    // No trip exists yet, so a dive the file puts in no trip stays out of
+    // one. The importer consults this to place such a dive in the trip whose
+    // dates cover it (#2618).
+    when(
+      mockTripRepo.getAllTrips(diverId: anyNamed('diverId')),
+    ).thenAnswer((_) async => []);
+
     // Stub getAllSites for deselected-site resolution.
     when(
       mockSiteRepo.getAllSites(diverId: anyNamed('diverId')),
