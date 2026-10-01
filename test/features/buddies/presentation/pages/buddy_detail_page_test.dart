@@ -524,4 +524,75 @@ void main() {
       expect(find.byIcon(Icons.star_border), findsNothing);
     });
   });
+
+  group('BuddyDetailPage stat rows on a phone-width screen', () {
+    // A long favourite-site name took the row's width and squeezed the
+    // label onto several lines or overflowed the row, as the certification
+    // detail rows did (issue #2695).
+    const longSite = 'Blue Corner Wall and Drift, Palau Southern Reefs';
+
+    testWidgets('a long site name wraps while its label stays on one line', (
+      tester,
+    ) async {
+      final buddy = Buddy(
+        id: 'buddy-1',
+        name: 'Jane Doe',
+        notes: '',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(375, 812);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // The Shared Dives header still overflows under the wide test font, so
+      // the stat row's own layout is asserted by geometry below instead.
+      _ignoreOverflowErrors();
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            buddyByIdProvider(buddy.id).overrideWith((ref) async => buddy),
+            buddyStatsProvider(buddy.id).overrideWith(
+              (ref) async =>
+                  const BuddyStats(totalDives: 3, favoriteSite: longSite),
+            ),
+            diveIdsForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+            divesForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: BuddyDetailPage(buddyId: buddy.id),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // A single-line label in the same card is the height to match.
+      final oneLine = tester.getSize(find.text('Dives Together')).height;
+      final label = find.text('Favorite Site');
+      final value = find.text(longSite);
+
+      expect(tester.getSize(label).height, oneLine);
+      expect(tester.getSize(value).height, greaterThan(oneLine));
+      // The wrapped value keeps clear of the label rather than crowding it.
+      expect(
+        tester.getTopLeft(value).dx,
+        greaterThan(tester.getTopRight(label).dx),
+      );
+      // And it stays inside its card instead of running off the edge.
+      final card = find.ancestor(of: value, matching: find.byType(Card));
+      expect(
+        tester.getTopRight(value).dx,
+        lessThanOrEqualTo(tester.getTopRight(card).dx),
+      );
+    });
+  });
 }

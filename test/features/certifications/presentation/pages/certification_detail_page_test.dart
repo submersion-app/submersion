@@ -382,6 +382,81 @@ void main() {
     });
   });
 
+  group('detail rows on a phone-width screen', () {
+    // Issue #2695: a long certification name took the row's width and
+    // squeezed the Type label onto several lines (or overflowed the row).
+    const longName = 'CCR Normoxic Plus 70m MOD2';
+
+    Future<void> pumpOnPhone(WidgetTester tester, Certification cert) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(375, 812);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            certificationByIdProvider(
+              cert.id,
+            ).overrideWith((ref) async => cert),
+            courseForCertificationProvider(
+              cert.id,
+            ).overrideWith((ref) async => null),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: CertificationDetailPage(certificationId: cert.id),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Finder inRow(String label, String value, Finder matching) =>
+        find.descendant(
+          of: find.byWidgetPredicate(
+            (w) => w is Semantics && w.properties.label == '$label: $value',
+          ),
+          matching: matching,
+        );
+
+    testWidgets('a long name wraps while the Type label stays on one line', (
+      tester,
+    ) async {
+      await pumpOnPhone(
+        tester,
+        Certification(
+          id: 'long-1',
+          name: longName,
+          agency: CertificationAgency.padi,
+          level: CertificationLevel.openWater,
+          notes: '',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      );
+
+      // A single-line label in the same card is the height to match.
+      final oneLine = tester.getSize(find.text('Agency')).height;
+      final label = inRow('Type', longName, find.text('Type'));
+      final value = inRow('Type', longName, find.text(longName));
+
+      expect(tester.getSize(label).height, oneLine);
+      expect(tester.getSize(value).height, greaterThan(oneLine));
+      // The wrapped value keeps clear of the label rather than crowding it.
+      expect(
+        tester.getTopLeft(value).dx,
+        greaterThan(tester.getTopRight(label).dx),
+      );
+    });
+  });
+
   group('CertificationDetailPage card photos', () {
     // A valid 1x1 transparent PNG, so the image decoder has real bytes.
     final onePixelPng = base64Decode(

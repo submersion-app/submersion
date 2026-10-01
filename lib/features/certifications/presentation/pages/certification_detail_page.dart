@@ -975,7 +975,10 @@ class _InfoRow extends StatelessWidget {
       label: '$label: $value',
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
+        // Top-align so a wrapped value keeps the icon and label on its first
+        // line rather than centring them against the whole block.
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ExcludeSemantics(
               child: Icon(
@@ -985,14 +988,19 @@ class _InfoRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
+            Text(label, style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(width: 16),
+            // The value, not the label, takes the remaining width, so a long
+            // certification name wraps instead of squeezing the label onto
+            // several lines (issue #2695).
             Expanded(
-              child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
-            ),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: valueColor,
+              child: Text(
+                value,
+                textAlign: TextAlign.end,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: valueColor,
+                ),
               ),
             ),
           ],

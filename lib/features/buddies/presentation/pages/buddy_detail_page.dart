@@ -615,18 +615,25 @@ class _StatRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
+      // Top-align so a wrapped value keeps the icon and label on its first
+      // line rather than centring them against the whole block.
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 12),
+          Text(label, style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(width: 16),
+          // The value, not the label, takes the remaining width, so a long
+          // site name wraps instead of squeezing the label onto several lines.
           Expanded(
-            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          ),
-          Text(
-            value,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
