@@ -1,4 +1,3 @@
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -428,10 +427,9 @@ class PdfCourseExportService {
 }
 
 /// `training_log_<course>_<yyyy-MM-dd>.pdf`, the course name as a
-/// [fileNameSegment]. The date stays ISO no matter what the diver reads in
-/// the document, so a folder of exports still sorts chronologically (#964).
+/// [fileNameSegment] and the date as a [fileNameDate].
 String trainingLogFileName(String courseName, DateTime date) => exportFileName([
   'training_log',
   fileNameSegment(courseName),
-  DateFormat('yyyy-MM-dd').format(date),
+  fileNameDate(date),
 ], 'pdf');

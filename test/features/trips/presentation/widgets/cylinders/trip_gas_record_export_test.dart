@@ -165,6 +165,21 @@ void main() {
     expect(fake.sharedTrip, '');
   });
 
+  testWidgets('a trip that fails to load says the export failed', (
+    tester,
+  ) async {
+    final fake = await pump(
+      tester,
+      trip: () => Future.error(StateError('database closed')),
+    );
+    await tester.tap(find.byKey(const Key('record-export')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+    expect(fake.sharedTrip, isNull);
+    expect(find.textContaining('Export failed'), findsOneWidget);
+  });
+
   Future<void> export(WidgetTester tester, String destination) async {
     await tester.tap(find.byKey(const Key('record-export')));
     await tester.pumpAndSettle();

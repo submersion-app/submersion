@@ -106,10 +106,6 @@ class TripGasRecordRow extends Equatable {
 
   /// The bottle the slot held (the slot's own label when no fill named one).
   final String bottleLabel;
-
-  /// The bottle a fill named, or null when [bottleLabel] is only the slot's
-  /// label, which the board's lines leave out the same way.
-  String? get namedBottle => bottleLabel == cylinder.label ? null : bottleLabel;
   final TripCylinderEvent? fill;
 
   /// The fill's reading, else the slot's working pressure; null with no
@@ -119,6 +115,10 @@ class TripGasRecordRow extends Equatable {
   /// Gas breathed in free litres; null when the tank has no volume or a
   /// pressure is missing.
   final double? litres;
+
+  /// The bottle a fill named, or null when [bottleLabel] is only the slot's
+  /// label, which the board's lines leave out the same way.
+  String? get namedBottle => bottleLabel == cylinder.label ? null : bottleLabel;
 
   GasMix? get orderedMix => fill?.orderedMix;
   GasMix? get analyzedMix => fill?.analyzedMix;

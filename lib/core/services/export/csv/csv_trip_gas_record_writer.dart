@@ -1,5 +1,4 @@
 import 'package:csv/csv.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
@@ -71,5 +70,5 @@ class CsvTripGasRecordWriter {
 String tripGasRecordFileName(String tripName, DateTime date) => exportFileName([
   'gas_record',
   fileNameSegment(tripName),
-  DateFormat('yyyy-MM-dd').format(date),
+  fileNameDate(date),
 ], 'csv');

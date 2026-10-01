@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/shared/export_file_name.dart';
 
@@ -27,10 +29,33 @@ void main() {
       expect(fileNameSegment('_x_'), 'x');
     });
 
+    test('stays within the byte budget, so a long name still saves', () {
+      // 3 bytes each in UTF-8: uncapped, 120 of them overrun the 255-byte
+      // limit every file system puts on one name.
+      final long = fileNameSegment('潜' * 120);
+      expect(
+        utf8.encode(long).length,
+        lessThanOrEqualTo(fileNameSegmentMaxBytes),
+      );
+      expect(long, '潜' * (fileNameSegmentMaxBytes ~/ 3));
+      // A cut never leaves a separator at the end.
+      final words = fileNameSegment('${'a' * (fileNameSegmentMaxBytes - 1)} b');
+      expect(words, 'a' * (fileNameSegmentMaxBytes - 1));
+      // Nor half of a character outside the Basic Multilingual Plane.
+      final astral = fileNameSegment(
+        '${'a' * (fileNameSegmentMaxBytes - 2)}𝐀𝐀',
+      );
+      expect(astral, 'a' * (fileNameSegmentMaxBytes - 2));
+    });
+
     test('is empty when nothing usable is left', () {
       expect(fileNameSegment(''), '');
       expect(fileNameSegment('!!! ?'), '');
     });
+  });
+
+  test('fileNameDate is ISO, whatever the diver reads elsewhere', () {
+    expect(fileNameDate(DateTime(2026, 3, 5, 23, 59)), '2026-03-05');
   });
 
   group('exportFileName', () {
