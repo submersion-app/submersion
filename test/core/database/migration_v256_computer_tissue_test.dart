@@ -77,6 +77,34 @@ void main() {
     expect(version.read<int>('user_version'), 256);
   });
 
+  test('a database already at v256 without the column regains it via '
+      'beforeOpen', () async {
+    // Every install past the shipped versions this rung was renumbered
+    // from skips no step here, but a restore or sync-adopt can still bring
+    // a dives table without the column; every dive read selects it.
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        rawDb.execute(
+          'PRAGMA user_version = ${AppDatabase.currentSchemaVersion}',
+        );
+        rawDb.execute('''
+          CREATE TABLE dives (
+            id TEXT NOT NULL PRIMARY KEY,
+            dive_date_time INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
+      },
+    );
+    final db = AppDatabase(nativeDb);
+    addTearDown(db.close);
+
+    final cols = await db.customSelect("PRAGMA table_info('dives')").get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    expect(names, contains(_column));
+  });
+
   test('the assert is a no-op when the table is absent', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
