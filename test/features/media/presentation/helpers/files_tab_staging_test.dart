@@ -8,6 +8,8 @@ import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
+import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
+import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/presentation/helpers/files_tab_staging.dart';
@@ -100,6 +102,30 @@ void main() {
       expect(state.files, hasLength(2));
       expect(state.match.matched, isEmpty);
       expect(state.match.unmatched, isEmpty);
+    });
+
+    test('stops publishing once the session that started it is gone', () async {
+      // A picker closed mid-extraction must not overwrite the files a newer
+      // picker session has staged in the shared notifier.
+      final container = _container();
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      var active = true;
+      final newer = ExtractedFile(
+        sourcePath: _path('newer.jpg'),
+        file: File(_path('newer.jpg')),
+        metadata: const MediaSourceMetadata(mimeType: 'image/jpeg'),
+      );
+
+      final staging = stageFilesForReview(container, [
+        _path('10.jpg'),
+        _path('11.jpg'),
+      ], isActive: () => active);
+      active = false;
+      notifier.setFiles([newer], match: MatchedSelection.empty());
+      await staging;
+
+      final state = container.read(filesTabNotifierProvider);
+      expect(state.files, [newer]);
     });
 
     test(

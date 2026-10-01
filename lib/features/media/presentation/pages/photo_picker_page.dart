@@ -126,6 +126,7 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
       ProviderScope.containerOf(context, listen: false),
       paths,
       target: widget.target,
+      isActive: () => mounted,
     );
   }
 

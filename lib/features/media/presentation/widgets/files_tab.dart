@@ -88,7 +88,12 @@ class FilesTab extends ConsumerWidget {
     if (result.isEmpty) return;
 
     final paths = [for (final pf in result) ?pf.path];
-    await stageFilesForReview(container, paths, target: target);
+    await stageFilesForReview(
+      container,
+      paths,
+      target: target,
+      isActive: () => context.mounted,
+    );
   }
 
   Future<void> _pickFolder(BuildContext context) async {
@@ -101,7 +106,12 @@ class FilesTab extends ConsumerWidget {
     final paths = await compute(scanFolderForMediaFiles, dirPath);
     if (paths.isEmpty) return;
 
-    await stageFilesForReview(container, paths, target: target);
+    await stageFilesForReview(
+      container,
+      paths,
+      target: target,
+      isActive: () => context.mounted,
+    );
   }
   // coverage:ignore-end
 

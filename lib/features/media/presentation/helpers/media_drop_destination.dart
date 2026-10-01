@@ -1,7 +1,13 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/providers/table_details_pane_provider.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// Where photos and videos dropped onto the app window are imported.
 ///
@@ -18,20 +24,52 @@ class MediaDropDestination extends Equatable {
   List<Object?> get props => [target];
 }
 
-/// The [MediaDropDestination] for the screen [state] describes, or null when
-/// that screen does not take photos and videos.
-///
-/// [detailPaneVisible] is whether the window is wide enough for a list to
-/// show its selected item beside it (`ResponsiveBreakpoints.isMasterDetail`).
+/// The [MediaDropDestination] for the screen on show at [context], or null
+/// when that screen does not take photos and videos.
 MediaDropDestination? mediaDropDestinationFor(
-  GoRouterState state, {
-  required bool detailPaneVisible,
-}) => mediaDropDestinationForRoute(
-  routeName: state.topRoute?.name,
-  pathParameters: state.pathParameters,
-  uri: state.uri,
-  detailPaneVisible: detailPaneVisible,
-);
+  BuildContext context,
+  WidgetRef ref,
+) {
+  final state = GoRouterState.of(context);
+  final wideWindow = ResponsiveBreakpoints.isMasterDetail(context);
+  return mediaDropDestinationForRoute(
+    routeName: state.topRoute?.name,
+    pathParameters: state.pathParameters,
+    uri: state.uri,
+    isDetailVisible: (sectionKey) => isListDetailVisible(
+      wideWindow: wideWindow,
+      tableMode:
+          ref.read(
+            sectionKey == 'sites'
+                ? siteListViewModeProvider
+                : diveListViewModeProvider,
+          ) ==
+          ListViewMode.table,
+      tableDetailsPane: ref.read(tableDetailsPaneProvider(sectionKey)),
+      uri: state.uri,
+    ),
+  );
+}
+
+/// Whether a dive or site list is showing its selected item's detail, which
+/// is what makes that item a drop's destination. Mirrors the two layouts:
+///
+/// - Both need a window wide enough for a detail pane ([wideWindow]); below
+///   it the list stands alone, and the id left in the URL names a dive or
+///   site the user cannot see.
+/// - The table layout shows the pane only while its per-section toggle
+///   ([tableDetailsPane]) is on, and keeps it beside the map.
+/// - The list layout swaps the detail for the map (`view=map`).
+bool isListDetailVisible({
+  required bool wideWindow,
+  required bool tableMode,
+  required bool tableDetailsPane,
+  required Uri uri,
+}) {
+  if (!wideWindow) return false;
+  if (tableMode) return tableDetailsPane;
+  return uri.queryParameters['view'] != 'map';
+}
 
 /// Pure form of [mediaDropDestinationFor], keyed on the deepest matched
 /// route's name rather than on the path, so a sibling route such as
@@ -40,15 +78,14 @@ MediaDropDestination? mediaDropDestinationFor(
 ///
 /// On wide layouts the dive and site lists show the selected item beside
 /// the list (`?selected=<id>`). That item is the destination only while its
-/// detail is what the pane shows: not in a window too narrow for the pane
-/// ([detailPaneVisible] false), where the list stands alone and the id left
-/// in the URL names a dive or site the user cannot see; not while it is
-/// being edited or created; and not while the map replaces the detail.
+/// detail is on screen, which [isDetailVisible] answers for the route's
+/// section (`dives` or `sites`; see [isListDetailVisible]), and not while it
+/// is being edited or created.
 MediaDropDestination? mediaDropDestinationForRoute({
   required String? routeName,
   required Map<String, String> pathParameters,
   required Uri uri,
-  required bool detailPaneVisible,
+  required bool Function(String sectionKey) isDetailVisible,
 }) {
   switch (routeName) {
     case 'media':
@@ -64,12 +101,12 @@ MediaDropDestination? mediaDropDestinationForRoute({
           ? null
           : MediaDropDestination(target: SiteAttachTarget(siteId));
     case 'dives':
-      final diveId = detailPaneVisible ? _selectedDetailId(uri) : null;
+      final diveId = isDetailVisible('dives') ? _selectedDetailId(uri) : null;
       return diveId == null
           ? null
           : MediaDropDestination(target: DiveAttachTarget(diveId));
     case 'sites':
-      final siteId = detailPaneVisible ? _selectedDetailId(uri) : null;
+      final siteId = isDetailVisible('sites') ? _selectedDetailId(uri) : null;
       return siteId == null
           ? null
           : MediaDropDestination(target: SiteAttachTarget(siteId));
@@ -77,11 +114,11 @@ MediaDropDestination? mediaDropDestinationForRoute({
   return null;
 }
 
-/// The id of the item a master-detail list is showing in view mode, if any.
+/// The id of the item a list has selected in view mode, if any.
 String? _selectedDetailId(Uri uri) {
   final query = uri.queryParameters;
   final selected = query['selected'];
   if (selected == null || selected.isEmpty) return null;
-  if (query.containsKey('mode') || query['view'] == 'map') return null;
+  if (query.containsKey('mode')) return null;
   return selected;
 }

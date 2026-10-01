@@ -26,12 +26,18 @@ import 'package:submersion/features/media/presentation/providers/media_resolver_
 ///
 /// Takes the [ProviderContainer] rather than a widget's ref because the
 /// metadata reads outlive a frame: the picker that started them may close
-/// first, and the container outlives it.
+/// first, and the container outlives it. [isActive] reports whether that
+/// picker is still open; once it returns false nothing more is published,
+/// because the Files tab's notifier is shared and not autoDispose, and a
+/// newer picker session may by then have staged files of its own.
 Future<void> stageFilesForReview(
   ProviderContainer container,
   List<String> paths, {
   MediaAttachTarget? target,
+  bool Function()? isActive,
 }) async {
+  bool active() => isActive?.call() ?? true;
+
   final notifier = container.read(filesTabNotifierProvider.notifier);
   final extractor = container.read(exifExtractorProvider);
 
@@ -41,6 +47,7 @@ Future<void> stageFilesForReview(
   for (var i = 0; i < paths.length; i++) {
     final file = File(paths[i]);
     final meta = await extractor.extract(file);
+    if (!active()) return;
     if (meta != null) {
       extracted.add(
         ExtractedFile(sourcePath: paths[i], file: file, metadata: meta),
@@ -74,6 +81,7 @@ Future<void> stageFilesForReview(
   }
 
   final bounds = await container.read(diveBoundsProvider.future);
+  if (!active()) return;
   final result = const DivePhotoMatcher().match(
     files: extracted,
     dives: bounds,

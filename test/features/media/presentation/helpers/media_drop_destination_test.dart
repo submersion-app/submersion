@@ -11,7 +11,7 @@ MediaDropDestination? _destinationFor(
   routeName: routeName,
   pathParameters: pathParameters,
   uri: Uri.parse(location),
-  detailPaneVisible: detailPaneVisible,
+  isDetailVisible: (_) => detailPaneVisible,
 );
 
 void main() {
@@ -94,9 +94,22 @@ void main() {
       expect(_destinationFor('sites', '/sites'), isNull);
     });
 
-    test('a selected item being edited or shown on the map is not one', () {
+    test('a selected item being edited is not one', () {
       expect(_destinationFor('dives', '/dives?selected=d&mode=edit'), isNull);
-      expect(_destinationFor('sites', '/sites?selected=s&view=map'), isNull);
+    });
+
+    test('asks about the section the route belongs to', () {
+      final asked = <String>[];
+      mediaDropDestinationForRoute(
+        routeName: 'sites',
+        pathParameters: const {},
+        uri: Uri.parse('/sites?selected=s'),
+        isDetailVisible: (section) {
+          asked.add(section);
+          return true;
+        },
+      );
+      expect(asked, ['sites']);
     });
 
     test('a create pane is not a media destination', () {
@@ -117,6 +130,45 @@ void main() {
     test('other sections are not media destinations', () {
       expect(_destinationFor('equipment', '/equipment'), isNull);
       expect(_destinationFor(null, '/home'), isNull);
+    });
+  });
+
+  group('isListDetailVisible', () {
+    bool visible({
+      bool wideWindow = true,
+      bool tableMode = false,
+      bool tableDetailsPane = true,
+      String location = '/dives?selected=d',
+    }) => isListDetailVisible(
+      wideWindow: wideWindow,
+      tableMode: tableMode,
+      tableDetailsPane: tableDetailsPane,
+      uri: Uri.parse(location),
+    );
+
+    test('a wide list shows its selected item beside it', () {
+      expect(visible(), isTrue);
+    });
+
+    test('a narrow window shows the list alone', () {
+      expect(visible(wideWindow: false), isFalse);
+      expect(visible(wideWindow: false, tableMode: true), isFalse);
+    });
+
+    test('the list layout swaps the detail for the map', () {
+      expect(visible(location: '/dives?selected=d&view=map'), isFalse);
+    });
+
+    test('the table layout shows the detail only with its pane on', () {
+      expect(visible(tableMode: true), isTrue);
+      expect(visible(tableMode: true, tableDetailsPane: false), isFalse);
+    });
+
+    test('the table layout keeps the detail beside its map', () {
+      expect(
+        visible(tableMode: true, location: '/dives?selected=d&view=map'),
+        isTrue,
+      );
     });
   });
 }
