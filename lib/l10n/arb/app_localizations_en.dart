@@ -18252,6 +18252,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_import_review_noMatch => 'No matching dive';
 
   @override
+  String get media_import_review_noCaptureTime => 'No capture date found';
+
+  @override
+  String get media_import_review_noMatchFileDate =>
+      'No matching dive by the file date; the file has no capture date';
+
+  @override
   String get media_import_review_skipped => 'Not imported';
 
   @override

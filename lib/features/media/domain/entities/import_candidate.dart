@@ -1,4 +1,5 @@
 import 'package:submersion/features/media/domain/value_objects/import_preview.dart';
+import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
 
 /// One thing the user is about to import, before any row exists for it.
 class ImportCandidate {
@@ -6,6 +7,7 @@ class ImportCandidate {
     required this.key,
     required this.title,
     this.takenAt,
+    this.takenAtSource,
     this.error,
     this.preview,
   });
@@ -16,6 +18,11 @@ class ImportCandidate {
 
   /// Capture timestamp as wall-clock UTC; null when unknown.
   final DateTime? takenAt;
+
+  /// Where [takenAt] came from, when the caller knows. A
+  /// [TakenAtSource.fileModifiedTime] value is only the file's date, which
+  /// the review row names when it matches no dive.
+  final TakenAtSource? takenAtSource;
 
   /// Why the candidate could not be examined (a failed fetch). Such a
   /// candidate can still be imported against an explicit target.

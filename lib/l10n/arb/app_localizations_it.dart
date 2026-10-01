@@ -18537,6 +18537,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_import_review_noMatch => 'Nessuna immersione corrispondente';
 
   @override
+  String get media_import_review_noCaptureTime =>
+      'Nessuna data di scatto trovata';
+
+  @override
+  String get media_import_review_noMatchFileDate =>
+      'Nessuna immersione corrisponde alla data del file; il file non ha una data di scatto';
+
+  @override
   String get media_import_review_skipped => 'Non importato';
 
   @override

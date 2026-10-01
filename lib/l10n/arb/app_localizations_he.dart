@@ -18112,6 +18112,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_import_review_noMatch => 'אין צלילה תואמת';
 
   @override
+  String get media_import_review_noCaptureTime => 'לא נמצא תאריך צילום';
+
+  @override
+  String get media_import_review_noMatchFileDate =>
+      'אין צלילה התואמת לתאריך הקובץ; לקובץ אין תאריך צילום';
+
+  @override
   String get media_import_review_skipped => 'לא יובא';
 
   @override

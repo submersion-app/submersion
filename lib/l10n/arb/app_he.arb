@@ -5260,6 +5260,8 @@
   "media_import_review_chooseSite": "בחירת אתר",
   "media_import_review_ambiguous": "כמה צלילות תואמות",
   "media_import_review_noMatch": "אין צלילה תואמת",
+  "media_import_review_noCaptureTime": "לא נמצא תאריך צילום",
+  "media_import_review_noMatchFileDate": "אין צלילה התואמת לתאריך הקובץ; לקובץ אין תאריך צילום",
   "media_import_review_skipped": "לא יובא",
   "media_import_review_linkChip": "קישור אל #{number}",
   "media_import_review_linkToDive": "קישור לצלילה",

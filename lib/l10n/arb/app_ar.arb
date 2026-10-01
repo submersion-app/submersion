@@ -5362,6 +5362,8 @@
   "media_import_review_chooseSite": "اختر الموقع",
   "media_import_review_ambiguous": "تتطابق عدة غطسات",
   "media_import_review_noMatch": "لا توجد غطسة مطابقة",
+  "media_import_review_noCaptureTime": "لم يُعثر على تاريخ الالتقاط",
+  "media_import_review_noMatchFileDate": "لا توجد غطسة تطابق تاريخ الملف؛ لا يحتوي الملف على تاريخ التقاط",
   "media_import_review_skipped": "لم يتم الاستيراد",
   "media_import_review_linkChip": "ربط بالغطسة رقم {number}",
   "media_import_review_linkToDive": "ربط بغطسة",

@@ -18480,6 +18480,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_import_review_noMatch => 'Nincs egyező merülés';
 
   @override
+  String get media_import_review_noCaptureTime =>
+      'Nem található felvételi dátum';
+
+  @override
+  String get media_import_review_noMatchFileDate =>
+      'Nincs a fájl dátumához illő merülés; a fájlnak nincs felvételi dátuma';
+
+  @override
   String get media_import_review_skipped => 'Nincs importálva';
 
   @override

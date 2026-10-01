@@ -18408,6 +18408,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_import_review_noMatch => 'Geen overeenkomende duik';
 
   @override
+  String get media_import_review_noCaptureTime => 'Geen opnamedatum gevonden';
+
+  @override
+  String get media_import_review_noMatchFileDate =>
+      'Geen duik komt overeen met de bestandsdatum; het bestand heeft geen opnamedatum';
+
+  @override
   String get media_import_review_skipped => 'Niet geïmporteerd';
 
   @override

@@ -5260,6 +5260,8 @@
   "media_import_review_chooseSite": "Choisir un site",
   "media_import_review_ambiguous": "Plusieurs plongées correspondent",
   "media_import_review_noMatch": "Aucune plongée correspondante",
+  "media_import_review_noCaptureTime": "Aucune date de prise de vue trouvée",
+  "media_import_review_noMatchFileDate": "Aucune plongée ne correspond à la date du fichier, qui n'a pas de date de prise de vue",
   "media_import_review_skipped": "Non importé",
   "media_import_review_linkChip": "Lier à #{number}",
   "media_import_review_linkToDive": "Lier à une plongée",

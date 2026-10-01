@@ -18598,6 +18598,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_import_review_noMatch => 'Aucune plongée correspondante';
 
   @override
+  String get media_import_review_noCaptureTime =>
+      'Aucune date de prise de vue trouvée';
+
+  @override
+  String get media_import_review_noMatchFileDate =>
+      'Aucune plongée ne correspond à la date du fichier, qui n\'a pas de date de prise de vue';
+
+  @override
   String get media_import_review_skipped => 'Non importé';
 
   @override

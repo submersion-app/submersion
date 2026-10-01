@@ -5362,6 +5362,8 @@
   "media_import_review_chooseSite": "Elegir sitio",
   "media_import_review_ambiguous": "Varios buceos coinciden",
   "media_import_review_noMatch": "Ningún buceo coincide",
+  "media_import_review_noCaptureTime": "No se encontró la fecha de captura",
+  "media_import_review_noMatchFileDate": "Ningún buceo coincide con la fecha del archivo; el archivo no tiene fecha de captura",
   "media_import_review_skipped": "No importado",
   "media_import_review_linkChip": "Vincular a #{number}",
   "media_import_review_linkToDive": "Vincular a una inmersión",

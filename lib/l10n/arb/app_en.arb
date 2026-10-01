@@ -11231,6 +11231,14 @@
   "@media_import_review_noMatch": {
     "description": "Review row subtitle when no dive matches the timestamp"
   },
+  "media_import_review_noCaptureTime": "No capture date found",
+  "@media_import_review_noCaptureTime": {
+    "description": "Review row subtitle when the file has no capture date to match a dive by"
+  },
+  "media_import_review_noMatchFileDate": "No matching dive by the file date; the file has no capture date",
+  "@media_import_review_noMatchFileDate": {
+    "description": "Review row subtitle when no dive matches and the only date was the file's modified time, because the file carries no capture date"
+  },
   "media_import_review_skipped": "Not imported",
   "@media_import_review_skipped": {
     "description": "Review row subtitle for a row the user unchecked"

@@ -18250,6 +18250,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_import_review_noMatch => 'لا توجد غطسة مطابقة';
 
   @override
+  String get media_import_review_noCaptureTime => 'لم يُعثر على تاريخ الالتقاط';
+
+  @override
+  String get media_import_review_noMatchFileDate =>
+      'لا توجد غطسة تطابق تاريخ الملف؛ لا يحتوي الملف على تاريخ التقاط';
+
+  @override
   String get media_import_review_skipped => 'لم يتم الاستيراد';
 
   @override

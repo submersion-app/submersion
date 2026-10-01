@@ -136,6 +136,7 @@ class MediaImportView extends ConsumerWidget {
           // The same value the import persists as takenAt, so the match
           // shown here is the match the row would get.
           takenAt: TripMediaScanner.toWallClockUtc(a.createDateTime),
+          takenAtSource: a.takenAtSource,
           preview: AssetImportPreview(a.id),
         ),
     ];

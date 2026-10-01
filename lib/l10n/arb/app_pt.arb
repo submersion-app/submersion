@@ -5362,6 +5362,8 @@
   "media_import_review_chooseSite": "Escolher local",
   "media_import_review_ambiguous": "Vários mergulhos correspondem",
   "media_import_review_noMatch": "Nenhum mergulho correspondente",
+  "media_import_review_noCaptureTime": "Nenhuma data de captura encontrada",
+  "media_import_review_noMatchFileDate": "Nenhum mergulho corresponde à data do arquivo; o arquivo não tem data de captura",
   "media_import_review_skipped": "Não importado",
   "media_import_review_linkChip": "Vincular a #{number}",
   "media_import_review_linkToDive": "Vincular a um mergulho",

@@ -5260,6 +5260,8 @@
   "media_import_review_chooseSite": "Scegli sito",
   "media_import_review_ambiguous": "Più immersioni corrispondono",
   "media_import_review_noMatch": "Nessuna immersione corrispondente",
+  "media_import_review_noCaptureTime": "Nessuna data di scatto trovata",
+  "media_import_review_noMatchFileDate": "Nessuna immersione corrisponde alla data del file; il file non ha una data di scatto",
   "media_import_review_skipped": "Non importato",
   "media_import_review_linkChip": "Collega a #{number}",
   "media_import_review_linkToDive": "Collega a un'immersione",

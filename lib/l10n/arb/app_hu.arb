@@ -5260,6 +5260,8 @@
   "media_import_review_chooseSite": "Merülőhely kiválasztása",
   "media_import_review_ambiguous": "Több merülés is egyezik",
   "media_import_review_noMatch": "Nincs egyező merülés",
+  "media_import_review_noCaptureTime": "Nem található felvételi dátum",
+  "media_import_review_noMatchFileDate": "Nincs a fájl dátumához illő merülés; a fájlnak nincs felvételi dátuma",
   "media_import_review_skipped": "Nincs importálva",
   "media_import_review_linkChip": "Csatolás: #{number}",
   "media_import_review_linkToDive": "Csatolás merüléshez",

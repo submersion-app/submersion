@@ -5465,6 +5465,8 @@
   "media_import_review_chooseSite": "Tauchplatz wählen",
   "media_import_review_ambiguous": "Mehrere Tauchgänge passen",
   "media_import_review_noMatch": "Kein passender Tauchgang",
+  "media_import_review_noCaptureTime": "Kein Aufnahmedatum gefunden",
+  "media_import_review_noMatchFileDate": "Kein passender Tauchgang zum Dateidatum; die Datei hat kein Aufnahmedatum",
   "media_import_review_skipped": "Nicht importiert",
   "media_import_review_linkChip": "Mit #{number} verknüpfen",
   "media_import_review_linkToDive": "Mit Tauchgang verknüpfen",

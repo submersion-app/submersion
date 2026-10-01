@@ -18521,6 +18521,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_import_review_noMatch => 'Kein passender Tauchgang';
 
   @override
+  String get media_import_review_noCaptureTime => 'Kein Aufnahmedatum gefunden';
+
+  @override
+  String get media_import_review_noMatchFileDate =>
+      'Kein passender Tauchgang zum Dateidatum; die Datei hat kein Aufnahmedatum';
+
+  @override
   String get media_import_review_skipped => 'Nicht importiert';
 
   @override

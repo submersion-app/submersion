@@ -17664,6 +17664,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_import_review_noMatch => '没有匹配的潜水';
 
   @override
+  String get media_import_review_noCaptureTime => '未找到拍摄日期';
+
+  @override
+  String get media_import_review_noMatchFileDate => '没有与文件日期匹配的潜水；该文件没有拍摄日期';
+
+  @override
   String get media_import_review_skipped => '未导入';
 
   @override

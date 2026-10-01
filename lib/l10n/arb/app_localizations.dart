@@ -29780,6 +29780,18 @@ abstract class AppLocalizations {
   /// **'No matching dive'**
   String get media_import_review_noMatch;
 
+  /// Review row subtitle when the file has no capture date to match a dive by
+  ///
+  /// In en, this message translates to:
+  /// **'No capture date found'**
+  String get media_import_review_noCaptureTime;
+
+  /// Review row subtitle when no dive matches and the only date was the file's modified time, because the file carries no capture date
+  ///
+  /// In en, this message translates to:
+  /// **'No matching dive by the file date; the file has no capture date'**
+  String get media_import_review_noMatchFileDate;
+
   /// Review row subtitle for a row the user unchecked
   ///
   /// In en, this message translates to:

@@ -5362,6 +5362,8 @@
   "media_import_review_chooseSite": "Site kiezen",
   "media_import_review_ambiguous": "Meerdere duiken komen overeen",
   "media_import_review_noMatch": "Geen overeenkomende duik",
+  "media_import_review_noCaptureTime": "Geen opnamedatum gevonden",
+  "media_import_review_noMatchFileDate": "Geen duik komt overeen met de bestandsdatum; het bestand heeft geen opnamedatum",
   "media_import_review_skipped": "Niet geïmporteerd",
   "media_import_review_linkChip": "Koppelen aan #{number}",
   "media_import_review_linkToDive": "Aan duik koppelen",

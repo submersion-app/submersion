@@ -18524,6 +18524,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_import_review_noMatch => 'Ningún buceo coincide';
 
   @override
+  String get media_import_review_noCaptureTime =>
+      'No se encontró la fecha de captura';
+
+  @override
+  String get media_import_review_noMatchFileDate =>
+      'Ningún buceo coincide con la fecha del archivo; el archivo no tiene fecha de captura';
+
+  @override
   String get media_import_review_skipped => 'No importado';
 
   @override

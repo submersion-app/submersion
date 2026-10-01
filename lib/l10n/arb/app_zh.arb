@@ -5530,6 +5530,8 @@
   "media_import_review_chooseSite": "选择潜点",
   "media_import_review_ambiguous": "多次潜水匹配",
   "media_import_review_noMatch": "没有匹配的潜水",
+  "media_import_review_noCaptureTime": "未找到拍摄日期",
+  "media_import_review_noMatchFileDate": "没有与文件日期匹配的潜水；该文件没有拍摄日期",
   "media_import_review_skipped": "未导入",
   "media_import_review_linkChip": "关联到 #{number}",
   "media_import_review_linkToDive": "关联到潜水",
