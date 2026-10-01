@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -36,6 +37,8 @@ import 'package:submersion/shared/widgets/card_icon_label.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
+final _log = LoggerService.forClass(TripListContent);
+
 class TripListContent extends ConsumerStatefulWidget {
   final void Function(String?)? onItemSelected;
   final String? selectedId;
@@ -379,17 +382,31 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     _selection.exit();
 
     var deleted = 0;
-    for (final trip in split.destroy) {
-      if (await notifier.deleteTrip(trip.id)) deleted++;
+    var hidden = 0;
+    var failed = false;
+    // The selection is gone, so a failure part way says what was done and
+    // that the rest was not, rather than escaping unseen (issue #2682).
+    try {
+      for (final trip in split.destroy) {
+        if (await notifier.deleteTrip(trip.id)) deleted++;
+      }
+      if (split.hide.isNotEmpty) {
+        hidden = await notifier.hideTrips([for (final t in split.hide) t.id]);
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not finish the trip bulk delete',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      failed = true;
     }
-    final hidden = split.hide.isEmpty
-        ? 0
-        : await notifier.hideTrips([for (final t in split.hide) t.id]);
 
     if (!mounted) return BulkActionOutcome.completed;
     final summary = [
       if (deleted > 0) l10n.common_bulkDelete_snackbar(deleted),
       if (hidden > 0) l10n.sharedItems_bulkHiddenSnackbar(hidden),
+      if (failed) l10n.common_error_tryAgain,
     ];
     // Nothing done (every action refused): no empty snackbar.
     if (summary.isNotEmpty) {
