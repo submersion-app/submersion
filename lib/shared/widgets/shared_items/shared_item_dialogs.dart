@@ -153,6 +153,44 @@ List<String> bulkDeleteLines(
     },
 ];
 
+/// The whole "Remove from my profile" flow for another profile's shared
+/// trip or site (issue #2594): count the profile's own linked dives,
+/// confirm, [hide], then [onRemoved] (close the page) and a snackbar whose
+/// Undo calls [unhide]. Nothing happens past a refused [hide].
+Future<void> removeSharedItemFromProfile(
+  BuildContext context,
+  WidgetRef ref, {
+  required SharedItemKind kind,
+  required String id,
+  required String name,
+  required String? ownerId,
+  required Future<bool> Function() hide,
+  required Future<void> Function() unhide,
+  required VoidCallback onRemoved,
+}) async {
+  final divers = await ref.read(allDiversProvider.future);
+  final counts = await readDiveLinkCounts(ref, kind, id);
+  if (!context.mounted) return;
+  final confirmed = await confirmRemoveFromProfile(
+    context,
+    name: name,
+    ownerName: sharedItemOwnerName(divers, ownerId, context.l10n),
+    ownDiveCount: counts.mine,
+  );
+  if (!confirmed || !context.mounted) return;
+  final messenger = ScaffoldMessenger.of(context);
+  final l10n = context.l10n;
+  if (!await hide()) return;
+  if (!context.mounted) return;
+  onRemoved();
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text(l10n.sharedItems_removedSnackbar),
+      action: SnackBarAction(label: l10n.sharedItems_undo, onPressed: unhide),
+    ),
+  );
+}
+
 /// Confirms hiding another profile's shared trip or site from the active
 /// profile only (issue #2594). True when confirmed.
 Future<bool> confirmRemoveFromProfile(

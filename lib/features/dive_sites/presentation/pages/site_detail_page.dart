@@ -606,35 +606,19 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     BuildContext context,
     WidgetRef ref,
     DiveSite site,
-  ) async {
-    final divers = await ref.read(allDiversProvider.future);
-    final counts = await readDiveLinkCounts(ref, SharedItemKind.site, site.id);
-    if (!context.mounted) return;
-    final confirmed = await confirmRemoveFromProfile(
-      context,
-      name: site.name,
-      ownerName: sharedItemOwnerName(divers, site.diverId, context.l10n),
-      ownDiveCount: counts.mine,
-    );
-    if (!confirmed || !context.mounted) return;
+  ) {
     final notifier = ref.read(siteListNotifierProvider.notifier);
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    if (await notifier.hideSites([site.id]) != 1) return;
-    if (!context.mounted) return;
-    if (widget.embedded) {
-      widget.onDeleted?.call();
-    } else {
-      context.go('/sites');
-    }
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(l10n.sharedItems_removedSnackbar),
-        action: SnackBarAction(
-          label: l10n.sharedItems_undo,
-          onPressed: () => notifier.unhideSites([site.id]),
-        ),
-      ),
+    return removeSharedItemFromProfile(
+      context,
+      ref,
+      kind: SharedItemKind.site,
+      id: site.id,
+      name: site.name,
+      ownerId: site.diverId,
+      hide: () async => await notifier.hideSites([site.id]) == 1,
+      unhide: () => notifier.unhideSites([site.id]),
+      onRemoved: () =>
+          widget.embedded ? widget.onDeleted?.call() : context.go('/sites'),
     );
   }
 
