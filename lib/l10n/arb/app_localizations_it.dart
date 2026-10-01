@@ -6472,6 +6472,14 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'Questa immersione con rebreather non ha né un setpoint né una ppO2 del loop registrati, quindi il carico tissutale, l\'NDL e la decompressione non possono essere calcolati. Aggiungi il setpoint modificando l\'immersione per calcolarli.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'Questa immersione con rebreather semichiuso non ha una ppO2 del loop misurata, quindi il carico tissutale, l\'NDL e la decompressione non possono essere calcolati.';
+
+  @override
   String get diveLog_delete_cancel => 'Annulla';
 
   @override
@@ -29972,6 +29980,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Impossibile leggere il file';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'Per collegare foto e video, rilasciali su Media, su un\'immersione o su un sito';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -32679,6 +32691,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_detail_altitudeMismatch_subtitle =>
       'Questo sito registra un\'altitudine ma l\'immersione non ne ha una, quindi l\'analisi di decompressione ha assunto il livello del mare. Imposta l\'altitudine dell\'immersione per correggere.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Sono state registrate solo le pressioni iniziale e finale della bombola, quindi il consumo di gas non può essere suddiviso in segmenti. Servono letture di pressione durante l\'immersione, ad esempio da un trasmettitore. La media dell\'intera immersione è riportata in Bombole.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'Nessuna pressione della bombola registrata durante l\'immersione';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -45623,7 +45643,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks bombole in $dives immersioni portano questo trasmettitore. I campi vuoti di dimensione, materiale, nome e attrezzatura verranno compilati e un ruolo ancora impostato su Gas di fondo verrà sostituito.';
+    return '$tanks bombole in $dives immersioni portano questo trasmettitore. I campi vuoti di dimensione, materiale, nome e attrezzatura verranno compilati e un ruolo ancora impostato su Gas di fondo o letto dal nome del trasmettitore verrà sostituito.';
   }
 
   @override
@@ -45730,6 +45750,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Riassegna serie di pressione';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role, letto dal nome del trasmettitore';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'Serie di pressione';
 
   @override
@@ -45766,6 +45791,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Assegna trasmettitori';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'Ruoli delle bombole letti dai nomi dei trasmettitori';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'Il computer subacqueo ha ricavato alcuni ruoli di ossigeno e diluente dai nomi dati ai trasmettitori: un nome che inizia con O è letto come ossigeno, uno che inizia con D come diluente. Assegna i trasmettitori per confermare o correggere questi ruoli.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

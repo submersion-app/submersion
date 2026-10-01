@@ -6478,6 +6478,14 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'Für diesen Rebreather-Tauchgang wurde weder ein Setpoint noch ein Loop-ppO2 aufgezeichnet, daher lassen sich Gewebesättigung, NDL und Dekompression nicht berechnen. Trage den Setpoint beim Bearbeiten des Tauchgangs ein, um sie zu berechnen.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'Für diesen halbgeschlossenen Rebreather-Tauchgang wurde kein Loop-ppO2 gemessen, daher lassen sich Gewebesättigung, NDL und Dekompression nicht berechnen.';
+
+  @override
   String get diveLog_delete_cancel => 'Abbrechen';
 
   @override
@@ -29934,6 +29942,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Datei konnte nicht gelesen werden';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'Um Fotos und Videos zu verknüpfen, lege sie unter Medien, auf einem Tauchgang oder auf einem Tauchplatz ab';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -32639,6 +32651,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_detail_altitudeMismatch_subtitle =>
       'Für diesen Platz ist eine Höhe hinterlegt, der Tauchgang hat jedoch keine, daher ging die Deko-Analyse von Meereshöhe aus. Höhe des Tauchgangs setzen, um dies zu korrigieren.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Es wurden nur Anfangs- und Enddruck der Flasche erfasst, daher lässt sich der Gasverbrauch nicht in Segmente aufteilen. Dafür braucht es Druckwerte während des Tauchgangs, etwa von einem Sender. Der Durchschnitt über den ganzen Tauchgang steht unter Flaschen.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'Kein Flaschendruck während des Tauchgangs erfasst';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -45559,7 +45579,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks Flaschen in $dives Tauchgängen tragen diesen Sender. Leere Felder für Größe, Material, Name und Ausrüstung werden gefüllt, und eine noch auf Rückengas gesetzte Rolle wird ersetzt.';
+    return '$tanks Flaschen in $dives Tauchgängen tragen diesen Sender. Leere Felder für Größe, Material, Name und Ausrüstung werden gefüllt, und eine noch auf Rückengas gesetzte oder aus dem Sendernamen gelesene Rolle wird ersetzt.';
   }
 
   @override
@@ -45664,6 +45684,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Druckverlauf neu zuordnen';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role, aus dem Namen des Senders gelesen';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'Druckverläufe';
 
   @override
@@ -45700,6 +45725,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Sender zuweisen';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'Flaschenrollen aus Sendernamen gelesen';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'Der Tauchcomputer hat einige Sauerstoff- und Diluent-Rollen aus den Namen seiner Sender übernommen: Ein Name, der mit O beginnt, gilt als Sauerstoff, einer mit D als Diluent. Weise die Sender zu, um diese Rollen zu bestätigen oder zu korrigieren.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

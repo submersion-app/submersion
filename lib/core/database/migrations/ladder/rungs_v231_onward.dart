@@ -137,6 +137,14 @@ extension RungsFromV231 on AppDatabase {
       await _backfillNavTrackDiverIds();
     }
     if (from < 252) await reportProgress();
+    // v254: dive_tanks.role_source, where a cylinder's role came from
+    // (issue #2595). Column only, no backfill: a stored role's origin is
+    // unknown, and a re-parse fills it. Re-asserted in beforeOpen. 253 is
+    // held by an open branch.
+    if (from < 254) {
+      await _assertTankRoleSourceColumn();
+    }
+    if (from < 254) await reportProgress();
     // v256: dives.computer_tissue_json (issue #1977). Column-only rung, no
     // backfill: null reads as "the computer reported no tissue state".
     if (from < 256) {

@@ -6324,6 +6324,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'בצלילת הריבריד\'ר הזו לא תועדו נקודת קביעה (setpoint) או ppO2 של הלולאה, ולכן לא ניתן לחשב את עומס הרקמות, ה-NDL והדקומפרסיה. הוסף את נקודת הקביעה בעריכת הצלילה כדי לחשב אותם.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'בצלילת הריבריד\'ר הסגור-למחצה הזו לא נמדד ppO2 של הלולאה, ולכן לא ניתן לחשב את עומס הרקמות, ה-NDL והדקומפרסיה.';
+
+  @override
   String get diveLog_delete_cancel => 'ביטול';
 
   @override
@@ -29268,6 +29276,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dropTarget_error_readFailed => 'לא ניתן לקרוא את הקובץ';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'כדי לקשר תמונות וסרטונים, שחרר אותם במסך מדיה, בצלילה או באתר צלילה';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -31916,6 +31928,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_detail_altitudeMismatch_subtitle =>
       'לאתר זה רשום גובה אך לצלילה אין, ולכן ניתוח הדקומפרסיה הניח גובה פני הים. הגדר את גובה הצלילה כדי לתקן.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'נרשמו רק לחץ ההתחלה והסיום של הבלון, ולכן אי אפשר לחלק את צריכת הגז למקטעים. לשם כך נדרשות קריאות לחץ במהלך הצלילה, למשל ממשדר. הממוצע של הצלילה כולה מופיע תחת בלונים.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'לא נרשם לחץ בלון במהלך הצלילה';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -44721,7 +44741,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks מיכלים ב-$dives צלילות נושאים משדר זה. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב יוחלף.';
+    return '$tanks מיכלים ב-$dives צלילות נושאים משדר זה. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.';
   }
 
   @override
@@ -44825,6 +44845,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'שיוך מחדש של סדרת הלחץ';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role, נקרא משם המשדר';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'סדרות לחץ';
 
   @override
@@ -44860,6 +44885,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeAssignTransmitters => 'שיוך משדרים';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'תפקידי מיכלים נקראו משמות המשדרים';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'מחשב הצלילה לקח חלק מתפקידי החמצן והמדלל משמות המשדרים: שם שמתחיל ב-O נקרא כחמצן, ושם שמתחיל ב-D כמדלל. שייכו את המשדרים כדי לאשר או לתקן תפקידים אלה.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

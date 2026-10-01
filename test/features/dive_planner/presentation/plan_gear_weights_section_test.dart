@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/buoyancy/weight_observation.dart';
+import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_gear_weights_section.dart';
@@ -14,6 +16,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -320,4 +323,171 @@ void main() {
 
     expect(find.text('Add gear to predict your weighting'), findsOneWidget);
   });
+
+  group('issue #2060', () {
+    List<Object> overridesFor(
+      List<Object> base, {
+      List<WeightObservation>? history,
+    }) => [
+      ...base,
+      weightObservationsProvider.overrideWith(
+        (ref) async => history ?? observations,
+      ),
+      allEquipmentProvider.overrideWith((ref) async => const [suitItem]),
+      activeEquipmentProvider.overrideWith((ref) async => const [suitItem]),
+      latestDiverWeightProvider.overrideWith((ref) async => entry),
+      latestDiverHeightProvider.overrideWith((ref) async => null),
+    ];
+
+    Future<ProviderContainer> pumpSeeded(
+      WidgetTester tester,
+      List<Object> overrides, {
+      // Pinned, so the English finders never depend on the host's locale.
+      Locale locale = const Locale('en'),
+    }) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: locale,
+          child: const SingleChildScrollView(child: PlanGearWeightsSection()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanGearWeightsSection)),
+      );
+      container.read(divePlanNotifierProvider.notifier)
+        ..addTank(
+          const DiveTank(
+            id: 't1',
+            volume: 11.1,
+            workingPressure: 207,
+            material: TankMaterial.aluminum,
+            presetName: 'al80',
+          ),
+        )
+        ..addSimplePlan(maxDepth: 18, bottomTimeMinutes: 40)
+        ..setEquipmentIds(['suit']);
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    testWidgets('the prediction row fits a phone in French', (tester) async {
+      // The reporter's 384 dp wide phone with Android's Large font size,
+      // where the French accept label no longer fits beside the prediction.
+      tester.view.physicalSize = const Size(1080, 2340);
+      tester.view.devicePixelRatio = 2.8125;
+      addTearDown(tester.view.reset);
+      tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await pumpSeeded(
+        tester,
+        overridesFor(await getBaseOverrides()),
+        locale: const Locale('fr'),
+      );
+
+      // The accept label is wider than the card on its own line: it must
+      // wrap below the prediction, not crush it to a zero-width column.
+      expect(tester.takeException(), isNull);
+      final predicted = find.textContaining('Prédit');
+      expect(predicted, findsOneWidget);
+      expect(tester.getSize(predicted).width, greaterThan(50));
+      expect(find.text('Utiliser comme lestage prévu'), findsOneWidget);
+    });
+
+    testWidgets('on a wide screen the accept button keeps the right edge', (
+      tester,
+    ) async {
+      await pumpSeeded(tester, overridesFor(await getBaseOverrides()));
+
+      final button = tester.getRect(find.byType(TextButton));
+      final card = tester.getRect(find.byType(Card));
+      expect(
+        tester.getRect(find.textContaining('Predicted:')).top,
+        closeTo(button.top, button.height),
+        reason: 'prediction and button share one line when they fit',
+      );
+      // Card margin (4) plus content padding (16).
+      expect(button.right, closeTo(card.right - 20, 0.5));
+    });
+
+    testWidgets('accepting in pounds plans whole-pound placements', (
+      tester,
+    ) async {
+      const lb = 0.45359237;
+      final container = await pumpSeeded(
+        tester,
+        overridesFor(
+          await getBaseOverrides(
+            settingsNotifier: MockSettingsNotifier(
+              const AppSettings(weightUnit: WeightUnit.pounds),
+            ),
+          ),
+          // The split needs a placement history to follow.
+          history: [
+            for (final o in observations)
+              WeightObservation(
+                diveId: o.diveId,
+                diveDateTime: o.diveDateTime,
+                waterType: o.waterType,
+                carriedKg: o.carriedKg,
+                equipmentIds: o.equipmentIds,
+                tanks: o.tanks,
+                feedback: o.feedback,
+                placement: const {'belt': 6.0, 'integrated': 2.0},
+              ),
+          ],
+        ),
+      );
+
+      await tester.tap(find.byType(TextButton));
+      await tester.pumpAndSettle();
+
+      final placement = container
+          .read(divePlanNotifierProvider)
+          .plannedWeightPlacement!;
+      final total = placement.values.fold(0.0, (a, b) => a + b);
+      expect(total, greaterThan(0));
+      // Pound increments, not the half-kilo steps a metric diver gets.
+      expect((total / lb - (total / lb).round()).abs(), lessThan(1e-6));
+      expect((total / 0.5 - (total / 0.5).round()).abs(), greaterThan(1e-6));
+    });
+
+    testWidgets('a failing buoyancy computation keeps the card usable', (
+      tester,
+    ) async {
+      await pumpSeeded(tester, [
+        ...overridesFor(await getBaseOverrides()),
+        planResultsProvider.overrideWith(
+          (ref) => throw StateError('deco engine failed'),
+        ),
+      ]);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(ErrorWidget), findsNothing);
+      expect(find.text('5mm Suit'), findsOneWidget);
+      expect(find.textContaining('Predicted:'), findsOneWidget);
+    });
+
+    testWidgets('a failing weight prediction keeps the card usable', (
+      tester,
+    ) async {
+      await pumpSeeded(tester, [
+        ...overridesFor(await getBaseOverrides()),
+        weightCalibrationProvider.overrideWith((ref) async => _ThrowingModel()),
+      ]);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(ErrorWidget), findsNothing);
+      expect(find.text('5mm Suit'), findsOneWidget);
+      expect(find.textContaining('Predicted:'), findsNothing);
+    });
+  });
+}
+
+class _ThrowingModel extends Fake implements FittedWeightModel {
+  @override
+  WeightPrediction predict(RigSpec rig) =>
+      throw StateError('prediction failed');
 }

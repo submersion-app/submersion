@@ -6471,6 +6471,14 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'Este mergulho com rebreather não tem setpoint nem ppO2 do circuito registados, por isso a carga tecidual, o NDL e a descompressão não podem ser calculados. Adicione o setpoint ao editar o mergulho para os calcular.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'Este mergulho com rebreather semifechado não tem ppO2 do circuito medida, por isso a carga tecidual, o NDL e a descompressão não podem ser calculados.';
+
+  @override
   String get diveLog_delete_cancel => 'Cancelar';
 
   @override
@@ -29979,6 +29987,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Não foi possível ler o arquivo';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'Para vincular fotos e vídeos, solte-os em Mídia, em um mergulho ou em um ponto de mergulho';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -32685,6 +32697,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_detail_altitudeMismatch_subtitle =>
       'Este ponto registra uma altitude, mas o mergulho não tem nenhuma, então a análise de descompressão assumiu o nível do mar. Defina a altitude do mergulho para corrigir.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Só foram registradas as pressões inicial e final do cilindro, por isso o consumo de gás não pode ser dividido em segmentos. Para isso são necessárias leituras de pressão durante o mergulho, por exemplo de um transmissor. A média do mergulho inteiro aparece em Cilindros.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'Nenhuma pressão do cilindro registrada durante o mergulho';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -45646,7 +45666,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks cilindros em $dives mergulhos carregam este transmissor. Campos vazios de tamanho, material, nome e equipamento serão preenchidos, e uma função ainda definida como Gás de fundo será substituída.';
+    return '$tanks cilindros em $dives mergulhos carregam este transmissor. Campos vazios de tamanho, material, nome e equipamento serão preenchidos, e uma função ainda definida como Gás de fundo ou lida do nome do transmissor será substituída.';
   }
 
   @override
@@ -45752,6 +45772,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Reatribuir série de pressão';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role, lido do nome do transmissor';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'Séries de pressão';
 
   @override
@@ -45788,6 +45813,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Atribuir transmissores';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'Funções dos cilindros lidas dos nomes dos transmissores';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'O computador de mergulho obteve algumas funções de oxigênio e diluente dos nomes dados aos transmissores: um nome que começa com O é lido como oxigênio, e um que começa com D como diluente. Atribua os transmissores para confirmar ou corrigir essas funções.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

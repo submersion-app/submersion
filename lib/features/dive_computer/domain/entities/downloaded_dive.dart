@@ -367,6 +367,11 @@ class DownloadedTank {
   /// the default. Derived from the computer's tank usage / the gas mix.
   final String? role;
 
+  /// Where [role] came from when the computer took it from something
+  /// unverified, such as the transmitter's name (issue #2595); null when the
+  /// role is the computer's own data or the app's gas heuristic.
+  final TankRoleSource? roleSource;
+
   /// Serial of the air-integration transmitter that reported this tank, or
   /// null when the computer did not report one. Two computers paired to the
   /// same transmitter logged the same cylinder.
@@ -380,6 +385,7 @@ class DownloadedTank {
     this.endPressure,
     this.volumeLiters,
     this.role,
+    this.roleSource,
     this.transmitterSerial,
   });
 

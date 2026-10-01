@@ -6366,6 +6366,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'This rebreather dive has no recorded setpoint or loop ppO2, so its tissue loading, NDL and decompression cannot be calculated. Add the setpoint when editing the dive to calculate them.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'This semi-closed rebreather dive has no measured loop ppO2, so its tissue loading, NDL and decompression cannot be calculated.';
+
+  @override
   String get diveLog_delete_cancel => 'Cancel';
 
   @override
@@ -29505,6 +29513,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Could not read file';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'To link photos and videos, drop them on Media, a dive or a dive site';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -32178,6 +32190,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_detail_altitudeMismatch_subtitle =>
       'This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive\'s altitude to correct it.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Only start and end tank pressures were recorded, so gas use can\'t be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'No tank pressure recorded during the dive';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -44961,7 +44981,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks cylinders on $dives dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas will be replaced.';
+    return '$tanks cylinders on $dives dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.';
   }
 
   @override
@@ -45067,6 +45087,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Reassign pressure series';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role, read from the transmitter\'s name';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'Pressure series';
 
   @override
@@ -45103,6 +45128,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Assign transmitters';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'Cylinder roles read from transmitter names';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'The dive computer took some oxygen and diluent roles from the names given to its transmitters: a name starting with O reads as oxygen, one starting with D as diluent. Assign the transmitters to confirm or correct those roles.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

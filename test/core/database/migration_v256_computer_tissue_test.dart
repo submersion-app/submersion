@@ -53,10 +53,10 @@ void main() {
     },
   );
 
-  test('a v252 database upgrades to v256 with the column', () async {
+  test('a v254 database upgrades to v256 with the column', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 252');
+        rawDb.execute('PRAGMA user_version = 254');
         rawDb.execute('''
           CREATE TABLE dives (
             id TEXT NOT NULL PRIMARY KEY,

@@ -595,6 +595,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // Column only, no backfill, so it cannot touch diver data.
     await _assertTankTransmitterSerialColumn();
 
+    // v254 backstop: re-assert dive_tanks.role_source, for the same reason
+    // as transmitter_serial above. Column only, no backfill.
+    await _assertTankRoleSourceColumn();
+
     // v145 backstop: re-assert the gps_tracks provenance and trim columns.
     await _assertGpsTrackColumns();
 

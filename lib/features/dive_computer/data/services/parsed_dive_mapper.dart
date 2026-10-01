@@ -9,10 +9,13 @@ import 'package:submersion/features/dive_computer/data/services/libdc_sample_uni
 ///
 /// [trimAtSurfacing] carries the diver's preference for reading cylinder end
 /// pressure at the moment of surfacing rather than at the end of the recording
-/// (issue #1092); see [resolveParsedTanks].
+/// (issue #1092); see [resolveParsedTanks]. [vendor] is the computer's
+/// manufacturer, which tells the resolver whether a cylinder role came from
+/// a transmitter's name (issue #2595).
 DownloadedDive parsedDiveToDownloaded(
   pigeon.ParsedDive parsed, {
   bool trimAtSurfacing = true,
+  String? vendor,
 }) {
   // Some computers (e.g. Shearwater) don't provide top-level min/max
   // temperature — derive from profile samples when missing.
@@ -35,7 +38,11 @@ DownloadedDive parsedDiveToDownloaded(
   // the shared resolver so the download and reparse paths cannot drift
   // apart; the diluent gas (issue #1879) is derived from that same resolved
   // list so it always agrees with the Diluent cylinder shown in Gas & Gear.
-  final tanks = resolveParsedTanks(parsed, trimAtSurfacing: trimAtSurfacing);
+  final tanks = resolveParsedTanks(
+    parsed,
+    trimAtSurfacing: trimAtSurfacing,
+    vendor: vendor,
+  );
   final diluent = resolveDiluentGas(tanks);
 
   return DownloadedDive(

@@ -6157,6 +6157,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      '这次循环呼吸器潜水没有记录设定点或回路 ppO2，因此无法计算其组织饱和度、免减压极限和减压。编辑潜水时添加设定点即可计算。';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      '这次半闭式循环呼吸器潜水没有测得的回路 ppO2，因此无法计算其组织饱和度、免减压极限和减压。';
+
+  @override
   String get diveLog_delete_cancel => '取消';
 
   @override
@@ -28435,6 +28443,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dropTarget_error_readFailed => '无法读取文件';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      '要关联照片和视频，请将它们拖放到媒体、潜水或潜点上';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30995,6 +31007,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get diveLog_detail_altitudeMismatch_subtitle =>
       '该潜点记录了海拔,但此次潜水未设置海拔,因此减压分析按海平面计算。请设置潜水海拔以更正。';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      '仅记录了气瓶的起始和结束压力，因此无法按分段拆分气体消耗。分段需要潜水过程中的压力读数，例如来自无线发射器。整次潜水的平均值显示在“气瓶”下。';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle => '潜水过程中未记录气瓶压力';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -42986,7 +43005,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$dives 次潜水中的 $tanks 个气瓶带有此发射器。空白的容量、材质、名称和装备字段将被填充，仍为背气的用途将被替换。';
+    return '$dives 次潜水中的 $tanks 个气瓶带有此发射器。空白的容量、材质、名称和装备字段将被填充，仍为背气或根据发射器名称识别的用途将被替换。';
   }
 
   @override
@@ -43088,6 +43107,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_reassignSeries => '重新分配压力曲线';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role（根据发射器名称识别）';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => '压力曲线';
 
   @override
@@ -43122,6 +43146,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeAssignTransmitters => '分配发射器';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      '气瓶用途根据发射器名称识别';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      '潜水电脑根据发射器的名称识别了部分氧气和稀释气用途：以 O 开头的名称视为氧气，以 D 开头的视为稀释气。请分配发射器以确认或更正这些用途。';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

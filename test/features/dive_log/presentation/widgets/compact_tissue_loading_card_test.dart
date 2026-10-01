@@ -122,6 +122,56 @@ void main() {
     },
   );
 
+  group('CompactTissueLoadingCard gassing direction (issue #2593)', () {
+    // A tissue at 2.5 bar, 4 bar ambient (30 m), on a loop whose inspired inert
+    // pressure is 1.2 bar: below ambient, yet releasing gas.
+    const loadedComp = TissueCompartment(
+      compartmentNumber: 1,
+      halfTimeN2: 4.0,
+      halfTimeHe: 1.51,
+      mValueAN2: 1.2599,
+      mValueBN2: 0.5050,
+      mValueAHe: 1.7424,
+      mValueBHe: 0.4245,
+      currentPN2: 2.5,
+    );
+    DecoStatus atStop({double? inspiredN2, double? inspiredHe}) => DecoStatus(
+      compartments: const [loadedComp],
+      ndlSeconds: -1,
+      ceilingMeters: 6.0,
+      ttsSeconds: 300,
+      gfLow: 0.4,
+      gfHigh: 0.85,
+      decoStops: const [],
+      currentDepthMeters: 30.0,
+      ambientPressureBar: 4.0,
+      inspiredN2Bar: inspiredN2,
+      inspiredHeBar: inspiredHe,
+    );
+
+    testWidgets('reads off-gassing against the inspired gas, not ambient', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildCard(status: atStop(inspiredN2: 1.2, inspiredHe: 0.0)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Offgassing'), findsOneWidget);
+      expect(find.text('Ongassing'), findsNothing);
+    });
+
+    testWidgets('leaves the direction out when the inspired gas is unknown', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildCard(status: atStop()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Offgassing'), findsNothing);
+      expect(find.text('Ongassing'), findsNothing);
+    });
+  });
+
   group('CompactTissueLoadingCard 3D view button', () {
     testWidgets('shows the 3D button and fires the callback on tap', (
       tester,

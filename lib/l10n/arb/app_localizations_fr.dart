@@ -6491,6 +6491,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'Cette plongée recycleur n\'a enregistré ni consigne (setpoint) ni ppO2 de boucle ; sa saturation des tissus, la NDL et la décompression ne peuvent donc pas être calculées. Ajoutez la consigne en modifiant la plongée pour les calculer.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'Cette plongée en recycleur semi-fermé n\'a pas de ppO2 de boucle mesurée ; sa saturation des tissus, la NDL et la décompression ne peuvent donc pas être calculées.';
+
+  @override
   String get diveLog_delete_cancel => 'Annuler';
 
   @override
@@ -30073,6 +30081,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Impossible de lire le fichier';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'Pour lier des photos et des vidéos, déposez-les sur Médias, une plongée ou un site';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -32787,6 +32799,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_detail_altitudeMismatch_subtitle =>
       'Ce site indique une altitude mais la plongée n\'en a aucune : l\'analyse de décompression a supposé le niveau de la mer. Définissez l\'altitude de la plongée pour corriger.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Seules les pressions de début et de fin du bloc ont été enregistrées, la consommation de gaz ne peut donc pas être répartie par segment. Il faut pour cela des relevés de pression pendant la plongée, par exemple d\'un émetteur. La moyenne sur toute la plongée figure sous Blocs.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'Aucune pression du bloc enregistrée pendant la plongée';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -45743,7 +45763,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks bouteilles sur $dives plongées portent cet émetteur. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond sera remplacé.';
+    return '$tanks bouteilles sur $dives plongées portent cet émetteur. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond ou lu dans le nom de l\'émetteur sera remplacé.';
   }
 
   @override
@@ -45849,6 +45869,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Réattribuer la courbe de pression';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role, lu dans le nom de l\'émetteur';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'Courbes de pression';
 
   @override
@@ -45885,6 +45910,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Associer les émetteurs';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'Rôles des bouteilles lus dans les noms des émetteurs';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'L\'ordinateur de plongée a tiré certains rôles oxygène et diluant des noms donnés à ses émetteurs : un nom commençant par O est lu comme oxygène, un nom commençant par D comme diluant. Associez les émetteurs pour confirmer ou corriger ces rôles.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

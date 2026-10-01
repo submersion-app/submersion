@@ -3829,6 +3829,8 @@
   "diveLog_deco_tissueSlow": "Slow",
   "diveLog_deco_title": "Deco Status",
   "diveLog_deco_totalDecoTime": "Total: {time}",
+  "diveLog_deco_withheld_ccr": "This rebreather dive has no recorded setpoint or loop ppO2, so its tissue loading, NDL and decompression cannot be calculated. Add the setpoint when editing the dive to calculate them.",
+  "diveLog_deco_withheld_scr": "This semi-closed rebreather dive has no measured loop ppO2, so its tissue loading, NDL and decompression cannot be calculated.",
   "diveLog_delete_cancel": "Cancel",
   "diveLog_delete_confirm": "This action cannot be undone. The dive and all associated data (profile, tanks, sightings) will be permanently deleted.",
   "diveLog_delete_delete": "Delete",
@@ -19317,6 +19319,8 @@
   "dropTarget_error_unsupportedFile": "Unsupported file type",
   "dropTarget_error_wizardActive": "Finish current import first",
   "dropTarget_error_readFailed": "Could not read file",
+  "dropTarget_error_mediaNeedsDestination": "To link photos and videos, drop them on Media, a dive or a dive site",
+  "@dropTarget_error_mediaNeedsDestination": {"description": "Snackbar when photos or videos are dropped on a screen that cannot take them"},
   "dropTarget_error_someUnreadable": "{count, plural, =1{{count} file could not be read and was skipped} other{{count} files could not be read and were skipped}}",
   "@dropTarget_error_someUnreadable": {"description": "Snackbar after a share-sheet import that skipped files it could not read, while the rest were imported", "placeholders": {"count": {"type": "int"}}},
   "enum_cloudCover_clear": "Clear",
@@ -21133,6 +21137,8 @@
   "safetyHub_noFly_disclaimer": "DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer's no-fly time.",
   "diveLog_detail_altitudeMismatch_title": "Site is at altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive's altitude to correct it.",
+  "diveLog_detail_sacSegmentsNoPressure": "Only start and end tank pressures were recorded, so gas use can't be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "No tank pressure recorded during the dive",
   "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show RMV in {unit}",
   "@diveLog_detail_sacVolumeHint": {
     "placeholders": {
@@ -28200,7 +28206,7 @@
   "transmitters_action_delete": "Delete transmitter",
   "transmitters_action_apply": "Apply to existing dives",
   "transmitters_apply_title": "Apply to existing dives?",
-  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas will be replaced.",
+  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter's name will be replaced.",
   "@transmitters_apply_content": {
     "placeholders": {
       "tanks": { "type": "int" },
@@ -28271,6 +28277,13 @@
   },
   "diveLog_tank_assignTransmitter": "Assign transmitter",
   "diveLog_tank_reassignSeries": "Reassign pressure series",
+  "diveLog_tank_roleFromTransmitterName": "{role}, read from the transmitter's name",
+  "@diveLog_tank_roleFromTransmitterName": {
+    "description": "Under a cylinder whose role the dive computer took from the name the diver gave its transmitter (a name starting with O reads as oxygen, D as diluent), so the role is unconfirmed. role is the localized tank role, e.g. O₂ Supply.",
+    "placeholders": {
+      "role": { "type": "String" }
+    }
+  },
   "diveLog_reassignSheet_title": "Pressure series",
   "diveLog_reassignSheet_swap": "Swap",
   "diveLog_reassignSheet_moveTo": "Move to",
@@ -28285,6 +28298,8 @@
   "universalImport_summary_noticeUnknownTransmitterTitle": "Unassigned transmitters",
   "universalImport_summary_noticeUnknownTransmitterBody": "One or more transmitters in this download are not assigned to a cylinder. Assign them so future downloads get the right size and role.",
   "universalImport_summary_noticeAssignTransmitters": "Assign transmitters",
+  "universalImport_summary_noticeTransmitterNameRolesTitle": "Cylinder roles read from transmitter names",
+  "universalImport_summary_noticeTransmitterNameRolesBody": "The dive computer took some oxygen and diluent roles from the names given to its transmitters: a name starting with O reads as oxygen, one starting with D as diluent. Assign the transmitters to confirm or correct those roles.",
   "universalImport_summary_noticeDiveNumberConflictTitle": "Dive numbers already in use",
   "universalImport_summary_noticeDiveNumberConflictBody": "These dives kept the number from their source, but other dives in your log already use the same numbers. Open Dive Numbering from the dive list menu to renumber them.",
   "dataQuality_detector_unknown_transmitter": "Unassigned transmitter",

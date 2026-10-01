@@ -16,13 +16,27 @@ class ProfileGasSegment extends Equatable {
   /// constant-ppO2 partitioning instead of open-circuit fractions.
   final double? setpoint;
 
+  /// Whether the loop holds [setpoint] as the diver ascends: true for a CCR
+  /// controller. False for a semi-closed loop, where [setpoint] is the
+  /// measured loop ppO2 and [fN2]/[fHe] the supply gas: the recorded profile
+  /// still loads at that ppO2, but the simulated ascent breathes the loop's
+  /// current inert fractions instead of holding the deep ppO2 to the surface.
+  final bool loopHoldsSetpoint;
+
   const ProfileGasSegment({
     required this.startTimestamp,
     required this.fN2,
     this.fHe = 0.0,
     this.setpoint,
+    this.loopHoldsSetpoint = true,
   });
 
   @override
-  List<Object?> get props => [startTimestamp, fN2, fHe, setpoint];
+  List<Object?> get props => [
+    startTimestamp,
+    fN2,
+    fHe,
+    setpoint,
+    loopHoldsSetpoint,
+  ];
 }

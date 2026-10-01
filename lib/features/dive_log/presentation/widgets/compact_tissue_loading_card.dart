@@ -460,7 +460,9 @@ class _CompactTissueLoadingCardState
     final comp = comps[displayIdx];
 
     final gf = (comp.gradientFactor(ambient) * 100).clamp(0.0, double.infinity);
-    final isOffgassing = comp.totalInertGas > ambient;
+    // Null when the status carries no inspired gas: the badge is left out
+    // rather than guessed from ambient pressure (issue #2593).
+    final isOffgassing = widget.status.isOffgassing(comp);
     final gfColor = _getGfColor(gf);
 
     final labelStyle = textTheme.labelSmall?.copyWith(
@@ -491,38 +493,40 @@ class _CompactTissueLoadingCardState
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-              decoration: BoxDecoration(
-                color: isOffgassing
-                    ? Colors.green.withValues(alpha: 0.15)
-                    : Colors.blue.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    isOffgassing ? Icons.arrow_upward : Icons.arrow_downward,
-                    size: 9,
-                    color: isOffgassing
-                        ? Colors.green.shade700
-                        : Colors.blue.shade700,
-                  ),
-                  const SizedBox(width: 2),
-                  Text(
-                    isOffgassing ? 'Offgassing' : 'Ongassing',
-                    style: textTheme.labelSmall?.copyWith(
-                      fontSize: 11,
+            if (isOffgassing != null) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: isOffgassing
+                      ? Colors.green.withValues(alpha: 0.15)
+                      : Colors.blue.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isOffgassing ? Icons.arrow_upward : Icons.arrow_downward,
+                      size: 9,
                       color: isOffgassing
                           ? Colors.green.shade700
                           : Colors.blue.shade700,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 2),
+                    Text(
+                      isOffgassing ? 'Offgassing' : 'Ongassing',
+                      style: textTheme.labelSmall?.copyWith(
+                        fontSize: 11,
+                        color: isOffgassing
+                            ? Colors.green.shade700
+                            : Colors.blue.shade700,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
           ],
         ),
         const SizedBox(height: 6),

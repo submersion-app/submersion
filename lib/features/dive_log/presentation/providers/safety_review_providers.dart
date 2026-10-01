@@ -38,6 +38,10 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
     return stored;
   }
 
+  // The toggle below is per diver: right after a diver switch it still reads
+  // the previous diver's until the new diver's settings load (#2564).
+  await awaitCurrentDiverSettings(ref);
+
   // Master toggle off: surface whatever is stored but never compute.
   if (!ref.watch(safetyReviewEnabledProvider)) return stored;
 

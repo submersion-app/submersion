@@ -52,8 +52,9 @@ void main() {
   );
 
   test('v252 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v256 (computer tissue, #1977) landed on top; the newest
-    // rung owns the exact assertion.
+    // Relaxed once v254 (dive_tanks.role_source, #2595) and v256 (computer
+    // tissue, #1977) landed on top; the newest rung owns the exact
+    // assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(252));
     expect(AppDatabase.migrationVersions, contains(252));
     // v251 (dive_tanks.source_id, #2716) sits directly below this rung,

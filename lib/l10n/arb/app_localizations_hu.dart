@@ -6458,6 +6458,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'Ehhez a rebreatheres merüléshez nincs rögzített setpoint vagy hurok-ppO2, ezért a szövetterheltség, az NDL és a dekompresszió nem számítható. A számításhoz add meg a setpointot a merülés szerkesztésekor.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'Ehhez a félig zárt rebreatheres merüléshez nincs mért hurok-ppO2, ezért a szövetterheltség, az NDL és a dekompresszió nem számítható.';
+
+  @override
   String get diveLog_delete_cancel => 'Mégse';
 
   @override
@@ -29879,6 +29887,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dropTarget_error_readFailed => 'A fájl nem olvasható';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'A fotók és videók csatolásához ejtsd őket a Média képernyőre, egy merülésre vagy egy merülőhelyre';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -32558,6 +32570,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_detail_altitudeMismatch_subtitle =>
       'Ehhez a helyhez magasság van rögzítve, a merüléshez azonban nincs, így a dekompressziós elemzés tengerszintet feltételezett. A javításhoz állítsd be a merülés magasságát.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Csak a palack kezdő- és végnyomása lett rögzítve, ezért a gázfogyasztás nem bontható szakaszokra. Ehhez merülés közbeni nyomásértékek kellenek, például egy jeladótól. A teljes merülés átlaga a Palackok alatt látható.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'Merülés közben nem lett rögzítve palacknyomás';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -45450,7 +45470,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks palack $dives merülésben viseli ezt a jeladót. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított szerep lecserélődik.';
+    return '$tanks palack $dives merülésben viseli ezt a jeladót. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított vagy a jeladó nevéből kiolvasott szerep lecserélődik.';
   }
 
   @override
@@ -45556,6 +45576,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Nyomásgörbe áthelyezése';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role, a jeladó nevéből kiolvasva';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'Nyomásgörbék';
 
   @override
@@ -45592,6 +45617,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Jeladók hozzárendelése';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'Palackszerepek a jeladók nevéből';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'A merülőkomputer néhány oxigén- és hígítógáz-szerepet a jeladóknak adott nevekből vett át: az O-val kezdődő név oxigénnek, a D-vel kezdődő hígítógáznak számít. Rendeld hozzá a jeladókat, hogy megerősítsd vagy javítsd ezeket a szerepeket.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

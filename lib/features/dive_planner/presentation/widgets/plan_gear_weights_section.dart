@@ -206,10 +206,18 @@ class PlanGearWeightsSection extends ConsumerWidget {
               ),
             if (prediction != null) ...[
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
+              // A Wrap, not a Row: in a long locale on a phone the accept
+              // label alone is wider than the card, and a Row would squeeze
+              // the prediction to a zero-width column (issue #2060). Here the
+              // button drops to its own line instead. The full width lets
+              // spaceBetween keep the button at the right edge when it fits.
+              SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
                       context.l10n.planner_gearWeights_predicted(
                         units.formatWeight(prediction.totalKg),
                       ),
@@ -217,36 +225,37 @@ class PlanGearWeightsSection extends ConsumerWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      final observations =
-                          ref.read(weightObservationsProvider).valueOrNull ??
-                          const [];
-                      String? exposureItemId;
-                      for (final id in state.equipmentIds) {
-                        final type = itemsById[id]?.type;
-                        if (type == EquipmentType.wetsuit ||
-                            type == EquipmentType.drysuit) {
-                          exposureItemId = id;
-                          break;
+                    TextButton(
+                      onPressed: () {
+                        final observations =
+                            ref.read(weightObservationsProvider).valueOrNull ??
+                            const [];
+                        String? exposureItemId;
+                        for (final id in state.equipmentIds) {
+                          final type = itemsById[id]?.type;
+                          if (type == EquipmentType.wetsuit ||
+                              type == EquipmentType.drysuit) {
+                            exposureItemId = id;
+                            break;
+                          }
                         }
-                      }
-                      final placement = PlacementPredictor.predict(
-                        totalKg: prediction.totalKg,
-                        observations: observations,
-                        exposureItemId: exposureItemId,
-                        incrementKg: settings.weightUnit == WeightUnit.kilograms
-                            ? 0.5
-                            : 0.45359237,
-                      );
-                      ref
-                          .read(divePlanNotifierProvider.notifier)
-                          .setPlannedWeight(prediction.totalKg, placement);
-                    },
-                    child: Text(context.l10n.planner_gearWeights_accept),
-                  ),
-                ],
+                        final placement = PlacementPredictor.predict(
+                          totalKg: prediction.totalKg,
+                          observations: observations,
+                          exposureItemId: exposureItemId,
+                          incrementKg:
+                              settings.weightUnit == WeightUnit.kilograms
+                              ? 0.5
+                              : 0.45359237,
+                        );
+                        ref
+                            .read(divePlanNotifierProvider.notifier)
+                            .setPlannedWeight(prediction.totalKg, placement);
+                      },
+                      child: Text(context.l10n.planner_gearWeights_accept),
+                    ),
+                  ],
+                ),
               ),
             ],
             if (state.plannedWeightKg != null)
@@ -258,11 +267,13 @@ class PlanGearWeightsSection extends ConsumerWidget {
                     color: theme.colorScheme.primary,
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    context.l10n.planner_gearWeights_planned(
-                      units.formatWeight(state.plannedWeightKg!),
+                  Flexible(
+                    child: Text(
+                      context.l10n.planner_gearWeights_planned(
+                        units.formatWeight(state.plannedWeightKg!),
+                      ),
+                      style: theme.textTheme.bodySmall,
                     ),
-                    style: theme.textTheme.bodySmall,
                   ),
                 ],
               ),

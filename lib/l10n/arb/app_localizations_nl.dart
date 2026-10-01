@@ -6426,6 +6426,14 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'Voor deze rebreatherduik is geen setpoint of loop-ppO2 vastgelegd, dus de weefselbelading, NDL en decompressie kunnen niet worden berekend. Voeg het setpoint toe bij het bewerken van de duik om ze te berekenen.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'Voor deze semi-gesloten rebreatherduik is geen loop-ppO2 gemeten, dus de weefselbelading, NDL en decompressie kunnen niet worden berekend.';
+
+  @override
   String get diveLog_delete_cancel => 'Annuleren';
 
   @override
@@ -29759,6 +29767,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Kan bestand niet lezen';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'Sleep foto\'s en video\'s naar Media, een duik of een duikstek om ze te koppelen';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -32458,6 +32470,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_detail_altitudeMismatch_subtitle =>
       'Deze stek heeft een hoogte geregistreerd maar de duik niet, dus de deco-analyse ging uit van zeeniveau. Stel de hoogte van de duik in om dit te corrigeren.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Alleen de begin- en einddruk van de fles zijn vastgelegd, dus het gasverbruik kan niet per segment worden verdeeld. Daarvoor zijn drukmetingen tijdens de duik nodig, bijvoorbeeld van een zender. Het gemiddelde over de hele duik staat onder Flessen.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'Geen flesdruk vastgelegd tijdens de duik';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -45340,7 +45360,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks flessen in $dives duiken dragen deze zender. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat wordt vervangen.';
+    return '$tanks flessen in $dives duiken dragen deze zender. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat of uit de zendernaam is afgeleid wordt vervangen.';
   }
 
   @override
@@ -45446,6 +45466,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Drukreeks opnieuw toewijzen';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role, afgeleid uit de naam van de zender';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'Drukreeksen';
 
   @override
@@ -45482,6 +45507,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Zenders toewijzen';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'Flesrollen afgeleid uit zendernamen';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'De duikcomputer heeft sommige zuurstof- en diluentrollen afgeleid uit de namen van zijn zenders: een naam die met O begint geldt als zuurstof, een die met D begint als diluent. Wijs de zenders toe om die rollen te bevestigen of te corrigeren.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

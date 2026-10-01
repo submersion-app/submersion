@@ -426,6 +426,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           : null,
       gasMix: _currentGasMix(),
       role: _role,
+      // A role the diver picks here is theirs; one left alone keeps the
+      // computer's source (issue #2595).
+      roleSource: _role == widget.tank.role ? widget.tank.roleSource : null,
       material: _material,
       order: widget.tank.order,
       presetName: _selectedPreset?.name,

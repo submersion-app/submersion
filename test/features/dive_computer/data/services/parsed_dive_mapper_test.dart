@@ -93,6 +93,27 @@ void main() {
       ],
     );
 
+    test('the vendor decides whether a tank role came from the transmitter '
+        'name (#2595)', () {
+      final parsed = makeParsedDive(
+        diveMode: 'ccr',
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: 4294967295,
+            usage: 1,
+            transmitterSerial: 180777,
+          ),
+        ],
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0)],
+      );
+
+      final shearwater = parsedDiveToDownloaded(parsed, vendor: 'Shearwater');
+      expect(shearwater.tanks.first.roleSource, TankRoleSource.transmitterName);
+      final unknown = parsedDiveToDownloaded(parsed);
+      expect(unknown.tanks.first.roleSource, isNull);
+    });
+
     test('trims tank end pressure to the surfacing reading by default', () {
       final downloaded = parsedDiveToDownloaded(bleedingOxygenDive());
       expect(downloaded.tanks.single.endPressure, 41.0);

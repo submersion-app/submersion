@@ -239,7 +239,10 @@ class TransmitterRepository {
 
   /// Retroactive fill for the tanks that carry [t]'s key: empty size,
   /// working pressure, material, preset, gear link and name are filled; the
-  /// role is replaced only while it is still the uninformed backGas default.
+  /// role is replaced while it is still the uninformed backGas default, and
+  /// always while it is the computer's guess from the transmitter's name
+  /// (issue #2595), which also drops that source: the entry is the diver's
+  /// own configuration. A role the diver set is never replaced.
   /// One transaction; a failure leaves no half-applied dive.
   Future<ApplyToExistingResult> applyToExistingDives(Transmitter t) async {
     final candidates = await _tanksForEntry(t);
@@ -250,6 +253,9 @@ class TransmitterRepository {
     await _db.transaction(() async {
       for (final row in candidates) {
         final hasVolume = row.volume != null && row.volume! > 0;
+        final nameDerived =
+            TankRoleSource.fromName(row.roleSource) ==
+            TankRoleSource.transmitterName;
         final companion = DiveTanksCompanion(
           volume: !hasVolume && t.volumeL != null
               ? Value(t.volumeL)
@@ -273,10 +279,12 @@ class TransmitterRepository {
               ? Value(t.label)
               : const Value.absent(),
           tankRole:
-              row.tankRole == TankRole.backGas.name &&
-                  t.role != TankRole.backGas
+              nameDerived ||
+                  (row.tankRole == TankRole.backGas.name &&
+                      t.role != TankRole.backGas)
               ? Value(t.role.name)
               : const Value.absent(),
+          roleSource: nameDerived ? const Value(null) : const Value.absent(),
         );
         // Every field absent means nothing to write for this row.
         if (companion == const DiveTanksCompanion()) continue;

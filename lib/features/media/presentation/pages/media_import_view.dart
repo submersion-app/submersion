@@ -37,7 +37,14 @@ class MediaImportView extends ConsumerWidget {
   static final DateTime libraryWindowStart =
       DateTime.fromMillisecondsSinceEpoch(0);
 
-  Future<List<AssetInfo>> _pick(BuildContext context) async {
+  // coverage:ignore-start
+  // showPhotoPicker drives a full-screen page tied to photo_manager and the
+  // platform photo library, which flutter_test cannot drive; tests reach
+  // launchImport through its `pick` seam instead.
+  static Future<List<AssetInfo>> _pick(
+    BuildContext context, {
+    List<String>? initialFilePaths,
+  }) async {
     // No dive context: there is no meaningful date window, so the gallery
     // tab gets an unbounded one (desktop file dialogs ignore it entirely).
     final selected = await showPhotoPicker(
@@ -45,9 +52,11 @@ class MediaImportView extends ConsumerWidget {
       diveStartTime: libraryWindowStart,
       diveEndTime: DateTime.now().add(const Duration(days: 1)),
       buffer: Duration.zero,
+      initialFilePaths: initialFilePaths,
     );
     return selected ?? const [];
   }
+  // coverage:ignore-end
 
   /// Imports the resolved assets, one service call per dive and per site.
   /// A failing group never blocks another: a throw inside one group is
@@ -124,8 +133,22 @@ class MediaImportView extends ConsumerWidget {
     );
   }
 
-  Future<void> _launch(BuildContext context, WidgetRef ref) async {
-    final assets = await (launchOverride?.call(context) ?? _pick(context));
+  /// Runs one dive-less import: the picker, then [MediaImportReviewPage] for
+  /// whatever its Gallery tab returns. The Files and URL tabs link their own
+  /// rows and close the picker with nothing to review.
+  ///
+  /// [initialFilePaths] opens the picker on the Files tab with those files
+  /// staged, which is how a desktop drop on the Media section arrives
+  /// (issue #2488). [pick] replaces the picker entirely, for tests.
+  static Future<void> launchImport(
+    BuildContext context,
+    WidgetRef ref, {
+    List<String>? initialFilePaths,
+    Future<List<AssetInfo>> Function(BuildContext context)? pick,
+  }) async {
+    final assets =
+        await (pick?.call(context) ??
+            _pick(context, initialFilePaths: initialFilePaths));
     if (assets.isEmpty || !context.mounted) return;
     final candidates = [for (final a in assets) importCandidateForAsset(a)];
     await Navigator.of(context).push(
@@ -168,7 +191,7 @@ class MediaImportView extends ConsumerWidget {
             FilledButton.icon(
               icon: const Icon(Icons.add_photo_alternate),
               label: Text(context.l10n.media_import_launch),
-              onPressed: () => _launch(context, ref),
+              onPressed: () => launchImport(context, ref, pick: launchOverride),
             ),
           ],
         ),

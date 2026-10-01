@@ -10234,6 +10234,18 @@ abstract class AppLocalizations {
   /// **'Total: {time}'**
   String diveLog_deco_totalDecoTime(Object time);
 
+  /// No description provided for @diveLog_deco_withheld_ccr.
+  ///
+  /// In en, this message translates to:
+  /// **'This rebreather dive has no recorded setpoint or loop ppO2, so its tissue loading, NDL and decompression cannot be calculated. Add the setpoint when editing the dive to calculate them.'**
+  String get diveLog_deco_withheld_ccr;
+
+  /// No description provided for @diveLog_deco_withheld_scr.
+  ///
+  /// In en, this message translates to:
+  /// **'This semi-closed rebreather dive has no measured loop ppO2, so its tissue loading, NDL and decompression cannot be calculated.'**
+  String get diveLog_deco_withheld_scr;
+
   /// No description provided for @diveLog_delete_cancel.
   ///
   /// In en, this message translates to:
@@ -47528,6 +47540,12 @@ abstract class AppLocalizations {
   /// **'Could not read file'**
   String get dropTarget_error_readFailed;
 
+  /// Snackbar when photos or videos are dropped on a screen that cannot take them
+  ///
+  /// In en, this message translates to:
+  /// **'To link photos and videos, drop them on Media, a dive or a dive site'**
+  String get dropTarget_error_mediaNeedsDestination;
+
   /// Snackbar after a share-sheet import that skipped files it could not read, while the rest were imported
   ///
   /// In en, this message translates to:
@@ -51973,6 +51991,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive\'s altitude to correct it.'**
   String get diveLog_detail_altitudeMismatch_subtitle;
+
+  /// No description provided for @diveLog_detail_sacSegmentsNoPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Only start and end tank pressures were recorded, so gas use can\'t be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.'**
+  String get diveLog_detail_sacSegmentsNoPressure;
+
+  /// No description provided for @diveLog_detail_sacSegmentsNoPressure_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No tank pressure recorded during the dive'**
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle;
 
   /// No description provided for @diveLog_detail_sacVolumeHint.
   ///
@@ -72509,7 +72539,7 @@ abstract class AppLocalizations {
   /// No description provided for @transmitters_apply_content.
   ///
   /// In en, this message translates to:
-  /// **'{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas will be replaced.'**
+  /// **'{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.'**
   String transmitters_apply_content(int tanks, int dives);
 
   /// No description provided for @transmitters_apply_done.
@@ -72668,6 +72698,12 @@ abstract class AppLocalizations {
   /// **'Reassign pressure series'**
   String get diveLog_tank_reassignSeries;
 
+  /// Under a cylinder whose role the dive computer took from the name the diver gave its transmitter (a name starting with O reads as oxygen, D as diluent), so the role is unconfirmed. role is the localized tank role, e.g. O₂ Supply.
+  ///
+  /// In en, this message translates to:
+  /// **'{role}, read from the transmitter\'s name'**
+  String diveLog_tank_roleFromTransmitterName(String role);
+
   /// No description provided for @diveLog_reassignSheet_title.
   ///
   /// In en, this message translates to:
@@ -72721,6 +72757,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Assign transmitters'**
   String get universalImport_summary_noticeAssignTransmitters;
+
+  /// No description provided for @universalImport_summary_noticeTransmitterNameRolesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder roles read from transmitter names'**
+  String get universalImport_summary_noticeTransmitterNameRolesTitle;
+
+  /// No description provided for @universalImport_summary_noticeTransmitterNameRolesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The dive computer took some oxygen and diluent roles from the names given to its transmitters: a name starting with O reads as oxygen, one starting with D as diluent. Assign the transmitters to confirm or correct those roles.'**
+  String get universalImport_summary_noticeTransmitterNameRolesBody;
 
   /// No description provided for @universalImport_summary_noticeDiveNumberConflictTitle.
   ///

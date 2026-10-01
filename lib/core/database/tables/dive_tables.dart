@@ -248,6 +248,13 @@ class DiveTanks extends Table {
   TextColumn get tankRole => text().withDefault(
     const Constant('backGas'),
   )(); // backGas, stage, deco, bailout, etc.
+
+  /// v254: where [tankRole] came from when no person chose it, a
+  /// `TankRoleSource` name (issue #2595). 'transmitterName' marks a role
+  /// the computer read off the transmitter's name, which the transmitter
+  /// registry may replace on existing dives. Null once the diver or the
+  /// registry sets the role, and on every row from before v254.
+  TextColumn get roleSource => text().nullable()();
   TextColumn get tankMaterial =>
       text().nullable()(); // aluminum, steel, carbonFiber
   TextColumn get tankName =>

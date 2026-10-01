@@ -445,6 +445,17 @@ extension DiveMigrations on AppDatabase {
     );
   }
 
+  /// Idempotent DDL for the v254 dive_tanks.role_source column (issue
+  /// #2595). Called from the v254 rung and re-asserted in beforeOpen like
+  /// the other column-assert helpers.
+  Future<void> _assertTankRoleSourceColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('role_source')) return;
+    await customStatement('ALTER TABLE dive_tanks ADD COLUMN role_source TEXT');
+  }
+
   /// One-time clear of weather descriptions this app generated itself.
   ///
   /// Only rows whose weather_source is 'openMeteo' are touched -- those are

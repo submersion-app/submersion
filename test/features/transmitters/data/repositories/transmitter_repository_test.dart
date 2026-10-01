@@ -76,6 +76,7 @@ void main() {
     String? computerId,
     double? volume,
     String role = 'backGas',
+    String? roleSource,
   }) async {
     final db = DatabaseService.instance.database;
     await db
@@ -90,6 +91,7 @@ void main() {
             computerId: Value(computerId),
             volume: Value(volume),
             tankRole: Value(role),
+            roleSource: Value(roleSource),
           ),
         );
   }
@@ -230,6 +232,60 @@ void main() {
       expect(k3.volume, isNull, reason: 'another serial is untouched');
     },
   );
+
+  test('applyToExistingDives replaces a role read off the transmitter name, '
+      'even with Back Gas, and drops its source (#2595)', () async {
+    await seedDiverAndDive();
+    await seedDiverAndDive(diveId: 'd2');
+    // A bailout the diver named "OC" was imported as the oxygen supply.
+    await seedTank(
+      id: 'k1',
+      diveId: 'd1',
+      serial: '180777',
+      role: 'oxygenSupply',
+      roleSource: 'transmitterName',
+    );
+    // The same role on a dive where the diver set it stays theirs.
+    await seedTank(id: 'k2', diveId: 'd2', serial: '180777', role: 'diluent');
+    final entry = await repo.create(_entry(role: TankRole.backGas));
+
+    await repo.applyToExistingDives(entry);
+
+    final db = DatabaseService.instance.database;
+    final k1 = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.id.equals('k1'))).getSingle();
+    expect(k1.tankRole, 'backGas');
+    expect(k1.roleSource, isNull);
+    final k2 = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.id.equals('k2'))).getSingle();
+    expect(k2.tankRole, 'diluent');
+  });
+
+  test('applyToExistingDives confirms a name-derived role the entry agrees '
+      'with (#2595)', () async {
+    await seedDiverAndDive();
+    await seedTank(
+      id: 'k1',
+      diveId: 'd1',
+      serial: '180777',
+      volume: 2.0,
+      role: 'oxygenSupply',
+      roleSource: 'transmitterName',
+    );
+    final entry = await repo.create(_entry());
+
+    final result = await repo.applyToExistingDives(entry);
+
+    expect(result.tanksUpdated, 1);
+    final db = DatabaseService.instance.database;
+    final k1 = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.id.equals('k1'))).getSingle();
+    expect(k1.tankRole, 'oxygenSupply');
+    expect(k1.roleSource, isNull);
+  });
 
   test(
     'applyToExistingDives matches a channel entry on the source index',
