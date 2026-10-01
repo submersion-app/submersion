@@ -79,14 +79,20 @@ void main() {
       '${s.equipmentId}/${s.id}': s.diverId,
   };
 
-  test('merge drops colliding and self shares and repoints the rest', () async {
+  test('merge drops colliding and self shares and moves the rest', () async {
     await DiverMergeRepository().mergeDivers(
       keeperId: 'keep',
       duplicateId: 'dup',
     );
     final shares = await db.select(db.equipmentShares).get();
-    expect({for (final s in shares) s.id}, {'s-keep-bcd', 's-dup-fins'});
-    expect(shares.firstWhere((s) => s.id == 's-dup-fins').diverId, 'keep');
+    expect(
+      {for (final s in shares) '${s.equipmentId}/${s.diverId}'},
+      {'son-bcd/keep', 'son-fins/keep'},
+    );
+    // A share is an (item, diver) pair that peers apply insert-only, so a
+    // moved share is re-created for the keeper rather than edited in place
+    // (#2670): the original id is gone.
+    expect(shares.map((s) => s.id), isNot(contains('s-dup-fins')));
     final owners = {
       for (final e in await db.select(db.equipment).get()) e.id: e.diverId,
     };
@@ -97,7 +103,26 @@ void main() {
       for (final r in await db.select(db.deletionLog).get())
         if (r.entityType == 'equipmentShares') r.recordId,
     };
-    expect(deleted, containsAll(['s-dup-bcd', 's-dup-reg', 's-keep-mask']));
+    expect(
+      deleted,
+      containsAll(['s-dup-bcd', 's-dup-reg', 's-keep-mask', 's-dup-fins']),
+    );
+  });
+
+  test('the re-created share is pending under its own clock', () async {
+    await DiverMergeRepository().mergeDivers(
+      keeperId: 'keep',
+      duplicateId: 'dup',
+    );
+    final moved = await (db.select(
+      db.equipmentShares,
+    )..where((s) => s.equipmentId.equals('son-fins'))).getSingle();
+    expect(moved.hlc, isNotNull);
+    final pending = [
+      for (final r in await db.select(db.syncRecords).get())
+        if (r.entityType == 'equipmentShares') r.recordId,
+    ];
+    expect(pending, contains(moved.id));
   });
 
   test('merge repoints event divers', () async {
@@ -117,13 +142,18 @@ void main() {
       keeperId: 'keep',
       duplicateId: 'dup',
     );
+    final created = {
+      for (final s in await db.select(db.equipmentShares).get()) s.id,
+    }.difference(before.keys.map((k) => k.split('/').last).toSet());
+    expect(created, hasLength(1), reason: 'the share moved to the keeper');
     await repo.undoMerge(snapshot);
     expect(await sharesByItem(), before);
     final tombstones = [
       for (final r in await db.select(db.deletionLog).get())
         if (r.entityType == 'equipmentShares') r.recordId,
     ];
-    expect(tombstones, isEmpty);
+    // Only the share the merge created, which the undo removes.
+    expect(tombstones, created.toList());
     final ev = await db.select(db.equipmentOwnershipEvents).getSingle();
     expect(ev.toDiverId, 'dup');
   });

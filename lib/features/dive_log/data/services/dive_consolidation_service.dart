@@ -914,6 +914,21 @@ class DiveConsolidationService {
           );
         }
       });
+      // Marked pending like every other restored child, for a fresh clock:
+      // the verbatim rows carry their pre-operation clocks, which a peer
+      // holding a newer copy refuses as stale (#2670).
+      for (final (entityType, recordId) in [
+        for (final r in snapshot.dataSourceRows) ('diveDataSources', r.id),
+        for (final r in snapshot.tideRows) ('tideRecords', r.id),
+        for (final r in snapshot.equipmentRows)
+          ('diveEquipment', '${r.diveId}|${r.equipmentId}'),
+      ]) {
+        await _sync.markRecordPending(
+          entityType: entityType,
+          recordId: recordId,
+          localUpdatedAt: now,
+        );
+      }
       // Series restored after the batch above: dataSourceRows and diveTanks
       // (inserted earlier) are the series' FK parents and must be back
       // first.
