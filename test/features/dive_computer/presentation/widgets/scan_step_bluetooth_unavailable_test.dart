@@ -17,6 +17,17 @@ class _BluetoothOffService extends FakeDiveComputerService {
   }
 }
 
+/// Service whose BLE scan fails for any reason other than the radio.
+class _OtherFailureService extends FakeDiveComputerService {
+  @override
+  Future<void> startDiscovery(pigeon.TransportType transport) async {
+    throw PlatformException(
+      code: 'discovery_error',
+      message: 'Failed to start discovery: 0x80004005 Unspecified error',
+    );
+  }
+}
+
 void main() {
   // Issue #2507: opening the scan step with Bluetooth off used to abort the
   // app on Windows. It now has to land on a readable banner that points at
@@ -41,5 +52,20 @@ void main() {
     );
     expect(find.textContaining('PlatformException'), findsNothing);
     expect(find.text('Retry'), findsOneWidget);
+  });
+
+  testWidgets('keeps the error text for any other start failure', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildScanStepTestWidget(
+        discoveryNotifier: () =>
+            DiscoveryNotifier(service: _OtherFailureService()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('0x80004005 Unspecified error'), findsOneWidget);
+    expect(find.textContaining('Bluetooth is off'), findsNothing);
   });
 }
