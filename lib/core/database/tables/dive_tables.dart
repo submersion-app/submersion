@@ -297,6 +297,18 @@ class DiveTanks extends Table {
     onDelete: KeyAction.setNull,
   )();
 
+  /// v251: the data source this tank row came from (issue #2716). Two
+  /// consolidated sources that name no computer both leave a null
+  /// [computerId], so without this their copies of one cylinder cannot be
+  /// told apart. Written by the import, download and source-moving paths,
+  /// never by an edit; null (a hand-added tank, or one whose source could
+  /// not be determined) is the dive's primary source.
+  TextColumn get sourceId => text().nullable().references(
+    DiveDataSources,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
   @override
   Set<Column> get primaryKey => {id};
 

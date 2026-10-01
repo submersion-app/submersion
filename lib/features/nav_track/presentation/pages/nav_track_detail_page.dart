@@ -21,6 +21,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_pol
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// Whether changing a route's site should also move its anchor to the new
 /// site's pin (item 5).
@@ -531,18 +532,10 @@ class _ActionCard extends StatelessWidget {
       child: ListTile(
         leading: Icon(icon),
         title: Text(label),
-        subtitle: Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: TextButton(
-            key: actionKey,
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
-              alignment: AlignmentDirectional.centerStart,
-            ),
-            onPressed: onAction,
-            child: Text(actionLabel),
-          ),
+        subtitle: TileSubtitleAction(
+          actionKey: actionKey,
+          onPressed: onAction,
+          label: actionLabel,
         ),
       ),
     );

@@ -13,6 +13,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
@@ -249,6 +250,14 @@ class ReparseService {
           diveId: diveId,
           computerId: computerId,
           resolvedTanks: resolvedTanks,
+        );
+        // A tank this parse gained is new, with no source yet (v251, issue
+        // #2716); a single-source dive's one source is it.
+        await attributeTankSources(
+          db,
+          _sync,
+          diveId,
+          now: now.millisecondsSinceEpoch,
         );
         await _replaceTankPressureProfiles(
           diveId: diveId,

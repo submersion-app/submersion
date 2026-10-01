@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -647,7 +646,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                                       .common_label_shareWithAllProfiles,
                                 ),
                                 // Only the owner changes sharing (#2594).
-                                subtitle: _mayShare()
+                                subtitle: _mayShare() != false
                                     ? null
                                     : Text(
                                         context.l10n.sharedItems_shareOwnerOnly(
@@ -659,7 +658,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                                         ),
                                       ),
                                 value: _isShared,
-                                onChanged: !_mayShare()
+                                onChanged: _mayShare() != true
                                     ? null
                                     : (v) async {
                                         if (!v &&
@@ -933,14 +932,15 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   /// Asks the user to confirm un-sharing an existing shared trip.
   /// Returns [true] if confirmed, [false] or [null] to cancel.
   /// Whether the active profile may change this trip's sharing: always for
-  /// a new trip, and only the owner for an existing one (issue #2594). Read
-  /// during build, so it watches the active profile.
-  bool _mayShare() =>
-      _originalTrip == null ||
-      canDestroySharedItem(
-        ownerId: _originalTrip?.diverId,
-        activeDiverId: ref.watch(validatedCurrentDiverIdProvider).value,
-      );
+  /// a new trip, and only the owner for an existing one (issue #2594); null
+  /// while the profile is unknown, which locks it without naming an owner
+  /// (issue #2682). Read during build, so it watches the active profile.
+  bool? _mayShare() => _originalTrip == null
+      ? true
+      : canDestroySharedItemOnceKnown(
+          ref.watch(validatedCurrentDiverIdProvider),
+          ownerId: _originalTrip?.diverId,
+        );
 
   Future<bool?> _showUnshareConfirmDialog(BuildContext ctx) {
     final tripName = _nameController.text.trim().isNotEmpty

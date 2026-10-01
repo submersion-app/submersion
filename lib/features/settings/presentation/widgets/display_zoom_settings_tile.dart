@@ -28,9 +28,10 @@ class DisplayZoomSettingsTile extends ConsumerWidget {
           subtitle: Text(l10n.settings_appearance_displaySize_value(percent)),
           trailing: zoom == DisplayZoom.defaultValue
               ? null
-              : TextButton(
+              : IconButton(
+                  icon: const Icon(Icons.restart_alt),
+                  tooltip: l10n.settings_appearance_displaySize_reset,
                   onPressed: notifier.reset,
-                  child: Text(l10n.settings_appearance_displaySize_reset),
                 ),
         ),
         Padding(

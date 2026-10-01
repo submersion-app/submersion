@@ -374,6 +374,7 @@ class BulkDiveEditService {
         presetName: r.presetName,
         computerId: r.computerId,
         transmitterSerial: r.transmitterSerial,
+        sourceId: r.sourceId,
         regulatorEquipmentId: r.regulatorEquipmentId,
         tripCylinderId: r.tripCylinderId,
         sourceTankIndex: r.sourceTankIndex,

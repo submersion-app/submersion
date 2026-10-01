@@ -121,9 +121,16 @@ extension RungsFromV231 on AppDatabase {
       await _assertSiteHidesSchema();
     }
     if (from < 250) await reportProgress();
+    // v251: dive_tanks.source_id (issue #2716), backfilled where the
+    // source is unambiguous. 250 is profile hides (#2594).
+    if (from < 251) {
+      await _assertDiveTankSourceIdColumn();
+      await _backfillDiveTankSourceIds();
+    }
+    if (from < 251) await reportProgress();
     // v254: dive_tanks.role_source, where a cylinder's role came from
     // (issue #2595). Column only, no backfill: a stored role's origin is
-    // unknown, and a re-parse fills it. Re-asserted in beforeOpen. 251 to
+    // unknown, and a re-parse fills it. Re-asserted in beforeOpen. 252 and
     // 253 are held by open branches.
     if (from < 254) {
       await _assertTankRoleSourceColumn();

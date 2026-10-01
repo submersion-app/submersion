@@ -89,63 +89,81 @@ class _RefPickerSheetState extends State<_RefPickerSheet> {
       for (final r in widget.entries)
         if (search.isEmpty || r.label.toLowerCase().contains(search)) r,
     ];
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.4,
-      maxChildSize: 0.95,
-      expand: false,
-      builder: (context, scrollController) => Column(
-        children: [
-          ListTile(
-            title: Text(
-              widget.title,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            trailing: widget.multi
-                ? FilledButton(
-                    onPressed: () => Navigator.of(context).pop([
-                      for (final r in widget.entries)
-                        if (_selected.contains(r.id)) r,
-                    ]),
-                    child: Text(widget.doneLabel!),
-                  )
-                : null,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: widget.searchHint,
-                prefixIcon: const Icon(Icons.search),
+    // Lifted by the keyboard inset: the search field autofocuses, and the
+    // multi picker's Done bar sits at the bottom of the sheet.
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.4,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            ListTile(
+              title: Text(
+                widget.title,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-              onChanged: (v) => setState(() => _search = v.trim()),
             ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              controller: scrollController,
-              itemCount: shown.length,
-              itemBuilder: (context, i) {
-                final r = shown[i];
-                final on = _selected.contains(r.id);
-                return widget.multi
-                    ? CheckboxListTile(
-                        value: on,
-                        title: Text(r.label),
-                        onChanged: (_) => setState(() {
-                          if (!_selected.remove(r.id)) _selected.add(r.id);
-                        }),
-                      )
-                    : ListTile(
-                        title: Text(r.label),
-                        trailing: on ? const Icon(Icons.check) : null,
-                        onTap: () => Navigator.of(context).pop(r),
-                      );
-              },
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: widget.searchHint,
+                  prefixIcon: const Icon(Icons.search),
+                ),
+                onChanged: (v) => setState(() => _search = v.trim()),
+              ),
             ),
-          ),
-        ],
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: shown.length,
+                itemBuilder: (context, i) {
+                  final r = shown[i];
+                  final on = _selected.contains(r.id);
+                  return widget.multi
+                      ? CheckboxListTile(
+                          value: on,
+                          title: Text(r.label),
+                          onChanged: (_) => setState(() {
+                            if (!_selected.remove(r.id)) _selected.add(r.id);
+                          }),
+                        )
+                      : ListTile(
+                          title: Text(r.label),
+                          trailing: on ? const Icon(Icons.check) : null,
+                          onTap: () => Navigator.of(context).pop(r),
+                        );
+                },
+              ),
+            ),
+            // Done is pinned under the list rather than in the header tile's
+            // trailing: a ListTile measures trailing before the title, so a
+            // text button there squeezes the sheet title in a longer
+            // translation (issue #2717). Matches the confirm bar of
+            // QueryFilterSheet.
+            if (widget.multi)
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () => Navigator.of(context).pop([
+                        for (final r in widget.entries)
+                          if (_selected.contains(r.id)) r,
+                      ]),
+                      child: Text(widget.doneLabel!),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -39,6 +39,8 @@ import 'package:submersion/features/settings/presentation/widgets/adopt_replaced
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
 import 'package:submersion/shared/services/incoming_file_handler.dart';
+import 'package:submersion/shared/services/incoming_share.dart';
+import 'package:submersion/shared/services/navigation_ready_gate.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -99,7 +101,11 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   late final PassportLinkDispatcher _passportLinks;
   late final GoRouter _linkRouter;
   bool _hasDivers = false;
-  bool _linkReadyRetryScheduled = false;
+  bool _navigationReadyRetryScheduled = false;
+
+  /// This root's hold on the share gate, which outlives it (see
+  /// [incomingShareGateProvider]).
+  late final NavigationReadyGateOwner<IncomingShare> _shares;
   late final AppLifecycleListener _lifecycleListener;
 
   @override
@@ -109,20 +115,17 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     _lifecycleListener = AppLifecycleListener(onExitRequested: _closeDatabases);
     registerUpdateMenuChannel(ref);
     registerDisplayZoomMenuChannel(ref);
+    // Each share waits until the app can open the page it leads to (see
+    // _updateNavigationReady): one that cold-started the app arrives ahead
+    // of the navigator (#2690), and one on a fresh install ahead of the end
+    // of setup. Attached first: the readiness updates below report to it.
+    final shareGate = ref.read(incomingShareGateProvider);
+    _shares = shareGate.attach(_openShare);
     _fileShareHandler = FileShareHandler(
-      onFileReceived: _handleIncomingFile,
-      onFilesReceived: _handleIncomingFiles,
-      onError: (error) {
-        final l10n = _scaffoldMessengerKey.currentContext != null
-            ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
-            : null;
-        reportIncomingFileError(
-          error,
-          messenger: _scaffoldMessengerKey.currentState,
-          readFailedMessage: l10n?.dropTarget_error_readFailed,
-          someUnreadableMessage: l10n?.dropTarget_error_someUnreadable,
-        );
-      },
+      onFileReceived: (bytes, fileName) =>
+          shareGate.run(SharedFile(bytes, fileName)),
+      onFilesReceived: (paths) => shareGate.run(SharedFileBatch(paths)),
+      onError: _reportShareError,
     );
     _passportLinks = PassportLinkDispatcher(
       source: ref.read(incomingLinkSourceProvider),
@@ -130,16 +133,16 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       alreadyHandled: (text) =>
           ref.read(recentPassportTagsProvider).takeJustHandled(text),
     );
-    // A tag tapped on a fresh install waits until setup is over, and one
-    // tapped with the app closed waits for the navigator to exist.
+    // A tag tapped or a file shared on a fresh install waits until setup is
+    // over, and one arriving with the app closed waits for the navigator.
     _linkRouter = ref.read(appRouterProvider);
-    _linkRouter.routeInformationProvider.addListener(_updatePassportLinkReady);
+    _linkRouter.routeInformationProvider.addListener(_updateNavigationReady);
     // The SQL count, not the profile list: this listener lives all session,
     // and keeping the list alive would re-hydrate every profile on each
     // divers-table write.
     ref.listenManual<AsyncValue<int>>(diverCountProvider, (_, next) {
       _hasDivers = (next.value ?? 0) > 0;
-      _updatePassportLinkReady();
+      _updateNavigationReady();
     }, fireImmediately: true);
     // The serviceDue query field reads a cache of the service engine's
     // verdicts, and any list can reach it through a relation (a dive's
@@ -161,9 +164,8 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   @override
   void dispose() {
-    _linkRouter.routeInformationProvider.removeListener(
-      _updatePassportLinkReady,
-    );
+    _linkRouter.routeInformationProvider.removeListener(_updateNavigationReady);
+    _shares.release();
     unawaited(_passportLinks.dispose());
     _fileShareHandler.dispose();
     _lifecycleListener.dispose();
@@ -363,7 +365,45 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     });
   }
 
-  Future<void> _handleIncomingFile(Uint8List bytes, String fileName) async {
+  /// Opens a share the gate has let through, returning whether it finished
+  /// with it. A root that a soft restart disposed while it was opening the
+  /// share hands it back for the root that replaced it. Failures are
+  /// reported here, by the root that opened it: the share handler that
+  /// received it may belong to a root since replaced.
+  Future<bool> _openShare(IncomingShare share) async {
+    try {
+      return switch (share) {
+        SharedFile(:final bytes, :final fileName) => await _handleIncomingFile(
+          bytes,
+          fileName,
+        ),
+        SharedFileBatch(:final paths) => await _handleIncomingFiles(paths),
+      };
+    } catch (error) {
+      // Torn down mid-way, the old scope's providers throw; that is the
+      // restart, not the file, so the new root gets to try it.
+      if (!mounted) return false;
+      _reportShareError(error);
+      return true;
+    }
+  }
+
+  /// Logs a share failure and tells the diver, through this root's
+  /// messenger: what could not be read, or how many files were skipped.
+  void _reportShareError(Object error) {
+    final l10n = _scaffoldMessengerKey.currentContext != null
+        ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
+        : null;
+    reportIncomingFileError(
+      error,
+      messenger: _scaffoldMessengerKey.currentState,
+      readFailedMessage: l10n?.dropTarget_error_readFailed,
+      someUnreadableMessage: l10n?.dropTarget_error_someUnreadable,
+    );
+  }
+
+  /// Opens one shared file. False when this root can no longer open it.
+  Future<bool> _handleIncomingFile(Uint8List bytes, String fileName) async {
     final router = ref.read(appRouterProvider);
     final location = router.routeInformationProvider.value.uri.path;
 
@@ -381,7 +421,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       unsupportedFileMessage: l10n?.dropTarget_error_unsupportedFile,
     );
 
-    if (!mounted) return;
+    if (!mounted) return false;
 
     switch (outcome) {
       case IncomingFileOutcome.navigateToWizard:
@@ -389,32 +429,42 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         // to wherever the drop happened instead of closing the app (#647).
         router.push('/transfer/import-wizard');
       case IncomingFileOutcome.navigateToNavTrackReview:
+        // The share gate held this until the navigator was built, so a
+        // missing one means the app root is being replaced: hand the route
+        // back for the next one.
         final navContext = rootNavigatorKey.currentContext;
-        if (navContext != null && navContext.mounted) {
-          await navigateToNavTrackReview(navContext, bytes, fileName: fileName);
-        }
+        if (navContext == null || !navContext.mounted) return false;
+        // Not awaited: the review stays open until the diver leaves it, and
+        // the share gate must not hold the next shared file until then.
+        unawaited(
+          navigateToNavTrackReview(navContext, bytes, fileName: fileName),
+        );
       case IncomingFileOutcome.none:
         break;
     }
+    return true;
   }
 
-  /// Whether a passport link can open now: a diver exists, setup is no
-  /// longer on screen (the wizard writes the diver before it finishes, and
-  /// finishing replaces the whole stack), and the root navigator is built
-  /// (go_router builds none until its async redirect resolves).
-  void _updatePassportLinkReady() {
+  /// Whether a passport link or a shared file can open its page now: a
+  /// diver exists, setup is no longer on screen (the wizard writes the diver
+  /// before it finishes, and finishing replaces the whole stack), and the
+  /// root navigator is built (go_router builds none until its async redirect
+  /// resolves).
+  void _updateNavigationReady() {
     if (!mounted) return;
     final settled =
         _hasDivers &&
         _linkRouter.routeInformationProvider.value.uri.path != '/welcome';
     final navigatorBuilt = rootNavigatorKey.currentContext != null;
-    _passportLinks.setReady(settled && navigatorBuilt);
+    final ready = settled && navigatorBuilt;
+    _passportLinks.setReady(ready);
+    _shares.setReady(ready);
     // One pending retry at most, however many updates arrive meanwhile.
-    if (settled && !navigatorBuilt && !_linkReadyRetryScheduled) {
-      _linkReadyRetryScheduled = true;
+    if (settled && !navigatorBuilt && !_navigationReadyRetryScheduled) {
+      _navigationReadyRetryScheduled = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _linkReadyRetryScheduled = false;
-        _updatePassportLinkReady();
+        _navigationReadyRetryScheduled = false;
+        _updateNavigationReady();
       });
     }
   }
@@ -428,7 +478,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     await openScannedTag(context, ref, text);
   }
 
-  Future<void> _handleIncomingFiles(List<String> paths) async {
+  /// Opens a batch of shared files. False when this root can no longer
+  /// open them.
+  Future<bool> _handleIncomingFiles(List<String> paths) async {
     final router = ref.read(appRouterProvider);
     final location = router.routeInformationProvider.value.uri.path;
 
@@ -444,10 +496,12 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       wizardActiveMessage: l10n?.dropTarget_error_wizardActive,
     );
 
+    if (!mounted) return false;
     if (shouldNavigate) {
       // PUSH (not go), for the same reason as _handleIncomingFile (#647).
       router.push('/transfer/import-wizard');
     }
+    return true;
   }
 
   Locale? _resolveLocale(String localeSetting) {

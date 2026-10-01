@@ -1024,9 +1024,15 @@ class AppDatabase extends _$AppDatabase {
     // floor does not move. #2562 and #2409 held stale claims below 249
     // when this was taken.
     250,
+    // v251: dive_tanks.source_id (issue #2716), the data source a tank row
+    // came from, so two computer-less sources' copies of one cylinder come
+    // apart; backfilled where unambiguous. Additive nullable column, so the
+    // floor stays at 240. 250 is trip_hides and site_hides (#2594).
+    251,
     // v254: dive_tanks.role_source, where a cylinder's role came from
     // (issue #2595). An additive nullable column, so the floor does not
-    // move. 251 to 253 are held by open branches (#2721, #2703, #2592).
+    // move. 251 is dive_tanks.source_id
+    // (#2716); 252 and 253 are held by open branches (#2703, #2592).
     254,
   ];
 
