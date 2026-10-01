@@ -282,6 +282,8 @@
   "equipment_color_stone": "Piedra",
   "equipment_color_zinc": "Zinc",
   "equipment_color_slate": "Pizarra",
+  "equipment_color_black": "Negro",
+  "equipment_color_white": "Blanco",
   "equipment_color_none": "Ninguno",
   "equipment_color_sheetTitle": "Elige un color",
   "equipment_setEdit_figureSwitch_subtitle": "Mostrar el equipo de este conjunto sobre un buceador",

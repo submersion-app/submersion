@@ -1148,6 +1148,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_color_slate => 'Ardoise';
 
   @override
+  String get equipment_color_black => 'Noir';
+
+  @override
+  String get equipment_color_white => 'Blanc';
+
+  @override
   String get equipment_color_none => 'Aucune';
 
   @override

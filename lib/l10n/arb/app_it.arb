@@ -282,6 +282,8 @@
   "equipment_color_stone": "Pietra",
   "equipment_color_zinc": "Zinco",
   "equipment_color_slate": "Ardesia",
+  "equipment_color_black": "Nero",
+  "equipment_color_white": "Bianco",
   "equipment_color_none": "Nessuno",
   "equipment_color_sheetTitle": "Scegli un colore",
   "equipment_setEdit_figureSwitch_subtitle": "Mostra l’attrezzatura di questo set su un subacqueo",

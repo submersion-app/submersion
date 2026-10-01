@@ -282,6 +282,8 @@
   "equipment_color_stone": "岩石灰",
   "equipment_color_zinc": "锌灰色",
   "equipment_color_slate": "石板灰",
+  "equipment_color_black": "黑色",
+  "equipment_color_white": "白色",
   "equipment_color_none": "无",
   "equipment_color_sheetTitle": "选择颜色",
   "equipment_setEdit_figureSwitch_subtitle": "在潜水员图上显示此套装的装备",

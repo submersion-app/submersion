@@ -1139,6 +1139,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_color_slate => 'Leisteen';
 
   @override
+  String get equipment_color_black => 'Zwart';
+
+  @override
+  String get equipment_color_white => 'Wit';
+
+  @override
   String get equipment_color_none => 'Geen';
 
   @override

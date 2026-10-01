@@ -1102,6 +1102,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_color_slate => '石板灰';
 
   @override
+  String get equipment_color_black => '黑色';
+
+  @override
+  String get equipment_color_white => '白色';
+
+  @override
   String get equipment_color_none => '无';
 
   @override

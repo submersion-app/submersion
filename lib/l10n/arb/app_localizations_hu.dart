@@ -1147,6 +1147,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_color_slate => 'Pala';
 
   @override
+  String get equipment_color_black => 'Fekete';
+
+  @override
+  String get equipment_color_white => 'Fehér';
+
+  @override
   String get equipment_color_none => 'Nincs';
 
   @override
