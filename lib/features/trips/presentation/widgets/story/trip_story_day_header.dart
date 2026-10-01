@@ -63,10 +63,13 @@ class TripStoryDayHeader extends ConsumerWidget {
     // either verbatim would render a doubled separator ("Dive Day -  - Site").
     // A surface day has no itinerary and no dives by definition, so it owns the
     // subtitle outright - it reads in the same slot where an itinerary day
-    // leads with its day type ("Dive Day", "Travel Day").
+    // leads with its day type ("Dive Day", "Travel Day"). A dive day planned
+    // at 0 dives reads the same way: its stored type contradicts the plan.
+    final surfaceLabel = day.isSurface || day.isPlannedRest;
     final subtitleParts = <String>[
-      if (day.isSurface) context.l10n.trips_story_surfaceDay,
-      if (itinerary != null) itinerary.dayType.localizedName(context),
+      if (surfaceLabel) context.l10n.trips_story_surfaceDay,
+      if (itinerary != null && !surfaceLabel)
+        itinerary.dayType.localizedName(context),
       if (itinerary?.portName != null) itinerary!.portName!,
       ...day.siteNames,
     ].map((part) => part.trim()).where((part) => part.isNotEmpty).toList();
