@@ -93,6 +93,9 @@ void main() {
       expect(exportFileName(['con'], 'subplan'), 'con_.subplan');
       expect(exportFileName(['Com1'], 'pdf'), 'Com1_.pdf');
       expect(exportFileName(['LPT¹'], 'pdf'), 'LPT¹_.pdf');
+      // Microsoft's list starts at 1: COM0 and LPT0 are ordinary names.
+      expect(exportFileName(['COM0'], 'pdf'), 'COM0.pdf');
+      expect(exportFileName(['lpt0'], 'pdf'), 'lpt0.pdf');
       // Only the whole name is reserved, not a name that contains one.
       expect(exportFileName(['Auxiliary'], 'pdf'), 'Auxiliary.pdf');
       expect(exportFileName(['trip', 'Con'], 'pdf'), 'trip_Con.pdf');

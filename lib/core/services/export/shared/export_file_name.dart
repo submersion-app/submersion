@@ -8,9 +8,10 @@ final _edgeUnderscores = RegExp(r'^_+|_+$');
 final _mark = RegExp(r'^\p{M}$', unicode: true);
 
 /// Names Windows reserves for devices, whatever their case and even with an
-/// extension (`AUX.subplan` cannot be saved). Superscript digits count too.
+/// extension (`AUX.subplan` cannot be saved): Microsoft's list runs COM1 to
+/// COM9 and LPT1 to LPT9, plus the superscript digits ¹ ² ³.
 final _windowsReserved = RegExp(
-  r'^(CON|PRN|AUX|NUL|COM[0-9¹²³]|LPT[0-9¹²³])$',
+  r'^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$',
   caseSensitive: false,
 );
 
