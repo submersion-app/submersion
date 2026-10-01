@@ -212,5 +212,4 @@ typedef MetricSourceInfo = ({
   MetricDataSource cnsActual,
   MetricDataSource decoStopActual,
   MetricDataSource gtrActual,
-  MetricDataSource gf99Actual,
 });

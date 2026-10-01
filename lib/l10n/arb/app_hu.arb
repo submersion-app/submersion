@@ -14209,22 +14209,5 @@
   "settings_manage_savedQueries": "Mentett lekérdezések",
   "settings_manage_savedQueries_subtitle": "Mentett lekérdezések átnevezése, átrendezése és törlése",
   "query_editor_needsText": "Adjon meg legalább egy szót",
-  "query_saveNeedsDiver": "Hozzon létre merülő profilt a lekérdezések mentéséhez",
-  "diveLog_computerTissue_title": "Búvárkomputer",
-  "diveLog_computerTissue_algorithm": "Algoritmus",
-  "diveLog_computerTissue_compartments": "{count} rekesz",
-  "diveLog_computerTissue_compartmentsWithAlgorithm": "{count} {algorithm} rekesz",
-  "diveLog_computerTissue_compartment": "C{number}",
-  "diveLog_computerTissue_endLoading": "Telítettség a merülés végén",
-  "diveLog_computerTissue_endTensions": "Szöveti feszültségek a merülés végén",
-  "diveLog_computerTissue_columnStart": "Kezdet",
-  "diveLog_computerTissue_columnEnd": "Vég",
-  "diveLog_computerTissue_rowN2Load": "N₂-terhelés",
-  "diveLog_computerTissue_rowCns": "CNS",
-  "diveLog_computerTissue_rowOtu": "OTU",
-  "diveLog_computerTissue_rgbmNitrogen": "RGBM N₂-tényező",
-  "diveLog_computerTissue_rgbmHelium": "RGBM He-tényező",
-  "diveLog_computerTissue_calculated": "számított {value}",
-  "diveLog_tissue_legend_n2": "N₂",
-  "diveLog_tissue_legend_he": "He"
+  "query_saveNeedsDiver": "Hozzon létre merülő profilt a lekérdezések mentéséhez"
 }

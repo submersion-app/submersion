@@ -14209,22 +14209,5 @@
   "settings_manage_savedQueries": "الاستعلامات المحفوظة",
   "settings_manage_savedQueries_subtitle": "إعادة تسمية الاستعلامات المحفوظة وإعادة ترتيبها وحذفها",
   "query_editor_needsText": "أدخل كلمة واحدة على الأقل",
-  "query_saveNeedsDiver": "أنشئ ملف غواص لحفظ الاستعلامات",
-  "diveLog_computerTissue_title": "كمبيوتر الغوص",
-  "diveLog_computerTissue_algorithm": "الخوارزمية",
-  "diveLog_computerTissue_compartments": "{count} حجيرات",
-  "diveLog_computerTissue_compartmentsWithAlgorithm": "{count} حجيرات {algorithm}",
-  "diveLog_computerTissue_compartment": "C{number}",
-  "diveLog_computerTissue_endLoading": "التحميل في نهاية الغطسة",
-  "diveLog_computerTissue_endTensions": "توترات الأنسجة في نهاية الغطسة",
-  "diveLog_computerTissue_columnStart": "البداية",
-  "diveLog_computerTissue_columnEnd": "النهاية",
-  "diveLog_computerTissue_rowN2Load": "حمل N₂",
-  "diveLog_computerTissue_rowCns": "CNS",
-  "diveLog_computerTissue_rowOtu": "OTU",
-  "diveLog_computerTissue_rgbmNitrogen": "معامل N₂ لـ RGBM",
-  "diveLog_computerTissue_rgbmHelium": "معامل He لـ RGBM",
-  "diveLog_computerTissue_calculated": "المحسوب {value}",
-  "diveLog_tissue_legend_n2": "N₂",
-  "diveLog_tissue_legend_he": "He"
+  "query_saveNeedsDiver": "أنشئ ملف غواص لحفظ الاستعلامات"
 }

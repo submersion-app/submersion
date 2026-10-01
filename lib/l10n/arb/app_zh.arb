@@ -14209,22 +14209,5 @@
   "settings_manage_savedQueries": "已保存的查询",
   "settings_manage_savedQueries_subtitle": "重命名、重新排序和删除已保存的查询",
   "query_editor_needsText": "请至少输入一个词",
-  "query_saveNeedsDiver": "请先创建潜水员档案再保存查询",
-  "diveLog_computerTissue_title": "潜水电脑",
-  "diveLog_computerTissue_algorithm": "算法",
-  "diveLog_computerTissue_compartments": "{count} 个组织舱",
-  "diveLog_computerTissue_compartmentsWithAlgorithm": "{count} 个 {algorithm} 组织舱",
-  "diveLog_computerTissue_compartment": "C{number}",
-  "diveLog_computerTissue_endLoading": "潜水结束时的负荷",
-  "diveLog_computerTissue_endTensions": "潜水结束时的组织张力",
-  "diveLog_computerTissue_columnStart": "开始",
-  "diveLog_computerTissue_columnEnd": "结束",
-  "diveLog_computerTissue_rowN2Load": "N₂ 负荷",
-  "diveLog_computerTissue_rowCns": "CNS",
-  "diveLog_computerTissue_rowOtu": "OTU",
-  "diveLog_computerTissue_rgbmNitrogen": "RGBM N₂ 系数",
-  "diveLog_computerTissue_rgbmHelium": "RGBM He 系数",
-  "diveLog_computerTissue_calculated": "计算值 {value}",
-  "diveLog_tissue_legend_n2": "N₂",
-  "diveLog_tissue_legend_he": "He"
+  "query_saveNeedsDiver": "请先创建潜水员档案再保存查询"
 }
