@@ -2506,13 +2506,19 @@ final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((
 ///
 /// For anything that saves what it computes from the settings: until the load
 /// lands, [settingsProvider] holds the placeholder defaults at startup, or the
-/// previous diver's settings after a switch. A failed load is already logged
-/// by the notifier and leaves those in place, so callers proceed on them.
-Future<void> awaitCurrentDiverSettings(Ref ref) async {
+/// previous diver's settings after a switch.
+///
+/// Returns whether that load succeeded. A failed load is already logged by
+/// the notifier and leaves the defaults in place: an analysis for display may
+/// proceed on them, but they are not the diver's settings, so a caller that
+/// saves a result checks this first and saves nothing (issue #2592).
+Future<bool> awaitCurrentDiverSettings(Ref ref) async {
   try {
     await ref.read(settingsProvider.notifier).settingsLoaded;
+    return true;
   } catch (_) {
     // See the doc comment: already logged, the held settings are the fallback.
+    return false;
   }
 }
 

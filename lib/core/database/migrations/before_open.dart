@@ -200,6 +200,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // v123 backstop: re-assert safety review tables + settings columns
     // (parallel-branch collision self-heal).
     await _assertSafetyReviewSchema();
+    // v253 backstop: the review's inputs fingerprint, after the table above.
+    await _assertSafetyReviewInputsHashColumn();
 
     // v124 backstop: re-assert the equipment_attributes table (schema
     // only -- the legacy-column copy must NOT run here, it would

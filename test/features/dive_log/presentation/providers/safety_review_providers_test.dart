@@ -6,11 +6,13 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/deferred_settings_notifier.dart';
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 import '../../domain/services/safety_review_fixtures.dart';
 
@@ -26,6 +28,14 @@ class _FakeRepo extends SafetyFindingsRepository {
 
   @override
   Future<SafetyReview> saveReview(SafetyReview review) async => saved = review;
+}
+
+/// A settings notifier whose latest load failed: [state] is not the active
+/// diver's settings (the placeholder, or the previous diver's after a switch).
+class _FailedLoadSettingsNotifier extends MockSettingsNotifier {
+  @override
+  Future<void> get settingsLoaded async =>
+      throw StateError('settings read failed');
 }
 
 void main() {
@@ -54,26 +64,47 @@ void main() {
 
   tearDown(() => tearDownTestDatabase());
 
-  SafetyReview storedReview(int version) => SafetyReview(
+  SafetyReview storedReview(int version, {String? inputsHash}) => SafetyReview(
     diveId: 'd1',
     engineVersion: version,
     reviewedAt: now,
+    inputsHash: inputsHash,
     findings: const [],
   );
 
-  test('returns the stored review when its engineVersion is current', () async {
-    final repo = _FakeRepo(
-      stored: storedReview(SafetyReviewService.engineVersion),
-    );
+  /// The fingerprint of the settings [MockSettingsNotifier] starts with.
+  String defaultFingerprint() {
     final container = ProviderContainer(
-      overrides: [safetyFindingsRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      ],
     );
     addTearDown(container.dispose);
+    return container.read(diverAnalysisSettingsProvider).fingerprint;
+  }
 
-    final result = await container.read(safetyReviewProvider('d1').future);
-    expect(result, isNotNull);
-    expect(repo.saved, isNull, reason: 'a current review is not recomputed');
-  });
+  test(
+    'returns the stored review when its engine and inputs are current',
+    () async {
+      final repo = _FakeRepo(
+        stored: storedReview(
+          SafetyReviewService.engineVersion,
+          inputsHash: defaultFingerprint(),
+        ),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          safetyFindingsRepositoryProvider.overrideWithValue(repo),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = await container.read(safetyReviewProvider('d1').future);
+      expect(result, isNotNull);
+      expect(repo.saved, isNull, reason: 'a current review is not recomputed');
+    },
+  );
 
   test(
     'returns stored without computing when the master toggle is off',
@@ -81,6 +112,7 @@ void main() {
       final repo = _FakeRepo();
       final container = ProviderContainer(
         overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           safetyFindingsRepositoryProvider.overrideWithValue(repo),
           safetyReviewEnabledProvider.overrideWithValue(false),
         ],
@@ -134,6 +166,7 @@ void main() {
     final repo = _FakeRepo();
     final container = ProviderContainer(
       overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         safetyFindingsRepositoryProvider.overrideWithValue(repo),
         safetyReviewEnabledProvider.overrideWithValue(true),
         profileAnalysisProvider('d1').overrideWith((ref) async => null),
@@ -154,9 +187,10 @@ void main() {
       final analysis = analyzeFixture(
         depths: profile.depths,
         timestamps: profile.timestamps,
-      );
+      ).copyWith(inputsFingerprint: defaultFingerprint());
       final container = ProviderContainer(
         overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           safetyFindingsRepositoryProvider.overrideWithValue(repo),
           safetyReviewEnabledProvider.overrideWithValue(true),
           profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
@@ -172,6 +206,163 @@ void main() {
     },
   );
 
+  // Issue #2592: a review records the settings its analysis ran on, and a
+  // change to them invalidates it. A review stored from another diver's
+  // settings (#2564), from settings since edited, or before inputs were
+  // recorded at all is recomputed rather than served for good.
+  for (final (label, storedHash) in [
+    ('different settings', 'a1;gf=30/70;some-other-diver'),
+    ('no recorded inputs (stored by an older build)', null),
+  ]) {
+    test('recomputes a current-engine review stored with $label', () async {
+      final repo = _FakeRepo(
+        stored: storedReview(
+          SafetyReviewService.engineVersion,
+          inputsHash: storedHash,
+        ),
+      );
+      final profile = rapidAscentProfile();
+      final analysis = analyzeFixture(
+        depths: profile.depths,
+        timestamps: profile.timestamps,
+      ).copyWith(inputsFingerprint: defaultFingerprint());
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          safetyFindingsRepositoryProvider.overrideWithValue(repo),
+          safetyReviewEnabledProvider.overrideWithValue(true),
+          profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = await container.read(safetyReviewProvider('d1').future);
+      expect(repo.saved, isNotNull, reason: 'a stale review is recomputed');
+      expect(
+        repo.saved!.inputsHash,
+        defaultFingerprint(),
+        reason: 'the recomputed review records the inputs it came from',
+      );
+      expect(result!.findings, isNotEmpty);
+    });
+  }
+
+  // A source switched on the chart changes the analysis, not the diver's
+  // settings. Saving that analysis would rewrite and re-sync the review on
+  // every toggle, and tombstone a dismissed finding that stopped firing under
+  // the toggled source, so it comes back undismissed on the way back.
+  test('does not save a review from an analysis run on other inputs', () async {
+    final stored = storedReview(
+      SafetyReviewService.engineVersion,
+      inputsHash: 'a1;settings-since-changed',
+    );
+    final repo = _FakeRepo(stored: stored);
+    final profile = rapidAscentProfile();
+    final analysis = analyzeFixture(
+      depths: profile.depths,
+      timestamps: profile.timestamps,
+    ).copyWith(inputsFingerprint: 'a1;a-chart-source-toggle');
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        safetyFindingsRepositoryProvider.overrideWithValue(repo),
+        safetyReviewEnabledProvider.overrideWithValue(true),
+        profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final result = await container.read(safetyReviewProvider('d1').future);
+    expect(repo.saved, isNull);
+    expect(result, stored, reason: 'the stored review is shown instead');
+  });
+
+  // Copilot review on #2748: when the active diver's settings fail to load,
+  // state still holds the placeholder or, after a switch, the previous
+  // diver's settings. Nothing may be persisted from an analysis built on it.
+  test(
+    'does not save a review when the diver settings failed to load',
+    () async {
+      final repo = _FakeRepo();
+      final profile = rapidAscentProfile();
+      final analysis = analyzeFixture(
+        depths: profile.depths,
+        timestamps: profile.timestamps,
+      );
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _FailedLoadSettingsNotifier()),
+          safetyFindingsRepositoryProvider.overrideWithValue(repo),
+          safetyReviewEnabledProvider.overrideWithValue(true),
+          profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = await container.read(safetyReviewProvider('d1').future);
+      expect(repo.saved, isNull);
+      expect(result, isNull, reason: 'only what is stored is shown');
+    },
+  );
+
+  // Copilot review on #2748: a review this build cannot judge is kept. One
+  // from a newer engine, or carrying a fingerprint format newer than this
+  // build writes, came from a newer peer; recomputing it here would overwrite
+  // it, and the peer would recompute it back on every sync.
+  for (final (label, version, hash) in [
+    ('a newer engine', SafetyReviewService.engineVersion + 1, 'a9;gf=1/1'),
+    (
+      'a newer fingerprint format',
+      SafetyReviewService.engineVersion,
+      'a9;gf=1/1',
+    ),
+  ]) {
+    test('keeps a review stored by $label', () async {
+      final stored = storedReview(version, inputsHash: hash);
+      final repo = _FakeRepo(stored: stored);
+      final profile = rapidAscentProfile();
+      final analysis = analyzeFixture(
+        depths: profile.depths,
+        timestamps: profile.timestamps,
+      ).copyWith(inputsFingerprint: defaultFingerprint());
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          safetyFindingsRepositoryProvider.overrideWithValue(repo),
+          safetyReviewEnabledProvider.overrideWithValue(true),
+          profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = await container.read(safetyReviewProvider('d1').future);
+      expect(repo.saved, isNull);
+      expect(result, stored);
+    });
+  }
+
+  test('does not save from an analysis that records no inputs', () async {
+    final repo = _FakeRepo();
+    final profile = rapidAscentProfile();
+    final analysis = analyzeFixture(
+      depths: profile.depths,
+      timestamps: profile.timestamps,
+    );
+    expect(analysis.inputsFingerprint, isNull);
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        safetyFindingsRepositoryProvider.overrideWithValue(repo),
+        safetyReviewEnabledProvider.overrideWithValue(true),
+        profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(safetyReviewProvider('d1').future);
+    expect(repo.saved, isNull);
+  });
+
   // Regression: a freshly synced library imports safety review/finding rows
   // straight into their tables (SyncDataSerializer.insertOnConflictUpdate),
   // bypassing every local notifier. The one-shot safetyReviewProvider must
@@ -186,6 +377,7 @@ void main() {
       final repo = SafetyFindingsRepository(db: db);
       final container = ProviderContainer(
         overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           safetyFindingsRepositoryProvider.overrideWithValue(repo),
           safetyReviewEnabledProvider.overrideWithValue(true),
           // No profile: the compute path returns null, so the first read

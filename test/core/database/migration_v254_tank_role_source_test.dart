@@ -26,12 +26,16 @@ void main() {
     // rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(254));
     expect(AppDatabase.migrationVersions, contains(254));
-    // 252 (nav_tracks.diver_id, #2703) sits below; 253 is held by an open
-    // branch (#2592).
-    expect(AppDatabase.migrationVersions, containsAll([251, 252]));
+    // 253 (safety review inputs, #2592) sits directly below, and 252
+    // (nav_tracks.diver_id, #2703) below that.
+    expect(AppDatabase.migrationVersions, containsAll([251, 252, 253]));
+    expect(
+      AppDatabase.migrationStepCount(253),
+      AppDatabase.migrationStepCount(254) + 1,
+    );
     expect(
       AppDatabase.migrationStepCount(252),
-      AppDatabase.migrationStepCount(254) + 1,
+      AppDatabase.migrationStepCount(254) + 2,
     );
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });

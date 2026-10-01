@@ -1033,17 +1033,24 @@ class AppDatabase extends _$AppDatabase {
     // linked route's dive (issue #2691 follow-up). Additive nullable column,
     // so the floor does not move. 251 is dive_tanks.source_id (#2716).
     252,
+    // v253: dive_safety_reviews.inputs_hash, the settings a review was
+    // computed from (issue #2592). An additive nullable column, so the floor
+    // does not move: the receiving overlay keeps it when an older peer's
+    // payload omits it. Merged after v254 (#2595): a database already at 254
+    // never runs this rung, and the beforeOpen backstop adds the column.
+    253,
     // v254: dive_tanks.role_source, where a cylinder's role came from
     // (issue #2595). An additive nullable column, so the floor does not
     // move. 251 is dive_tanks.source_id (#2716) and 252
-    // nav_tracks.diver_id (#2703); 253 is held by an open branch (#2592).
+    // nav_tracks.diver_id (#2703); 253 is
+    // dive_safety_reviews.inputs_hash (#2592).
     254,
     // v256: dives.computer_tissue_json, the tissue state a dive computer
     // reports for the dive (import of Garmin, Shearwater, Suunto, Ratio and
     // UDDF tissue data, issue #1977). Additive nullable column, no
     // backfill, so the floor stays. Renumbered from 220 and then 241: main
-    // shipped 220 to 252 and 254 while this was open, and 253 and 255 are
-    // held by #2748 and #2762.
+    // shipped 220 to 254 while this was open, and 255 is held by
+    // #2762.
     256,
   ];
 

@@ -25,9 +25,9 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_time_remaining.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
+import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 
 /// Reports which data source was actually used for each metric in the current profile.
 /// Updated as a side-effect of profileAnalysisProvider.
@@ -999,6 +999,22 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
   }
 });
 
+/// A [ProfileAnalysisService] configured from [inputs] alone, for the paths
+/// that resolve no per-dive gradient factors or environment.
+ProfileAnalysisService _analysisServiceFor(AnalysisSettings inputs) =>
+    ProfileAnalysisService(
+      gfLow: inputs.gfLowFraction,
+      gfHigh: inputs.gfHighFraction,
+      ppO2WarningThreshold: inputs.ppO2MaxWorking,
+      ppO2CriticalThreshold: inputs.ppO2MaxDeco,
+      cnsWarningThreshold: inputs.cnsWarningThreshold,
+      ascentRateWarning: inputs.ascentRateWarning,
+      ascentRateCritical: inputs.ascentRateCritical,
+      lastStopDepth: inputs.lastStopDepth,
+      decoStopIncrement: inputs.decoStopIncrement,
+      cnsCalculationMethod: inputs.cnsCalculationMethod,
+    );
+
 /// Runs the full analysis pipeline over [profile] samples of [dive].
 ///
 /// Extracted from [profileAnalysisProvider] so per-source analysis
@@ -1018,27 +1034,29 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
 }) async {
   {
     // Every settings-derived input below (gradient factors, ppO2 and ascent
-    // thresholds, the legend's per-metric sources) reads the placeholder
-    // `const AppSettings()` until the diver's row loads, and the previous
-    // diver's settings until a diver switch reloads them (#2564). A safety
-    // review and a deco classification are computed once from this analysis
-    // and persisted, so building it in either window would store another
-    // diver's settings in place of this diver's.
+    // thresholds, the legend's per-metric sources) is read from one snapshot,
+    // taken once the active diver's settings have loaded. Before then the
+    // settings are the `const AppSettings()` placeholder (#1859) or, right
+    // after a diver switch, the previous diver's (#2564). A safety review and
+    // the deco classification are persisted from this analysis, and the
+    // snapshot's fingerprint stamped on it below says which settings they
+    // came from (#2592).
     await awaitCurrentDiverSettings(ref);
+    final inputs = ref.watch(analysisSettingsProvider);
     final diveId = dive.id;
     if (dive.isGauge) {
       // Gauge dives log depth+time only: no gas or decompression. Use the
       // user-configured analysis service (so ascent-rate thresholds match other
       // modes) but skip the gas/GF/residual work and the computer-deco overlay;
       // return a profile-only analysis, still surfacing any dive-computer events.
-      final analysis = ref
-          .watch(profileAnalysisServiceProvider)
+      final analysis = _analysisServiceFor(inputs)
           .analyze(
             diveId: diveId,
             depths: profile.map((p) => p.depth).toList(),
             timestamps: profile.map((p) => p.timestamp).toList(),
             diveMode: DiveMode.gauge,
-          );
+          )
+          .copyWith(inputsFingerprint: inputs.fingerprint);
       final dbEvents = await ref.watch(
         diveComputerEventsProvider(diveId).future,
       );
@@ -1060,8 +1078,8 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     final gfSource = GradientFactorSource.resolve(
       diveGfLow: dive.gradientFactorLow,
       diveGfHigh: dive.gradientFactorHigh,
-      settingsGfLow: ref.watch(gfLowProvider),
-      settingsGfHigh: ref.watch(gfHighProvider),
+      settingsGfLow: inputs.gfLow,
+      settingsGfHigh: inputs.gfHigh,
       recordedAlgorithm: dive.decoAlgorithm,
     );
     if (gfSource.origin == GfOrigin.computer) {
@@ -1113,30 +1131,17 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       heFraction = primaryTank.gasMix.he / 100.0;
     }
 
-    // Read per-metric source preferences from legend state.
-    // Use select() to only watch the per-metric source fields — toggling
-    // visibility or expanding menu sections should NOT trigger a full
-    // Buhlmann recalculation.
-    final ndlSource = ref.watch(
-      profileLegendProvider.select((s) => s.ndlSource),
-    );
-    // The ceiling line has no source toggle; it always uses the calculated
-    // (exact, continuous) curve, so no ceilingSource is read here (issue #755).
-    final ttsSource = ref.watch(
-      profileLegendProvider.select((s) => s.ttsSource),
-    );
-    final cnsSource = ref.watch(
-      profileLegendProvider.select((s) => s.cnsSource),
-    );
-    final decoStopSource = ref.watch(
-      profileLegendProvider.select((s) => s.decoStopSource),
-    );
-    final gtrSource = ref.watch(
-      profileLegendProvider.select((s) => s.gtrSource),
-    );
-    final gtrReserveBar = ref.watch(
-      settingsProvider.select((s) => s.gtrReservePressure),
-    );
+    // Per-metric source preferences from the legend, via the snapshot, which
+    // selects only those fields: toggling visibility or expanding menu
+    // sections does NOT trigger a full Buhlmann recalculation. The ceiling
+    // line has no source toggle; it always uses the calculated (exact,
+    // continuous) curve, so no ceilingSource is read here (issue #755).
+    final ndlSource = inputs.ndlSource;
+    final ttsSource = inputs.ttsSource;
+    final cnsSource = inputs.cnsSource;
+    final decoStopSource = inputs.decoStopSource;
+    final gtrSource = inputs.gtrSource;
+    final gtrReserveBar = inputs.gtrReservePressure;
 
     final useComputerCns = cnsSource == MetricDataSource.computer;
     final computerCns = useComputerCns ? extractComputerCns(profile) : null;
@@ -1144,10 +1149,14 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     // Compute residual CNS (skip if this dive has computer CNS data)
     final startCns = computerCns != null
         ? computerCns.cnsStart
-        : await _computeResidualCns(ref, diveId);
+        : await _computeResidualCns(ref, diveId, inputs);
 
     // Compute residual tissue state from previous dives (48h cutoff)
-    final startCompartments = await _computeResidualTissueState(ref, diveId);
+    final startCompartments = await _computeResidualTissueState(
+      ref,
+      diveId,
+      inputs,
+    );
 
     // Compute cumulative OTU from earlier same-day dives
     final startOtu = await _computeResidualOtu(ref, diveId);
@@ -1192,12 +1201,12 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         rebreatherPpO2: rebreatherPpO2,
       ),
     };
-    final ascentMaxPpO2 = ref.watch(ppO2MaxDecoProvider);
+    final ascentMaxPpO2 = inputs.ppO2MaxDeco;
     final ascentGases = dive.diveMode == DiveMode.oc
         ? buildAvailableGases(
             dive,
             maxPpO2: ascentMaxPpO2,
-            gasSet: ref.watch(ascentGasSetProvider),
+            gasSet: inputs.ascentGasSet,
           )
         : null;
     // Run Buhlmann analysis on a background isolate to keep UI responsive
@@ -1211,13 +1220,13 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       _ProfileAnalysisInput(
         gfLow: gfSource.lowFraction,
         gfHigh: gfSource.highFraction,
-        ppO2WarningThreshold: ref.watch(ppO2MaxWorkingProvider),
-        ppO2CriticalThreshold: ref.watch(ppO2MaxDecoProvider),
-        cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
-        ascentRateWarning: ref.watch(ascentRateWarningProvider),
-        ascentRateCritical: ref.watch(ascentRateCriticalProvider),
-        lastStopDepth: ref.watch(lastStopDepthProvider),
-        decoStopIncrement: ref.watch(decoStopIncrementProvider),
+        ppO2WarningThreshold: inputs.ppO2MaxWorking,
+        ppO2CriticalThreshold: inputs.ppO2MaxDeco,
+        cnsWarningThreshold: inputs.cnsWarningThreshold,
+        ascentRateWarning: inputs.ascentRateWarning,
+        ascentRateCritical: inputs.ascentRateCritical,
+        lastStopDepth: inputs.lastStopDepth,
+        decoStopIncrement: inputs.decoStopIncrement,
         diveId: diveId,
         depths: depths,
         timestamps: timestamps,
@@ -1235,7 +1244,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         startOtu: startOtu,
         gasSegments: gasSegments,
         ascentGases: ascentGases,
-        cnsCalculationMethod: ref.watch(cnsCalculationMethodProvider),
+        cnsCalculationMethod: inputs.cnsCalculationMethod,
         environment: DiveEnvironment.forConditions(
           altitudeMeters: dive.altitude,
           waterType: dive.waterType,
@@ -1248,8 +1257,12 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     );
     // The isolate only ever saw two fractions, so it stamped the conservative
     // settings origin. Restore the source resolved above, whose fractions are
-    // the very ones it decompressed with.
-    final analysis = computed.copyWith(gfSource: gfSource);
+    // the very ones it decompressed with. The fingerprint records the
+    // settings snapshot every other input above came from.
+    final analysis = computed.copyWith(
+      gfSource: gfSource,
+      inputsFingerprint: inputs.fingerprint,
+    );
 
     // Overlay computer-reported deco data where available
     final (overlaid, sourceInfo) = overlayComputerDecoData(
@@ -1382,7 +1395,11 @@ final sourceProfileAnalysisProvider =
 /// Fetches the previous dive, gets its full profile analysis (which itself
 /// recursively accounts for even earlier dives), then applies exponential
 /// decay based on the surface interval.
-Future<double> _computeResidualCns(Ref ref, String diveId) async {
+Future<double> _computeResidualCns(
+  Ref ref,
+  String diveId,
+  AnalysisSettings inputs,
+) async {
   try {
     final repository = ref.watch(diveRepositoryProvider);
 
@@ -1398,11 +1415,7 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
     // previous dive has computer CNS, use its last CNS sample directly
     // instead of full analysis. The profile is fetched only when this
     // branch is taken (times-only lookup otherwise).
-    // Use select() to avoid invalidating on unrelated legend state changes.
-    final cnsSource = ref.watch(
-      profileLegendProvider.select((s) => s.cnsSource),
-    );
-    final useComputerCns = cnsSource == MetricDataSource.computer;
+    final useComputerCns = inputs.cnsSource == MetricDataSource.computer;
     if (useComputerCns) {
       final previousProfile = await repository.getMergedProfile(
         previousDive.id,
@@ -1450,6 +1463,7 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
 Future<List<TissueCompartment>?> _computeResidualTissueState(
   Ref ref,
   String diveId,
+  AnalysisSettings inputs,
 ) async {
   try {
     final repository = ref.watch(diveRepositoryProvider);
@@ -1479,9 +1493,10 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
         previousAnalysis.decoStatuses.last.compartments;
 
     // Apply Schreiner off-gassing for the surface interval
-    final gfLow = ref.watch(gfLowDecimalProvider);
-    final gfHigh = ref.watch(gfHighDecimalProvider);
-    final algorithm = BuhlmannAlgorithm(gfLow: gfLow, gfHigh: gfHigh);
+    final algorithm = BuhlmannAlgorithm(
+      gfLow: inputs.gfLowFraction,
+      gfHigh: inputs.gfHighFraction,
+    );
     algorithm.setCompartments(List.from(endOfDiveCompartments));
     algorithm.calculateSegment(
       depthMeters: 0,
@@ -1578,7 +1593,12 @@ final residualTissueStateProvider =
       ref,
       diveId,
     ) async {
-      return _computeResidualTissueState(ref, diveId);
+      await awaitCurrentDiverSettings(ref);
+      return _computeResidualTissueState(
+        ref,
+        diveId,
+        ref.watch(analysisSettingsProvider),
+      );
     });
 
 /// Provider that exposes the residual OTU from earlier same-day dives.

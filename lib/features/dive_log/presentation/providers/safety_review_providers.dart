@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -16,6 +17,19 @@ final safetyFindingsRepositoryProvider = Provider<SafetyFindingsRepository>((
 /// otherwise runs the engine over the profile analysis and persists the
 /// result. Returns null when the dive has never been analyzed and has no
 /// usable profile.
+///
+/// Current means the same engine version AND the same inputs: the stored
+/// fingerprint must match the active diver's own settings
+/// ([diverAnalysisSettingsProvider]). A review this build cannot judge, from
+/// a newer engine or under a newer fingerprint format, came from a newer
+/// peer and is kept ([_isCurrent]). A review computed on another diver's
+/// settings (#2564), on settings edited since, or before inputs were recorded
+/// is recomputed on next view (#2592). saveReview keeps a recomputed
+/// finding's id and dismissal, so a dismissal survives the recompute.
+///
+/// A review is saved only from an analysis that ran on exactly those
+/// settings. While a metric source is switched on the chart the analysis is
+/// a view of the dive, not the diver's review, so the stored one is shown.
 final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
   ref,
   diveId,
@@ -32,11 +46,13 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
     ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
   );
 
+  // Compare against the active diver's settings, not the placeholder or the
+  // previous diver's still in state during a switch.
+  final settingsLoaded = await awaitCurrentDiverSettings(ref);
+  final currentInputs = ref.watch(diverAnalysisSettingsProvider).fingerprint;
+
   final stored = await repo.getReview(diveId);
-  if (stored != null &&
-      stored.engineVersion >= SafetyReviewService.engineVersion) {
-    return stored;
-  }
+  if (stored != null && _isCurrent(stored, currentInputs)) return stored;
 
   // The toggle below is per diver: right after a diver switch it still reads
   // the previous diver's until the new diver's settings load (#2564).
@@ -44,9 +60,16 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
 
   // Master toggle off: surface whatever is stored but never compute.
   if (!ref.watch(safetyReviewEnabledProvider)) return stored;
+  // The diver's settings failed to load, so state is not theirs: computing
+  // would persist a review built on the placeholder or another diver's.
+  if (!settingsLoaded) return stored;
 
   final analysis = await ref.watch(profileAnalysisProvider(diveId).future);
   if (analysis == null || analysis.ascentRates.isEmpty) return stored;
+  // Ran on other inputs: a chart source toggle, settings that have moved
+  // since this analysis was computed (it rebuilds, and this with it), or an
+  // analysis that records none, which cannot show it used the diver's.
+  if (analysis.inputsFingerprint != currentInputs) return stored;
 
   final now = DateTime.now();
   // Return what was stored, not the engine's raw output: a kept finding
@@ -56,6 +79,7 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
       diveId: diveId,
       engineVersion: SafetyReviewService.engineVersion,
       reviewedAt: now,
+      inputsHash: currentInputs,
       findings: const SafetyReviewService().review(
         diveId: diveId,
         analysis: analysis,
@@ -64,6 +88,22 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
     ),
   );
 });
+
+/// Whether [stored] may be served as is under [currentInputs].
+///
+/// A review from a newer engine is kept whatever its fingerprint: this build
+/// would recompute it with an older engine and overwrite the newer peer's.
+/// At this engine version the fingerprint must match, unless it was written
+/// in a newer format this build cannot compare, which is kept for the same
+/// reason. An older engine, or no fingerprint at all, is recomputed.
+bool _isCurrent(SafetyReview stored, String currentInputs) {
+  const engine = SafetyReviewService.engineVersion;
+  if (stored.engineVersion > engine) return true;
+  if (stored.engineVersion < engine) return false;
+  final hash = stored.inputsHash;
+  if (hash == null) return false;
+  return hash == currentInputs || AnalysisSettings.isNewerFormat(hash);
+}
 
 /// The safety finding currently selected for profile-chart highlighting, or
 /// null when none. Session state keyed by dive ID: the safety review section
