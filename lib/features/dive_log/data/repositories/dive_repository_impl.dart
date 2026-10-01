@@ -7448,6 +7448,31 @@ class DiveRepository {
     }
   }
 
+  /// Writes the data source and computer a backup recorded for each tank in
+  /// [byTank] (issues #2492, #2716), once the restored source rows exist.
+  /// See [restoreTankLinks].
+  Future<void> restoreTankAttribution(
+    Map<String, ({String? sourceId, String? computerId})> byTank,
+  ) async {
+    if (byTank.isEmpty) return;
+    try {
+      await restoreTankLinks(
+        _db,
+        _syncRepository,
+        byTank,
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to restore tank attribution',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Insert a further computer's recording of a dive whose primary source
   /// already exists: the non-primary [reading], its [profile] as a series
   /// owned by that row, its [tankPressures] (keyed by tank id) and its

@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
     show TankPressureSample;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
@@ -49,18 +50,31 @@ class TankPressureRepository {
     ),
   );
 
-  /// Every tank pressure reading of many dives at once, keyed by dive id; a
+  /// Every tank pressure series of many dives at once, keyed by dive id; a
   /// dive with no pressure data is absent. One statement per chunk of ids
   /// instead of one per dive (issue #1867).
   ///
-  /// Unlike [getTankPressuresForDive] this keeps every source's readings:
+  /// Unlike [getTankPressuresForDive] this keeps every source's series:
   /// its readers are the exports, and a backup must not drop a recording
-  /// because another source covered the same stretch.
-  Future<Map<String, Map<String, List<TankPressurePoint>>>>
-  getTankPressuresForDives(List<String> diveIds) async => {
-    for (final entry in (await _tankSeries.getSeriesForDives(diveIds)).entries)
-      entry.key: _groupByTank(entry.value),
-  };
+  /// because another source covered the same stretch. Each series keeps
+  /// its source, so a restore can file it under that source again (issue
+  /// #2492).
+  Future<Map<String, DiveTankPressureExport>> getTankPressuresForDives(
+    List<String> diveIds,
+  ) async {
+    final seriesByDive = await _tankSeries.getSeriesForDives(diveIds);
+    if (seriesByDive.isEmpty) return const {};
+    final primaryByDive = await _tankSeries.primarySourceIdsForDives(
+      seriesByDive.keys.toList(growable: false),
+    );
+    return {
+      for (final entry in seriesByDive.entries)
+        entry.key: DiveTankPressureExport(
+          series: entry.value,
+          primarySourceId: primaryByDive[entry.key],
+        ),
+    };
+  }
 
   /// [getTankPressuresForDive] as one source saw the dive: on a tank that
   /// [computerId] logged, only its series; on any other tank, every series.

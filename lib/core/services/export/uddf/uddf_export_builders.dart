@@ -9,6 +9,7 @@ import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_feature_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/core/services/export/uddf/uddf_tag_writers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
@@ -758,6 +760,12 @@ class UddfExportBuilders {
     List<Course>? courses,
     List<DiveSourceExport>? dataSources,
     Map<String, String?> dataSourceDumps = const {},
+    // The dives whose tank rows and tank pressure series the per-source
+    // blocks beside <datasources> attribute (issue #2492), and those series.
+    // Only a dive with two or more [dataSources] entries writes any, so
+    // neither needs its own check in hasData below.
+    List<Dive> attributedDives = const [],
+    Map<String, DiveTankPressureExport> diveTankPressures = const {},
     List<EquipmentComponent>? components,
     List<Dive>? gearLinkDives,
     Map<String, List<BuddyWithRole>>? diveBuddies,
@@ -1643,6 +1651,13 @@ class UddfExportBuilders {
 
             // Per-source provenance for the dumps in <divecomputercontrol>.
             buildDataSources(builder, dataSources ?? const [], dataSourceDumps);
+            // Which of those sources recorded each tank and its pressures.
+            UddfSourceAttribution.write(
+              builder,
+              dives: attributedDives,
+              pressures: diveTankPressures,
+              sources: dataSources ?? const [],
+            );
           },
         );
       },

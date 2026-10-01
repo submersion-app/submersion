@@ -5,8 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 
 import '../../helpers/mock_channels.dart';
+import '../../helpers/tank_pressure_export_fixtures.dart';
 
 void main() {
   late ExportService exportService;
@@ -255,8 +257,8 @@ void main() {
         ],
       );
 
-      final tankPressures = <String, Map<String, List<TankPressurePoint>>>{
-        'dive-1': {
+      final tankPressures = <String, DiveTankPressureExport>{
+        'dive-1': testPressureExport({
           'tank-a': [
             const TankPressurePoint(
               tankId: 'tank-a',
@@ -291,7 +293,7 @@ void main() {
               pressure: 140.0,
             ),
           ],
-        },
+        }),
       };
 
       final path = await exportService.exportDivesToUddf([
@@ -333,8 +335,8 @@ void main() {
         ],
       );
 
-      final tankPressures = <String, Map<String, List<TankPressurePoint>>>{
-        'dive-full': {
+      final tankPressures = <String, DiveTankPressureExport>{
+        'dive-full': testPressureExport({
           'tank-full': [
             const TankPressurePoint(
               tankId: 'tank-full',
@@ -347,7 +349,7 @@ void main() {
               pressure: 150.0,
             ),
           ],
-        },
+        }),
       };
 
       final path = await exportService.exportAllDataToUddf(

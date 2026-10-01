@@ -109,6 +109,45 @@ Future<int> attributeTankSources(
   return stamped;
 }
 
+/// Writes on each tank of [byTank] the data source and computer a restored
+/// backup recorded for it (issues #2492, #2716), staging each for sync.
+/// Only the halves given are written. Returns the number written.
+///
+/// A restore cannot leave this to [attributeTankSources]: on a dive with
+/// several sources it claims only what it can infer, and its rules read the
+/// pressure series, which a restore writes after the source rows.
+Future<int> restoreTankLinks(
+  AppDatabase db,
+  SyncRepository syncRepository,
+  Map<String, ({String? sourceId, String? computerId})> byTank, {
+  required int now,
+}) async {
+  var written = 0;
+  await db.transaction(() async {
+    for (final MapEntry(key: tankId, value: links) in byTank.entries) {
+      if (links.sourceId == null && links.computerId == null) continue;
+      await (db.update(db.diveTanks)..where((t) => t.id.equals(tankId))).write(
+        DiveTanksCompanion(
+          sourceId: links.sourceId == null
+              ? const Value.absent()
+              : Value(links.sourceId),
+          computerId: links.computerId == null
+              ? const Value.absent()
+              : Value(links.computerId),
+          hlc: Value(await syncRepository.issueRowClock()),
+        ),
+      );
+      await syncRepository.markRecordPending(
+        entityType: 'diveTanks',
+        recordId: tankId,
+        localUpdatedAt: now,
+      );
+      written++;
+    }
+  });
+  return written;
+}
+
 /// Nulls `source_id` on every tank [where] selects and stages those tanks,
 /// like `clearTankComputerLinks`. Returns the number cleared.
 ///

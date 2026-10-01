@@ -280,6 +280,23 @@ class TankPressureSeriesRepository {
     return row?.id;
   }
 
+  /// [primarySourceId] of many dives at once, keyed by dive id; a dive with
+  /// no primary source is absent. Chunked like [getRowsForDives].
+  Future<Map<String, String>> primarySourceIdsForDives(
+    List<String> diveIds,
+  ) async {
+    final byDive = <String, String>{};
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final rows = await (_db.select(
+        _db.diveDataSources,
+      )..where((s) => s.diveId.isIn(chunk) & s.isPrimary.equals(true))).get();
+      for (final row in rows) {
+        byDive.putIfAbsent(row.diveId, () => row.id);
+      }
+    }
+    return byDive;
+  }
+
   /// Stamps [sourceId] on the unattributed series of [diveId] (issue
   /// #2440): a single-source import writes its series before the source row
   /// exists, and consolidation attributes the target's own series to its
