@@ -5,6 +5,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/core/buoyancy/weight_observation.dart';
 import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_gear_weights_section.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -323,9 +325,14 @@ void main() {
   });
 
   group('issue #2060', () {
-    List<Object> overridesFor(List<Object> base) => [
+    List<Object> overridesFor(
+      List<Object> base, {
+      List<WeightObservation>? history,
+    }) => [
       ...base,
-      weightObservationsProvider.overrideWith((ref) async => observations),
+      weightObservationsProvider.overrideWith(
+        (ref) async => history ?? observations,
+      ),
       allEquipmentProvider.overrideWith((ref) async => const [suitItem]),
       activeEquipmentProvider.overrideWith((ref) async => const [suitItem]),
       latestDiverWeightProvider.overrideWith((ref) async => entry),
@@ -403,6 +410,48 @@ void main() {
       );
       // Card margin (4) plus content padding (16).
       expect(button.right, closeTo(card.right - 20, 0.5));
+    });
+
+    testWidgets('accepting in pounds plans whole-pound placements', (
+      tester,
+    ) async {
+      const lb = 0.45359237;
+      final container = await pumpSeeded(
+        tester,
+        overridesFor(
+          await getBaseOverrides(
+            settingsNotifier: MockSettingsNotifier(
+              const AppSettings(weightUnit: WeightUnit.pounds),
+            ),
+          ),
+          // The split needs a placement history to follow.
+          history: [
+            for (final o in observations)
+              WeightObservation(
+                diveId: o.diveId,
+                diveDateTime: o.diveDateTime,
+                waterType: o.waterType,
+                carriedKg: o.carriedKg,
+                equipmentIds: o.equipmentIds,
+                tanks: o.tanks,
+                feedback: o.feedback,
+                placement: const {'belt': 6.0, 'integrated': 2.0},
+              ),
+          ],
+        ),
+      );
+
+      await tester.tap(find.byType(TextButton));
+      await tester.pumpAndSettle();
+
+      final placement = container
+          .read(divePlanNotifierProvider)
+          .plannedWeightPlacement!;
+      final total = placement.values.fold(0.0, (a, b) => a + b);
+      expect(total, greaterThan(0));
+      // Pound increments, not the half-kilo steps a metric diver gets.
+      expect((total / lb - (total / lb).round()).abs(), lessThan(1e-6));
+      expect((total / 0.5 - (total / 0.5).round()).abs(), greaterThan(1e-6));
     });
 
     testWidgets('a failing buoyancy computation keeps the card usable', (
