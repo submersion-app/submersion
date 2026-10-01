@@ -3214,11 +3214,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               .watch(tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId)))
               .value;
     // The dive's primary source, which a tank with no computer and no
-    // other source of its own belongs to (issue #2716). Only read once a
-    // tank is linked: before that, no slot is taken from anyone.
+    // other source of its own belongs to (issue #2716). Read for every
+    // saved dive, so it is loaded before the diver links a first tank: a
+    // read that started only then would leave the first picks without it.
     final diveId = widget.diveId;
-    final primarySourceId =
-        diveId == null || !_tanks.any((t) => t.tripCylinderId != null)
+    final primarySourceId = diveId == null
         ? null
         : ref
               .watch(diveDataSourcesProvider(diveId))

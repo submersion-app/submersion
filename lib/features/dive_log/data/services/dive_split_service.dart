@@ -282,14 +282,18 @@ class DiveSplitService {
         );
 
         if (hasRemainingRefs) {
-          // Its source left with the split too (v251), so the row lets go
-          // of both with this clock rather than the FK's silent SET NULL.
+          // A link to the source that left goes with this clock rather than
+          // the FK's silent SET NULL (v251). Only that one: the computer
+          // rule also selects tanks of another source of the same computer
+          // (a combined dive's other half), which stays.
           await (_db.update(
             _db.diveTanks,
           )..where((t) => t.id.equals(tank.id))).write(
-            const DiveTanksCompanion(
-              computerId: Value(null),
-              sourceId: Value(null),
+            DiveTanksCompanion(
+              computerId: const Value(null),
+              sourceId: tank.sourceId == source.id
+                  ? const Value(null)
+                  : const Value.absent(),
             ),
           );
           await _sync.markRecordPending(
