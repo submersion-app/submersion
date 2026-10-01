@@ -31842,6 +31842,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_empty_title => '一切正常';
 
   @override
+  String get dataQuality_empty_chipFiltered => '此类别中没有问题';
+
+  @override
+  String get dataQuality_empty_showAll => '显示所有问题';
+
+  @override
   String get dataQuality_empty_subtitle => '没有数据质量问题。扫描你的库以检查导入的潜水是否存在问题。';
 
   @override

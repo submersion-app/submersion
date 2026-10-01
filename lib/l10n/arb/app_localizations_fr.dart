@@ -33669,6 +33669,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dataQuality_empty_title => 'Tout est en ordre';
 
   @override
+  String get dataQuality_empty_chipFiltered =>
+      'Aucune anomalie dans cette catégorie';
+
+  @override
+  String get dataQuality_empty_showAll => 'Afficher toutes les anomalies';
+
+  @override
   String get dataQuality_empty_subtitle =>
       'Aucune anomalie de qualité des données. Analysez votre bibliothèque pour vérifier les plongées importées.';
 

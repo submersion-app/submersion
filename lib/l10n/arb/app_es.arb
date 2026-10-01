@@ -10226,6 +10226,8 @@
   "dataQuality_neverScanned": "Tu cuaderno de inmersiones aún no se ha analizado",
   "dataQuality_empty_title": "Todo en orden",
   "dataQuality_empty_subtitle": "Sin hallazgos de calidad de datos. Analiza tu biblioteca para comprobar si las inmersiones importadas tienen problemas.",
+  "dataQuality_empty_chipFiltered": "No hay hallazgos en esta categoría",
+  "dataQuality_empty_showAll": "Mostrar todos los hallazgos",
   "dataQuality_banner_newChecks": "Hay nuevas comprobaciones de calidad disponibles",
   "dataQuality_banner_rescan": "Volver a analizar",
   "dataQuality_action_dismiss": "Descartar",

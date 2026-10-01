@@ -33517,6 +33517,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dataQuality_empty_title => 'Alles in Ordnung';
 
   @override
+  String get dataQuality_empty_chipFiltered =>
+      'Keine Auffälligkeiten in dieser Kategorie';
+
+  @override
+  String get dataQuality_empty_showAll => 'Alle Auffälligkeiten anzeigen';
+
+  @override
   String get dataQuality_empty_subtitle =>
       'Keine Auffälligkeiten bei der Datenqualität. Scanne deine Bibliothek, um importierte Tauchgänge auf Probleme zu prüfen.';
 

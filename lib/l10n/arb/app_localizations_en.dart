@@ -33049,6 +33049,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_empty_title => 'All clear';
 
   @override
+  String get dataQuality_empty_chipFiltered => 'No findings in this category';
+
+  @override
+  String get dataQuality_empty_showAll => 'Show all findings';
+
+  @override
   String get dataQuality_empty_subtitle =>
       'No data quality findings. Scan your library to check imported dives for problems.';
 

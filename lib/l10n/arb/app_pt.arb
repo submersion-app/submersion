@@ -10226,6 +10226,8 @@
   "dataQuality_neverScanned": "O seu diário de mergulho ainda não foi analisado",
   "dataQuality_empty_title": "Tudo em ordem",
   "dataQuality_empty_subtitle": "Sem constatações de qualidade dos dados. Analise a sua biblioteca para verificar problemas nos mergulhos importados.",
+  "dataQuality_empty_chipFiltered": "Sem constatações nesta categoria",
+  "dataQuality_empty_showAll": "Mostrar todas as constatações",
   "dataQuality_banner_newChecks": "Há novas verificações de qualidade disponíveis",
   "dataQuality_banner_rescan": "Analisar novamente",
   "dataQuality_action_dismiss": "Dispensar",

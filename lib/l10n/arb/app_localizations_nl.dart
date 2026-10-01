@@ -33334,6 +33334,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_empty_title => 'Alles in orde';
 
   @override
+  String get dataQuality_empty_chipFiltered =>
+      'Geen bevindingen in deze categorie';
+
+  @override
+  String get dataQuality_empty_showAll => 'Alle bevindingen tonen';
+
+  @override
   String get dataQuality_empty_subtitle =>
       'Geen bevindingen over datakwaliteit. Scan je bibliotheek om geïmporteerde duiken op problemen te controleren.';
 

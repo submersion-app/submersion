@@ -33435,6 +33435,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_empty_title => 'Minden rendben';
 
   @override
+  String get dataQuality_empty_chipFiltered =>
+      'Nincs észlelés ebben a kategóriában';
+
+  @override
+  String get dataQuality_empty_showAll => 'Összes észlelés megjelenítése';
+
+  @override
   String get dataQuality_empty_subtitle =>
       'Nincs adatminőségi észlelés. Vizsgáld át a könyvtáradat, hogy ellenőrizd az importált merüléseket.';
 

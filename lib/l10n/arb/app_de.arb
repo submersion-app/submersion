@@ -10338,6 +10338,8 @@
   "dataQuality_neverScanned": "Dein Logbuch wurde noch nicht gescannt",
   "dataQuality_empty_title": "Alles in Ordnung",
   "dataQuality_empty_subtitle": "Keine Auffälligkeiten bei der Datenqualität. Scanne deine Bibliothek, um importierte Tauchgänge auf Probleme zu prüfen.",
+  "dataQuality_empty_chipFiltered": "Keine Auffälligkeiten in dieser Kategorie",
+  "dataQuality_empty_showAll": "Alle Auffälligkeiten anzeigen",
   "dataQuality_banner_newChecks": "Neue Qualitätsprüfungen sind verfügbar",
   "dataQuality_banner_rescan": "Erneut scannen",
   "dataQuality_action_dismiss": "Verwerfen",
