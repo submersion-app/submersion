@@ -40,9 +40,14 @@ final itineraryDaysProvider = FutureProvider.family<List<ItineraryDay>, String>(
 /// follow the trip's dates however they moved (#2664).
 final numberedItineraryDaysProvider =
     FutureProvider.family<List<ItineraryDay>, String>((ref, tripId) async {
-      final days = await ref.watch(itineraryDaysProvider(tripId).future);
-      final trip = await ref.watch(tripByIdProvider(tripId).future);
+      // Watched together so the three loads run at once.
+      final daysFuture = ref.watch(itineraryDaysProvider(tripId).future);
+      final tripFuture = ref.watch(tripByIdProvider(tripId).future);
+      final divesFuture = ref.watch(divesForTripProvider(tripId).future);
+      final days = await daysFuture;
+      final trip = await tripFuture;
+      final dives = await divesFuture;
+      // A trip deleted under the tab has no start to number from.
       if (trip == null) return days;
-      final dives = await ref.watch(divesForTripProvider(tripId).future);
       return numberItineraryDays(trip: trip, dives: dives, itineraryDays: days);
     });

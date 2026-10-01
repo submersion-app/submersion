@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -32,11 +34,15 @@ ItineraryDay _row(String id, DateTime date, int storedNumber) => ItineraryDay(
   updatedAt: DateTime(2026, 1, 1),
 );
 
+/// [reload], when given, is what every itinerary load after the first
+/// returns, so a test can hold a reload open.
 Future<void> _pumpTab(
   WidgetTester tester, {
-  required Trip trip,
+  required Trip? trip,
   required List<ItineraryDay> days,
+  Future<List<ItineraryDay>>? reload,
 }) async {
+  var loads = 0;
   tester.view.physicalSize = const Size(800, 2000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
@@ -46,7 +52,9 @@ Future<void> _pumpTab(
       overrides: [
         ...overrides,
         tripByIdProvider('trip-1').overrideWith((ref) async => trip),
-        itineraryDaysProvider('trip-1').overrideWith((ref) async => days),
+        itineraryDaysProvider('trip-1').overrideWith(
+          (ref) async => loads++ == 0 || reload == null ? days : reload,
+        ),
         divesForTripProvider(
           'trip-1',
         ).overrideWith((ref) async => const <Dive>[]),
@@ -88,5 +96,36 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Edit Day 4'), findsOneWidget);
+  });
+
+  testWidgets('keeps the list on screen while an edit reloads it', (
+    tester,
+  ) async {
+    final pending = Completer<List<ItineraryDay>>();
+    await _pumpTab(
+      tester,
+      trip: _trip(DateTime(2026, 3, 6)),
+      days: staleRows,
+      reload: pending.future,
+    );
+
+    // What the edit sheet does on save.
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(TripItineraryTab)),
+    );
+    container.invalidate(itineraryDaysProvider('trip-1'));
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('Day 4'), findsOneWidget);
+  });
+
+  testWidgets('shows the stored numbers when the trip is gone', (tester) async {
+    // Nothing to number from: the rows are listed as the repository returns
+    // them (by date), under their stored numbers.
+    await _pumpTab(tester, trip: null, days: staleRows);
+
+    expect(find.text('Day 1'), findsOneWidget);
+    expect(find.text('Day 3'), findsOneWidget);
   });
 }

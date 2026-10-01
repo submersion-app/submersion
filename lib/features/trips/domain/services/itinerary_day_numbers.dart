@@ -18,7 +18,6 @@ List<ItineraryDay> numberItineraryDays({
   required List<Dive> dives,
   required List<ItineraryDay> itineraryDays,
 }) {
-  if (itineraryDays.isEmpty) return const [];
   final (:start, end: _) = tripStoryDaySpan(
     trip: trip,
     dives: dives,
