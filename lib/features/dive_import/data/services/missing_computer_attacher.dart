@@ -155,9 +155,11 @@ class MissingComputerAttacher {
   /// The re-import of a dive imported before the importer kept every
   /// computer, matched to that older copy and flagged Consolidate.
   ///
-  /// When [targetDiveId] already records [diveData]'s first computer and the
-  /// parse carries further ones, adds those the dive lacks: a fold would be
-  /// refused for sharing that computer. [MatchAttachment.incomplete] when one
+  /// When [targetDiveId]'s primary source is [diveData]'s first computer and
+  /// the parse carries further ones, adds those the dive lacks: a fold would
+  /// be refused for sharing that computer, a refusal judged on the dive's own
+  /// (primary) computer only. A match holding that computer only as a
+  /// secondary folds normally and keeps the incoming recording of it. [MatchAttachment.incomplete] when one
   /// of them could not be written. Any other pairing writes nothing and is
   /// [MatchAttachment.notApplicable], for a normal consolidation to handle.
   Future<MatchAttachment> attachToMatch({
@@ -174,10 +176,12 @@ class MissingComputerAttacher {
       diveData['diveComputerSerial'] as String?,
     );
     if (firstKey == null) return MatchAttachment.notApplicable;
-    final sources = await (_db.select(
-      _db.diveDataSources,
-    )..where((t) => t.diveId.equals(targetDiveId))).get();
-    final recordsFirst = sources.any(
+    final primaries =
+        await (_db.select(_db.diveDataSources)
+              ..where((t) => t.diveId.equals(targetDiveId))
+              ..where((t) => t.isPrimary.equals(true)))
+            .get();
+    final recordsFirst = primaries.any(
       (s) =>
           UddfEntityImporter.computerKeyFor(
             s.computerModel,

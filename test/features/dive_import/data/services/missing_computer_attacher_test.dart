@@ -231,6 +231,32 @@ $computers
       expect(await attachToMatch(diveId, dive), MatchAttachment.notApplicable);
     });
 
+    test('the first computer only as a secondary is not this path', () async {
+      // The fold refuses a shared computer by the dive's own (primary)
+      // computer only. A match whose primary is another computer folds the
+      // incoming dive normally, keeping its recording of the first computer.
+      final other = await parse(computer(model: 'Suunto D5', serial: 'SN-C'));
+      final diveId = await importTheOldWay(other);
+      final primary = (await sourcesOf(diveId)).single;
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            primary
+                .toCompanion(false)
+                .copyWith(
+                  id: const Value('perdix-secondary'),
+                  isPrimary: const Value(false),
+                  computerId: const Value(null),
+                  computerModel: const Value('Shearwater Perdix'),
+                  computerSerial: const Value('SN-A'),
+                ),
+          );
+      final dive = await parse(perdixAndTeric);
+
+      expect(await attachToMatch(diveId, dive), MatchAttachment.notApplicable);
+      expect(await sourcesOf(diveId), hasLength(2));
+    });
+
     test('a match without the first computer is not this path', () async {
       // Another computer's recording of the dive: a normal fold's case.
       final other = await parse(computer(model: 'Suunto D5', serial: 'SN-C'));
