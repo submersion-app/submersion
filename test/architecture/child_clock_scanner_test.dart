@@ -87,7 +87,9 @@ void main() {
     expect(result.violations, hasLength(1));
   });
 
-  test('a mark in a loop after the write, in the same block, counts', () {
+  test('a mark in a loop after the write does not count', () {
+    // The loop may mark other rows; syntax cannot tell, so the write must
+    // carry its own clock.
     final result = scan('''
   Future<void> relink(List<String> ids) async {
     await _db.customStatement(
@@ -103,7 +105,7 @@ void main() {
     }
   }
 ''');
-    expect(result.violations, isEmpty);
+    expect(result.violations, hasLength(1));
   });
 
   test('a mark directly after the branch, for the same row, counts', () {

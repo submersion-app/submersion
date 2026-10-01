@@ -55,12 +55,11 @@ final _sqlSetsHlc = RegExp(r'\bhlc\s*=', caseSensitive: false);
 /// A write restamps its row when the companion it writes sets `hlc`, when its
 /// raw SQL assigns `hlc`, or when the same entity type is marked pending
 /// (`markRecordPending(entityType: '<type>', ...)`, which stamps the clock)
-/// either anywhere in the block holding the write, or as a plain statement of
-/// a block around it in the same member (a write in a branch, then the mark
-/// after the branch). A mark nested in some other loop or branch does not
-/// count: syntax cannot tell whether it is for these rows, and the
-/// consolidation marks the tanks it inserts in one branch while updating
-/// others in another.
+/// by a statement of its own in a block around the write, in the same member
+/// (the mark right after the write, or after the branch holding it). A mark
+/// nested in a loop or a branch never counts: syntax cannot tell whether it
+/// is for these rows, and the consolidation marks the tanks it inserts in
+/// one branch while updating others in another.
 /// Anything else needs `// child-clock: <reason>` above the statement, for a
 /// row stamped somewhere the scan cannot see.
 ///
@@ -224,28 +223,19 @@ String _memberName(Declaration member) => switch (member) {
   _ => '<unit>',
 };
 
-/// Whether [entityType] is marked pending anywhere in the innermost block
-/// around [node], or as a plain statement of an enclosing block in the same
-/// member.
+/// Whether [entityType] is marked pending by a statement of its own in a
+/// block around [node], within the same member. A mark nested in a loop or a
+/// branch never counts, at any level: it may be for other rows.
 bool _markedNearby(AstNode node, String entityType) {
-  var innermost = true;
   for (AstNode? n = node.parent; n != null; n = n.parent) {
     if (n is Declaration) return false;
-    if (n is! Block) continue;
-    if (innermost) {
-      final finder = _PendingMarks();
-      n.accept(finder);
-      if (finder.entityTypes.contains(entityType)) return true;
-      innermost = false;
-    } else if (n.statements.any((s) => _isPendingMark(s, entityType))) {
+    if (n is Block && n.statements.any((s) => _isPendingMark(s, entityType))) {
       return true;
     }
   }
   return false;
 }
 
-/// `[await] markRecordPending(entityType: '<type>', ...);` as a statement of
-/// its own.
 /// Only the statement's own call: a statement that merely contains a mark
 /// (`await db.transaction(() async { ... })`) must not vouch for writes
 /// elsewhere in it.
@@ -268,17 +258,6 @@ String? _marksEntity(MethodInvocation node) {
     }
   }
   return null;
-}
-
-class _PendingMarks extends RecursiveAstVisitor<void> {
-  final entityTypes = <String>{};
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    final type = _marksEntity(node);
-    if (type != null) entityTypes.add(type);
-    super.visitMethodInvocation(node);
-  }
 }
 
 /// The offset of the statement holding [node], where a marker goes above.

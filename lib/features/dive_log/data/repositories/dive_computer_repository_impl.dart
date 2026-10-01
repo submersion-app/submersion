@@ -571,8 +571,9 @@ class DiveComputerRepository {
       final sourceIds = matched.map((r) => r.read<String>('id')).toList();
       final sourcePh = List.filled(sourceIds.length, '?').join(', ');
       await _db.customStatement(
-        'UPDATE dive_data_sources SET computer_id = ? WHERE id IN ($sourcePh)',
-        [computerId, ...sourceIds],
+        'UPDATE dive_data_sources SET computer_id = ?, hlc = ? '
+        'WHERE id IN ($sourcePh)',
+        [computerId, await _syncRepository.issueRowClock(), ...sourceIds],
       );
       // Each source is published on its own, which also gives it a fresh
       // clock (#2644): its dive is staged below only when the source is the

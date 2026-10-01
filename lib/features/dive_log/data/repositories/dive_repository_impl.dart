@@ -7573,15 +7573,27 @@ class DiveRepository {
 
         if (newPrimary == null) return;
 
-        // Demote all readings for this dive to non-primary.
-        await (_db.update(_db.diveDataSources)
-              ..where((t) => t.diveId.equals(diveId)))
-            .write(const DiveDataSourcesCompanion(isPrimary: Value(false)));
+        // Demote all readings for this dive to non-primary. Both writes
+        // carry their own clock, beside the marks below (#2644).
+        final primaryAt = await _syncRepository.issueRowClock();
+        await (_db.update(
+          _db.diveDataSources,
+        )..where((t) => t.diveId.equals(diveId))).write(
+          DiveDataSourcesCompanion(
+            isPrimary: const Value(false),
+            hlc: Value(primaryAt),
+          ),
+        );
 
         // Promote the selected reading.
-        await (_db.update(_db.diveDataSources)
-              ..where((t) => t.id.equals(computerReadingId)))
-            .write(const DiveDataSourcesCompanion(isPrimary: Value(true)));
+        await (_db.update(
+          _db.diveDataSources,
+        )..where((t) => t.id.equals(computerReadingId))).write(
+          DiveDataSourcesCompanion(
+            isPrimary: const Value(true),
+            hlc: Value(primaryAt),
+          ),
+        );
 
         // Bottom time is derived from the new primary's own profile, never
         // taken from its duration, which is the runtime it measured (issue
