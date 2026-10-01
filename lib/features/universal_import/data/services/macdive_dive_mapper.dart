@@ -526,10 +526,12 @@ class MacDiveDiveMapper {
       final gas = ParsedDiveProfileMapper.gasSwitches(
         parsed,
         (map['tanks'] as List<Map<String, dynamic>>?) ?? const [],
+        profile: map['profile'] as List<Map<String, dynamic>>,
       );
       if (gas.gasSwitches.isNotEmpty) {
         map['tanks'] = gas.tanks;
         map['gasSwitches'] = gas.gasSwitches;
+        map['profile'] = gas.profile;
       }
       return true;
     }

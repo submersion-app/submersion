@@ -4,6 +4,14 @@ import 'package:submersion/features/dive_computer/data/services/libdc_sample_uni
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
+/// What [ParsedDiveProfileMapper.gasSwitches] returns: the dive's tank list,
+/// with any appended cylinders, its gas switches, and its profile.
+typedef ParsedGasSwitches = ({
+  List<Map<String, dynamic>> tanks,
+  List<Map<String, dynamic>> gasSwitches,
+  List<Map<String, dynamic>> profile,
+});
+
 /// Converts a libdivecomputer [pigeon.ParsedDive] into the profile-sample
 /// maps the import pipeline consumes.
 ///
@@ -113,14 +121,24 @@ class ParsedDiveProfileMapper {
   /// bailout often do). A change between two gases that land on the same tank
   /// is not a switch.
   ///
-  /// Returns [tanks] itself, unchanged, when the dive never switched gas.
-  static ({
-    List<Map<String, dynamic>> tanks,
-    List<Map<String, dynamic>> gasSwitches,
-  })
-  gasSwitches(pigeon.ParsedDive parsed, List<Map<String, dynamic>> tanks) {
+  /// [profile] is the dive's profile from [samples]. Its pressure readings are
+  /// stored by position in the tank list, and one whose tank index the source
+  /// never listed was dropped; an appended cylinder must not inherit it, so the
+  /// returned profile leaves those readings out. The download path keeps its
+  /// synthesized cylinders clear of every sample tank index for the same
+  /// reason.
+  ///
+  /// Returns [tanks] and [profile] themselves, unchanged, when the dive never
+  /// switched gas.
+  static ParsedGasSwitches gasSwitches(
+    pigeon.ParsedDive parsed,
+    List<Map<String, dynamic>> tanks, {
+    required List<Map<String, dynamic>> profile,
+  }) {
     final sequence = breathedGasSequence(parsed);
-    if (sequence.length < 2) return (tanks: tanks, gasSwitches: const []);
+    if (sequence.length < 2) {
+      return (tanks: tanks, gasSwitches: const [], profile: profile);
+    }
 
     final resolvedTanks = [...tanks];
     final positionOfGas = <int, int>{};
@@ -143,6 +161,9 @@ class ParsedDiveProfileMapper {
     final positions = [for (final g in sequence) positionOf(g.gasIndex)];
     return (
       tanks: resolvedTanks,
+      profile: resolvedTanks.length == tanks.length
+          ? profile
+          : _withoutPressuresFrom(profile, tanks.length),
       gasSwitches: [
         for (var i = 1; i < sequence.length; i++)
           if (positions[i] != positions[i - 1])
@@ -153,6 +174,30 @@ class ParsedDiveProfileMapper {
             },
       ],
     );
+  }
+
+  /// [profile] without the pressure readings of tank index [firstUnlisted]
+  /// and above. Points that carry none of those are kept as they are.
+  static List<Map<String, dynamic>> _withoutPressuresFrom(
+    List<Map<String, dynamic>> profile,
+    int firstUnlisted,
+  ) {
+    bool listed(Map<String, dynamic> reading) =>
+        (reading['tankIndex'] as int? ?? 0) < firstUnlisted;
+    return [
+      for (final point in profile)
+        if (point['allTankPressures']
+            case final List<Map<String, dynamic>> readings
+            when !readings.every(listed))
+          {
+            for (final entry in point.entries)
+              if (entry.key != 'allTankPressures') entry.key: entry.value,
+            if (readings.any(listed))
+              'allTankPressures': [...readings.where(listed)],
+          }
+        else
+          point,
+    ];
   }
 
   /// Whether [listed] is the same mix as [gas]. The native bridges compute
