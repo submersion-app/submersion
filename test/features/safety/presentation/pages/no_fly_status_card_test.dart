@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
@@ -10,6 +12,20 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 
 void main() {
+  // The card formats the deadline with intl, which resolves against
+  // Intl.defaultLocale, a process global another test in the same isolate may
+  // have changed. Pin it to English for the digit assertions and restore it.
+  late String? previousLocale;
+
+  setUpAll(() => initializeDateFormatting('en'));
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   Future<void> pumpCard(WidgetTester tester, NoFlyStatus? status) {
     final settings = MockSettingsNotifier();
     settings.setTimeFormat(TimeFormat.twentyFourHour);
