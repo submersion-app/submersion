@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// Whether the notification authorization prompt has already been put to the
 /// platform and come back refused.
@@ -85,21 +86,11 @@ class _NotificationPermissionCardState
                 ? l10n.settings_notifications_disabled_subtitle
                 : l10n.settings_notifications_disabled_subtitleUnrequested,
           ),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton(
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-                alignment: AlignmentDirectional.centerStart,
-              ),
-              onPressed: refused ? _openSettings : _request,
-              child: Text(
-                refused
-                    ? l10n.settings_notifications_disabled_openSettingsButton
-                    : l10n.settings_notifications_disabled_continueButton,
-              ),
-            ),
+          TileSubtitleAction(
+            onPressed: refused ? _openSettings : _request,
+            label: refused
+                ? l10n.settings_notifications_disabled_openSettingsButton
+                : l10n.settings_notifications_disabled_continueButton,
           ),
         ],
       ),

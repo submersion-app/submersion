@@ -18,6 +18,7 @@ import 'package:submersion/features/import_wizard/presentation/widgets/undo_fill
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The summary step shown after the import completes.
 ///
@@ -277,19 +278,11 @@ class _SuccessView extends StatelessWidget {
                     // than in trailing: a ListTile measures trailing before
                     // the title, so a text button there squeezes the label
                     // in a longer translation (issue #2717).
-                    subtitle: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          visualDensity: VisualDensity.compact,
-                          alignment: AlignmentDirectional.centerStart,
-                        ),
-                        onPressed: () => context.push(
-                          '/dives/quality?dive=${importedDiveIds.join(',')}',
-                        ),
-                        child: Text(l10n.dataQuality_summary_review),
+                    subtitle: TileSubtitleAction(
+                      onPressed: () => context.push(
+                        '/dives/quality?dive=${importedDiveIds.join(',')}',
                       ),
+                      label: l10n.dataQuality_summary_review,
                     ),
                   );
                 },

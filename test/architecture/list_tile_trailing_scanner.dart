@@ -44,6 +44,22 @@ class TrailingScanResult {
 /// Tiles that lay `trailing` out at its natural width before the title.
 const _tiles = {'ListTile', 'ExpansionTile'};
 
+/// List tiles with a built-in control. Their `secondary` takes the trailing
+/// slot, with the same natural-width layout, when the control is placed
+/// leading; see [_trailingSlot].
+const _controlTiles = {'CheckboxListTile', 'SwitchListTile', 'RadioListTile'};
+
+/// The argument a tile lays out in its trailing slot, if any.
+Expression? _trailingSlot(String tile, ArgumentList arguments) {
+  if (_tiles.contains(tile)) return _named(arguments, 'trailing');
+  if (!_controlTiles.contains(tile)) return null;
+  final affinity = _named(arguments, 'controlAffinity');
+  if (affinity == null || !affinity.toSource().endsWith('.leading')) {
+    return null;
+  }
+  return _named(arguments, 'secondary');
+}
+
 /// Widgets that exist to carry a label, so their width follows the label's
 /// translation. A trailing `Text` is deliberately absent: it is usually a
 /// short value ('12', '40 m') that a syntactic scan cannot size.
@@ -116,14 +132,26 @@ Expression? _named(ArgumentList arguments, String name) {
 
 /// Collects the text-bearing widgets reachable from a `trailing` expression
 /// without passing through anything that fixes the width.
-void _collect(Expression expression, List<String> out) {
+///
+/// [locals] maps the enclosing function's local variables to their
+/// initializers, so `trailing: action` is followed into
+/// `final action = TextButton(...)`. A followed name is removed from the map
+/// before recursing, so a self-referencing initializer cannot loop.
+void _collect(
+  Expression expression,
+  List<String> out, [
+  Map<String, Expression> locals = const {},
+]) {
   switch (expression) {
+    case SimpleIdentifier(:final name) when locals.containsKey(name):
+      _collect(locals[name]!, out, {...locals}..remove(name));
+      return;
     case ParenthesizedExpression(:final expression):
-      _collect(expression, out);
+      _collect(expression, out, locals);
       return;
     case ConditionalExpression(:final thenExpression, :final elseExpression):
-      _collect(thenExpression, out);
-      _collect(elseExpression, out);
+      _collect(thenExpression, out, locals);
+      _collect(elseExpression, out, locals);
       return;
     default:
   }
@@ -145,11 +173,11 @@ void _collect(Expression expression, List<String> out) {
   }
 
   final child = _named(arguments, 'child');
-  if (child != null) _collect(child, out);
+  if (child != null) _collect(child, out, locals);
   final children = _named(arguments, 'children');
   if (children is ListLiteral) {
     for (final element in children.elements) {
-      _collectElement(element, out);
+      _collectElement(element, out, locals);
     }
   }
 }
@@ -185,14 +213,44 @@ bool _fixesWidth(String type, ArgumentList arguments) {
   return false;
 }
 
-void _collectElement(CollectionElement element, List<String> out) {
+void _collectElement(
+  CollectionElement element,
+  List<String> out,
+  Map<String, Expression> locals,
+) {
   switch (element) {
     case Expression():
-      _collect(element, out);
+      _collect(element, out, locals);
     case IfElement(:final thenElement, :final elseElement):
-      _collectElement(thenElement, out);
-      if (elseElement != null) _collectElement(elseElement, out);
+      _collectElement(thenElement, out, locals);
+      if (elseElement != null) _collectElement(elseElement, out, locals);
     default:
+  }
+}
+
+/// The initializers of the local variables declared in the function body
+/// that encloses [node], by name.
+Map<String, Expression> _localsAround(AstNode node) {
+  AstNode? body = node.parent;
+  while (body != null && body is! FunctionBody) {
+    body = body.parent;
+  }
+  if (body == null) return const {};
+  final collector = _LocalInitializers();
+  body.accept(collector);
+  return collector.initializers;
+}
+
+class _LocalInitializers extends RecursiveAstVisitor<void> {
+  final initializers = <String, Expression>{};
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    final initializer = node.initializer;
+    if (initializer != null) {
+      initializers.putIfAbsent(node.name.lexeme, () => initializer);
+    }
+    super.visitVariableDeclaration(node);
   }
 }
 
@@ -208,13 +266,14 @@ class _TileVisitor extends RecursiveAstVisitor<void> {
     final name = _constructorName(node);
     if (name == null) return;
     final tile = name.split('.').first;
-    if (!_tiles.contains(tile)) return;
-    final trailing = _named(_arguments(node)!, 'trailing');
+    final arguments = _arguments(node);
+    if (arguments == null) return;
+    final trailing = _trailingSlot(tile, arguments);
     if (trailing == null) return;
     tilesWithTrailing++;
 
     final widgets = <String>[];
-    _collect(trailing, widgets);
+    _collect(trailing, widgets, _localsAround(node));
     if (widgets.isEmpty) return;
     violations.add(
       TrailingViolation(

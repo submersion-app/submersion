@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The shared trips and sites the active profile has hidden from itself,
 /// each with Unhide (issue #2594).
@@ -115,24 +116,16 @@ class _HiddenRow extends ConsumerWidget {
             ),
           ].join(' · '),
         ),
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: TextButton(
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
-              alignment: AlignmentDirectional.centerStart,
-            ),
-            onPressed: () => switch (item.kind) {
-              SharedItemKind.trip =>
-                ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
-              SharedItemKind.site =>
-                ref.read(siteListNotifierProvider.notifier).unhideSites([
-                  item.id,
-                ]),
-            },
-            child: Text(context.l10n.settings_hiddenItems_unhide),
-          ),
+        TileSubtitleAction(
+          onPressed: () => switch (item.kind) {
+            SharedItemKind.trip =>
+              ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
+            SharedItemKind.site =>
+              ref.read(siteListNotifierProvider.notifier).unhideSites([
+                item.id,
+              ]),
+          },
+          label: context.l10n.settings_hiddenItems_unhide,
         ),
       ],
     ),

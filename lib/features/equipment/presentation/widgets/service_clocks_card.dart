@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/presentation/widgets/service_sched
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The Service clocks card on the equipment detail page: one row per
 /// schedule with severity dot, binding trigger text, and per-clock actions.
@@ -249,29 +250,19 @@ class ServiceClocksCard extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(l10n.equipment_serviceClocks_paused),
-                            Align(
-                              alignment: AlignmentDirectional.centerStart,
-                              child: TextButton(
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  visualDensity: VisualDensity.compact,
-                                  alignment: AlignmentDirectional.centerStart,
-                                ),
-                                onPressed: () async {
-                                  await ref
-                                      .read(serviceScheduleRepositoryProvider)
-                                      .updateSchedule(
-                                        schedule.copyWith(enabled: true),
-                                      );
-                                  invalidateServiceClockProviders(
-                                    ref,
-                                    equipmentId,
-                                  );
-                                },
-                                child: Text(
-                                  l10n.equipment_serviceClocks_resume,
-                                ),
-                              ),
+                            TileSubtitleAction(
+                              onPressed: () async {
+                                await ref
+                                    .read(serviceScheduleRepositoryProvider)
+                                    .updateSchedule(
+                                      schedule.copyWith(enabled: true),
+                                    );
+                                invalidateServiceClockProviders(
+                                  ref,
+                                  equipmentId,
+                                );
+                              },
+                              label: l10n.equipment_serviceClocks_resume,
                             ),
                           ],
                         ),

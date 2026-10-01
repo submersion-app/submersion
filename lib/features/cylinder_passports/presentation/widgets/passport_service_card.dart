@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/widgets/service_statu
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The three cylinder clocks the passport cares about, in this order.
 const List<String> kPassportServiceKinds = ['hydro', 'vip', 'o2-clean'];
@@ -142,17 +143,9 @@ class PassportServiceCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(l10n.passport_service_notTracked),
-                      Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
-                            alignment: AlignmentDirectional.centerStart,
-                          ),
-                          onPressed: () => _trackO2Clean(context, ref),
-                          child: Text(l10n.passport_service_trackO2Clean),
-                        ),
+                      TileSubtitleAction(
+                        onPressed: () => _trackO2Clean(context, ref),
+                        label: l10n.passport_service_trackO2Clean,
                       ),
                     ],
                   ),

@@ -16,15 +16,17 @@ void main() {
   setUp(() => temp = Directory.systemTemp.createTempSync('trailing_scanner'));
   tearDown(() => temp.deleteSync(recursive: true));
 
-  TrailingScanResult scan(String body) {
+  TrailingScanResult scanSource(String source) {
     final file = File(p.join(temp.path, 'tile.dart'))
-      ..writeAsStringSync('''
+      ..writeAsStringSync(source);
+    return scanForTextBearingTrailing(files: [file], relativize: p.basename);
+  }
+
+  TrailingScanResult scan(String body) => scanSource('''
 Widget build() {
   return $body;
 }
 ''');
-    return scanForTextBearingTrailing(files: [file], relativize: p.basename);
-  }
 
   group('flags', () {
     for (final widget in [
@@ -119,6 +121,47 @@ ListTile(
       });
     }
 
+    test('a button built into a local and passed to trailing', () {
+      final result = scanSource('''
+Widget build() {
+  final action = TextButton(onPressed: f, child: c);
+  return ListTile(title: t, trailing: action);
+}
+''');
+
+      expect(result.violations.single.widgets, ['TextButton']);
+    });
+
+    for (final tile in [
+      'CheckboxListTile',
+      'SwitchListTile',
+      'RadioListTile',
+    ]) {
+      test('the secondary of a leading-control $tile, which sits in the '
+          'trailing slot', () {
+        final result = scan(
+          '$tile(controlAffinity: ListTileControlAffinity.leading, '
+          'secondary: TextButton(onPressed: f, child: c))',
+        );
+
+        expect(result.violations.single.tile, tile);
+        expect(result.violations.single.widgets, ['TextButton']);
+      });
+    }
+
+    test('a local inside a trailing Row', () {
+      final result = scanSource('''
+Widget build() {
+  final badge = Chip(label: c);
+  return ListTile(
+    trailing: Row(children: [badge, IconButton(icon: i, onPressed: f)]),
+  );
+}
+''');
+
+      expect(result.violations.single.widgets, ['Chip']);
+    });
+
     test('reports the line of the trailing argument', () {
       final result = scan('''
 ListTile(
@@ -175,6 +218,27 @@ ListTile(
         expect(result.violations, isEmpty);
       });
     }
+
+    test('a fixed-width widget built into a local', () {
+      final result = scanSource('''
+Widget build() {
+  final action = IconButton(icon: i, onPressed: f);
+  return ListTile(trailing: action);
+}
+''');
+
+      expect(result.violations, isEmpty);
+    });
+
+    test('the secondary of a list tile whose control stays trailing', () {
+      // The control takes the trailing slot, so secondary is the leading
+      // widget there.
+      final result = scan(
+        'CheckboxListTile(secondary: TextButton(onPressed: f, child: c))',
+      );
+
+      expect(result.violations, isEmpty);
+    });
 
     test('a chip in the subtitle, as #935 and #2692 place it', () {
       final result = scan('''

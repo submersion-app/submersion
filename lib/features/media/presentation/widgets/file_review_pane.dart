@@ -5,6 +5,7 @@ import 'package:submersion/features/media/presentation/providers/files_tab_provi
 import 'package:submersion/features/media/presentation/widgets/capture_time_offset_bar.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// Review pane shown in the Files tab once one or more files have been
 /// staged via the picker.
@@ -120,24 +121,14 @@ class FileReviewPane extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             unmatchedCount,
-                            Align(
-                              alignment: AlignmentDirectional.centerStart,
-                              child: TextButton(
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  visualDensity: VisualDensity.compact,
-                                  alignment: AlignmentDirectional.centerStart,
-                                ),
-                                onPressed: () => ref
-                                    .read(filesTabNotifierProvider.notifier)
-                                    .assignAllUnmatched(assignableDiveId!),
-                                child: Text(
-                                  context.l10n
-                                      .media_photoPicker_files_addAllToDive(
-                                        state.match.unmatched.length,
-                                      ),
-                                ),
-                              ),
+                            TileSubtitleAction(
+                              onPressed: () => ref
+                                  .read(filesTabNotifierProvider.notifier)
+                                  .assignAllUnmatched(assignableDiveId!),
+                              label: context.l10n
+                                  .media_photoPicker_files_addAllToDive(
+                                    state.match.unmatched.length,
+                                  ),
                             ),
                           ],
                         ),

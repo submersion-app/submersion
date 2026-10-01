@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/utils/observation_tag
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The default observed-at for a check-in on [dive]: the exit time when the
 /// log has one, else the start plus the runtime, else the start.
@@ -403,17 +404,9 @@ class _EditorState extends ConsumerState<_Editor> {
                 draft.diveId == null
                     ? Text(l10n.equipmentObservation_sheet_noDive)
                     : _DiveLabel(diveId: draft.diveId!),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                      alignment: AlignmentDirectional.centerStart,
-                    ),
-                    onPressed: _pickDive,
-                    child: Text(l10n.equipmentObservation_sheet_pickDive),
-                  ),
+                TileSubtitleAction(
+                  onPressed: _pickDive,
+                  label: l10n.equipmentObservation_sheet_pickDive,
                 ),
               ],
             ),

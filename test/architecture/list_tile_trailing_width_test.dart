@@ -46,8 +46,9 @@ void main() {
           '    crossAxisAlignment: CrossAxisAlignment.start,\n'
           '    children: [Text(status), Chip(...)],\n'
           '  ),\n\n'
-          'See NavTrackListRow (a chip) and _ActionCard in '
-          'nav_track_detail_page.dart (a text button) for both shapes.\n\n'
+          'A text action goes under the subtitle as a TileSubtitleAction '
+          '(lib/shared/widgets/tile_subtitle_action.dart); see '
+          'NavTrackListRow for a chip.\n\n'
           '${result.violations.join('\n')}',
     );
   });

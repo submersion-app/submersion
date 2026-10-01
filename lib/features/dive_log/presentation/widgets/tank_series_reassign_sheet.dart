@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassi
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// Lets the diver move a transmitter's pressure series to another cylinder
 /// (issue #1314). Two tanks get a Swap; more get a per-row Move to. The
@@ -156,27 +157,19 @@ class _ReassignSheet extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(subtitle),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                      alignment: AlignmentDirectional.centerStart,
-                    ),
-                    child: Text(l10n.diveLog_reassignSheet_moveTo),
-                    onPressed: () async {
-                      final target = await showReassignTankPicker(
-                        context,
-                        ref,
-                        diveId: dive.id,
-                        excludeTankId: tank.id,
-                      );
-                      if (target == null || !context.mounted) return;
-                      Navigator.of(context).pop();
-                      await onExchange(tank.id, target);
-                    },
-                  ),
+                TileSubtitleAction(
+                  label: l10n.diveLog_reassignSheet_moveTo,
+                  onPressed: () async {
+                    final target = await showReassignTankPicker(
+                      context,
+                      ref,
+                      diveId: dive.id,
+                      excludeTankId: tank.id,
+                    );
+                    if (target == null || !context.mounted) return;
+                    Navigator.of(context).pop();
+                    await onExchange(tank.id, target);
+                  },
                 ),
               ],
             ),

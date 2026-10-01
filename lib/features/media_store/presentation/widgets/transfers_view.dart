@@ -7,6 +7,7 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The transfer queue list: active, waiting, and failed transfers with
 /// per-entry retry. Embedded by both the Settings TransfersPage (which adds
@@ -180,17 +181,9 @@ class _TransferTile extends ConsumerWidget {
           // text button there squeezes the row in a longer translation
           // (issue #2717).
           if (canRetry)
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                  alignment: AlignmentDirectional.centerStart,
-                ),
-                onPressed: () => _retry(ref, entry),
-                child: Text(l10n.settings_mediaStorage_transfers_retry),
-              ),
+            TileSubtitleAction(
+              onPressed: () => _retry(ref, entry),
+              label: l10n.settings_mediaStorage_transfers_retry,
             ),
         ],
       ),
