@@ -5,7 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/database/database.dart'
-    show AppDatabase, DiveComputersCompanion, DivesCompanion;
+    show
+        AppDatabase,
+        DiveComputersCompanion,
+        DiveDataSourcesCompanion,
+        DivesCompanion,
+        DiveTanksCompanion;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/app_router.dart' show newDivePage;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -332,6 +337,52 @@ void main() {
     expect(r.map((row) => row.tank.id), ['k1', 'k2', 'k3']);
     expect(r[1].takenTripCylinderIds, {a.id});
     expect(r[2].takenTripCylinderIds, isEmpty);
+  });
+
+  testWidgets('a computer-less second source\'s tank can share the slot', (
+    tester,
+  ) async {
+    // Issue #2716: two consolidated file imports that name no computer.
+    // Each tank row names the source it came from; a hand-added tank is the
+    // primary source's.
+    final dive = await repository.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime.now(),
+        trip: trip,
+        tanks: [
+          DiveTank(id: 'k1', tripCylinderId: a.id),
+          const DiveTank(id: 'k2', order: 1),
+          const DiveTank(id: 'k3', order: 2),
+        ],
+      ),
+    );
+    for (final (id, primary) in [('src-1', true), ('src-2', false)]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: id,
+              diveId: dive.id,
+              importedAt: DateTime.utc(2026),
+              createdAt: DateTime.utc(2026),
+            ).copyWith(isPrimary: Value(primary)),
+          );
+    }
+    // The download and import paths write the column, never createDive.
+    for (final (tankId, sourceId) in [('k1', 'src-1'), ('k2', 'src-2')]) {
+      await (db.update(db.diveTanks)..where((t) => t.id.equals(tankId))).write(
+        DiveTanksCompanion(sourceId: Value(sourceId)),
+      );
+    }
+    await pumpEditPage(tester, diveId: dive.id);
+    await settleTrip(tester);
+    await tester.tap(find.text('Gas & Gear').first);
+    await settleTrip(tester);
+    final r = rows(tester);
+    expect(r.map((row) => row.tank.id), ['k1', 'k2', 'k3']);
+    expect(r[1].takenTripCylinderIds, isEmpty);
+    expect(r[2].takenTripCylinderIds, {a.id});
   });
 
   testWidgets('a past dive suggests and fills from the slots as they were', (

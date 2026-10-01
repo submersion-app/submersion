@@ -59,13 +59,13 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Widget host() => testAppInShell(
+  Widget host({String diveId = 'd1'}) => testAppInShell(
     overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
     child: Consumer(
       builder: (context, ref, _) => ElevatedButton(
         onPressed: () async {
-          final dive = await diveRepo.getDiveById('d1');
-          final pressures = await tankRepo.getTankPressuresForDive('d1');
+          final dive = await diveRepo.getDiveById(diveId);
+          final pressures = await tankRepo.getTankPressuresForDive(diveId);
           if (!context.mounted) return;
           await showTankSeriesReassignSheet(
             context,
@@ -121,4 +121,72 @@ void main() {
     )..where((t) => t.id.equals('tA'))).getSingle();
     expect(a.transmitterSerial, '111');
   });
+
+  testWidgets(
+    'with three tanks, "Move to" sits under the series summary and moves '
+    'the series to the picked tank (#2717)',
+    (tester) async {
+      await diveRepo.createDive(
+        domain.Dive(
+          id: 'd3',
+          dateTime: DateTime.utc(2026, 7, 2, 10),
+          tanks: const [
+            domain.DiveTank(
+              id: 't3A',
+              name: 'Back gas',
+              gasMix: domain.GasMix(o2: 21, he: 0),
+              order: 0,
+              transmitterSerial: '111',
+              sourceTankIndex: 0,
+            ),
+            domain.DiveTank(
+              id: 't3B',
+              name: 'Deco',
+              gasMix: domain.GasMix(o2: 50, he: 0),
+              order: 1,
+              transmitterSerial: '222',
+              sourceTankIndex: 1,
+            ),
+            domain.DiveTank(
+              id: 't3C',
+              name: 'Stage',
+              gasMix: domain.GasMix(o2: 32, he: 0),
+              order: 2,
+              transmitterSerial: '333',
+              sourceTankIndex: 2,
+            ),
+          ],
+        ),
+      );
+      await tankRepo.insertTankPressures('d3', {
+        't3A': [
+          (timestamp: 0, pressure: 200.0),
+          (timestamp: 600, pressure: 150.0),
+        ],
+      });
+
+      await tester.pumpWidget(host(diveId: 'd3'));
+      await tester.tap(find.text('OPEN'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Swap'), findsNothing);
+      final moveTo = find.widgetWithText(TextButton, 'Move to');
+      expect(moveTo, findsOneWidget);
+      final summary = tester.getRect(find.textContaining('2 readings'));
+      expect(tester.getRect(moveTo).top, greaterThanOrEqualTo(summary.bottom));
+
+      await tester.tap(moveTo);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(SimpleDialogOption, 'Stage'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Pressure series reassigned'), findsOneWidget);
+      final db = DatabaseService.instance.database;
+      final moved = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals('t3A'))).getSingle();
+      expect(moved.transmitterSerial, '333');
+      expect(moved.sourceTankIndex, 2);
+    },
+  );
 }

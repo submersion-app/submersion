@@ -48,47 +48,58 @@ class ChecklistItemTile extends ConsumerWidget {
               )
             : theme.textTheme.bodyMedium,
       ),
-      subtitle: item.notes.isEmpty
+      isThreeLine: item.notes.isNotEmpty && due != null,
+      // The due chip sits under the title rather than in trailing: a ListTile
+      // measures trailing before the title, so a text-bearing chip there
+      // squeezes the title to one fragment per line on a phone or in a
+      // longer translation (issue #2717).
+      subtitle: item.notes.isEmpty && due == null
           ? null
-          : Text(item.notes, maxLines: 1, overflow: TextOverflow.ellipsis),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (due != null)
-            Chip(
-              visualDensity: VisualDensity.compact,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              label: Text(
-                isOverdue
-                    ? context.l10n.checklists_item_overdue
-                    : units.formatMonthDay(due),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: isOverdue
-                      ? theme.colorScheme.onErrorContainer
-                      : theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              backgroundColor: isOverdue
-                  ? theme.colorScheme.errorContainer
-                  : theme.colorScheme.surfaceContainerHighest,
-              side: BorderSide.none,
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (item.notes.isNotEmpty)
+                  Text(
+                    item.notes,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                if (due != null)
+                  Chip(
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    label: Text(
+                      isOverdue
+                          ? context.l10n.checklists_item_overdue
+                          : units.formatMonthDay(due),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: isOverdue
+                            ? theme.colorScheme.onErrorContainer
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    backgroundColor: isOverdue
+                        ? theme.colorScheme.errorContainer
+                        : theme.colorScheme.surfaceContainerHighest,
+                    side: BorderSide.none,
+                  ),
+              ],
             ),
-          PopupMenuButton<String>(
-            iconSize: 20,
-            onSelected: (value) {
-              if (value == 'edit') onEdit?.call();
-              if (value == 'delete') onDelete?.call();
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'edit',
-                child: Text(context.l10n.checklists_item_edit),
-              ),
-              PopupMenuItem(
-                value: 'delete',
-                child: Text(context.l10n.checklists_item_delete),
-              ),
-            ],
+      trailing: PopupMenuButton<String>(
+        iconSize: 20,
+        onSelected: (value) {
+          if (value == 'edit') onEdit?.call();
+          if (value == 'delete') onDelete?.call();
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'edit',
+            child: Text(context.l10n.checklists_item_edit),
+          ),
+          PopupMenuItem(
+            value: 'delete',
+            child: Text(context.l10n.checklists_item_delete),
           ),
         ],
       ),

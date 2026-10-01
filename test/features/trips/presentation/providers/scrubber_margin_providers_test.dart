@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/domain/entities/service_schedule.d
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
@@ -91,7 +92,7 @@ void main() {
     }
   }
 
-  Future<Trip> trip(String name, DateTime start, DateTime end) =>
+  Future<Trip> unpackedTrip(String name, DateTime start, DateTime end) =>
       TripRepository().createTrip(
         Trip(
           id: '',
@@ -102,6 +103,18 @@ void main() {
           updatedAt: DateTime(2026),
         ),
       );
+
+  /// A trip with every unit made so far packed for it: margins cover only
+  /// the rebreathers on the trip (issue #2727).
+  Future<Trip> trip(String name, DateTime start, DateTime end) async {
+    final created = await unpackedTrip(name, start, end);
+    final ids =
+        await (db.selectOnly(db.equipment)..addColumns([db.equipment.id]))
+            .map((r) => r.read(db.equipment.id)!)
+            .get();
+    await TripEquipmentRepository().pack(created.id, ids);
+    return created;
+  }
 
   test(
     'reads rating, repack, loop dives and history as of the start',
@@ -679,6 +692,54 @@ void main() {
     expect(
       await container.read(tripScrubberMarginsProvider(t.id).future),
       isEmpty,
+    );
+  });
+
+  test('a rebreather left at home gets no margin', () async {
+    // Only a unit packed for the trip, or installed in packed gear, goes
+    // diving on it (issue #2727).
+    final going = await rebreather();
+    final t = await trip('T', DateTime(2026, 6, 1), DateTime(2026, 6, 5));
+    await rebreather();
+    expect(
+      (await container.read(
+        tripScrubberMarginsProvider(t.id).future,
+      )).map((m) => m.item.id),
+      [going.id],
+    );
+    final bare = await unpackedTrip(
+      'Bare',
+      DateTime(2026, 7, 1),
+      DateTime(2026, 7, 5),
+    );
+    expect(
+      await container.read(tripScrubberMarginsProvider(bare.id).future),
+      isEmpty,
+    );
+  });
+
+  test('packing a rebreather brings its margin to an open trip', () async {
+    await rebreather();
+    final t = await unpackedTrip(
+      'T',
+      DateTime(2026, 6, 1),
+      DateTime(2026, 6, 5),
+    );
+    final sub = container.listen(tripScrubberMarginsProvider(t.id), (_, _) {});
+    addTearDown(sub.close);
+    expect(
+      await container.read(tripScrubberMarginsProvider(t.id).future),
+      isEmpty,
+    );
+    final ids =
+        await (db.selectOnly(db.equipment)..addColumns([db.equipment.id]))
+            .map((r) => r.read(db.equipment.id)!)
+            .get();
+    await TripEquipmentRepository().pack(t.id, ids);
+    await pumpEventQueue();
+    expect(
+      await container.read(tripScrubberMarginsProvider(t.id).future),
+      hasLength(1),
     );
   });
 

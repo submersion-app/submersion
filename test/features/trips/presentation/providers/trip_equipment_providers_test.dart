@@ -6,6 +6,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_gear_ids_providers.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -162,6 +163,39 @@ void main() {
       expect(byId.keys.toSet(), {'t1', 't2'});
       expect((byId['t1']!.packed, byId['t1']!.slot), (true, false));
       expect((byId['t2']!.packed, byId['t2']!.slot), (false, true));
+    });
+
+    test('tripGearIdsProvider unions packed links and slots, and follows '
+        'both', () async {
+      // The gear a trip's service alerts and scrubber margins cover
+      // (issue #2727): the same union as equipmentTripsProvider.
+      final sub = container.listen(tripGearIdsProvider('t1'), (_, _) {});
+      addTearDown(sub.close);
+      expect(await container.read(tripGearIdsProvider('t1').future), isEmpty);
+
+      await TripEquipmentRepository().pack('t1', ['Apeks']);
+      await db
+          .into(db.tripCylinders)
+          .insert(
+            TripCylindersCompanion.insert(
+              id: 'slot',
+              tripId: 't1',
+              createdAt: t,
+              updatedAt: t,
+            ).copyWith(equipmentId: const Value('Zeagle')),
+          );
+      await Future<void>.delayed(Duration.zero);
+      expect(await container.read(tripGearIdsProvider('t1').future), {
+        'Apeks',
+        'Zeagle',
+      });
+      expect(await read(tripGearIdsProvider('t2')), isEmpty);
+
+      await TripEquipmentRepository().unpack('t1', 'Apeks');
+      await Future<void>.delayed(Duration.zero);
+      expect(await container.read(tripGearIdsProvider('t1').future), {
+        'Zeagle',
+      });
     });
 
     test('a trip the diver cannot see is left off', () async {

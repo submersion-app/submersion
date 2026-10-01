@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/widgets/service_statu
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The three cylinder clocks the passport cares about, in this order.
 const List<String> kPassportServiceKinds = ['hydro', 'vip', 'o2-clean'];
@@ -130,13 +131,23 @@ class PassportServiceCard extends ConsumerWidget {
                   ),
                 )
               else if (kindId == 'o2-clean')
+                // The action sits on its own line under the status rather
+                // than in trailing: a ListTile lays trailing out at its
+                // natural width first, so a translated label there starves
+                // the kind name (issue #2717).
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(kindNames[kindId] ?? kindId),
-                  subtitle: Text(l10n.passport_service_notTracked),
-                  trailing: TextButton(
-                    onPressed: () => _trackO2Clean(context, ref),
-                    child: Text(l10n.passport_service_trackO2Clean),
+                  subtitle: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.passport_service_notTracked),
+                      TileSubtitleAction(
+                        onPressed: () => _trackO2Clean(context, ref),
+                        label: l10n.passport_service_trackO2Clean,
+                      ),
+                    ],
                   ),
                 ),
           ],

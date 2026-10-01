@@ -1640,6 +1640,10 @@ void main() {
               .getSingle();
       expect(mine.transmitterSerial, '111111');
       expect(mine.sourceTankIndex, 0);
+      // The row this parse inserted takes its source (#2716); comp-2's row
+      // is not comp-1's source's, though it is the dive's only one.
+      expect(mine.sourceId, 'src-1');
+      expect(other.sourceId, isNull);
     });
 
     test(

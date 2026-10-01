@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_import/data/services/missing_computer_a
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -173,6 +174,15 @@ class DiveReimportService {
           diveId: diveId,
           diveData: diveData,
           now: now,
+        );
+
+        // A tank the file gained is new, with no source yet (v251, issue
+        // #2716); the dive's sources are already in place.
+        await attributeTankSources(
+          db,
+          _syncRepository,
+          diveId,
+          now: now.millisecondsSinceEpoch,
         );
       }
 

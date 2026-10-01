@@ -9,6 +9,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/merge_gap_fill.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
@@ -493,6 +494,11 @@ class DiveUncombineService {
                 .copyWith(
                   id: Value(freshId),
                   diveId: Value(newDiveId),
+                  // Re-pointed at this segment's copy of the tank's source
+                  // (v251, issue #2716), like the series below; a source
+                  // this segment does not take leaves it to the segment's
+                  // primary, the lead.
+                  sourceId: Value(newSourceIdByOld[tank.sourceId]),
                   // The start is an inner boundary on every restored dive. The
                   // end is too, except on the last, where the stored value is
                   // that dive's own reported end.
@@ -612,7 +618,16 @@ class DiveUncombineService {
     await _deleteSwitches(movingSwitches);
 
     // 8. The originals of the provenance rows copied in step 2, now that
-    // nothing on this dive still references them.
+    // nothing on this dive still references them. A tank left on this dive
+    // that named one lets go of it with a clock first (v251, issue #2716),
+    // as the FK's own SET NULL would tell no peer; it is the kept dive's
+    // primary's from here on.
+    await clearTankSourceLinks(
+      _db,
+      _sync,
+      (t) => t.sourceId.isIn(segment.sourceIds),
+      now: now,
+    );
     for (final oldId in segment.sourceIds) {
       await (_db.delete(
         _db.diveDataSources,
