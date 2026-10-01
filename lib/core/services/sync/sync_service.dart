@@ -3782,6 +3782,9 @@ class SyncService {
                 )
               : remoteData;
           await _serializer.upsertRecord(entityType, toApply);
+          // The batch paths re-derive this in repairDanglingForeignKeys;
+          // this single-record write skips it.
+          await _serializer.alignLinkedRouteOwners();
         }
         await _syncRepository.clearConflict(
           entityType: entityType,
@@ -3802,6 +3805,7 @@ class SyncService {
         if (newId != null) {
           remoteData['id'] = newId;
           await _serializer.upsertRecord(entityType, remoteData);
+          await _serializer.alignLinkedRouteOwners();
         }
         await _syncRepository.clearConflict(
           entityType: entityType,

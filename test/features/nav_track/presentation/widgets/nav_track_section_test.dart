@@ -10,12 +10,12 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_detail_
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
-import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -88,6 +88,7 @@ class _PreparedImportService implements NavTrackImportService {
       stats: NavTrackStats.of(points),
       segmentation: NavTrackSegmenter.classify(points),
       candidateDives: const [],
+      nearbyDives: const [],
       duplicateOfRouteId: null,
       sourceRef: fileName ?? '',
     );
@@ -97,6 +98,7 @@ class _PreparedImportService implements NavTrackImportService {
   Future<String> commit({
     required ParsedNavTrack parsed,
     required String sourceRef,
+    required String? diverId,
     Dive? dive,
     String? siteId,
     String? name,
@@ -197,6 +199,41 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'importing from a dive\'s section pre-selects that dive on the review '
+    'page, even when the recording overlaps no dive (issue #2691)',
+    (tester) async {
+      final original = FilePickerPlatform.instance;
+      addTearDown(() => FilePickerPlatform.instance = original);
+      FilePickerPlatform.instance = MockFilePickerPlatform()
+        ..pickFilesResult = [
+          FakePlatformFile.contentUri(
+            Uri.parse('content://picked/005.DAT.csv'),
+            name: '005.DAT.csv',
+            bytes: Uint8List.fromList([1]),
+          ),
+        ];
+      // The prepared preview proposes no dive at all: neither an overlap
+      // candidate nor a nearby one.
+      await _pump(
+        tester,
+        linkedRoutes: const [],
+        extraOverrides: [
+          navTrackImportServiceProvider.overrideWithValue(
+            _PreparedImportService(),
+          ),
+        ],
+      );
+      await tester.tap(find.byKey(const ValueKey('nav-track-import-button')));
+      await tester.pumpAndSettle();
+
+      final group = tester.widget<RadioGroup<String?>>(
+        find.byType(RadioGroup<String?>),
+      );
+      expect(group.groupValue, _dive.id);
+    },
+  );
 
   testWidgets('empty state hides Link route when nothing is unlinked', (
     tester,
@@ -396,7 +433,7 @@ void main() {
       );
       expect(review.fileName, '005.DAT.csv');
       expect(review.preview, isNotNull);
-      expect(review.preselectedDiveId, _dive.id);
+      expect(review.preselectedDive?.id, _dive.id);
       expect(service.prepareCount, 1);
     },
   );

@@ -432,15 +432,19 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       failed = true;
     }
 
-    if (!mounted) return BulkActionOutcome.completed;
     final summary = [
       if (deleted > 0) l10n.common_bulkDelete_snackbar(deleted),
       if (hidden > 0) l10n.sharedItems_bulkHiddenSnackbar(hidden),
       if (failed) l10n.common_error_tryAgain,
     ];
-    // Nothing done (every action refused): no empty snackbar.
-    if (summary.isNotEmpty) {
-      messenger.showSnackBar(SnackBar(content: Text(summary.join(' · '))));
+    // Nothing done (every action refused): no empty snackbar. A failure
+    // says so even once the list has closed.
+    if ((mounted || failed) && summary.isNotEmpty) {
+      // Replaces any earlier summary, as the site list's does, so the
+      // latest outcome is the one showing.
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(content: Text(summary.join(' · '))));
     }
     return BulkActionOutcome.completed;
   }

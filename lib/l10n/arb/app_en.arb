@@ -28599,6 +28599,35 @@
   "navTrack_review_row_maxDepth": "Max depth",
   "navTrack_review_row_maxSpeed": "Max speed",
   "navTrack_review_leaveUnlinked": "Leave unlinked",
+  "navTrack_review_noOverlapHint": "No dive overlaps this recording's time. Nearest dives by start time:",
+  "navTrack_review_offsetBefore": "{offset} before the recording",
+  "@navTrack_review_offsetBefore": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_review_offsetAfter": "{offset} after the recording",
+  "@navTrack_review_offsetAfter": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_review_offsetDays": "{days}d {hours}h",
+  "@navTrack_review_offsetDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "navTrack_review_chooseAnotherDive": "Choose another dive...",
   "navTrack_list_importFailed": "Import failed: {error}",
   "@navTrack_list_importFailed": {
     "placeholders": {

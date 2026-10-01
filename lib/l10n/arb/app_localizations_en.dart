@@ -45536,6 +45536,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_review_leaveUnlinked => 'Leave unlinked';
 
   @override
+  String get navTrack_review_noOverlapHint =>
+      'No dive overlaps this recording\'s time. Nearest dives by start time:';
+
+  @override
+  String navTrack_review_offsetBefore(String offset) {
+    return '$offset before the recording';
+  }
+
+  @override
+  String navTrack_review_offsetAfter(String offset) {
+    return '$offset after the recording';
+  }
+
+  @override
+  String navTrack_review_offsetDays(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String get navTrack_review_chooseAnotherDive => 'Choose another dive...';
+
+  @override
   String navTrack_list_importFailed(String error) {
     return 'Import failed: $error';
   }

@@ -46029,6 +46029,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_review_leaveUnlinked => 'Társítás nélkül hagyása';
 
   @override
+  String get navTrack_review_noOverlapHint =>
+      'Egyetlen merülés sem esik egybe a felvétel idejével. Kezdési idő szerint legközelebbi merülések:';
+
+  @override
+  String navTrack_review_offsetBefore(String offset) {
+    return '$offset a felvétel előtt';
+  }
+
+  @override
+  String navTrack_review_offsetAfter(String offset) {
+    return '$offset a felvétel után';
+  }
+
+  @override
+  String navTrack_review_offsetDays(int days, int hours) {
+    return '${days}n $hoursó';
+  }
+
+  @override
+  String get navTrack_review_chooseAnotherDive => 'Másik merülés választása...';
+
+  @override
   String navTrack_list_importFailed(String error) {
     return 'Importálás sikertelen: $error';
   }

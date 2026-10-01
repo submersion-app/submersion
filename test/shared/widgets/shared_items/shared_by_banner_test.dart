@@ -9,6 +9,8 @@ import 'package:submersion/features/divers/presentation/providers/profile_hides_
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 
+import '../../../helpers/shared_items_fixture.dart';
+
 /// "Shared by {owner}" on another profile's shared item (issue #2594).
 void main() {
   final divers = [
@@ -26,13 +28,16 @@ void main() {
     required String active,
     required String? ownerId,
     required bool isShared,
+    GatedActiveProfile? activeProfile,
     bool hidden = false,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           allDiversProvider.overrideWith((_) async => divers),
-          validatedCurrentDiverIdProvider.overrideWith((_) async => active),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (_) => activeProfile?.read() ?? Future.value(active),
+          ),
           isHiddenProvider.overrideWith((ref, item) async => hidden),
         ],
         child: MaterialApp(
@@ -56,6 +61,29 @@ void main() {
   testWidgets('names the owner to another profile', (tester) async {
     await pump(tester, active: 'b', ownerId: 'a', isShared: true);
     expect(find.text('Shared by Alice'), findsOneWidget);
+  });
+
+  testWidgets('says nothing while a profile switch re-reads the profile '
+      '(issue #2677 review)', (tester) async {
+    final activeProfile = GatedActiveProfile.settled('b');
+    await pump(
+      tester,
+      active: 'b',
+      ownerId: 'a',
+      isShared: true,
+      activeProfile: activeProfile,
+    );
+    expect(find.text('Shared by Alice'), findsOneWidget);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(SharedByBanner)),
+    ).invalidate(validatedCurrentDiverIdProvider);
+    await tester.pump();
+    expect(find.textContaining('Shared by'), findsNothing);
+
+    activeProfile.settle('a');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Shared by'), findsNothing);
   });
 
   testWidgets('says the item is hidden from this profile (#2679)', (

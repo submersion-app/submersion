@@ -540,7 +540,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       return;
     }
     if (action == 'unhide') {
-      await ref.read(siteListNotifierProvider.notifier).unhideSites([site.id]);
+      // A failed unhide says so (issue #2677).
+      await runHideChange(
+        ScaffoldMessenger.of(context),
+        context.l10n,
+        () =>
+            ref.read(siteListNotifierProvider.notifier).unhideSites([site.id]),
+      );
       return;
     }
     if (action == 'delete') {

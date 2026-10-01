@@ -1187,9 +1187,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             IconButton(
               icon: const Icon(Icons.visibility_outlined),
               tooltip: context.l10n.sharedItems_unhideAction,
-              onPressed: () => ref
-                  .read(siteListNotifierProvider.notifier)
-                  .unhideSites([widget.siteId!]),
+              // A failed unhide says so (issue #2677).
+              onPressed: () => runHideChange(
+                ScaffoldMessenger.of(context),
+                context.l10n,
+                () => ref.read(siteListNotifierProvider.notifier).unhideSites([
+                  widget.siteId!,
+                ]),
+              ),
             )
           else if (_mayShare() == false)
             IconButton(

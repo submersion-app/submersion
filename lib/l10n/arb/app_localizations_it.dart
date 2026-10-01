@@ -46206,6 +46206,29 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navTrack_review_leaveUnlinked => 'Lascia non collegato';
 
   @override
+  String get navTrack_review_noOverlapHint =>
+      'Nessuna immersione si sovrappone all\'orario di questa registrazione. Immersioni più vicine per ora di inizio:';
+
+  @override
+  String navTrack_review_offsetBefore(String offset) {
+    return '$offset prima della registrazione';
+  }
+
+  @override
+  String navTrack_review_offsetAfter(String offset) {
+    return '$offset dopo la registrazione';
+  }
+
+  @override
+  String navTrack_review_offsetDays(int days, int hours) {
+    return '${days}g ${hours}h';
+  }
+
+  @override
+  String get navTrack_review_chooseAnotherDive =>
+      'Scegli un\'altra immersione...';
+
+  @override
   String navTrack_list_importFailed(String error) {
     return 'Importazione non riuscita: $error';
   }

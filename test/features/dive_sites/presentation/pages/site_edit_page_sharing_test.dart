@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -51,6 +52,8 @@ void main() {
     WidgetTester tester, {
     required String active,
     VoidCallback? onDeleted,
+    FailingProfileHides? hides,
+    GatedActiveProfile? activeProfile,
     bool profileUnreadable = false,
   }) async {
     tester.view.physicalSize = const Size(900, 3200);
@@ -62,10 +65,15 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           allDiversProvider.overrideWith((_) async => divers),
           validatedCurrentDiverIdProvider.overrideWith(
-            (_) async =>
-                profileUnreadable ? throw StateError('no profile') : active,
+            (_) =>
+                activeProfile?.read() ??
+                (profileUnreadable
+                    ? Future<String?>.error(StateError('no profile'))
+                    : Future.value(active)),
           ),
           shareByDefaultProvider.overrideWith((_) async => false),
+          if (hides != null)
+            profileHidesRepositoryProvider.overrideWithValue(hides),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -111,6 +119,30 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text("Remove 'Salt Pier' from your profile?"), findsOneWidget);
     expect(find.textContaining('1 of your dives stays linked'), findsOneWidget);
+  });
+
+  testWidgets('while a profile switch re-reads the profile, offers neither '
+      'Delete nor Remove (issue #2677 review)', (tester) async {
+    final activeProfile = GatedActiveProfile.settled('d1');
+    await pump(tester, active: 'd1', activeProfile: activeProfile);
+    expect(find.widgetWithIcon(IconButton, Icons.delete), findsOneWidget);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(SiteEditPage)),
+    ).invalidate(validatedCurrentDiverIdProvider);
+    await tester.pump();
+    expect(find.widgetWithIcon(IconButton, Icons.delete), findsNothing);
+    expect(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+      findsNothing,
+    );
+
+    activeProfile.settle('d2');
+    await tester.pumpAndSettle();
+    expect(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+      findsOneWidget,
+    );
   });
 
   // Read as "no profile", the page offered another profile's site its
@@ -172,6 +204,58 @@ void main() {
     expect((hides.single.siteId, hides.single.diverId), ('pier', 'd2'));
     expect(find.text('Removed from your profile'), findsOneWidget);
 
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(await db.select(db.siteHides).get(), isEmpty);
+  });
+
+  testWidgets('a failed remove stays on the page and says to try again', (
+    tester,
+  ) async {
+    var closed = 0;
+    await pump(
+      tester,
+      active: 'd2',
+      onDeleted: () => closed++,
+      hides: FailingProfileHides()..failHide = true,
+    );
+    await tester.tap(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    expect(closed, 0);
+    expect(await db.select(db.siteHides).get(), isEmpty);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Removed from your profile'), findsNothing);
+  });
+
+  testWidgets('a failed Undo keeps the hide, says to try again and offers '
+      'Undo again', (tester) async {
+    final hides = FailingProfileHides();
+    await pump(tester, active: 'd2', hides: hides);
+    await tester.tap(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    hides.failUnhide = true;
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(await db.select(db.siteHides).get(), hasLength(1));
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+
+    hides.failUnhide = false;
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
     expect(await db.select(db.siteHides).get(), isEmpty);

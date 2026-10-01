@@ -5,14 +5,13 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
-import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_gear_ids_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
-final tripEquipmentRepositoryProvider = Provider<TripEquipmentRepository>(
-  (ref) => TripEquipmentRepository(),
-);
+export 'package:submersion/features/trips/presentation/providers/trip_gear_ids_providers.dart'
+    show tripEquipmentRepositoryProvider;
 
 /// The gear packed for a trip that the diver can see (owner or sharee),
 /// by name (spec section 10.8).

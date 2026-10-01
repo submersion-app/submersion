@@ -1029,11 +1029,15 @@ class AppDatabase extends _$AppDatabase {
     // apart; backfilled where unambiguous. Additive nullable column, so the
     // floor stays at 240. 250 is trip_hides and site_hides (#2594).
     251,
+    // v252: nav_tracks.diver_id, the route's owner, backfilled from each
+    // linked route's dive (issue #2691 follow-up). Additive nullable column,
+    // so the floor does not move. 251 is dive_tanks.source_id (#2716).
+    252,
     // v253: dive_safety_reviews.inputs_hash, the settings a review was
     // computed from (issue #2592). An additive nullable column, so the floor
     // does not move: the receiving overlay keeps it when an older peer's
-    // payload omits it. 251 is dive_tanks.source_id (#2716); 252 is claimed by
-    // open PR #2703.
+    // payload omits it. 251 is dive_tanks.source_id (#2716); 252 is
+    // nav_tracks.diver_id (#2703).
     253,
   ];
 

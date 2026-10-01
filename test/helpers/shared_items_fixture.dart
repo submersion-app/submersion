@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 
 /// Rows for the shared trip and site tests (issue #2594): profiles, trips
 /// and sites with an owner and a share flag, dives linked to them, and the
@@ -110,3 +114,65 @@ Future<int> tombstoneCount(AppDatabase db, String entityType) async =>
             )
             .getSingle())
         .read<int>('n');
+
+/// The real hides repository, whose hide or unhide can be made to throw as
+/// a database error does (issue #2677).
+class FailingProfileHides extends ProfileHidesRepository {
+  bool failHide = false;
+  bool failUnhide = false;
+
+  /// The hide is written, then the call throws, as it does when the list
+  /// refresh after a committed hide fails.
+  bool failAfterHide = false;
+
+  /// Holds a hide open until the test completes it.
+  Completer<void>? hideGate;
+
+  // [hide] writes through [hideAll], so failing here fails both.
+  @override
+  Future<int> hideAll(
+    SharedItemKind kind,
+    List<String> ids,
+    String diverId,
+  ) async {
+    await hideGate?.future;
+    if (failHide) throw StateError('database unavailable');
+    final hidden = await super.hideAll(kind, ids, diverId);
+    if (failAfterHide) throw StateError('database unavailable');
+    return hidden;
+  }
+
+  @override
+  Future<void> unhide(SharedItemKind kind, String id, String diverId) async {
+    if (failUnhide) throw StateError('database unavailable');
+    return super.unhide(kind, id, diverId);
+  }
+}
+
+/// The active profile, read through gates a test completes one at a time,
+/// so it can hold `validatedCurrentDiverIdProvider` mid-reload: a profile
+/// switch keeps the previous profile in `.value` until the new read lands.
+/// Override with `overrideWith((_) => active.read())`.
+class GatedActiveProfile {
+  GatedActiveProfile();
+
+  /// The first read lands at once with [first], so a page can load before
+  /// the test holds a later read open.
+  GatedActiveProfile.settled(String? first)
+    : _first = first,
+      _settleFirst = true;
+
+  String? _first;
+  bool _settleFirst = false;
+  final reads = <Completer<String?>>[];
+
+  Future<String?> read() {
+    final read = Completer<String?>();
+    if (reads.isEmpty && _settleFirst) read.complete(_first);
+    reads.add(read);
+    return read.future;
+  }
+
+  /// Completes the latest read with [diverId].
+  void settle(String? diverId) => reads.last.complete(diverId);
+}

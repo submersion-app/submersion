@@ -43547,6 +43547,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_review_leaveUnlinked => '保持未关联';
 
   @override
+  String get navTrack_review_noOverlapHint => '没有潜水记录与此记录的时间重叠。按开始时间最接近的潜水记录：';
+
+  @override
+  String navTrack_review_offsetBefore(String offset) {
+    return '比记录早 $offset';
+  }
+
+  @override
+  String navTrack_review_offsetAfter(String offset) {
+    return '比记录晚 $offset';
+  }
+
+  @override
+  String navTrack_review_offsetDays(int days, int hours) {
+    return '$days天$hours小时';
+  }
+
+  @override
+  String get navTrack_review_chooseAnotherDive => '选择其他潜水记录...';
+
+  @override
   String navTrack_list_importFailed(String error) {
     return '导入失败：$error';
   }

@@ -45841,6 +45841,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_review_leaveUnlinked => 'الترك بدون ربط';
 
   @override
+  String get navTrack_review_noOverlapHint =>
+      'لا توجد غطسة تتداخل مع وقت هذا التسجيل. أقرب الغطسات حسب وقت البدء:';
+
+  @override
+  String navTrack_review_offsetBefore(String offset) {
+    return 'قبل التسجيل بـ $offset';
+  }
+
+  @override
+  String navTrack_review_offsetAfter(String offset) {
+    return 'بعد التسجيل بـ $offset';
+  }
+
+  @override
+  String navTrack_review_offsetDays(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String get navTrack_review_chooseAnotherDive => 'اختيار غطسة أخرى...';
+
+  @override
   String navTrack_list_importFailed(String error) {
     return 'فشل الاستيراد: $error';
   }

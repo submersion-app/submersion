@@ -97,7 +97,7 @@ class NavTrackSection extends ConsumerWidget {
       bytes,
       fileName: file.name,
       preview: preview,
-      preselectedDiveId: dive.id,
+      preselectedDive: dive,
     );
   }
 

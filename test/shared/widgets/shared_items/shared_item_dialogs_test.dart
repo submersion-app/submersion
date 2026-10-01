@@ -11,6 +11,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -327,6 +328,74 @@ void main() {
       find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
+  });
+
+  group('a hide or unhide that fails (issue #2677)', () {
+    const tryAgain = 'Something went wrong. Please try again.';
+
+    /// Pumps a page whose button runs [run] with the page's messenger and
+    /// localizations, as a caller does, and returns the result holder.
+    Future<List<Object?>> pumpRunner(
+      WidgetTester tester,
+      Future<Object?> Function(ScaffoldMessengerState, AppLocalizations) run,
+    ) async {
+      final results = <Object?>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () async => results.add(
+                  await run(ScaffoldMessenger.of(context), context.l10n),
+                ),
+                child: const Text('go'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      return results;
+    }
+
+    testWidgets('runHideChange gives the result and says nothing', (
+      tester,
+    ) async {
+      final results = await pumpRunner(
+        tester,
+        (messenger, l10n) => runHideChange(messenger, l10n, () async => 3),
+      );
+      expect(results, [3]);
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('runHideChange says to try again and gives null', (
+      tester,
+    ) async {
+      final results = await pumpRunner(
+        tester,
+        (messenger, l10n) => runHideChange<int>(
+          messenger,
+          l10n,
+          () async => throw StateError('database unavailable'),
+        ),
+      );
+      expect(results, [null]);
+      expect(find.text(tryAgain), findsOneWidget);
+    });
+
+    test('tryHideChange gives the result, or null for a failure', () async {
+      expect(await tryHideChange(() async => true), isTrue);
+      expect(
+        await tryHideChange<bool>(
+          () async => throw StateError('database unavailable'),
+        ),
+        isNull,
+      );
+    });
   });
 }
 

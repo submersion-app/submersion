@@ -104,6 +104,46 @@ bool? canDestroySharedItemOnceKnown(
   );
 }
 
+/// Runs [change], a hide or unhide of a shared trip or site, and gives its
+/// result, or null when it failed (issue #2677). A failure is logged, then
+/// [onFailed] runs; without it the failure is left to the caller, as a
+/// bulk action does when it joins it into its own summary.
+Future<T?> tryHideChange<T>(
+  Future<T> Function() change, {
+  VoidCallback? onFailed,
+}) async {
+  try {
+    return await change();
+  } catch (e, stackTrace) {
+    _log.warning(
+      'Could not hide or unhide a shared item',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    onFailed?.call();
+    return null;
+  }
+}
+
+/// [tryHideChange], telling the diver through [messenger] to try again
+/// when it fails, so the caller only leaves the page as it was. The
+/// messenger, read before any await, still reaches the diver after the
+/// page that offered the change has closed, as it has for an Undo. The
+/// message replaces the one showing, so repeated failures do not queue.
+Future<T?> runHideChange<T>(
+  ScaffoldMessengerState messenger,
+  AppLocalizations l10n,
+  Future<T> Function() change,
+) => tryHideChange(
+  change,
+  onFailed: () {
+    if (!messenger.mounted) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.common_error_tryAgain)));
+  },
+);
+
 /// The owning profile's name, or a neutral fallback for a profile that is
 /// gone or unknown (issue #2594).
 String sharedItemOwnerName(
@@ -172,7 +212,9 @@ List<String> bulkDeleteLines(
 /// The whole "Remove from my profile" flow for another profile's shared
 /// trip or site (issue #2594): count the profile's own linked dives,
 /// confirm, [hide], then [onRemoved] (close the page) and a snackbar whose
-/// Undo calls [unhide]. Nothing happens past a refused [hide].
+/// Undo calls [unhide]. Nothing happens past a refused [hide]. A failed
+/// [hide] says to try again and leaves the page as it was; a failed
+/// [unhide] says so and offers Undo again (issue #2677).
 Future<void> removeSharedItemFromProfile(
   BuildContext context,
   WidgetRef ref, {
@@ -196,15 +238,24 @@ Future<void> removeSharedItemFromProfile(
   if (!confirmed || !context.mounted) return;
   final messenger = ScaffoldMessenger.of(context);
   final l10n = context.l10n;
-  if (!await hide()) return;
+  if (await runHideChange(messenger, l10n, hide) != true) return;
   if (!context.mounted) return;
   onRemoved();
-  messenger.showSnackBar(
+  void offerUndo(String message) => messenger.showSnackBar(
     SnackBar(
-      content: Text(l10n.sharedItems_removedSnackbar),
-      action: SnackBarAction(label: l10n.sharedItems_undo, onPressed: unhide),
+      content: Text(message),
+      action: SnackBarAction(
+        label: l10n.sharedItems_undo,
+        onPressed: () async {
+          final undone = await tryHideChange(() => unhide().then((_) => true));
+          if (undone == null && messenger.mounted) {
+            offerUndo(l10n.common_error_tryAgain);
+          }
+        },
+      ),
     ),
   );
+  offerUndo(l10n.sharedItems_removedSnackbar);
 }
 
 /// Confirms hiding another profile's shared trip or site from the active

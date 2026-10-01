@@ -128,9 +128,18 @@ extension RungsFromV231 on AppDatabase {
       await _backfillDiveTankSourceIds();
     }
     if (from < 251) await reportProgress();
+    // v252: nav_tracks.diver_id, the route's owner (issue #2691 follow-up),
+    // backfilled from each linked route's dive. The column is re-asserted in
+    // beforeOpen; the backfill stays in the rung. 251 is
+    // dive_tanks.source_id (#2716).
+    if (from < 252) {
+      await _assertNavTrackDiverIdColumn();
+      await _backfillNavTrackDiverIds();
+    }
+    if (from < 252) await reportProgress();
     // v253: the settings a safety review was computed from (issue #2592).
     // Column only, no backfill; re-asserted in beforeOpen. 251 is
-    // dive_tanks.source_id; 252 is claimed by open PR #2703.
+    // dive_tanks.source_id; 252 is nav_tracks.diver_id.
     if (from < 253) {
       await _assertSafetyReviewInputsHashColumn();
     }

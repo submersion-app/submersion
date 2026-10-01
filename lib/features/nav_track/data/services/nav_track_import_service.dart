@@ -23,6 +23,13 @@ class NavTrackImportPreview {
   /// means the diver must choose; exactly one is the pre-selected proposal.
   final List<Dive> candidateDives;
 
+  /// The dives nearest the recording's start by time
+  /// (`NavTrackMatcher.nearestByStart`), offered for a manual link only
+  /// when [candidateDives] is empty: a recording device's clock set too far
+  /// off for any dive to overlap (issue #2691). Empty whenever
+  /// [candidateDives] is not, and never pre-selected.
+  final List<Dive> nearbyDives;
+
   /// An existing route already stored from the same file (same [sourceRef],
   /// overlapping recording window), or null when this looks like a fresh
   /// import. The review page offers "replace" rather than importing a twin.
@@ -30,13 +37,22 @@ class NavTrackImportPreview {
 
   final String sourceRef;
 
+  /// The diver this preview was prepared for: whose dives it proposes and
+  /// whose routes it checked for a duplicate. Saving passes it back to
+  /// [NavTrackImportService.commit], so switching profile while the review
+  /// is open cannot apply this preview to another diver's data. Null with no
+  /// diver profile (every dive and route was considered).
+  final String? diverId;
+
   const NavTrackImportPreview({
     required this.parsed,
     required this.stats,
     required this.segmentation,
     required this.candidateDives,
+    required this.nearbyDives,
     required this.duplicateOfRouteId,
     required this.sourceRef,
+    this.diverId,
   });
 
   /// True when the recording shows no movement at all: distance and speed
@@ -53,12 +69,20 @@ class NavTrackImportPreview {
 class NavTrackImportService {
   final NavTrackRepository _routeRepository;
   final DiveRepository _diveRepository;
+  final Future<String?> Function() _currentDiverId;
 
+  /// [currentDiverId] resolves the active diver, whose dives the review
+  /// proposes and who owns the new route. Omitted (or resolving to null),
+  /// every dive is considered and the route is ownerless.
   NavTrackImportService({
     NavTrackRepository? routeRepository,
     DiveRepository? diveRepository,
+    Future<String?> Function()? currentDiverId,
   }) : _routeRepository = routeRepository ?? NavTrackRepository(),
-       _diveRepository = diveRepository ?? DiveRepository();
+       _diveRepository = diveRepository ?? DiveRepository(),
+       _currentDiverId = currentDiverId ?? _noDiver;
+
+  static Future<String?> _noDiver() async => null;
 
   /// Parses [bytes] as a Seacraft ENC CSV. Throws [NavTrackParseException]
   /// (with its [NavTrackParseReason]) on anything the diver needs to act on;
@@ -75,18 +99,28 @@ class NavTrackImportService {
     final routeStartSeconds = parsed.points.first.timestamp;
     final routeEndSeconds = parsed.points.last.timestamp;
 
-    final dives = await _diveRepository.getAllDives();
+    // Resolved once: the proposal and the duplicate check must agree on
+    // whose dives and routes they read.
+    final diverId = await _currentDiverId();
+    final dives = await _diveRepository.getAllDives(diverId: diverId);
     final candidates = NavTrackMatcher.candidatesFor(
       routeStartSeconds: routeStartSeconds,
       routeEndSeconds: routeEndSeconds,
       dives: dives,
     );
+    final nearby = candidates.isEmpty
+        ? NavTrackMatcher.nearestByStart(
+            routeStartSeconds: routeStartSeconds,
+            dives: dives,
+          )
+        : const <Dive>[];
 
     final sourceRef = fileName ?? 'import.csv';
     final duplicateOfRouteId = await _findDuplicate(
       sourceRef,
       routeStartSeconds,
       routeEndSeconds,
+      diverId: diverId,
     );
 
     return NavTrackImportPreview(
@@ -94,8 +128,10 @@ class NavTrackImportService {
       stats: stats,
       segmentation: segmentation,
       candidateDives: candidates,
+      nearbyDives: nearby,
       duplicateOfRouteId: duplicateOfRouteId,
       sourceRef: sourceRef,
+      diverId: diverId,
     );
   }
 
@@ -107,12 +143,17 @@ class NavTrackImportService {
   /// without a dive means the diver chose "Leave unlinked" (or there was no
   /// single match to propose), and a sweep would only override that choice.
   ///
+  /// [diverId] is the preview's own [NavTrackImportPreview.diverId], never
+  /// the active diver re-read at save time: [dive] and [replacingRouteId]
+  /// came from that diver's scope. It owns an unlinked route.
+  ///
   /// [replacingRouteId] is the duplicate the review page's "replace" option
   /// supersedes. It is removed only after the new route is stored, so a
   /// failure anywhere above leaves the original recording in place.
   Future<String> commit({
     required ParsedNavTrack parsed,
     required String sourceRef,
+    required String? diverId,
     Dive? dive,
     String? siteId,
     String? name,
@@ -127,6 +168,7 @@ class NavTrackImportService {
       deviceName: deviceName,
       name: name,
       diveId: dive?.id,
+      diverId: diverId,
       siteId: siteId,
       equipmentId: equipmentId,
     );
@@ -143,11 +185,14 @@ class NavTrackImportService {
   Future<String?> _findDuplicate(
     String sourceRef,
     int startSeconds,
-    int endSeconds,
-  ) async {
+    int endSeconds, {
+    String? diverId,
+  }) async {
     final startMs = startSeconds * 1000;
     final endMs = endSeconds * 1000;
-    final existing = await _routeRepository.getAll();
+    // Only routes [diverId] can see: "replace" deletes the duplicate, so
+    // another diver's recording of the same file must never be offered.
+    final existing = await _routeRepository.getAll(diverId: diverId);
     for (final route in existing) {
       if (route.sourceRef != sourceRef) continue;
       final overlaps = route.startTime <= endMs && route.endTime >= startMs;
