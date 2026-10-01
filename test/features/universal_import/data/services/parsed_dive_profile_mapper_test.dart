@@ -212,6 +212,25 @@ void main() {
       expect(profile[0]['allTankPressures'], hasLength(2));
     });
 
+    test('a gauge dive gets no switches and no cylinders, as on download', () {
+      final listed = [tank(21.0, 35.0)];
+      final profile = <Map<String, dynamic>>[
+        {'timestamp': 0, 'depth': 0.0},
+      ];
+      final result = ParsedDiveProfileMapper.gasSwitches(
+        _dive(mixes, [
+          _sample(0, 0.0, 0),
+          _sample(1800, 21.0, 1),
+        ], diveMode: 'gauge'),
+        listed,
+        profile: profile,
+      );
+
+      expect(result.gasSwitches, isEmpty);
+      expect(result.tanks, same(listed));
+      expect(result.profile, same(profile));
+    });
+
     test('a single-gas dive has no switches and keeps its tanks', () {
       final listed = [tank(32.0)];
       final result = _gasSwitches(

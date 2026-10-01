@@ -129,13 +129,17 @@ class ParsedDiveProfileMapper {
   /// reason.
   ///
   /// Returns [tanks] and [profile] themselves, unchanged, when the dive never
-  /// switched gas.
+  /// switched gas or is a gauge dive.
   static ParsedGasSwitches gasSwitches(
     pigeon.ParsedDive parsed,
     List<Map<String, dynamic>> tanks, {
     required List<Map<String, dynamic>> profile,
   }) {
-    final sequence = breathedGasSequence(parsed);
+    // A gauge dive logs depth and time only, so it gets neither switches nor
+    // fabricated cylinders, as on the download path ([resolveGasSwitches]).
+    final sequence = parsed.diveMode == 'gauge'
+        ? const <BreathedGas>[]
+        : breathedGasSequence(parsed);
     if (sequence.length < 2) {
       return (tanks: tanks, gasSwitches: const [], profile: profile);
     }
