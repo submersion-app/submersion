@@ -7,7 +7,7 @@ import 'package:submersion/core/database/database.dart';
 /// backfilled from its dive's diver; an unlinked one stays ownerless, which
 /// every diver sees (shared), so no existing recording drops out of anyone's
 /// list. The backfill runs in the rung only; the beforeOpen backstop
-/// restores the column alone. 250 is claimed by open PRs #2675 and #2562, 251 by issue #2716.
+/// restores the column alone. 251 is claimed by issue #2716.
 /// The sync floor does not move: an older peer ignores the column.
 void main() {
   Future<Set<String>> columns(AppDatabase db) async {
@@ -56,12 +56,12 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 252);
     expect(AppDatabase.migrationVersions, contains(252));
-    // 250 and 251 are held by open work, so 249 sits directly below this
-    // rung.
-    expect(AppDatabase.migrationVersions, isNot(contains(250)));
+    // 251 is held by issue #2716, so v250 (profile hides) sits directly
+    // below this rung.
+    expect(AppDatabase.migrationVersions, contains(250));
     expect(AppDatabase.migrationVersions, isNot(contains(251)));
-    expect(AppDatabase.migrationStepCount(249), 1);
-    expect(AppDatabase.migrationStepCount(248), 2);
+    expect(AppDatabase.migrationStepCount(250), 1);
+    expect(AppDatabase.migrationStepCount(249), 2);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

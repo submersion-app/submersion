@@ -37,7 +37,8 @@ void main() {
   );
 
   test('v249 is in the ladder', () {
-    // v252 (nav_tracks.diver_id) now owns the exact assertion.
+    // Relaxed once v250 (profile hides, #2594) landed on top; the newest
+    // rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(249));
     expect(AppDatabase.migrationVersions, contains(249));
     // 248 (trip_equipment, #2338) sits below this rung.

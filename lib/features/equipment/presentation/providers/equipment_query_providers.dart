@@ -9,12 +9,13 @@ import 'package:submersion/features/query/presentation/providers/query_id_set_pr
 
 /// The ids the equipment filter selects (#2365). A query naming
 /// `serviceDue` waits for the service cache to mirror the engine first.
-/// Keyed on the filter's value and the active diver (the owner scope).
+/// Keyed on the filter's value and the active diver (the owner scope, and
+/// whose dives shared gear's counts read).
 final queryFilteredEquipmentIdsProvider = FutureProvider.autoDispose
     .family<Set<String>, ({EquipmentFilterState filter, String? diverId})>(
       (ref, key) => watchQueryIds(
         ref,
-        compileEquipmentFilter(key.filter),
+        compileEquipmentFilter(key.filter, diverId: key.diverId),
         scope: key.filter.ownerScope(key.diverId),
       ),
     );

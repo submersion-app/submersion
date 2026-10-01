@@ -46,11 +46,14 @@ class NameIndexLoader {
   /// The place columns in rank order: country 0, region 1, island 2, city 3.
   static const _placeColumns = ['country', 'region', 'island', 'city'];
 
-  /// The tables a change tick must follow: the ref tables and the share
-  /// table that makes another diver's equipment visible.
+  /// The tables a change tick must follow: the ref tables, the share
+  /// table that makes another diver's equipment visible, and the hides that
+  /// take a shared trip or site out of one diver's view (#2594).
   static Set<String> get tables => {
     for (final s in refSubjects) appQueryRegistry.entityFor(s).table,
     'equipment_shares',
+    'trip_hides',
+    'site_hides',
   };
 
   Future<NameIndex> load({
@@ -111,7 +114,23 @@ class NameIndexLoader {
           break;
       }
     }
-    final where = visible.isEmpty ? '' : 'WHERE ${visible.join(' OR ')}';
+    // A profile's hidden shared trips and sites (issue #2594) leave its
+    // name completion, as they leave its lists.
+    final hides = diverId == null
+        ? null
+        : switch (subject) {
+            QuerySubject.trips => (table: 'trip_hides', column: 'trip_id'),
+            QuerySubject.sites => (table: 'site_hides', column: 'site_id'),
+            _ => null,
+          };
+    if (hides != null) variables.add(Variable<String>(diverId));
+    final clauses = [
+      if (visible.isNotEmpty) '(${visible.join(' OR ')})',
+      if (hides != null)
+        't.${entity.idColumn} NOT IN '
+            '(SELECT ${hides.column} FROM ${hides.table} WHERE diver_id = ?)',
+    ];
+    final where = clauses.isEmpty ? '' : 'WHERE ${clauses.join(' AND ')}';
     return _db
         .customSelect(
           'SELECT t.${entity.idColumn} AS id, $nameSql AS label$extra '

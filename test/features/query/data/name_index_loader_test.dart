@@ -151,10 +151,47 @@ void main() {
     expect(index.resolve(QuerySubject.equipment, 'loaner bcd')?.id, 'g-lent');
   });
 
-  test('the tables it follows are the ref tables and the share table', () {
+  test('a shared row the diver hid stays out of its index only', () async {
+    final now = DateTime(2025, 6, 1).millisecondsSinceEpoch;
+    await db.customStatement(
+      "INSERT INTO divers (id, name, created_at, updated_at) "
+      "VALUES ('owner', 'Owner', $now, $now), ('me', 'Me', $now, $now), "
+      "('third', 'Third', $now, $now) ON CONFLICT DO NOTHING",
+    );
+    await db.customStatement(
+      "INSERT INTO trips (id, diver_id, name, start_date, end_date, "
+      "is_shared, created_at, updated_at) VALUES ('t-hid', 'owner', "
+      "'Hidden Trip', $now, $now, 1, $now, $now)",
+    );
+    await db.customStatement(
+      "INSERT INTO dive_sites (id, diver_id, name, country, is_shared, "
+      "created_at, updated_at) VALUES ('s-hid', 'owner', 'Hidden Reef', "
+      "'Hiddenland', 1, $now, $now)",
+    );
+    await db.customStatement(
+      "INSERT INTO trip_hides (id, trip_id, diver_id, created_at) "
+      "VALUES ('h1', 't-hid', 'me', $now)",
+    );
+    await db.customStatement(
+      "INSERT INTO site_hides (id, site_id, diver_id, created_at) "
+      "VALUES ('h2', 's-hid', 'me', $now)",
+    );
+    final mine = await NameIndexLoader(db).load(diverId: 'me', l10n: _en);
+    expect(mine.labelOf(QuerySubject.trips, 't-hid'), isNull);
+    expect(mine.labelOf(QuerySubject.sites, 's-hid'), isNull);
+    expect(mine.entries.where((e) => e.label == 'Hiddenland'), isEmpty);
+    final theirs = await NameIndexLoader(db).load(diverId: 'third', l10n: _en);
+    expect(theirs.labelOf(QuerySubject.trips, 't-hid'), 'Hidden Trip');
+    expect(theirs.labelOf(QuerySubject.sites, 's-hid'), 'Hidden Reef');
+  });
+
+  test('the tables it follows are the ref tables, the share table and the '
+      'hides tables', () {
     // Not dives: a dive write must not reload the shared index (#2641).
     expect(NameIndexLoader.tables, {
       'equipment_shares',
+      'trip_hides',
+      'site_hides',
       'certifications',
       'site_types',
       'dive_sites',

@@ -23,6 +23,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
 import 'package:submersion/features/courses/query/course_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/courses/presentation/providers/course_list_count_provider.dart';
 
 class CourseListPage extends ConsumerWidget {
   const CourseListPage({super.key});
@@ -54,6 +55,7 @@ class CourseListPage extends ConsumerWidget {
         child: TableModeLayout(
           sectionKey: 'courses',
           appBarTitle: context.l10n.nav_courses,
+          appBarSubtitle: courseListCountLabel(context, ref),
           tableContent: const CourseListContent(showAppBar: false),
           detailBuilder: (context, courseId) => CourseDetailPage(
             courseId: courseId,

@@ -168,6 +168,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
   subject: QuerySubject.dives,
   table: 'dives',
   diverScopeColumn: 'diver_id',
+  scopesHopsToDiver: true,
   textSearchSql: const [
     "{r}.notes LIKE ? ESCAPE '\\'",
     "{r}.name LIKE ? ESCAPE '\\'",

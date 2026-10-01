@@ -28,6 +28,12 @@ extension TripFilterQuery on TripFilterState {
   }
 }
 
-/// The one compile call the trip list shares.
-CompiledQuery compileTripFilter(TripFilterState filter) =>
-    compileQuery(filter.toQuery(), tripQueryEntity, appQueryRegistry);
+/// The one compile call the trip list shares. [diverId] reads a shared
+/// trip's dives as that diver's alone, as the trip's stats do.
+CompiledQuery compileTripFilter(TripFilterState filter, {String? diverId}) =>
+    compileQuery(
+      filter.toQuery(),
+      tripQueryEntity,
+      appQueryRegistry,
+      diverId: diverId,
+    );

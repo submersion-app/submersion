@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_centers/query/dive_center_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_search_delegate.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_list_count_provider.dart';
 
 class DiveCenterListPage extends ConsumerStatefulWidget {
   const DiveCenterListPage({super.key});
@@ -89,6 +90,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
       return TableModeLayout(
         sectionKey: 'diveCenters',
         appBarTitle: context.l10n.nav_diveCenters,
+        appBarSubtitle: diveCenterListCountLabel(context, ref),
         tableContent: const DiveCenterListContent(showAppBar: false),
         detailBuilder: (context, centerId) => DiveCenterDetailPage(
           centerId: centerId,

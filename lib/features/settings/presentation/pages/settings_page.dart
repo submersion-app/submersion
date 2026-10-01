@@ -43,6 +43,7 @@ import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.d
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -2775,6 +2776,8 @@ class SharedDataSectionContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final shareByDefaultAsync = ref.watch(shareByDefaultProvider);
+    // A profile's hidden shared trips and sites (issue #2594).
+    final hidden = ref.watch(hiddenItemsProvider).value ?? const [];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -2841,6 +2844,20 @@ class SharedDataSectionContent extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _confirmAndBulkShareEquipment(context, ref),
                 ),
+                if (hidden.isNotEmpty) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    title: Text(context.l10n.settings_hiddenItems_title),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('${hidden.length}'),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
+                    onTap: () => context.push('/settings/hidden-items'),
+                  ),
+                ],
               ],
             ),
           ),

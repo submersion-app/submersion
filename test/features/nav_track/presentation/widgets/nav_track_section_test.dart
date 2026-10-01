@@ -14,6 +14,7 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_section.dart';
@@ -53,21 +54,57 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   }
 }
 
-/// Hands back a fixed preview instead of parsing, so the section's import
-/// button can be driven without a real file or database.
-class _FixedPreviewImportService implements NavTrackImportService {
-  _FixedPreviewImportService(this.preview);
-
-  final NavTrackImportPreview preview;
+/// Parses nothing: hands back a fixed preview, so the import button's flow
+/// can be followed past the file picker without a real Seacraft ENC file.
+class _PreparedImportService implements NavTrackImportService {
+  int prepareCount = 0;
 
   @override
   Future<NavTrackImportPreview> prepare(
     Uint8List bytes, {
     String? fileName,
-  }) async => preview;
+  }) async {
+    prepareCount++;
+    const points = [
+      NavTrackPoint(
+        timestamp: 1755856800,
+        north: 0,
+        east: 0,
+        depth: 5,
+        distance: 0,
+        speed: 0.3,
+      ),
+      NavTrackPoint(
+        timestamp: 1755857400,
+        north: 40,
+        east: 0,
+        depth: 5,
+        distance: 40,
+        speed: 0.3,
+      ),
+    ];
+    return NavTrackImportPreview(
+      parsed: const ParsedNavTrack(points: points),
+      stats: NavTrackStats.of(points),
+      segmentation: NavTrackSegmenter.classify(points),
+      candidateDives: const [],
+      nearbyDives: const [],
+      duplicateOfRouteId: null,
+      sourceRef: fileName ?? '',
+    );
+  }
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  Future<String> commit({
+    required ParsedNavTrack parsed,
+    required String sourceRef,
+    Dive? dive,
+    String? siteId,
+    String? name,
+    String? deviceName,
+    String? equipmentId,
+    String? replacingRouteId,
+  }) async => throw UnimplementedError();
 }
 
 final _dive = Dive(
@@ -97,7 +134,7 @@ Future<_RecordingNavTrackRepository> _pump(
   List<NavTrack> unlinkedRoutes = const [],
   bool expanded = true,
   GoRouter? router,
-  NavTrackImportService? importService,
+  List<Override> extraOverrides = const [],
 }) async {
   // Pinned so the English finders below pass regardless of the host's
   // platform locale: without this, a supported non-English translation can
@@ -119,8 +156,7 @@ Future<_RecordingNavTrackRepository> _pump(
     ).overrideWith((ref) async => linkedRoutes),
     unlinkedNavTracksProvider.overrideWith((ref) async => unlinkedRoutes),
     navTrackRepositoryProvider.overrideWithValue(repository),
-    if (importService != null)
-      navTrackImportServiceProvider.overrideWithValue(importService),
+    ...extraOverrides,
   ];
   if (router != null) {
     await tester.pumpWidget(
@@ -167,48 +203,26 @@ void main() {
     'importing from a dive\'s section pre-selects that dive on the review '
     'page, even when the recording overlaps no dive (issue #2691)',
     (tester) async {
-      const points = [
-        NavTrackPoint(
-          timestamp: 1755856800,
-          north: 0,
-          east: 0,
-          depth: 5,
-          distance: 0,
-          speed: 0.3,
-        ),
-        NavTrackPoint(
-          timestamp: 1755857400,
-          north: 40,
-          east: 0,
-          depth: 5,
-          distance: 40,
-          speed: 0.3,
-        ),
-      ];
-      final preview = NavTrackImportPreview(
-        parsed: const ParsedNavTrack(points: points),
-        stats: NavTrackStats.of(points),
-        segmentation: NavTrackSegmenter.classify(points),
-        candidateDives: const [],
-        nearbyDives: const [],
-        duplicateOfRouteId: null,
-        sourceRef: '005.DAT.csv',
-      );
-      final originalPicker = FilePickerPlatform.instance;
+      final original = FilePickerPlatform.instance;
+      addTearDown(() => FilePickerPlatform.instance = original);
       FilePickerPlatform.instance = MockFilePickerPlatform()
         ..pickFilesResult = [
           FakePlatformFile.contentUri(
             Uri.parse('content://picked/005.DAT.csv'),
             name: '005.DAT.csv',
-            bytes: Uint8List(0),
+            bytes: Uint8List.fromList([1]),
           ),
         ];
-      addTearDown(() => FilePickerPlatform.instance = originalPicker);
-
+      // The prepared preview proposes no dive at all: neither an overlap
+      // candidate nor a nearby one.
       await _pump(
         tester,
         linkedRoutes: const [],
-        importService: _FixedPreviewImportService(preview),
+        extraOverrides: [
+          navTrackImportServiceProvider.overrideWithValue(
+            _PreparedImportService(),
+          ),
+        ],
       );
       await tester.tap(find.byKey(const ValueKey('nav-track-import-button')));
       await tester.pumpAndSettle();
@@ -386,4 +400,40 @@ void main() {
       expect(find.text('ROUTE_3D_PAGE'), findsOneWidget);
     });
   });
+
+  testWidgets(
+    'importing a file opens the review page with the preview it already '
+    'parsed and this dive pre-selected',
+    (tester) async {
+      final original = FilePickerPlatform.instance;
+      addTearDown(() => FilePickerPlatform.instance = original);
+      FilePickerPlatform.instance = MockFilePickerPlatform()
+        ..pickFilesResult = [
+          FakePlatformFile.contentUri(
+            Uri.parse('content://picked/005.DAT.csv'),
+            name: '005.DAT.csv',
+            bytes: Uint8List.fromList([1]),
+          ),
+        ];
+      final service = _PreparedImportService();
+      await _pump(
+        tester,
+        linkedRoutes: const [],
+        extraOverrides: [
+          navTrackImportServiceProvider.overrideWithValue(service),
+        ],
+      );
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-import-button')));
+      await tester.pumpAndSettle();
+
+      final review = tester.widget<NavTrackImportReviewPage>(
+        find.byType(NavTrackImportReviewPage),
+      );
+      expect(review.fileName, '005.DAT.csv');
+      expect(review.preview, isNotNull);
+      expect(review.preselectedDive?.id, _dive.id);
+      expect(service.prepareCount, 1);
+    },
+  );
 }

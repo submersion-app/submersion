@@ -114,10 +114,17 @@ extension RungsFromV231 on AppDatabase {
       await _assertTripFillForecastColumns();
     }
     if (from < 249) await reportProgress();
+    // v250: a profile's hidden shared trips and sites (issue #2594).
+    // Table-only rung, no backfill; re-asserted in beforeOpen.
+    if (from < 250) {
+      await _assertTripHidesSchema();
+      await _assertSiteHidesSchema();
+    }
+    if (from < 250) await reportProgress();
     // v252: nav_tracks.diver_id, the route's owner (issue #2691 follow-up),
     // backfilled from each linked route's dive. The column is re-asserted in
-    // beforeOpen; the backfill stays in the rung. 250 is held by open PRs
-    // #2675 and #2562.
+    // beforeOpen; the backfill stays in the rung. 251 is held by issue
+    // #2716.
     if (from < 252) {
       await _assertNavTrackDiverIdColumn();
       await _backfillNavTrackDiverIds();

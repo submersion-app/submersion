@@ -148,8 +148,10 @@ Most dive logging software falls into two categories: desktop applications stuck
 
 ## Download
 
-- **macOS / Windows / Linux / Android:** [GitHub Releases](https://github.com/submersion-app/submersion/releases)
 - **iOS:** [App Store](https://apps.apple.com/us/app/submersion-dive-log/id6757456915)
+- **Android:** [Google Play](https://play.google.com/store/apps/details?id=app.submersion),
+  or the APK from [GitHub Releases](https://github.com/submersion-app/submersion/releases)
+- **macOS / Windows / Linux:** [GitHub Releases](https://github.com/submersion-app/submersion/releases)
 
 ### Beta channel
 
