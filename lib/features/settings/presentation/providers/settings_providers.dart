@@ -1130,7 +1130,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   final DiverSettingsRepository _repository;
   final Ref _ref;
   String? _validatedDiverId;
-  bool _isLoading = false;
 
   /// Completes when the constructor's first load has finished.
   ///
@@ -1148,6 +1147,45 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   late final Future<void> _initialLoad;
 
   Future<void> get initialLoad => _initialLoad;
+
+  /// The load that will settle [state] for the current diver: the first load,
+  /// or the reload a diver switch starts.
+  late Future<void> _currentLoad;
+
+  /// Bumped by every load. A load whose number is no longer current has been
+  /// superseded by a diver switch and must not touch [state] or
+  /// [_validatedDiverId] when its reads return.
+  int _loadGeneration = 0;
+
+  /// Completes once [state] holds the CURRENT diver's settings.
+  ///
+  /// Unlike [initialLoad], this covers the reload after a diver switch: until
+  /// it lands, [state] still holds the previous diver's settings (issue
+  /// #2564). Anything that saves what it computes from the settings (the
+  /// safety review, the deco classification cache) must wait on this rather
+  /// than [initialLoad], which completed at startup.
+  ///
+  /// A switch made while waiting extends the wait to the newer load, so a
+  /// caller never resumes on a load that was superseded. Completes with an
+  /// error only when the current load fails; as with [initialLoad], callers
+  /// guard and fall back to the defaults left in [state].
+  Future<void> get settingsLoaded async {
+    while (true) {
+      final load = _currentLoad;
+      try {
+        await load;
+      } catch (_) {
+        if (identical(load, _currentLoad)) rethrow;
+      }
+      if (identical(load, _currentLoad)) return;
+    }
+  }
+
+  bool _isCurrentLoad(int generation) =>
+      mounted && generation == _loadGeneration;
+
+  Future<void> _startLoad() =>
+      _currentLoad = _initializeAndLoad(++_loadGeneration);
 
   /// A notifier pinned to already-loaded [settings] for [diverId], performing
   /// no database read and installing no diver-change listener.
@@ -1168,10 +1206,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }) : super(settings) {
     _validatedDiverId = diverId;
     _initialLoad = Future<void>.value();
+    _currentLoad = _initialLoad;
   }
 
   SettingsNotifier(this._repository, this._ref) : super(const AppSettings()) {
-    _initialLoad = _initializeAndLoad();
+    _initialLoad = _startLoad();
     logFailure(_initialLoad, SettingsNotifier, 'load diver settings');
 
     // Listen for diver changes and reload settings
@@ -1179,10 +1218,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       if (previous != next) {
         // Reset diver ID immediately to prevent saving to wrong diver during switch
         _validatedDiverId = null;
-        _isLoading =
-            false; // Allow loading even if previous load was in progress
+        // Starting a new load supersedes any still in flight: its reads may
+        // return after this one's, and must not overwrite the new diver's
+        // settings when they do.
         logFailure(
-          _initializeAndLoad(),
+          _startLoad(),
           SettingsNotifier,
           'reload settings after a diver change',
         );
@@ -1190,7 +1230,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     });
   }
 
-  Future<void> _initializeAndLoad() async {
+  Future<void> _initializeAndLoad(int generation) async {
     // Get current diver ID directly (more reliable than going through FutureProvider)
     final currentId = _ref.read(currentDiverIdProvider);
     final repository = _ref.read(diverRepositoryProvider);
@@ -1214,123 +1254,117 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       diverId = defaultDiver?.id;
     }
 
+    if (!_isCurrentLoad(generation)) return;
     _validatedDiverId = diverId;
-    await _loadSettings();
+    await _loadSettings(generation);
   }
 
-  Future<void> _loadSettings() async {
-    if (_isLoading) return;
-    _isLoading = true;
-
+  Future<void> _loadSettings(int generation) async {
+    // Some preferences are device-local (not per-diver), so they're read
+    // straight from SharedPreferences rather than the per-diver settings
+    // repository.
+    final prefs = _ref.read(sharedPreferencesProvider);
+    final hiddenHomeChips =
+        prefs.getStringList(SettingsKeys.hiddenHomeChips)?.toSet() ??
+        const <String>{};
+    List<String> homeCardOrder;
+    Set<String> hiddenHomeCards;
     try {
-      // Some preferences are device-local (not per-diver), so they're read
-      // straight from SharedPreferences rather than the per-diver settings
-      // repository.
-      final prefs = _ref.read(sharedPreferencesProvider);
-      final hiddenHomeChips =
-          prefs.getStringList(SettingsKeys.hiddenHomeChips)?.toSet() ??
+      homeCardOrder =
+          prefs.getStringList(SettingsKeys.homeCardOrder) ?? const [];
+      hiddenHomeCards =
+          prefs.getStringList(SettingsKeys.hiddenHomeCards)?.toSet() ??
           const <String>{};
-      List<String> homeCardOrder;
-      Set<String> hiddenHomeCards;
-      try {
-        homeCardOrder =
-            prefs.getStringList(SettingsKeys.homeCardOrder) ?? const [];
-        hiddenHomeCards =
-            prefs.getStringList(SettingsKeys.hiddenHomeCards)?.toSet() ??
-            const <String>{};
-      } catch (_) {
-        // Corrupt pref types must never block the dashboard; fall back to
-        // the default layout.
-        homeCardOrder = const [];
-        hiddenHomeCards = const <String>{};
-      }
-      // pSCR ratio is a device-local planning preference (kept out of the
-      // per-diver settings table), so it is read straight from SharedPreferences
-      // like the fullscreen tile prefs above.
-      final pscrRatio = prefs.getDouble(SettingsKeys.pscrRatio);
-      // Profile-chart overlay scaling is a device-local viewing preference,
-      // kept out of the per-diver settings table like the prefs above.
-      final profileMetricsFollowViewport =
-          prefs.getBool(SettingsKeys.profileMetricsFollowViewport) ?? false;
-      final o2CellUnit = O2CellUnit.values.firstWhere(
-        (u) => u.name == prefs.getString(SettingsKeys.o2CellUnit),
-        orElse: () => O2CellUnit.ppO2,
-      );
-      final perdixOverlayEnabled =
-          prefs.getBool(SettingsKeys.perdixOverlayEnabled) ?? false;
-      final perdixOverlayX = prefs.getDouble(SettingsKeys.perdixOverlayX);
-      final perdixOverlayY = prefs.getDouble(SettingsKeys.perdixOverlayY);
-      // Since v151 the seascape appearance is per-diver (synced). The pref
-      // is only the fallback store while no diver exists; with a diver it
-      // is adopted once into a row that has never held a value, then
-      // retired.
-      final legacySeascapeRaw = prefs.getString(
-        SettingsKeys.seascapeAppearance,
-      );
-      final seascapeAppearance = SeascapeAppearance.decode(legacySeascapeRaw);
+    } catch (_) {
+      // Corrupt pref types must never block the dashboard; fall back to
+      // the default layout.
+      homeCardOrder = const [];
+      hiddenHomeCards = const <String>{};
+    }
+    // pSCR ratio is a device-local planning preference (kept out of the
+    // per-diver settings table), so it is read straight from SharedPreferences
+    // like the fullscreen tile prefs above.
+    final pscrRatio = prefs.getDouble(SettingsKeys.pscrRatio);
+    // Profile-chart overlay scaling is a device-local viewing preference,
+    // kept out of the per-diver settings table like the prefs above.
+    final profileMetricsFollowViewport =
+        prefs.getBool(SettingsKeys.profileMetricsFollowViewport) ?? false;
+    final o2CellUnit = O2CellUnit.values.firstWhere(
+      (u) => u.name == prefs.getString(SettingsKeys.o2CellUnit),
+      orElse: () => O2CellUnit.ppO2,
+    );
+    final perdixOverlayEnabled =
+        prefs.getBool(SettingsKeys.perdixOverlayEnabled) ?? false;
+    final perdixOverlayX = prefs.getDouble(SettingsKeys.perdixOverlayX);
+    final perdixOverlayY = prefs.getDouble(SettingsKeys.perdixOverlayY);
+    // Since v151 the seascape appearance is per-diver (synced). The pref
+    // is only the fallback store while no diver exists; with a diver it
+    // is adopted once into a row that has never held a value, then
+    // retired.
+    final legacySeascapeRaw = prefs.getString(SettingsKeys.seascapeAppearance);
+    final seascapeAppearance = SeascapeAppearance.decode(legacySeascapeRaw);
 
-      final diverId = _validatedDiverId;
-      if (diverId == null) {
-        // No diver selected, use defaults
-        state = AppSettings(
-          hiddenHomeChips: hiddenHomeChips,
-          homeCardOrder: homeCardOrder,
-          hiddenHomeCards: hiddenHomeCards,
-          pscrRatio: pscrRatio ?? 100.0,
-          profileMetricsFollowViewport: profileMetricsFollowViewport,
-          o2CellUnit: o2CellUnit,
-          perdixOverlayEnabled: perdixOverlayEnabled,
-          perdixOverlayX: perdixOverlayX,
-          perdixOverlayY: perdixOverlayY,
-          seascapeAppearance: seascapeAppearance,
-        );
-        await _writeCachedTheme(prefs);
-        return;
-      }
-
-      // A row whose seascape column has never held a value (pre-v151, or
-      // no row yet) adopts the legacy device-local pref exactly once.
-      final adoptLegacySeascape =
-          legacySeascapeRaw != null &&
-          !(await _repository.hasSeascapeAppearance(diverId));
-
-      // Load settings from database
-      final settings = await _repository.getOrCreateSettingsForDiver(diverId);
-      // The notifier can be disposed while this read is in flight -- a
-      // ProviderScope teardown (restartApp's soft restart, or the throwaway
-      // container the post-restore safety sweep builds) tears down mid-load,
-      // and the diver-id listener can start a second load whose completion
-      // nobody awaits. Assigning state after dispose throws.
-      if (!mounted) return;
-      state = settings.copyWith(
+    final diverId = _validatedDiverId;
+    if (diverId == null) {
+      // No diver selected, use defaults
+      state = AppSettings(
         hiddenHomeChips: hiddenHomeChips,
         homeCardOrder: homeCardOrder,
         hiddenHomeCards: hiddenHomeCards,
-        pscrRatio: pscrRatio,
+        pscrRatio: pscrRatio ?? 100.0,
         profileMetricsFollowViewport: profileMetricsFollowViewport,
         o2CellUnit: o2CellUnit,
         perdixOverlayEnabled: perdixOverlayEnabled,
         perdixOverlayX: perdixOverlayX,
         perdixOverlayY: perdixOverlayY,
-        seascapeAppearance: adoptLegacySeascape ? seascapeAppearance : null,
+        seascapeAppearance: seascapeAppearance,
       );
-      if (adoptLegacySeascape) {
-        // Write through immediately so the adopted value syncs.
-        await _repository.updateSettingsForDiver(diverId, state);
-      }
-      if (legacySeascapeRaw != null) {
-        // Retire the pref: the diver row is the source of truth now, and a
-        // stale pref must never resurrect a value reset on another device.
-        await prefs.remove(SettingsKeys.seascapeAppearance);
-      }
-
       await _writeCachedTheme(prefs);
-
-      // Schedule notifications with the loaded settings
-      _scheduleNotificationsIfNeeded();
-    } finally {
-      _isLoading = false;
+      return;
     }
+
+    // A row whose seascape column has never held a value (pre-v151, or
+    // no row yet) adopts the legacy device-local pref exactly once.
+    final adoptLegacySeascape =
+        legacySeascapeRaw != null &&
+        !(await _repository.hasSeascapeAppearance(diverId));
+
+    // Load settings from database
+    final settings = await _repository.getOrCreateSettingsForDiver(diverId);
+    // The notifier can be disposed while this read is in flight -- a
+    // ProviderScope teardown (restartApp's soft restart, or the throwaway
+    // container the post-restore safety sweep builds) tears down mid-load,
+    // and assigning state after dispose throws. A diver switch can also
+    // start a newer load while this read is in flight; that load may land
+    // first, and this one must not then overwrite it with the previous
+    // diver's settings (issue #2564).
+    if (!_isCurrentLoad(generation)) return;
+    state = settings.copyWith(
+      hiddenHomeChips: hiddenHomeChips,
+      homeCardOrder: homeCardOrder,
+      hiddenHomeCards: hiddenHomeCards,
+      pscrRatio: pscrRatio,
+      profileMetricsFollowViewport: profileMetricsFollowViewport,
+      o2CellUnit: o2CellUnit,
+      perdixOverlayEnabled: perdixOverlayEnabled,
+      perdixOverlayX: perdixOverlayX,
+      perdixOverlayY: perdixOverlayY,
+      seascapeAppearance: adoptLegacySeascape ? seascapeAppearance : null,
+    );
+    if (adoptLegacySeascape) {
+      // Write through immediately so the adopted value syncs.
+      await _repository.updateSettingsForDiver(diverId, state);
+    }
+    if (legacySeascapeRaw != null) {
+      // Retire the pref: the diver row is the source of truth now, and a
+      // stale pref must never resurrect a value reset on another device.
+      await prefs.remove(SettingsKeys.seascapeAppearance);
+    }
+
+    await _writeCachedTheme(prefs);
+
+    // Schedule notifications with the loaded settings
+    _scheduleNotificationsIfNeeded();
   }
 
   void _scheduleNotificationsIfNeeded() {
@@ -1960,15 +1994,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  /// Waits for [initialLoad] first: until the diver's row lands, [state]
-  /// holds the defaults, and a switch flipped on the tag management screen
-  /// in that window would be overwritten when the load replaces [state],
-  /// silently undoing the diver's choice (issue #998). A failed load is
+  /// Waits for [settingsLoaded] first: until the diver's row lands, [state]
+  /// holds the defaults (or, after a diver switch, the previous diver's
+  /// settings), and a switch flipped on the tag management screen in that
+  /// window would be overwritten when the load replaces [state], silently
+  /// undoing the diver's choice (issues #998, #2564). A failed load is
   /// already logged by the constructor and leaves the defaults in place,
   /// so the change still applies on top of them.
   Future<void> setAutoTagImports(bool value) async {
     try {
-      await _initialLoad;
+      await settingsLoaded;
     } catch (_) {
       // See the doc comment: already logged, defaults are the fallback.
     }
@@ -2409,6 +2444,21 @@ final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((
   final repository = ref.watch(diverSettingsRepositoryProvider);
   return SettingsNotifier(repository, ref);
 });
+
+/// Waits until [settingsProvider] holds the current diver's settings, through
+/// the reload a diver switch starts as well as the first load (issue #2564).
+///
+/// For anything that saves what it computes from the settings: until the load
+/// lands, [settingsProvider] holds the placeholder defaults at startup, or the
+/// previous diver's settings after a switch. A failed load is already logged
+/// by the notifier and leaves those in place, so callers proceed on them.
+Future<void> awaitCurrentDiverSettings(Ref ref) async {
+  try {
+    await ref.read(settingsProvider.notifier).settingsLoaded;
+  } catch (_) {
+    // See the doc comment: already logged, the held settings are the fallback.
+  }
+}
 
 /// Convenience providers for individual settings
 final depthUnitProvider = Provider<DepthUnit>((ref) {

@@ -63,6 +63,11 @@ class DecoClassificationService {
   }) async {
     if (revisions.isEmpty) return const {};
 
+    // The cache is keyed by the settings gradient factors, which read the
+    // previous diver's until a diver switch reloads them (#2564). The
+    // analysis below waits for that load too, so reading them earlier would
+    // key the new diver's results to the old diver's factors.
+    await awaitCurrentDiverSettings(ref);
     final settingsGfLow = ref.read(gfLowProvider);
     final settingsGfHigh = ref.read(gfHighProvider);
 

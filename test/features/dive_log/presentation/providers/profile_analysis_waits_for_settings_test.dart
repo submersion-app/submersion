@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,28 +10,8 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/deferred_settings_notifier.dart';
 import '../../../../helpers/test_database.dart';
-
-/// A settings notifier whose first load the test finishes by hand. Until then
-/// [state] holds the `const AppSettings()` placeholder, exactly as the real
-/// [SettingsNotifier] does while it reads the diver's row.
-class _DeferredSettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _DeferredSettingsNotifier() : super(const AppSettings());
-
-  final _load = Completer<void>();
-
-  @override
-  Future<void> get initialLoad => _load.future;
-
-  void finishLoad(AppSettings stored) {
-    state = stored;
-    _load.complete();
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 /// The profile analysis feeds persisted results: a safety review is computed
 /// once from it and never recomputed while its engine version holds. An
@@ -87,14 +65,17 @@ void main() {
     );
   }
 
-  test('no analysis is published from the placeholder settings before the '
-      "diver's settings load", () async {
+  /// Asserts no analysis built while [settings] is still loading reaches a
+  /// listener: the only analysis published uses the diver's stored
+  /// Calculated deco stop source.
+  Future<void> expectNoAnalysisBeforeLoad(
+    DeferredSettingsNotifier settings,
+  ) async {
     const diveId = 'deferred-settings-dive';
     await seedDiveWithComputerCeiling(diveId);
 
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    final settings = _DeferredSettingsNotifier();
     final container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
@@ -115,7 +96,7 @@ void main() {
     addTearDown(sub.close);
 
     // Give an analysis that does not wait ample time to finish on the
-    // placeholder (computer) sources.
+    // settings it starts with (computer sources).
     final deadline = DateTime.now().add(const Duration(seconds: 2));
     while (published.isEmpty && DateTime.now().isBefore(deadline)) {
       await Future<void>.delayed(const Duration(milliseconds: 20));
@@ -134,9 +115,29 @@ void main() {
         analysis.decoStopCurve,
         isNot(contains(4.5)),
         reason:
-            'an analysis built on the placeholder computer source was '
-            "published before the diver's Calculated setting loaded",
+            'an analysis built on the computer source held before the '
+            "load was published before the diver's Calculated setting loaded",
       );
     }
+  }
+
+  test('no analysis is published from the placeholder settings before the '
+      "diver's settings load", () async {
+    await expectNoAnalysisBeforeLoad(DeferredSettingsNotifier());
+  });
+
+  test("no analysis is published from the previous diver's settings while "
+      "a diver switch loads the new diver's", () async {
+    // The previous diver kept the computer source; the new diver stored
+    // Calculated. The first load finished long ago, so only the reload the
+    // switch started can hold the analysis back (issue #2564).
+    await expectNoAnalysisBeforeLoad(
+      DeferredSettingsNotifier(
+        initial: const AppSettings(
+          defaultDecoStopSource: MetricDataSource.computer,
+        ),
+        switching: true,
+      ),
+    );
   });
 }
