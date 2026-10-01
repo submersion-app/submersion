@@ -274,7 +274,14 @@ class PaginatedDiveListState extends Equatable {
   final bool isLoadingMore;
   final bool hasMore;
   final DiveSummaryCursor? nextCursor;
+
+  /// Dives the active filter selects, across every page.
   final int totalCount;
+
+  /// Dives the list holds with no filter, for the "34 of 812 dives" title
+  /// (#2669). Loaded only when these rows were loaded under an active filter,
+  /// and null otherwise, so it also says which of the two the rows are.
+  final int? unfilteredTotalCount;
 
   /// The last attempt to load another page failed.
   ///
@@ -288,6 +295,7 @@ class PaginatedDiveListState extends Equatable {
     this.hasMore = true,
     this.nextCursor,
     this.totalCount = 0,
+    this.unfilteredTotalCount,
     this.loadMoreFailed = false,
   });
 
@@ -297,6 +305,7 @@ class PaginatedDiveListState extends Equatable {
     bool? hasMore,
     DiveSummaryCursor? nextCursor,
     int? totalCount,
+    int? unfilteredTotalCount,
     bool clearNextCursor = false,
     bool? loadMoreFailed,
   }) {
@@ -306,6 +315,7 @@ class PaginatedDiveListState extends Equatable {
       hasMore: hasMore ?? this.hasMore,
       nextCursor: clearNextCursor ? null : (nextCursor ?? this.nextCursor),
       totalCount: totalCount ?? this.totalCount,
+      unfilteredTotalCount: unfilteredTotalCount ?? this.unfilteredTotalCount,
       loadMoreFailed: loadMoreFailed ?? this.loadMoreFailed,
     );
   }
@@ -317,6 +327,7 @@ class PaginatedDiveListState extends Equatable {
     hasMore,
     nextCursor,
     totalCount,
+    unfilteredTotalCount,
     loadMoreFailed,
   ];
 }

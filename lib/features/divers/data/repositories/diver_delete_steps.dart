@@ -119,6 +119,21 @@ const List<DiverDeleteStep> diverTripAndSiteSteps = [
     where: _ofDiverTrips,
   ),
   (table: 'trip_equipment', entityType: 'tripEquipment', where: _ofDiverTrips),
+  // The diver's own hides, and every profile's hides of the diver's trips
+  // and sites (issue #2594). They would cascade; deleting them first
+  // tombstones them.
+  (
+    table: 'trip_hides',
+    entityType: 'tripHides',
+    where: 'diver_id = ?1 OR $_ofDiverTrips',
+  ),
+  (
+    table: 'site_hides',
+    entityType: 'siteHides',
+    where:
+        'diver_id = ?1 OR '
+        'site_id IN (SELECT id FROM dive_sites WHERE diver_id = ?1)',
+  ),
   (table: 'trips', entityType: 'trips', where: 'diver_id = ?1'),
   (table: 'dive_sites', entityType: 'diveSites', where: 'diver_id = ?1'),
 ];

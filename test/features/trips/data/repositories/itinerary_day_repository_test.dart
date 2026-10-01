@@ -83,6 +83,20 @@ void main() {
 
         expect(result, isEmpty);
       });
+
+      // #2664: a stored day number is the one the trip's start gave the row
+      // when it was written, so rows written under different starts are out
+      // of order by number.
+      test('should order days by date, not by stored day number', () async {
+        await repository.saveAll([
+          createTestDay(id: 'late', dayNumber: 1, date: DateTime(2025, 3, 6)),
+          createTestDay(id: 'early', dayNumber: 7, date: DateTime(2025, 3, 2)),
+        ]);
+
+        final result = await repository.getByTripId(testTripId);
+
+        expect(result.map((d) => d.id), ['early', 'late']);
+      });
     });
 
     group('saveAll', () {
@@ -527,6 +541,32 @@ void main() {
           );
         },
       );
+
+      test('a blank note or port does not keep a plan-only day', () async {
+        // Sync and import write the columns unnormalized, so whitespace is
+        // as bare as empty; a real note still keeps its day (#2663).
+        await repository.saveAll([
+          createTestDay(dayNumber: 7, date: DateTime(2025, 3, 7), notes: ' '),
+          createTestDay(
+            dayNumber: 8,
+            date: DateTime(2025, 3, 8),
+            portName: ' ',
+          ),
+          createTestDay(
+            dayNumber: 9,
+            date: DateTime(2025, 3, 9),
+            notes: 'Manta point',
+          ),
+        ]);
+        final trip = await tripRepository.getTripById(testTripId);
+        await tripRepository.updateTrip(
+          trip!.copyWith(endDate: DateTime(2025, 3, 5)),
+        );
+        final dates = [
+          for (final d in await repository.getByTripId(testTripId)) d.date,
+        ];
+        expect(dates, [DateTime(2025, 3, 9)]);
+      });
 
       test('a plan reaches every row a date has', () async {
         // Two devices that planned one date offline leave two rows; the

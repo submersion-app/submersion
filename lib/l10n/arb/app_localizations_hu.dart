@@ -2823,6 +2823,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_title => 'Búvártársak';
 
   @override
+  String buddies_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count búvártárs',
+      one: '$count búvártárs',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total búvártárs',
+      one: '$total búvártárs',
+    );
+    return '$shown / $_temp0';
+  }
+
+  @override
   String get buddies_title_add => 'Búvártárs hozzáadása';
 
   @override
@@ -2963,6 +2985,28 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get certifications_appBar_title => 'Képesítések';
+
+  @override
+  String certifications_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count képesítés',
+      one: '$count képesítés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certifications_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total képesítés',
+      one: '$total képesítés',
+    );
+    return '$shown / $_temp0';
+  }
 
   @override
   String get certifications_detail_action_delete => 'Törlés';
@@ -4648,6 +4692,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_title => 'Képzési tanfolyamok';
 
   @override
+  String courses_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tanfolyam',
+      one: '$count tanfolyam',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String courses_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total tanfolyam',
+      one: '$total tanfolyam',
+    );
+    return '$shown / $_temp0';
+  }
+
+  @override
   String get courses_title_edit => 'Tanfolyam szerkesztése';
 
   @override
@@ -5848,6 +5914,28 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveCenters_title => 'Búvárközpontok';
+
+  @override
+  String diveCenters_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count búvárközpont',
+      one: '$count búvárközpont',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveCenters_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total búvárközpont',
+      one: '$total búvárközpont',
+    );
+    return '$shown / $_temp0';
+  }
 
   @override
   String get diveCenters_title_add => 'Búvárközpont hozzáadása';
@@ -7824,6 +7912,28 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_listPage_compactTitle => 'Merülések';
+
+  @override
+  String diveLog_listPage_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '$count merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total merülés',
+      one: '$total merülés',
+    );
+    return '$shown / $_temp0';
+  }
 
   @override
   String diveLog_listPage_errorLoading(Object error) {
@@ -10973,6 +11083,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_list_appBar_title => 'Merülőhelyek';
 
   @override
+  String diveSites_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count helyszín',
+      one: '$count helyszín',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total helyszín',
+      one: '$total helyszín',
+    );
+    return '$shown / $_temp0';
+  }
+
+  @override
   String get diveSites_list_bulkDelete_cancel => 'Mégse';
 
   @override
@@ -13069,6 +13201,28 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_appBar_title => 'Felszerelés';
+
+  @override
+  String equipment_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tétel',
+      one: '$count tétel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total tétel',
+      one: '$total tétel',
+    );
+    return '$shown / $_temp0';
+  }
 
   @override
   String get equipment_bulkTags_action => 'Címkék szerkesztése';
@@ -25168,6 +25322,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_appBar_title => 'Utak';
 
   @override
+  String trips_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count út',
+      one: '$count út',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total út',
+      one: '$total út',
+    );
+    return '$shown / $_temp0';
+  }
+
+  @override
   String get trips_appBar_tripPhotos => 'Útifotók';
 
   @override
@@ -29638,6 +29814,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dropTarget_error_readFailed => 'A fájl nem olvasható';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl nem olvasható, ezért kimaradt',
+      one: '$count fájl nem olvasható, ezért kimaradt',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'Tiszta';
 
   @override
@@ -30221,6 +30408,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_shareAll_noneToShare => 'Nincs mit megosztani.';
 
   @override
+  String get settings_hiddenItems_empty =>
+      'Ebben a profilban semmi sincs elrejtve.';
+
+  @override
+  String get settings_hiddenItems_sites => 'Helyek';
+
+  @override
+  String get settings_hiddenItems_title => 'Ebben a profilban elrejtve';
+
+  @override
+  String get settings_hiddenItems_trips => 'Utak';
+
+  @override
+  String get settings_hiddenItems_unhide => 'Megjelenítés';
+
+  @override
   String get settings_sharedData_sectionTitle => 'Megosztott adatok';
 
   @override
@@ -30254,6 +30457,179 @@ class AppLocalizationsHu extends AppLocalizations {
   String trips_deleteShared_body(String name) {
     return 'A(z) „$name\" meg van osztva más búvárprofilokkal. Ha itt törlöd, mindenkinél eltávolítódik.';
   }
+
+  @override
+  String sharedItems_bulkDeleteCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hely törlődik.',
+      one: '$count hely törlődik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkDeleteCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count út törlődik.',
+      one: '$count út törlődik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHiddenSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem eltávolítva a profilodból',
+      one: '$count elem eltávolítva a profilodból',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count megosztott hely csak a profilodból lesz eltávolítva.',
+      one: '$count megosztott hely csak a profilodból lesz eltávolítva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count megosztott út csak a profilodból lesz eltávolítva.',
+      one: '$count megosztott út csak a profilodból lesz eltávolítva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkRemoveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eltávolítasz $count elemet a profilodból?',
+      one: 'Eltávolítasz $count elemet a profilodból?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Ezek közül $count meg van osztva más profilokkal, és mindenkinél törlődik.',
+      one:
+          'Ezek közül $count meg van osztva más profilokkal, és mindenkinél törlődik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Ezek közül $count meg van osztva más profilokkal, és mindenkinél törlődik.',
+      one:
+          'Ezek közül $count meg van osztva más profilokkal, és mindenkinél törlődik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_mergeTooManyShared =>
+      'A kijelölt helyek közül csak egy tartozhat másik profilhoz. Az egyesítéshez szüntesd meg a többi kijelölését.';
+
+  @override
+  String get sharedItems_notOwner_site =>
+      'Ezt a helyet csak a tulajdonosa törölheti';
+
+  @override
+  String get sharedItems_notOwner_trip =>
+      'Ezt az utat csak a tulajdonosa törölheti';
+
+  @override
+  String sharedItems_otherProfilesDives_site(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés más profilokban elveszíti ezt a helyet.',
+      one: '$count merülés egy másik profilban elveszíti ezt a helyet.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_otherProfilesDives_trip(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés más profilokban elveszíti ezt az utat.',
+      one: '$count merülés egy másik profilban elveszíti ezt az utat.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_ownerUnknown => 'egy másik búvárprofil';
+
+  @override
+  String get sharedItems_removeAction => 'Eltávolítás a profilomból';
+
+  @override
+  String sharedItems_removeBody(String owner) {
+    return 'Megmarad $owner naplójában és minden más profilban. Csak itt lesz elrejtve.';
+  }
+
+  @override
+  String sharedItems_removeOwnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülésed továbbra is hozzá kapcsolódik.',
+      one: '$count merülésed továbbra is hozzá kapcsolódik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_removeRestoreHint =>
+      'Visszahozhatod a Beállítások > Megosztott adatok menüben.';
+
+  @override
+  String sharedItems_removeTitle(String name) {
+    return 'Eltávolítod a(z) „$name\" elemet a profilodból?';
+  }
+
+  @override
+  String get sharedItems_removedSnackbar => 'Eltávolítva a profilodból';
+
+  @override
+  String sharedItems_shareOwnerOnly(String owner) {
+    return 'Csak $owner módosíthatja a megosztást';
+  }
+
+  @override
+  String sharedItems_sharedBy(String owner) {
+    return 'Megosztotta: $owner';
+  }
+
+  @override
+  String get sharedItems_undo => 'Visszavonás';
 
   @override
   String get sites_deleteShared_title => 'Megosztott helyszín törlése?';
@@ -33435,6 +33811,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_empty_title => 'Minden rendben';
 
   @override
+  String get dataQuality_empty_chipFiltered =>
+      'Nincs észlelés ebben a kategóriában';
+
+  @override
+  String get dataQuality_empty_showAll => 'Összes észlelés megjelenítése';
+
+  @override
   String get dataQuality_empty_subtitle =>
       'Nincs adatminőségi észlelés. Vizsgáld át a könyvtáradat, hogy ellenőrizd az importált merüléseket.';
 
@@ -34199,6 +34582,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String common_selection_countSelected(Object count) {
     return '$count kijelölve';
+  }
+
+  @override
+  String common_listCount_shownOfTotal(int shown, int total) {
+    return '$shown / $total';
   }
 
   @override
@@ -40862,6 +41250,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get explore_chip_deco => 'Dekompressziós merülés';
 
   @override
+  String explore_chip_fieldPeriod(String field, String period) {
+    return '$field: $period';
+  }
+
+  @override
   String get explore_chip_noDeco => 'Dekompresszió nélkül';
 
   @override
@@ -40905,6 +41298,22 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String explore_chip_timeBefore(Object end) {
     return '$end előtt';
+  }
+
+  @override
+  String explore_chip_viaDives(String label) {
+    return 'Merülések: $label';
+  }
+
+  @override
+  String explore_chip_withinDays(int days, String field) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$field $days napon belül',
+      one: '$field $days napon belül',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -41011,6 +41420,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get explore_handoff_insights => 'Megnyitás az Elemzésekben';
 
   @override
+  String get explore_handoff_list => 'Megnyitás a listában';
+
+  @override
   String get explore_hint =>
       'Kérdezzen a merüléseiről, például teknősök 20 m alatt Bonaire-en';
 
@@ -41046,6 +41458,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get explore_recent_title => 'Legutóbbi';
 
   @override
+  String explore_results_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count találat',
+      one: '$count találat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_results_subjectTitle => 'Találatok';
+
+  @override
+  String explore_results_subjectTruncated(Object count) {
+    return 'Az első $count látható. Az összeshez nyissa meg a listát.';
+  }
+
+  @override
   String get explore_results_title => 'Egyező merülések';
 
   @override
@@ -41058,14 +41489,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'A felfedezéshez az eszközön futó modell szükséges, amely ezen az eszközön nem áll készen.';
 
   @override
-  String get explore_subjectNotSupported =>
-      'Jelenleg csak merülések kereshetők.';
-
-  @override
   String get explore_title => 'Felfedezés';
 
   @override
   String get explore_understood_title => 'Értelmezve';
+
+  @override
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'Még nem kombinálható a merülésekre vonatkozó feltételekkel';
 
   @override
   String get explore_unplaced_reason_invalid =>
@@ -45931,6 +46362,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_buddies_certifications => 'Minősítések';
 
   @override
+  String get query_buddies_diveCount => 'Közös merülések';
+
+  @override
   String get query_buddies_dives => 'Merülések';
 
   @override
@@ -45938,6 +46372,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_buddies_favorite => 'Kedvenc';
+
+  @override
+  String get query_buddies_lastDived => 'Utolsó közös merülés';
 
   @override
   String get query_buddies_name => 'Név';
@@ -45961,7 +46398,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_centers_country => 'Ország';
 
   @override
+  String get query_centers_diveCount => 'Merülések száma';
+
+  @override
   String get query_centers_dives => 'Merülések';
+
+  @override
+  String get query_centers_lastDived => 'Utolsó merülés';
 
   @override
   String get query_centers_name => 'Név';
@@ -46336,13 +46779,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_equipment_brand => 'Márka';
 
   @override
+  String get query_equipment_diveCount => 'Merülések használatban';
+
+  @override
   String get query_equipment_dives => 'Merülések';
+
+  @override
+  String get query_equipment_lastDived => 'Utoljára használva';
 
   @override
   String get query_equipment_model => 'Modell';
 
   @override
   String get query_equipment_name => 'Név';
+
+  @override
+  String get query_equipment_nextServiceDue => 'Következő szerviz';
 
   @override
   String get query_equipment_serialNumber => 'Sorozatszám';
@@ -46414,10 +46866,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_sites_difficulty => 'Nehézség';
 
   @override
+  String get query_sites_diveCount => 'Merülések száma';
+
+  @override
   String get query_sites_dives => 'Merülések';
 
   @override
   String get query_sites_island => 'Sziget';
+
+  @override
+  String get query_sites_lastDived => 'Utolsó merülés';
 
   @override
   String get query_sites_maxDepth => 'Maximális mélység';
@@ -46450,10 +46908,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_species_description => 'Leírás';
 
   @override
+  String get query_species_diveCount => 'Megfigyeléses merülések';
+
+  @override
   String get query_species_dives => 'Merülések';
 
   @override
   String get query_species_expectedSites => 'Várható helyszíneken';
+
+  @override
+  String get query_species_firstSeen => 'Először látva';
+
+  @override
+  String get query_species_lastSeen => 'Utoljára látva';
 
   @override
   String get query_species_name => 'Név';
@@ -46490,6 +46957,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_tanks_volume => 'Térfogat';
+
+  @override
+  String get query_trips_diveCount => 'Merülések száma';
 
   @override
   String get query_trips_dives => 'Merülések';

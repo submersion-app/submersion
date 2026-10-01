@@ -114,5 +114,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertTripFillForecastColumns();
     }
     if (from < 249) await reportProgress();
+    // v250: a profile's hidden shared trips and sites (issue #2594).
+    // Table-only rung, no backfill; re-asserted in beforeOpen.
+    if (from < 250) {
+      await _assertTripHidesSchema();
+      await _assertSiteHidesSchema();
+    }
+    if (from < 250) await reportProgress();
   }
 }

@@ -3,6 +3,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
+import 'package:submersion/features/dive_log/query/dive_aggregate_fields.dart';
 
 QueryField _text(String key, String column) => QueryField(
   key: key,
@@ -57,6 +58,7 @@ final tripQueryEntity = QueryEntity(
       emptySql: '0',
       labelKey: 'query_trips_shared',
     ),
+    diveCountField('trips', 'ad.trip_id = {r}.id'),
   ],
   relations: const [
     QueryRelation(

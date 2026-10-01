@@ -1,9 +1,11 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 
+import '../../../../helpers/clock_expectations.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Issue #1223: a CCR dive logged with an O2 and a diluent transmitter reports
@@ -238,6 +240,30 @@ void main() {
         (timestamp: 0, pressure: 200.0),
         (timestamp: 600, pressure: 150.0),
       ]);
+    },
+  );
+
+  test(
+    'a tank pressure filled from its series carries a clock (#2644)',
+    () async {
+      addTearDown(SyncClock.instance.reset);
+      final computerId = await insertComputer();
+
+      final diveId = await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: DateTime(2026, 8, 15, 16, 27),
+        points: const [
+          ProfilePointData(timestamp: 0, depth: 0.0, tankPressures: [192.6]),
+          ProfilePointData(timestamp: 1200, depth: 5.0, tankPressures: [162.7]),
+        ],
+        durationSeconds: 1800,
+        maxDepth: 27.2,
+        tanks: const [TankData(index: 0, o2Percent: 21.0)],
+      );
+
+      final tank = (await tanksFor(diveId)).single;
+      expect(tank.startPressure, 192.6);
+      expectFresherClock(null, tank.hlc);
     },
   );
 }

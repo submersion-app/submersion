@@ -26,6 +26,7 @@ import 'package:submersion/features/trips/data/repositories/trip_cylinder_reposi
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/universal_import/data/repositories/csv_preset_repository.dart';
 import 'package:submersion/features/weight_planner/data/repositories/weight_history_repository.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 
 import '../helpers/test_database.dart';
@@ -195,6 +196,8 @@ void main() {
           EquipmentShareRepository().watchChanges(),
       'TripEquipmentRepository.watchChanges': () =>
           TripEquipmentRepository().watchChanges(),
+      'ProfileHidesRepository.watchChanges': () =>
+          ProfileHidesRepository().watchChanges(),
       'ServiceScheduleRepository.watchSchedulesChanges': () =>
           ServiceScheduleRepository().watchSchedulesChanges(),
       'CylinderConfigRepository.watchConfigsChanges': () =>
@@ -844,6 +847,40 @@ void main() {
               .insert(
                 DiveTanksCompanion.insert(id: 'tank-tick', diveId: 'dive-tick'),
               ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('watchGasRecordChanges fires on a slot write', () async {
+      await seedParents();
+      expect(
+        await fires(
+          TripCylinderRepository().watchGasRecordChanges(),
+          () => db
+              .into(db.tripCylinders)
+              .insert(
+                TripCylindersCompanion.insert(
+                  id: 'slot-1',
+                  tripId: 't1',
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('watchGasRecordChanges fires on a diver rename', () async {
+      // The record names each tank's diver, and a rename writes only the
+      // divers row (issue #2666).
+      await seedParents();
+      expect(
+        await fires(
+          TripCylinderRepository().watchGasRecordChanges(),
+          () => (db.update(db.divers)..where((d) => d.id.equals('diver-1')))
+              .write(const DiversCompanion(name: Value('Renamed'))),
         ),
         isTrue,
       );

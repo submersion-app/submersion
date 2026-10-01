@@ -125,7 +125,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       onFileReceived: (bytes, fileName) =>
           shareGate.run(SharedFile(bytes, fileName)),
       onFilesReceived: (paths) => shareGate.run(SharedFileBatch(paths)),
-      onError: (_) => _showShareReadFailed(),
+      onError: _reportShareError,
     );
     _passportLinks = PassportLinkDispatcher(
       source: ref.read(incomingLinkSourceProvider),
@@ -379,30 +379,26 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         ),
         SharedFileBatch(:final paths) => await _handleIncomingFiles(paths),
       };
-    } catch (error, stackTrace) {
+    } catch (error) {
       // Torn down mid-way, the old scope's providers throw; that is the
       // restart, not the file, so the new root gets to try it.
       if (!mounted) return false;
-      LoggerService.forClass(SubmersionApp).warning(
-        'A shared file could not be opened',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      _showShareReadFailed();
+      _reportShareError(error);
       return true;
     }
   }
 
-  void _showShareReadFailed() {
+  /// Logs a share failure and tells the diver, through this root's
+  /// messenger: what could not be read, or how many files were skipped.
+  void _reportShareError(Object error) {
     final l10n = _scaffoldMessengerKey.currentContext != null
         ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
         : null;
-    _scaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(
-        content: Text(
-          l10n?.dropTarget_error_readFailed ?? 'Could not read file',
-        ),
-      ),
+    reportIncomingFileError(
+      error,
+      messenger: _scaffoldMessengerKey.currentState,
+      readFailedMessage: l10n?.dropTarget_error_readFailed,
+      someUnreadableMessage: l10n?.dropTarget_error_someUnreadable,
     );
   }
 

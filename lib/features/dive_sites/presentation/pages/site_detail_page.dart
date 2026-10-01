@@ -10,6 +10,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -52,6 +53,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/section_properties_menu.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
@@ -212,6 +215,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             const SizedBox(height: kSiteDetailCardGap),
           ],
           SiteDetailHeader(site: site),
+          SharedByBanner(ownerId: site.diverId, isShared: site.isShared),
           const SizedBox(height: kSiteDetailCardGap),
           SiteDetailSectionList(
             sections: sections,
@@ -375,6 +379,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     DiveSite site,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
+    // Watched, as the trip page does, so the menu follows the profile once
+    // it has loaded (issue #2594).
+    final canDestroy = canDestroySharedItem(
+      ownerId: site.diverId,
+      activeDiverId: ref.watch(validatedCurrentDiverIdProvider).value,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -458,17 +468,29 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               itemBuilder: (context) => [
                 openInConnectionsMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    leading: const Icon(Icons.delete, color: Colors.red),
-                    title: Text(
-                      context.l10n.diveSites_detail_deleteMenu_label,
-                      style: const TextStyle(color: Colors.red),
+                // Delete for the owner; another profile only removes the
+                // shared site from itself (issue #2594).
+                if (canDestroy)
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      leading: const Icon(Icons.delete, color: Colors.red),
+                      title: Text(
+                        context.l10n.diveSites_detail_deleteMenu_label,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                      contentPadding: EdgeInsets.zero,
                     ),
-                    contentPadding: EdgeInsets.zero,
+                  )
+                else
+                  PopupMenuItem(
+                    value: 'remove',
+                    child: ListTile(
+                      leading: const Icon(Icons.visibility_off_outlined),
+                      title: Text(context.l10n.sharedItems_removeAction),
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -491,12 +513,20 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       _displayOptionsMenu.open();
       return;
     }
+    if (action == 'remove') {
+      await _removeFromProfile(context, ref, site);
+      return;
+    }
     if (action == 'delete') {
       final divers = await ref.read(allDiversProvider.future);
       final usage = await readSiteDeleteUsage(ref, [site.id]);
-      if (!context.mounted) return;
       final diverCount = divers.length;
       final isSharedDelete = site.isShared && diverCount >= 2;
+      // The other profiles' dives that lose the site (issue #2594).
+      final others = isSharedDelete
+          ? (await readDiveLinkCounts(ref, SharedItemKind.site, site.id)).others
+          : 0;
+      if (!context.mounted) return;
 
       final confirmed = await showDialog<bool>(
         context: context,
@@ -510,7 +540,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             withSiteDeleteUsage(
               ctx.l10n,
               isSharedDelete
-                  ? ctx.l10n.sites_deleteShared_body(site.name)
+                  ? [
+                      ctx.l10n.sites_deleteShared_body(site.name),
+                      ?otherProfilesDivesLine(
+                        ctx.l10n,
+                        SharedItemKind.site,
+                        others,
+                      ),
+                    ].join('\n\n')
                   : ctx.l10n.diveSites_detail_deleteDialog_content,
               usage,
             ),
@@ -532,9 +569,17 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       );
 
       if (confirmed == true) {
-        await ref
+        final deleted = await ref
             .read(siteListNotifierProvider.notifier)
             .deleteSite(widget.siteId);
+        if (!deleted) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(context.l10n.sharedItems_notOwner_site)),
+            );
+          }
+          return;
+        }
         ref.invalidate(sitesWithCountsProvider);
         ref.invalidate(sitesProvider);
 
@@ -552,6 +597,28 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         }
       }
     }
+  }
+
+  /// Hides another profile's shared site from the active profile only
+  /// (issue #2594), with Undo.
+  Future<void> _removeFromProfile(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site,
+  ) {
+    final notifier = ref.read(siteListNotifierProvider.notifier);
+    return removeSharedItemFromProfile(
+      context,
+      ref,
+      kind: SharedItemKind.site,
+      id: site.id,
+      name: site.name,
+      ownerId: site.diverId,
+      hide: () async => await notifier.hideSites([site.id]) == 1,
+      unhide: () => notifier.unhideSites([site.id]),
+      onRemoved: () =>
+          widget.embedded ? widget.onDeleted?.call() : context.go('/sites'),
+    );
   }
 
   Widget _buildMapSection(BuildContext context, WidgetRef ref, DiveSite site) {

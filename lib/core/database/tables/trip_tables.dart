@@ -351,3 +351,32 @@ class TripEquipment extends Table {
   ];
   // coverage:ignore-end
 }
+
+/// A shared trip one diver profile has hidden from itself (v250, issue
+/// #2594). The trip stays in its owner's log and in every other profile. A
+/// parent-gated child of `trips`, like `trip_equipment`: no updated_at, its
+/// own clock, exported through pending marks. Both parents cascade.
+@DataClassName('TripHideRow')
+class TripHides extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get tripId =>
+      text().references(Trips, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diverId =>
+      text().references(Divers, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// Leads with the profile: every read is "this profile's hidden trips".
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {diverId, tripId},
+  ];
+  // coverage:ignore-end
+}

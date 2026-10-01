@@ -136,6 +136,8 @@ void main() {
       'viewConfigs',
       'fieldPresets',
       'tripEquipment',
+      'tripHides',
+      'siteHides',
     ];
 
     for (final type in simpleTypes) {

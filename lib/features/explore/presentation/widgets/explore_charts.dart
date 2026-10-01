@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_subject_providers.dart';
 import 'package:submersion/features/query/presentation/query_label_lookup.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
@@ -36,6 +37,33 @@ class _ExploreChartCard extends ConsumerWidget {
     final l10n = context.l10n;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final dateFormat = ref.watch(dateFormatProvider);
+    if (request.kind == ChartKind.subjectCounts) {
+      final subject = ref.watch(exploreSubjectProvider);
+      final rows = ref.watch(exploreSubjectRowsProvider).value ?? const [];
+      final bars = [
+        for (final r in rows.take(10))
+          if (r.dives > 0) (label: r.name, count: r.dives),
+      ];
+      // No row has a dive in the scope: the rows say so, not an empty card.
+      if (bars.isEmpty) return const SizedBox.shrink();
+      return Card(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.explore_chart_entityCounts(_subjectKind(l10n, subject)),
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 8),
+              HorizontalCategoryBarChart(data: bars),
+            ],
+          ),
+        ),
+      );
+    }
     final data = ref.watch(exploreChartDataProvider(request));
     final title = switch (request.kind) {
       ChartKind.divesOverTime => l10n.explore_chart_divesOverTime,
@@ -49,6 +77,7 @@ class _ExploreChartCard extends ConsumerWidget {
       ChartKind.entityCounts => l10n.explore_chart_entityCounts(
         _kindName(l10n, request.entityKind),
       ),
+      ChartKind.subjectCounts => '',
     };
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -105,6 +134,17 @@ class _ExploreChartCard extends ConsumerWidget {
       ),
     );
   }
+
+  static String _subjectKind(AppLocalizations l10n, ParsedSubject s) =>
+      switch (s) {
+        ParsedSubject.sites => l10n.explore_kind_site,
+        ParsedSubject.equipment => l10n.explore_kind_gear,
+        ParsedSubject.buddies => l10n.explore_kind_buddy,
+        ParsedSubject.species => l10n.explore_kind_species,
+        ParsedSubject.trips => l10n.explore_kind_trip,
+        ParsedSubject.centers => l10n.explore_kind_center,
+        ParsedSubject.dives => '',
+      };
 
   static String _kindName(AppLocalizations l10n, MentionKind? k) => switch (k) {
     MentionKind.site || MentionKind.place => l10n.explore_kind_site,

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/text/text_sort.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -288,11 +290,13 @@ final siteSortProvider = StateProvider<SortState<SiteSortField>>(
 
 /// The ids the site filter selects, from the compiled query (#2365). Keyed
 /// on the filter's value, so an equal filter reuses its instance; a write to
-/// any table the query read refreshes it in place.
+/// any table the query read refreshes it in place. A shared site's dives
+/// are the active diver's alone, as its tile counts them.
 final queryFilteredSiteIdsProvider = FutureProvider.autoDispose
-    .family<Set<String>, SiteFilterState>(
-      (ref, filter) => watchQueryIds(ref, compileSiteFilter(filter)),
-    );
+    .family<Set<String>, SiteFilterState>((ref, filter) async {
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return watchQueryIds(ref, compileSiteFilter(filter, diverId: diverId));
+    });
 
 /// The site list: every visible site narrowed to the compiled query's ids.
 final filteredSitesWithCountsProvider =
@@ -549,7 +553,14 @@ class SiteListNotifier
     domain.DiveSite site, {
     SiteClassification? classification,
   }) async {
-    await _repository.updateSite(site, classification: classification);
+    final actingDiverId = await _ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    await _repository.updateSite(
+      site,
+      classification: classification,
+      actingDiverId: actingDiverId,
+    );
     await _loadSites();
   }
 
@@ -576,24 +587,73 @@ class SiteListNotifier
     await _loadSites();
   }
 
-  Future<void> deleteSite(String id) async {
-    await _repository.deleteSite(id);
+  /// Deletes [id] when the active profile may (issue #2594). False, with
+  /// nothing changed, for a shared site another profile owns.
+  Future<bool> deleteSite(String id) async {
+    final actingDiverId = await _ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    final deleted = await _repository.deleteSite(
+      id,
+      actingDiverId: actingDiverId,
+    );
     await _loadSites();
+    return deleted;
   }
 
-  /// Bulk delete multiple sites.
+  /// Bulk delete multiple sites: only those the active profile may destroy
+  /// (issue #2594); callers hide the rest with [hideSites].
   ///
   /// Returns the deleted sites and the dives and plans the delete left
   /// without a site, so [restoreSites] can undo both.
   Future<({List<domain.DiveSite> sites, SiteLinks links})> bulkDeleteSites(
     List<String> ids,
   ) async {
-    final sitesToDelete = await _repository.getSitesByIds(ids);
+    final actingDiverId = await _ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    final sitesToDelete = [
+      for (final site in await _repository.getSitesByIds(ids))
+        if (canDestroySharedItem(
+          ownerId: site.diverId,
+          activeDiverId: actingDiverId,
+        ))
+          site,
+    ];
     // The delete reports the links it cleared, read in its own transaction.
-    final links = await _repository.bulkDeleteSites(ids);
+    final links = await _repository.bulkDeleteSites([
+      for (final site in sitesToDelete) site.id,
+    ], actingDiverId: actingDiverId);
     await _loadSites();
     _invalidateSiteProviders(ids);
     return (sites: sitesToDelete, links: links);
+  }
+
+  /// Hides other profiles' shared sites [ids] from the active profile only
+  /// (issue #2594). Returns how many are hidden afterwards.
+  Future<int> hideSites(List<String> ids) async {
+    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    if (diverId == null) return 0;
+    final hidden = await _ref
+        .read(profileHidesRepositoryProvider)
+        .hideAll(SharedItemKind.site, ids, diverId);
+    await _loadSites();
+    _invalidateSiteProviders(ids);
+    _ref.invalidate(hiddenItemsProvider);
+    return hidden;
+  }
+
+  /// Shows hidden sites [ids] to the active profile again.
+  Future<void> unhideSites(List<String> ids) async {
+    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    if (diverId == null) return;
+    final hides = _ref.read(profileHidesRepositoryProvider);
+    for (final id in ids) {
+      await hides.unhide(SharedItemKind.site, id, diverId);
+    }
+    await _loadSites();
+    _invalidateSiteProviders(ids);
+    _ref.invalidate(hiddenItemsProvider);
   }
 
   /// Restore multiple sites (for undo functionality), then point the dives
@@ -619,9 +679,13 @@ class SiteListNotifier
     final dedupedSiteIds = orderedSiteIds.toSet().toList(growable: false);
     final survivorId = dedupedSiteIds.first;
 
+    final actingDiverId = await _ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
     final snapshot = await _repository.mergeSites(
       mergedSite: mergedSite.copyWith(id: survivorId),
       siteIds: dedupedSiteIds,
+      actingDiverId: actingDiverId,
     );
 
     await _loadSites();

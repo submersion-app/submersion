@@ -92,6 +92,14 @@ extension EquipmentFilterQuery on EquipmentFilterState {
 }
 
 /// The one compile call the equipment list shares. Root alias `r0`, which
-/// [EquipmentFilterQuery.ownerScope] assumes.
-CompiledQuery compileEquipmentFilter(EquipmentFilterState filter) =>
-    compileQuery(filter.toQuery(), equipmentQueryEntity, appQueryRegistry);
+/// [EquipmentFilterQuery.ownerScope] assumes. [diverId] reads shared gear's
+/// dives as that diver's alone.
+CompiledQuery compileEquipmentFilter(
+  EquipmentFilterState filter, {
+  String? diverId,
+}) => compileQuery(
+  filter.toQuery(),
+  equipmentQueryEntity,
+  appQueryRegistry,
+  diverId: diverId,
+);

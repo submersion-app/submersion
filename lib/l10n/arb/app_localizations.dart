@@ -4435,6 +4435,18 @@ abstract class AppLocalizations {
   /// **'Buddies'**
   String get buddies_title;
 
+  /// List entry count under the title when no filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} buddy} other{{count} buddies}}'**
+  String buddies_list_count(int count);
+
+  /// List entry count under the title while a filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total, plural, =1{{total} buddy} other{{total} buddies}}'**
+  String buddies_list_countFiltered(int shown, int total);
+
   /// No description provided for @buddies_title_add.
   ///
   /// In en, this message translates to:
@@ -4642,6 +4654,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Certifications'**
   String get certifications_appBar_title;
+
+  /// List entry count under the title when no filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} certification} other{{count} certifications}}'**
+  String certifications_list_count(int count);
+
+  /// List entry count under the title while a filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total, plural, =1{{total} certification} other{{total} certifications}}'**
+  String certifications_list_countFiltered(int shown, int total);
 
   /// No description provided for @certifications_detail_action_delete.
   ///
@@ -7443,6 +7467,18 @@ abstract class AppLocalizations {
   /// **'Training Courses'**
   String get courses_title;
 
+  /// List entry count under the title when no filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} course} other{{count} courses}}'**
+  String courses_list_count(int count);
+
+  /// List entry count under the title while a filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total, plural, =1{{total} course} other{{total} courses}}'**
+  String courses_list_countFiltered(int shown, int total);
+
   /// No description provided for @courses_title_edit.
   ///
   /// In en, this message translates to:
@@ -9421,6 +9457,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive Centers'**
   String get diveCenters_title;
+
+  /// List entry count under the title when no filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} dive center} other{{count} dive centers}}'**
+  String diveCenters_list_count(int count);
+
+  /// List entry count under the title while a filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total, plural, =1{{total} dive center} other{{total} dive centers}}'**
+  String diveCenters_list_countFiltered(int shown, int total);
 
   /// No description provided for @diveCenters_title_add.
   ///
@@ -12608,6 +12656,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dives'**
   String get diveLog_listPage_compactTitle;
+
+  /// List entry count under the title when no filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} dive} other{{count} dives}}'**
+  String diveLog_listPage_count(int count);
+
+  /// List entry count under the title while a filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total, plural, =1{{total} dive} other{{total} dives}}'**
+  String diveLog_listPage_countFiltered(int shown, int total);
 
   /// No description provided for @diveLog_listPage_errorLoading.
   ///
@@ -17871,6 +17931,18 @@ abstract class AppLocalizations {
   /// **'Dive Sites'**
   String get diveSites_list_appBar_title;
 
+  /// List entry count under the title when no filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} site} other{{count} sites}}'**
+  String diveSites_list_count(int count);
+
+  /// List entry count under the title while a filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total, plural, =1{{total} site} other{{total} sites}}'**
+  String diveSites_list_countFiltered(int shown, int total);
+
   /// No description provided for @diveSites_list_bulkDelete_cancel.
   ///
   /// In en, this message translates to:
@@ -21591,6 +21663,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment'**
   String get equipment_appBar_title;
+
+  /// List entry count under the title when no filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} item} other{{count} items}}'**
+  String equipment_list_count(int count);
+
+  /// List entry count under the title while a filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total, plural, =1{{total} item} other{{total} items}}'**
+  String equipment_list_countFiltered(int shown, int total);
 
   /// No description provided for @equipment_bulkTags_action.
   ///
@@ -40336,6 +40420,18 @@ abstract class AppLocalizations {
   /// **'Trips'**
   String get trips_appBar_title;
 
+  /// List entry count under the title when no filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} trip} other{{count} trips}}'**
+  String trips_list_count(int count);
+
+  /// List entry count under the title while a filter is active.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total, plural, =1{{total} trip} other{{total} trips}}'**
+  String trips_list_countFiltered(int shown, int total);
+
   /// No description provided for @trips_appBar_tripPhotos.
   ///
   /// In en, this message translates to:
@@ -47312,6 +47408,12 @@ abstract class AppLocalizations {
   /// **'Could not read file'**
   String get dropTarget_error_readFailed;
 
+  /// Snackbar after a share-sheet import that skipped files it could not read, while the rest were imported
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} file could not be read and was skipped} other{{count} files could not be read and were skipped}}'**
+  String dropTarget_error_someUnreadable(int count);
+
   /// No description provided for @enum_cloudCover_clear.
   ///
   /// In en, this message translates to:
@@ -48210,6 +48312,36 @@ abstract class AppLocalizations {
   /// **'Nothing to share.'**
   String get settings_shareAll_noneToShare;
 
+  /// Empty state of the hidden items page.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is hidden from this profile.'**
+  String get settings_hiddenItems_empty;
+
+  /// Group header for hidden sites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get settings_hiddenItems_sites;
+
+  /// Settings row and page title listing the shared trips and sites hidden from the active profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden from this profile'**
+  String get settings_hiddenItems_title;
+
+  /// Group header for hidden trips.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get settings_hiddenItems_trips;
+
+  /// Button that shows a hidden shared trip or site to the active profile again.
+  ///
+  /// In en, this message translates to:
+  /// **'Unhide'**
+  String get settings_hiddenItems_unhide;
+
   /// Section header for shared data controls
   ///
   /// In en, this message translates to:
@@ -48263,6 +48395,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\'{name}\' is shared with other dive profiles. Deleting it here removes it for everyone.'**
   String trips_deleteShared_body(String name);
+
+  /// Bulk delete confirmation line counting sites that will be deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} site will be deleted.} other{{count} sites will be deleted.}}'**
+  String sharedItems_bulkDeleteCount_sites(int count);
+
+  /// Bulk delete confirmation line counting trips that will be deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} trip will be deleted.} other{{count} trips will be deleted.}}'**
+  String sharedItems_bulkDeleteCount_trips(int count);
+
+  /// Snackbar counting the shared items a bulk action hid from the active profile.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item removed from your profile} other{{count} items removed from your profile}}'**
+  String sharedItems_bulkHiddenSnackbar(int count);
+
+  /// Bulk delete confirmation line counting other profiles' shared sites that are only hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} shared site will be removed from your profile only.} other{{count} shared sites will be removed from your profile only.}}'**
+  String sharedItems_bulkHideCount_sites(int count);
+
+  /// Bulk delete confirmation line counting other profiles' shared trips that are only hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} shared trip will be removed from your profile only.} other{{count} shared trips will be removed from your profile only.}}'**
+  String sharedItems_bulkHideCount_trips(int count);
+
+  /// Bulk confirmation title when every selected item is another profile's shared item and is only hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Remove {count} item from your profile?} other{Remove {count} items from your profile?}}'**
+  String sharedItems_bulkRemoveTitle(int count);
+
+  /// Bulk delete confirmation line counting the deleted sites that are shared, so deleted for every profile.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} of them is shared with other profiles and will be deleted for everyone.} other{{count} of them are shared with other profiles and will be deleted for everyone.}}'**
+  String sharedItems_bulkSharedWarning_sites(int count);
+
+  /// Bulk delete confirmation line counting the deleted trips that are shared, so deleted for every profile.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} of them is shared with other profiles and will be deleted for everyone.} other{{count} of them are shared with other profiles and will be deleted for everyone.}}'**
+  String sharedItems_bulkSharedWarning_trips(int count);
+
+  /// Shown when a merge selection holds more than one site owned by another profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Only one of the selected sites can belong to another profile. Deselect the others to merge.'**
+  String get sharedItems_mergeTooManyShared;
+
+  /// Shown when a delete of a shared site is refused because another profile owns it.
+  ///
+  /// In en, this message translates to:
+  /// **'Only its owner can delete this site'**
+  String get sharedItems_notOwner_site;
+
+  /// Shown when a delete of a shared trip is refused because another profile owns it.
+  ///
+  /// In en, this message translates to:
+  /// **'Only its owner can delete this trip'**
+  String get sharedItems_notOwner_trip;
+
+  /// Owner's delete confirmation line counting other profiles' dives that lose the site.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive in another profile will lose this site.} other{{count} dives in other profiles will lose this site.}}'**
+  String sharedItems_otherProfilesDives_site(int count);
+
+  /// Owner's delete confirmation line counting other profiles' dives that lose the trip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive in another profile will lose this trip.} other{{count} dives in other profiles will lose this trip.}}'**
+  String sharedItems_otherProfilesDives_trip(int count);
+
+  /// Stands in for the owner name when the owning profile is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'another profile'**
+  String get sharedItems_ownerUnknown;
+
+  /// Menu action that hides another profile's shared trip or site from the active profile only.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from my profile'**
+  String get sharedItems_removeAction;
+
+  /// Explains that hiding a shared item leaves it in the owner's log and every other profile.
+  ///
+  /// In en, this message translates to:
+  /// **'It stays in {owner}\'s log and in every other profile. It is only hidden here.'**
+  String sharedItems_removeBody(String owner);
+
+  /// Line counting the active profile's own dives that keep their link to the hidden trip or site.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} of your dives stays linked to it.} other{{count} of your dives stay linked to it.}}'**
+  String sharedItems_removeOwnDives(int count);
+
+  /// Tells the diver where to restore a hidden shared trip or site.
+  ///
+  /// In en, this message translates to:
+  /// **'You can bring it back from Settings > Shared data.'**
+  String get sharedItems_removeRestoreHint;
+
+  /// Title of the confirmation for hiding a shared trip or site from the active profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove \'{name}\' from your profile?'**
+  String sharedItems_removeTitle(String name);
+
+  /// Snackbar after hiding a shared trip or site from the active profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from your profile'**
+  String get sharedItems_removedSnackbar;
+
+  /// Helper under the disabled share switch when another profile owns the trip or site.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {owner} can change sharing'**
+  String sharedItems_shareOwnerOnly(String owner);
+
+  /// Line on a shared trip or site owned by another diver profile, naming the owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared by {owner}'**
+  String sharedItems_sharedBy(String owner);
+
+  /// Snackbar action that undoes hiding a shared trip or site.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get sharedItems_undo;
 
   /// Title of the strengthened delete confirmation dialog shown when the dive site being deleted is shared with other dive profiles.
   ///
@@ -53532,6 +53802,18 @@ abstract class AppLocalizations {
   /// **'All clear'**
   String get dataQuality_empty_title;
 
+  /// No description provided for @dataQuality_empty_chipFiltered.
+  ///
+  /// In en, this message translates to:
+  /// **'No findings in this category'**
+  String get dataQuality_empty_chipFiltered;
+
+  /// No description provided for @dataQuality_empty_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all findings'**
+  String get dataQuality_empty_showAll;
+
   /// No description provided for @dataQuality_empty_subtitle.
   ///
   /// In en, this message translates to:
@@ -54647,6 +54929,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} selected'**
   String common_selection_countSelected(Object count);
+
+  /// A list's filtered entry count without its noun, for a header too narrow for the full one.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total}'**
+  String common_listCount_shownOfTotal(int shown, int total);
 
   /// No description provided for @common_selection_enterTooltip.
   ///
@@ -66000,6 +66288,12 @@ abstract class AppLocalizations {
   /// **'Decompression dive'**
   String get explore_chip_deco;
 
+  /// No description provided for @explore_chip_fieldPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'{field}: {period}'**
+  String explore_chip_fieldPeriod(String field, String period);
+
   /// No description provided for @explore_chip_noDeco.
   ///
   /// In en, this message translates to:
@@ -66059,6 +66353,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Before {end}'**
   String explore_chip_timeBefore(Object end);
+
+  /// No description provided for @explore_chip_viaDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives: {label}'**
+  String explore_chip_viaDives(String label);
+
+  /// No description provided for @explore_chip_withinDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{{field} within {days} day} other{{field} within {days} days}}'**
+  String explore_chip_withinDays(int days, String field);
 
   /// No description provided for @explore_count.
   ///
@@ -66234,6 +66540,12 @@ abstract class AppLocalizations {
   /// **'Open in Insights'**
   String get explore_handoff_insights;
 
+  /// No description provided for @explore_handoff_list.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in list'**
+  String get explore_handoff_list;
+
   /// No description provided for @explore_hint.
   ///
   /// In en, this message translates to:
@@ -66294,6 +66606,24 @@ abstract class AppLocalizations {
   /// **'Recent'**
   String get explore_recent_title;
 
+  /// No description provided for @explore_results_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} result} other{{count} results}}'**
+  String explore_results_count(num count);
+
+  /// No description provided for @explore_results_subjectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches'**
+  String get explore_results_subjectTitle;
+
+  /// No description provided for @explore_results_subjectTruncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the first {count}. Open in the list for all of them.'**
+  String explore_results_subjectTruncated(Object count);
+
   /// No description provided for @explore_results_title.
   ///
   /// In en, this message translates to:
@@ -66312,12 +66642,6 @@ abstract class AppLocalizations {
   /// **'Explore needs the on-device model, which is not ready on this device.'**
   String get explore_shortcut_unavailable;
 
-  /// No description provided for @explore_subjectNotSupported.
-  ///
-  /// In en, this message translates to:
-  /// **'Only dives can be searched for now.'**
-  String get explore_subjectNotSupported;
-
   /// No description provided for @explore_title.
   ///
   /// In en, this message translates to:
@@ -66329,6 +66653,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Understood'**
   String get explore_understood_title;
+
+  /// No description provided for @explore_unplaced_reason_aggregateWithScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t be combined with conditions on the dives yet'**
+  String get explore_unplaced_reason_aggregateWithScope;
 
   /// No description provided for @explore_unplaced_reason_invalid.
   ///
@@ -73583,6 +73913,12 @@ abstract class AppLocalizations {
   /// **'Certifications'**
   String get query_buddies_certifications;
 
+  /// Field label in the query builder: how many counted dives the diver made with this buddy
+  ///
+  /// In en, this message translates to:
+  /// **'Dives together'**
+  String get query_buddies_diveCount;
+
   /// Query builder: a buddy's dives
   ///
   /// In en, this message translates to:
@@ -73600,6 +73936,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Favorite'**
   String get query_buddies_favorite;
+
+  /// Field label in the query builder: the date of the newest counted dive with this buddy
+  ///
+  /// In en, this message translates to:
+  /// **'Last dived together'**
+  String get query_buddies_lastDived;
 
   /// Field label in the query builder
   ///
@@ -73643,11 +73985,23 @@ abstract class AppLocalizations {
   /// **'Country'**
   String get query_centers_country;
 
+  /// Field label in the query builder: how many counted dives were made with the center
+  ///
+  /// In en, this message translates to:
+  /// **'Dive count'**
+  String get query_centers_diveCount;
+
   /// Query builder: dives made with a dive center
   ///
   /// In en, this message translates to:
   /// **'Dives'**
   String get query_centers_dives;
+
+  /// Field label in the query builder: the date of the newest counted dive with the center
+  ///
+  /// In en, this message translates to:
+  /// **'Last dived'**
+  String get query_centers_lastDived;
 
   /// Field label in the query builder
   ///
@@ -74393,11 +74747,23 @@ abstract class AppLocalizations {
   /// **'Brand'**
   String get query_equipment_brand;
 
+  /// Field label in the query builder: how many counted dives the item was used on
+  ///
+  /// In en, this message translates to:
+  /// **'Dives used'**
+  String get query_equipment_diveCount;
+
   /// Relation label in the query builder: the dives an item was used on
   ///
   /// In en, this message translates to:
   /// **'Dives'**
   String get query_equipment_dives;
+
+  /// Field label in the query builder: the date of the newest counted dive the item was used on
+  ///
+  /// In en, this message translates to:
+  /// **'Last used'**
+  String get query_equipment_lastDived;
 
   /// Field label in the query builder
   ///
@@ -74410,6 +74776,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name'**
   String get query_equipment_name;
+
+  /// Field label in the query builder: the date the item's next service falls due
+  ///
+  /// In en, this message translates to:
+  /// **'Next service due'**
+  String get query_equipment_nextServiceDue;
 
   /// Field label in the query builder
   ///
@@ -74549,6 +74921,12 @@ abstract class AppLocalizations {
   /// **'Difficulty'**
   String get query_sites_difficulty;
 
+  /// Field label in the query builder: how many counted dives the site has
+  ///
+  /// In en, this message translates to:
+  /// **'Dive count'**
+  String get query_sites_diveCount;
+
   /// Relation label in the query builder: the dives at a site
   ///
   /// In en, this message translates to:
@@ -74560,6 +74938,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Island'**
   String get query_sites_island;
+
+  /// Field label in the query builder: the date of the site's newest counted dive
+  ///
+  /// In en, this message translates to:
+  /// **'Last dived'**
+  String get query_sites_lastDived;
 
   /// Field label in the query builder
   ///
@@ -74621,6 +75005,12 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get query_species_description;
 
+  /// Field label in the query builder: how many counted dives the species was seen on
+  ///
+  /// In en, this message translates to:
+  /// **'Dives seen on'**
+  String get query_species_diveCount;
+
   /// Query builder: the dives a species was sighted on
   ///
   /// In en, this message translates to:
@@ -74632,6 +75022,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expected at sites'**
   String get query_species_expectedSites;
+
+  /// Field label in the query builder: the date of the first counted dive the species was seen on
+  ///
+  /// In en, this message translates to:
+  /// **'First seen'**
+  String get query_species_firstSeen;
+
+  /// Field label in the query builder: the date of the newest counted dive the species was seen on
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen'**
+  String get query_species_lastSeen;
 
   /// Field label in the query builder
   ///
@@ -74704,6 +75106,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Volume'**
   String get query_tanks_volume;
+
+  /// Field label in the query builder: how many counted dives the trip has
+  ///
+  /// In en, this message translates to:
+  /// **'Dive count'**
+  String get query_trips_diveCount;
 
   /// Relation label in the query builder: the dives on a trip
   ///

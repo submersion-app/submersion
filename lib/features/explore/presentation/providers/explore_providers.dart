@@ -29,9 +29,24 @@ import 'package:submersion/features/query/presentation/providers/query_unit_pref
 /// Statistics until the diver asks for a handoff (#2365 PR 5).
 final exploreQueryNodeProvider = StateProvider<QueryNode?>((ref) => null);
 
-/// The scope as the repositories take it: the query alone, no legacy axis.
+/// What the published sentence asks for; dives until a sentence says
+/// otherwise (phase 3).
+final exploreSubjectProvider = StateProvider<ParsedSubject>(
+  (ref) => ParsedSubject.dives,
+);
+
+/// For a non-dive subject, the dive-level part of the published sentence,
+/// which its ranking counts.
+final exploreDiveScopeProvider = StateProvider<QueryNode?>((ref) => null);
+
+/// The scope as the dive repositories take it: the query alone, and only
+/// while the subject is dives; another subject's query roots elsewhere.
 final exploreFilterProvider = Provider<DiveFilterState>(
-  (ref) => DiveFilterState(query: ref.watch(exploreQueryNodeProvider)),
+  (ref) => DiveFilterState(
+    query: ref.watch(exploreSubjectProvider) == ParsedSubject.dives
+        ? ref.watch(exploreQueryNodeProvider)
+        : null,
+  ),
 );
 
 final recentQueryRepositoryProvider = Provider<RecentQueryRepository>(
@@ -154,6 +169,8 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
       clearResults: true,
     );
     _ref.read(exploreQueryNodeProvider.notifier).state = null;
+    _ref.read(exploreSubjectProvider.notifier).state = ParsedSubject.dives;
+    _ref.read(exploreDiveScopeProvider.notifier).state = null;
     return request;
   }
 
@@ -219,6 +236,8 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
     _request++;
     state = const ExploreState();
     _ref.read(exploreQueryNodeProvider.notifier).state = null;
+    _ref.read(exploreSubjectProvider.notifier).state = ParsedSubject.dives;
+    _ref.read(exploreDiveScopeProvider.notifier).state = null;
   }
 
   /// False when a newer request superseded [request] while the name index
@@ -244,6 +263,10 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
         now: DateTime.now(),
       ),
     );
+    // Subject and scope first, so no listener sees a new query under the
+    // old subject.
+    _ref.read(exploreSubjectProvider.notifier).state = compiled.subject;
+    _ref.read(exploreDiveScopeProvider.notifier).state = compiled.diveScope;
     _ref.read(exploreQueryNodeProvider.notifier).state = compiled.query;
     state = state.copyWith(
       parsed: parsed,
@@ -359,6 +382,9 @@ final exploreChartDataProvider =
                 filter: filter,
               ),
             );
+          // Drawn from the ranked rows (explore_charts.dart), never here.
+          case ChartKind.subjectCounts:
+            return const ExploreChartData();
           case ChartKind.entityCounts:
             final rows = switch (request.entityKind) {
               MentionKind.species => (await stats.getMostCommonSightings(

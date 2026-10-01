@@ -2825,6 +2825,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_title => 'Tauchpartner';
 
   @override
+  String buddies_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchpartner',
+      one: '$count Tauchpartner',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Tauchpartner',
+      one: '$total Tauchpartner',
+    );
+    return '$shown von $_temp0';
+  }
+
+  @override
   String get buddies_title_add => 'Tauchpartner hinzufügen';
 
   @override
@@ -2971,6 +2993,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get certifications_appBar_title => 'Zertifizierungen';
+
+  @override
+  String certifications_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zertifizierungen',
+      one: '$count Zertifizierung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certifications_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Zertifizierungen',
+      one: '$total Zertifizierung',
+    );
+    return '$shown von $_temp0';
+  }
 
   @override
   String get certifications_detail_action_delete => 'Löschen';
@@ -4665,6 +4709,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get courses_title => 'Ausbildungskurse';
 
   @override
+  String courses_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Kurse',
+      one: '$count Kurs',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String courses_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Kurse',
+      one: '$total Kurs',
+    );
+    return '$shown von $_temp0';
+  }
+
+  @override
   String get courses_title_edit => 'Kurs bearbeiten';
 
   @override
@@ -5870,6 +5936,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveCenters_title => 'Tauchcenter';
+
+  @override
+  String diveCenters_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchcenter',
+      one: '$count Tauchcenter',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveCenters_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Tauchcenter',
+      one: '$total Tauchcenter',
+    );
+    return '$shown von $_temp0';
+  }
 
   @override
   String get diveCenters_title_add => 'Tauchcenter hinzufügen';
@@ -7837,6 +7925,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_compactTitle => 'Tauchgänge';
+
+  @override
+  String diveLog_listPage_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '$count Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Tauchgänge',
+      one: '$total Tauchgang',
+    );
+    return '$shown von $_temp0';
+  }
 
   @override
   String diveLog_listPage_errorLoading(Object error) {
@@ -10982,6 +11092,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_list_appBar_title => 'Tauchplätze';
 
   @override
+  String diveSites_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze',
+      one: '$count Tauchplatz',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Tauchplätze',
+      one: '$total Tauchplatz',
+    );
+    return '$shown von $_temp0';
+  }
+
+  @override
   String get diveSites_list_bulkDelete_cancel => 'Abbrechen';
 
   @override
@@ -13094,6 +13226,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_appBar_title => 'Ausrüstung';
+
+  @override
+  String equipment_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ausrüstungsteile',
+      one: '$count Ausrüstungsteil',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Ausrüstungsteile',
+      one: '$total Ausrüstungsteil',
+    );
+    return '$shown von $_temp0';
+  }
 
   @override
   String get equipment_bulkTags_action => 'Tags bearbeiten';
@@ -25197,6 +25351,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_appBar_title => 'Reisen';
 
   @override
+  String trips_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Reisen',
+      one: '$count Reise',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Reisen',
+      one: '$total Reise',
+    );
+    return '$shown von $_temp0';
+  }
+
+  @override
   String get trips_appBar_tripPhotos => 'Reisefotos';
 
   @override
@@ -29689,6 +29865,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Datei konnte nicht gelesen werden';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Dateien konnten nicht gelesen werden und wurden übersprungen',
+      one: '$count Datei konnte nicht gelesen werden und wurde übersprungen',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'Klar';
 
   @override
@@ -30273,6 +30461,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_shareAll_noneToShare => 'Nichts zu teilen.';
 
   @override
+  String get settings_hiddenItems_empty =>
+      'In diesem Profil ist nichts ausgeblendet.';
+
+  @override
+  String get settings_hiddenItems_sites => 'Orte';
+
+  @override
+  String get settings_hiddenItems_title => 'In diesem Profil ausgeblendet';
+
+  @override
+  String get settings_hiddenItems_trips => 'Reisen';
+
+  @override
+  String get settings_hiddenItems_unhide => 'Einblenden';
+
+  @override
   String get settings_sharedData_sectionTitle => 'Geteilte Daten';
 
   @override
@@ -30305,6 +30509,179 @@ class AppLocalizationsDe extends AppLocalizations {
   String trips_deleteShared_body(String name) {
     return '„$name\" wird mit anderen Taucherprofilen geteilt. Löschen entfernt die Reise für alle.';
   }
+
+  @override
+  String sharedItems_bulkDeleteCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Orte werden gelöscht.',
+      one: '$count Ort wird gelöscht.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkDeleteCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Reisen werden gelöscht.',
+      one: '$count Reise wird gelöscht.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHiddenSnackbar(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Einträge aus deinem Profil entfernt',
+      one: '$count Eintrag aus deinem Profil entfernt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geteilte Orte werden nur aus deinem Profil entfernt.',
+      one: '$count geteilter Ort wird nur aus deinem Profil entfernt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkHideCount_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geteilte Reisen werden nur aus deinem Profil entfernt.',
+      one: '$count geteilte Reise wird nur aus deinem Profil entfernt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkRemoveTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Einträge aus deinem Profil entfernen?',
+      one: '$count Eintrag aus deinem Profil entfernen?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_sites(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count davon sind mit anderen Profilen geteilt und werden für alle gelöscht.',
+      one:
+          '$count davon ist mit anderen Profilen geteilt und wird für alle gelöscht.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkSharedWarning_trips(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count davon sind mit anderen Profilen geteilt und werden für alle gelöscht.',
+      one:
+          '$count davon ist mit anderen Profilen geteilt und wird für alle gelöscht.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_mergeTooManyShared =>
+      'Nur einer der ausgewählten Orte darf zu einem anderen Profil gehören. Hebe die Auswahl der anderen auf, um zusammenzuführen.';
+
+  @override
+  String get sharedItems_notOwner_site =>
+      'Nur der Besitzer kann diesen Ort löschen';
+
+  @override
+  String get sharedItems_notOwner_trip =>
+      'Nur der Besitzer kann diese Reise löschen';
+
+  @override
+  String sharedItems_otherProfilesDives_site(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge in anderen Profilen verlieren diesen Ort.',
+      one: '$count Tauchgang in einem anderen Profil verliert diesen Ort.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_otherProfilesDives_trip(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge in anderen Profilen verlieren diese Reise.',
+      one: '$count Tauchgang in einem anderen Profil verliert diese Reise.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_ownerUnknown => 'ein anderes Taucherprofil';
+
+  @override
+  String get sharedItems_removeAction => 'Aus meinem Profil entfernen';
+
+  @override
+  String sharedItems_removeBody(String owner) {
+    return 'Es bleibt im Logbuch von $owner und in jedem anderen Profil. Es wird nur hier ausgeblendet.';
+  }
+
+  @override
+  String sharedItems_removeOwnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count deiner Tauchgänge bleiben damit verknüpft.',
+      one: '$count deiner Tauchgänge bleibt damit verknüpft.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_removeRestoreHint =>
+      'Du kannst es unter Einstellungen > Geteilte Daten zurückholen.';
+
+  @override
+  String sharedItems_removeTitle(String name) {
+    return '„$name\" aus deinem Profil entfernen?';
+  }
+
+  @override
+  String get sharedItems_removedSnackbar => 'Aus deinem Profil entfernt';
+
+  @override
+  String sharedItems_shareOwnerOnly(String owner) {
+    return 'Nur $owner kann das Teilen ändern';
+  }
+
+  @override
+  String sharedItems_sharedBy(String owner) {
+    return 'Geteilt von $owner';
+  }
+
+  @override
+  String get sharedItems_undo => 'Rückgängig';
 
   @override
   String get sites_deleteShared_title => 'Geteilten Ort löschen?';
@@ -33517,6 +33894,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dataQuality_empty_title => 'Alles in Ordnung';
 
   @override
+  String get dataQuality_empty_chipFiltered =>
+      'Keine Auffälligkeiten in dieser Kategorie';
+
+  @override
+  String get dataQuality_empty_showAll => 'Alle Auffälligkeiten anzeigen';
+
+  @override
   String get dataQuality_empty_subtitle =>
       'Keine Auffälligkeiten bei der Datenqualität. Scanne deine Bibliothek, um importierte Tauchgänge auf Probleme zu prüfen.';
 
@@ -34283,6 +34667,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String common_selection_countSelected(Object count) {
     return '$count ausgewählt';
+  }
+
+  @override
+  String common_listCount_shownOfTotal(int shown, int total) {
+    return '$shown von $total';
   }
 
   @override
@@ -40955,6 +41344,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get explore_chip_deco => 'Dekompressionstauchgang';
 
   @override
+  String explore_chip_fieldPeriod(String field, String period) {
+    return '$field: $period';
+  }
+
+  @override
   String get explore_chip_noDeco => 'Ohne Dekompression';
 
   @override
@@ -40998,6 +41392,22 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String explore_chip_timeBefore(Object end) {
     return 'Vor $end';
+  }
+
+  @override
+  String explore_chip_viaDives(String label) {
+    return 'Tauchgänge: $label';
+  }
+
+  @override
+  String explore_chip_withinDays(int days, String field) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$field innerhalb von $days Tagen',
+      one: '$field innerhalb von $days Tag',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -41104,6 +41514,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get explore_handoff_insights => 'In Einblicken öffnen';
 
   @override
+  String get explore_handoff_list => 'In Liste öffnen';
+
+  @override
   String get explore_hint =>
       'Fragen Sie nach Ihren Tauchgängen, zum Beispiel Schildkröten tiefer als 20 m auf Bonaire';
 
@@ -41139,6 +41552,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get explore_recent_title => 'Zuletzt';
 
   @override
+  String explore_results_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ergebnisse',
+      one: '$count Ergebnis',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_results_subjectTitle => 'Treffer';
+
+  @override
+  String explore_results_subjectTruncated(Object count) {
+    return 'Die ersten $count werden angezeigt. In der Liste öffnen, um alle zu sehen.';
+  }
+
+  @override
   String get explore_results_title => 'Passende Tauchgänge';
 
   @override
@@ -41151,14 +41583,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Erkunden benötigt das Modell auf dem Gerät, das auf diesem Gerät nicht bereit ist.';
 
   @override
-  String get explore_subjectNotSupported =>
-      'Derzeit können nur Tauchgänge gesucht werden.';
-
-  @override
   String get explore_title => 'Erkunden';
 
   @override
   String get explore_understood_title => 'Verstanden';
+
+  @override
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'Noch nicht mit Bedingungen zu den Tauchgängen kombinierbar';
 
   @override
   String get explore_unplaced_reason_invalid =>
@@ -46032,6 +46464,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_buddies_certifications => 'Zertifizierungen';
 
   @override
+  String get query_buddies_diveCount => 'Gemeinsame Tauchgänge';
+
+  @override
   String get query_buddies_dives => 'Tauchgänge';
 
   @override
@@ -46039,6 +46474,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_buddies_favorite => 'Favorit';
+
+  @override
+  String get query_buddies_lastDived => 'Zuletzt gemeinsam getaucht';
 
   @override
   String get query_buddies_name => 'Name';
@@ -46062,7 +46500,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_centers_country => 'Land';
 
   @override
+  String get query_centers_diveCount => 'Anzahl Tauchgänge';
+
+  @override
   String get query_centers_dives => 'Tauchgänge';
+
+  @override
+  String get query_centers_lastDived => 'Zuletzt getaucht';
 
   @override
   String get query_centers_name => 'Name';
@@ -46437,13 +46881,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_equipment_brand => 'Marke';
 
   @override
+  String get query_equipment_diveCount => 'Tauchgänge im Einsatz';
+
+  @override
   String get query_equipment_dives => 'Tauchgänge';
+
+  @override
+  String get query_equipment_lastDived => 'Zuletzt verwendet';
 
   @override
   String get query_equipment_model => 'Modell';
 
   @override
   String get query_equipment_name => 'Name';
+
+  @override
+  String get query_equipment_nextServiceDue => 'Nächste Wartung fällig';
 
   @override
   String get query_equipment_serialNumber => 'Seriennummer';
@@ -46515,10 +46968,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_sites_difficulty => 'Schwierigkeitsgrad';
 
   @override
+  String get query_sites_diveCount => 'Anzahl Tauchgänge';
+
+  @override
   String get query_sites_dives => 'Tauchgänge';
 
   @override
   String get query_sites_island => 'Insel';
+
+  @override
+  String get query_sites_lastDived => 'Zuletzt betaucht';
 
   @override
   String get query_sites_maxDepth => 'Maximale Tiefe';
@@ -46551,10 +47010,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_species_description => 'Beschreibung';
 
   @override
+  String get query_species_diveCount => 'Tauchgänge mit Sichtung';
+
+  @override
   String get query_species_dives => 'Tauchgänge';
 
   @override
   String get query_species_expectedSites => 'Erwartet an Tauchplätzen';
+
+  @override
+  String get query_species_firstSeen => 'Zuerst gesehen';
+
+  @override
+  String get query_species_lastSeen => 'Zuletzt gesehen';
 
   @override
   String get query_species_name => 'Name';
@@ -46591,6 +47059,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_tanks_volume => 'Volumen';
+
+  @override
+  String get query_trips_diveCount => 'Anzahl Tauchgänge';
 
   @override
   String get query_trips_dives => 'Tauchgänge';
