@@ -30603,6 +30603,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'In deinem Profil ausgeblendet';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'Nur einer der ausgewählten Orte darf zu einem anderen Profil gehören. Hebe die Auswahl der anderen auf, um zusammenzuführen.';
 
@@ -30682,6 +30685,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedItems_undo => 'Rückgängig';
+
+  @override
+  String get sharedItems_unhideAction => 'In meinem Profil einblenden';
 
   @override
   String get sites_deleteShared_title => 'Geteilten Ort löschen?';

@@ -408,6 +408,33 @@ void main() {
       expect(fold(events: [fill(0)], uses: [a, b]).pressure, 90);
       expect(fold(events: [fill(0)], uses: [b, a]).pressure, 90);
     });
+
+    test('a copy with no end pressure never blanks its dive\'s reading', () {
+      // Issue #2661: two computers' rows for one cylinder share the slot.
+      // The one that logged no end pressure must not make the slot's
+      // pressure unknown, whichever tank id sorts last.
+      final logged = dive(60, tankId: 'a', end: 100);
+      final blank = dive(60, tankId: 'b', end: null);
+      for (final uses in [
+        [logged, blank],
+        [blank, logged],
+      ]) {
+        final s = fold(events: [fill(0)], uses: uses);
+        expect(s.pressure, 100);
+        expect(s.lastUse!.tankId, logged.tankId);
+      }
+    });
+
+    test('a dive whose every copy lacks an end pressure stays unknown', () {
+      final s = fold(
+        events: [fill(0)],
+        uses: [
+          dive(60, tankId: 'a', end: null),
+          dive(60, tankId: 'b', end: null),
+        ],
+      );
+      expect(s.pressure, isNull);
+    });
   });
 
   group('suggestTripCylinder', () {

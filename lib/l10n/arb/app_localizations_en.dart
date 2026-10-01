@@ -30172,6 +30172,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'Hidden from your profile';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'Only one of the selected sites can belong to another profile. Deselect the others to merge.';
 
@@ -30249,6 +30252,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sharedItems_undo => 'Undo';
+
+  @override
+  String get sharedItems_unhideAction => 'Show in my profile';
 
   @override
   String get sites_deleteShared_title => 'Delete shared site?';

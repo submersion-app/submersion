@@ -30747,6 +30747,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'Masqué dans votre profil';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'Un seul des sites sélectionnés peut appartenir à un autre profil. Désélectionnez les autres pour fusionner.';
 
@@ -30826,6 +30829,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedItems_undo => 'Annuler';
+
+  @override
+  String get sharedItems_unhideAction => 'Afficher dans mon profil';
 
   @override
   String get sites_deleteShared_title => 'Supprimer le site partagé ?';

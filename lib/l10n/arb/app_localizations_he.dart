@@ -29926,6 +29926,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'מוסתר בפרופיל שלך';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'רק אחד מהאתרים שנבחרו יכול להשתייך לפרופיל אחר. בטל את בחירת האחרים כדי למזג.';
 
@@ -30003,6 +30006,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedItems_undo => 'בטל';
+
+  @override
+  String get sharedItems_unhideAction => 'הצגה בפרופיל שלי';
 
   @override
   String get sites_deleteShared_title => 'למחוק את האתר המשותף?';

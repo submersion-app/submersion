@@ -30434,6 +30434,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'Verborgen in je profiel';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'Slechts één van de geselecteerde stekken mag bij een ander profiel horen. Deselecteer de andere om samen te voegen.';
 
@@ -30513,6 +30516,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get sharedItems_undo => 'Ongedaan maken';
+
+  @override
+  String get sharedItems_unhideAction => 'In mijn profiel tonen';
 
   @override
   String get sites_deleteShared_title => 'Gedeelde site verwijderen?';

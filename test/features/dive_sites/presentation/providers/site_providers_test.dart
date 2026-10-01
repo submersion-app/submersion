@@ -234,6 +234,33 @@ void main() {
       expect(restored?.country, 'Fiji');
       expect(await diveSiteId(), 'bd-1');
     });
+
+    test('restoreSites puts back the expected species the delete cascaded '
+        'away (issue #2718)', () async {
+      await siteRepository.createSite(
+        const DiveSite(id: 'bd-2', name: 'Bulk B'),
+      );
+      final turtle = await speciesRepository.createSpecies(
+        commonName: 'Green turtle',
+        category: SpeciesCategory.turtle,
+      );
+      final entry = await speciesRepository.addExpectedSpecies(
+        siteId: 'bd-2',
+        speciesId: turtle.id,
+        notes: 'Mornings',
+      );
+
+      final notifier = container.read(siteListNotifierProvider.notifier);
+      final deleted = await notifier.bulkDeleteSites(['bd-2']);
+      expect(
+        await speciesRepository.getExpectedSpeciesForSite('bd-2'),
+        isEmpty,
+      );
+
+      await notifier.restoreSites(deleted.sites, links: deleted.links);
+      final back = await speciesRepository.getExpectedSpeciesForSite('bd-2');
+      expect(back.map((e) => (e.id, e.notes)), [(entry.id, 'Mornings')]);
+    });
   });
 
   group('sitesWithCountsProvider auto-refresh', () {

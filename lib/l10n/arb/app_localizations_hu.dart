@@ -30551,6 +30551,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'A profilodban elrejtve';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'A kijelölt helyek közül csak egy tartozhat másik profilhoz. Az egyesítéshez szüntesd meg a többi kijelölését.';
 
@@ -30630,6 +30633,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get sharedItems_undo => 'Visszavonás';
+
+  @override
+  String get sharedItems_unhideAction => 'Megjelenítés a profilomban';
 
   @override
   String get sites_deleteShared_title => 'Megosztott helyszín törlése?';

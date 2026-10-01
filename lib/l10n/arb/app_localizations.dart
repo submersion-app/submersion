@@ -48444,6 +48444,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} of them is shared with other profiles and will be deleted for everyone.} other{{count} of them are shared with other profiles and will be deleted for everyone.}}'**
   String sharedItems_bulkSharedWarning_trips(int count);
 
+  /// Added after the Shared by line on a shared trip or site that the active profile has hidden from itself.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden from your profile'**
+  String get sharedItems_hiddenHere;
+
   /// Shown when a merge selection holds more than one site owned by another profile.
   ///
   /// In en, this message translates to:
@@ -48533,6 +48539,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Undo'**
   String get sharedItems_undo;
+
+  /// Menu action on a shared trip or site the active profile has hidden, showing it in that profile again. The counterpart of sharedItems_removeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in my profile'**
+  String get sharedItems_unhideAction;
 
   /// Title of the strengthened delete confirmation dialog shown when the dive site being deleted is shared with other dive profiles.
   ///

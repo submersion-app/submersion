@@ -29071,6 +29071,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => '已在您的资料中隐藏';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       '所选潜点中只能有一个属于其他资料。请取消选择其他潜点后再合并。';
 
@@ -29144,6 +29147,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sharedItems_undo => '撤消';
+
+  @override
+  String get sharedItems_unhideAction => '在我的资料中显示';
 
   @override
   String get sites_deleteShared_title => '删除共享潜点？';
