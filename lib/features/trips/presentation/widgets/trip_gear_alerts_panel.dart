@@ -40,9 +40,6 @@ class TripGearAlertsPanel extends ConsumerStatefulWidget {
 
   const TripGearAlertsPanel({super.key, required this.trip});
 
-  /// The most of the window the open panel may take before it scrolls.
-  static const maxHeightFraction = 0.4;
-
   /// The tappable one-line header that opens and closes the panel.
   static const headerKey = ValueKey('trip-gear-alerts-header');
 
@@ -136,45 +133,37 @@ class _TripGearAlertsPanelState extends ConsumerState<TripGearAlertsPanel> {
       ),
     );
 
-    // The panel sits above the page's own scrolling content, so once open
-    // it is capped at a share of the window and scrolls inside: several
-    // units on a compact screen would otherwise push the page off the
-    // bottom.
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight:
-            MediaQuery.sizeOf(context).height *
-            TripGearAlertsPanel.maxHeightFraction,
-      ),
-      child: Card(
-        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            header,
-            if (_expanded)
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      for (final (i, section) in sections.indexed) ...[
-                        if (i > 0) const Divider(height: 24),
-                        if (section.heading != summary) ...[
-                          _SectionHeading(section: section),
-                          const Divider(),
-                        ],
-                        section.details,
-                      ],
+    // The panel sits above the page's own scrolling content. Once open it
+    // lays out in full and scrolls with the other header cards inside their
+    // shared budget (TripHeaderCards), so several units on a compact screen
+    // cannot push the page off the bottom, and a drag on the details
+    // carries on to the cards below (#2653).
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          header,
+          if (_expanded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final (i, section) in sections.indexed) ...[
+                    if (i > 0) const Divider(height: 24),
+                    if (section.heading != summary) ...[
+                      _SectionHeading(section: section),
+                      const Divider(),
                     ],
-                  ),
-                ),
+                    section.details,
+                  ],
+                ],
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
