@@ -60,6 +60,10 @@ class ListEntryCount {
 /// The count for a list whose visible entries are [shown], or null until
 /// they (and, while [isFiltered], the unfiltered [total]) have loaded.
 ///
+/// Read through `valueOrNull`, the way the lists render their rows: a refresh
+/// keeps the count, but a reload (another diver, say) or an error hides it
+/// rather than showing the previous list's number.
+///
 /// [total] is only called while a filter is active, so a provider passing
 /// `() => ref.watch(...)` subscribes to the unfiltered list, and runs its
 /// query, only when there is a filter to compare against.
@@ -68,10 +72,10 @@ ListEntryCount? listEntryCount<T>({
   required bool isFiltered,
   required AsyncValue<List<T>> Function() total,
 }) {
-  final shownList = shown.value;
+  final shownList = shown.valueOrNull;
   if (shownList == null) return null;
   if (!isFiltered) return ListEntryCount.unfiltered(shownList.length);
-  final totalList = total().value;
+  final totalList = total().valueOrNull;
   if (totalList == null) return null;
   return ListEntryCount.filtered(
     shown: shownList.length,

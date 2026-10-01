@@ -149,7 +149,7 @@ void main() {
     expect(state.unfilteredTotalCount, isNull);
   });
 
-  test('logging a dive raises the unfiltered total', () async {
+  test('logging a dive under a filter recounts from the query', () async {
     final container = makeContainer();
     await waitFor(container, (s) => s.dives.length == 3);
     container.read(diveFilterProvider.notifier).state = const DiveFilterState(
@@ -164,6 +164,10 @@ void main() {
 
     final state = container.read(paginatedDiveListProvider).value!;
     expect(state.unfilteredTotalCount, 4);
+    // The new dive is not a favorite, so the filtered list and its count
+    // stay as they were rather than taking it in optimistically.
+    expect(state.totalCount, 1);
+    expect(state.dives.map((d) => d.id), ['a']);
   });
 
   // Table mode loads every dive and its filtered subset in full.

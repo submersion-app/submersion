@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/models/list_entry_count.dart';
@@ -50,8 +52,8 @@ void main() {
     });
   });
 
-  // The short form a narrow title falls back to drops the noun: the title
-  // above it already names the list.
+  // When a title is too narrow, the count falls back to a short form without
+  // the noun; the title above it already names the list.
   group('ListEntryCount.subtitle', () {
     test('pairs the full label with a noun-free compact one', () {
       expect(
@@ -121,6 +123,43 @@ void main() {
         ),
         const ListEntryCount.filtered(shown: 1, total: 3),
       );
+    });
+
+    // A dependency change (another diver, say) reloads the list: the count
+    // hides with the rows rather than showing the previous list's number.
+    test('is null while the shown list reloads', () async {
+      final generation = StateProvider<int>((ref) => 0);
+      final pending = <Completer<List<int>>>[];
+      final items = FutureProvider<List<int>>((ref) {
+        ref.watch(generation);
+        final load = Completer<List<int>>();
+        pending.add(load);
+        return load.future;
+      });
+      final count = Provider<ListEntryCount?>(
+        (ref) => listEntryCount<int>(
+          shown: ref.watch(items),
+          isFiltered: false,
+          total: () => ref.watch(items),
+        ),
+      );
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(count, (_, _) {});
+      addTearDown(sub.close);
+
+      pending.last.complete([1, 2, 3]);
+      await container.read(items.future);
+      expect(container.read(count), const ListEntryCount.unfiltered(3));
+
+      container.read(generation.notifier).state++;
+      container.read(items);
+      expect(container.read(items).isReloading, isTrue);
+      expect(container.read(count), isNull);
+
+      pending.last.complete([1]);
+      await container.read(items.future);
+      expect(container.read(count), const ListEntryCount.unfiltered(1));
     });
 
     test('is null while a filtered list waits on its total', () {

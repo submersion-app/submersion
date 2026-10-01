@@ -1114,16 +1114,20 @@ class PaginatedDiveListNotifier
     // of the diver this call started for: after a switch the loaded rows are
     // another diver's (or the same diver's, reloaded, after a switch back), so
     // reload rather than prepend a dive that does not belong or is already in.
+    //
+    // Under a filter the new dive may not match it, so the rows and both
+    // counts come from the query instead, without a spinner (#2669).
     final current = state.valueOrNull;
     if (_diverSwitches != diverSwitches) {
       await loadFirstPage();
+    } else if (current != null && current.unfilteredTotalCount != null) {
+      await _silentReloadLoadedPages();
     } else if (current != null) {
       final summary = DiveSummary.fromDive(newDive);
       state = AsyncValue.data(
         current.copyWith(
           dives: [summary, ...current.dives],
           totalCount: current.totalCount + 1,
-          unfilteredTotalCount: _shifted(current.unfilteredTotalCount, 1),
         ),
       );
     } else {

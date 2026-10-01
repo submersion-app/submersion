@@ -11,7 +11,7 @@ import 'package:submersion/shared/models/subtitle_text.dart';
 /// reload it queues, so pairing the two would briefly show the new filter
 /// against the old count. Null until the first page loads.
 final diveListCountProvider = Provider<ListEntryCount?>((ref) {
-  final state = ref.watch(paginatedDiveListProvider).value;
+  final state = ref.watch(paginatedDiveListProvider).valueOrNull;
   if (state == null) return null;
   final unfiltered = state.unfilteredTotalCount;
   return unfiltered == null
