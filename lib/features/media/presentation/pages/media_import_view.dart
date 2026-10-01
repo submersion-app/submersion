@@ -38,6 +38,10 @@ class MediaImportView extends ConsumerWidget {
   static final DateTime libraryWindowStart =
       DateTime.fromMillisecondsSinceEpoch(0);
 
+  // coverage:ignore-start
+  // showPhotoPicker drives a full-screen page tied to photo_manager and the
+  // platform photo library, which flutter_test cannot drive; tests reach
+  // launchImport through its `pick` seam instead.
   static Future<List<AssetInfo>> _pick(
     BuildContext context, {
     List<String>? initialFilePaths,
@@ -53,6 +57,7 @@ class MediaImportView extends ConsumerWidget {
     );
     return selected ?? const [];
   }
+  // coverage:ignore-end
 
   /// Imports the resolved assets, one service call per dive and per site.
   /// A failing group never blocks another: a throw inside one group is

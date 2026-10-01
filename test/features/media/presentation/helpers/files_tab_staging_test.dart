@@ -128,6 +128,17 @@ void main() {
       expect(state.files, [newer]);
     });
 
+    test('with auto-match off and no owner, files wait unmatched', () async {
+      final container = _container();
+      container.read(filesTabNotifierProvider.notifier).toggleAutoMatch();
+
+      await stageFilesForReview(container, [_path('10.jpg')]);
+
+      final state = container.read(filesTabNotifierProvider);
+      expect(state.match.matched, isEmpty);
+      expect(state.match.unmatched.map((f) => f.sourcePath), [_path('10.jpg')]);
+    });
+
     test(
       'with auto-match off, a dive session stages every file on its dive',
       () async {

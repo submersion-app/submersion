@@ -9,7 +9,10 @@ import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 import 'package:submersion/features/media/presentation/helpers/media_drop_destination.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -52,6 +55,11 @@ Widget _buildTestApp({
             path: '/media',
             name: 'media',
             builder: (context, state) => const Text('Media Content'),
+          ),
+          GoRoute(
+            path: '/dives',
+            name: 'dives',
+            builder: (context, state) => const Text('Dive List'),
           ),
           GoRoute(
             path: '/dives/:diveId',
@@ -599,6 +607,75 @@ void main() {
         );
       },
     );
+
+    // The dive list shows its `?selected=` dive beside it only in a wide
+    // window, and in table mode only with the details pane toggled on.
+    Future<List<_MediaDrop>> dropOnDiveList(
+      WidgetTester tester, {
+      required double width,
+      ListViewMode mode = ListViewMode.detailed,
+      bool tableDetailsPane = true,
+    }) async {
+      tester.view.physicalSize = Size(width, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final container = ProviderContainer(
+        overrides: [
+          diveListViewModeProvider.overrideWith((ref) => mode),
+          tableDetailsPaneProvider.overrideWith((ref, _) => tableDetailsPane),
+        ],
+      );
+      addTearDown(container.dispose);
+      final drops = <_MediaDrop>[];
+      await tester.pumpWidget(
+        _buildTestApp(
+          initialLocation: '/dives?selected=dive-1',
+          mediaDrops: drops,
+          container: container,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await _triggerDrop(
+        tester,
+        drop([_dropItemFromBytes(_pngBytes, 'P4204060.jpg')]),
+      );
+      return drops;
+    }
+
+    testWidgets(
+      'a wide dive list attaches to its selected dive',
+      variant: _macOS,
+      (tester) async {
+        final drops = await dropOnDiveList(tester, width: 1400);
+
+        expect(
+          drops.single.destination,
+          const MediaDropDestination(target: DiveAttachTarget('dive-1')),
+        );
+      },
+    );
+
+    testWidgets(
+      'a dive table with its details pane off does not',
+      variant: _macOS,
+      (tester) async {
+        final drops = await dropOnDiveList(
+          tester,
+          width: 1400,
+          mode: ListViewMode.table,
+          tableDetailsPane: false,
+        );
+
+        expect(drops, isEmpty);
+      },
+    );
+
+    testWidgets('a narrow dive list does not', variant: _macOS, (tester) async {
+      final drops = await dropOnDiveList(tester, width: 900);
+
+      expect(drops, isEmpty);
+    });
 
     testWidgets(
       'a drop while a photo picker is open is turned away',
