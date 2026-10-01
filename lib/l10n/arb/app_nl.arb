@@ -4308,6 +4308,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "Deze duik komt al overeen met de configuratie",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{{count} bijgewerkt} other{{count} bijgewerkt}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "Flesgegevens vervangen?",
+  "cylinderConfigs_overwriteBody": "Het toepassen van {name} wijzigt flessen die al bij deze duik staan:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "Fles {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "Gasmengsels en begindrukken van de duik blijven behouden.",
+  "cylinderConfigs_overwriteConfirm": "Vervangen",
+  "cylinderConfigs_fieldVolume": "Volume",
+  "cylinderConfigs_fieldWorkingPressure": "Werkdruk",
+  "cylinderConfigs_fieldMaterial": "Materiaal",
   "cylinderConfigs_sectionTitle": "Configuraties",
   "equipment_serviceClocks_hoursSource": "Berekend op basis van geregistreerde duiktijd",
   "equipment_serviceClocks_hoursLeft": "{remaining} van {total} uur resterend",

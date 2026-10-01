@@ -14543,6 +14543,52 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questa immersione corrisponde già alla configurazione';
 
   @override
+  String cylinderConfigs_applyUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count aggiornate',
+      one: '$count aggiornata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteTitle =>
+      'Sostituire i dati delle bombole?';
+
+  @override
+  String cylinderConfigs_overwriteBody(String name) {
+    return 'Applicare $name modifica bombole già presenti in questa immersione:';
+  }
+
+  @override
+  String cylinderConfigs_overwriteTank(int number, String role) {
+    return 'Bombola $number · $role';
+  }
+
+  @override
+  String cylinderConfigs_overwriteChange(String field, String from, String to) {
+    return '$field: $from → $to';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteKeepsGas =>
+      'Le miscele e le pressioni iniziali dell\'immersione vengono mantenute.';
+
+  @override
+  String get cylinderConfigs_overwriteConfirm => 'Sostituisci';
+
+  @override
+  String get cylinderConfigs_fieldVolume => 'Volume';
+
+  @override
+  String get cylinderConfigs_fieldWorkingPressure => 'Pressione di esercizio';
+
+  @override
+  String get cylinderConfigs_fieldMaterial => 'Materiale';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configurazioni';
 
   @override

@@ -14335,6 +14335,51 @@ class AppLocalizationsEn extends AppLocalizations {
       'This dive already matches the configuration';
 
   @override
+  String cylinderConfigs_applyUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'updated $count',
+      one: 'updated $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteTitle => 'Replace cylinder details?';
+
+  @override
+  String cylinderConfigs_overwriteBody(String name) {
+    return 'Applying $name changes cylinders already on this dive:';
+  }
+
+  @override
+  String cylinderConfigs_overwriteTank(int number, String role) {
+    return 'Tank $number · $role';
+  }
+
+  @override
+  String cylinderConfigs_overwriteChange(String field, String from, String to) {
+    return '$field: $from → $to';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteKeepsGas =>
+      'Gas mixes and start pressures already on the dive are kept.';
+
+  @override
+  String get cylinderConfigs_overwriteConfirm => 'Replace';
+
+  @override
+  String get cylinderConfigs_fieldVolume => 'Volume';
+
+  @override
+  String get cylinderConfigs_fieldWorkingPressure => 'Working pressure';
+
+  @override
+  String get cylinderConfigs_fieldMaterial => 'Material';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configurations';
 
   @override

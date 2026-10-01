@@ -14590,6 +14590,52 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cette plongée correspond déjà à la configuration';
 
   @override
+  String cylinderConfigs_applyUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mises à jour',
+      one: '$count mise à jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteTitle =>
+      'Remplacer les caractéristiques des bouteilles ?';
+
+  @override
+  String cylinderConfigs_overwriteBody(String name) {
+    return 'Appliquer $name modifie des bouteilles déjà présentes sur cette plongée :';
+  }
+
+  @override
+  String cylinderConfigs_overwriteTank(int number, String role) {
+    return 'Bloc $number · $role';
+  }
+
+  @override
+  String cylinderConfigs_overwriteChange(String field, String from, String to) {
+    return '$field : $from → $to';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteKeepsGas =>
+      'Les mélanges et les pressions de départ de la plongée sont conservés.';
+
+  @override
+  String get cylinderConfigs_overwriteConfirm => 'Remplacer';
+
+  @override
+  String get cylinderConfigs_fieldVolume => 'Volume';
+
+  @override
+  String get cylinderConfigs_fieldWorkingPressure => 'Pression de service';
+
+  @override
+  String get cylinderConfigs_fieldMaterial => 'Matériau';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configurations';
 
   @override

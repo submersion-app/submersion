@@ -14243,6 +14243,51 @@ class AppLocalizationsHe extends AppLocalizations {
   String get cylinderConfigs_applyNothingToDo => 'הצלילה כבר תואמת לתצורה';
 
   @override
+  String cylinderConfigs_applyUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count עודכנו',
+      one: 'אחד עודכן',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteTitle => 'להחליף את פרטי הבלונים?';
+
+  @override
+  String cylinderConfigs_overwriteBody(String name) {
+    return 'החלת $name משנה בלונים שכבר רשומים בצלילה זו:';
+  }
+
+  @override
+  String cylinderConfigs_overwriteTank(int number, String role) {
+    return 'מיכל $number · $role';
+  }
+
+  @override
+  String cylinderConfigs_overwriteChange(String field, String from, String to) {
+    return '$field: $from → $to';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteKeepsGas =>
+      'תערובות הגז ולחצי ההתחלה של הצלילה נשמרים.';
+
+  @override
+  String get cylinderConfigs_overwriteConfirm => 'החלפה';
+
+  @override
+  String get cylinderConfigs_fieldVolume => 'נפח';
+
+  @override
+  String get cylinderConfigs_fieldWorkingPressure => 'לחץ עבודה';
+
+  @override
+  String get cylinderConfigs_fieldMaterial => 'חומר';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'תצורות';
 
   @override

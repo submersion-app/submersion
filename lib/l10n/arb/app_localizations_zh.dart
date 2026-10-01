@@ -13913,6 +13913,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cylinderConfigs_applyNothingToDo => '该潜水已与配置一致';
 
   @override
+  String cylinderConfigs_applyUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '更新 $count 个',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteTitle => '替换气瓶参数？';
+
+  @override
+  String cylinderConfigs_overwriteBody(String name) {
+    return '应用 $name 将更改此潜水中已有的气瓶：';
+  }
+
+  @override
+  String cylinderConfigs_overwriteTank(int number, String role) {
+    return '气瓶 $number · $role';
+  }
+
+  @override
+  String cylinderConfigs_overwriteChange(String field, String from, String to) {
+    return '$field：$from → $to';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteKeepsGas => '潜水中已有的混合气和起始压力保持不变。';
+
+  @override
+  String get cylinderConfigs_overwriteConfirm => '替换';
+
+  @override
+  String get cylinderConfigs_fieldVolume => '容积';
+
+  @override
+  String get cylinderConfigs_fieldWorkingPressure => '工作压力';
+
+  @override
+  String get cylinderConfigs_fieldMaterial => '材质';
+
+  @override
   String get cylinderConfigs_sectionTitle => '配置';
 
   @override

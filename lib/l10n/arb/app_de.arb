@@ -4332,6 +4332,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "Dieser Tauchgang entspricht bereits der Konfiguration",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{{count} aktualisiert} other{{count} aktualisiert}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "Flaschendaten ersetzen?",
+  "cylinderConfigs_overwriteBody": "Das Anwenden von {name} ändert Flaschen, die bereits in diesem Tauchgang erfasst sind:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "Flasche {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "Gasgemische und Anfangsdrücke des Tauchgangs bleiben erhalten.",
+  "cylinderConfigs_overwriteConfirm": "Ersetzen",
+  "cylinderConfigs_fieldVolume": "Volumen",
+  "cylinderConfigs_fieldWorkingPressure": "Betriebsdruck",
+  "cylinderConfigs_fieldMaterial": "Material",
   "cylinderConfigs_sectionTitle": "Konfigurationen",
   "equipment_serviceClocks_hoursSource": "Aus der protokollierten Tauchzeit berechnet",
   "equipment_serviceClocks_hoursLeft": "{remaining} von {total} Stunden übrig",

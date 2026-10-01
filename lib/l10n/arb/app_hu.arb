@@ -4206,6 +4206,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "Ez a merülés már megegyezik a konfigurációval",
+  "cylinderConfigs_applyUpdated": "{count, plural, other{{count} frissítve}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "Lecseréled a palackok adatait?",
+  "cylinderConfigs_overwriteBody": "A(z) {name} alkalmazása megváltoztatja a merülésen már szereplő palackokat:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "{number}. palack · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "A merülés gázkeverékei és kezdőnyomásai megmaradnak.",
+  "cylinderConfigs_overwriteConfirm": "Csere",
+  "cylinderConfigs_fieldVolume": "Térfogat",
+  "cylinderConfigs_fieldWorkingPressure": "Üzemi nyomás",
+  "cylinderConfigs_fieldMaterial": "Anyag",
   "cylinderConfigs_sectionTitle": "Konfigurációk",
   "equipment_serviceClocks_hoursSource": "A naplózott merülési idő alapján számolva",
   "equipment_serviceClocks_hoursLeft": "{remaining} / {total} óra van hátra",

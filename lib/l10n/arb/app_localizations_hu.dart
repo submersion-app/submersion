@@ -14511,6 +14511,50 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez a merülés már megegyezik a konfigurációval';
 
   @override
+  String cylinderConfigs_applyUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count frissítve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteTitle => 'Lecseréled a palackok adatait?';
+
+  @override
+  String cylinderConfigs_overwriteBody(String name) {
+    return 'A(z) $name alkalmazása megváltoztatja a merülésen már szereplő palackokat:';
+  }
+
+  @override
+  String cylinderConfigs_overwriteTank(int number, String role) {
+    return '$number. palack · $role';
+  }
+
+  @override
+  String cylinderConfigs_overwriteChange(String field, String from, String to) {
+    return '$field: $from → $to';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteKeepsGas =>
+      'A merülés gázkeverékei és kezdőnyomásai megmaradnak.';
+
+  @override
+  String get cylinderConfigs_overwriteConfirm => 'Csere';
+
+  @override
+  String get cylinderConfigs_fieldVolume => 'Térfogat';
+
+  @override
+  String get cylinderConfigs_fieldWorkingPressure => 'Üzemi nyomás';
+
+  @override
+  String get cylinderConfigs_fieldMaterial => 'Anyag';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Konfigurációk';
 
   @override

@@ -14445,6 +14445,51 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze duik komt al overeen met de configuratie';
 
   @override
+  String cylinderConfigs_applyUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bijgewerkt',
+      one: '$count bijgewerkt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteTitle => 'Flesgegevens vervangen?';
+
+  @override
+  String cylinderConfigs_overwriteBody(String name) {
+    return 'Het toepassen van $name wijzigt flessen die al bij deze duik staan:';
+  }
+
+  @override
+  String cylinderConfigs_overwriteTank(int number, String role) {
+    return 'Fles $number · $role';
+  }
+
+  @override
+  String cylinderConfigs_overwriteChange(String field, String from, String to) {
+    return '$field: $from → $to';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteKeepsGas =>
+      'Gasmengsels en begindrukken van de duik blijven behouden.';
+
+  @override
+  String get cylinderConfigs_overwriteConfirm => 'Vervangen';
+
+  @override
+  String get cylinderConfigs_fieldVolume => 'Volume';
+
+  @override
+  String get cylinderConfigs_fieldWorkingPressure => 'Werkdruk';
+
+  @override
+  String get cylinderConfigs_fieldMaterial => 'Materiaal';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'Configuraties';
 
   @override

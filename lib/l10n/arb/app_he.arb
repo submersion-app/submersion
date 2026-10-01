@@ -4206,6 +4206,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "הצלילה כבר תואמת לתצורה",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{אחד עודכן} other{{count} עודכנו}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "להחליף את פרטי הבלונים?",
+  "cylinderConfigs_overwriteBody": "החלת {name} משנה בלונים שכבר רשומים בצלילה זו:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "מיכל {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "תערובות הגז ולחצי ההתחלה של הצלילה נשמרים.",
+  "cylinderConfigs_overwriteConfirm": "החלפה",
+  "cylinderConfigs_fieldVolume": "נפח",
+  "cylinderConfigs_fieldWorkingPressure": "לחץ עבודה",
+  "cylinderConfigs_fieldMaterial": "חומר",
   "cylinderConfigs_sectionTitle": "תצורות",
   "equipment_serviceClocks_hoursSource": "מחושב מזמן הצלילה המתועד",
   "equipment_serviceClocks_hoursLeft": "נותרו {remaining} מתוך {total} שעות",

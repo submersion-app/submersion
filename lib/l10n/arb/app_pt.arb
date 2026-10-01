@@ -4308,6 +4308,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "Este mergulho já corresponde à configuração",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{{count} atualizada} other{{count} atualizadas}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "Substituir os dados das garrafas?",
+  "cylinderConfigs_overwriteBody": "Aplicar {name} altera garrafas que já estão neste mergulho:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "Cilindro {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "As misturas de gás e as pressões iniciais do mergulho são mantidas.",
+  "cylinderConfigs_overwriteConfirm": "Substituir",
+  "cylinderConfigs_fieldVolume": "Volume",
+  "cylinderConfigs_fieldWorkingPressure": "Pressão de trabalho",
+  "cylinderConfigs_fieldMaterial": "Material",
   "cylinderConfigs_sectionTitle": "Configurações",
   "equipment_serviceClocks_hoursSource": "Calculado a partir do tempo de mergulho registado",
   "equipment_serviceClocks_hoursLeft": "Restam {remaining} de {total} horas",

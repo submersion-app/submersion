@@ -23750,6 +23750,66 @@ abstract class AppLocalizations {
   /// **'This dive already matches the configuration'**
   String get cylinderConfigs_applyNothingToDo;
 
+  /// No description provided for @cylinderConfigs_applyUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{updated {count}} other{updated {count}}}'**
+  String cylinderConfigs_applyUpdated(int count);
+
+  /// No description provided for @cylinderConfigs_overwriteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace cylinder details?'**
+  String get cylinderConfigs_overwriteTitle;
+
+  /// No description provided for @cylinderConfigs_overwriteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Applying {name} changes cylinders already on this dive:'**
+  String cylinderConfigs_overwriteBody(String name);
+
+  /// No description provided for @cylinderConfigs_overwriteTank.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank {number} · {role}'**
+  String cylinderConfigs_overwriteTank(int number, String role);
+
+  /// No description provided for @cylinderConfigs_overwriteChange.
+  ///
+  /// In en, this message translates to:
+  /// **'{field}: {from} → {to}'**
+  String cylinderConfigs_overwriteChange(String field, String from, String to);
+
+  /// No description provided for @cylinderConfigs_overwriteKeepsGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas mixes and start pressures already on the dive are kept.'**
+  String get cylinderConfigs_overwriteKeepsGas;
+
+  /// No description provided for @cylinderConfigs_overwriteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get cylinderConfigs_overwriteConfirm;
+
+  /// No description provided for @cylinderConfigs_fieldVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get cylinderConfigs_fieldVolume;
+
+  /// No description provided for @cylinderConfigs_fieldWorkingPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Working pressure'**
+  String get cylinderConfigs_fieldWorkingPressure;
+
+  /// No description provided for @cylinderConfigs_fieldMaterial.
+  ///
+  /// In en, this message translates to:
+  /// **'Material'**
+  String get cylinderConfigs_fieldMaterial;
+
   /// No description provided for @cylinderConfigs_sectionTitle.
   ///
   /// In en, this message translates to:

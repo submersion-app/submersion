@@ -4308,6 +4308,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "هذه الغوصة تطابق الإعداد بالفعل",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{مع تحديث واحدة} other{مع تحديث {count}}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "استبدال بيانات الأسطوانات؟",
+  "cylinderConfigs_overwriteBody": "يؤدي تطبيق {name} إلى تغيير أسطوانات موجودة بالفعل في هذه الغوصة:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "أسطوانة {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} ← {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "يتم الإبقاء على خلطات الغاز وضغوط البداية الخاصة بالغوصة.",
+  "cylinderConfigs_overwriteConfirm": "استبدال",
+  "cylinderConfigs_fieldVolume": "الحجم",
+  "cylinderConfigs_fieldWorkingPressure": "ضغط العمل",
+  "cylinderConfigs_fieldMaterial": "المادة",
   "cylinderConfigs_sectionTitle": "الإعدادات",
   "equipment_serviceClocks_hoursSource": "محسوب من زمن الغوص المسجل",
   "equipment_serviceClocks_hoursLeft": "متبقٍ {remaining} من {total} ساعة",

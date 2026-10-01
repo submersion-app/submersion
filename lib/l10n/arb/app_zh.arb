@@ -4454,6 +4454,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "该潜水已与配置一致",
+  "cylinderConfigs_applyUpdated": "{count, plural, other{更新 {count} 个}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "替换气瓶参数？",
+  "cylinderConfigs_overwriteBody": "应用 {name} 将更改此潜水中已有的气瓶：",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "气瓶 {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}：{from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "潜水中已有的混合气和起始压力保持不变。",
+  "cylinderConfigs_overwriteConfirm": "替换",
+  "cylinderConfigs_fieldVolume": "容积",
+  "cylinderConfigs_fieldWorkingPressure": "工作压力",
+  "cylinderConfigs_fieldMaterial": "材质",
   "cylinderConfigs_sectionTitle": "配置",
   "equipment_serviceClocks_hoursSource": "根据已记录的潜水时间计算",
   "equipment_serviceClocks_hoursLeft": "剩余 {remaining}/{total} 小时",

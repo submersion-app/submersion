@@ -4206,6 +4206,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "Cette plongée correspond déjà à la configuration",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{{count} mise à jour} other{{count} mises à jour}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "Remplacer les caractéristiques des bouteilles ?",
+  "cylinderConfigs_overwriteBody": "Appliquer {name} modifie des bouteilles déjà présentes sur cette plongée :",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "Bloc {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field} : {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "Les mélanges et les pressions de départ de la plongée sont conservés.",
+  "cylinderConfigs_overwriteConfirm": "Remplacer",
+  "cylinderConfigs_fieldVolume": "Volume",
+  "cylinderConfigs_fieldWorkingPressure": "Pression de service",
+  "cylinderConfigs_fieldMaterial": "Matériau",
   "cylinderConfigs_sectionTitle": "Configurations",
   "equipment_serviceClocks_hoursSource": "Calculé à partir du temps de plongée enregistré",
   "equipment_serviceClocks_hoursLeft": "{remaining} heures restantes sur {total}",

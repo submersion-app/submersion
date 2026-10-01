@@ -14339,6 +14339,51 @@ class AppLocalizationsAr extends AppLocalizations {
       'هذه الغوصة تطابق الإعداد بالفعل';
 
   @override
+  String cylinderConfigs_applyUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مع تحديث $count',
+      one: 'مع تحديث واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteTitle => 'استبدال بيانات الأسطوانات؟';
+
+  @override
+  String cylinderConfigs_overwriteBody(String name) {
+    return 'يؤدي تطبيق $name إلى تغيير أسطوانات موجودة بالفعل في هذه الغوصة:';
+  }
+
+  @override
+  String cylinderConfigs_overwriteTank(int number, String role) {
+    return 'أسطوانة $number · $role';
+  }
+
+  @override
+  String cylinderConfigs_overwriteChange(String field, String from, String to) {
+    return '$field: $from ← $to';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteKeepsGas =>
+      'يتم الإبقاء على خلطات الغاز وضغوط البداية الخاصة بالغوصة.';
+
+  @override
+  String get cylinderConfigs_overwriteConfirm => 'استبدال';
+
+  @override
+  String get cylinderConfigs_fieldVolume => 'الحجم';
+
+  @override
+  String get cylinderConfigs_fieldWorkingPressure => 'ضغط العمل';
+
+  @override
+  String get cylinderConfigs_fieldMaterial => 'المادة';
+
+  @override
   String get cylinderConfigs_sectionTitle => 'الإعدادات';
 
   @override

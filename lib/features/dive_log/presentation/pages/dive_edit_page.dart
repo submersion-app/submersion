@@ -90,6 +90,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/rare_sections.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/dive_tank_config_adapter.dart';
+import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_confirm_dialog.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/statistics_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/tank_row.dart';
@@ -3567,16 +3568,36 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// state until the diver taps Save, so writing through would bypass dirty
   /// tracking and persist changes even if they then cancelled. All merge
   /// rules live in CylinderConfigApplier via DiveTankConfigAdapter, which
-  /// never overwrites a gas mix already on the dive.
-  void _applyCylinderConfig(CylinderConfig config) {
+  /// never overwrites a gas mix already on the dive. A different size,
+  /// pressure, material or label on a matched cylinder is replaced only once
+  /// the diver confirms it (issue #2563).
+  Future<void> _applyCylinderConfig(CylinderConfig config) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+    const adapter = DiveTankConfigAdapter();
 
-    final result = const DiveTankConfigAdapter().apply(
+    var result = adapter.apply(
       tanks: _tanks,
       items: config.items,
       newId: (_) => _uuid.v4(),
     );
+
+    if (result.overwrites.isNotEmpty) {
+      final confirmed = await confirmCylinderOverwrites(
+        context,
+        configName: config.name,
+        overwrites: result.overwrites,
+        tanks: _tanks,
+        units: UnitFormatter(ref.read(settingsProvider)),
+      );
+      if (!confirmed || !mounted) return;
+      result = adapter.apply(
+        tanks: _tanks,
+        items: config.items,
+        newId: (_) => _uuid.v4(),
+        overwrite: true,
+      );
+    }
 
     // A repeat apply matches every role and so reports a non-zero kept while
     // doing no work. Rebuilding then would mark the form dirty and raise an
@@ -3599,8 +3620,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          '${l10n.cylinderConfigs_applyAdded(result.added)}, '
-          '${l10n.cylinderConfigs_applyKept(result.kept)}',
+          [
+            l10n.cylinderConfigs_applyAdded(result.added),
+            l10n.cylinderConfigs_applyKept(result.kept),
+            if (result.updated > 0)
+              l10n.cylinderConfigs_applyUpdated(result.updated),
+          ].join(', '),
         ),
       ),
     );

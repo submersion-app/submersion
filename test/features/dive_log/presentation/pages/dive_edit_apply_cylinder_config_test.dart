@@ -44,14 +44,17 @@ void main() {
         updatedAt: now,
       );
 
-  Future<Widget> host({required List<CylinderConfigItem> items}) async {
+  Future<Widget> host({
+    required List<CylinderConfigItem> items,
+    List<DiveTank> tanks = const [],
+  }) async {
     final dive = Dive(
       id: 'dive-1',
       diveNumber: 1,
       dateTime: DateTime(2026, 3, 28, 10, 0),
       bottomTime: const Duration(minutes: 40),
       maxDepth: 30,
-      tanks: const [],
+      tanks: tanks,
       profile: const [],
       gear: looseGear(const []),
       notes: '',
@@ -160,5 +163,83 @@ void main() {
       find.text('This dive already matches the configuration'),
       findsOneWidget,
     );
+  });
+
+  group('a configuration that differs from the dive (issue #2563)', () {
+    // The reporter's case: a CCR dive logged with a 1.5 L O2 cylinder, and a
+    // configuration that says the O2 cylinder is 2 L. Before #2563 the apply
+    // only filled empty columns, so it said "already matches" and changed
+    // nothing.
+    const o2Tank = DiveTank(
+      id: 'tank-o2',
+      role: TankRole.oxygenSupply,
+      volume: 1.5,
+      startPressure: 200,
+      gasMix: GasMix(o2: 100),
+    );
+
+    List<CylinderConfigItem> twoLitreO2() => [
+      CylinderConfigItem(
+        id: 'i1',
+        configId: 'c1',
+        tankRole: TankRole.oxygenSupply,
+        o2Percent: 100,
+        volumeL: 2,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    ];
+
+    testWidgets('asks first, then replaces the cylinder size on confirm', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        await host(items: twoLitreO2(), tanks: const [o2Tank]),
+      );
+      await tester.pumpAndSettle();
+
+      await openGasGear(tester);
+      await applyConfig(tester);
+
+      Finder inDialog(String text) => find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text(text),
+      );
+      expect(inDialog('Replace cylinder details?'), findsOneWidget);
+      // The same label the page gives the tank row, so the diver can tell
+      // two cylinders of one role apart.
+      expect(inDialog('Tank 1 · O₂ Supply'), findsOneWidget);
+      expect(inDialog('Volume: 1.5 L → 2 L'), findsOneWidget);
+
+      await tester.tap(find.text('Replace'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('updated 1'), findsOneWidget);
+      expect(
+        find.text('This dive already matches the configuration'),
+        findsNothing,
+      );
+      expect(find.textContaining('· 2 L ·'), findsOneWidget);
+      expect(find.textContaining('· 1.5 L ·'), findsNothing);
+    });
+
+    testWidgets('cancelling the prompt leaves the dive untouched', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        await host(items: twoLitreO2(), tanks: const [o2Tank]),
+      );
+      await tester.pumpAndSettle();
+
+      await openGasGear(tester);
+      await applyConfig(tester);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SnackBar), findsNothing);
+      expect(find.textContaining('· 1.5 L ·'), findsOneWidget);
+      expect(find.textContaining('· 2 L ·'), findsNothing);
+    });
   });
 }
