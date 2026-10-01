@@ -29,7 +29,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
-import 'package:submersion/shared/widgets/shared_items/shared_item_standing.dart';
 
 class TripDetailPage extends ConsumerStatefulWidget {
   final String tripId;
@@ -470,13 +469,16 @@ class _TripDetailContent extends ConsumerWidget {
     // Lightroom scan hidden pending Adobe review (lightroomUiEnabled).
     final hasLightroomAccount =
         lightroomUiEnabled && ref.watch(lightroomAccountProvider).value != null;
-    final standing = watchSharedItemStanding(ref, ownerId: trip.diverId);
+    final canDestroy = canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
+      ownerId: trip.diverId,
+    );
     // A trip this profile already removed offers Unhide (issue #2679).
     final hidden = watchHiddenHere(
       ref,
       SharedItemKind.trip,
       trip.id,
-      canDestroy: standing != SharedItemStanding.other,
+      canDestroy: canDestroy != false,
     );
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
@@ -576,10 +578,9 @@ class _TripDetailContent extends ConsumerWidget {
           ),
         ),
         // Delete for the owner; another profile only removes the shared
-        // trip from itself (issue #2594).
-        // Delete for the owner, Remove for another profile, and neither
-        // until the active profile has settled.
-        if (standing == SharedItemStanding.owner)
+        // trip from itself (issue #2594); neither while the profile is
+        // unknown (issue #2682).
+        if (canDestroy == true)
           PopupMenuItem(
             value: 'delete',
             child: Row(
@@ -604,7 +605,7 @@ class _TripDetailContent extends ConsumerWidget {
               ],
             ),
           )
-        else if (standing == SharedItemStanding.other)
+        else if (canDestroy == false)
           PopupMenuItem(
             value: 'remove',
             child: Row(

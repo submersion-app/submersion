@@ -46,6 +46,7 @@ void main() {
     bool allowed = true,
     bool failHides = false,
     GatedActiveProfile? activeProfile,
+    bool profileUnreadable = false,
     bool hidden = false,
   }) async {
     tester.view.devicePixelRatio = 1.0;
@@ -72,7 +73,11 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           allDiversProvider.overrideWith((_) async => divers),
           validatedCurrentDiverIdProvider.overrideWith(
-            (_) => activeProfile?.read() ?? Future.value(active),
+            (_) =>
+                activeProfile?.read() ??
+                (profileUnreadable
+                    ? Future<String?>.error(StateError('no profile'))
+                    : Future.value(active)),
           ),
           profileHidesRepositoryProvider.overrideWithValue(
             _FakeHides(hidden: hidden),
@@ -105,6 +110,20 @@ void main() {
     await tester.pumpAndSettle();
     return notifier;
   }
+
+  // Read as "no profile", the page offered another profile's trip its
+  // Delete (issue #2682).
+  testWidgets('an unreadable profile offers neither Delete nor Remove', (
+    tester,
+  ) async {
+    await pump(tester, active: 'd2', profileUnreadable: true);
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Export'), findsOneWidget);
+    expect(find.text('Delete'), findsNothing);
+    expect(find.text('Remove from my profile'), findsNothing);
+  });
 
   testWidgets('another profile sees Shared by and removes it from itself', (
     tester,

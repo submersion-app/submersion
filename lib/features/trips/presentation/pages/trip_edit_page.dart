@@ -20,7 +20,6 @@ import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
-import 'package:submersion/shared/widgets/shared_items/shared_item_standing.dart';
 
 class TripEditPage extends ConsumerStatefulWidget {
   final String? tripId;
@@ -639,11 +638,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   ref
                       .watch(allDiversProvider)
                       .maybeWhen(
-                        // Hidden until the active profile has settled,
-                        // rather than offer it to the wrong profile.
-                        data: (divers) =>
-                            divers.length >= 2 &&
-                                _standing() != SharedItemStanding.unknown
+                        data: (divers) => divers.length >= 2
                             ? SwitchListTile(
                                 title: Text(
                                   context
@@ -651,7 +646,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                                       .common_label_shareWithAllProfiles,
                                 ),
                                 // Only the owner changes sharing (#2594).
-                                subtitle: _mayShare()
+                                subtitle: _mayShare() != false
                                     ? null
                                     : Text(
                                         context.l10n.sharedItems_shareOwnerOnly(
@@ -663,7 +658,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                                         ),
                                       ),
                                 value: _isShared,
-                                onChanged: !_mayShare()
+                                onChanged: _mayShare() != true
                                     ? null
                                     : (v) async {
                                         if (!v &&
@@ -936,15 +931,16 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
   /// Asks the user to confirm un-sharing an existing shared trip.
   /// Returns [true] if confirmed, [false] or [null] to cancel.
-  /// Where the active profile stands on this trip (issue #2594): the owner
-  /// of a new one. Read during build, so it watches the active profile.
-  SharedItemStanding _standing() => _originalTrip == null
-      ? SharedItemStanding.owner
-      : watchSharedItemStanding(ref, ownerId: _originalTrip?.diverId);
-
-  /// Whether the active profile may change this trip's sharing: only its
-  /// owner (issue #2594).
-  bool _mayShare() => _standing() == SharedItemStanding.owner;
+  /// Whether the active profile may change this trip's sharing: always for
+  /// a new trip, and only the owner for an existing one (issue #2594); null
+  /// while the profile is unknown, which locks it without naming an owner
+  /// (issue #2682). Read during build, so it watches the active profile.
+  bool? _mayShare() => _originalTrip == null
+      ? true
+      : canDestroySharedItemOnceKnown(
+          ref.watch(validatedCurrentDiverIdProvider),
+          ownerId: _originalTrip?.diverId,
+        );
 
   Future<bool?> _showUnshareConfirmDialog(BuildContext ctx) {
     final tripName = _nameController.text.trim().isNotEmpty

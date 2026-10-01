@@ -725,6 +725,7 @@ void main() {
       WidgetTester tester, {
       required String active,
       GatedActiveProfile? activeProfile,
+      bool profileUnreadable = false,
     }) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -737,7 +738,11 @@ void main() {
             }),
             allDiversProvider.overrideWith((_) async => twoDivers),
             validatedCurrentDiverIdProvider.overrideWith(
-              (_) => activeProfile?.read() ?? Future.value(active),
+              (_) =>
+                  activeProfile?.read() ??
+                  (profileUnreadable
+                      ? Future<String?>.error(StateError('no profile'))
+                      : Future.value(active)),
             ),
             shareByDefaultProvider.overrideWith((_) async => true),
           ],
@@ -774,7 +779,7 @@ void main() {
       expect(find.text('Only Alice can change sharing'), findsOneWidget);
     });
 
-    testWidgets('is hidden while a profile switch re-reads the profile '
+    testWidgets('is locked while a profile switch re-reads the profile '
         '(issue #2677 review)', (tester) async {
       final activeProfile = GatedActiveProfile.settled('d1');
       final tile = await shareSwitch(
@@ -788,11 +793,32 @@ void main() {
         tester.element(find.byType(TripEditPage)),
       ).invalidate(validatedCurrentDiverIdProvider);
       await tester.pump();
-      expect(find.text('Share with all dive profiles'), findsNothing);
+      final locked = tester.widget<SwitchListTile>(
+        find.byWidgetPredicate(
+          (w) =>
+              w is SwitchListTile &&
+              w.title is Text &&
+              (w.title as Text).data == 'Share with all dive profiles',
+        ),
+      );
+      expect(locked.onChanged, isNull);
+      expect(find.text('Only Alice can change sharing'), findsNothing);
 
       activeProfile.settle('d2');
       await tester.pumpAndSettle();
       expect(find.text('Only Alice can change sharing'), findsOneWidget);
+    });
+
+    // Read as "no profile", the switch unlocked for another profile's trip
+    // (issue #2682). Ownership is unknown, not refused, so no owner line.
+    testWidgets('is locked while the profile cannot be read', (tester) async {
+      final tile = await shareSwitch(
+        tester,
+        active: 'd2',
+        profileUnreadable: true,
+      );
+      expect(tile.onChanged, isNull);
+      expect(find.text('Only Alice can change sharing'), findsNothing);
     });
 
     testWidgets('stays open for the owner', (tester) async {

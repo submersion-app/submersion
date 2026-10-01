@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -11,6 +13,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
+
+import '../../../helpers/mock_providers.dart';
 
 /// The shared-item dialog pieces (issue #2594).
 void main() {
@@ -28,6 +32,66 @@ void main() {
     expect(sharedItemOwnerName(divers, 'a', l10n), 'Alice');
     expect(sharedItemOwnerName(divers, 'gone', l10n), 'another profile');
     expect(sharedItemOwnerName(divers, null, l10n), 'another profile');
+  });
+
+  // A page decides Delete or Remove from the watched profile; loading and
+  // a failed read are unknown, never "no profile" (issue #2682).
+  test('canDestroySharedItemOnceKnown is unknown until the profile is', () {
+    bool? decide(AsyncValue<String?> active, {String? owner = 'd1'}) =>
+        canDestroySharedItemOnceKnown(active, ownerId: owner);
+
+    expect(decide(const AsyncData('d1')), isTrue);
+    expect(decide(const AsyncData('d2')), isFalse);
+    expect(decide(const AsyncData(null)), isTrue);
+    expect(decide(const AsyncLoading()), isNull);
+    expect(
+      decide(AsyncError(StateError('no profile'), StackTrace.empty)),
+      isNull,
+    );
+    // An ownerless item needs no profile.
+    expect(decide(const AsyncLoading(), owner: null), isTrue);
+    expect(
+      decide(
+        AsyncError(StateError('no profile'), StackTrace.empty),
+        owner: null,
+      ),
+      isTrue,
+    );
+  });
+
+  // A reload (a diver switch, a divers-table change) keeps the previous
+  // profile's id while it runs; deciding on it would follow the profile
+  // the diver just left (issue #2682 review).
+  test('canDestroySharedItemOnceKnown is unknown while the profile '
+      'reloads', () async {
+    final reload = Completer<String?>();
+    var reads = 0;
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith(
+          (_) => reads++ == 0 ? Future.value('d1') : reload.future,
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.listen(validatedCurrentDiverIdProvider, (_, _) {});
+    await container.read(validatedCurrentDiverIdProvider.future);
+
+    container.invalidate(validatedCurrentDiverIdProvider);
+    final reloading = container.read(validatedCurrentDiverIdProvider);
+    expect(reloading.isLoading, isTrue);
+    expect(reloading.value, 'd1');
+    expect(canDestroySharedItemOnceKnown(reloading, ownerId: 'd1'), isNull);
+
+    reload.complete('d2');
+    await container.read(validatedCurrentDiverIdProvider.future);
+    expect(
+      canDestroySharedItemOnceKnown(
+        container.read(validatedCurrentDiverIdProvider),
+        ownerId: 'd1',
+      ),
+      isFalse,
+    );
   });
 
   test('otherProfilesDivesLine is null for none', () {
@@ -175,52 +239,95 @@ void main() {
     expect(counts, (mine: 0, others: 0));
   });
 
+  /// Reads the sharing context from a hosted list, as the trip and site
+  /// lists do, and returns what it gave.
+  Future<({String? activeDiverId, int diverCount})?> readFrom(
+    WidgetTester tester,
+    List<Override> overrides,
+  ) async {
+    ({String? activeDiverId, int diverCount})? sharing;
+    var read = false;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides,
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) => TextButton(
+                onPressed: () => readSharingContext(ref, context).then((c) {
+                  sharing = c;
+                  read = true;
+                }),
+                child: const Text('read'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('read'));
+    await tester.pumpAndSettle();
+    expect(read, isTrue);
+    return sharing;
+  }
+
   testWidgets('readSharingContext reads the profile and the profile count', (
     tester,
   ) async {
-    late ({String? activeDiverId, int diverCount}) sharing;
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          validatedCurrentDiverIdProvider.overrideWith((_) async => 'a'),
-          allDiversProvider.overrideWith((_) async => divers),
-        ],
-        child: Consumer(
-          builder: (context, ref, _) {
-            readSharingContext(ref).then((c) => sharing = c);
-            return const SizedBox();
-          },
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
+    final sharing = await readFrom(tester, [
+      validatedCurrentDiverIdProvider.overrideWith((_) async => 'a'),
+      allDiversProvider.overrideWith((_) async => divers),
+    ]);
     expect(sharing, (activeDiverId: 'a', diverCount: 1));
+    expect(find.byType(SnackBar), findsNothing);
   });
 
-  testWidgets('readSharingContext falls back when the reads fail', (
-    tester,
-  ) async {
-    late ({String? activeDiverId, int diverCount}) sharing;
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          validatedCurrentDiverIdProvider.overrideWith(
-            (_) async => throw StateError('no profile'),
-          ),
-          allDiversProvider.overrideWith(
-            (_) async => throw StateError('no divers'),
-          ),
-        ],
-        child: Consumer(
-          builder: (context, ref, _) {
-            readSharingContext(ref).then((c) => sharing = c);
-            return const SizedBox();
-          },
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
+  testWidgets('readSharingContext keeps a missing profile, which is no '
+      'failure', (tester) async {
+    final sharing = await readFrom(tester, [
+      validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+      allDiversProvider.overrideWith((_) async => const []),
+    ]);
     expect(sharing, (activeDiverId: null, diverCount: 0));
+    expect(find.byType(SnackBar), findsNothing);
+  });
+
+  // A failed read must not pass for "no profile": the split would then
+  // offer to delete every selected item, another profile's shared ones
+  // too, and the delete would throw on its own read (issue #2682).
+  testWidgets('readSharingContext gives nothing and says so when the '
+      'profile cannot be read', (tester) async {
+    final sharing = await readFrom(tester, [
+      validatedCurrentDiverIdProvider.overrideWith(
+        (_) async => throw StateError('no profile'),
+      ),
+      allDiversProvider.overrideWith((_) async => divers),
+    ]);
+    expect(sharing, isNull);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+  });
+
+  // Without the count the owner's dialog would drop the "deleted for
+  // everyone" line, so this fails closed too (issue #2682).
+  testWidgets('readSharingContext gives nothing and says so when the '
+      'profiles cannot be counted', (tester) async {
+    final sharing = await readFrom(tester, [
+      validatedCurrentDiverIdProvider.overrideWith((_) async => 'a'),
+      allDiversProvider.overrideWith(
+        (_) async => throw StateError('no divers'),
+      ),
+    ]);
+    expect(sharing, isNull);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
   });
 
   group('a hide or unhide that fails (issue #2677)', () {

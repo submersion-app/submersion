@@ -55,7 +55,6 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/shared/widgets/section_properties_menu.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
-import 'package:submersion/shared/widgets/shared_items/shared_item_standing.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
@@ -386,14 +385,17 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     // Watched, as the trip page does, so the menu follows the profile once
-    // it has settled (issue #2594).
-    final standing = watchSharedItemStanding(ref, ownerId: site.diverId);
+    // it has loaded (issue #2594); null until then (issue #2682).
+    final canDestroy = canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
+      ownerId: site.diverId,
+    );
     // A site this profile already removed offers Unhide (issue #2679).
     final hidden = watchHiddenHere(
       ref,
       SharedItemKind.site,
       site.id,
-      canDestroy: standing != SharedItemStanding.other,
+      canDestroy: canDestroy != false,
     );
 
     return Container(
@@ -479,9 +481,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 openInConnectionsMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
                 // Delete for the owner; another profile only removes the
-                // shared site from itself (issue #2594); neither until the
-                // active profile has settled.
-                if (standing == SharedItemStanding.owner)
+                // shared site from itself (issue #2594); neither while the
+                // profile is unknown (issue #2682).
+                if (canDestroy == true)
                   PopupMenuItem(
                     value: 'delete',
                     child: ListTile(
@@ -502,7 +504,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                       contentPadding: EdgeInsets.zero,
                     ),
                   )
-                else if (standing == SharedItemStanding.other)
+                else if (canDestroy == false)
                   PopupMenuItem(
                     value: 'remove',
                     child: ListTile(

@@ -40,7 +40,6 @@ import 'package:submersion/features/weather/presentation/providers/weather_provi
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
-import 'package:submersion/shared/widgets/shared_items/shared_item_standing.dart';
 import 'package:submersion/shared/widgets/forms/responsive_form_columns.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
@@ -1139,15 +1138,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             }),
             notesController: _notesController,
             mergeExtras: widget.isMerging ? _mergeExtras : null,
-            // Hidden until the active profile has settled, rather than
-            // offer the switch to the wrong profile during a switch.
-            showShareToggle:
-                _standing() != SharedItemStanding.unknown &&
-                ref
-                    .watch(allDiversProvider)
-                    .maybeWhen(data: (d) => d.length >= 2, orElse: () => false),
+            showShareToggle: ref
+                .watch(allDiversProvider)
+                .maybeWhen(data: (d) => d.length >= 2, orElse: () => false),
             isShared: _isShared,
             onShareChanged: _onShareToggled,
+            shareLocked: _mayShare() != true,
             shareLockedReason: _shareLockedReason(),
           ),
         ],
@@ -1174,20 +1170,20 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         if (widget.isEditing && (!widget.embedded || widget.onDeleted != null))
           // Delete for the owner; another profile only removes the shared
           // site from itself (issue #2594), or unhides it once it has
-          // (issue #2679); neither until the active profile has settled.
-          if (_standing() == SharedItemStanding.owner)
+          // (issue #2679); none of these while the profile is unknown
+          // (issue #2682).
+          if (_mayShare() == true)
             IconButton(
               icon: const Icon(Icons.delete),
               tooltip: context.l10n.diveSites_edit_appBar_deleteSiteTooltip,
               onPressed: _confirmDelete,
             )
-          else if (_standing() == SharedItemStanding.other &&
-              watchHiddenHere(
-                ref,
-                SharedItemKind.site,
-                widget.siteId!,
-                canDestroy: false,
-              ))
+          else if (watchHiddenHere(
+            ref,
+            SharedItemKind.site,
+            widget.siteId!,
+            canDestroy: _mayShare() != false,
+          ))
             IconButton(
               icon: const Icon(Icons.visibility_outlined),
               tooltip: context.l10n.sharedItems_unhideAction,
@@ -1200,7 +1196,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 ]),
               ),
             )
-          else if (_standing() == SharedItemStanding.other)
+          else if (_mayShare() == false)
             IconButton(
               icon: const Icon(Icons.visibility_off_outlined),
               tooltip: context.l10n.sharedItems_removeAction,
@@ -1211,17 +1207,23 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
   }
 
-  /// Where the active profile stands on the site (issue #2594): the owner
-  /// of a new one. Read during build, so it watches the active profile.
-  SharedItemStanding _standing() => !widget.isEditing && !widget.isMerging
-      ? SharedItemStanding.owner
-      : watchSharedItemStanding(ref, ownerId: _originalSite?.diverId);
+  /// Whether the active profile may change this site's sharing (and so
+  /// delete it): always for a new site, and only the owner for an existing
+  /// one (issue #2594); null while the profile is unknown (issue #2682).
+  /// Read during build, so it watches the active profile.
+  bool? _mayShare() {
+    if (!widget.isEditing && !widget.isMerging) return true;
+    return canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
+      ownerId: _originalSite?.diverId,
+    );
+  }
 
   /// Why the Share switch is locked: another profile owns the site (issue
-  /// #2594). Null when the active profile may change sharing, and while it
-  /// is unknown, when the switch is hidden instead.
+  /// #2594). Null when the active profile may change sharing, and while the
+  /// profile is unknown, which locks it without naming an owner.
   String? _shareLockedReason() {
-    if (_standing() != SharedItemStanding.other) return null;
+    if (_mayShare() != false) return null;
     final divers = ref.watch(allDiversProvider).value ?? const [];
     return context.l10n.sharedItems_shareOwnerOnly(
       sharedItemOwnerName(divers, _originalSite?.diverId, context.l10n),

@@ -54,6 +54,7 @@ void main() {
     VoidCallback? onDeleted,
     FailingProfileHides? hides,
     GatedActiveProfile? activeProfile,
+    bool profileUnreadable = false,
   }) async {
     tester.view.physicalSize = const Size(900, 3200);
     tester.view.devicePixelRatio = 1.0;
@@ -64,7 +65,11 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           allDiversProvider.overrideWith((_) async => divers),
           validatedCurrentDiverIdProvider.overrideWith(
-            (_) => activeProfile?.read() ?? Future.value(active),
+            (_) =>
+                activeProfile?.read() ??
+                (profileUnreadable
+                    ? Future<String?>.error(StateError('no profile'))
+                    : Future.value(active)),
           ),
           shareByDefaultProvider.overrideWith((_) async => false),
           if (hides != null)
@@ -138,6 +143,22 @@ void main() {
       find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
       findsOneWidget,
     );
+  });
+
+  // Read as "no profile", the page offered another profile's site its
+  // Delete and unlocked its sharing (issue #2682). Ownership is unknown,
+  // not refused, so the lock names no owner.
+  testWidgets('an unreadable profile offers neither action and locks '
+      'sharing', (tester) async {
+    await pump(tester, active: 'd2', profileUnreadable: true);
+    expect(find.widgetWithIcon(IconButton, Icons.delete), findsNothing);
+    expect(
+      find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
+      findsNothing,
+    );
+    await openLifeSection(tester);
+    expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNull);
+    expect(find.text('Only Alice can change sharing'), findsNothing);
   });
 
   testWidgets('another profile cannot change sharing', (tester) async {

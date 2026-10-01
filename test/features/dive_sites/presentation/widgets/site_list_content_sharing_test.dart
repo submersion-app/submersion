@@ -40,6 +40,7 @@ void main() {
     WidgetTester tester, {
     SiteRepository? repository,
     FailingProfileHides? hides,
+    bool profilesUncountable = false,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(500, 1200);
@@ -74,6 +75,10 @@ void main() {
             siteRepositoryProvider.overrideWithValue(repository),
           if (hides != null)
             profileHidesRepositoryProvider.overrideWithValue(hides),
+          if (profilesUncountable)
+            allDiversProvider.overrideWith(
+              (ref) async => throw StateError('no divers'),
+            ),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -328,6 +333,42 @@ void main() {
     await seedSite(db, 'a', owner: 'd2', name: 'Alpha');
     await seedSite(db, 'b', owner: 'd2', name: 'Bravo');
     final merges = await pump(tester, repository: _UnreadableSites());
+    await select(tester, ['Alpha', 'Bravo']);
+    await tester.tap(find.byIcon(Icons.merge_type));
+    await tester.pumpAndSettle();
+
+    expect(merges, isEmpty);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+  });
+
+  // Failing open, the dialog left out the "deleted for everyone" line for
+  // the owner's shared site (issue #2682).
+  testWidgets('an unreadable sharing context before the bulk delete says so '
+      'and deletes nothing', (tester) async {
+    await seedSite(db, 'mine', owner: 'd2', shared: true, name: 'Alpha');
+    await pump(tester, profilesUncountable: true);
+    await select(tester, ['Alpha']);
+    await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('selection_delete')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(await SiteRepository().getSiteById('mine'), isNotNull);
+  });
+
+  testWidgets('an unreadable sharing context before a merge says so and '
+      'merges nothing', (tester) async {
+    await seedSite(db, 'a', owner: 'd2', name: 'Alpha');
+    await seedSite(db, 'b', owner: 'd1', shared: true, name: 'Bravo');
+    final merges = await pump(tester, profilesUncountable: true);
     await select(tester, ['Alpha', 'Bravo']);
     await tester.tap(find.byIcon(Icons.merge_type));
     await tester.pumpAndSettle();
