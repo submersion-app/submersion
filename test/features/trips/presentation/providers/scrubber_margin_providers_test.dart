@@ -302,11 +302,39 @@ void main() {
     expect(m.consumedSince, DateTime(2026, 2, 1, 10, 37));
   });
 
-  test('a paused repack clock anchors nothing', () async {
-    // A paused clock is off for the clocks engine. Its anchor must not
-    // exclude the loop dives before it and inflate the margin.
+  test('a removed repack clock takes its margin off an open trip', () async {
+    // Issue #2606: the margin is the repack clock projected onto the
+    // trip. A diver who removes the clock (to track two scrubbers on
+    // their own clocks, say) has stopped tracking this one, so the rated
+    // duration on the unit alone must not keep the card, or its warning,
+    // alive.
     final ccr = await rebreather();
-    Future<ScrubberMargin> margin(bool enabled) async {
+    final t = await trip('T', DateTime(2026, 6, 1), DateTime(2026, 6, 5));
+    final sub = container.listen(tripScrubberMarginsProvider(t.id), (_, _) {});
+    addTearDown(sub.close);
+    Future<List<ScrubberMargin>> margins() =>
+        container.read(tripScrubberMarginsProvider(t.id).future);
+    expect((await margins()).single.ratedMinutes, 300);
+
+    final schedules = ServiceScheduleRepository();
+    final clock = (await schedules.getSchedulesForEquipment(
+      ccr.id,
+    )).singleWhere((s) => s.serviceKindId == 'scrubber-repack');
+    await schedules.deleteSchedule(clock.id);
+    var now = await margins();
+    for (var i = 0; i < 50 && now.isNotEmpty; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      now = await margins();
+    }
+    expect(now, isEmpty);
+  });
+
+  test('a paused repack clock shows no margin', () async {
+    // A paused clock is off for the clocks engine, so the trip neither
+    // rates nor counts the scrubber, even with a rated duration on the
+    // unit.
+    final ccr = await rebreather();
+    Future<List<ScrubberMargin>> margins(bool enabled) async {
       await db.delete(db.serviceSchedules).go();
       await ServiceScheduleRepository().createSchedule(
         ServiceSchedule(
@@ -324,20 +352,28 @@ void main() {
         DateTime(2026, 3, 1),
         DateTime(2026, 3, 5),
       );
-      return (await container.read(
-        tripScrubberMarginsProvider(t.id).future,
-      )).single;
+      return container.read(tripScrubberMarginsProvider(t.id).future);
     }
 
     await ccrDive('jan', DateTime(2026, 1, 10), ccr.id);
-    await ccrDive('feb', DateTime(2026, 2, 10), ccr.id, runtime: 3000);
-    // An active clock anchored that morning excludes both dives.
-    final active = await margin(true);
+    // An active clock anchored that morning excludes the dive.
+    final active = (await margins(true)).single;
     expect(active.consumedMinutes, 0);
     expect(active.consumedSince, DateTime(2026, 3, 1, 9));
-    final paused = await margin(false);
-    expect(paused.consumedMinutes, 110);
-    expect(paused.consumedSince, isNull);
+    expect(await margins(false), isEmpty);
+  });
+
+  test('a rebreather with no repack clock shows no margin', () async {
+    // A unit added before clocks auto-attached never had one. With
+    // nothing tracking its repacks the trip has no margin to show; the
+    // diver adds the clock to get one.
+    await rebreather();
+    await db.delete(db.serviceSchedules).go();
+    final t = await trip('T', DateTime(2026, 6, 1), DateTime(2026, 6, 5));
+    expect(
+      await container.read(tripScrubberMarginsProvider(t.id).future),
+      isEmpty,
+    );
   });
 
   test('an itinerary with no dive days expects no dives', () async {
@@ -575,7 +611,6 @@ void main() {
         ],
       ),
     );
-    await db.delete(db.serviceSchedules).go();
     await ccrDive('feb', DateTime(2026, 2, 10), ccr.id);
     await ccrDive('mar', DateTime(2026, 3, 10), ccr.id, runtime: 3000);
 
@@ -585,41 +620,6 @@ void main() {
     )).single;
     expect(m.consumedMinutes, 50);
     expect(m.consumedSince, isNull);
-  });
-
-  test('a paused repack clock supplies no rating', () async {
-    // With no rated duration on the unit, the rating falls back to its
-    // scrubber-repack clock. A paused clock is off for the clocks engine,
-    // so it must not rate the scrubber either.
-    final ccr = await EquipmentRepository().createEquipment(
-      const EquipmentItem(id: '', name: 'CCR', type: EquipmentType.rebreather),
-    );
-    await db.delete(db.serviceSchedules).go();
-    Future<double?> rated(bool enabled) async {
-      await db.delete(db.serviceSchedules).go();
-      await ServiceScheduleRepository().createSchedule(
-        ServiceSchedule(
-          id: '',
-          equipmentId: ccr.id,
-          serviceKindId: 'scrubber-repack',
-          intervalHours: 4,
-          enabled: enabled,
-          createdAt: DateTime(2026),
-          updatedAt: DateTime(2026),
-        ),
-      );
-      final t = await trip(
-        'T$enabled',
-        DateTime(2026, 6, 1),
-        DateTime(2026, 6, 5),
-      );
-      return (await container.read(
-        tripScrubberMarginsProvider(t.id).future,
-      )).single.ratedMinutes;
-    }
-
-    expect(await rated(true), 240);
-    expect(await rated(false), isNull);
   });
 
   test('a diver with no active rebreather gets an empty list', () async {
