@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform;
+import 'package:path/path.dart' as p;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import 'package:submersion/shared/services/shared_file_unreadable_exception.dart';
@@ -60,11 +61,17 @@ class FileShareHandlerDelegate {
 
     final paths = <String>[];
     final unreadable = <String>[];
+    var fileCount = 0;
     for (final shared in files) {
       if (shared is! SharedMediaFile) {
         onError?.call(TypeError());
         return;
       }
+      // A text or link share with no file attached carries the text itself
+      // in `path`. It was never a file, and the text may be private, so it
+      // is neither imported nor reported.
+      if (!p.isAbsolute(shared.path)) continue;
+      fileCount++;
       // A path inside the sending app's private storage fails the stat, so
       // it reads as missing here even though the file is there (#2689).
       if (await File(shared.path).exists()) {
@@ -79,7 +86,7 @@ class FileShareHandlerDelegate {
       onError?.call(
         SharedFileUnreadableException(
           unreadablePaths: unreadable,
-          sharedCount: files.length,
+          sharedCount: fileCount,
         ),
       );
     }

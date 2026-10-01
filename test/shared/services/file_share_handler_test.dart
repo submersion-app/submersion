@@ -125,6 +125,56 @@ void main() {
         },
       );
 
+      test('ignores a text or link share, which carries no file', () async {
+        var received = false;
+        Object? error;
+        final handler = FileShareHandler(
+          onFileReceived: (bytes, name) async => received = true,
+          onFilesReceived: (paths) async => received = true,
+          onError: (e) => error = e,
+        );
+
+        // With no file attached, the plugin puts the shared text itself in
+        // `path`. It is not a file that failed to read, and the text may be
+        // private, so it must not reach the snackbar or the log.
+        await handler.handleMediaFiles([
+          SharedMediaFile(
+            path: 'https://example.com/dive-report',
+            type: SharedMediaType.url,
+          ),
+          SharedMediaFile(path: 'meet at the dock', type: SharedMediaType.text),
+        ]);
+
+        expect(received, isFalse);
+        expect(error, isNull);
+      });
+
+      test('counts only the files of a share that also carries text', () async {
+        Object? error;
+        final handler = FileShareHandler(
+          onFileReceived: (bytes, name) async {},
+          onError: (e) => error = e,
+        );
+        final missing = p.join(
+          Directory.systemTemp.path,
+          'submersion_share_missing',
+          'route.csv',
+        );
+
+        await handler.handleMediaFiles([
+          SharedMediaFile(path: 'route export', type: SharedMediaType.text),
+          SharedMediaFile(path: missing, type: SharedMediaType.file),
+        ]);
+
+        expect(
+          error,
+          isA<SharedFileUnreadableException>()
+              .having((e) => e.unreadablePaths, 'unreadablePaths', [missing])
+              .having((e) => e.sharedCount, 'sharedCount', 1)
+              .having((e) => e.nothingReadable, 'nothingReadable', isTrue),
+        );
+      });
+
       test(
         'does not throw for an unreadable file when onError is null',
         () async {
