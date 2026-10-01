@@ -11,11 +11,11 @@ import 'package:submersion/features/dive_3d/application/site_seascape_providers.
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/site_active_path_overlay_builder.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
+import 'package:submersion/features/site_scape/presentation/patch_aware_hover_picker.dart';
+import 'package:submersion/features/site_scape/presentation/path_provenance_chip.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_info_sheet.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart';
@@ -24,7 +24,6 @@ import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/seascape_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
-import 'package:submersion/features/dive_3d/presentation/renderer/scene_projector.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_depth_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_hover_tooltip.dart';
@@ -78,7 +77,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
 
   /// Which grid the CURRENT [_hoverPick] value's row/col indices refer to
   /// -- the base grid, or the finer LOD patch grid when the cursor is over
-  /// its footprint (see [_PatchAwareHoverPicker]). A ValueNotifier, not a
+  /// its footprint (see [PatchAwareHoverPicker]). A ValueNotifier, not a
   /// plain field: _hoverTooltip's rebuild is scoped to a listener so a
   /// hover event doesn't force a full pane rebuild, and a plain field
   /// mutated by the picker would never be seen by that listener unless the
@@ -385,7 +384,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                                 // null, falling through to the base grid.
                                 picker: scene.layers.isEmpty
                                     ? null
-                                    : _PatchAwareHoverPicker(
+                                    : PatchAwareHoverPicker(
                                         patchPicker: patch == null
                                             ? null
                                             : GridHoverPicker(
@@ -454,7 +453,9 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                             top: 40,
                             left: 8,
                             right: 8,
-                            child: _pathProvenanceChip(activePath.overlay),
+                            child: PathProvenanceChip(
+                              overlay: activePath.overlay,
+                            ),
                           ),
                         // The legend describes the depth ramp; a photographed
                         // surface has no ramp to explain. It sits LEFT because the
@@ -542,42 +543,6 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
       onScrubStart: () {
         if (player.isAnimating) setState(() => player.stop());
       },
-    );
-  }
-
-  /// States where the played-back path's shape came from: a linked
-  /// measured route reads as a recorded route, dead reckoning and the
-  /// straight-line fallback keep the honest "estimated" label. Dive-only
-  /// (see the call site): a route has no such caption, it IS the recorded
-  /// path.
-  Widget _pathProvenanceChip(SiteActivePathOverlay overlay) {
-    final label = switch (overlay.provenance) {
-      PathProvenance.measured =>
-        overlay.pathSourceLabel != null
-            ? context.l10n.dive3d_spatial_recordedPathWithSource(
-                overlay.pathSourceLabel!,
-              )
-            : context.l10n.dive3d_spatial_recordedPath,
-      PathProvenance.deadReckoned ||
-      PathProvenance.straightLine => context.l10n.dive3d_spatial_estimatedPath,
-    };
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.info_outline, size: 14),
-            const SizedBox(width: 4),
-            Text(label, style: Theme.of(context).textTheme.labelSmall),
-          ],
-        ),
-      ),
     );
   }
 
@@ -810,47 +775,5 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
         ],
       ),
     );
-  }
-}
-
-/// Tries the finer LOD patch grid first, falling back to the coarser base
-/// grid. The patch visually covers the base terrain in its footprint, so a
-/// hover there should read the patch's own depth, not the base grid
-/// underneath it; outside the patch's footprint [patchPicker] finds nothing
-/// within its own threshold and returns null, falling through to the base
-/// grid exactly like there was no patch at all.
-///
-/// [onGridUsed] reports which grid actually produced the hit -- a
-/// [TissuePick]'s row/col indices are only meaningful against the SAME
-/// grid the picker that found it was built from, so the caller must track
-/// this alongside the pick itself to build a correct [SeascapeHoverTooltip].
-class _PatchAwareHoverPicker implements HoverPicker {
-  final HoverPicker? patchPicker;
-  final BathymetryGrid? patchGrid;
-  final HoverPicker basePicker;
-  final BathymetryGrid baseGrid;
-  final ValueChanged<BathymetryGrid> onGridUsed;
-
-  const _PatchAwareHoverPicker({
-    required this.patchPicker,
-    required this.patchGrid,
-    required this.basePicker,
-    required this.baseGrid,
-    required this.onGridUsed,
-  });
-
-  @override
-  ScenePick? pick(SceneProjector projector, Offset cursor) {
-    final patch = patchPicker;
-    if (patch != null) {
-      final hit = patch.pick(projector, cursor);
-      if (hit != null) {
-        onGridUsed(patchGrid!);
-        return hit;
-      }
-    }
-    final hit = basePicker.pick(projector, cursor);
-    if (hit != null) onGridUsed(baseGrid);
-    return hit;
   }
 }

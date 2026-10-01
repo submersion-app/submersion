@@ -51,6 +51,17 @@ class SpatialSitePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final diveAsync = ref.watch(diveProvider(diveId));
+    // Waits for the dive to resolve rather than reading .valueOrNull before
+    // routing: that would read as "no site" while still loading and start
+    // the standalone implementation's own expensive terrain/path fetch,
+    // only to discard it a frame later once the dive (with a site) actually
+    // resolves and this switches to SiteTerrainPane instead (code review).
+    if (diveAsync.isLoading && !diveAsync.hasValue) {
+      return Scaffold(
+        appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     final siteId = diveAsync.valueOrNull?.site?.id;
     if (siteId == null) {
       return _DiveSeascapeStandalone(diveId: diveId);

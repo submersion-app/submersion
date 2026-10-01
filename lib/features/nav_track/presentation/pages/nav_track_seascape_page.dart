@@ -32,6 +32,17 @@ class NavTrackSeascapePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trackAsync = ref.watch(navTrackByIdProvider(trackId));
+    // Waits for the route to resolve rather than reading .valueOrNull before
+    // routing: that would read as "no site" while still loading and start
+    // the standalone implementation's own terrain fetch, only to discard it
+    // a frame later once the route (with a site) resolves and this switches
+    // to SiteTerrainPane instead (code review).
+    if (trackAsync.isLoading && !trackAsync.hasValue) {
+      return Scaffold(
+        appBar: AppBar(title: Text(context.l10n.navTrack_seascape_title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     final siteId = trackAsync.valueOrNull?.siteId;
     if (siteId == null) {
       return _NavTrackSeascapeStandalone(trackId: trackId);
