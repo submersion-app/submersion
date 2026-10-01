@@ -54,6 +54,12 @@ void main() {
         '${'a' * (fileNameSegmentMaxBytes - 1)}e\u0301',
       );
       expect(accent, 'a' * (fileNameSegmentMaxBytes - 1));
+      // Several marks on one letter go with it as a group: "e", U+0301 fit,
+      // U+0323 does not, so all three are dropped.
+      final stacked = fileNameSegment(
+        '${'a' * (fileNameSegmentMaxBytes - 3)}e\u0301\u0323',
+      );
+      expect(stacked, 'a' * (fileNameSegmentMaxBytes - 3));
     });
 
     test('is empty when nothing usable is left', () {
