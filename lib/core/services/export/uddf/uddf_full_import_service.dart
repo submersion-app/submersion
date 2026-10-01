@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
+import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
@@ -553,6 +554,19 @@ class UddfFullImportService {
               declaredBuddies: buddyMap.keys.toSet(),
               declaredRoleIds: declaredRoleIds,
             );
+          }
+        }
+
+        // The tissue state each dive's computer reported (issue #2557),
+        // matched the same way.
+        final computerTissueSection = submersionElement
+            .findElements(UddfComputerTissue.sectionName)
+            .firstOrNull;
+        if (computerTissueSection != null) {
+          final byDive = UddfComputerTissue.parse(computerTissueSection);
+          for (final dive in dives) {
+            final data = byDive[dive['sourceUuid']];
+            if (data != null) UddfComputerTissue.apply(dive, data);
           }
         }
 

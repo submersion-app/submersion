@@ -664,6 +664,7 @@ class UddfExportService {
           omitPurchaseDetails: true,
           components: components,
           gearLinkDives: gearLinkDives,
+          computerTissueDives: dives,
           diveBuddies: diveBuddies,
           customDiveRoles: customRoles,
           dataSources: sources,

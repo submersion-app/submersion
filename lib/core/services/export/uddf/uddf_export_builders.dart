@@ -5,6 +5,7 @@ import 'package:xml/xml.dart';
 import 'package:submersion/core/constants/enums.dart' hide Visibility;
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/export/models/export_service_record.dart';
+import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
@@ -768,6 +769,9 @@ class UddfExportBuilders {
     List<EquipmentComponent>? components,
     List<Dive>? gearLinkDives,
     Map<String, List<BuddyWithRole>>? diveBuddies,
+    // The dives whose computer-reported tissue state goes in the
+    // <computertissue> block (issue #2557); a dive without any writes none.
+    List<Dive>? computerTissueDives,
     // A file shared with other people carries no purchase date, price or
     // currency on its items; a backup keeps them.
     bool omitPurchaseDetails = false,
@@ -794,6 +798,7 @@ class UddfExportBuilders {
         (components?.isNotEmpty ?? false) ||
         linkDives.isNotEmpty ||
         roleRows.isNotEmpty ||
+        (computerTissueDives?.any(UddfComputerTissue.hasData) ?? false) ||
         (certifications?.isNotEmpty ?? false) ||
         (diveCenters?.isNotEmpty ?? false) ||
         (species?.isNotEmpty ?? false) ||
@@ -1418,6 +1423,13 @@ class UddfExportBuilders {
                 },
               );
             }
+
+            // The tissue state each dive's computer reported, which no
+            // standard element holds.
+            UddfComputerTissue.write(
+              builder,
+              computerTissueDives ?? const <Dive>[],
+            );
 
             // Courses (no UDDF equivalent)
             if (courses != null && courses.isNotEmpty) {
