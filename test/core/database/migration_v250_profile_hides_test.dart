@@ -23,15 +23,12 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v250 is in the ladder', () {
-    // Relaxed once v252 (nav_tracks.diver_id) landed on top; the newest
-    // rung owns the exact assertion.
+  test('v250 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v251 (dive_tanks.source_id, #2716) landed on top; the
+    // newest rung owns the exact assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(250));
     expect(AppDatabase.migrationVersions, contains(250));
-    expect(
-      AppDatabase.migrationStepCount(249),
-      AppDatabase.migrationStepCount(250) + 1,
-    );
+    expect(AppDatabase.migrationStepCount(249), greaterThanOrEqualTo(1));
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

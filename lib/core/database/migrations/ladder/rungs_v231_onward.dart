@@ -121,10 +121,17 @@ extension RungsFromV231 on AppDatabase {
       await _assertSiteHidesSchema();
     }
     if (from < 250) await reportProgress();
+    // v251: dive_tanks.source_id (issue #2716), backfilled where the
+    // source is unambiguous. 250 is profile hides (#2594).
+    if (from < 251) {
+      await _assertDiveTankSourceIdColumn();
+      await _backfillDiveTankSourceIds();
+    }
+    if (from < 251) await reportProgress();
     // v252: nav_tracks.diver_id, the route's owner (issue #2691 follow-up),
     // backfilled from each linked route's dive. The column is re-asserted in
-    // beforeOpen; the backfill stays in the rung. 251 is held by issue
-    // #2716.
+    // beforeOpen; the backfill stays in the rung. 251 is
+    // dive_tanks.source_id (#2716).
     if (from < 252) {
       await _assertNavTrackDiverIdColumn();
       await _backfillNavTrackDiverIds();

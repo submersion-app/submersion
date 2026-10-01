@@ -1024,9 +1024,14 @@ class AppDatabase extends _$AppDatabase {
     // floor does not move. #2562 and #2409 held stale claims below 249
     // when this was taken.
     250,
+    // v251: dive_tanks.source_id (issue #2716), the data source a tank row
+    // came from, so two computer-less sources' copies of one cylinder come
+    // apart; backfilled where unambiguous. Additive nullable column, so the
+    // floor stays at 240. 250 is trip_hides and site_hides (#2594).
+    251,
     // v252: nav_tracks.diver_id, the route's owner, backfilled from each
     // linked route's dive (issue #2691 follow-up). Additive nullable column,
-    // so the floor does not move. 251 is held by issue #2716.
+    // so the floor does not move. 251 is dive_tanks.source_id (#2716).
     252,
   ];
 

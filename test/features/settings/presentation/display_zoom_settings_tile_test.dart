@@ -49,14 +49,15 @@ void main() {
     await _pumpTile(tester, {});
 
     expect(find.text('100%'), findsOneWidget);
-    expect(find.text('Reset'), findsNothing);
+    expect(find.byTooltip('Reset'), findsNothing);
+    expect(find.byIcon(Icons.restart_alt), findsNothing);
   });
 
   testWidgets('reset returns the zoom to 100%', (tester) async {
     final container = await _pumpTile(tester, {'display_zoom': 0.75});
 
-    expect(find.text('Reset'), findsOneWidget);
-    await tester.tap(find.text('Reset'));
+    expect(find.byTooltip('Reset'), findsOneWidget);
+    await tester.tap(find.byTooltip('Reset'));
     await tester.pumpAndSettle();
 
     expect(

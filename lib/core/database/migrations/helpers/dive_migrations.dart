@@ -464,4 +464,102 @@ extension DiveMigrations on AppDatabase {
   /// the one-time clear only runs on upgrade, so it needs a direct handle.
   Future<void> clearGeneratedWeatherDescriptionsForTesting() =>
       _clearGeneratedWeatherDescriptions();
+
+  /// Idempotent DDL for dive_tanks.source_id (v251, issue #2716).
+  Future<void> _assertDiveTankSourceIdColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('source_id')) return;
+    await customStatement(
+      'ALTER TABLE dive_tanks ADD COLUMN source_id TEXT '
+      'REFERENCES dive_data_sources(id) ON DELETE SET NULL',
+    );
+  }
+
+  /// v251: attribute existing dive tanks to their data source wherever that
+  /// is unambiguous, in this order: the dive has a single source, and the
+  /// tank names its computer or none; exactly
+  /// one of its sources is the tank's computer; or every pressure series of
+  /// the tank carries one and the same source (v241), which is how two
+  /// computer-less sources' copies of one cylinder come apart. A merged
+  /// cylinder (series from two sources), a tank with nothing to go on, and
+  /// a dive with no source stay null. Re-runs only touch rows still null.
+  Future<void> _backfillDiveTankSourceIds() async {
+    final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.containsAll(const ['source_id', 'computer_id'])) return;
+    // Guarded like the backstops: a partially built database (a migration
+    // fixture, or one caught mid-ladder) may lack the sources table.
+    final sourceCols = await customSelect(
+      "PRAGMA table_info('dive_data_sources')",
+    ).get();
+    final sourceNames = sourceCols.map((c) => c.read<String>('name')).toSet();
+    if (!sourceNames.containsAll(const ['id', 'dive_id', 'computer_id'])) {
+      return;
+    }
+    await customStatement('''
+      UPDATE dive_tanks
+      SET source_id = (
+        SELECT s.id FROM dive_data_sources s
+        WHERE s.dive_id = dive_tanks.dive_id
+      )
+      WHERE source_id IS NULL
+        AND (
+          SELECT COUNT(*) FROM dive_data_sources s
+          WHERE s.dive_id = dive_tanks.dive_id
+        ) = 1
+        AND (
+          computer_id IS NULL
+          OR computer_id = (
+            SELECT s.computer_id FROM dive_data_sources s
+            WHERE s.dive_id = dive_tanks.dive_id
+          )
+        )
+    ''');
+    await customStatement('''
+      UPDATE dive_tanks
+      SET source_id = (
+        SELECT s.id FROM dive_data_sources s
+        WHERE s.dive_id = dive_tanks.dive_id
+          AND s.computer_id = dive_tanks.computer_id
+      )
+      WHERE source_id IS NULL
+        AND computer_id IS NOT NULL
+        AND (
+          SELECT COUNT(*) FROM dive_data_sources s
+          WHERE s.dive_id = dive_tanks.dive_id
+            AND s.computer_id = dive_tanks.computer_id
+        ) = 1
+    ''');
+    final seriesCols = await customSelect(
+      "PRAGMA table_info('tank_pressure_series')",
+    ).get();
+    final seriesNames = seriesCols.map((c) => c.read<String>('name')).toSet();
+    if (!seriesNames.containsAll(const ['tank_id', 'source_id'])) return;
+    await customStatement('''
+      UPDATE dive_tanks
+      SET source_id = (
+        SELECT MIN(p.source_id) FROM tank_pressure_series p
+        WHERE p.tank_id = dive_tanks.id
+      )
+      WHERE source_id IS NULL
+        AND (
+          SELECT COUNT(DISTINCT p.source_id) FROM tank_pressure_series p
+          WHERE p.tank_id = dive_tanks.id
+        ) = 1
+        AND NOT EXISTS (
+          SELECT 1 FROM tank_pressure_series p
+          WHERE p.tank_id = dive_tanks.id AND p.source_id IS NULL
+        )
+        AND (
+          SELECT p.source_id FROM tank_pressure_series p
+          WHERE p.tank_id = dive_tanks.id
+          LIMIT 1
+        ) IN (
+          SELECT s.id FROM dive_data_sources s
+          WHERE s.dive_id = dive_tanks.dive_id
+        )
+    ''');
+  }
 }
