@@ -576,6 +576,31 @@ void main() {
     );
 
     testWidgets(
+      'a folder of photos dropped where media cannot go says where to drop it',
+      variant: _macOS,
+      (tester) async {
+        final drops = <_MediaDrop>[];
+        await tester.pumpWidget(_buildTestApp(mediaDrops: drops));
+        await tester.pumpAndSettle();
+
+        _dropItemFromBytes(_pngBytes, 'P4204060.jpg');
+        await _triggerDrop(
+          tester,
+          drop([DropItemDirectory(_tempDir.path, [])]),
+        );
+
+        expect(drops, isEmpty);
+        expect(
+          find.text(
+            'To link photos and videos, drop them on Media, a dive or a '
+            'dive site',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
       'a drop while a photo picker is open is turned away',
       variant: _macOS,
       (tester) async {

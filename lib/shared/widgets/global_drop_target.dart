@@ -109,16 +109,15 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
 
     // Split the drop into photos and videos and dive logs, expanding any
     // dropped folders into the files of each kind they hold. A folder is
-    // only searched for media where media can go.
+    // searched for media even where media cannot go, so a folder of photos
+    // dropped there earns the hint rather than ending in silence.
     final mediaPaths = <String>[];
     final diveLogPaths = <String>[];
     for (final xFile in details.files) {
       final path = xFile.path;
       if (path.isEmpty) continue;
       if (FileSystemEntity.isDirectorySync(path)) {
-        if (mediaDestination != null) {
-          mediaPaths.addAll(await compute(scanFolderForMediaFiles, path));
-        }
+        mediaPaths.addAll(await compute(scanFolderForMediaFiles, path));
         diveLogPaths.addAll(await scanFolderForImportableFiles(path));
       } else if (isLinkableMediaPath(path)) {
         mediaPaths.add(path);
