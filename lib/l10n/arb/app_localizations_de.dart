@@ -45695,6 +45695,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navTrack_review_leaveUnlinked => 'Nicht verknüpfen';
 
   @override
+  String get navTrack_review_noOverlapHint =>
+      'Kein Tauchgang überschneidet sich mit der Zeit dieser Aufzeichnung. Nächstgelegene Tauchgänge nach Startzeit:';
+
+  @override
+  String navTrack_review_offsetBefore(String offset) {
+    return '$offset vor der Aufzeichnung';
+  }
+
+  @override
+  String navTrack_review_offsetAfter(String offset) {
+    return '$offset nach der Aufzeichnung';
+  }
+
+  @override
+  String navTrack_review_offsetDays(int days, int hours) {
+    return '${days}T ${hours}h';
+  }
+
+  @override
+  String get navTrack_review_chooseAnotherDive => 'Anderen Tauchgang wählen...';
+
+  @override
   String navTrack_list_importFailed(String error) {
     return 'Import fehlgeschlagen: $error';
   }

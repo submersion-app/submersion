@@ -45791,6 +45791,28 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navTrack_review_leaveUnlinked => 'Deixar sem vínculo';
 
   @override
+  String get navTrack_review_noOverlapHint =>
+      'Nenhum mergulho coincide com o horário desta gravação. Mergulhos mais próximos por hora de início:';
+
+  @override
+  String navTrack_review_offsetBefore(String offset) {
+    return '$offset antes da gravação';
+  }
+
+  @override
+  String navTrack_review_offsetAfter(String offset) {
+    return '$offset depois da gravação';
+  }
+
+  @override
+  String navTrack_review_offsetDays(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String get navTrack_review_chooseAnotherDive => 'Escolher outro mergulho...';
+
+  @override
   String navTrack_list_importFailed(String error) {
     return 'Falha ao importar: $error';
   }
