@@ -148,12 +148,24 @@ void main() {
       expect(snapshot!.start!.n2Bar, [0.79, 0.8]);
     });
 
-    test('falls back to OLF for the CNS percentage when CNS is absent', () {
+    test('never reads OLF as CNS', () {
+      // OLF is the higher of CNS% and OTU%, so it overstates CNS whenever
+      // OTU is the binding limit.
       final snapshot = parseSuuntoTissue({
-        'EndTissue': {'OLF': 0.25},
+        'EndTissue': {'OLF': 0.25, 'OTU': 12.0},
       });
 
-      expect(snapshot!.end!.cnsPercent, closeTo(25.0, 1e-9));
+      expect(snapshot!.end!.cnsPercent, isNull);
+      expect(snapshot.end!.otu, 12.0);
+    });
+
+    test('a state holding only OLF has nothing to store', () {
+      expect(
+        parseSuuntoTissue({
+          'EndTissue': {'OLF': 0.25},
+        }),
+        isNull,
+      );
     });
   });
 

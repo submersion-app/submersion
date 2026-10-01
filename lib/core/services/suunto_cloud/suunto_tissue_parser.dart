@@ -7,9 +7,10 @@ import 'package:submersion/features/dive_log/domain/entities/computer_tissue_sna
 ///
 /// Suunto reports per-compartment tensions in Pascal (9 compartments on the
 /// HelO2 / D-series RGBM, 15 on the EON Fused2 RGBM); they come out in bar
-/// with five decimals. `CNS` (and its `OLF` stand-in on older models) is a
-/// 0-1 fraction and comes out in percent; `OTU` and the two RGBM factors are
-/// kept as reported.
+/// with five decimals. `CNS` is a 0-1 fraction and comes out in percent;
+/// `OTU` and the two RGBM factors are kept as reported. `OLF` is never read
+/// as CNS: it is the higher of CNS% and OTU%, so it overstates CNS whenever
+/// OTU is the binding limit.
 ///
 /// Two encodings of the compartment arrays exist and both are accepted: a
 /// plain numeric list (the app's DeviceLog JSON export), or -- in JSON
@@ -37,7 +38,7 @@ ComputerTissueState? _stateOf(Object? value) {
   if (value is! Map) return null;
   final tissue = Map<String, dynamic>.from(value);
 
-  final cns = asDoubleOrNull(tissue['CNS']) ?? asDoubleOrNull(tissue['OLF']);
+  final cns = asDoubleOrNull(tissue['CNS']);
   final state = ComputerTissueState(
     n2Bar: _tensionsBar(tissue['Nitrogen']),
     heBar: _tensionsBar(tissue['Helium']),
