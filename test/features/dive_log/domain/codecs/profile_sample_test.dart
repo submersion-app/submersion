@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample_point.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -43,6 +44,27 @@ void main() {
     expect(sample.pressure, 180.5);
     // DiveProfilePoint has no pressure field, so it cannot survive toPoint.
     expect(sample.toPoint(), point);
+  });
+
+  test('toPoint drops a safety stop\'s ceiling (#2550)', () {
+    // A series stored before the import fix (or synced from a peer that
+    // has not updated) can still hold one; no reader may take it for a
+    // decompression ceiling.
+    const safety = ProfileSample(
+      timestamp: 300,
+      depth: 5.0,
+      ceiling: 5.0,
+      decoType: 1,
+    );
+    expect(safety.toPoint().ceiling, isNull);
+    expect(safety.toPoint().decoType, 1);
+    const deco = ProfileSample(
+      timestamp: 300,
+      depth: 9.0,
+      ceiling: 6.0,
+      decoType: 2,
+    );
+    expect(deco.toPoint().ceiling, 6.0);
   });
 
   test('a minimal point maps with every optional field null', () {

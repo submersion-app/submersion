@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 
 /// One profile sample exactly as the v181 `dive_profiles` table stored it
 /// (the codec's column order), minus the identity columns (`id`, `dive_id`,
@@ -80,6 +81,44 @@ class ProfileSample extends Equatable {
   final int? o2SensorMv4;
   final int? o2SensorMv5;
   final int? o2SensorMv6;
+
+  /// This sample without the ceiling a safety stop carried, or this same
+  /// sample when it is no safety stop or has no ceiling.
+  ///
+  /// Imports before #2550 stored a safety stop's depth as the ceiling; a
+  /// safety stop is not an obligation, so no reader may treat it as one.
+  ProfileSample withoutSafetyStopCeiling() {
+    if (decoType != kDecoTypeSafetyStop || ceiling == null) return this;
+    return ProfileSample(
+      timestamp: timestamp,
+      depth: depth,
+      pressure: pressure,
+      temperature: temperature,
+      heartRate: heartRate,
+      ascentRate: ascentRate,
+      ndl: ndl,
+      setpoint: setpoint,
+      ppO2: ppO2,
+      o2Sensor1: o2Sensor1,
+      o2Sensor2: o2Sensor2,
+      o2Sensor3: o2Sensor3,
+      o2Sensor4: o2Sensor4,
+      o2Sensor5: o2Sensor5,
+      o2Sensor6: o2Sensor6,
+      cns: cns,
+      tts: tts,
+      rbt: rbt,
+      decoType: decoType,
+      heartRateSource: heartRateSource,
+      heading: heading,
+      o2SensorMv1: o2SensorMv1,
+      o2SensorMv2: o2SensorMv2,
+      o2SensorMv3: o2SensorMv3,
+      o2SensorMv4: o2SensorMv4,
+      o2SensorMv5: o2SensorMv5,
+      o2SensorMv6: o2SensorMv6,
+    );
+  }
 
   /// The same sample [seconds] later (negative moves it earlier). Merge and
   /// consolidation re-base a segment's samples onto the combined timeline.

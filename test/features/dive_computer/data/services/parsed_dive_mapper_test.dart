@@ -733,7 +733,9 @@ void main() {
       expect(sample.ndl, isNull);
     });
 
-    test('derives ceiling from decoDepth when decoType is safety stop (1)', () {
+    // A safety stop is not a decompression obligation (#2550): its depth
+    // must not become a ceiling, or the chart draws a deco stop band.
+    test('does not derive ceiling for a safety stop (decoType 1)', () {
       final parsed = makeParsedDive(
         fingerprint: 'ceiling-safety',
         maxDepthMeters: 30.0,
@@ -753,8 +755,10 @@ void main() {
       final downloaded = parsedDiveToDownloaded(parsed);
       final sample = downloaded.profile[0];
 
-      expect(sample.ceiling, 5.0);
+      expect(sample.ceiling, isNull);
       expect(sample.ndl, isNull);
+      expect(sample.decoType, 1);
+      expect(sample.decoDepth, 5.0);
     });
 
     test('derives ceiling from decoDepth when decoType is deep stop (3)', () {

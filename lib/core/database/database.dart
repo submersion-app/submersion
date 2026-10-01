@@ -232,7 +232,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 252;
+  static const int currentSchemaVersion = 255;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1033,6 +1033,13 @@ class AppDatabase extends _$AppDatabase {
     // linked route's dive (issue #2691 follow-up). Additive nullable column,
     // so the floor does not move. 251 is dive_tanks.source_id (#2716).
     252,
+    // v255: drops the ceilings safety stop samples carried from every
+    // stored profile series (issue #2550): a safety stop is no deco
+    // obligation, and its depth drew a deco stop band. Rewrites blobs in
+    // place without moving their sync stamp; an older peer's copy still
+    // reads as a safety stop, so the floor does not move. 253 and 254 are
+    // held by #2748 and #2749.
+    255,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

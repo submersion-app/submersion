@@ -137,5 +137,14 @@ extension RungsFromV231 on AppDatabase {
       await _backfillNavTrackDiverIds();
     }
     if (from < 252) await reportProgress();
+    // v255: a safety stop is no decompression ceiling (issue #2550). Drops
+    // the ceilings safety stop samples carried from every stored series.
+    // Rung only: new imports no longer write them, and every reader ignores
+    // one that still arrives from an older peer. 253 and 254 are held by
+    // #2748 and #2749.
+    if (from < 255) {
+      await _scrubSafetyStopCeilings();
+    }
+    if (from < 255) await reportProgress();
   }
 }

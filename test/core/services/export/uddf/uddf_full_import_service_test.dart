@@ -506,8 +506,10 @@ void main() {
       // decodepth (UDDF is SI: metres) maps straight to the ceiling.
       expect(profile[1]['ceiling'], 12.0);
       expect(profile[2]['ceiling'], 9.0);
-      // A safety stop still records its stop depth as the ceiling.
-      expect(profile[3]['ceiling'], 6.0);
+      // A safety stop is not an obligation, so its depth is no ceiling
+      // (#2550); it stays a safety stop by its decoType.
+      expect(profile[3]['ceiling'], isNull);
+      expect(profile[3]['decoType'], 1);
     });
 
     test('recognizes UDDF spec decostop kinds: mandatory -> deco, safety -> '
@@ -547,6 +549,8 @@ void main() {
       // recognized (no "unsupported kind" warning spam) and mapped correctly.
       expect(profile[0]['decoType'], 2);
       expect(profile[1]['decoType'], 1);
+      expect(profile[0]['ceiling'], 12.0);
+      expect(profile[1]['ceiling'], isNull);
     });
 
     group('oxygen sample data', () {

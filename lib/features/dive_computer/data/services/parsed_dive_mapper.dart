@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
+import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 
 /// Convert a Pigeon ParsedDive to the app's DownloadedDive format.
 ///
@@ -83,7 +84,7 @@ DownloadedDive parsedDiveToDownloaded(
             decoDepth: s.decoDepth,
             tts: s.tts,
             ndl: s.decoType == 0 ? s.decoTime : null,
-            ceiling: s.decoType != null && s.decoType != 0 ? s.decoDepth : null,
+            ceiling: decoStopCeiling(s.decoType, s.decoDepth),
             o2Sensor1: s.o2Sensor1,
             o2Sensor2: s.o2Sensor2,
             o2Sensor3: s.o2Sensor3,

@@ -2569,18 +2569,20 @@ class UddfFullImportService {
               'mapping to decoType=2 because the sample still indicates a deco stop.',
             );
           }
-          point['decoType'] = safetyKinds.contains(kind) ? 1 : 2;
+          final isSafetyStop = safetyKinds.contains(kind);
+          point['decoType'] = isSafetyStop ? 1 : 2;
 
           // Map the computer's stop depth to the sample ceiling. UDDF is SI, so
           // `decodepth` is metres and needs no conversion. Unlike Subsurface's
           // delta-encoded stopdepth, `<decostop>` is present on every in-stop
           // waypoint, so there is nothing to carry forward: a waypoint with no
           // decostop is simply no obligation (null ceiling). A non-positive
-          // depth is treated as no stop.
+          // depth is treated as no stop. A safety stop is not an obligation
+          // either, so its depth is no ceiling (#2550).
           final decoDepth = double.tryParse(
             decoStop.getAttribute('decodepth') ?? '',
           );
-          if (decoDepth != null && decoDepth > 0) {
+          if (!isSafetyStop && decoDepth != null && decoDepth > 0) {
             point['ceiling'] = decoDepth;
           }
         }

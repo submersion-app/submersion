@@ -115,6 +115,46 @@ void main() {
     expect(inputs.single.hadDecoObligation, isTrue);
   });
 
+  test('a safety stop ceiling on a series with deco types is no deco '
+      '(#2550)', () async {
+    // A series stored before the import fix kept a safety stop's depth as
+    // its ceiling. The computer reported deco types and never a deco stop,
+    // so the dive had no obligation: the same rule the Deco filter uses.
+    await insertDive(
+      'safety-stop-dive',
+      exitTime: now.subtract(const Duration(hours: 1)),
+    );
+    await insertProfilePoint('safety-stop-dive', decoType: 1, ceiling: 5.0);
+
+    final inputs = await repository.getNoFlyDiveInputs(
+      since: now.subtract(const Duration(hours: 48)),
+    );
+    expect(inputs.single.hadDecoObligation, isFalse);
+  });
+
+  test('a recorded deco stop event counts as deco', () async {
+    await insertDive(
+      'event-deco',
+      exitTime: now.subtract(const Duration(hours: 1)),
+    );
+    await db
+        .into(db.diveProfileEvents)
+        .insert(
+          DiveProfileEventsCompanion.insert(
+            id: 'evt-1',
+            diveId: 'event-deco',
+            timestamp: 600,
+            eventType: 'decoStopStart',
+            createdAt: now.millisecondsSinceEpoch,
+          ),
+        );
+
+    final inputs = await repository.getNoFlyDiveInputs(
+      since: now.subtract(const Duration(hours: 48)),
+    );
+    expect(inputs.single.hadDecoObligation, isTrue);
+  });
+
   test('dive without profile counts as no-deco', () async {
     await insertDive('bare', exitTime: now.subtract(const Duration(hours: 1)));
     final inputs = await repository.getNoFlyDiveInputs(

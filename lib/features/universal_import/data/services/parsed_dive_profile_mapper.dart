@@ -1,5 +1,6 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
+import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 
 /// Converts a libdivecomputer [pigeon.ParsedDive] into the profile-sample
 /// maps the import pipeline consumes.
@@ -85,8 +86,9 @@ class ParsedDiveProfileMapper {
       if (s.decoType != null) {
         sampleMap['decoType'] = s.decoType;
       }
-      if (s.decoDepth != null && s.decoType != null && s.decoType != 0) {
-        sampleMap['ceiling'] = s.decoDepth;
+      final ceiling = decoStopCeiling(s.decoType, s.decoDepth);
+      if (ceiling != null) {
+        sampleMap['ceiling'] = ceiling;
       }
       if (s.decoType == 0 && s.decoTime != null) {
         sampleMap['ndl'] = s.decoTime;

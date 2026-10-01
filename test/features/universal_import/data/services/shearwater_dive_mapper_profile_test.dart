@@ -497,6 +497,20 @@ void main() {
               decoTime: 180,
               decoDepth: 6.0,
             ),
+            pigeon.ProfileSample(
+              timeSeconds: 20,
+              depthMeters: 21.0,
+              decoType: 3,
+              decoTime: 60,
+              decoDepth: 15.0,
+            ),
+            pigeon.ProfileSample(
+              timeSeconds: 30,
+              depthMeters: 5.0,
+              decoType: 1,
+              decoTime: 180,
+              decoDepth: 5.0,
+            ),
           ],
           tanks: [],
           gasMixes: [],
@@ -511,6 +525,15 @@ void main() {
         expect(s1['decoType'], 2);
         expect(s1['ceiling'], 6.0);
         expect(s1.containsKey('ndl'), isFalse);
+        // A deep stop is a stop the computer asks for, so it is a ceiling.
+        final deep = profile[1] as Map<String, dynamic>;
+        expect(deep['decoType'], 3);
+        expect(deep['ceiling'], 15.0);
+        // A safety stop is not an obligation, so it is no ceiling (#2550).
+        final safety = profile[2] as Map<String, dynamic>;
+        expect(safety['decoType'], 1);
+        expect(safety.containsKey('ceiling'), isFalse);
+        expect(safety.containsKey('ndl'), isFalse);
       });
 
       test('extracts water temp from samples when not in metadata', () {

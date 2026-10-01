@@ -1,9 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
-
-/// The `deco_type` value that marks a mandatory decompression stop
-/// (0 = NDL, 1 = safety stop, 2 = deco stop, 3 = deep stop).
-const int kDecoTypeDecoStop = 2;
 
 /// The scalars a `dive_profile_series` row stores next to its blob.
 ///
