@@ -61,6 +61,24 @@ void main() {
     expect(result.ndlCurve[50], lessThan(0));
   });
 
+  test('a deco stop sample with a zero NDL reads as in deco', () {
+    // Subsurface and Diving Log imports carry an NDL of zero through a stop
+    // next to the in-deco flag, rather than leaving it null.
+    final zeroNdl = [
+      for (final p in withStopFrom40(2))
+        p.decoType == 2 ? p.copyWith(ndl: 0) : p,
+    ];
+
+    final (result, _) = overlayComputerDecoData(
+      base,
+      zeroNdl,
+      ndlSource: MetricDataSource.computer,
+    );
+
+    expect(result.ndlCurve[50], lessThan(0));
+    expect(result.hadDecoObligation, isTrue);
+  });
+
   test('a safety stop sample keeps the calculated fallback', () {
     final (result, _) = overlayComputerDecoData(
       base,

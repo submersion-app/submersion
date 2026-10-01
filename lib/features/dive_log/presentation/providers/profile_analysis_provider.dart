@@ -433,10 +433,11 @@ const int _ndlInDeco = -1;
 /// Whether the computer reported a deco or deep stop at [point].
 ///
 /// Computers report a no-stop time only while out of deco; at a stop the
-/// sample carries the stop instead, so its stored NDL is null. Such a sample
-/// is in deco by the computer's own model, which may disagree with the
-/// calculated one (VPM, RGBM, other gradient factors), so it must not fall
-/// back to the calculated NDL (#2551). A safety stop is not deco.
+/// sample carries the stop instead, so its stored NDL is null (or zero, from
+/// Subsurface and Diving Log imports). Such a sample is in deco by the
+/// computer's own model, which may disagree with the calculated one (VPM,
+/// RGBM, other gradient factors), so it must not fall back to the calculated
+/// NDL (#2551). A safety stop is not deco.
 bool _isComputerDecoSample(DiveProfilePoint point) =>
     point.decoType == 2 || point.decoType == 3;
 
@@ -540,16 +541,15 @@ bool _isComputerDecoSample(DiveProfilePoint point) =>
 
   final overlaid = analysis.copyWith(
     ndlCurve: useNdl
-        ? List<int>.generate(
-            profile.length,
-            (i) =>
-                profile[i].ndl ??
-                (_isComputerDecoSample(profile[i])
-                    ? _ndlInDeco
-                    : (i < analysis.ndlCurve.length
-                          ? analysis.ndlCurve[i]
-                          : 0)),
-          )
+        ? List<int>.generate(profile.length, (i) {
+            final ndl = profile[i].ndl;
+            if (_isComputerDecoSample(profile[i]) &&
+                (ndl == null || ndl <= 0)) {
+              return _ndlInDeco;
+            }
+            return ndl ??
+                (i < analysis.ndlCurve.length ? analysis.ndlCurve[i] : 0);
+          })
         : null,
     ceilingCurve: useCeiling
         ? List<double>.generate(
