@@ -193,12 +193,12 @@ double? replaceGlitchedEndpoint({
 ///
 /// * where the first or last clean, finite reading is itself at or above
 ///   that bound, the series contradicts the value and that reading replaces
-///   it. A series that drops straight to near zero within
-///   [kPressureGlitchMaxSeconds] and stays there until the log ends is a
-///   dropout nothing came after, so the reading before the drop counts as
-///   its last;
+///   it;
 /// * where the clean reading is near zero as well, the series agrees and the
-///   value is kept;
+///   value is kept. That includes a series that drops into near zero and
+///   stays there until the log ends: a CCR oxygen cylinder bleeding down
+///   through its orifice after surfacing (issue #1092) reads just like a
+///   transmitter that lost its signal, and only the first is the cylinder;
 /// * where there is no series, the value is cleared to null when [otherBar]
 ///   is a real pressure, so the cylinder records no end (or start) rather
 ///   than one nobody breathed down to. With no real pressure at either end
@@ -226,7 +226,7 @@ double? replaceNearZeroEndpoint({
         if (r.bar.isFinite) r,
     ];
     if (clean.isNotEmpty) {
-      final seriesBar = atStart ? clean.first.bar : _lastRealBar(clean);
+      final seriesBar = atStart ? clean.first.bar : clean.last.bar;
       return seriesBar >= kPressureGlitchNearZeroBar ? seriesBar : reportedBar;
     }
   }
@@ -235,28 +235,6 @@ double? replaceNearZeroEndpoint({
       otherBar.isFinite &&
       otherBar >= kPressureGlitchNearZeroBar;
   return otherIsReal ? null : reportedBar;
-}
-
-/// The last reading of the clean, time-ordered series [clean], or the one
-/// before a near-zero run that closes it when that run starts with a drop of
-/// more than [kPressureGlitchMinDipBar] within [kPressureGlitchMaxSeconds].
-/// A cylinder drained into near zero reading by reading keeps its last
-/// reading: the series shows it emptying. So does a sparse series, where the
-/// drop may have happened at any point of a long gap and is as likely the
-/// gas breathed in it, as the dip rule of [scanPressureGlitches] holds.
-double _lastRealBar(List<PressureReading> clean) {
-  var k = clean.length - 1;
-  while (k > 0 && clean[k].bar < kPressureGlitchNearZeroBar) {
-    k--;
-  }
-  final last = clean.last.bar;
-  if (k == clean.length - 1) return last;
-  final before = clean[k].bar;
-  final dropsStraightDown =
-      before >= kPressureGlitchNearZeroBar &&
-      before - clean[k + 1].bar > kPressureGlitchMinDipBar &&
-      clean[k + 1].t - clean[k].t <= kPressureGlitchMaxSeconds;
-  return dropsStraightDown ? before : last;
 }
 
 /// The first and last clean reading of a tank pressure series, in any order,

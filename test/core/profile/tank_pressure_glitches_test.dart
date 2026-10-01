@@ -415,10 +415,10 @@ void main() {
       );
     });
 
-    test('a series that drops to near zero and stays there is a dropout', () {
-      // The transmitter lost its signal for the rest of the log: nothing
-      // follows the drop to show it was a misread, so the scan keeps it, but
-      // no cylinder loses 190 bar between two readings.
+    test('a series that drops to near zero and stays there agrees', () {
+      // Nothing follows the drop to show it was a misread, and a cylinder
+      // really draining fast (a CCR oxygen cylinder bleeding down after
+      // surfacing, issue #1092) looks the same, so the series stands.
       final series = withValues(draining(), {27: 0.3, 28: 0.3, 29: 0.3});
       expect(scanPressureGlitches(series).glitchIndices, isEmpty);
       expect(
@@ -428,7 +428,7 @@ void main() {
           readings: series,
           atStart: false,
         ),
-        closeTo(200 - 26 * 0.3, 1e-9),
+        0.3,
       );
     });
 
