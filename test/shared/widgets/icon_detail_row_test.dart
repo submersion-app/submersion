@@ -100,14 +100,55 @@ void main() {
     expect(tester.getSize(find.text('Gemeinsame T')).height, lineHeight);
   });
 
-  testWidgets('the icon centres on the first line at a larger text size', (
+  for (final scale in [1.35, 0.85]) {
+    testWidgets('the icon centres on the first line at text scale $scale', (
+      tester,
+    ) async {
+      await pumpRow(tester, label: 'Type', value: 'PADI', textScale: scale);
+
+      final icon = tester.getCenter(find.byIcon(Icons.card_membership)).dy;
+      final label = tester.getCenter(find.text('Type')).dy;
+      expect(icon, closeTo(label, 0.01));
+    });
+  }
+
+  testWidgets('a screen reader hears the row once, as "label: value"', (
     tester,
   ) async {
-    await pumpRow(tester, label: 'Type', value: 'PADI', textScale: 1.35);
+    final semantics = tester.ensureSemantics();
+    await pumpRow(tester, label: 'Type', value: 'PADI');
 
-    final icon = tester.getCenter(find.byIcon(Icons.card_membership)).dy;
-    final label = tester.getCenter(find.text('Type')).dy;
-    expect(icon, closeTo(label, 0.01));
+    expect(find.bySemanticsLabel('Type: PADI'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp(r'^Type$')), findsNothing);
+    // Disposed in the body: the binding checks for a live handle before
+    // tear-downs run.
+    semantics.dispose();
+  });
+
+  testWidgets('a row narrower than its icon never builds invalid '
+      'constraints', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 20,
+              child: IconDetailRow(
+                icon: Icons.card_membership,
+                label: 'Type',
+                value: 'PADI',
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // The fixed icon and gaps overflow a 20 px row, which is reported; what
+    // must not happen is a negative label width failing the constraints.
+    final error = tester.takeException();
+    expect(error.toString(), isNot(contains('NOT NORMALIZED')));
   });
 
   testWidgets('reads as one "label: value" node and tints the value', (

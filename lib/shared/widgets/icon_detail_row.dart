@@ -8,9 +8,9 @@ import 'package:flutter/material.dart';
 /// The value wraps instead of squeezing the label (issue #2695): the label
 /// keeps its natural width whenever it fits beside the value. When the two
 /// cannot share one line, the label wraps too, but it never takes more than
-/// [_crowdedLabelShare] of the text width, so a long localized label (the
-/// Spanish "Also Recognized" is 23 characters) cannot squeeze the value in
-/// turn or overflow the row at a large text size.
+/// 40% of the text width, so a long localized label (the Spanish "Also
+/// Recognized" is 23 characters) cannot squeeze the value in turn or
+/// overflow the row at a large text size.
 class IconDetailRow extends StatelessWidget {
   const IconDetailRow({
     super.key,
@@ -43,62 +43,79 @@ class IconDetailRow extends StatelessWidget {
       fontWeight: FontWeight.bold,
       color: valueColor,
     );
+
+    // Neither measurement depends on the row's width, so both are taken once
+    // per build rather than on every layout pass.
     final textScaler = MediaQuery.textScalerOf(context);
     final textDirection = Directionality.of(context);
-
     TextPainter measure(String text, TextStyle style) => TextPainter(
       text: TextSpan(text: text, style: style),
       textDirection: textDirection,
       textScaler: textScaler,
     )..layout();
+    final valuePainter = measure(value, valueStyle);
+    final labelPainter = measure(label, labelStyle);
+    final valueWidth = valuePainter.width;
+    final lineHeight = labelPainter.preferredLineHeight;
+    valuePainter.dispose();
+    labelPainter.dispose();
 
+    // The first line is as tall as the taller of the icon and a line of text;
+    // whichever is shorter is centred on it, at any text size.
+    final firstLine = math.max(lineHeight, _iconSize);
+    final textTop = (firstLine - lineHeight) / 2;
+
+    // The row reads as one "label: value" node; the texts are not read again.
     return Semantics(
       label: '$label: $value',
+      excludeSemantics: true,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final valuePainter = measure(value, valueStyle);
-            final labelPainter = measure(label, labelStyle);
-            final valueWidth = valuePainter.width;
-            final lineHeight = labelPainter.preferredLineHeight;
-            valuePainter.dispose();
-            labelPainter.dispose();
-
             final textWidth = constraints.maxWidth - _iconSize - _iconGap;
+            // Never negative: a row narrower than its icon (a pane animating
+            // open) still has to build valid constraints.
             final labelMaxWidth = math.max(
-              textWidth - _valueGap - valueWidth,
-              textWidth * _crowdedLabelShare,
+              0.0,
+              math.max(
+                textWidth - _valueGap - valueWidth,
+                textWidth * _crowdedLabelShare,
+              ),
             );
 
             // Top-aligned so a wrapped label or value keeps the others on its
-            // first line; the icon is centred on that first line.
+            // first line.
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ExcludeSemantics(
-                  child: SizedBox(
-                    height: math.max(lineHeight, _iconSize),
-                    child: Center(
-                      child: Icon(
-                        icon,
-                        size: _iconSize,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                SizedBox(
+                  height: firstLine,
+                  child: Center(
+                    child: Icon(
+                      icon,
+                      size: _iconSize,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),
                 const SizedBox(width: _iconGap),
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: labelMaxWidth),
-                  child: Text(label, style: labelStyle),
+                Padding(
+                  padding: EdgeInsets.only(top: textTop),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: labelMaxWidth),
+                    child: Text(label, style: labelStyle),
+                  ),
                 ),
                 const SizedBox(width: _valueGap),
                 Expanded(
-                  child: Text(
-                    value,
-                    textAlign: TextAlign.end,
-                    style: valueStyle,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: textTop),
+                    child: Text(
+                      value,
+                      textAlign: TextAlign.end,
+                      style: valueStyle,
+                    ),
                   ),
                 ),
               ],
