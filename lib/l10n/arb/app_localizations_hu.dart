@@ -36626,7 +36626,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nagy testű, barátságos sügér sötét, burgonya alakú foltokkal, a Nagy-korallzátony Cod Hole nevű helyszínének híres lakója.';
 
   @override
-  String get species_peacock_grouper_name => 'Pávasügér';
+  String get species_peacock_grouper_name => 'Kékpettyes sügér';
 
   @override
   String get species_peacock_grouper_desc =>
@@ -37971,7 +37971,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Mérgező, sokkarú tengericsillag, amely korallal táplálkozik, és tömeges elszaporodásakor egész zátonyokat pusztíthat el.';
 
   @override
-  String get species_blue_linckia_starfish_name => 'Kék tengericsillag';
+  String get species_blue_linckia_starfish_name => 'Kék linckia';
 
   @override
   String get species_blue_linckia_starfish_desc =>
@@ -39926,7 +39926,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Szívós olajzöld hal, levegőt lélegzik és tüskés kopoltyúfedőin kúszik a szárazföldön a kiszáradó tócsák között.';
 
   @override
-  String get species_golden_mahseer_name => 'Márna';
+  String get species_golden_mahseer_name => 'Arany mahseer';
 
   @override
   String get species_golden_mahseer_desc =>

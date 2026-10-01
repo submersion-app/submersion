@@ -37859,7 +37859,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Giftige veelarmige zeester die koraal eet en riffen bij plagen kan verwoesten.';
 
   @override
-  String get species_blue_linckia_starfish_name => 'Blauwe zeester';
+  String get species_blue_linckia_starfish_name => 'Blauwe linckia';
 
   @override
   String get species_blue_linckia_starfish_desc =>

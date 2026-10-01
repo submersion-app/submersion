@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/features/marine_life/presentation/species_name_lookup.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Regression coverage for issue #2480: meaning errors found while the
@@ -87,6 +88,39 @@ void main() {
         );
       }
     });
+  });
+
+  test('no two different species share a name in any locale', () {
+    // The German Golden Mahseer was called Riesenbarbe, the giant barb's
+    // name. The catalog seeds a few species twice under different ids (same
+    // scientific name), and those rightly share a name, so a collision only
+    // counts when the scientific names differ.
+    final catalog =
+        ((json.decode(
+                      File(
+                        p.join('assets', 'data', 'species.json'),
+                      ).readAsStringSync(),
+                    )
+                    as Map<String, dynamic>)['species']
+                as List)
+            .cast<Map<String, dynamic>>();
+
+    final offenders = <String>[];
+    for (final locale in ['en', ...translated]) {
+      final l10n = l10nFor(locale);
+      final byName = <String, Map<String, String>>{};
+      for (final row in catalog) {
+        final id = row['id'] as String;
+        final name = builtInSpeciesName(l10n, id)!.toLowerCase();
+        (byName[name] ??= {})[id] = row['scientificName'] as String;
+      }
+      byName.forEach((name, rows) {
+        if (rows.values.toSet().length > 1) {
+          offenders.add('$locale "$name": ${rows.keys.join(', ')}');
+        }
+      });
+    }
+    expect(offenders, isEmpty, reason: offenders.join('\n'));
   });
 
   group('German', () {

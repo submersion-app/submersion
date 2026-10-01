@@ -39786,7 +39786,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Gigante preistorico dal muso largo e dentato con squame corazzate a rombo, risale a ingoiare aria nei fiumi meridionali.';
 
   @override
-  String get species_longnose_gar_name => 'Luccio alligatore';
+  String get species_longnose_gar_name => 'Lepisosteo dal muso lungo';
 
   @override
   String get species_longnose_gar_desc =>

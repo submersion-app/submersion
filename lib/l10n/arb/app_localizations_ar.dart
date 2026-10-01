@@ -39329,7 +39329,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'حفش مدرع مهدد بالانقراض بشدة من الأنهار الأطلسية، يُربى اليوم ويُطلق في نهري غارون وإلبه.';
 
   @override
-  String get species_alligator_gar_name => 'سمكة التمساح';
+  String get species_alligator_gar_name => 'الغار التمساحي';
 
   @override
   String get species_alligator_gar_desc =>
