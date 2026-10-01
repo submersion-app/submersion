@@ -479,6 +479,24 @@ void main() {
       expect(find.text('1d 2h before the recording'), findsOneWidget);
     });
 
+    testWidgets('labels an offset under an hour in minutes alone', (
+      tester,
+    ) async {
+      // A dive logged with no exit time or runtime is a single instant, so
+      // 45 minutes before the recording is already outside the 30-minute
+      // window and lands in the fallback.
+      await _pump(
+        tester,
+        preview: _preview(
+          nearbyDives: [
+            _dive('m1', routeStart.subtract(const Duration(minutes: 45))),
+          ],
+        ),
+      );
+
+      expect(find.text('45min before the recording'), findsOneWidget);
+    });
+
     testWidgets('picking a nearby dive selects it and takes its site', (
       tester,
     ) async {
