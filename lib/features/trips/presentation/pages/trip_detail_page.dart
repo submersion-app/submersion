@@ -13,7 +13,6 @@ import 'package:submersion/features/checklists/presentation/widgets/trip_checkli
 import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -474,16 +473,13 @@ class _TripDetailContent extends ConsumerWidget {
       ownerId: trip.diverId,
       activeDiverId: ref.watch(validatedCurrentDiverIdProvider).value,
     );
-    // A trip this profile already removed offers Unhide, not Remove again
-    // (issue #2679).
-    final hidden =
-        !canDestroy &&
-        (ref
-                .watch(
-                  isHiddenProvider((kind: SharedItemKind.trip, id: trip.id)),
-                )
-                .value ??
-            false);
+    // A trip this profile already removed offers Unhide (issue #2679).
+    final hidden = watchHiddenHere(
+      ref,
+      SharedItemKind.trip,
+      trip.id,
+      canDestroy: canDestroy,
+    );
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {

@@ -38,7 +38,6 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_
 import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
@@ -391,16 +390,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       ownerId: site.diverId,
       activeDiverId: ref.watch(validatedCurrentDiverIdProvider).value,
     );
-    // A site this profile already removed offers Unhide, not Remove again
-    // (issue #2679).
-    final hidden =
-        !canDestroy &&
-        (ref
-                .watch(
-                  isHiddenProvider((kind: SharedItemKind.site, id: site.id)),
-                )
-                .value ??
-            false);
+    // A site this profile already removed offers Unhide (issue #2679).
+    final hidden = watchHiddenHere(
+      ref,
+      SharedItemKind.site,
+      site.id,
+      canDestroy: canDestroy,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
