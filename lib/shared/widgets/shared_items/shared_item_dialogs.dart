@@ -177,9 +177,9 @@ List<String> bulkDeleteLines(
 /// The whole "Remove from my profile" flow for another profile's shared
 /// trip or site (issue #2594): count the profile's own linked dives,
 /// confirm, [hide], then [onRemoved] (close the page) and a snackbar whose
-/// Undo calls [unhide]. Nothing happens past a refused [hide]; a failed
-/// [hide] or [unhide] says to try again and leaves the page as it was
-/// (issue #2677).
+/// Undo calls [unhide]. Nothing happens past a refused [hide]. A failed
+/// [hide] says to try again and leaves the page as it was; a failed
+/// [unhide] says so and offers Undo again (issue #2677).
 Future<void> removeSharedItemFromProfile(
   BuildContext context,
   WidgetRef ref, {
@@ -206,15 +206,21 @@ Future<void> removeSharedItemFromProfile(
   if (await runHideChange(messenger, l10n, hide) != true) return;
   if (!context.mounted) return;
   onRemoved();
-  messenger.showSnackBar(
+  void offerUndo(String message) => messenger.showSnackBar(
     SnackBar(
-      content: Text(l10n.sharedItems_removedSnackbar),
+      content: Text(message),
       action: SnackBarAction(
         label: l10n.sharedItems_undo,
-        onPressed: () => runHideChange(messenger, l10n, unhide),
+        onPressed: () async {
+          final undone = await tryHideChange(() => unhide().then((_) => true));
+          if (undone == null && messenger.mounted) {
+            offerUndo(l10n.common_error_tryAgain);
+          }
+        },
       ),
     ),
   );
+  offerUndo(l10n.sharedItems_removedSnackbar);
 }
 
 /// Confirms hiding another profile's shared trip or site from the active

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -209,9 +211,11 @@ void main() {
       expect(await SiteRepository().getSiteById('mine'), isNotNull);
     });
 
-    testWidgets('a failed restore in Undo says to try again', (tester) async {
+    testWidgets('a failed restore in Undo says to try again and offers '
+        'Undo again', (tester) async {
       await seedSite(db, 'mine', owner: 'd2', name: 'Alpha');
-      await pump(tester, repository: _UnrestorableSites());
+      final repository = _UnrestorableSites();
+      await pump(tester, repository: repository);
       await confirmBulkDelete(tester, ['Alpha']);
       expect(await SiteRepository().getSiteById('mine'), isNull);
 
@@ -219,6 +223,34 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(tryAgain), findsOneWidget);
       expect(find.text('Sites restored'), findsNothing);
+
+      repository.fail = false;
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(await SiteRepository().getSiteById('mine'), isNotNull);
+      expect(find.text('Sites restored'), findsOneWidget);
+    });
+
+    testWidgets('says so once the list has closed', (tester) async {
+      await seedSite(db, 'mine', owner: 'd2', shared: true, name: 'Alpha');
+      await seedSite(db, 'theirs', owner: 'd1', shared: true, name: 'Bravo');
+      final gate = Completer<void>();
+      await pump(
+        tester,
+        hides: FailingProfileHides()
+          ..failHide = true
+          ..hideGate = gate,
+      );
+      await confirmBulkDelete(tester, ['Alpha', 'Bravo']);
+      GoRouter.of(
+        tester.element(find.byType(SiteListContent)),
+      ).go('/sites/merge', extra: <String>[]);
+      await tester.pumpAndSettle();
+      expect(find.byType(SiteListContent), findsNothing);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(find.text('Deleted 1 site · $tryAgain'), findsOneWidget);
     });
 
     testWidgets('in Undo keeps the hide and says to try again', (tester) async {
@@ -234,6 +266,12 @@ void main() {
       expect(await db.select(db.siteHides).get(), hasLength(1));
       expect(find.text(tryAgain), findsOneWidget);
       expect(find.text('Sites restored'), findsNothing);
+
+      hides.failUnhide = false;
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(await db.select(db.siteHides).get(), isEmpty);
+      expect(find.text('Sites restored'), findsOneWidget);
     });
   });
 
@@ -305,11 +343,16 @@ void main() {
 /// A site repository whose re-create fails, as a database error would, so
 /// an Undo cannot bring a deleted site back.
 class _UnrestorableSites extends SiteRepository {
+  bool fail = true;
+
   @override
   Future<DiveSite> createSite(
     DiveSite site, {
     SiteClassification? classification,
-  }) async => throw StateError('database unavailable');
+  }) async {
+    if (fail) throw StateError('database unavailable');
+    return super.createSite(site, classification: classification);
+  }
 }
 
 /// A site repository whose lookup by ids fails, as a database error would.

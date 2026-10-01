@@ -473,6 +473,56 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         );
         return BulkActionOutcome.completed;
       }
+      // Takes back what the bulk delete did, clearing each half once it is
+      // back. Anything left says so, even once the list has closed, and
+      // offers Undo again for the rest (issue #2677).
+      Future<void> undo() async {
+        final toRestore = _deletedSites;
+        if (toRestore == null || toRestore.sites.isEmpty) {
+          _deletedSites = null;
+        } else {
+          try {
+            await notifier.restoreSites(
+              toRestore.sites,
+              links: toRestore.links,
+            );
+            _deletedSites = null;
+          } catch (e, stackTrace) {
+            _log.error(
+              'Could not restore the deleted sites',
+              error: e,
+              stackTrace: stackTrace,
+            );
+          }
+        }
+        final toUnhide = _hiddenSiteIds;
+        if (toUnhide.isEmpty ||
+            await tryHideChange(
+                  () => notifier.unhideSites(toUnhide).then((_) => true),
+                ) ==
+                true) {
+          _hiddenSiteIds = const [];
+        }
+        if (_deletedSites != null || _hiddenSiteIds.isNotEmpty) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(l10n.common_error_tryAgain),
+              action: SnackBarAction(
+                label: l10n.diveSites_list_bulkDelete_undo,
+                onPressed: undo,
+              ),
+            ),
+          );
+        } else if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(l10n.diveSites_list_bulkDelete_restored),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+
       // Nothing done (every action refused): no empty snackbar. A failure
       // says so even once the list has closed.
       if ((mounted || hidden == null) && summary.isNotEmpty) {
@@ -484,49 +534,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             showCloseIcon: true,
             action: SnackBarAction(
               label: l10n.diveSites_list_bulkDelete_undo,
-              onPressed: () async {
-                final toRestore = _deletedSites;
-                final toUnhide = _hiddenSiteIds;
-                var restored = true;
-                if (toRestore != null && toRestore.sites.isNotEmpty) {
-                  try {
-                    await notifier.restoreSites(
-                      toRestore.sites,
-                      links: toRestore.links,
-                    );
-                  } catch (e, stackTrace) {
-                    _log.error(
-                      'Could not restore the deleted sites',
-                      error: e,
-                      stackTrace: stackTrace,
-                    );
-                    restored = false;
-                  }
-                }
-                final unhidden =
-                    toUnhide.isEmpty ||
-                    await tryHideChange(
-                          () =>
-                              notifier.unhideSites(toUnhide).then((_) => true),
-                        ) ==
-                        true;
-                _deletedSites = null;
-                _hiddenSiteIds = const [];
-                if (!restored || !unhidden) {
-                  // Not everything is back: say so, even once the list has
-                  // closed.
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(content: Text(l10n.common_error_tryAgain)),
-                  );
-                } else if (mounted) {
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.diveSites_list_bulkDelete_restored),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
+              onPressed: undo,
             ),
           ),
         );

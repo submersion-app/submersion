@@ -163,7 +163,9 @@ void main() {
     expect(find.text('home'), findsNothing);
   });
 
-  testWidgets('a failed Undo says to try again', (tester) async {
+  testWidgets('a failed Undo says to try again and offers Undo again', (
+    tester,
+  ) async {
     final notifier = await pump(tester, active: 'd2');
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
@@ -179,6 +181,12 @@ void main() {
       find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
+
+    notifier.failHides = false;
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(notifier.unhidden, ['shared-trip']);
+    expect(find.text('Something went wrong. Please try again.'), findsNothing);
   });
 
   testWidgets('an owner whose trip changed hands meanwhile is refused', (

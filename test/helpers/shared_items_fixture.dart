@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
@@ -123,6 +125,9 @@ class FailingProfileHides extends ProfileHidesRepository {
   /// refresh after a committed hide fails.
   bool failAfterHide = false;
 
+  /// Holds a hide open until the test completes it.
+  Completer<void>? hideGate;
+
   // [hide] writes through [hideAll], so failing here fails both.
   @override
   Future<int> hideAll(
@@ -130,6 +135,7 @@ class FailingProfileHides extends ProfileHidesRepository {
     List<String> ids,
     String diverId,
   ) async {
+    await hideGate?.future;
     if (failHide) throw StateError('database unavailable');
     final hidden = await super.hideAll(kind, ids, diverId);
     if (failAfterHide) throw StateError('database unavailable');

@@ -185,9 +185,8 @@ void main() {
     expect(find.text('Removed from your profile'), findsNothing);
   });
 
-  testWidgets('a failed Undo keeps the hide and says to try again', (
-    tester,
-  ) async {
+  testWidgets('a failed Undo keeps the hide, says to try again and offers '
+      'Undo again', (tester) async {
     final hides = FailingProfileHides();
     await pump(tester, active: 'd2', hides: hides);
     await tester.tap(
@@ -205,6 +204,11 @@ void main() {
       find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
+
+    hides.failUnhide = false;
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(await db.select(db.siteHides).get(), isEmpty);
   });
 
   testWidgets('an owner whose site changed hands meanwhile is refused', (
