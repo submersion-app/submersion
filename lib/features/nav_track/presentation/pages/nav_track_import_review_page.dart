@@ -34,11 +34,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// link proposal once the preview loads (e.g. importing from a dive's own
 /// "Underwater Route" section, where the dive is already known); it does
 /// not skip the parse or the review step.
+///
+/// [preview] is passed by a caller that already parsed the file itself to
+/// report a failed parse in place (the routes area and the dive section);
+/// see [NavTrackImportReviewPage.preview].
 Future<void> navigateToNavTrackReview(
   BuildContext context,
   Uint8List bytes, {
   required String fileName,
   String? preselectedDiveId,
+  NavTrackImportPreview? preview,
 }) {
   return Navigator.of(context).push<void>(
     MaterialPageRoute(
@@ -46,6 +51,7 @@ Future<void> navigateToNavTrackReview(
         bytes: bytes,
         fileName: fileName,
         preselectedDiveId: preselectedDiveId,
+        preview: preview,
       ),
     ),
   );

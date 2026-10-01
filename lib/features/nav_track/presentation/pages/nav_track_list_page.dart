@@ -87,7 +87,6 @@ class _NavTrackListPageState extends ConsumerState<NavTrackListPage> {
 
   Future<void> _importFile() async {
     final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
     final l10n = context.l10n;
 
     final file = await FilePicker.pickFile(
@@ -119,14 +118,11 @@ class _NavTrackListPageState extends ConsumerState<NavTrackListPage> {
     }
 
     if (!mounted) return;
-    await navigator.push<void>(
-      MaterialPageRoute(
-        builder: (_) => NavTrackImportReviewPage(
-          bytes: bytes,
-          fileName: file.name,
-          preview: preview,
-        ),
-      ),
+    await navigateToNavTrackReview(
+      context,
+      bytes,
+      fileName: file.name,
+      preview: preview,
     );
   }
 

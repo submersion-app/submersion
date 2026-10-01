@@ -61,7 +61,6 @@ class NavTrackSection extends ConsumerWidget {
 
   Future<void> _importFile(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
     final l10n = context.l10n;
     final log = LoggerService.forClass(NavTrackSection);
 
@@ -93,15 +92,12 @@ class NavTrackSection extends ConsumerWidget {
     }
     if (!context.mounted) return;
 
-    await navigator.push<void>(
-      MaterialPageRoute(
-        builder: (_) => NavTrackImportReviewPage(
-          bytes: bytes,
-          fileName: file.name,
-          preview: preview,
-          preselectedDiveId: dive.id,
-        ),
-      ),
+    await navigateToNavTrackReview(
+      context,
+      bytes,
+      fileName: file.name,
+      preview: preview,
+      preselectedDiveId: dive.id,
     );
   }
 
