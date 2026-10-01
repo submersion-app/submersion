@@ -120,20 +120,35 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // The primary repair sits on its own line under the detail rather
+          // than in trailing: a ListTile lays trailing out at its natural
+          // width first, so a long translated repair label there starves the
+          // finding title to one fragment per line (issue #2717).
           ListTile(
             leading: Icon(_icon, color: _color(scheme)),
             title: Text(message.title),
-            subtitle: Text(
-              message.detail,
-              maxLines: _expanded ? null : 1,
-              overflow: _expanded ? null : TextOverflow.ellipsis,
-            ),
-            trailing: primary == null
-                ? null
-                : FilledButton.tonal(
-                    onPressed: () => widget.onRepair(primary),
-                    child: Text(_repairLabel(context, primary)),
+            subtitle: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  message.detail,
+                  maxLines: _expanded ? null : 1,
+                  overflow: _expanded ? null : TextOverflow.ellipsis,
+                ),
+                if (primary != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: FilledButton.tonal(
+                      style: FilledButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      onPressed: () => widget.onRepair(primary),
+                      child: Text(_repairLabel(context, primary)),
+                    ),
                   ),
+              ],
+            ),
             onTap: () => setState(() => _expanded = !_expanded),
           ),
           if (related != null)

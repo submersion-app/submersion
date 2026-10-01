@@ -470,16 +470,16 @@ class _TripDetailContent extends ConsumerWidget {
     // Lightroom scan hidden pending Adobe review (lightroomUiEnabled).
     final hasLightroomAccount =
         lightroomUiEnabled && ref.watch(lightroomAccountProvider).value != null;
-    final canDestroy = canDestroySharedItem(
+    final canDestroy = canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
       ownerId: trip.diverId,
-      activeDiverId: ref.watch(validatedCurrentDiverIdProvider).value,
     );
     // A trip this profile already removed offers Unhide (issue #2679).
     final hidden = watchHiddenHere(
       ref,
       SharedItemKind.trip,
       trip.id,
-      canDestroy: canDestroy,
+      canDestroy: canDestroy != false,
     );
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
@@ -573,8 +573,9 @@ class _TripDetailContent extends ConsumerWidget {
           ),
         ),
         // Delete for the owner; another profile only removes the shared
-        // trip from itself (issue #2594).
-        if (canDestroy)
+        // trip from itself (issue #2594); neither while the profile is
+        // unknown (issue #2682).
+        if (canDestroy == true)
           PopupMenuItem(
             value: 'delete',
             child: Row(
@@ -599,7 +600,7 @@ class _TripDetailContent extends ConsumerWidget {
               ],
             ),
           )
-        else
+        else if (canDestroy == false)
           PopupMenuItem(
             value: 'remove',
             child: Row(

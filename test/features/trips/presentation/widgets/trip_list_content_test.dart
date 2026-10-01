@@ -55,8 +55,13 @@ class _MockTripListNotifier
   /// What the repository answers: false refuses every delete and hide.
   bool allowed = true;
 
+  /// A trip whose delete throws, as a failed profile read inside the
+  /// notifier would (issue #2682).
+  String? throwsOn;
+
   @override
   Future<bool> deleteTrip(String id) async {
+    if (id == throwsOn) throw StateError('no profile');
     deleted.add(id);
     return allowed;
   }
@@ -64,8 +69,12 @@ class _MockTripListNotifier
   /// Ids bulk delete hid instead (issue #2594), in one batch.
   final hidden = <String>[];
 
+  /// Whether the batch hide throws (issue #2682).
+  bool hideThrows = false;
+
   @override
   Future<int> hideTrips(List<String> ids) async {
+    if (hideThrows) throw StateError('no profile');
     hidden.addAll(ids);
     return allowed ? ids.length : 0;
   }
@@ -246,6 +255,10 @@ void main() {
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
+          // No profile yet: every trip is the diver's to delete. The
+          // delete reads these before its dialog (issue #2682).
+          validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+          allDiversProvider.overrideWith((_) async => const []),
           tripListNotifierProvider.overrideWith((ref) => notifier),
           tripListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
           tripTableConfigProvider.overrideWith(
@@ -300,8 +313,10 @@ void main() {
 
     Future<void> openDelete(
       WidgetTester tester,
-      List<TripWithStats> trips,
-    ) async {
+      List<TripWithStats> trips, {
+      bool profileUnreadable = false,
+      bool profilesUncountable = false,
+    }) async {
       notifier = _MockTripListNotifier(trips);
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -314,9 +329,14 @@ void main() {
             currentDiverIdProvider.overrideWith(
               (ref) => MockCurrentDiverIdNotifier(),
             ),
-            validatedCurrentDiverIdProvider.overrideWith((_) async => 'd2'),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (_) async =>
+                  profileUnreadable ? throw StateError('no profile') : 'd2',
+            ),
             allDiversProvider.overrideWith(
-              (_) async => [_makeDiver('d1'), _makeDiver('d2')],
+              (_) async => profilesUncountable
+                  ? throw StateError('no divers')
+                  : [_makeDiver('d1'), _makeDiver('d2')],
             ),
             tripListNotifierProvider.overrideWith((ref) => notifier),
             tripListViewModeProvider.overrideWith(
@@ -413,6 +433,91 @@ void main() {
       await tester.pumpAndSettle();
       expect(notifier.deleted, isEmpty);
       expect(notifier.hidden, ['theirs']);
+    });
+    // Read as "no profile", the split offered to delete another profile's
+    // shared trip too, and each delete then threw on the same read
+    // (issue #2682).
+    testWidgets('an unreadable profile opens no dialog and deletes nothing', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2', isShared: true),
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ], profileUnreadable: true);
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+      expect(notifier.deleted, isEmpty);
+      expect(notifier.hidden, isEmpty);
+      // The selection stays, so the diver can try again.
+      expect(find.byKey(const ValueKey('selection_overflow')), findsOneWidget);
+    });
+
+    // Without the count the dialog would drop the "deleted for everyone"
+    // line for the profile's own shared trip (issue #2682).
+    testWidgets('uncountable profiles open no dialog and delete nothing', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2', isShared: true),
+      ], profilesUncountable: true);
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+      expect(notifier.deleted, isEmpty);
+    });
+
+    // A read that fails after the dialog stopped the loop part way with no
+    // message (issue #2682).
+    testWidgets('a delete that fails partway reports what was done and the '
+        'failure', (tester) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'a', name: 'Aaa Trip', diverId: 'd2'),
+        _makeTrip(id: 'b', name: 'Bbb Trip', diverId: 'd2'),
+      ]);
+      notifier.throwsOn = 'b';
+      await tester.tap(find.text('Delete').hitTestable().last);
+      await tester.pumpAndSettle();
+
+      expect(notifier.deleted, ['a']);
+      expect(
+        find.text('1 deleted · Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a hide that fails after the deletes reports both', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2'),
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      notifier.hideThrows = true;
+      await tester.tap(find.text('Delete').hitTestable().last);
+      await tester.pumpAndSettle();
+
+      expect(notifier.deleted, ['mine']);
+      expect(
+        find.text('1 deleted · Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
     });
   });
 
