@@ -750,6 +750,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     var updated = 0;
     var filled = 0;
     final fillOutcomes = <PlannedDiveFillOutcome>[];
+    final filledDives = <DownloadedDive>{};
+    var filledNameRoleDives = 0;
     final processedDives = <DownloadedDive>[];
     // Dives this run actually wrote (new, consolidated, kept standalone or
     // source-replaced); skipped duplicates never count toward a notice.
@@ -786,6 +788,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             );
             fillOutcomes.add(outcome);
             filled++;
+            filledDives.add(dive);
+            if (outcome.nameDerivedRoleTanks > 0) filledNameRoleDives++;
             importedDiveIds.add(plannedId);
             writtenDives.add(dive);
           } catch (e, st) {
@@ -901,11 +905,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     scheduleDerivedMetricsRefresh(importedDiveIds);
 
     final unmatched = _importService.unmatchedTransmitterSerials;
-    final nameRoleDives = _divesCarrying(
-      unmatched,
-      writtenDives,
-      nameDerivedRolesOnly: true,
-    );
+    // A fill skips the import service, so its own outcome says whether it
+    // kept a role read off a transmitter's name.
+    final nameRoleDives =
+        _divesCarrying(unmatched, [
+          for (final d in writtenDives)
+            if (!filledDives.contains(d)) d,
+        ], nameDerivedRolesOnly: true) +
+        filledNameRoleDives;
     final numberConflict = await diveNumberConflictNotice(
       retainSourceDiveNumbers: retainSourceDiveNumbers,
       diveRepository: _diveRepository,

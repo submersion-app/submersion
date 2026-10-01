@@ -187,7 +187,7 @@ void main() {
   test('an unmatched downloaded tank keeps its role and where it came '
       'from (#2595)', () async {
     final planned = await plannedDive();
-    await service.fill(
+    final outcome = await service.fill(
       plannedDiveId: planned.id,
       dive: download(
         tanks: const [
@@ -204,6 +204,8 @@ void main() {
       ),
       computerId: computerId,
     );
+    // The import summary reads this to explain the role (Copilot on #2749).
+    expect(outcome.nameDerivedRoleTanks, 1);
     final filled = await dives.getDiveById(planned.id);
     final oxygen = filled!.tanks.singleWhere((t) => t.gasMix.o2 == 100);
     expect(oxygen.role, TankRole.oxygenSupply);

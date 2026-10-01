@@ -18,10 +18,16 @@ class PlannedDiveFillOutcome {
   final DiveMergeSnapshot snapshot;
   final int? assignedDiveNumber;
 
+  /// Downloaded tanks the fill appended with a role the computer read off
+  /// the transmitter's name (issue #2595), so the import summary can say so:
+  /// the fill does not go through the import service that counts them.
+  final int nameDerivedRoleTanks;
+
   const PlannedDiveFillOutcome({
     required this.diveId,
     required this.snapshot,
     required this.assignedDiveNumber,
+    this.nameDerivedRoleTanks = 0,
   });
 }
 
@@ -78,6 +84,7 @@ class PlannedDiveFillService {
       await _series.deleteForDive(plannedDiveId);
 
       // 2. Measured facts onto the row, tanks reconciled by serial then mix.
+      final mergedTanks = _mergeTanks(planned.tanks, dive.tanks);
       final measured = planned.copyWith(
         entryTime: dive.startTime,
         exitTime: dive.startTime.add(Duration(seconds: dive.durationSeconds)),
@@ -91,7 +98,7 @@ class PlannedDiveFillService {
         decoAlgorithm: dive.decoAlgorithm ?? planned.decoAlgorithm,
         decoConservatism: dive.decoConservatism ?? planned.decoConservatism,
         diveMode: dive.diveMode,
-        tanks: _mergeTanks(planned.tanks, dive.tanks),
+        tanks: mergedTanks,
         profile: const [],
       );
       await _dives.updateDive(measured);
@@ -124,6 +131,9 @@ class PlannedDiveFillService {
         diveId: plannedDiveId,
         snapshot: snapshot,
         assignedDiveNumber: promoted?.diveNumber,
+        nameDerivedRoleTanks: mergedTanks
+            .where((t) => t.roleSource == TankRoleSource.transmitterName)
+            .length,
       );
     });
   }
