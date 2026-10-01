@@ -80,6 +80,38 @@ void main() {
       expect(decoded[5].n2Load, 65);
     });
 
+    test('a series with no gf99 or n2Load is written as v1, which older '
+        'builds read', () {
+      final samples = [for (var i = 0; i < 6; i++) minimalSample(i)];
+      final encoded = codec.encode(samples);
+      expect(encoded.codecVersion, 1);
+      expect(
+        encoded.bytes,
+        codec.encode(samples, version: 1).bytes,
+        reason: 'only a dive that uses the v2 fields needs the v2 codec',
+      );
+      expect(codec.decode(encoded.bytes), samples);
+    });
+
+    test('one sample with either v2 field makes the series v2', () {
+      for (final tissue in [
+        (gf99: 12, n2Load: null),
+        (gf99: null, n2Load: 34),
+      ]) {
+        final samples = [
+          for (var i = 0; i < 6; i++)
+            i == 3
+                ? minimalSample(
+                    i,
+                  ).withTissue(gf99: tissue.gf99, n2Load: tissue.n2Load)
+                : minimalSample(i),
+        ];
+        final encoded = codec.encode(samples);
+        expect(encoded.codecVersion, 2, reason: '$tissue');
+        expect(codec.decode(encoded.bytes), samples);
+      }
+    });
+
     test('a v1 blob decodes with gf99 and n2Load null', () {
       final samples = [for (var i = 0; i < 6; i++) fullSample(i)];
       final encoded = codec.encode(samples, version: 1);

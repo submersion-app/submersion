@@ -35,14 +35,19 @@ class EncodedProfileSeries {
 /// this codec does not know is refused (see [UnknownSeriesVersionException]
 /// for how the sync door tells a forward version from corruption).
 ///
-/// v2 appended `gf99` and `n2_load` (issue: computer tissue import).
+/// v2 appended `gf99` and `n2_load` (issue #1977). [encode] writes v2 only
+/// for a series that has one of them, so a dive without computer tissue
+/// data stays readable by a build that knows only v1.
 class ProfileSeriesCodec {
   const ProfileSeriesCodec({
     this.fieldTables = const {1: fieldTableV1, version: fieldTableV2},
   });
 
-  /// The version new blobs are written with.
+  /// The newest version, which a series with any v2 field is written with.
   static const int version = 2;
+
+  /// The version a series that uses no v2 field is written with.
+  static const int baseVersion = 1;
 
   /// Codec v1 field table. See [kProfileFieldTableV1].
   static const List<ProfileField> fieldTableV1 = kProfileFieldTableV1;
@@ -57,6 +62,12 @@ class ProfileSeriesCodec {
 
   /// Encodes a non-empty, timestamp-ordered series.
   ///
+  /// Without a [version], the series is written as [baseVersion] unless a
+  /// sample carries `gf99` or `n2Load`, which only [version] can hold. An
+  /// older build refuses a blob of a version it does not know, so writing
+  /// every series as the newest would hide all of them from a peer that has
+  /// not updated, not just the ones that need it.
+  ///
   /// Throws [ArgumentError] on an empty list, on more than
   /// [kMaxSeriesSampleCount] samples, on decreasing timestamps, on an
   /// unregistered [version], or on a field table without `timestamp` and
@@ -68,10 +79,10 @@ class ProfileSeriesCodec {
   /// data. A caller packing rows it did not produce, the part 2 migration
   /// among them, has to handle the throw per series rather than treat it as
   /// a bug that cannot happen.
-  EncodedProfileSeries encode(
-    List<ProfileSample> samples, {
-    int version = ProfileSeriesCodec.version,
-  }) {
+  EncodedProfileSeries encode(List<ProfileSample> samples, {int? version}) {
+    version ??= samples.any((s) => s.gf99 != null || s.n2Load != null)
+        ? ProfileSeriesCodec.version
+        : baseVersion;
     final table = fieldTables[version];
     if (table == null) {
       throw ArgumentError.value(version, 'version', 'no field table');
