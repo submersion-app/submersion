@@ -13,6 +13,11 @@ import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fo
 /// fill at the dive's own minute was for that dive), the rule the dive
 /// detail line uses, so a bottle swapped mid-week is credited correctly on
 /// both sides of the swap. Rows run in dive order, then tank order.
+///
+/// One row per dive and slot: the tank editor gives a slot to one tank per
+/// computer, so two tanks on one dive holding the same slot are two
+/// computers' copies of one cylinder (issue #2661), and its gas counts
+/// once. The first copy with a litres figure stands for it, else the first.
 TripGasRecord buildTripGasRecord({
   required List<TripCylinder> cylinders,
   required Map<String, List<TripCylinderEvent>> eventsBySlot,
@@ -24,10 +29,18 @@ TripGasRecord buildTripGasRecord({
   final bySlot = {for (final c in cylinders) c.id: c};
   final ordered = [...tanks]
     ..sort(_inDiveOrder((t) => (t.entryTime, t.diveId, t.tankOrder)));
-  final rows = [
-    for (final t in ordered)
-      if (bySlot[t.tripCylinderId] case final cylinder?)
+  final copies = <(String, String), List<TripGasRecordRow>>{};
+  for (final t in ordered) {
+    if (bySlot[t.tripCylinderId] case final cylinder?) {
+      (copies[(t.diveId, cylinder.id)] ??= []).add(
         _row(t, cylinder, eventsBySlot[cylinder.id] ?? const [], gasModel),
+      );
+    }
+  }
+  // Map literals keep insertion order, so the rows stay in dive order.
+  final rows = [
+    for (final same in copies.values)
+      same.firstWhere((r) => r.litres != null, orElse: () => same.first),
   ];
 
   final rowsBySlot = <String, List<TripGasRecordRow>>{};

@@ -37,6 +37,25 @@ String resolveSourceName(
   return edited ? '$base${labels.editedSuffix}' : base;
 }
 
+/// The name of the source a dive tank was read from, so one computer's tank
+/// rows can be told from another's. A tank with no computer belongs to the
+/// primary source (the null-is-primary rule of `dive_tanks.computer_id`).
+/// Null on a dive with fewer than two sources, where there is nothing to
+/// tell apart, and for a computer none of [sources] carries.
+String? tankSourceName({
+  required String? computerId,
+  required List<DiveDataSource> sources,
+  required SourceNameLabels labels,
+}) {
+  if (sources.length < 2) return null;
+  final source = sources
+      .where(
+        (s) => computerId == null ? s.isPrimary : s.computerId == computerId,
+      )
+      .firstOrNull;
+  return source == null ? null : resolveSourceName(source, labels);
+}
+
 String _typeLabel(DiveDataSource source, SourceNameLabels labels) {
   if (source.computerId != null) return labels.unknownComputer;
   if (source.sourceFileName != null || source.sourceFileFormat != null) {

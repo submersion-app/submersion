@@ -3251,11 +3251,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             tankNumber: i + 1,
             units: units,
             tripCylinderStates: slotStates,
-            takenTripCylinderIds: {
-              for (final t in _tanks)
-                if (t.id != _tanks[i].id && t.tripCylinderId != null)
-                  t.tripCylinderId!,
-            },
+            takenTripCylinderIds: tripCylinderIdsTakenFor(_tanks[i], _tanks),
             suggested: _suggestedTankIds.contains(_tanks[i].id),
             onChanged: (updatedTank) {
               final before = _tanks[i];

@@ -4,6 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart'
+    show sourceNameLabelsFor;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
@@ -243,19 +248,11 @@ Future<void> showUnlinkedTanksSheet(
                 itemCount: tanks.length,
                 itemBuilder: (_, i) {
                   final t = tanks[i];
-                  return ListTile(
+                  return _UnlinkedTankTile(
                     key: Key('unlinked-${t.tankId}'),
-                    title: Text(
-                      [
-                        units.formatDateTime(t.entryTime, l10n: l10n),
-                        ?t.siteName,
-                        if (showDivers) ?t.diverName,
-                      ].join(' · '),
-                    ),
-                    subtitle: Text(
-                      l10n.trips_cylinders_record_tank(t.tankOrder + 1),
-                    ),
-                    trailing: const Icon(Icons.edit),
+                    tank: t,
+                    units: units,
+                    showDivers: showDivers,
                     onTap: () {
                       Navigator.of(sheetContext).pop();
                       context.push('/dives/${t.diveId}/edit');
@@ -269,4 +266,55 @@ Future<void> showUnlinkedTanksSheet(
       );
     },
   );
+}
+
+/// One gap: the dive, then the tank. On a dive from two or more computers
+/// the tank also names its computer, since each computer's row for one
+/// cylinder would otherwise read the same (issue #2661), as the dive's
+/// cylinders card badges them.
+class _UnlinkedTankTile extends ConsumerWidget {
+  const _UnlinkedTankTile({
+    super.key,
+    required this.tank,
+    required this.units,
+    required this.showDivers,
+    required this.onTap,
+  });
+
+  final TripUnlinkedTank tank;
+  final UnitFormatter units;
+  final bool showDivers;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    // `value` keeps the previous list while the provider reloads, so the
+    // computer's name does not flicker off.
+    final sources =
+        ref.watch(diveDataSourcesProvider(tank.diveId)).value ??
+        const <DiveDataSource>[];
+    final computer = tankSourceName(
+      computerId: tank.computerId,
+      sources: sources,
+      labels: sourceNameLabelsFor(context),
+    );
+    return ListTile(
+      title: Text(
+        [
+          units.formatDateTime(tank.entryTime, l10n: l10n),
+          ?tank.siteName,
+          if (showDivers) ?tank.diverName,
+        ].join(' · '),
+      ),
+      subtitle: Text(
+        [
+          l10n.trips_cylinders_record_tank(tank.tankOrder + 1),
+          ?computer,
+        ].join(' · '),
+      ),
+      trailing: const Icon(Icons.edit),
+      onTap: onTap,
+    );
+  }
 }

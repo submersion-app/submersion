@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
@@ -84,7 +86,11 @@ void main() {
     multipleDivers: multipleDivers,
   );
 
-  Future<void> pump(WidgetTester tester, TripGasRecord record) async {
+  Future<void> pump(
+    WidgetTester tester,
+    TripGasRecord record, {
+    Map<String, List<DiveDataSource>> sourcesByDive = const {},
+  }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -111,6 +117,9 @@ void main() {
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           tripGasRecordProvider('t1').overrideWith((ref) async => record),
+          diveDataSourcesProvider.overrideWith(
+            (ref, diveId) async => sourcesByDive[diveId] ?? const [],
+          ),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -255,6 +264,85 @@ void main() {
     await tester.tap(find.textContaining('Klein Bonaire'));
     await tester.pumpAndSettle();
     expect(find.text('EDIT DIVE'), findsOneWidget);
+  });
+
+  testWidgets('on a two-computer dive each gap names its computer', (
+    tester,
+  ) async {
+    // Issue #2661: both computers' rows for one cylinder are gaps until
+    // linked; without the computer they read as two identical tanks.
+    DiveDataSource source(String id, String name, {required bool primary}) =>
+        DiveDataSource(
+          id: 'src-$id',
+          diveId: 'd7',
+          computerId: id,
+          isPrimary: primary,
+          computerName: name,
+          importedAt: at,
+          createdAt: at,
+        );
+    TripUnlinkedTank gap(String id, int order, {String? computerId}) =>
+        TripUnlinkedTank(
+          tankId: id,
+          diveId: 'd7',
+          entryTime: at,
+          siteName: 'Klein Bonaire',
+          tankOrder: order,
+          computerId: computerId,
+        );
+    await pump(
+      tester,
+      recordOf(
+        unlinked: [
+          gap('n1', 0),
+          gap('n2', 1, computerId: 'perdix'),
+        ],
+      ),
+      sourcesByDive: {
+        'd7': [
+          source('teric', 'Teric', primary: true),
+          source('perdix', 'Perdix', primary: false),
+        ],
+      },
+    );
+    await tester.tap(find.byKey(const Key('record-gaps')));
+    await tester.pumpAndSettle();
+    expect(find.text('Tank 1 · Teric'), findsOneWidget);
+    expect(find.text('Tank 2 · Perdix'), findsOneWidget);
+  });
+
+  testWidgets('a single-computer dive\'s gap names no computer', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      recordOf(
+        unlinked: [
+          TripUnlinkedTank(
+            tankId: 'n1',
+            diveId: 'd7',
+            entryTime: at,
+            siteName: 'Klein Bonaire',
+          ),
+        ],
+      ),
+      sourcesByDive: {
+        'd7': [
+          DiveDataSource(
+            id: 'src-1',
+            diveId: 'd7',
+            computerId: 'teric',
+            isPrimary: true,
+            computerName: 'Teric',
+            importedAt: at,
+            createdAt: at,
+          ),
+        ],
+      },
+    );
+    await tester.tap(find.byKey(const Key('record-gaps')));
+    await tester.pumpAndSettle();
+    expect(find.text('Tank 1'), findsOneWidget);
   });
 
   testWidgets('no gaps, no gaps line; no rows, the empty text', (tester) async {

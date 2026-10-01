@@ -267,6 +267,45 @@ void main() {
     expect(truck1.leftOut, 1);
   });
 
+  test('two computers\' copies of one cylinder make one row', () {
+    // Issue #2661: each computer logged its own row for the cylinder and
+    // both link to Truck 1, so its gas must count once, not twice.
+    final r = record(
+      tanks: [
+        tank('u1', 'd5', 'a', at(9, 9), start: 200, end: 60),
+        tank('u2', 'd5', 'a', at(9, 9), order: 1, start: 198, end: 61),
+      ],
+    );
+    expect(r.rows.map((row) => row.tank.tankId), ['u1']);
+    final truck1 = r.slots.firstWhere((s) => s.cylinder.id == 'a');
+    expect(truck1.dives, 1);
+    expect(truck1.litres, closeTo(1554, 0.001));
+  });
+
+  test('the copy with a figure stands for the cylinder', () {
+    // The first computer logged no pressures; the second did.
+    final r = record(
+      tanks: [
+        tank('u1', 'd5', 'a', at(9, 9)),
+        tank('u2', 'd5', 'a', at(9, 9), order: 1, start: 200, end: 60),
+      ],
+    );
+    expect(r.rows.map((row) => row.tank.tankId), ['u2']);
+    final truck1 = r.slots.firstWhere((s) => s.cylinder.id == 'a');
+    expect(truck1.leftOut, 0);
+    expect(truck1.litres, closeTo(1554, 0.001));
+  });
+
+  test('one dive on two slots keeps both rows', () {
+    final r = record(
+      tanks: [
+        tank('u1', 'd5', 'a', at(9, 9), start: 200, end: 60),
+        tank('u2', 'd5', 'b', at(9, 9), order: 1, start: 210, end: 100),
+      ],
+    );
+    expect(r.rows.map((row) => row.tank.tankId), ['u1', 'u2']);
+  });
+
   test('fills logged counts every fill on the trip', () {
     expect(record().fillsLogged, 3);
   });
