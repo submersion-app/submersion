@@ -30006,6 +30006,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Impossible de lire le fichier';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'Pour lier des photos et des vidéos, déposez-les sur Médias, une plongée ou un site';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

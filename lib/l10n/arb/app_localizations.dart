@@ -47408,6 +47408,12 @@ abstract class AppLocalizations {
   /// **'Could not read file'**
   String get dropTarget_error_readFailed;
 
+  /// Snackbar when photos or videos are dropped on a screen that cannot take them
+  ///
+  /// In en, this message translates to:
+  /// **'To link photos and videos, drop them on Media, a dive or a dive site'**
+  String get dropTarget_error_mediaNeedsDestination;
+
   /// Snackbar after a share-sheet import that skipped files it could not read, while the rest were imported
   ///
   /// In en, this message translates to:

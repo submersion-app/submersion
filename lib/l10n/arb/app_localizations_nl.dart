@@ -29695,6 +29695,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Kan bestand niet lezen';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'Sleep foto\'s en video\'s naar Media, een duik of een duikstek om ze te koppelen';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

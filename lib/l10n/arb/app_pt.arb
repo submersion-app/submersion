@@ -3752,6 +3752,7 @@
   "dropTarget_error_unsupportedFile": "Tipo de arquivo não suportado",
   "dropTarget_error_wizardActive": "Conclua a importação atual primeiro",
   "dropTarget_error_readFailed": "Não foi possível ler o arquivo",
+  "dropTarget_error_mediaNeedsDestination": "Para vincular fotos e vídeos, solte-os em Mídia, em um mergulho ou em um ponto de mergulho",
   "dropTarget_error_someUnreadable": "{count, plural, =1{Não foi possível ler {count} arquivo, que foi ignorado} other{Não foi possível ler {count} arquivos, que foram ignorados}}",
   "enum_altitudeGroup_extreme": "Altitude Extrema",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",

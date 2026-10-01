@@ -3752,6 +3752,7 @@
   "dropTarget_error_unsupportedFile": "Tipo de archivo no compatible",
   "dropTarget_error_wizardActive": "Finaliza la importación actual primero",
   "dropTarget_error_readFailed": "No se pudo leer el archivo",
+  "dropTarget_error_mediaNeedsDestination": "Para vincular fotos y vídeos, suéltalos en Multimedia, en una inmersión o en un sitio de buceo",
   "dropTarget_error_someUnreadable": "{count, plural, =1{No se pudo leer {count} archivo y se omitió} other{No se pudieron leer {count} archivos y se omitieron}}",
   "enum_altitudeGroup_extreme": "Altitud extrema",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",

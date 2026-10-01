@@ -29541,6 +29541,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dropTarget_error_readFailed => 'تعذرت قراءة الملف';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'لربط الصور ومقاطع الفيديو، أفلتها على شاشة الوسائط أو على غطسة أو موقع غطس';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -1,17 +1,14 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
-import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
+import 'package:submersion/features/media/data/services/media_file_types.dart';
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
-import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_pane.dart';
+import 'package:submersion/features/media/presentation/helpers/files_tab_staging.dart';
 import 'package:submersion/features/media/presentation/helpers/offer_site_review_after_import.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -78,120 +75,33 @@ class FilesTab extends ConsumerWidget {
 
   // coverage:ignore-start
   // FilePicker.pickFiles is a static method on package:file_picker; not
-  // unit-testable from flutter_test without a custom DI seam. Behaviour is
-  // exercised by manual desktop smoke tests + by the `_applyMatchAndStash`
-  // path tests below (which is a pure async helper). The synchronous
-  // build() rendering branches that this method drives — extraction
-  // progress, empty/non-empty file lists — are tested via `files_tab_test`.
-  Future<void> _pickFiles(WidgetRef ref) async {
+  // unit-testable from flutter_test without a custom DI seam. What happens to
+  // the picked paths is [stageFilesForReview], covered by
+  // files_tab_staging_test; the build() branches it drives (extraction
+  // progress, empty/non-empty file lists) are covered by files_tab_test.
+  Future<void> _pickFiles(BuildContext context) async {
+    final container = ProviderScope.containerOf(context, listen: false);
     // FileType.media admits both images and videos at the OS picker layer.
     // Their capture time is recovered by ExifExtractor (JPEG EXIF or the
     // MP4/MOV mvhd) so both match dives; see class doc.
     final result = await FilePicker.pickFiles(type: FileType.media);
     if (result.isEmpty) return;
 
-    final notifier = ref.read(filesTabNotifierProvider.notifier);
-    final extractor = ref.read(exifExtractorProvider);
-
-    notifier.setExtractionProgress(done: 0, total: result.length);
-
-    final extracted = <ExtractedFile>[];
-    for (var i = 0; i < result.length; i++) {
-      final pf = result[i];
-      final path = pf.path;
-      if (path != null) {
-        final file = File(path);
-        final meta = await extractor.extract(file);
-        if (meta != null) {
-          extracted.add(
-            ExtractedFile(sourcePath: path, file: file, metadata: meta),
-          );
-        }
-      }
-      // Advance progress unconditionally so isExtracting flips false even
-      // when files are skipped (null path or null metadata). `done` here
-      // means "files processed", not "files successfully extracted".
-      notifier.setExtractionProgress(done: i + 1, total: result.length);
-    }
-
-    await _applyMatchAndStash(ref, extracted);
+    final paths = [for (final pf in result) ?pf.path];
+    await stageFilesForReview(container, paths, target: target);
   }
 
-  Future<void> _pickFolder(WidgetRef ref) async {
+  Future<void> _pickFolder(BuildContext context) async {
+    final container = ProviderScope.containerOf(context, listen: false);
     final dirPath = await FilePicker.getDirectoryPath();
     if (dirPath == null) return;
 
     // Enumerate eligible files in a background isolate so the main
     // isolate stays responsive on large folder trees.
-    final paths = await compute(_enumerateMediaFiles, dirPath);
+    final paths = await compute(scanFolderForMediaFiles, dirPath);
     if (paths.isEmpty) return;
 
-    final notifier = ref.read(filesTabNotifierProvider.notifier);
-    final extractor = ref.read(exifExtractorProvider);
-
-    notifier.setExtractionProgress(done: 0, total: paths.length);
-
-    final extracted = <ExtractedFile>[];
-    for (var i = 0; i < paths.length; i++) {
-      final file = File(paths[i]);
-      final meta = await extractor.extract(file);
-      if (meta != null) {
-        extracted.add(
-          ExtractedFile(sourcePath: paths[i], file: file, metadata: meta),
-        );
-      }
-      // Advance progress unconditionally — see [_pickFiles].
-      notifier.setExtractionProgress(done: i + 1, total: paths.length);
-    }
-
-    await _applyMatchAndStash(ref, extracted);
-  }
-  // coverage:ignore-end
-
-  // coverage:ignore-start
-  // _applyMatchAndStash is only reached through _pickFiles / _pickFolder,
-  // both of which depend on FilePicker static methods that can't be mocked
-  // from flutter_test. The matcher logic itself is covered by
-  // dive_photo_matcher_test; the dive-bounds derivation now lives in
-  // diveBoundsProvider and is covered by files_tab_providers_test.
-  Future<void> _applyMatchAndStash(
-    WidgetRef ref,
-    List<ExtractedFile> extracted,
-  ) async {
-    final notifier = ref.read(filesTabNotifierProvider.notifier);
-    final state = ref.read(filesTabNotifierProvider);
-    if (_isSiteSession) {
-      // The site owns every picked file, so there is nothing to match and
-      // nothing to group. `commit` reads `files` directly for this case; the
-      // empty selection keeps any dive grouping from an earlier session on
-      // this (non-autoDispose) notifier from leaking into the review pane.
-      notifier.setFiles(extracted, match: MatchedSelection.empty());
-      return;
-    }
-    if (!state.autoMatchByDate) {
-      // Opened from a dive, auto-match declined: the user asked for exactly
-      // these files on exactly this dive, so stage them as matched. Parking
-      // them in `unmatched` (as this used to) hid the Link button and made
-      // the unchecked checkbox a dead end.
-      final assignable = _assignableDiveId;
-      notifier.setFiles(
-        extracted,
-        match: assignable == null
-            ? MatchedSelection(matched: const {}, unmatched: extracted)
-            : MatchedSelection(
-                matched: {assignable: extracted},
-                unmatched: const [],
-              ),
-      );
-      return;
-    }
-    final bounds = await ref.read(diveBoundsProvider.future);
-    final result = const DivePhotoMatcher().match(
-      files: extracted,
-      dives: bounds,
-      offset: state.captureTimeOffset,
-    );
-    notifier.setFiles(extracted, match: result);
+    await stageFilesForReview(container, paths, target: target);
   }
   // coverage:ignore-end
 
@@ -211,7 +121,7 @@ class FilesTab extends ConsumerWidget {
                     context.l10n.media_photoPicker_files_pickFilesButton,
                   ),
                   // coverage:ignore-start
-                  onPressed: () => _pickFiles(ref),
+                  onPressed: () => _pickFiles(context),
                   // coverage:ignore-end
                 ),
               ),
@@ -223,7 +133,7 @@ class FilesTab extends ConsumerWidget {
                     context.l10n.media_photoPicker_files_pickFolderButton,
                   ),
                   // coverage:ignore-start
-                  onPressed: () => _pickFolder(ref),
+                  onPressed: () => _pickFolder(context),
                   // coverage:ignore-end
                 ),
               ),
@@ -366,45 +276,3 @@ class FilesTab extends ConsumerWidget {
 
   // coverage:ignore-end
 }
-
-// coverage:ignore-start
-// Runs on a `compute()` isolate so it cannot be exercised by flutter_test
-// (which runs the test body on the main isolate). Exercised by manual
-// desktop smoke tests; the file-extension allowlist mirrors the EXIF
-// extractor's mime inference (covered there).
-/// Recursively enumerates image/video files under [rootPath].
-///
-/// Top-level (file-private) so it can be passed to [compute] — instance
-/// methods can't be sent across isolates because they'd close over `this`.
-///
-/// Caps at 5,000 files per the Phase 2 spec to bound memory and the
-/// subsequent EXIF extraction loop.
-Future<List<String>> _enumerateMediaFiles(String rootPath) async {
-  // Images plus the video containers whose mvhd creation_time the capture-time
-  // reader understands (see [FilesTab] class doc).
-  const exts = {
-    '.jpg',
-    '.jpeg',
-    '.heic',
-    '.heif',
-    '.png',
-    '.webp',
-    '.gif',
-    '.mp4',
-    '.mov',
-    '.m4v',
-  };
-  final results = <String>[];
-  final dir = Directory(rootPath);
-  if (!dir.existsSync()) return results;
-  await for (final entity in dir.list(recursive: true, followLinks: false)) {
-    if (entity is File) {
-      final ext = '.${entity.path.split('.').last.toLowerCase()}';
-      if (exts.contains(ext)) results.add(entity.path);
-      if (results.length >= 5000) break; // hard ceiling per spec
-    }
-  }
-  return results;
-}
-
-// coverage:ignore-end

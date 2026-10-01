@@ -29814,6 +29814,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dropTarget_error_readFailed => 'A fájl nem olvasható';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'A fotók és videók csatolásához ejtsd őket a Média képernyőre, egy merülésre vagy egy merülőhelyre';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

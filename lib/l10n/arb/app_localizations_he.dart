@@ -29208,6 +29208,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dropTarget_error_readFailed => 'לא ניתן לקרוא את הקובץ';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'כדי לקשר תמונות וסרטונים, שחרר אותם במסך מדיה, בצלילה או באתר צלילה';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

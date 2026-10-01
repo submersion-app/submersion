@@ -3650,6 +3650,7 @@
   "dropTarget_error_unsupportedFile": "סוג קובץ לא נתמך",
   "dropTarget_error_wizardActive": "סיים את הייבוא הנוכחי קודם",
   "dropTarget_error_readFailed": "לא ניתן לקרוא את הקובץ",
+  "dropTarget_error_mediaNeedsDestination": "כדי לקשר תמונות וסרטונים, שחרר אותם במסך מדיה, בצלילה או באתר צלילה",
   "dropTarget_error_someUnreadable": "{count, plural, =1{לא ניתן לקרוא קובץ אחד והוא דולג} other{לא ניתן לקרוא {count} קבצים והם דולגו}}",
   "enum_altitudeGroup_extreme": "גובה קיצוני",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",

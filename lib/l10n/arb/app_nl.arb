@@ -3752,6 +3752,7 @@
   "dropTarget_error_unsupportedFile": "Niet-ondersteund bestandstype",
   "dropTarget_error_wizardActive": "Voltooi eerst de huidige import",
   "dropTarget_error_readFailed": "Kan bestand niet lezen",
+  "dropTarget_error_mediaNeedsDestination": "Sleep foto's en video's naar Media, een duik of een duikstek om ze te koppelen",
   "dropTarget_error_someUnreadable": "{count, plural, =1{{count} bestand kon niet worden gelezen en is overgeslagen} other{{count} bestanden konden niet worden gelezen en zijn overgeslagen}}",
   "enum_altitudeGroup_extreme": "Extreme hoogte",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",

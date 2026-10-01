@@ -29905,6 +29905,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Impossibile leggere il file';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      'Per collegare foto e video, rilasciali su Media, su un\'immersione o su un sito';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

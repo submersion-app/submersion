@@ -3650,6 +3650,7 @@
   "dropTarget_error_unsupportedFile": "Nem támogatott fájltípus",
   "dropTarget_error_wizardActive": "Előbb fejezd be a jelenlegi importálást",
   "dropTarget_error_readFailed": "A fájl nem olvasható",
+  "dropTarget_error_mediaNeedsDestination": "A fotók és videók csatolásához ejtsd őket a Média képernyőre, egy merülésre vagy egy merülőhelyre",
   "dropTarget_error_someUnreadable": "{count, plural, =1{{count} fájl nem olvasható, ezért kimaradt} other{{count} fájl nem olvasható, ezért kimaradt}}",
   "enum_altitudeGroup_extreme": "Extrém magasság",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",
