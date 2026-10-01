@@ -8,9 +8,13 @@ import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_lod.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
+import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/site_active_path_overlay_builder.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_info_sheet.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
@@ -25,6 +29,7 @@ import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interac
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_depth_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_hover_tooltip.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/terrain_appearance_sheet.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_tooltip_layout.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -42,18 +47,32 @@ class SiteTerrainPane extends ConsumerStatefulWidget {
   /// instead of a second card floating over the terrain.
   final List<Widget> leadingActions;
 
+  /// Set when the pane is opened from a dive or an underwater route rather
+  /// than from the site directly: additionally plays back that one path
+  /// (timeline, provenance caption, and -- for a dive -- the "show measured
+  /// route" toggle) on top of the plain site view. `null` (the default)
+  /// keeps the exact site-only behavior this pane had before this
+  /// parameter existed.
+  final SeascapePlaybackContext? playbackContext;
+
   const SiteTerrainPane({
     super.key,
     required this.siteId,
     this.leadingActions = const [],
+    this.playbackContext,
   });
 
   @override
   ConsumerState<SiteTerrainPane> createState() => _SiteTerrainPaneState();
 }
 
-class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
-  // No timeline at site level: the scrub cursor stays parked.
+class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
+    with SingleTickerProviderStateMixin {
+  // Parked at 0 for the plain site view (no timeline there); driven by
+  // [_player] once [SiteTerrainPane.playbackContext] is set. The mixin is
+  // unconditional (Dart mixins can't be added only for some instances), but
+  // [_player] itself is only ever created below when there is a context to
+  // play back, so the site-only path pays nothing for it.
   final ValueNotifier<double> _scrub = ValueNotifier(0);
   final ValueNotifier<ScenePick?> _hoverPick = ValueNotifier(null);
 
@@ -85,6 +104,17 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
   /// threshold, so no patch fetch fires before the diver actually zooms in.
   double _settledZoom = 1.0;
 
+  /// The playback timeline's driver, created only when
+  /// [SiteTerrainPane.playbackContext] is set (see [_syncPlayer]); null for
+  /// the plain site view, which has no timeline to drive.
+  AnimationController? _player;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncPlayer(null);
+  }
+
   @override
   void didUpdateWidget(SiteTerrainPane oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -97,10 +127,45 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
     if (widget.siteId != oldWidget.siteId) {
       _settledZoom = 1.0;
     }
+    _syncPlayer(oldWidget.playbackContext);
+  }
+
+  /// Creates or disposes [_player] to match whether
+  /// [SiteTerrainPane.playbackContext] is currently set, comparing against
+  /// [previous] so a dive-to-dive or route-to-route switch (same kind of
+  /// context, different id) keeps the existing controller and timeline
+  /// position instead of restarting playback from 0.
+  void _syncPlayer(SeascapePlaybackContext? previous) {
+    final context = widget.playbackContext;
+    if (context == null) {
+      _player?.dispose();
+      _player = null;
+      _scrub.value = 0;
+      return;
+    }
+    if (previous != null && _player != null) return;
+    _player = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 45),
+    )..addListener(() => _scrub.value = _player!.value);
+  }
+
+  void _togglePlay() {
+    final player = _player;
+    if (player == null) return;
+    setState(() {
+      if (player.isAnimating) {
+        player.stop();
+      } else {
+        if (_scrub.value >= 1.0) player.value = 0;
+        player.forward(from: _scrub.value);
+      }
+    });
   }
 
   @override
   void dispose() {
+    _player?.dispose();
     _scrub.dispose();
     _hoverPick.dispose();
     _hoverPickGrid.dispose();
@@ -219,6 +284,28 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                     )),
                   )
                   .value;
+              // The one dive's or route's path being played back on top of
+              // the site scene (see SiteTerrainPane.playbackContext); null
+              // for the plain site view, where there is nothing to play.
+              final playbackContext = widget.playbackContext;
+              final activePath = playbackContext == null
+                  ? null
+                  : ref
+                        .watch(
+                          siteActivePathOverlayProvider((
+                            siteId: widget.siteId,
+                            pathId: switch (playbackContext) {
+                              DivePlaybackContext(diveId: final id) => id,
+                              NavTrackPlaybackContext(trackId: final id) => id,
+                            },
+                            source: switch (playbackContext) {
+                              DivePlaybackContext() => PathOverlaySource.dive,
+                              NavTrackPlaybackContext() =>
+                                PathOverlaySource.navTrack,
+                            },
+                          )),
+                        )
+                        .value;
               // scene.layers can legitimately be empty (e.g. right after a
               // source switch, before the terrain layer has been added);
               // there is then no base layer to insert the patch ahead of,
@@ -235,6 +322,18 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                       markers: scene.markers,
                       bounds: scene.bounds,
                       scrubPath: scene.scrubPath,
+                    );
+              // The active path's scrub path rides on top of whichever
+              // scene (base or patched) is showing; it never changes the
+              // terrain/markers, only which ScrubPath the scrub bar and the
+              // viewport's diver marker follow.
+              final scrubbableScene = activePath == null
+                  ? displayScene
+                  : Scene3d(
+                      layers: displayScene.layers,
+                      markers: displayScene.markers,
+                      bounds: displayScene.bounds,
+                      scrubPath: activePath.overlay.scrubPath,
                     );
               return Column(
                 children: [
@@ -258,7 +357,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                                 // while the camera was still showing the
                                 // previous site's close-up view.
                                 key: ValueKey(widget.siteId),
-                                scene: displayScene,
+                                scene: scrubbableScene,
                                 scrubPosition: _scrub,
                                 visibleOverlays: {
                                   ..._visible,
@@ -346,6 +445,17 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                             right: 8,
                             child: _detailLimitHint(context),
                           ),
+                        // Sits below the source chip at top: 8 -- only the
+                        // dive variant has a provenance to caption; a route
+                        // IS the recorded path, nothing to caption.
+                        if (playbackContext is DivePlaybackContext &&
+                            activePath != null)
+                          Positioned(
+                            top: 40,
+                            left: 8,
+                            right: 8,
+                            child: _pathProvenanceChip(activePath.overlay),
+                          ),
                         // The legend describes the depth ramp; a photographed
                         // surface has no ramp to explain. It sits LEFT because the
                         // viewport's zoom column owns the right edge, and on a
@@ -398,12 +508,76 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                       ],
                     ),
                   ),
-                  SafeArea(top: false, child: _overlayChips()),
+                  SafeArea(
+                    top: false,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _overlayChips(
+                          playbackContext,
+                          activePath?.hasLinkedRoute ?? false,
+                        ),
+                        if (playbackContext != null) _timeline(),
+                      ],
+                    ),
+                  ),
                 ],
               );
             },
           ),
       },
+    );
+  }
+
+  /// The playback timeline: present only when
+  /// [SiteTerrainPane.playbackContext] is set (see [_syncPlayer], which
+  /// creates [_player] exactly then).
+  Widget _timeline() {
+    final player = _player;
+    if (player == null) return const SizedBox.shrink();
+    return TimeScrubBar(
+      position: _scrub,
+      playing: player.isAnimating,
+      onPlayPause: _togglePlay,
+      onScrubStart: () {
+        if (player.isAnimating) setState(() => player.stop());
+      },
+    );
+  }
+
+  /// States where the played-back path's shape came from: a linked
+  /// measured route reads as a recorded route, dead reckoning and the
+  /// straight-line fallback keep the honest "estimated" label. Dive-only
+  /// (see the call site): a route has no such caption, it IS the recorded
+  /// path.
+  Widget _pathProvenanceChip(SiteActivePathOverlay overlay) {
+    final label = switch (overlay.provenance) {
+      PathProvenance.measured =>
+        overlay.pathSourceLabel != null
+            ? context.l10n.dive3d_spatial_recordedPathWithSource(
+                overlay.pathSourceLabel!,
+              )
+            : context.l10n.dive3d_spatial_recordedPath,
+      PathProvenance.deadReckoned ||
+      PathProvenance.straightLine => context.l10n.dive3d_spatial_estimatedPath,
+    };
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.info_outline, size: 14),
+            const SizedBox(width: 4),
+            Text(label, style: Theme.of(context).textTheme.labelSmall),
+          ],
+        ),
+      ),
     );
   }
 
@@ -586,7 +760,13 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
     );
   }
 
-  Widget _overlayChips() {
+  /// [playbackContext] and [hasLinkedRoute] add the "show measured route"
+  /// toggle for the dive variant only (a route has no alternate path to
+  /// switch to -- it IS the recorded one).
+  Widget _overlayChips(
+    SeascapePlaybackContext? playbackContext,
+    bool hasLinkedRoute,
+  ) {
     FilterChip chip(SceneOverlay overlay, String label) => FilterChip(
       label: Text(label),
       selected: _visible.contains(overlay),
@@ -610,6 +790,23 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
             context.l10n.dive3d_seascape_overlay_walls,
           ),
           chip(SceneOverlay.features, context.l10n.siteFeature_sectionTitle),
+          if (playbackContext is DivePlaybackContext && hasLinkedRoute)
+            FilterChip(
+              key: const ValueKey('spatial-site-show-route-toggle'),
+              label: Text(context.l10n.dive3d_seascape_showRoute),
+              selected: ref.watch(
+                showMeasuredRouteProvider(playbackContext.diveId),
+              ),
+              onSelected: (on) =>
+                  ref
+                          .read(
+                            showMeasuredRouteProvider(
+                              playbackContext.diveId,
+                            ).notifier,
+                          )
+                          .state =
+                      on,
+            ),
         ],
       ),
     );
