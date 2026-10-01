@@ -6,6 +6,10 @@ import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
+
+final _log = LoggerService.forClass(FileShareHandlerDelegate);
+
 /// dart:io implementation of the file share handler delegate.
 class FileShareHandlerDelegate {
   StreamSubscription<List<SharedMediaFile>>? _subscription;
@@ -34,14 +38,29 @@ class FileShareHandlerDelegate {
 
     ReceiveSharingIntent.instance
         .getInitialMedia()
-        .then(
-          (files) => handleMediaFiles(
+        .then((initial) {
+          // Copied first: a reset may clear the very list it returned.
+          final files = List<SharedMediaFile>.of(initial);
+          // The plugin hands the launch share to every later caller until
+          // reset. A soft restart (restartApp, after a restore) mounts a new
+          // app root that asks again, and would reopen a file already taken.
+          if (files.isNotEmpty) {
+            unawaited(
+              ReceiveSharingIntent.instance.reset().catchError(
+                (Object error) => _log.warning(
+                  'Could not clear the launch share',
+                  error: error,
+                ),
+              ),
+            );
+          }
+          return handleMediaFiles(
             files,
             onFileReceived: onFileReceived,
             onFilesReceived: onFilesReceived,
             onError: onError,
-          ),
-        )
+          );
+        })
         .catchError((Object error) {
           onError?.call(error);
         });

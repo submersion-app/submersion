@@ -158,9 +158,13 @@ class _PendingNavTrackImport implements NavTrackImportService {
 class _UnreadableImport extends UniversalImportNotifier {
   _UnreadableImport(super.ref);
 
+  var loads = 0;
+
   @override
-  Future<DetectionResult> loadFileFromBytes(Uint8List bytes, String fileName) =>
-      Future.error(const FormatException('unreadable'));
+  Future<DetectionResult> loadFileFromBytes(Uint8List bytes, String fileName) {
+    loads++;
+    return Future.error(const FormatException('unreadable'));
+  }
 }
 
 /// An import that takes any batch of files at once, so a share that
@@ -210,6 +214,7 @@ void main() {
     IncomingLinkSource? links,
     GoRouter? router,
     FakeNfcTagService? nfc,
+    Key? scopeKey,
   }) async {
     final base = await getBaseOverrides(
       incomingLinks: links,
@@ -217,6 +222,7 @@ void main() {
     );
     await tester.pumpWidget(
       ProviderScope(
+        key: scopeKey,
         overrides: [
           ...base,
           appRouterProvider.overrideWithValue(router ?? _testRouter()),
@@ -518,7 +524,9 @@ void main() {
             type: SharedMediaType.file,
           ),
       ];
-      final stream = StreamController<List<SharedMediaFile>>();
+      // Broadcast, like the plugin's event channel: every app root that
+      // mounts listens to it.
+      final stream = StreamController<List<SharedMediaFile>>.broadcast();
       addTearDown(stream.close);
       ReceiveSharingIntent.setMockValues(
         initialMedia: shared,
@@ -610,6 +618,34 @@ void main() {
       expect(review, findsOneWidget);
     });
 
+    testWidgets('a soft restart does not open the launch share again', (
+      tester,
+    ) async {
+      shareOnLaunch({'005.DAT.csv': encBytes});
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        extraOverrides: withDiver(),
+      );
+      await settleShare(tester, until: review);
+      expect(review, findsOneWidget);
+
+      // restartApp() swaps the ProviderScope key after a restore, which
+      // mounts a fresh app root that asks the plugin for the launch share.
+      // Unmounted first here, so the old root navigator (a global key) is
+      // not carried over with the review still on it.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        extraOverrides: withDiver(),
+        scopeKey: UniqueKey(),
+      );
+      await settleShare(tester);
+
+      expect(review, findsNothing);
+    });
+
     testWidgets(
       'a Seacraft route shared before the navigator is built opens its '
       'review once it is (#2690)',
@@ -637,16 +673,21 @@ void main() {
       (tester) async {
         shareOnLaunch({'dive.uddf': uddfBytes});
         final gate = Completer<void>();
+        _UnreadableImport? unreadable;
         await pumpApp(
           tester,
           _DrivableSyncNotifier(const SyncState()),
           router: coldStartRouter(gate),
           extraOverrides: [
             ...withDiver(),
-            universalImportNotifierProvider.overrideWith(_UnreadableImport.new),
+            universalImportNotifierProvider.overrideWith(
+              (ref) => unreadable = _UnreadableImport(ref),
+            ),
           ],
         );
         await settleShare(tester);
+        // Held: nothing has tried to read it while there is no navigator.
+        expect(unreadable?.loads ?? 0, 0);
 
         gate.complete();
         final message = find.text('Could not read file');
@@ -683,7 +724,7 @@ void main() {
         'wizard once setup is left', (tester) async {
       shareOnLaunch({'first.uddf': uddfBytes, 'second.uddf': uddfBytes});
       final router = setupRouter();
-      late _InstantBatchImport import;
+      late _InstantBatchImport batchImport;
       await pumpApp(
         tester,
         _DrivableSyncNotifier(const SyncState()),
@@ -692,7 +733,7 @@ void main() {
           diverCountProvider.overrideWith((ref) async => 1),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
           universalImportNotifierProvider.overrideWith(
-            (ref) => import = _InstantBatchImport(ref),
+            (ref) => batchImport = _InstantBatchImport(ref),
           ),
         ],
       );
@@ -703,7 +744,7 @@ void main() {
       await settleShare(tester, until: wizard);
 
       expect(wizard, findsOneWidget);
-      expect(import.loadedBatches.single.map(p.basename), [
+      expect(batchImport.loadedBatches.single.map(p.basename), [
         'first.uddf',
         'second.uddf',
       ]);
