@@ -118,6 +118,15 @@ class DecoClassificationService {
             profileAnalysisProvider(diveId).future,
           );
           if (analysis == null || analysis.ndlCurve.isEmpty) continue;
+          // The hashes were taken once, up front, but each analysis reads the
+          // settings when it runs. A diver switch (#2564) or an edit to the
+          // gradient factors since then means this result belongs to other
+          // inputs than its hash, so it is neither cached nor reported; the
+          // dive stays unclassified until a run under the new settings.
+          if (ref.read(gfLowProvider) != settingsGfLow ||
+              ref.read(gfHighProvider) != settingsGfHigh) {
+            continue;
+          }
 
           final hadDeco = analysis.hadDecoObligation;
           results[diveId] = hadDeco;

@@ -11,7 +11,16 @@ import 'package:submersion/features/insights/data/services/deco_classification_s
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/deferred_settings_notifier.dart';
+import '../../../../helpers/mock_providers.dart';
 import '../../../dive_log/domain/services/safety_review_fixtures.dart';
+
+/// Loaded settings that a test can replace mid-run, as a diver switch (or an
+/// edit to the gradient factors) does.
+class _ReplaceableSettings extends MockSettingsNotifier {
+  _ReplaceableSettings(super.initial);
+
+  void replace(AppSettings settings) => state = settings;
+}
 
 /// A cached classification is keyed by the settings gradient factors it was
 /// computed under and is not recomputed while they hold. After a diver switch
@@ -73,6 +82,56 @@ void main() {
         gfLow: 40,
         gfHigh: 80,
         diveUpdatedAt: updatedAt,
+      ),
+    );
+  });
+
+  // The hash is computed once for the whole run, but each dive's analysis
+  // reads the settings when it runs. If they change in between (a diver
+  // switch during the run, or an edit to the gradient factors), the result
+  // belongs to other inputs than its hash and must not be cached under it.
+  test('a result analyzed after the gradient factors changed mid-run is not '
+      'cached under the hash taken before the change', () async {
+    final profile = rapidAscentProfile();
+    final analysis = analyzeFixture(
+      depths: profile.depths,
+      timestamps: profile.timestamps,
+    );
+    final settings = _ReplaceableSettings(
+      const AppSettings(gfLow: 30, gfHigh: 70),
+    );
+    final classification = FutureProvider<Map<String, bool>>(
+      (ref) =>
+          const DecoClassificationService().classify(ref, {diveId: updatedAt}),
+    );
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => settings),
+        profileAnalysisProvider(diveId).overrideWith((ref) async {
+          // The switch lands while this dive is being analyzed (after a
+          // gap: a provider may not modify another while it builds).
+          await Future<void>.delayed(Duration.zero);
+          settings.replace(const AppSettings(gfLow: 40, gfHigh: 80));
+          return analysis;
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(classification.future);
+
+    final stored = await DecoClassificationCacheRepository().getEntries({
+      diveId,
+    });
+    expect(
+      stored[diveId]?.inputsHash,
+      isNot(
+        decoInputsHash(
+          engineVersion: analysisEngineVersion,
+          gfLow: 30,
+          gfHigh: 70,
+          diveUpdatedAt: updatedAt,
+        ),
       ),
     );
   });
