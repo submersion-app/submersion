@@ -18,7 +18,10 @@ class SafetyReviewService {
   /// violating rates were measured over instead of a zero-length range, raise
   /// the sawtooth bar to four 6 m teeth, and credit safety-stop time from
   /// 2 m to 6.5 m.
-  static const int engineVersion = 2;
+  /// v3: rebreather dives are graded on the loop, never on the first
+  /// cylinder breathed as open circuit; one whose loop cannot be modelled has
+  /// no tissue loading to grade (issue #2593).
+  static const int engineVersion = 3;
 
   const SafetyReviewService();
 
