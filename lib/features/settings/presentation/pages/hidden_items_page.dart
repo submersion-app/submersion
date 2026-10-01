@@ -91,28 +91,50 @@ class _HiddenRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => ListTile(
     title: Text(item.name),
-    subtitle: Text(
-      [
-        // A trip's dates tell two same-named trips apart.
-        if (item.kind == SharedItemKind.trip && item.startDate != null)
-          UnitFormatter(
-            ref.watch(settingsProvider),
-          ).formatDateRange(item.startDate, item.endDate, l10n: context.l10n),
-        if (item.location case final location? when location.isNotEmpty)
-          location,
-        context.l10n.sharedItems_sharedBy(
-          sharedItemOwnerName(divers, item.ownerId, context.l10n),
+    // Unhide sits on its own line under the details rather than in trailing:
+    // a ListTile lays trailing out at its natural width first, so a
+    // translated label there squeezes the item name (issue #2717).
+    isThreeLine: true,
+    subtitle: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          [
+            // A trip's dates tell two same-named trips apart.
+            if (item.kind == SharedItemKind.trip && item.startDate != null)
+              UnitFormatter(ref.watch(settingsProvider)).formatDateRange(
+                item.startDate,
+                item.endDate,
+                l10n: context.l10n,
+              ),
+            if (item.location case final location? when location.isNotEmpty)
+              location,
+            context.l10n.sharedItems_sharedBy(
+              sharedItemOwnerName(divers, item.ownerId, context.l10n),
+            ),
+          ].join(' · '),
         ),
-      ].join(' · '),
-    ),
-    trailing: TextButton(
-      onPressed: () => switch (item.kind) {
-        SharedItemKind.trip =>
-          ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
-        SharedItemKind.site =>
-          ref.read(siteListNotifierProvider.notifier).unhideSites([item.id]),
-      },
-      child: Text(context.l10n.settings_hiddenItems_unhide),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton(
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              alignment: AlignmentDirectional.centerStart,
+            ),
+            onPressed: () => switch (item.kind) {
+              SharedItemKind.trip =>
+                ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
+              SharedItemKind.site =>
+                ref.read(siteListNotifierProvider.notifier).unhideSites([
+                  item.id,
+                ]),
+            },
+            child: Text(context.l10n.settings_hiddenItems_unhide),
+          ),
+        ),
+      ],
     ),
   );
 }
