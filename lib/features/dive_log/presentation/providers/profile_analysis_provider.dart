@@ -18,6 +18,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -430,16 +431,18 @@ ProfileAnalysisService _resolveAnalysisService(
 /// all read a negative NDL as a deco obligation.
 const int _ndlInDeco = -1;
 
-/// Whether the computer reported a deco or deep stop at [point].
+/// Whether the computer reported a mandatory deco stop at [point].
 ///
 /// Computers report a no-stop time only while out of deco; at a stop the
 /// sample carries the stop instead, so its stored NDL is null (or zero, from
 /// Subsurface and Diving Log imports). Such a sample is in deco by the
 /// computer's own model, which may disagree with the calculated one (VPM,
 /// RGBM, other gradient factors), so it must not fall back to the calculated
-/// NDL (#2551). A safety stop is not deco.
+/// NDL (#2551). Safety and deep stops are not deco: deep stops are
+/// recommended stops that also occur on no-deco dives, and the statistics
+/// deco scan does not count them either.
 bool _isComputerDecoSample(DiveProfilePoint point) =>
-    point.decoType == 2 || point.decoType == 3;
+    point.decoType == kDecoTypeDecoStop;
 
 /// Overlays computer-reported decompression data onto a calculated
 /// [ProfileAnalysis].
@@ -449,7 +452,7 @@ bool _isComputerDecoSample(DiveProfilePoint point) =>
 /// [MetricDataSource.computer] and computer data exists in the profile,
 /// those values take priority over the Buhlmann-calculated values. Points
 /// without computer data fall back to the calculated values, except that a
-/// computer NDL sample at a deco or deep stop reads as in deco.
+/// computer NDL sample at a deco stop reads as in deco.
 ///
 /// The deco stop band ([decoStopSource]) resolves against the incoming
 /// (calculated) [ProfileAnalysis.decoStopCurve] rather than against the

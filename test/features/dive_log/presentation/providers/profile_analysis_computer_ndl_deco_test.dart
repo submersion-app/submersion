@@ -4,8 +4,8 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 
-/// Computers report a no-stop time only while they are out of deco; a deco or
-/// deep stop sample carries the stop instead, so its NDL is stored as null.
+/// Computers report a no-stop time only while they are out of deco; a deco
+/// stop sample carries the stop instead, so its NDL is stored as null.
 /// With the NDL source set to the computer, such a sample must read as in
 /// deco, not take the app's calculated NDL, which can still have no-stop time
 /// left when the computer's model (VPM, RGBM, other gradient factors) does not
@@ -51,14 +51,17 @@ void main() {
     expect(result.hadDecoObligation, isTrue);
   });
 
-  test('a computer deep stop sample reads as in deco', () {
+  test('a deep stop sample keeps the calculated fallback', () {
+    // Deep stops are recommended stops that also occur on no-deco dives; the
+    // statistics deco scan does not count them as an obligation either.
     final (result, _) = overlayComputerDecoData(
       base,
       withStopFrom40(3),
       ndlSource: MetricDataSource.computer,
     );
 
-    expect(result.ndlCurve[50], lessThan(0));
+    expect(result.ndlCurve[50], base.ndlCurve[50]);
+    expect(result.hadDecoObligation, isFalse);
   });
 
   test('a deco stop sample with a zero NDL reads as in deco', () {
