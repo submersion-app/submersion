@@ -42,6 +42,14 @@ class NavigationReadyGate<T> {
   /// [handle] returns whether it finished the item. False hands it back
   /// unfinished, to be offered again: to a newer owner at once if one is
   /// ready, otherwise at this owner's next readiness or the next owner's.
+  ///
+  /// The handler's word is final either way, even when a newer owner has
+  /// attached meanwhile. An app root resumes only between frames, and
+  /// `restartApp` attaches the new root and disposes the old one within a
+  /// single frame, so a handler that says it finished did so while still
+  /// mounted (its page then goes with the restart, like any other); one that
+  /// resumes unmounted says so and hands the item back. Offering a finished
+  /// item again would only open it twice.
   NavigationReadyGateOwner<T> attach(Future<bool> Function(T item) handle) {
     final owner = NavigationReadyGateOwner<T>._(this, handle);
     _owner = owner;

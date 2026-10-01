@@ -255,6 +255,32 @@ void main() {
       expect(second, ['file']);
     });
 
+    test('an item a replaced owner finished is not offered again, so it '
+        'never opens twice', () async {
+      final gate = NavigationReadyGate<String>();
+      final first = <String>[];
+      final second = <String>[];
+      final restartMidway = Completer<void>();
+      gate
+          .attach((item) async {
+            gate.attach(finishInto(second)).setReady(true);
+            await restartMidway.future;
+            // Still mounted when it resumed, so it really opened the page.
+            first.add(item);
+            return true;
+          })
+          .setReady(true);
+
+      final done = gate.run('file');
+      await pumpEventQueue();
+      restartMidway.complete();
+      await done;
+      await pumpEventQueue();
+
+      expect(first, ['file']);
+      expect(second, isEmpty);
+    });
+
     test('an item handed back by the current owner is kept ahead of later '
         'ones, for its next readiness', () async {
       final gate = NavigationReadyGate<String>();
