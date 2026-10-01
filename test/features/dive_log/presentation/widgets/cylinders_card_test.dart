@@ -37,6 +37,8 @@ DiveTank _makeTank({
   String? computerId,
   String? transmitterSerial,
   String? equipmentId,
+  TankRole role = TankRole.backGas,
+  TankRoleSource? roleSource,
 }) {
   return DiveTank(
     id: id,
@@ -48,6 +50,8 @@ DiveTank _makeTank({
     computerId: computerId,
     transmitterSerial: transmitterSerial,
     equipmentId: equipmentId,
+    role: role,
+    roleSource: roleSource,
   );
 }
 
@@ -697,6 +701,43 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Transmitter '), findsNothing);
+    });
+
+    testWidgets('a role read off the transmitter name says so (#2595)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(
+              gasMix: const GasMix(o2: 100),
+              transmitterSerial: '180777',
+              role: TankRole.oxygenSupply,
+              roleSource: TankRoleSource.transmitterName,
+            ),
+          ]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text("O₂ Supply, read from the transmitter's name"),
+        findsOneWidget,
+      );
+      expect(find.text('Assign transmitter'), findsOneWidget);
+    });
+
+    testWidgets('a role with no source shows no such line', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(transmitterSerial: '180777', role: TankRole.oxygenSupply),
+          ]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining("transmitter's name"), findsNothing);
     });
 
     testWidgets('the chip opens the editor with the serial', (tester) async {

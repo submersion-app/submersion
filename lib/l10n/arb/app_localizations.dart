@@ -72389,7 +72389,7 @@ abstract class AppLocalizations {
   /// No description provided for @transmitters_apply_content.
   ///
   /// In en, this message translates to:
-  /// **'{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas will be replaced.'**
+  /// **'{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.'**
   String transmitters_apply_content(int tanks, int dives);
 
   /// No description provided for @transmitters_apply_done.
@@ -72548,6 +72548,12 @@ abstract class AppLocalizations {
   /// **'Reassign pressure series'**
   String get diveLog_tank_reassignSeries;
 
+  /// Under a cylinder whose role the dive computer took from the name the diver gave its transmitter (a name starting with O reads as oxygen, D as diluent), so the role is unconfirmed. role is the localized tank role, e.g. O₂ Supply.
+  ///
+  /// In en, this message translates to:
+  /// **'{role}, read from the transmitter\'s name'**
+  String diveLog_tank_roleFromTransmitterName(String role);
+
   /// No description provided for @diveLog_reassignSheet_title.
   ///
   /// In en, this message translates to:
@@ -72601,6 +72607,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Assign transmitters'**
   String get universalImport_summary_noticeAssignTransmitters;
+
+  /// No description provided for @universalImport_summary_noticeTransmitterNameRolesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder roles read from transmitter names'**
+  String get universalImport_summary_noticeTransmitterNameRolesTitle;
+
+  /// No description provided for @universalImport_summary_noticeTransmitterNameRolesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The dive computer took some oxygen and diluent roles from the names given to its transmitters: a name starting with O reads as oxygen, one starting with D as diluent. Assign the transmitters to confirm or correct those roles.'**
+  String get universalImport_summary_noticeTransmitterNameRolesBody;
 
   /// No description provided for @universalImport_summary_noticeDiveNumberConflictTitle.
   ///

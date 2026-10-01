@@ -45204,7 +45204,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks أسطوانة في $dives غطسة تحمل جهاز الإرسال هذا. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر.';
+    return '$tanks أسطوانة في $dives غطسة تحمل جهاز الإرسال هذا. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر أو المأخوذ من اسم جهاز الإرسال.';
   }
 
   @override
@@ -45309,6 +45309,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'إعادة تعيين سلسلة الضغط';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role، مأخوذ من اسم جهاز الإرسال';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'سلاسل الضغط';
 
   @override
@@ -45345,6 +45350,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'تعيين أجهزة الإرسال';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'أدوار الأسطوانات مأخوذة من أسماء أجهزة الإرسال';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'أخذ كمبيوتر الغوص بعض أدوار الأكسجين والمخفف من الأسماء المعطاة لأجهزة الإرسال: الاسم الذي يبدأ بـ O يُقرأ أكسجين، والذي يبدأ بـ D يُقرأ مخففًا. عيّن أجهزة الإرسال لتأكيد هذه الأدوار أو تصحيحها.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

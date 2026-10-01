@@ -370,6 +370,7 @@ class BulkDiveEditService {
                 (e) => e.name == r.tankMaterial,
                 orElse: () => en.TankMaterial.aluminum,
               ),
+        roleSource: en.TankRoleSource.fromName(r.roleSource),
         presetName: r.presetName,
         computerId: r.computerId,
         transmitterSerial: r.transmitterSerial,

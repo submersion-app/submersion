@@ -26,9 +26,8 @@ void main() {
   test('v250 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 250);
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(250));
     expect(AppDatabase.migrationVersions, contains(250));
-    expect(AppDatabase.migrationStepCount(249), 1);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

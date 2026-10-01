@@ -1883,6 +1883,9 @@ class DiveRepository {
           _db.diveTanks,
         )..where((t) => t.diveId.equals(dive.id))).get();
         final existingTankIds = existingTankRows.map((t) => t.id).toSet();
+        final storedRoles = {
+          for (final row in existingTankRows) row.id: row.tankRole,
+        };
         final updatedTankIds = <String>{};
 
         // Update or insert tanks
@@ -1905,6 +1908,13 @@ class DiveRepository {
                 hePercent: Value(tank.gasMix.he),
                 tankOrder: Value(tank.order),
                 tankRole: Value(tank.role.name),
+                // A role the diver changed is theirs, whatever the computer
+                // read off the transmitter's name (issue #2595); one left
+                // alone keeps its source, so the rebuilt tank need not carry
+                // it.
+                roleSource: storedRoles[tankId] != tank.role.name
+                    ? const Value(null)
+                    : const Value.absent(),
                 tankMaterial: Value(tank.material?.name),
                 tankName: Value(tank.name),
                 presetName: Value(tank.presetName),
@@ -3825,6 +3835,7 @@ class DiveRepository {
                       orElse: () => TankMaterial.aluminum,
                     )
                   : null,
+              roleSource: TankRoleSource.fromName(t.roleSource),
               order: t.tankOrder,
               presetName: t.presetName,
               computerId: t.computerId,
@@ -4258,6 +4269,7 @@ class DiveRepository {
                   orElse: () => TankMaterial.aluminum,
                 )
               : null,
+          roleSource: TankRoleSource.fromName(t.roleSource),
           order: t.tankOrder,
           presetName: t.presetName,
           computerId: t.computerId,
@@ -6557,6 +6569,9 @@ class DiveRepository {
     hePercent: Value(t.gasMix.he),
     tankOrder: Value(order),
     tankRole: Value(t.role.name),
+    // Where the role came from, like the registry link below: a template
+    // copied from a tank is the diver's choice, so only a restore writes it.
+    roleSource: withLink ? Value(t.roleSource?.name) : const Value.absent(),
     tankMaterial: Value(t.material?.name),
     tankName: Value(t.name),
     presetName: Value(t.presetName),
@@ -6631,6 +6646,10 @@ class DiveRepository {
         : const Value.absent(),
     tankRole: fields.contains(domain.TankSpecField.role)
         ? Value(specs.role.name)
+        : const Value.absent(),
+    // A role the diver set is no longer the transmitter name's (#2595).
+    roleSource: fields.contains(domain.TankSpecField.role)
+        ? const Value(null)
         : const Value.absent(),
     volume: fields.contains(domain.TankSpecField.volume)
         ? Value(specs.volume)

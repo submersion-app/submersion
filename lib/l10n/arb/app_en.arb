@@ -28219,7 +28219,7 @@
   "transmitters_action_delete": "Delete transmitter",
   "transmitters_action_apply": "Apply to existing dives",
   "transmitters_apply_title": "Apply to existing dives?",
-  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas will be replaced.",
+  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter's name will be replaced.",
   "@transmitters_apply_content": {
     "placeholders": {
       "tanks": { "type": "int" },
@@ -28290,6 +28290,13 @@
   },
   "diveLog_tank_assignTransmitter": "Assign transmitter",
   "diveLog_tank_reassignSeries": "Reassign pressure series",
+  "diveLog_tank_roleFromTransmitterName": "{role}, read from the transmitter's name",
+  "@diveLog_tank_roleFromTransmitterName": {
+    "description": "Under a cylinder whose role the dive computer took from the name the diver gave its transmitter (a name starting with O reads as oxygen, D as diluent), so the role is unconfirmed. role is the localized tank role, e.g. O₂ Supply.",
+    "placeholders": {
+      "role": { "type": "String" }
+    }
+  },
   "diveLog_reassignSheet_title": "Pressure series",
   "diveLog_reassignSheet_swap": "Swap",
   "diveLog_reassignSheet_moveTo": "Move to",
@@ -28304,6 +28311,8 @@
   "universalImport_summary_noticeUnknownTransmitterTitle": "Unassigned transmitters",
   "universalImport_summary_noticeUnknownTransmitterBody": "One or more transmitters in this download are not assigned to a cylinder. Assign them so future downloads get the right size and role.",
   "universalImport_summary_noticeAssignTransmitters": "Assign transmitters",
+  "universalImport_summary_noticeTransmitterNameRolesTitle": "Cylinder roles read from transmitter names",
+  "universalImport_summary_noticeTransmitterNameRolesBody": "The dive computer took some oxygen and diluent roles from the names given to its transmitters: a name starting with O reads as oxygen, one starting with D as diluent. Assign the transmitters to confirm or correct those roles.",
   "universalImport_summary_noticeDiveNumberConflictTitle": "Dive numbers already in use",
   "universalImport_summary_noticeDiveNumberConflictBody": "These dives kept the number from their source, but other dives in your log already use the same numbers. Open Dive Numbering from the dive list menu to renumber them.",
   "dataQuality_detector_unknown_transmitter": "Unassigned transmitter",

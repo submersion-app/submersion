@@ -521,6 +521,14 @@ _FileNoticeWording? _fileNoticeWording(
         route: '/transmitters',
       ),
     ),
+    ImportNoticeKind.transmitterNameRoles => (
+      title: l10n.universalImport_summary_noticeTransmitterNameRolesTitle,
+      body: l10n.universalImport_summary_noticeTransmitterNameRolesBody,
+      action: (
+        label: l10n.universalImport_summary_noticeAssignTransmitters,
+        route: '/transmitters',
+      ),
+    ),
     ImportNoticeKind.columnsNotImported => (
       title: l10n.universalImport_summary_noticeColumnsNotImportedTitle,
       body: l10n.universalImport_summary_noticeColumnsNotImportedBody(names),

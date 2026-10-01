@@ -1791,6 +1791,7 @@ class DiveComputerRepository {
                 hePercent: Value(tank.hePercent),
                 tankOrder: Value(tank.index),
                 tankRole: Value(tank.role ?? 'backGas'),
+                roleSource: Value(tank.roleSource),
                 transmitterSerial: Value(tank.transmitterSerial),
                 equipmentId: Value.absentIfNull(tank.equipmentId),
                 tankName: Value.absentIfNull(tank.tankName),
@@ -2726,6 +2727,10 @@ class TankData {
   /// Inferred cylinder role (a [TankRole] name), or null for the default.
   final String? role;
 
+  /// Where [role] came from (a [TankRoleSource] name), or null when it is
+  /// the computer's own data, the app's heuristic or the registry's choice.
+  final String? roleSource;
+
   /// Serial of the air-integration transmitter the computer read this tank
   /// from, or null when it reported none.
   final String? transmitterSerial;
@@ -2747,6 +2752,7 @@ class TankData {
     this.material,
     this.presetName,
     this.role,
+    this.roleSource,
     this.transmitterSerial,
     this.equipmentId,
     this.tankName,
@@ -2763,6 +2769,8 @@ class TankData {
     String? material,
     String? presetName,
     String? role,
+    String? roleSource,
+    bool clearRoleSource = false,
     String? transmitterSerial,
     String? equipmentId,
     String? tankName,
@@ -2777,6 +2785,7 @@ class TankData {
     material: material ?? this.material,
     presetName: presetName ?? this.presetName,
     role: role ?? this.role,
+    roleSource: clearRoleSource ? null : (roleSource ?? this.roleSource),
     transmitterSerial: transmitterSerial ?? this.transmitterSerial,
     equipmentId: equipmentId ?? this.equipmentId,
     tankName: tankName ?? this.tankName,

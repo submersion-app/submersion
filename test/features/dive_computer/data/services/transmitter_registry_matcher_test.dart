@@ -57,6 +57,41 @@ void main() {
     expect(out.single.o2Percent, 100, reason: 'gas untouched');
   });
 
+  test('a registry match replaces a role read off the transmitter name and '
+      'drops that source (#2595)', () {
+    // A bailout named "OC" arrives tagged as the oxygen supply.
+    final matcher = TransmitterMatcher.fromEntries([
+      _entry(role: TankRole.bailout, label: 'OC'),
+    ]);
+    const tank = TankData(
+      index: 0,
+      o2Percent: 100,
+      transmitterSerial: '180777',
+      role: 'oxygenSupply',
+      roleSource: 'transmitterName',
+    );
+
+    final out = applyTransmitterRegistry([tank], matcher, computerId: 'c1');
+
+    expect(out.single.role, 'bailout');
+    expect(out.single.roleSource, isNull);
+  });
+
+  test('an unmatched tank keeps its role source (#2595)', () {
+    final matcher = TransmitterMatcher.fromEntries([_entry()]);
+    const tank = TankData(
+      index: 0,
+      o2Percent: 100,
+      transmitterSerial: '999999',
+      role: 'oxygenSupply',
+      roleSource: 'transmitterName',
+    );
+
+    final out = applyTransmitterRegistry([tank], matcher, computerId: 'c1');
+
+    expect(out.single.roleSource, 'transmitterName');
+  });
+
   test('a serial padded with whitespace still matches', () {
     final matcher = TransmitterMatcher.fromEntries([_entry()]);
     const tank = TankData(

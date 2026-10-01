@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_series_reassign_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
@@ -159,6 +161,7 @@ class CylindersCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final serial = normalizeTransmitterSerial(tank.transmitterSerial);
     final serialKnown = serial != null && knownSerials.contains(serial);
+    final nameDerivedRole = tank.roleSource == TankRoleSource.transmitterName;
 
     final pressures = _resolveTankPressures(
       tank: tank,
@@ -258,6 +261,7 @@ class CylindersCard extends ConsumerWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+          if (nameDerivedRole) _roleFromTransmitterNameLine(context, tank),
           if (serial != null)
             Row(
               children: [
@@ -287,8 +291,36 @@ class CylindersCard extends ConsumerWidget {
       // Either extra subtitle row makes the tile tall, and M3 centres the
       // leading icon on a tall two-line tile, away from the name.
       isThreeLine:
-          serial != null || consumptionRow != null || slotLabel != null,
+          serial != null ||
+          consumptionRow != null ||
+          slotLabel != null ||
+          nameDerivedRole,
       trailing: _checkInButton(tank),
+    );
+  }
+
+  /// The cylinder's role, marked as the computer's reading of the
+  /// transmitter's name (issue #2595). On a rebreather a bailout named "OC"
+  /// becomes the oxygen supply that way, and every ppO2 figure downstream
+  /// follows the role, so the diver is shown it is unconfirmed. Assigning
+  /// the transmitter (the chip on the serial row) settles it.
+  Widget _roleFromTransmitterNameLine(BuildContext context, DiveTank tank) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.error;
+    return Row(
+      key: Key('tank-role-from-transmitter-name-${tank.id}'),
+      children: [
+        Icon(Icons.help_outline, size: 14, color: color),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            context.l10n.diveLog_tank_roleFromTransmitterName(
+              tank.role.localizedName(context.l10n),
+            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: color),
+          ),
+        ),
+      ],
     );
   }
 

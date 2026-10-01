@@ -45676,7 +45676,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks bouteilles sur $dives plongées portent cet émetteur. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond sera remplacé.';
+    return '$tanks bouteilles sur $dives plongées portent cet émetteur. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond ou lu dans le nom de l\'émetteur sera remplacé.';
   }
 
   @override
@@ -45782,6 +45782,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Réattribuer la courbe de pression';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role, lu dans le nom de l\'émetteur';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'Courbes de pression';
 
   @override
@@ -45818,6 +45823,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Associer les émetteurs';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'Rôles des bouteilles lus dans les noms des émetteurs';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'L\'ordinateur de plongée a tiré certains rôles oxygène et diluant des noms donnés à ses émetteurs : un nom commençant par O est lu comme oxygène, un nom commençant par D comme diluant. Associez les émetteurs pour confirmer ou corriger ces rôles.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

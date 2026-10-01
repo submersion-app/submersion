@@ -1096,6 +1096,13 @@ class DiveTank extends Equatable {
   final double? endPressure; // bar
   final GasMix gasMix;
   final TankRole role; // back gas, stage, deco, bailout, etc.
+
+  /// Where [role] came from when no person chose it (issue #2595): a role
+  /// the computer read off the transmitter's name is unconfirmed, and the
+  /// transmitter registry may replace it. Null once the diver or the
+  /// registry set the role. Downloads, re-parses and the registry write it;
+  /// [DiveRepository.updateDive] clears it when the role changes.
+  final TankRoleSource? roleSource;
   final TankMaterial? material; // aluminum, steel, carbon fiber
   final int order; // for multi-tank ordering
   final String? presetName; // name of preset used (e.g., 'al80', 'hp100')
@@ -1161,6 +1168,7 @@ class DiveTank extends Equatable {
     this.endPressure,
     this.gasMix = const GasMix(),
     this.role = TankRole.backGas,
+    this.roleSource,
     this.material,
     this.order = 0,
     this.presetName,
@@ -1191,6 +1199,8 @@ class DiveTank extends Equatable {
     double? endPressure,
     GasMix? gasMix,
     TankRole? role,
+    TankRoleSource? roleSource,
+    bool clearRoleSource = false,
     TankMaterial? material,
     int? order,
     String? presetName,
@@ -1219,6 +1229,7 @@ class DiveTank extends Equatable {
       endPressure: endPressure ?? this.endPressure,
       gasMix: gasMix ?? this.gasMix,
       role: role ?? this.role,
+      roleSource: clearRoleSource ? null : (roleSource ?? this.roleSource),
       material: clearMaterial ? null : (material ?? this.material),
       order: order ?? this.order,
       presetName: clearPresetName ? null : (presetName ?? this.presetName),
@@ -1253,6 +1264,7 @@ class DiveTank extends Equatable {
     endPressure,
     gasMix,
     role,
+    roleSource,
     material,
     order,
     presetName,

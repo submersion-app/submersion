@@ -42937,7 +42937,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$dives 次潜水中的 $tanks 个气瓶带有此发射器。空白的容量、材质、名称和装备字段将被填充，仍为背气的用途将被替换。';
+    return '$dives 次潜水中的 $tanks 个气瓶带有此发射器。空白的容量、材质、名称和装备字段将被填充，仍为背气或根据发射器名称识别的用途将被替换。';
   }
 
   @override
@@ -43039,6 +43039,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_reassignSeries => '重新分配压力曲线';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role（根据发射器名称识别）';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => '压力曲线';
 
   @override
@@ -43073,6 +43078,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeAssignTransmitters => '分配发射器';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      '气瓶用途根据发射器名称识别';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      '潜水电脑根据发射器的名称识别了部分氧气和稀释气用途：以 O 开头的名称视为氧气，以 D 开头的视为稀释气。请分配发射器以确认或更正这些用途。';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

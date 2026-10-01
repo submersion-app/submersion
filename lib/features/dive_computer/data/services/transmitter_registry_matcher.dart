@@ -64,7 +64,9 @@ class TransmitterMatcher {
 /// fill so a matched entry claims its tank and the preset only fills back-gas
 /// tanks nobody claimed.
 ///
-/// A matched entry always sets the role, gear link, preset name and name; it
+/// A matched entry always sets the role, gear link, preset name and name,
+/// and drops any role source: the diver's own entry is configuration, where a
+/// role the computer read off the transmitter's name is a guess (#2595). It
 /// fills volume, working pressure and material only when the computer
 /// reported none (a Suunto that knows its own size keeps it). Gas mix,
 /// pressures and serial are never touched. Returns a new list; unmatched
@@ -86,6 +88,7 @@ List<TankData> applyTransmitterRegistry(
       final hasVolume = tank.volumeLiters != null && tank.volumeLiters! > 0;
       return tank.copyWith(
         role: entry.role.name,
+        clearRoleSource: true,
         equipmentId: entry.equipmentId,
         presetName: entry.presetName,
         tankName: entry.label.isEmpty ? null : entry.label,

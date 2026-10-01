@@ -45385,7 +45385,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks palack $dives merülésben viseli ezt a jeladót. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított szerep lecserélődik.';
+    return '$tanks palack $dives merülésben viseli ezt a jeladót. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított vagy a jeladó nevéből kiolvasott szerep lecserélődik.';
   }
 
   @override
@@ -45491,6 +45491,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Nyomásgörbe áthelyezése';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role, a jeladó nevéből kiolvasva';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'Nyomásgörbék';
 
   @override
@@ -45527,6 +45532,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Jeladók hozzárendelése';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'Palackszerepek a jeladók nevéből';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'A merülőkomputer néhány oxigén- és hígítógáz-szerepet a jeladóknak adott nevekből vett át: az O-val kezdődő név oxigénnek, a D-vel kezdődő hígítógáznak számít. Rendeld hozzá a jeladókat, hogy megerősítsd vagy javítsd ezeket a szerepeket.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

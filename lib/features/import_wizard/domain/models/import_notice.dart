@@ -41,6 +41,11 @@ enum ImportNoticeKind {
   /// imported dives affected.
   unknownTransmitter,
 
+  /// A downloaded cylinder took its oxygen or diluent role from the name the
+  /// diver gave its unassigned transmitter, which nothing checks (issue
+  /// #2595). [ImportNotice.count] is the number of imported dives affected.
+  transmitterNameRoles,
+
   /// Auto-mapped CSV columns left out because another column already fills
   /// the same field. [ImportNotice.names] lists the columns.
   columnsNotImported,
@@ -112,6 +117,7 @@ enum ImportNoticeKind {
     profileUndecodableOnPlatform ||
     noTankPressure ||
     unknownTransmitter ||
+    transmitterNameRoles ||
     sitesUnresolved ||
     macdiveDeviceTimeZone ||
     diveNumberConflict => true,

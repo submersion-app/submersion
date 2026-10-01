@@ -21,10 +21,19 @@ import 'package:submersion/features/dive_computer/domain/entities/downloaded_div
 /// constant mass flow orifice bleeds down through it once the valve is closed,
 /// so the computer's own end pressure can be a small fraction of what was
 /// actually left at the end of the dive (issue #1092).
+///
+/// [vendor] is the computer's manufacturer as libdivecomputer names it. It
+/// tells a role the computer took from a transmitter's name apart from one
+/// it reports as its own data (issue #2595); see [_roleSourceOf].
 List<DownloadedTank> resolveParsedTanks(
   pigeon.ParsedDive parsed, {
   bool trimAtSurfacing = true,
-}) => _resolveCylinders(parsed, trimAtSurfacing: trimAtSurfacing).tanks;
+  String? vendor,
+}) => _resolveCylinders(
+  parsed,
+  trimAtSurfacing: trimAtSurfacing,
+  vendor: vendor,
+).tanks;
 
 /// The gas mix of the first cylinder tagged [TankRole.diluent] among
 /// [tanks], or null when none carries that role.
@@ -114,6 +123,7 @@ class _ResolvedCylinders {
 _ResolvedCylinders _resolveCylinders(
   pigeon.ParsedDive parsed, {
   required bool trimAtSurfacing,
+  String? vendor,
 }) {
   final gasMixes = parsed.gasMixes;
   final gasIndexToTankIndex = <int, int>{};
@@ -211,6 +221,7 @@ _ResolvedCylinders _resolveCylinders(
         ),
         volumeLiters: tank.volumeLiters,
         role: role,
+        roleSource: _roleSourceOf(tank, parsed.diveMode, vendor),
         transmitterSerial: _transmitterSerial(tank.transmitterSerial),
       ),
     );
@@ -251,15 +262,41 @@ _ResolvedCylinders _resolveCylinders(
   return _ResolvedCylinders(result, gasIndexToTankIndex);
 }
 
-/// Infer a cylinder [TankRole] (returned as its `.name`). The computer's tank
-/// [usage] (libdivecomputer `dc_usage_t`: 1=oxygen, 2=diluent) is authoritative
-/// when present; otherwise fall back to an open-circuit gas heuristic where a
-/// nitrox mix of 41% O2 or more is a deco gas. Everything else is back gas.
 /// The native layer sends zero for "no transmitter"; keep that out of the
 /// stored identity so two serial-less tanks never look like the same cylinder.
 String? _transmitterSerial(int? serial) =>
     serial == null || serial <= 0 ? null : '$serial';
 
+/// [TankRoleSource.transmitterName] when [tank]'s oxygen or diluent usage
+/// is the first letter of the name the diver gave its transmitter, else null.
+///
+/// In its CCR and SCR modes libdivecomputer's Shearwater parser sets a
+/// wireless transmitter's usage from nothing else ("O..." oxygen, "D..."
+/// diluent), so a bailout named "OC" arrives as the oxygen supply (issue
+/// #2595). Two Shearwater cases are the computer's own data and stay
+/// unflagged: HP CCR pressure channels, whose roles the hardware fixes and
+/// which have no transmitter serial, and every usage on another vendor
+/// (Suunto takes it from the gas's own setting, Halcyon from its records).
+/// A wireless transmitter from before Shearwater logged serials cannot be
+/// told apart from an HP CCR channel, so it is left unflagged as well.
+TankRoleSource? _roleSourceOf(
+  pigeon.TankInfo tank,
+  String? diveMode,
+  String? vendor,
+) {
+  final isShearwater = vendor?.trim().toLowerCase() == 'shearwater';
+  final onTheLoop = diveMode == 'ccr' || diveMode == 'scr';
+  final tagged = tank.usage == 1 || tank.usage == 2;
+  final wireless = _transmitterSerial(tank.transmitterSerial) != null;
+  return isShearwater && onTheLoop && tagged && wireless
+      ? TankRoleSource.transmitterName
+      : null;
+}
+
+/// Infer a cylinder [TankRole] (returned as its `.name`). The computer's tank
+/// [usage] (libdivecomputer `dc_usage_t`: 1=oxygen, 2=diluent) is authoritative
+/// when present; otherwise fall back to an open-circuit gas heuristic where a
+/// nitrox mix of 41% O2 or more is a deco gas. Everything else is back gas.
 String _inferRole(int? usage, double o2Percent, double hePercent) {
   switch (usage) {
     case 1: // DC_USAGE_OXYGEN

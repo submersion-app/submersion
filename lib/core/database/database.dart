@@ -232,7 +232,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 250;
+  static const int currentSchemaVersion = 254;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1024,6 +1024,10 @@ class AppDatabase extends _$AppDatabase {
     // floor does not move. #2562 and #2409 held stale claims below 249
     // when this was taken.
     250,
+    // v254: dive_tanks.role_source, where a cylinder's role came from
+    // (issue #2595). An additive nullable column, so the floor does not
+    // move. 251 to 253 are held by open branches (#2721, #2703, #2592).
+    254,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
