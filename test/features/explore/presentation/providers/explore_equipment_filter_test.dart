@@ -95,6 +95,25 @@ void main() {
     expect(f.query, AndNode([regulators, inactive]));
   });
 
+  // Free text and a scoped condition say nothing about the item's own
+  // status (a scoped `status` would be another entity's), so they keep the
+  // default view.
+  test('free text or a scoped condition keeps the default view', () {
+    final words = TextNode(const ['apeks']);
+    final scoped = ScopedNode(
+      FieldPath(const ['tags']),
+      ConditionNode(
+        FieldPath(const ['status']),
+        QueryOp.eq,
+        const StringValue('x'),
+      ),
+    );
+    final f = exploreEquipmentFilter(AndNode([words, scoped]));
+    expect(f.status, isNull);
+    expect(f.allStatuses, isFalse);
+    expect(f.query, AndNode([words, scoped]));
+  });
+
   test('a status inside an Or reads every status', () {
     final either = OrNode([status('retired'), regulators]);
     final f = exploreEquipmentFilter(either);
