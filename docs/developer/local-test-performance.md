@@ -199,8 +199,10 @@ clean() {
     if [ -n "$(find "${d}" -mmin "-${minutes}" -print -quit 2>/dev/null)" ]; then
       continue
     fi
-    # A live flutter_tester names its listener dill on its command line.
-    if printf '%s\n' "${live}" | grep -qF "${d}/"; then
+    # A live flutter_tester names its listener dill on its command line. A
+    # here-string, not a pipe: under pipefail, grep -q exiting early can
+    # kill the writer with SIGPIPE and turn a match into a failure.
+    if grep -qF "${d}/" <<< "${live}"; then
       continue
     fi
     kb="$(du -sk "${d}" | awk '{print $1}')"
@@ -220,7 +222,8 @@ clean() {
 }
 
 # Serialize run-dir placement across concurrent `flutter test` starts. A lock
-# older than a minute belongs to a process that died holding it.
+# older than a minute belongs to a process that died holding it. Fails if the
+# lock was not acquired, so only the holder ever releases it.
 lock() {
   mkdir -p "${OVERFLOW}"
   local tries=0
@@ -231,7 +234,7 @@ lock() {
     fi
     tries=$(( tries + 1 ))
     # Placement is best effort: after ~10s, go ahead unlocked.
-    [ "${tries}" -ge 100 ] && return 0
+    [ "${tries}" -ge 100 ] && return 1
     sleep 0.1
   done
 }
@@ -240,13 +243,26 @@ unlock() {
   rmdir "${LOCK}" 2>/dev/null || true
 }
 
+# Start time of process $1, empty once it has exited. exec keeps it, so it
+# identifies the shim and the flutter_tools process it becomes.
+proc_start() {
+  ps -o lstart= -p "$1" 2>/dev/null || true
+}
+
 # True while the process that owns run dir $1 is alive. The shim execs the
-# real flutter, so the recorded PID is the flutter_tools process itself; the
-# command check guards against PID reuse.
+# real flutter, so the recorded PID is the flutter_tools process itself. The
+# recorded start time guards against PID reuse: a reused PID belongs to a
+# process that started later. Dirs made before owner.start existed fall back
+# to a command-name check.
 owner_alive() {
-  local pid cmd
+  local pid start cmd
   pid="$(cat "$1/owner.pid" 2>/dev/null || true)"
   case "${pid}" in ''|*[!0-9]*) return 1 ;; esac
+  if [ -f "$1/owner.start" ]; then
+    start="$(proc_start "${pid}")"
+    [ -n "${start}" ] && [ "${start}" = "$(cat "$1/owner.start")" ]
+    return
+  fi
   cmd="$(ps -o command= -p "${pid}" 2>/dev/null || true)"
   case "${cmd}" in *flutter*|*dart*) return 0 ;; *) return 1 ;; esac
 }
@@ -259,8 +275,14 @@ reap() {
   live="$(ps -axo command= || true)"
   for d in "${base}"/run.*; do
     [ -d "${d}" ] || continue
+    # A placement that went ahead unlocked may not have written its owner
+    # yet; give a fresh dir a minute.
+    if [ ! -f "${d}/owner.pid" ] &&
+      [ -z "$(find "${d}" -maxdepth 0 -mmin +1 2>/dev/null)" ]; then
+      continue
+    fi
     owner_alive "${d}" && continue
-    printf '%s\n' "${live}" | grep -qF "${d}/" && continue
+    grep -qF "${d}/" <<< "${live}" && continue
     kb="$(du -sk "${d}" | awk '{print $1}')"
     if [ "${dry_run}" = 1 ]; then
       echo "would delete ${d} ($(( kb / 1024 )) MB)"
@@ -285,13 +307,18 @@ ram_room_mb() {
 }
 
 run_dir() {
-  local pid="$1" base dir
+  local pid="$1" base dir start locked=0
   case "${pid}" in ''|*[!0-9]*)
     echo "flutter-ramtmp: --run-dir needs the owner PID" >&2
     return 2 ;;
   esac
-  lock
-  # Reap even if a step below fails, so the lock is always released.
+  start="$(proc_start "${pid}")"
+  if [ -z "${start}" ]; then
+    echo "flutter-ramtmp: --run-dir: no process ${pid}" >&2
+    return 2
+  fi
+  lock && locked=1
+  # A failure inside still releases the lock, below.
   {
     is_mounted && reap "${TMPSUB}" 0 >/dev/null
     reap "${OVERFLOW}" 0 >/dev/null
@@ -302,9 +329,10 @@ run_dir() {
       echo "flutter-ramtmp: RAM disk full or missing, using ${OVERFLOW}" >&2
     fi
     dir="$(mktemp -d "${base}/run.XXXXXX")" &&
+      echo "${start}" > "${dir}/owner.start" &&
       echo "${pid}" > "${dir}/owner.pid"
-  } || { unlock; return 1; }
-  unlock
+  } || { [ "${locked}" = 1 ] && unlock; return 1; }
+  [ "${locked}" = 1 ] && unlock
   echo "${dir}"
 }
 
@@ -577,14 +605,25 @@ How the placement works, all inside `flutter-ramtmp --run-dir`:
 - **A lock serializes placement.** A `mkdir` lock under the overflow directory
   makes check-then-create atomic across concurrent starts. A lock older than
   a minute is treated as abandoned, and after about 10 seconds of waiting a
-  run proceeds unlocked rather than stalling.
+  run proceeds unlocked rather than stalling. Only the run that acquired the
+  lock releases it, so a waiter that gave up cannot remove a lock another run
+  still holds. A directory that has no `owner.pid` yet is spared for its
+  first minute, in case an unlocked placement is still writing it.
 - **Each run directory names its owner.** It holds `owner.pid`, the shim's own
-  PID. Homebrew's launcher ends in `exec "$DART" ... flutter_tools.snapshot`,
-  so that PID stays alive for exactly as long as the `flutter test` process
-  does. A directory whose owner has exited is deleted by the next run to
-  start, even after `kill -9`, unless a live process (an orphaned
-  `flutter_tester`) still names a file inside it. The command check on the
-  PID guards against reuse.
+  PID, and `owner.start`, that process's start time. Homebrew's launcher ends
+  in `exec "$DART" ... flutter_tools.snapshot`, and `exec` keeps both, so the
+  owner is alive for exactly as long as the `flutter test` process is. A
+  directory whose owner has exited is deleted by the next run to start, even
+  after `kill -9`, unless a live process (an orphaned `flutter_tester`) still
+  names a file inside it. Comparing the start time catches a PID the system
+  has since given to an unrelated process, which matching on the command
+  name alone would mistake for the owner.
+- **The live-process check reads from a here-string, not a pipe.** Under
+  `pipefail`, `printf ... | grep -q` fails whenever `grep` matches early and
+  exits: the `printf` still writing a `ps` snapshot of a few hundred KB dies
+  of `SIGPIPE`, and the pipeline reports failure for a match. With the match
+  near the start of the snapshot this failed every time in testing, which
+  would delete a directory a live tester was still using.
 
 The reservation is an estimate, not a guarantee. Runs already placed can still
 grow past their reservation together, so a burst of unusually large runs can
