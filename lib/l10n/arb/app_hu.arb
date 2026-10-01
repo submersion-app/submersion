@@ -282,6 +282,8 @@
   "equipment_color_stone": "Kő",
   "equipment_color_zinc": "Cink",
   "equipment_color_slate": "Pala",
+  "equipment_color_black": "Fekete",
+  "equipment_color_white": "Fehér",
   "equipment_color_none": "Nincs",
   "equipment_color_sheetTitle": "Szín választása",
   "equipment_setEdit_figureSwitch_subtitle": "A készlet felszerelésének megjelenítése egy búváron",

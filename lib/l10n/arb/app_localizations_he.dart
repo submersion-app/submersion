@@ -1130,6 +1130,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_color_slate => 'צפחה';
 
   @override
+  String get equipment_color_black => 'שחור';
+
+  @override
+  String get equipment_color_white => 'לבן';
+
+  @override
   String get equipment_color_none => 'ללא';
 
   @override

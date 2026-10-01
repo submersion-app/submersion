@@ -282,6 +282,8 @@
   "equipment_color_stone": "Steen",
   "equipment_color_zinc": "Zink",
   "equipment_color_slate": "Leisteen",
+  "equipment_color_black": "Zwart",
+  "equipment_color_white": "Wit",
   "equipment_color_none": "Geen",
   "equipment_color_sheetTitle": "Kies een kleur",
   "equipment_setEdit_figureSwitch_subtitle": "De uitrusting van deze set op een duiker tonen",

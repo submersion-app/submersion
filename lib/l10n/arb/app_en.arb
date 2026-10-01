@@ -656,6 +656,8 @@
   "equipment_color_stone": "Stone",
   "equipment_color_zinc": "Zinc",
   "equipment_color_slate": "Slate",
+  "equipment_color_black": "Black",
+  "equipment_color_white": "White",
   "equipment_color_none": "None",
   "equipment_color_sheetTitle": "Choose a color",
   "equipment_setEdit_geofencesTitle": "Geofences",

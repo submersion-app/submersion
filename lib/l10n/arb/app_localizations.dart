@@ -1778,6 +1778,18 @@ abstract class AppLocalizations {
   /// **'Slate'**
   String get equipment_color_slate;
 
+  /// No description provided for @equipment_color_black.
+  ///
+  /// In en, this message translates to:
+  /// **'Black'**
+  String get equipment_color_black;
+
+  /// No description provided for @equipment_color_white.
+  ///
+  /// In en, this message translates to:
+  /// **'White'**
+  String get equipment_color_white;
+
   /// No description provided for @equipment_color_none.
   ///
   /// In en, this message translates to:

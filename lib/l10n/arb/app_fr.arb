@@ -282,6 +282,8 @@
   "equipment_color_stone": "Pierre",
   "equipment_color_zinc": "Zinc",
   "equipment_color_slate": "Ardoise",
+  "equipment_color_black": "Noir",
+  "equipment_color_white": "Blanc",
   "equipment_color_none": "Aucune",
   "equipment_color_sheetTitle": "Choisir une couleur",
   "equipment_setEdit_figureSwitch_subtitle": "Représenter l’équipement de cet ensemble sur un plongeur",

@@ -1126,6 +1126,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_color_slate => 'رمادي أردوازي';
 
   @override
+  String get equipment_color_black => 'أسود';
+
+  @override
+  String get equipment_color_white => 'أبيض';
+
+  @override
   String get equipment_color_none => 'بلا';
 
   @override

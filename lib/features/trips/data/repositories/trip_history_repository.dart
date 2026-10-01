@@ -17,7 +17,8 @@ class TripHistoryRepository {
 
   /// Dives per dive day over the most recent [limit] trips that ended
   /// before [before] and carry at least one dive, newest first. A dive
-  /// day is a distinct calendar date with a dive on it.
+  /// day is a distinct calendar date with a dive on it. Planned dives are
+  /// left out: they were never dived.
   ///
   /// [diverId] scopes it to one diver's own dives, which matters because
   /// trips are shared: both the count and the day count then come from
@@ -40,7 +41,7 @@ class TripHistoryRepository {
             COUNT(DISTINCT date(d.dive_date_time / 1000, 'unixepoch')) AS days
           FROM trips t
           JOIN dives d ON d.trip_id = t.id
-          WHERE t.end_date < ? $diverFilter
+          WHERE t.end_date < ? AND d.is_planned = 0 $diverFilter
           GROUP BY t.id
           ORDER BY t.end_date DESC
           LIMIT ?
@@ -70,6 +71,7 @@ class TripHistoryRepository {
   ///
   /// [diverId] scopes it to one diver; null applies no scoping and reads
   /// every diver's loop dives, as a library with no active diver wants.
+  /// Planned dives are left out: their runtime is a plan, not a use.
   /// [before] is a calendar date (a trip start): dives on or after that
   /// day are excluded, whatever the device's zone.
   Future<List<({double? scrubberMinutes, double? runtimeMinutes})>>
@@ -97,6 +99,7 @@ class TripHistoryRepository {
             AND s.source_updated_at = ${diveSourceStampSql()}
             AND s.engine_version >= ?
           WHERE d.dive_mode IN ('ccr', 'scr')
+            AND d.is_planned = 0
             AND d.dive_date_time < ? $diverFilter
           ORDER BY d.dive_date_time DESC
           LIMIT ?

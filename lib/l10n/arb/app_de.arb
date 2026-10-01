@@ -293,6 +293,8 @@
   "equipment_color_stone": "Stein",
   "equipment_color_zinc": "Zink",
   "equipment_color_slate": "Schiefer",
+  "equipment_color_black": "Schwarz",
+  "equipment_color_white": "Weiß",
   "equipment_color_none": "Keine",
   "equipment_color_sheetTitle": "Farbe wählen",
   "equipment_setEdit_figureSwitch_subtitle": "Die Ausrüstung dieses Sets an einem Taucher zeigen",

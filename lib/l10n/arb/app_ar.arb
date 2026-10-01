@@ -282,6 +282,8 @@
   "equipment_color_stone": "حجري",
   "equipment_color_zinc": "زنكي",
   "equipment_color_slate": "رمادي أردوازي",
+  "equipment_color_black": "أسود",
+  "equipment_color_white": "أبيض",
   "equipment_color_none": "بلا",
   "equipment_color_sheetTitle": "اختر لونًا",
   "equipment_setEdit_figureSwitch_subtitle": "عرض معدات هذه المجموعة على غواص",
