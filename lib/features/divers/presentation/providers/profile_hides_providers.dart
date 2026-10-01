@@ -8,9 +8,10 @@ final profileHidesRepositoryProvider = Provider<ProfileHidesRepository>(
   (ref) => ProfileHidesRepository(),
 );
 
-/// The active profile's hidden trips and sites, for Settings > Shared
-/// data. Refreshes when a hide, a trip or a site changes, including by
-/// sync.
+/// The active profile's hidden trips and sites whose hides still keep them
+/// from it (see [ProfileHidesRepository.hiddenItems]), for Settings >
+/// Shared data. Refreshes when a hide, a trip or a site changes, including
+/// an unshare and changes by sync.
 final hiddenItemsProvider = FutureProvider<List<HiddenItem>>((ref) async {
   final repository = ref.watch(profileHidesRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchChanges());

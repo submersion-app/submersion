@@ -29,6 +29,9 @@ class NoFlyDiveInput {
 
 /// An active flying restriction.
 class NoFlyStatus {
+  /// End of the restriction, in the frame of the dive end times it was
+  /// evaluated from: a true UTC instant from `noFlyStatusProvider`, which
+  /// converts the stored wall-clock values first.
   final DateTime until;
   final NoFlyCategory category;
 

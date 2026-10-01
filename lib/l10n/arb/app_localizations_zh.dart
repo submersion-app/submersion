@@ -1102,6 +1102,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_color_slate => '石板灰';
 
   @override
+  String get equipment_color_black => '黑色';
+
+  @override
+  String get equipment_color_white => '白色';
+
+  @override
   String get equipment_color_none => '无';
 
   @override
@@ -1334,9 +1340,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_story_openGallery => '打开行程照片';
 
   @override
-  String trips_story_generateItineraryError(String error) {
-    return '无法生成行程：$error';
-  }
+  String get trips_story_generateItineraryError => '无法生成行程，请重试。';
 
   @override
   String get trips_dayType_diveDay => '潜水日';
@@ -6151,6 +6155,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String diveLog_deco_totalDecoTime(Object time) {
     return '总计：$time';
   }
+
+  @override
+  String get diveLog_deco_withheld_ccr =>
+      '这次循环呼吸器潜水没有记录设定点或回路 ppO2，因此无法计算其组织饱和度、免减压极限和减压。编辑潜水时添加设定点即可计算。';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      '这次半闭式循环呼吸器潜水没有测得的回路 ppO2，因此无法计算其组织饱和度、免减压极限和减压。';
 
   @override
   String get diveLog_delete_cancel => '取消';
@@ -13913,6 +13925,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cylinderConfigs_applyNothingToDo => '该潜水已与配置一致';
 
   @override
+  String cylinderConfigs_applyUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '更新 $count 个',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteTitle => '替换气瓶参数？';
+
+  @override
+  String cylinderConfigs_overwriteBody(String name) {
+    return '应用 $name 将更改此潜水中已有的气瓶：';
+  }
+
+  @override
+  String cylinderConfigs_overwriteTank(int number, String role) {
+    return '气瓶 $number · $role';
+  }
+
+  @override
+  String cylinderConfigs_overwriteChange(String field, String from, String to) {
+    return '$field：$from → $to';
+  }
+
+  @override
+  String get cylinderConfigs_overwriteKeepsGas => '潜水中已有的混合气和起始压力保持不变。';
+
+  @override
+  String get cylinderConfigs_overwriteConfirm => '替换';
+
+  @override
+  String get cylinderConfigs_fieldVolume => '容积';
+
+  @override
+  String get cylinderConfigs_fieldWorkingPressure => '工作压力';
+
+  @override
+  String get cylinderConfigs_fieldMaterial => '材质';
+
+  @override
   String get cylinderConfigs_sectionTitle => '配置';
 
   @override
@@ -14569,6 +14624,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_list_filterAll => '全部装备';
+
+  @override
+  String get equipment_list_filterCurrent => '当前装备';
 
   @override
   String get equipment_list_filterServiceDue => '需要维护';
@@ -17664,6 +17722,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_import_review_noMatch => '没有匹配的潜水';
 
   @override
+  String get media_import_review_noCaptureTime => '未找到拍摄日期';
+
+  @override
+  String get media_import_review_noMatchFileDate => '没有与文件日期匹配的潜水；该文件没有拍摄日期';
+
+  @override
   String get media_import_review_skipped => '未导入';
 
   @override
@@ -20658,7 +20722,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get weightPresets_page_title => '配重预设';
 
   @override
-  String get weightPresets_page_empty => '在潜水编辑器中保存一份配重，它就会出现在这里供重复使用。';
+  String get weightPresets_page_empty => '在潜水编辑器中保存一份配重，或点按 + 在此新建一份。';
 
   @override
   String get weightPresets_action_rename => '重命名';
@@ -23892,7 +23956,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transfer_export_aboutContent =>
-      '以多种格式导出您的潜水数据。PDF 可创建可打印的潜水日志。UDDF 是与大多数潜水日志软件兼容的通用格式。CSV 文件可在电子表格应用中打开。';
+      '以多种格式导出您的潜水数据。PDF 可创建可打印的潜水日志。UDDF 是与大多数潜水日志软件兼容的通用格式。CSV 和 Excel 文件可在电子表格应用中打开。您也可以在「设置 > 备份与恢复」中备份整个数据库。';
 
   @override
   String get transfer_export_backupLink => '前往备份与恢复';
@@ -24160,6 +24224,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_detail_dives_errorLoading => '无法加载潜水记录';
 
   @override
+  String get trips_detail_error_loading => '无法加载旅行。';
+
+  @override
   String get trips_detail_dives_unknownSite => '未知潜水点';
 
   @override
@@ -24206,14 +24273,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_detail_scan_addDivesFirst => '请先添加潜水以关联照片';
 
   @override
-  String trips_detail_scan_errorLinking(Object error) {
-    return '关联照片时出错：$error';
-  }
+  String get trips_detail_scan_errorLinking => '无法关联照片，请重试。';
 
   @override
-  String trips_detail_scan_errorScanning(Object error) {
-    return '扫描出错: $error';
-  }
+  String get trips_detail_scan_errorScanning => '无法扫描照片，请重试。';
 
   @override
   String trips_detail_scan_linkedPhotos(Object count) {
@@ -24287,9 +24350,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_diveScan_deselectAll => '取消全选';
 
   @override
-  String trips_diveScan_error(String error) {
-    return '扫描潜水时出错：$error';
-  }
+  String get trips_diveScan_error => '无法扫描潜水，请重试。';
 
   @override
   String get trips_diveScan_findButton => '查找匹配的潜水';
@@ -24420,14 +24481,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_snackBar_added => '旅行添加成功';
 
   @override
-  String trips_edit_snackBar_errorLoading(Object error) {
-    return '加载旅行时出错：$error';
-  }
+  String get trips_edit_snackBar_errorLoading => '无法加载旅行，请重试。';
 
   @override
-  String trips_edit_snackBar_errorSaving(Object error) {
-    return '保存旅行时出错：$error';
-  }
+  String get trips_edit_snackBar_errorSaving => '无法保存旅行，请重试。';
 
   @override
   String get trips_edit_snackBar_updated => '旅行更新成功';
@@ -24467,19 +24524,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_gallery_empty_title => '此旅行暂无照片';
 
   @override
-  String trips_gallery_errorLinking(Object error) {
-    return '关联照片时出错：$error';
-  }
+  String get trips_gallery_errorLinking => '无法关联照片，请重试。';
 
   @override
-  String trips_gallery_errorScanning(Object error) {
-    return '扫描出错: $error';
-  }
+  String get trips_gallery_errorScanning => '无法扫描照片，请重试。';
 
   @override
-  String trips_gallery_error_loading(Object error) {
-    return '加载照片时出错：$error';
-  }
+  String get trips_gallery_error_loading => '无法加载照片。';
 
   @override
   String trips_gallery_linkedPhotos(Object count) {
@@ -24526,9 +24577,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_list_empty_title => '尚未添加旅行';
 
   @override
-  String trips_list_error_loading(Object error) {
-    return '加载旅行时出错：$error';
-  }
+  String get trips_list_error_loading => '无法加载旅行。';
 
   @override
   String get trips_list_fab_addTrip => '添加旅行';
@@ -24600,9 +24649,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_picker_empty_title => '暂无旅行';
 
   @override
-  String trips_picker_error(Object error) {
-    return '加载旅行时出错：$error';
-  }
+  String get trips_picker_error => '无法加载旅行。';
 
   @override
   String get trips_picker_hint => '点击选择旅行';
@@ -24634,6 +24681,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String trips_search_noResults(Object query) {
     return '未找到「$query」的旅行';
   }
+
+  @override
+  String get trips_search_error => '无法搜索旅行。';
 
   @override
   String get trips_search_tooltip_back => '返回';
@@ -24899,9 +24949,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_cylinders_forecast_more => '增加潜水';
 
   @override
-  String trips_cylinders_forecast_saveError(String error) {
-    return '无法保存计划：$error';
-  }
+  String get trips_cylinders_forecast_saveError => '无法保存计划，请重试。';
 
   @override
   String get trips_cylinders_forecast_dayPlanned => '由你计划';
@@ -24972,6 +25020,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_cylinders_record_exported => '用气记录已导出';
+
+  @override
+  String get trips_cylinders_record_exportFailed => '无法导出用气记录，请重试。';
 
   @override
   String get trips_cylinders_title => '气瓶';
@@ -25330,6 +25381,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_itinerary_noDives => '无潜水';
+
+  @override
+  String get trips_itinerary_error_loading => '无法加载行程。';
+
+  @override
+  String get trips_itinerary_daySaveError => '无法保存日程，请重试。';
 
   @override
   String get trips_vesselType_catamaran => '双体船';
@@ -28386,6 +28443,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dropTarget_error_readFailed => '无法读取文件';
 
   @override
+  String get dropTarget_error_mediaNeedsDestination =>
+      '要关联照片和视频，请将它们拖放到媒体、潜水或潜点上';
+
+  @override
   String dropTarget_error_someUnreadable(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30946,6 +31007,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get diveLog_detail_altitudeMismatch_subtitle =>
       '该潜点记录了海拔,但此次潜水未设置海拔,因此减压分析按海平面计算。请设置潜水海拔以更正。';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      '仅记录了气瓶的起始和结束压力，因此无法按分段拆分气体消耗。分段需要潜水过程中的压力读数，例如来自无线发射器。整次潜水的平均值显示在“气瓶”下。';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle => '潜水过程中未记录气瓶压力';
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {

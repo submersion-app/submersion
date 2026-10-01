@@ -616,6 +616,7 @@ void main() {
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
           ],
           child: MaterialApp(
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripDetailPage(tripId: loadingTrip.id),
@@ -623,8 +624,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('Error'), findsWidgets);
-      expect(find.textContaining('boom'), findsOneWidget);
+      expect(find.text("Couldn't load the trip."), findsOneWidget);
+      expect(find.textContaining('boom'), findsNothing);
     });
 
     testWidgets('shows embedded error text on error when embedded', (
@@ -646,6 +647,7 @@ void main() {
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
           ],
           child: MaterialApp(
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
@@ -655,7 +657,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('embedded-boom'), findsOneWidget);
+      expect(find.text("Couldn't load the trip."), findsOneWidget);
+      expect(find.textContaining('embedded-boom'), findsNothing);
     });
   });
 

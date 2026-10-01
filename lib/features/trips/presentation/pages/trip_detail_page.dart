@@ -83,14 +83,15 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
               ),
               body: const Center(child: CircularProgressIndicator()),
             ),
-      error: (error, stack) => widget.embedded
-          ? Center(child: Text('${context.l10n.common_label_error}: $error'))
+      // The repository logs the failure; the diver gets a plain line.
+      error: (_, _) => widget.embedded
+          ? Center(child: Text(context.l10n.trips_detail_error_loading))
           : Scaffold(
               appBar: AppBar(
                 title: Text(context.l10n.trips_detail_appBar_title),
               ),
               body: Center(
-                child: Text('${context.l10n.common_label_error}: $error'),
+                child: Text(context.l10n.trips_detail_error_loading),
               ),
             ),
     );

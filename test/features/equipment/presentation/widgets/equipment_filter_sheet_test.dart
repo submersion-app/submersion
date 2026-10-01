@@ -98,8 +98,15 @@ Future<void> _openSheet(
   await tester.pumpAndSettle();
 }
 
-Finder _statusChip(EquipmentStatus? status) =>
-    find.byKey(ValueKey('equipment_filter_status_${status?.name ?? 'all'}'));
+/// Null is the default view, Current Equipment; [_allStatusesChip] is the
+/// choice that shows every status (#2590).
+Finder _statusChip(EquipmentStatus? status) => find.byKey(
+  ValueKey('equipment_filter_status_${status?.name ?? 'current'}'),
+);
+
+final _allStatusesChip = find.byKey(
+  const ValueKey('equipment_filter_status_all'),
+);
 
 Finder _typeChip(EquipmentType? type) =>
     find.byKey(ValueKey('equipment_filter_type_${type?.name ?? 'all'}'));
@@ -234,6 +241,110 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(container.read(equipmentFilterProvider).hasActiveFilters, isFalse);
+    });
+
+    testWidgets('labels the default view Current, beside a real All (#2590)', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final container = await _container();
+
+      await _openSheet(tester, container);
+
+      expect(
+        find.descendant(
+          of: _statusChip(null),
+          matching: find.text('Current Equipment'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: _allStatusesChip,
+          matching: find.text('All Equipment'),
+        ),
+        findsOneWidget,
+      );
+      expect(_isSelected(tester, _statusChip(null)), isTrue);
+      expect(_isSelected(tester, _allStatusesChip), isFalse);
+    });
+
+    testWidgets('All Equipment applies every status, and Current undoes it', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final container = await _container(
+        filter: const EquipmentFilterState(status: EquipmentStatus.retired),
+      );
+
+      await _openSheet(tester, container);
+      await tester.tap(_allStatusesChip);
+      await tester.pumpAndSettle();
+
+      expect(_isSelected(tester, _allStatusesChip), isTrue);
+      expect(
+        _isSelected(tester, _statusChip(EquipmentStatus.retired)),
+        isFalse,
+      );
+      expect(_isSelected(tester, _statusChip(null)), isFalse);
+
+      await tester.tap(find.byKey(const ValueKey('equipment_filter_apply')));
+      await tester.pumpAndSettle();
+
+      expect(
+        container.read(equipmentFilterProvider),
+        const EquipmentFilterState(allStatuses: true),
+      );
+
+      await _openSheet(tester, container);
+      expect(_isSelected(tester, _allStatusesChip), isTrue);
+      await tester.tap(_statusChip(null));
+      await tester.pumpAndSettle();
+      expect(_isSelected(tester, _allStatusesChip), isFalse);
+      await tester.tap(find.byKey(const ValueKey('equipment_filter_apply')));
+      await tester.pumpAndSettle();
+
+      expect(container.read(equipmentFilterProvider).hasActiveFilters, isFalse);
+    });
+
+    testWidgets('a status or Service Due chip turns All Equipment off', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final container = await _container(
+        filter: const EquipmentFilterState(allStatuses: true),
+      );
+
+      await _openSheet(tester, container);
+      await tester.tap(_statusChip(EquipmentStatus.sold));
+      await tester.pumpAndSettle();
+      expect(_isSelected(tester, _allStatusesChip), isFalse);
+
+      await tester.tap(_allStatusesChip);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('equipment_filter_status_serviceDue')),
+      );
+      await tester.pumpAndSettle();
+      expect(_isSelected(tester, _allStatusesChip), isFalse);
+
+      await tester.tap(find.byKey(const ValueKey('equipment_filter_apply')));
+      await tester.pumpAndSettle();
+      expect(container.read(equipmentFilterProvider).allStatuses, isFalse);
+    });
+
+    testWidgets('Clear All turns All Equipment off', (tester) async {
+      _useTallSurface(tester);
+      final container = await _container(
+        filter: const EquipmentFilterState(allStatuses: true),
+      );
+
+      await _openSheet(tester, container);
+      await tester.tap(find.widgetWithText(TextButton, 'Clear All'));
+      await tester.pumpAndSettle();
+
+      expect(_isSelected(tester, _allStatusesChip), isFalse);
+      expect(_isSelected(tester, _statusChip(null)), isTrue);
     });
 
     testWidgets('picking a status turns Service Due off, and back', (

@@ -104,7 +104,7 @@ Future<MediaSourceMetadata?> _extract(String path) async {
 
   // On desktop (and for any file native_exif could not date or place),
   // recover both from the file's own container metadata -- JPEG/HEIC EXIF,
-  // or the MP4/MOV mvhd and location atom -- so the capture time lands inside
+  // or the MP4/MOV date fields and location atom -- so the capture time lands inside
   // the dive window instead of defaulting to the copy-to-disk mtime. One pass
   // covers both: reading them separately parses a still's EXIF twice.
   if (takenAt == null || lat == null || lon == null) {

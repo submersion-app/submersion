@@ -420,6 +420,26 @@ void main() {
     expect(await repository.getTankUsesForTrip(tripId), isEmpty);
   });
 
+  test('a planned dive does not use a slot until it is logged', () async {
+    // Issue #2660: a planned dive's linked tank must not set the slot's
+    // pressure or count as a dive. Logging the dive brings it in.
+    final a = await repository.createCylinder(slot(label: 'A'));
+    await insertDiveWithTank(
+      diveId: 'd1',
+      tankId: 't1',
+      entryMillis: at.millisecondsSinceEpoch,
+      cylinderId: a.id,
+      start: 200,
+      end: 50,
+    );
+    await db.customUpdate("UPDATE dives SET is_planned = 1 WHERE id = 'd1'");
+    expect(await repository.getTankUsesForTrip(tripId), isEmpty);
+
+    await db.customUpdate("UPDATE dives SET is_planned = 0 WHERE id = 'd1'");
+    final uses = await repository.getTankUsesForTrip(tripId);
+    expect(uses[a.id]!.single.tankId, 't1');
+  });
+
   test('a tank use is timed by the dive entry time when it has one', () async {
     // dive_date_time is the legacy stamp; entry_time is when the diver
     // actually went in. A fill between the two must fold before the dive.

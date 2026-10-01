@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show ValueNotifier;
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
@@ -26,6 +28,21 @@ final photoPickerServiceProvider = Provider<PhotoPickerService>((ref) {
     return PhotoPickerServiceDesktop();
   }
   return PhotoPickerServiceMobile();
+});
+
+/// How many photo pickers are open right now.
+///
+/// A desktop drop lands on the window's one drop target even while a picker
+/// covers the screen, and a second picker opened on top would clear the
+/// first one's staged files: the Files tab's notifier is shared and not
+/// autoDispose. The drop target reads this to turn such a drop away.
+///
+/// A [ValueNotifier] rather than provider state because the picker changes
+/// it from initState and dispose, where Riverpod forbids provider writes.
+final openPhotoPickerSessionsProvider = Provider<ValueNotifier<int>>((ref) {
+  final sessions = ValueNotifier(0);
+  ref.onDispose(sessions.dispose);
+  return sessions;
 });
 
 /// Parameters for photo picker date range query.

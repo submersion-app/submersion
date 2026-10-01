@@ -90,6 +90,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/rare_sections.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/dive_tank_config_adapter.dart';
+import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_confirm_dialog.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/statistics_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/tank_row.dart';
@@ -363,6 +364,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final _uuid = const Uuid();
   TankPresetEntity? _defaultPreset;
   bool _tanksDirty = false;
+
+  /// Part of every tank row's key, bumped when a configuration rewrites
+  /// cylinders in place. A tank editor reads its text fields once, so an
+  /// editor left open would keep the old size and write it back on the next
+  /// keystroke; a new key gives it fresh fields (issue #2563).
+  int _tankRowGeneration = 0;
 
   /// Tanks the dive had when it was loaded, or that a prefill (a scan, a
   /// cylinder tag) filled: never suggested a slot, since a suggestion would
@@ -1528,7 +1535,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       children: [
         for (var i = 0; i < _tanks.length; i++)
           TankRow(
-            key: ValueKey(_tanks[i].id),
+            key: ValueKey((_tanks[i].id, _tankRowGeneration)),
             tank: _tanks[i],
             tankNumber: i + 1,
             units: units,
@@ -2415,7 +2422,32 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           : null,
       surfaceIntervalRow: _surfaceIntervalRow(),
       siteExtras: _siteExtras(),
+      diveTypesRow: _diveTypesRow(),
       profileChild: _profileChild(),
+    );
+  }
+
+  /// The dive type picker, shown in the always-open "The Dive" group. It used
+  /// to sit in the collapsed Conditions group, where divers could not find it
+  /// to correct an imported dive's type (issue #2596).
+  Widget _diveTypesRow() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      child: DiveTypeMultiSelectField(
+        selectedTypeIds: _selectedDiveTypeIds,
+        onChanged: (ids) {
+          setState(() {
+            _selectedDiveTypeIds = ids;
+            _siteAddedDiveTypeIds = siteAddedAfterManualEdit(
+              siteAddedIds: _siteAddedDiveTypeIds,
+              selectedTypeIds: ids,
+            );
+          });
+          // The picker is a bottom sheet, not a FormField, so Form.onChanged
+          // never sees it; without this, leaving drops the new type unasked.
+          _markDirty();
+        },
+      ),
     );
   }
 
@@ -3263,7 +3295,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       tanks: [
         for (var i = 0; i < _tanks.length; i++)
           TankRow(
-            key: ValueKey(_tanks[i].id),
+            key: ValueKey((_tanks[i].id, _tankRowGeneration)),
             tank: _tanks[i],
             tankNumber: i + 1,
             units: units,
@@ -3585,16 +3617,36 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// state until the diver taps Save, so writing through would bypass dirty
   /// tracking and persist changes even if they then cancelled. All merge
   /// rules live in CylinderConfigApplier via DiveTankConfigAdapter, which
-  /// never overwrites a gas mix already on the dive.
-  void _applyCylinderConfig(CylinderConfig config) {
+  /// never overwrites a gas mix already on the dive. A different size,
+  /// pressure, material or label on a matched cylinder is replaced only once
+  /// the diver confirms it (issue #2563).
+  Future<void> _applyCylinderConfig(CylinderConfig config) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+    const adapter = DiveTankConfigAdapter();
 
-    final result = const DiveTankConfigAdapter().apply(
+    var result = adapter.apply(
       tanks: _tanks,
       items: config.items,
       newId: (_) => _uuid.v4(),
     );
+
+    if (result.overwrites.isNotEmpty) {
+      final confirmed = await confirmCylinderOverwrites(
+        context,
+        configName: config.name,
+        overwrites: result.overwrites,
+        tanks: _tanks,
+        units: UnitFormatter(ref.read(settingsProvider)),
+      );
+      if (!confirmed || !mounted) return;
+      result = adapter.apply(
+        tanks: _tanks,
+        items: config.items,
+        newId: (_) => _uuid.v4(),
+        overwrite: true,
+      );
+    }
 
     // A repeat apply matches every role and so reports a non-zero kept while
     // doing no work. Rebuilding then would mark the form dirty and raise an
@@ -3609,6 +3661,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     setState(() {
       _markDirty();
       _tanksDirty = true;
+      _tankRowGeneration++;
       _tanks
         ..clear()
         ..addAll(result.tanks);
@@ -3617,8 +3670,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          '${l10n.cylinderConfigs_applyAdded(result.added)}, '
-          '${l10n.cylinderConfigs_applyKept(result.kept)}',
+          [
+            l10n.cylinderConfigs_applyAdded(result.added),
+            l10n.cylinderConfigs_applyKept(result.kept),
+            if (result.updated > 0)
+              l10n.cylinderConfigs_applyUpdated(result.updated),
+          ].join(', '),
         ),
       ),
     );
@@ -4524,19 +4581,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final l10n = context.l10n;
     final altitudeWarning = _getAltitudeWarning(units);
     return [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-        child: DiveTypeMultiSelectField(
-          selectedTypeIds: _selectedDiveTypeIds,
-          onChanged: (ids) => setState(() {
-            _selectedDiveTypeIds = ids;
-            _siteAddedDiveTypeIds = siteAddedAfterManualEdit(
-              siteAddedIds: _siteAddedDiveTypeIds,
-              selectedTypeIds: ids,
-            );
-          }),
-        ),
-      ),
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

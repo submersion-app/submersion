@@ -895,13 +895,14 @@ void main() {
     test('setpoint segments change deco output vs legacy first-tank model', () {
       final service = ProfileAnalysisService(gfLow: 0.45, gfHigh: 0.75);
 
+      // The bug's model, spelled out: open circuit on the first tank, EAN40.
+      // A CCR dive with no loop schedule no longer falls back to it; its
+      // tissue loading is withheld instead (issue #2593).
       final legacy = service.analyze(
         diveId: 'ccr-legacy',
         depths: depths,
         timestamps: timestamps,
-        o2Fraction: 0.40, // first tank EAN40 (the bug's model)
-        diveMode: DiveMode.ccr,
-        setpointHigh: 1.3,
+        o2Fraction: 0.40,
       );
       final loop = service.analyze(
         diveId: 'ccr-loop',
@@ -1102,11 +1103,15 @@ void main() {
       expect(analysis.ppN2Curve![3], closeTo(4.1, 0.001));
     });
 
-    test('no loop information keeps the legacy first-tank curves', () {
+    test('no loop information withholds the inert-gas curves', () {
       final analysis = analyzeLoop(gasSegments: null);
       // No setpoint segments and no measured ppO2: the loop cannot be
-      // modeled, so the display falls back to the first tank as before.
-      expect(analysis.ppN2Curve![2], closeTo(5.4 * 0.60, 0.001));
+      // modeled. The first tank's open-circuit fractions are not the loop's,
+      // so ppN2 and density are withheld rather than drawn from them (issue
+      // #2593). MOD is a property of the recorded gas and stays.
+      expect(analysis.tissueLoadingWithheld, isTrue);
+      expect(analysis.hasPpN2Data, isFalse);
+      expect(analysis.hasDensityData, isFalse);
       expect(analysis.modCurve![2], closeTo(25.0, 0.01));
     });
   });

@@ -74,6 +74,7 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_analysis
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
+import 'package:submersion/features/dive_log/presentation/utils/sac_segments_availability.dart';
 import 'package:submersion/features/media/presentation/pages/dive_species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
@@ -108,6 +109,7 @@ import 'package:submersion/features/dive_log/domain/services/source_name_resolve
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_loading_withheld_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show TooltipPresentation;
@@ -120,6 +122,7 @@ import 'package:submersion/shared/widgets/section_fold.dart';
 import 'package:submersion/shared/widgets/section_properties_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_volume_hint.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_segments_no_pressure_note.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
@@ -673,7 +676,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  /// Whether the Gas consumption by segment card has segments to show.
+  /// Whether the Gas consumption by segment card has segments, or the note
+  /// explaining their absence (#2505), to show.
   ///
   /// Mirrors the card's own gate, including its last-good fallback, so a
   /// transient null analysis cannot split the pair while the card stays.
@@ -684,11 +688,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// layout on every reload.
   bool _hasSacSegments(WidgetRef ref, Dive dive) {
     if (dive.profile.isEmpty) return false;
+    final computerId = ref.watch(
+      activeSourceProfileProvider(dive.id).select((p) => p?.computerId),
+    );
     final hasSegments = ref.watch(
       sourceProfileAnalysisProvider((
         diveId: dive.id,
         sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
-      )).select((a) => a.value?.sacSegments?.isNotEmpty ?? false),
+      )).select(
+        (a) =>
+            (a.value?.sacSegments?.isNotEmpty ?? false) ||
+            sacSegmentsLackRecordedPressure(
+              a.value,
+              dive,
+              computerId: computerId,
+            ),
+      ),
     );
     return hasSegments ||
         (_lastSacSegmentsAnalysisDiveId == dive.id &&
@@ -2337,7 +2352,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           )),
         )
         .valueOrNull;
-    final isUsable = current != null && current.decoStatuses.isNotEmpty;
+    // A withheld analysis is a real answer, not a transient blank: it carries
+    // the reason the deco cards are missing, so it is usable and retained.
+    final isUsable =
+        current != null &&
+        (current.decoStatuses.isNotEmpty || current.tissueLoadingWithheld);
 
     // Retain the last usable analysis for THIS dive and fall back to it when the
     // provider momentarily yields null/empty (e.g. a mid-sync empty-profile
@@ -2355,15 +2374,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               : null);
 
     // Don't show if no analysis is, or ever was, available for this dive.
-    if (analysis == null || analysis.decoStatuses.isEmpty) return null;
-
-    // Use selected point or default to final status
-    final index =
-        selectedPointIndex != null &&
-            selectedPointIndex < analysis.decoStatuses.length
-        ? selectedPointIndex
-        : analysis.decoStatuses.length - 1;
-    final status = analysis.decoStatuses[index];
+    if (analysis == null ||
+        (analysis.decoStatuses.isEmpty && !analysis.tissueLoadingWithheld)) {
+      return null;
+    }
 
     // Build "at time" subtitle when a point is selected. The index came from
     // the chart, which draws the active source's series, so it is resolved
@@ -2378,31 +2392,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             _formatTimestamp(chartProfile[selectedPointIndex].timestamp),
           )
         : null;
-
-    Widget buildTissueCard({bool expand = false}) {
-      return CompactTissueLoadingCard(
-        status: status,
-        decoStatuses: analysis.decoStatuses,
-        selectedIndex: selectedPointIndex,
-        subtitle: timeSubtitle,
-        expandVisualization: expand,
-        onHeatMapHover: (index) {
-          ref.read(profileTrackingIndexProvider(diveId).notifier).state = index;
-        },
-        onOpen3dView: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) =>
-                Dive3dPage(diveId: dive.id, initialMode: SceneKind.tissue),
-          ),
-        ),
-      );
-    }
-
-    final decoCard = CompactDecoStatusCard(
-      status: status,
-      gfSource: analysis.gfSource,
-      subtitle: timeSubtitle,
-    );
 
     final weeklyOtuAsync = ref.watch(weeklyOtuProvider(dive.id));
     final weeklyOtu = weeklyOtuAsync.valueOrNull;
@@ -2428,6 +2417,53 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           : null,
       subtitle: timeSubtitle,
       weeklyOtu: weeklyOtu,
+    );
+
+    // A rebreather loop the analysis could not model (#2593): say why in place
+    // of the deco and tissue cards. The O2 card stays; it reads the loop ppO2,
+    // not the tissue model.
+    if (analysis.tissueLoadingWithheld) {
+      Widget withheld(String title) =>
+          TissueLoadingWithheldCard(title: title, diveMode: dive.diveMode);
+      return (
+        deco: withheld(context.l10n.diveLog_detail_section_decoStatus),
+        o2: o2Card,
+        tissue: ({bool expand = false}) =>
+            withheld(context.l10n.diveLog_deco_sectionTissueLoading),
+      );
+    }
+
+    // Use selected point or default to final status
+    final index =
+        selectedPointIndex != null &&
+            selectedPointIndex < analysis.decoStatuses.length
+        ? selectedPointIndex
+        : analysis.decoStatuses.length - 1;
+    final status = analysis.decoStatuses[index];
+
+    Widget buildTissueCard({bool expand = false}) {
+      return CompactTissueLoadingCard(
+        status: status,
+        decoStatuses: analysis.decoStatuses,
+        selectedIndex: selectedPointIndex,
+        subtitle: timeSubtitle,
+        expandVisualization: expand,
+        onHeatMapHover: (index) {
+          ref.read(profileTrackingIndexProvider(diveId).notifier).state = index;
+        },
+        onOpen3dView: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) =>
+                Dive3dPage(diveId: dive.id, initialMode: SceneKind.tissue),
+          ),
+        ),
+      );
+    }
+
+    final decoCard = CompactDecoStatusCard(
+      status: status,
+      gfSource: analysis.gfSource,
+      subtitle: timeSubtitle,
     );
 
     return (deco: decoCard, o2: o2Card, tissue: buildTissueCard);
@@ -2477,14 +2513,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
     int? selectedPointIndex,
   ) {
-    final current = ref
-        .watch(
-          sourceProfileAnalysisProvider((
-            diveId: dive.id,
-            sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
-          )),
-        )
-        .valueOrNull;
+    final currentAsync = ref.watch(
+      sourceProfileAnalysisProvider((
+        diveId: dive.id,
+        sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
+      )),
+    );
+    final current = currentAsync.valueOrNull;
     final isUsable =
         current != null &&
         current.sacSegments != null &&
@@ -2520,16 +2555,45 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final hasGasSwitches =
         ref.watch(hasGasSwitchesProvider(dive.id)).valueOrNull ?? false;
 
-    // Don't show if no segments are, or ever were, available for this dive
-    // (the last-good fallback above keeps a transient null from collapsing it).
-    // Per-tank SAC lives on the Cylinders card, which renders regardless.
-    if (analysis == null ||
-        (analysis.sacSegments == null || analysis.sacSegments!.isEmpty)) {
-      return const SizedBox.shrink();
-    }
-
     // Get collapsed state from provider
     final isExpanded = ref.watch(sacSegmentsSectionExpandedProvider);
+
+    // Don't show if no segments are, or ever were, available for this dive
+    // (the last-good fallback above keeps a transient null from collapsing it).
+    // Per-tank SAC lives on the Cylinders card, which renders regardless. A
+    // dive logged with only start and end pressures says why instead of
+    // vanishing while its section toggle is on (#2505). It reads `.value`,
+    // which keeps the previous analysis through a reload, exactly as the
+    // pairing gate in _hasSacSegments does.
+    if (analysis == null ||
+        (analysis.sacSegments == null || analysis.sacSegments!.isEmpty)) {
+      if (!sacSegmentsLackRecordedPressure(
+        currentAsync.value,
+        dive,
+        // The computer the analysis was scoped to; null on a single source.
+        computerId: ref.watch(
+          activeSourceProfileProvider(dive.id).select((p) => p?.computerId),
+        ),
+      )) {
+        return const SizedBox.shrink();
+      }
+      return CollapsibleCardSection(
+        title: context.l10n.diveLog_detail_section_sacRateBySegment,
+        icon: Icons.air,
+        collapsedSubtitle:
+            context.l10n.diveLog_detail_sacSegmentsNoPressure_subtitle,
+        isExpanded: isExpanded,
+        onToggle: (expanded) {
+          ref
+              .read(collapsibleSectionProvider.notifier)
+              .setSacSegmentsExpanded(expanded);
+        },
+        contentBuilder: (context) => const Padding(
+          padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: SacSegmentsNoPressureNote(),
+        ),
+      );
+    }
 
     // Use the selected mode's segments, falling back to the (last-good)
     // analysis time segments when that mode yields nothing usable. Treat an

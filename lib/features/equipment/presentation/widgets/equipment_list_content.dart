@@ -977,6 +977,12 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 () => ref.read(equipmentFilterProvider.notifier).state = filter
                     .copyWith(clearStatus: true),
               ),
+            if (filter.allStatuses)
+              _buildActiveFilterChip(
+                context.l10n.equipment_list_filterAll,
+                () => ref.read(equipmentFilterProvider.notifier).state = filter
+                    .copyWith(clearStatus: true),
+              ),
             if (filter.status != null)
               _buildActiveFilterChip(
                 filter.status!.localizedName(context.l10n),

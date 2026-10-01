@@ -21,11 +21,6 @@ class TripCylindersCard extends ConsumerWidget {
 
   const TripCylindersCard({super.key, required this.trip});
 
-  /// The most of the window the card may take before it scrolls, below the
-  /// gear alerts panel's share (TripGearAlertsPanel.maxHeightFraction) so
-  /// both fit above the story on a phone.
-  static const maxHeightFraction = 0.3;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(tripCylinderStatesProvider(trip.id));
@@ -103,41 +98,39 @@ class TripCylindersCard extends ConsumerWidget {
       ];
     }
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * maxHeightFraction,
-      ),
-      child: Card(
-        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          key: const Key('trip-cylinders-card'),
-          onTap: open,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      MdiIcons.divingScubaTank,
-                      color: theme.colorScheme.primary,
+    // No height cap or scroll view of its own: the card lays out in full and
+    // scrolls with the other header cards (TripHeaderCards), so a drag on
+    // it carries on to the Gear card below (#2653).
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        key: const Key('trip-cylinders-card'),
+        onTap: open,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    MdiIcons.divingScubaTank,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.trips_cylinders_title,
+                      style: theme.textTheme.titleMedium,
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        l10n.trips_cylinders_title,
-                        style: theme.textTheme.titleMedium,
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ...content,
-              ],
-            ),
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ...content,
+            ],
           ),
         ),
       ),

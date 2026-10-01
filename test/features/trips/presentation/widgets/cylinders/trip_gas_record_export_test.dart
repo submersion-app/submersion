@@ -177,7 +177,11 @@ void main() {
     await tester.tap(find.text('Share'));
     await tester.pumpAndSettle();
     expect(fake.sharedTrip, isNull);
-    expect(find.textContaining('Export failed'), findsOneWidget);
+    expect(
+      find.text("Couldn't export the gas record. Try again."),
+      findsOneWidget,
+    );
+    expect(find.textContaining('database closed'), findsNothing);
   });
 
   Future<void> export(WidgetTester tester, String destination) async {
@@ -190,7 +194,11 @@ void main() {
   testWidgets('a failed share says so', (tester) async {
     await pump(tester, service: _FakeExportService()..fail = true);
     await export(tester, 'Share');
-    expect(find.textContaining('Export failed'), findsOneWidget);
+    expect(
+      find.text("Couldn't export the gas record. Try again."),
+      findsOneWidget,
+    );
+    expect(find.textContaining('disk full'), findsNothing);
   });
 
   testWidgets('a finished save says so', (tester) async {
