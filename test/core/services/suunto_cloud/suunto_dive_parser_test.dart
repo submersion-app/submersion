@@ -141,6 +141,100 @@ void main() {
     });
   });
 
+  // The cloud's sml export carries two clocks: the computer's own
+  // Header.DateTime, and a TimeISO8601 the cloud stamps on every sample
+  // envelope. On a Nautic dive logged at 13:44 CEST the envelope read 15:44,
+  // so the dive imported two hours late while Suunto showed 13:44 (#2604).
+  // The header is the computer's clock and settles the zone; the samples
+  // still place the dive-active moment within the log.
+  group('sample clock disagreeing with the header', () {
+    Map<String, dynamic> headerAt(String dateTime) => {
+      'DateTime': dateTime,
+      'ActivityType': 51,
+      'Device': {'Name': 'Porvoo'},
+      'DiveTime': 1800,
+    };
+
+    // A surface sample opening the log at [hhmm], then the dive-active
+    // sample 40 s in and a descent sample 10 s after that.
+    List<Map<String, dynamic>> samplesFrom(String hhmm, String offset) => [
+      {'TimeISO8601': '2026-04-19T$hhmm:00.000$offset', 'Depth': 0.0},
+      {
+        'TimeISO8601': '2026-04-19T$hhmm:40.000$offset',
+        'Depth': 1.2,
+        'DiveEvents': const {'DiveStatus': true},
+      },
+      {'TimeISO8601': '2026-04-19T$hhmm:50.000$offset', 'Depth': 6.0},
+    ];
+
+    test('files the dive at the header clock when the samples run late', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: samplesFrom('15:44', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
+    test('files the dive at the header clock when the samples are UTC', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: samplesFrom('11:44', 'Z'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
+    test('corrects a west-of-UTC dive in the other direction', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T09:10:00-05:00'),
+        samples: samplesFrom('04:10', '-05:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 9, 10, 40));
+    });
+
+    test('corrects by a half-hour zone exactly', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T10:15:00+05:30'),
+        samples: samplesFrom('15:45', '+05:30'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 10, 15, 40));
+    });
+
+    test('keeps the sample clock when the header agrees within minutes', () {
+      // The header may mark the log opening a little before or after the
+      // first sample; seconds-level disagreement is not a zone error.
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:46:30+02:00'),
+        samples: samplesFrom('13:44', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
+    test('keeps the sample clock for a gap shorter than any zone', () {
+      // Half an hour rounds cleanly to quarter hours, but no zone sits that
+      // close to UTC, so it cannot be an offset error.
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T14:14:00+02:00'),
+        samples: samplesFrom('13:44', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
+    test('leaves elapsed sample times unchanged by the correction', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: samplesFrom('15:44', '+02:00'),
+      );
+
+      expect(result.dive.profile.map((s) => s.timeSeconds), [0, 10]);
+    });
+  });
+
   // The parser handles two entirely different signalling shapes: Nautic-era
   // computers use a `DiveEvents` object, EON-era ones an `Events[]` array.
   // Only the first had coverage, so every Events[] branch below (dive start,
