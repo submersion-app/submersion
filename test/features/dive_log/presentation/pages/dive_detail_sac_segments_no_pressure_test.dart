@@ -126,6 +126,44 @@ void main() {
     );
   });
 
+  testWidgets('collapses to a subtitle that keeps the reason', (tester) async {
+    await pumpWith(
+      tester,
+      dive: diveWithProfile(tanks: const [startEndOnly]),
+      analysis: ProfileAnalysis.empty(),
+    );
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(DiveDetailPage)),
+    );
+    final card = sacCard(tester);
+
+    await tester.ensureVisible(card);
+    await tester.tap(
+      find.descendant(
+        of: card,
+        matching: find.text(l10n.diveLog_detail_section_sacRateBySegment),
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+
+    // The section's AnimatedCrossFade keeps the note mounted while
+    // collapsed, so check the fade state rather than the note's absence.
+    final fade = tester.widget<AnimatedCrossFade>(
+      find.descendant(
+        of: sacCard(tester),
+        matching: find.byType(AnimatedCrossFade),
+      ),
+    );
+    expect(fade.crossFadeState, CrossFadeState.showFirst);
+    expect(
+      find.descendant(
+        of: sacCard(tester),
+        matching: find.text(l10n.diveLog_detail_sacSegmentsNoPressure_subtitle),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('stays hidden when no cylinder has a pressure to report', (
     tester,
   ) async {
