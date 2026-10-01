@@ -103,6 +103,22 @@ ListTile(
       expect(result.violations.single.widgets, ['FilledButton']);
     });
 
+    for (final constraints in [
+      'BoxConstraints(maxWidth: 96)',
+      'const BoxConstraints(minWidth: 64)',
+      'BoxConstraints(minWidth: 64, maxWidth: 96)',
+      'BoxConstraints.loose(size)',
+    ]) {
+      test('a ConstrainedBox whose $constraints does not fix the width', () {
+        final result = scan(
+          'ListTile(trailing: ConstrainedBox(constraints: $constraints, '
+          'child: TextButton(onPressed: f, child: c)))',
+        );
+
+        expect(result.violations.single.widgets, ['TextButton']);
+      });
+    }
+
     test('reports the line of the trailing argument', () {
       final result = scan('''
 ListTile(
@@ -143,6 +159,22 @@ ListTile(
 
       expect(result.violations, isEmpty);
     });
+
+    for (final constraints in [
+      'BoxConstraints.tightFor(width: 96)',
+      'BoxConstraints.tight(const Size(96, 40))',
+      'const BoxConstraints(minWidth: 96, maxWidth: 96)',
+      'BoxConstraints.expand(width: 96)',
+    ]) {
+      test('a button in a ConstrainedBox with $constraints', () {
+        final result = scan(
+          'ListTile(trailing: ConstrainedBox(constraints: $constraints, '
+          'child: TextButton(onPressed: f, child: c)))',
+        );
+
+        expect(result.violations, isEmpty);
+      });
+    }
 
     test('a chip in the subtitle, as #935 and #2692 place it', () {
       final result = scan('''

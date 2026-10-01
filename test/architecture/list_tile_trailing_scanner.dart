@@ -75,7 +75,7 @@ const _passThrough = {
   'Semantics',
 };
 
-/// Wrappers that fix the width only when given one.
+/// Wrappers that fix the width only when given one; see [_fixesWidth].
 const _sizing = {'SizedBox', 'ConstrainedBox'};
 
 /// The constructor name of a widget expression: `Chip`, `FilledButton.tonal`.
@@ -139,10 +139,7 @@ void _collect(Expression expression, List<String> out) {
   final arguments = _arguments(expression);
   if (arguments == null) return;
   if (_sizing.contains(type)) {
-    final fixesWidth =
-        _named(arguments, 'width') != null ||
-        _named(arguments, 'constraints') != null;
-    if (fixesWidth) return;
+    if (_fixesWidth(type, arguments)) return;
   } else if (!_passThrough.contains(type)) {
     return;
   }
@@ -155,6 +152,37 @@ void _collect(Expression expression, List<String> out) {
       _collectElement(element, out);
     }
   }
+}
+
+/// Whether a `SizedBox` or `ConstrainedBox` pins its child to one width.
+///
+/// Only a TIGHT width counts. A max-only `BoxConstraints(maxWidth: 96)` still
+/// lets a short label take its natural width and a long translation grow to
+/// the cap, so the title keeps losing space to it.
+bool _fixesWidth(String type, ArgumentList arguments) {
+  if (type == 'SizedBox') {
+    // SizedBox(width:), SizedBox.square(dimension:), SizedBox.fromSize(size:).
+    return _named(arguments, 'width') != null ||
+        _named(arguments, 'dimension') != null ||
+        _named(arguments, 'size') != null;
+  }
+  final constraints = _named(arguments, 'constraints');
+  if (constraints == null) return false;
+  final name = _constructorName(constraints);
+  final constraintArguments = _arguments(constraints);
+  if (name == null || constraintArguments == null) return false;
+  switch (name) {
+    case 'BoxConstraints.tight':
+      return true;
+    case 'BoxConstraints.tightFor':
+    case 'BoxConstraints.expand':
+      return _named(constraintArguments, 'width') != null;
+    case 'BoxConstraints':
+      final min = _named(constraintArguments, 'minWidth');
+      final max = _named(constraintArguments, 'maxWidth');
+      return min != null && max != null && min.toSource() == max.toSource();
+  }
+  return false;
 }
 
 void _collectElement(CollectionElement element, List<String> out) {
