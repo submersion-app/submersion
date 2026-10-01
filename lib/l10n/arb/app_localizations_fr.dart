@@ -6569,7 +6569,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String diveLog_detail_collapsed_ndl(Object value) {
-    return 'DTR : $value';
+    return 'NDL : $value';
   }
 
   @override
@@ -9690,7 +9690,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tooltip_mod => 'MOD';
 
   @override
-  String get diveLog_tooltip_ndl => 'DTR';
+  String get diveLog_tooltip_ndl => 'NDL';
 
   @override
   String get diveLog_tooltip_otu => 'OTU';
@@ -9741,7 +9741,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tooltip_time => 'Temps';
 
   @override
-  String get diveLog_tooltip_tts => 'TDR';
+  String get diveLog_tooltip_tts => 'TTS';
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';
@@ -9996,7 +9996,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_label_minutesUnit => 'min';
 
   @override
-  String get divePlanner_label_ndl => 'DTR';
+  String get divePlanner_label_ndl => 'NDL';
 
   @override
   String get divePlanner_label_planSettings => 'Paramètres du plan';
@@ -10081,7 +10081,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_label_timeAxis => 'Temps (min)';
 
   @override
-  String get divePlanner_label_tts => 'TDR';
+  String get divePlanner_label_tts => 'TTS';
 
   @override
   String get divePlanner_label_used => 'Utilisé';
@@ -23906,7 +23906,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get surfaceInterval_aboutTissueLoading_body =>
-      'Votre corps possède 16 compartiments tissulaires qui absorbent et libèrent l\'azote à des vitesses différentes. Les tissus rapides (comme le sang) se saturent rapidement mais se désaturent aussi rapidement. Les tissus lents (comme les os et la graisse) mettent plus de temps à se charger et à se décharger. Le « compartiment directeur » est celui qui est le plus saturé et contrôle généralement votre durée totale de remontée (DTR). Pendant un intervalle de surface, tous les tissus se désaturent vers les niveaux de saturation de surface (~40% de charge).';
+      'Votre corps possède 16 compartiments tissulaires qui absorbent et libèrent l\'azote à des vitesses différentes. Les tissus rapides (comme le sang) se saturent rapidement mais se désaturent aussi rapidement. Les tissus lents (comme les os et la graisse) mettent plus de temps à se charger et à se décharger. Le « compartiment directeur » est celui qui est le plus saturé et contrôle généralement votre limite de non-décompression (NDL). Pendant un intervalle de surface, tous les tissus se désaturent vers les niveaux de saturation de surface (~40% de charge).';
 
   @override
   String get surfaceInterval_aboutTissueLoading_title =>
@@ -24021,11 +24021,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get surfaceInterval_result_ndlForSecondDive =>
-      'DTR pour la 2e plongée';
+      'NDL pour la 2e plongée';
 
   @override
   String surfaceInterval_result_ndlMinutes(Object minutes) {
-    return '$minutes min DTR';
+    return '$minutes min NDL';
   }
 
   @override
@@ -24051,7 +24051,7 @@ class AppLocalizationsFr extends AppLocalizations {
     Object ndl,
     Object status,
   ) {
-    return 'Intervalle de surface minimum : $interval. Intervalle actuel : $current. DTR pour la deuxième plongée : $ndl. $status';
+    return 'Intervalle de surface minimum : $interval. Intervalle actuel : $current. NDL pour la deuxième plongée : $ndl. $status';
   }
 
   @override
