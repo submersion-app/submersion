@@ -430,13 +430,28 @@ class DiveComputerRepository {
         'UPDATE dives SET computer_id = NULL WHERE computer_id = ?',
         [id],
       );
-      // Restamped with the clear, so a peer's older copy cannot put the
-      // deleted computer back (#2644).
+      // Restamped with the clear and staged, like the tanks above: the
+      // export only carries a child that is marked or whose dive is, and
+      // without the mark peers kept the deleted computer (#2644).
+      final detachedSourceIds =
+          await (_db.selectOnly(_db.diveDataSources)
+                ..addColumns([_db.diveDataSources.id])
+                ..where(_db.diveDataSources.computerId.equals(id)))
+              .map((r) => r.read(_db.diveDataSources.id)!)
+              .get();
       await _db.customStatement(
         'UPDATE dive_data_sources SET computer_id = NULL, hlc = ? '
         'WHERE computer_id = ?',
         [await _syncRepository.issueRowClock(), id],
       );
+      final detachedAt = DateTime.now().millisecondsSinceEpoch;
+      for (final sourceId in detachedSourceIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'diveDataSources',
+          recordId: sourceId,
+          localUpdatedAt: detachedAt,
+        );
+      }
       // The v183 rung drops dive_profiles only once its rows have actually
       // moved into the series table, so a device whose pack threw still
       // carries it, and its computer_id FK has no ON DELETE action either.

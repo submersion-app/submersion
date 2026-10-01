@@ -1875,4 +1875,34 @@ void main() {
       expect(pending.single.syncStatus, 'pending');
     });
   });
+
+  test(
+    'deleting a computer publishes the sources it detaches (#2644)',
+    () async {
+      addTearDown(SyncClock.instance.reset);
+      final computerId = await insertComputer();
+      final diveId = await insertDive(computerId: computerId);
+      await insertDataSource(
+        diveId: diveId,
+        computerId: computerId,
+        isPrimary: true,
+      );
+      await db.customStatement('DELETE FROM sync_records');
+
+      await repository.deleteComputer(computerId);
+
+      final source = await (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).getSingle();
+      expect(source.computerId, isNull);
+      final pending =
+          await (db.select(db.syncRecords)..where(
+                (r) =>
+                    r.entityType.equals('diveDataSources') &
+                    r.recordId.equals(source.id),
+              ))
+              .get();
+      expect(pending, isNotEmpty, reason: 'the cleared link never left here');
+    },
+  );
 }
