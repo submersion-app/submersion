@@ -137,10 +137,17 @@ extension RungsFromV231 on AppDatabase {
       await _backfillNavTrackDiverIds();
     }
     if (from < 252) await reportProgress();
+    // v253: the settings a safety review was computed from (issue #2592).
+    // Column only, no backfill; re-asserted in beforeOpen, which is what reaches a
+    // database already at 254 (#2595 merged first).
+    if (from < 253) {
+      await _assertSafetyReviewInputsHashColumn();
+    }
+    if (from < 253) await reportProgress();
     // v254: dive_tanks.role_source, where a cylinder's role came from
     // (issue #2595). Column only, no backfill: a stored role's origin is
     // unknown, and a re-parse fills it. Re-asserted in beforeOpen. 253 is
-    // held by an open branch.
+    // the safety review inputs (#2592).
     if (from < 254) {
       await _assertTankRoleSourceColumn();
     }

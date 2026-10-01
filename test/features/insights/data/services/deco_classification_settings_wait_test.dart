@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/insights/data/repositories/deco_classification_cache.dart';
 import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
@@ -22,8 +23,29 @@ class _ReplaceableSettings extends MockSettingsNotifier {
   void replace(AppSettings settings) => state = settings;
 }
 
-/// A cached classification is keyed by the settings gradient factors it was
-/// computed under and is not recomputed while they hold. After a diver switch
+/// [analysis] stamped with the settings fingerprint read at this moment, as
+/// the real pipeline stamps every analysis with the snapshot it ran on.
+ProfileAnalysis _stamped(Ref ref, ProfileAnalysis analysis) =>
+    analysis.copyWith(
+      inputsFingerprint: ref.read(diverAnalysisSettingsProvider).fingerprint,
+    );
+
+/// The fingerprint [settings] give, read through a throwaway container.
+String _fingerprintOf(AppSettings settings) {
+  final container = ProviderContainer(
+    overrides: [
+      settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),
+    ],
+  );
+  try {
+    return container.read(diverAnalysisSettingsProvider).fingerprint;
+  } finally {
+    container.dispose();
+  }
+}
+
+/// A cached classification is keyed by the settings it was computed under
+/// (their fingerprint) and is not recomputed while they hold. After a diver switch
 /// the settings notifier still holds the previous diver's factors until the
 /// new diver's row loads (issue #2564), so classifying in that window must
 /// wait rather than key the entry to the wrong diver's factors.
@@ -62,7 +84,10 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         settingsProvider.overrideWith((ref) => settings),
-        profileAnalysisProvider(diveId).overrideWith((ref) async => analysis),
+        profileAnalysisProvider(diveId).overrideWith((ref) async {
+          await awaitCurrentDiverSettings(ref);
+          return _stamped(ref, analysis);
+        }),
       ],
     );
     addTearDown(container.dispose);
@@ -79,8 +104,9 @@ void main() {
       stored[diveId]?.inputsHash,
       decoInputsHash(
         engineVersion: analysisEngineVersion,
-        gfLow: 40,
-        gfHigh: 80,
+        settingsFingerprint: _fingerprintOf(
+          const AppSettings(gfLow: 40, gfHigh: 80),
+        ),
         diveUpdatedAt: updatedAt,
       ),
     );
@@ -112,7 +138,7 @@ void main() {
           // gap: a provider may not modify another while it builds).
           await Future<void>.delayed(Duration.zero);
           settings.replace(const AppSettings(gfLow: 40, gfHigh: 80));
-          return analysis;
+          return _stamped(ref, analysis);
         }),
       ],
     );
@@ -128,8 +154,9 @@ void main() {
       isNot(
         decoInputsHash(
           engineVersion: analysisEngineVersion,
-          gfLow: 30,
-          gfHigh: 70,
+          settingsFingerprint: _fingerprintOf(
+            const AppSettings(gfLow: 30, gfHigh: 70),
+          ),
           diveUpdatedAt: updatedAt,
         ),
       ),
@@ -157,8 +184,11 @@ void main() {
         profileAnalysisProvider(diveId).overrideWith((ref) async {
           await Future<void>.delayed(Duration.zero);
           settings.replace(const AppSettings(gfLow: 40, gfHigh: 80));
+          // The analysis reads the interim settings, then they change back
+          // before it returns: its fingerprint is the interim one.
+          final interim = _stamped(ref, analysis);
           settings.replace(original);
-          return analysis;
+          return interim;
         }),
       ],
     );

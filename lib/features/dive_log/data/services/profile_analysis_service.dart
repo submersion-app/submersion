@@ -337,6 +337,12 @@ class ProfileAnalysis {
   /// would be wrong by an order of magnitude (issue #2593).
   final bool tissueLoadingWithheld;
 
+  /// The `AnalysisSettings.fingerprint` of the diver settings this analysis
+  /// ran on, stamped by the analysis pipeline. A result persisted from it
+  /// stores this so a later change to those settings can be detected
+  /// (issue #2592). Null for an analysis built outside the pipeline.
+  final String? inputsFingerprint;
+
   const ProfileAnalysis({
     required this.ascentRates,
     required this.ascentRateStats,
@@ -371,6 +377,7 @@ class ProfileAnalysis {
     required this.durationSeconds,
     this.gfSource,
     this.tissueLoadingWithheld = false,
+    this.inputsFingerprint,
   });
 
   /// Whether diver went into decompression obligation
@@ -470,6 +477,7 @@ class ProfileAnalysis {
     int? durationSeconds,
     GradientFactorSource? gfSource,
     bool? tissueLoadingWithheld,
+    String? inputsFingerprint,
   }) {
     return ProfileAnalysis(
       ascentRates: ascentRates ?? this.ascentRates,
@@ -507,6 +515,7 @@ class ProfileAnalysis {
       gfSource: gfSource ?? this.gfSource,
       tissueLoadingWithheld:
           tissueLoadingWithheld ?? this.tissueLoadingWithheld,
+      inputsFingerprint: inputsFingerprint ?? this.inputsFingerprint,
     );
   }
 

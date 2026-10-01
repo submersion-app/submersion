@@ -1033,10 +1033,17 @@ class AppDatabase extends _$AppDatabase {
     // linked route's dive (issue #2691 follow-up). Additive nullable column,
     // so the floor does not move. 251 is dive_tanks.source_id (#2716).
     252,
+    // v253: dive_safety_reviews.inputs_hash, the settings a review was
+    // computed from (issue #2592). An additive nullable column, so the floor
+    // does not move: the receiving overlay keeps it when an older peer's
+    // payload omits it. Merged after v254 (#2595): a database already at 254
+    // never runs this rung, and the beforeOpen backstop adds the column.
+    253,
     // v254: dive_tanks.role_source, where a cylinder's role came from
     // (issue #2595). An additive nullable column, so the floor does not
     // move. 251 is dive_tanks.source_id (#2716) and 252
-    // nav_tracks.diver_id (#2703); 253 is held by an open branch (#2592).
+    // nav_tracks.diver_id (#2703); 253 is
+    // dive_safety_reviews.inputs_hash (#2592).
     254,
     // v255: drops the ceilings safety stop samples carried from every
     // stored profile series (issue #2550): a safety stop is no deco

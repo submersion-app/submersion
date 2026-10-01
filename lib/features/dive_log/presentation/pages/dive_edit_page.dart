@@ -769,7 +769,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Future<void> _suggestNextDiveNumber() async {
     try {
       final repository = ref.read(diveRepositoryProvider);
-      final nextNumber = await repository.getNextDiveNumber();
+      // The diver the dive will be saved under (see the save path), so the
+      // number continues that diver's own log rather than the highest number
+      // across every diver (#2508).
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      final nextNumber = await repository.getNextDiveNumber(diverId: diverId);
       if (mounted && _diveNumberController.text.isEmpty) {
         _silently(() {
           setState(() {
