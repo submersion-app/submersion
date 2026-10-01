@@ -53,6 +53,28 @@ void main() {
     expect(await tombstoneCount(db, ProfileHidesRepository.siteEntity), 1);
   });
 
+  test('isHidden answers for the hiding profile only (#2679)', () async {
+    expect(
+      await repository.isHidden(SharedItemKind.trip, 'shared', 'b'),
+      false,
+    );
+    await repository.hide(SharedItemKind.trip, 'shared', 'b');
+    expect(await repository.isHidden(SharedItemKind.trip, 'shared', 'b'), true);
+    expect(
+      await repository.isHidden(SharedItemKind.trip, 'shared', 'a'),
+      false,
+    );
+    expect(
+      await repository.isHidden(SharedItemKind.site, 'shared', 'b'),
+      false,
+    );
+    await repository.unhide(SharedItemKind.trip, 'shared', 'b');
+    expect(
+      await repository.isHidden(SharedItemKind.trip, 'shared', 'b'),
+      false,
+    );
+  });
+
   test('hiddenItems lists the profile\'s trips then sites', () async {
     await repository.hide(SharedItemKind.site, 'pier', 'b');
     await repository.hide(SharedItemKind.trip, 'shared', 'b');

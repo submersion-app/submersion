@@ -13,6 +13,7 @@ import 'package:submersion/features/checklists/presentation/widgets/trip_checkli
 import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -374,7 +375,12 @@ class _TripDetailContent extends ConsumerWidget {
   Widget _headerCards(Trip trip) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      SharedByBanner(ownerId: trip.diverId, isShared: trip.isShared),
+      SharedByBanner(
+        kind: SharedItemKind.trip,
+        itemId: trip.id,
+        ownerId: trip.diverId,
+        isShared: trip.isShared,
+      ),
       TripHeaderCards(
         children: [
           TripGearAlertsPanel(trip: trip),
@@ -468,6 +474,16 @@ class _TripDetailContent extends ConsumerWidget {
       ownerId: trip.diverId,
       activeDiverId: ref.watch(validatedCurrentDiverIdProvider).value,
     );
+    // A trip this profile already removed offers Unhide, not Remove again
+    // (issue #2679).
+    final hidden =
+        !canDestroy &&
+        (ref
+                .watch(
+                  isHiddenProvider((kind: SharedItemKind.trip, id: trip.id)),
+                )
+                .value ??
+            false);
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
@@ -504,6 +520,8 @@ class _TripDetailContent extends ConsumerWidget {
           }
         } else if (value == 'remove') {
           await _removeFromProfile(context, ref, trip);
+        } else if (value == 'unhide') {
+          await ref.read(tripListNotifierProvider.notifier).unhideTrip(trip.id);
         } else if (value == 'export') {
           _showExportOptions(context, ref);
         } else if (value == 'scan-dives') {
@@ -570,6 +588,17 @@ class _TripDetailContent extends ConsumerWidget {
                   context.l10n.trips_detail_action_delete,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
+              ],
+            ),
+          )
+        else if (hidden)
+          PopupMenuItem(
+            value: 'unhide',
+            child: Row(
+              children: [
+                const Icon(Icons.visibility_outlined),
+                const SizedBox(width: 8),
+                Flexible(child: Text(context.l10n.settings_hiddenItems_unhide)),
               ],
             ),
           )

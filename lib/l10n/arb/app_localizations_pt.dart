@@ -30463,6 +30463,9 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'Oculto no teu perfil';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'Só um dos locais selecionados pode pertencer a outro perfil. Desmarca os outros para os juntar.';
 

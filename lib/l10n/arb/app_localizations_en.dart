@@ -29985,6 +29985,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'Hidden from your profile';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'Only one of the selected sites can belong to another profile. Deselect the others to merge.';
 

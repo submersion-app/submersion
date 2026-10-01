@@ -30560,6 +30560,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'Masqué dans votre profil';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'Un seul des sites sélectionnés peut appartenir à un autre profil. Désélectionnez les autres pour fusionner.';
 

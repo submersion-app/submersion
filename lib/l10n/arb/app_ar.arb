@@ -8594,6 +8594,7 @@
   "sharedItems_bulkRemoveTitle": "{count, plural, one{إزالة {count} عنصر من ملفك؟} other{إزالة {count} عناصر من ملفك؟}}",
   "sharedItems_bulkSharedWarning_sites": "{count, plural, one{{count} منها مشترك مع ملفات غوص أخرى وسيُحذف للجميع.} other{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.}}",
   "sharedItems_bulkSharedWarning_trips": "{count, plural, one{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.} other{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.}}",
+  "sharedItems_hiddenHere": "مخفي عن ملفك",
   "sharedItems_mergeTooManyShared": "يمكن أن ينتمي موقع واحد فقط من المواقع المحددة إلى ملف غوص آخر. ألغِ تحديد المواقع الأخرى للدمج.",
   "sharedItems_notOwner_site": "يمكن لمالك هذا الموقع فقط حذفه",
   "sharedItems_notOwner_trip": "يمكن لمالك هذه الرحلة فقط حذفها",

@@ -30364,6 +30364,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'A profilodban elrejtve';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'A kijelölt helyek közül csak egy tartozhat másik profilhoz. Az egyesítéshez szüntesd meg a többi kijelölését.';
 

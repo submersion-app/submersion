@@ -28885,6 +28885,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => '已在您的资料中隐藏';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       '所选潜点中只能有一个属于其他资料。请取消选择其他潜点后再合并。';
 

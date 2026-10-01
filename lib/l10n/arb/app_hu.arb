@@ -8594,6 +8594,7 @@
   "sharedItems_bulkRemoveTitle": "{count, plural, one{Eltávolítasz {count} elemet a profilodból?} other{Eltávolítasz {count} elemet a profilodból?}}",
   "sharedItems_bulkSharedWarning_sites": "{count, plural, one{Ezek közül {count} meg van osztva más profilokkal, és mindenkinél törlődik.} other{Ezek közül {count} meg van osztva más profilokkal, és mindenkinél törlődik.}}",
   "sharedItems_bulkSharedWarning_trips": "{count, plural, one{Ezek közül {count} meg van osztva más profilokkal, és mindenkinél törlődik.} other{Ezek közül {count} meg van osztva más profilokkal, és mindenkinél törlődik.}}",
+  "sharedItems_hiddenHere": "A profilodban elrejtve",
   "sharedItems_mergeTooManyShared": "A kijelölt helyek közül csak egy tartozhat másik profilhoz. Az egyesítéshez szüntesd meg a többi kijelölését.",
   "sharedItems_notOwner_site": "Ezt a helyet csak a tulajdonosa törölheti",
   "sharedItems_notOwner_trip": "Ezt az utat csak a tulajdonosa törölheti",

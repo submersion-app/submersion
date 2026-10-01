@@ -8594,6 +8594,7 @@
   "sharedItems_bulkRemoveTitle": "{count, plural, one{Rimuovere {count} elemento dal tuo profilo?} other{Rimuovere {count} elementi dal tuo profilo?}}",
   "sharedItems_bulkSharedWarning_sites": "{count, plural, one{{count} di questi è condiviso con altri profili e verrà eliminato per tutti.} other{{count} di questi sono condivisi con altri profili e verranno eliminati per tutti.}}",
   "sharedItems_bulkSharedWarning_trips": "{count, plural, one{{count} di questi è condiviso con altri profili e verrà eliminato per tutti.} other{{count} di questi sono condivisi con altri profili e verranno eliminati per tutti.}}",
+  "sharedItems_hiddenHere": "Nascosto nel tuo profilo",
   "sharedItems_mergeTooManyShared": "Solo uno dei siti selezionati può appartenere a un altro profilo. Deseleziona gli altri per unirli.",
   "sharedItems_notOwner_site": "Solo il proprietario può eliminare questo sito",
   "sharedItems_notOwner_trip": "Solo il proprietario può eliminare questo viaggio",

@@ -19757,6 +19757,10 @@
       }
     }
   },
+  "sharedItems_hiddenHere": "Hidden from your profile",
+  "@sharedItems_hiddenHere": {
+    "description": "Added after the Shared by line on a shared trip or site that the active profile has hidden from itself."
+  },
   "sharedItems_mergeTooManyShared": "Only one of the selected sites can belong to another profile. Deselect the others to merge.",
   "@sharedItems_mergeTooManyShared": {
     "description": "Shown when a merge selection holds more than one site owned by another profile."

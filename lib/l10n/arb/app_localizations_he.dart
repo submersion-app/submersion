@@ -29739,6 +29739,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'מוסתר בפרופיל שלך';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'רק אחד מהאתרים שנבחרו יכול להשתייך לפרופיל אחר. בטל את בחירת האחרים כדי למזג.';
 

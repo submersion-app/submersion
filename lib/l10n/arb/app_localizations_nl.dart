@@ -30247,6 +30247,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'Verborgen in je profiel';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'Slechts één van de geselecteerde stekken mag bij een ander profiel horen. Deselecteer de andere om samen te voegen.';
 

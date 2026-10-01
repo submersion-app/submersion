@@ -48342,6 +48342,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} of them is shared with other profiles and will be deleted for everyone.} other{{count} of them are shared with other profiles and will be deleted for everyone.}}'**
   String sharedItems_bulkSharedWarning_trips(int count);
 
+  /// Added after the Shared by line on a shared trip or site that the active profile has hidden from itself.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden from your profile'**
+  String get sharedItems_hiddenHere;
+
   /// Shown when a merge selection holds more than one site owned by another profile.
   ///
   /// In en, this message translates to:

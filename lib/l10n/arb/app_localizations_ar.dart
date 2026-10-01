@@ -30078,6 +30078,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'مخفي عن ملفك';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'يمكن أن ينتمي موقع واحد فقط من المواقع المحددة إلى ملف غوص آخر. ألغِ تحديد المواقع الأخرى للدمج.';
 

@@ -8594,6 +8594,7 @@
   "sharedItems_bulkRemoveTitle": "{count, plural, one{{count} item uit je profiel verwijderen?} other{{count} items uit je profiel verwijderen?}}",
   "sharedItems_bulkSharedWarning_sites": "{count, plural, one{{count} daarvan wordt gedeeld met andere profielen en wordt voor iedereen verwijderd.} other{{count} daarvan worden gedeeld met andere profielen en worden voor iedereen verwijderd.}}",
   "sharedItems_bulkSharedWarning_trips": "{count, plural, one{{count} daarvan wordt gedeeld met andere profielen en wordt voor iedereen verwijderd.} other{{count} daarvan worden gedeeld met andere profielen en worden voor iedereen verwijderd.}}",
+  "sharedItems_hiddenHere": "Verborgen in je profiel",
   "sharedItems_mergeTooManyShared": "Slechts één van de geselecteerde stekken mag bij een ander profiel horen. Deselecteer de andere om samen te voegen.",
   "sharedItems_notOwner_site": "Alleen de eigenaar kan deze stek verwijderen",
   "sharedItems_notOwner_trip": "Alleen de eigenaar kan deze reis verwijderen",

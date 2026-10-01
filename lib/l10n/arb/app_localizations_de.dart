@@ -30415,6 +30415,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'In deinem Profil ausgeblendet';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'Nur einer der ausgewählten Orte darf zu einem anderen Profil gehören. Hebe die Auswahl der anderen auf, um zusammenzuführen.';
 

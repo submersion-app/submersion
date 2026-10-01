@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_
 import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
@@ -215,7 +216,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             const SizedBox(height: kSiteDetailCardGap),
           ],
           SiteDetailHeader(site: site),
-          SharedByBanner(ownerId: site.diverId, isShared: site.isShared),
+          SharedByBanner(
+            kind: SharedItemKind.site,
+            itemId: site.id,
+            ownerId: site.diverId,
+            isShared: site.isShared,
+          ),
           const SizedBox(height: kSiteDetailCardGap),
           SiteDetailSectionList(
             sections: sections,
@@ -385,6 +391,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       ownerId: site.diverId,
       activeDiverId: ref.watch(validatedCurrentDiverIdProvider).value,
     );
+    // A site this profile already removed offers Unhide, not Remove again
+    // (issue #2679).
+    final hidden =
+        !canDestroy &&
+        (ref
+                .watch(
+                  isHiddenProvider((kind: SharedItemKind.site, id: site.id)),
+                )
+                .value ??
+            false);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -482,6 +498,15 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                       contentPadding: EdgeInsets.zero,
                     ),
                   )
+                else if (hidden)
+                  PopupMenuItem(
+                    value: 'unhide',
+                    child: ListTile(
+                      leading: const Icon(Icons.visibility_outlined),
+                      title: Text(context.l10n.settings_hiddenItems_unhide),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  )
                 else
                   PopupMenuItem(
                     value: 'remove',
@@ -515,6 +540,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     }
     if (action == 'remove') {
       await _removeFromProfile(context, ref, site);
+      return;
+    }
+    if (action == 'unhide') {
+      await ref.read(siteListNotifierProvider.notifier).unhideSites([site.id]);
       return;
     }
     if (action == 'delete') {
