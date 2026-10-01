@@ -1,10 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -112,11 +114,11 @@ class _CertificationShareSheetState
 
       // Save to temp file
       final tempDir = await getTemporaryDirectory();
-      final sanitizedName = _sanitizeFilename(
+      final filename = certificationImageFileName(
         certificationTitle(widget.certification),
+        'card',
       );
-      final filename = 'certification_${sanitizedName}_card.png';
-      final file = File('${tempDir.path}/$filename');
+      final file = File(p.join(tempDir.path, filename));
       await file.writeAsBytes(bytes);
 
       // Pop before sharing to avoid UI issues
@@ -154,11 +156,11 @@ class _CertificationShareSheetState
 
       // Save to temp file
       final tempDir = await getTemporaryDirectory();
-      final sanitizedName = _sanitizeFilename(
+      final filename = certificationImageFileName(
         certificationTitle(widget.certification),
+        'certificate',
       );
-      final filename = 'certification_${sanitizedName}_certificate.png';
-      final file = File('${tempDir.path}/$filename');
+      final file = File(p.join(tempDir.path, filename));
       await file.writeAsBytes(bytes);
 
       // Pop before sharing to avoid UI issues
@@ -177,15 +179,6 @@ class _CertificationShareSheetState
         _showError(context.l10n.certifications_share_error_certificate('$e'));
       }
     }
-  }
-
-  /// Sanitizes a string for use in a filename.
-  String _sanitizeFilename(String name) {
-    return name
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^\w\s-]'), '')
-        .replaceAll(RegExp(r'\s+'), '_')
-        .replaceAll(RegExp(r'_+'), '_');
   }
 
   void _showError(String message) {
@@ -288,3 +281,8 @@ class _ShareOptionTile extends StatelessWidget {
     );
   }
 }
+
+/// `certification_<title>_<kind>.png`, the title as a [fileNameSegment] in
+/// its own case, [kind] naming the image ("card" or "certificate").
+String certificationImageFileName(String title, String kind) =>
+    exportFileName(['certification', fileNameSegment(title), kind], 'png');
