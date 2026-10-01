@@ -71,6 +71,23 @@ Future<({String? activeDiverId, int diverCount})?> readSharingContext(
   }
 }
 
+/// [canDestroySharedItem] for a page that watches the active profile: null
+/// while the profile is loading or cannot be read, so the page offers
+/// neither Delete nor Remove and keeps sharing locked until it knows
+/// (issue #2682). Read as "no profile", an unknown profile would offer
+/// another profile's item its Delete. An ownerless item needs no profile.
+bool? canDestroySharedItemOnceKnown(
+  AsyncValue<String?> activeDiver, {
+  required String? ownerId,
+}) {
+  if (ownerId == null) return true;
+  if (activeDiver.hasError || !activeDiver.hasValue) return null;
+  return canDestroySharedItem(
+    ownerId: ownerId,
+    activeDiverId: activeDiver.value,
+  );
+}
+
 /// The owning profile's name, or a neutral fallback for a profile that is
 /// gone or unknown (issue #2594).
 String sharedItemOwnerName(

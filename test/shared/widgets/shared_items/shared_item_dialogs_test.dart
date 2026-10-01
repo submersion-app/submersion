@@ -31,6 +31,31 @@ void main() {
     expect(sharedItemOwnerName(divers, null, l10n), 'another profile');
   });
 
+  // A page decides Delete or Remove from the watched profile; loading and
+  // a failed read are unknown, never "no profile" (issue #2682).
+  test('canDestroySharedItemOnceKnown is unknown until the profile is', () {
+    bool? decide(AsyncValue<String?> active, {String? owner = 'd1'}) =>
+        canDestroySharedItemOnceKnown(active, ownerId: owner);
+
+    expect(decide(const AsyncData('d1')), isTrue);
+    expect(decide(const AsyncData('d2')), isFalse);
+    expect(decide(const AsyncData(null)), isTrue);
+    expect(decide(const AsyncLoading()), isNull);
+    expect(
+      decide(AsyncError(StateError('no profile'), StackTrace.empty)),
+      isNull,
+    );
+    // An ownerless item needs no profile.
+    expect(decide(const AsyncLoading(), owner: null), isTrue);
+    expect(
+      decide(
+        AsyncError(StateError('no profile'), StackTrace.empty),
+        owner: null,
+      ),
+      isTrue,
+    );
+  });
+
   test('otherProfilesDivesLine is null for none', () {
     expect(otherProfilesDivesLine(l10n, SharedItemKind.trip, 0), isNull);
     expect(
