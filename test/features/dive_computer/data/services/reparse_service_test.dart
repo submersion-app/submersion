@@ -1972,6 +1972,20 @@ void main() {
         expect(tank.roleSource, isNull);
       });
 
+      test('a row from before v254 is corrected once the transmitter is '
+          'registered', () async {
+        // Imported before v254, so the guess carries no source; the diver
+        // registered the transmitter as Bailout before re-parsing.
+        await seed(role: 'oxygenSupply');
+        service = ReparseService(
+          db: db,
+          transmitterMatcherLoader: () async => bailoutEntry(),
+        );
+        final tank = await reparse();
+        expect(tank.tankRole, 'bailout');
+        expect(tank.roleSource, isNull);
+      });
+
       test('a role the diver set is never touched', () async {
         await seed(role: 'bailout');
         final tank = await reparse();

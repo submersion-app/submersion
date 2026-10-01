@@ -857,6 +857,14 @@ class ReparseService {
       return null;
     }
 
+    // The parse before the registry: whether a role came from the
+    // transmitter's name is a fact about the computer's data, which a
+    // registry match then overrides (issue #2595).
+    final nameDerivedRoles = {
+      for (final t in resolvedTanks)
+        if (t.roleSource != null) t.index: t.role ?? TankRole.backGas.name,
+    };
+
     final newTankOrders = <int>{};
     for (final tank in parsedTanks) {
       newTankOrders.add(tank.index);
@@ -869,14 +877,13 @@ class ReparseService {
         // alone, unless it is still the computer's guess from the
         // transmitter's name (issue #2595): then this parse, with the
         // registry applied, decides it. A row from before v254 whose role is
-        // the one this parse read off the name is that same guess, and
-        // gains its source here.
+        // the one this parse read off the name is that same guess, whether
+        // or not the transmitter has been registered since.
         final roleIsComputers =
             TankRoleSource.fromName(existing.roleSource) ==
                 TankRoleSource.transmitterName ||
             (existing.roleSource == null &&
-                existing.tankRole == parsedRole &&
-                tank.roleSource != null);
+                existing.tankRole == nameDerivedRoles[tank.index]);
         // Update existing tank: overwrite computer fields, preserve user fields
         await (db.update(
           db.diveTanks,

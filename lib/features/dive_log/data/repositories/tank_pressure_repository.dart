@@ -249,7 +249,10 @@ class TankPressureRepository {
   /// Exchange the computer-owned bundle of two tank rows on one dive: the
   /// parsed source index, transmitter serial, start and end pressure, and
   /// the packed pressure series. User-authored columns (name, role, size,
-  /// gear, preset, gas mix) stay with their row.
+  /// gear, preset, gas mix) stay with their row. A role the computer read off
+  /// the old transmitter's name loses that mark (issue #2595): it described
+  /// the transmitter that just moved away, and kept, it would let the new
+  /// transmitter's registry entry rewrite this row's role.
   ///
   /// A row without an explicit source index is resolved first
   /// ([effectiveSourceTankIndex]) so that re-parse keeps honoring the result:
@@ -290,6 +293,7 @@ class TankPressureRepository {
       DiveTanksCompanion(
         sourceTankIndex: Value(bIndex),
         transmitterSerial: Value(b.transmitterSerial),
+        roleSource: const Value(null),
         startPressure: Value(b.startPressure),
         endPressure: Value(b.endPressure),
       ),
@@ -300,6 +304,7 @@ class TankPressureRepository {
       DiveTanksCompanion(
         sourceTankIndex: Value(aIndex),
         transmitterSerial: Value(a.transmitterSerial),
+        roleSource: const Value(null),
         startPressure: Value(a.startPressure),
         endPressure: Value(a.endPressure),
       ),
