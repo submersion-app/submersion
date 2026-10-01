@@ -368,6 +368,26 @@ void main() {
       expect(find.text('Could not read file'), findsNothing);
     });
 
+    testWidgets('counts the skipped files without a localized message', (
+      tester,
+    ) async {
+      final messenger = await pumpMessenger(tester);
+
+      reportIncomingFileError(
+        SharedFileUnreadableException(
+          unreadablePaths: [missing],
+          sharedCount: 2,
+        ),
+        messenger: messenger,
+      );
+      await tester.pump();
+
+      expect(
+        find.text('1 file(s) could not be read and were skipped'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('falls back to the read failure for any other error', (
       tester,
     ) async {
