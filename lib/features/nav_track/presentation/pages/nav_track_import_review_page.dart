@@ -258,6 +258,8 @@ class _NavTrackImportReviewPageState
 
   Future<void> _save(NavTrackImportPreview preview) async {
     final l10n = context.l10n;
+    final router = GoRouter.of(context);
+    final navigator = Navigator.of(context);
     setState(() {
       _busy = true;
       _error = null;
@@ -282,10 +284,13 @@ class _NavTrackImportReviewPageState
                 : null,
           );
       if (!mounted) return;
-      // Literal path: the routes-area detail page lives in another agent's
-      // work on this branch and is not yet guaranteed to exist under this
-      // exact route name at the time this file is written.
-      context.go('/nav-routes/$id');
+      // Every entry point pushes this page imperatively (on the root
+      // navigator from the drop target or share intent, on the shell's
+      // otherwise), so a router `go` can neither remove it nor leave the new
+      // route anything to return to (#2693). Leave this page itself, then
+      // PUSH (not go) so back returns to where the import began (#647).
+      navigator.pop();
+      router.push('/nav-routes/$id');
     } on NavTrackParseException catch (e) {
       setState(() {
         _busy = false;

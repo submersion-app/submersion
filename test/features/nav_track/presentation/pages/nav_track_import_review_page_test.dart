@@ -117,30 +117,75 @@ Future<void> _pump(
   await tester.pumpAndSettle();
 }
 
-/// Like [_pump], but with a real `GoRouter` so a successful save's
-/// `context.go('/nav-routes/$id')` has somewhere to land.
-Future<void> _pumpWithRouter(
+/// Like [_pump], but with a real `GoRouter` laid out like the app's: a
+/// `ShellRoute` whose nested navigator hosts both the page the import starts
+/// from and `/nav-routes/:id` as siblings. The review page is pushed
+/// imperatively on top of the origin page, exactly as every real entry point
+/// does, so a successful save has to leave that pushed page itself.
+///
+/// [fromAboveShell] pushes it from the shell's own chrome, which resolves to
+/// the root navigator (the global drop target and the OS share intent);
+/// otherwise it is pushed from the origin page on the shell's navigator (the
+/// routes list, a dive's route section, the import wizard, the GPS logger).
+Future<GoRouter> _pumpWithRouter(
   WidgetTester tester, {
   required NavTrackImportPreview preview,
   NavTrackImportService? service,
   List<EquipmentItem>? equipment,
+  bool fromAboveShell = false,
 }) async {
   final base = await getBaseOverrides();
-  final router = GoRouter(
-    initialLocation: '/review',
-    routes: [
-      GoRoute(
-        path: '/review',
-        builder: (context, state) => NavTrackImportReviewPage(
+  void openReview(BuildContext context) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => NavTrackImportReviewPage(
           bytes: Uint8List(0),
           fileName: '005.DAT.csv',
           preview: preview,
         ),
       ),
-      GoRoute(
-        path: '/nav-routes/:id',
-        builder: (context, state) =>
-            const Scaffold(body: Text('ROUTE_DETAIL_PAGE')),
+    );
+  }
+
+  final router = GoRouter(
+    navigatorKey: GlobalKey<NavigatorState>(),
+    initialLocation: '/origin',
+    routes: [
+      ShellRoute(
+        builder: (context, state, child) => Scaffold(
+          body: Column(
+            children: [
+              TextButton(
+                onPressed: () => openReview(context),
+                child: const Text('OPEN_REVIEW_ABOVE_SHELL'),
+              ),
+              Expanded(child: child),
+            ],
+          ),
+        ),
+        routes: [
+          GoRoute(
+            path: '/origin',
+            builder: (context, state) => Scaffold(
+              body: Column(
+                children: [
+                  const Text('ORIGIN_PAGE'),
+                  TextButton(
+                    onPressed: () => openReview(context),
+                    child: const Text('OPEN_REVIEW_IN_SHELL'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/nav-routes/:id',
+            builder: (context, state) => Scaffold(
+              appBar: AppBar(),
+              body: const Text('ROUTE_DETAIL_PAGE'),
+            ),
+          ),
+        ],
       ),
     ],
   );
@@ -161,6 +206,13 @@ Future<void> _pumpWithRouter(
     ),
   );
   await tester.pumpAndSettle();
+  await tester.tap(
+    find.text(
+      fromAboveShell ? 'OPEN_REVIEW_ABOVE_SHELL' : 'OPEN_REVIEW_IN_SHELL',
+    ),
+  );
+  await tester.pumpAndSettle();
+  return router;
 }
 
 /// Records the parameters `commit` was called with, so a test can assert on
@@ -521,6 +573,44 @@ void main() {
       expect(find.text('ROUTE_DETAIL_PAGE'), findsNothing);
     },
   );
+
+  // Issue #2693: every entry point pushes this page imperatively, so a
+  // `context.go` to the new route could not remove it. Pushed on the root
+  // navigator it stayed on top of the new route with Save disabled; pushed
+  // on the shell's navigator it vanished, but `go` had replaced the stack
+  // and left the new route with no way back.
+  for (final fromAboveShell in [false, true]) {
+    final origin = fromAboveShell
+        ? 'the root navigator (drop target, share intent)'
+        : "the shell's navigator (routes list, dive section, wizard)";
+    testWidgets(
+      'a successful save pushed from $origin closes the review and opens '
+      'the new route above the page the import started from',
+      (tester) async {
+        final router = await _pumpWithRouter(
+          tester,
+          preview: _preview(),
+          service: _RecordingImportService(),
+          fromAboveShell: fromAboveShell,
+        );
+
+        await tester.drag(find.byType(ListView), const Offset(0, -400));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(NavTrackImportReviewPage), findsNothing);
+        expect(find.text('ROUTE_DETAIL_PAGE').hitTestable(), findsOneWidget);
+        expect(router.state.uri.path, '/nav-routes/new-route-id');
+
+        // Back leads to where the import began, not out of the app.
+        await tester.tap(find.byType(BackButton));
+        await tester.pumpAndSettle();
+        expect(find.text('ORIGIN_PAGE').hitTestable(), findsOneWidget);
+        expect(find.text('ROUTE_DETAIL_PAGE'), findsNothing);
+      },
+    );
+  }
 
   testWidgets('hands the ticked duplicate to commit as the route to replace', (
     tester,
