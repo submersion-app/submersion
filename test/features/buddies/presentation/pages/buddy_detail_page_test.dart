@@ -32,6 +32,22 @@ void _ignoreOverflowErrors() {
   };
 }
 
+/// Silences only the overflows raised by a widget in [sourceFile], so an
+/// overflow anywhere else on the page still fails the test.
+///
+/// Overflow reports name the error-causing widget's source location, which
+/// is how the one known offender is told apart. The previous handler is
+/// restored with `addTearDown`, as in [_ignoreOverflowErrors].
+void _ignoreOverflowErrorsFrom(String sourceFile) {
+  final previousOnError = FlutterError.onError;
+  addTearDown(() => FlutterError.onError = previousOnError);
+  FlutterError.onError = (details) {
+    final report = details.toString();
+    if (report.contains('overflowed') && report.contains(sourceFile)) return;
+    previousOnError?.call(details);
+  };
+}
+
 void main() {
   group('BuddyDetailPage desktop redirect', () {
     final buddy = Buddy(
@@ -595,9 +611,9 @@ void main() {
         tester.view.resetDevicePixelRatio();
       });
 
-      // The Shared Dives header still overflows under the wide test font, so
-      // the stat row's own layout is asserted by geometry below instead.
-      _ignoreOverflowErrors();
+      // The Shared Dives header still overflows under the wide test font;
+      // only that is silenced, so an overflowing stat row fails the test.
+      _ignoreOverflowErrorsFrom('buddy_shared_dives_section.dart');
       final overrides = await getBaseOverrides();
       await tester.pumpWidget(
         ProviderScope(
