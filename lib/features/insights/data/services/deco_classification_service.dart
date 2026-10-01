@@ -70,6 +70,16 @@ class DecoClassificationService {
     await awaitCurrentDiverSettings(ref);
     final settingsGfLow = ref.read(gfLowProvider);
     final settingsGfHigh = ref.read(gfHighProvider);
+    // Every change to the factors from here on, not just their final values:
+    // a change undone before an analysis returns still leaves that analysis
+    // computed under the interim factors. Settings notify synchronously, so
+    // no change slips between two checks.
+    var gfChanged = false;
+    final gfWatch = ref.listen<AppSettings>(settingsProvider, (previous, next) {
+      if (previous?.gfLow != next.gfLow || previous?.gfHigh != next.gfHigh) {
+        gfChanged = true;
+      }
+    });
 
     final hashes = <String, String>{
       for (final entry in revisions.entries)
@@ -108,44 +118,52 @@ class DecoClassificationService {
         ..addAll(revisions.keys);
     }
 
-    for (var start = 0; start < misses.length; start += chunkSize) {
-      final end = start + chunkSize < misses.length
-          ? start + chunkSize
-          : misses.length;
-      for (final diveId in misses.sublist(start, end)) {
-        try {
-          final analysis = await ref.read(
-            profileAnalysisProvider(diveId).future,
-          );
-          if (analysis == null || analysis.ndlCurve.isEmpty) continue;
-          // The hashes were taken once, up front, but each analysis reads the
-          // settings when it runs. A diver switch (#2564) or an edit to the
-          // gradient factors since then means this result belongs to other
-          // inputs than its hash, so it is neither cached nor reported; the
-          // dive stays unclassified until a run under the new settings.
-          if (ref.read(gfLowProvider) != settingsGfLow ||
-              ref.read(gfHighProvider) != settingsGfHigh) {
-            continue;
-          }
+    try {
+      for (var start = 0; start < misses.length; start += chunkSize) {
+        final end = start + chunkSize < misses.length
+            ? start + chunkSize
+            : misses.length;
+        for (final diveId in misses.sublist(start, end)) {
+          try {
+            gfChanged = false;
+            final analysis = await ref.read(
+              profileAnalysisProvider(diveId).future,
+            );
+            if (analysis == null || analysis.ndlCurve.isEmpty) continue;
+            // The hashes were taken once, up front, but each analysis reads the
+            // settings when it runs. A diver switch (#2564) or an edit to the
+            // gradient factors since then means this result belongs to other
+            // inputs than its hash, so it is neither cached nor reported; the
+            // dive stays unclassified until a run under the new settings. A
+            // change undone before this analysis started is harmless, which
+            // the values tell; one during it always matters.
+            if (gfChanged ||
+                ref.read(gfLowProvider) != settingsGfLow ||
+                ref.read(gfHighProvider) != settingsGfHigh) {
+              continue;
+            }
 
-          final hadDeco = analysis.hadDecoObligation;
-          results[diveId] = hadDeco;
-          await cache.put(
-            diveId,
-            hadDeco: hadDeco,
-            inputsHash: hashes[diveId]!,
-          );
-        } catch (e, stackTrace) {
-          _log.error(
-            'Failed to classify deco obligation for dive $diveId',
-            error: e,
-            stackTrace: stackTrace,
-          );
-        } finally {
-          ref.invalidate(profileAnalysisProvider(diveId));
-          ref.invalidate(analysisDiveProvider(diveId));
+            final hadDeco = analysis.hadDecoObligation;
+            results[diveId] = hadDeco;
+            await cache.put(
+              diveId,
+              hadDeco: hadDeco,
+              inputsHash: hashes[diveId]!,
+            );
+          } catch (e, stackTrace) {
+            _log.error(
+              'Failed to classify deco obligation for dive $diveId',
+              error: e,
+              stackTrace: stackTrace,
+            );
+          } finally {
+            ref.invalidate(profileAnalysisProvider(diveId));
+            ref.invalidate(analysisDiveProvider(diveId));
+          }
         }
       }
+    } finally {
+      gfWatch.close();
     }
     return results;
   }

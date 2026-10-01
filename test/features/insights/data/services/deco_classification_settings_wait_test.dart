@@ -135,4 +135,39 @@ void main() {
       ),
     );
   });
+
+  // Comparing only the final values misses a change that is undone before
+  // the analysis returns: the analysis may have read the interim factors.
+  test('a result is not cached when the gradient factors changed and changed '
+      'back while it was analyzed', () async {
+    final profile = rapidAscentProfile();
+    final analysis = analyzeFixture(
+      depths: profile.depths,
+      timestamps: profile.timestamps,
+    );
+    const original = AppSettings(gfLow: 30, gfHigh: 70);
+    final settings = _ReplaceableSettings(original);
+    final classification = FutureProvider<Map<String, bool>>(
+      (ref) =>
+          const DecoClassificationService().classify(ref, {diveId: updatedAt}),
+    );
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => settings),
+        profileAnalysisProvider(diveId).overrideWith((ref) async {
+          await Future<void>.delayed(Duration.zero);
+          settings.replace(const AppSettings(gfLow: 40, gfHigh: 80));
+          settings.replace(original);
+          return analysis;
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    expect(await container.read(classification.future), isEmpty);
+    final stored = await DecoClassificationCacheRepository().getEntries({
+      diveId,
+    });
+    expect(stored, isEmpty);
+  });
 }
