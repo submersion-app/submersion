@@ -2,7 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
 
 /// The per-waypoint `<gradientfactor>` is GF99 as a whole percent. Shearwater
-/// Cloud and Subsurface write integers; a few writers use a fraction of one.
+/// Cloud and Subsurface write integers. A decimal is read as a percent too:
+/// no known writer emits a fraction of one, and reading "1.0" as 100% would
+/// turn a 1% GF99 into a saturated one.
 void main() {
   group('parseUddfGradientFactorPercent', () {
     test('reads whole percents as written', () {
@@ -16,10 +18,10 @@ void main() {
       expect(parseUddfGradientFactorPercent('120.4'), 120);
     });
 
-    test('scales a fraction of one to percent', () {
-      expect(parseUddfGradientFactorPercent('0.63'), 63);
-      expect(parseUddfGradientFactorPercent('0.5'), 50);
-      expect(parseUddfGradientFactorPercent('1.0'), 100);
+    test('reads a decimal at or below one as a percent, not a fraction', () {
+      expect(parseUddfGradientFactorPercent('1.0'), 1);
+      expect(parseUddfGradientFactorPercent('0.63'), 1);
+      expect(parseUddfGradientFactorPercent('0.4'), 0);
     });
 
     test('rounds a decimal percent to the nearest whole percent', () {
