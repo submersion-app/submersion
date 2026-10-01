@@ -277,7 +277,9 @@ void main() {
 
   test('skips rows that name nothing it could restore', () {
     // Untrusted input: a row with no dive or tank ref, a series with no
-    // readable sample, and a tank row naming neither source nor computer.
+    // readable sample, a reading that is no number of bar (NaN and
+    // Infinity both parse as doubles), and a tank row naming neither
+    // source nor computer.
     final uddf = XmlDocument.parse('''
 <uddf>
   <applicationdata>
@@ -291,6 +293,8 @@ void main() {
         <series diveref="dive_a" tankref="tank_1" source="x">
           <sample divetime="0" pressure="200"/>
           <sample divetime="ten" pressure="190"/>
+          <sample divetime="5" pressure="NaN"/>
+          <sample divetime="6" pressure="Infinity"/>
         </series>
         <series diveref="dive_a" tankref="tank_2">
           <sample divetime="0" pressure="high"/>

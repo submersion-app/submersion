@@ -43,9 +43,12 @@ class UddfDivesExtras {
   /// never written out as a definition.
   final List<DiveRole> diveRoles;
 
-  /// Each exported dive's sample pressures, by dive id and then tank id.
-  /// Tank pressure series are not hydrated on a dive either, and a dive
-  /// with none is absent (issue #1874).
+  /// Each exported dive's tank pressure series, by dive id: every series of
+  /// every source with its source, and the dive's primary source, not yet
+  /// grouped by tank (issue #2492). The samples read
+  /// [DiveTankPressureExport.displayedByTank]; the per-source block reads
+  /// the series. Tank pressure series are not hydrated on a dive either,
+  /// and a dive with none is absent (issue #1874).
   final Map<String, DiveTankPressureExport> diveTankPressures;
 
   /// Site type slugs and tag ids per exported site (issue #1765).

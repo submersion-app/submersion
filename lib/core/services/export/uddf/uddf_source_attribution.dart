@@ -175,8 +175,10 @@ class UddfSourceAttribution {
   /// blocks, keyed by its `diveref`, in document order.
   ///
   /// Each entry holds `tankRef` (the `<tankdata>` id), `sourceOrdinal` and
-  /// `computerOrdinal` (either null when absent) and `samples`. A series without a dive or tank ref,
-  /// or with no readable sample, is skipped: it names nothing to restore.
+  /// `computerOrdinal` (either null when absent) and `samples`. A sample
+  /// whose time or finite pressure cannot be read is dropped, and a series
+  /// without a dive or tank ref, or with no readable sample, is skipped: it
+  /// names nothing to restore.
   static Map<String, List<Map<String, dynamic>>> parseSeries(
     XmlElement uddfElement,
   ) {
@@ -190,8 +192,9 @@ class UddfSourceAttribution {
         for (final sample in series.findElements('sample'))
           if (int.tryParse(sample.getAttribute('divetime') ?? '')
               case final timestamp?)
+            // tryParse accepts NaN and Infinity, which are no reading.
             if (double.tryParse(sample.getAttribute('pressure') ?? '')
-                case final pressure?)
+                case final pressure? when pressure.isFinite)
               (timestamp: timestamp, pressure: pressure),
       ];
       if (samples.isEmpty) continue;
