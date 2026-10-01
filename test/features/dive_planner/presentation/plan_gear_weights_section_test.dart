@@ -386,6 +386,22 @@ void main() {
       expect(find.text('Utiliser comme lestage prévu'), findsOneWidget);
     });
 
+    testWidgets('on a wide screen the accept button keeps the right edge', (
+      tester,
+    ) async {
+      await pumpSeeded(tester, overridesFor(await getBaseOverrides()));
+
+      final button = tester.getRect(find.byType(TextButton));
+      final card = tester.getRect(find.byType(Card));
+      expect(
+        tester.getRect(find.textContaining('Predicted:')).top,
+        closeTo(button.top, button.height),
+        reason: 'prediction and button share one line when they fit',
+      );
+      // Card margin (4) plus content padding (16).
+      expect(button.right, closeTo(card.right - 20, 0.5));
+    });
+
     testWidgets('a failing buoyancy computation keeps the card usable', (
       tester,
     ) async {
