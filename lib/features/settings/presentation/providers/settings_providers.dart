@@ -1131,7 +1131,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   final Ref _ref;
   String? _validatedDiverId;
 
-  /// Completes when the constructor's first load has finished.
+  /// Completes when the constructor's first load has finished, or, if a
+  /// diver change superseded that load before it landed, the load that
+  /// replaced it.
   ///
   /// State starts at `const AppSettings()` -- the DEFAULTS -- and is replaced
   /// asynchronously once the diver's row is read. Anything that must act on the
@@ -1139,11 +1141,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// sweep, which builds a throwaway container against a freshly restored
   /// database) has to await this first.
   ///
-  /// May complete with an error -- `_loadSettings` has a `finally` but no
-  /// `catch` -- so awaiting callers must guard and fall back to the defaults
-  /// still held in [state]. Merely storing the future adds no listener, so
-  /// failures surface to the zone handler exactly as they did when the
-  /// constructor called `_initializeAndLoad()` fire-and-forget.
+  /// May complete with an error -- `_loadSettings` has no `catch` -- so
+  /// awaiting callers must guard and fall back to the defaults still held in
+  /// [state]. The failure is already logged where the load started, so an
+  /// unawaited [initialLoad] does not report it again.
   late final Future<void> _initialLoad;
 
   Future<void> get initialLoad => _initialLoad;
@@ -1210,8 +1211,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   SettingsNotifier(this._repository, this._ref) : super(const AppSettings()) {
-    _initialLoad = _startLoad();
-    logFailure(_initialLoad, SettingsNotifier, 'load diver settings');
+    logFailure(_startLoad(), SettingsNotifier, 'load diver settings');
+    // Not the first load itself: a diver-id change while it is out (the
+    // active id realigned after a restore, say) supersedes it, and it then
+    // returns without writing state. Following settingsLoaded resolves on the
+    // load that replaced it instead of on the defaults. Its failures are
+    // logged where each load starts, so ignore() only stops an unawaited
+    // initialLoad from reporting them to the zone a second time; callers
+    // that await it still see them.
+    _initialLoad = settingsLoaded..ignore();
 
     // Listen for diver changes and reload settings
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {

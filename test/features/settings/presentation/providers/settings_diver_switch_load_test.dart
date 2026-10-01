@@ -127,6 +127,33 @@ void main() {
     expect(container.read(settingsProvider).gfLow, 50);
   });
 
+  // The post-restore safety sweep awaits initialLoad on a fresh container,
+  // where the active diver id can be realigned while the first load is still
+  // out. The superseded first load returns without writing state, so
+  // initialLoad must follow the load that replaced it rather than resolve on
+  // the defaults.
+  test('initialLoad follows a load that supersedes the first one', () async {
+    final gateA = settingsRepository.gates[diverA] = Completer<void>();
+    final gateB = settingsRepository.gates[diverB] = Completer<void>();
+    final notifier = container.read(settingsProvider.notifier);
+    await pumpEventQueue();
+    await switchTo(diverB);
+
+    var loaded = false;
+    final waiting = notifier.initialLoad.then((_) => loaded = true);
+    gateA.complete();
+    await pumpEventQueue();
+    expect(
+      loaded,
+      isFalse,
+      reason: 'initialLoad resolved on the superseded load, on the defaults',
+    );
+
+    gateB.complete();
+    await waiting;
+    expect(container.read(settingsProvider).gfLow, 35);
+  });
+
   test('a wait begun during a superseded load resolves only on the current '
       "diver's settings", () async {
     final notifier = container.read(settingsProvider.notifier);
