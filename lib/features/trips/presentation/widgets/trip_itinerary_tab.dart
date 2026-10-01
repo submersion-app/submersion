@@ -25,7 +25,7 @@ class TripItineraryTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final daysAsync = ref.watch(itineraryDaysProvider(tripId));
+    final daysAsync = ref.watch(numberedItineraryDaysProvider(tripId));
     final divesAsync = ref.watch(divesForTripProvider(tripId));
 
     return daysAsync.when(

@@ -83,6 +83,20 @@ void main() {
 
         expect(result, isEmpty);
       });
+
+      // #2664: a stored day number is the one the trip's start gave the row
+      // when it was written, so rows written under different starts are out
+      // of order by number.
+      test('should order days by date, not by stored day number', () async {
+        await repository.saveAll([
+          createTestDay(id: 'late', dayNumber: 1, date: DateTime(2025, 3, 6)),
+          createTestDay(id: 'early', dayNumber: 7, date: DateTime(2025, 3, 2)),
+        ]);
+
+        final result = await repository.getByTripId(testTripId);
+
+        expect(result.map((d) => d.id), ['early', 'late']);
+      });
     });
 
     group('saveAll', () {

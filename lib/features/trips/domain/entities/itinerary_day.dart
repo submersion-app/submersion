@@ -7,6 +7,10 @@ import 'package:submersion/core/constants/enums.dart';
 class ItineraryDay extends Equatable {
   final String id;
   final String tripId;
+
+  /// As stored, the day's number from the trip's start when the row was
+  /// written; a later move of the start leaves it stale (#2664). Display
+  /// numbers come from numberItineraryDays, which derives them from [date].
   final int dayNumber;
   final DateTime date;
   final DayType dayType;

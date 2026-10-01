@@ -13,6 +13,34 @@ const int _nextDueCount = 3;
 
 DateTime _dateOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 
+/// Pure. The first and last calendar day of the trip story: the trip range,
+/// extended to cover any dive or itinerary day outside it (e.g. trip dates
+/// edited after the itinerary was generated) so their content isn't silently
+/// dropped from the story. The story numbers its days from [start], and the
+/// itinerary numbers its rows the same way (numberItineraryDays).
+({DateTime start, DateTime end}) tripStoryDaySpan({
+  required Trip trip,
+  required List<Dive> dives,
+  required List<ItineraryDay> itineraryDays,
+}) {
+  var start = _dateOnly(trip.startDate);
+  var end = _dateOnly(trip.endDate);
+  void includeDate(DateTime date) {
+    final d = _dateOnly(date);
+    if (d.isBefore(start)) start = d;
+    if (d.isAfter(end)) end = d;
+  }
+
+  // By effectiveEntryTime, as the story buckets its dives.
+  for (final dive in dives) {
+    includeDate(dive.effectiveEntryTime);
+  }
+  for (final day in itineraryDays) {
+    includeDate(day.date);
+  }
+  return (start: start, end: end);
+}
+
 /// Compose the full trip story from already-loaded sources. Pure: no I/O,
 /// no clock access ([today] is injected).
 TripStory buildTripStory({
@@ -31,24 +59,11 @@ TripStory buildTripStory({
   final sortedDives = List<Dive>.of(dives)
     ..sort((a, b) => a.effectiveEntryTime.compareTo(b.effectiveEntryTime));
 
-  // Day span: trip range, extended to cover any dive or itinerary day outside
-  // it (e.g. trip dates edited after the itinerary was generated) so their
-  // content isn't silently dropped from the story.
-  var start = _dateOnly(trip.startDate);
-  var end = _dateOnly(trip.endDate);
-  void includeDate(DateTime date) {
-    final d = _dateOnly(date);
-    if (d.isBefore(start)) start = d;
-    if (d.isAfter(end)) end = d;
-  }
-
-  if (sortedDives.isNotEmpty) {
-    includeDate(sortedDives.first.effectiveEntryTime);
-    includeDate(sortedDives.last.effectiveEntryTime);
-  }
-  for (final day in itineraryDays) {
-    includeDate(day.date);
-  }
+  final (:start, :end) = tripStoryDaySpan(
+    trip: trip,
+    dives: sortedDives,
+    itineraryDays: itineraryDays,
+  );
   // Round rather than truncate: a DST spring-forward inside the range makes
   // the hour delta 71, not 72, and integer division would drop a day (mirrors
   // ItineraryDay.generateForTrip).
