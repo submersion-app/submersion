@@ -855,8 +855,8 @@ class SiteRepository {
 
       // Returns the plans it moved, read inside the transaction so a plan
       // set at a duplicate meanwhile is moved too rather than failing the
-      // duplicate's delete.
-      final planOriginalSiteIds = await _db.transaction(() async {
+      // duplicate's delete, and the hides it removed.
+      final merged = await _db.transaction(() async {
         await _updateSiteRow(guardedSurvivor, now);
         await _syncRepository.markRecordPending(
           entityType: 'diveSites',
@@ -877,8 +877,9 @@ class SiteRepository {
         // links away.
         await _classification.relinkForMerge(duplicateIds, survivorId);
 
-        // Every profile's hide of a merged-away site (issue #2594).
-        await ProfileHidesRepository().deleteHides(
+        // Every profile's hide of a merged-away site (issue #2594), kept
+        // for the undo (issue #2710).
+        final hides = await ProfileHidesRepository().deleteHides(
           SharedItemKind.site,
           duplicateIds,
         );
@@ -891,7 +892,7 @@ class SiteRepository {
             recordId: duplicateId,
           );
         }
-        return movedPlans;
+        return (plans: movedPlans, hides: hides);
       });
 
       SyncEventBus.notifyLocalChange();
@@ -921,7 +922,7 @@ class SiteRepository {
         diveOriginalSiteIds: diveOriginalSiteIds,
         mediaOriginalSiteIds: mediaOriginalSiteIds,
         featureOriginalSiteIds: featureOriginalSiteIds,
-        planOriginalSiteIds: planOriginalSiteIds,
+        planOriginalSiteIds: merged.plans,
         deletedSpeciesEntries: deletedSpecies,
         modifiedSpeciesEntries: modifiedSpecies,
         deletedSiteTimestamps: {
@@ -931,6 +932,7 @@ class SiteRepository {
         survivorTimestamps: siteTimestamps[survivorId],
         siteTypeIdsBySite: typeIdsBySite,
         siteTagIdsBySite: tagIdsBySite,
+        deletedHides: merged.hides,
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -1025,6 +1027,13 @@ class SiteRepository {
             notify: false,
           );
         }
+
+        // 2c. Put back every profile's hide of the merged-away sites
+        // (issue #2710), which exist again.
+        await ProfileHidesRepository().restoreHides(
+          SharedItemKind.site,
+          snapshot.deletedHides,
+        );
 
         // 3. Re-point dives back to their original sites
         for (final entry in snapshot.diveOriginalSiteIds.entries) {
@@ -1556,6 +1565,10 @@ class MergeSnapshot {
   final Map<String, List<String>> siteTypeIdsBySite;
   final Map<String, List<String>> siteTagIdsBySite;
 
+  /// Every profile's hide of the merged-away sites, which the merge
+  /// removed (issue #2710).
+  final List<ProfileHide> deletedHides;
+
   const MergeSnapshot({
     required this.originalSurvivor,
     required this.deletedSites,
@@ -1569,6 +1582,7 @@ class MergeSnapshot {
     this.survivorTimestamps,
     this.siteTypeIdsBySite = const {},
     this.siteTagIdsBySite = const {},
+    this.deletedHides = const [],
   });
 }
 

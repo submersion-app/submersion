@@ -83,6 +83,26 @@ void main() {
     expect(await tombstoneCount(db, ProfileHidesRepository.siteEntity), 0);
   });
 
+  test('undoing the owner\'s merge brings back every profile\'s hide of a '
+      'merged-away site (issue #2710)', () async {
+    await seedSite(db, 'dup', owner: 'a', shared: true);
+    await ProfileHidesRepository().hide(SharedItemKind.site, 'dup', 'b');
+    final hide = (await db.select(db.siteHides).get()).single;
+    final survivor = (await sites.getSiteById('theirs'))!;
+    final snapshot = await sites.mergeSites(
+      mergedSite: survivor,
+      siteIds: ['theirs', 'dup'],
+      actingDiverId: 'a',
+    );
+    expect(snapshot!.deletedHides.map((h) => h.id), [hide.id]);
+    expect(await db.select(db.siteHides).get(), isEmpty);
+
+    await sites.undoMerge(snapshot);
+    final back = (await db.select(db.siteHides).get()).single;
+    expect((back.id, back.siteId, back.diverId), (hide.id, 'dup', 'b'));
+    expect(await tombstoneCount(db, ProfileHidesRepository.siteEntity), 0);
+  });
+
   test('merge refuses another profile\'s duplicate', () async {
     final survivor = (await sites.getSiteById('mine'))!;
     final snapshot = await sites.mergeSites(
