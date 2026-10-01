@@ -52,7 +52,10 @@ Taken during brainstorming on 2026-09-25 and fixed for this spec.
 - Planned dives (added 2026-10-01, issue #2660): a planned dive uses no gas
   until it is logged. Its linked tanks stay out of the board's fold, the
   gas record and the forecast's dives logged today, as they already stayed
-  out of the record's gaps. Logging the dive brings them in.
+  out of the record's gaps. Logging the dive brings them in. The history
+  the forecast and the scrubber margin read (dives per dive day on past
+  trips, recent loop dive figures) counts logged dives only, for the same
+  reason.
 
 ## Data model
 
