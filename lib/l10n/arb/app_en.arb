@@ -8912,7 +8912,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Nothing is overdue for service.",
   "equipment_list_errorLoading": "Error loading equipment: {error}",
   "equipment_list_filterAll": "All Equipment",
-  "@equipment_list_filterAll": {"description": "Equipment filter status chip that shows every item whatever its status, retired and sold included"},
+  "@equipment_list_filterAll": {"description": "Status chip that narrows by no status. On the Equipment list it shows every item, retired and sold included; in the dive gear picker, every item the picker offers."},
   "equipment_list_filterCurrent": "Current Equipment",
   "@equipment_list_filterCurrent": {"description": "Equipment filter status chip for the default view: every item except retired and sold gear"},
   "equipment_list_filterServiceDue": "Service Due",
