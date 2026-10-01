@@ -364,6 +364,42 @@ void main() {
         expect(roleOf(parsed, 18.0), 'backGas');
       });
 
+      // A helium-bearing accelerated-deco gas (50/20 rather than EAN50) is
+      // blended to soften the helium swing at the switch; it is still deco gas
+      // (#1905).
+      test('open circuit: helium-bearing gas at O2 >= 41% is deco', () {
+        final parsed = makeParsedDive(
+          gasMixes: [
+            pigeon.GasMix(index: 0, o2Percent: 35.0, hePercent: 25.0),
+            pigeon.GasMix(index: 1, o2Percent: 41.0, hePercent: 10.0),
+            pigeon.GasMix(index: 2, o2Percent: 50.0, hePercent: 20.0),
+          ],
+        );
+        expect(roleOf(parsed, 35.0), 'backGas');
+        expect(roleOf(parsed, 41.0), 'deco');
+        expect(roleOf(parsed, 50.0), 'deco');
+      });
+
+      test('a transmitter tank breathing a helium-bearing deco gas is deco '
+          '(#1905)', () {
+        final parsed = makeParsedDive(
+          gasMixes: [
+            pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0),
+            pigeon.GasMix(index: 1, o2Percent: 50.0, hePercent: 20.0),
+          ],
+          tanks: [
+            pigeon.TankInfo(index: 0, gasMixIndex: 0, startPressureBar: 230.0),
+            pigeon.TankInfo(index: 1, gasMixIndex: 1, startPressureBar: 200.0),
+          ],
+        );
+        final tanks = resolveParsedTanks(parsed);
+        expect(tanks.firstWhere((t) => t.index == 0).role, 'backGas');
+        final deco = tanks.firstWhere((t) => t.index == 1);
+        expect(deco.o2Percent, 50.0);
+        expect(deco.hePercent, 20.0);
+        expect(deco.role, 'deco');
+      });
+
       test('native usage maps oxygen -> oxygenSupply, diluent -> diluent', () {
         final parsed = makeParsedDive(
           gasMixes: [

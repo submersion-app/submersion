@@ -3,6 +3,7 @@ import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -16,6 +17,8 @@ import 'package:submersion/features/weight_planner/presentation/providers/weight
 /// Interior-sample spacing (seconds) for constant-depth plan segments so the
 /// anchor detector has a sustained run to find at a stop.
 const int _kInteriorSampleSeconds = 30;
+
+const _log = LoggerService('PlanBuoyancyTwinProvider');
 
 /// Builds a square-ish profile from plan segments: one sample per boundary
 /// plus an interior sample every [_kInteriorSampleSeconds] on constant-depth
@@ -50,8 +53,21 @@ List<TwinProfileSample> synthesizePlanProfile(List<PlanSegment> segments) {
 
 /// Forward buoyancy twin for the plan being edited. Recomputes synchronously
 /// on plan edits (plans have few segments; no isolate needed). Null when the
-/// plan has no tanks or no resolvable lead.
+/// plan has no tanks or no resolvable lead, and when the twin or an input it
+/// watches (the deco plan, the weight prediction) fails: the Gear & Weights
+/// card hides a null twin, where a throw would replace the whole card with an
+/// error box (issue #2060). The watches stay registered through a failure, so
+/// the next plan edit retries.
 final planBuoyancyTwinProvider = Provider<BuoyancyTwinOutcome?>((ref) {
+  try {
+    return _planBuoyancyTwin(ref);
+  } catch (e, st) {
+    _log.error('Plan buoyancy twin failed', error: e, stackTrace: st);
+    return null;
+  }
+});
+
+BuoyancyTwinOutcome? _planBuoyancyTwin(Ref ref) {
   final state = ref.watch(divePlanNotifierProvider);
   final model = ref.watch(weightCalibrationProvider).valueOrNull;
   final equipment = ref.watch(allEquipmentProvider).valueOrNull;
@@ -151,4 +167,4 @@ final planBuoyancyTwinProvider = Provider<BuoyancyTwinOutcome?>((ref) {
     outputs: TwinAnalyzer.analyze(result),
     wingLiftCapacityKg: wing,
   );
-});
+}

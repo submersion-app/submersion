@@ -3,7 +3,7 @@ import 'dart:ui' show Tristate;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_color_sheet.dart';
-import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Opens the sheet, runs [act] against it, and returns what it completed
@@ -52,7 +52,9 @@ void main() {
         expect(find.bySemanticsLabel('None'), findsOneWidget);
         expect(find.bySemanticsLabel('Red'), findsOneWidget);
         expect(find.bySemanticsLabel('Slate'), findsOneWidget);
-        for (final hex in TagColors.predefined) {
+        expect(find.bySemanticsLabel('Black'), findsOneWidget);
+        expect(find.bySemanticsLabel('White'), findsOneWidget);
+        for (final hex in equipmentColorPalette) {
           expect(find.byKey(ValueKey('color-swatch-$hex')), findsOneWidget);
         }
         await _dismiss(tester);
@@ -66,6 +68,14 @@ void main() {
       act: () => tester.tap(find.byKey(const ValueKey('color-swatch-#3B82F6'))),
     );
     expect(result, (hex: '#3B82F6'));
+  });
+
+  testWidgets('Black can be picked (#2627)', (tester) async {
+    final result = await _open(
+      tester,
+      act: () => tester.tap(find.bySemanticsLabel('Black')),
+    );
+    expect(result, (hex: equipmentColorBlack));
   });
 
   testWidgets('None returns a choice with no colour', (tester) async {
@@ -110,7 +120,7 @@ void main() {
       act: () async {
         for (final key in [
           'color-swatch-none',
-          for (final hex in TagColors.predefined) 'color-swatch-$hex',
+          for (final hex in equipmentColorPalette) 'color-swatch-$hex',
         ]) {
           expect(
             tester

@@ -361,6 +361,52 @@ void main() {
         expect(result, isNotNull);
         expect(result!.id, equals(trip.id));
       });
+
+      test('should include a dive later on the end date', () async {
+        // The editor asks with the dive's time of day; the trip ends at
+        // midnight of its last day, which is still a trip day (#2618).
+        final trip = await repository.createTrip(
+          createTestTrip(
+            name: 'June Trip',
+            startDate: DateTime(2024, 6, 1),
+            endDate: DateTime(2024, 6, 15),
+          ),
+        );
+
+        final result = await repository.findTripForDate(
+          DateTime(2024, 6, 15, 16, 30),
+        );
+
+        expect(result?.id, equals(trip.id));
+        expect(
+          await repository.findTripForDate(DateTime(2024, 6, 16, 0, 30)),
+          isNull,
+        );
+      });
+
+      test(
+        'should include a dive earlier on a start date with a time',
+        () async {
+          // A new trip's start defaults to now, time of day included.
+          final trip = await repository.createTrip(
+            createTestTrip(
+              name: 'June Trip',
+              startDate: DateTime(2024, 6, 1, 18),
+              endDate: DateTime(2024, 6, 15, 18),
+            ),
+          );
+
+          final result = await repository.findTripForDate(
+            DateTime(2024, 6, 1, 8),
+          );
+
+          expect(result?.id, equals(trip.id));
+          expect(
+            await repository.findTripForDate(DateTime(2024, 5, 31, 23)),
+            isNull,
+          );
+        },
+      );
     });
 
     group('getDiveCountForTrip', () {

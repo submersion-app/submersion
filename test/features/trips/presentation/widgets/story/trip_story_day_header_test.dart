@@ -191,6 +191,60 @@ void main() {
     expect(find.byType(Text), findsNWidgets(2));
   });
 
+  group('dive day planned at 0 dives (#2658)', () {
+    // The board's day strip writes a bare dive-day row when it plans a day
+    // the itinerary lacks; saving 0 there plans a rest day, not a dive day.
+    ItineraryDay restRow() => ItineraryDay(
+      id: 'itin-1',
+      tripId: 'trip-1',
+      dayNumber: 2,
+      date: DateTime(2026, 3, 8),
+      dayType: DayType.diveDay,
+      plannedDives: 0,
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    for (final kind in [TripStoryDayKind.future, TripStoryDayKind.past]) {
+      testWidgets('reads as a surface day, not "Dive Day" (${kind.name})', (
+        tester,
+      ) async {
+        final day = TripStoryDay(
+          date: DateTime(2026, 3, 8),
+          dayNumber: 2,
+          kind: kind,
+          itineraryDay: restRow(),
+        );
+        await pumpHeader(tester, day);
+
+        expect(find.text('Surface day'), findsOneWidget);
+        expect(find.textContaining('Dive Day'), findsNothing);
+      });
+    }
+
+    testWidgets('a dive logged anyway keeps the Dive Day label', (
+      tester,
+    ) async {
+      final day = TripStoryDay(
+        date: DateTime(2026, 3, 8),
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        itineraryDay: restRow(),
+        dives: [
+          Dive(
+            id: 'd1',
+            dateTime: DateTime(2026, 3, 8, 9),
+            site: const DiveSite(id: 'site-a', name: 'Blue Corner'),
+          ),
+        ],
+      );
+      await pumpHeader(tester, day);
+
+      expect(find.text('Dive Day - Blue Corner'), findsOneWidget);
+      expect(find.textContaining('Surface day'), findsNothing);
+    });
+  });
+
   group('surface day', () {
     TripStoryDay surfaceDay() => TripStoryDay(
       date: DateTime(2026, 3, 8),

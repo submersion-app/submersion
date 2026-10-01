@@ -132,6 +132,20 @@ void main() {
       expect(dive.site?.longitude, isNull);
     });
 
+    test('a two-digit year is not the year 91 (#2617)', () {
+      const xml = '''<?xml version="1.0"?>
+<dives>
+  <units>Metric</units>
+  <schema>2.2.0</schema>
+  <dive>
+    <date>91-06-01 09:00:00</date>
+    <samples/>
+  </dive>
+</dives>''';
+      final dive = MacDiveXmlReader.parse(xml).dives.first;
+      expect(dive.date, DateTime.utc(1991, 6, 1, 9, 0, 0));
+    });
+
     test('missing optional fields produce null, not crash', () {
       const xml = '''<?xml version="1.0"?>
 <dives>

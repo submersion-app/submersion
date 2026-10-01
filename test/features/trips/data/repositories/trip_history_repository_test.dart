@@ -43,6 +43,7 @@ void main() {
     double? scrubber,
     int summaryStamp = 1,
     int summaryVersion = DiveSensorSummaryService.version,
+    bool planned = false,
   }) async {
     await db
         .into(db.dives)
@@ -65,6 +66,7 @@ void main() {
             diveMode: Value(mode),
             runtime: Value(runtime),
             bottomTime: Value(bottomTime),
+            isPlanned: Value(planned),
           ),
         );
     if (scrubber != null) {
@@ -108,6 +110,36 @@ void main() {
       limit: 2,
     );
     expect(two, [1, 3]);
+  });
+
+  test('planned dives are not history: they were never dived', () async {
+    // Issue #2660: a planned dive uses no gas until it is logged, so a
+    // plan left on a past trip must not raise its dives per dive day.
+    await trip('t1', DateTime(2025, 1, 1), DateTime(2025, 1, 5));
+    await trip('plans', DateTime(2025, 3, 1), DateTime(2025, 3, 3));
+    await dive('a', DateTime(2025, 1, 1, 9), tripId: 't1');
+    await dive('b', DateTime(2025, 1, 1, 14), tripId: 't1', planned: true);
+    await dive('c', DateTime(2025, 1, 2, 9), tripId: 't1', planned: true);
+    // A trip with only plans has no dive at all.
+    await dive('p', DateTime(2025, 3, 1, 9), tripId: 'plans', planned: true);
+
+    final figures = await repo.divesPerDiveDay(before: DateTime(2026, 6, 1));
+    expect(figures, [1]);
+  });
+
+  test('a planned loop dive is not a recent CCR figure', () async {
+    await dive('logged', DateTime(2026, 1, 1), mode: 'ccr', runtime: 3600);
+    await dive(
+      'plan',
+      DateTime(2026, 1, 2),
+      mode: 'ccr',
+      runtime: 7200,
+      planned: true,
+    );
+    final figures = await repo.recentRebreatherFigures(
+      before: DateTime(2026, 6, 1),
+    );
+    expect(figures.map((f) => f.runtimeMinutes), [60]);
   });
 
   test('recent CCR figures keep the summary minutes and the runtime', () async {

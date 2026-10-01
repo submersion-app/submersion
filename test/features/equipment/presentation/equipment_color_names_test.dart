@@ -10,11 +10,11 @@ void main() {
 
   test('every palette colour has its own name', () {
     final names = [
-      for (final hex in TagColors.predefined) equipmentColorName(l10n, hex),
+      for (final hex in equipmentColorPalette) equipmentColorName(l10n, hex),
     ];
-    expect(names.toSet(), hasLength(TagColors.predefined.length));
+    expect(names.toSet(), hasLength(equipmentColorPalette.length));
     for (final (i, name) in names.indexed) {
-      expect(name, isNot(startsWith('#')), reason: TagColors.predefined[i]);
+      expect(name, isNot(startsWith('#')), reason: equipmentColorPalette[i]);
     }
   });
 
@@ -22,10 +22,20 @@ void main() {
     for (final locale in AppLocalizations.supportedLocales) {
       final names = lookupAppLocalizations(locale);
       final all = {
-        for (final hex in TagColors.predefined) equipmentColorName(names, hex),
+        for (final hex in equipmentColorPalette) equipmentColorName(names, hex),
       };
-      expect(all, hasLength(TagColors.predefined.length), reason: '$locale');
+      expect(all, hasLength(equipmentColorPalette.length), reason: '$locale');
     }
+  });
+
+  test('the palette is the tag palette plus Black and White (#2627)', () {
+    expect(equipmentColorPalette, [
+      ...TagColors.predefined,
+      equipmentColorBlack,
+      equipmentColorWhite,
+    ]);
+    expect(equipmentColorName(l10n, equipmentColorBlack), 'Black');
+    expect(equipmentColorName(l10n, equipmentColorWhite), 'White');
   });
 
   test('palette lookups ignore case', () {

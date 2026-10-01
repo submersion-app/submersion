@@ -19,10 +19,6 @@ class TripGearCard extends ConsumerWidget {
 
   final Trip trip;
 
-  /// The most of the window the card may take before it scrolls, below the
-  /// Cylinders card's share so the story keeps room on a phone.
-  static const maxHeightFraction = 0.25;
-
   Future<void> _add(
     BuildContext context,
     WidgetRef ref,
@@ -78,62 +74,56 @@ class TripGearCard extends ConsumerWidget {
     }
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * maxHeightFraction,
-      ),
-      child: Card(
-        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        clipBehavior: Clip.antiAlias,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    // Like the Cylinders card it has no scroll view of its own and scrolls
+    // with the other header cards (#2653).
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.luggage_outlined, color: theme.colorScheme.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.trips_gear_title,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ),
+                TextButton(
+                  key: const Key('trip-gear-add'),
+                  onPressed: () => _add(context, ref, items),
+                  child: Text(l10n.trips_gear_add),
+                ),
+              ],
+            ),
+            if (items.isEmpty)
+              Text(l10n.trips_gear_none)
+            else
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
                 children: [
-                  Icon(
-                    Icons.luggage_outlined,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      l10n.trips_gear_title,
-                      style: theme.textTheme.titleMedium,
+                  for (final item in items)
+                    InputChip(
+                      key: Key('trip-gear-${item.id}'),
+                      label: Text(item.name),
+                      visualDensity: VisualDensity.compact,
+                      onDeleted: () => _change(
+                        context,
+                        () => ref
+                            .read(tripEquipmentRepositoryProvider)
+                            .unpack(trip.id, item.id),
+                      ),
+                      deleteButtonTooltipMessage: l10n.trips_gear_remove,
                     ),
-                  ),
-                  TextButton(
-                    key: const Key('trip-gear-add'),
-                    onPressed: () => _add(context, ref, items),
-                    child: Text(l10n.trips_gear_add),
-                  ),
                 ],
               ),
-              if (items.isEmpty)
-                Text(l10n.trips_gear_none)
-              else
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    for (final item in items)
-                      InputChip(
-                        key: Key('trip-gear-${item.id}'),
-                        label: Text(item.name),
-                        visualDensity: VisualDensity.compact,
-                        onDeleted: () => _change(
-                          context,
-                          () => ref
-                              .read(tripEquipmentRepositoryProvider)
-                              .unpack(trip.id, item.id),
-                        ),
-                        deleteButtonTooltipMessage: l10n.trips_gear_remove,
-                      ),
-                  ],
-                ),
-            ],
-          ),
+          ],
         ),
       ),
     );

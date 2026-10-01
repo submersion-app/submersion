@@ -23,8 +23,9 @@ Future<EquipmentColorChoice?> showEquipmentColorSheet(
   );
 }
 
-/// "None" and the tag palette as round swatches. It shares the palette with
-/// the tag colour picker but not its widget, which previews a tag chip.
+/// "None" and the item palette as round swatches. The palette is the tag
+/// colour palette plus Black and White; the tag colour picker's widget is not
+/// shared, since it previews a tag chip.
 class EquipmentColorSheet extends StatelessWidget {
   const EquipmentColorSheet({super.key, this.selected});
 
@@ -56,7 +57,7 @@ class EquipmentColorSheet extends StatelessWidget {
                 selected: selected == null,
                 onTap: () => Navigator.of(context).pop((hex: null)),
               ),
-              for (final hex in TagColors.predefined)
+              for (final hex in equipmentColorPalette)
                 _Swatch(
                   key: ValueKey('color-swatch-$hex'),
                   color: TagColors.fromHex(hex),

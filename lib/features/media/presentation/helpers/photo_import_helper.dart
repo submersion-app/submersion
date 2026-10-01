@@ -23,12 +23,15 @@ class PhotoImportHelper {
   /// [context] - Build context for navigation.
   /// [ref] - Riverpod ref for accessing providers.
   /// [dive] - The dive to associate photos with.
+  /// [initialFilePaths] - Files already in hand (a desktop drop), opened in
+  /// the picker's Files tab for review.
   ///
   /// Returns true if photos were imported, false if cancelled or failed.
   static Future<bool> importPhotosForDive({
     required BuildContext context,
     required WidgetRef ref,
     required Dive dive,
+    List<String>? initialFilePaths,
   }) async {
     // Calculate time window with 30-minute buffer
     final diveStart = dive.effectiveEntryTime;
@@ -74,6 +77,7 @@ class PhotoImportHelper {
       alreadyLinkedIds: alreadyLinkedIds,
       // Lets the Files tab link photos this dive's date window rejected.
       target: DiveAttachTarget(dive.id),
+      initialFilePaths: initialFilePaths,
     );
     // coverage:ignore-end
 

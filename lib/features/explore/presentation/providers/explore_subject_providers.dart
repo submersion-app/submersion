@@ -66,7 +66,8 @@ final exploreSubjectCountsProvider = FutureProvider<Map<String, int>>((
 /// status hides retired and sold gear, so a status the sentence names
 /// ("my retired regulators") becomes that axis, lifted out of the query,
 /// rather than contradicting it. A negated status, or several, stays in the
-/// query under the default view.
+/// query and reads every status (#2590), as does a query on the active flag:
+/// under the default view "retired or sold gear" would find nothing.
 EquipmentFilterState exploreEquipmentFilter(QueryNode? node) {
   EquipmentStatus? named(QueryNode n) {
     if (n is! ConditionNode || n.op != QueryOp.inList) return null;
@@ -99,8 +100,23 @@ EquipmentFilterState exploreEquipmentFilter(QueryNode? node) {
       },
     );
   }
-  return EquipmentFilterState(query: node);
+  return EquipmentFilterState(
+    allStatuses: node != null && _namesStatus(node),
+    query: node,
+  );
 }
+
+/// Whether [node] tests the equipment's own status, or the legacy active
+/// flag the default view also pins, anywhere. A scoped condition reads
+/// another entity's fields, so it is not looked into.
+bool _namesStatus(QueryNode node) => switch (node) {
+  AndNode(:final children) ||
+  OrNode(:final children) => children.any(_namesStatus),
+  NotNode(:final child) => _namesStatus(child),
+  ConditionNode(:final path) =>
+    path == FieldPath(const ['status']) || path == FieldPath(const ['active']),
+  ScopedNode() || TextNode() => false,
+};
 
 /// [items] as ranked rows: most dives in the scope first, then by name.
 AsyncValue<List<ExploreSubjectRow>> _ranked<T extends Object>(

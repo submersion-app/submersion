@@ -11,15 +11,18 @@ import 'package:submersion/features/query/data/query_id_set_runner.dart';
 /// evaluator of an EquipmentFilterState: a field added to it and not named
 /// here fails `equipment_filter_query_census_test`.
 extension EquipmentFilterQuery on EquipmentFilterState {
-  /// Never null: the status axis always narrows (the default view hides
-  /// retired and sold gear, #636).
-  QueryNode toQuery() {
+  /// Null only under [allStatuses] (#2590) with no other axis set: every
+  /// other status choice narrows (the default view hides retired and sold
+  /// gear, #636).
+  QueryNode? toQuery() {
     final parts = <QueryNode>[];
     QueryNode c(String key, QueryOp op, QueryValue? v) =>
         ConditionNode(FieldPath([key]), op, v);
     EnumValue e(String name) => EnumValue(name);
     final s = status;
-    if (s == null) {
+    if (allStatuses) {
+      // Every status (#2590): the axis adds no condition.
+    } else if (s == null) {
       // getActiveEquipment: legacy rows can be retired with is_active still
       // set, and sold gear has left the kit.
       parts
@@ -68,7 +71,11 @@ extension EquipmentFilterQuery on EquipmentFilterState {
       );
     }
     if (query != null) parts.add(query!);
-    return parts.length == 1 ? parts.first : AndNode(parts);
+    return switch (parts) {
+      [] => null,
+      [final only] => only,
+      _ => AndNode(parts),
+    };
   }
 
   /// The owner axis (issue #2046) as a caller-applied scope over `r0`. It

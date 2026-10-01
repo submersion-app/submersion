@@ -16,6 +16,7 @@ import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
+import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -1806,33 +1807,14 @@ class SyncDataSerializer {
     }
   }
 
-  /// The sync record id of a [parentGatedChildEntities] row, in the shape
-  /// SyncService.recordIdForEntity uses (a composite key is joined with
-  /// `|`). Mirrored here rather than imported because sync_service.dart
-  /// imports this file; a test pins that the two agree.
+  /// The sync record id of a [parentGatedChildEntities] row: the
+  /// [syncRecordId] the merge keys it by (a composite key is joined with
+  /// `|`).
   @visibleForTesting
   static String? parentGatedRecordId(
     String entityType,
     Map<String, dynamic> row,
-  ) {
-    String? composite(Object? left, Object? right) =>
-        left is String && right is String ? '$left|$right' : null;
-    switch (entityType) {
-      case 'diveSafetyReviews':
-        return row['diveId'] as String?;
-      case 'diveEquipment':
-        return row['id'] as String? ??
-            composite(row['diveId'], row['equipmentId']);
-      case 'equipmentSetItems':
-        return row['id'] as String? ??
-            composite(row['setId'], row['equipmentId']);
-      case 'divePlanEquipment':
-        return row['id'] as String? ??
-            composite(row['planId'], row['equipmentId']);
-      default:
-        return row['id'] as String?;
-    }
-  }
+  ) => syncRecordId(entityType, row);
 
   /// The SQL table of each [parentGatedChildEntities] type. A test pins it
   /// to SyncRepository.hlcTargets, which stamps the same tables.
@@ -3541,6 +3523,46 @@ class SyncDataSerializer {
         return {
           for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
         };
+      case 'emergencyChambers':
+        final rows = await (_db.select(
+          _db.emergencyChambers,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'incidents':
+        final rows = await (_db.select(
+          _db.incidents,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'equipmentObservations':
+        final rows = await (_db.select(
+          _db.equipmentObservations,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'equipmentFindings':
+        final rows = await (_db.select(
+          _db.equipmentFindings,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'siteFeatures':
+        final rows = await (_db.select(
+          _db.siteFeatures,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      // The points BLOB rides as base64, matching fetchRecord.
+      case 'gpsTracks':
+        final rows = await (_db.select(
+          _db.gpsTracks,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {
+          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+        };
+      case 'navTracks':
+        final rows = await (_db.select(
+          _db.navTracks,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {
+          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+        };
       default:
         // Clockless / composite-key entities are never fetched by the merge;
         // fall back to per-id reads so the method is total and correct.
@@ -4087,14 +4109,12 @@ class SyncDataSerializer {
   /// value -- this is what makes clearing a field (e.g. a dive name, #474)
   /// propagate.
   ///
-  /// CALLER CONTRACT for HLC entities: because `.toCompanion(false)` writes
-  /// every column, `data` MUST be a full row (its own `row.toJson()`), OR the
-  /// caller MUST overlay the remote map onto the current local row first so a
-  /// key the remote OMITS keeps its local value. `_mergeEntity` does this via
-  /// `_overlayOntoLocal` (and only ever applies a strict LWW winner, so a
-  /// stale/tied base never clobbers); the conflict-resolution `keepRemote`
-  /// branch does the same. A raw partial map passed straight through would
-  /// clear every column it omits.
+  /// A key [data] OMITS keeps the value of the row this device already holds
+  /// ([overlayOntoLocal]), so a peer on an older build, whose rows lack every
+  /// column its schema does not know, neither clears those columns nor
+  /// resets them to their schema default (#2553). Only a row new to this
+  /// device takes the default. `_mergeEntity` overlays before it calls here,
+  /// so its rows arrive full and cost no extra read.
   ///
   /// Clockless children (`entityHasUpdatedAt == false`: tanks, profiles, the
   /// junction tables, media, ...) are applied UNCONDITIONALLY by `_mergeEntity`
@@ -4110,12 +4130,13 @@ class SyncDataSerializer {
     String entityType,
     Map<String, dynamic> data,
   ) async {
+    data = _withRenamedKeys(
+      entityType,
+      _withoutDeviceLocalFields(data, entityType: entityType),
+    );
     data = _withSchemaDefaults(
       entityType,
-      _withRenamedKeys(
-        entityType,
-        _withoutDeviceLocalFields(data, entityType: entityType),
-      ),
+      (await _withLocalForOmitted(entityType, [data])).single,
     );
     switch (entityType) {
       case 'divers':
@@ -4955,17 +4976,16 @@ class SyncDataSerializer {
     List<Map<String, dynamic>> records,
   ) async {
     if (records.isEmpty) return;
-    records = records
-        .map(
-          (record) => _withSchemaDefaults(
-            entityType,
-            _withRenamedKeys(
-              entityType,
-              _withoutDeviceLocalFields(record, entityType: entityType),
-            ),
-          ),
-        )
-        .toList();
+    records = await _withLocalForOmitted(entityType, [
+      for (final record in records)
+        _withRenamedKeys(
+          entityType,
+          _withoutDeviceLocalFields(record, entityType: entityType),
+        ),
+    ]);
+    records = [
+      for (final record in records) _withSchemaDefaults(entityType, record),
+    ];
     switch (entityType) {
       case 'divers':
         await _db.batch(
@@ -8935,6 +8955,75 @@ class SyncDataSerializer {
   /// this file.
   final Map<String, List<MapEntry<String, Object? Function()>>>
   _schemaDefaultFills = {};
+
+  /// Cached JSON keys of every column a synced row of each entity type
+  /// carries, so [_withLocalForOmitted] can tell a full row from a partial
+  /// one without a read. Empty for a type with no table here.
+  final Map<String, Set<String>> _rowKeys = {};
+
+  /// Fills each key [records] omit from the row this device already holds
+  /// for the same record (#2553), before [_withSchemaDefaults] would fill
+  /// it with the column default. A peer on an older build omits every
+  /// column its schema lacks, and the default would overwrite the value the
+  /// diver set here. A record new to this device keeps the gap, so the
+  /// default still fills it there.
+  ///
+  /// Only partial rows cost a read: same-version peers send full rows, and
+  /// the merge overlays its winners before they get here.
+  Future<List<Map<String, dynamic>>> _withLocalForOmitted(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    final keys = _rowKeys.putIfAbsent(
+      entityType,
+      () => _buildRowKeys(entityType),
+    );
+    if (keys.isEmpty) return records;
+    final partialIds = <String>{
+      for (final record in records)
+        if (!keys.every(record.containsKey)) ?syncRecordId(entityType, record),
+    };
+    if (partialIds.isEmpty) return records;
+    final local = await fetchRecords(entityType, partialIds);
+    if (local.isEmpty) return records;
+    return [
+      for (final record in records)
+        overlayOntoLocal(
+          entityType,
+          record,
+          local[syncRecordId(entityType, record)],
+        ),
+    ];
+  }
+
+  Set<String> _buildRowKeys(String entityType) {
+    // [_upsertGearJunction] routes on whether the wire carried a clock, and
+    // writes only what the wire carried, so a missing key already keeps the
+    // local value there. Filling the clock in would hide the signal.
+    if (_gearJunctions.contains(entityType)) return const {};
+    final TableInfo<Table, dynamic> table;
+    try {
+      table = _syncTableFor(entityType);
+    } on ArgumentError {
+      // The inbound-only legacy sample entities have no table here.
+      return const {};
+    }
+    return {for (final column in table.$columns) columnJsonKey(column.name)}
+      ..removeAll(_deviceLocalKeys[entityType] ?? const <String>{});
+  }
+
+  /// Columns a synced row never carries because they belong to one device
+  /// ([_withoutDeviceLocalFields]). Their absence does not make a row
+  /// partial.
+  static const Map<String, Set<String>> _deviceLocalKeys = {
+    'diveComputers': {'bluetoothAddress'},
+  };
+
+  static const Set<String> _gearJunctions = {
+    'diveEquipment',
+    'divePlanEquipment',
+    'equipmentSetItems',
+  };
 
   /// Hydrates missing (or explicitly null) non-nullable columns in [data]
   /// with their schema defaults before the generated `fromJson` runs (#858).

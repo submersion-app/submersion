@@ -93,6 +93,7 @@ Explore each feature in detail:
 - [Decompression](features/decompression.md) - Buhlmann algorithm and tissue loading
 - [O2 Tracking](features/oxygen-tracking.md) - Oxygen toxicity monitoring
 - [Multi-Gas](features/multi-gas.md) - Nitrox and trimix support
+- [Photo and Video Matching](features/media-matching.md) - Which date links each photo or video to a dive
 - [Buddies & Certs](features/buddies.md) - Social and training tracking
 - [Marine Life](features/marine-life.md) - Species sighting database
 - [Trips](features/trips.md) - Trip organization

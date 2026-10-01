@@ -202,7 +202,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             ? _buildEmptyState(context, filter.hasActiveFilters)
             : _buildTripList(context, ref, trips, filter.equipmentId != null),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildErrorState(context, error),
+        error: (_, _) => _buildErrorState(context),
       );
     }
 
@@ -517,7 +517,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
   ) {
     return tripsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, s) => _buildErrorState(context, e),
+      error: (_, _) => _buildErrorState(context),
       data: (trips) {
         if (trips.isEmpty) {
           return _buildEmptyState(context, filter.hasActiveFilters);
@@ -884,14 +884,15 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     );
   }
 
-  Widget _buildErrorState(BuildContext context, Object error) {
+  /// The repository logs the failure; the diver gets a plain line and Retry.
+  Widget _buildErrorState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
-          Text(context.l10n.trips_list_error_loading('$error')),
+          Text(context.l10n.trips_list_error_loading),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () =>
@@ -1206,8 +1207,8 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) =>
-              Center(child: Text('${context.l10n.common_label_error}: $error')),
+          // The repository logs the failure; the diver gets a plain line.
+          error: (_, _) => Center(child: Text(context.l10n.trips_search_error)),
         );
       },
     );

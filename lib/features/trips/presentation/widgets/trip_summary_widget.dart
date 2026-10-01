@@ -27,8 +27,10 @@ class TripSummaryWidget extends ConsumerWidget {
             tripsAsync.when(
               data: (trips) => _buildOverview(context, ref, trips),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) =>
-                  Center(child: Text('${context.l10n.common_label_error}: $e')),
+              // The repository logs the failure; the diver gets a plain
+              // line.
+              error: (_, _) =>
+                  Center(child: Text(context.l10n.trips_list_error_loading)),
             ),
             const SizedBox(height: 24),
             _buildQuickActions(context),
