@@ -1193,6 +1193,7 @@ void main() {
                   AsyncValue.error(Exception('load-boom'), StackTrace.current),
             ),
           ],
+          locale: const Locale('en'),
           child: const TripListContent(showAppBar: true),
         ),
       );
