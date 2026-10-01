@@ -177,6 +177,51 @@ double? replaceGlitchedEndpoint({
   return matchesLowGlitch ? replacement : reportedBar;
 }
 
+/// The start ([atStart]) or end pressure to record for a cylinder whose
+/// source reported [reportedBar] for that end and [otherBar] for the other.
+///
+/// A value below [kPressureGlitchNearZeroBar] is what a transmitter that lost
+/// its signal logs, and a source can report one as a header pressure even
+/// when no reading of its series matches it, which [replaceGlitchedEndpoint]
+/// requires (issue #2687). Such a value is resolved from [readings]:
+///
+/// * where the first or last clean reading is itself above that bound, the
+///   series contradicts the value and that reading replaces it;
+/// * where the clean reading is near zero as well, the series agrees and the
+///   value is kept;
+/// * where there is no series, the value is cleared to null when [otherBar]
+///   is a real pressure, so the cylinder records no end (or start) rather
+///   than one nobody breathed down to. With no real pressure at either end
+///   there is nothing to judge it against, and it is kept.
+///
+/// Any other value, and a null, comes back unchanged. [readings] must be in
+/// time order; [scan] is the scan of [readings] when the caller holds it.
+double? replaceNearZeroEndpoint({
+  required double? reportedBar,
+  required double? otherBar,
+  required List<PressureReading> readings,
+  required bool atStart,
+  PressureGlitchScan? scan,
+}) {
+  if (reportedBar == null || reportedBar >= kPressureGlitchNearZeroBar) {
+    return reportedBar;
+  }
+  if (readings.isNotEmpty) {
+    scan ??= scanPressureGlitches(readings);
+    final clean = [
+      for (var i = 0; i < readings.length; i++)
+        if (!scan.glitchIndices.contains(i)) readings[i],
+    ];
+    if (clean.isNotEmpty) {
+      final seriesBar = atStart ? clean.first.bar : clean.last.bar;
+      return seriesBar >= kPressureGlitchNearZeroBar ? seriesBar : reportedBar;
+    }
+  }
+  final otherIsReal =
+      otherBar != null && otherBar >= kPressureGlitchNearZeroBar;
+  return otherIsReal ? null : reportedBar;
+}
+
 /// The first and last clean reading of a tank pressure series, in any order,
 /// or null when it holds none.
 ///
