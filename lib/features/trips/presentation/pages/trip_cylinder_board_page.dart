@@ -10,7 +10,6 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/add_trip_cylinders_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_ledger_view.dart';
@@ -134,7 +133,6 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage> {
               ),
               _BoardView.record => TripCylinderRecordView(
                 tripId: tripId,
-                tripName: ref.watch(tripByIdProvider(tripId)).value?.name ?? '',
                 centerNames: centerNames,
               ),
             },

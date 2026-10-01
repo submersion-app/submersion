@@ -769,7 +769,13 @@ class BuddyRepository {
       await (_db.update(_db.diveBuddies)..where(
             (t) => t.diveId.isIn(diveIds) & t.buddyId.equals(bwr.buddy.id),
           ))
-          .write(DiveBuddiesCompanion(role: Value(bwr.role.id)));
+          .write(
+            DiveBuddiesCompanion(
+              role: Value(bwr.role.id),
+              // Its own clock, beside the marks below (#2644).
+              hlc: Value(await _syncRepository.issueRowClock()),
+            ),
+          );
       for (final row in existing) {
         await _syncRepository.markRecordPending(
           entityType: 'diveBuddies',

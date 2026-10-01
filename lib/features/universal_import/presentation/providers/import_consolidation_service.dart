@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_import/data/services/missing_computer_attacher.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
@@ -65,12 +66,25 @@ class ConsolidationSummary {
 /// decode, so `apply` refused before writing anything. The freshly-imported
 /// dive is not at fault, so it is KEPT standalone (counted in
 /// [ConsolidationSummary.keptStandalone]) rather than deleted.
+///
+/// [attachMissingComputers], when given, is asked first for each index with
+/// its match's id (issue #2672). That is the re-import of a dive imported
+/// before the importer kept every computer: both copies share the first
+/// computer, which [DiveConsolidationService.apply] refuses.
+/// [MatchAttachment.attached] means the match now holds every computer the
+/// imported dive brought, so the standalone copy is deleted and no fold
+/// runs. [MatchAttachment.incomplete] keeps the standalone copy, the only one
+/// of a computer that could not be added, counted in
+/// [ConsolidationSummary.keptStandalone]. A throw is handled like a failed
+/// fold.
 Future<ConsolidationSummary> performConsolidations({
   required Set<int> indices,
   required Map<int, String> diveIdByIndex,
   required ImportDuplicateResult? duplicateResult,
   required DiveConsolidationService consolidationService,
   required DiveRepository diveRepository,
+  Future<MatchAttachment> Function(int index, String targetDiveId)?
+  attachMissingComputers,
 }) async {
   var consolidated = 0;
   var failed = 0;
@@ -85,6 +99,24 @@ Future<ConsolidationSummary> performConsolidations({
     if (newDiveId == null) continue;
 
     try {
+      final attachment = attachMissingComputers == null
+          ? MatchAttachment.notApplicable
+          : await attachMissingComputers(index, matchResult.diveId);
+      if (attachment == MatchAttachment.attached) {
+        // The match now holds everything this copy brought.
+        await diveRepository.bulkDeleteDives([newDiveId]);
+        consolidated++;
+        removedDiveIds.add(newDiveId);
+        continue;
+      }
+      if (attachment == MatchAttachment.incomplete) {
+        _log.warning(
+          'Kept imported dive $newDiveId standalone: a computer it carries '
+          'could not be added to ${matchResult.diveId}',
+        );
+        keptStandalone++;
+        continue;
+      }
       await consolidationService.apply(
         targetDiveId: matchResult.diveId,
         secondaryDiveIds: [newDiveId],

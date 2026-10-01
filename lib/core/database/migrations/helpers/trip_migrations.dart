@@ -105,6 +105,16 @@ extension TripMigrations on AppDatabase {
     );
   }
 
+  /// The trip_hides table (v250, issue #2594). Called from the v250 rung
+  /// and the beforeOpen backstop. Skipped on a partial migration-test
+  /// fixture that lacks a parent table.
+  Future<void> _assertTripHidesSchema() async {
+    for (final parent in const ['trips', 'divers']) {
+      if (!await _tableExists(parent)) return;
+    }
+    await Migrator(this).createTable(tripHides);
+  }
+
   /// v249: the fill forecast's inputs (issue #2325, PR 4). Additive columns,
   /// no backfill; idempotent, so it is also the beforeOpen backstop.
   Future<void> _assertTripFillForecastColumns() async {

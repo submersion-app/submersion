@@ -14,6 +14,7 @@ import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
+import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -349,6 +350,8 @@ class SyncData {
   final List<Map<String, dynamic>> equipmentTags;
   final List<Map<String, dynamic>> equipmentShares;
   final List<Map<String, dynamic>> tripEquipment;
+  final List<Map<String, dynamic>> tripHides;
+  final List<Map<String, dynamic>> siteHides;
   final List<Map<String, dynamic>> equipmentOwnershipEvents;
   final List<Map<String, dynamic>> mediaSpecies;
   final List<Map<String, dynamic>> siteFeatures;
@@ -452,6 +455,8 @@ class SyncData {
     this.equipmentTags = const [],
     this.equipmentShares = const [],
     this.tripEquipment = const [],
+    this.tripHides = const [],
+    this.siteHides = const [],
     this.equipmentOwnershipEvents = const [],
     this.mediaSpecies = const [],
     this.siteFeatures = const [],
@@ -554,6 +559,8 @@ class SyncData {
     'equipmentTags': equipmentTags,
     'equipmentShares': equipmentShares,
     'tripEquipment': tripEquipment,
+    'tripHides': tripHides,
+    'siteHides': siteHides,
     'equipmentOwnershipEvents': equipmentOwnershipEvents,
     'mediaSpecies': mediaSpecies,
     'siteFeatures': siteFeatures,
@@ -661,6 +668,8 @@ class SyncData {
       equipmentTags: _parseList(json['equipmentTags']),
       equipmentShares: _parseList(json['equipmentShares']),
       tripEquipment: _parseList(json['tripEquipment']),
+      tripHides: _parseList(json['tripHides']),
+      siteHides: _parseList(json['siteHides']),
       equipmentOwnershipEvents: _parseList(json['equipmentOwnershipEvents']),
       mediaSpecies: _parseList(json['mediaSpecies']),
       siteFeatures: _parseList(json['siteFeatures']),
@@ -1187,6 +1196,8 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'tripEquipment', table: _db.tripEquipment, blob: false, full: null),
+    (key: 'tripHides', table: _db.tripHides, blob: false, full: null),
+    (key: 'siteHides', table: _db.siteHides, blob: false, full: null),
     (
       key: 'equipmentOwnershipEvents',
       table: _db.equipmentOwnershipEvents,
@@ -1594,6 +1605,8 @@ class SyncDataSerializer {
     'equipmentTags',
     'equipmentShares',
     'tripEquipment',
+    'tripHides',
+    'siteHides',
     'equipmentOwnershipEvents',
     'weightPresetEntries',
     'diveCenterGearNotes',
@@ -1694,6 +1707,105 @@ class SyncDataSerializer {
     );
   }
 
+  /// The clearable columns of each parent-gated type (see clearableColumns),
+  /// by JSON key. Fixed by the schema, so an adopt's many batches build it
+  /// once; the table itself is looked up per call, since [_db] follows
+  /// whichever database is open.
+  final Map<String, Map<String, String>> _clearableChildColumns = {};
+
+  TableInfo<Table, Object?> _parentGatedTable(String entityType) {
+    final tableName = parentGatedTables[entityType]!;
+    return _db.allTables.firstWhere((t) => t.actualTableName == tableName);
+  }
+
+  Map<String, String> _clearableFor(String entityType) =>
+      _clearableChildColumns.putIfAbsent(
+        entityType,
+        () => clearableColumns(
+          _parentGatedTable(entityType),
+          keyColumns: _parentGatedKeyColumns[entityType] ?? const ['id'],
+        ),
+      );
+
+  /// The JSON keys a clear on [entityType] may name (see clearableColumns):
+  /// empty for a type outside [parentGatedChildEntities] or one with nothing
+  /// clearable, so a caller can skip collecting clears for it (#2644).
+  Iterable<String> clearableChildKeys(String entityType) =>
+      parentGatedTables.containsKey(entityType)
+      ? _clearableFor(entityType).keys
+      : const [];
+
+  /// Writes deliberate clears on parent-gated children (#2644).
+  ///
+  /// The upsert that applied each row builds with nullToAbsent, so a null it
+  /// carries never lands. The merge collects the keys a strictly newer copy
+  /// set to null (see isNewerChildCopy), and adopt the keys each replayed
+  /// row sets to null, and both hand them here; [clears] maps a sync record
+  /// id to those JSON keys. Only nullable, undefaulted columns outside the
+  /// row's key are written, so a malformed payload can neither fail on a
+  /// NOT NULL column nor move a row.
+  ///
+  /// Rows clearing the same columns share one statement per chunk of ids,
+  /// and a row whose columns are already null is not rewritten: an adopt
+  /// replays every row, each carrying explicit nulls, and a statement per
+  /// row made a large adopt crawl.
+  ///
+  /// A junction applied lowest-id-per-pair can keep a local id over the
+  /// remote one; its clear then matches no row. Those junctions carry no
+  /// nullable user columns worth clearing.
+  Future<void> clearChildColumns(
+    String entityType,
+    Map<String, Set<String>> clears,
+  ) async {
+    final tableName = parentGatedTables[entityType];
+    if (tableName == null || clears.isEmpty) return;
+    final table = _parentGatedTable(entityType);
+    final keys = _parentGatedKeyColumns[entityType] ?? const ['id'];
+    final clearable = _clearableFor(entityType);
+    // Rows clearing the same columns, keyed by those columns joined.
+    final groups =
+        <String, ({List<String> columns, List<List<String>> rows})>{};
+    for (final MapEntry(key: recordId, value: jsonKeys) in clears.entries) {
+      final columns = {for (final k in jsonKeys) ?clearable[k]}.toList()
+        ..sort();
+      if (columns.isEmpty) continue;
+      final keyValues = keys.length == 1 ? [recordId] : recordId.split('|');
+      if (keyValues.length != keys.length) continue;
+      (groups[columns.join(',')] ??= (
+        columns: columns,
+        rows: [],
+      )).rows.add(keyValues);
+    }
+    final keyList = keys.length == 1
+        ? '"${keys.single}"'
+        : '(${keys.map((k) => '"$k"').join(', ')})';
+    // A composite key binds a variable per column (see
+    // _fetchParentGatedChildren).
+    final perStatement = 900 ~/ keys.length;
+    for (final (:columns, :rows) in groups.values) {
+      for (var i = 0; i < rows.length; i += perStatement) {
+        final chunk = rows.sublist(i, math.min(i + perStatement, rows.length));
+        final placeholders = keys.length == 1
+            ? chunk.map((_) => '?').join(', ')
+            : 'VALUES ${chunk.map((_) => '(${keys.map((_) => '?').join(', ')})').join(', ')}';
+        // customUpdate, not customStatement, so Drift's query streams
+        // rebuild (the same reason as writeFactGroup).
+        await _db.customUpdate(
+          'UPDATE "$tableName" '
+          'SET ${columns.map((c) => '"$c" = NULL').join(', ')} '
+          'WHERE $keyList IN ($placeholders) '
+          'AND (${columns.map((c) => '"$c" IS NOT NULL').join(' OR ')})',
+          variables: [
+            for (final row in chunk)
+              for (final v in row) Variable.withString(v),
+          ],
+          updates: {table},
+          updateKind: UpdateKind.update,
+        );
+      }
+    }
+  }
+
   /// The sync record id of a [parentGatedChildEntities] row, in the shape
   /// SyncService.recordIdForEntity uses (a composite key is joined with
   /// `|`). Mirrored here rather than imported because sync_service.dart
@@ -1739,6 +1851,8 @@ class SyncDataSerializer {
     'equipmentTags': 'equipment_tags',
     'equipmentShares': 'equipment_shares',
     'tripEquipment': 'trip_equipment',
+    'tripHides': 'trip_hides',
+    'siteHides': 'site_hides',
     'equipmentOwnershipEvents': 'equipment_ownership_events',
     'diveDiveTypes': 'dive_dive_types',
     'weightPresetEntries': 'weight_preset_entries',
@@ -2301,6 +2415,22 @@ class SyncDataSerializer {
           pendingChildren,
         ),
       ),
+      tripHides: await _safeExport(
+        'tripHides',
+        () async => _withPendingChildren(
+          'tripHides',
+          await _exportTripHides(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      siteHides: await _safeExport(
+        'siteHides',
+        () async => _withPendingChildren(
+          'siteHides',
+          await _exportSiteHides(hlcSince),
+          pendingChildren,
+        ),
+      ),
       equipmentOwnershipEvents: await _safeExport(
         'equipmentOwnershipEvents',
         () async => _withPendingChildren(
@@ -2811,6 +2941,16 @@ class SyncDataSerializer {
       case 'tripEquipment':
         final row = await (_db.select(
           _db.tripEquipment,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'tripHides':
+        final row = await (_db.select(
+          _db.tripHides,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'siteHides':
+        final row = await (_db.select(
+          _db.siteHides,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'equipmentOwnershipEvents':
@@ -3874,6 +4014,41 @@ class SyncDataSerializer {
         );
   }
 
+  /// Applies one incoming `trip_hides` row (v250, issue #2594). The
+  /// (trip, profile) pair is unique: a peer's copy under another id is
+  /// reconciled to the lower id and then skipped, as
+  /// [_applyTripEquipmentRecord] does.
+  Future<void> _applyTripHideRecord(TripHideRow record) async {
+    await _reconcileJunctionIds(
+      'trip_hides',
+      parentColumn: 'trip_id',
+      childColumn: 'diver_id',
+      pairs: [(parent: record.tripId, child: record.diverId, id: record.id)],
+    );
+    await _db
+        .into(_db.tripHides)
+        .insert(
+          record,
+          onConflict: DoNothing<$TripHidesTable, TripHideRow>(target: const []),
+        );
+  }
+
+  /// As [_applyTripHideRecord], for `site_hides`.
+  Future<void> _applySiteHideRecord(SiteHideRow record) async {
+    await _reconcileJunctionIds(
+      'site_hides',
+      parentColumn: 'site_id',
+      childColumn: 'diver_id',
+      pairs: [(parent: record.siteId, child: record.diverId, id: record.id)],
+    );
+    await _db
+        .into(_db.siteHides)
+        .insert(
+          record,
+          onConflict: DoNothing<$SiteHidesTable, SiteHideRow>(target: const []),
+        );
+  }
+
   /// Applies one incoming record.
   ///
   /// HLC-bearing entities (`entityHasUpdatedAt == true`) apply via
@@ -3897,6 +4072,9 @@ class SyncDataSerializer {
   /// omitted rather than written, preserving a value set by a non-synced direct
   /// write (e.g. the consolidation `computerId` backfill). Do NOT add
   /// `.toCompanion(false)` to a clockless case -- it reintroduces that clobber.
+  /// A parent-gated child's deliberate clear lands afterwards instead, through
+  /// [clearChildColumns]: on the merge only from a copy whose clock is
+  /// strictly newer, on adopt in replay order (#2644).
   Future<void> upsertRecord(
     String entityType,
     Map<String, dynamic> data,
@@ -4317,6 +4495,12 @@ class SyncDataSerializer {
         return;
       case 'tripEquipment':
         await _applyTripEquipmentRecord(TripEquipmentRow.fromJson(data));
+        return;
+      case 'tripHides':
+        await _applyTripHideRecord(TripHideRow.fromJson(data));
+        return;
+      case 'siteHides':
+        await _applySiteHideRecord(SiteHideRow.fromJson(data));
         return;
       case 'equipmentOwnershipEvents':
         await _db
@@ -5506,6 +5690,56 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'tripHides':
+        // DoNothing: see [_applyTripHideRecord].
+        final tripHideRows = _lowestIdPerPair(
+          records.map((r) => TripHideRow.fromJson(r)).toList(),
+          (row) => (parent: row.tripId, child: row.diverId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          'trip_hides',
+          parentColumn: 'trip_id',
+          childColumn: 'diver_id',
+          pairs: [
+            for (final row in tripHideRows)
+              (parent: row.tripId, child: row.diverId, id: row.id),
+          ],
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.tripHides,
+            tripHideRows,
+            onConflict: DoNothing<$TripHidesTable, TripHideRow>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
+      case 'siteHides':
+        // DoNothing: see [_applySiteHideRecord].
+        final siteHideRows = _lowestIdPerPair(
+          records.map((r) => SiteHideRow.fromJson(r)).toList(),
+          (row) => (parent: row.siteId, child: row.diverId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          'site_hides',
+          parentColumn: 'site_id',
+          childColumn: 'diver_id',
+          pairs: [
+            for (final row in siteHideRows)
+              (parent: row.siteId, child: row.diverId, id: row.id),
+          ],
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.siteHides,
+            siteHideRows,
+            onConflict: DoNothing<$SiteHidesTable, SiteHideRow>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
       case 'equipmentOwnershipEvents':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -6041,6 +6275,10 @@ class SyncDataSerializer {
         return plain(_db.equipmentShares, _db.equipmentShares.id);
       case 'tripEquipment':
         return plain(_db.tripEquipment, _db.tripEquipment.id);
+      case 'tripHides':
+        return plain(_db.tripHides, _db.tripHides.id);
+      case 'siteHides':
+        return plain(_db.siteHides, _db.siteHides.id);
       case 'equipmentOwnershipEvents':
         return plain(
           _db.equipmentOwnershipEvents,
@@ -6445,6 +6683,10 @@ class SyncDataSerializer {
         return _db.equipmentShares;
       case 'tripEquipment':
         return _db.tripEquipment;
+      case 'tripHides':
+        return _db.tripHides;
+      case 'siteHides':
+        return _db.siteHides;
       case 'equipmentOwnershipEvents':
         return _db.equipmentOwnershipEvents;
       case 'diveRoles':
@@ -6924,6 +7166,16 @@ class SyncDataSerializer {
       case 'tripEquipment':
         await (_db.delete(
           _db.tripEquipment,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'tripHides':
+        await (_db.delete(
+          _db.tripHides,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'siteHides':
+        await (_db.delete(
+          _db.siteHides,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'equipmentOwnershipEvents':
@@ -8342,6 +8594,46 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  /// Hidden shared trips (v250, issue #2594), gated on the parent trip's
+  /// clock like [_exportTripEquipment]. A hide travels on its own pending
+  /// mark, never by re-stamping the trip.
+  Future<List<Map<String, dynamic>>> _exportTripHides(String? hlcSince) async {
+    if (hlcSince != null) {
+      final trips = await (_db.select(
+        _db.trips,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final tripIds = trips.map((t) => t.id).toSet();
+      if (tripIds.isEmpty) return [];
+      return _childRowsOf(
+        tripIds,
+        (chunk) => (_db.select(
+          _db.tripHides,
+        )..where((t) => t.tripId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.tripHides).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// As [_exportTripHides], for hidden shared sites.
+  Future<List<Map<String, dynamic>>> _exportSiteHides(String? hlcSince) async {
+    if (hlcSince != null) {
+      final sites = await (_db.select(
+        _db.diveSites,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final siteIds = sites.map((s) => s.id).toSet();
+      if (siteIds.isEmpty) return [];
+      return _childRowsOf(
+        siteIds,
+        (chunk) => (_db.select(
+          _db.siteHides,
+        )..where((t) => t.siteId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.siteHides).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   /// Equipment share and ownership events (v234, issue #2046), gated on the
   /// parent item's clock like [_exportEquipmentTags].
   Future<List<Map<String, dynamic>>> _exportEquipmentOwnershipEvents(
@@ -8700,26 +8992,10 @@ class SyncDataSerializer {
       // defaults (e.g. currentDateAndTime) can't be evaluated here and keep
       // today's behavior.
       if (value is bool || value is num || value is String) {
-        fills.add(MapEntry(_jsonKeyForSqlColumn(column.name), () => value));
+        fills.add(MapEntry(columnJsonKey(column.name), () => value));
       }
     }
     return fills;
-  }
-
-  /// Maps a Drift SQL column name (snake_case of the Dart getter) back to the
-  /// getter name, which is the generated `fromJson`/`toJson` key. The project
-  /// has no build.yaml renames and no `named()` overrides, so the mapping is
-  /// mechanical; a wrong key would only add an ignored extra entry, never
-  /// overwrite a real one (fills skip keys already present).
-  static String _jsonKeyForSqlColumn(String sqlName) {
-    final parts = sqlName.split('_');
-    final buffer = StringBuffer(parts.first);
-    for (final part in parts.skip(1)) {
-      if (part.isEmpty) continue;
-      buffer.write(part[0].toUpperCase());
-      buffer.write(part.substring(1));
-    }
-    return buffer.toString();
   }
 
   /// Applies default values for DiverSettings fields that may be missing

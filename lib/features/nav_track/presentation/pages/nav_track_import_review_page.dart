@@ -34,11 +34,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// link proposal once the preview loads (e.g. importing from a dive's own
 /// "Underwater Route" section, where the dive is already known); it does
 /// not skip the parse or the review step.
+///
+/// [preview] is passed by a caller that already parsed the file itself to
+/// report a failed parse in place (the routes area and the dive section);
+/// see [NavTrackImportReviewPage.preview].
 Future<void> navigateToNavTrackReview(
   BuildContext context,
   Uint8List bytes, {
   required String fileName,
   String? preselectedDiveId,
+  NavTrackImportPreview? preview,
 }) {
   return Navigator.of(context).push<void>(
     MaterialPageRoute(
@@ -46,6 +51,7 @@ Future<void> navigateToNavTrackReview(
         bytes: bytes,
         fileName: fileName,
         preselectedDiveId: preselectedDiveId,
+        preview: preview,
       ),
     ),
   );
@@ -57,9 +63,9 @@ Future<void> navigateToNavTrackReview(
 ///
 /// Parsing happens once, in [initState] (against the service's [prepare],
 /// or reused from [preview] when a caller already parsed the file --
-/// the routes area's own import button does this today through
-/// `pendingNavTrackImportProvider`, to show its own error handling around
-/// a failed parse before ever pushing this page); nothing is written until
+/// the routes area's and the dive section's import buttons do this, through
+/// [navigateToNavTrackReview], to show their own error handling around a
+/// failed parse before ever pushing this page); nothing is written until
 /// [_save] calls its `commit`.
 class NavTrackImportReviewPage extends ConsumerStatefulWidget {
   const NavTrackImportReviewPage({
@@ -262,12 +268,13 @@ class _NavTrackImportReviewPageState
       _busy = true;
       _error = null;
     });
+    final String id;
     try {
       final name = _nameController.text.trim();
       // The service stores the new route before it removes the duplicate
       // it replaces, so a failure leaves the original recording in place,
       // and it keeps the dive's primary route on the re-imported one.
-      final id = await ref
+      id = await ref
           .read(navTrackImportServiceProvider)
           .commit(
             parsed: preview.parsed,
@@ -281,22 +288,39 @@ class _NavTrackImportReviewPageState
                 ? preview.duplicateOfRouteId
                 : null,
           );
-      if (!mounted) return;
-      // Literal path: the routes-area detail page lives in another agent's
-      // work on this branch and is not yet guaranteed to exist under this
-      // exact route name at the time this file is written.
-      context.go('/nav-routes/$id');
     } on NavTrackParseException catch (e) {
+      if (!mounted) return;
       setState(() {
         _busy = false;
         _error = navTrackParseErrorText(l10n, e);
       });
+      return;
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _busy = false;
         _error = l10n.navTrack_review_saveError(e.toString());
       });
+      return;
     }
+    if (!mounted) return;
+    // Outside the try: the route is written by now, so nothing below may be
+    // reported as a failed save (and invite a second, duplicate one).
+    //
+    // Every entry point pushes this page imperatively (on the root
+    // navigator from the drop target or share intent, on the shell's
+    // otherwise), so a router `go` can neither remove it nor leave the new
+    // route anything to return to (#2693). Leave this page itself, then
+    // PUSH (not go) so back returns to where the import began (#647).
+    //
+    // The new route lives in the shell, so anything still on the root
+    // navigator above the shell (a page such as Add Buddy that the share
+    // intent interrupted, or a dialog) would cover it; close those too.
+    final router = GoRouter.of(context);
+    final rootNavigator = Navigator.of(context, rootNavigator: true);
+    Navigator.of(context).pop();
+    rootNavigator.popUntil((route) => route.isFirst);
+    router.push('/nav-routes/$id');
   }
 
   @override

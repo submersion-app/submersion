@@ -236,4 +236,14 @@ void main() {
     final q = ParsedQuery.fromJson(sample()..['schemaVersion'] = 1);
     expect(q.subject, ParsedSubject.dives);
   });
+
+  test('version 2 payloads still parse under version 3', () {
+    final q = ParsedQuery.fromJson({
+      'schemaVersion': 2,
+      'subject': 'dives',
+      'clauses': const [],
+    });
+    expect(q.subject, ParsedSubject.dives);
+    expect(kQuerySchemaVersion, 3);
+  });
 }

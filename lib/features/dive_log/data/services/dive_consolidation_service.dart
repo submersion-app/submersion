@@ -113,10 +113,18 @@ class DiveConsolidationService {
       // First consolidation: stamp the target's own children with the
       // primary computer so null stays reserved for manual entries.
       if (targetRow.computerId != null) {
+        // With a fresh clock, like the events below: a peer's newer copy of
+        // the tank, still without a computer, would otherwise clear it
+        // (#2644).
         await (_db.update(_db.diveTanks)..where(
               (t) => t.diveId.equals(targetDiveId) & t.computerId.isNull(),
             ))
-            .write(DiveTanksCompanion(computerId: Value(targetRow.computerId)));
+            .write(
+              DiveTanksCompanion(
+                computerId: Value(targetRow.computerId),
+                hlc: Value(await _sync.issueRowClock()),
+              ),
+            );
         await _tankSeries.stampComputerWhereNull(
           targetDiveId,
           targetRow.computerId!,
@@ -914,6 +922,16 @@ class DiveConsolidationService {
           );
         }
       });
+      // Marked pending like every other restored child, for a fresh clock:
+      // the verbatim rows carry their pre-operation clocks, which a peer
+      // holding a newer copy refuses as stale (#2670).
+      for (final (entityType, recordId) in snapshot.batchRestoredChildKeys) {
+        await _sync.markRecordPending(
+          entityType: entityType,
+          recordId: recordId,
+          localUpdatedAt: now,
+        );
+      }
       // Series restored after the batch above: dataSourceRows and diveTanks
       // (inserted earlier) are the series' FK parents and must be back
       // first.

@@ -9,12 +9,16 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
   switch (key) {
     case 'query_buddies_certifications':
       return l10n.query_buddies_certifications;
+    case 'query_buddies_diveCount':
+      return l10n.query_buddies_diveCount;
     case 'query_buddies_dives':
       return l10n.query_buddies_dives;
     case 'query_buddies_email':
       return l10n.query_buddies_email;
     case 'query_buddies_favorite':
       return l10n.query_buddies_favorite;
+    case 'query_buddies_lastDived':
+      return l10n.query_buddies_lastDived;
     case 'query_buddies_name':
       return l10n.query_buddies_name;
     case 'query_buddies_notes':
@@ -29,8 +33,12 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_centers_coordinates;
     case 'query_centers_country':
       return l10n.query_centers_country;
+    case 'query_centers_diveCount':
+      return l10n.query_centers_diveCount;
     case 'query_centers_dives':
       return l10n.query_centers_dives;
+    case 'query_centers_lastDived':
+      return l10n.query_centers_lastDived;
     case 'query_centers_name':
       return l10n.query_centers_name;
     case 'query_centers_notes':
@@ -317,12 +325,18 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_equipment_attributes;
     case 'query_equipment_brand':
       return l10n.query_equipment_brand;
+    case 'query_equipment_diveCount':
+      return l10n.query_equipment_diveCount;
     case 'query_equipment_dives':
       return l10n.query_equipment_dives;
+    case 'query_equipment_lastDived':
+      return l10n.query_equipment_lastDived;
     case 'query_equipment_model':
       return l10n.query_equipment_model;
     case 'query_equipment_name':
       return l10n.query_equipment_name;
+    case 'query_equipment_nextServiceDue':
+      return l10n.query_equipment_nextServiceDue;
     case 'query_equipment_serialNumber':
       return l10n.query_equipment_serialNumber;
     case 'query_equipment_serviceDue':
@@ -445,10 +459,14 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_sites_country;
     case 'query_sites_difficulty':
       return l10n.query_sites_difficulty;
+    case 'query_sites_diveCount':
+      return l10n.query_sites_diveCount;
     case 'query_sites_dives':
       return l10n.query_sites_dives;
     case 'query_sites_island':
       return l10n.query_sites_island;
+    case 'query_sites_lastDived':
+      return l10n.query_sites_lastDived;
     case 'query_sites_maxDepth':
       return l10n.query_sites_maxDepth;
     case 'query_sites_name':
@@ -469,10 +487,16 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_species_category;
     case 'query_species_description':
       return l10n.query_species_description;
+    case 'query_species_diveCount':
+      return l10n.query_species_diveCount;
     case 'query_species_dives':
       return l10n.query_species_dives;
     case 'query_species_expectedSites':
       return l10n.query_species_expectedSites;
+    case 'query_species_firstSeen':
+      return l10n.query_species_firstSeen;
+    case 'query_species_lastSeen':
+      return l10n.query_species_lastSeen;
     case 'query_species_name':
       return l10n.query_species_name;
     case 'query_species_scientificName':
@@ -497,6 +521,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_tanks_startPressure;
     case 'query_tanks_volume':
       return l10n.query_tanks_volume;
+    case 'query_trips_diveCount':
+      return l10n.query_trips_diveCount;
     case 'query_trips_dives':
       return l10n.query_trips_dives;
     case 'query_trips_endDate':
