@@ -7,7 +7,9 @@ import 'package:submersion/core/utils/number_display.dart';
 String formatGasPercent(double value) => '${formatGasPercentValue(value)}%';
 
 /// [formatGasPercent] without the sign, for a mix whose two gases share
-/// one ("18.5/45%").
-String formatGasPercentValue(double value) => value == value.roundToDouble()
+/// one ("18.5/45%"). A non-finite value renders as text rather than
+/// throwing: `round()` cannot convert infinity to an int.
+String formatGasPercentValue(double value) =>
+    value.isFinite && value == value.roundToDouble()
     ? '${value.round()}'
     : formatFixedForDisplay(value, 1);

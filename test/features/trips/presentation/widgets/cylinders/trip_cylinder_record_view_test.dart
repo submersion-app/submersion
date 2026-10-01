@@ -93,6 +93,7 @@ void main() {
     WidgetTester tester,
     TripGasRecord record, {
     Locale locale = const Locale('en'),
+    TripGasRecord Function()? current,
   }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
@@ -119,7 +120,9 @@ void main() {
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          tripGasRecordProvider('t1').overrideWith((ref) async => record),
+          tripGasRecordProvider(
+            't1',
+          ).overrideWith((ref) async => current?.call() ?? record),
         ],
         child: MaterialApp.router(
           locale: locale,
@@ -208,7 +211,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.descendant(of: r, matching: find.textContaining('Analyzed')),
+      find.descendant(of: r, matching: find.textContaining('Analyzed 31.8%')),
       findsOneWidget,
     );
     expect(
@@ -325,6 +328,43 @@ void main() {
     await tester.tap(find.textContaining('Klein Bonaire'));
     await tester.pumpAndSettle();
     expect(find.text('EDIT DIVE'), findsOneWidget);
+  });
+
+  testWidgets('the open gaps sheet follows the record', (tester) async {
+    // A diver renamed while the sheet is open shows the new name there too
+    // (issue #2666): the sheet reads the record, not a copy of it.
+    TripUnlinkedTank gap(String diverName) => TripUnlinkedTank(
+      tankId: 'n1',
+      diveId: 'd7',
+      entryTime: at,
+      diverId: 'x',
+      diverName: diverName,
+      siteName: 'Klein Bonaire',
+      tankOrder: 1,
+    );
+    var record = recordOf(unlinked: [gap('Ana')], multipleDivers: true);
+    await pump(tester, record, current: () => record);
+    await tester.tap(find.byKey(const Key('record-gaps')));
+    await tester.pumpAndSettle();
+    final sheet = find.byType(BottomSheet);
+    expect(
+      find.descendant(
+        of: sheet,
+        matching: find.text('Mar 9, 2026 at 9:05 AM · Klein Bonaire · Ana'),
+      ),
+      findsOneWidget,
+    );
+
+    record = recordOf(unlinked: [gap('Ana Silva')], multipleDivers: true);
+    ProviderScope.containerOf(
+      tester.element(find.byType(TripCylinderRecordView)),
+    ).invalidate(tripGasRecordProvider('t1'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(of: sheet, matching: find.textContaining('Ana Silva')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('no gaps, no gaps line; no rows, the empty text', (tester) async {
