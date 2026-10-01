@@ -530,6 +530,12 @@ extension BeforeOpenBackstops on AppDatabase {
     // gets the column on this open too.
     await _assertTankSeriesSourceIdColumn();
 
+    // v251 backstop: re-assert dive_tanks.source_id (#2716; same
+    // parallel-branch version-collision self-heal). Column only; the
+    // backfill stays in the rung, and a tank with no source resolves to the
+    // dive's primary source, as before the column.
+    await _assertDiveTankSourceIdColumn();
+
     // v186 backstop: re-assert pre_dive_checklist_template_items.
     // equipment_id (same parallel-branch version-collision self-heal).
     // Safe to re-run on every open: the helper is column-only with no

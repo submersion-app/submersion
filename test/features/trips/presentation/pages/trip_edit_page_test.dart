@@ -720,6 +720,7 @@ void main() {
     Future<SwitchListTile> shareSwitch(
       WidgetTester tester, {
       required String active,
+      bool profileUnreadable = false,
     }) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -731,7 +732,10 @@ void main() {
               return _MockTripListNotifier([]);
             }),
             allDiversProvider.overrideWith((_) async => twoDivers),
-            validatedCurrentDiverIdProvider.overrideWith((_) async => active),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (_) async =>
+                  profileUnreadable ? throw StateError('no profile') : active,
+            ),
             shareByDefaultProvider.overrideWith((_) async => true),
           ],
           child: const MaterialApp(
@@ -765,6 +769,18 @@ void main() {
       final tile = await shareSwitch(tester, active: 'd2');
       expect(tile.onChanged, isNull);
       expect(find.text('Only Alice can change sharing'), findsOneWidget);
+    });
+
+    // Read as "no profile", the switch unlocked for another profile's trip
+    // (issue #2682). Ownership is unknown, not refused, so no owner line.
+    testWidgets('is locked while the profile cannot be read', (tester) async {
+      final tile = await shareSwitch(
+        tester,
+        active: 'd2',
+        profileUnreadable: true,
+      );
+      expect(tile.onChanged, isNull);
+      expect(find.text('Only Alice can change sharing'), findsNothing);
     });
 
     testWidgets('stays open for the owner', (tester) async {

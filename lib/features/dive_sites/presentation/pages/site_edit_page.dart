@@ -1143,6 +1143,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 .maybeWhen(data: (d) => d.length >= 2, orElse: () => false),
             isShared: _isShared,
             onShareChanged: _onShareToggled,
+            shareLocked: _mayShare() != true,
             shareLockedReason: _shareLockedReason(),
           ),
         ],
@@ -1169,8 +1170,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         if (widget.isEditing && (!widget.embedded || widget.onDeleted != null))
           // Delete for the owner; another profile only removes the shared
           // site from itself (issue #2594), or unhides it once it has
-          // (issue #2679).
-          if (_shareLockedReason() == null)
+          // (issue #2679); none of these while the profile is unknown
+          // (issue #2682).
+          if (_mayShare() == true)
             IconButton(
               icon: const Icon(Icons.delete),
               tooltip: context.l10n.diveSites_edit_appBar_deleteSiteTooltip,
@@ -1180,7 +1182,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             ref,
             SharedItemKind.site,
             widget.siteId!,
-            canDestroy: false,
+            canDestroy: _mayShare() != false,
           ))
             IconButton(
               icon: const Icon(Icons.visibility_outlined),
@@ -1189,7 +1191,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                   .read(siteListNotifierProvider.notifier)
                   .unhideSites([widget.siteId!]),
             )
-          else
+          else if (_mayShare() == false)
             IconButton(
               icon: const Icon(Icons.visibility_off_outlined),
               tooltip: context.l10n.sharedItems_removeAction,
@@ -1200,18 +1202,23 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
   }
 
-  /// Why the Share switch is locked: another profile owns the site (issue
-  /// #2594). Null when the active profile may change sharing. Read during
-  /// build, so it watches the active profile.
-  String? _shareLockedReason() {
-    if (!widget.isEditing && !widget.isMerging) return null;
-    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
-    if (canDestroySharedItem(
+  /// Whether the active profile may change this site's sharing (and so
+  /// delete it): always for a new site, and only the owner for an existing
+  /// one (issue #2594); null while the profile is unknown (issue #2682).
+  /// Read during build, so it watches the active profile.
+  bool? _mayShare() {
+    if (!widget.isEditing && !widget.isMerging) return true;
+    return canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
       ownerId: _originalSite?.diverId,
-      activeDiverId: activeDiverId,
-    )) {
-      return null;
-    }
+    );
+  }
+
+  /// Why the Share switch is locked: another profile owns the site (issue
+  /// #2594). Null when the active profile may change sharing, and while the
+  /// profile is unknown, which locks it without naming an owner.
+  String? _shareLockedReason() {
+    if (_mayShare() != false) return null;
     final divers = ref.watch(allDiversProvider).value ?? const [];
     return context.l10n.sharedItems_shareOwnerOnly(
       sharedItemOwnerName(divers, _originalSite?.diverId, context.l10n),

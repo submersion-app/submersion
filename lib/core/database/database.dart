@@ -1024,11 +1024,16 @@ class AppDatabase extends _$AppDatabase {
     // floor does not move. #2562 and #2409 held stale claims below 249
     // when this was taken.
     250,
+    // v251: dive_tanks.source_id (issue #2716), the data source a tank row
+    // came from, so two computer-less sources' copies of one cylinder come
+    // apart; backfilled where unambiguous. Additive nullable column, so the
+    // floor stays at 240. 250 is trip_hides and site_hides (#2594).
+    251,
     // v253: dive_safety_reviews.inputs_hash, the settings a review was
     // computed from (issue #2592). An additive nullable column, so the floor
     // does not move: the receiving overlay keeps it when an older peer's
-    // payload omits it. 251 and 252 are claimed by open PRs #2721/#2562 and
-    // #2703.
+    // payload omits it. 251 is dive_tanks.source_id (#2716); 252 is claimed by
+    // open PR #2703.
     253,
   ];
 

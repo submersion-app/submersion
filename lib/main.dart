@@ -20,6 +20,8 @@ import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_attribution.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_detector_toggles.dart';
 import 'package:submersion/features/media/data/network_cache_config.dart';
+import 'package:submersion/shared/services/incoming_share.dart';
+import 'package:submersion/shared/services/navigation_ready_gate.dart';
 
 // main() and the _bootstrap signature are untestable startup wiring (they
 // never run under test); the zone-error logging is unit-tested via
@@ -157,6 +159,11 @@ Future<void> _bootstrap() async {
 /// disposing all providers and re-fetching from the current database.
 final _restartKey = ValueNotifier<Key>(UniqueKey());
 
+/// The share gate for the life of the process. A share still waiting for the
+/// app to be able to open it (during setup, say) outlives the ProviderScope
+/// that [restartApp] replaces, and the new app root opens it (#2690).
+final _incomingShares = NavigationReadyGate<IncomingShare>();
+
 /// Trigger a soft restart by rebuilding the entire ProviderScope.
 /// Call this after a database restore to refresh all cached data.
 void restartApp() {
@@ -183,6 +190,7 @@ class SubmersionRestart extends StatelessWidget {
           overrides: rootProviderOverrides(
             prefs: prefs,
             logFileService: logFileService,
+            incomingShares: _incomingShares,
           ).cast(),
           child: const SubmersionApp(),
         );

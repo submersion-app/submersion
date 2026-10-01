@@ -3217,6 +3217,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         : ref
               .watch(tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId)))
               .value;
+    // The dive's primary source, which a tank with no computer and no
+    // other source of its own belongs to (issue #2716). Read for every
+    // saved dive, so it is loaded before the diver links a first tank: a
+    // read that started only then would leave the first picks without it.
+    final diveId = widget.diveId;
+    final primarySourceId = diveId == null
+        ? null
+        : ref
+              .watch(diveDataSourcesProvider(diveId))
+              .value
+              ?.where((s) => s.isPrimary)
+              .firstOrNull
+              ?.id;
     return GasGearSection(
       expanded: _isExpanded('gasGear', defaultValue: defaultExpanded),
       onToggle: () => _toggleSection('gasGear', defaultValue: defaultExpanded),
@@ -3259,6 +3272,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               _tanks[i],
               _tanks,
               primaryComputerId: _existingDive?.computerId,
+              primarySourceId: primarySourceId,
             ),
             suggested: _suggestedTankIds.contains(_tanks[i].id),
             onChanged: (updatedTank) {

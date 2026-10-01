@@ -5,11 +5,12 @@ import 'package:submersion/core/database/database.dart';
 
 /// Schema v253: dive_safety_reviews.inputs_hash, the fingerprint of the diver
 /// settings a safety review was computed from (issue #2592). Column only, no
-/// backfill: a review without one is recomputed on next view. 251 and 252
-/// are claimed by open PRs. The sync floor does not move: the column is
+/// backfill: a review without one is recomputed on next view. 251 is
+/// dive_tanks.source_id (#2716); 252 is claimed by an open PR. The sync floor does not move: the column is
 /// nullable, and the receiving overlay keeps it when an older peer omits it.
 void main() {
-  /// A v250 database whose safety review table predates the column.
+  /// A database at [userVersion] (251 or later, so no earlier rung runs)
+  /// whose safety review table predates the column.
   NativeDatabase strandedAt(int userVersion) => NativeDatabase.memory(
     setup: (rawDb) {
       rawDb.execute('PRAGMA user_version = $userVersion');
@@ -39,7 +40,9 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 253);
     expect(AppDatabase.migrationVersions, contains(253));
-    expect(AppDatabase.migrationStepCount(250), 1);
+    expect(AppDatabase.migrationStepCount(251), 1);
+    // 251 (dive_tanks.source_id, #2716) sits below this rung.
+    expect(AppDatabase.migrationStepCount(250), 2);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
@@ -49,9 +52,9 @@ void main() {
     expect(await columnsOf(db, 'dive_safety_reviews'), contains('inputs_hash'));
   });
 
-  test('upgrading from v250 adds the column; an existing review has none, '
+  test('upgrading from v251 adds the column; an existing review has none, '
       'so it recomputes on next view', () async {
-    final db = AppDatabase(strandedAt(250));
+    final db = AppDatabase(strandedAt(251));
     addTearDown(db.close);
     expect(await columnsOf(db, 'dive_safety_reviews'), contains('inputs_hash'));
     final row = await db

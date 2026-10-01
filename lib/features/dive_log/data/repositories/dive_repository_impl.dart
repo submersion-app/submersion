@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.da
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample_point.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
@@ -3829,6 +3830,7 @@ class DiveRepository {
               presetName: t.presetName,
               computerId: t.computerId,
               transmitterSerial: t.transmitterSerial,
+              sourceId: t.sourceId,
               regulatorEquipmentId: t.regulatorEquipmentId,
               tripCylinderId: t.tripCylinderId,
               equipmentId: t.equipmentId,
@@ -4262,6 +4264,7 @@ class DiveRepository {
           presetName: t.presetName,
           computerId: t.computerId,
           transmitterSerial: t.transmitterSerial,
+          sourceId: t.sourceId,
           regulatorEquipmentId: t.regulatorEquipmentId,
           tripCylinderId: t.tripCylinderId,
           equipmentId: t.equipmentId,
@@ -6546,6 +6549,7 @@ class DiveRepository {
     int order, {
     bool withLink = false,
     Set<String> validSlots = const {},
+    Set<String> validSources = const {},
   }) => DiveTanksCompanion(
     id: Value(id),
     diveId: Value(diveId),
@@ -6573,6 +6577,12 @@ class DiveRepository {
     // template copied from a linked tank must not stamp that cylinder onto
     // every dive it lands on, so only a restore writes it.
     equipmentId: withLink ? Value(t.equipmentId) : const Value.absent(),
+    // The data source the row came from (v251, issue #2716): written by the
+    // import and download paths, so a template never carries one, and a
+    // restore puts back only a source the dive still has.
+    sourceId: withLink
+        ? Value(validSources.contains(t.sourceId) ? t.sourceId : null)
+        : const Value.absent(),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).
@@ -6765,6 +6775,16 @@ class DiveRepository {
       final validSlots = restoreLinks
           ? await _tripCylinderIdsForDive(diveId)
           : const <String>{};
+      // Likewise a restored source link (v251), whose source may have been
+      // deleted since.
+      final validSources = restoreLinks
+          ? {
+              for (final s in await (_db.select(
+                _db.diveDataSources,
+              )..where((s) => s.diveId.equals(diveId))).get())
+                s.id,
+            }
+          : const <String>{};
       final existing = await (_db.select(
         _db.diveTanks,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -6789,6 +6809,7 @@ class DiveRepository {
                 i,
                 withLink: restoreLinks,
                 validSlots: validSlots,
+                validSources: validSources,
               ),
             );
         await _syncRepository.markRecordPending(
@@ -7366,6 +7387,7 @@ class DiveRepository {
     try {
       await _db.into(_db.diveDataSources).insert(reading);
       await _adoptUnattributedProfiles(reading);
+      await _attributeTanksTo(reading);
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
@@ -7403,6 +7425,17 @@ class DiveRepository {
       // real outcome rather than a half-written dive.
       for (final reading in readings) {
         await _adoptUnattributedProfiles(reading);
+      }
+      for (final diveId in {
+        for (final r in readings)
+          if (r.diveId.present) r.diveId.value,
+      }) {
+        await attributeTankSources(
+          _db,
+          _syncRepository,
+          diveId,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
       }
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
@@ -7517,6 +7550,21 @@ class DiveRepository {
     await _profileSeries.adoptUnattributed(diveId, reading.id.value);
   }
 
+  /// Attribute the dive's unattributed tanks once [reading] exists (v251,
+  /// issue #2716): an import writes its tanks before its source row, like
+  /// its profile series. [attributeTankSources] only stamps a tank whose
+  /// source is unambiguous, so a second source on the dive claims only the
+  /// tanks of its own computer.
+  Future<void> _attributeTanksTo(DiveDataSourcesCompanion reading) async {
+    if (!reading.diveId.present) return;
+    await attributeTankSources(
+      _db,
+      _syncRepository,
+      reading.diveId.value,
+      now: DateTime.now().millisecondsSinceEpoch,
+    );
+  }
+
   /// Delete a computer reading snapshot by its ID.
   Future<void> deleteComputerReading(String id) async {
     try {
@@ -7530,6 +7578,13 @@ class DiveRepository {
       // that gave up an attribution the source row still claims.
       await _db.transaction(() async {
         await _profileSeries.clearSource(id);
+        // The tanks' twin of that (v251, issue #2716).
+        await clearTankSourceLinks(
+          _db,
+          _syncRepository,
+          (t) => t.sourceId.equals(id),
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         await (_db.delete(
           _db.diveDataSources,
         )..where((t) => t.id.equals(id))).go();
