@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
 import 'package:submersion/shared/services/shared_file_unreadable_exception.dart';
 
@@ -147,6 +149,30 @@ void main() {
 
         expect(received, isFalse);
         expect(error, isNull);
+      });
+
+      test('logs a skipped text share by type, never by content', () async {
+        final captured = <LogEntry>[];
+        final sub = LoggerService.logStream.listen(captured.add);
+        addTearDown(sub.cancel);
+        final handler = FileShareHandler(
+          onFileReceived: (bytes, name) async {},
+        );
+
+        await handler.handleMediaFiles([
+          SharedMediaFile(
+            path: 'meet at the dock',
+            type: SharedMediaType.text,
+            mimeType: 'text/plain',
+          ),
+        ]);
+        await pumpEventQueue();
+
+        // A file whose URI the plugin could not resolve also arrives as text,
+        // so the skip leaves a trace, without the possibly private text.
+        final lines = captured.map((e) => e.message).toList();
+        expect(lines.where((m) => m.contains('text/plain')), isNotEmpty);
+        expect(lines.where((m) => m.contains('meet at the dock')), isEmpty);
       });
 
       test('counts only the files of a share that also carries text', () async {
