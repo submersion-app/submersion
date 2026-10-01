@@ -24158,6 +24158,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_detail_dives_errorLoading => '无法加载潜水记录';
 
   @override
+  String get trips_detail_error_loading => '无法加载旅行。';
+
+  @override
   String get trips_detail_dives_unknownSite => '未知潜水点';
 
   @override
@@ -24612,6 +24615,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String trips_search_noResults(Object query) {
     return '未找到「$query」的旅行';
   }
+
+  @override
+  String get trips_search_error => '无法搜索旅行。';
 
   @override
   String get trips_search_tooltip_back => '返回';
@@ -25309,6 +25315,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_itinerary_noDives => '无潜水';
+
+  @override
+  String get trips_itinerary_error_loading => '无法加载行程。';
+
+  @override
+  String get trips_itinerary_daySaveError => '无法保存日程，请重试。';
 
   @override
   String get trips_vesselType_catamaran => '双体船';

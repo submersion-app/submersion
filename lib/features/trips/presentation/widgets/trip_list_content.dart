@@ -1185,8 +1185,8 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) =>
-              Center(child: Text('${context.l10n.common_label_error}: $error')),
+          // The repository logs the failure; the diver gets a plain line.
+          error: (_, _) => Center(child: Text(context.l10n.trips_search_error)),
         );
       },
     );

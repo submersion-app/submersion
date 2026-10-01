@@ -25129,6 +25129,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_detail_dives_errorLoading => 'تعذر تحميل الغوصات';
 
   @override
+  String get trips_detail_error_loading => 'تعذّر تحميل الرحلة.';
+
+  @override
   String get trips_detail_dives_unknownSite => 'موقع غوص غير معروف';
 
   @override
@@ -25593,6 +25596,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String trips_search_noResults(Object query) {
     return 'لم يتم العثور على رحلات لـ \"$query\"';
   }
+
+  @override
+  String get trips_search_error => 'تعذّر البحث في رحلاتك.';
 
   @override
   String get trips_search_tooltip_back => 'رجوع';
@@ -26329,6 +26335,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_itinerary_noDives => 'No dives';
+
+  @override
+  String get trips_itinerary_error_loading => 'تعذّر تحميل برنامج الرحلة.';
+
+  @override
+  String get trips_itinerary_daySaveError => 'تعذّر حفظ اليوم. حاول مرة أخرى.';
 
   @override
   String get trips_vesselType_catamaran => 'Catamaran';

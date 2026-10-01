@@ -37,12 +37,13 @@ class TripItineraryTab extends ConsumerWidget {
       data: (days) => divesAsync.when(
         data: (dives) => _buildTimeline(context, ref, days, dives),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) =>
-            Center(child: Text('${context.l10n.common_label_error}: $e')),
+        // The repositories log the failure; the diver gets a plain line.
+        error: (_, _) =>
+            Center(child: Text(context.l10n.trips_itinerary_error_loading)),
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) =>
-          Center(child: Text('${context.l10n.common_label_error}: $e')),
+      error: (_, _) =>
+          Center(child: Text(context.l10n.trips_itinerary_error_loading)),
     );
   }
 

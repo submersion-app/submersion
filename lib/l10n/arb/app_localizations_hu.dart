@@ -25376,6 +25376,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült a merülések betöltése';
 
   @override
+  String get trips_detail_error_loading => 'Nem sikerült betölteni az utat.';
+
+  @override
   String get trips_detail_dives_unknownSite => 'Ismeretlen merülőhely';
 
   @override
@@ -25850,6 +25853,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String trips_search_noResults(Object query) {
     return 'Nem található út a következőre: \"$query\"';
   }
+
+  @override
+  String get trips_search_error => 'Nem sikerült keresni az utaid között.';
 
   @override
   String get trips_search_tooltip_back => 'Vissza';
@@ -26578,6 +26584,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_itinerary_noDives => 'No dives';
+
+  @override
+  String get trips_itinerary_error_loading =>
+      'Nem sikerült betölteni az útitervet.';
+
+  @override
+  String get trips_itinerary_daySaveError =>
+      'Nem sikerült menteni a napot. Próbáld újra.';
 
   @override
   String get trips_vesselType_catamaran => 'Catamaran';

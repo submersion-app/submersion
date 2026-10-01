@@ -25468,6 +25468,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudieron cargar las inmersiones';
 
   @override
+  String get trips_detail_error_loading => 'No se pudo cargar el viaje.';
+
+  @override
   String get trips_detail_dives_unknownSite => 'Punto desconocido';
 
   @override
@@ -25947,6 +25950,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String trips_search_noResults(Object query) {
     return 'No se encontraron viajes para \"$query\"';
   }
+
+  @override
+  String get trips_search_error => 'No se pudieron buscar tus viajes.';
 
   @override
   String get trips_search_tooltip_back => 'Atrás';
@@ -26677,6 +26683,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_itinerary_noDives => 'No dives';
+
+  @override
+  String get trips_itinerary_error_loading =>
+      'No se pudo cargar el itinerario.';
+
+  @override
+  String get trips_itinerary_daySaveError =>
+      'No se pudo guardar el día. Inténtalo de nuevo.';
 
   @override
   String get trips_vesselType_catamaran => 'Catamaran';

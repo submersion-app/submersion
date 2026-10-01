@@ -40492,6 +40492,12 @@ abstract class AppLocalizations {
   /// **'Unable to load dives'**
   String get trips_detail_dives_errorLoading;
 
+  /// No description provided for @trips_detail_error_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the trip.'**
+  String get trips_detail_error_loading;
+
   /// No description provided for @trips_detail_dives_unknownSite.
   ///
   /// In en, this message translates to:
@@ -41301,6 +41307,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No trips found for \"{query}\"'**
   String trips_search_noResults(Object query);
+
+  /// No description provided for @trips_search_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t search your trips.'**
+  String get trips_search_error;
 
   /// No description provided for @trips_search_tooltip_back.
   ///
@@ -42413,6 +42425,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No dives'**
   String get trips_itinerary_noDives;
+
+  /// No description provided for @trips_itinerary_error_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the itinerary.'**
+  String get trips_itinerary_error_loading;
+
+  /// No description provided for @trips_itinerary_daySaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the day. Try again.'**
+  String get trips_itinerary_daySaveError;
 
   /// No description provided for @trips_vesselType_catamaran.
   ///

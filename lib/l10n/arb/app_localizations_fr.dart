@@ -25544,6 +25544,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de charger les plongées';
 
   @override
+  String get trips_detail_error_loading => 'Impossible de charger le voyage.';
+
+  @override
   String get trips_detail_dives_unknownSite => 'Site inconnu';
 
   @override
@@ -26022,6 +26025,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String trips_search_noResults(Object query) {
     return 'Aucun voyage trouvé pour \"$query\"';
   }
+
+  @override
+  String get trips_search_error => 'Impossible de rechercher dans vos voyages.';
 
   @override
   String get trips_search_tooltip_back => 'Retour';
@@ -26750,6 +26756,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trips_itinerary_noDives => 'No dives';
+
+  @override
+  String get trips_itinerary_error_loading =>
+      'Impossible de charger l\'itinéraire.';
+
+  @override
+  String get trips_itinerary_daySaveError =>
+      'Impossible d\'enregistrer la journée. Réessayez.';
 
   @override
   String get trips_vesselType_catamaran => 'Catamaran';

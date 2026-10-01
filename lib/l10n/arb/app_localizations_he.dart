@@ -24838,6 +24838,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_detail_dives_errorLoading => 'לא ניתן לטעון צלילות';
 
   @override
+  String get trips_detail_error_loading => 'לא ניתן לטעון את הטיול.';
+
+  @override
   String get trips_detail_dives_unknownSite => 'אתר לא ידוע';
 
   @override
@@ -25302,6 +25305,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String trips_search_noResults(Object query) {
     return 'לא נמצאו טיולים עבור \"$query\"';
   }
+
+  @override
+  String get trips_search_error => 'לא ניתן לחפש בטיולים.';
 
   @override
   String get trips_search_tooltip_back => 'חזרה';
@@ -26023,6 +26029,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_itinerary_noDives => 'No dives';
+
+  @override
+  String get trips_itinerary_error_loading => 'לא ניתן לטעון את המסלול.';
+
+  @override
+  String get trips_itinerary_daySaveError => 'לא ניתן לשמור את היום. נסו שוב.';
 
   @override
   String get trips_vesselType_catamaran => 'Catamaran';

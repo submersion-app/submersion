@@ -80,32 +80,37 @@ class TripRepository {
 
   /// Search trips by name or location
   Future<List<domain.Trip>> searchTrips(String query, {String? diverId}) async {
-    final searchTerm = '%${query.toLowerCase()}%';
-    final vis = VisibilityFilter.sqlFragment(
-      tableAlias: 'trips',
-      diverId: diverId,
-      conjunction: 'AND',
-      kind: SharedItemKind.trip,
-    );
-    final variables = [
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-      Variable.withString(searchTerm),
-      ...vis.variables,
-    ];
+    try {
+      final searchTerm = '%${query.toLowerCase()}%';
+      final vis = VisibilityFilter.sqlFragment(
+        tableAlias: 'trips',
+        diverId: diverId,
+        conjunction: 'AND',
+        kind: SharedItemKind.trip,
+      );
+      final variables = [
+        Variable.withString(searchTerm),
+        Variable.withString(searchTerm),
+        Variable.withString(searchTerm),
+        Variable.withString(searchTerm),
+        ...vis.variables,
+      ];
 
-    final results = await _db.customSelect('''
-      SELECT * FROM trips
-      WHERE (LOWER(name) LIKE ?
-         OR LOWER(location) LIKE ?
-         OR LOWER(resort_name) LIKE ?
-         OR LOWER(liveaboard_name) LIKE ?)
-      ${vis.whereClause}
-      ORDER BY start_date DESC
-    ''', variables: variables).get();
+      final results = await _db.customSelect('''
+        SELECT * FROM trips
+        WHERE (LOWER(name) LIKE ?
+           OR LOWER(location) LIKE ?
+           OR LOWER(resort_name) LIKE ?
+           OR LOWER(liveaboard_name) LIKE ?)
+        ${vis.whereClause}
+        ORDER BY start_date DESC
+      ''', variables: variables).get();
 
-    return results.map((row) => _mapDataToTrip(row.data)).toList();
+      return results.map((row) => _mapDataToTrip(row.data)).toList();
+    } catch (e, stackTrace) {
+      _log.error('Failed to search trips', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
   }
 
   /// Create a new trip
@@ -656,16 +661,26 @@ class TripRepository {
       Variable.withString(tripId),
       if (diverId != null) Variable.withString(diverId),
     ];
-    final statsResult = await _db.customSelect('''
-      SELECT
-        COUNT(*) as dive_count,
-        COALESCE(SUM(COALESCE(runtime, bottom_time)), 0) as total_runtime,
-        MAX(max_depth) as max_depth,
-        AVG(max_depth) as avg_depth
-      FROM dives
-      WHERE trip_id = ?
-      $diverClause${DiveStatsScope.and(alias: 'dives')}
-    ''', variables: variables).getSingle();
+    final QueryRow statsResult;
+    try {
+      statsResult = await _db.customSelect('''
+        SELECT
+          COUNT(*) as dive_count,
+          COALESCE(SUM(COALESCE(runtime, bottom_time)), 0) as total_runtime,
+          MAX(max_depth) as max_depth,
+          AVG(max_depth) as avg_depth
+        FROM dives
+        WHERE trip_id = ?
+        $diverClause${DiveStatsScope.and(alias: 'dives')}
+      ''', variables: variables).getSingle();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get stats for trip: $tripId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
 
     return domain.TripWithStats(
       trip: trip,

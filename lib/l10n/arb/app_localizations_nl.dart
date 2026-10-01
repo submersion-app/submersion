@@ -25260,6 +25260,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_detail_dives_errorLoading => 'Kan duiken niet laden';
 
   @override
+  String get trips_detail_error_loading => 'Kan de reis niet laden.';
+
+  @override
   String get trips_detail_dives_unknownSite => 'Onbekende duikstek';
 
   @override
@@ -25734,6 +25737,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String trips_search_noResults(Object query) {
     return 'Geen reizen gevonden voor \"$query\"';
   }
+
+  @override
+  String get trips_search_error => 'Kan je reizen niet doorzoeken.';
 
   @override
   String get trips_search_tooltip_back => 'Terug';
@@ -26462,6 +26468,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_itinerary_noDives => 'No dives';
+
+  @override
+  String get trips_itinerary_error_loading => 'Kan het reisschema niet laden.';
+
+  @override
+  String get trips_itinerary_daySaveError =>
+      'Kan de dag niet opslaan. Probeer het opnieuw.';
 
   @override
   String get trips_vesselType_catamaran => 'Catamaran';

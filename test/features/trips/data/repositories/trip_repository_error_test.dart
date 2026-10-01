@@ -41,6 +41,9 @@ void main() {
       // getAllTripsWithStats - rethrows
       await expectLater(repository.getAllTripsWithStats(), throwsA(anything));
 
+      // searchTrips - rethrows
+      await expectLater(repository.searchTrips('reef'), throwsA(anything));
+
       // getDiveIdsForTrip - rethrows
       await expectLater(repository.getDiveIdsForTrip('t1'), throwsA(anything));
 
