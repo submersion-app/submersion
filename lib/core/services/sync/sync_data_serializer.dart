@@ -2539,21 +2539,24 @@ class SyncDataSerializer {
   /// [applyInDeferredFkTransaction] so COMMIT sees a consistent graph. Loops
   /// because deleting an orphan can in turn dangle its own children.
   ///
-  /// Every apply path ends here, so it then re-derives the one value a peer's
-  /// row may not carry: a linked route's owner (see
-  /// [_alignLinkedRouteOwners]).
+  /// Every batch apply path ends here, so it then re-derives the one value a
+  /// peer's row may not carry: a linked route's owner (see
+  /// [alignLinkedRouteOwners]).
   Future<void> repairDanglingForeignKeys() async {
     await _repairDanglingReferences();
-    await _alignLinkedRouteOwners();
+    await alignLinkedRouteOwners();
   }
 
   /// A linked route belongs to its dive's diver (v252). A peer below v252,
   /// still inside the compatibility floor, sends `navTracks` rows without
-  /// `diverId`, so its link would land ownerless and show to every diver.
-  /// Runs after the FK repair, so a route whose dive was just deleted is
-  /// already unlinked and keeps its owner. Not marked pending: every device
-  /// derives the same owner from the same synced dive.
-  Future<void> _alignLinkedRouteOwners() async {
+  /// `diverId`, so its link would land ownerless (or keep a stale local
+  /// owner) and show to the wrong divers. Called by
+  /// [repairDanglingForeignKeys] after the FK repair, so a route whose dive
+  /// was just deleted is already unlinked and keeps its owner, and directly
+  /// by the conflict resolution's single-record writes, which skip that
+  /// repair. Not marked pending: every device derives the same owner from
+  /// the same synced dive.
+  Future<void> alignLinkedRouteOwners() async {
     await _db.customStatement('''
       UPDATE nav_tracks
       SET diver_id = (
