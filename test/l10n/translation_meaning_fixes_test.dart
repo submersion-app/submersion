@@ -47,25 +47,38 @@ void main() {
         expect(l10n.transfer_export_aboutContent, contains('Excel'));
         expect(
           l10n.transfer_export_aboutContent,
-          contains(l10n.settings_data_backup),
+          contains(
+            '${l10n.settings_appBar_title} > ${l10n.settings_data_backup}',
+          ),
         );
       });
 
       test('$locale weight presets empty state mentions the + button', () {
         expect(l10nFor(locale).weightPresets_page_empty, contains('+'));
       });
-
-      test('$locale decompression subtitle lists GF and narcosis', () {
-        final l10n = l10nFor(locale);
-        final subtitle = l10n.settings_section_decompression_subtitle;
-        // Chinese spells the abbreviation out as 梯度因子.
-        expect(subtitle, contains(locale == 'zh' ? '梯度因子' : 'GF'));
-        expect(
-          subtitle.toLowerCase(),
-          contains(l10n.settings_decompression_header_narcosis.toLowerCase()),
-        );
-      });
     }
+
+    test('the decompression subtitle lists GF, data sources and narcosis', () {
+      final expected = {
+        'ar': 'GF، مصادر البيانات والتخدير',
+        'de': 'GF, Datenquellen & Narkose',
+        'es': 'GF, fuentes de datos y narcosis',
+        'fr': 'GF, sources de données et narcose',
+        'he': 'GF, מקורות נתונים ונרקוזה',
+        'hu': 'GF, adatforrások és narkózis',
+        'it': 'GF, fonti dei dati e narcosi',
+        'nl': 'GF, gegevensbronnen & narcose',
+        'pt': 'GF, fontes de dados e narcose',
+        'zh': '梯度因子、数据来源与麻醉',
+      };
+      for (final entry in expected.entries) {
+        expect(
+          l10nFor(entry.key).settings_section_decompression_subtitle,
+          entry.value,
+          reason: entry.key,
+        );
+      }
+    });
 
     test('the file import label says "from file", not auto-detection', () {
       final expected = {

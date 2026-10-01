@@ -7114,7 +7114,7 @@
   "transfer_csvExport_unitsMine": "Mis unidades",
   "transfer_csvExport_unitsMineDescription": "Valores con tu configuración de unidades, fecha y hora, indicada en el encabezado de cada columna",
   "transfer_detail_backTooltip": "Volver a transferir",
-  "transfer_export_aboutContent": "Exporta tus datos de buceo en varios formatos. PDF crea un libro de registro imprimible. UDDF es un formato universal compatible con la mayoría del software de registro de buceo. Los archivos CSV y Excel se pueden abrir en aplicaciones de hojas de cálculo. También puedes hacer una copia de seguridad de toda tu base de datos desde Configuración > Respaldo y Restauración.",
+  "transfer_export_aboutContent": "Exporta tus datos de buceo en varios formatos. PDF crea un libro de registro imprimible. UDDF es un formato universal compatible con la mayoría del software de registro de buceo. Los archivos CSV y Excel se pueden abrir en aplicaciones de hojas de cálculo. También puedes hacer una copia de seguridad de toda tu base de datos desde Ajustes > Respaldo y Restauración.",
   "transfer_export_aboutTitle": "Acerca de la exportación",
   "transfer_export_backupLink": "Ir a Copia de seguridad y restauración",
   "transfer_export_completed": "Exportación completada",
