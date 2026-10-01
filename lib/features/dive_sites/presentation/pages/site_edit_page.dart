@@ -4,6 +4,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb, setEquals;
 import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
@@ -38,6 +39,7 @@ import 'package:submersion/features/marine_life/presentation/widgets/species_pic
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/shared/widgets/forms/responsive_form_columns.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
@@ -1141,6 +1143,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                 .maybeWhen(data: (d) => d.length >= 2, orElse: () => false),
             isShared: _isShared,
             onShareChanged: _onShareToggled,
+            shareLockedReason: _shareLockedReason(),
           ),
         ],
       ),
@@ -1164,13 +1167,40 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           : Icons.add_location,
       actions: [
         if (widget.isEditing && (!widget.embedded || widget.onDeleted != null))
-          IconButton(
-            icon: const Icon(Icons.delete),
-            tooltip: context.l10n.diveSites_edit_appBar_deleteSiteTooltip,
-            onPressed: _confirmDelete,
-          ),
+          // Delete for the owner; another profile only removes the shared
+          // site from itself (issue #2594).
+          if (_shareLockedReason() == null)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              tooltip: context.l10n.diveSites_edit_appBar_deleteSiteTooltip,
+              onPressed: _confirmDelete,
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.visibility_off_outlined),
+              tooltip: context.l10n.sharedItems_removeAction,
+              onPressed: _confirmRemove,
+            ),
       ],
       child: body,
+    );
+  }
+
+  /// Why the Share switch is locked: another profile owns the site (issue
+  /// #2594). Null when the active profile may change sharing. Read during
+  /// build, so it watches the active profile.
+  String? _shareLockedReason() {
+    if (!widget.isEditing && !widget.isMerging) return null;
+    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+    if (canDestroySharedItem(
+      ownerId: _originalSite?.diverId,
+      activeDiverId: activeDiverId,
+    )) {
+      return null;
+    }
+    final divers = ref.watch(allDiversProvider).value ?? const [];
+    return context.l10n.sharedItems_shareOwnerOnly(
+      sharedItemOwnerName(divers, _originalSite?.diverId, context.l10n),
     );
   }
 
@@ -1835,6 +1865,16 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         }
 
         mergeSnapshot = await notifier.mergeSites(site, widget.mergeSiteIds!);
+        if (mergeSnapshot == null) {
+          // Refused (a duplicate belongs to another profile, issue #2594):
+          // nothing merged, so stay, say so and write nothing more.
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(context.l10n.sharedItems_notOwner_site)),
+            );
+          }
+          return;
+        }
         savedId = widget.mergeSiteIds!.first;
       } else if (widget.isEditing) {
         await notifier.updateSite(site, classification: classification);
@@ -1914,15 +1954,41 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
   Future<void> _confirmDelete() async {
     final usage = await readSiteDeleteUsage(ref, [widget.siteId!]);
+    // A shared site's delete warns that it goes for every profile, and how
+    // many of their dives lose it, as the detail page does (issue #2594).
+    final divers = await ref.read(allDiversProvider.future);
+    final isSharedDelete =
+        (_originalSite?.isShared ?? false) && divers.length >= 2;
+    final others = isSharedDelete
+        ? (await readDiveLinkCounts(
+            ref,
+            SharedItemKind.site,
+            widget.siteId!,
+          )).others
+        : 0;
     if (!mounted) return;
+    final name = _originalSite?.name ?? _nameController.text.trim();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(context.l10n.diveSites_detail_deleteDialog_title),
+        title: Text(
+          isSharedDelete
+              ? context.l10n.sites_deleteShared_title
+              : context.l10n.diveSites_detail_deleteDialog_title,
+        ),
         content: Text(
           withSiteDeleteUsage(
             context.l10n,
-            context.l10n.diveSites_detail_deleteDialog_content,
+            isSharedDelete
+                ? [
+                    context.l10n.sites_deleteShared_body(name),
+                    ?otherProfilesDivesLine(
+                      context.l10n,
+                      SharedItemKind.site,
+                      others,
+                    ),
+                  ].join('\n\n')
+                : context.l10n.diveSites_detail_deleteDialog_content,
             usage,
           ),
         ),
@@ -1947,13 +2013,47 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     }
   }
 
+  /// Hides another profile's shared site from the active profile only
+  /// (issue #2594), then leaves the page as a delete does, with Undo.
+  Future<void> _confirmRemove() {
+    final notifier = ref.read(siteListNotifierProvider.notifier);
+    final siteId = widget.siteId!;
+    return removeSharedItemFromProfile(
+      context,
+      ref,
+      kind: SharedItemKind.site,
+      id: siteId,
+      name: _originalSite?.name ?? _nameController.text.trim(),
+      ownerId: _originalSite?.diverId,
+      hide: () async => await notifier.hideSites([siteId]) == 1,
+      unhide: () => notifier.unhideSites([siteId]),
+      onRemoved: () {
+        _hasChanges = false;
+        if (widget.embedded) {
+          widget.onDeleted?.call();
+        } else {
+          context.go('/sites');
+        }
+      },
+    );
+  }
+
   Future<void> _deleteSite() async {
     setState(() => _isLoading = true);
 
     try {
-      await ref
+      final deleted = await ref
           .read(siteListNotifierProvider.notifier)
           .deleteSite(widget.siteId!);
+      if (!deleted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.sharedItems_notOwner_site)),
+          );
+          setState(() => _isLoading = false);
+        }
+        return;
+      }
       ref.invalidate(sitesWithCountsProvider);
       ref.invalidate(sitesProvider);
 

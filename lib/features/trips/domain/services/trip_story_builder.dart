@@ -7,6 +7,7 @@ import 'package:submersion/features/trips/domain/entities/liveaboard_details.dar
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
+import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 
 /// Number of upcoming checklist items surfaced in the story hero.
 const int _nextDueCount = 3;
@@ -31,6 +32,16 @@ TripStory buildTripStory({
   final sortedDives = List<Dive>.of(dives)
     ..sort((a, b) => a.effectiveEntryTime.compareTo(b.effectiveEntryTime));
 
+  // A row outside the trip that carries nothing but a plan has no content to
+  // keep, so it is not part of the story. updateTrip prunes such rows, but
+  // dates that change by sync, import or an older build never run it, and a
+  // day planned on one device while another shortened the trip reaches the
+  // shortening device only after its prune (#2663).
+  final storyItinerary = [
+    for (final day in itineraryDays)
+      if (trip.containsDate(day.date) || !isBarePlanDay(day)) day,
+  ];
+
   // Day span: trip range, extended to cover any dive or itinerary day outside
   // it (e.g. trip dates edited after the itinerary was generated) so their
   // content isn't silently dropped from the story.
@@ -46,7 +57,7 @@ TripStory buildTripStory({
     includeDate(sortedDives.first.effectiveEntryTime);
     includeDate(sortedDives.last.effectiveEntryTime);
   }
-  for (final day in itineraryDays) {
+  for (final day in storyItinerary) {
     includeDate(day.date);
   }
   // Round rather than truncate: a DST spring-forward inside the range makes
@@ -68,7 +79,7 @@ TripStory buildTripStory({
         .add(dive);
   }
   final itineraryByDate = <DateTime, ItineraryDay>{
-    for (final day in itineraryDays) _dateOnly(day.date): day,
+    for (final day in storyItinerary) _dateOnly(day.date): day,
   };
 
   final todayDate = _dateOnly(today);

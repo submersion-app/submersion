@@ -270,6 +270,72 @@ void main() {
       await insertSite('site-a');
       return [('dive_sites', 'diveSites', 'site-a')];
     },
+    'hides by the diver, and of its trips (issue #2594)': () async {
+      // Another profile's shared trip and site, hidden by the diver.
+      await db
+          .into(db.trips)
+          .insert(
+            TripsCompanion.insert(
+              id: 'trip-b',
+              name: 'Their trip',
+              startDate: stale,
+              endDate: stale,
+              createdAt: stale,
+              updatedAt: stale,
+              diverId: const Value('diver-b'),
+              isShared: const Value(true),
+            ),
+          );
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 'site-b',
+              name: 'Their site',
+              createdAt: stale,
+              updatedAt: stale,
+              diverId: const Value('diver-b'),
+              isShared: const Value(true),
+            ),
+          );
+      await db
+          .into(db.tripHides)
+          .insert(
+            TripHidesCompanion.insert(
+              id: 'hide-t',
+              tripId: 'trip-b',
+              diverId: 'diver-a',
+              createdAt: stale,
+            ),
+          );
+      await db
+          .into(db.siteHides)
+          .insert(
+            SiteHidesCompanion.insert(
+              id: 'hide-s',
+              siteId: 'site-b',
+              diverId: 'diver-a',
+              createdAt: stale,
+            ),
+          );
+      // The other profile's hide of the diver's own trip, which goes with it.
+      await insertTrip('trip-a');
+      await db
+          .into(db.tripHides)
+          .insert(
+            TripHidesCompanion.insert(
+              id: 'hide-of-a',
+              tripId: 'trip-a',
+              diverId: 'diver-b',
+              createdAt: stale,
+            ),
+          );
+      return [
+        ('trip_hides', 'tripHides', 'hide-t'),
+        ('site_hides', 'siteHides', 'hide-s'),
+        ('trip_hides', 'tripHides', 'hide-of-a'),
+      ];
+    },
     'gear with its service, component, check-in and finding rows': () async {
       await insertEquipment('reg-a');
       await insertEquipment('hose-a');

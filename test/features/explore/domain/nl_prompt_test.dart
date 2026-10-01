@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/explore/domain/explore_fields.dart';
+import 'package:submersion/features/explore/domain/explore_subject_fields.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
@@ -20,7 +23,7 @@ void main() {
   test('the vocabulary mirrors the Dart enums', () {
     final v = NlPrompt.vocabulary();
     expect(v['schemaVersion'], kQuerySchemaVersion);
-    expect(v['fields'], [for (final f in kExploreFields) f.name]);
+    expect(v['fields'], exploreFieldNames());
     expect(v['ops'], ClauseOp.values.map((o) => o.jsonName).toList());
     expect(v['units'], ClauseUnit.values.map((u) => u.jsonName).toList());
     expect(v['mentionKinds'], MentionKind.values.map((k) => k.name).toList());
@@ -49,5 +52,38 @@ void main() {
     // Only the minute mark stays unplaced: there is no N-minutes field.
     expect(text, contains('"unplaced":["after 20 minutes"]'));
     expect(text, contains('bar_min, psi_min'));
+  });
+
+  test('the prompt names every subject field and lists its values', () {
+    final text = NlPrompt.instructions();
+    for (final entry in kExploreSubjectFields.entries) {
+      expect(text, contains('${entry.key.name}:'), reason: entry.key.name);
+      for (final f in entry.value) {
+        expect(text, contains(f.name), reason: f.name);
+        for (final v in f.enumValues ?? const <String>[]) {
+          expect(text, contains(v), reason: '${f.name} $v');
+        }
+      }
+    }
+  });
+
+  test('every example compiles with nothing left over but its own words', () {
+    final text = NlPrompt.instructions();
+    // An example line starts `{"schemaVersion":3`; the shape line has a
+    // space after the colon and `[...]` placeholders, so it never matches.
+    final examples = RegExp(r'^\{"schemaVersion":\d.*\}$', multiLine: true)
+        .allMatches(text)
+        .map(
+          (m) =>
+              ParsedQuery.fromJson(jsonDecode(m[0]!) as Map<String, Object?>),
+        )
+        .toList();
+    expect(examples.map((e) => e.subject), contains(ParsedSubject.sites));
+    expect(examples.map((e) => e.subject), contains(ParsedSubject.equipment));
+    for (final e in examples) {
+      for (final c in e.clauses) {
+        expect(exploreFieldFor(e.subject, c.field), isNotNull, reason: c.field);
+      }
+    }
   });
 }

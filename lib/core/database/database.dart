@@ -220,6 +220,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     ConnectionMaps,
     // Gear packed for a trip (v248, issue #2338)
     TripEquipment,
+    // A profile's hidden shared trips and sites (v250, issue #2594)
+    TripHides,
+    SiteHides,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -229,7 +232,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 249;
+  static const int currentSchemaVersion = 250;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1015,6 +1018,12 @@ class AppDatabase extends _$AppDatabase {
     // center fill hours. Additive columns, so the floor does not move. 248
     // is trip_equipment (#2338).
     249,
+    // v250: trip_hides and site_hides, the shared trips and sites a profile
+    // has hidden from itself (issue #2594). Table-only rung, no backfill;
+    // an older peer keeps the new entity types as inert unknowns, so the
+    // floor does not move. #2562 and #2409 held stale claims below 249
+    // when this was taken.
+    250,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

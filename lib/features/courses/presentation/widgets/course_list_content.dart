@@ -33,6 +33,7 @@ import 'package:submersion/features/courses/query/course_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/courses/presentation/providers/course_list_count_provider.dart';
 
 /// Content widget for the course list
 class CourseListContent extends ConsumerStatefulWidget {
@@ -174,6 +175,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
                   title: FeatureAppBarTitle(
                     featureId: 'courses',
                     title: context.l10n.courses_title,
+                    subtitle: courseListCountLabel(context, ref),
                   ),
                   actions: [
                     IconButton(
@@ -465,6 +467,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
             child: FeatureAppBarTitle(
               featureId: 'courses',
               title: context.l10n.courses_title,
+              subtitle: courseListCountLabel(context, ref),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

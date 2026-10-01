@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/title_with_subtitle.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
+
 /// Pane width at or above which the section toggle and the action icons share
 /// a single row.
 ///
@@ -44,10 +47,15 @@ class EquipmentHeaderBar extends StatelessWidget {
     super.key,
     this.toggleBuilder,
     required this.actionsBuilder,
+    this.subtitle,
   });
 
   final EquipmentHeaderToggleBuilder? toggleBuilder;
   final EquipmentHeaderActionsBuilder actionsBuilder;
+
+  /// A muted line under the toggle, such as the list's entry count. Only
+  /// shown with a toggle: without one the bar has no title to sit under.
+  final SubtitleText? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -105,13 +113,18 @@ class EquipmentHeaderBar extends StatelessWidget {
     );
   }
 
-  /// The toggle in the style every compact pane header gives its title.
+  /// The toggle in the style every compact pane header gives its title, with
+  /// [subtitle] under it. The subtitle sits outside the merged title style so
+  /// it keeps its own.
   Widget _title(BuildContext context, EquipmentHeaderToggleBuilder toggle) {
-    return DefaultTextStyle.merge(
-      style: Theme.of(
-        context,
-      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-      child: Builder(builder: toggle),
+    return TitleWithSubtitle(
+      title: DefaultTextStyle.merge(
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        child: Builder(builder: toggle),
+      ),
+      subtitle: subtitle,
     );
   }
 
