@@ -69,7 +69,7 @@ DateTime? _parsed(String? Function() read) {
 
 final _dateText = RegExp(
   r'^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?'
-  r'(Z|[+-]\d{2}:?\d{2})?$',
+  r'(Z|([+-])(\d{2}):?(\d{2}))?$',
 );
 
 /// Parses an ISO 8601 date-time from a QuickTime text tag and returns its
@@ -77,10 +77,15 @@ final _dateText = RegExp(
 /// not applied: the digits before it are already the local clock. A value
 /// without a zone is read as wall clock too. Returns null for a UTC (`Z`)
 /// value, which has no local clock, and for anything that is not a complete,
-/// valid date and time (a bare year, a 13th month).
+/// valid date and time (a bare year, a 13th month, a `+99:99` offset), so a
+/// corrupt tag falls through to the next field.
 DateTime? parseQuickTimeDateText(String text) {
   final m = _dateText.firstMatch(text.trim());
   if (m == null || m.group(8) == 'Z') return null;
+  if (m.group(8) != null &&
+      !_isRealOffset(m.group(9)!, m.group(10)!, m.group(11)!)) {
+    return null;
+  }
   final parts = [for (var i = 1; i <= 6; i++) int.parse(m.group(i)!)];
   final fraction = m.group(7);
   final millis = fraction == null
@@ -105,6 +110,14 @@ DateTime? parseQuickTimeDateText(String text) {
       value.minute == parts[4] &&
       value.second == parts[5];
   return valid ? value : null;
+}
+
+/// Whether an offset is one a clock can be set to: real zones run from
+/// -12:00 to +14:00, in whole minutes below 60.
+bool _isRealOffset(String sign, String hours, String minutes) {
+  final total = int.parse(hours) * 60 + int.parse(minutes);
+  if (int.parse(minutes) >= 60) return false;
+  return sign == '+' ? total <= 14 * 60 : total <= 12 * 60;
 }
 
 /// How far a file's modified time may sit from the start or end of the

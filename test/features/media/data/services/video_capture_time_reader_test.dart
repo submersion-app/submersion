@@ -103,6 +103,21 @@ void main() {
       expect(parseQuickTimeDateText('2025-12-27T16:50:49Z'), isNull);
     });
 
+    test('rejects an impossible offset, so the next field is tried', () {
+      expect(parseQuickTimeDateText('2025-12-27T11:50:49+99:99'), isNull);
+      expect(parseQuickTimeDateText('2025-12-27T11:50:49-1500'), isNull);
+      expect(parseQuickTimeDateText('2025-12-27T11:50:49+0560'), isNull);
+      // The real extremes: Kiribati is +14:00, Baker Island -12:00.
+      expect(
+        parseQuickTimeDateText('2025-12-27T11:50:49+14:00'),
+        DateTime.utc(2025, 12, 27, 11, 50, 49),
+      );
+      expect(
+        parseQuickTimeDateText('2025-12-27T11:50:49-1200'),
+        DateTime.utc(2025, 12, 27, 11, 50, 49),
+      );
+    });
+
     test('rejects a year-only or unparseable value', () {
       expect(parseQuickTimeDateText('2025'), isNull);
       expect(parseQuickTimeDateText('yesterday'), isNull);
@@ -257,6 +272,21 @@ void main() {
       // The mtime is "now", which agrees with nothing, so mvhd keeps its
       // local reading.
       expect(readVideoCaptureTime(f), mvhdUtc);
+    });
+
+    test('a creationdate with a corrupt offset falls through to ©day', () {
+      final f = write(
+        'badoffset.mov',
+        _movie([
+          ..._mvhd(mvhdUtc),
+          ..._keysMeta(
+            'com.apple.quicktime.creationdate',
+            '2025-12-27T09:00:00+99:99',
+          ),
+          ..._udtaDay('2025-12-27T11:50:49+0100'),
+        ]),
+      );
+      expect(readVideoCaptureTime(f), DateTime.utc(2025, 12, 27, 11, 50, 49));
     });
 
     test('a garbled meta or udta still falls back to mvhd', () {
