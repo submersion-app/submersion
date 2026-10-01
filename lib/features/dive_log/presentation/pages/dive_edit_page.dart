@@ -2424,13 +2424,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
       child: DiveTypeMultiSelectField(
         selectedTypeIds: _selectedDiveTypeIds,
-        onChanged: (ids) => setState(() {
-          _selectedDiveTypeIds = ids;
-          _siteAddedDiveTypeIds = siteAddedAfterManualEdit(
-            siteAddedIds: _siteAddedDiveTypeIds,
-            selectedTypeIds: ids,
-          );
-        }),
+        onChanged: (ids) {
+          setState(() {
+            _selectedDiveTypeIds = ids;
+            _siteAddedDiveTypeIds = siteAddedAfterManualEdit(
+              siteAddedIds: _siteAddedDiveTypeIds,
+              selectedTypeIds: ids,
+            );
+          });
+          // The picker is a bottom sheet, not a FormField, so Form.onChanged
+          // never sees it; without this, leaving drops the new type unasked.
+          _markDirty();
+        },
       ),
     );
   }

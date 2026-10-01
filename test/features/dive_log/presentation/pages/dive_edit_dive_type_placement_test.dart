@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -155,5 +156,22 @@ void main() {
 
     final saved = await repository.getDiveById(created.id);
     expect(saved!.diveTypeIds, ['technical']);
+  });
+
+  testWidgets('a type change arms the unsaved-changes guard', (tester) async {
+    final created = await repository.createDive(importedDive());
+    await pumpEditPage(tester, created.id);
+    bool guarded() => tester
+        .widget<EditFormScaffold>(find.byType(EditFormScaffold))
+        .hasUnsavedChanges;
+    expect(guarded(), isFalse);
+
+    tester
+        .widget<DiveTypeMultiSelectField>(find.byType(DiveTypeMultiSelectField))
+        .onChanged(['technical']);
+    await tester.pumpAndSettle();
+
+    // Leaving now must ask before discarding the new type.
+    expect(guarded(), isTrue);
   });
 }
