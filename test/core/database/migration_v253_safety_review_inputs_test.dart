@@ -36,14 +36,17 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v253 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 253);
+  test('v253 is at or below the current schema version and in the ladder', () {
+    // Merged after v254 (dive_tanks.role_source, #2595), which owns the exact
+    // assertions; a database already at 254 gains this column through the
+    // beforeOpen backstop (see the last test).
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(253));
     expect(AppDatabase.migrationVersions, contains(253));
-    expect(AppDatabase.migrationStepCount(252), 1);
     // 252 (nav_tracks.diver_id, #2703) sits directly below this rung.
-    expect(AppDatabase.migrationStepCount(251), 2);
+    expect(
+      AppDatabase.migrationStepCount(252),
+      AppDatabase.migrationStepCount(253) + 1,
+    );
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
@@ -66,9 +69,10 @@ void main() {
     expect(row.read<String?>('inputs_hash'), isNull);
   });
 
-  test('a database already at v253 without the column gains it on open '
+  test('a database already at v254 without the column gains it on open '
       '(the beforeOpen backstop)', () async {
-    final db = AppDatabase(strandedAt(253));
+    // #2595's v254 merged first, so a database it upgraded skips this rung.
+    final db = AppDatabase(strandedAt(254));
     addTearDown(db.close);
     expect(await columnsOf(db, 'dive_safety_reviews'), contains('inputs_hash'));
   });

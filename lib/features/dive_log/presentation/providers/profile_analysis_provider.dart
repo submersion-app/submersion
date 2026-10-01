@@ -1041,7 +1041,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     // the deco classification are persisted from this analysis, and the
     // snapshot's fingerprint stamped on it below says which settings they
     // came from (#2592).
-    await awaitActiveDiverSettings(ref);
+    await awaitCurrentDiverSettings(ref);
     final inputs = ref.watch(analysisSettingsProvider);
     final diveId = dive.id;
     if (dive.isGauge) {
@@ -1593,7 +1593,7 @@ final residualTissueStateProvider =
       ref,
       diveId,
     ) async {
-      await awaitActiveDiverSettings(ref);
+      await awaitCurrentDiverSettings(ref);
       return _computeResidualTissueState(
         ref,
         diveId,

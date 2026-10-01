@@ -48,11 +48,15 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
 
   // Compare against the active diver's settings, not the placeholder or the
   // previous diver's still in state during a switch.
-  final settingsLoaded = await awaitActiveDiverSettings(ref);
+  final settingsLoaded = await awaitCurrentDiverSettings(ref);
   final currentInputs = ref.watch(diverAnalysisSettingsProvider).fingerprint;
 
   final stored = await repo.getReview(diveId);
   if (stored != null && _isCurrent(stored, currentInputs)) return stored;
+
+  // The toggle below is per diver: right after a diver switch it still reads
+  // the previous diver's until the new diver's settings load (#2564).
+  await awaitCurrentDiverSettings(ref);
 
   // Master toggle off: surface whatever is stored but never compute.
   if (!ref.watch(safetyReviewEnabledProvider)) return stored;

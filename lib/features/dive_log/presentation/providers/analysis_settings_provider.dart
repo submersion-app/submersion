@@ -161,7 +161,7 @@ class AnalysisSettings {
 ///
 /// Built from the individual settings providers (not [settingsProvider]
 /// alone) so a test that overrides one of them still reaches the analysis.
-/// Read it only after [awaitActiveDiverSettings]: until the active diver's
+/// Read it only after [awaitCurrentDiverSettings]: until the active diver's
 /// row loads, it reflects the defaults or, right after a diver switch, the
 /// previous diver.
 final diverAnalysisSettingsProvider = Provider<AnalysisSettings>((ref) {
@@ -202,7 +202,7 @@ final diverAnalysisSettingsProvider = Provider<AnalysisSettings>((ref) {
 /// with the per-metric sources the chart legend currently shows. Equal to
 /// [diverAnalysisSettingsProvider] until a source is switched on the chart.
 ///
-/// Read it only after [awaitActiveDiverSettings], for the same reason.
+/// Read it only after [awaitCurrentDiverSettings], for the same reason.
 final analysisSettingsProvider = Provider<AnalysisSettings>((ref) {
   return ref
       .watch(diverAnalysisSettingsProvider)
@@ -216,24 +216,3 @@ final analysisSettingsProvider = Provider<AnalysisSettings>((ref) {
         gtrSource: ref.watch(profileLegendProvider.select((s) => s.gtrSource)),
       );
 });
-
-/// Waits until the active diver's settings have loaded, including the reload
-/// a diver switch starts ([SettingsNotifier.loaded]), so a following read of
-/// [analysisSettingsProvider] or [diverAnalysisSettingsProvider] is that
-/// diver's and not the placeholder or the previous diver's (issues #1859,
-/// #2564).
-///
-/// Returns whether that load succeeded. A failed load is already logged by
-/// the notifier and leaves [settingsProvider] holding whatever it held: the
-/// placeholder defaults, or the previous diver's settings after a switch. An
-/// analysis for display may still proceed on them, but nothing may be
-/// persisted from it: a caller that saves a result checks this first.
-Future<bool> awaitActiveDiverSettings(Ref ref) async {
-  try {
-    await ref.read(settingsProvider.notifier).loaded;
-    return true;
-  } catch (_) {
-    // See the doc comment: already logged.
-    return false;
-  }
-}

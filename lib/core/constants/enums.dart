@@ -476,6 +476,28 @@ enum TankRole {
   const TankRole(this.displayName);
 }
 
+/// Where a cylinder's [TankRole] came from when no person chose it (issue
+/// #2595). Stored by name in `dive_tanks.role_source`; null means the diver
+/// or the transmitter registry set the role, or nothing more is known.
+enum TankRoleSource {
+  /// The dive computer derived the role from the name the diver gave the
+  /// transmitter: in its CCR modes a Shearwater reads a name starting with
+  /// "O" as the oxygen supply and one starting with "D" as the diluent. The
+  /// name is free text nothing checks, so a bailout named "OC" becomes the
+  /// oxygen supply. Unconfirmed until the diver registers the transmitter or
+  /// sets the role.
+  transmitterName;
+
+  /// The source stored as [name], or null for null or an unknown value
+  /// (a newer peer's source this build does not know is treated as none).
+  static TankRoleSource? fromName(String? name) {
+    for (final source in values) {
+      if (source.name == name) return source;
+    }
+    return null;
+  }
+}
+
 /// Tank construction material
 enum TankMaterial {
   aluminum('Aluminum'),

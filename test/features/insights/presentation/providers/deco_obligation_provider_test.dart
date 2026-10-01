@@ -52,7 +52,8 @@ import '../../../../helpers/test_database.dart';
 /// provider test of the same name).
 class _FailedLoadSettingsNotifier extends MockSettingsNotifier {
   @override
-  Future<void> get loaded async => throw StateError('settings read failed');
+  Future<void> get settingsLoaded async =>
+      throw StateError('settings read failed');
 }
 
 void main() {
@@ -294,32 +295,42 @@ void main() {
   });
 
   // Copilot review on #2748: an analysis that records no inputs cannot show
-  // it ran on the diver's settings, so it is not cached under them.
-  test('an analysis that records no inputs is not cached', () async {
-    await insertDive('deep');
-    await insertBareProfile('deep', 40, 25);
-    final (depths, times) = _square(40, 25);
-    final unstamped = ProfileAnalysisService().analyze(
-      diveId: 'deep',
-      depths: depths,
-      timestamps: times,
-    );
-    expect(unstamped.inputsFingerprint, isNull);
+  // it ran on the diver's settings.
+  test(
+    'an analysis that records no inputs is neither reported nor cached',
+    () async {
+      await insertDive('deep');
+      await insertBareProfile('deep', 40, 25);
+      final (depths, times) = _square(40, 25);
+      final unstamped = ProfileAnalysisService().analyze(
+        diveId: 'deep',
+        depths: depths,
+        timestamps: times,
+      );
+      expect(unstamped.inputsFingerprint, isNull);
 
-    final container = ProviderContainer(
-      overrides: [
-        ...(await getBaseOverrides()),
-        profileAnalysisProvider('deep').overrideWith((ref) async => unstamped),
-      ].cast(),
-    );
-    addTearDown(container.dispose);
+      final container = ProviderContainer(
+        overrides: [
+          ...(await getBaseOverrides()),
+          profileAnalysisProvider(
+            'deep',
+          ).overrideWith((ref) async => unstamped),
+        ].cast(),
+      );
+      addTearDown(container.dispose);
 
-    final stats = await container.read(decoObligationStatsProvider.future);
+      final stats = await container.read(decoObligationStatsProvider.future);
 
-    expect(stats.decoCount, 1, reason: 'the pass still answers');
-    final cached = await cacheDb.select(cacheDb.decoClassificationCache).get();
-    expect(cached, isEmpty);
-  });
+      // Like any result from inputs other than its hash (#2746), it is neither
+      // reported nor cached: the dive stays unclassified.
+      expect(stats.decoCount, 0);
+      expect(stats.unknownCount, 1);
+      final cached = await cacheDb
+          .select(cacheDb.decoClassificationCache)
+          .get();
+      expect(cached, isEmpty);
+    },
+  );
 
   test('editing a dive invalidates its cached classification', () async {
     await insertDive('deep');

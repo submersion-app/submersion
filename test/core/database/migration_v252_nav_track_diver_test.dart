@@ -52,7 +52,7 @@ void main() {
   );
 
   test('v252 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v253 (safety review inputs, #2592) landed on top; the
+    // Relaxed once v254 (dive_tanks.role_source, #2595) landed on top; the
     // newest rung owns the exact assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(252));
     expect(AppDatabase.migrationVersions, contains(252));

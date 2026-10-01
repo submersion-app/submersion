@@ -45643,7 +45643,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks bombole in $dives immersioni portano questo trasmettitore. I campi vuoti di dimensione, materiale, nome e attrezzatura verranno compilati e un ruolo ancora impostato su Gas di fondo verrà sostituito.';
+    return '$tanks bombole in $dives immersioni portano questo trasmettitore. I campi vuoti di dimensione, materiale, nome e attrezzatura verranno compilati e un ruolo ancora impostato su Gas di fondo o letto dal nome del trasmettitore verrà sostituito.';
   }
 
   @override
@@ -45750,6 +45750,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Riassegna serie di pressione';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role, letto dal nome del trasmettitore';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'Serie di pressione';
 
   @override
@@ -45786,6 +45791,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Assegna trasmettitori';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'Ruoli delle bombole letti dai nomi dei trasmettitori';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'Il computer subacqueo ha ricavato alcuni ruoli di ossigeno e diluente dai nomi dati ai trasmettitori: un nome che inizia con O è letto come ossigeno, uno che inizia con D come diluente. Assegna i trasmettitori per confermare o correggere questi ruoli.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
@@ -17,10 +18,16 @@ class PlannedDiveFillOutcome {
   final DiveMergeSnapshot snapshot;
   final int? assignedDiveNumber;
 
+  /// Downloaded tanks the fill appended with a role the computer read off
+  /// the transmitter's name (issue #2595), so the import summary can say so:
+  /// the fill does not go through the import service that counts them.
+  final int nameDerivedRoleTanks;
+
   const PlannedDiveFillOutcome({
     required this.diveId,
     required this.snapshot,
     required this.assignedDiveNumber,
+    this.nameDerivedRoleTanks = 0,
   });
 }
 
@@ -77,6 +84,7 @@ class PlannedDiveFillService {
       await _series.deleteForDive(plannedDiveId);
 
       // 2. Measured facts onto the row, tanks reconciled by serial then mix.
+      final mergedTanks = _mergeTanks(planned.tanks, dive.tanks);
       final measured = planned.copyWith(
         entryTime: dive.startTime,
         exitTime: dive.startTime.add(Duration(seconds: dive.durationSeconds)),
@@ -90,7 +98,7 @@ class PlannedDiveFillService {
         decoAlgorithm: dive.decoAlgorithm ?? planned.decoAlgorithm,
         decoConservatism: dive.decoConservatism ?? planned.decoConservatism,
         diveMode: dive.diveMode,
-        tanks: _mergeTanks(planned.tanks, dive.tanks),
+        tanks: mergedTanks,
         profile: const [],
       );
       await _dives.updateDive(measured);
@@ -123,6 +131,9 @@ class PlannedDiveFillService {
         diveId: plannedDiveId,
         snapshot: snapshot,
         assignedDiveNumber: promoted?.diveNumber,
+        nameDerivedRoleTanks: mergedTanks
+            .where((t) => t.roleSource == TankRoleSource.transmitterName)
+            .length,
       );
     });
   }
@@ -135,7 +146,8 @@ class PlannedDiveFillService {
 
   /// Planned tanks matched by transmitter serial first, then by gas mix
   /// (0.5 percent), receive the downloaded pressures; unmatched downloaded
-  /// tanks are appended with fresh ids, since updateDive rejects blank ones.
+  /// tanks are appended with fresh ids, since updateDive rejects blank ones,
+  /// keeping the role the computer resolved.
   List<DiveTank> _mergeTanks(
     List<DiveTank> planned,
     List<DownloadedTank> downloaded,
@@ -181,6 +193,14 @@ class PlannedDiveFillService {
           volume: d.volumeLiters,
           startPressure: d.startPressure,
           endPressure: d.endPressure,
+          // The role the computer resolved, and whether it was only read
+          // off the transmitter's name (issue #2595); a planned tank above
+          // keeps the role the diver planned.
+          role: TankRole.values.firstWhere(
+            (r) => r.name == d.role,
+            orElse: () => TankRole.backGas,
+          ),
+          roleSource: d.roleSource,
           transmitterSerial: d.transmitterSerial,
           order: merged.length,
         ),

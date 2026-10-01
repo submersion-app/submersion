@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/insights/data/repositories/deco_classification_cache.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Fingerprint of every input that can change a computed classification.
 ///
@@ -62,11 +63,13 @@ class DecoClassificationService {
   }) async {
     if (revisions.isEmpty) return const {};
 
-    // The active diver's settings, once loaded: during a diver switch the
-    // previous diver's are still in state (#2564).
-    // A failed load leaves state that is not the diver's; the pass still
-    // answers, but nothing is cached under it.
-    final settingsLoaded = await awaitActiveDiverSettings(ref);
+    // The cache is keyed by the diver's own settings, which read the
+    // previous diver's until a diver switch reloads them (#2564). The
+    // analysis below waits for that load too, so reading them earlier would
+    // key the new diver's results to the old diver's settings. A failed load
+    // leaves the defaults, which are not the diver's: the pass still answers
+    // on them, but caches nothing (#2592).
+    final settingsLoaded = await awaitCurrentDiverSettings(ref);
     final settingsFingerprint = ref
         .read(diverAnalysisSettingsProvider)
         .fingerprint;
@@ -117,16 +120,19 @@ class DecoClassificationService {
             profileAnalysisProvider(diveId).future,
           );
           if (analysis == null || analysis.ndlCurve.isEmpty) continue;
+          // The hashes were taken once, up front, but each analysis reads the
+          // settings when it runs, and records which it read. A diver switch
+          // (#2564), any settings edit since, a chart source toggle, or an
+          // analysis recording no inputs at all means this result belongs to
+          // other inputs than its hash, so it is neither cached nor reported;
+          // the dive stays unclassified until a run under the diver's
+          // settings. A change made and undone during the analysis still
+          // shows, since the fingerprint is what it actually ran on.
+          if (analysis.inputsFingerprint != settingsFingerprint) continue;
 
           final hadDeco = analysis.hadDecoObligation;
           results[diveId] = hadDeco;
-          // Cached only when the analysis shows it ran on the diver's own
-          // settings. One drawn on a chart source toggle, on settings that
-          // moved since the hashes above were taken, or recording no inputs
-          // at all still answers this pass but is not kept under a
-          // fingerprint it does not match.
-          if (settingsLoaded &&
-              analysis.inputsFingerprint == settingsFingerprint) {
+          if (settingsLoaded) {
             await cache.put(
               diveId,
               hadDeco: hadDeco,

@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/deferred_settings_notifier.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 import '../../domain/services/safety_review_fixtures.dart';
@@ -33,7 +34,8 @@ class _FakeRepo extends SafetyFindingsRepository {
 /// diver's settings (the placeholder, or the previous diver's after a switch).
 class _FailedLoadSettingsNotifier extends MockSettingsNotifier {
   @override
-  Future<void> get loaded async => throw StateError('settings read failed');
+  Future<void> get settingsLoaded async =>
+      throw StateError('settings read failed');
 }
 
 void main() {
@@ -122,6 +124,43 @@ void main() {
       expect(repo.saved, isNull);
     },
   );
+
+  // Issue #2564: after a diver switch the settings notifier still holds the
+  // previous diver's settings until the new diver's row loads. A dive opened
+  // in that window must not be reviewed, and the review saved, because the
+  // PREVIOUS diver had the review on.
+  test("does not compute a review on the previous diver's toggle while a "
+      "diver switch loads the new diver's settings", () async {
+    final repo = _FakeRepo();
+    final profile = rapidAscentProfile();
+    final analysis = analyzeFixture(
+      depths: profile.depths,
+      timestamps: profile.timestamps,
+    );
+    final settings = DeferredSettingsNotifier(
+      initial: const AppSettings(safetyReviewEnabled: true),
+      switching: true,
+    );
+    final container = ProviderContainer(
+      overrides: [
+        safetyFindingsRepositoryProvider.overrideWithValue(repo),
+        settingsProvider.overrideWith((ref) => settings),
+        profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final review = container.read(safetyReviewProvider('d1').future);
+    await pumpEventQueue();
+    settings.finishLoad(const AppSettings(safetyReviewEnabled: false));
+
+    expect(await review, isNull);
+    expect(
+      repo.saved,
+      isNull,
+      reason: 'the new diver has the safety review switched off',
+    );
+  });
 
   test('returns stored when the profile analysis is unavailable', () async {
     final repo = _FakeRepo();

@@ -44981,7 +44981,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks cylinders on $dives dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas will be replaced.';
+    return '$tanks cylinders on $dives dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.';
   }
 
   @override
@@ -45087,6 +45087,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Reassign pressure series';
 
   @override
+  String diveLog_tank_roleFromTransmitterName(String role) {
+    return '$role, read from the transmitter\'s name';
+  }
+
+  @override
   String get diveLog_reassignSheet_title => 'Pressure series';
 
   @override
@@ -45123,6 +45128,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
       'Assign transmitters';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesTitle =>
+      'Cylinder roles read from transmitter names';
+
+  @override
+  String get universalImport_summary_noticeTransmitterNameRolesBody =>
+      'The dive computer took some oxygen and diluent roles from the names given to its transmitters: a name starting with O reads as oxygen, one starting with D as diluent. Assign the transmitters to confirm or correct those roles.';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

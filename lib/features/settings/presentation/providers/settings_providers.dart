@@ -1131,14 +1131,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   final Ref _ref;
   String? _validatedDiverId;
 
-  /// Bumped by every load; a load whose generation is no longer current has
-  /// been superseded (the diver changed while it was reading) and must not
-  /// write [state] or [_validatedDiverId]. Without it a slower load for the
-  /// previous diver could finish last and leave that diver's settings in
-  /// place (issue #2564).
-  int _loadGeneration = 0;
-
-  /// Completes when the constructor's first load has finished.
+  /// Completes when the constructor's first load has finished, or, if a
+  /// diver change superseded that load before it landed, the load that
+  /// replaced it.
   ///
   /// State starts at `const AppSettings()` -- the DEFAULTS -- and is replaced
   /// asynchronously once the diver's row is read. Anything that must act on the
@@ -1146,42 +1141,57 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// sweep, which builds a throwaway container against a freshly restored
   /// database) has to await this first.
   ///
-  /// May complete with an error -- `_loadSettings` has a `finally` but no
-  /// `catch` -- so awaiting callers must guard and fall back to the defaults
-  /// still held in [state]. Merely storing the future adds no listener, so
-  /// failures surface to the zone handler exactly as they did when the
-  /// constructor called `_initializeAndLoad()` fire-and-forget.
+  /// May complete with an error -- `_loadSettings` has no `catch` -- so
+  /// awaiting callers must guard and fall back to the defaults still held in
+  /// [state]. The failure is already logged where the load started, so an
+  /// unawaited [initialLoad] does not report it again.
   late final Future<void> _initialLoad;
 
   Future<void> get initialLoad => _initialLoad;
 
-  /// The most recent load: the first one until the active diver changes,
-  /// then the reload that change started.
-  ///
-  /// During a diver switch [state] keeps the previous diver's settings until
-  /// the new diver's row is read, and [initialLoad] completed long ago. Work
-  /// that must act on the active diver's settings (an analysis whose result
-  /// is persisted, issue #2564) awaits this instead. Like [initialLoad] it may
-  /// complete with an error, already logged, so callers guard it.
-  late Future<void> _latestLoad;
+  /// The load that will settle [state] for the current diver: the first load,
+  /// or the reload a diver switch starts.
+  late Future<void> _currentLoad;
 
-  /// Completes once the load that is latest at that moment has finished. A
-  /// load superseded by a further diver switch completes without writing
-  /// [state], so a wait that spans two switches must follow on to the newer
-  /// load rather than stop at the one it started on.
-  Future<void> get loaded async {
+  /// Bumped by every load. A load whose number is no longer current has been
+  /// superseded by a diver switch and must not touch [state] or
+  /// [_validatedDiverId] when its reads return.
+  int _loadGeneration = 0;
+
+  /// The generation of the last load that assigned [state]. A load that
+  /// fails after this point (a preference write, say) has already left the
+  /// right diver's settings in place.
+  int _landedGeneration = 0;
+
+  /// Completes once [state] holds the CURRENT diver's settings.
+  ///
+  /// Unlike [initialLoad], this covers the reload after a diver switch: until
+  /// it lands, [state] still holds the previous diver's settings (issue
+  /// #2564). Anything that saves what it computes from the settings (the
+  /// safety review, the deco classification cache) must wait on this rather
+  /// than [initialLoad], which completed at startup.
+  ///
+  /// A switch made while waiting extends the wait to the newer load, so a
+  /// caller never resumes on a load that was superseded. Completes with an
+  /// error only when the current load fails; as with [initialLoad], callers
+  /// guard and fall back to the defaults left in [state].
+  Future<void> get settingsLoaded async {
     while (true) {
-      final load = _latestLoad;
+      final load = _currentLoad;
       try {
         await load;
       } catch (_) {
-        // A newer load may have replaced the one that failed; only the
-        // latest load's error is the caller's to handle.
-        if (identical(load, _latestLoad)) rethrow;
+        if (identical(load, _currentLoad)) rethrow;
       }
-      if (identical(load, _latestLoad)) return;
+      if (identical(load, _currentLoad)) return;
     }
   }
+
+  bool _isCurrentLoad(int generation) =>
+      mounted && generation == _loadGeneration;
+
+  Future<void> _startLoad() =>
+      _currentLoad = _initializeAndLoad(++_loadGeneration);
 
   /// A notifier pinned to already-loaded [settings] for [diverId], performing
   /// no database read and installing no diver-change listener.
@@ -1202,22 +1212,30 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }) : super(settings) {
     _validatedDiverId = diverId;
     _initialLoad = Future<void>.value();
-    _latestLoad = _initialLoad;
+    _currentLoad = _initialLoad;
   }
 
   SettingsNotifier(this._repository, this._ref) : super(const AppSettings()) {
-    _initialLoad = _initializeAndLoad();
-    _latestLoad = _initialLoad;
-    logFailure(_initialLoad, SettingsNotifier, 'load diver settings');
+    logFailure(_startLoad(), SettingsNotifier, 'load diver settings');
+    // Not the first load itself: a diver-id change while it is out (the
+    // active id realigned after a restore, say) supersedes it, and it then
+    // returns without writing state. Following settingsLoaded resolves on the
+    // load that replaced it instead of on the defaults. Its failures are
+    // logged where each load starts, so ignore() only stops an unawaited
+    // initialLoad from reporting them to the zone a second time; callers
+    // that await it still see them.
+    _initialLoad = settingsLoaded..ignore();
 
     // Listen for diver changes and reload settings
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
         // Reset diver ID immediately to prevent saving to wrong diver during switch
         _validatedDiverId = null;
-        _latestLoad = _initializeAndLoad();
+        // Starting a new load supersedes any still in flight: its reads may
+        // return after this one's, and must not overwrite the new diver's
+        // settings when they do.
         logFailure(
-          _latestLoad,
+          _startLoad(),
           SettingsNotifier,
           'reload settings after a diver change',
         );
@@ -1225,8 +1243,48 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     });
   }
 
-  Future<void> _initializeAndLoad() async {
-    final generation = ++_loadGeneration;
+  /// Runs one load, falling back to the defaults when it fails before it
+  /// lands.
+  ///
+  /// Callers of [settingsLoaded] and [initialLoad] proceed on whatever a
+  /// failed load leaves in [state]. At startup that is the defaults, but
+  /// after a diver switch it would be the PREVIOUS diver's settings, which
+  /// analyses would then compute and save results from (issue #2564). And
+  /// with [_validatedDiverId] already naming the new diver, the next setter
+  /// would write those settings into a row that was never read. So a failed
+  /// load leaves the defaults and no diver to save to, as at startup.
+  /// Device-local preferences belong to no diver and are kept.
+  Future<void> _initializeAndLoad(int generation) async {
+    try {
+      await _resolveDiverAndLoad(generation);
+    } catch (_) {
+      if (_isCurrentLoad(generation) && _landedGeneration != generation) {
+        _validatedDiverId = null;
+        // Only an EARLIER load's settings need replacing. When none has
+        // landed (a failed startup load) state already holds the defaults.
+        if (_landedGeneration != 0) {
+          state = _withDeviceLocalPrefs(const AppSettings());
+        }
+      }
+      rethrow;
+    }
+  }
+
+  /// [settings] carrying the device-local (not per-diver) preferences held
+  /// in [state]: the ones [_loadSettings] reads from SharedPreferences.
+  AppSettings _withDeviceLocalPrefs(AppSettings settings) => settings.copyWith(
+    hiddenHomeChips: state.hiddenHomeChips,
+    homeCardOrder: state.homeCardOrder,
+    hiddenHomeCards: state.hiddenHomeCards,
+    pscrRatio: state.pscrRatio,
+    profileMetricsFollowViewport: state.profileMetricsFollowViewport,
+    o2CellUnit: state.o2CellUnit,
+    perdixOverlayEnabled: state.perdixOverlayEnabled,
+    perdixOverlayX: state.perdixOverlayX,
+    perdixOverlayY: state.perdixOverlayY,
+  );
+
+  Future<void> _resolveDiverAndLoad(int generation) async {
     // Get current diver ID directly (more reliable than going through FutureProvider)
     final currentId = _ref.read(currentDiverIdProvider);
     final repository = _ref.read(diverRepositoryProvider);
@@ -1250,7 +1308,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       diverId = defaultDiver?.id;
     }
 
-    if (generation != _loadGeneration) return;
+    if (!_isCurrentLoad(generation)) return;
     _validatedDiverId = diverId;
     await _loadSettings(generation);
   }
@@ -1303,7 +1361,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final diverId = _validatedDiverId;
     if (diverId == null) {
       // No diver selected, use defaults
-      if (generation != _loadGeneration) return;
       state = AppSettings(
         hiddenHomeChips: hiddenHomeChips,
         homeCardOrder: homeCardOrder,
@@ -1316,6 +1373,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         perdixOverlayY: perdixOverlayY,
         seascapeAppearance: seascapeAppearance,
       );
+      _landedGeneration = generation;
       await _writeCachedTheme(prefs);
       return;
     }
@@ -1331,10 +1389,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // The notifier can be disposed while this read is in flight -- a
     // ProviderScope teardown (restartApp's soft restart, or the throwaway
     // container the post-restore safety sweep builds) tears down mid-load,
-    // and the diver-id listener can start a second load whose completion
-    // nobody awaits. Assigning state after dispose throws. A load the diver
-    // change superseded while it read must not land either.
-    if (!mounted || generation != _loadGeneration) return;
+    // and assigning state after dispose throws. A diver switch can also
+    // start a newer load while this read is in flight; that load may land
+    // first, and this one must not then overwrite it with the previous
+    // diver's settings (issue #2564).
+    if (!_isCurrentLoad(generation)) return;
     state = settings.copyWith(
       hiddenHomeChips: hiddenHomeChips,
       homeCardOrder: homeCardOrder,
@@ -1347,6 +1406,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       perdixOverlayY: perdixOverlayY,
       seascapeAppearance: adoptLegacySeascape ? seascapeAppearance : null,
     );
+    _landedGeneration = generation;
     if (adoptLegacySeascape) {
       // Write through immediately so the adopted value syncs.
       await _repository.updateSettingsForDiver(diverId, state);
@@ -1990,15 +2050,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  /// Waits for [initialLoad] first: until the diver's row lands, [state]
-  /// holds the defaults, and a switch flipped on the tag management screen
-  /// in that window would be overwritten when the load replaces [state],
-  /// silently undoing the diver's choice (issue #998). A failed load is
+  /// Waits for [settingsLoaded] first: until the diver's row lands, [state]
+  /// holds the defaults (or, after a diver switch, the previous diver's
+  /// settings), and a switch flipped on the tag management screen in that
+  /// window would be overwritten when the load replaces [state], silently
+  /// undoing the diver's choice (issues #998, #2564). A failed load is
   /// already logged by the constructor and leaves the defaults in place,
   /// so the change still applies on top of them.
   Future<void> setAutoTagImports(bool value) async {
     try {
-      await _initialLoad;
+      await settingsLoaded;
     } catch (_) {
       // See the doc comment: already logged, defaults are the fallback.
     }
@@ -2439,6 +2500,27 @@ final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((
   final repository = ref.watch(diverSettingsRepositoryProvider);
   return SettingsNotifier(repository, ref);
 });
+
+/// Waits until [settingsProvider] holds the current diver's settings, through
+/// the reload a diver switch starts as well as the first load (issue #2564).
+///
+/// For anything that saves what it computes from the settings: until the load
+/// lands, [settingsProvider] holds the placeholder defaults at startup, or the
+/// previous diver's settings after a switch.
+///
+/// Returns whether that load succeeded. A failed load is already logged by
+/// the notifier and leaves the defaults in place: an analysis for display may
+/// proceed on them, but they are not the diver's settings, so a caller that
+/// saves a result checks this first and saves nothing (issue #2592).
+Future<bool> awaitCurrentDiverSettings(Ref ref) async {
+  try {
+    await ref.read(settingsProvider.notifier).settingsLoaded;
+    return true;
+  } catch (_) {
+    // See the doc comment: already logged, the held settings are the fallback.
+    return false;
+  }
+}
 
 /// Convenience providers for individual settings
 final depthUnitProvider = Provider<DepthUnit>((ref) {

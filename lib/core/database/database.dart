@@ -232,7 +232,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 253;
+  static const int currentSchemaVersion = 254;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1036,9 +1036,15 @@ class AppDatabase extends _$AppDatabase {
     // v253: dive_safety_reviews.inputs_hash, the settings a review was
     // computed from (issue #2592). An additive nullable column, so the floor
     // does not move: the receiving overlay keeps it when an older peer's
-    // payload omits it. 251 is dive_tanks.source_id (#2716); 252 is
-    // nav_tracks.diver_id (#2703).
+    // payload omits it. Merged after v254 (#2595): a database already at 254
+    // never runs this rung, and the beforeOpen backstop adds the column.
     253,
+    // v254: dive_tanks.role_source, where a cylinder's role came from
+    // (issue #2595). An additive nullable column, so the floor does not
+    // move. 251 is dive_tanks.source_id (#2716) and 252
+    // nav_tracks.diver_id (#2703); 253 is
+    // dive_safety_reviews.inputs_hash (#2592).
+    254,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

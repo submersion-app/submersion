@@ -11,72 +11,72 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../../../helpers/test_database.dart';
 
-/// Holds each diver's settings load at its first read until that diver's
-/// gate completes, so a test can order two overlapping loads by hand.
-class _GatedDiverRepository extends DiverRepository {
+/// Holds a diver's settings read until that diver's gate completes, so a test
+/// can keep one load in flight while another starts and finishes.
+///
+/// A diver in [failing] has a read that throws instead.
+class _GatedSettingsRepository extends DiverSettingsRepository {
   final gates = <String, Completer<void>>{};
-
-  /// Diver ids whose read fails once released.
   final failing = <String>{};
 
-  Completer<void> gateFor(String diverId) =>
-      gates.putIfAbsent(diverId, Completer<void>.new);
-
   @override
-  Future<Diver?> getDiverById(String id) async {
-    await gateFor(id).future;
-    if (failing.contains(id)) throw StateError('diver read failed');
-    return super.getDiverById(id);
+  Future<AppSettings> getOrCreateSettingsForDiver(
+    String diverId, {
+    AppSettings? defaultSettings,
+  }) async {
+    final gate = gates[diverId];
+    if (gate != null) await gate.future;
+    if (failing.contains(diverId)) {
+      throw StateError('settings read failed for $diverId');
+    }
+    return super.getOrCreateSettingsForDiver(
+      diverId,
+      defaultSettings: defaultSettings,
+    );
   }
 }
 
-/// Issue #2564: after a diver switch, [SettingsNotifier] keeps the previous
-/// diver's settings in state until the new diver's row is read. An analysis
-/// that waited only for the first load ran on the previous diver's gradient
-/// factors in that window, and its result was persisted.
+/// After a diver switch [SettingsNotifier] keeps the previous diver's settings
+/// in [state] until the new diver's row is read (issue #2564). Analyses whose
+/// results are saved (the safety review, the deco classification cache) wait
+/// on [SettingsNotifier.settingsLoaded], so it must cover that reload, and a
+/// superseded load must never finish last and leave another diver's settings.
 void main() {
   late ProviderContainer container;
-  late _GatedDiverRepository divers;
+  late _GatedSettingsRepository settingsRepository;
   late String diverA;
   late String diverB;
   late String diverC;
 
+  Future<String> createDiver(String name, int gfLow) async {
+    final now = DateTime.now();
+    final diver = await DiverRepository().createDiver(
+      Diver(id: '', name: name, createdAt: now, updatedAt: now),
+    );
+    final repository = DiverSettingsRepository();
+    final stored = await repository.getOrCreateSettingsForDiver(diver.id);
+    await repository.updateSettingsForDiver(
+      diver.id,
+      stored.copyWith(gfLow: gfLow),
+    );
+    return diver.id;
+  }
+
   setUp(() async {
     await setUpTestDatabase();
-    final now = DateTime.now();
-    final repo = DiverRepository();
-    diverA = (await repo.createDiver(
-      Diver(id: '', name: 'A', createdAt: now, updatedAt: now),
-    )).id;
-    diverB = (await repo.createDiver(
-      Diver(id: '', name: 'B', createdAt: now, updatedAt: now),
-    )).id;
-    diverC = (await repo.createDiver(
-      Diver(id: '', name: 'C', createdAt: now, updatedAt: now),
-    )).id;
-    final settingsRepo = DiverSettingsRepository();
-    await settingsRepo.getOrCreateSettingsForDiver(diverA);
-    await settingsRepo.updateSettingsForDiver(
-      diverA,
-      const AppSettings(gfLow: 30, gfHigh: 70),
-    );
-    await settingsRepo.getOrCreateSettingsForDiver(diverB);
-    await settingsRepo.updateSettingsForDiver(
-      diverB,
-      const AppSettings(gfLow: 50, gfHigh: 85),
-    );
-    await settingsRepo.getOrCreateSettingsForDiver(diverC);
-    await settingsRepo.updateSettingsForDiver(
-      diverC,
-      const AppSettings(gfLow: 40, gfHigh: 90),
-    );
-    SharedPreferences.setMockInitialValues({currentDiverIdKey: diverA});
+    diverA = await createDiver('A', 20);
+    diverB = await createDiver('B', 35);
+    diverC = await createDiver('C', 50);
+    SharedPreferences.setMockInitialValues({
+      currentDiverIdKey: diverA,
+      SettingsKeys.hiddenHomeChips: ['planner'],
+    });
     final prefs = await SharedPreferences.getInstance();
-    divers = _GatedDiverRepository();
+    settingsRepository = _GatedSettingsRepository();
     container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        diverRepositoryProvider.overrideWithValue(divers),
+        diverSettingsRepositoryProvider.overrideWithValue(settingsRepository),
       ],
     );
   });
@@ -86,105 +86,131 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  test('loaded waits for the switched-to diver, not the first load', () async {
-    final notifier = container.read(settingsProvider.notifier);
-    divers.gateFor(diverA).complete();
-    await notifier.loaded;
-    expect(container.read(settingsProvider).gfLow, 30);
-
-    await container
-        .read(currentDiverIdProvider.notifier)
-        .setCurrentDiver(diverB);
-
-    var settled = false;
-    unawaited(notifier.loaded.then((_) => settled = true));
-    await pumpEventQueue();
-    expect(
-      settled,
-      isFalse,
-      reason: "B's settings have not been read yet, so nothing has loaded",
-    );
-    expect(
-      container.read(settingsProvider).gfLow,
-      30,
-      reason: "the window: state still holds A's settings",
-    );
-
-    divers.gateFor(diverB).complete();
-    await notifier.loaded;
-    expect(container.read(settingsProvider).gfLow, 50);
-    expect(container.read(settingsProvider).gfHigh, 85);
-  });
-
-  test('a slower earlier load finishing last does not restore the previous '
-      "diver's settings", () async {
-    final notifier = container.read(settingsProvider.notifier);
-    // A's first load is still waiting on its diver read when B is chosen.
-    await container
-        .read(currentDiverIdProvider.notifier)
-        .setCurrentDiver(diverB);
-
-    divers.gateFor(diverB).complete();
-    await notifier.loaded;
-    expect(container.read(settingsProvider).gfLow, 50);
-
-    // A's load now finishes, after B's.
-    divers.gateFor(diverA).complete();
-    try {
-      await notifier.initialLoad;
-    } catch (_) {
-      // Only its completion matters here.
-    }
-    await pumpEventQueue();
-
-    expect(
-      container.read(settingsProvider).gfLow,
-      50,
-      reason: "A's stale load must not overwrite B's settings",
-    );
-    expect(container.read(settingsProvider).gfHigh, 85);
-  });
+  Future<void> switchTo(String diverId) =>
+      container.read(currentDiverIdProvider.notifier).setCurrentDiver(diverId);
 
   test(
-    'a wait that spans a second switch resolves on the latest diver',
+    "settingsLoaded waits for the new diver's settings after a switch",
     () async {
       final notifier = container.read(settingsProvider.notifier);
-      divers.gateFor(diverA).complete();
-      await notifier.loaded;
+      await notifier.settingsLoaded;
+      expect(container.read(settingsProvider).gfLow, 20);
 
-      final switcher = container.read(currentDiverIdProvider.notifier);
-      await switcher.setCurrentDiver(diverB);
-      var settled = false;
-      final wait = notifier.loaded.then((_) => settled = true);
+      final gateB = settingsRepository.gates[diverB] = Completer<void>();
+      await switchTo(diverB);
 
-      // C is chosen before B's row was read; B's load is now superseded.
-      await switcher.setCurrentDiver(diverC);
-      divers.gateFor(diverB).complete();
+      var loaded = false;
+      final waiting = notifier.settingsLoaded.then((_) => loaded = true);
       await pumpEventQueue();
       expect(
-        settled,
+        loaded,
         isFalse,
-        reason: "B's superseded load finishing must not release the wait",
+        reason: "settingsLoaded completed while state still held A's settings",
       );
+      expect(container.read(settingsProvider).gfLow, 20);
 
-      divers.gateFor(diverC).complete();
-      await wait;
-      expect(container.read(settingsProvider).gfLow, 40);
+      gateB.complete();
+      await waiting;
+      expect(container.read(settingsProvider).gfLow, 35);
     },
   );
 
-  test("a failed reload surfaces its error to a wait, so the previous diver's "
-      'settings are never taken for the new one', () async {
+  test('a superseded load that finishes last does not overwrite the current '
+      "diver's settings", () async {
     final notifier = container.read(settingsProvider.notifier);
-    divers.gateFor(diverA).complete();
-    await notifier.loaded;
+    await notifier.settingsLoaded;
 
-    divers.failing.add(diverB);
-    await container
-        .read(currentDiverIdProvider.notifier)
-        .setCurrentDiver(diverB);
-    divers.gateFor(diverB).complete();
+    // B's read is slow; the user moves on to C before it returns.
+    final gateB = settingsRepository.gates[diverB] = Completer<void>();
+    await switchTo(diverB);
+    await pumpEventQueue();
+    await switchTo(diverC);
+    await notifier.settingsLoaded;
+    await pumpEventQueue();
+    expect(container.read(settingsProvider).gfLow, 50);
 
-    await expectLater(notifier.loaded, throwsStateError);
+    // B's read returns only now, after C's has landed.
+    gateB.complete();
+    await pumpEventQueue();
+
+    expect(container.read(settingsProvider).gfLow, 50);
+  });
+
+  // The wait's callers proceed on whatever a failed load leaves in state.
+  // After a switch that must not be the previous diver's settings, and the
+  // new diver's row, never read, must not be overwritten by the next change.
+  test("a failed reload falls back to the defaults, not the previous diver's "
+      'settings, and writes nothing to the new diver\'s row', () async {
+    final notifier = container.read(settingsProvider.notifier);
+    await notifier.settingsLoaded;
+    expect(container.read(settingsProvider).gfLow, 20);
+
+    settingsRepository.failing.add(diverB);
+    await switchTo(diverB);
+    await expectLater(notifier.settingsLoaded, throwsA(isA<StateError>()));
+
+    final held = container.read(settingsProvider);
+    expect(held.gfLow, const AppSettings().gfLow);
+    expect(held.hiddenHomeChips, {
+      'planner',
+    }, reason: 'device-local preferences belong to no diver and are kept');
+
+    await notifier.setGfLow(45);
+    final stored = await DiverSettingsRepository().getSettingsForDiver(diverB);
+    expect(stored!.gfLow, 35, reason: "B's row must not take the fallback");
+  });
+
+  // The post-restore safety sweep awaits initialLoad on a fresh container,
+  // where the active diver id can be realigned while the first load is still
+  // out. The superseded first load returns without writing state, so
+  // initialLoad must follow the load that replaced it rather than resolve on
+  // the defaults.
+  test('initialLoad follows a load that supersedes the first one', () async {
+    final gateA = settingsRepository.gates[diverA] = Completer<void>();
+    final gateB = settingsRepository.gates[diverB] = Completer<void>();
+    final notifier = container.read(settingsProvider.notifier);
+    await pumpEventQueue();
+    await switchTo(diverB);
+
+    var loaded = false;
+    final waiting = notifier.initialLoad.then((_) => loaded = true);
+    gateA.complete();
+    await pumpEventQueue();
+    expect(
+      loaded,
+      isFalse,
+      reason: 'initialLoad resolved on the superseded load, on the defaults',
+    );
+
+    gateB.complete();
+    await waiting;
+    expect(container.read(settingsProvider).gfLow, 35);
+  });
+
+  test('a wait begun during a superseded load resolves only on the current '
+      "diver's settings", () async {
+    final notifier = container.read(settingsProvider.notifier);
+    await notifier.settingsLoaded;
+
+    final gateB = settingsRepository.gates[diverB] = Completer<void>();
+    await switchTo(diverB);
+    final startedDuringB = notifier.settingsLoaded;
+
+    final gateC = settingsRepository.gates[diverC] = Completer<void>();
+    await switchTo(diverC);
+    gateB.complete();
+
+    var loaded = false;
+    unawaited(startedDuringB.then((_) => loaded = true));
+    await pumpEventQueue();
+    expect(
+      loaded,
+      isFalse,
+      reason: "the wait resolved on B's abandoned load while C's was pending",
+    );
+
+    gateC.complete();
+    await startedDuringB;
+    expect(container.read(settingsProvider).gfLow, 50);
   });
 }

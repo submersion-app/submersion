@@ -750,6 +750,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     var updated = 0;
     var filled = 0;
     final fillOutcomes = <PlannedDiveFillOutcome>[];
+    final filledDives = <DownloadedDive>{};
+    var filledNameRoleDives = 0;
     final processedDives = <DownloadedDive>[];
     // Dives this run actually wrote (new, consolidated, kept standalone or
     // source-replaced); skipped duplicates never count toward a notice.
@@ -786,6 +788,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             );
             fillOutcomes.add(outcome);
             filled++;
+            filledDives.add(dive);
+            if (outcome.nameDerivedRoleTanks > 0) filledNameRoleDives++;
             importedDiveIds.add(plannedId);
             writtenDives.add(dive);
           } catch (e, st) {
@@ -901,6 +905,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     scheduleDerivedMetricsRefresh(importedDiveIds);
 
     final unmatched = _importService.unmatchedTransmitterSerials;
+    // A fill skips the import service, so its own outcome says whether it
+    // kept a role read off a transmitter's name.
+    final nameRoleDives =
+        _divesCarrying(unmatched, [
+          for (final d in writtenDives)
+            if (!filledDives.contains(d)) d,
+        ], nameDerivedRolesOnly: true) +
+        filledNameRoleDives;
     final numberConflict = await diveNumberConflictNotice(
       retainSourceDiveNumbers: retainSourceDiveNumbers,
       diveRepository: _diveRepository,
@@ -920,6 +932,11 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             kind: ImportNoticeKind.unknownTransmitter,
             count: _divesCarrying(unmatched, writtenDives),
           ),
+        if (nameRoleDives > 0)
+          ImportNotice(
+            kind: ImportNoticeKind.transmitterNameRoles,
+            count: nameRoleDives,
+          ),
         ?numberConflict,
       ],
     );
@@ -927,12 +944,22 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
   /// How many of the dives this run wrote carry an unmatched serial. Skipped
   /// duplicates are not in [written], so they cannot inflate the count.
-  int _divesCarrying(List<String> unmatched, List<DownloadedDive> written) {
+  ///
+  /// With [nameDerivedRolesOnly], only a tank whose role the computer read
+  /// off the transmitter's name counts (issue #2595). A matched serial's
+  /// registry entry replaced that role on import, so the unmatched serials
+  /// are exactly the ones still carrying it.
+  int _divesCarrying(
+    List<String> unmatched,
+    List<DownloadedDive> written, {
+    bool nameDerivedRolesOnly = false,
+  }) {
     final set = unmatched.toSet();
     return written
         .where(
           (dive) => dive.tanks.any(
             (t) =>
+                (!nameDerivedRolesOnly || t.roleSource != null) &&
                 set.contains(normalizeTransmitterSerial(t.transmitterSerial)),
           ),
         )
