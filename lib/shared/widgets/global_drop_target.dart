@@ -20,6 +20,7 @@ import 'package:submersion/features/universal_import/data/services/batch_parse_s
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/services/incoming_file_handler.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// Wraps content with a desktop drag-and-drop target that navigates to the
 /// import wizard when a supported file is dropped.
@@ -101,7 +102,10 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
       );
       return;
     }
-    final mediaDestination = mediaDropDestinationFor(routerState);
+    final mediaDestination = mediaDropDestinationFor(
+      routerState,
+      detailPaneVisible: ResponsiveBreakpoints.isMasterDetail(context),
+    );
 
     // Split the drop into photos and videos and dive logs, expanding any
     // dropped folders into the files of each kind they hold. A folder is

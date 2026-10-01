@@ -6,10 +6,12 @@ MediaDropDestination? _destinationFor(
   String? routeName,
   String location, {
   Map<String, String> pathParameters = const {},
+  bool detailPaneVisible = true,
 }) => mediaDropDestinationForRoute(
   routeName: routeName,
   pathParameters: pathParameters,
   uri: Uri.parse(location),
+  detailPaneVisible: detailPaneVisible,
 );
 
 void main() {
@@ -51,6 +53,39 @@ void main() {
       expect(
         _destinationFor('sites', '/sites?selected=site-1'),
         const MediaDropDestination(target: SiteAttachTarget('site-1')),
+      );
+    });
+
+    test('a selected item is not one while a narrow window hides it', () {
+      // Below the master-detail breakpoint the list stands alone, so the
+      // selected id left in the URL names a dive the user cannot see.
+      expect(
+        _destinationFor(
+          'dives',
+          '/dives?selected=dive-1',
+          detailPaneVisible: false,
+        ),
+        isNull,
+      );
+      expect(
+        _destinationFor(
+          'sites',
+          '/sites?selected=site-1',
+          detailPaneVisible: false,
+        ),
+        isNull,
+      );
+    });
+
+    test('a detail page is one whatever the window width', () {
+      expect(
+        _destinationFor(
+          'diveDetail',
+          '/dives/dive-1',
+          pathParameters: {'diveId': 'dive-1'},
+          detailPaneVisible: false,
+        ),
+        const MediaDropDestination(target: DiveAttachTarget('dive-1')),
       );
     });
 

@@ -59,6 +59,19 @@ void main() {
       );
     });
 
+    test('skips hidden files and folders', () async {
+      // AppleDouble sidecars on exFAT camera cards carry the photo's own
+      // extension but no image, and would be staged as junk photos.
+      final trash = Directory(p.join(root.path, '.Trashes'))..createSync();
+      File(p.join(root.path, 'P1.jpg')).writeAsStringSync('x');
+      File(p.join(root.path, '._P1.jpg')).writeAsStringSync('x');
+      File(p.join(trash.path, 'old.jpg')).writeAsStringSync('x');
+
+      final found = await scanFolderForMediaFiles(root.path);
+
+      expect(found, [p.join(root.path, 'P1.jpg')]);
+    });
+
     test('returns nothing for a folder that does not exist', () async {
       final found = await scanFolderForMediaFiles(p.join(root.path, 'gone'));
 

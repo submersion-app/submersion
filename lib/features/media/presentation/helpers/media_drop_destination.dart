@@ -20,12 +20,18 @@ class MediaDropDestination extends Equatable {
 
 /// The [MediaDropDestination] for the screen [state] describes, or null when
 /// that screen does not take photos and videos.
-MediaDropDestination? mediaDropDestinationFor(GoRouterState state) =>
-    mediaDropDestinationForRoute(
-      routeName: state.topRoute?.name,
-      pathParameters: state.pathParameters,
-      uri: state.uri,
-    );
+///
+/// [detailPaneVisible] is whether the window is wide enough for a list to
+/// show its selected item beside it (`ResponsiveBreakpoints.isMasterDetail`).
+MediaDropDestination? mediaDropDestinationFor(
+  GoRouterState state, {
+  required bool detailPaneVisible,
+}) => mediaDropDestinationForRoute(
+  routeName: state.topRoute?.name,
+  pathParameters: state.pathParameters,
+  uri: state.uri,
+  detailPaneVisible: detailPaneVisible,
+);
 
 /// Pure form of [mediaDropDestinationFor], keyed on the deepest matched
 /// route's name rather than on the path, so a sibling route such as
@@ -34,12 +40,15 @@ MediaDropDestination? mediaDropDestinationFor(GoRouterState state) =>
 ///
 /// On wide layouts the dive and site lists show the selected item beside
 /// the list (`?selected=<id>`). That item is the destination only while its
-/// detail is what the pane shows: not while it is being edited or created,
-/// and not while the map replaces the detail.
+/// detail is what the pane shows: not in a window too narrow for the pane
+/// ([detailPaneVisible] false), where the list stands alone and the id left
+/// in the URL names a dive or site the user cannot see; not while it is
+/// being edited or created; and not while the map replaces the detail.
 MediaDropDestination? mediaDropDestinationForRoute({
   required String? routeName,
   required Map<String, String> pathParameters,
   required Uri uri,
+  required bool detailPaneVisible,
 }) {
   switch (routeName) {
     case 'media':
@@ -55,12 +64,12 @@ MediaDropDestination? mediaDropDestinationForRoute({
           ? null
           : MediaDropDestination(target: SiteAttachTarget(siteId));
     case 'dives':
-      final diveId = _selectedDetailId(uri);
+      final diveId = detailPaneVisible ? _selectedDetailId(uri) : null;
       return diveId == null
           ? null
           : MediaDropDestination(target: DiveAttachTarget(diveId));
     case 'sites':
-      final siteId = _selectedDetailId(uri);
+      final siteId = detailPaneVisible ? _selectedDetailId(uri) : null;
       return siteId == null
           ? null
           : MediaDropDestination(target: SiteAttachTarget(siteId));
