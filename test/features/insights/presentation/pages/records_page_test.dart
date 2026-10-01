@@ -47,6 +47,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> get initialLoad async {}
 
   @override
+  Future<void> get loaded async {}
+
+  @override
   Future<void> setAccentNavIcons(bool value) async =>
       state = state.copyWith(accentNavIcons: value);
 

@@ -232,7 +232,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 250;
+  static const int currentSchemaVersion = 253;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1024,6 +1024,12 @@ class AppDatabase extends _$AppDatabase {
     // floor does not move. #2562 and #2409 held stale claims below 249
     // when this was taken.
     250,
+    // v253: dive_safety_reviews.inputs_hash, the settings a review was
+    // computed from (issue #2592). An additive nullable column, so the floor
+    // does not move: the receiving overlay keeps it when an older peer's
+    // payload omits it. 251 and 252 are claimed by open PRs #2721/#2562 and
+    // #2703.
+    253,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -31,6 +31,13 @@ extension SafetyMigrations on AppDatabase {
     }
   }
 
+  /// v253: dive_safety_reviews.inputs_hash (issue #2592). Additive nullable
+  /// column, no backfill: a review without one is recomputed on next view.
+  /// Idempotent, so it is also the beforeOpen backstop.
+  Future<void> _assertSafetyReviewInputsHashColumn() async {
+    await _addColumnIfMissing('dive_safety_reviews', 'inputs_hash', 'TEXT');
+  }
+
   /// v126: emergency_chambers table + emergency card settings columns.
   /// Idempotent so it is safe to call from both onUpgrade and the
   /// beforeOpen backstop.

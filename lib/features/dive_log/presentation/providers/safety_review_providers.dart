@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -16,6 +17,13 @@ final safetyFindingsRepositoryProvider = Provider<SafetyFindingsRepository>((
 /// otherwise runs the engine over the profile analysis and persists the
 /// result. Returns null when the dive has never been analyzed and has no
 /// usable profile.
+///
+/// Current means the same engine version AND the same inputs: the stored
+/// fingerprint must match the active diver's [AnalysisSettings]. A review
+/// computed on another diver's settings (#2564), on settings edited since,
+/// or before inputs were recorded is recomputed on next view (#2592).
+/// saveReview keeps a recomputed finding's id and dismissal, so a dismissal
+/// survives the recompute.
 final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
   ref,
   diveId,
@@ -32,9 +40,15 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
     ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
   );
 
+  // Compare against the active diver's settings, not the placeholder or the
+  // previous diver's still in state during a switch.
+  await awaitActiveDiverSettings(ref);
+  final currentInputs = ref.watch(analysisSettingsProvider).fingerprint;
+
   final stored = await repo.getReview(diveId);
   if (stored != null &&
-      stored.engineVersion >= SafetyReviewService.engineVersion) {
+      stored.engineVersion >= SafetyReviewService.engineVersion &&
+      stored.inputsHash == currentInputs) {
     return stored;
   }
 
@@ -52,6 +66,9 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
       diveId: diveId,
       engineVersion: SafetyReviewService.engineVersion,
       reviewedAt: now,
+      // What the analysis itself ran on, which is what these findings came
+      // from; the snapshot read above only decided whether to recompute.
+      inputsHash: analysis.inputsFingerprint ?? currentInputs,
       findings: const SafetyReviewService().review(
         diveId: diveId,
         analysis: analysis,

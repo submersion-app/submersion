@@ -45,8 +45,8 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(249));
     // 248 (trip_equipment, #2338) sits below this rung.
     expect(AppDatabase.migrationVersions, contains(248));
-    expect(AppDatabase.migrationStepCount(248), 2);
-    expect(AppDatabase.migrationStepCount(247), 3);
+    expect(AppDatabase.migrationStepCount(248), greaterThanOrEqualTo(2));
+    expect(AppDatabase.migrationStepCount(247), greaterThanOrEqualTo(3));
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

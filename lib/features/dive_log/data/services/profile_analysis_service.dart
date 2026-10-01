@@ -330,6 +330,12 @@ class ProfileAnalysis {
   /// [DecoStatus] pair and show no provenance.
   final GradientFactorSource? gfSource;
 
+  /// The `AnalysisSettings.fingerprint` of the diver settings this analysis
+  /// ran on, stamped by the analysis pipeline. A result persisted from it
+  /// stores this so a later change to those settings can be detected
+  /// (issue #2592). Null for an analysis built outside the pipeline.
+  final String? inputsFingerprint;
+
   const ProfileAnalysis({
     required this.ascentRates,
     required this.ascentRateStats,
@@ -363,6 +369,7 @@ class ProfileAnalysis {
     required this.maxDepthTimestamp,
     required this.durationSeconds,
     this.gfSource,
+    this.inputsFingerprint,
   });
 
   /// Whether diver went into decompression obligation
@@ -461,6 +468,7 @@ class ProfileAnalysis {
     int? maxDepthTimestamp,
     int? durationSeconds,
     GradientFactorSource? gfSource,
+    String? inputsFingerprint,
   }) {
     return ProfileAnalysis(
       ascentRates: ascentRates ?? this.ascentRates,
@@ -496,6 +504,7 @@ class ProfileAnalysis {
       maxDepthTimestamp: maxDepthTimestamp ?? this.maxDepthTimestamp,
       durationSeconds: durationSeconds ?? this.durationSeconds,
       gfSource: gfSource ?? this.gfSource,
+      inputsFingerprint: inputsFingerprint ?? this.inputsFingerprint,
     );
   }
 

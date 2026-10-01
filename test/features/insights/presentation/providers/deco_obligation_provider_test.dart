@@ -8,6 +8,7 @@ import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/insights/data/repositories/deco_classification_cache.dart';
 import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
@@ -209,23 +210,61 @@ void main() {
     // provider reports no-deco, the cached value was used and the profile was
     // never hydrated, which is the whole point of the fingerprint being
     // derivable from the scan alone.
+    final container = await makeContainer();
     await DecoClassificationCacheRepository().put(
       'deep',
       hadDeco: false,
       inputsHash: decoInputsHash(
         engineVersion: analysisEngineVersion,
-        gfLow: 50,
-        gfHigh: 85,
+        settingsFingerprint: container
+            .read(analysisSettingsProvider)
+            .fingerprint,
         diveUpdatedAt: now,
       ),
     );
 
-    final stats = await (await makeContainer()).read(
-      decoObligationStatsProvider.future,
-    );
+    final stats = await container.read(decoObligationStatsProvider.future);
 
     expect(stats.decoCount, 0);
     expect(stats.noDecoCount, 1);
+  });
+
+  // Issue #2592: the entry records every setting the analysis read, not just
+  // the gradient factors. One stored under the same GF but another diver
+  // setting (here the deco ppO2 limit, which picks the ascent gases) was
+  // computed on different inputs and must not be served.
+  test('a classification cached on other settings is recomputed', () async {
+    await insertDive('deep');
+    await insertBareProfile('deep', 40, 25);
+
+    final container = await makeContainer();
+    final active = container.read(analysisSettingsProvider);
+    final other = active.copyWith(ppO2MaxDeco: active.ppO2MaxDeco - 0.2);
+    expect(other.gfLow, active.gfLow);
+    expect(other.gfHigh, active.gfHigh);
+    await DecoClassificationCacheRepository().put(
+      'deep',
+      hadDeco: false,
+      inputsHash: decoInputsHash(
+        engineVersion: analysisEngineVersion,
+        settingsFingerprint: other.fingerprint,
+        diveUpdatedAt: now,
+      ),
+    );
+
+    final stats = await container.read(decoObligationStatsProvider.future);
+
+    expect(stats.decoCount, 1, reason: 'the stale entry was not served');
+    final cached = await cacheDb.select(cacheDb.decoClassificationCache).get();
+    expect(
+      cached.single.inputsHash,
+      decoInputsHash(
+        engineVersion: analysisEngineVersion,
+        settingsFingerprint: active.fingerprint,
+        diveUpdatedAt: now,
+      ),
+      reason: 'the recomputed entry records the settings it ran on',
+    );
   });
 
   test('editing a dive invalidates its cached classification', () async {

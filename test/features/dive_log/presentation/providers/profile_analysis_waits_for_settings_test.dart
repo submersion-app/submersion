@@ -9,6 +9,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -22,13 +23,26 @@ class _DeferredSettingsNotifier extends StateNotifier<AppSettings>
   _DeferredSettingsNotifier() : super(const AppSettings());
 
   final _load = Completer<void>();
+  late Completer<void> _latest = _load;
 
   @override
   Future<void> get initialLoad => _load.future;
 
+  @override
+  Future<void> get loaded => _latest.future;
+
   void finishLoad(AppSettings stored) {
     state = stored;
     _load.complete();
+  }
+
+  /// A diver switch: a new load starts while [state] keeps the previous
+  /// diver's settings, as [SettingsNotifier] does until the new row is read.
+  void beginDiverSwitch() => _latest = Completer<void>();
+
+  void finishDiverSwitch(AppSettings stored) {
+    state = stored;
+    _latest.complete();
   }
 
   @override
@@ -136,6 +150,63 @@ void main() {
         reason:
             'an analysis built on the placeholder computer source was '
             "published before the diver's Calculated setting loaded",
+      );
+    }
+  });
+
+  test('an analysis started during a diver switch waits for the new '
+      "diver's settings and records them", () async {
+    const diveId = 'switch-settings-dive';
+    await seedDiveWithComputerCeiling(diveId);
+
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final settings = _DeferredSettingsNotifier();
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => settings),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    settings.finishLoad(const AppSettings(gfLow: 30, gfHigh: 70));
+    // The new diver is chosen, but their row has not been read yet.
+    settings.beginDiverSwitch();
+
+    final published = <ProfileAnalysis>[];
+    final sub = container.listen<AsyncValue<ProfileAnalysis?>>(
+      profileAnalysisProvider(diveId),
+      (_, next) {
+        final value = next.value;
+        if (value != null) published.add(value);
+      },
+      fireImmediately: true,
+    );
+    addTearDown(sub.close);
+
+    final deadline = DateTime.now().add(const Duration(seconds: 2));
+    while (published.isEmpty && DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+
+    settings.finishDiverSwitch(const AppSettings(gfLow: 50, gfHigh: 85));
+    final loaded = await container.read(profileAnalysisProvider(diveId).future);
+
+    expect(loaded, isNotNull);
+    expect(
+      loaded!.inputsFingerprint,
+      container.read(analysisSettingsProvider).fingerprint,
+      reason: 'the analysis records the settings it ran on',
+    );
+    expect(loaded.inputsFingerprint, contains('gf=50/85'));
+    for (final analysis in published) {
+      expect(
+        analysis.inputsFingerprint,
+        isNot(contains('gf=30/70')),
+        reason:
+            "an analysis built on the previous diver's settings was "
+            "published before the new diver's settings loaded",
       );
     }
   });

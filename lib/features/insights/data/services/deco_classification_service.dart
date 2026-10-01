@@ -2,19 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/data/repositories/deco_classification_cache.dart';
 
 /// Fingerprint of every input that can change a computed classification.
 ///
-/// [gfLow] and [gfHigh] are the diver's *settings* gradient factors, not the
-/// dive's own. Per-dive inputs (the dive's stored GF, altitude, water type,
-/// and the profile samples themselves) are all covered by [diveUpdatedAt],
-/// which moves whenever the dive row or its profile is written. So the only
-/// inputs left to name explicitly are the ones that live outside the dive: the
-/// engine version and the diver's global GF setting, which applies to any dive
-/// that does not carry both of its own.
+/// [settingsFingerprint] is the [AnalysisSettings.fingerprint] of the diver
+/// settings the analysis ran on: the gradient factors, but also the ppO2
+/// limits, ascent gases, deco stop increments and metric sources, any of which
+/// can move the NDL curve (issue #2592; this used to name only the GF).
+/// Per-dive inputs (the dive's stored GF, altitude, water type, and the
+/// profile samples themselves) are all covered by [diveUpdatedAt], which moves
+/// whenever the dive row or its profile is written.
 ///
 /// That makes the fingerprint computable from the statistics scan alone, with
 /// no dive hydration, which is what lets a warm library skip loading profiles
@@ -26,10 +26,9 @@ import 'package:submersion/features/insights/data/repositories/deco_classificati
 /// its neighbour.
 String decoInputsHash({
   required int engineVersion,
-  required int gfLow,
-  required int gfHigh,
+  required String settingsFingerprint,
   required int diveUpdatedAt,
-}) => 'v$engineVersion/$gfLow-$gfHigh/$diveUpdatedAt';
+}) => 'v$engineVersion|$diveUpdatedAt|$settingsFingerprint';
 
 /// Classifies dives that carry no recorded deco signal by running the same
 /// analysis the dive detail page runs (#623).
@@ -63,15 +62,16 @@ class DecoClassificationService {
   }) async {
     if (revisions.isEmpty) return const {};
 
-    final settingsGfLow = ref.read(gfLowProvider);
-    final settingsGfHigh = ref.read(gfHighProvider);
+    // The active diver's settings, once loaded: during a diver switch the
+    // previous diver's are still in state (#2564).
+    await awaitActiveDiverSettings(ref);
+    final settingsFingerprint = ref.read(analysisSettingsProvider).fingerprint;
 
     final hashes = <String, String>{
       for (final entry in revisions.entries)
         entry.key: decoInputsHash(
           engineVersion: analysisEngineVersion,
-          gfLow: settingsGfLow,
-          gfHigh: settingsGfHigh,
+          settingsFingerprint: settingsFingerprint,
           diveUpdatedAt: entry.value,
         ),
     };
@@ -116,10 +116,18 @@ class DecoClassificationService {
 
           final hadDeco = analysis.hadDecoObligation;
           results[diveId] = hadDeco;
+          // Stored under what the analysis actually ran on. Should the
+          // settings have moved since the hashes above were taken, the entry
+          // is a miss on the next pass instead of a wrong answer kept.
           await cache.put(
             diveId,
             hadDeco: hadDeco,
-            inputsHash: hashes[diveId]!,
+            inputsHash: decoInputsHash(
+              engineVersion: analysisEngineVersion,
+              settingsFingerprint:
+                  analysis.inputsFingerprint ?? settingsFingerprint,
+              diveUpdatedAt: revisions[diveId]!,
+            ),
           );
         } catch (e, stackTrace) {
           _log.error(

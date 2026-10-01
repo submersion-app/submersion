@@ -1,0 +1,180 @@
+import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+/// Every diver setting a profile analysis reads, captured once per analysis.
+///
+/// An analysis takes these as one explicit input instead of reading each
+/// settings provider as it goes, so the whole run sees a single diver's
+/// settings and its result can say which settings produced it ([fingerprint]).
+/// Results that are persisted (the safety review, the deco classification
+/// cache) store that fingerprint and are recomputed when it no longer matches
+/// (issue #2592).
+///
+/// The per-metric sources are the profile legend's, which start from the
+/// diver's defaults and can be switched on the chart. They change the curves
+/// a persisted result is computed from, so they are inputs like the rest.
+class AnalysisSettings {
+  const AnalysisSettings({
+    required this.gfLow,
+    required this.gfHigh,
+    required this.ppO2MaxWorking,
+    required this.ppO2MaxDeco,
+    required this.cnsWarningThreshold,
+    required this.ascentRateWarning,
+    required this.ascentRateCritical,
+    required this.lastStopDepth,
+    required this.decoStopIncrement,
+    required this.cnsCalculationMethod,
+    required this.ascentGasSet,
+    required this.gtrReservePressure,
+    required this.ndlSource,
+    required this.ttsSource,
+    required this.cnsSource,
+    required this.decoStopSource,
+    required this.gtrSource,
+  });
+
+  /// Gradient factors as whole percentages. A dive that recorded both of its
+  /// own overrides these, but they stay in the fingerprint for every dive:
+  /// a needless recompute is the safe direction to err.
+  final int gfLow;
+  final int gfHigh;
+  final double ppO2MaxWorking;
+  final double ppO2MaxDeco;
+  final int cnsWarningThreshold;
+  final double ascentRateWarning;
+  final double ascentRateCritical;
+  final double lastStopDepth;
+  final double decoStopIncrement;
+  final CnsCalculationMethod cnsCalculationMethod;
+  final AscentGasSet ascentGasSet;
+  final double gtrReservePressure;
+  final MetricDataSource ndlSource;
+  final MetricDataSource ttsSource;
+  final MetricDataSource cnsSource;
+  final MetricDataSource decoStopSource;
+  final MetricDataSource gtrSource;
+
+  double get gfLowFraction => gfLow / 100.0;
+  double get gfHighFraction => gfHigh / 100.0;
+
+  /// A stable text identity of these settings, stored beside a persisted
+  /// result. Equal settings give equal fingerprints on every device and run,
+  /// so a synced result is not recomputed by a peer with the same settings.
+  ///
+  /// The leading version names the format: add a field and bump it, and every
+  /// stored fingerprint stops matching once, which is what a new input needs.
+  String get fingerprint => [
+    'a1',
+    'gf=$gfLow/$gfHigh',
+    'ppo2=${_num(ppO2MaxWorking)}/${_num(ppO2MaxDeco)}',
+    'cnsw=$cnsWarningThreshold',
+    'asc=${_num(ascentRateWarning)}/${_num(ascentRateCritical)}',
+    'stop=${_num(lastStopDepth)}/${_num(decoStopIncrement)}',
+    'cnsm=${cnsCalculationMethod.name}',
+    'gas=${ascentGasSet.name}',
+    'gtr=${_num(gtrReservePressure)}',
+    'src=${ndlSource.name}/${ttsSource.name}/${cnsSource.name}/'
+        '${decoStopSource.name}/${gtrSource.name}',
+  ].join(';');
+
+  /// Whole values print without a fraction so `3` and `3.0` cannot differ.
+  static String _num(double v) =>
+      v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+
+  AnalysisSettings copyWith({
+    int? gfLow,
+    int? gfHigh,
+    double? ppO2MaxWorking,
+    double? ppO2MaxDeco,
+    int? cnsWarningThreshold,
+    double? ascentRateWarning,
+    double? ascentRateCritical,
+    double? lastStopDepth,
+    double? decoStopIncrement,
+    CnsCalculationMethod? cnsCalculationMethod,
+    AscentGasSet? ascentGasSet,
+    double? gtrReservePressure,
+    MetricDataSource? ndlSource,
+    MetricDataSource? ttsSource,
+    MetricDataSource? cnsSource,
+    MetricDataSource? decoStopSource,
+    MetricDataSource? gtrSource,
+  }) => AnalysisSettings(
+    gfLow: gfLow ?? this.gfLow,
+    gfHigh: gfHigh ?? this.gfHigh,
+    ppO2MaxWorking: ppO2MaxWorking ?? this.ppO2MaxWorking,
+    ppO2MaxDeco: ppO2MaxDeco ?? this.ppO2MaxDeco,
+    cnsWarningThreshold: cnsWarningThreshold ?? this.cnsWarningThreshold,
+    ascentRateWarning: ascentRateWarning ?? this.ascentRateWarning,
+    ascentRateCritical: ascentRateCritical ?? this.ascentRateCritical,
+    lastStopDepth: lastStopDepth ?? this.lastStopDepth,
+    decoStopIncrement: decoStopIncrement ?? this.decoStopIncrement,
+    cnsCalculationMethod: cnsCalculationMethod ?? this.cnsCalculationMethod,
+    ascentGasSet: ascentGasSet ?? this.ascentGasSet,
+    gtrReservePressure: gtrReservePressure ?? this.gtrReservePressure,
+    ndlSource: ndlSource ?? this.ndlSource,
+    ttsSource: ttsSource ?? this.ttsSource,
+    cnsSource: cnsSource ?? this.cnsSource,
+    decoStopSource: decoStopSource ?? this.decoStopSource,
+    gtrSource: gtrSource ?? this.gtrSource,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is AnalysisSettings && other.fingerprint == fingerprint;
+
+  @override
+  int get hashCode => fingerprint.hashCode;
+}
+
+/// The active diver's [AnalysisSettings].
+///
+/// Built from the individual settings providers (not [settingsProvider]
+/// directly) so a test that overrides one of them still reaches the analysis.
+/// Read it only after [awaitActiveDiverSettings]: until the active diver's
+/// row loads, it reflects the defaults or, right after a diver switch, the
+/// previous diver.
+final analysisSettingsProvider = Provider<AnalysisSettings>((ref) {
+  return AnalysisSettings(
+    gfLow: ref.watch(gfLowProvider),
+    gfHigh: ref.watch(gfHighProvider),
+    ppO2MaxWorking: ref.watch(ppO2MaxWorkingProvider),
+    ppO2MaxDeco: ref.watch(ppO2MaxDecoProvider),
+    cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
+    ascentRateWarning: ref.watch(ascentRateWarningProvider),
+    ascentRateCritical: ref.watch(ascentRateCriticalProvider),
+    lastStopDepth: ref.watch(lastStopDepthProvider),
+    decoStopIncrement: ref.watch(decoStopIncrementProvider),
+    cnsCalculationMethod: ref.watch(cnsCalculationMethodProvider),
+    ascentGasSet: ref.watch(ascentGasSetProvider),
+    gtrReservePressure: ref.watch(
+      settingsProvider.select((s) => s.gtrReservePressure),
+    ),
+    ndlSource: ref.watch(profileLegendProvider.select((s) => s.ndlSource)),
+    ttsSource: ref.watch(profileLegendProvider.select((s) => s.ttsSource)),
+    cnsSource: ref.watch(profileLegendProvider.select((s) => s.cnsSource)),
+    decoStopSource: ref.watch(
+      profileLegendProvider.select((s) => s.decoStopSource),
+    ),
+    gtrSource: ref.watch(profileLegendProvider.select((s) => s.gtrSource)),
+  );
+});
+
+/// Waits until the active diver's settings have loaded, including the reload
+/// a diver switch starts ([SettingsNotifier.loaded]), so a following read of
+/// [analysisSettingsProvider] is that diver's and not the placeholder or the
+/// previous diver's (issues #1859, #2564).
+///
+/// A failed load is already logged by the notifier and leaves the defaults in
+/// place, so the caller proceeds on them, as `setAutoTagImports` does.
+Future<void> awaitActiveDiverSettings(Ref ref) async {
+  try {
+    await ref.read(settingsProvider.notifier).loaded;
+  } catch (_) {
+    // See the doc comment: already logged, defaults are the fallback.
+  }
+}

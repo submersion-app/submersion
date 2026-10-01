@@ -121,5 +121,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertSiteHidesSchema();
     }
     if (from < 250) await reportProgress();
+    // v253: the settings a safety review was computed from (issue #2592).
+    // Column only, no backfill; re-asserted in beforeOpen. 251 and 252 are
+    // claimed by open PRs.
+    if (from < 253) {
+      await _assertSafetyReviewInputsHashColumn();
+    }
+    if (from < 253) await reportProgress();
   }
 }
