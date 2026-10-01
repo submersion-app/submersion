@@ -217,7 +217,7 @@ void main() {
       inputsHash: decoInputsHash(
         engineVersion: analysisEngineVersion,
         settingsFingerprint: container
-            .read(analysisSettingsProvider)
+            .read(diverAnalysisSettingsProvider)
             .fingerprint,
         diveUpdatedAt: now,
       ),
@@ -238,7 +238,7 @@ void main() {
     await insertBareProfile('deep', 40, 25);
 
     final container = await makeContainer();
-    final active = container.read(analysisSettingsProvider);
+    final active = container.read(diverAnalysisSettingsProvider);
     final other = active.copyWith(ppO2MaxDeco: active.ppO2MaxDeco - 0.2);
     expect(other.gfLow, active.gfLow);
     expect(other.gfHigh, active.gfHigh);

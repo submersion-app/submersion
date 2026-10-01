@@ -1165,7 +1165,23 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// complete with an error, already logged, so callers guard it.
   late Future<void> _latestLoad;
 
-  Future<void> get loaded => _latestLoad;
+  /// Completes once the load that is latest at that moment has finished. A
+  /// load superseded by a further diver switch completes without writing
+  /// [state], so a wait that spans two switches must follow on to the newer
+  /// load rather than stop at the one it started on.
+  Future<void> get loaded async {
+    while (true) {
+      final load = _latestLoad;
+      try {
+        await load;
+      } catch (_) {
+        // A newer load may have replaced the one that failed; only the
+        // latest load's error is the caller's to handle.
+        if (identical(load, _latestLoad)) rethrow;
+      }
+      if (identical(load, _latestLoad)) return;
+    }
+  }
 
   /// A notifier pinned to already-loaded [settings] for [diverId], performing
   /// no database read and installing no diver-change listener.

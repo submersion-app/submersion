@@ -35,6 +35,7 @@ void main() {
   late _GatedDiverRepository divers;
   late String diverA;
   late String diverB;
+  late String diverC;
 
   setUp(() async {
     await setUpTestDatabase();
@@ -46,6 +47,9 @@ void main() {
     diverB = (await repo.createDiver(
       Diver(id: '', name: 'B', createdAt: now, updatedAt: now),
     )).id;
+    diverC = (await repo.createDiver(
+      Diver(id: '', name: 'C', createdAt: now, updatedAt: now),
+    )).id;
     final settingsRepo = DiverSettingsRepository();
     await settingsRepo.getOrCreateSettingsForDiver(diverA);
     await settingsRepo.updateSettingsForDiver(
@@ -56,6 +60,11 @@ void main() {
     await settingsRepo.updateSettingsForDiver(
       diverB,
       const AppSettings(gfLow: 50, gfHigh: 85),
+    );
+    await settingsRepo.getOrCreateSettingsForDiver(diverC);
+    await settingsRepo.updateSettingsForDiver(
+      diverC,
+      const AppSettings(gfLow: 40, gfHigh: 90),
     );
     SharedPreferences.setMockInitialValues({currentDiverIdKey: diverA});
     final prefs = await SharedPreferences.getInstance();
@@ -131,4 +140,32 @@ void main() {
     );
     expect(container.read(settingsProvider).gfHigh, 85);
   });
+
+  test(
+    'a wait that spans a second switch resolves on the latest diver',
+    () async {
+      final notifier = container.read(settingsProvider.notifier);
+      divers.gateFor(diverA).complete();
+      await notifier.loaded;
+
+      final switcher = container.read(currentDiverIdProvider.notifier);
+      await switcher.setCurrentDiver(diverB);
+      var settled = false;
+      final wait = notifier.loaded.then((_) => settled = true);
+
+      // C is chosen before B's row was read; B's load is now superseded.
+      await switcher.setCurrentDiver(diverC);
+      divers.gateFor(diverB).complete();
+      await pumpEventQueue();
+      expect(
+        settled,
+        isFalse,
+        reason: "B's superseded load finishing must not release the wait",
+      );
+
+      divers.gateFor(diverC).complete();
+      await wait;
+      expect(container.read(settingsProvider).gfLow, 40);
+    },
+  );
 }

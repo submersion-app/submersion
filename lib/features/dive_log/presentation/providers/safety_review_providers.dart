@@ -19,11 +19,15 @@ final safetyFindingsRepositoryProvider = Provider<SafetyFindingsRepository>((
 /// usable profile.
 ///
 /// Current means the same engine version AND the same inputs: the stored
-/// fingerprint must match the active diver's [AnalysisSettings]. A review
-/// computed on another diver's settings (#2564), on settings edited since,
-/// or before inputs were recorded is recomputed on next view (#2592).
-/// saveReview keeps a recomputed finding's id and dismissal, so a dismissal
-/// survives the recompute.
+/// fingerprint must match the active diver's own settings
+/// ([diverAnalysisSettingsProvider]). A review computed on another diver's
+/// settings (#2564), on settings edited since, or before inputs were recorded
+/// is recomputed on next view (#2592). saveReview keeps a recomputed
+/// finding's id and dismissal, so a dismissal survives the recompute.
+///
+/// A review is saved only from an analysis that ran on exactly those
+/// settings. While a metric source is switched on the chart the analysis is
+/// a view of the dive, not the diver's review, so the stored one is shown.
 final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
   ref,
   diveId,
@@ -43,7 +47,7 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
   // Compare against the active diver's settings, not the placeholder or the
   // previous diver's still in state during a switch.
   await awaitActiveDiverSettings(ref);
-  final currentInputs = ref.watch(analysisSettingsProvider).fingerprint;
+  final currentInputs = ref.watch(diverAnalysisSettingsProvider).fingerprint;
 
   final stored = await repo.getReview(diveId);
   if (stored != null &&
@@ -57,6 +61,10 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
 
   final analysis = await ref.watch(profileAnalysisProvider(diveId).future);
   if (analysis == null || analysis.ascentRates.isEmpty) return stored;
+  // Ran on other inputs: a chart source toggle, or settings that have moved
+  // since this analysis was computed (it rebuilds, and this with it).
+  final ranOn = analysis.inputsFingerprint;
+  if (ranOn != null && ranOn != currentInputs) return stored;
 
   final now = DateTime.now();
   // Return what was stored, not the engine's raw output: a kept finding
@@ -66,9 +74,7 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
       diveId: diveId,
       engineVersion: SafetyReviewService.engineVersion,
       reviewedAt: now,
-      // What the analysis itself ran on, which is what these findings came
-      // from; the snapshot read above only decided whether to recompute.
-      inputsHash: analysis.inputsFingerprint ?? currentInputs,
+      inputsHash: currentInputs,
       findings: const SafetyReviewService().review(
         diveId: diveId,
         analysis: analysis,

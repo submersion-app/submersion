@@ -8,8 +8,8 @@ import 'package:submersion/features/insights/data/repositories/deco_classificati
 
 /// Fingerprint of every input that can change a computed classification.
 ///
-/// [settingsFingerprint] is the [AnalysisSettings.fingerprint] of the diver
-/// settings the analysis ran on: the gradient factors, but also the ppO2
+/// [settingsFingerprint] is the [AnalysisSettings.fingerprint] of the
+/// diver's own settings ([diverAnalysisSettingsProvider]): the gradient factors, but also the ppO2
 /// limits, ascent gases, deco stop increments and metric sources, any of which
 /// can move the NDL curve (issue #2592; this used to name only the GF).
 /// Per-dive inputs (the dive's stored GF, altitude, water type, and the
@@ -65,7 +65,9 @@ class DecoClassificationService {
     // The active diver's settings, once loaded: during a diver switch the
     // previous diver's are still in state (#2564).
     await awaitActiveDiverSettings(ref);
-    final settingsFingerprint = ref.read(analysisSettingsProvider).fingerprint;
+    final settingsFingerprint = ref
+        .read(diverAnalysisSettingsProvider)
+        .fingerprint;
 
     final hashes = <String, String>{
       for (final entry in revisions.entries)
@@ -116,19 +118,18 @@ class DecoClassificationService {
 
           final hadDeco = analysis.hadDecoObligation;
           results[diveId] = hadDeco;
-          // Stored under what the analysis actually ran on. Should the
-          // settings have moved since the hashes above were taken, the entry
-          // is a miss on the next pass instead of a wrong answer kept.
-          await cache.put(
-            diveId,
-            hadDeco: hadDeco,
-            inputsHash: decoInputsHash(
-              engineVersion: analysisEngineVersion,
-              settingsFingerprint:
-                  analysis.inputsFingerprint ?? settingsFingerprint,
-              diveUpdatedAt: revisions[diveId]!,
-            ),
-          );
+          // Cached only when the analysis ran on the diver's own settings.
+          // One drawn on a chart source toggle, or on settings that moved
+          // since the hashes above were taken, still answers this pass but
+          // is not kept under a fingerprint it does not match.
+          final ranOn = analysis.inputsFingerprint;
+          if (ranOn == null || ranOn == settingsFingerprint) {
+            await cache.put(
+              diveId,
+              hadDeco: hadDeco,
+              inputsHash: hashes[diveId]!,
+            );
+          }
         } catch (e, stackTrace) {
           _log.error(
             'Failed to classify deco obligation for dive $diveId',

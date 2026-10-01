@@ -13,9 +13,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// cache) store that fingerprint and are recomputed when it no longer matches
 /// (issue #2592).
 ///
-/// The per-metric sources are the profile legend's, which start from the
-/// diver's defaults and can be switched on the chart. They change the curves
-/// a persisted result is computed from, so they are inputs like the rest.
+/// The per-metric sources change the curves a result is computed from, so
+/// they are inputs like the rest. [analysisSettingsProvider] carries the
+/// chart legend's (seeded from the diver's defaults, switchable per session);
+/// [diverAnalysisSettingsProvider] carries the diver's defaults, and is what a
+/// persisted result is keyed on.
 class AnalysisSettings {
   const AnalysisSettings({
     required this.gfLow,
@@ -131,14 +133,35 @@ class AnalysisSettings {
   int get hashCode => fingerprint.hashCode;
 }
 
-/// The active diver's [AnalysisSettings].
+/// The active diver's own [AnalysisSettings]: their stored settings, with
+/// each per-metric source at the diver's default rather than the chart
+/// legend's session toggle.
+///
+/// Persisted results (the safety review, the deco classification cache) key
+/// on this and are saved only from an analysis that ran on exactly it.
+/// Switching a source on the chart is a way of viewing one dive, not a change
+/// to the diver's settings: keying on the legend would rewrite and re-sync a
+/// review on every toggle, and a dismissed finding that stopped firing under
+/// the toggled source would be tombstoned and come back undismissed.
 ///
 /// Built from the individual settings providers (not [settingsProvider]
-/// directly) so a test that overrides one of them still reaches the analysis.
+/// alone) so a test that overrides one of them still reaches the analysis.
 /// Read it only after [awaitActiveDiverSettings]: until the active diver's
 /// row loads, it reflects the defaults or, right after a diver switch, the
 /// previous diver.
-final analysisSettingsProvider = Provider<AnalysisSettings>((ref) {
+final diverAnalysisSettingsProvider = Provider<AnalysisSettings>((ref) {
+  final sources = ref.watch(
+    settingsProvider.select(
+      (s) => (
+        ndl: s.defaultNdlSource,
+        tts: s.defaultTtsSource,
+        cns: s.defaultCnsSource,
+        decoStop: s.defaultDecoStopSource,
+        gtr: s.defaultGtrSource,
+        gtrReserve: s.gtrReservePressure,
+      ),
+    ),
+  );
   return AnalysisSettings(
     gfLow: ref.watch(gfLowProvider),
     gfHigh: ref.watch(gfHighProvider),
@@ -151,22 +174,38 @@ final analysisSettingsProvider = Provider<AnalysisSettings>((ref) {
     decoStopIncrement: ref.watch(decoStopIncrementProvider),
     cnsCalculationMethod: ref.watch(cnsCalculationMethodProvider),
     ascentGasSet: ref.watch(ascentGasSetProvider),
-    gtrReservePressure: ref.watch(
-      settingsProvider.select((s) => s.gtrReservePressure),
-    ),
-    ndlSource: ref.watch(profileLegendProvider.select((s) => s.ndlSource)),
-    ttsSource: ref.watch(profileLegendProvider.select((s) => s.ttsSource)),
-    cnsSource: ref.watch(profileLegendProvider.select((s) => s.cnsSource)),
-    decoStopSource: ref.watch(
-      profileLegendProvider.select((s) => s.decoStopSource),
-    ),
-    gtrSource: ref.watch(profileLegendProvider.select((s) => s.gtrSource)),
+    gtrReservePressure: sources.gtrReserve,
+    ndlSource: sources.ndl,
+    ttsSource: sources.tts,
+    cnsSource: sources.cns,
+    decoStopSource: sources.decoStop,
+    gtrSource: sources.gtr,
   );
+});
+
+/// The [AnalysisSettings] the profile analysis runs on: the diver's own,
+/// with the per-metric sources the chart legend currently shows. Equal to
+/// [diverAnalysisSettingsProvider] until a source is switched on the chart.
+///
+/// Read it only after [awaitActiveDiverSettings], for the same reason.
+final analysisSettingsProvider = Provider<AnalysisSettings>((ref) {
+  return ref
+      .watch(diverAnalysisSettingsProvider)
+      .copyWith(
+        ndlSource: ref.watch(profileLegendProvider.select((s) => s.ndlSource)),
+        ttsSource: ref.watch(profileLegendProvider.select((s) => s.ttsSource)),
+        cnsSource: ref.watch(profileLegendProvider.select((s) => s.cnsSource)),
+        decoStopSource: ref.watch(
+          profileLegendProvider.select((s) => s.decoStopSource),
+        ),
+        gtrSource: ref.watch(profileLegendProvider.select((s) => s.gtrSource)),
+      );
 });
 
 /// Waits until the active diver's settings have loaded, including the reload
 /// a diver switch starts ([SettingsNotifier.loaded]), so a following read of
-/// [analysisSettingsProvider] is that diver's and not the placeholder or the
+/// [analysisSettingsProvider] or [diverAnalysisSettingsProvider] is that
+/// diver's and not the placeholder or the
 /// previous diver's (issues #1859, #2564).
 ///
 /// A failed load is already logged by the notifier and leaves the defaults in

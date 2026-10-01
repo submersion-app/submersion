@@ -71,7 +71,7 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-    return container.read(analysisSettingsProvider).fingerprint;
+    return container.read(diverAnalysisSettingsProvider).fingerprint;
   }
 
   test(
@@ -201,14 +201,21 @@ void main() {
     });
   }
 
-  test('records the analysis fingerprint, not a fresh read of the '
-      'settings', () async {
-    final repo = _FakeRepo();
+  // A source switched on the chart changes the analysis, not the diver's
+  // settings. Saving that analysis would rewrite and re-sync the review on
+  // every toggle, and tombstone a dismissed finding that stopped firing under
+  // the toggled source, so it comes back undismissed on the way back.
+  test('does not save a review from an analysis run on other inputs', () async {
+    final stored = storedReview(
+      SafetyReviewService.engineVersion,
+      inputsHash: 'a1;settings-since-changed',
+    );
+    final repo = _FakeRepo(stored: stored);
     final profile = rapidAscentProfile();
     final analysis = analyzeFixture(
       depths: profile.depths,
       timestamps: profile.timestamps,
-    ).copyWith(inputsFingerprint: 'a1;the-settings-the-analysis-used');
+    ).copyWith(inputsFingerprint: 'a1;a-chart-source-toggle');
     final container = ProviderContainer(
       overrides: [
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
@@ -219,8 +226,9 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    await container.read(safetyReviewProvider('d1').future);
-    expect(repo.saved!.inputsHash, 'a1;the-settings-the-analysis-used');
+    final result = await container.read(safetyReviewProvider('d1').future);
+    expect(repo.saved, isNull);
+    expect(result, stored, reason: 'the stored review is shown instead');
   });
 
   // Regression: a freshly synced library imports safety review/finding rows
