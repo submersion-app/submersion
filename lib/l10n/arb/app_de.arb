@@ -5659,6 +5659,7 @@
   "plannerCanvas_issue_gasDensityHigh": "Gasdichte {value} g/L über empfohlenem Limit",
   "plannerCanvas_issue_hypoxic": "Hypoxisches Gas bei {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "Flasche endet unter dem Rock-Bottom-Minimum von {pressure}",
+  "plannerCanvas_issue_diluentModExceeded": "Diluent überschreitet seine Dil-MOD-Grenze bei {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_noBailout": "CCR-Dekompressionsplan führt kein Bailout-Gas mit",
   "plannerCanvas_issue_noDecoGas": "Dekompression erforderlich, aber kein Deko-Gas mitgeführt",
   "plannerCanvas_range_base": "Basis",

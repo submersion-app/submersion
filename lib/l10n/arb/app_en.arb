@@ -11993,6 +11993,17 @@
       }
     }
   },
+  "plannerCanvas_issue_diluentModExceeded": "Diluent exceeds its Dil MOD at {depth} (ppO₂ {value} bar)",
+  "@plannerCanvas_issue_diluentModExceeded": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_issue_noBailout": "CCR decompression plan carries no bailout gas",
   "plannerCanvas_issue_noDecoGas": "Decompression required but no deco gas carried",
   "plannerCanvas_range_base": "Base",

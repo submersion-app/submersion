@@ -102,6 +102,22 @@ void main() {
     expect(find.text('Within the recommended 5.2 g/L limit.'), findsOneWidget);
   });
 
+  testWidgets('the default CCR setpoint comes from the diver settings', (
+    tester,
+  ) async {
+    final ref = await _pump(
+      tester,
+      settings: const AppSettings().copyWith(ccrSetpointHigh: 0.9),
+    );
+
+    expect(ref.read(densitySetpointProvider), 0.9);
+
+    ref.read(densitySetpointProvider.notifier).state = 1.3;
+    resetDensityCalculator(ref);
+
+    expect(ref.read(densitySetpointProvider), 0.9);
+  });
+
   testWidgets('CCR shows the setpoint and the loop gas', (tester) async {
     final ref = await _pump(tester);
     expect(find.text('Setpoint (bar)'), findsNothing);

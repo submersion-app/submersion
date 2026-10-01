@@ -4,6 +4,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
@@ -31,10 +33,16 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
     // A setpoint is decimal by nature (1,2 bar for a comma-decimal diver), so
     // the seed and the parse both go through the locale helpers (#1091).
     _lowController = TextEditingController(
-      text: formatRoundedForInput(state.setpointLow ?? 0.7, 1),
+      text: formatRoundedForInput(
+        state.setpointLow ?? domain.DivePlan.specSetpointLow,
+        1,
+      ),
     );
     _highController = TextEditingController(
-      text: formatRoundedForInput(state.setpointHigh ?? 1.3, 1),
+      text: formatRoundedForInput(
+        state.setpointHigh ?? domain.DivePlan.specSetpointHigh,
+        1,
+      ),
     );
     _switchController = TextEditingController(
       text: formatRoundedForInput(

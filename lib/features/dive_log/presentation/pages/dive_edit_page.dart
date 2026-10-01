@@ -3363,8 +3363,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       return Padding(
         padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
         child: CcrSettingsPanel(
-          setpointLow: _setpointLow,
-          setpointHigh: _setpointHigh,
+          // A dive with no setpoints logged yet (a brand-new manual entry,
+          // or one just switched to CCR) is prefilled from the diver's own
+          // CCR ppO2 limits rather than the panel's hardcoded 0.70/1.30
+          // literals, which the diver may not actually dive.
+          setpointLow: _setpointLow ?? ref.read(ccrSetpointLowProvider),
+          setpointHigh: _setpointHigh ?? ref.read(ccrSetpointHighProvider),
           setpointDeco: _setpointDeco,
           diluentGas: _diluentGas,
           scrubberType: _scrubberType,

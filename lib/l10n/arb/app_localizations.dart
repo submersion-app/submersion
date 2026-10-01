@@ -30764,6 +30764,12 @@ abstract class AppLocalizations {
   /// **'Tank ends below the rock-bottom minimum of {pressure}'**
   String plannerCanvas_issue_minGas(String pressure);
 
+  /// No description provided for @plannerCanvas_issue_diluentModExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Diluent exceeds its Dil MOD at {depth} (ppO₂ {value} bar)'**
+  String plannerCanvas_issue_diluentModExceeded(String depth, String value);
+
   /// No description provided for @plannerCanvas_issue_noBailout.
   ///
   /// In en, this message translates to:
