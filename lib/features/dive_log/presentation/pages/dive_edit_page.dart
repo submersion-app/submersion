@@ -365,6 +365,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   TankPresetEntity? _defaultPreset;
   bool _tanksDirty = false;
 
+  /// Part of every tank row's key, bumped when a configuration rewrites
+  /// cylinders in place. A tank editor reads its text fields once, so an
+  /// editor left open would keep the old size and write it back on the next
+  /// keystroke; a new key gives it fresh fields (issue #2563).
+  int _tankRowGeneration = 0;
+
   /// Tanks the dive had when it was loaded, or that a prefill (a scan, a
   /// cylinder tag) filled: never suggested a slot, since a suggestion would
   /// replace their values with the slot's, and None would not restore them.
@@ -1525,7 +1531,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       children: [
         for (var i = 0; i < _tanks.length; i++)
           TankRow(
-            key: ValueKey(_tanks[i].id),
+            key: ValueKey((_tanks[i].id, _tankRowGeneration)),
             tank: _tanks[i],
             tankNumber: i + 1,
             units: units,
@@ -3247,7 +3253,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       tanks: [
         for (var i = 0; i < _tanks.length; i++)
           TankRow(
-            key: ValueKey(_tanks[i].id),
+            key: ValueKey((_tanks[i].id, _tankRowGeneration)),
             tank: _tanks[i],
             tankNumber: i + 1,
             units: units,
@@ -3612,6 +3618,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     setState(() {
       _markDirty();
       _tanksDirty = true;
+      _tankRowGeneration++;
       _tanks
         ..clear()
         ..addAll(result.tanks);

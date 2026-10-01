@@ -223,6 +223,27 @@ void main() {
       expect(find.textContaining('· 1.5 L ·'), findsNothing);
     });
 
+    testWidgets('an open tank editor shows the replaced size', (tester) async {
+      // The editor's text fields are read once, so an editor left open
+      // through the apply would keep "1.5", and the diver's next keystroke
+      // would write 1.5 L back over the replacement.
+      await tester.pumpWidget(
+        await host(items: twoLitreO2(), tanks: const [o2Tank]),
+      );
+      await tester.pumpAndSettle();
+
+      await openGasGear(tester);
+      await tester.tap(find.text('Tank 1 · O₂ Supply'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(TextField, '1.5'), findsOneWidget);
+
+      await applyConfig(tester);
+      await tester.tap(find.text('Replace'));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(TextField, '1.5'), findsNothing);
+    });
+
     testWidgets('cancelling the prompt leaves the dive untouched', (
       tester,
     ) async {
