@@ -113,10 +113,18 @@ class DiveConsolidationService {
       // First consolidation: stamp the target's own children with the
       // primary computer so null stays reserved for manual entries.
       if (targetRow.computerId != null) {
+        // With a fresh clock, like the events below: a peer's newer copy of
+        // the tank, still without a computer, would otherwise clear it
+        // (#2644).
         await (_db.update(_db.diveTanks)..where(
               (t) => t.diveId.equals(targetDiveId) & t.computerId.isNull(),
             ))
-            .write(DiveTanksCompanion(computerId: Value(targetRow.computerId)));
+            .write(
+              DiveTanksCompanion(
+                computerId: Value(targetRow.computerId),
+                hlc: Value(await _sync.issueRowClock()),
+              ),
+            );
         await _tankSeries.stampComputerWhereNull(
           targetDiveId,
           targetRow.computerId!,

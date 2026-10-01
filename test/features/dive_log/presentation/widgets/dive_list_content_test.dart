@@ -180,6 +180,17 @@ class _ReloadingPaginatedNotifier
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// A paginated list pinned to one [PaginatedDiveListState], counts included.
+class _StatePaginatedNotifier
+    extends StateNotifier<AsyncValue<PaginatedDiveListState>>
+    implements PaginatedDiveListNotifier {
+  _StatePaginatedNotifier(PaginatedDiveListState state)
+    : super(AsyncValue.data(state));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _MockDiveListNotifier extends StateNotifier<AsyncValue<List<Dive>>>
     implements DiveListNotifier {
   _MockDiveListNotifier(List<Dive> dives) : super(AsyncValue.data(dives));
@@ -1632,5 +1643,133 @@ void main() {
         expect(find.text('Dive Log'), findsNothing);
       });
     }
+  });
+
+  // The title's subtitle counts the list (#2669): "3 dives" unfiltered,
+  // "1 of 3 dives" under a filter, in both the phone and desktop bars.
+  group('entry count subtitle', () {
+    Future<void> pumpCounted(
+      WidgetTester tester, {
+      required PaginatedDiveListState state,
+      required bool showAppBar,
+    }) async {
+      final base = await getBaseOverrides();
+      final router = GoRouter(
+        initialLocation: '/dives',
+        routes: [
+          GoRoute(
+            path: '/dives',
+            builder: (_, _) =>
+                Scaffold(body: DiveListContent(showAppBar: showAppBar)),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        testAppRouter(
+          router: router,
+          overrides: [
+            ...base,
+            diveListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            highlightedDiveIdProvider.overrideWith((ref) => null),
+            paginatedDiveListProvider.overrideWith(
+              (ref) => _StatePaginatedNotifier(state),
+            ),
+          ],
+          locale: const Locale('en'),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    final dives = [
+      for (var i = 1; i <= 3; i++)
+        DiveSummary.fromDive(_makeDive(id: 'd$i', diveNumber: i)),
+    ];
+
+    for (final showAppBar in const [true, false]) {
+      final bar = showAppBar ? 'app bar' : 'compact bar';
+
+      testWidgets('$bar counts an unfiltered list', (tester) async {
+        await pumpCounted(
+          tester,
+          state: PaginatedDiveListState(
+            dives: dives,
+            hasMore: false,
+            totalCount: 3,
+          ),
+          showAppBar: showAppBar,
+        );
+
+        expect(
+          find.descendant(
+            of: find.byType(FeatureAppBarTitle),
+            matching: find.text('3 dives'),
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('$bar counts a filtered list against the total', (
+        tester,
+      ) async {
+        await pumpCounted(
+          tester,
+          state: PaginatedDiveListState(
+            dives: dives.take(1).toList(),
+            hasMore: false,
+            totalCount: 1,
+            unfilteredTotalCount: 3,
+          ),
+          showAppBar: showAppBar,
+        );
+
+        expect(
+          find.descendant(
+            of: find.byType(FeatureAppBarTitle),
+            matching: find.text('1 of 3 dives'),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+
+    // A paginated page holds at most 50 rows; the count is the SQL total, not
+    // the rows loaded so far.
+    testWidgets('counts the total, not the rows loaded', (tester) async {
+      await pumpCounted(
+        tester,
+        state: PaginatedDiveListState(
+          dives: dives,
+          hasMore: false,
+          totalCount: 812,
+        ),
+        showAppBar: true,
+      );
+
+      expect(find.text('812 dives'), findsOneWidget);
+    });
+
+    testWidgets('selection mode replaces the count with its own', (
+      tester,
+    ) async {
+      await pumpCounted(
+        tester,
+        state: PaginatedDiveListState(
+          dives: dives,
+          hasMore: false,
+          totalCount: 3,
+        ),
+        showAppBar: false,
+      );
+      expect(find.text('3 dives'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('3 dives'), findsNothing);
+    });
   });
 }

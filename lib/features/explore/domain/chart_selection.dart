@@ -6,12 +6,15 @@ enum ChartKind {
   waterTempTrend,
   bottomTimeTrend,
   sacTrend,
-  entityCounts;
+  entityCounts,
+
+  /// A non-dive subject's one chart: dives in the scope per result row.
+  subjectCounts;
 
   /// Whether a clause on a field can ask for this chart. Exhaustive, so a
   /// new kind must say which it is; trends draw in declaration order.
   bool get isTrend => switch (this) {
-    divesOverTime || entityCounts => false,
+    divesOverTime || entityCounts || subjectCounts => false,
     depthTrend || waterTempTrend || bottomTimeTrend || sacTrend => true,
   };
 }

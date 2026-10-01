@@ -27,9 +27,13 @@ Future<int> clearTankComputerLinks(
           .map((r) => r.read(db.diveTanks.id)!)
           .get();
   if (ids.isEmpty) return 0;
-  await (db.update(
-    db.diveTanks,
-  )..where(where)).write(const DiveTanksCompanion(computerId: Value(null)));
+  await (db.update(db.diveTanks)..where(where)).write(
+    DiveTanksCompanion(
+      computerId: const Value(null),
+      // Its own clock, beside the marks below (#2644).
+      hlc: Value(await syncRepository.issueRowClock()),
+    ),
+  );
   for (final id in ids) {
     await syncRepository.markRecordPending(
       entityType: 'diveTanks',

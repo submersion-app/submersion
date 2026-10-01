@@ -35,6 +35,7 @@ import 'package:submersion/features/certifications/query/certification_query_ent
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_list_count_provider.dart';
 
 /// Content widget for the certification list, used in master-detail layout.
 class CertificationListContent extends ConsumerStatefulWidget {
@@ -221,6 +222,7 @@ class _CertificationListContentState
                   title: FeatureAppBarTitle(
                     featureId: 'certifications',
                     title: context.l10n.certifications_appBar_title,
+                    subtitle: certificationListCountLabel(context, ref),
                   ),
                   actions: [
                     IconButton(
@@ -489,6 +491,7 @@ class _CertificationListContentState
             child: FeatureAppBarTitle(
               featureId: 'certifications',
               title: context.l10n.certifications_appBar_title,
+              subtitle: certificationListCountLabel(context, ref),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

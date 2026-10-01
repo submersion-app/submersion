@@ -39,18 +39,23 @@ typedef EntityQueryKey = ({QueryEntity root, QueryNode query});
 ///
 /// A per-diver root is scoped to the active diver as its repository scopes
 /// the list (`diver_id = ?`, none with no diver), so the id set never walks
-/// another diver's rows; a root shared across divers stays unscoped.
+/// another diver's rows; a root shared across divers stays unscoped. Either
+/// way the dives the query reaches are the active diver's (a species seen
+/// on my dives, a center I dived with).
 final entityQueryIdsProvider = FutureProvider.autoDispose
     .family<Set<String>, EntityQueryKey>((ref, key) async {
-      final compiled = compileQuery(key.query, key.root, appQueryRegistry);
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      final compiled = compileQuery(
+        key.query,
+        key.root,
+        appQueryRegistry,
+        diverId: diverId,
+      );
       final column = key.root.diverScopeColumn;
-      final diverId = column == null
-          ? null
-          : await ref.watch(validatedCurrentDiverIdProvider.future);
       return watchQueryIds(
         ref,
         compiled,
-        scope: diverId == null
+        scope: diverId == null || column == null
             ? null
             : (sql: '${compiled.rootAlias}.$column = ?', params: [diverId]),
       );

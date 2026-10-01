@@ -66,13 +66,16 @@ extension SiteFilterQuery on SiteFilterState {
   }
 }
 
-/// The one compile call every site path shares.
+/// The one compile call every site path shares. [diverId] reads a shared
+/// site's dives as that diver's alone.
 CompiledQuery compileSiteFilter(
   SiteFilterState filter, {
   String rootAlias = 'r0',
+  String? diverId,
 }) => compileQuery(
   filter.toQuery(),
   siteQueryEntity,
   appQueryRegistry,
   rootAlias: rootAlias,
+  diverId: diverId,
 );

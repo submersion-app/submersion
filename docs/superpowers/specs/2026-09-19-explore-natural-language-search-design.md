@@ -477,3 +477,44 @@ builder, the dive list and Explore all get them.
 - Explore stays on `DiveFilterState` and lowers the new clauses into its
   query tree; query schema version 2. Replacing `ExploreDiveField` with the
   registry remains query-language PR 5.
+
+## Deviations recorded during implementation (phase 3, 2026-09-30)
+
+Plan: `docs/superpowers/plans/2026-09-30-explore-phase3-subjects.md`. The
+phase 3 table above predates the entity query language (#2365), which by then
+gave every subject a registry, a query-driven list and one name index.
+
+- The subjects lower onto the shared query registries, not onto per-subject
+  filter states. The site, equipment and trip filter states already hold a
+  query, and the buddy and dive center filter states the table named were
+  never needed: those lists already narrow by a query.
+- Aggregates are registry fields: `diveCount` and `lastDived` on sites,
+  equipment, buddies and centers, `diveCount` on trips, `diveCount`,
+  `firstSeen` and `lastSeen` on species, and `nextServiceDue` on equipment.
+  They count only dives inside the stats scope, across every diver, as the
+  site list's own count does, and the typed query language gains them too.
+- A mention of another kind, a dive field or a period under a non-dive
+  subject lowers through the subject's counted dives ("sites where I saw
+  turtles"). Under trips a period is the trip's own dates.
+- Results are ordered by the active diver's dives in that scope, then by
+  name, and the one chart is that count per row. "Who have I dived with most"
+  is answered by that order, not by a sort in the schema.
+- A count or a first or last date together with a dive part ("more than 10
+  times this year", "last dived before 2022 in Bonaire") is unplaced with the
+  reason `aggregateWithScope`: an aggregate over a scoped relation is outside
+  the query language, and the registry fields are over all of a row's dives.
+- A mention of the subject's own kind matches rows by their stored name; no
+  registry entity has an id field.
+- `dueWithinDays` is `serviceDueWithin`, a date bound the compiler computes
+  from today against `equipment_service_status.due_date`. `lastUsedBefore`
+  and `lastUsedAfter` are `lastDived` with a time phrase. `favoritesOnly` is
+  the buddy's `favorite`. `minDiveCount` is `diveCount`. `firstSeenAfter` and
+  `lastSeenBefore` are `firstSeen` and `lastSeen` with a time phrase. Trip
+  `startAfter`/`endBefore` are the period, and centers' country and city a
+  place mention. `roleId`, `minSightings` and trip `location` are not built.
+- Species counts are global (the species table has no diver column), so in a
+  library with several divers they count every diver's sightings.
+- The trip list gained a visible query filter (chips, a filter button, the
+  no-match state), so a handoff to it shows what Explore understood.
+- The query schema went to version 3; versions 1 and 2 still parse. The
+  prompt measured 6,114 characters.
