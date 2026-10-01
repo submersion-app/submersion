@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
 
@@ -252,6 +254,36 @@ void main() {
         expect(find.text('Finish current import first'), findsOneWidget);
       },
     );
+
+    testWidgets('logs the read failure, naming the file', variant: _macOS, (
+      tester,
+    ) async {
+      final captured = <LogEntry>[];
+      final sub = LoggerService.logStream.listen(captured.add);
+      addTearDown(sub.cancel);
+      await tester.pumpWidget(_buildTestApp());
+      await tester.pumpAndSettle();
+      final missing = p.join(_tempDir.path, 'gone.uddf');
+
+      await _triggerDrop(
+        tester,
+        DropDoneDetails(
+          files: [DropItemFile(missing)],
+          localPosition: Offset.zero,
+          globalPosition: Offset.zero,
+        ),
+      );
+
+      // The snackbar alone left a bug report with no trace of the cause
+      // (#2715).
+      expect(find.text('Could not read file'), findsOneWidget);
+      expect(
+        captured.where(
+          (e) => e.level == LogLevel.warning && e.message.contains(missing),
+        ),
+        isNotEmpty,
+      );
+    });
 
     testWidgets(
       'shows error snackbar when file cannot be read',

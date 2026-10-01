@@ -98,8 +98,9 @@ Future<bool> handleIncomingFiles({
   return true;
 }
 
-/// Surfaces a failed share-sheet intent: writes [error] to the log and shows
-/// the diver a snackbar, so a share never ends in silence (#2689).
+/// Surfaces an incoming file that failed, from a share-sheet intent or a
+/// drag-and-drop: writes [error] to the log and shows the diver a snackbar,
+/// so neither ends in silence (#2689, #2715).
 ///
 /// A [SharedFileUnreadableException] whose share still imported other files
 /// reads [someUnreadableMessage] with the number skipped; everything else,
@@ -111,7 +112,7 @@ void reportIncomingFileError(
   String? readFailedMessage,
   String Function(int count)? someUnreadableMessage,
 }) {
-  _log.warning('A shared file could not be imported', error: error);
+  _log.warning('An incoming file could not be imported', error: error);
 
   final String message;
   if (error is SharedFileUnreadableException && !error.nothingReadable) {
