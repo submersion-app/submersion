@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart' hide Visibility;
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/export/models/export_service_record.dart';
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
@@ -647,6 +648,8 @@ class UddfExportBuilders {
                 },
               );
             }
+            // User-defined key:value fields (app-specific).
+            UddfDiveCustomFields.write(builder, dive);
             // Export profile events (app-specific)
             if (profileEvents.isNotEmpty) {
               builder.element(

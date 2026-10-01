@@ -6,6 +6,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
@@ -1373,6 +1374,12 @@ class UddfFullImportService {
           waterType,
           enums.WaterType.values,
         );
+      }
+
+      // User-defined key:value fields, as both Submersion writers put them.
+      final customFields = UddfDiveCustomFields.parse(afterElement);
+      if (customFields.isNotEmpty) {
+        diveData[UddfDiveCustomFields.mapKey] = customFields;
       }
 
       final currentDir = UddfImportParsers.getElementText(
