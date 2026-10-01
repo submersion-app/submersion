@@ -284,7 +284,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final selectedCount = _selectedIds.length;
     // A merge destroys every site but the first (issue #2594): another
     // profile's shared site may only be the survivor, so at most one fits.
-    final sharing = await readSharingContext(ref);
+    final sharing = await readSharingContext(ref, context);
+    if (sharing == null) return BulkActionOutcome.cancelled;
     final selected = await _readSelectedSites(_selectedIds.toList());
     if (selected == null) return BulkActionOutcome.cancelled;
     final notOwned = [
@@ -368,7 +369,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final idsToDelete = _selectedIds.toList();
     // Another profile's shared sites are hidden, not deleted, and the
     // owner's shared ones are named as going for everyone (issue #2594).
-    final sharing = await readSharingContext(ref);
+    final sharing = await readSharingContext(ref, context);
+    if (sharing == null) return BulkActionOutcome.cancelled;
     final selectedSites = await _readSelectedSites(idsToDelete);
     if (selectedSites == null) return BulkActionOutcome.cancelled;
     final split = splitForBulkDelete(

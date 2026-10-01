@@ -186,6 +186,10 @@ void main() {
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
+          // No profile yet: every trip is the diver's to delete. The
+          // delete reads these before its dialog (issue #2682).
+          validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+          allDiversProvider.overrideWith((_) async => const []),
           tripListNotifierProvider.overrideWith((ref) => notifier),
           tripListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
           tripTableConfigProvider.overrideWith(
@@ -240,8 +244,9 @@ void main() {
 
     Future<void> openDelete(
       WidgetTester tester,
-      List<TripWithStats> trips,
-    ) async {
+      List<TripWithStats> trips, {
+      bool profileUnreadable = false,
+    }) async {
       notifier = _MockTripListNotifier(trips);
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -254,7 +259,10 @@ void main() {
             currentDiverIdProvider.overrideWith(
               (ref) => MockCurrentDiverIdNotifier(),
             ),
-            validatedCurrentDiverIdProvider.overrideWith((_) async => 'd2'),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (_) async =>
+                  profileUnreadable ? throw StateError('no profile') : 'd2',
+            ),
             allDiversProvider.overrideWith(
               (_) async => [_makeDiver('d1'), _makeDiver('d2')],
             ),
@@ -353,6 +361,32 @@ void main() {
       await tester.pumpAndSettle();
       expect(notifier.deleted, isEmpty);
       expect(notifier.hidden, ['theirs']);
+    });
+    // Read as "no profile", the split offered to delete another profile's
+    // shared trip too, and each delete then threw on the same read
+    // (issue #2682).
+    testWidgets('an unreadable profile opens no dialog and deletes nothing', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2', isShared: true),
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ], profileUnreadable: true);
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+      expect(notifier.deleted, isEmpty);
+      expect(notifier.hidden, isEmpty);
+      // The selection stays, so the diver can try again.
+      expect(find.byKey(const ValueKey('selection_overflow')), findsOneWidget);
     });
   });
 

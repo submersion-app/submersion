@@ -39,34 +39,34 @@ Future<({int mine, int others})> readDiveLinkCounts(
 }
 
 /// The active profile and how many profiles exist, for splitting a bulk
-/// selection and choosing its warning (issue #2594). A failed read gives
-/// no profile and no count, so the split treats every item as the
-/// caller's to delete, as before sharing existed; the repositories still
-/// refuse another profile's item.
-Future<({String? activeDiverId, int diverCount})> readSharingContext(
+/// selection and choosing its warning (issue #2594). A failed read of
+/// either logs, tells the diver to try again and gives null, so the bulk
+/// action stops before its dialog (issue #2682): read as "no profile", the
+/// split would offer to delete another profile's shared items too, and a
+/// missing count would drop the owner's "deleted for everyone" line.
+Future<({String? activeDiverId, int diverCount})?> readSharingContext(
   WidgetRef ref,
+  BuildContext context,
 ) async {
-  String? activeDiverId;
-  var diverCount = 0;
   try {
-    activeDiverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    final activeDiverId = await ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    final divers = await ref.read(allDiversProvider.future);
+    return (activeDiverId: activeDiverId, diverCount: divers.length);
   } catch (e, stackTrace) {
-    _log.warning(
-      'Could not read the active profile',
+    _log.error(
+      'Could not read the active profile or count the profiles',
       error: e,
       stackTrace: stackTrace,
     );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.common_error_tryAgain)),
+      );
+    }
+    return null;
   }
-  try {
-    diverCount = (await ref.read(allDiversProvider.future)).length;
-  } catch (e, stackTrace) {
-    _log.warning(
-      'Could not count the profiles',
-      error: e,
-      stackTrace: stackTrace,
-    );
-  }
-  return (activeDiverId: activeDiverId, diverCount: diverCount);
 }
 
 /// The owning profile's name, or a neutral fallback for a profile that is
