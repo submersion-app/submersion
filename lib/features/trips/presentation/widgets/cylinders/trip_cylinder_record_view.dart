@@ -58,8 +58,7 @@ class TripCylinderRecordView extends ConsumerWidget {
             l10n.trips_cylinders_record_unlinked(record.unlinked.length),
           ),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () =>
-              showUnlinkedTanksSheet(context, tripId: tripId, units: units),
+          onTap: () => showUnlinkedTanksSheet(context, tripId: tripId),
         ),
       const Divider(height: 1),
       if (record.rows.isEmpty)
@@ -204,12 +203,11 @@ String _percent(double o2, double he) => he > 0
 
 /// The dive tanks that breathe from no trip cylinder; each opens its
 /// dive's editor (decided 2026-09-30: a list, not only the first). The
-/// sheet reads the trip's record rather than a copy, so a tank linked or a
-/// diver renamed while it is open shows at once.
+/// sheet reads the trip's record and the settings rather than copies, so a
+/// tank linked or a diver renamed while it is open shows at once.
 Future<void> showUnlinkedTanksSheet(
   BuildContext context, {
   required String tripId,
-  required UnitFormatter units,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -238,6 +236,7 @@ Future<void> showUnlinkedTanksSheet(
                   final record = ref.watch(tripGasRecordProvider(tripId)).value;
                   final tanks = record?.unlinked ?? const <TripUnlinkedTank>[];
                   final showDivers = record?.multipleDivers ?? false;
+                  final units = UnitFormatter(ref.watch(settingsProvider));
                   // Lazy: before any link, every tank on the trip is a gap.
                   return ListView.builder(
                     controller: scrollController,
