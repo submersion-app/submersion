@@ -9573,6 +9573,8 @@
   },
   "diveLog_detail_altitudeMismatch_title": "Il sito è in quota",
   "diveLog_detail_altitudeMismatch_subtitle": "Questo sito registra un'altitudine ma l'immersione non ne ha una, quindi l'analisi di decompressione ha assunto il livello del mare. Imposta l'altitudine dell'immersione per correggere.",
+  "diveLog_detail_sacSegmentsNoPressure": "Sono state registrate solo le pressioni iniziale e finale della bombola, quindi il consumo di gas non può essere suddiviso in segmenti. Servono letture di pressione durante l'immersione, ad esempio da un trasmettitore. La media dell'intera immersione è riportata in Bombole.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "Nessuna pressione della bombola registrata durante l'immersione",
   "diveLog_detail_sacVolumeHint": "Aggiungi il volume della bombola per mostrare l'RMV in {unit}",
   "emergencyCard_title": "Emergenza",
   "emergencyCard_callDan": "Chiama {name}",

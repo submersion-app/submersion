@@ -9573,6 +9573,8 @@
   },
   "diveLog_detail_altitudeMismatch_title": "O ponto de mergulho fica em altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "Este ponto registra uma altitude, mas o mergulho não tem nenhuma, então a análise de descompressão assumiu o nível do mar. Defina a altitude do mergulho para corrigir.",
+  "diveLog_detail_sacSegmentsNoPressure": "Só foram registradas as pressões inicial e final do cilindro, por isso o consumo de gás não pode ser dividido em segmentos. Para isso são necessárias leituras de pressão durante o mergulho, por exemplo de um transmissor. A média do mergulho inteiro aparece em Cilindros.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "Nenhuma pressão do cilindro registrada durante o mergulho",
   "diveLog_detail_sacVolumeHint": "Adicione o volume do cilindro para mostrar o RMV em {unit}",
   "emergencyCard_title": "Emergência",
   "emergencyCard_callDan": "Ligar para {name}",

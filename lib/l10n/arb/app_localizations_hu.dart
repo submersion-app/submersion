@@ -32495,6 +32495,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ehhez a helyhez magasság van rögzítve, a merüléshez azonban nincs, így a dekompressziós elemzés tengerszintet feltételezett. A javításhoz állítsd be a merülés magasságát.';
 
   @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Csak a palack kezdő- és végnyomása lett rögzítve, ezért a gázfogyasztás nem bontható szakaszokra. Ehhez merülés közbeni nyomásértékek kellenek, például egy jeladótól. A teljes merülés átlaga a Palackok alatt látható.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'Merülés közben nem lett rögzítve palacknyomás';
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Add meg a palack térfogatát, hogy az RMV $unit-ben jelenjen meg';
   }

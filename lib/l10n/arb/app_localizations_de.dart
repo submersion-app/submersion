@@ -32572,6 +32572,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Für diesen Platz ist eine Höhe hinterlegt, der Tauchgang hat jedoch keine, daher ging die Deko-Analyse von Meereshöhe aus. Höhe des Tauchgangs setzen, um dies zu korrigieren.';
 
   @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Es wurden nur Anfangs- und Enddruck der Flasche erfasst, daher lässt sich der Gasverbrauch nicht in Segmente aufteilen. Dafür braucht es Druckwerte während des Tauchgangs, etwa von einem Sender. Der Durchschnitt über den ganzen Tauchgang steht unter Flaschen.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'Kein Flaschendruck während des Tauchgangs erfasst';
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Flaschenvolumen eintragen, um den AMV in $unit anzuzeigen';
   }

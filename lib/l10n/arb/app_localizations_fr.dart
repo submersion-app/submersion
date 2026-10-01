@@ -32722,6 +32722,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce site indique une altitude mais la plongée n\'en a aucune : l\'analyse de décompression a supposé le niveau de la mer. Définissez l\'altitude de la plongée pour corriger.';
 
   @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Seules les pressions de début et de fin du bloc ont été enregistrées, la consommation de gaz ne peut donc pas être répartie par segment. Il faut pour cela des relevés de pression pendant la plongée, par exemple d\'un émetteur. La moyenne sur toute la plongée figure sous Blocs.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'Aucune pression du bloc enregistrée pendant la plongée';
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Ajoutez le volume du bloc pour afficher le RMV en $unit';
   }

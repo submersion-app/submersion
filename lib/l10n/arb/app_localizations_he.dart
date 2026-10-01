@@ -31858,6 +31858,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'לאתר זה רשום גובה אך לצלילה אין, ולכן ניתוח הדקומפרסיה הניח גובה פני הים. הגדר את גובה הצלילה כדי לתקן.';
 
   @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'נרשמו רק לחץ ההתחלה והסיום של הבלון, ולכן אי אפשר לחלק את צריכת הגז למקטעים. לשם כך נדרשות קריאות לחץ במהלך הצלילה, למשל ממשדר. הממוצע של הצלילה כולה מופיע תחת בלונים.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'לא נרשם לחץ בלון במהלך הצלילה';
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'הוסף נפח בלון כדי להציג RMV ב-$unit';
   }

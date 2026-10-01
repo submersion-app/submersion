@@ -32396,6 +32396,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze stek heeft een hoogte geregistreerd maar de duik niet, dus de deco-analyse ging uit van zeeniveau. Stel de hoogte van de duik in om dit te corrigeren.';
 
   @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Alleen de begin- en einddruk van de fles zijn vastgelegd, dus het gasverbruik kan niet per segment worden verdeeld. Daarvoor zijn drukmetingen tijdens de duik nodig, bijvoorbeeld van een zender. Het gemiddelde over de hele duik staat onder Flessen.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'Geen flesdruk vastgelegd tijdens de duik';
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Voeg een flesvolume toe om de RMV in $unit te tonen';
   }

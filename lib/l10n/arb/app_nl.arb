@@ -9573,6 +9573,8 @@
   },
   "diveLog_detail_altitudeMismatch_title": "Duikstek ligt op hoogte",
   "diveLog_detail_altitudeMismatch_subtitle": "Deze stek heeft een hoogte geregistreerd maar de duik niet, dus de deco-analyse ging uit van zeeniveau. Stel de hoogte van de duik in om dit te corrigeren.",
+  "diveLog_detail_sacSegmentsNoPressure": "Alleen de begin- en einddruk van de fles zijn vastgelegd, dus het gasverbruik kan niet per segment worden verdeeld. Daarvoor zijn drukmetingen tijdens de duik nodig, bijvoorbeeld van een zender. Het gemiddelde over de hele duik staat onder Flessen.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "Geen flesdruk vastgelegd tijdens de duik",
   "diveLog_detail_sacVolumeHint": "Voeg een flesvolume toe om de RMV in {unit} te tonen",
   "emergencyCard_title": "Noodgeval",
   "emergencyCard_callDan": "Bel {name}",

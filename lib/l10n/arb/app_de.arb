@@ -9685,6 +9685,8 @@
   },
   "diveLog_detail_altitudeMismatch_title": "Tauchplatz liegt in Höhenlage",
   "diveLog_detail_altitudeMismatch_subtitle": "Für diesen Platz ist eine Höhe hinterlegt, der Tauchgang hat jedoch keine, daher ging die Deko-Analyse von Meereshöhe aus. Höhe des Tauchgangs setzen, um dies zu korrigieren.",
+  "diveLog_detail_sacSegmentsNoPressure": "Es wurden nur Anfangs- und Enddruck der Flasche erfasst, daher lässt sich der Gasverbrauch nicht in Segmente aufteilen. Dafür braucht es Druckwerte während des Tauchgangs, etwa von einem Sender. Der Durchschnitt über den ganzen Tauchgang steht unter Flaschen.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "Kein Flaschendruck während des Tauchgangs erfasst",
   "diveLog_detail_sacVolumeHint": "Flaschenvolumen eintragen, um den AMV in {unit} anzuzeigen",
   "emergencyCard_title": "Notfall",
   "emergencyCard_callDan": "{name} anrufen",

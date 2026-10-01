@@ -32209,6 +32209,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'هذا الموقع مسجل له ارتفاع لكن الغطسة بلا ارتفاع، لذا افترض تحليل تخفيف الضغط مستوى سطح البحر. عيّن ارتفاع الغطسة للتصحيح.';
 
   @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'سُجّل ضغطا البداية والنهاية للأسطوانة فقط، لذا لا يمكن تقسيم استهلاك الغاز إلى مقاطع. يتطلب ذلك قراءات ضغط أثناء الغوصة، مثل قراءات جهاز إرسال. يظهر متوسط الغوصة كاملة ضمن الأسطوانات.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'لم يُسجَّل ضغط الأسطوانة أثناء الغوصة';
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'أضف حجم الأسطوانة لعرض RMV بوحدة $unit';
   }

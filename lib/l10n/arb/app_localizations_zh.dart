@@ -30948,6 +30948,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '该潜点记录了海拔,但此次潜水未设置海拔,因此减压分析按海平面计算。请设置潜水海拔以更正。';
 
   @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      '仅记录了气瓶的起始和结束压力，因此无法按分段拆分气体消耗。分段需要潜水过程中的压力读数，例如来自无线发射器。整次潜水的平均值显示在“气瓶”下。';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle => '潜水过程中未记录气瓶压力';
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return '添加气瓶容积以按 $unit 显示 RMV';
   }

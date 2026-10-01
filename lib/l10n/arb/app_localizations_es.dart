@@ -32640,6 +32640,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este punto registra una altitud pero la inmersión no tiene ninguna, así que el análisis de descompresión asumió nivel del mar. Establece la altitud de la inmersión para corregirlo.';
 
   @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Solo se registraron las presiones inicial y final del tanque, así que el consumo de gas no se puede dividir en segmentos. Para ello hacen falta lecturas de presión durante la inmersión, por ejemplo de un transmisor. El promedio de toda la inmersión aparece en Tanques.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'Sin presión del tanque registrada durante la inmersión';
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Añade el volumen del cilindro para mostrar el RMV en $unit';
   }

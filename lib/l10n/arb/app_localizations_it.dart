@@ -32614,6 +32614,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo sito registra un\'altitudine ma l\'immersione non ne ha una, quindi l\'analisi di decompressione ha assunto il livello del mare. Imposta l\'altitudine dell\'immersione per correggere.';
 
   @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Sono state registrate solo le pressioni iniziale e finale della bombola, quindi il consumo di gas non può essere suddiviso in segmenti. Servono letture di pressione durante l\'immersione, ad esempio da un trasmettitore. La media dell\'intera immersione è riportata in Bombole.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'Nessuna pressione della bombola registrata durante l\'immersione';
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Aggiungi il volume della bombola per mostrare l\'RMV in $unit';
   }

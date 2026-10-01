@@ -32118,6 +32118,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive\'s altitude to correct it.';
 
   @override
+  String get diveLog_detail_sacSegmentsNoPressure =>
+      'Only start and end tank pressures were recorded, so gas use can\'t be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.';
+
+  @override
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
+      'No tank pressure recorded during the dive';
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Add a cylinder volume to show RMV in $unit';
   }

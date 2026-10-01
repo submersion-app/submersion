@@ -51854,6 +51854,18 @@ abstract class AppLocalizations {
   /// **'This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive\'s altitude to correct it.'**
   String get diveLog_detail_altitudeMismatch_subtitle;
 
+  /// No description provided for @diveLog_detail_sacSegmentsNoPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Only start and end tank pressures were recorded, so gas use can\'t be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.'**
+  String get diveLog_detail_sacSegmentsNoPressure;
+
+  /// No description provided for @diveLog_detail_sacSegmentsNoPressure_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No tank pressure recorded during the dive'**
+  String get diveLog_detail_sacSegmentsNoPressure_subtitle;
+
   /// No description provided for @diveLog_detail_sacVolumeHint.
   ///
   /// In en, this message translates to:

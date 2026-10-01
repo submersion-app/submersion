@@ -9573,6 +9573,8 @@
   },
   "diveLog_detail_altitudeMismatch_title": "Le site est en altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "Ce site indique une altitude mais la plongée n'en a aucune : l'analyse de décompression a supposé le niveau de la mer. Définissez l'altitude de la plongée pour corriger.",
+  "diveLog_detail_sacSegmentsNoPressure": "Seules les pressions de début et de fin du bloc ont été enregistrées, la consommation de gaz ne peut donc pas être répartie par segment. Il faut pour cela des relevés de pression pendant la plongée, par exemple d'un émetteur. La moyenne sur toute la plongée figure sous Blocs.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "Aucune pression du bloc enregistrée pendant la plongée",
   "diveLog_detail_sacVolumeHint": "Ajoutez le volume du bloc pour afficher le RMV en {unit}",
   "emergencyCard_title": "Urgence",
   "emergencyCard_callDan": "Appeler {name}",

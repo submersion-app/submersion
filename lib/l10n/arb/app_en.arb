@@ -21152,6 +21152,8 @@
   "safetyHub_noFly_disclaimer": "DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer's no-fly time.",
   "diveLog_detail_altitudeMismatch_title": "Site is at altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive's altitude to correct it.",
+  "diveLog_detail_sacSegmentsNoPressure": "Only start and end tank pressures were recorded, so gas use can't be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "No tank pressure recorded during the dive",
   "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show RMV in {unit}",
   "@diveLog_detail_sacVolumeHint": {
     "placeholders": {

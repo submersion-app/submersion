@@ -9573,6 +9573,8 @@
   },
   "diveLog_detail_altitudeMismatch_title": "El punto de buceo está en altitud",
   "diveLog_detail_altitudeMismatch_subtitle": "Este punto registra una altitud pero la inmersión no tiene ninguna, así que el análisis de descompresión asumió nivel del mar. Establece la altitud de la inmersión para corregirlo.",
+  "diveLog_detail_sacSegmentsNoPressure": "Solo se registraron las presiones inicial y final del tanque, así que el consumo de gas no se puede dividir en segmentos. Para ello hacen falta lecturas de presión durante la inmersión, por ejemplo de un transmisor. El promedio de toda la inmersión aparece en Tanques.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "Sin presión del tanque registrada durante la inmersión",
   "diveLog_detail_sacVolumeHint": "Añade el volumen del cilindro para mostrar el RMV en {unit}",
   "emergencyCard_title": "Emergencia",
   "emergencyCard_callDan": "Llamar a {name}",
