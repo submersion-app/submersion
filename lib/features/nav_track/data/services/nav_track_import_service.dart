@@ -91,9 +91,10 @@ class NavTrackImportService {
     final routeStartSeconds = parsed.points.first.timestamp;
     final routeEndSeconds = parsed.points.last.timestamp;
 
-    final dives = await _diveRepository.getAllDives(
-      diverId: await _currentDiverId(),
-    );
+    // Resolved once: the proposal and the duplicate check must agree on
+    // whose dives and routes they read.
+    final diverId = await _currentDiverId();
+    final dives = await _diveRepository.getAllDives(diverId: diverId);
     final candidates = NavTrackMatcher.candidatesFor(
       routeStartSeconds: routeStartSeconds,
       routeEndSeconds: routeEndSeconds,
@@ -111,6 +112,7 @@ class NavTrackImportService {
       sourceRef,
       routeStartSeconds,
       routeEndSeconds,
+      diverId: diverId,
     );
 
     return NavTrackImportPreview(
@@ -169,11 +171,14 @@ class NavTrackImportService {
   Future<String?> _findDuplicate(
     String sourceRef,
     int startSeconds,
-    int endSeconds,
-  ) async {
+    int endSeconds, {
+    String? diverId,
+  }) async {
     final startMs = startSeconds * 1000;
     final endMs = endSeconds * 1000;
-    final existing = await _routeRepository.getAll();
+    // Only routes [diverId] can see: "replace" deletes the duplicate, so
+    // another diver's recording of the same file must never be offered.
+    final existing = await _routeRepository.getAll(diverId: diverId);
     for (final route in existing) {
       if (route.sourceRef != sourceRef) continue;
       final overlaps = route.startTime <= endMs && route.endTime >= startMs;

@@ -117,6 +117,29 @@ void main() {
       expect(preview.nearbyDives.map((d) => d.id), ['my-dive']);
     });
 
+    test(
+      'never flags another diver\'s route as the duplicate to replace',
+      () async {
+        final buddy = NavTrackImportService(
+          routeRepository: routeRepo,
+          diveRepository: diveRepo,
+          currentDiverId: () async => 'buddy',
+        );
+        final first = await buddy.prepare(
+          _fixture('seacraft_enc3_short.csv'),
+          fileName: '005.DAT.csv',
+        );
+        await buddy.commit(parsed: first.parsed, sourceRef: first.sourceRef);
+
+        final preview = await mine.prepare(
+          _fixture('seacraft_enc3_short.csv'),
+          fileName: '005.DAT.csv',
+        );
+
+        expect(preview.duplicateOfRouteId, isNull);
+      },
+    );
+
     test('an unlinked route belongs to the diver who imported it', () async {
       final preview = await mine.prepare(
         _fixture('seacraft_enc3_short.csv'),

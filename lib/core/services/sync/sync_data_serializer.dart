@@ -2408,7 +2408,35 @@ class SyncDataSerializer {
   /// COMMIT and abort the whole sync. Must run inside
   /// [applyInDeferredFkTransaction] so COMMIT sees a consistent graph. Loops
   /// because deleting an orphan can in turn dangle its own children.
+  ///
+  /// Every apply path ends here, so it then re-derives the one value a peer's
+  /// row may not carry: a linked route's owner (see
+  /// [_alignLinkedRouteOwners]).
   Future<void> repairDanglingForeignKeys() async {
+    await _repairDanglingReferences();
+    await _alignLinkedRouteOwners();
+  }
+
+  /// A linked route belongs to its dive's diver (v252). A peer below v252,
+  /// still inside the compatibility floor, sends `navTracks` rows without
+  /// `diverId`, so its link would land ownerless and show to every diver.
+  /// Runs after the FK repair, so a route whose dive was just deleted is
+  /// already unlinked and keeps its owner. Not marked pending: every device
+  /// derives the same owner from the same synced dive.
+  Future<void> _alignLinkedRouteOwners() async {
+    await _db.customStatement('''
+      UPDATE nav_tracks
+      SET diver_id = (
+        SELECT d.diver_id FROM dives d WHERE d.id = nav_tracks.dive_id
+      )
+      WHERE dive_id IS NOT NULL
+        AND diver_id IS NOT (
+          SELECT d.diver_id FROM dives d WHERE d.id = nav_tracks.dive_id
+        )
+    ''');
+  }
+
+  Future<void> _repairDanglingReferences() async {
     for (var pass = 0; pass < 5; pass++) {
       final violations = await _db
           .customSelect('PRAGMA foreign_key_check')

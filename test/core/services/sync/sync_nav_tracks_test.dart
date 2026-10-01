@@ -93,6 +93,51 @@ void main() {
     expect(row.read<String?>('diver_id'), 'me');
   });
 
+  test('a linked route from a peer that predates its owner column takes its '
+      'dive\'s diver once the apply is repaired', () async {
+    await db.customStatement(
+      "INSERT INTO divers (id, name, created_at, updated_at) "
+      "VALUES ('me', 'me', 1, 1)",
+    );
+    await db.customStatement(
+      "INSERT INTO dives (id, diver_id, dive_date_time, created_at, "
+      "updated_at) VALUES ('my-dive', 'me', 1700000000000, 1, 1)",
+    );
+    final id = await seedRoute();
+    final fetched = (await serializer.fetchRecord('navTracks', id))!;
+    await serializer.deleteRecord('navTracks', id);
+    // What a v240-v251 peer sends after linking it: no diverId at all.
+    final fromOlderPeer = {...fetched, 'diveId': 'my-dive'}..remove('diverId');
+
+    await serializer.upsertRecord('navTracks', fromOlderPeer);
+    await serializer.repairDanglingForeignKeys();
+
+    final row = await db
+        .customSelect("SELECT diver_id FROM nav_tracks WHERE id = '$id'")
+        .getSingle();
+    expect(row.read<String?>('diver_id'), 'me');
+  });
+
+  test('the repair leaves an unlinked route\'s owner alone', () async {
+    await db.customStatement(
+      "INSERT INTO divers (id, name, created_at, updated_at) "
+      "VALUES ('me', 'me', 1, 1)",
+    );
+    final id = await repo.insertImportedRoute(
+      points: samplePoints(),
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: '008.DAT.csv',
+      diverId: 'me',
+    );
+
+    await serializer.repairDanglingForeignKeys();
+
+    final row = await db
+        .customSelect("SELECT diver_id FROM nav_tracks WHERE id = '$id'")
+        .getSingle();
+    expect(row.read<String?>('diver_id'), 'me');
+  });
+
   test(
     'a route deleted on one device stays deleted after a stale re-send',
     () async {
