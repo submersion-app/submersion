@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Regression coverage for issue #2480: meaning errors found while the
@@ -31,7 +32,11 @@ void main() {
       lookupAppLocalizations(Locale(locale));
 
   Map<String, dynamic> arb(String locale) =>
-      json.decode(File('lib/l10n/arb/app_$locale.arb').readAsStringSync())
+      json.decode(
+            File(
+              p.join('lib', 'l10n', 'arb', 'app_$locale.arb'),
+            ).readAsStringSync(),
+          )
           as Map<String, dynamic>;
 
   group('strings the English source outgrew', () {
@@ -223,7 +228,9 @@ void main() {
     });
 
     test('buddy is Búvártárs everywhere, not the English word', () {
-      final placeholder = RegExp(r'\{[A-Za-z]+\}');
+      // Only placeholder names such as {buddyName}; a broader pattern would
+      // also erase plural branch bodies like =1{buddy}.
+      final placeholder = RegExp(r'\{buddy[A-Z]\w*\}');
       final offenders = <String>[];
       arb('hu').forEach((key, value) {
         if (key.startsWith('@') || value is! String) return;
