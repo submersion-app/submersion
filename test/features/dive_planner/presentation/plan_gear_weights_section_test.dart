@@ -335,7 +335,8 @@ void main() {
     Future<ProviderContainer> pumpSeeded(
       WidgetTester tester,
       List<Object> overrides, {
-      Locale? locale,
+      // Pinned, so the English finders never depend on the host's locale.
+      Locale locale = const Locale('en'),
     }) async {
       await tester.pumpWidget(
         testApp(
@@ -365,11 +366,13 @@ void main() {
     }
 
     testWidgets('the prediction row fits a phone in French', (tester) async {
-      // The reporter's 384 dp wide phone. The test font's glyphs are wider
-      // than Roboto's, which stands in for a large system font size.
+      // The reporter's 384 dp wide phone with Android's Large font size,
+      // where the French accept label no longer fits beside the prediction.
       tester.view.physicalSize = const Size(1080, 2340);
       tester.view.devicePixelRatio = 2.8125;
       addTearDown(tester.view.reset);
+      tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
       await pumpSeeded(
         tester,
