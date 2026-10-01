@@ -22,7 +22,9 @@ final tripGearIdsProvider = FutureProvider.family<Set<String>, String>((
   final packs = ref.watch(tripEquipmentRepositoryProvider);
   final slots = ref.watch(tripCylinderRepositoryProvider);
   ref.invalidateSelfWhen(packs.watchChanges());
-  ref.invalidateSelfWhen(slots.watchTripCylinderChanges());
+  // Slots only: the board's wider stream fires on every dive and tank
+  // write, which would re-run each open trip's alerts for nothing.
+  ref.invalidateSelfWhen(slots.watchSlotChanges());
   return {
     ...await packs.equipmentIdsForTrip(tripId),
     ...await slots.equipmentIdsForTrip(tripId),

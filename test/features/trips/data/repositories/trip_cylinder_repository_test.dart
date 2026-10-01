@@ -379,6 +379,29 @@ void main() {
     await expectLater(fired, completes);
   });
 
+  test('the slot tick fires on a slot write and not on a dive write', () async {
+    // The trip's gear ids read only the slots (issue #2727); a dive write
+    // must not re-run every open trip's service alerts.
+    var ticks = 0;
+    final sub = repository.watchSlotChanges().listen((_) => ticks++);
+    addTearDown(sub.cancel);
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'd1',
+            diveDateTime: 1,
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await pumpEventQueue();
+    expect(ticks, 0);
+    await repository.createCylinder(slot());
+    await pumpEventQueue();
+    expect(ticks, greaterThan(0));
+  });
+
   test('a linked tank on a dive of another trip is not counted', () async {
     // A cross-device race: one device links the tank, the other moves the
     // dive to another trip. The board must count only this trip's dives.

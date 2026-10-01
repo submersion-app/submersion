@@ -68,6 +68,11 @@ class TripCylinderRepository {
     TableUpdateQuery.onTable(_db.diveSites),
   ];
 
+  /// Changes to the slots alone: which equipment sits on a trip's board
+  /// reads nothing else, so dive and ledger writes need not refetch it.
+  Stream<void> watchSlotChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.tripCylinders));
+
   /// Changes to the slots or the ledger only. The ledger reads neither
   /// dives, tanks nor sites, so it need not refetch when those change.
   Stream<void> watchLedgerChanges() => _db.tableUpdates(
