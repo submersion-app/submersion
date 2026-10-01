@@ -89,6 +89,7 @@ class PlannedDiveFillService {
         gradientFactorHigh: dive.gfHigh ?? planned.gradientFactorHigh,
         decoAlgorithm: dive.decoAlgorithm ?? planned.decoAlgorithm,
         decoConservatism: dive.decoConservatism ?? planned.decoConservatism,
+        computerTissue: dive.computerTissue ?? planned.computerTissue,
         diveMode: dive.diveMode,
         tanks: _mergeTanks(planned.tanks, dive.tanks),
         profile: const [],

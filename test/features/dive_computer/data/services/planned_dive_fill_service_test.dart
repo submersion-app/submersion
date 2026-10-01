@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_computer/data/services/planned_dive_fil
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -52,7 +53,10 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  DownloadedDive download({List<DownloadedTank>? tanks}) => DownloadedDive(
+  DownloadedDive download({
+    List<DownloadedTank>? tanks,
+    ComputerTissueSnapshot? computerTissue,
+  }) => DownloadedDive(
     startTime: DateTime(2026, 6, 1, 9, 3),
     durationSeconds: 2700,
     maxDepth: 18.4,
@@ -78,6 +82,7 @@ void main() {
     gfLow: 40,
     gfHigh: 85,
     decoAlgorithm: 'Buhlmann ZHL-16C',
+    computerTissue: computerTissue,
   );
 
   Future<Dive> plannedDive() => dives.createPlannedDive(
@@ -137,6 +142,23 @@ void main() {
       expect(filled?.profile.length, greaterThan(50));
     },
   );
+
+  test('fill takes the tissue state the computer reported', () async {
+    const tissue = ComputerTissueSnapshot(
+      algorithm: 'zhl_16c',
+      end: ComputerTissueState(gf99Percent: 62, surfaceGfPercent: 48),
+    );
+    final planned = await plannedDive();
+
+    await service.fill(
+      plannedDiveId: planned.id,
+      dive: download(computerTissue: tissue),
+      computerId: computerId,
+    );
+
+    final filled = await dives.getDiveById(planned.id);
+    expect(filled?.computerTissue, tissue);
+  });
 
   test('the sketched profile is replaced, not merged', () async {
     final planned = await plannedDive();
