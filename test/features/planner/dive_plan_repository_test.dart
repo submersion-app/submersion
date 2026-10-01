@@ -298,4 +298,87 @@ void main() {
       },
     );
   });
+
+  group('tank and segment ids another plan owns (issue #2548)', () {
+    // A second plan reusing plan-1's tank and segment ids, as a copy that
+    // skipped the re-mint would.
+    domain.DivePlan otherPlan() =>
+        _fullPlan().copyWith(id: 'plan-2', name: 'Copy');
+
+    test('are re-minted, not taken from the plan that owns them', () async {
+      await repository.savePlan(_fullPlan());
+      await repository.savePlan(otherPlan());
+
+      final first = (await repository.getPlan('plan-1'))!;
+      expect(first.tanks.map((t) => t.id), ['tank-1', 'tank-2']);
+      expect(first.segments.map((s) => s.id), ['seg-1', 'seg-2']);
+      expect(first.segments.map((s) => s.tankId), ['tank-1', 'tank-1']);
+
+      final second = (await repository.getPlan('plan-2'))!;
+      expect(second.tanks, hasLength(2));
+      expect(second.segments, hasLength(2));
+      expect(
+        second.tanks.map((t) => t.id),
+        isNot(anyOf(contains('tank-1'), contains('tank-2'))),
+      );
+      expect(
+        second.segments.map((s) => s.id),
+        isNot(anyOf(contains('seg-1'), contains('seg-2'))),
+      );
+      // Segments follow their tank to its new id.
+      expect(second.segments.map((s) => s.tankId).toSet(), {
+        second.tanks.first.id,
+      });
+      // Nothing of plan-1's was tombstoned.
+      expect(await database.select(database.deletionLog).get(), isEmpty);
+    });
+
+    test('the returned plan carries the stored ids, so a re-save updates '
+        'the same rows', () async {
+      await repository.savePlan(_fullPlan());
+      final stored = await repository.savePlan(otherPlan());
+
+      final loaded = (await repository.getPlan('plan-2'))!;
+      expect(
+        stored.tanks.map((t) => t.id),
+        loaded.tanks.map((t) => t.id).toList(),
+      );
+      expect(
+        stored.segments.map((s) => s.id),
+        loaded.segments.map((s) => s.id).toList(),
+      );
+      expect(
+        stored.segments.map((s) => s.tankId),
+        loaded.segments.map((s) => s.tankId).toList(),
+      );
+
+      await repository.savePlan(stored);
+      expect(await database.select(database.divePlanTanks).get(), hasLength(4));
+      expect(
+        await database.select(database.divePlanSegments).get(),
+        hasLength(4),
+      );
+      expect(await database.select(database.deletionLog).get(), isEmpty);
+    });
+
+    test('the re-minted rows are the ones marked pending for sync', () async {
+      await repository.savePlan(_fullPlan());
+      await database.delete(database.syncRecords).go();
+
+      final stored = await repository.savePlan(otherPlan());
+
+      final keys = (await database.select(database.syncRecords).get())
+          .map((r) => '${r.entityType}:${r.recordId}')
+          .toSet();
+      expect(
+        keys,
+        containsAll([
+          for (final t in stored.tanks) 'divePlanTanks:${t.id}',
+          for (final s in stored.segments) 'divePlanSegments:${s.id}',
+        ]),
+      );
+      expect(keys, isNot(contains('divePlanTanks:tank-1')));
+      expect(keys, isNot(contains('divePlanSegments:seg-1')));
+    });
+  });
 }
