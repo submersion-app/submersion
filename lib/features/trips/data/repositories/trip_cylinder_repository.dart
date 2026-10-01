@@ -534,8 +534,9 @@ class TripCylinderRepository {
     final rows = await _db
         .customSelect(
           '''
-          -- stats-scope-exempt: the board counts every dive on the trip, the
-          -- ones excluded from statistics included, as the trip's dive list does
+          -- stats-scope-exempt: the board counts every logged dive on the
+          -- trip, the ones excluded from statistics included, as the trip's
+          -- dive list does
           SELECT t.id AS tank_id, t.dive_id,
                  COALESCE(d.entry_time, d.dive_date_time) AS entry_ms,
                  t.start_pressure, t.end_pressure, t.o2_percent, t.he_percent,
@@ -590,8 +591,8 @@ class TripCylinderRepository {
     final rows = await _db
         .customSelect(
           '''
-          -- stats-scope-exempt: the record counts every dive on the trip,
-          -- as the board does
+          -- stats-scope-exempt: the record counts every logged dive on the
+          -- trip, as the board does
           SELECT t.id AS tank_id, t.dive_id,
                  COALESCE(d.entry_time, d.dive_date_time) AS entry_ms,
                  d.diver_id, v.name AS diver_name, s.name AS site_name,
@@ -705,8 +706,8 @@ class TripCylinderRepository {
     final row = await _db
         .customSelect(
           '''
-          -- stats-scope-exempt: the forecast counts every dive on the trip,
-          -- as the board does
+          -- stats-scope-exempt: the forecast counts every logged dive on the
+          -- trip, as the board does
           SELECT COALESCE(MAX(n), 0) AS n FROM (
             SELECT COUNT(*) AS n FROM dives
             WHERE trip_id = ?1
