@@ -155,8 +155,9 @@ class DiverMergeRepository {
       // rows whose FK targets are validated at commit, not per-statement.
       await _db.customStatement('PRAGMA defer_foreign_keys = ON');
 
-      // Before the generic repoint, which would otherwise hit the share
-      // pair index or create a self-share (issue #2046).
+      // Shares never go through the generic repoint below: the ones whose
+      // move would hit the pair index or create a self-share are dropped
+      // (issue #2046), and the rest are re-created for the keeper (#2670).
       deletedShares.addAll(
         await _dropCollidingShares(
           keeperId: keeperId,

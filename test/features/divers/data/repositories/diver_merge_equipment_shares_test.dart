@@ -157,4 +157,57 @@ void main() {
     final ev = await db.select(db.equipmentOwnershipEvents).getSingle();
     expect(ev.toDiverId, 'dup');
   });
+  test('a group merge undone newest first restores every share', () async {
+    // A second duplicate who owns the item the first one's share moves to
+    // the keeper: merging it drops the keeper's share the first merge made.
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'dup2',
+            name: 'dup2',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'dup2-light',
+            name: 'dup2-light',
+            type: 'light',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value('dup2'),
+          ),
+        );
+    await share('s-dup-light', 'dup2-light', 'dup');
+    final before = await sharesByItem();
+
+    final repo = DiverMergeRepository();
+    final first = await repo.mergeDivers(keeperId: 'keep', duplicateId: 'dup');
+    final second = await repo.mergeDivers(
+      keeperId: 'keep',
+      duplicateId: 'dup2',
+    );
+    final dropped = second.deletedShareRows.singleWhere(
+      (r) => r['equipment_id'] == 'dup2-light',
+    );
+    expect(
+      first.createdShareIds,
+      contains(dropped['id']),
+      reason: "the second merge drops the keeper's share of dup2's own item",
+    );
+
+    for (final snapshot in [second, first]) {
+      await repo.undoMerge(snapshot);
+    }
+    expect(await sharesByItem(), before);
+    final tombstones = {
+      for (final r in await db.select(db.deletionLog).get())
+        if (r.entityType == 'equipmentShares') r.recordId,
+    };
+    expect(tombstones, first.createdShareIds.toSet());
+  });
 }
