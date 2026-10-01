@@ -113,10 +113,10 @@ void main() {
       await unshare(shared: false);
       await unshare(shared: true);
 
-      expect((await repository.hiddenItems('b')).map((i) => i.id), [
-        'shared',
-        'pier',
-      ]);
+      expect(
+        (await repository.hiddenItems('b')).map((i) => (i.id, i.isShared)),
+        [('shared', true), ('pier', true)],
+      );
     });
   });
 
@@ -124,12 +124,20 @@ void main() {
     // Only sync can leave this: a hide written on one device lands after
     // another device reassigned the item to the hiding profile. The hide
     // still keeps the item from its owner, so Unhide must stay reachable.
+    await seedSite(db, 'reef', owner: 'a');
     await db.customStatement(
       "INSERT INTO trip_hides (id, trip_id, diver_id, created_at) "
       "VALUES ('h1', 'private', 'a', $kSharedTs)",
     );
+    await db.customStatement(
+      "INSERT INTO site_hides (id, site_id, diver_id, created_at) "
+      "VALUES ('h2', 'reef', 'a', $kSharedTs)",
+    );
 
-    expect((await repository.hiddenItems('a')).single.id, 'private');
+    expect((await repository.hiddenItems('a')).map((i) => (i.id, i.isShared)), [
+      ('private', false),
+      ('reef', false),
+    ]);
   });
 
   test('deleteHides removes every profile\'s hides of an item', () async {

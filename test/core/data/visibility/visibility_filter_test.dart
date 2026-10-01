@@ -56,6 +56,14 @@ void main() {
     });
   });
 
+  test('ownerOrSharedSql names the viewer by any SQL expression', () {
+    // hiddenItems binds the viewer through its join (issue #2678).
+    expect(
+      VisibilityFilter.ownerOrSharedSql('t', 'h.diver_id'),
+      '(t.diver_id = h.diver_id OR t.is_shared = 1)',
+    );
+  });
+
   group('VisibilityFilter.applyToTrips', () {
     late AppDatabase db;
 

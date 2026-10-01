@@ -67,11 +67,14 @@ void main() {
     // Waits on the provider's own refresh, not a fixed delay.
     Future<List<String>> next(bool Function(List<String>) done) {
       final ids = Completer<List<String>>();
-      final sub = container.listen(hiddenItemsProvider, (_, next) {
-        final value = next.value?.map((i) => i.id).toList();
-        if (value != null && done(value) && !ids.isCompleted) {
-          ids.complete(value);
+      final sub = container.listen(hiddenItemsProvider, (_, state) {
+        if (ids.isCompleted) return;
+        if (state.hasError) {
+          ids.completeError(state.error!, state.stackTrace);
+          return;
         }
+        final value = state.value?.map((i) => i.id).toList();
+        if (value != null && done(value)) ids.complete(value);
       }, fireImmediately: true);
       return ids.future
           .timeout(const Duration(seconds: 5))

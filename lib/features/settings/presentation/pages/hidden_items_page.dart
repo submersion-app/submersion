@@ -89,30 +89,31 @@ class _HiddenRow extends ConsumerWidget {
   final List<Diver> divers;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => ListTile(
-    title: Text(item.name),
-    subtitle: Text(
-      [
-        // A trip's dates tell two same-named trips apart.
-        if (item.kind == SharedItemKind.trip && item.startDate != null)
-          UnitFormatter(
-            ref.watch(settingsProvider),
-          ).formatDateRange(item.startDate, item.endDate, l10n: context.l10n),
-        if (item.location case final location? when location.isNotEmpty)
-          location,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final details = [
+      // A trip's dates tell two same-named trips apart.
+      if (item.kind == SharedItemKind.trip && item.startDate != null)
+        UnitFormatter(
+          ref.watch(settingsProvider),
+        ).formatDateRange(item.startDate, item.endDate, l10n: context.l10n),
+      if (item.location case final location? when location.isNotEmpty) location,
+      if (item.isShared)
         context.l10n.sharedItems_sharedBy(
           sharedItemOwnerName(divers, item.ownerId, context.l10n),
         ),
-      ].join(' · '),
-    ),
-    trailing: TextButton(
-      onPressed: () => switch (item.kind) {
-        SharedItemKind.trip =>
-          ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
-        SharedItemKind.site =>
-          ref.read(siteListNotifierProvider.notifier).unhideSites([item.id]),
-      },
-      child: Text(context.l10n.settings_hiddenItems_unhide),
-    ),
-  );
+    ];
+    return ListTile(
+      title: Text(item.name),
+      subtitle: details.isEmpty ? null : Text(details.join(' · ')),
+      trailing: TextButton(
+        onPressed: () => switch (item.kind) {
+          SharedItemKind.trip =>
+            ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
+          SharedItemKind.site =>
+            ref.read(siteListNotifierProvider.notifier).unhideSites([item.id]),
+        },
+        child: Text(context.l10n.settings_hiddenItems_unhide),
+      ),
+    );
+  }
 }
