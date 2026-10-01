@@ -12,6 +12,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -379,6 +380,90 @@ void main() {
       // still carries the level separately.
       expect(find.text('Bali OW w/ Made'), findsWidgets);
       expect(find.text('Open Water'), findsOneWidget);
+    });
+  });
+
+  group('every detail row', () {
+    // A certification with every optional field set, so each row the page
+    // can show is rendered through the shared detail row.
+    final cert = Certification(
+      id: 'full-1',
+      name: 'Bali OW w/ Made',
+      agency: CertificationAgency.padi,
+      level: CertificationLevel.openWater,
+      additionalCredentials: const [
+        CertificationCredential(
+          agency: CertificationAgency.ssi,
+          level: CertificationLevel.advancedOpenWater,
+        ),
+      ],
+      cardNumber: '123456789',
+      expiryDate: DateTime(2020, 1, 1),
+      instructorName: 'Ana Ruiz',
+      instructorNumber: 'IN-4417',
+      notes: '',
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+    );
+    final course = Course(
+      id: 'course-1',
+      diverId: 'diver-1',
+      name: 'Open Water Course',
+      agency: CertificationAgency.padi,
+      startDate: DateTime(2019, 6, 1),
+      instructorName: 'Made Wirawan',
+      createdAt: DateTime(2019),
+      updatedAt: DateTime(2019),
+    );
+
+    Finder row(bool Function(String label) matches) => find.byWidgetPredicate(
+      (w) => w is Semantics && matches(w.properties.label ?? ''),
+    );
+
+    testWidgets('shows each optional field as a label and value', (
+      tester,
+    ) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            certificationByIdProvider(
+              cert.id,
+            ).overrideWith((ref) async => cert),
+            courseForCertificationProvider(
+              cert.id,
+            ).overrideWith((ref) async => course),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: CertificationDetailPage(
+              certificationId: cert.id,
+              embedded: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(row((l) => l == 'Card Number: 123456789'), findsOneWidget);
+      expect(
+        row((l) => l == 'Also recognized as: SSI Advanced Open Water'),
+        findsOneWidget,
+      );
+      expect(row((l) => l == 'Name: Ana Ruiz'), findsOneWidget);
+      expect(row((l) => l == 'Instructor #: IN-4417'), findsOneWidget);
+      expect(row((l) => l == 'Instructor: Made Wirawan'), findsOneWidget);
+
+      // A lapsed expiry date is tinted red.
+      final expiry = row((l) => l.startsWith('Expiry Date: '));
+      expect(expiry, findsOneWidget);
+      final expiryValue = tester.widget<Text>(
+        find.descendant(of: expiry, matching: find.byType(Text)).last,
+      );
+      expect(expiryValue.style?.color, Colors.red);
     });
   });
 

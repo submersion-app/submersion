@@ -525,6 +525,52 @@ void main() {
     });
   });
 
+  group('BuddyDetailPage dive statistics', () {
+    testWidgets('shows the first and last shared dive dates', (tester) async {
+      final buddy = Buddy(
+        id: 'buddy-1',
+        name: 'Jane Doe',
+        notes: '',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            buddyByIdProvider(buddy.id).overrideWith((ref) async => buddy),
+            buddyStatsProvider(buddy.id).overrideWith(
+              (ref) async => BuddyStats(
+                totalDives: 12,
+                firstDive: DateTime(2023, 3, 4),
+                lastDive: DateTime(2026, 8, 20),
+              ),
+            ),
+            diveIdsForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+            divesForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: BuddyDetailPage(buddyId: buddy.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Each stat reads as one "label: value" row; the dates follow the
+      // diver's date format, so only the label is pinned here.
+      Finder row(String prefix) => find.byWidgetPredicate(
+        (w) => w is Semantics && (w.properties.label ?? '').startsWith(prefix),
+      );
+      expect(row('Dives Together: 12'), findsOneWidget);
+      expect(row('First Dive: '), findsOneWidget);
+      expect(row('Last Dive: '), findsOneWidget);
+    });
+  });
+
   group('BuddyDetailPage stat rows on a phone-width screen', () {
     // A long favourite-site name took the row's width and squeezed the
     // label onto several lines or overflowed the row, as the certification
