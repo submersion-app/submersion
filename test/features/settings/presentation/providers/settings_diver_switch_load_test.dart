@@ -16,12 +16,16 @@ import '../../../../helpers/test_database.dart';
 class _GatedDiverRepository extends DiverRepository {
   final gates = <String, Completer<void>>{};
 
+  /// Diver ids whose read fails once released.
+  final failing = <String>{};
+
   Completer<void> gateFor(String diverId) =>
       gates.putIfAbsent(diverId, Completer<void>.new);
 
   @override
   Future<Diver?> getDiverById(String id) async {
     await gateFor(id).future;
+    if (failing.contains(id)) throw StateError('diver read failed');
     return super.getDiverById(id);
   }
 }
@@ -168,4 +172,19 @@ void main() {
       expect(container.read(settingsProvider).gfLow, 40);
     },
   );
+
+  test("a failed reload surfaces its error to a wait, so the previous diver's "
+      'settings are never taken for the new one', () async {
+    final notifier = container.read(settingsProvider.notifier);
+    divers.gateFor(diverA).complete();
+    await notifier.loaded;
+
+    divers.failing.add(diverB);
+    await container
+        .read(currentDiverIdProvider.notifier)
+        .setCurrentDiver(diverB);
+    divers.gateFor(diverB).complete();
+
+    await expectLater(notifier.loaded, throwsStateError);
+  });
 }
