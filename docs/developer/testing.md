@@ -36,9 +36,35 @@ tests at once.
 
 ### All Tests
 
+The quickest full run bundles the suite (see
+[Shared Isolates in CI](#shared-isolates-in-ci)):
+
+```bash
+scripts/run_all_tests.sh
+```
+
+It runs from the repository root wherever you start it, excludes performance
+tests, and passes options to `flutter test`, such as
+`scripts/run_all_tests.sh --coverage`. The whole suite goes to one
+`flutter test` call, so a coverage report covers all of it. It takes options
+only: to run particular files, use `flutter test <paths>`. `TEST_CONCURRENCY=N`
+sets the number of parallel test isolates (default: the core count, at most
+16). If anything fails, it names the test files that failed, did not compile or
+could not load, so one can be rerun on its own with `flutter test <path>`, and
+exits non-zero. `RUN_ALL_TESTS=1 git push` runs the same script before pushing.
+
+Measured on an 18-core Mac at `--concurrency=16` (issue #2512), the whole suite
+took 10 min 11 s as separate files and 2 min 52 s as bundles of up to 40 test
+files. Each run keeps its bundles in its own directory under `test/.bundles`,
+so it leaves bundles made by another run alone. Under Git Bash on Windows, where
+a command line is limited to 8,191 characters, the script rebuilds the bundles
+with more files each until their paths fit. Without `python3` it runs the files
+one by one, as plain `flutter test` does:
+
 ```bash
 flutter test
-```text
+```
+
 ### Specific Test Suite
 
 ```bash
@@ -383,15 +409,65 @@ class MockDiveRepository extends Mock implements DiveRepository {
 }
 ```
 
+## Network, Time Limits and Fonts
+
+Every test runs with the same three limits, whether it runs on its own, in a
+CI bundle, or through `flutter test` locally.
+
+- **No network.** An HTTP or HTTPS request through `HttpClient` (which
+  `package:http`, images and most plugins use), or a plain `Socket`, to any
+  host but this machine fails with `A test reached the network: <URL>`. A TLS
+  socket opened directly with `SecureSocket.connect` connects below the hook
+  and is not covered; nothing in `lib/` opens one. The overrides live in
+  `test/helpers/blocked_network.dart`, and `HttpOverrides.runZoned` still wins
+  inside its zone. A refusal fails the test even when the code under test
+  catches it: the harness records it and fails the test in a tear-down, naming
+  the URL. A test that is refused on purpose calls `expectNetworkRefusals()`.
+  A refusal caught outside any test (in a `setUpAll`, while a file declares
+  its tests, or in work an earlier test left running) fails the next test.
+- **Answering a public service.** When the code under test calls a service
+  such as Nominatim, Open-Meteo, the OSM tile server or the PDF font host,
+  declare it in `setUp`:
+
+  ```dart
+  setUp(() {
+    // The code under test calls Open-Meteo; it answers as offline.
+    serveFakeHost('api.open-meteo.com');
+  });
+  ```
+
+  The harness's `HttpClient` then answers that host from memory
+  (`test/helpers/fake_hosts.dart`): a 503 "offline" by default, which is what
+  the code meets on a device without a network, or a given response such as
+  `FakeResponse.json({...})`. `fakeHostRequests` lists what was asked. The
+  answer arrives inside a widget test's fake clock, and declarations last one
+  test. Where the code takes a client, injecting one (`MockClient` from
+  `package:http/testing.dart`) works too; `loadPdfRoboto()` loads real fonts
+  for a PDF test that needs them.
+- **A time limit per test.** A test fails after `testTimeLimit`
+  (`test/helpers/test_timeouts.dart`, two minutes), set for plain tests in
+  `dart_test.yaml` and for widget tests on the binding in
+  `test/flutter_test_config.dart`. A test that is slow on purpose declares its
+  own `timeout:` with a comment saying why. The `performance` and `real-data`
+  tags, which run only on request, allow 30 minutes. That tag setting, like a
+  file-level `@Timeout`, reaches plain tests only: `testWidgets` passes the
+  binding's limit to each test explicitly, so a widget test that needs longer
+  passes its own `timeout:` argument.
+- **No font downloads.** Google Fonts runtime fetching is off for every test.
+  The family name is still on each `TextStyle`; the font bytes never load.
+
 ## Shared Isolates in CI
 
 `flutter test` compiles and loads every test file as its own entrypoint. In CI
 that made the cost of a run follow the number of test files, so the test job
 runs bundles instead: generated entrypoints that import many test files and
 call each one's `main()` inside a group named after the file
-(`scripts/bundle_tests.py`, issue #2500). Local runs and the pre-push hook still
-run test files one by one. At local concurrency a bundle is no faster, because
-it runs its files one after another in a single isolate.
+(`scripts/bundle_tests.py`, issue #2500). A full local run with
+`scripts/run_all_tests.sh` (or `RUN_ALL_TESTS=1` on a push) uses bundles too, of
+up to 40 files so they spread evenly over the local workers (issue #2512). The
+pre-push hook's usual run of the affected
+test files stays unbundled: a few dozen files finish sooner side by side than
+one after another in a single isolate.
 
 ### The rule: put back what you replace
 
@@ -401,9 +477,9 @@ restores it, so the next file starts from the same place.
 | You change | Put it back with |
 |---|---|
 | The path provider | `useFakePathProvider(fake)` from `test/helpers/fake_path_provider.dart`, in `setUp` or the test. It restores the previous provider when the test ends |
-| Any other `*Platform.instance`, or `HttpOverrides.global` | Read the previous value into a variable, and assign that variable back in `tearDown` or `addTearDown` |
+| Any other `*Platform.instance`, `HttpOverrides.global` or `IOOverrides.global` | Read the previous value into a variable, and assign that variable back in `tearDown` or `addTearDown` |
 | `debugPrint`, `FlutterError.onError` or `debugDefaultTargetPlatformOverride` | Put the saved value (or `null` for the platform override) back before the test ends. flutter_test requires this in the body of a `testWidgets` |
-| `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled` or `debugCanShareFiles` | `applyGlobalTestDefaults()` from `test/helpers/global_test_defaults.dart`, in `tearDown` |
+| `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled`, `debugCanShareFiles` or `GoogleFonts.config.allowRuntimeFetching` | `applyGlobalTestDefaults()` from `test/helpers/global_test_defaults.dart`, in `tearDown` |
 | A mock handler on the path provider or share channel | `clearPathAndShareChannelMocks()` from `test/helpers/mock_channels.dart`, or `setMockMethodCallHandler(channel, null)`, in a `tearDown` or `tearDownAll` |
 | The share sheet | Assign your fake to `SharePlatform.instance` and restore it. The harness pins a forwarder, so the fake is looked up on every share |
 | PDF fonts | `loadPdfRoboto()` in `setUpAll` and `unloadPdfRoboto()` in `tearDownAll`, from `test/helpers/pdf_roboto.dart` |
@@ -418,8 +494,9 @@ Two checks enforce the rule:
 - `test/architecture/test_global_state_restored_test.dart` reads the source and
   fails on an assignment that nothing in its scope restores. It names the file
   and line, and it runs locally like any other test.
-- In CI, each generated bundle records the process-wide state before a file's
-  tests (`test/helpers/global_state_snapshot.dart`) and fails that file's group
+- In CI and in a bundled full local run, each generated bundle records the
+  process-wide state before a file's tests
+  (`test/helpers/global_state_snapshot.dart`) and fails that file's group
   if anything is left changed afterwards, whatever shape the code took.
 
 The bundle also checks each file's `main()`, which runs while the bundle is

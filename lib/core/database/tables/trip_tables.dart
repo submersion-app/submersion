@@ -34,6 +34,13 @@ class Trips extends Table {
   /// v202: overrides for the scrubber trip-margin estimate (phase 4).
   IntColumn get expectedDives => integer().nullable()();
   IntColumn get expectedRuntimeMinutes => integer().nullable()();
+
+  /// v249: the fill forecast's inputs (issue #2325): how many divers breathe
+  /// from the trip's cylinders, and a dives-per-day target (null derives
+  /// it).
+  IntColumn get diversSharingCylinders =>
+      integer().withDefault(const Constant(1))();
+  IntColumn get divesPerDayTarget => integer().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -82,6 +89,9 @@ class TripItineraryDays extends Table {
   RealColumn get latitude => real().nullable()();
   RealColumn get longitude => real().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// v249: the day's planned dives for the fill forecast; null derives it.
+  IntColumn get plannedDives => integer().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -311,5 +321,62 @@ class TripChecklistItems extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
+/// Gear packed for a trip (v248, issue #2338). A parent-gated child of
+/// `trips`, modelled on `equipment_shares`: no updated_at, its own clock,
+/// exported through the trip's clock plus pending marks. Any equipment type
+/// may be packed. Both parents cascade.
+@DataClassName('TripEquipmentRow')
+class TripEquipment extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get tripId =>
+      text().references(Trips, #id, onDelete: KeyAction.cascade)();
+  TextColumn get equipmentId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {tripId, equipmentId},
+  ];
+  // coverage:ignore-end
+}
+
+/// A shared trip one diver profile has hidden from itself (v250, issue
+/// #2594). The trip stays in its owner's log and in every other profile. A
+/// parent-gated child of `trips`, like `trip_equipment`: no updated_at, its
+/// own clock, exported through pending marks. Both parents cascade.
+@DataClassName('TripHideRow')
+class TripHides extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get tripId =>
+      text().references(Trips, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diverId =>
+      text().references(Divers, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// Leads with the profile: every read is "this profile's hidden trips".
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {diverId, tripId},
+  ];
   // coverage:ignore-end
 }

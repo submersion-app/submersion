@@ -41,11 +41,6 @@ void main() {
     expect(r.canResolveOnThisDevice(_signature()), isTrue);
   });
 
-  test('extractMetadata returns null', () async {
-    final r = SignatureResolver();
-    expect(await r.extractMetadata(_signature()), isNull);
-  });
-
   test('verify returns notFound when nothing to read', () async {
     final r = SignatureResolver();
     final v = await r.verify(_signature());

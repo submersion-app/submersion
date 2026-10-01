@@ -57,6 +57,20 @@ void main() {
       ),
     ),
     'typed text': DiveFilterState(query: TextNode(['manta'])),
+    'typed derived field': DiveFilterState(
+      query: ConditionNode(
+        FieldPath(['finalStop']),
+        QueryOp.eq,
+        const EnumValue('unstable'),
+      ),
+    ),
+    'typed findings': DiveFilterState(
+      query: ConditionNode(
+        FieldPath(['findings', 'rule']),
+        QueryOp.eq,
+        const EnumValue('rapidAscent'),
+      ),
+    ),
   };
 
   for (final e in cases.entries) {

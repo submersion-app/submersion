@@ -2,18 +2,18 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
 
 import '../../../../fixtures/macdive_sqlite/build_synthetic_db.dart';
 
 void main() {
   test('reads ZDIVEIMAGE rows into MacDiveRawLogbook.diveImages', () async {
-    final path =
-        '${Directory.systemTemp.path}/mdi_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-    final dbFile = buildSyntheticMacDiveDb(path);
+    final dir = Directory.systemTemp.createTempSync('mdi_');
     addTearDown(() {
-      if (dbFile.existsSync()) dbFile.deleteSync();
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
     });
+    final dbFile = buildSyntheticMacDiveDb(p.join(dir.path, 'mdi.sqlite'));
 
     final logbook = await MacDiveDbReader.readAll(
       Uint8List.fromList(await dbFile.readAsBytes()),
@@ -34,12 +34,14 @@ void main() {
   });
 
   test('a logbook without a ZDIVEIMAGE table reads with no images', () async {
-    final path =
-        '${Directory.systemTemp.path}/mdi_noimg_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-    final dbFile = buildSyntheticMacDiveDb(path, includeDiveImages: false);
+    final dir = Directory.systemTemp.createTempSync('mdi_noimg_');
     addTearDown(() {
-      if (dbFile.existsSync()) dbFile.deleteSync();
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
     });
+    final dbFile = buildSyntheticMacDiveDb(
+      p.join(dir.path, 'mdi_noimg.sqlite'),
+      includeDiveImages: false,
+    );
 
     final logbook = await MacDiveDbReader.readAll(
       Uint8List.fromList(await dbFile.readAsBytes()),

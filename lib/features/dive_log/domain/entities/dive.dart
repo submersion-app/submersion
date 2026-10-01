@@ -1134,6 +1134,13 @@ class DiveTank extends Equatable {
   /// transmitter, whatever gas mix each computer had programmed.
   final String? transmitterSerial;
 
+  /// The data source this tank row came from (v251, issue #2716), so two
+  /// consolidated sources that name no computer keep their copies of one
+  /// cylinder apart. Null means the dive's primary source. Read-only
+  /// projection, like [computerId]: the import, download and source-moving
+  /// paths write it, and edit flows never do.
+  final String? sourceId;
+
   /// Parsed tank index this row's computer-owned data comes from (v200). Null
   /// on rows from before v200 means "same as order"; -1 (kNoSourceTankIndex
   /// in tank_source_index.dart) means the row takes no parsed tank.
@@ -1186,6 +1193,7 @@ class DiveTank extends Equatable {
     this.presetName,
     this.computerId,
     this.transmitterSerial,
+    this.sourceId,
     this.sourceTankIndex,
     this.regulatorEquipmentId,
     this.tripCylinderId,
@@ -1218,11 +1226,13 @@ class DiveTank extends Equatable {
     String? computerId,
     String? transmitterSerial,
     bool clearTransmitterSerial = false,
+    String? sourceId,
     int? sourceTankIndex,
     bool clearSourceTankIndex = false,
     String? regulatorEquipmentId,
     String? equipmentId,
     bool clearRegulatorEquipmentId = false,
+    bool clearMaterial = false,
     String? tripCylinderId,
     bool clearTripCylinderId = false,
     double? decoSwitchDepth,
@@ -1238,13 +1248,14 @@ class DiveTank extends Equatable {
       endPressure: endPressure ?? this.endPressure,
       gasMix: gasMix ?? this.gasMix,
       role: role ?? this.role,
-      material: material ?? this.material,
+      material: clearMaterial ? null : (material ?? this.material),
       order: order ?? this.order,
       presetName: clearPresetName ? null : (presetName ?? this.presetName),
       computerId: computerId ?? this.computerId,
       transmitterSerial: clearTransmitterSerial
           ? null
           : (transmitterSerial ?? this.transmitterSerial),
+      sourceId: sourceId ?? this.sourceId,
       sourceTankIndex: clearSourceTankIndex
           ? null
           : (sourceTankIndex ?? this.sourceTankIndex),
@@ -1277,6 +1288,7 @@ class DiveTank extends Equatable {
     presetName,
     computerId,
     transmitterSerial,
+    sourceId,
     sourceTankIndex,
     regulatorEquipmentId,
     equipmentId,

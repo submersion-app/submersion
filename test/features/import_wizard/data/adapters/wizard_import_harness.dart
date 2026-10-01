@@ -27,6 +27,7 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
 /// real one over the current test database; only the parsed payload, the
 /// active diver and the settings are supplied. Every item the review does
 /// not flag is selected, and each flagged duplicate gets [duplicateAction].
+/// [onReview] sees the bundle the Review step would show.
 ///
 /// [diver] must already exist in the database. Call from a testWidgets body
 /// after setUpTestDatabase.
@@ -35,6 +36,7 @@ Future<UnifiedImportResult> importThroughWizard(
   required ImportPayload payload,
   required Diver diver,
   DuplicateAction duplicateAction = DuplicateAction.skip,
+  void Function(ImportBundle reviewed)? onReview,
 }) async {
   late UniversalAdapter adapter;
   await tester.pumpWidget(
@@ -77,6 +79,7 @@ Future<UnifiedImportResult> importThroughWizard(
 
   final result = await tester.runAsync(() async {
     final bundle = await adapter.checkDuplicates(await adapter.buildBundle());
+    onReview?.call(bundle);
     final selections = <ImportEntityType, Set<int>>{};
     final actions = <ImportEntityType, Map<int, DuplicateAction>>{};
     for (final MapEntry(key: type, value: group) in bundle.groups.entries) {

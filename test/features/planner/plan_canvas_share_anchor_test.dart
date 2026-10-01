@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import '../../helpers/fake_path_provider.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
+import '../../helpers/fake_hosts.dart';
 
 /// Sharing writes the plan to getApplicationDocumentsDirectory() first, a
 /// platform channel with no implementation under flutter_test.
@@ -51,6 +52,13 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 }
 
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   late Directory documents;
   final sharePlatform = _FakeSharePlatform();
 

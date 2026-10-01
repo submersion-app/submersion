@@ -52,6 +52,7 @@ import 'package:submersion/features/dive_3d/presentation/pages/compare_dives_3d_
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
+import 'package:submersion/features/explore/presentation/pages/explore_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/profile_editor_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
 import 'package:submersion/features/maps/presentation/pages/dive_activity_map_page.dart';
@@ -77,6 +78,7 @@ import 'package:submersion/features/media/presentation/pages/media_section_page.
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
@@ -93,6 +95,7 @@ import 'package:submersion/features/insights/presentation/pages/insights_time_pa
 import 'package:submersion/features/insights/presentation/pages/insights_equipment_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/hidden_items_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
@@ -382,8 +385,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newDive',
-                builder: (context, state) =>
-                    DiveEditPage(prefill: state.extra as DivePrefill?),
+                builder: (context, state) => newDivePage(state),
               ),
               GoRoute(
                 path: 'scan',
@@ -453,6 +455,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => DataQualityInboxPage(
                   filterDiveId: state.uri.queryParameters['dive'],
                 ),
+              ),
+              GoRoute(
+                path: 'explore',
+                name: 'explore',
+                builder: (context, state) => const ExplorePage(),
               ),
               GoRoute(
                 path: ':diveId',
@@ -864,6 +871,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       initialMediaId: state.uri.queryParameters['mediaId'],
                     ),
                   ),
+                  GoRoute(
+                    path: 'cylinders',
+                    name: 'tripCylinders',
+                    builder: (context, state) => TripCylinderBoardPage(
+                      tripId: state.pathParameters['tripId']!,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -1270,6 +1284,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'backup',
                 name: 'backupSettings',
                 builder: (context, state) => const BackupSettingsPage(),
+              ),
+              // A profile's hidden shared trips and sites (issue #2594).
+              GoRoute(
+                path: 'hidden-items',
+                name: 'hiddenItems',
+                builder: (context, state) => const HiddenItemsPage(),
               ),
               GoRoute(
                 path: 'setup-assistant',
@@ -1952,3 +1972,12 @@ class _DivelogsImportWizardRoute extends ConsumerWidget {
 /// case variants, arbitrary strings) returns false. This conservative rule
 /// keeps the URL contract unambiguous for shareability and logging.
 bool parseForceFullQueryParam(String? value) => value == 'true';
+
+/// The new-dive page for [state]: a prefill passed as `extra` (the OCR scan,
+/// a passport tag), and the board's Log dive shortcut as the `tripId` and
+/// `tripCylinderId` query parameters.
+DiveEditPage newDivePage(GoRouterState state) => DiveEditPage(
+  prefill: state.extra as DivePrefill?,
+  tripId: state.uri.queryParameters['tripId'],
+  tripCylinderId: state.uri.queryParameters['tripCylinderId'],
+);

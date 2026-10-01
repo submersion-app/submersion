@@ -438,5 +438,6 @@ class _FailingCoordinator extends MediaDeletionCoordinator {
   Future<void> deleteMediaItems(
     List<MediaItem> items, {
     bool Function(MediaData row)? keepIf,
+    bool holdRemoteDelete = false,
   }) async => throw StateError('media store unavailable');
 }

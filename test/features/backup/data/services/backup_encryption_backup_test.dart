@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -164,8 +165,10 @@ void main() {
     'exportBackupToPath encrypts the chosen destination when enabled',
     () async {
       await enableBackupEncryption();
-      final dest =
-          '${Directory.systemTemp.path}/exp_${DateTime.now().microsecondsSinceEpoch}.sbe';
+      final dest = p.join(
+        _isolatedTempDir.path,
+        'exp_${DateTime.now().microsecondsSinceEpoch}.sbe',
+      );
       addTearDown(() async {
         final f = File(dest);
         if (await f.exists()) await f.delete();
@@ -184,7 +187,10 @@ void main() {
       await enableBackupEncryption();
       final file = await buildService().exportBackupToTemp(); // encrypted .sbe
       final picked = File(
-        '${Directory.systemTemp.path}/pick_${DateTime.now().microsecondsSinceEpoch}.sbe',
+        p.join(
+          _isolatedTempDir.path,
+          'pick_${DateTime.now().microsecondsSinceEpoch}.sbe',
+        ),
       );
       await picked.writeAsBytes(await file.readAsBytes());
       addTearDown(() async {
@@ -210,7 +216,10 @@ void main() {
       await enableBackupEncryption();
       final file = await buildService().exportBackupToTemp();
       final picked = File(
-        '${Directory.systemTemp.path}/pick2_${DateTime.now().microsecondsSinceEpoch}.sbe',
+        p.join(
+          _isolatedTempDir.path,
+          'pick2_${DateTime.now().microsecondsSinceEpoch}.sbe',
+        ),
       );
       await picked.writeAsBytes(await file.readAsBytes());
       addTearDown(() async {
@@ -272,7 +281,7 @@ void main() {
         seed('saf', 'content://tree/doc/backup.db'),
       ); // SAF ref
       await preferences.addRecord(
-        seed('gone', '${Directory.systemTemp.path}/does_not_exist_x9.db'),
+        seed('gone', p.join(_isolatedTempDir.path, 'does_not_exist_x9.db')),
       ); // missing file
 
       final result = await buildService().reencryptExistingBackups();
@@ -321,7 +330,10 @@ void main() {
     // (S3/Dropbox/iCloud) returns the SAME id for. A blind delete here would
     // destroy the object we just uploaded.
     final localDb = File(
-      '${Directory.systemTemp.path}/collide_${DateTime.now().microsecondsSinceEpoch}.db',
+      p.join(
+        _isolatedTempDir.path,
+        'collide_${DateTime.now().microsecondsSinceEpoch}.db',
+      ),
     );
     await localDb.writeAsString('plaintext db');
     addTearDown(() async {
@@ -417,45 +429,51 @@ void main() {
     expect(rec.cloudFileId, oldCloudId);
   });
 
-  test('reencrypt: a record with a cloud copy fails when no provider is '
-      'available (does not falsely claim the cloud copy is protected)', () async {
-    final localDb = File(
-      '${Directory.systemTemp.path}/noprov_${DateTime.now().microsecondsSinceEpoch}.db',
-    );
-    await localDb.writeAsString('plaintext db');
-    addTearDown(() async {
-      if (await localDb.exists()) await localDb.delete();
-      final sbe = File(localDb.path.replaceAll('.db', '.sbe'));
-      if (await sbe.exists()) await sbe.delete();
-    });
-    await preferences.addRecord(
-      BackupRecord(
-        id: 'np',
-        filename: 'noprov.db',
-        timestamp: DateTime.now(),
-        sizeBytes: await localDb.length(),
-        location: BackupLocation.both,
-        localPath: localDb.path,
-        cloudFileId: 'Submersion Backups/noprov.sbe',
-      ),
-    );
+  test(
+    'reencrypt: a record with a cloud copy fails when no provider is '
+    'available (does not falsely claim the cloud copy is protected)',
+    () async {
+      final localDb = File(
+        p.join(
+          _isolatedTempDir.path,
+          'noprov_${DateTime.now().microsecondsSinceEpoch}.db',
+        ),
+      );
+      await localDb.writeAsString('plaintext db');
+      addTearDown(() async {
+        if (await localDb.exists()) await localDb.delete();
+        final sbe = File(localDb.path.replaceAll('.db', '.sbe'));
+        if (await sbe.exists()) await sbe.delete();
+      });
+      await preferences.addRecord(
+        BackupRecord(
+          id: 'np',
+          filename: 'noprov.db',
+          timestamp: DateTime.now(),
+          sizeBytes: await localDb.length(),
+          location: BackupLocation.both,
+          localPath: localDb.path,
+          cloudFileId: 'Submersion Backups/noprov.sbe',
+        ),
+      );
 
-    await enableBackupEncryption();
-    // No cloud provider injected, but the record claims a cloud copy.
-    final noProvider = BackupService(
-      dbAdapter: _FakeBackupDatabaseAdapter(),
-      preferences: preferences,
-      backupEncryptionKeyStore: backupKeyStore,
-    );
-    final result = await noProvider.reencryptExistingBackups();
-    expect(result.failed, 1);
-    expect(result.reencrypted, 0);
+      await enableBackupEncryption();
+      // No cloud provider injected, but the record claims a cloud copy.
+      final noProvider = BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(),
+        preferences: preferences,
+        backupEncryptionKeyStore: backupKeyStore,
+      );
+      final result = await noProvider.reencryptExistingBackups();
+      expect(result.failed, 1);
+      expect(result.reencrypted, 0);
 
-    // Record unchanged: still plaintext .db pointing at its original cloud id.
-    final rec = preferences.getHistory().single;
-    expect(rec.filename, endsWith('.db'));
-    expect(rec.cloudFileId, 'Submersion Backups/noprov.sbe');
-  });
+      // Record unchanged: still plaintext .db pointing at its original cloud id.
+      final rec = preferences.getHistory().single;
+      expect(rec.filename, endsWith('.db'));
+      expect(rec.cloudFileId, 'Submersion Backups/noprov.sbe');
+    },
+  );
 
   test('reencrypt: a failed old-cloud-object delete is disclosed as a failure '
       '(record still committed to .sbe)', () async {

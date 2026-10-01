@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/database/database.dart';
@@ -17,8 +18,11 @@ import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.da
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample_point.dart';
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
+    show TankPressureSample;
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
@@ -2535,6 +2539,23 @@ class DiveRepository {
     }
   }
 
+  /// Distinct legacy free-text buddy names (`dives.buddy`), for name
+  /// matching. Names only, never a count.
+  // stats-scope-exempt: a name list, not an aggregate; an excluded dive's
+  // buddy is still a name the diver may type.
+  Future<List<String>> getDistinctLegacyBuddyNames({String? diverId}) async {
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT buddy FROM dives '
+          "WHERE buddy IS NOT NULL AND buddy <> '' $diverFilter "
+          'ORDER BY buddy',
+          variables: [if (diverId != null) Variable(diverId)],
+        )
+        .get();
+    return rows.map((r) => r.read<String>('buddy')).toList();
+  }
+
   /// Drift tables by their SQL names, for `readsFrom` and [watchTables].
   Set<TableInfo> tablesNamed(Set<String> names) => {
     for (final n in names)
@@ -3813,6 +3834,7 @@ class DiveRepository {
               presetName: t.presetName,
               computerId: t.computerId,
               transmitterSerial: t.transmitterSerial,
+              sourceId: t.sourceId,
               regulatorEquipmentId: t.regulatorEquipmentId,
               tripCylinderId: t.tripCylinderId,
               equipmentId: t.equipmentId,
@@ -3903,7 +3925,12 @@ class DiveRepository {
 
     // Get per-tank pressure data to derive start/end pressure when the dive
     // computer provided time-series readings.
-    final tankSeries = await _tankSeries.getSeriesForDive(row.id);
+    // One source per stretch of a tank, never two interleaved (#2440), and
+    // no signal dropout standing in for either endpoint (#2441).
+    final tankSeries = selectTankSeriesPerSource(
+      await _tankSeries.getSeriesForDive(row.id),
+      preferredSourceId: await _tankSeries.primarySourceId(row.id),
+    );
     final startPressureByTank = <String, double>{};
     final endPressureByTank = <String, double>{};
     final byTank = <String, List<dynamic>>{};
@@ -3912,9 +3939,12 @@ class DiveRepository {
     }
     for (final entry in byTank.entries) {
       final merged = mergeTankSeriesPoints(entry.value.cast());
-      if (merged.isEmpty) continue;
-      startPressureByTank[entry.key] = merged.first.pressure;
-      endPressureByTank[entry.key] = merged.last.pressure;
+      final endpoints = cleanSeriesEndpoints([
+        for (final p in merged) (t: p.timestamp, bar: p.pressure),
+      ]);
+      if (endpoints == null) continue;
+      startPressureByTank[entry.key] = endpoints.start;
+      endPressureByTank[entry.key] = endpoints.end;
     }
 
     // Get profile for this dive from [_mergedSeriesPoints].
@@ -4239,6 +4269,7 @@ class DiveRepository {
           presetName: t.presetName,
           computerId: t.computerId,
           transmitterSerial: t.transmitterSerial,
+          sourceId: t.sourceId,
           regulatorEquipmentId: t.regulatorEquipmentId,
           tripCylinderId: t.tripCylinderId,
           equipmentId: t.equipmentId,
@@ -4866,6 +4897,8 @@ class DiveRepository {
                 value: Value(event.value),
                 tankId: Value(event.tankId),
                 source: Value(event.source.name),
+                // Which computer logged it; null reads as the primary's.
+                computerId: Value(event.computerId),
                 // Preserve the domain entity's own createdAt (e.g., from dive computer
                 // clock) rather than substituting wall-clock `now` — unlike GasSwitches,
                 // profile events carry meaningful source timestamps used for sync dedup.
@@ -6521,6 +6554,7 @@ class DiveRepository {
     int order, {
     bool withLink = false,
     Set<String> validSlots = const {},
+    Set<String> validSources = const {},
   }) => DiveTanksCompanion(
     id: Value(id),
     diveId: Value(diveId),
@@ -6548,6 +6582,12 @@ class DiveRepository {
     // template copied from a linked tank must not stamp that cylinder onto
     // every dive it lands on, so only a restore writes it.
     equipmentId: withLink ? Value(t.equipmentId) : const Value.absent(),
+    // The data source the row came from (v251, issue #2716): written by the
+    // import and download paths, so a template never carries one, and a
+    // restore puts back only a source the dive still has.
+    sourceId: withLink
+        ? Value(validSources.contains(t.sourceId) ? t.sourceId : null)
+        : const Value.absent(),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).
@@ -6740,6 +6780,16 @@ class DiveRepository {
       final validSlots = restoreLinks
           ? await _tripCylinderIdsForDive(diveId)
           : const <String>{};
+      // Likewise a restored source link (v251), whose source may have been
+      // deleted since.
+      final validSources = restoreLinks
+          ? {
+              for (final s in await (_db.select(
+                _db.diveDataSources,
+              )..where((s) => s.diveId.equals(diveId))).get())
+                s.id,
+            }
+          : const <String>{};
       final existing = await (_db.select(
         _db.diveTanks,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -6764,6 +6814,7 @@ class DiveRepository {
                 i,
                 withLink: restoreLinks,
                 validSlots: validSlots,
+                validSources: validSources,
               ),
             );
         await _syncRepository.markRecordPending(
@@ -7341,6 +7392,7 @@ class DiveRepository {
     try {
       await _db.into(_db.diveDataSources).insert(reading);
       await _adoptUnattributedProfiles(reading);
+      await _attributeTanksTo(reading);
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
@@ -7379,10 +7431,96 @@ class DiveRepository {
       for (final reading in readings) {
         await _adoptUnattributedProfiles(reading);
       }
+      for (final diveId in {
+        for (final r in readings)
+          if (r.diveId.present) r.diveId.value,
+      }) {
+        await attributeTankSources(
+          _db,
+          _syncRepository,
+          diveId,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
+      }
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to save computer readings',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Insert a further computer's recording of a dive whose primary source
+  /// already exists: the non-primary [reading], its [profile] as a series
+  /// owned by that row, its [tankPressures] (keyed by tank id) and its
+  /// [events] (issue #2672).
+  ///
+  /// All of it in one transaction. A source left without its pressures would
+  /// read as present to the next resync, which would then never retry them.
+  ///
+  /// Unlike [saveComputerReading] this adopts nothing. The dive's
+  /// unattributed series belong to its primary source; these samples arrive
+  /// already attributed to [reading]. [profile] and [events] must be on the
+  /// dive's timeline, and [events] carry the computer that logged them.
+  Future<void> saveAdditionalComputerReading({
+    required DiveDataSourcesCompanion reading,
+    required List<domain.DiveProfilePoint> profile,
+    Map<String, List<({int timestamp, double pressure})>> tankPressures =
+        const {},
+    List<ProfileEvent> events = const [],
+  }) async {
+    final computerId = reading.computerId.present
+        ? reading.computerId.value
+        : null;
+    try {
+      await _db.transaction(() async {
+        await _db
+            .into(_db.diveDataSources)
+            .insert(reading.copyWith(isPrimary: const Value(false)));
+        // Incremental export sends a source row only for a dive modified
+        // since the last sync or as a pending record of its own. The dive may
+        // already have gone out, so the row has to be pending itself.
+        await _syncRepository.markRecordPending(
+          entityType: 'diveDataSources',
+          recordId: reading.id.value,
+          localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+        );
+        if (profile.isNotEmpty) {
+          await _profileSeries.insertSeries(
+            diveId: reading.diveId.value,
+            computerId: computerId,
+            sourceId: reading.id.value,
+            isPrimary: false,
+            samples: [
+              for (final point in profile) profileSampleFromPoint(point),
+            ],
+          );
+        }
+        for (final entry in tankPressures.entries) {
+          if (entry.value.isEmpty) continue;
+          await _tankSeries.insertSeries(
+            diveId: reading.diveId.value,
+            tankId: entry.key,
+            computerId: computerId,
+            sourceId: reading.id.value,
+            samples: [
+              for (final point in entry.value)
+                TankPressureSample(
+                  timestamp: point.timestamp,
+                  pressure: point.pressure,
+                ),
+            ],
+          );
+        }
+        await insertProfileEvents(events);
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to save additional computer reading',
         error: e,
         stackTrace: stackTrace,
       );
@@ -7417,6 +7555,21 @@ class DiveRepository {
     await _profileSeries.adoptUnattributed(diveId, reading.id.value);
   }
 
+  /// Attribute the dive's unattributed tanks once [reading] exists (v251,
+  /// issue #2716): an import writes its tanks before its source row, like
+  /// its profile series. [attributeTankSources] only stamps a tank whose
+  /// source is unambiguous, so a second source on the dive claims only the
+  /// tanks of its own computer.
+  Future<void> _attributeTanksTo(DiveDataSourcesCompanion reading) async {
+    if (!reading.diveId.present) return;
+    await attributeTankSources(
+      _db,
+      _syncRepository,
+      reading.diveId.value,
+      now: DateTime.now().millisecondsSinceEpoch,
+    );
+  }
+
   /// Delete a computer reading snapshot by its ID.
   Future<void> deleteComputerReading(String id) async {
     try {
@@ -7430,6 +7583,13 @@ class DiveRepository {
       // that gave up an attribution the source row still claims.
       await _db.transaction(() async {
         await _profileSeries.clearSource(id);
+        // The tanks' twin of that (v251, issue #2716).
+        await clearTankSourceLinks(
+          _db,
+          _syncRepository,
+          (t) => t.sourceId.equals(id),
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         await (_db.delete(
           _db.diveDataSources,
         )..where((t) => t.id.equals(id))).go();
@@ -7552,15 +7712,27 @@ class DiveRepository {
 
         if (newPrimary == null) return;
 
-        // Demote all readings for this dive to non-primary.
-        await (_db.update(_db.diveDataSources)
-              ..where((t) => t.diveId.equals(diveId)))
-            .write(const DiveDataSourcesCompanion(isPrimary: Value(false)));
+        // Demote all readings for this dive to non-primary. Both writes
+        // carry their own clock, beside the marks below (#2644).
+        final primaryAt = await _syncRepository.issueRowClock();
+        await (_db.update(
+          _db.diveDataSources,
+        )..where((t) => t.diveId.equals(diveId))).write(
+          DiveDataSourcesCompanion(
+            isPrimary: const Value(false),
+            hlc: Value(primaryAt),
+          ),
+        );
 
         // Promote the selected reading.
-        await (_db.update(_db.diveDataSources)
-              ..where((t) => t.id.equals(computerReadingId)))
-            .write(const DiveDataSourcesCompanion(isPrimary: Value(true)));
+        await (_db.update(
+          _db.diveDataSources,
+        )..where((t) => t.id.equals(computerReadingId))).write(
+          DiveDataSourcesCompanion(
+            isPrimary: const Value(true),
+            hlc: Value(primaryAt),
+          ),
+        );
 
         // Bottom time is derived from the new primary's own profile, never
         // taken from its duration, which is the runtime it measured (issue
@@ -7594,6 +7766,28 @@ class DiveRepository {
             gradientFactorHigh: Value(newPrimary.gradientFactorHigh),
             updatedAt: Value(now),
           ),
+        );
+
+        // Publish the change: nothing was marked here, so a primary chosen
+        // on this device never reached another one (#2644). Every source of
+        // the dive had its flag written, so each is marked, which also
+        // restamps it; the dive row itself was edited above, so it is a
+        // real dive edit and is marked too (#1769 forbids that only for a
+        // child-only change).
+        final sources = await (_db.select(
+          _db.diveDataSources,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        for (final source in sources) {
+          await _syncRepository.markRecordPending(
+            entityType: 'diveDataSources',
+            recordId: source.id,
+            localUpdatedAt: now,
+          );
+        }
+        await _syncRepository.markRecordPending(
+          entityType: 'dives',
+          recordId: diveId,
+          localUpdatedAt: now,
         );
 
         // Swap isPrimary on the profile series.

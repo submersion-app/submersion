@@ -5,7 +5,6 @@ import 'package:flutter/services.dart' show PlatformException;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
-import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/domain/services/diagnostic_probe.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
@@ -15,7 +14,6 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 
 /// How long a mount-root probe is trusted before it is re-run (#1182).
@@ -55,12 +53,10 @@ const int kLocalResolveConcurrency = 8;
 class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
   final LocalBookmarkStorage _bookmarkStorage;
   final LocalMediaPlatform _platform;
-  final ExifExtractor _exifExtractor;
 
   LocalFileResolver({
     required LocalBookmarkStorage bookmarkStorage,
     required LocalMediaPlatform platform,
-    required ExifExtractor exifExtractor,
     VideoThumbnailService? videoThumbnails,
     VolumeStatus? volumeStatus,
     Duration volumeProbeTtl = kVolumeProbeTtl,
@@ -73,7 +69,6 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
     Future<MediaSourceData?> Function(MediaItem item)? findInLibrary,
   }) : _bookmarkStorage = bookmarkStorage,
        _platform = platform,
-       _exifExtractor = exifExtractor,
        _videoThumbnails = videoThumbnails,
        _localDeviceId = localDeviceId,
        _deviceLabel = deviceLabel,
@@ -471,36 +466,6 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
       }
     }
     return resolve(item);
-  }
-
-  @override
-  Future<MediaSourceMetadata?> extractMetadata(MediaItem item) async {
-    final data = await resolve(item);
-    if (data is FileData) {
-      return _exifExtractor.extract(data.file);
-    }
-    if (data is BytesData) {
-      // Android: write bytes to a temp file, run extractor, delete.
-      final tmp = File('${Directory.systemTemp.path}/exif_${item.id}.bin');
-      try {
-        await tmp.writeAsBytes(data.bytes);
-        return await _exifExtractor.extract(tmp);
-      } finally {
-        if (await tmp.exists()) {
-          try {
-            await tmp.delete();
-          }
-          // coverage:ignore-start
-          // FileSystemException on a tmpdir delete is not produced by
-          // flutter_test fixtures; cleanup is best-effort either way.
-          on FileSystemException {
-            // Best-effort cleanup.
-          }
-          // coverage:ignore-end
-        }
-      }
-    }
-    return null;
   }
 
   /// The same decision tree as [verify], stopped before any byte read.

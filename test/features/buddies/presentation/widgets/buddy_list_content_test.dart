@@ -22,6 +22,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -136,6 +141,37 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // The title's subtitle counts the list (#2669), in both the phone app bar
+  // and the desktop pane header.
+  group('entry count subtitle', () {
+    for (final showAppBar in const [true, false]) {
+      testWidgets('${showAppBar ? 'app bar' : 'compact bar'} counts the list', (
+        tester,
+      ) async {
+        final overrides = await _buildPhoneOverrides(
+          buddies: [
+            _makeBuddy(id: 'b1', name: 'Ann'),
+            _makeBuddy(id: 'b2', name: 'Bo'),
+          ],
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: BuddyListContent(showAppBar: showAppBar),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(
+            of: find.byType(FeatureAppBarTitle),
+            matching: find.text('2 buddies'),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+  });
   group('selection contract', () {
     testWidgets('satisfies the shared selection contract', (tester) async {
       final all = <BuddyWithDiveCount>[
@@ -720,6 +756,94 @@ void main() {
         isTrue,
         reason: 'the favorite must not be pinned to the top in table mode',
       );
+    });
+  });
+
+  group('query (#2365)', () {
+    final fav = ConditionNode(
+      FieldPath(['favorite']),
+      QueryOp.eq,
+      const BoolValue(true),
+    );
+
+    Future<void> pumpWithQuery(
+      WidgetTester tester, {
+      required Set<String> ids,
+      ListViewMode viewMode = ListViewMode.detailed,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        buddies: [
+          _makeBuddy(id: 'b1', name: 'Alice'),
+          _makeBuddy(id: 'b2', name: 'Bob'),
+        ],
+        viewMode: viewMode,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            buddyQueryProvider.overrideWith((ref) => fav),
+            entityQueryIdsProvider.overrideWith((ref, key) async => ids),
+          ],
+          child: const BuddyListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the query narrows the list and shows its chip', (
+      tester,
+    ) async {
+      await pumpWithQuery(tester, ids: {'b1'});
+      expect(find.text('Alice'), findsOneWidget);
+      expect(find.text('Bob'), findsNothing);
+      expect(find.text('favorite = true'), findsOneWidget);
+    });
+
+    testWidgets('a query that keeps nothing shows the no-match state', (
+      tester,
+    ) async {
+      await pumpWithQuery(tester, ids: const {});
+      expect(find.byType(QueryNoMatchState), findsOneWidget);
+    });
+
+    testWidgets('Retry after an id-set error runs the query again', (
+      tester,
+    ) async {
+      var calls = 0;
+      final overrides = await _buildPhoneOverrides(
+        buddies: [
+          _makeBuddy(id: 'b1', name: 'Alice'),
+          _makeBuddy(id: 'b2', name: 'Bob'),
+        ],
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            buddyQueryProvider.overrideWith((ref) => fav),
+            entityQueryIdsProvider.overrideWith((ref, key) async {
+              if (calls++ == 0) throw StateError('database busy');
+              return {'b1'};
+            }),
+          ],
+          child: const BuddyListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('database busy'), findsOneWidget);
+
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alice'), findsOneWidget);
+      expect(find.text('Bob'), findsNothing);
+    });
+
+    testWidgets('table mode reads the filtered buddies', (tester) async {
+      await pumpWithQuery(tester, ids: {'b2'}, viewMode: ListViewMode.table);
+      expect(find.text('Bob'), findsOneWidget);
+      expect(find.text('Alice'), findsNothing);
     });
   });
 }

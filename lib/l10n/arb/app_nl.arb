@@ -105,6 +105,12 @@
   "gasCalculators_blender_moveGasUp": "{gas} omhoog verplaatsen",
   "gasCalculators_blender_moveGasDown": "{gas} omlaag verplaatsen",
   "gasCalculators_blender_procedure": "Vulprocedure",
+  "gasCalculators_blender_logFill": "Deze vulling loggen",
+  "gasCalculators_blender_chooseCylinder": "Fles kiezen",
+  "gasCalculators_blender_scanTag": "Tag scannen",
+  "gasCalculators_blender_notYourCylinder": "Die fles zit niet in je uitrusting",
+  "gasCalculators_blender_cylinderFailed": "Kan die fles niet openen. Probeer het opnieuw.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_amounts": "Toe te voegen gas",
   "gasCalculators_blender_stepStart": "Begin met {pressure} {gas}",
   "gasCalculators_blender_stepFill": "Vul {gas} tot {pressure} → {mix}",
@@ -639,6 +645,7 @@
   "accessibility_shortcut_newDive": "Nieuwe duik",
   "accessibility_shortcut_openSettings": "Instellingen openen",
   "accessibility_shortcut_searchDives": "Duiken zoeken",
+  "accessibility_shortcut_exploreWithSentence": "Verkennen met een zin",
   "accessibility_sort_selectedLabel": "Sorteren op {displayName}, momenteel geselecteerd",
   "accessibility_sort_unselectedLabel": "Sorteren op {displayName}",
   "backup_appBar_title": "Back-up en Herstel",
@@ -855,6 +862,8 @@
   "buddies_summary_totalBuddies": "Totaal buddies",
   "buddies_summary_withCertification": "Met certificering",
   "buddies_title": "Buddies",
+  "buddies_list_count": "{count, plural, =1{{count} buddy} other{{count} buddies}}",
+  "buddies_list_countFiltered": "{shown} van {total, plural, =1{{total} buddy} other{{total} buddies}}",
   "buddies_title_add": "Buddy toevoegen",
   "buddies_title_edit": "Buddy bewerken",
   "buddies_title_singular": "Buddy",
@@ -889,6 +898,8 @@
   "certifications_appBar_certificationWallet": "Certificeringsportefeuille",
   "certifications_appBar_editCertification": "Certificering bewerken",
   "certifications_appBar_title": "Certificeringen",
+  "certifications_list_count": "{count, plural, =1{{count} certificering} other{{count} certificeringen}}",
+  "certifications_list_countFiltered": "{shown} van {total, plural, =1{{total} certificering} other{{total} certificeringen}}",
   "certifications_card_issued": "UITGEGEVEN",
   "certifications_certificate_cardNumber": "Kaartnummer: {number}",
   "certifications_certificate_footer": "Officieel duikbrevet",
@@ -1535,6 +1546,8 @@
   "courses_summary_title": "Trainingscursussen",
   "courses_summary_total": "Totaal",
   "courses_title": "Trainingscursussen",
+  "courses_list_count": "{count, plural, =1{{count} cursus} other{{count} cursussen}}",
+  "courses_list_countFiltered": "{shown} van {total, plural, =1{{total} cursus} other{{total} cursussen}}",
   "courses_title_edit": "Cursus bewerken",
   "courses_title_new": "Nieuwe cursus",
   "courses_title_singular": "Cursus",
@@ -1749,6 +1762,14 @@
   "diveCenters_section_contact": "Contact",
   "diveCenters_section_contactInfo": "Contactinformatie",
   "diveCenters_section_gpsCoordinates": "GPS coördinaten",
+  "diveCenters_section_fillHours": "Vultijden",
+  "diveCenters_fillHours_caption": "Wanneer het station flessen vult. De vulprognose van de reis gebruikt de sluitingstijd.",
+  "diveCenters_fillHours_opens": "Opent",
+  "diveCenters_fillHours_closes": "Sluit",
+  "diveCenters_fillHours_notSet": "Niet ingesteld",
+  "diveCenters_fillHours_clear": "Vultijden wissen",
+  "diveCenters_fillHours_errorBoth": "Stel beide tijden in, of geen van beide.",
+  "diveCenters_fillHours_errorOrder": "De sluitingstijd moet na de openingstijd liggen.",
   "diveCenters_section_notes": "Notities",
   "diveCenters_snackbar_coordinatesFound": "Coördinaten gevonden via adres",
   "diveCenters_snackbar_copiedToClipboard": "Gekopieerd naar klembord",
@@ -1766,6 +1787,8 @@
   "diveCenters_summary_totalCenters": "Totaal centra",
   "diveCenters_summary_withGps": "Met GPS",
   "diveCenters_title": "Duikcentra",
+  "diveCenters_list_count": "{count, plural, =1{{count} duikcentrum} other{{count} duikcentra}}",
+  "diveCenters_list_countFiltered": "{shown} van {total, plural, =1{{total} duikcentrum} other{{total} duikcentra}}",
   "diveCenters_title_add": "Duikcentrum toevoegen",
   "diveCenters_title_edit": "Duikcentrum bewerken",
   "diveCenters_title_import": "Duikcentrum importeren",
@@ -2106,6 +2129,7 @@
   "diveImport_uddf_tabTypes": "Types",
   "diveImport_uddf_tags": "Tags",
   "diveImport_uddf_media": "Foto's",
+  "diveImport_uddf_fills": "Vullingen",
   "diveImport_uddf_title": "Importeren vanuit UDDF",
   "diveImport_uddf_toggleDiveSelection": "Duikselectie wisselen",
   "diveImport_uddf_toggleEntitySelection": "Selectie wisselen voor {name}",
@@ -2617,6 +2641,8 @@
   "diveLog_edit_planned_switch": "Geplande duik",
   "diveLog_edit_planned_switchSubtitle": "Wacht op duikcomputergegevens. Geen duiknummer tot de duik is gelogd.",
   "diveLog_listPage_compactTitle": "Duiken",
+  "diveLog_listPage_count": "{count, plural, =1{{count} duik} other{{count} duiken}}",
+  "diveLog_listPage_countFiltered": "{shown} van {total, plural, =1{{total} duik} other{{total} duiken}}",
   "diveLog_listPage_errorLoading": "Fout: {error}",
   "diveLog_listPage_fab_addDive": "Duik toevoegen",
   "diveLog_listPage_fab_logDive": "Duik loggen",
@@ -3002,6 +3028,10 @@
   "diveLog_tank_tooltip_remove": "Fles verwijderen",
   "diveLog_tank_regulatorLabel": "Ademautomaat",
   "diveLog_tank_regulatorNone": "Geen",
+  "diveLog_tank_tripCylinderLabel": "Fles van de reis",
+  "diveLog_tank_tripCylinderNone": "Geen",
+  "diveLog_tank_tripCylinderMissing": "Niet meer op deze reis",
+  "diveLog_tank_tripCylinderSuggested": "Voorgesteld uit de volle flessen van de reis",
   "diveLog_tissue_title": "Weefselbelasting",
   "diveLog_tooltip_avgCalculated": "(gem., berekend)",
   "diveLog_tooltip_ceiling": "Plafond",
@@ -3437,6 +3467,8 @@
   "diveSites_list_activeFilter_hasDives": "Heeft duiken",
   "diveSites_list_activeFilter_region": "Regio: {region}",
   "diveSites_list_appBar_title": "Duikstekken",
+  "diveSites_list_count": "{count, plural, =1{{count} stek} other{{count} stekken}}",
+  "diveSites_list_countFiltered": "{shown} van {total, plural, =1{{total} stek} other{{total} stekken}}",
   "diveSites_list_bulkDelete_cancel": "Annuleren",
   "diveSites_list_bulkDelete_confirm": "Verwijderen",
   "diveSites_list_bulkDelete_content": "Weet je zeker dat je {count} {count, plural, =1{stek} other{stekken}} wilt verwijderen? Deze actie kan binnen 5 seconden ongedaan worden gemaakt.",
@@ -3720,6 +3752,7 @@
   "dropTarget_error_unsupportedFile": "Niet-ondersteund bestandstype",
   "dropTarget_error_wizardActive": "Voltooi eerst de huidige import",
   "dropTarget_error_readFailed": "Kan bestand niet lezen",
+  "dropTarget_error_someUnreadable": "{count, plural, =1{{count} bestand kon niet worden gelezen en is overgeslagen} other{{count} bestanden konden niet worden gelezen en zijn overgeslagen}}",
   "enum_altitudeGroup_extreme": "Extreme hoogte",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",
   "enum_altitudeGroup_group1": "Hoogtegroep 1",
@@ -4041,6 +4074,8 @@
   "enum_weightType_mixed": "Gemengd/Gecombineerd",
   "enum_weightType_trimWeights": "Trimgewichten",
   "equipment_appBar_title": "Uitrusting",
+  "equipment_list_count": "{count, plural, =1{{count} item} other{{count} items}}",
+  "equipment_list_countFiltered": "{shown} van {total, plural, =1{{total} item} other{{total} items}}",
   "equipment_bulkTags_action": "Tags bewerken",
   "equipment_bulkTags_adding": "toevoegen aan alle {total}",
   "equipment_bulkTags_applied": "{count, plural, =1{Tags van 1 item bijgewerkt} other{Tags van {count} items bijgewerkt}}",
@@ -4067,10 +4102,18 @@
   "passport_fill_mod": "MOD {depth} bij ppO2 {ppo2}",
   "passport_fill_end": "END {depth} op de werk-MOD",
   "passport_fill_station": "Gevuld door {station}",
+  "passport_fill_fromTag": "Van de tag",
+  "passport_fill_analyseBeforeDiving": "Analyseer het gas zelf voordat je ermee duikt",
+  "passport_fill_writeToTagTitle": "Vulling gelogd",
+  "passport_fill_writeToTagBody": "Op de tag van de fles schrijven?",
+  "passport_fill_writeToTag": "Naar tag schrijven",
+  "passport_fill_notNow": "Niet nu",
+  "passport_foreign_lastFill": "Laatste vulling op de tag",
+  "passport_foreign_fillSummary": "{fill} · {date}",
+  "passport_fill_addedFromTag": "Vulling van de tag toegevoegd: {fill}",
   "passport_fill_analyzer": "Geanalyseerd met {analyzer}",
   "passport_fill_analysis": "O2 {o2}, He {he}",
   "passport_fill_temperature": "Gastemperatuur {temperature}",
-  "passport_fill_unsigned": "Niet ondertekend",
   "passport_history_title": "Vulgeschiedenis",
   "passport_history_sinceHydro": "{count, plural, =0{Geen vullingen sinds de laatste hydrotest} =1{{count} vulling sinds de laatste hydrotest} other{{count} vullingen sinds de laatste hydrotest}}",
   "passport_history_delete": "Vulling verwijderen",
@@ -4106,6 +4149,33 @@
   "passport_foreign_addToGear": "Toevoegen aan mijn uitrusting",
   "passport_foreign_addFailed": "De fles kon niet worden toegevoegd. Probeer het opnieuw.",
   "passport_foreign_defaultName": "Fles",
+  "passport_nfc_tap": "Een NFC-tag aantikken",
+  "passport_nfc_holdNear": "Houd de tag tegen de achterkant van de telefoon.",
+  "passport_nfc_write": "NFC-tag schrijven",
+  "passport_nfc_rewrite": "Tag opnieuw schrijven",
+  "passport_nfc_reprint": "Label opnieuw afdrukken",
+  "passport_nfc_unsupported": "Dit apparaat kan geen NFC-tags lezen of schrijven.",
+  "passport_nfc_disabled": "NFC staat uit. Zet het aan in de systeeminstellingen.",
+  "passport_nfc_written": "Tag geschreven en gecontroleerd",
+  "passport_nfc_tagInfo": "{type}, {capacity} bytes",
+  "passport_nfc_capacity": "{capacity} bytes",
+  "passport_nfc_allFields": "Alles past op deze tag.",
+  "passport_nfc_fieldsDropped": "Weggelaten om te passen: {fields}",
+  "passport_nfc_notNdef": "Deze tag kan geen link bevatten. Gebruik een NTAG215- of NTAG216-tag.",
+  "passport_nfc_readOnly": "Deze tag is vergrendeld en kan niet worden beschreven.",
+  "passport_nfc_tooSmall": "Deze tag is te klein ({capacity} bytes), zelfs voor de identiteit van de fles.",
+  "passport_nfc_readBackFailed": "De tag las niet terug zoals geschreven, dus hij is niet geschreven.",
+  "passport_nfc_writeFailed": "De tag is niet geschreven. Houd hem stil en probeer het opnieuw.",
+  "passport_nfc_readFailed": "De tag kon niet worden gelezen. Houd hem stil en probeer het opnieuw.",
+  "passport_nfc_retry": "Opnieuw proberen",
+  "passport_nfc_fieldName": "Naam",
+  "passport_nfc_fieldSerial": "Serienummer",
+  "passport_nfc_fieldO2Clean": "O2-schoon",
+  "passport_nfc_fieldFillAnalyzer": "Analyser van de vulling",
+  "passport_nfc_fieldFilledBy": "Gevuld door",
+  "passport_nfc_fieldFillTemperature": "Temperatuur van de vulling",
+  "passport_nfc_fieldFill": "Nieuwste vulling",
+  "passport_nfc_fillIncluded": "De nieuwste vulling staat ook op de tag",
   "passport_foreign_serial": "Serienummer {serial}",
   "passport_logFill_date": "Gevuld op",
   "passport_logFill_time": "Tijd",
@@ -4115,6 +4185,15 @@
   "passport_logFill_temperature": "Gastemperatuur",
   "passport_logFill_station": "Vulstation",
   "passport_logFill_analyzer": "Analyser",
+  "passport_logFill_analysedHint": "Vul je geanalyseerde waarden in",
+  "passport_trip_title": "Reizen",
+  "passport_trip_none": "Niet ingepakt voor een reis",
+  "passport_trip_packedFor": "Ingepakt voor {trip}",
+  "passport_trip_more": "+{count}",
+  "passport_trip_assign": "Inpakken voor een reis",
+  "passport_trip_unassign": "Van deze reis halen",
+  "passport_trip_onBoard": "Op het flessenbord van de reis",
+  "passport_trip_failed": "Kan de reis niet wijzigen. Probeer het opnieuw.",
   "passport_logFill_notes": "Notities",
   "passport_logFill_invalidMix": "O2 en He moeten elk tussen 0 en 100 liggen en samen hoogstens 100 zijn",
   "passport_logFill_saveFailed": "De vulling kon niet worden opgeslagen. Probeer het opnieuw.",
@@ -4432,6 +4511,7 @@
   "equipment_list_emptyState_filterText_status": "{status} uitrusting",
   "equipment_list_emptyState_filterText_type": "{type}-uitrusting",
   "equipment_list_emptyState_noEquipment": "Geen {filterText}",
+  "equipment_list_emptyState_noQueryMatch": "Geen uitrusting komt overeen met deze query",
   "equipment_list_emptyState_noStatusMatch": "Geen uitrusting met deze status",
   "equipment_list_emptyState_noTagMatch": "Geen uitrusting met deze tags",
   "equipment_list_emptyState_noTypeMatch": "Geen uitrusting in deze categorie",
@@ -5470,6 +5550,125 @@
   "plannerCanvas_turnRule_halves": "Helften",
   "plannerCanvas_turnRule_none": "Geen",
   "plannerCanvas_turnRule_thirds": "Derden",
+  "plannerMission_buddyPicker_empty": "Nog geen buddy’s",
+  "plannerMission_buddyPicker_me": "Ik",
+  "plannerMission_buddyPicker_title": "Kies een buddy",
+  "plannerMission_current_setsToward": "Stroomt richting",
+  "plannerMission_current_speed": "Stroomsnelheid",
+  "plannerMission_disableConfirm": "Uitschakelen",
+  "plannerMission_disableMessage": "De route en het team worden verwijderd. Het gegenereerde profiel blijft als gewone, bewerkbare segmenten.",
+  "plannerMission_disableTitle": "DPV-missie uitschakelen?",
+  "plannerMission_results_legRow": "{leg}: {line}",
+  "plannerMission_results_listSeparator": ", ",
+  "plannerMission_results_memberLine": "{name}: {status}",
+  "plannerMission_results_memberLineExits": "{name}: {status} ({exits})",
+  "plannerMission_results_abandonmentUnknown": "Niet te bepalen vanaf welke punten iedereen eruit komt",
+  "plannerMission_results_safeSurfaceUnknown": "Veilig aan de oppervlakte: kon niet worden berekend",
+  "plannerMission_chip_issues": "{count, plural, =1{Missie: {count} probleem} other{Missie: {count} problemen}}",
+  "plannerMission_factor_battery": "accureserve",
+  "plannerMission_factor_blockedByCurrent": "een stroming die de weg terug blokkeert",
+  "plannerMission_factor_exposure": "zuurstofbelasting",
+  "plannerMission_factor_noFeasibleTow": "geen haalbare sleep",
+  "plannerMission_factor_ownGas": "eigen gas",
+  "plannerMission_factor_scenarioFailed": "een storingsscenario dat niet kon worden berekend",
+  "plannerMission_factor_surfaceSwimLimit": "de limiet voor zwemmen aan de oppervlakte",
+  "plannerMission_factor_teamGas": "het gas van een teamgenoot",
+  "plannerMission_results_abandonment": "Laatste punt van waaruit iedereen eruit komt: {waypoint}",
+  "plannerMission_results_assumptions": "Accureserve {reserve}% van de looptijd. Wie een scooter verliest, ademt tot de eerste stop het eigen RMV, verhoogd met de stressfactor van het plan.",
+  "plannerMission_results_battery": "Accu {percent}% van de looptijd ({minutes}′), reserve {reserve}%",
+  "plannerMission_results_bindsAt": "Limiet bij {waypoint}: {factor}",
+  "plannerMission_results_blocked": "De missie kan nog niet worden berekend:",
+  "plannerMission_results_cannotGetOut": "komt er niet uit",
+  "plannerMission_results_computing": "Storingsscenario's worden berekend",
+  "plannerMission_results_failed": "De missie kon niet worden berekend",
+  "plannerMission_results_home": "{distance} in rechte lijn naar de ingang",
+  "plannerMission_results_legLine": "heen {outSpeed} {outMinutes}′, terug {backSpeed} {backMinutes}′",
+  "plannerMission_results_legs": "Trajecten",
+  "plannerMission_results_limitedBy": "Beperkt door de {scooter} van {name} bij {waypoint}: {factor}",
+  "plannerMission_results_limitedByDiver": "Beperkt door {name} bij {waypoint}: {factor}",
+  "plannerMission_results_noAbandonment": "Geen enkel punt doorstaat elke storing",
+  "plannerMission_results_noBuddy": "geen buddy",
+  "plannerMission_results_noLimit": "Geen limiet op deze route",
+  "plannerMission_results_notComputed": "kon niet worden berekend",
+  "plannerMission_results_safeSurface": "Veilig aan de oppervlakte in {minutes}′",
+  "plannerMission_results_setsCruise": "Bepaalt de kruissnelheid van het team",
+  "plannerMission_results_surface": "oppervlakte {minutes}′",
+  "plannerMission_results_surfaceViaShore": "oppervlakte via de oever {minutes}′",
+  "plannerMission_results_survives": "komt eruit",
+  "plannerMission_results_swim": "zwemmen {minutes}′",
+  "plannerMission_results_title": "Missie",
+  "plannerMission_results_tow": "sleep door {name} {minutes}′",
+  "plannerMission_results_turnPressure": "Omkeren bij {pressure}",
+  "plannerMission_results_unconstrained": "Vanaf elk punt komt iedereen eruit, welke scooter ook uitvalt",
+  "plannerMission_results_waypointLine": "{distance}, aankomst {minutes}′",
+  "plannerMission_results_waypoints": "Punten",
+  "plannerMission_profile_segment": "{depth}, {minutes} min",
+  "plannerMission_enableConfirm": "Vervangen",
+  "plannerMission_enableMessage": "De missie bouwt het profiel op uit de route en het team, dus de segmenten van dit plan worden vervangen. Als je de missie later uitschakelt, blijft het profiel van de missie behouden, niet deze segmenten.",
+  "plannerMission_enableTitle": "De segmenten vervangen door een DPV-missie?",
+  "plannerMission_enable": "Plannen als DPV-missie",
+  "plannerMission_environment_openWater": "Open water",
+  "plannerMission_environment_overhead": "Overhead",
+  "plannerMission_issue_batteryReserveInvalid": "De accureserve moet tussen 0 en 100% liggen",
+  "plannerMission_issue_emptyRoute": "Voeg minstens één traject toe",
+  "plannerMission_issue_emptyTeam": "Voeg minstens één duiker toe",
+  "plannerMission_issue_legDepthInvalid": "{leg} heeft een ongeldige diepte",
+  "plannerMission_issue_legTooShort": "{leg} is te kort om af te leggen",
+  "plannerMission_issue_memberSacUnset": "{name} heeft een RMV nodig",
+  "plannerMission_issue_memberSwimSpeedUnset": "{name} heeft een zwemsnelheid nodig",
+  "plannerMission_issue_openWaterInputInvalid": "Een uitgang aan de oever, de oppervlaktezwemlimiet of de loopsnelheid is negatief",
+  "plannerMission_issue_planHasNoTank": "Voeg een hoofdgasfles toe aan het plan",
+  "plannerMission_issue_planNotDiveable": "De geplande route overschrijdt een kritieke limiet",
+  "plannerMission_issue_scenarioFailed": "Een storingsscenario kon niet worden berekend",
+  "plannerMission_issue_scooterUnspecified": "De scooter van {name} heeft een snelheid en looptijd nodig",
+  "plannerMission_issue_speedBelowHeadwayFloor": "De zwem-, scooter- of sleepsnelheid van {name} is te laag om vooruit te komen",
+  "plannerMission_issue_tankBudgetUnknown": "Elke fles heeft een inhoud en een vuldruk nodig",
+  "plannerMission_issue_unsupportedMode": "DPV-missies plannen alleen duiken met een open systeem",
+  "plannerMission_issue_untraversableLeg": "De stroming blokkeert {leg}",
+  "plannerMission_leg_depth": "Diepte",
+  "plannerMission_leg_distance": "Afstand",
+  "plannerMission_leg_heading": "Koers",
+  "plannerMission_leg_label": "Naam van het punt",
+  "plannerMission_leg_shoreExit": "Uitgang aan de oever vanaf hier",
+  "plannerMission_leg_shoreSwim": "Oppervlaktezwemmen naar de oever",
+  "plannerMission_leg_shoreWalk": "Lopen naar de ingang",
+  "plannerMission_leg_useMissionCurrent": "De stroming van de missie gebruiken",
+  "plannerMission_member_chooseScooter": "Kiezen uit uitrusting",
+  "plannerMission_member_manualScooter": "Handmatig invoeren",
+  "plannerMission_member_name": "Naam",
+  "plannerMission_member_pickBuddy": "Kies een buddy",
+  "plannerMission_member_sac": "Bottom RMV",
+  "plannerMission_member_scooter": "Scooter",
+  "plannerMission_member_swimSpeed": "Zwemsnelheid",
+  "plannerMission_profile_none": "Nog geen profiel: {reason}",
+  "plannerMission_profile_title": "Gegenereerd profiel",
+  "plannerMission_route_addLeg": "Traject toevoegen",
+  "plannerMission_route_deleteLeg": "Traject verwijderen",
+  "plannerMission_route_editLeg": "Traject bewerken",
+  "plannerMission_route_legSummary": "{distance} op {depth}, koers {heading}",
+  "plannerMission_route_ownCurrent": "Stroming {speed} richting {direction}",
+  "plannerMission_route_shoreExit": "Uitgang aan de oever: {swim} zwemmen, {walk} lopen",
+  "plannerMission_route_title": "Route",
+  "plannerMission_route_unnamedLeg": "Traject {number}",
+  "plannerMission_scooter_burnTime": "Looptijd",
+  "plannerMission_scooter_name": "Naam van de scooter",
+  "plannerMission_scooter_speed": "Nominale snelheid",
+  "plannerMission_scooter_towBurnFactor": "Factor verbruik bij slepen",
+  "plannerMission_scooter_towSpeedFactor": "Factor sleepsnelheid",
+  "plannerMission_settings_batteryReserve": "Accureserve",
+  "plannerMission_settings_defaultCurrent": "Standaardstroming",
+  "plannerMission_settings_environment": "Omgeving",
+  "plannerMission_settings_surfaceSwimLimit": "Langste oppervlaktezwemtocht",
+  "plannerMission_settings_walkSpeed": "Loopsnelheid",
+  "plannerMission_team_addDiver": "Duiker toevoegen",
+  "plannerMission_team_capacity": "Accu van {wh} Wh",
+  "plannerMission_team_defaultName": "Duiker {number}",
+  "plannerMission_team_editDiver": "Duiker bewerken",
+  "plannerMission_team_memberSummary": "RMV {sac}, zwemmen {speed}",
+  "plannerMission_team_noScooter": "Geen scooter ingesteld",
+  "plannerMission_team_removeDiver": "Duiker verwijderen",
+  "plannerMission_team_scooterSummary": "{name}: {speed}, {minutes} min looptijd",
+  "plannerMission_team_title": "DPV-team",
   "planning_appBar_title": "Planning",
   "planning_card_decoCalculator_description": "Bereken no-decompressielimieten, benodigde decostops en CNS/OTU-blootstelling voor duikprofielen met meerdere niveaus.",
   "planning_card_decoCalculator_subtitle": "Plan duiken met decompressiestops",
@@ -6839,6 +7038,8 @@
   "tides_source_sheetTitle": "Bron getijdendata",
   "tides_source_datumMllw": "Hoogten ten opzichte van MLLW (stationsdatum)",
   "tides_source_datumMsl": "Hoogten ten opzichte van gemiddeld zeeniveau",
+  "tides_source_siteLocalTime": "Tijden worden weergegeven in de lokale tijd van de duikstek.",
+  "tides_source_modelResolution": "Oceaanmodelraster van {distance}",
   "tides_title": "Getijden",
   "tools_gpsLogger_description": "Registreer je positie tijdens een duikdag en koppel geïmporteerde duiken automatisch aan GPS-locaties.",
   "tools_gpsLogger_subtitle": "Neem een oppervlaktetrack op",
@@ -6891,17 +7092,20 @@
   "transfer_csvExport_dataTypeHeader": "Gegevenstype",
   "transfer_csvExport_descriptionDives": "Exporteer alle duiklogs als spreadsheet",
   "transfer_csvExport_descriptionEquipment": "Exporteer uitrustingsinventaris en onderhoudsinformatie",
+  "transfer_csvExport_descriptionFills": "Elke vulling die op een flespaspoort is gelogd, met analyse, druk en vulstation",
   "transfer_csvExport_descriptionObservations": "Elke OK-controle en elk gemeld probleem, met duik, labels en notitie",
   "transfer_csvExport_descriptionSites": "Exporteer duiksteklocaties en details",
   "transfer_csvExport_dialogTitle": "CSV exporteren",
   "transfer_csvExport_exportButton": "CSV exporteren",
   "transfer_csvExport_optionDivesTitle": "Duiken CSV",
   "transfer_csvExport_optionEquipmentTitle": "Uitrusting CSV",
+  "transfer_csvExport_optionFillsTitle": "CSV met flesvullingen",
   "transfer_csvExport_optionObservationsTitle": "CSV van uitrusting-check-ins",
   "transfer_csvExport_optionSitesTitle": "Duikstekken CSV",
   "transfer_csvExport_semanticLabel": "Exporteer {typeName}",
   "transfer_csvExport_typeDives": "Duiken",
   "transfer_csvExport_typeEquipment": "Uitrusting",
+  "transfer_csvExport_typeFills": "Flesvullingen",
   "transfer_csvExport_typeObservations": "Uitrusting-check-ins",
   "transfer_csvExport_typeSites": "Duikstekken",
   "transfer_csvExport_unitsHeader": "Eenheden",
@@ -6978,6 +7182,8 @@
   "transfer_summary_title": "Overdracht",
   "transfer_unknownSection": "Onbekende sectie: {sectionId}",
   "trips_appBar_title": "Reizen",
+  "trips_list_count": "{count, plural, =1{{count} reis} other{{count} reizen}}",
+  "trips_list_countFiltered": "{shown} van {total, plural, =1{{total} reis} other{{total} reizen}}",
   "trips_appBar_tripPhotos": "Reisfoto's",
   "trips_breakdown_column_bottomTime": "Bottom Time",
   "trips_breakdown_column_day": "Day",
@@ -7067,6 +7273,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Planning",
+  "trips_edit_label_diversSharing": "Duikers die flessen delen",
+  "trips_edit_hint_diversSharing": "Jij meegerekend. Leeg betekent 1.",
+  "trips_edit_label_divesPerDay": "Duiken per dag",
+  "trips_edit_hint_divesPerDay": "Voor de vulprognose. Leeg betekent schatting.",
   "trips_edit_label_expectedDives": "Verwachte duiken",
   "trips_edit_hint_expectedDives": "Laat leeg om te schatten op basis van je recente reizen",
   "trips_edit_label_expectedRuntime": "Verwachte looptijd per duik (minuten)",
@@ -7171,6 +7381,308 @@
       }
     }
   },
+  "trips_gear_title": "Uitrusting",
+  "trips_gear_none": "Nog geen uitrusting ingepakt",
+  "trips_gear_add": "Uitrusting toevoegen",
+  "trips_gear_remove": "Eruit halen",
+  "trips_gear_failed": "Kan de uitrusting niet wijzigen. Probeer het opnieuw.",
+  "trips_cylinders_forecast_todayShort": "Vandaag zijn er {needed} nodig, je hebt er {full} vol.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "Morgen zijn er {needed} nodig, je hebt er dan {full} vol.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "Vul voor {time}.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "Genoeg volle flessen tot en met morgen.",
+  "trips_cylinders_forecast_daysTitle": "Geplande duiken",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} duik} other{{count} duiken}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "Geplande duiken, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "Schatting gebruiken",
+  "trips_cylinders_forecast_fewer": "Minder duiken",
+  "trips_cylinders_forecast_more": "Meer duiken",
+  "trips_cylinders_forecast_saveError": "Plan kon niet worden opgeslagen: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "Door jou gepland",
+  "trips_cylinders_segment_record": "Gasverbruik",
+  "trips_cylinders_recordEmpty": "Nog geen duiken met deze flessen.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} vulling vastgelegd} other{{count} vullingen vastgelegd}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} duik niet meegeteld} other{{count} duiken niet meegeteld}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} vulling in pakket} other{{count} vullingen in pakket}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} duikfles niet gekoppeld} other{{count} duikflessen niet gekoppeld}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "Niet aan een fles gekoppeld",
+  "trips_cylinders_record_tank": "Fles {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "Gevuld tot {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "Geanalyseerd {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "Gasverbruik geëxporteerd",
+  "trips_cylinders_title": "Flessen",
+  "trips_cylinders_summary": "Vol {full} · Deels {partial} · Leeg {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "Nog niet gevuld {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "Flessen instellen",
+  "trips_cylinders_setUpHint": "Houd de flessen bij die je op deze reis hebt: vullingen, mengsels en wat er in elke fles over is.",
+  "trips_cylinders_status_full": "Vol",
+  "trips_cylinders_status_partial": "Deels vol",
+  "trips_cylinders_status_empty": "Leeg",
+  "trips_cylinders_status_unknown": "Nog niet gevuld",
+  "trips_cylinders_mixAir": "Lucht",
+  "trips_cylinders_segment_board": "Overzicht",
+  "trips_cylinders_segment_ledger": "Logboek",
+  "trips_cylinders_action_add": "Flessen toevoegen",
+  "trips_cylinders_action_fill": "Vullen",
+  "trips_cylinders_action_fillSeveral": "Meerdere vullen",
+  "trips_cylinders_action_adjust": "Bijwerken",
+  "trips_cylinders_action_logDive": "Duik vastleggen",
+  "trips_cylinders_bottle": "Fles {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} duik} other{{count} duiken}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "Gevuld bij {place}, {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "Gevuld {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "Bijgewerkt {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "Gedoken bij {site}, {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "Gedoken {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "Nog geen flessen op deze reis",
+  "trips_cylinders_ledgerEmpty": "Nog geen vullingen of correcties",
+  "trips_cylinders_kind_fill": "Vulling",
+  "trips_cylinders_kind_adjustment": "Correctie",
+  "trips_cylinders_deleteConfirmUnused": "Deze fles en haar vullingen verwijderen?",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{Deze fles en haar vullingen verwijderen? {count} duik gebruikte haar. Die duik houdt zijn fles; alleen de koppeling verdwijnt.} other{Deze fles en haar vullingen verwijderen? {count} duiken gebruikten haar. Die duiken houden hun flessen; alleen de koppeling verdwijnt.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "Dit item verwijderen?",
+  "trips_cylinders_add_tabRental": "Huur",
+  "trips_cylinders_add_tabOwned": "Uit mijn uitrusting",
+  "trips_cylinders_add_count": "Aantal",
+  "trips_cylinders_add_preset": "Flestype",
+  "trips_cylinders_add_prefix": "Voorvoegsel voor de naam",
+  "trips_cylinders_add_prefixDefault": "Pick-up",
+  "trips_cylinders_add_noOwned": "Er zijn geen flessen uit je uitrusting meer om toe te voegen.",
+  "trips_cylinders_add_errorCount": "Voer een getal van 1 tot 20 in.",
+  "trips_cylinders_fill_titleEdit": "Vulling bewerken",
+  "trips_cylinders_fill_when": "Wanneer",
+  "trips_cylinders_fill_where": "Vulstation",
+  "trips_cylinders_fill_whereNone": "Niet ingesteld",
+  "trips_cylinders_fill_pressure": "Vuldruk ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 besteld (%)",
+  "trips_cylinders_fill_he": "He besteld (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 geanalyseerd (%)",
+  "trips_cylinders_fill_analyzedHe": "He geanalyseerd (%)",
+  "trips_cylinders_fill_bottle": "Flesnummer",
+  "trips_cylinders_fill_cost": "Kosten",
+  "trips_cylinders_fill_costEach": "Kosten per fles",
+  "trips_cylinders_fill_currency": "Valuta",
+  "trips_cylinders_fill_package": "Inbegrepen in een pakket",
+  "trips_cylinders_fill_slots": "Te vullen flessen",
+  "trips_cylinders_fill_errorMix": "Zuurstof moet tussen 1 en 100 procent liggen, helium tussen 0 en 99, en samen hoogstens 100.",
+  "trips_cylinders_fill_errorNoSlot": "Kies minstens één fles.",
+  "trips_cylinders_note": "Notitie",
+  "trips_cylinders_adjust_titleEdit": "Correctie bewerken",
+  "trips_cylinders_adjust_pressure": "Druk ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "Als leeg markeren",
+  "trips_cylinders_edit_title": "Fles bewerken",
+  "trips_cylinders_edit_label": "Naam",
+  "trips_cylinders_edit_errorLabel": "Voer een naam in.",
+  "trips_cylinders_edit_errorNeedsPressure": "Voer ook de werkdruk in, zodat de grootte kan worden omgerekend.",
+  "trips_cylinders_edit_volume": "Grootte ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "Werkdruk ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "Aangepast",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Einddatum",
@@ -8086,6 +8598,36 @@
   "sites_deleteShared_title": "Gedeelde site verwijderen?",
   "sites_unshareConfirm_body": "Hiermee wordt ‘{name}’ uit de weergaven van andere duikersprofielen verwijderd. Je kunt het later weer delen.",
   "sites_unshareConfirm_title": "Deze site ontdelen?",
+  "settings_hiddenItems_empty": "Er is niets verborgen in dit profiel.",
+  "settings_hiddenItems_sites": "Stekken",
+  "settings_hiddenItems_title": "Verborgen in dit profiel",
+  "settings_hiddenItems_trips": "Reizen",
+  "settings_hiddenItems_unhide": "Tonen",
+  "sharedItems_bulkDeleteCount_sites": "{count, plural, one{{count} stek wordt verwijderd.} other{{count} stekken worden verwijderd.}}",
+  "sharedItems_bulkDeleteCount_trips": "{count, plural, one{{count} reis wordt verwijderd.} other{{count} reizen worden verwijderd.}}",
+  "sharedItems_bulkHiddenSnackbar": "{count, plural, one{{count} item uit je profiel verwijderd} other{{count} items uit je profiel verwijderd}}",
+  "sharedItems_bulkHideCount_sites": "{count, plural, one{{count} gedeelde stek wordt alleen uit je profiel verwijderd.} other{{count} gedeelde stekken worden alleen uit je profiel verwijderd.}}",
+  "sharedItems_bulkHideCount_trips": "{count, plural, one{{count} gedeelde reis wordt alleen uit je profiel verwijderd.} other{{count} gedeelde reizen worden alleen uit je profiel verwijderd.}}",
+  "sharedItems_bulkRemoveTitle": "{count, plural, one{{count} item uit je profiel verwijderen?} other{{count} items uit je profiel verwijderen?}}",
+  "sharedItems_bulkSharedWarning_sites": "{count, plural, one{{count} daarvan wordt gedeeld met andere profielen en wordt voor iedereen verwijderd.} other{{count} daarvan worden gedeeld met andere profielen en worden voor iedereen verwijderd.}}",
+  "sharedItems_bulkSharedWarning_trips": "{count, plural, one{{count} daarvan wordt gedeeld met andere profielen en wordt voor iedereen verwijderd.} other{{count} daarvan worden gedeeld met andere profielen en worden voor iedereen verwijderd.}}",
+  "sharedItems_hiddenHere": "Verborgen in je profiel",
+  "sharedItems_mergeTooManyShared": "Slechts één van de geselecteerde stekken mag bij een ander profiel horen. Deselecteer de andere om samen te voegen.",
+  "sharedItems_notOwner_site": "Alleen de eigenaar kan deze stek verwijderen",
+  "sharedItems_notOwner_trip": "Alleen de eigenaar kan deze reis verwijderen",
+  "sharedItems_otherProfilesDives_site": "{count, plural, one{{count} duik in een ander profiel verliest deze stek.} other{{count} duiken in andere profielen verliezen deze stek.}}",
+  "sharedItems_otherProfilesDives_trip": "{count, plural, one{{count} duik in een ander profiel verliest deze reis.} other{{count} duiken in andere profielen verliezen deze reis.}}",
+  "sharedItems_ownerUnknown": "een ander duikersprofiel",
+  "sharedItems_removeAction": "Uit mijn profiel verwijderen",
+  "sharedItems_removeBody": "Het blijft in het logboek van {owner} en in elk ander profiel. Het wordt alleen hier verborgen.",
+  "sharedItems_removeOwnDives": "{count, plural, one{{count} van je duiken blijft eraan gekoppeld.} other{{count} van je duiken blijven eraan gekoppeld.}}",
+  "sharedItems_removeRestoreHint": "Je kunt het terughalen via Instellingen > Gedeelde gegevens.",
+  "sharedItems_removeTitle": "‘{name}’ uit je profiel verwijderen?",
+  "sharedItems_removedSnackbar": "Uit je profiel verwijderd",
+  "sharedItems_shareOwnerOnly": "Alleen {owner} kan het delen wijzigen",
+  "sharedItems_sharedBy": "Gedeeld door {owner}",
+  "sharedItems_undo": "Ongedaan maken",
+  "sharedItems_unhideAction": "In mijn profiel tonen",
   "trips_deleteShared_body": "‘{name}’ wordt gedeeld met andere duikersprofielen. Hier verwijderen haalt het voor iedereen weg.",
   "trips_deleteShared_title": "Gedeelde trip verwijderen?",
   "trips_unshareConfirm_body": "Hiermee wordt ‘{name}’ uit de weergaven van andere duikersprofielen verwijderd. Je kunt het later weer delen.",
@@ -9731,6 +10273,8 @@
   "dataQuality_neverScanned": "Je logboek is nog niet gescand",
   "dataQuality_empty_title": "Alles in orde",
   "dataQuality_empty_subtitle": "Geen bevindingen over datakwaliteit. Scan je bibliotheek om geïmporteerde duiken op problemen te controleren.",
+  "dataQuality_empty_chipFiltered": "Geen bevindingen in deze categorie",
+  "dataQuality_empty_showAll": "Alle bevindingen tonen",
   "dataQuality_banner_newChecks": "Er zijn nieuwe kwaliteitscontroles beschikbaar",
   "dataQuality_banner_rescan": "Opnieuw scannen",
   "dataQuality_action_dismiss": "Negeren",
@@ -9777,6 +10321,8 @@
   "dataQuality_msg_pressureSwap": "Einddruk {end} is hoger dan begindruk {start}",
   "dataQuality_msg_pressureEndpoint": "Het flesrecord vermeldt {record}, maar de sensorreeks toont {series}",
   "dataQuality_msg_pressureRise": "Druk steeg {rise} midden in de duik zonder gaswisseling",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{De druksensor gaf één keer een foute meting (uitval of piek)} other{De druksensor gaf {count} keer foute metingen (uitval of pieken)}}",
+  "dataQuality_msg_pressureMixed": "De drukreeks vermengt de metingen van twee bronnen",
   "dataQuality_msg_sac": "Het afgeleide oppervlakteverbruik van {sac} is onaannemelijk",
   "dataQuality_msg_ppo2": "ppO2 bereikte {ppo2} op {gas} bij {depth}",
   "dataQuality_msg_hypoxic": "Hypoxisch mengsel ({gas}) weergegeven als in gebruik aan de oppervlakte",
@@ -9971,6 +10517,7 @@
   "settings_visibilityScale_customHelp": "Voer per niveau de kortste afstand in die nog meetelt.",
   "insights_conditions_visibility_legacySuffix": "{band} (vastgelegd vóór meting)",
   "common_selection_countSelected": "{count} geselecteerd",
+  "common_listCount_shownOfTotal": "{shown} van {total}",
   "common_selection_enterTooltip": "Items selecteren",
   "common_selection_exitTooltip": "Selectie beëindigen",
   "common_selection_selectAllTooltip": "Alles selecteren",
@@ -11843,6 +12390,106 @@
   "diveLog_filter_noComputersRegistered": "Geen duikcomputers geregistreerd",
   "diveLog_filter_sectionDepthRangeUnit": "Dieptebereik ({unit})",
   "diveLog_filter_sectionDiveComputer": "Duikcomputer",
+  "diveLog_filterChip_speciesCount": "{count} soorten",
+  "diveLog_filterChip_weekdayCount": "{count, plural, =1{{count} weekdag} other{{count} weekdagen}}",
+  "diveLog_filterChip_siteCount": "{count} locaties",
+  "diveLog_filterChip_visibilityRange": "Zicht {min} tot {max} {unit}",
+  "diveLog_filterChip_visibilityMin": "Zicht meer dan {value} {unit}",
+  "diveLog_filterChip_visibilityMax": "Zicht minder dan {value} {unit}",
+  "diveLog_filterChip_waterTempRange": "Water {min} tot {max}{unit}",
+  "diveLog_filterChip_waterTempMin": "Water warmer dan {value}{unit}",
+  "diveLog_filterChip_waterTempMax": "Water kouder dan {value}{unit}",
+  "diveLog_filterChip_waterTypeCount": "{count} watertypen",
+  "diveLog_filter_sectionSpecies": "Zeeleven",
+  "diveLog_filter_sectionVisibilityUnit": "Zicht ({unit})",
+  "diveLog_filter_sectionWaterTempUnit": "Watertemperatuur ({unit})",
+  "diveLog_filter_sectionWaterType": "Watertype",
+  "diveLog_filter_speciesSearchHint": "Soorten zoeken",
+  "diveLog_listPage_tooltip_explore": "Verkennen met een zin",
+  "explore_chip_favorite": "Favoriet",
+  "explore_chip_deco": "Decompressieduik",
+  "explore_chip_fieldPeriod": "{field}: {period}",
+  "explore_chip_noDeco": "Zonder decompressie",
+  "explore_chip_noBuddy": "Zonder buddy",
+  "explore_chip_rating": "Beoordeling {op} {value}",
+  "explore_chip_numeric": "{field} {op} {value}",
+  "explore_chip_between": "{field} {low} tot {high}",
+  "explore_chip_enum": "{field}: {values}",
+  "explore_chip_enumNot": "{field} niet {values}",
+  "explore_chip_timeRange": "{start} tot {end}",
+  "explore_chip_timeSince": "Sinds {start}",
+  "explore_chip_timeBefore": "Voor {end}",
+  "explore_chip_viaDives": "Duiken: {label}",
+  "explore_chip_withinDays": "{days, plural, =1{{field} binnen {days} dag} other{{field} binnen {days} dagen}}",
+  "explore_count": "{count, plural, =0{Geen duiken} =1{1 duik} other{{count} duiken}}",
+  "explore_download_button": "Het model op het apparaat downloaden",
+  "explore_download_running": "Het model wordt gedownload",
+  "explore_error_contextExceeded": "Die zin is te lang voor het model op het apparaat. Probeer een kortere.",
+  "explore_error_decodingFailure": "Het model gaf geen bruikbaar antwoord. Probeer het anders te formuleren.",
+  "explore_error_guardrail": "Het model heeft deze zin afgewezen.",
+  "explore_error_modelNotReady": "Het model op het apparaat is nog niet klaar.",
+  "explore_error_quotaExceeded": "Het model op het apparaat is bezet. Probeer het zo opnieuw.",
+  "explore_error_refusal": "Het model heeft deze zin afgewezen.",
+  "explore_error_schemaMismatch": "Dit kon niet worden begrepen. Werk de app bij als dit blijft gebeuren.",
+  "explore_error_unknown": "Er ging iets mis bij het raadplegen van het model op het apparaat.",
+  "explore_error_unsupportedLocale": "Het model op het apparaat begrijpt deze taal niet.",
+  "explore_field_airTemp": "Luchttemperatuur",
+  "explore_field_avgDepth": "Gemiddelde diepte",
+  "explore_field_bottomTime": "Bodemtijd",
+  "explore_field_currentStrength": "Stroming",
+  "explore_field_depth": "Diepte",
+  "explore_field_diveMode": "Duikmodus",
+  "explore_field_diveNumber": "Duiknummer",
+  "explore_field_diveType": "Duiktype",
+  "explore_field_entryMethod": "Instap",
+  "explore_field_o2": "Zuurstof",
+  "explore_field_rating": "Beoordeling",
+  "explore_field_visibility": "Zicht",
+  "explore_field_waterTemp": "Watertemperatuur",
+  "explore_field_waterType": "Watertype",
+  "explore_field_weekday": "Weekdag",
+  "explore_handoff_diveList": "Openen in duiklijst",
+  "explore_handoff_insights": "Openen in Inzichten",
+  "explore_handoff_list": "Openen in lijst",
+  "explore_hint": "Vraag naar je duiken, bijvoorbeeld schildpadden dieper dan 20 m op Bonaire",
+  "explore_needsAttention_title": "Vraagt aandacht",
+  "explore_op_gt": "meer dan",
+  "explore_op_gte": "minstens",
+  "explore_op_lt": "minder dan",
+  "explore_op_lte": "hoogstens",
+  "explore_value_minutes": "{minutes} min",
+  "explore_op_eq": "van",
+  "explore_pickCandidate_title": "Wat bedoelde je met \"{text}\"?",
+  "explore_recent_title": "Recent",
+  "explore_results_count": "{count, plural, =1{{count} resultaat} other{{count} resultaten}}",
+  "explore_results_subjectTitle": "Overeenkomsten",
+  "explore_results_subjectTruncated": "De eerste {count} worden getoond. Open de lijst voor alle resultaten.",
+  "explore_results_title": "Overeenkomende duiken",
+  "explore_results_truncated": "De eerste {count} worden getoond. Open de duiklijst voor alle duiken.",
+  "explore_shortcut_unavailable": "Verkennen heeft het model op het apparaat nodig, dat op dit apparaat niet klaar is.",
+  "explore_title": "Verkennen",
+  "explore_understood_title": "Begrepen",
+  "explore_unplaced_reason_aggregateWithScope": "Nog niet te combineren met voorwaarden op de duiken",
+  "explore_unplaced_reason_invalid": "Deze waarde kon niet worden gelezen",
+  "explore_unplaced_reason_noAxis": "Nog niet doorzoekbaar",
+  "explore_unplaced_reason_outOfRange": "Waarde buiten bereik",
+  "explore_unplaced_reason_unknownField": "Onbekend veld",
+  "explore_unplaced_reason_unknownTime": "Deze tijd kon niet worden gelezen",
+  "explore_unresolved_noCandidates": "Geen overeenkomst in je logboek",
+  "explore_chart_divesOverTime": "Duiken in de tijd",
+  "explore_chart_depthTrend": "Diepte",
+  "explore_chart_waterTempTrend": "Watertemperatuur",
+  "explore_chart_bottomTimeTrend": "Bodemtijd",
+  "explore_chart_entityCounts": "Duiken per {kind}",
+  "explore_kind_site": "locatie",
+  "explore_kind_place": "plaats",
+  "explore_kind_species": "soort",
+  "explore_kind_gear": "uitrusting",
+  "explore_kind_buddy": "buddy",
+  "explore_kind_tag": "tag",
+  "explore_kind_center": "duikcentrum",
+  "explore_kind_trip": "reis",
+  "explore_kind_computer": "computer",
   "diveLog_listPage_semanticsDiveAtSite": "Duik {diveNumber} bij {siteName}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "Geplande duik bij {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
@@ -12349,6 +12996,7 @@
   "settings_export_progress_sitesCsv": "Duikstekken exporteren naar CSV...",
   "settings_export_progress_equipmentCsv": "Uitrusting exporteren naar CSV...",
   "settings_export_progress_observationsCsv": "Uitrusting-check-ins exporteren naar CSV...",
+  "settings_export_progress_fillsCsv": "Flesvullingen exporteren naar CSV...",
   "settings_export_progress_pdf": "PDF-logboek genereren...",
   "settings_export_progress_loadingSignatures": "Handtekeningen laden...",
   "settings_export_progress_loadingProfiles": "Duikprofielen laden...",
@@ -12368,12 +13016,14 @@
   "settings_export_progress_preparingSitesCsv": "Duikstekken-CSV voorbereiden...",
   "settings_export_progress_preparingEquipmentCsv": "Uitrusting-CSV voorbereiden...",
   "settings_export_progress_preparingObservationsCsv": "CSV van uitrusting-check-ins voorbereiden...",
+  "settings_export_progress_preparingFillsCsv": "CSV met flesvullingen voorbereiden...",
   "settings_export_progress_preparingUddf": "UDDF-bestand voorbereiden...",
   "settings_export_progress_preparingPdf": "PDF voorbereiden...",
   "settings_export_empty_dives": "Geen duiken om te exporteren",
   "settings_export_empty_sites": "Geen duikstekken om te exporteren",
   "settings_export_empty_equipment": "Geen uitrusting om te exporteren",
   "settings_export_empty_observations": "Geen uitrusting-check-ins om te exporteren",
+  "settings_export_empty_fills": "Geen flesvullingen om te exporteren",
   "settings_export_empty_data": "Geen gegevens om te exporteren",
   "settings_export_empty_diveSites": "Geen duikstekken om te exporteren",
   "settings_export_saveFailed": "Opslaan mislukt: {error}",
@@ -12381,6 +13031,7 @@
   "settings_export_success_sites": "Duikstekken succesvol geëxporteerd",
   "settings_export_success_equipment": "Uitrusting succesvol geëxporteerd",
   "settings_export_success_observations": "Uitrusting-check-ins geëxporteerd",
+  "settings_export_success_fills": "Flesvullingen geëxporteerd",
   "settings_export_success_pdf": "PDF-logboek succesvol gegenereerd",
   "settings_export_success_uddf": "UDDF-bestand succesvol gegenereerd",
   "settings_export_success_excel": "Excel-bestand succesvol geëxporteerd",
@@ -12391,6 +13042,7 @@
   "settings_export_saved_sitesCsv": "Duikstekken-CSV succesvol opgeslagen",
   "settings_export_saved_equipmentCsv": "Uitrusting-CSV succesvol opgeslagen",
   "settings_export_saved_observationsCsv": "CSV van uitrusting-check-ins opgeslagen",
+  "settings_export_saved_fillsCsv": "CSV met flesvullingen opgeslagen",
   "settings_export_saved_uddf": "UDDF-bestand succesvol opgeslagen",
   "settings_export_saved_pdf": "PDF succesvol opgeslagen",
   "settings_export_cancelled_save": "Opslaan geannuleerd",
@@ -12534,6 +13186,7 @@
   "settings_export_saveSitesCsvDialogTitle": "Duikstekken-CSV opslaan",
   "settings_export_saveEquipmentCsvDialogTitle": "Uitrusting-CSV opslaan",
   "settings_export_saveObservationsCsvDialogTitle": "CSV van uitrusting-check-ins opslaan",
+  "settings_export_saveFillsCsvDialogTitle": "CSV met flesvullingen opslaan",
   "backup_operation_created": "Back-up gemaakt: {size}",
   "backup_operation_backupFailed": "Back-up mislukt: {error}",
   "backup_operation_restoring": "Back-up herstellen...",
@@ -13062,6 +13715,11 @@
   "navTrack_review_row_maxDepth": "Max. diepte",
   "navTrack_review_row_maxSpeed": "Max. snelheid",
   "navTrack_review_leaveUnlinked": "Ongekoppeld laten",
+  "navTrack_review_noOverlapHint": "Geen duik overlapt met de tijd van deze opname. Dichtstbijzijnde duiken op begintijd:",
+  "navTrack_review_offsetBefore": "{offset} vóór de opname",
+  "navTrack_review_offsetAfter": "{offset} na de opname",
+  "navTrack_review_offsetDays": "{days}d {hours}u",
+  "navTrack_review_chooseAnotherDive": "Andere duik kiezen...",
   "navTrack_list_importFailed": "Importeren mislukt: {error}",
   "navTrack_list_matchError": "Routes konden niet worden gekoppeld.",
   "navTrack_list_matchSuccess": "Routes gekoppeld aan duiken.",
@@ -13192,28 +13850,50 @@
   "diveCenters_rental_noteLabel": "Notitie",
   "diveCenters_rental_deleteConfirm": "Deze huurnotitie verwijderen?",
   "query_buddies_certifications": "Brevetten",
+  "query_buddies_diveCount": "Samen gedoken",
+  "query_buddies_dives": "Duiken",
   "query_buddies_email": "E-mail",
   "query_buddies_favorite": "Favoriet",
+  "query_buddies_lastDived": "Laatst samen gedoken",
   "query_buddies_name": "Naam",
   "query_buddies_notes": "Notities",
   "query_buddies_phone": "Telefoon",
+  "query_centers_affiliations": "Aangesloten bij",
   "query_centers_city": "Stad",
+  "query_centers_coordinates": "Coördinaten",
   "query_centers_country": "Land",
+  "query_centers_diveCount": "Aantal duiken",
+  "query_centers_dives": "Duiken",
+  "query_centers_lastDived": "Laatst gedoken",
   "query_centers_name": "Naam",
+  "query_centers_notes": "Notities",
+  "query_centers_rating": "Beoordeling",
+  "query_centers_stateProvince": "Staat / Provincie",
   "query_certifications_agency": "Organisatie",
+  "query_certifications_buddy": "Buddy",
   "query_certifications_cardNumber": "Kaartnummer",
+  "query_certifications_course": "Cursus",
   "query_certifications_expiryDate": "Vervaldatum",
+  "query_certifications_instructor": "Instructeur",
   "query_certifications_instructorName": "Naam instructeur",
+  "query_certifications_instructorNumber": "Instructeurnummer",
   "query_certifications_issueDate": "Uitgiftedatum",
   "query_certifications_level": "Niveau",
   "query_certifications_name": "Naam",
+  "query_certifications_notes": "Notities",
   "query_computers_manufacturer": "Fabrikant",
   "query_computers_model": "Model",
   "query_computers_name": "Naam",
   "query_computers_serialNumber": "Serienummer",
   "query_courses_agency": "Organisatie",
+  "query_courses_certification": "Certificering",
   "query_courses_completionDate": "Voltooiingsdatum",
+  "query_courses_dives": "Duiken",
+  "query_courses_instructor": "Instructeur",
+  "query_courses_instructorName": "Naam instructeur",
+  "query_courses_location": "Locatie",
   "query_courses_name": "Naam",
+  "query_courses_notes": "Notities",
   "query_courses_startDate": "Startdatum",
   "query_customFields_key": "Sleutel",
   "query_customFields_value": "Waarde",
@@ -13252,6 +13932,19 @@
   "query_dives_otu": "OTU",
   "query_dives_planned": "Gepland",
   "query_dives_rating": "Beoordeling",
+  "query_dives_findings": "Veiligheidsbevindingen",
+  "query_dives_sac": "SAC",
+  "query_dives_sacTrend": "SAC-trend",
+  "query_dives_sacTrend_rising": "Stijgend",
+  "query_dives_sacTrend_steady": "Stabiel",
+  "query_dives_sacTrend_falling": "Dalend",
+  "query_dives_sacChange": "SAC-verandering",
+  "query_dives_finalStop": "Laatste stop",
+  "query_dives_finalStop_stable": "Stabiel",
+  "query_dives_finalStop_unstable": "Instabiel",
+  "query_dives_finalStop_noStop": "Geen stop",
+  "query_dives_finalStopExcursion": "Afwijking bij laatste stop",
+  "query_dives_finalStopDuration": "Duur laatste stop",
   "query_dives_runtime": "Totale duur",
   "query_dives_sightings": "Waarnemingen",
   "query_dives_site": "Duikstek",
@@ -13278,8 +13971,11 @@
   "query_entity_dives": "Duiken",
   "query_entity_equipment": "Uitrusting",
   "query_entity_equipmentAttributes": "Uitrustingskenmerken",
+  "query_entity_findings": "Veiligheidsbevindingen",
+  "query_findings_rule": "Regel",
   "query_entity_media": "Media",
   "query_entity_sightings": "Waarnemingen",
+  "query_entity_siteTypes": "Duikstektypes",
   "query_entity_sites": "Duikstekken",
   "query_entity_species": "Soorten",
   "query_entity_tags": "Tags",
@@ -13293,27 +13989,58 @@
   "query_equipment_active": "Actief",
   "query_equipment_attributes": "Kenmerken",
   "query_equipment_brand": "Merk",
+  "query_equipment_diveCount": "Duiken gebruikt",
+  "query_equipment_dives": "Duiken",
+  "query_equipment_lastDived": "Laatst gebruikt",
   "query_equipment_model": "Model",
   "query_equipment_name": "Naam",
+  "query_equipment_nextServiceDue": "Volgend onderhoud",
   "query_equipment_serialNumber": "Serienummer",
+  "query_equipment_serviceDue": "Service nodig",
+  "query_equipment_serviceDue_dueSoon": "Binnenkort",
+  "query_equipment_serviceDue_ok": "Up-to-date",
+  "query_equipment_serviceDue_overdue": "Achterstallig",
   "query_equipment_status": "Status",
+  "query_equipment_tags": "Tags",
   "query_equipment_type": "Type",
+  "query_filter_clear": "Wissen",
+  "query_filter_tooltip": "Filter",
+  "query_list_noMatch": "Niets komt overeen met deze query",
   "query_media_caption": "Bijschrift",
   "query_media_favorite": "Favoriet",
   "query_media_type": "Type",
+  "query_sheet_sectionTitle": "Query",
   "query_sightings_count": "Aantal",
   "query_sightings_notes": "Notities",
   "query_sightings_species": "Soorten",
+  "query_siteTypes_name": "Naam",
   "query_sites_city": "Stad",
+  "query_sites_coordinates": "Coördinaten",
   "query_sites_country": "Land",
+  "query_sites_difficulty": "Moeilijkheidsgraad",
+  "query_sites_diveCount": "Aantal duiken",
+  "query_sites_dives": "Duiken",
   "query_sites_island": "Eiland",
+  "query_sites_lastDived": "Laatst gedoken",
   "query_sites_maxDepth": "Maximale diepte",
   "query_sites_name": "Naam",
+  "query_sites_notes": "Notities",
   "query_sites_rating": "Beoordeling",
   "query_sites_region": "Regio",
+  "query_sites_tags": "Tags",
+  "query_sites_types": "Duikstektypes",
+  "query_species_builtIn": "Ingebouwd",
   "query_species_category": "Categorie",
+  "query_species_description": "Beschrijving",
+  "query_species_diveCount": "Duiken met waarneming",
+  "query_species_dives": "Duiken",
+  "query_species_expectedSites": "Verwacht op duikplekken",
+  "query_species_firstSeen": "Eerst gezien",
+  "query_species_lastSeen": "Laatst gezien",
   "query_species_name": "Naam",
   "query_species_scientificName": "Wetenschappelijke naam",
+  "query_species_sightings": "Waarnemingen",
+  "query_species_taxonomyClass": "Taxonomische klasse",
   "query_tags_name": "Naam",
   "query_tanks_cylinder": "Fles",
   "query_tanks_endPressure": "Einddruk",
@@ -13322,10 +14049,17 @@
   "query_tanks_o2": "Zuurstof",
   "query_tanks_startPressure": "Begindruk",
   "query_tanks_volume": "Volume",
+  "query_trips_diveCount": "Aantal duiken",
+  "query_trips_dives": "Duiken",
   "query_trips_endDate": "Einddatum",
+  "query_trips_liveaboardName": "Liveaboard",
   "query_trips_location": "Locatie",
   "query_trips_name": "Naam",
+  "query_trips_notes": "Notities",
+  "query_trips_resortName": "Resort",
+  "query_trips_shared": "Gedeeld",
   "query_trips_startDate": "Startdatum",
+  "query_trips_tripType": "Reistype",
   "query_weights_amount": "Hoeveelheid",
   "query_weights_notes": "Notities",
   "query_weights_type": "Type",

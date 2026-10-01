@@ -21,6 +21,12 @@ import 'package:submersion/features/dive_centers/presentation/widgets/dive_cente
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
+import 'package:submersion/features/dive_centers/query/dive_center_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_search_delegate.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_list_count_provider.dart';
 
 class DiveCenterListPage extends ConsumerStatefulWidget {
   const DiveCenterListPage({super.key});
@@ -84,6 +90,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
       return TableModeLayout(
         sectionKey: 'diveCenters',
         appBarTitle: context.l10n.nav_diveCenters,
+        appBarSubtitle: diveCenterListCountLabel(context, ref),
         tableContent: const DiveCenterListContent(showAppBar: false),
         detailBuilder: (context, centerId) => DiveCenterDetailPage(
           centerId: centerId,
@@ -138,6 +145,12 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
                 delegate: DiveCenterSearchDelegate(ref),
               );
             },
+          ),
+          QueryFilterAction(
+            provider: diveCenterQueryProvider,
+            subject: QuerySubject.centers,
+            root: diveCenterQueryEntity,
+            compact: true,
           ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),

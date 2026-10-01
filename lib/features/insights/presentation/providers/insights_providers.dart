@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -50,7 +51,9 @@ final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
   // ONE debounced tick over `dives` plus every table the filter joins
   // (#2365), so an attribute-only or junction-only write refreshes the
   // totals once, never twice.
-  final extra = diveFilterTablesTouched(filter).difference({'dives'});
+  final touched = diveFilterTablesTouched(filter);
+  await awaitServiceStatusIfRead(ref, touched);
+  final extra = touched.difference({'dives'});
   ref.invalidateSelfWhen(
     extra.isEmpty
         ? repository.watchDivesChanges()
@@ -78,7 +81,9 @@ final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
   // ONE debounced tick over `dives` plus every table the filter joins
   // (#2365), so an attribute-only or junction-only write refreshes the
   // records once, never twice.
-  final extra = diveFilterTablesTouched(filter).difference({'dives'});
+  final touched = diveFilterTablesTouched(filter);
+  await awaitServiceStatusIfRead(ref, touched);
+  final extra = touched.difference({'dives'});
   ref.invalidateSelfWhen(
     extra.isEmpty
         ? repository.watchDivesChanges()

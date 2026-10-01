@@ -178,4 +178,14 @@ void main() {
       expect(exitLegsFor(mission, 1), isEmpty);
     });
   });
+
+  test('a route point copies with one coordinate changed', () {
+    const point = RoutePoint(eastM: 30, northM: 40);
+    expect(point.copyWith(), point);
+    expect(
+      point.copyWith(northM: -10),
+      const RoutePoint(eastM: 30, northM: -10),
+    );
+    expect(point.copyWith(eastM: 5), const RoutePoint(eastM: 5, northM: 40));
+  });
 }

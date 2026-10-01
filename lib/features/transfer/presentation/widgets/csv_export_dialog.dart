@@ -9,6 +9,7 @@ enum CsvExportType {
   dives,
   sites,
   equipment,
+  fills,
   observations;
 
   String localizedDisplayName(BuildContext context) {
@@ -19,6 +20,8 @@ enum CsvExportType {
         return context.l10n.transfer_csvExport_typeSites;
       case CsvExportType.equipment:
         return context.l10n.transfer_csvExport_typeEquipment;
+      case CsvExportType.fills:
+        return context.l10n.transfer_csvExport_typeFills;
       case CsvExportType.observations:
         return context.l10n.transfer_csvExport_typeObservations;
     }
@@ -32,6 +35,8 @@ enum CsvExportType {
         return context.l10n.transfer_csvExport_descriptionSites;
       case CsvExportType.equipment:
         return context.l10n.transfer_csvExport_descriptionEquipment;
+      case CsvExportType.fills:
+        return context.l10n.transfer_csvExport_descriptionFills;
       case CsvExportType.observations:
         return context.l10n.transfer_csvExport_descriptionObservations;
     }
@@ -45,6 +50,8 @@ enum CsvExportType {
         return Icons.location_on;
       case CsvExportType.equipment:
         return Icons.build;
+      case CsvExportType.fills:
+        return Icons.propane_tank_outlined;
       case CsvExportType.observations:
         return Icons.fact_check;
     }

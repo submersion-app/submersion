@@ -81,10 +81,14 @@ class DiveSplitService {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     // Series move by computer attribution. A computer-less source cannot be
-    // attributed at the row level, so only non-primary null-computer series
-    // follow it (never user-edited isPrimary series) and no tanks,
-    // pressures, or events move. This follows the retired unlinkComputer's
-    // convention.
+    // attributed at the row level by computer, so only non-primary
+    // null-computer profile series follow it (never user-edited isPrimary
+    // series) and no events move. This follows the retired unlinkComputer's
+    // convention. Pressure series are the exception: one that names the
+    // source moves with it whatever its computer, cloning the tank it sits
+    // on (issue #2440). So are a computer-less source's tanks: one with no
+    // computer that names the source is its (issue #2716). A source with a
+    // computer moves its tanks by the computer rule, as before.
 
     bool ownedByComputer(String? computerId) =>
         source.computerId != null && computerId == source.computerId;
@@ -114,10 +118,28 @@ class DiveSplitService {
         for (final s in allProfileSeries)
           if (profileBelongsToSource(s)) s,
       ];
+      // A series that names its source moves with exactly that source,
+      // computer or not (issue #2440); an unattributed one falls back to the
+      // computer rule.
       final movingPressures = [
         for (final s in allPressureSeries)
-          if (ownedByComputer(s.computerId)) s,
+          if (s.sourceId == null
+              ? ownedByComputer(s.computerId)
+              : s.sourceId == source.id)
+            s,
       ];
+      // Read here too, before step 2 deletes the source row:
+      // dive_tanks.source_id is ON DELETE SET NULL (v251), so reading after
+      // would lose the ownership signal the tank rule below reads.
+      final allTanks = await (_db.select(
+        _db.diveTanks,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      // A source with a computer keeps the computer rule exactly; only a
+      // computer-less one, which that rule can never match, claims the
+      // computer-less tanks that name it.
+      bool tankBelongsToSource(DiveTank t) => source.computerId != null
+          ? ownedByComputer(t.computerId)
+          : t.computerId == null && t.sourceId == source.id;
 
       // 1. New dive: copy the original row, attribute it to the source's
       // computer, override summary fields with the source's snapshot, and
@@ -217,9 +239,6 @@ class DiveSplitService {
       // carries the departing computer's rows. Departing pressure rows on
       // a tank the source never owned get the same clone-on-demand
       // treatment.
-      final allTanks = await (_db.select(
-        _db.diveTanks,
-      )..where((t) => t.diveId.equals(diveId))).get();
       final allEvents = await (_db.select(
         _db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -233,7 +252,7 @@ class DiveSplitService {
 
       final tankIdMap = <String, String>{};
       final movedTankIds = <String>[];
-      for (final tank in allTanks.where((t) => ownedByComputer(t.computerId))) {
+      for (final tank in allTanks.where(tankBelongsToSource)) {
         final hasRemainingRefs =
             allPressureSeries.any(
               (r) => r.tankId == tank.id && !ownedByComputer(r.computerId),
@@ -250,7 +269,11 @@ class DiveSplitService {
             .insert(
               tank
                   .toCompanion(false)
-                  .copyWith(id: Value(freshId), diveId: Value(newDiveId)),
+                  .copyWith(
+                    id: Value(freshId),
+                    diveId: Value(newDiveId),
+                    sourceId: Value(newSourceId),
+                  ),
             );
         await _sync.markRecordPending(
           entityType: 'diveTanks',
@@ -259,8 +282,20 @@ class DiveSplitService {
         );
 
         if (hasRemainingRefs) {
-          await (_db.update(_db.diveTanks)..where((t) => t.id.equals(tank.id)))
-              .write(const DiveTanksCompanion(computerId: Value(null)));
+          // A link to the source that left goes with this clock rather than
+          // the FK's silent SET NULL (v251). Only that one: the computer
+          // rule also selects tanks of another source of the same computer
+          // (a combined dive's other half), which stays.
+          await (_db.update(
+            _db.diveTanks,
+          )..where((t) => t.id.equals(tank.id))).write(
+            DiveTanksCompanion(
+              computerId: const Value(null),
+              sourceId: tank.sourceId == source.id
+                  ? const Value(null)
+                  : const Value.absent(),
+            ),
+          );
           await _sync.markRecordPending(
             entityType: 'diveTanks',
             recordId: tank.id,
@@ -288,6 +323,7 @@ class DiveSplitService {
                     id: Value(freshId),
                     diveId: Value(newDiveId),
                     computerId: Value(source.computerId),
+                    sourceId: Value(newSourceId),
                   ),
             );
         await _sync.markRecordPending(
@@ -331,6 +367,7 @@ class DiveSplitService {
           diveId: newDiveId,
           tankId: tankIdMap[s.tankId] ?? s.tankId,
           computerId: s.computerId,
+          sourceId: newSourceId,
           samples: s.samples,
           now: now,
         );

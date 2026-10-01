@@ -155,4 +155,20 @@ void main() {
       });
     }
   });
+
+  test('a tag the app itself just read or wrote is not opened again', () async {
+    // Android re-dispatches a tag still held against the phone once the
+    // in-app session ends.
+    final seen = <String>[];
+    final skipping = PassportLinkDispatcher(
+      source: source,
+      open: (text) async => seen.add(text),
+      clock: () => now,
+      alreadyHandled: (text) => text == tag,
+    )..start();
+    addTearDown(skipping.dispose);
+    skipping.setReady(true);
+    await send(tag);
+    expect(seen, isEmpty);
+  });
 }

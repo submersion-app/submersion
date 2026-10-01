@@ -339,4 +339,41 @@ void main() {
 
     expect(reported, isNull);
   });
+
+  testWidgets('a field with only one bound clamps to it on commit', (
+    tester,
+  ) async {
+    final key = GlobalKey<PlanNumberFieldState>();
+    double? reported;
+    await tester.pumpWidget(
+      _harness(
+        value: 9,
+        min: 1,
+        isInteger: false,
+        decimals: 1,
+        fieldKey: key,
+        onChanged: (v) => reported = v,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '0.5');
+    await tester.pumpAndSettle();
+    key.currentState!.commit();
+    await tester.pumpAndSettle();
+    expect(reported, 1);
+
+    await tester.pumpWidget(
+      _harness(
+        value: 9,
+        max: 30,
+        fieldKey: key,
+        onChanged: (v) => reported = v,
+      ),
+    );
+    await tester.enterText(find.byType(TextField).first, '99');
+    await tester.pumpAndSettle();
+    key.currentState!.commit();
+    await tester.pumpAndSettle();
+    expect(reported, 30);
+  });
 }

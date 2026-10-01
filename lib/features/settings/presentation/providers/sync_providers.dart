@@ -48,6 +48,7 @@ import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
@@ -1410,11 +1411,16 @@ class SyncNotifier extends StateNotifier<SyncState> {
           }
           await _ref.read(postRestoreSyncStoreProvider).clear();
           await _surfaceOldBackendCleanupOffer();
-          // Sensor summaries are device-local: dives this sync pulled in have
-          // none until the stale sweep builds them, and a first sync can land
-          // after the launch sweep ran. Single-flight, a no-op when current;
-          // the condition findings follow the batch it runs.
+          // Sensor summaries and derived metrics are device-local: dives this
+          // sync pulled in have none until the stale sweep builds them, and a
+          // first sync can land after the launch sweep ran. The sweep is also
+          // what rebuilds them for a dive whose profile or pressure series
+          // changed in this pull, since series never re-stamp their dive
+          // (#1769) and only the source stamp sees them. Single-flight, a
+          // no-op when current; the condition findings follow the batch it
+          // runs.
           SensorSummaryScheduler.instance.scheduleStaleSweep();
+          DerivedMetricsScheduler.instance.scheduleStaleSweep();
           // A straggler syncing into a backend another device moved away from
           // learns of the move here -- the moment it is actively writing into
           // the now-orphaned copy.

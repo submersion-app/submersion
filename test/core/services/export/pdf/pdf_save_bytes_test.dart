@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 /// Records what the save dialog was asked for so tests can assert the file
 /// name reaching the picker, not just the value handed back.
@@ -60,6 +61,13 @@ final isoDates = PdfDateFormatter(
 const testUnits = UnitFormatter(AppSettings());
 
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late _RecordingPicker picker;

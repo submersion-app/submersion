@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:drift/drift.dart' show Value;
+import 'package:submersion/features/cylinder_passports/domain/entities/tag_fill.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -14,6 +15,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/foreign_passport_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
@@ -137,6 +140,83 @@ void main() {
     expect(foreignTagFromQuery('nonsense'), isNull);
   });
 
+  final tagFill = TagFill(
+    id: '3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11',
+    filledAt: DateTime.utc(2026, 9, 28, 9, 30),
+    o2Percent: 21,
+    hePercent: 35,
+    pressureBar: 232,
+    filledBy: 'Blue Hole',
+  );
+
+  testWidgets("shows the tag's last fill, and to analyse it", (tester) async {
+    final l10n = await pump(tester, full.copyWith(fill: tagFill));
+    expect(find.text(l10n.passport_foreign_lastFill), findsOneWidget);
+    expect(find.textContaining('Tx 21/35'), findsOneWidget);
+    expect(find.textContaining('232 bar'), findsOneWidget);
+    expect(find.text(l10n.passport_fill_station('Blue Hole')), findsOneWidget);
+    expect(find.text(l10n.passport_fill_analyseBeforeDiving), findsOneWidget);
+  });
+
+  testWidgets("the tag's fill pressure follows the diver's units", (
+    tester,
+  ) async {
+    final settings = MockSettingsNotifier();
+    await settings.setPressureUnit(PressureUnit.psi);
+    await pump(tester, full.copyWith(fill: tagFill), settings: settings);
+    expect(find.textContaining('psi'), findsWidgets);
+    expect(find.textContaining('232 bar'), findsNothing);
+  });
+
+  testWidgets("the fill's date is the viewer's own day", (tester) async {
+    // Late evening in the Americas, already the next day in UTC.
+    final at = DateTime.utc(2026, 9, 29, 2, 30);
+    final late = TagFill(
+      id: tagFill.id,
+      filledAt: at,
+      o2Percent: 32,
+      hePercent: 0,
+    );
+    await pump(tester, full.copyWith(fill: late));
+    const units = UnitFormatter(AppSettings());
+    expect(find.textContaining(units.formatDate(at.toLocal())), findsOne);
+    if (at.toLocal().day != at.day) {
+      expect(find.textContaining(units.formatDate(at)), findsNothing);
+    }
+  });
+
+  testWidgets('a fill with no pressure shows no placeholder for it', (
+    tester,
+  ) async {
+    final noPressure = TagFill(
+      id: tagFill.id,
+      filledAt: tagFill.filledAt,
+      o2Percent: 32,
+      hePercent: 0,
+    );
+    await pump(tester, full.copyWith(fill: noPressure));
+    expect(find.textContaining('EAN32 · '), findsOneWidget);
+    expect(find.textContaining('--'), findsNothing);
+  });
+
+  testWidgets('a tag with only a fill does not say it has no details', (
+    tester,
+  ) async {
+    final bare = CylinderPassportPayload(
+      passportId: full.passportId,
+      writtenOn: full.writtenOn,
+      fill: tagFill,
+    );
+    final l10n = await pump(tester, bare);
+    expect(find.text(l10n.passport_foreign_lastFill), findsOneWidget);
+    expect(find.text(l10n.passport_foreign_noDetails), findsNothing);
+  });
+
+  testWidgets('a tag without a fill shows none', (tester) async {
+    final l10n = await pump(tester, full);
+    expect(find.text(l10n.passport_foreign_lastFill), findsNothing);
+  });
+
   testWidgets('Use on a dive opens a new dive with the cylinder', (
     tester,
   ) async {
@@ -177,6 +257,46 @@ void main() {
     final tank = (extra! as DivePrefill).tank!;
     expect(tank.volume, 10);
     expect(tank.workingPressure, 300);
+  });
+
+  testWidgets("Use on a dive takes the tag's fill as the mix", (tester) async {
+    Object? extra;
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      initialLocation: foreignPassportLocation(full.copyWith(fill: tagFill)),
+      routes: [
+        GoRoute(
+          path: '/equipment/tag',
+          builder: (context, state) => ForeignPassportPage(
+            tag: foreignTagFromQuery(state.uri.queryParameters['t']),
+          ),
+        ),
+        GoRoute(
+          path: '/dives/new',
+          builder: (context, state) {
+            extra = state.extra;
+            return const Text('new dive');
+          },
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides.cast(),
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('foreign_useOnDive')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('foreign_useOnDive')));
+    await tester.pumpAndSettle();
+    final mix = (extra! as DivePrefill).tank!.gasMix;
+    expect((mix.o2, mix.he), (21.0, 35.0));
   });
 
   testWidgets('Add to my gear creates the cylinder and opens its passport', (

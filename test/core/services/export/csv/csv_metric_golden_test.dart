@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
+import 'package:submersion/core/services/export/csv/csv_fills_writer.dart';
 
 import 'csv_test_fixtures.dart';
 
@@ -15,6 +17,10 @@ import 'csv_test_fixtures.dart';
 /// restored columns are APPENDED after the historical twelve, which keep
 /// their order and position, so a consumer reading this file by column
 /// offset or by header name is unaffected.
+///
+/// The fills golden (cylinder passports phase 5) was written by the new
+/// writer on 2026-09-29; it exists so a later change to the sheet is a
+/// deliberate one.
 const _write = bool.fromEnvironment('WRITE_CSV_GOLDENS');
 const _dir = 'test/core/services/export/csv/goldens';
 
@@ -47,6 +53,15 @@ void main() {
         goldenEquipment(),
         componentNames: goldenComponentNames(),
       ),
+    );
+  });
+
+  test('fills metric export matches the golden', () {
+    _check(
+      'fills_metric.csv',
+      CsvFillsWriter(
+        CsvExportUnits.metric,
+      ).write(goldenFills(), equipmentById: goldenFillEquipment()),
     );
   });
 }

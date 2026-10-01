@@ -104,12 +104,15 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
     final Uint8List bytes;
     try {
       bytes = await File(paths.first).readAsBytes();
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.dropTarget_error_readFailed)),
-        );
-      }
+    } catch (e) {
+      // Logged even when the target is gone; only the snackbar needs it.
+      reportIncomingFileError(
+        e,
+        messenger: mounted ? ScaffoldMessenger.of(context) : null,
+        readFailedMessage: mounted
+            ? context.l10n.dropTarget_error_readFailed
+            : null,
+      );
       return;
     }
 

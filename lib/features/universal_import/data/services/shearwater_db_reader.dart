@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:sqlite3/sqlite3.dart';
 
+import 'package:submersion/features/universal_import/data/services/sqlite_temp_copy.dart';
+
 /// One GF99 reading from `dive_log_records`, in seconds from the start of
 /// the dive and whole percent as the computer logged it.
 class ShearwaterGf99Sample {
@@ -206,20 +208,14 @@ ORDER BY currentTime
   /// throw) for non-SQLite inputs. Shared by the format detector so
   /// multiple DB-flavor checks can run against one probe.
   static Future<Set<String>> probeSqliteTableNames(Uint8List bytes) async {
-    final tempPath = _tempPath();
-    final tempFile = File(tempPath);
     try {
-      await tempFile.writeAsBytes(bytes);
-      final db = sqlite3.open(tempPath, mode: OpenMode.readOnly);
-      try {
-        return _listTables(db);
-      } finally {
-        db.close();
-      }
+      return await withTempSqliteCopy(
+        bytes,
+        prefix: _tempPrefix,
+        body: _listTables,
+      );
     } catch (_) {
       return const <String>{};
-    } finally {
-      _deleteTempFile(tempFile);
     }
   }
 
@@ -229,21 +225,14 @@ ORDER BY currentTime
   /// for the presence of the required tables (dive_details, log_data).
   /// Returns false for any non-SQLite file or database missing those tables.
   static Future<bool> isShearwaterCloudDb(Uint8List bytes) async {
-    final tempPath = _tempPath();
-    final tempFile = File(tempPath);
     try {
-      await tempFile.writeAsBytes(bytes);
-      final db = sqlite3.open(tempPath, mode: OpenMode.readOnly);
-      try {
-        final tables = _listTables(db);
-        return _requiredTables.every((t) => tables.contains(t));
-      } finally {
-        db.close();
-      }
+      return await withTempSqliteCopy(
+        bytes,
+        prefix: _tempPrefix,
+        body: (db) => matchesTables(_listTables(db)),
+      );
     } catch (_) {
       return false;
-    } finally {
-      _deleteTempFile(tempFile);
     }
   }
 
@@ -251,13 +240,11 @@ ORDER BY currentTime
   ///
   /// Joins dive_details with log_data, decompresses binary profile data,
   /// and parses embedded JSON fields. Empty strings are normalized to null.
-  static Future<List<ShearwaterRawDive>> readDives(Uint8List bytes) async {
-    final tempPath = _tempPath();
-    final tempFile = File(tempPath);
-    try {
-      await tempFile.writeAsBytes(bytes);
-      final db = sqlite3.open(tempPath, mode: OpenMode.readOnly);
-      try {
+  static Future<List<ShearwaterRawDive>> readDives(Uint8List bytes) {
+    return withTempSqliteCopy(
+      bytes,
+      prefix: _tempPrefix,
+      body: (db) {
         final tables = _listTables(db);
         final diveLogColumns = tables.contains(_diveLogsTable)
             ? _listColumns(db, _diveLogsTable)
@@ -267,8 +254,7 @@ ORDER BY currentTime
             _gf99RecordColumns.every(
               _listColumns(db, _diveLogRecordsTable).contains,
             );
-        final rows = db.select(_query);
-        return rows.map((row) {
+        return db.select(_query).map((row) {
           final diveId = row['DiveId'].toString();
           return _rowToRawDive(
             row,
@@ -278,28 +264,13 @@ ORDER BY currentTime
                 : const [],
           );
         }).toList();
-      } finally {
-        db.close();
-      }
-    } finally {
-      _deleteTempFile(tempFile);
-    }
+      },
+    );
   }
 
   // ======================== Internal helpers ========================
 
-  static String _tempPath() {
-    return '${Directory.systemTemp.path}'
-        '/sw_import_${DateTime.now().millisecondsSinceEpoch}.db';
-  }
-
-  static void _deleteTempFile(File file) {
-    try {
-      if (file.existsSync()) file.deleteSync();
-    } catch (_) {
-      // Best-effort cleanup; ignore errors.
-    }
-  }
+  static const _tempPrefix = 'sw_import_';
 
   static Set<String> _listTables(Database db) {
     final rows = db.select("SELECT name FROM sqlite_master WHERE type='table'");

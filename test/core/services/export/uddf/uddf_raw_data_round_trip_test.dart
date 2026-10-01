@@ -11,6 +11,8 @@ import 'package:submersion/core/services/export/uddf/uddf_full_export_service.da
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
@@ -54,6 +56,8 @@ ImportRepositories buildRepositories() => ImportRepositories(
   siteTypeRepository: SiteTypeRepository(),
   siteClassificationRepository: SiteClassificationRepository(),
   siteFeatureRepository: SiteFeatureRepository(),
+  cylinderFillRepository: CylinderFillRepository(),
+  cylinderPassportRepository: CylinderPassportRepository(),
 );
 
 Future<String> createTestDiver() async {

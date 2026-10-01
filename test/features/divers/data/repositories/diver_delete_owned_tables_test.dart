@@ -225,6 +225,24 @@ void main() {
           );
       return [('saved_queries', 'savedQueries', 'sq-a')];
     },
+    'an underwater route': () async {
+      await db
+          .into(db.navTracks)
+          .insert(
+            NavTracksCompanion.insert(
+              id: 'route-a',
+              diverId: const Value('diver-a'),
+              source: 'seacraft_enc',
+              startTime: stale,
+              endTime: stale,
+              pointCount: 0,
+              points: Uint8List(0),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [('nav_tracks', 'navTracks', 'route-a')];
+    },
     'a cylinder fill': () async {
       await db
           .into(db.cylinderFills)
@@ -296,10 +314,56 @@ void main() {
               updatedAt: stale,
             ),
           );
+      await db
+          .into(db.divePlanMissions)
+          .insert(
+            DivePlanMissionsCompanion.insert(
+              id: 'plan-a',
+              planId: 'plan-a',
+              batteryReserveFraction: 1 / 3,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.divePlanMissionLegs)
+          .insert(
+            DivePlanMissionLegsCompanion.insert(
+              id: 'pleg-a',
+              planId: 'plan-a',
+              label: 'T',
+              distanceM: 300,
+              depthM: 20,
+              headingDeg: 90,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.divePlanMissionMembers)
+          .insert(
+            DivePlanMissionMembersCompanion.insert(
+              id: 'pmember-a',
+              planId: 'plan-a',
+              displayName: 'Sam',
+              sacBottom: 15,
+              swimSpeedMps: 0.2,
+              scooterName: 'Blacktip',
+              scooterSpeedMps: 0.9,
+              scooterBurnSeconds: 5400,
+              towSpeedFactor: 0.6,
+              towBurnFactor: 1.5,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
       return [
         ('dive_plans', 'divePlans', 'plan-a'),
         ('dive_plan_tanks', 'divePlanTanks', 'ptank-a'),
         ('dive_plan_segments', 'divePlanSegments', 'pseg-a'),
+        ('dive_plan_missions', 'divePlanMissions', 'plan-a'),
+        ('dive_plan_mission_legs', 'divePlanMissionLegs', 'pleg-a'),
+        ('dive_plan_mission_members', 'divePlanMissionMembers', 'pmember-a'),
       ];
     },
     'a trip checklist template and its items': () async {
@@ -692,6 +756,9 @@ void main() {
     // here.
     const clearedReferences = {
       'checklist_template_items.template_id',
+      'dive_plan_mission_legs.plan_id',
+      'dive_plan_mission_members.plan_id',
+      'dive_plan_missions.plan_id',
       'dive_plan_segments.plan_id',
       'dive_plan_tanks.plan_id',
       'dive_plans.linked_dive_id',
@@ -747,6 +814,7 @@ const _clearedByDelete = {
   'transmitters',
   'cylinder_fills',
   'saved_queries',
+  'nav_tracks',
   'trips',
   'weight_presets',
 };

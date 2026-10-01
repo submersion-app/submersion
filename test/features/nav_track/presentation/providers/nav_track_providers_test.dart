@@ -1,10 +1,16 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
+import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -26,6 +32,9 @@ Future<void> _insertMinimalDive(AppDatabase db, String id) {
   );
 }
 
+Uint8List _encFixtureBytes() =>
+    File('test/fixtures/nav_tracks/seacraft_enc3_short.csv').readAsBytesSync();
+
 void main() {
   late AppDatabase db;
   late NavTrackRepository repo;
@@ -34,12 +43,94 @@ void main() {
   setUp(() async {
     db = await setUpTestDatabase();
     repo = NavTrackRepository();
-    container = ProviderContainer();
+    // No diver profile: the lists read every route, as before v252.
+    container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
   });
 
   tearDown(() async {
     container.dispose();
     await tearDownTestDatabase();
+  });
+
+  group('scoped to the active diver', () {
+    late ProviderContainer asMe;
+    late String mine;
+    late String ownerless;
+    late String buddys;
+
+    setUp(() async {
+      for (final id in ['me', 'buddy']) {
+        await db.customStatement(
+          "INSERT INTO divers (id, name, created_at, updated_at) "
+          "VALUES ('$id', '$id', 1, 1)",
+        );
+      }
+      Future<String> route(String? diverId) => repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'r.csv',
+        diverId: diverId,
+      );
+      mine = await route('me');
+      ownerless = await route(null);
+      buddys = await route('buddy');
+      asMe = ProviderContainer(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+        ],
+      );
+      addTearDown(asMe.dispose);
+    });
+
+    test(
+      'allNavTracksProvider shows the diver\'s own and ownerless routes',
+      () async {
+        final all = await asMe.read(allNavTracksProvider.future);
+        expect(all.map((r) => r.id), unorderedEquals([mine, ownerless]));
+        expect(all.map((r) => r.id), isNot(contains(buddys)));
+      },
+    );
+
+    test('unlinkedNavTracksProvider shows the diver\'s own and ownerless '
+        'routes', () async {
+      final unlinked = await asMe.read(unlinkedNavTracksProvider.future);
+      expect(unlinked.map((r) => r.id), unorderedEquals([mine, ownerless]));
+    });
+
+    test('the import service stamps the active diver on a new route', () async {
+      final service = asMe.read(navTrackImportServiceProvider);
+      final preview = await service.prepare(
+        _encFixtureBytes(),
+        fileName: 'x.csv',
+      );
+      final id = await service.commit(
+        parsed: preview.parsed,
+        sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
+      );
+      final owner = await db
+          .customSelect("SELECT diver_id FROM nav_tracks WHERE id = '$id'")
+          .getSingle();
+      expect(owner.read<String?>('diver_id'), 'me');
+    });
+
+    test('the match service never links to another diver\'s dive', () async {
+      await db.customStatement(
+        "INSERT INTO dives (id, diver_id, dive_date_time, exit_time, "
+        "created_at, updated_at) VALUES ('buddy-dive', 'buddy', "
+        "1700000000000, 1700003600000, 1, 1)",
+      );
+
+      final result = await asMe.read(navTrackMatchServiceProvider).sweep();
+
+      expect(result.linked, isEmpty);
+      expect((await repo.getById(mine))!.diveId, isNull);
+      expect((await repo.getById(ownerless))!.diveId, isNull);
+    });
   });
 
   test('allNavTracksProvider lists unlinked routes first', () async {

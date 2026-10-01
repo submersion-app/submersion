@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/core/utils/gas_percent.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_metrics.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
-import 'package:submersion/features/cylinder_passports/presentation/utils/gas_percent.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/write_fill_to_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -48,11 +49,20 @@ class PassportCurrentFillCard extends ConsumerWidget {
               child: FilledButton.tonalIcon(
                 onPressed: passportId == null
                     ? null
-                    : () => showLogFillSheet(
-                        context,
-                        passportId: passportId!,
-                        equipmentId: equipmentId,
-                      ),
+                    : () async {
+                        final saved = await showLogFillSheet(
+                          context,
+                          passportId: passportId!,
+                          equipmentId: equipmentId,
+                        );
+                        if (saved == null || !context.mounted) return;
+                        await offerWriteFillToTag(
+                          context,
+                          ref,
+                          equipmentId: equipmentId,
+                          fill: saved,
+                        );
+                      },
                 icon: const Icon(Icons.add),
                 label: Text(l10n.passport_fill_log),
               ),
@@ -116,6 +126,12 @@ class _FillSummary extends StatelessWidget {
               units.formatTemperature(fill.temperatureC),
             ),
           ),
+        // Nothing on a tag is signed: its fill is what someone typed.
+        if (fill.source == FillSource.nfc)
+          Text(
+            l10n.passport_fill_analyseBeforeDiving,
+            style: theme.textTheme.bodySmall,
+          ),
         const SizedBox(height: 8),
         Text(
           l10n.passport_fill_mod(
@@ -138,8 +154,9 @@ class _FillSummary extends StatelessWidget {
   }
 }
 
-/// Unsigned for a manual fill. PR 3 replaces this with the verification
-/// badge; keeping the widget name lets that PR swap the body only.
+/// Where a fill came from, when that matters (spec section 11): "From tag"
+/// for a fill read from the cylinder's NFC tag. Nothing is signed, so
+/// nothing claims to be verified; a fill the diver logged needs no badge.
 class FillSourceBadge extends StatelessWidget {
   const FillSourceBadge({super.key, required this.fill});
 
@@ -147,12 +164,13 @@ class FillSourceBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (fill.source != FillSource.nfc) return const SizedBox.shrink();
     final theme = Theme.of(context);
     return Semantics(
-      label: context.l10n.passport_fill_unsigned,
+      label: context.l10n.passport_fill_fromTag,
       child: Chip(
-        label: Text(context.l10n.passport_fill_unsigned),
-        avatar: const Icon(Icons.edit_note, size: 18),
+        label: Text(context.l10n.passport_fill_fromTag),
+        avatar: const Icon(Icons.nfc, size: 18),
         labelStyle: theme.textTheme.labelSmall,
         visualDensity: VisualDensity.compact,
       ),

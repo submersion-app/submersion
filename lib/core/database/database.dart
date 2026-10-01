@@ -5,10 +5,13 @@ import 'package:submersion/core/database/tables/app_tables.dart';
 import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
+import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
+import 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 import 'package:submersion/core/database/tables/dive_profile_tables.dart';
 import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/equipment_condition_tables.dart';
+import 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
@@ -29,10 +32,13 @@ export 'package:submersion/core/database/tables/app_tables.dart';
 export 'package:submersion/core/database/tables/buddy_tables.dart';
 export 'package:submersion/core/database/tables/cylinder_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
+export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
+export 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 export 'package:submersion/core/database/tables/dive_profile_tables.dart';
 export 'package:submersion/core/database/tables/dive_tables.dart';
 export 'package:submersion/core/database/tables/diver_tables.dart';
 export 'package:submersion/core/database/tables/equipment_condition_tables.dart';
+export 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 export 'package:submersion/core/database/tables/equipment_tables.dart';
 export 'package:submersion/core/database/tables/marine_life_tables.dart';
 export 'package:submersion/core/database/tables/media_tables.dart';
@@ -120,6 +126,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     EmergencyChambers,
     Incidents,
     DiveSensorSummaries,
+    // Explore derived metrics (v247, issue #2195), local only
+    DiveDerivedMetricsRows,
     EquipmentObservations,
     EquipmentFindings,
     EquipmentConditionReviews,
@@ -138,6 +146,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Equipment sharing and its event log (v234, issue #2046)
     EquipmentShares,
     EquipmentOwnershipEvents,
+    // Equipment service cache for the query language (v242, issue
+    // #2365), local only
+    EquipmentServiceStatus,
     // Saved queries (v238, issue #2365)
     SavedQueries,
     // Training courses (v1.5)
@@ -179,6 +190,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DivePlans,
     DivePlanTanks,
     DivePlanSegments,
+    // DPV mission planner (v244, issue #2086)
+    DivePlanMissions,
+    DivePlanMissionLegs,
+    DivePlanMissionMembers,
     // CSV import presets (local-only)
     CsvPresets,
     // Column view configuration
@@ -203,6 +218,11 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     TripCylinderEvents,
     // Saved Connections maps (v235, issue #2322)
     ConnectionMaps,
+    // Gear packed for a trip (v248, issue #2338)
+    TripEquipment,
+    // A profile's hidden shared trips and sites (v250, issue #2594)
+    TripHides,
+    SiteHides,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -212,7 +232,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 241;
+  static const int currentSchemaVersion = 256;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -960,13 +980,66 @@ class AppDatabase extends _$AppDatabase {
     // to 240. Renumbered from 233 and then 235: main shipped 233 (#1921),
     // 234 (#2046) and 239 (#2275) while this was open.
     240,
-    // v241: dives.computer_tissue_json, the tissue state a dive computer
-    // reports for the dive (import of Garmin, Shearwater, Suunto, Ratio and
-    // UDDF tissue data). Additive nullable column, no backfill, so the floor
-    // stays. Renumbered from 220: main shipped 220 to 240 while this was
-    // open, and a rung at or below the shipped version never runs its
-    // onUpgrade step.
+    // v241: tank_pressure_series.source_id (issue #2440), backfilled where
+    // the source is unambiguous. Additive nullable column, so the floor
+    // stays at 240. Renumbered from 232 and then 240 while in review: main
+    // shipped 232 to 234, 239 (#2275) and 240 (#1926) while this was open.
+    // Kept below v242, which main shipped with 241 left for this rung: a
+    // database already at 242 skips this step, the beforeOpen backstop
+    // adds the column there, and its series stay unattributed, which every
+    // reader already handles.
     241,
+    // v242: equipment_service_status, the local service-due cache the
+    // query language's serviceDue field reads (issue #2365, PR 3). A table
+    // with no hlc, never synced, so the floor does not move. 241 was held
+    // by #2493 when this was taken.
+    242,
+    // v244: DPV mission planner (issue #2086). dive_plan_missions,
+    // dive_plan_mission_legs and dive_plan_mission_members, children of
+    // dive_plans. Table-only rung, no backfill; an older reader keeps the
+    // new entity types as inert unknowns, so the floor stays at 240.
+    // Renumbered from 241: #2493 took it, main shipped 242 (#2541) and
+    // an open branch claims 243 (#2409).
+    244,
+    // v245: idx_certifications_buddy_id (issue #2365, PR 4). Index-only;
+    // the floor does not move. 243 was held by #2409 and 244 went to
+    // #2086 when this was taken.
+    245,
+    // v247: dive_derived_metrics, the Explore derived metrics the dive query
+    // fields read (issue #2195, phase 2). A table with no hlc, never synced,
+    // so the floor does not move. 246 is held by #2409 (open).
+    247,
+    // v248: trip_equipment, gear packed for a trip (issue #2338).
+    // Table-only rung, no backfill; the floor does not move. 246 is held by
+    // #2409 and 247 went to #2195 (Explore derived metrics).
+    248,
+    // v249: the trip fill forecast's inputs (issue #2325, PR 4): trips
+    // divers sharing and dives per day, itinerary planned dives, dive
+    // center fill hours. Additive columns, so the floor does not move. 248
+    // is trip_equipment (#2338).
+    249,
+    // v250: trip_hides and site_hides, the shared trips and sites a profile
+    // has hidden from itself (issue #2594). Table-only rung, no backfill;
+    // an older peer keeps the new entity types as inert unknowns, so the
+    // floor does not move. #2562 and #2409 held stale claims below 249
+    // when this was taken.
+    250,
+    // v251: dive_tanks.source_id (issue #2716), the data source a tank row
+    // came from, so two computer-less sources' copies of one cylinder come
+    // apart; backfilled where unambiguous. Additive nullable column, so the
+    // floor stays at 240. 250 is trip_hides and site_hides (#2594).
+    251,
+    // v252: nav_tracks.diver_id, the route's owner, backfilled from each
+    // linked route's dive (issue #2691 follow-up). Additive nullable column,
+    // so the floor does not move. 251 is dive_tanks.source_id (#2716).
+    252,
+    // v256: dives.computer_tissue_json, the tissue state a dive computer
+    // reports for the dive (import of Garmin, Shearwater, Suunto, Ratio and
+    // UDDF tissue data, issue #1977). Additive nullable column, no
+    // backfill, so the floor stays. Renumbered from 220 and then 241: main
+    // shipped 220 to 252 while this was open, and 253 to 255 are held by
+    // #2748, #2749 and #2762.
+    256,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

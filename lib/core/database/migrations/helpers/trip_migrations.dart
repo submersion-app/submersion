@@ -90,4 +90,46 @@ extension TripMigrations on AppDatabase {
       );
     }
   }
+
+  /// The trip_equipment table and its item index (v248, issue #2338).
+  /// Called from the v248 rung and the beforeOpen backstop. Skipped on a
+  /// partial migration-test fixture that lacks a parent table.
+  Future<void> _assertTripEquipmentSchema() async {
+    for (final parent in const ['trips', 'equipment']) {
+      if (!await _tableExists(parent)) return;
+    }
+    await Migrator(this).createTable(tripEquipment);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_trip_equipment_equipment '
+      'ON trip_equipment(equipment_id)',
+    );
+  }
+
+  /// The trip_hides table (v250, issue #2594). Called from the v250 rung
+  /// and the beforeOpen backstop. Skipped on a partial migration-test
+  /// fixture that lacks a parent table.
+  Future<void> _assertTripHidesSchema() async {
+    for (final parent in const ['trips', 'divers']) {
+      if (!await _tableExists(parent)) return;
+    }
+    await Migrator(this).createTable(tripHides);
+  }
+
+  /// v249: the fill forecast's inputs (issue #2325, PR 4). Additive columns,
+  /// no backfill; idempotent, so it is also the beforeOpen backstop.
+  Future<void> _assertTripFillForecastColumns() async {
+    await _addColumnIfMissing(
+      'trips',
+      'divers_sharing_cylinders',
+      'INTEGER NOT NULL DEFAULT 1',
+    );
+    await _addColumnIfMissing('trips', 'dives_per_day_target', 'INTEGER');
+    await _addColumnIfMissing(
+      'trip_itinerary_days',
+      'planned_dives',
+      'INTEGER',
+    );
+    await _addColumnIfMissing('dive_centers', 'fill_opens_at', 'INTEGER');
+    await _addColumnIfMissing('dive_centers', 'fill_closes_at', 'INTEGER');
+  }
 }

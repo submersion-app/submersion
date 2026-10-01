@@ -15,6 +15,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -110,6 +115,7 @@ Future<List<Override>> _buildOverrides({
 
 Future<List<Override>> _buildPhoneOverrides({
   required List<Certification> certs,
+  ListViewMode viewMode = ListViewMode.detailed,
   String? highlightedCertificationId,
 }) async {
   SharedPreferences.setMockInitialValues({});
@@ -122,9 +128,7 @@ Future<List<Override>> _buildPhoneOverrides({
     certificationListNotifierProvider.overrideWith(
       (ref) => _MockCertListNotifier(certs),
     ),
-    certificationListViewModeProvider.overrideWith(
-      (ref) => ListViewMode.detailed,
-    ),
+    certificationListViewModeProvider.overrideWith((ref) => viewMode),
     certificationTableConfigProvider.overrideWith(
       (ref) => _TestCertTableConfigNotifier(_testConfig),
     ),
@@ -136,6 +140,37 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // The title's subtitle counts the list (#2669), in both the phone app bar
+  // and the desktop pane header.
+  group('entry count subtitle', () {
+    for (final showAppBar in const [true, false]) {
+      testWidgets('${showAppBar ? 'app bar' : 'compact bar'} counts the list', (
+        tester,
+      ) async {
+        final overrides = await _buildPhoneOverrides(
+          certs: [
+            _makeCert(id: 'c1', name: 'Open Water'),
+            _makeCert(id: 'c2', name: 'Nitrox'),
+          ],
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: CertificationListContent(showAppBar: showAppBar),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(
+            of: find.byType(FeatureAppBarTitle),
+            matching: find.text('2 certifications'),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+  });
   group('bulk delete', () {
     late _MockCertListNotifier notifier;
 
@@ -814,6 +849,61 @@ void main() {
       );
 
       handle.dispose();
+    });
+  });
+
+  group('query (#2365)', () {
+    final padi = ConditionNode(
+      FieldPath(['agency']),
+      QueryOp.eq,
+      const EnumValue('padi'),
+    );
+
+    Future<void> pumpWithQuery(
+      WidgetTester tester, {
+      required Set<String> ids,
+      ListViewMode viewMode = ListViewMode.detailed,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        certs: [
+          _makeCert(id: 'c1', name: 'Open Water'),
+          _makeCert(id: 'c2', name: 'Nitrox'),
+        ],
+        viewMode: viewMode,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            certificationQueryProvider.overrideWith((ref) => padi),
+            entityQueryIdsProvider.overrideWith((ref, key) async => ids),
+          ],
+          child: const CertificationListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the query narrows the list and shows its chip', (
+      tester,
+    ) async {
+      await pumpWithQuery(tester, ids: {'c1'});
+      expect(find.text('Open Water'), findsWidgets);
+      expect(find.text('Nitrox'), findsNothing);
+      expect(find.text('agency = padi'), findsOneWidget);
+    });
+
+    testWidgets('a query that keeps nothing shows the no-match state', (
+      tester,
+    ) async {
+      await pumpWithQuery(tester, ids: const {});
+      expect(find.byType(QueryNoMatchState), findsOneWidget);
+    });
+
+    testWidgets('table mode reads the filtered certifications', (tester) async {
+      await pumpWithQuery(tester, ids: {'c2'}, viewMode: ListViewMode.table);
+      expect(find.text('Nitrox'), findsWidgets);
+      expect(find.text('Open Water'), findsNothing);
     });
   });
 }

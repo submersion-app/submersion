@@ -203,6 +203,12 @@ class DiverSettings extends Table {
   RealColumn get endLimit => real().withDefault(const Constant(30.0))();
   BoolColumn get useDiveComputerCnsData =>
       boolean().withDefault(const Constant(false))();
+  // The per-metric data sources stay at DEFAULT 1 (calculated) even though a
+  // new diver gets computer (#1859): that default lives in AppSettings, which
+  // every settings row is written from. Sync fills a key missing from an
+  // older peer's payload with this column default and writes it over the
+  // local row, so a 0 here would move existing libraries to computer.
+  // Applies to the GTR and deco stop sources below too.
   IntColumn get defaultNdlSource => integer().withDefault(const Constant(1))();
   IntColumn get defaultCeilingSource =>
       integer().withDefault(const Constant(1))();

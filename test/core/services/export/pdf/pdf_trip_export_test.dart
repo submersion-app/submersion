@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
+import '../../../../helpers/fake_hosts.dart';
 import '../../../../helpers/mock_channels.dart';
 import '../../../../helpers/pdf_text.dart';
 
@@ -33,6 +35,13 @@ const imperial = UnitFormatter(
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
 
   late Directory shareDir;
   late PdfExportService service;
@@ -281,4 +290,16 @@ void main() {
       expect(text, contains(plain(fr.l10n.pdf_totalRuntime)));
     },
   );
+
+  test('the file is named after the trip in any script', () async {
+    final path = await service.exportTripToPdf(
+      trip.copyWith(name: 'Curaçao 2026!'),
+      const [],
+      dates: isoDates,
+      units: metric,
+    );
+    expect(p.basename(path), 'trip_Curaçao_2026.pdf');
+    expect(tripPdfFileName('台湾'), 'trip_台湾.pdf');
+    expect(tripPdfFileName(''), 'trip.pdf');
+  });
 }

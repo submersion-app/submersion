@@ -21,6 +21,7 @@ import 'package:submersion/features/data_quality/presentation/providers/data_qua
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
@@ -29,6 +30,7 @@ import 'package:submersion/features/dive_log/presentation/providers/highlight_pr
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
@@ -172,6 +174,10 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       return TableModeLayout(
         sectionKey: 'dives',
         appBarTitle: context.l10n.nav_dives,
+        appBarSubtitle: diveCountSubtitle(
+          context,
+          ref.watch(diveTableCountProvider),
+        ),
         tableContent: const DiveListContent(showAppBar: false),
         detailBuilder: (context, id) {
           final state = GoRouterState.of(context);
@@ -237,6 +243,13 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           onPressed: () => showTableColumnPicker(context),
         ),
         appBarActions: [
+          // Only where an on-device model exists for the active locale.
+          if (ref.watch(exploreEnabledProvider))
+            IconButton(
+              icon: const Icon(Icons.auto_awesome, size: 20),
+              tooltip: context.l10n.diveLog_listPage_tooltip_explore,
+              onPressed: () => context.push('/dives/explore'),
+            ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,

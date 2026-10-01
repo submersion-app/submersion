@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/domain/track_geometry.dart';
 
@@ -32,12 +33,12 @@ void main() {
     });
 
     test('unwraps in both directions', () {
-      expect(unwrapLongitudeDelta(-359.9), closeTo(0.1, 1e-9));
-      expect(unwrapLongitudeDelta(359.9), closeTo(-0.1, 1e-9));
-      expect(unwrapLongitudeDelta(-0.1), closeTo(-0.1, 1e-9));
-      expect(unwrapLongitudeDelta(0.1), closeTo(0.1, 1e-9));
-      // Exactly 180 is left alone: it is equidistant either way.
-      expect(unwrapLongitudeDelta(180.0), 180.0);
+      expect(longitudeDelta(179.95, -179.95), closeTo(0.1, 1e-9));
+      expect(longitudeDelta(-179.95, 179.95), closeTo(-0.1, 1e-9));
+      expect(longitudeDelta(0.1, 0), closeTo(-0.1, 1e-9));
+      expect(longitudeDelta(0, 0.1), closeTo(0.1, 1e-9));
+      // Exactly half way round is equidistant either way; it counts as east.
+      expect(longitudeDelta(0, 180), 180.0);
     });
   });
 

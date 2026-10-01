@@ -14,6 +14,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -135,6 +140,37 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // The title's subtitle counts the list (#2669), in both the phone app bar
+  // and the desktop pane header.
+  group('entry count subtitle', () {
+    for (final showAppBar in const [true, false]) {
+      testWidgets('${showAppBar ? 'app bar' : 'compact bar'} counts the list', (
+        tester,
+      ) async {
+        final overrides = await _buildPhoneOverrides(
+          centers: [
+            _makeCenter(id: 'c1', name: 'Reef Divers'),
+            _makeCenter(id: 'c2', name: 'Blue Hole'),
+          ],
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: DiveCenterListContent(showAppBar: showAppBar),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(
+            of: find.byType(FeatureAppBarTitle),
+            matching: find.text('2 dive centers'),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+  });
   group('bulk delete', () {
     late _MockDCListNotifier notifier;
 
@@ -696,6 +732,61 @@ void main() {
       );
 
       expect(reached, isTrue);
+    });
+  });
+
+  group('query (#2365)', () {
+    final good = ConditionNode(
+      FieldPath(['rating']),
+      QueryOp.gte,
+      const NumberValue(4, null),
+    );
+
+    Future<void> pumpWithQuery(
+      WidgetTester tester, {
+      required Set<String> ids,
+      ListViewMode viewMode = ListViewMode.detailed,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        centers: [
+          _makeCenter(id: 'k1', name: 'Reef Divers', rating: 5),
+          _makeCenter(id: 'k2', name: 'Lake Club', rating: 2),
+        ],
+        viewMode: viewMode,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            diveCenterQueryProvider.overrideWith((ref) => good),
+            entityQueryIdsProvider.overrideWith((ref, key) async => ids),
+          ],
+          child: const DiveCenterListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the query narrows the list and shows its chip', (
+      tester,
+    ) async {
+      await pumpWithQuery(tester, ids: {'k1'});
+      expect(find.text('Reef Divers'), findsWidgets);
+      expect(find.text('Lake Club'), findsNothing);
+      expect(find.text('rating >= 4'), findsOneWidget);
+    });
+
+    testWidgets('a query that keeps nothing shows the no-match state', (
+      tester,
+    ) async {
+      await pumpWithQuery(tester, ids: const {});
+      expect(find.byType(QueryNoMatchState), findsOneWidget);
+    });
+
+    testWidgets('table mode reads the filtered centers', (tester) async {
+      await pumpWithQuery(tester, ids: {'k2'}, viewMode: ListViewMode.table);
+      expect(find.text('Lake Club'), findsWidgets);
+      expect(find.text('Reef Divers'), findsNothing);
     });
   });
 }

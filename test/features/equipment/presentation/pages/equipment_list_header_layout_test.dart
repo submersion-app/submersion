@@ -24,6 +24,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 
+import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
 
 /// The Equipment/Sets toggle scopes the search / filter / sort / select
@@ -72,6 +73,8 @@ Future<List<Override>> _overrides({double? paneWidth}) async {
     equipmentListNotifierProvider.overrideWith((ref) => _MockEquipNotifier()),
     tagListNotifierProvider.overrideWith((ref) => _EmptyTagList()),
     equipmentSetListNotifierProvider.overrideWith((ref) => _EmptySetList()),
+    fakeEquipmentQueryIds(),
+    allEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
     equipmentListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
     equipmentSortProvider.overrideWith(
       (ref) => const SortState(
@@ -138,6 +141,13 @@ Future<void> _pump(
 
 final _switcher = find.byKey(const ValueKey('equipment_section_toggle'));
 
+/// Whether [a] shares a row with [b]: [a]'s vertical centre lies within
+/// [b]'s span. Not a centre match, since the list's entry count (#2669) sits
+/// under the toggle and lifts it above the centre of the icons beside it;
+/// not a bare overlap either, which a toggle stacked above would also pass.
+bool _overlapVertically(Rect a, Rect b) =>
+    a.center.dy > b.top && a.center.dy < b.bottom;
+
 /// The toggle precedes the actions: strictly above them, or to their left on a
 /// shared row.
 void _expectTogglePrecedesActions(WidgetTester tester) {
@@ -146,8 +156,7 @@ void _expectTogglePrecedesActions(WidgetTester tester) {
 
   final above = toggle.bottom <= action.top + 0.5;
   final leftOfOnSameRow =
-      (toggle.center.dy - action.center.dy).abs() < 1.0 &&
-      toggle.right <= action.left + 0.5;
+      _overlapVertically(toggle, action) && toggle.right <= action.left + 0.5;
 
   expect(
     above || leftOfOnSameRow,
@@ -426,11 +435,10 @@ void main() {
           4 * kMinInteractiveDimension;
     }
 
-    bool sameRow(WidgetTester tester) =>
-        (tester.getCenter(_switcher).dy -
-                tester.getCenter(find.byIcon(Icons.search)).dy)
-            .abs() <
-        1.0;
+    bool sameRow(WidgetTester tester) => _overlapVertically(
+      tester.getRect(_switcher),
+      tester.getRect(find.byIcon(Icons.search)),
+    );
 
     testWidgets('where they fit, the switcher and actions share one row', (
       tester,

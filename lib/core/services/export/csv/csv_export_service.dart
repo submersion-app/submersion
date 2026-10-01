@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui' show Rect;
 
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
@@ -10,15 +11,19 @@ import 'package:submersion/core/services/export/csv/codec/csv_text.dart'
     as csv_text;
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
+import 'package:submersion/core/services/export/csv/csv_fills_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_sites_writer.dart';
+import 'package:submersion/core/services/export/csv/csv_trip_gas_record_writer.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 
 /// Handles all CSV export operations: share, generate content, and save to file.
 class CsvExportService {
@@ -303,6 +308,112 @@ class CsvExportService {
       mimeType: 'text/csv',
     );
 
+    if (result == null) return null;
+    return savedFileLocation(result);
+  }
+
+  // ==================== Cylinder fills (passports phase 5) ====================
+
+  /// Export cylinder fills to CSV format and share via system sheet.
+  /// [equipmentById] supplies the linked cylinder's name and serial.
+  Future<String> exportFillsToCsv(
+    List<CylinderFill> fills, {
+    Map<String, EquipmentItem> equipmentById = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) async {
+    final csvData = generateFillsCsvContent(
+      fills,
+      equipmentById: equipmentById,
+      units: units,
+    );
+    return saveAndShareFile(csvData, 'fills_export.csv', 'text/csv');
+  }
+
+  /// Generate CSV content for cylinder fills (without sharing).
+  String generateFillsCsvContent(
+    List<CylinderFill> fills, {
+    Map<String, EquipmentItem> equipmentById = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => CsvFillsWriter(units).write(fills, equipmentById: equipmentById);
+
+  /// Save cylinder fills CSV to a user-selected location.
+  Future<String?> saveFillsCsvToFile(
+    List<CylinderFill> fills, {
+    Map<String, EquipmentItem> equipmentById = const {},
+    required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) async {
+    final csvContent = generateFillsCsvContent(
+      fills,
+      equipmentById: equipmentById,
+      units: units,
+    );
+    final dateStr = _dateFormat.format(DateTime.now());
+    final fileName = 'fills_export_$dateStr.csv';
+
+    final result = await FilePicker.saveFile(
+      dialogTitle: dialogTitle,
+      fileName: fileName,
+      type: FileType.custom,
+      bytes: Uint8List.fromList(utf8.encode(csvContent)),
+      mimeType: 'text/csv',
+    );
+
+    if (result == null) return null;
+    return savedFileLocation(result);
+  }
+
+  // ==================== Trip gas record (issue #2325) ====================
+
+  /// Generate the trip gas record CSV (without sharing).
+  String generateTripGasRecordCsvContent(
+    TripGasRecord record, {
+    Map<String, String> centerNames = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) => CsvTripGasRecordWriter(units).write(record, centerNames: centerNames);
+
+  /// Export the trip gas record to CSV and share via the system sheet.
+  /// [sharePositionOrigin] anchors the iPad popover to the export button.
+  Future<String> exportTripGasRecordToCsv(
+    TripGasRecord record, {
+    required String tripName,
+    Map<String, String> centerNames = const {},
+    CsvExportUnits units = CsvExportUnits.metric,
+    Rect? sharePositionOrigin,
+  }) => saveAndShareFile(
+    generateTripGasRecordCsvContent(
+      record,
+      centerNames: centerNames,
+      units: units,
+    ),
+    tripGasRecordFileName(tripName, DateTime.now()),
+    'text/csv',
+    sharePositionOrigin: sharePositionOrigin,
+  );
+
+  /// Save the trip gas record CSV to a location the diver picks.
+  Future<String?> saveTripGasRecordCsvToFile(
+    TripGasRecord record, {
+    required String tripName,
+    Map<String, String> centerNames = const {},
+    required String dialogTitle,
+    CsvExportUnits units = CsvExportUnits.metric,
+  }) async {
+    final result = await FilePicker.saveFile(
+      dialogTitle: dialogTitle,
+      fileName: tripGasRecordFileName(tripName, DateTime.now()),
+      type: FileType.custom,
+      bytes: Uint8List.fromList(
+        utf8.encode(
+          generateTripGasRecordCsvContent(
+            record,
+            centerNames: centerNames,
+            units: units,
+          ),
+        ),
+      ),
+      mimeType: 'text/csv',
+    );
     if (result == null) return null;
     return savedFileLocation(result);
   }

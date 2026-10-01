@@ -17,6 +17,7 @@ import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_step.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
+import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 
 // ---------------------------------------------------------------------------
 // Fake adapter
@@ -1056,6 +1057,29 @@ void main() {
       expect(find.text('Courses'), findsOneWidget);
       expect(find.text('3'), findsOneWidget);
     });
+
+    testWidgets('shows cylinder fills row (cylinder passports phase 5)', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.fills: 5},
+          consolidatedCount: 0,
+          skippedCount: 0,
+        ),
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.text('Fills'), findsOneWidget);
+      expect(find.text('5'), findsOneWidget);
+      expect(find.byIcon(Icons.propane_tank_outlined), findsOneWidget);
+    });
   });
 
   group('ImportSummaryStep - per-file outcomes (bulk import)', () {
@@ -1953,5 +1977,74 @@ void main() {
     // call), and the button-visibility test above covers the condition
     // this handler's precondition depends on (isNavTrackRoute && filePath
     // != null).
+  });
+
+  group('ImportSummaryStep - flagged findings (#2717)', () {
+    testWidgets('the Review action sits under the flagged count and opens the '
+        'quality inbox for the imported dives', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final ids = ['d1', 'd2'];
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: UnifiedImportResult(
+          importedCounts: const {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          importedDiveIds: ids,
+        ),
+      );
+
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: ImportSummaryStep(onDone: () {}, onViewDives: () {}),
+            ),
+          ),
+          GoRoute(
+            path: '/dives/quality',
+            builder: (_, state) => Scaffold(
+              body: Text('inbox ${state.uri.queryParameters['dive']}'),
+            ),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            importWizardNotifierProvider.overrideWith((_) => notifier),
+            eligibleImportedDivesProvider(
+              ImportedDiveIds(ids),
+            ).overrideWith((ref) => const <String>[]),
+            importedDivesOpenFindingsCountProvider(
+              importedDivesFindingsKey(ids),
+            ).overrideWith((ref) => Stream.value(3)),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final label = tester.getRect(find.text('3 items flagged for review'));
+      final review = find.widgetWithText(TextButton, 'Review');
+      expect(review, findsOneWidget);
+      expect(tester.getRect(review).top, greaterThanOrEqualTo(label.bottom));
+
+      await tester.tap(review);
+      await tester.pumpAndSettle();
+
+      expect(find.text('inbox d1,d2'), findsOneWidget);
+    });
   });
 }

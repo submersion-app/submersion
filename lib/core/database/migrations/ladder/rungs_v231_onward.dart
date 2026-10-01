@@ -70,11 +70,78 @@ extension RungsFromV231 on AppDatabase {
       await _assertProfileEventsDiveIdIndex();
     }
     if (from < 240) await reportProgress();
-    // v241: dives.computer_tissue_json. Column-only rung, no backfill:
-    // null reads as "the computer reported no tissue state".
+    // v241: tank_pressure_series.source_id (issue #2440), backfilled
+    // where the source is unambiguous.
     if (from < 241) {
-      await _assertComputerTissueColumn();
+      await _assertTankSeriesSourceIdColumn();
+      await _backfillTankSeriesSourceIds();
     }
     if (from < 241) await reportProgress();
+    // v242: the equipment service cache (issue #2365). Table-only rung;
+    // re-asserted in beforeOpen.
+    if (from < 242) {
+      await _assertEquipmentServiceStatusTable();
+    }
+    if (from < 242) await reportProgress();
+    // v244: DPV mission planner (issue #2086). Table-only rung, no
+    // backfill: a plan without a mission row has no mission. Re-asserted
+    // in beforeOpen.
+    if (from < 244) {
+      await _assertDivePlanMissionSchema();
+    }
+    if (from < 244) await reportProgress();
+    // v245: index certifications by buddy (issue #2365). Index-only rung;
+    // re-asserted in beforeOpen.
+    if (from < 245) {
+      await _assertCertificationsBuddyIndex();
+    }
+    if (from < 245) await reportProgress();
+    // v247: the Explore derived metrics (issue #2195). Table-only rung, no
+    // backfill: the startup sweep fills it. Re-asserted in beforeOpen.
+    if (from < 247) {
+      await _assertDerivedMetricsTable();
+    }
+    if (from < 247) await reportProgress();
+    // v248: gear packed for a trip (issue #2338). Table-only rung, no
+    // backfill; re-asserted in beforeOpen.
+    if (from < 248) {
+      await _assertTripEquipmentSchema();
+    }
+    if (from < 248) await reportProgress();
+    // v249: the trip fill forecast's inputs (issue #2325, PR 4). Columns
+    // only, no backfill; re-asserted in beforeOpen. 248 is #2585.
+    if (from < 249) {
+      await _assertTripFillForecastColumns();
+    }
+    if (from < 249) await reportProgress();
+    // v250: a profile's hidden shared trips and sites (issue #2594).
+    // Table-only rung, no backfill; re-asserted in beforeOpen.
+    if (from < 250) {
+      await _assertTripHidesSchema();
+      await _assertSiteHidesSchema();
+    }
+    if (from < 250) await reportProgress();
+    // v251: dive_tanks.source_id (issue #2716), backfilled where the
+    // source is unambiguous. 250 is profile hides (#2594).
+    if (from < 251) {
+      await _assertDiveTankSourceIdColumn();
+      await _backfillDiveTankSourceIds();
+    }
+    if (from < 251) await reportProgress();
+    // v252: nav_tracks.diver_id, the route's owner (issue #2691 follow-up),
+    // backfilled from each linked route's dive. The column is re-asserted in
+    // beforeOpen; the backfill stays in the rung. 251 is
+    // dive_tanks.source_id (#2716).
+    if (from < 252) {
+      await _assertNavTrackDiverIdColumn();
+      await _backfillNavTrackDiverIds();
+    }
+    if (from < 252) await reportProgress();
+    // v256: dives.computer_tissue_json (issue #1977). Column-only rung, no
+    // backfill: null reads as "the computer reported no tissue state".
+    if (from < 256) {
+      await _assertComputerTissueColumn();
+    }
+    if (from < 256) await reportProgress();
   }
 }

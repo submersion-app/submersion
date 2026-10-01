@@ -2,6 +2,71 @@ part of '../app_database_migrations.dart';
 
 /// Profile series, profile events and the legacy sample tables.
 extension DiveProfileMigrations on AppDatabase {
+  /// Idempotent DDL for tank_pressure_series.source_id (v241, issue #2440).
+  Future<void> _assertTankSeriesSourceIdColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('tank_pressure_series')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('source_id')) {
+      await customStatement(
+        'ALTER TABLE tank_pressure_series ADD COLUMN source_id TEXT '
+        'REFERENCES dive_data_sources(id) ON DELETE SET NULL',
+      );
+    }
+  }
+
+  /// v241: attribute existing tank pressure series to their data source
+  /// wherever that is unambiguous: the dive has a single source, or exactly
+  /// one of its sources is the computer that recorded the series. Series of
+  /// two file imports on one dive (both with a null computer) stay null,
+  /// since nothing tells them apart. Re-runs only touch rows still null.
+  Future<void> _backfillTankSeriesSourceIds() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('tank_pressure_series')",
+    ).get();
+    if (!cols.map((c) => c.read<String>('name')).contains('source_id')) {
+      return;
+    }
+    // Guarded like the backstops: a partially built database (a migration
+    // fixture, or one caught mid-ladder) may lack the sources table.
+    final sourceCols = await customSelect(
+      "PRAGMA table_info('dive_data_sources')",
+    ).get();
+    final sourceNames = sourceCols.map((c) => c.read<String>('name')).toSet();
+    if (!sourceNames.containsAll(const ['id', 'dive_id', 'computer_id'])) {
+      return;
+    }
+    await customStatement('''
+      UPDATE tank_pressure_series
+      SET source_id = (
+        SELECT s.id FROM dive_data_sources s
+        WHERE s.dive_id = tank_pressure_series.dive_id
+      )
+      WHERE source_id IS NULL
+        AND (
+          SELECT COUNT(*) FROM dive_data_sources s
+          WHERE s.dive_id = tank_pressure_series.dive_id
+        ) = 1
+    ''');
+    await customStatement('''
+      UPDATE tank_pressure_series
+      SET source_id = (
+        SELECT s.id FROM dive_data_sources s
+        WHERE s.dive_id = tank_pressure_series.dive_id
+          AND s.computer_id = tank_pressure_series.computer_id
+      )
+      WHERE source_id IS NULL
+        AND computer_id IS NOT NULL
+        AND (
+          SELECT COUNT(*) FROM dive_data_sources s
+          WHERE s.dive_id = tank_pressure_series.dive_id
+            AND s.computer_id = tank_pressure_series.computer_id
+        ) = 1
+    ''');
+  }
+
   /// v240: scoped event tombstones select events by dive (#1926). Guarded
   /// on the table, as the other backstops are, for migration fixtures that
   /// build only part of the schema.

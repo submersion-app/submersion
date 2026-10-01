@@ -30,8 +30,11 @@ class EquipmentExposureSample extends Equatable {
   /// dive, or null when the link path carries no gas (a mask, a fin).
   final double? contactO2Fraction;
 
-  /// The dive's `updated_at` (condition phase 3b), so the condition input
-  /// fingerprint changes whenever any sample's dive changed.
+  /// The dive's source stamp (`diveSourceStampSql`): its `updated_at` plus
+  /// those of its profile and tank-pressure series, which sync without
+  /// re-stamping the dive. A version token, not a time. The condition input
+  /// fingerprint changes whenever any sample's dive or series changed, and
+  /// a sensor summary is current only when it was built from this stamp.
   final int updatedAt;
 
   const EquipmentExposureSample({

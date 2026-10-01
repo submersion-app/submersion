@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/write_fill_to_tag.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_blender.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_cylinder_picker.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_table_style.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+final _log = LoggerService.forClass(BlenderProcedureCard);
 
 /// The fill procedure, or the reason there is not one.
 ///
@@ -95,10 +104,58 @@ class BlenderProcedureCard extends ConsumerWidget {
                 ),
               ),
             ],
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                key: const Key('blender-log-fill'),
+                icon: const Icon(Icons.playlist_add, size: 18),
+                label: Text(context.l10n.gasCalculators_blender_logFill),
+                onPressed: () => _logFill(context, ref),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  /// Log this fill (spec section 11): the blend, prefilled into the fill
+  /// sheet of the cylinder the diver picks, then offered to its tag.
+  Future<void> _logFill(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final String passportId;
+    final EquipmentItem? tank;
+    try {
+      tank = await showBlenderCylinderPicker(context, ref);
+      if (tank == null || !context.mounted) return;
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      passportId = await ref
+          .read(cylinderPassportRepositoryProvider)
+          .ensurePassportId(tank.id, diverId: diverId);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to pick a cylinder for a blend',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.gasCalculators_blender_cylinderFailed)),
+      );
+      return;
+    }
+    if (!context.mounted) return;
+    final saved = await showLogFillSheet(
+      context,
+      passportId: passportId,
+      equipmentId: tank.id,
+      initialMix: ref.read(blenderTargetMixProvider),
+      initialPressureBar: ref.read(blenderTargetPressureProvider),
+      initialTemperatureC: ref.read(blenderSettledTempProvider),
+      mixFromPlan: true,
+    );
+    if (saved == null || !context.mounted) return;
+    await offerWriteFillToTag(context, ref, equipmentId: tank.id, fill: saved);
   }
 
   /// The fill and settled temperatures set on the settings page, read-only

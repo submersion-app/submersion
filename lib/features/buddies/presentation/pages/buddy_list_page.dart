@@ -20,6 +20,12 @@ import 'package:submersion/features/buddies/presentation/widgets/buddy_summary_w
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_search_delegate.dart';
+import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
 
 class BuddyListPage extends ConsumerWidget {
   const BuddyListPage({super.key});
@@ -51,6 +57,7 @@ class BuddyListPage extends ConsumerWidget {
         child: TableModeLayout(
           sectionKey: 'buddies',
           appBarTitle: context.l10n.nav_buddies,
+          appBarSubtitle: buddyListCountLabel(context, ref),
           tableContent: const BuddyListContent(showAppBar: false),
           detailBuilder: (context, buddyId) => BuddyDetailPage(
             buddyId: buddyId,
@@ -95,6 +102,12 @@ class BuddyListPage extends ConsumerWidget {
                   delegate: BuddySearchDelegate(ref),
                 );
               },
+            ),
+            QueryFilterAction(
+              provider: buddyQueryProvider,
+              subject: QuerySubject.buddies,
+              root: buddyQueryEntity,
+              compact: true,
             ),
             IconButton(
               icon: const Icon(Icons.sort, size: 20),

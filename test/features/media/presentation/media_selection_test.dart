@@ -13,7 +13,6 @@ import 'package:submersion/features/media/domain/entities/media_library_filter.d
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -71,8 +70,6 @@ class _UnavailableResolver implements MediaSourceResolver {
     MediaItem item, {
     required Size target,
   }) => resolve(item);
-  @override
-  Future<MediaSourceMetadata?> extractMetadata(MediaItem item) async => null;
   @override
   Future<VerifyResult> verify(MediaItem item) async => VerifyResult.available;
 }

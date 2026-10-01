@@ -1,0 +1,259 @@
+{
+ "station": "9414290",
+ "name": "San Francisco",
+ "latitude": 37.806305,
+ "longitude": -122.46589,
+ "source": "NOAA CO-OPS harcon, datums and hilo predictions, time_zone=lst_ldt",
+ "z0MetersAboveMllw": 0.951,
+ "constituents": {
+  "M2": {
+   "amplitude": 0.576,
+   "phase": 208.2
+  },
+  "S2": {
+   "amplitude": 0.137,
+   "phase": 216.2
+  },
+  "N2": {
+   "amplitude": 0.122,
+   "phase": 183.2
+  },
+  "K1": {
+   "amplitude": 0.37,
+   "phase": 225.4
+  },
+  "M4": {
+   "amplitude": 0.022,
+   "phase": 136.8
+  },
+  "O1": {
+   "amplitude": 0.23,
+   "phase": 208.4
+  },
+  "M6": {
+   "amplitude": 0.002,
+   "phase": 7.3
+  },
+  "MK3": {
+   "amplitude": 0.018,
+   "phase": 124.1
+  },
+  "MN4": {
+   "amplitude": 0.008,
+   "phase": 112.0
+  },
+  "Nu2": {
+   "amplitude": 0.026,
+   "phase": 189.9
+  },
+  "Mu2": {
+   "amplitude": 0.007,
+   "phase": 100.2
+  },
+  "2N2": {
+   "amplitude": 0.013,
+   "phase": 153.3
+  },
+  "OO1": {
+   "amplitude": 0.012,
+   "phase": 260.0
+  },
+  "La2": {
+   "amplitude": 0.007,
+   "phase": 214.3
+  },
+  "S1": {
+   "amplitude": 0.007,
+   "phase": 282.6
+  },
+  "M1": {
+   "amplitude": 0.011,
+   "phase": 237.5
+  },
+  "J1": {
+   "amplitude": 0.019,
+   "phase": 244.3
+  },
+  "Ssa": {
+   "amplitude": 0.03,
+   "phase": 272.3
+  },
+  "Sa": {
+   "amplitude": 0.044,
+   "phase": 200.2
+  },
+  "Mf": {
+   "amplitude": 0.015,
+   "phase": 153.1
+  },
+  "Rho1": {
+   "amplitude": 0.009,
+   "phase": 200.0
+  },
+  "Q1": {
+   "amplitude": 0.041,
+   "phase": 202.4
+  },
+  "T2": {
+   "amplitude": 0.009,
+   "phase": 204.6
+  },
+  "R2": {
+   "amplitude": 0.001,
+   "phase": 126.8
+  },
+  "2Q1": {
+   "amplitude": 0.006,
+   "phase": 208.6
+  },
+  "P1": {
+   "amplitude": 0.114,
+   "phase": 222.1
+  },
+  "2SM2": {
+   "amplitude": 0.003,
+   "phase": 37.3
+  },
+  "M3": {
+   "amplitude": 0.003,
+   "phase": 37.6
+  },
+  "L2": {
+   "amplitude": 0.018,
+   "phase": 229.6
+  },
+  "2MK3": {
+   "amplitude": 0.014,
+   "phase": 92.2
+  },
+  "K2": {
+   "amplitude": 0.04,
+   "phase": 206.0
+  },
+  "M8": {
+   "amplitude": 0.001,
+   "phase": 108.5
+  },
+  "MS4": {
+   "amplitude": 0.01,
+   "phase": 149.0
+  }
+ },
+ "expectedLocalExtremes": [
+  {
+   "localTime": "2026-03-07 01:28",
+   "type": "H",
+   "height": 1.702
+  },
+  {
+   "localTime": "2026-03-07 07:51",
+   "type": "L",
+   "height": 0.188
+  },
+  {
+   "localTime": "2026-03-07 14:24",
+   "type": "H",
+   "height": 1.274
+  },
+  {
+   "localTime": "2026-03-07 19:29",
+   "type": "L",
+   "height": 0.638
+  },
+  {
+   "localTime": "2026-03-08 01:57",
+   "type": "H",
+   "height": 1.675
+  },
+  {
+   "localTime": "2026-03-08 09:39",
+   "type": "L",
+   "height": 0.198
+  },
+  {
+   "localTime": "2026-03-08 16:29",
+   "type": "H",
+   "height": 1.167
+  },
+  {
+   "localTime": "2026-03-08 21:04",
+   "type": "L",
+   "height": 0.81
+  },
+  {
+   "localTime": "2026-03-09 03:31",
+   "type": "H",
+   "height": 1.633
+  },
+  {
+   "localTime": "2026-03-09 10:35",
+   "type": "L",
+   "height": 0.22
+  },
+  {
+   "localTime": "2026-03-09 17:59",
+   "type": "H",
+   "height": 1.104
+  },
+  {
+   "localTime": "2026-03-09 21:49",
+   "type": "L",
+   "height": 0.954
+  },
+  {
+   "localTime": "2026-10-31 05:35",
+   "type": "H",
+   "height": 1.419
+  },
+  {
+   "localTime": "2026-10-31 09:50",
+   "type": "L",
+   "height": 1.049
+  },
+  {
+   "localTime": "2026-10-31 15:44",
+   "type": "H",
+   "height": 1.778
+  },
+  {
+   "localTime": "2026-10-31 22:56",
+   "type": "L",
+   "height": -0.132
+  },
+  {
+   "localTime": "2026-11-01 05:40",
+   "type": "H",
+   "height": 1.46
+  },
+  {
+   "localTime": "2026-11-01 10:24",
+   "type": "L",
+   "height": 0.989
+  },
+  {
+   "localTime": "2026-11-01 15:59",
+   "type": "H",
+   "height": 1.646
+  },
+  {
+   "localTime": "2026-11-01 23:04",
+   "type": "L",
+   "height": -0.044
+  },
+  {
+   "localTime": "2026-11-02 06:35",
+   "type": "H",
+   "height": 1.534
+  },
+  {
+   "localTime": "2026-11-02 11:51",
+   "type": "L",
+   "height": 0.837
+  },
+  {
+   "localTime": "2026-11-02 17:21",
+   "type": "H",
+   "height": 1.537
+  }
+ ]
+}

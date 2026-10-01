@@ -1,0 +1,62 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+import '../../../../helpers/test_database.dart';
+
+void main() {
+  late AppDatabase db;
+  late ProviderContainer container;
+  const now = 1735689600000;
+
+  setUp(() async {
+    db = await setUpTestDatabase();
+    Future<void> sql(String s) => db.customStatement(s);
+    await sql(
+      'INSERT INTO divers (id, name, created_at, updated_at) '
+      "VALUES ('me', 'Me', $now, $now)",
+    );
+    await sql(
+      'INSERT INTO certifications (id, diver_id, name, agency, level, '
+      "created_at, updated_at) VALUES ('c1', 'me', 'OW', 'padi', "
+      "'openWater', $now, $now), ('c2', 'me', 'Nitrox', 'ssi', 'nitrox', "
+      '$now, $now)',
+    );
+    SharedPreferences.setMockInitialValues({currentDiverIdKey: 'me'});
+    final prefs = await SharedPreferences.getInstance();
+    container = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    );
+  });
+  tearDown(() async {
+    container.dispose();
+    await tearDownTestDatabase();
+  });
+
+  Future<List<String>> visible() async {
+    final sub = container.listen(filteredCertificationsProvider, (_, _) {});
+    addTearDown(sub.close);
+    for (var i = 0; i < 200; i++) {
+      final v = container.read(filteredCertificationsProvider);
+      if (v.hasError) throw v.error!;
+      if (v.hasValue && !v.isLoading) return [for (final c in v.value!) c.id];
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    fail('the certification list never settled');
+  }
+
+  test('no query lists every certification; a query narrows them', () async {
+    expect(await visible(), unorderedEquals(['c1', 'c2']));
+    container.read(certificationQueryProvider.notifier).state = ConditionNode(
+      FieldPath(['agency']),
+      QueryOp.eq,
+      const EnumValue('ssi'),
+    );
+    expect(await visible(), ['c2']);
+  });
+}

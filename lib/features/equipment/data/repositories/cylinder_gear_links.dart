@@ -17,8 +17,9 @@ const _chunkSize = 400;
 ///
 /// Call it inside the deleting transaction, before the items go. The schema
 /// sets both links null on delete (v202, v210), but that write reaches no
-/// peer. `dive_tanks` has no clock of its own; a pending tank is exported on
-/// its own (SyncDataSerializer.parentGatedChildEntities). The parent dive is
+/// peer. `dive_tanks` has no `updated_at`; staging a tank stamps its `hlc`,
+/// and a pending tank is exported on its own
+/// (SyncDataSerializer.parentGatedChildEntities). The parent dive is
 /// deliberately NOT staged: re-stamping it would make this device's whole
 /// dive row win under last-writer-wins and overwrite a newer edit to that
 /// dive made on another device, although the dive itself did not change.
@@ -43,11 +44,22 @@ Future<void> clearCylinderGearLinks(
             ))
             .get();
     if (tanks.isEmpty) continue;
-    await (db.update(db.diveTanks)..where((t) => t.equipmentId.isIn(chunk)))
-        .write(const DiveTanksCompanion(equipmentId: Value(null)));
-    await (db.update(db.diveTanks)
-          ..where((t) => t.regulatorEquipmentId.isIn(chunk)))
-        .write(const DiveTanksCompanion(regulatorEquipmentId: Value(null)));
+    // Stamped in the write as well as marked below, so the clear carries its
+    // own clock and a peer's older copy cannot restore the link (#2644).
+    final clearedAt = await syncRepository.issueRowClock();
+    await (db.update(
+      db.diveTanks,
+    )..where((t) => t.equipmentId.isIn(chunk))).write(
+      DiveTanksCompanion(equipmentId: const Value(null), hlc: Value(clearedAt)),
+    );
+    await (db.update(
+      db.diveTanks,
+    )..where((t) => t.regulatorEquipmentId.isIn(chunk))).write(
+      DiveTanksCompanion(
+        regulatorEquipmentId: const Value(null),
+        hlc: Value(clearedAt),
+      ),
+    );
     tankIds.addAll(tanks.map((t) => t.id));
   }
   for (final id in tankIds) {

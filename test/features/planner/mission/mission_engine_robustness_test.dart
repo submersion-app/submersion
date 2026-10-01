@@ -53,6 +53,36 @@ MissionLeg _leg(String id, int order, {double distance = 200}) => MissionLeg(
   headingDeg: 0,
 );
 
+/// Throws from every swim and tow scenario.
+class _ExitsThrow extends MissionScenarioService {
+  const _ExitsThrow();
+
+  @override
+  ExitOutcome evaluate({
+    required domain.DivePlan plan,
+    required DpvMission mission,
+    required int waypointIndex,
+    required String failedMemberId,
+    required MissionExitMode mode,
+    String? towerId,
+    MissionProfile? outbound,
+  }) => throw StateError('unschedulable');
+}
+
+/// Throws from every exit scenario, the open-water surface one included.
+class _AllExitsThrow extends _ExitsThrow {
+  const _AllExitsThrow();
+
+  @override
+  ExitOutcome evaluateSurface({
+    required domain.DivePlan plan,
+    required DpvMission mission,
+    required int waypointIndex,
+    String? failedMemberId,
+    MissionProfile? outbound,
+  }) => throw StateError('unschedulable');
+}
+
 /// Throws from the overhead time-to-safe-surface scenario only.
 class _SafeSurfaceThrows extends MissionScenarioService {
   const _SafeSurfaceThrows();
@@ -139,6 +169,65 @@ void main() {
     expect(
       outcome.issues.map((i) => (i.type, i.legId)),
       contains((MissionIssueType.scenarioFailed, 'L1')),
+    );
+  });
+
+  test('an exit that throws binds as a failed calculation', () {
+    // Not "blocked by current" or "no feasible tow": nothing about the
+    // water was learned, the computation itself failed.
+    final outcome = const MissionEngine(scenarios: _ExitsThrow()).compute(
+      plan: _plan(),
+      mission: DpvMission(
+        legs: [_leg('L1', 0)],
+        team: [_member('a', 0), _member('b', 1)],
+      ),
+    );
+    final b = outcome.waypoints.single.members.firstWhere(
+      (m) => m.memberId == 'b',
+    );
+    expect(b.swim.failed, isTrue);
+    expect(b.tow!.failed, isTrue);
+    expect(
+      outcome.members.firstWhere((m) => m.memberId == 'b').bindingFactor,
+      MissionBindingFactor.scenarioFailed,
+    );
+  });
+
+  test('of two tows that both failed, the first tower stands', () {
+    final outcome = const MissionEngine(scenarios: _ExitsThrow()).compute(
+      plan: _plan(),
+      mission: DpvMission(
+        legs: [_leg('L1', 0)],
+        team: [_member('a', 0), _member('b', 1), _member('c', 2)],
+      ),
+    );
+    final b = outcome.waypoints.single.members.firstWhere(
+      (m) => m.memberId == 'b',
+    );
+    expect(b.tow!.failed, isTrue);
+    expect(b.tow!.towerId, 'a');
+  });
+
+  test('an open-water surface exit that throws is a failed exit', () {
+    final outcome = const MissionEngine(scenarios: _AllExitsThrow()).compute(
+      plan: _plan(),
+      mission: DpvMission(
+        legs: [_leg('L1', 0)],
+        team: [_member('a', 0), _member('b', 1)],
+        environment: MissionEnvironment.openWater,
+      ),
+    );
+    final b = outcome.waypoints.single.members.firstWhere(
+      (m) => m.memberId == 'b',
+    );
+    expect(b.surface!.failed, isTrue);
+    expect(b.surface!.feasible, isFalse);
+    // A failed surface run reports no ascent time; it must not read as a
+    // safe surface reached at once.
+    expect(outcome.waypoints.single.safeSurfaceSeconds, isNull);
+    expect(
+      outcome.members.firstWhere((m) => m.memberId == 'b').bindingFactor,
+      MissionBindingFactor.scenarioFailed,
     );
   });
 

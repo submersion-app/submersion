@@ -19,11 +19,13 @@ import 'global_state_scanner.dart';
 ///
 /// What to write instead:
 ///
-/// * A `*Platform.instance` or `HttpOverrides.global`: read the previous value
-///   into a variable first, and assign that variable back in `tearDown` or
-///   `addTearDown`. Reading the value without assigning it back does not count.
-/// * `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled` or
-///   `debugCanShareFiles`: call `applyGlobalTestDefaults()` from
+/// * A `*Platform.instance`, `HttpOverrides.global` or `IOOverrides.global`:
+///   read the previous value into a variable first, and assign that variable
+///   back in `tearDown` or `addTearDown`. Reading the value without assigning
+///   it back does not count.
+/// * `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled`,
+///   `DerivedMetricsScheduler.enabled`, `debugCanShareFiles` or `GoogleFonts.config.allowRuntimeFetching`: call
+///   `applyGlobalTestDefaults()` from
 ///   `test/helpers/global_test_defaults.dart` in `tearDown`.
 /// * A mock on the path provider or share channel: call
 ///   `clearPathAndShareChannelMocks()` from `test/helpers/mock_channels.dart`

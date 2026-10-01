@@ -284,6 +284,12 @@ predicates (`sacTrend`, `sacRoseAfter`, `finalStopUnstable`,
 `finalStopDuration`, `safetyFinding`) register in PR 5 as fields whose `sql`
 is the output of the existing `derivedPredicateCondition` builder.
 
+Update (2026-09-28): Explore phase 2 registered them first, as dive fields
+over the stored table `dive_derived_metrics` (`sacTrend`, `sacChange`,
+`finalStop`, `finalStopExcursion`, `finalStopDuration`), plus `sac` and the
+`findings` relation; `derivedPredicateCondition` was never built. PR 5 takes
+them as given.
+
 ### Relations, phase 1 (dives)
 
 fk: `site`, `trip`, `center`, `computer`, `course`.
@@ -772,6 +778,175 @@ Decided in the whole-branch review of PR 1:
   232 and 233 were held by open branches; renumbered to 238 the same day
   when equipment sharing (#2411) shipped 234, with 235 and 236 held by
   #2445 and #2407 and 237 by the diver figure branch.
+
+## Deviations recorded during implementation (PR 3)
+
+- **Trips get the engine only.** Trips have a registry entry, `toQuery()`,
+  SQL filtering and the id-set list path; there is no editor, Saved row or
+  filter button for trips yet. The trip list has no filter sheet, and its
+  one axis (`equipmentId`, set from the equipment detail page) lowers to
+  the query tree.
+- **Service due is a query field backed by a cache table.**
+  `ServiceDueEngine` stays the only evaluator. A local table
+  `equipment_service_status` holds each active item's worst severity; the
+  `serviceDue` field reads it with `COALESCE(..., 'ok')`. The table has no
+  `hlc` column, so sync never sees it. The writer re-runs with
+  `activeEquipmentClocksProvider`, which holds the ticks, so it carries the
+  tick guard's documented no-tick annotation.
+- **The cache holds the active diver's view only.** Severity depends on
+  that diver's settings (due-soon window, exposure thresholds) and
+  visibility; one diver is active on a device at a time, so a diver switch
+  re-evaluates and rewrites the table.
+- **The cache writer runs on demand.** Any list can reach `serviceDue`
+  through a relation (`gear.serviceDue` on dives, `dives.gear.serviceDue` on
+  sites and trips), so the writer cannot be left to the equipment list, but
+  evaluating every item's clocks all session would cost every diver on
+  every gear write. Every reader waits for the write before querying, so
+  none reads an empty cache or the previous diver's verdicts: the four list
+  id sets, the ordered dive ids and the Insights totals hold the writer
+  while they live (listening, not watching, so a writer run that changes no
+  verdict re-runs nothing; a changed verdict ticks the table they follow),
+  and the paged dive list waits on each load. The app root also listens to
+  a keeper that holds the writer while the dive or Insights filter reads
+  the cache, since those stay filtered when no list is shown; a site, trip
+  or equipment filter left on a service view does not.
+- **An advanced query that keeps no gear says so.** The equipment empty
+  state blames the query ("No equipment matches this query") ahead of the
+  category, status and service wording, so a diver with gear is never told
+  to add their first item.
+- **The equipment owner axis is a caller-applied scope, not a field.** Like
+  visibility, it compares rows with the active diver, which a saved query
+  cannot name. `EquipmentFilterQuery.ownerScope(activeDiverId)` returns a
+  bound clause the id-set runner ANDs with the compiled query.
+- **The equipment status axis is always lowered.** The default view is
+  `active = true AND status != retired AND status != sold`, the Retired view
+  is `(status = retired OR active = false) AND status != sold`, any other
+  status is `status = X`, and service due adds `serviceDue` on top of the
+  default view. One list source (`allEquipmentProvider`) replaces the
+  three-provider switch.
+- **The equipment empty state keeps its wording.** "No items of this type"
+  needs to know whether the status view had rows before the other axes; a
+  small `equipmentStatusViewHasItemsProvider` runs the status axes alone
+  through the same id set.
+- **Site `country` and `region` compare trimmed.** Their SQL trims the
+  exact character set Dart's `String.trim` strips (tab, CR, LF, NBSP and
+  the Unicode spaces, not only U+0020), so a value imported with a CR or
+  pasted with a no-break space still matches the chip the dropdown offers
+  for it; text `=` is already case-insensitive. Two differences from the
+  old Dart key remain. It collapsed internal runs of whitespace, which
+  SQLite cannot do in one expression, so a stored country with a doubled
+  inner space now needs the doubled space. And SQLite's `LOWER` folds only
+  ASCII, so two sites spelled "Curaçao" and "CURAÇAO" share one dropdown
+  option but only the spelling whose non-ASCII letters match the option's
+  case is kept. Both need two spellings of one place in one library.
+- **Site "has dives" keeps the list's count rule.** It lowers to
+  `dives[planned = false AND excludedFromStats = false]`, because the site
+  list's dive count comes from `DiveStatsScope` over every diver's dives.
+- **Site `coordinates` is a bool with its own operator set.** The validator
+  refuses `:none` and `:any` on a bool, so the field declares
+  `{=, !=, :none, :any}` instead of becoming a number; `:any` means both
+  latitude and longitude are set.
+- **Trips by equipment use the dive `gear` relation**, which also counts
+  cylinders the transmitter registry matched through
+  `dive_tanks.equipment_id`. The old `getTripIdsForEquipment` read only
+  `dive_equipment`, so a trip whose only link to a cylinder was that match
+  was missing from "trips with this gear". `getTripIdsForEquipment` itself
+  stays, since the equipment detail providers still call it.
+- **Site types are a query subject** (`QuerySubject.siteTypes`, table
+  `site_types`), so `types = "Wreck"` resolves by name through the name
+  index.
+- **The site map stays unfiltered**, as before; only the list and table
+  views read the filter.
+- **One editor, chip labeller and save flow serve every entity.**
+  `EntityQueryEditor` takes the root entity (`DiveQueryEditor` delegates to
+  it), `entityQueryChipLabels` prints the list chips for any entity, and
+  `saveQueryFromEditor` is the one save flow. The site and equipment sheets
+  put the query section first, titled from one shared key
+  (`query_sheet_sectionTitle`).
+- **Widget tests without a database fake the id set.**
+  `fakeEquipmentQueryIds` reproduces the old in-memory filter for list
+  tests; the SQL is pinned by the per-entity semantics tests, which run the
+  compiled query against a real database.
+- **Schema rung 242.** Main was at 240 with 237 shipped; 241 was held by
+  #2493 when the rung was taken.
+
+## Deviations recorded during implementation (PR 4)
+
+- **One set of list pieces serves every list without a filter sheet.**
+  `entityQueryIdsProvider` runs any root entity's query as an id set,
+  `narrowByQuery` narrows a list by it (a pass-through with no query, so a
+  list with no filter never touches the id set), and three widgets finish
+  the surface: `QueryFilterButton` (a badge while a query is active),
+  `showQueryFilterSheet` (the Saved row and the editor, Clear, Cancel,
+  Apply; it applies through its own ref), `QueryChipsFrame` (Clear plus one
+  removable chip per condition above the list body) and `QueryNoMatchState`
+  ("Nothing matches this query" with Clear, in place of the list's
+  "nothing here yet" state).
+- **Each list reads one filtered provider in every view.** The buddy,
+  certification, dive center and course lists (and both species pages)
+  narrow the rows they already load, so the list, the compact pane and the
+  table all honour the query; loading, sorting and grouping are unchanged.
+- **Species: both pages.** The nav Species page (the diver's sighted
+  species) and the Manage catalog each hold their own query
+  (`seenSpeciesQueryProvider`, `speciesCatalogQueryProvider`) over
+  `QuerySubject.species`, so a saved species query serves either page; each
+  page's own search, category chips and sort still apply on top.
+- **Course status chips moved into SQL.** `CourseFilterState(status,
+  query)` lowers In progress to `completionDate:none` and Completed to
+  `completionDate:any`, ANDed with the query, so the chips now also apply in
+  table mode, which ignored them before; the chips show above the table
+  too, so a status chosen in list mode stays visible and resettable there.
+  A census test pins the lowering.
+- **Registries completed.** Certification `agency` and `level`, course
+  `agency` and species `category` are enum fields (localized in the
+  builder); every list's registry searches its search route's columns; new
+  relations: buddy `dives`; certification `buddy`, `instructor`, `course`
+  and course `certification` (both read either stored link direction, as
+  the detail pages do), course `instructor` and `dives`; center `dives`;
+  species `sightings`, `expectedSites` and `dives`. `expectedSites` walks
+  the curated "expected at this site" list (`site_species`); where a
+  species was seen is `dives.site`. Centers
+  also gain `stateProvince`, `affiliations` (contains), `rating`, `notes`
+  and `coordinates`; species `taxonomyClass`, `description`, `builtIn`.
+- **Search routes stay.** The buddy, certification and center search
+  screens are unchanged; their columns became each registry's
+  `textSearchSql`, so a bare word in a query matches what the search
+  screen matches. Their delegates moved to their own files, so the three
+  content files end smaller than before the filter wiring.
+- **Enum text compares the stored name.** A stored certification level (or
+  course agency, or species category) outside its enum is found by `:any`
+  and by no `= X`, including `= other`.
+- **Species text search is English for built-ins.** SQL sees the stored
+  English `common_name`; the pages' own search fields keep matching the
+  translated name.
+- **Relations are not diver-scoped.** As with `sites.dives`, a hop reaches
+  every diver's rows: `sightings.count >= 3` on the nav Species page counts
+  every diver's sightings of that species.
+- **The root is diver-scoped.** `entityQueryIdsProvider` ANDs
+  `r0.diver_id = ?` for a per-diver root (buddies, certifications, courses,
+  centers), exactly as each repository scopes its list, so the id set never
+  walks another diver's rows. Species are shared and stay unscoped.
+- **The dive center map stays unfiltered**, like the site map.
+- **Schema rung 245** indexes `certifications(buddy_id)`
+  (`idx_certifications_buddy_id`), so every hop in the three-hop dive query
+  plan is a SEARCH. The helper also checks the column exists, since a
+  stranded pre-v199 fixture builds the table without `buddy_id`. 243 and
+  244 were held by #2409 and #2538 when the rung was taken.
+
+## Deviations recorded during implementation (PR 5)
+
+- **The loader lives in features.** `NameIndex`, `NameEntry` and `NameTarget` moved to `lib/core/query/names/`; `NameIndexLoader` lives in `lib/features/query/data/`, because it reads the registry, the equipment attribute catalog and the species name lookup, and core never imports a feature.
+- **One index.** The typed index and Explore's index merged. A typed ref now also resolves by an alternate label (a built-in species' localized or scientific name, an item's brand and model) and prints its primary name; places, attribute choices and legacy buddy names are sentence-only entries. Refs to any other relation target (a certification behind `buddies.certifications`) are rows of `NameTarget.row`. Entries of one rank keep their load order, so the same rows always resolve the same way.
+- **Places lower to site place conditions** (`site.island = "Bonaire"`, an OR over each column the label came from), so a saved or handed-off query keeps finding new sites in the place. A place with no recorded columns falls back to its site ids.
+- **Mentions of one kind OR together**, centers, trips and computers included (they were "the last one wins"); buddies and attribute choices stay ANDed. A ref prints the row's primary name, else the label the mention resolved to.
+- **Rating and bottom time bounds are whole numbers, rounded inward**, as the filter axes they replaced were whole numbers: "under 3.5 stars" is at most 3 and "at least 3.5" is at least 4, so a bound never reaches past what was said. An exact value no whole number can equal ("exactly 3.5 stars") is unplaced as out of range rather than lowered to a condition nothing matches.
+- **Site `city` and `island` compare trimmed too**, like `country` and `region` (PR 3): the place labels are trimmed, so a padded stored value must still match them, and a typed `site.island = "Bonaire"` finds it as well.
+- **Built-in species rank ahead of custom ones in every locale.** A built-in's localized name is its rank-0 label; where the localized name equals the stored one (English), the stored name itself takes rank 0, so a sentence naming a species prefers the built-in as Explore always did.
+- **A label repeated for the same row is kept once**, as the primary (for example a scientific name equal to the common name).
+- **Explore keeps its own unit rules on top of core grounding**: a unit of another kind is refused, a plain bar or psi said on a SAC means per minute, and a rate keeps four decimals (Explore phase 2's behaviour).
+- **`time_grammar` needed no move.** Explore already read `lib/core/query/syntax/date_grammar.dart`.
+- **Profile-derived predicates came as registry fields** (Explore phase 2, #2579: `sac`, `sacTrend`, `sacChange`, `finalStop`, `finalStopExcursion`, `finalStopDuration`, `findings`), not through `derivedPredicateCondition`, which never reached main.
+- **`DiveFilterState` stays the repositories' argument.** Explore holds a `QueryNode` (`exploreQueryNodeProvider`) and wraps it as `DiveFilterState(query: node)` for results, counts, charts and the handoff, which the dive list shows as query chips.
 
 ## Open items for the implementation plans
 

@@ -227,4 +227,20 @@ extension BuddyMigrations on AppDatabase {
       );
     }
   }
+
+  /// v245: index certifications by buddy (#2365). `buddies.certifications`
+  /// hops and the buddy detail's certification reads correlate on it.
+  /// Idempotent, so it doubles as the beforeOpen backstop. A certifications
+  /// table from before `buddy_id` existed (a stranded fixture) is skipped;
+  /// its own rung adds the column first.
+  Future<void> _assertCertificationsBuddyIndex() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('certifications')",
+    ).get();
+    if (!cols.any((c) => c.read<String>('name') == 'buddy_id')) return;
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_certifications_buddy_id '
+      'ON certifications (buddy_id)',
+    );
+  }
 }

@@ -105,6 +105,12 @@
   "gasCalculators_blender_moveGasUp": "Sposta {gas} in alto",
   "gasCalculators_blender_moveGasDown": "Sposta {gas} in basso",
   "gasCalculators_blender_procedure": "Procedura di riempimento",
+  "gasCalculators_blender_logFill": "Registra questa ricarica",
+  "gasCalculators_blender_chooseCylinder": "Scegli la bombola",
+  "gasCalculators_blender_scanTag": "Scansiona il tag",
+  "gasCalculators_blender_notYourCylinder": "Quella bombola non è nella tua attrezzatura",
+  "gasCalculators_blender_cylinderFailed": "Impossibile aprire quella bombola. Riprova.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_amounts": "Gas da aggiungere",
   "gasCalculators_blender_stepStart": "Inizia con {pressure} {gas}",
   "gasCalculators_blender_stepFill": "Riempi {gas} fino a {pressure} → {mix}",
@@ -639,6 +645,7 @@
   "accessibility_shortcut_newDive": "Nuova immersione",
   "accessibility_shortcut_openSettings": "Apri impostazioni",
   "accessibility_shortcut_searchDives": "Cerca immersioni",
+  "accessibility_shortcut_exploreWithSentence": "Esplora con una frase",
   "accessibility_sort_selectedLabel": "Ordina per {displayName}, attualmente selezionato",
   "accessibility_sort_unselectedLabel": "Ordina per {displayName}",
   "backup_appBar_title": "Backup e Ripristino",
@@ -855,6 +862,8 @@
   "buddies_summary_totalBuddies": "Compagni Totali",
   "buddies_summary_withCertification": "Con Certificazione",
   "buddies_title": "Compagni",
+  "buddies_list_count": "{count, plural, =1{{count} compagno} other{{count} compagni}}",
+  "buddies_list_countFiltered": "{shown} di {total, plural, =1{{total} compagno} other{{total} compagni}}",
   "buddies_title_add": "Aggiungi Compagno",
   "buddies_title_edit": "Modifica Compagno",
   "buddies_title_singular": "Compagno",
@@ -889,6 +898,8 @@
   "certifications_appBar_certificationWallet": "Portafoglio certificazioni",
   "certifications_appBar_editCertification": "Modifica certificazione",
   "certifications_appBar_title": "Certificazioni",
+  "certifications_list_count": "{count, plural, =1{{count} certificazione} other{{count} certificazioni}}",
+  "certifications_list_countFiltered": "{shown} di {total, plural, =1{{total} certificazione} other{{total} certificazioni}}",
   "certifications_card_issued": "RILASCIATO",
   "certifications_certificate_cardNumber": "Numero tessera: {number}",
   "certifications_certificate_footer": "Certificazione ufficiale di immersione subacquea",
@@ -1535,6 +1546,8 @@
   "courses_summary_title": "Corsi di Addestramento",
   "courses_summary_total": "Totale",
   "courses_title": "Corsi di Addestramento",
+  "courses_list_count": "{count, plural, =1{{count} corso} other{{count} corsi}}",
+  "courses_list_countFiltered": "{shown} di {total, plural, =1{{total} corso} other{{total} corsi}}",
   "courses_title_edit": "Modifica Corso",
   "courses_title_new": "Nuovo Corso",
   "courses_title_singular": "Corso",
@@ -1749,6 +1762,14 @@
   "diveCenters_section_contact": "Contatto",
   "diveCenters_section_contactInfo": "Informazioni di Contatto",
   "diveCenters_section_gpsCoordinates": "Coordinate GPS",
+  "diveCenters_section_fillHours": "Orari di ricarica",
+  "diveCenters_fillHours_caption": "Quando la stazione ricarica le bombole. La previsione di ricarica del viaggio usa l'orario di chiusura.",
+  "diveCenters_fillHours_opens": "Apre",
+  "diveCenters_fillHours_closes": "Chiude",
+  "diveCenters_fillHours_notSet": "Non impostato",
+  "diveCenters_fillHours_clear": "Cancella orari di ricarica",
+  "diveCenters_fillHours_errorBoth": "Imposta entrambi gli orari o nessuno.",
+  "diveCenters_fillHours_errorOrder": "L'orario di chiusura deve seguire quello di apertura.",
   "diveCenters_section_notes": "Note",
   "diveCenters_snackbar_coordinatesFound": "Coordinate trovate dall'indirizzo",
   "diveCenters_snackbar_copiedToClipboard": "Copiato negli appunti",
@@ -1766,6 +1787,8 @@
   "diveCenters_summary_totalCenters": "Centri Totali",
   "diveCenters_summary_withGps": "Con GPS",
   "diveCenters_title": "Centri Immersioni",
+  "diveCenters_list_count": "{count, plural, =1{{count} centro immersioni} other{{count} centri immersioni}}",
+  "diveCenters_list_countFiltered": "{shown} di {total, plural, =1{{total} centro immersioni} other{{total} centri immersioni}}",
   "diveCenters_title_add": "Aggiungi Centro Immersioni",
   "diveCenters_title_edit": "Modifica Centro Immersioni",
   "diveCenters_title_import": "Importa Centro Immersioni",
@@ -2004,6 +2027,7 @@
   "diveImport_uddf_tabTypes": "Tipi",
   "diveImport_uddf_tags": "Tag",
   "diveImport_uddf_media": "Foto",
+  "diveImport_uddf_fills": "Ricariche",
   "diveImport_uddf_title": "Importa da UDDF",
   "diveImport_uddf_toggleDiveSelection": "Seleziona/deseleziona immersione",
   "diveImport_uddf_toggleEntitySelection": "Seleziona/deseleziona {name}",
@@ -2515,6 +2539,8 @@
   "diveLog_edit_planned_switch": "Immersione pianificata",
   "diveLog_edit_planned_switchSubtitle": "In attesa dei dati del computer. Nessun numero di immersione finché non viene registrata.",
   "diveLog_listPage_compactTitle": "Immersioni",
+  "diveLog_listPage_count": "{count, plural, =1{{count} immersione} other{{count} immersioni}}",
+  "diveLog_listPage_countFiltered": "{shown} di {total, plural, =1{{total} immersione} other{{total} immersioni}}",
   "diveLog_listPage_errorLoading": "Errore: {error}",
   "diveLog_listPage_fab_addDive": "Aggiungi immersione",
   "diveLog_listPage_fab_logDive": "Registra immersione",
@@ -2900,6 +2926,10 @@
   "diveLog_tank_tooltip_remove": "Rimuovi bombola",
   "diveLog_tank_regulatorLabel": "Erogatore",
   "diveLog_tank_regulatorNone": "Nessuno",
+  "diveLog_tank_tripCylinderLabel": "Bombola del viaggio",
+  "diveLog_tank_tripCylinderNone": "Nessuna",
+  "diveLog_tank_tripCylinderMissing": "Non più in questo viaggio",
+  "diveLog_tank_tripCylinderSuggested": "Suggerita tra le bombole piene del viaggio",
   "diveLog_tissue_title": "Carico tissutale",
   "diveLog_tooltip_avgCalculated": "(media, calcolato)",
   "diveLog_tooltip_ceiling": "Ceiling",
@@ -3335,6 +3365,8 @@
   "diveSites_list_activeFilter_hasDives": "Ha immersioni",
   "diveSites_list_activeFilter_region": "Regione: {region}",
   "diveSites_list_appBar_title": "Siti di immersione",
+  "diveSites_list_count": "{count, plural, =1{{count} sito} other{{count} siti}}",
+  "diveSites_list_countFiltered": "{shown} di {total, plural, =1{{total} sito} other{{total} siti}}",
   "diveSites_list_bulkDelete_cancel": "Annulla",
   "diveSites_list_bulkDelete_confirm": "Elimina",
   "diveSites_list_bulkDelete_content": "Sei sicuro di voler eliminare {count} {count, plural, =1{sito} other{siti}}? Questa azione può essere annullata entro 5 secondi.",
@@ -3618,6 +3650,7 @@
   "dropTarget_error_unsupportedFile": "Tipo di file non supportato",
   "dropTarget_error_wizardActive": "Completa prima l'importazione in corso",
   "dropTarget_error_readFailed": "Impossibile leggere il file",
+  "dropTarget_error_someUnreadable": "{count, plural, =1{Impossibile leggere {count} file, che è stato saltato} other{Impossibile leggere {count} file, che sono stati saltati}}",
   "enum_altitudeGroup_extreme": "Altitudine estrema",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",
   "enum_altitudeGroup_group1": "Gruppo altitudine 1",
@@ -3939,6 +3972,8 @@
   "enum_weightType_mixed": "Mista/Combinata",
   "enum_weightType_trimWeights": "Pesi di trim",
   "equipment_appBar_title": "Attrezzatura",
+  "equipment_list_count": "{count, plural, =1{{count} elemento} other{{count} elementi}}",
+  "equipment_list_countFiltered": "{shown} di {total, plural, =1{{total} elemento} other{{total} elementi}}",
   "equipment_bulkTags_action": "Modifica tag",
   "equipment_bulkTags_adding": "aggiunta a tutte le {total}",
   "equipment_bulkTags_applied": "{count, plural, =1{Tag aggiornati su 1 elemento} other{Tag aggiornati su {count} elementi}}",
@@ -3965,10 +4000,18 @@
   "passport_fill_mod": "MOD {depth} a ppO2 {ppo2}",
   "passport_fill_end": "END {depth} alla MOD di lavoro",
   "passport_fill_station": "Ricaricata da {station}",
+  "passport_fill_fromTag": "Dal tag",
+  "passport_fill_analyseBeforeDiving": "Analizza tu stesso il gas prima di immergerti",
+  "passport_fill_writeToTagTitle": "Ricarica registrata",
+  "passport_fill_writeToTagBody": "Scriverla sul tag della bombola?",
+  "passport_fill_writeToTag": "Scrivi sul tag",
+  "passport_fill_notNow": "Non ora",
+  "passport_foreign_lastFill": "Ultimo riempimento sul tag",
+  "passport_foreign_fillSummary": "{fill} · {date}",
+  "passport_fill_addedFromTag": "Riempimento dal tag aggiunto: {fill}",
   "passport_fill_analyzer": "Analizzata con {analyzer}",
   "passport_fill_analysis": "O2 {o2}, He {he}",
   "passport_fill_temperature": "Temperatura del gas {temperature}",
-  "passport_fill_unsigned": "Non firmata",
   "passport_history_title": "Storico ricariche",
   "passport_history_sinceHydro": "{count, plural, =0{Nessuna ricarica dall'ultimo collaudo} =1{{count} ricarica dall'ultimo collaudo} other{{count} ricariche dall'ultimo collaudo}}",
   "passport_history_delete": "Elimina ricarica",
@@ -4004,6 +4047,33 @@
   "passport_foreign_addToGear": "Aggiungi alla mia attrezzatura",
   "passport_foreign_addFailed": "Impossibile aggiungere la bombola. Riprova.",
   "passport_foreign_defaultName": "Bombola",
+  "passport_nfc_tap": "Avvicina un tag NFC",
+  "passport_nfc_holdNear": "Tieni il tag contro il retro del telefono.",
+  "passport_nfc_write": "Scrivi tag NFC",
+  "passport_nfc_rewrite": "Riscrivi tag",
+  "passport_nfc_reprint": "Ristampa etichetta",
+  "passport_nfc_unsupported": "Questo dispositivo non può leggere né scrivere tag NFC.",
+  "passport_nfc_disabled": "L'NFC è disattivato. Attivalo nelle impostazioni di sistema.",
+  "passport_nfc_written": "Tag scritto e verificato",
+  "passport_nfc_tagInfo": "{type}, {capacity} byte",
+  "passport_nfc_capacity": "{capacity} byte",
+  "passport_nfc_allFields": "Tutto entra in questo tag.",
+  "passport_nfc_fieldsDropped": "Omesso per spazio: {fields}",
+  "passport_nfc_notNdef": "Questo tag non può contenere un link. Usa un tag NTAG215 o NTAG216.",
+  "passport_nfc_readOnly": "Questo tag è bloccato e non può essere scritto.",
+  "passport_nfc_tooSmall": "Questo tag è troppo piccolo ({capacity} byte), anche per l'identità della bombola.",
+  "passport_nfc_readBackFailed": "Il tag non è stato riletto come scritto, quindi non è stato scritto.",
+  "passport_nfc_writeFailed": "Il tag non è stato scritto. Tienilo fermo e riprova.",
+  "passport_nfc_readFailed": "Impossibile leggere il tag. Tienilo fermo e riprova.",
+  "passport_nfc_retry": "Riprova",
+  "passport_nfc_fieldName": "Nome",
+  "passport_nfc_fieldSerial": "Numero di serie",
+  "passport_nfc_fieldO2Clean": "Pulita per O2",
+  "passport_nfc_fieldFillAnalyzer": "Analizzatore del riempimento",
+  "passport_nfc_fieldFilledBy": "Riempita da",
+  "passport_nfc_fieldFillTemperature": "Temperatura del riempimento",
+  "passport_nfc_fieldFill": "Ultimo riempimento",
+  "passport_nfc_fillIncluded": "Anche l'ultimo riempimento è sul tag",
   "passport_foreign_serial": "N. di serie {serial}",
   "passport_logFill_date": "Ricaricata il",
   "passport_logFill_time": "Ora",
@@ -4013,6 +4083,15 @@
   "passport_logFill_temperature": "Temperatura del gas",
   "passport_logFill_station": "Stazione di ricarica",
   "passport_logFill_analyzer": "Analizzatore",
+  "passport_logFill_analysedHint": "Inserisci i valori analizzati",
+  "passport_trip_title": "Viaggi",
+  "passport_trip_none": "Non preparato per un viaggio",
+  "passport_trip_packedFor": "Preparato per {trip}",
+  "passport_trip_more": "+{count}",
+  "passport_trip_assign": "Prepara per un viaggio",
+  "passport_trip_unassign": "Togli da questo viaggio",
+  "passport_trip_onBoard": "Sulla bacheca bombole del viaggio",
+  "passport_trip_failed": "Impossibile modificare il viaggio. Riprova.",
   "passport_logFill_notes": "Note",
   "passport_logFill_invalidMix": "O2 ed He devono essere tra 0 e 100 e sommare al massimo 100",
   "passport_logFill_saveFailed": "Impossibile salvare la ricarica. Riprova.",
@@ -4330,6 +4409,7 @@
   "equipment_list_emptyState_filterText_status": "attrezzatura {status}",
   "equipment_list_emptyState_filterText_type": "attrezzatura {type}",
   "equipment_list_emptyState_noEquipment": "Nessuna {filterText}",
+  "equipment_list_emptyState_noQueryMatch": "Nessuna attrezzatura corrisponde a questa query",
   "equipment_list_emptyState_noStatusMatch": "Nessuna attrezzatura con questo stato",
   "equipment_list_emptyState_noTagMatch": "Nessuna attrezzatura con questi tag",
   "equipment_list_emptyState_noTypeMatch": "Nessuna attrezzatura in questa categoria",
@@ -5368,6 +5448,125 @@
   "plannerCanvas_turnRule_halves": "Metà",
   "plannerCanvas_turnRule_none": "Nessuna",
   "plannerCanvas_turnRule_thirds": "Terzi",
+  "plannerMission_buddyPicker_empty": "Ancora nessun compagno",
+  "plannerMission_buddyPicker_me": "Io",
+  "plannerMission_buddyPicker_title": "Scegli un compagno",
+  "plannerMission_current_setsToward": "Scorre verso",
+  "plannerMission_current_speed": "Velocità della corrente",
+  "plannerMission_disableConfirm": "Disattiva",
+  "plannerMission_disableMessage": "Il percorso e la squadra vengono rimossi. Il profilo generato resta come segmenti normali modificabili.",
+  "plannerMission_disableTitle": "Disattivare la missione DPV?",
+  "plannerMission_results_legRow": "{leg}: {line}",
+  "plannerMission_results_listSeparator": ", ",
+  "plannerMission_results_memberLine": "{name}: {status}",
+  "plannerMission_results_memberLineExits": "{name}: {status} ({exits})",
+  "plannerMission_results_abandonmentUnknown": "Non è stato possibile stabilire da quali punti si può uscire",
+  "plannerMission_results_safeSurfaceUnknown": "Superficie sicura: non è stato possibile calcolarla",
+  "plannerMission_chip_issues": "{count, plural, =1{Missione: {count} problema} other{Missione: {count} problemi}}",
+  "plannerMission_factor_battery": "riserva della batteria",
+  "plannerMission_factor_blockedByCurrent": "una corrente che blocca l'uscita",
+  "plannerMission_factor_exposure": "esposizione all'ossigeno",
+  "plannerMission_factor_noFeasibleTow": "nessun traino praticabile",
+  "plannerMission_factor_ownGas": "il proprio gas",
+  "plannerMission_factor_scenarioFailed": "uno scenario di guasto che non è stato possibile calcolare",
+  "plannerMission_factor_surfaceSwimLimit": "il limite di nuoto in superficie",
+  "plannerMission_factor_teamGas": "il gas di un compagno",
+  "plannerMission_results_abandonment": "Ultimo punto da cui tutti possono uscire: {waypoint}",
+  "plannerMission_results_assumptions": "Riserva della batteria {reserve}% dell'autonomia. Chi ha lo scooter in avaria respira il proprio RMV aumentato del fattore di stress del piano fino alla prima sosta.",
+  "plannerMission_results_battery": "Batteria {percent}% dell'autonomia ({minutes}′), riserva {reserve}%",
+  "plannerMission_results_bindsAt": "Limite a {waypoint}: {factor}",
+  "plannerMission_results_blocked": "La missione non può ancora essere calcolata:",
+  "plannerMission_results_cannotGetOut": "non può uscire",
+  "plannerMission_results_computing": "Calcolo degli scenari di guasto in corso",
+  "plannerMission_results_failed": "Non è stato possibile calcolare la missione",
+  "plannerMission_results_home": "{distance} in linea retta fino all'ingresso",
+  "plannerMission_results_legLine": "andata {outSpeed} {outMinutes}′, ritorno {backSpeed} {backMinutes}′",
+  "plannerMission_results_legs": "Tratti",
+  "plannerMission_results_limitedBy": "Limitato dallo {scooter} di {name} a {waypoint}: {factor}",
+  "plannerMission_results_limitedByDiver": "Limitato da {name} a {waypoint}: {factor}",
+  "plannerMission_results_noAbandonment": "Nessun punto consente di uscire con qualsiasi guasto",
+  "plannerMission_results_noBuddy": "nessun compagno",
+  "plannerMission_results_noLimit": "Nessun limite su questo percorso",
+  "plannerMission_results_notComputed": "non è stato possibile calcolarlo",
+  "plannerMission_results_safeSurface": "Superficie sicura in {minutes}′",
+  "plannerMission_results_setsCruise": "Determina la velocità di crociera della squadra",
+  "plannerMission_results_surface": "superficie {minutes}′",
+  "plannerMission_results_surfaceViaShore": "superficie dalla riva {minutes}′",
+  "plannerMission_results_survives": "esce",
+  "plannerMission_results_swim": "nuoto {minutes}′",
+  "plannerMission_results_title": "Missione",
+  "plannerMission_results_tow": "trainato da {name} {minutes}′",
+  "plannerMission_results_turnPressure": "Inversione a {pressure}",
+  "plannerMission_results_unconstrained": "Da ogni punto si esce con il guasto di qualsiasi scooter",
+  "plannerMission_results_waypointLine": "{distance}, arrivo {minutes}′",
+  "plannerMission_results_waypoints": "Punti",
+  "plannerMission_profile_segment": "{depth}, {minutes} min",
+  "plannerMission_enableConfirm": "Sostituisci",
+  "plannerMission_enableMessage": "La missione costruisce il profilo dal percorso e dalla squadra, quindi i segmenti di questo piano vengono sostituiti. Se in seguito disattivi la missione, resta il profilo della missione, non questi segmenti.",
+  "plannerMission_enableTitle": "Sostituire i segmenti con una missione DPV?",
+  "plannerMission_enable": "Pianifica come missione DPV",
+  "plannerMission_environment_openWater": "Acque libere",
+  "plannerMission_environment_overhead": "Ambiente ostruito",
+  "plannerMission_issue_batteryReserveInvalid": "La riserva della batteria deve essere tra 0 e 100%",
+  "plannerMission_issue_emptyRoute": "Aggiungi almeno un tratto",
+  "plannerMission_issue_emptyTeam": "Aggiungi almeno un subacqueo",
+  "plannerMission_issue_legDepthInvalid": "{leg} ha una profondità non valida",
+  "plannerMission_issue_legTooShort": "{leg} è troppo corto da percorrere",
+  "plannerMission_issue_memberSacUnset": "{name} richiede un RMV",
+  "plannerMission_issue_memberSwimSpeedUnset": "{name} richiede una velocità di nuoto",
+  "plannerMission_issue_openWaterInputInvalid": "Un’uscita a riva, il limite di nuoto in superficie o la velocità di camminata è negativo",
+  "plannerMission_issue_planHasNoTank": "Aggiungi una bombola di gas principale al piano",
+  "plannerMission_issue_planNotDiveable": "Il percorso pianificato supera un limite critico",
+  "plannerMission_issue_scenarioFailed": "Non è stato possibile calcolare uno scenario di guasto",
+  "plannerMission_issue_scooterUnspecified": "Lo scooter di {name} richiede velocità e autonomia",
+  "plannerMission_issue_speedBelowHeadwayFloor": "La velocità di nuoto, di scooter o di traino di {name} è troppo bassa per avanzare",
+  "plannerMission_issue_tankBudgetUnknown": "Ogni bombola richiede un volume e una pressione di carica",
+  "plannerMission_issue_unsupportedMode": "Le missioni DPV pianificano solo immersioni a circuito aperto",
+  "plannerMission_issue_untraversableLeg": "La corrente blocca {leg}",
+  "plannerMission_leg_depth": "Profondità",
+  "plannerMission_leg_distance": "Distanza",
+  "plannerMission_leg_heading": "Rotta",
+  "plannerMission_leg_label": "Nome del punto",
+  "plannerMission_leg_shoreExit": "Uscita a riva da qui",
+  "plannerMission_leg_shoreSwim": "Nuoto in superficie fino a riva",
+  "plannerMission_leg_shoreWalk": "Camminata fino all’entrata",
+  "plannerMission_leg_useMissionCurrent": "Usa la corrente della missione",
+  "plannerMission_member_chooseScooter": "Scegli dall’attrezzatura",
+  "plannerMission_member_manualScooter": "Inserisci manualmente",
+  "plannerMission_member_name": "Nome",
+  "plannerMission_member_pickBuddy": "Scegli un compagno",
+  "plannerMission_member_sac": "Bottom RMV",
+  "plannerMission_member_scooter": "Scooter",
+  "plannerMission_member_swimSpeed": "Velocità di nuoto",
+  "plannerMission_profile_none": "Ancora nessun profilo: {reason}",
+  "plannerMission_profile_title": "Profilo generato",
+  "plannerMission_route_addLeg": "Aggiungi tratto",
+  "plannerMission_route_deleteLeg": "Elimina tratto",
+  "plannerMission_route_editLeg": "Modifica tratto",
+  "plannerMission_route_legSummary": "{distance} a {depth}, rotta {heading}",
+  "plannerMission_route_ownCurrent": "Corrente {speed} verso {direction}",
+  "plannerMission_route_shoreExit": "Uscita a riva: nuotare {swim}, camminare {walk}",
+  "plannerMission_route_title": "Percorso",
+  "plannerMission_route_unnamedLeg": "Tratto {number}",
+  "plannerMission_scooter_burnTime": "Autonomia",
+  "plannerMission_scooter_name": "Nome dello scooter",
+  "plannerMission_scooter_speed": "Velocità nominale",
+  "plannerMission_scooter_towBurnFactor": "Fattore di consumo in traino",
+  "plannerMission_scooter_towSpeedFactor": "Fattore di velocità di traino",
+  "plannerMission_settings_batteryReserve": "Riserva della batteria",
+  "plannerMission_settings_defaultCurrent": "Corrente predefinita",
+  "plannerMission_settings_environment": "Ambiente",
+  "plannerMission_settings_surfaceSwimLimit": "Nuoto in superficie più lungo",
+  "plannerMission_settings_walkSpeed": "Velocità di camminata",
+  "plannerMission_team_addDiver": "Aggiungi subacqueo",
+  "plannerMission_team_capacity": "Batteria da {wh} Wh",
+  "plannerMission_team_defaultName": "Subacqueo {number}",
+  "plannerMission_team_editDiver": "Modifica subacqueo",
+  "plannerMission_team_memberSummary": "RMV {sac}, nuoto {speed}",
+  "plannerMission_team_noScooter": "Nessuno scooter impostato",
+  "plannerMission_team_removeDiver": "Rimuovi subacqueo",
+  "plannerMission_team_scooterSummary": "{name}: {speed}, {minutes} min di autonomia",
+  "plannerMission_team_title": "Squadra DPV",
   "planning_appBar_title": "Pianificazione",
   "planning_card_decoCalculator_description": "Calcola i limiti di non decompressione, le soste deco necessarie e l'esposizione CNS/OTU per profili di immersione multilivello.",
   "planning_card_decoCalculator_subtitle": "Pianifica immersioni con soste di decompressione",
@@ -6733,6 +6932,8 @@
   "tides_source_sheetTitle": "Fonte dei dati di marea",
   "tides_source_datumMllw": "Altezze rispetto al MLLW (datum della stazione)",
   "tides_source_datumMsl": "Altezze rispetto al livello medio del mare",
+  "tides_source_siteLocalTime": "Gli orari sono mostrati nell'ora locale del sito di immersione.",
+  "tides_source_modelResolution": "Griglia del modello oceanico di {distance}",
   "tides_title": "Maree",
   "tools_gpsLogger_description": "Registra la tua posizione durante una giornata di immersioni e abbina automaticamente le immersioni importate alle posizioni GPS.",
   "tools_gpsLogger_subtitle": "Registra una traccia di superficie",
@@ -6785,17 +6986,20 @@
   "transfer_csvExport_dataTypeHeader": "Tipo di dati",
   "transfer_csvExport_descriptionDives": "Esporta tutti i registri immersione come foglio di calcolo",
   "transfer_csvExport_descriptionEquipment": "Esporta inventario attrezzatura e informazioni sulla manutenzione",
+  "transfer_csvExport_descriptionFills": "Ogni ricarica registrata su un passaporto bombola, con analisi, pressione e stazione",
   "transfer_csvExport_descriptionObservations": "Ogni controllo OK e ogni problema segnalato, con immersione, etichette e nota",
   "transfer_csvExport_descriptionSites": "Esporta località e dettagli dei siti di immersione",
   "transfer_csvExport_dialogTitle": "Esporta CSV",
   "transfer_csvExport_exportButton": "Esporta CSV",
   "transfer_csvExport_optionDivesTitle": "CSV Immersioni",
   "transfer_csvExport_optionEquipmentTitle": "CSV Attrezzatura",
+  "transfer_csvExport_optionFillsTitle": "CSV delle ricariche bombola",
   "transfer_csvExport_optionObservationsTitle": "CSV dei controlli attrezzatura",
   "transfer_csvExport_optionSitesTitle": "CSV Siti",
   "transfer_csvExport_semanticLabel": "Esporta {typeName}",
   "transfer_csvExport_typeDives": "Immersioni",
   "transfer_csvExport_typeEquipment": "Attrezzatura",
+  "transfer_csvExport_typeFills": "Ricariche bombola",
   "transfer_csvExport_typeObservations": "Controlli attrezzatura",
   "transfer_csvExport_typeSites": "Siti",
   "transfer_csvExport_unitsHeader": "Unità",
@@ -6872,6 +7076,8 @@
   "transfer_summary_title": "Trasferimento",
   "transfer_unknownSection": "Sezione sconosciuta: {sectionId}",
   "trips_appBar_title": "Viaggi",
+  "trips_list_count": "{count, plural, =1{{count} viaggio} other{{count} viaggi}}",
+  "trips_list_countFiltered": "{shown} di {total, plural, =1{{total} viaggio} other{{total} viaggi}}",
   "trips_appBar_tripPhotos": "Foto del viaggio",
   "trips_breakdown_column_bottomTime": "Bottom Time",
   "trips_breakdown_column_day": "Day",
@@ -6961,6 +7167,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "Pianificazione",
+  "trips_edit_label_diversSharing": "Subacquei che condividono le bombole",
+  "trips_edit_hint_diversSharing": "Te compreso. Vuoto significa 1.",
+  "trips_edit_label_divesPerDay": "Immersioni al giorno",
+  "trips_edit_hint_divesPerDay": "Per la previsione di ricarica. Vuoto significa stima.",
   "trips_edit_label_expectedDives": "Immersioni previste",
   "trips_edit_hint_expectedDives": "Lascia vuoto per stimare dai tuoi viaggi recenti",
   "trips_edit_label_expectedRuntime": "Durata prevista per immersione (minuti)",
@@ -7065,6 +7275,308 @@
       }
     }
   },
+  "trips_gear_title": "Attrezzatura",
+  "trips_gear_none": "Nessuna attrezzatura preparata",
+  "trips_gear_add": "Aggiungi attrezzatura",
+  "trips_gear_remove": "Togli",
+  "trips_gear_failed": "Impossibile modificare l'attrezzatura. Riprova.",
+  "trips_cylinders_forecast_todayShort": "Oggi ne servono {needed}, ne hai {full} piene.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "Domani ne servono {needed}, ne avrai {full} piene.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "Ricarica prima delle {time}.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "Bombole piene sufficienti fino a domani.",
+  "trips_cylinders_forecast_daysTitle": "Immersioni pianificate",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} immersione} other{{count} immersioni}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "Immersioni pianificate, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "Usa la stima",
+  "trips_cylinders_forecast_fewer": "Meno immersioni",
+  "trips_cylinders_forecast_more": "Più immersioni",
+  "trips_cylinders_forecast_saveError": "Impossibile salvare il piano: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "Pianificato da te",
+  "trips_cylinders_segment_record": "Consumi",
+  "trips_cylinders_recordEmpty": "Ancora nessuna immersione con queste bombole.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} ricarica registrata} other{{count} ricariche registrate}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} immersione esclusa} other{{count} immersioni escluse}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} ricarica nel pacchetto} other{{count} ricariche nel pacchetto}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} bombola di immersione non collegata} other{{count} bombole di immersione non collegate}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "Non collegate a una bombola",
+  "trips_cylinders_record_tank": "Bombola {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "Ricaricata a {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "Analizzato {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "Consumi di gas esportati",
+  "trips_cylinders_title": "Bombole",
+  "trips_cylinders_summary": "Piene {full} · Parziali {partial} · Vuote {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "Non ancora caricate {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "Configura le bombole",
+  "trips_cylinders_setUpHint": "Tieni traccia delle bombole che hai in questo viaggio: ricariche, miscele e quanto resta in ciascuna.",
+  "trips_cylinders_status_full": "Piena",
+  "trips_cylinders_status_partial": "Parziale",
+  "trips_cylinders_status_empty": "Vuota",
+  "trips_cylinders_status_unknown": "Non ancora caricata",
+  "trips_cylinders_mixAir": "Aria",
+  "trips_cylinders_segment_board": "Quadro",
+  "trips_cylinders_segment_ledger": "Registro",
+  "trips_cylinders_action_add": "Aggiungi bombole",
+  "trips_cylinders_action_fill": "Ricarica",
+  "trips_cylinders_action_fillSeveral": "Ricarica più bombole",
+  "trips_cylinders_action_adjust": "Correggi",
+  "trips_cylinders_action_logDive": "Registra immersione",
+  "trips_cylinders_bottle": "Bombola {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} immersione} other{{count} immersioni}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "Ricaricata da {place}, {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "Ricaricata {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "Corretta {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "Immersione a {site}, {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "Immersione {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "Ancora nessuna bombola in questo viaggio",
+  "trips_cylinders_ledgerEmpty": "Ancora nessuna ricarica o correzione",
+  "trips_cylinders_kind_fill": "Ricarica",
+  "trips_cylinders_kind_adjustment": "Correzione",
+  "trips_cylinders_deleteConfirmUnused": "Eliminare questa bombola e le sue ricariche?",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{Eliminare questa bombola e le sue ricariche? {count} immersione l'ha usata. L'immersione conserva la sua bombola; viene rimosso solo il collegamento.} other{Eliminare questa bombola e le sue ricariche? {count} immersioni l'hanno usata. Le immersioni conservano le loro bombole; viene rimosso solo il collegamento.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "Eliminare questa voce?",
+  "trips_cylinders_add_tabRental": "Noleggio",
+  "trips_cylinders_add_tabOwned": "Dalla mia attrezzatura",
+  "trips_cylinders_add_count": "Quante",
+  "trips_cylinders_add_preset": "Tipo di bombola",
+  "trips_cylinders_add_prefix": "Prefisso del nome",
+  "trips_cylinders_add_prefixDefault": "Pick-up",
+  "trips_cylinders_add_noOwned": "Non restano bombole della tua attrezzatura da aggiungere.",
+  "trips_cylinders_add_errorCount": "Inserisci un numero da 1 a 20.",
+  "trips_cylinders_fill_titleEdit": "Modifica ricarica",
+  "trips_cylinders_fill_when": "Quando",
+  "trips_cylinders_fill_where": "Stazione di ricarica",
+  "trips_cylinders_fill_whereNone": "Non impostata",
+  "trips_cylinders_fill_pressure": "Pressione di ricarica ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 richiesto (%)",
+  "trips_cylinders_fill_he": "He richiesto (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 analizzato (%)",
+  "trips_cylinders_fill_analyzedHe": "He analizzato (%)",
+  "trips_cylinders_fill_bottle": "Numero della bombola",
+  "trips_cylinders_fill_cost": "Costo",
+  "trips_cylinders_fill_costEach": "Costo per bombola",
+  "trips_cylinders_fill_currency": "Valuta",
+  "trips_cylinders_fill_package": "Incluso in un pacchetto",
+  "trips_cylinders_fill_slots": "Bombole da ricaricare",
+  "trips_cylinders_fill_errorMix": "L'ossigeno deve essere tra 1 e 100 per cento, l'elio tra 0 e 99, e insieme al massimo 100.",
+  "trips_cylinders_fill_errorNoSlot": "Scegli almeno una bombola.",
+  "trips_cylinders_note": "Nota",
+  "trips_cylinders_adjust_titleEdit": "Modifica correzione",
+  "trips_cylinders_adjust_pressure": "Pressione ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "Segna come vuota",
+  "trips_cylinders_edit_title": "Modifica bombola",
+  "trips_cylinders_edit_label": "Nome",
+  "trips_cylinders_edit_errorLabel": "Inserisci un nome.",
+  "trips_cylinders_edit_errorNeedsPressure": "Inserisci anche la pressione di esercizio per poter convertire la dimensione.",
+  "trips_cylinders_edit_volume": "Dimensione ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "Pressione di esercizio ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "Personalizzata",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Data di fine",
@@ -8086,6 +8598,36 @@
   "sites_deleteShared_title": "Eliminare il sito condiviso?",
   "sites_unshareConfirm_body": "Verrà rimosso «{name}» dalle viste degli altri profili subacquei. Potrai condividerlo di nuovo in seguito.",
   "sites_unshareConfirm_title": "Annullare la condivisione di questo sito?",
+  "settings_hiddenItems_empty": "Niente è nascosto in questo profilo.",
+  "settings_hiddenItems_sites": "Siti",
+  "settings_hiddenItems_title": "Nascosti in questo profilo",
+  "settings_hiddenItems_trips": "Viaggi",
+  "settings_hiddenItems_unhide": "Mostra",
+  "sharedItems_bulkDeleteCount_sites": "{count, plural, one{Verrà eliminato {count} sito.} other{Verranno eliminati {count} siti.}}",
+  "sharedItems_bulkDeleteCount_trips": "{count, plural, one{Verrà eliminato {count} viaggio.} other{Verranno eliminati {count} viaggi.}}",
+  "sharedItems_bulkHiddenSnackbar": "{count, plural, one{{count} elemento rimosso dal tuo profilo} other{{count} elementi rimossi dal tuo profilo}}",
+  "sharedItems_bulkHideCount_sites": "{count, plural, one{{count} sito condiviso verrà rimosso solo dal tuo profilo.} other{{count} siti condivisi verranno rimossi solo dal tuo profilo.}}",
+  "sharedItems_bulkHideCount_trips": "{count, plural, one{{count} viaggio condiviso verrà rimosso solo dal tuo profilo.} other{{count} viaggi condivisi verranno rimossi solo dal tuo profilo.}}",
+  "sharedItems_bulkRemoveTitle": "{count, plural, one{Rimuovere {count} elemento dal tuo profilo?} other{Rimuovere {count} elementi dal tuo profilo?}}",
+  "sharedItems_bulkSharedWarning_sites": "{count, plural, one{{count} di questi è condiviso con altri profili e verrà eliminato per tutti.} other{{count} di questi sono condivisi con altri profili e verranno eliminati per tutti.}}",
+  "sharedItems_bulkSharedWarning_trips": "{count, plural, one{{count} di questi è condiviso con altri profili e verrà eliminato per tutti.} other{{count} di questi sono condivisi con altri profili e verranno eliminati per tutti.}}",
+  "sharedItems_hiddenHere": "Nascosto nel tuo profilo",
+  "sharedItems_mergeTooManyShared": "Solo uno dei siti selezionati può appartenere a un altro profilo. Deseleziona gli altri per unirli.",
+  "sharedItems_notOwner_site": "Solo il proprietario può eliminare questo sito",
+  "sharedItems_notOwner_trip": "Solo il proprietario può eliminare questo viaggio",
+  "sharedItems_otherProfilesDives_site": "{count, plural, one{{count} immersione di un altro profilo perderà questo sito.} other{{count} immersioni di altri profili perderanno questo sito.}}",
+  "sharedItems_otherProfilesDives_trip": "{count, plural, one{{count} immersione di un altro profilo perderà questo viaggio.} other{{count} immersioni di altri profili perderanno questo viaggio.}}",
+  "sharedItems_ownerUnknown": "un altro profilo subacqueo",
+  "sharedItems_removeAction": "Rimuovi dal mio profilo",
+  "sharedItems_removeBody": "Resta nel registro di {owner} e in tutti gli altri profili. Viene solo nascosto qui.",
+  "sharedItems_removeOwnDives": "{count, plural, one{{count} delle tue immersioni resta collegata.} other{{count} delle tue immersioni restano collegate.}}",
+  "sharedItems_removeRestoreHint": "Puoi ripristinarlo da Impostazioni > Dati condivisi.",
+  "sharedItems_removeTitle": "Rimuovere «{name}» dal tuo profilo?",
+  "sharedItems_removedSnackbar": "Rimosso dal tuo profilo",
+  "sharedItems_shareOwnerOnly": "Solo {owner} può modificare la condivisione",
+  "sharedItems_sharedBy": "Condiviso da {owner}",
+  "sharedItems_undo": "Annulla",
+  "sharedItems_unhideAction": "Mostra nel mio profilo",
   "trips_deleteShared_body": "«{name}» è condiviso con altri profili subacquei. Eliminandolo qui verrà rimosso per tutti.",
   "trips_deleteShared_title": "Eliminare il viaggio condiviso?",
   "trips_unshareConfirm_body": "Verrà rimosso «{name}» dalle viste degli altri profili subacquei. Potrai condividerlo di nuovo in seguito.",
@@ -9731,6 +10273,8 @@
   "dataQuality_neverScanned": "Il tuo logbook non è ancora stato analizzato",
   "dataQuality_empty_title": "Tutto a posto",
   "dataQuality_empty_subtitle": "Nessun rilievo sulla qualità dei dati. Analizza la libreria per controllare le immersioni importate.",
+  "dataQuality_empty_chipFiltered": "Nessun rilievo in questa categoria",
+  "dataQuality_empty_showAll": "Mostra tutti i rilievi",
   "dataQuality_banner_newChecks": "Sono disponibili nuovi controlli di qualità",
   "dataQuality_banner_rescan": "Analizza di nuovo",
   "dataQuality_action_dismiss": "Ignora",
@@ -9777,6 +10321,8 @@
   "dataQuality_msg_pressureSwap": "La pressione finale {end} è superiore alla pressione iniziale {start}",
   "dataQuality_msg_pressureEndpoint": "Il record della bombola indica {record}, ma la serie del sensore mostra {series}",
   "dataQuality_msg_pressureRise": "La pressione è aumentata di {rise} durante l'immersione senza cambio gas",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{Il sensore di pressione ha registrato una lettura errata una volta (interruzione o picco)} other{Il sensore di pressione ha registrato letture errate {count} volte (interruzioni o picchi)}}",
+  "dataQuality_msg_pressureMixed": "La serie di pressione mescola le letture di due fonti",
   "dataQuality_msg_sac": "Il consumo in superficie implicito di {sac} non è plausibile",
   "dataQuality_msg_ppo2": "La ppO2 ha raggiunto {ppo2} con {gas} a {depth}",
   "dataQuality_msg_hypoxic": "Miscela ipossica ({gas}) indicata in uso in superficie",
@@ -9971,6 +10517,7 @@
   "settings_visibilityScale_customHelp": "Inserisci la distanza più breve che conta ancora per ogni livello.",
   "insights_conditions_visibility_legacySuffix": "{band} (registrato prima della misurazione)",
   "common_selection_countSelected": "{count} selezionati",
+  "common_listCount_shownOfTotal": "{shown} di {total}",
   "common_selection_enterTooltip": "Seleziona elementi",
   "common_selection_exitTooltip": "Esci dalla selezione",
   "common_selection_selectAllTooltip": "Seleziona tutto",
@@ -11843,6 +12390,106 @@
   "diveLog_filter_noComputersRegistered": "Nessun computer subacqueo registrato",
   "diveLog_filter_sectionDepthRangeUnit": "Intervallo di profondità ({unit})",
   "diveLog_filter_sectionDiveComputer": "Computer subacqueo",
+  "diveLog_filterChip_speciesCount": "{count} specie",
+  "diveLog_filterChip_weekdayCount": "{count, plural, =1{{count} giorno della settimana} other{{count} giorni della settimana}}",
+  "diveLog_filterChip_siteCount": "{count} siti",
+  "diveLog_filterChip_visibilityRange": "Visibilità da {min} a {max} {unit}",
+  "diveLog_filterChip_visibilityMin": "Visibilità oltre {value} {unit}",
+  "diveLog_filterChip_visibilityMax": "Visibilità sotto {value} {unit}",
+  "diveLog_filterChip_waterTempRange": "Acqua da {min} a {max}{unit}",
+  "diveLog_filterChip_waterTempMin": "Acqua oltre {value}{unit}",
+  "diveLog_filterChip_waterTempMax": "Acqua sotto {value}{unit}",
+  "diveLog_filterChip_waterTypeCount": "{count} tipi di acqua",
+  "diveLog_filter_sectionSpecies": "Vita marina",
+  "diveLog_filter_sectionVisibilityUnit": "Visibilità ({unit})",
+  "diveLog_filter_sectionWaterTempUnit": "Temperatura dell'acqua ({unit})",
+  "diveLog_filter_sectionWaterType": "Tipo di acqua",
+  "diveLog_filter_speciesSearchHint": "Cerca specie",
+  "diveLog_listPage_tooltip_explore": "Esplora con una frase",
+  "explore_chip_favorite": "Preferito",
+  "explore_chip_deco": "Immersione con decompressione",
+  "explore_chip_fieldPeriod": "{field}: {period}",
+  "explore_chip_noDeco": "Senza decompressione",
+  "explore_chip_noBuddy": "Senza compagno",
+  "explore_chip_rating": "Valutazione {op} {value}",
+  "explore_chip_numeric": "{field} {op} {value}",
+  "explore_chip_between": "{field} da {low} a {high}",
+  "explore_chip_enum": "{field}: {values}",
+  "explore_chip_enumNot": "{field} non {values}",
+  "explore_chip_timeRange": "da {start} a {end}",
+  "explore_chip_timeSince": "Da {start}",
+  "explore_chip_timeBefore": "Prima di {end}",
+  "explore_chip_viaDives": "Immersioni: {label}",
+  "explore_chip_withinDays": "{days, plural, =1{{field} entro {days} giorno} other{{field} entro {days} giorni}}",
+  "explore_count": "{count, plural, =0{Nessuna immersione} =1{1 immersione} other{{count} immersioni}}",
+  "explore_download_button": "Scarica il modello sul dispositivo",
+  "explore_download_running": "Download del modello in corso",
+  "explore_error_contextExceeded": "Questa frase è troppo lunga per il modello sul dispositivo. Provane una più breve.",
+  "explore_error_decodingFailure": "Il modello non ha prodotto una risposta utilizzabile. Prova a riformulare.",
+  "explore_error_guardrail": "Il modello ha rifiutato questa frase.",
+  "explore_error_modelNotReady": "Il modello sul dispositivo non è ancora pronto.",
+  "explore_error_quotaExceeded": "Il modello sul dispositivo è occupato. Riprova tra un momento.",
+  "explore_error_refusal": "Il modello ha rifiutato questa frase.",
+  "explore_error_schemaMismatch": "Impossibile comprendere. Aggiorna l'app se il problema persiste.",
+  "explore_error_unknown": "Qualcosa è andato storto interrogando il modello sul dispositivo.",
+  "explore_error_unsupportedLocale": "Il modello sul dispositivo non comprende questa lingua.",
+  "explore_field_airTemp": "Temperatura dell'aria",
+  "explore_field_avgDepth": "Profondità media",
+  "explore_field_bottomTime": "Tempo di fondo",
+  "explore_field_currentStrength": "Corrente",
+  "explore_field_depth": "Profondità",
+  "explore_field_diveMode": "Modalità di immersione",
+  "explore_field_diveNumber": "Numero immersione",
+  "explore_field_diveType": "Tipo di immersione",
+  "explore_field_entryMethod": "Ingresso",
+  "explore_field_o2": "Ossigeno",
+  "explore_field_rating": "Valutazione",
+  "explore_field_visibility": "Visibilità",
+  "explore_field_waterTemp": "Temperatura dell'acqua",
+  "explore_field_waterType": "Tipo di acqua",
+  "explore_field_weekday": "Giorno della settimana",
+  "explore_handoff_diveList": "Apri nell'elenco immersioni",
+  "explore_handoff_insights": "Apri in Analisi",
+  "explore_handoff_list": "Apri nell'elenco",
+  "explore_hint": "Chiedi delle tue immersioni, ad esempio tartarughe oltre 20 m a Bonaire",
+  "explore_needsAttention_title": "Da verificare",
+  "explore_op_gt": "oltre",
+  "explore_op_gte": "almeno",
+  "explore_op_lt": "sotto",
+  "explore_op_lte": "al massimo",
+  "explore_value_minutes": "{minutes} min",
+  "explore_op_eq": "di",
+  "explore_pickCandidate_title": "Cosa intendevi con \"{text}\"?",
+  "explore_recent_title": "Recenti",
+  "explore_results_count": "{count, plural, =1{{count} risultato} other{{count} risultati}}",
+  "explore_results_subjectTitle": "Corrispondenze",
+  "explore_results_subjectTruncated": "Mostrati i primi {count}. Apri l'elenco per vederli tutti.",
+  "explore_results_title": "Immersioni corrispondenti",
+  "explore_results_truncated": "Mostrate le prime {count}. Apri l'elenco immersioni per vederle tutte.",
+  "explore_shortcut_unavailable": "Esplora richiede il modello sul dispositivo, che non è pronto su questo dispositivo.",
+  "explore_title": "Esplora",
+  "explore_understood_title": "Compreso",
+  "explore_unplaced_reason_aggregateWithScope": "Non ancora combinabile con condizioni sulle immersioni",
+  "explore_unplaced_reason_invalid": "Impossibile leggere questo valore",
+  "explore_unplaced_reason_noAxis": "Non ancora ricercabile",
+  "explore_unplaced_reason_outOfRange": "Valore fuori intervallo",
+  "explore_unplaced_reason_unknownField": "Campo sconosciuto",
+  "explore_unplaced_reason_unknownTime": "Impossibile leggere questo periodo",
+  "explore_unresolved_noCandidates": "Nessuna corrispondenza nel tuo logbook",
+  "explore_chart_divesOverTime": "Immersioni nel tempo",
+  "explore_chart_depthTrend": "Profondità",
+  "explore_chart_waterTempTrend": "Temperatura dell'acqua",
+  "explore_chart_bottomTimeTrend": "Tempo di fondo",
+  "explore_chart_entityCounts": "Immersioni per {kind}",
+  "explore_kind_site": "sito",
+  "explore_kind_place": "luogo",
+  "explore_kind_species": "specie",
+  "explore_kind_gear": "attrezzatura",
+  "explore_kind_buddy": "compagno",
+  "explore_kind_tag": "tag",
+  "explore_kind_center": "diving center",
+  "explore_kind_trip": "viaggio",
+  "explore_kind_computer": "computer",
   "diveLog_listPage_semanticsDiveAtSite": "Immersione {diveNumber} presso {siteName}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "Immersione pianificata a {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
@@ -12349,6 +12996,7 @@
   "settings_export_progress_sitesCsv": "Esportazione dei siti in CSV...",
   "settings_export_progress_equipmentCsv": "Esportazione dell’attrezzatura in CSV...",
   "settings_export_progress_observationsCsv": "Esportazione dei controlli attrezzatura in CSV...",
+  "settings_export_progress_fillsCsv": "Esportazione delle ricariche bombola in CSV...",
   "settings_export_progress_pdf": "Generazione del logbook PDF...",
   "settings_export_progress_loadingSignatures": "Caricamento delle firme...",
   "settings_export_progress_loadingProfiles": "Caricamento dei profili di immersione...",
@@ -12368,12 +13016,14 @@
   "settings_export_progress_preparingSitesCsv": "Preparazione del CSV siti...",
   "settings_export_progress_preparingEquipmentCsv": "Preparazione del CSV attrezzatura...",
   "settings_export_progress_preparingObservationsCsv": "Preparazione del CSV dei controlli attrezzatura...",
+  "settings_export_progress_preparingFillsCsv": "Preparazione del CSV delle ricariche bombola...",
   "settings_export_progress_preparingUddf": "Preparazione del file UDDF...",
   "settings_export_progress_preparingPdf": "Preparazione del PDF...",
   "settings_export_empty_dives": "Nessuna immersione da esportare",
   "settings_export_empty_sites": "Nessun sito da esportare",
   "settings_export_empty_equipment": "Nessuna attrezzatura da esportare",
   "settings_export_empty_observations": "Nessun controllo attrezzatura da esportare",
+  "settings_export_empty_fills": "Nessuna ricarica bombola da esportare",
   "settings_export_empty_data": "Nessun dato da esportare",
   "settings_export_empty_diveSites": "Nessun sito di immersione da esportare",
   "settings_export_saveFailed": "Salvataggio non riuscito: {error}",
@@ -12381,6 +13031,7 @@
   "settings_export_success_sites": "Siti esportati con successo",
   "settings_export_success_equipment": "Attrezzatura esportata con successo",
   "settings_export_success_observations": "Controlli attrezzatura esportati",
+  "settings_export_success_fills": "Ricariche bombola esportate",
   "settings_export_success_pdf": "Logbook PDF generato con successo",
   "settings_export_success_uddf": "File UDDF generato con successo",
   "settings_export_success_excel": "File Excel esportato con successo",
@@ -12391,6 +13042,7 @@
   "settings_export_saved_sitesCsv": "CSV siti salvato con successo",
   "settings_export_saved_equipmentCsv": "CSV attrezzatura salvato con successo",
   "settings_export_saved_observationsCsv": "CSV dei controlli attrezzatura salvato",
+  "settings_export_saved_fillsCsv": "CSV delle ricariche bombola salvato",
   "settings_export_saved_uddf": "File UDDF salvato con successo",
   "settings_export_saved_pdf": "PDF salvato con successo",
   "settings_export_cancelled_save": "Salvataggio annullato",
@@ -12534,6 +13186,7 @@
   "settings_export_saveSitesCsvDialogTitle": "Salva CSV siti",
   "settings_export_saveEquipmentCsvDialogTitle": "Salva CSV attrezzatura",
   "settings_export_saveObservationsCsvDialogTitle": "Salva CSV dei controlli attrezzatura",
+  "settings_export_saveFillsCsvDialogTitle": "Salva CSV delle ricariche bombola",
   "backup_operation_created": "Backup creato: {size}",
   "backup_operation_backupFailed": "Backup non riuscito: {error}",
   "backup_operation_restoring": "Ripristino del backup in corso...",
@@ -13062,6 +13715,11 @@
   "navTrack_review_row_maxDepth": "Profondità max",
   "navTrack_review_row_maxSpeed": "Velocità max",
   "navTrack_review_leaveUnlinked": "Lascia non collegato",
+  "navTrack_review_noOverlapHint": "Nessuna immersione si sovrappone all'orario di questa registrazione. Immersioni più vicine per ora di inizio:",
+  "navTrack_review_offsetBefore": "{offset} prima della registrazione",
+  "navTrack_review_offsetAfter": "{offset} dopo la registrazione",
+  "navTrack_review_offsetDays": "{days}g {hours}h",
+  "navTrack_review_chooseAnotherDive": "Scegli un'altra immersione...",
   "navTrack_list_importFailed": "Importazione non riuscita: {error}",
   "navTrack_list_matchError": "Impossibile abbinare i percorsi.",
   "navTrack_list_matchSuccess": "Percorsi abbinati alle immersioni.",
@@ -13192,28 +13850,50 @@
   "diveCenters_rental_noteLabel": "Nota",
   "diveCenters_rental_deleteConfirm": "Eliminare questa nota sul noleggio?",
   "query_buddies_certifications": "Brevetti",
+  "query_buddies_diveCount": "Immersioni insieme",
+  "query_buddies_dives": "Immersioni",
   "query_buddies_email": "E-mail",
   "query_buddies_favorite": "Preferita",
+  "query_buddies_lastDived": "Ultima immersione insieme",
   "query_buddies_name": "Nome",
   "query_buddies_notes": "Note",
   "query_buddies_phone": "Telefono",
+  "query_centers_affiliations": "Affiliazioni",
   "query_centers_city": "Città",
+  "query_centers_coordinates": "Coordinate",
   "query_centers_country": "Paese",
+  "query_centers_diveCount": "Numero di immersioni",
+  "query_centers_dives": "Immersioni",
+  "query_centers_lastDived": "Ultima immersione",
   "query_centers_name": "Nome",
+  "query_centers_notes": "Note",
+  "query_centers_rating": "Valutazione",
+  "query_centers_stateProvince": "Stato / Provincia",
   "query_certifications_agency": "Didattica",
+  "query_certifications_buddy": "Compagno",
   "query_certifications_cardNumber": "Numero tessera",
+  "query_certifications_course": "Corso",
   "query_certifications_expiryDate": "Data di scadenza",
+  "query_certifications_instructor": "Istruttore",
   "query_certifications_instructorName": "Nome dell'istruttore",
+  "query_certifications_instructorNumber": "Numero istruttore",
   "query_certifications_issueDate": "Data di rilascio",
   "query_certifications_level": "Livello",
   "query_certifications_name": "Nome",
+  "query_certifications_notes": "Note",
   "query_computers_manufacturer": "Produttore",
   "query_computers_model": "Modello",
   "query_computers_name": "Nome",
   "query_computers_serialNumber": "Numero di serie",
   "query_courses_agency": "Didattica",
+  "query_courses_certification": "Certificazione",
   "query_courses_completionDate": "Data di completamento",
+  "query_courses_dives": "Immersioni",
+  "query_courses_instructor": "Istruttore",
+  "query_courses_instructorName": "Nome dell'istruttore",
+  "query_courses_location": "Località",
   "query_courses_name": "Nome",
+  "query_courses_notes": "Note",
   "query_courses_startDate": "Data di inizio",
   "query_customFields_key": "Chiave",
   "query_customFields_value": "Valore",
@@ -13252,6 +13932,19 @@
   "query_dives_otu": "OTU",
   "query_dives_planned": "Pianificata",
   "query_dives_rating": "Valutazione",
+  "query_dives_findings": "Rilievi di sicurezza",
+  "query_dives_sac": "SAC",
+  "query_dives_sacTrend": "Andamento del SAC",
+  "query_dives_sacTrend_rising": "In aumento",
+  "query_dives_sacTrend_steady": "Stabile",
+  "query_dives_sacTrend_falling": "In calo",
+  "query_dives_sacChange": "Variazione del SAC",
+  "query_dives_finalStop": "Ultima sosta",
+  "query_dives_finalStop_stable": "Stabile",
+  "query_dives_finalStop_unstable": "Instabile",
+  "query_dives_finalStop_noStop": "Nessuna sosta",
+  "query_dives_finalStopExcursion": "Scostamento all'ultima sosta",
+  "query_dives_finalStopDuration": "Durata dell'ultima sosta",
   "query_dives_runtime": "Durata totale",
   "query_dives_sightings": "Avvistamenti",
   "query_dives_site": "Sito",
@@ -13278,8 +13971,11 @@
   "query_entity_dives": "Immersioni",
   "query_entity_equipment": "Attrezzatura",
   "query_entity_equipmentAttributes": "Attributi dell'attrezzatura",
+  "query_entity_findings": "Rilievi di sicurezza",
+  "query_findings_rule": "Regola",
   "query_entity_media": "Media",
   "query_entity_sightings": "Avvistamenti",
+  "query_entity_siteTypes": "Tipi di sito",
   "query_entity_sites": "Siti di immersione",
   "query_entity_species": "Specie",
   "query_entity_tags": "Tag",
@@ -13293,27 +13989,58 @@
   "query_equipment_active": "Attivo",
   "query_equipment_attributes": "Attributi",
   "query_equipment_brand": "Marca",
+  "query_equipment_diveCount": "Immersioni in uso",
+  "query_equipment_dives": "Immersioni",
+  "query_equipment_lastDived": "Ultimo utilizzo",
   "query_equipment_model": "Modello",
   "query_equipment_name": "Nome",
+  "query_equipment_nextServiceDue": "Prossima manutenzione",
   "query_equipment_serialNumber": "Numero di serie",
+  "query_equipment_serviceDue": "Manutenzione prevista",
+  "query_equipment_serviceDue_dueSoon": "In scadenza",
+  "query_equipment_serviceDue_ok": "Aggiornato",
+  "query_equipment_serviceDue_overdue": "Scaduta",
   "query_equipment_status": "Stato",
+  "query_equipment_tags": "Tag",
   "query_equipment_type": "Tipo",
+  "query_filter_clear": "Cancella",
+  "query_filter_tooltip": "Filtro",
+  "query_list_noMatch": "Nessun risultato corrisponde a questa query",
   "query_media_caption": "Didascalia",
   "query_media_favorite": "Preferita",
   "query_media_type": "Tipo",
+  "query_sheet_sectionTitle": "Query",
   "query_sightings_count": "Conteggio",
   "query_sightings_notes": "Note",
   "query_sightings_species": "Specie",
+  "query_siteTypes_name": "Nome",
   "query_sites_city": "Città",
+  "query_sites_coordinates": "Coordinate",
   "query_sites_country": "Paese",
+  "query_sites_difficulty": "Difficoltà",
+  "query_sites_diveCount": "Numero di immersioni",
+  "query_sites_dives": "Immersioni",
   "query_sites_island": "Isola",
+  "query_sites_lastDived": "Ultima immersione",
   "query_sites_maxDepth": "Profondità massima",
   "query_sites_name": "Nome",
+  "query_sites_notes": "Note",
   "query_sites_rating": "Valutazione",
   "query_sites_region": "Regione",
+  "query_sites_tags": "Tag",
+  "query_sites_types": "Tipi di sito",
+  "query_species_builtIn": "Predefinito",
   "query_species_category": "Categoria",
+  "query_species_description": "Descrizione",
+  "query_species_diveCount": "Immersioni con avvistamento",
+  "query_species_dives": "Immersioni",
+  "query_species_expectedSites": "Prevista nei siti",
+  "query_species_firstSeen": "Visto per la prima volta",
+  "query_species_lastSeen": "Visto per l'ultima volta",
   "query_species_name": "Nome",
   "query_species_scientificName": "Nome scientifico",
+  "query_species_sightings": "Avvistamenti",
+  "query_species_taxonomyClass": "Classe tassonomica",
   "query_tags_name": "Nome",
   "query_tanks_cylinder": "Bombola",
   "query_tanks_endPressure": "Pressione finale",
@@ -13322,10 +14049,17 @@
   "query_tanks_o2": "Ossigeno",
   "query_tanks_startPressure": "Pressione iniziale",
   "query_tanks_volume": "Volume",
+  "query_trips_diveCount": "Numero di immersioni",
+  "query_trips_dives": "Immersioni",
   "query_trips_endDate": "Data di fine",
+  "query_trips_liveaboardName": "Crociera subacquea",
   "query_trips_location": "Località",
   "query_trips_name": "Nome",
+  "query_trips_notes": "Note",
+  "query_trips_resortName": "Resort",
+  "query_trips_shared": "Condiviso",
   "query_trips_startDate": "Data di inizio",
+  "query_trips_tripType": "Tipo di viaggio",
   "query_weights_amount": "Quantità",
   "query_weights_notes": "Note",
   "query_weights_type": "Tipo",

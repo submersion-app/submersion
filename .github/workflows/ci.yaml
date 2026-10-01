@@ -700,6 +700,12 @@ jobs:
         # no error message. Stubs dart/flutter, so no toolchain is needed here.
         run: ./scripts/pre_push_hook_test.sh
 
+      - name: Run full-suite runner test
+        # scripts/run_all_tests.sh bundles the whole suite for a local run and
+        # names the failing files (issue #2512). Stubs flutter, so no toolchain
+        # is needed here.
+        run: ./scripts/run_all_tests_test.sh
+
       - name: Upload coverage
         uses: codecov/codecov-action@v7
         if: always()

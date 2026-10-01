@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
-import 'package:submersion/features/query/data/query_name_index.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/query/presentation/dive_query_editor.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -27,7 +27,7 @@ void main() {
             ),
           ),
           queryNameIndexProvider.overrideWith(
-            (ref) async => const QueryNameIndex({
+            (ref) async => NameIndex.fromRefs(const {
               QuerySubject.sites: [RefValue('s1', 'Salt Pier')],
             }),
           ),
@@ -66,7 +66,7 @@ void main() {
             ),
           ),
           queryNameIndexProvider.overrideWith(
-            (ref) async => const QueryNameIndex({
+            (ref) async => NameIndex.fromRefs(const {
               QuerySubject.sites: [RefValue('s1', 'Salt Pier')],
             }),
           ),
@@ -87,9 +87,7 @@ void main() {
       testApp(
         locale: const Locale('de'),
         overrides: [
-          queryNameIndexProvider.overrideWith(
-            (ref) async => QueryNameIndex.empty,
-          ),
+          queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
         ],
         child: SingleChildScrollView(
           child: DiveQueryEditor(value: null, onChanged: (_) {}),

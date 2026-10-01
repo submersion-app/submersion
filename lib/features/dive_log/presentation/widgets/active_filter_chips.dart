@@ -3,10 +3,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chip_labels.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/query/presentation/dive_query_chips.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -150,6 +154,31 @@ List<Widget> activeDiveFilterChips(
           clearMinDepth: true,
           clearMaxDepth: true,
         );
+      }),
+    );
+  }
+
+  // Every axis the blocks above and below do not cover: Explore's axes
+  // (#2195) plus the older ones this function has no block for (rating,
+  // weekdays, O2, bottom time, computer, custom field, deco, attributes),
+  // so a filter, including an Explore handoff, is never invisible.
+  for (final extra in activeFilterChipLabels(
+    filter,
+    context.l10n,
+    settings,
+    siteName: (id) => ref.watch(siteProvider(id)).value?.name,
+    speciesName: (id) =>
+        ref.watch(speciesProvider(id)).value?.localizedCommonName(context.l10n),
+    computerName: (id) => ref
+        .watch(allDiveComputersProvider)
+        .value
+        ?.where((c) => c.id == id)
+        .firstOrNull
+        ?.name,
+  )) {
+    chips.add(
+      _chip(context, extra.label, () {
+        ref.read(filterProvider.notifier).state = extra.clear(filter);
       }),
     );
   }

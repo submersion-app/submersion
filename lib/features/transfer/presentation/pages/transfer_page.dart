@@ -508,6 +508,14 @@ class _ExportSectionContent extends ConsumerWidget {
           shareAction: (_) => notifier.exportEquipmentToCsv(unitMode: mode),
           saveAction: (_) => notifier.saveEquipmentCsvToFile(unitMode: mode),
         );
+      case CsvExportType.fills:
+        await _showExportOptions(
+          context,
+          ref,
+          title: context.l10n.transfer_csvExport_optionFillsTitle,
+          shareAction: (_) => notifier.exportFillsToCsv(unitMode: mode),
+          saveAction: (_) => notifier.saveFillsCsvToFile(unitMode: mode),
+        );
       case CsvExportType.observations:
         await _showExportOptions(
           context,

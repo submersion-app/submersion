@@ -11,6 +11,7 @@ import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:latlong2/latlong.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/utils/dive_service_status.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
@@ -58,6 +59,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_label.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/source_name_labels.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
@@ -153,6 +155,7 @@ import 'package:submersion/features/weight_planner/presentation/widgets/weight_e
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/tides/presentation/tide_state_display.dart';
+import 'package:submersion/features/tides/domain/services/site_wall_clock.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -4008,17 +4011,23 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Surface GPS) can use the same null result both as the presence gate and
   /// as the bare card to place in the row.
   Widget? _tideCard(BuildContext context, WidgetRef ref, Dive dive) {
-    // Freshwater sites have no tides; hide the section entirely, even
-    // when an old stored record exists.
-    if (dive.site?.waterType == WaterType.fresh) return null;
+    // Freshwater dives have no tides; hide the section entirely, even when
+    // an old stored record exists. The dive's own water type wins over its
+    // site's, as everywhere else (Dive.effectiveWaterType).
+    if (dive.effectiveWaterType == WaterType.fresh) return null;
 
-    // First try to get stored tide record (lazily self-healed against a
-    // fresh computation when the site has coordinates)
+    // Tide times are shown in the dive site's own clock; a site without
+    // coordinates has none, so there is no tide card.
+    final siteLocation = dive.site?.location;
+    if (siteLocation == null) return null;
+
+    final entryTime = dive.effectiveEntryTime;
+    // The stored record, lazily self-healed against a fresh computation.
     final tideRecordAsync = ref.watch(
       healedTideRecordProvider((
         diveId: dive.id,
-        location: dive.site?.location,
-        entryTime: dive.effectiveEntryTime,
+        location: siteLocation,
+        entryTime: entryTime,
       )),
     );
 
@@ -4027,38 +4036,27 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         if (tideRecord != null) {
           return _buildTideCard(
             context,
-            tideRecord,
-            entryTime: dive.effectiveEntryTime,
+            tideRecord.toSiteWallClock(siteLocation),
+            entryTime: entryTime,
           );
         }
 
-        // No stored record - try to calculate from tide model if we have coordinates
-        if (dive.site?.hasCoordinates != true) return null;
-
-        final location = dive.site!.location!;
-        final entryTime = dive.effectiveEntryTime;
-        final calculatorAsync = ref.watch(tideCalculatorProvider(location));
-
-        return calculatorAsync.when<Widget?>(
-          data: (calculator) {
-            if (calculator == null) return null; // No tide data here.
-
-            final status = calculator.getStatus(entryTime);
-            final record = TideRecord.fromStatus(
-              id: 'calculated',
-              diveId: dive.id,
-              status: status,
-            );
-
-            return _buildTideCard(
-              context,
-              record,
-              isCalculated: true,
-              entryTime: entryTime,
-            );
-          },
-          loading: () => null,
-          error: (_, _) => null,
+        // Nothing stored: the model's answer, computed off the UI thread.
+        final calculated = ref
+            .watch(
+              calculatedTideRecordProvider((
+                diveId: dive.id,
+                location: siteLocation,
+                entryTime: entryTime,
+              )),
+            )
+            .value;
+        if (calculated == null) return null;
+        return _buildTideCard(
+          context,
+          calculated.toSiteWallClock(siteLocation),
+          isCalculated: true,
+          entryTime: entryTime,
         );
       },
       loading: () => null,
@@ -4117,8 +4115,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             UnitFormatter.weekdayMonthDayPattern(settings.dateFormat),
           ).format(dateRef)
         : '';
-    // Cycle bounds are stored wall-clock instants, not device-local times:
-    // format them verbatim without any timezone conversion.
+    // The record's times arrive already mapped to the dive site's wall
+    // clock (wall-clock-as-UTC), so format them verbatim.
     final timeRangeStr = cycleStart != null && cycleEnd != null
         ? () {
             final timeFmt = DateFormat(settings.timeFormat.pattern);
@@ -5418,6 +5416,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       // Re-scan both the original and the newly split dive (fire-and-forget).
       scheduleQualityScan([dive.id, newDiveId]);
       scheduleSensorSummaryRefresh([dive.id, newDiveId]);
+      scheduleDerivedMetricsRefresh([dive.id, newDiveId]);
       if (!mounted) return;
       ref.invalidate(diveProvider(dive.id));
       ref.invalidate(diveProfileProvider(dive.id));
@@ -5468,6 +5467,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       // Re-scan the surviving dive and every restored one (fire-and-forget).
       scheduleQualityScan([dive.id, ...newDiveIds]);
       scheduleSensorSummaryRefresh([dive.id, ...newDiveIds]);
+      scheduleDerivedMetricsRefresh([dive.id, ...newDiveIds]);
       if (!mounted) return;
       ref.invalidate(diveProvider(dive.id));
       ref.invalidate(diveProfileProvider(dive.id));

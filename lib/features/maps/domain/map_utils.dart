@@ -1,6 +1,8 @@
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/utils/geo_math.dart';
+
 /// Calculate an appropriate zoom level for a set of map points.
 ///
 /// Uses a heuristic based on the maximum geographic span (latitude or
@@ -32,12 +34,42 @@ bool isUsableMapPoint(LatLng p) =>
     p.longitude >= -180 &&
     p.longitude <= 180;
 
+/// The narrowest band of longitudes that holds every one of [longitudes],
+/// crossing the date line when that is shorter than going through
+/// Greenwich (issue #2516: dives in Australia and the Pacific framed on
+/// Africa). [west] is in range; [east] is at or past [west] and can run
+/// beyond 180, so `east - west` is the span's width. Null when empty.
+///
+/// The band is the circle minus its largest gap between neighbouring
+/// longitudes.
+({double west, double east})? shortestLongitudeSpan(
+  Iterable<double> longitudes,
+) {
+  final sorted = longitudes.map(normalizeLongitude).toList()..sort();
+  if (sorted.isEmpty) return null;
+
+  // Start with the gap that wraps from the last longitude round to the
+  // first: leaving it out is the ordinary min-to-max span.
+  var gap = sorted.first + 360 - sorted.last;
+  var west = sorted.first;
+  var east = sorted.last;
+  for (var i = 1; i < sorted.length; i++) {
+    final inner = sorted[i] - sorted[i - 1];
+    if (inner > gap) {
+      gap = inner;
+      west = sorted[i];
+      east = sorted[i - 1] + 360;
+    }
+  }
+  return (west: west, east: east);
+}
+
 /// Bounding box for [points], padded by ten percent of each span and
 /// clamped to the valid ranges. Points that fail [isUsableMapPoint] are
 /// skipped. Returns null when no point is usable.
 ///
-/// This is the `_calculateBounds` the dive, site and dive-center maps each
-/// carry privately (issue #2330 migrates them onto this one).
+/// A box like this cannot cross the date line; to frame points on both
+/// sides of it, use `WorldCameraFit` (issue #2516).
 LatLngBounds? boundsForPoints(List<LatLng> points) {
   double minLat = 90, maxLat = -90;
   double minLng = 180, maxLng = -180;

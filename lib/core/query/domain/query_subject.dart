@@ -22,4 +22,10 @@ enum QuerySubject {
   sightings,
   media,
   equipmentAttributes,
+
+  /// Site classification types (#1765), a relation target of sites.
+  siteTypes,
+
+  /// A dive's safety review findings (#2195), a relation target of dives.
+  findings,
 }

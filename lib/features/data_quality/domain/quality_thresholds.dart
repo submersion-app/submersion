@@ -42,8 +42,22 @@ abstract final class QualityThresholds {
 
   // pressure_anomaly
   static const double pressureRiseBar = 5.0;
+  // A rising run above pressureRiseBar is only reported when it is also
+  // faster than this (#2442). A cylinder warming in the water or a drifting
+  // sensor raises the reading by a few bar over minutes (up to ~6 bar/min in
+  // real logbooks), while a genuine jump arrives within a sample or two.
+  static const double pressureRiseMinBarPerMinute = 10.0;
+  // A rise this large is reported whatever its rate: no cylinder warms by
+  // this much underwater, and a sparsely sampled series (one reading every
+  // few minutes) would otherwise hide a real jump behind a low rate.
+  static const double pressureRiseAlwaysFlagBar = 20.0;
   static const double pressureEndpointMismatchBar = 10.0;
   static const double pressureSwapMinDiffBar = 1.0;
+  // How close a recorded pressure must sit to a glitch reading of the series
+  // to count as taken from it (#2441). Sources quantize before converting
+  // (Shearwater logs 2 psi units), so the two can differ by a fraction of a
+  // bar.
+  static const double pressureGlitchMatchBar = 0.5;
   static const double sacSurfaceLpmMax = 100.0;
   static const int sacMinSeriesSeconds = 300;
   static const int switchProximitySeconds = 60;

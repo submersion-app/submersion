@@ -44,13 +44,27 @@ void main() {
           if (f.boolSql != null) substituteRow(f.boolSql!.whenTrue, 'r0'),
           if (f.boolSql != null) substituteRow(f.boolSql!.whenFalse, 'r0'),
         ];
+        // A diver token compiles every way the compiler writes it (the
+        // root dive's column stands in as NULL: r0 here is not a dive).
         for (final fragment in fragments) {
-          final sql = 'SELECT 1 FROM ${e.table} r0 WHERE $fragment';
-          await expectLater(
-            db.customSelect(sql).get(),
-            completes,
-            reason: '${e.subject}.${f.key}: $sql',
-          );
+          for (final match in [null, '= ?', 'IS NULL']) {
+            final sql =
+                'SELECT 1 FROM ${e.table} r0 WHERE '
+                '${substituteDiver(fragment, match: match)}';
+            await expectLater(
+              db
+                  .customSelect(
+                    sql,
+                    variables: [
+                      for (final _ in '?'.allMatches(sql))
+                        const Variable<String>('me'),
+                    ],
+                  )
+                  .get(),
+              completes,
+              reason: '${e.subject}.${f.key}: $sql',
+            );
+          }
         }
       }
     }
@@ -63,9 +77,12 @@ void main() {
         for (final r in e.relations) {
           final target = appQueryRegistry.entityFor(r.target);
           final join = substituteJoin(r.joinSql, 'r0', 'r1');
+          final filter = r.targetFilterSql == null
+              ? ''
+              : ' AND (${substituteJoin(r.targetFilterSql!, 'r0', 'r1')})';
           final sql =
               'SELECT 1 FROM ${e.table} r0 WHERE EXISTS '
-              '(SELECT 1 FROM ${target.table} r1 WHERE $join)';
+              '(SELECT 1 FROM ${target.table} r1 WHERE $join$filter)';
           await expectLater(
             db.customSelect(sql).get(),
             completes,
@@ -89,6 +106,22 @@ void main() {
               contains(m[2]),
               reason: '${e.subject}.${r.key} names ${m[2]} on $table',
             );
+          }
+          // A target filter is about the target row alone.
+          final targetFilter = r.targetFilterSql;
+          if (targetFilter != null) {
+            expect(
+              targetFilter,
+              isNot(contains('{from}')),
+              reason: '${e.subject}.${r.key}: targetFilterSql names {from}',
+            );
+            for (final m in RegExp(r'\{to\}\.(\w+)').allMatches(targetFilter)) {
+              expect(
+                tableNamed(target.table).$columns.map((c) => c.$name),
+                contains(m[1]),
+                reason: '${e.subject}.${r.key} filter names ${m[1]}',
+              );
+            }
           }
           if (r.shape == RelationShape.fk || r.shape == RelationShape.child) {
             expect(

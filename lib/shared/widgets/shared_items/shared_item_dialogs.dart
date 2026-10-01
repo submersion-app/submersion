@@ -1,0 +1,293 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+final _log = LoggerService.forClass(SharedItemKind);
+
+/// The dives linked to a shared trip or site, split into the active
+/// profile's and every other profile's, for the delete and remove
+/// confirmations (issue #2594). The counts only inform the confirmation,
+/// so a failed read opens it without them rather than blocking it, as
+/// `readSiteDeleteUsage` does.
+Future<({int mine, int others})> readDiveLinkCounts(
+  WidgetRef ref,
+  SharedItemKind kind,
+  String id,
+) async {
+  try {
+    final activeDiverId = await ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    return await ref
+        .read(profileHidesRepositoryProvider)
+        .diveLinkCounts(kind, id, activeDiverId);
+  } catch (e, stackTrace) {
+    _log.warning(
+      'Could not count the dives linked to a shared ${kind.name}',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return (mine: 0, others: 0);
+  }
+}
+
+/// Whether the active profile has already hidden this shared trip or site,
+/// so its page offers Unhide instead of Remove (issue #2679). False for an
+/// item the profile may destroy, and until the answer has loaded. Watches,
+/// so call it during build.
+bool watchHiddenHere(
+  WidgetRef ref,
+  SharedItemKind kind,
+  String id, {
+  required bool canDestroy,
+}) =>
+    !canDestroy &&
+    (ref.watch(isHiddenProvider((kind: kind, id: id))).value ?? false);
+
+/// The active profile and how many profiles exist, for splitting a bulk
+/// selection and choosing its warning (issue #2594). A failed read of
+/// either logs, tells the diver to try again and gives null, so the bulk
+/// action stops before its dialog (issue #2682): read as "no profile", the
+/// split would offer to delete another profile's shared items too, and a
+/// missing count would drop the owner's "deleted for everyone" line.
+Future<({String? activeDiverId, int diverCount})?> readSharingContext(
+  WidgetRef ref,
+  BuildContext context,
+) async {
+  try {
+    // One after the other, not `.wait`: both are cached app-wide, and a
+    // ParallelWaitError would log the wait's stack, not the failing read's.
+    final activeDiverId = await ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    final divers = await ref.read(allDiversProvider.future);
+    return (activeDiverId: activeDiverId, diverCount: divers.length);
+  } catch (e, stackTrace) {
+    _log.error(
+      'Could not read the active profile or count the profiles',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.common_error_tryAgain)),
+      );
+    }
+    return null;
+  }
+}
+
+/// [canDestroySharedItem] for a page that watches the active profile: null
+/// while the profile is loading (a reload too, which still carries the
+/// previous profile's id) or cannot be read, so the page offers
+/// neither Delete nor Remove and keeps sharing locked until it knows
+/// (issue #2682). Read as "no profile", an unknown profile would offer
+/// another profile's item its Delete. An ownerless item needs no profile.
+bool? canDestroySharedItemOnceKnown(
+  AsyncValue<String?> activeDiver, {
+  required String? ownerId,
+}) {
+  if (ownerId == null) return true;
+  if (activeDiver.isLoading || activeDiver.hasError || !activeDiver.hasValue) {
+    return null;
+  }
+  return canDestroySharedItem(
+    ownerId: ownerId,
+    activeDiverId: activeDiver.value,
+  );
+}
+
+/// Runs [change], a hide or unhide of a shared trip or site, and gives its
+/// result, or null when it failed (issue #2677). A failure is logged, then
+/// [onFailed] runs; without it the failure is left to the caller, as a
+/// bulk action does when it joins it into its own summary.
+Future<T?> tryHideChange<T>(
+  Future<T> Function() change, {
+  VoidCallback? onFailed,
+}) async {
+  try {
+    return await change();
+  } catch (e, stackTrace) {
+    _log.warning(
+      'Could not hide or unhide a shared item',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    onFailed?.call();
+    return null;
+  }
+}
+
+/// [tryHideChange], telling the diver through [messenger] to try again
+/// when it fails, so the caller only leaves the page as it was. The
+/// messenger, read before any await, still reaches the diver after the
+/// page that offered the change has closed, as it has for an Undo. The
+/// message replaces the one showing, so repeated failures do not queue.
+Future<T?> runHideChange<T>(
+  ScaffoldMessengerState messenger,
+  AppLocalizations l10n,
+  Future<T> Function() change,
+) => tryHideChange(
+  change,
+  onFailed: () {
+    if (!messenger.mounted) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.common_error_tryAgain)));
+  },
+);
+
+/// The owning profile's name, or a neutral fallback for a profile that is
+/// gone or unknown (issue #2594).
+String sharedItemOwnerName(
+  List<Diver> divers,
+  String? ownerId,
+  AppLocalizations l10n,
+) {
+  for (final diver in divers) {
+    if (diver.id == ownerId) return diver.name;
+  }
+  return l10n.sharedItems_ownerUnknown;
+}
+
+/// The owner's delete-confirmation line counting the other profiles' dives
+/// that will lose the trip or site; null when there are none.
+String? otherProfilesDivesLine(
+  AppLocalizations l10n,
+  SharedItemKind kind,
+  int count,
+) {
+  if (count <= 0) return null;
+  return switch (kind) {
+    SharedItemKind.trip => l10n.sharedItems_otherProfilesDives_trip(count),
+    SharedItemKind.site => l10n.sharedItems_otherProfilesDives_site(count),
+  };
+}
+
+/// A bulk-delete confirmation's lines: what is deleted (and how many of
+/// those are shared, so deleted for every profile), and what is only
+/// removed from the active profile. An empty half has no line. A caller
+/// whose dialog already states the delete count passes
+/// [includeDeleteCount] false.
+List<String> bulkDeleteLines(
+  AppLocalizations l10n,
+  SharedItemKind kind, {
+  required int deleteCount,
+  required int hideCount,
+  int sharedDeleteCount = 0,
+  bool includeDeleteCount = true,
+}) => [
+  if (deleteCount > 0 && includeDeleteCount)
+    switch (kind) {
+      SharedItemKind.trip => l10n.sharedItems_bulkDeleteCount_trips(
+        deleteCount,
+      ),
+      SharedItemKind.site => l10n.sharedItems_bulkDeleteCount_sites(
+        deleteCount,
+      ),
+    },
+  if (deleteCount > 0 && sharedDeleteCount > 0)
+    switch (kind) {
+      SharedItemKind.trip => l10n.sharedItems_bulkSharedWarning_trips(
+        sharedDeleteCount,
+      ),
+      SharedItemKind.site => l10n.sharedItems_bulkSharedWarning_sites(
+        sharedDeleteCount,
+      ),
+    },
+  if (hideCount > 0)
+    switch (kind) {
+      SharedItemKind.trip => l10n.sharedItems_bulkHideCount_trips(hideCount),
+      SharedItemKind.site => l10n.sharedItems_bulkHideCount_sites(hideCount),
+    },
+];
+
+/// The whole "Remove from my profile" flow for another profile's shared
+/// trip or site (issue #2594): count the profile's own linked dives,
+/// confirm, [hide], then [onRemoved] (close the page) and a snackbar whose
+/// Undo calls [unhide]. Nothing happens past a refused [hide]. A failed
+/// [hide] says to try again and leaves the page as it was; a failed
+/// [unhide] says so and offers Undo again (issue #2677).
+Future<void> removeSharedItemFromProfile(
+  BuildContext context,
+  WidgetRef ref, {
+  required SharedItemKind kind,
+  required String id,
+  required String name,
+  required String? ownerId,
+  required Future<bool> Function() hide,
+  required Future<void> Function() unhide,
+  required VoidCallback onRemoved,
+}) async {
+  final divers = await ref.read(allDiversProvider.future);
+  final counts = await readDiveLinkCounts(ref, kind, id);
+  if (!context.mounted) return;
+  final confirmed = await confirmRemoveFromProfile(
+    context,
+    name: name,
+    ownerName: sharedItemOwnerName(divers, ownerId, context.l10n),
+    ownDiveCount: counts.mine,
+  );
+  if (!confirmed || !context.mounted) return;
+  final messenger = ScaffoldMessenger.of(context);
+  final l10n = context.l10n;
+  if (await runHideChange(messenger, l10n, hide) != true) return;
+  if (!context.mounted) return;
+  onRemoved();
+  void offerUndo(String message) => messenger.showSnackBar(
+    SnackBar(
+      content: Text(message),
+      action: SnackBarAction(
+        label: l10n.sharedItems_undo,
+        onPressed: () async {
+          final undone = await tryHideChange(() => unhide().then((_) => true));
+          if (undone == null && messenger.mounted) {
+            offerUndo(l10n.common_error_tryAgain);
+          }
+        },
+      ),
+    ),
+  );
+  offerUndo(l10n.sharedItems_removedSnackbar);
+}
+
+/// Confirms hiding another profile's shared trip or site from the active
+/// profile only (issue #2594). True when confirmed.
+Future<bool> confirmRemoveFromProfile(
+  BuildContext context, {
+  required String name,
+  required String ownerName,
+  required int ownDiveCount,
+}) async =>
+    await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.sharedItems_removeTitle(name)),
+        content: Text(
+          [
+            ctx.l10n.sharedItems_removeBody(ownerName),
+            if (ownDiveCount > 0)
+              ctx.l10n.sharedItems_removeOwnDives(ownDiveCount),
+            ctx.l10n.sharedItems_removeRestoreHint,
+          ].join('\n\n'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(ctx.l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(ctx.l10n.common_action_remove),
+          ),
+        ],
+      ),
+    ) ??
+    false;

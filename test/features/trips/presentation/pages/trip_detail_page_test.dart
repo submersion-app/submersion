@@ -333,6 +333,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // No active profile, as before sharing: every action is the owner's.
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
             tripWithStatsProvider(testTrip.id).overrideWith((ref) {
               return Future.value(testTripWithStats);
             }),
@@ -483,6 +485,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
+              // No active profile, as before sharing: every action is the owner's.
+              validatedCurrentDiverIdProvider.overrideWith((_) async => null),
               tripWithStatsProvider(sharedTrip.id).overrideWith((ref) {
                 return Future.value(sharedTripWithStats);
               }),
@@ -863,6 +867,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // No active profile, as before sharing: every action is the owner's.
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
             tripWithStatsProvider(
               embeddedTrip.id,
             ).overrideWith((ref) async => embeddedStats),
@@ -1371,7 +1377,16 @@ class _MockTripListNotifier
   Future<void> updateTrip(Trip trip) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id) async => true;
+
+  @override
+  Future<bool> hideTrip(String id) async => true;
+
+  @override
+  Future<int> hideTrips(List<String> ids) async => ids.length;
+
+  @override
+  Future<void> unhideTrip(String id) async {}
 
   @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}

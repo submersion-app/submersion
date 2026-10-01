@@ -150,6 +150,9 @@ void main() {
           (type: 'siteTags', table: db.siteTags.actualTableName),
           (type: 'equipmentTags', table: db.equipmentTags.actualTableName),
           (type: 'equipmentShares', table: db.equipmentShares.actualTableName),
+          (type: 'tripEquipment', table: db.tripEquipment.actualTableName),
+          (type: 'tripHides', table: db.tripHides.actualTableName),
+          (type: 'siteHides', table: db.siteHides.actualTableName),
           (
             type: 'equipmentOwnershipEvents',
             table: db.equipmentOwnershipEvents.actualTableName,

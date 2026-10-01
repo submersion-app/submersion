@@ -276,16 +276,30 @@ class _UnassignedTile extends StatelessWidget {
     return ListTile(
       leading: const Icon(Icons.sensors),
       title: Text(l10n.transmitters_serial(item.serial)),
-      subtitle: Text(l10n.transmitters_dives(item.diveCount)),
-      trailing: FilledButton.tonal(
-        onPressed: () => context.push(
-          Uri(
-            path: '/transmitters/new',
-            queryParameters: {'serial': item.serial},
-          ).toString(),
-        ),
-        child: Text(l10n.transmitters_action_assign),
+      subtitle: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.transmitters_dives(item.diveCount)),
+          const SizedBox(height: 8),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: FilledButton.tonal(
+              style: FilledButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+              ),
+              onPressed: () => context.push(
+                Uri(
+                  path: '/transmitters/new',
+                  queryParameters: {'serial': item.serial},
+                ).toString(),
+              ),
+              child: Text(l10n.transmitters_action_assign),
+            ),
+          ),
+        ],
       ),
+      isThreeLine: true,
     );
   }
 }

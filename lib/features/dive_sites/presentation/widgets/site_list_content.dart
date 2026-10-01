@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -20,6 +22,7 @@ import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -27,6 +30,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_active_filters_bar.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_sheet.dart';
@@ -36,13 +40,11 @@ import 'package:submersion/features/dive_sites/domain/services/site_location_bac
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
-import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
-import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
-import 'package:submersion/features/site_types/presentation/site_type_display.dart';
-import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_list_count_provider.dart';
 
 /// Content widget for the site list, used in master-detail layout.
+final _log = LoggerService.forClass(SiteListContent);
+
 class SiteListContent extends ConsumerStatefulWidget {
   final void Function(String?)? onItemSelected;
   final String? selectedId;
@@ -94,6 +96,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   bool get _isSelectionMode => _selection.value.isActive;
   Set<String> get _selectedIds => _selection.value.checkedIds;
   ({List<DiveSite> sites, SiteLinks links})? _deletedSites;
+
+  /// Another profile's shared sites the last bulk delete hid instead of
+  /// deleting (issue #2594), for its Undo.
+  List<String> _hiddenSiteIds = const [];
   MergeSnapshot? _mergeSnapshot;
 
   @override
@@ -253,11 +259,59 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     _handleItemTap(sites[index].site);
   }
 
+  /// The checked sites with their owners, read before a merge or bulk
+  /// delete decides what it may do to each (issue #2594). A failed read
+  /// logs, tells the diver to try again and returns null, so the action
+  /// stops before its dialog rather than failing unseen.
+  Future<List<DiveSite>?> _readSelectedSites(List<String> ids) async {
+    try {
+      return await ref.read(siteRepositoryProvider).getSitesByIds(ids);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not read the selected sites',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.common_error_tryAgain)),
+        );
+      }
+      return null;
+    }
+  }
+
   Future<BulkActionOutcome> _startMerge() async {
     final selectedCount = _selectedIds.length;
+    // A merge destroys every site but the first (issue #2594): another
+    // profile's shared site may only be the survivor, so at most one fits.
+    final sharing = await readSharingContext(ref, context);
+    if (sharing == null) return BulkActionOutcome.failed;
+    final selected = await _readSelectedSites(_selectedIds.toList());
+    if (selected == null) return BulkActionOutcome.failed;
+    final notOwned = [
+      for (final s in selected)
+        if (!canDestroySharedItem(
+          ownerId: s.diverId,
+          activeDiverId: sharing.activeDiverId,
+        ))
+          s.id,
+    ];
+    if (!mounted) return BulkActionOutcome.cancelled;
+    if (notOwned.length > 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.sharedItems_mergeTooManyShared)),
+      );
+      return BulkActionOutcome.cancelled;
+    }
+    final orderedIds = [
+      ...notOwned,
+      for (final id in _selectedIds)
+        if (!notOwned.contains(id)) id,
+    ];
     final result = await context.push<SiteMergeResult>(
       '/sites/merge',
-      extra: _selectedIds.toList(),
+      extra: orderedIds,
     );
 
     if (result == null) return BulkActionOutcome.cancelled;
@@ -314,19 +368,57 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     // while the usage is read, and the delete must remove exactly the sites
     // the dialog described.
     final idsToDelete = _selectedIds.toList();
-    final count = idsToDelete.length;
-    final usage = await readSiteDeleteUsage(ref, idsToDelete);
-    if (!mounted) return BulkActionOutcome.cancelled;
+    // Another profile's shared sites are hidden, not deleted, and the
+    // owner's shared ones are named as going for everyone (issue #2594).
+    final sharing = await readSharingContext(ref, context);
+    if (sharing == null) return BulkActionOutcome.failed;
+    final selectedSites = await _readSelectedSites(idsToDelete);
+    if (selectedSites == null) return BulkActionOutcome.failed;
+    final split = splitForBulkDelete(
+      selectedSites,
+      ownerOf: (s) => s.diverId,
+      isSharedOf: (s) => s.isShared,
+      activeDiverId: sharing.activeDiverId,
+    );
+    final destroyIds = [for (final s in split.destroy) s.id];
+    final hideIds = [for (final s in split.hide) s.id];
+    final deleteCount = destroyIds.length;
+    final hideCount = hideIds.length;
+    final sharedDeleteCount = sharing.diverCount >= 2
+        ? split.destroy.where((s) => s.isShared).length
+        : 0;
+    final usage = deleteCount > 0
+        ? await readSiteDeleteUsage(ref, destroyIds)
+        : const SiteUsage();
+    if (!mounted || deleteCount + hideCount == 0) {
+      return BulkActionOutcome.cancelled;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(context.l10n.diveSites_list_bulkDelete_title),
+        title: Text(
+          deleteCount > 0
+              ? context.l10n.diveSites_list_bulkDelete_title
+              : context.l10n.sharedItems_bulkRemoveTitle(hideCount),
+        ),
         content: Text(
-          withSiteDeleteUsage(
-            context.l10n,
-            context.l10n.diveSites_list_bulkDelete_content(count),
-            usage,
-          ),
+          [
+            ...bulkDeleteLines(
+              context.l10n,
+              SharedItemKind.site,
+              deleteCount: deleteCount,
+              hideCount: hideCount,
+              sharedDeleteCount: sharedDeleteCount,
+              // The site list's own line below states it, with its Undo.
+              includeDeleteCount: false,
+            ),
+            if (deleteCount > 0)
+              withSiteDeleteUsage(
+                context.l10n,
+                context.l10n.diveSites_list_bulkDelete_content(deleteCount),
+                usage,
+              ),
+          ].join('\n\n'),
         ),
         actions: [
           TextButton(
@@ -335,10 +427,16 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
+            style: deleteCount > 0
+                ? FilledButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                  )
+                : null,
+            child: Text(
+              deleteCount > 0
+                  ? context.l10n.diveSites_list_bulkDelete_confirm
+                  : context.l10n.common_action_remove,
             ),
-            child: Text(context.l10n.diveSites_list_bulkDelete_confirm),
           ),
         ],
       ),
@@ -346,46 +444,100 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
 
     if (confirmed == true && mounted) {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final l10n = context.l10n;
+      final notifier = ref.read(siteListNotifierProvider.notifier);
       _exitSelectionMode();
 
-      final deleted = await ref
-          .read(siteListNotifierProvider.notifier)
-          .bulkDeleteSites(idsToDelete);
+      final deleted = deleteCount > 0
+          ? await notifier.bulkDeleteSites(destroyIds)
+          : null;
+      // Null when the hide failed: the summary says so beside the deletes.
+      final hidden = hideCount > 0
+          ? await tryHideChange(() => notifier.hideSites(hideIds))
+          : 0;
 
       _deletedSites = deleted;
+      // Even after a failed hide: it may have been written before the
+      // refresh failed, and an unhide of one not hidden does nothing.
+      _hiddenSiteIds = hideIds;
 
-      if (mounted) {
+      final summary = [
+        if (deleted != null && deleted.sites.isNotEmpty)
+          l10n.diveSites_list_bulkDelete_snackbar(deleted.sites.length),
+        if (hidden case final n? when n > 0)
+          l10n.sharedItems_bulkHiddenSnackbar(n),
+        if (hidden == null) l10n.common_error_tryAgain,
+      ];
+      // Only a failed hide to report: nothing for Undo to take back.
+      if (hidden == null && (deleted?.sites.isEmpty ?? true)) {
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text(l10n.common_error_tryAgain)),
+        );
+        return BulkActionOutcome.completed;
+      }
+      // Takes back what the bulk delete did, clearing each half once it is
+      // back. Anything left says so, even once the list has closed, and
+      // offers Undo again for the rest (issue #2677).
+      Future<void> undo() async {
+        final toRestore = _deletedSites;
+        if (toRestore == null || toRestore.sites.isEmpty) {
+          _deletedSites = null;
+        } else {
+          try {
+            await notifier.restoreSites(
+              toRestore.sites,
+              links: toRestore.links,
+            );
+            _deletedSites = null;
+          } catch (e, stackTrace) {
+            _log.error(
+              'Could not restore the deleted sites',
+              error: e,
+              stackTrace: stackTrace,
+            );
+          }
+        }
+        final toUnhide = _hiddenSiteIds;
+        if (toUnhide.isEmpty ||
+            await tryHideChange(
+                  () => notifier.unhideSites(toUnhide).then((_) => true),
+                ) ==
+                true) {
+          _hiddenSiteIds = const [];
+        }
+        if (_deletedSites != null || _hiddenSiteIds.isNotEmpty) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(l10n.common_error_tryAgain),
+              action: SnackBarAction(
+                label: l10n.diveSites_list_bulkDelete_undo,
+                onPressed: undo,
+              ),
+            ),
+          );
+        } else if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(l10n.diveSites_list_bulkDelete_restored),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+
+      // Nothing done (every action refused): no empty snackbar. A failure
+      // says so even once the list has closed.
+      if ((mounted || hidden == null) && summary.isNotEmpty) {
         scaffoldMessenger.clearSnackBars();
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text(
-              context.l10n.diveSites_list_bulkDelete_snackbar(
-                deleted.sites.length,
-              ),
-            ),
+            content: Text(summary.join(' · ')),
             duration: const Duration(seconds: 5),
             showCloseIcon: true,
             action: SnackBarAction(
-              label: context.l10n.diveSites_list_bulkDelete_undo,
-              onPressed: () async {
-                final toRestore = _deletedSites;
-                if (toRestore != null && toRestore.sites.isNotEmpty) {
-                  await ref
-                      .read(siteListNotifierProvider.notifier)
-                      .restoreSites(toRestore.sites, links: toRestore.links);
-                  _deletedSites = null;
-                  if (mounted) {
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          context.l10n.diveSites_list_bulkDelete_restored,
-                        ),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                }
-              },
+              label: l10n.diveSites_list_bulkDelete_undo,
+              onPressed: undo,
             ),
           ),
         );
@@ -441,21 +593,21 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       return filter.hasActiveFilters
           ? Column(
               children: [
-                _buildActiveFiltersBar(context, filter),
+                SiteActiveFiltersBar(filter: filter),
                 Expanded(child: listContent),
               ],
             )
           : listContent;
     }
 
-    final loadedSites = sitesAsync.valueOrNull ?? const <SiteWithDiveCount>[];
+    final loadedSites = sitesAsync.value ?? const <SiteWithDiveCount>[];
     final visibleIds = loadedSites.map((s) => s.site.id).toList();
 
     // Drop checked sites that fell out of the filtered list, so the count
     // always matches what is on screen. pruneTo is a no-op when nothing
     // changed, which keeps this off a rebuild loop.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && sitesAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     if (!widget.showAppBar) {
@@ -488,6 +640,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                   title: FeatureAppBarTitle(
                     featureId: 'sites',
                     title: context.l10n.diveSites_list_appBar_title,
+                    subtitle: siteListCountLabel(context, ref),
                   ),
                   actions: [
                     IconButton(
@@ -644,13 +797,13 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     AsyncValue<List<SiteWithDiveCount>> sitesAsync,
     SiteFilterState filter,
   ) {
-    final loadedSites = sitesAsync.valueOrNull ?? const <SiteWithDiveCount>[];
+    final loadedSites = sitesAsync.value ?? const <SiteWithDiveCount>[];
     final visibleIds = loadedSites.map((s) => s.site.id).toList();
 
     // Same pruning the list path does: drop checked sites that fell out of
     // the visible list, so the count always matches what is on screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && sitesAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
@@ -701,8 +854,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
 
         return Column(
           children: [
-            if (filter.hasActiveFilters)
-              _buildActiveFiltersBar(context, filter),
+            if (filter.hasActiveFilters) SiteActiveFiltersBar(filter: filter),
             Expanded(
               child: EntityTableView<SiteWithCount, SiteField>(
                 entities: sites,
@@ -778,6 +930,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             child: FeatureAppBarTitle(
               featureId: 'sites',
               title: context.l10n.diveSites_list_appBar_title,
+              subtitle: siteListCountLabel(context, ref),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -1093,142 +1246,6 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         ],
       ),
     );
-  }
-
-  Widget _buildActiveFiltersBar(BuildContext context, SiteFilterState filter) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
-        ),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            // Clear all button
-            ActionChip(
-              avatar: const Icon(Icons.clear_all, size: 18),
-              label: Text(context.l10n.diveSites_list_activeFilter_clear),
-              onPressed: () {
-                ref.read(siteFilterProvider.notifier).state =
-                    const SiteFilterState();
-              },
-            ),
-            const SizedBox(width: 8),
-            // Individual filter chips
-            if (filter.country != null)
-              _buildFilterChip(
-                context.l10n.diveSites_list_activeFilter_country(
-                  filter.country!,
-                ),
-                () => ref.read(siteFilterProvider.notifier).state = filter
-                    .copyWith(clearCountry: true),
-              ),
-            if (filter.region != null)
-              _buildFilterChip(
-                context.l10n.diveSites_list_activeFilter_region(filter.region!),
-                () => ref.read(siteFilterProvider.notifier).state = filter
-                    .copyWith(clearRegion: true),
-              ),
-            if (filter.difficulty != null)
-              _buildFilterChip(
-                filter.difficulty!.localizedName(context.l10n),
-                () => ref.read(siteFilterProvider.notifier).state = filter
-                    .copyWith(clearDifficulty: true),
-              ),
-            if (filter.minDepth != null || filter.maxDepth != null)
-              _buildFilterChip(
-                _formatDepthRange(filter.minDepth, filter.maxDepth),
-                () => ref.read(siteFilterProvider.notifier).state = filter
-                    .copyWith(clearMinDepth: true, clearMaxDepth: true),
-              ),
-            if (filter.minRating != null)
-              _buildFilterChip(
-                context.l10n.diveSites_filter_rating_starsPlus(
-                  filter.minRating!.toInt(),
-                ),
-                () => ref.read(siteFilterProvider.notifier).state = filter
-                    .copyWith(clearMinRating: true),
-              ),
-            if (filter.hasCoordinates == true)
-              _buildFilterChip(
-                context.l10n.diveSites_list_activeFilter_hasCoordinates,
-                () => ref.read(siteFilterProvider.notifier).state = filter
-                    .copyWith(clearHasCoordinates: true),
-              ),
-            if (filter.hasDives == true)
-              _buildFilterChip(
-                context.l10n.diveSites_list_activeFilter_hasDives,
-                () => ref.read(siteFilterProvider.notifier).state = filter
-                    .copyWith(clearHasDives: true),
-              ),
-            // One chip per filtered site type and tag (issue #1765).
-            for (final typeId in filter.siteTypeIds)
-              _buildFilterChip(
-                ref
-                        .watch(siteTypesByIdProvider)
-                        .value?[typeId]
-                        ?.localizedName(context.l10n) ??
-                    typeId,
-                () => ref.read(siteFilterProvider.notifier).state = filter
-                    .copyWith(
-                      siteTypeIds: {...filter.siteTypeIds}..remove(typeId),
-                    ),
-              ),
-            for (final tagId in filter.tagIds)
-              _buildFilterChip(
-                (ref.watch(tagsProvider).value ?? const <Tag>[])
-                        .where((t) => t.id == tagId)
-                        .firstOrNull
-                        ?.name ??
-                    tagId,
-                () => ref.read(siteFilterProvider.notifier).state = filter
-                    .copyWith(tagIds: {...filter.tagIds}..remove(tagId)),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label, VoidCallback onDeleted) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 8),
-      child: InputChip(
-        label: Text(label),
-        onDeleted: onDeleted,
-        deleteIconColor: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-    );
-  }
-
-  /// Chip label for the active depth filter.
-  ///
-  /// The bounds are held in meters, like every other stored depth, so they are
-  /// converted for display. A two-ended range carries a single trailing symbol,
-  /// so only the upper bound is formatted with one.
-  String _formatDepthRange(double? min, double? max) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
-    if (min != null && max != null) {
-      return context.l10n.diveSites_list_activeFilter_depthRangeBoth(
-        units.convertDepth(min).toStringAsFixed(0),
-        units.formatDepth(max, decimals: 0),
-      );
-    } else if (min != null) {
-      return context.l10n.diveSites_list_activeFilter_depthRangeMin(
-        units.formatDepth(min, decimals: 0),
-      );
-    } else if (max != null) {
-      return context.l10n.diveSites_list_activeFilter_depthRangeMax(
-        units.formatDepth(max, decimals: 0),
-      );
-    }
-    return '';
   }
 
   Widget _buildErrorState(BuildContext context, Object error) {

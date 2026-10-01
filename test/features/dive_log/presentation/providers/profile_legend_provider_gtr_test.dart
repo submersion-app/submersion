@@ -40,12 +40,12 @@ void main() {
       expect(state.gtrSource, MetricDataSource.computer);
     });
 
-    test('defaults to hidden and calculated', () {
+    test('defaults to hidden and the computer', () {
       final container = containerWith(const AppSettings());
 
       final state = container.read(profileLegendProvider);
       expect(state.showGtr, isFalse);
-      expect(state.gtrSource, MetricDataSource.calculated);
+      expect(state.gtrSource, MetricDataSource.computer);
     });
 
     test('toggleGtr flips visibility', () {

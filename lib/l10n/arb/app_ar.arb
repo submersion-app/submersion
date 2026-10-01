@@ -105,6 +105,12 @@
   "gasCalculators_blender_moveGasUp": "نقل {gas} للأعلى",
   "gasCalculators_blender_moveGasDown": "نقل {gas} للأسفل",
   "gasCalculators_blender_procedure": "خطوات التعبئة",
+  "gasCalculators_blender_logFill": "تسجيل هذه التعبئة",
+  "gasCalculators_blender_chooseCylinder": "اختيار الأسطوانة",
+  "gasCalculators_blender_scanTag": "مسح الوسم",
+  "gasCalculators_blender_notYourCylinder": "هذه الأسطوانة ليست ضمن معداتك",
+  "gasCalculators_blender_cylinderFailed": "تعذر فتح هذه الأسطوانة. حاول مرة أخرى.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_amounts": "الغاز المطلوب إضافته",
   "gasCalculators_blender_stepStart": "ابدأ بـ {pressure} {gas}",
   "gasCalculators_blender_stepFill": "املأ {gas} حتى {pressure} → {mix}",
@@ -639,6 +645,7 @@
   "accessibility_shortcut_newDive": "غوصة جديدة",
   "accessibility_shortcut_openSettings": "فتح الإعدادات",
   "accessibility_shortcut_searchDives": "البحث في الغوصات",
+  "accessibility_shortcut_exploreWithSentence": "استكشف بجملة",
   "accessibility_sort_selectedLabel": "ترتيب حسب {displayName}، محدد حالياً",
   "accessibility_sort_unselectedLabel": "ترتيب حسب {displayName}",
   "backup_appBar_title": "النسخ الاحتياطي والاستعادة",
@@ -855,6 +862,8 @@
   "buddies_summary_totalBuddies": "إجمالي الرفاق",
   "buddies_summary_withCertification": "مع الاعتماد",
   "buddies_title": "الرفاق",
+  "buddies_list_count": "{count, plural, =1{رفيق واحد} other{{count} رفاق}}",
+  "buddies_list_countFiltered": "{shown} من {total, plural, =1{رفيق واحد} other{{total} رفاق}}",
   "buddies_title_add": "إضافة رفيق",
   "buddies_title_edit": "تعديل الرفيق",
   "buddies_title_singular": "رفيق",
@@ -889,6 +898,8 @@
   "certifications_appBar_certificationWallet": "محفظة الشهادات",
   "certifications_appBar_editCertification": "تعديل الشهادة",
   "certifications_appBar_title": "الشهادات",
+  "certifications_list_count": "{count, plural, =1{شهادة واحدة} other{{count} شهادات}}",
+  "certifications_list_countFiltered": "{shown} من {total, plural, =1{شهادة واحدة} other{{total} شهادات}}",
   "certifications_card_issued": "صادرة",
   "certifications_certificate_cardNumber": "رقم البطاقة: {number}",
   "certifications_certificate_footer": "شهادة غوص رسمية",
@@ -1535,6 +1546,8 @@
   "courses_summary_title": "الدورات التدريبية",
   "courses_summary_total": "الإجمالي",
   "courses_title": "الدورات التدريبية",
+  "courses_list_count": "{count, plural, =1{دورة واحدة} other{{count} دورات}}",
+  "courses_list_countFiltered": "{shown} من {total, plural, =1{دورة واحدة} other{{total} دورات}}",
   "courses_title_edit": "تعديل الدورة",
   "courses_title_new": "دورة جديدة",
   "courses_title_singular": "دورة",
@@ -1749,6 +1762,14 @@
   "diveCenters_section_contact": "الاتصال",
   "diveCenters_section_contactInfo": "معلومات الاتصال",
   "diveCenters_section_gpsCoordinates": "إحداثيات GPS",
+  "diveCenters_section_fillHours": "ساعات التعبئة",
+  "diveCenters_fillHours_caption": "متى تملأ المحطة الأسطوانات. يستخدم توقع التعبئة للرحلة وقت الإغلاق.",
+  "diveCenters_fillHours_opens": "يفتح",
+  "diveCenters_fillHours_closes": "يغلق",
+  "diveCenters_fillHours_notSet": "غير محدد",
+  "diveCenters_fillHours_clear": "مسح ساعات التعبئة",
+  "diveCenters_fillHours_errorBoth": "حدد الوقتين معًا أو لا شيء.",
+  "diveCenters_fillHours_errorOrder": "يجب أن يكون وقت الإغلاق بعد وقت الفتح.",
   "diveCenters_section_notes": "ملاحظات",
   "diveCenters_snackbar_coordinatesFound": "تم العثور على الإحداثيات من العنوان",
   "diveCenters_snackbar_copiedToClipboard": "تم النسخ إلى الحافظة",
@@ -1766,6 +1787,8 @@
   "diveCenters_summary_totalCenters": "إجمالي المراكز",
   "diveCenters_summary_withGps": "مع GPS",
   "diveCenters_title": "مراكز الغوص",
+  "diveCenters_list_count": "{count, plural, =1{مركز غوص واحد} other{{count} مراكز غوص}}",
+  "diveCenters_list_countFiltered": "{shown} من {total, plural, =1{مركز غوص واحد} other{{total} مراكز غوص}}",
   "diveCenters_title_add": "إضافة مركز غوص",
   "diveCenters_title_edit": "تعديل مركز الغوص",
   "diveCenters_title_import": "استيراد مركز الغوص",
@@ -2106,6 +2129,7 @@
   "diveImport_uddf_tabTypes": "الأنواع",
   "diveImport_uddf_tags": "الوسوم",
   "diveImport_uddf_media": "الصور",
+  "diveImport_uddf_fills": "التعبئات",
   "diveImport_uddf_title": "استيراد من UDDF",
   "diveImport_uddf_toggleDiveSelection": "تبديل تحديد الغطسة",
   "diveImport_uddf_toggleEntitySelection": "تبديل تحديد {name}",
@@ -2617,6 +2641,8 @@
   "diveLog_edit_planned_switch": "غوصة مخططة",
   "diveLog_edit_planned_switchSubtitle": "في انتظار بيانات كمبيوتر الغوص. لا رقم للغوصة حتى يتم تسجيلها.",
   "diveLog_listPage_compactTitle": "الغوصات",
+  "diveLog_listPage_count": "{count, plural, =1{غوصة واحدة} other{{count} غوصات}}",
+  "diveLog_listPage_countFiltered": "{shown} من {total, plural, =1{غوصة واحدة} other{{total} غوصات}}",
   "diveLog_listPage_errorLoading": "خطأ: {error}",
   "diveLog_listPage_fab_addDive": "اضافة غوصة",
   "diveLog_listPage_fab_logDive": "تسجيل غوصة",
@@ -3002,6 +3028,10 @@
   "diveLog_tank_tooltip_remove": "إزالة الأسطوانة",
   "diveLog_tank_regulatorLabel": "منظم التنفس",
   "diveLog_tank_regulatorNone": "لا شيء",
+  "diveLog_tank_tripCylinderLabel": "أسطوانة الرحلة",
+  "diveLog_tank_tripCylinderNone": "لا شيء",
+  "diveLog_tank_tripCylinderMissing": "لم تعد ضمن هذه الرحلة",
+  "diveLog_tank_tripCylinderSuggested": "مقترحة من الأسطوانات الممتلئة في الرحلة",
   "diveLog_tissue_title": "تحميل الأنسجة",
   "diveLog_tooltip_avgCalculated": "(متوسط، محسوب)",
   "diveLog_tooltip_ceiling": "السقف",
@@ -3437,6 +3467,8 @@
   "diveSites_list_activeFilter_hasDives": "يحتوي على غوصات",
   "diveSites_list_activeFilter_region": "المنطقة: {region}",
   "diveSites_list_appBar_title": "مواقع الغوص",
+  "diveSites_list_count": "{count, plural, =1{موقع واحد} other{{count} مواقع}}",
+  "diveSites_list_countFiltered": "{shown} من {total, plural, =1{موقع واحد} other{{total} مواقع}}",
   "diveSites_list_bulkDelete_cancel": "إلغاء",
   "diveSites_list_bulkDelete_confirm": "حذف",
   "diveSites_list_bulkDelete_content": "هل أنت متأكد من حذف {count} {count, plural, =1{موقع} other{مواقع}}؟ يمكن التراجع عن هذا الإجراء خلال 5 ثوانٍ.",
@@ -3720,6 +3752,7 @@
   "dropTarget_error_unsupportedFile": "نوع ملف غير مدعوم",
   "dropTarget_error_wizardActive": "أنهِ الاستيراد الحالي أولاً",
   "dropTarget_error_readFailed": "تعذرت قراءة الملف",
+  "dropTarget_error_someUnreadable": "{count, plural, one{تعذرت قراءة ملف واحد وتم تخطيه} two{تعذرت قراءة ملفين وتم تخطيهما} few{تعذرت قراءة {count} ملفات وتم تخطيها} many{تعذرت قراءة {count} ملفًا وتم تخطيها} other{تعذرت قراءة {count} ملف وتم تخطيها}}",
   "enum_altitudeGroup_extreme": "ارتفاع شديد",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",
   "enum_altitudeGroup_group1": "مجموعة الارتفاع 1",
@@ -4041,6 +4074,8 @@
   "enum_weightType_mixed": "مختلطة/مدمجة",
   "enum_weightType_trimWeights": "أثقال التوازن",
   "equipment_appBar_title": "المعدات",
+  "equipment_list_count": "{count, plural, =1{قطعة واحدة} other{{count} قطع}}",
+  "equipment_list_countFiltered": "{shown} من {total, plural, =1{قطعة واحدة} other{{total} قطع}}",
   "equipment_bulkTags_action": "تعديل الوسوم",
   "equipment_bulkTags_adding": "إضافة إلى كل الـ {total}",
   "equipment_bulkTags_applied": "{count, plural, one{تم تحديث الوسوم على عنصر واحد} two{تم تحديث الوسوم على عنصرين} few{تم تحديث الوسوم على {count} عناصر} many{تم تحديث الوسوم على {count} عنصرًا} other{تم تحديث الوسوم على {count} عنصر}}",
@@ -4067,10 +4102,18 @@
   "passport_fill_mod": "MOD {depth} عند ppO2 {ppo2}",
   "passport_fill_end": "END {depth} عند MOD العمل",
   "passport_fill_station": "عبّأها {station}",
+  "passport_fill_fromTag": "من الوسم",
+  "passport_fill_analyseBeforeDiving": "حلّل الغاز بنفسك قبل الغوص به",
+  "passport_fill_writeToTagTitle": "تم تسجيل التعبئة",
+  "passport_fill_writeToTagBody": "هل تريد كتابتها على وسم الأسطوانة؟",
+  "passport_fill_writeToTag": "الكتابة على الوسم",
+  "passport_fill_notNow": "ليس الآن",
+  "passport_foreign_lastFill": "آخر تعبئة على الوسم",
+  "passport_foreign_fillSummary": "{fill} · {date}",
+  "passport_fill_addedFromTag": "أُضيفت التعبئة من الوسم: {fill}",
   "passport_fill_analyzer": "حُلِّلت بجهاز {analyzer}",
   "passport_fill_analysis": "O2 {o2}، He {he}",
   "passport_fill_temperature": "درجة حرارة الغاز {temperature}",
-  "passport_fill_unsigned": "غير موقَّعة",
   "passport_history_title": "سجل التعبئة",
   "passport_history_sinceHydro": "{count, plural, =0{لا تعبئات منذ آخر اختبار هيدروستاتيكي} =1{{count} تعبئة منذ آخر اختبار هيدروستاتيكي} other{{count} تعبئات منذ آخر اختبار هيدروستاتيكي}}",
   "passport_history_delete": "حذف التعبئة",
@@ -4106,6 +4149,33 @@
   "passport_foreign_addToGear": "إضافة إلى معداتي",
   "passport_foreign_addFailed": "تعذّر إضافة الأسطوانة. حاول مرة أخرى.",
   "passport_foreign_defaultName": "أسطوانة",
+  "passport_nfc_tap": "المس بطاقة NFC",
+  "passport_nfc_holdNear": "ثبّت البطاقة على ظهر الهاتف.",
+  "passport_nfc_write": "كتابة بطاقة NFC",
+  "passport_nfc_rewrite": "إعادة كتابة البطاقة",
+  "passport_nfc_reprint": "إعادة طباعة الملصق",
+  "passport_nfc_unsupported": "لا يستطيع هذا الجهاز قراءة بطاقات NFC أو الكتابة عليها.",
+  "passport_nfc_disabled": "تقنية NFC متوقفة. شغّلها من إعدادات النظام.",
+  "passport_nfc_written": "تمت كتابة البطاقة والتحقق منها",
+  "passport_nfc_tagInfo": "{type}، {capacity} بايت",
+  "passport_nfc_capacity": "{capacity} بايت",
+  "passport_nfc_allFields": "كل البيانات تتسع لهذه البطاقة.",
+  "passport_nfc_fieldsDropped": "حُذف لتتسع البطاقة: {fields}",
+  "passport_nfc_notNdef": "لا تستطيع هذه البطاقة حفظ رابط. استخدم بطاقة NTAG215 أو NTAG216.",
+  "passport_nfc_readOnly": "هذه البطاقة مقفلة ولا يمكن الكتابة عليها.",
+  "passport_nfc_tooSmall": "هذه البطاقة صغيرة جدًا ({capacity} بايت)، حتى لمعرّف الأسطوانة.",
+  "passport_nfc_readBackFailed": "لم تُقرأ البطاقة كما كُتبت، لذلك لم تُكتب.",
+  "passport_nfc_writeFailed": "لم تُكتب البطاقة. ثبّتها وحاول مرة أخرى.",
+  "passport_nfc_readFailed": "تعذّرت قراءة البطاقة. ثبّتها وحاول مرة أخرى.",
+  "passport_nfc_retry": "إعادة المحاولة",
+  "passport_nfc_fieldName": "الاسم",
+  "passport_nfc_fieldSerial": "الرقم التسلسلي",
+  "passport_nfc_fieldO2Clean": "نظيفة للأكسجين",
+  "passport_nfc_fieldFillAnalyzer": "محلل التعبئة",
+  "passport_nfc_fieldFilledBy": "عبّأها",
+  "passport_nfc_fieldFillTemperature": "درجة حرارة التعبئة",
+  "passport_nfc_fieldFill": "أحدث تعبئة",
+  "passport_nfc_fillIncluded": "أحدث تعبئة موجودة على الوسم أيضًا",
   "passport_foreign_serial": "الرقم التسلسلي {serial}",
   "passport_logFill_date": "تاريخ التعبئة",
   "passport_logFill_time": "الوقت",
@@ -4115,6 +4185,15 @@
   "passport_logFill_temperature": "درجة حرارة الغاز",
   "passport_logFill_station": "محطة التعبئة",
   "passport_logFill_analyzer": "جهاز التحليل",
+  "passport_logFill_analysedHint": "أدخل القيم التي حللتها",
+  "passport_trip_title": "الرحلات",
+  "passport_trip_none": "غير مجهزة لأي رحلة",
+  "passport_trip_packedFor": "مجهزة لرحلة {trip}",
+  "passport_trip_more": "+{count}",
+  "passport_trip_assign": "تجهيز لرحلة",
+  "passport_trip_unassign": "إزالة من هذه الرحلة",
+  "passport_trip_onBoard": "على لوحة أسطوانات الرحلة",
+  "passport_trip_failed": "تعذر تغيير الرحلة. حاول مرة أخرى.",
   "passport_logFill_notes": "ملاحظات",
   "passport_logFill_invalidMix": "يجب أن يكون كل من O2 وHe بين 0 و100 وألا يتجاوز مجموعهما 100",
   "passport_logFill_saveFailed": "تعذّر حفظ التعبئة. حاول مرة أخرى.",
@@ -4432,6 +4511,7 @@
   "equipment_list_emptyState_filterText_status": "معدات {status}",
   "equipment_list_emptyState_filterText_type": "معدات {type}",
   "equipment_list_emptyState_noEquipment": "لا توجد {filterText}",
+  "equipment_list_emptyState_noQueryMatch": "لا توجد معدات تطابق هذا الاستعلام",
   "equipment_list_emptyState_noStatusMatch": "لا توجد معدات بهذه الحالة",
   "equipment_list_emptyState_noTagMatch": "لا توجد معدات بهذه الوسوم",
   "equipment_list_emptyState_noTypeMatch": "لا توجد معدات في هذه الفئة",
@@ -5470,6 +5550,125 @@
   "plannerCanvas_turnRule_halves": "أنصاف",
   "plannerCanvas_turnRule_none": "بدون",
   "plannerCanvas_turnRule_thirds": "أثلاث",
+  "plannerMission_buddyPicker_empty": "لا يوجد رفاق بعد",
+  "plannerMission_buddyPicker_me": "أنا",
+  "plannerMission_buddyPicker_title": "اختر رفيقاً",
+  "plannerMission_current_setsToward": "يتجه نحو",
+  "plannerMission_current_speed": "سرعة التيار",
+  "plannerMission_disableConfirm": "إيقاف",
+  "plannerMission_disableMessage": "تُحذف المسار والفريق. يبقى الملف الشخصي المُنشأ كمقاطع عادية يمكنك تحريرها.",
+  "plannerMission_disableTitle": "إيقاف مهمة DPV؟",
+  "plannerMission_results_legRow": "{leg}: {line}",
+  "plannerMission_results_listSeparator": "، ",
+  "plannerMission_results_memberLine": "{name}: {status}",
+  "plannerMission_results_memberLineExits": "{name}: {status} ({exits})",
+  "plannerMission_results_abandonmentUnknown": "تعذر تحديد النقاط التي يمكن الخروج منها",
+  "plannerMission_results_safeSurfaceUnknown": "سطح آمن: تعذر الحساب",
+  "plannerMission_chip_issues": "{count, plural, =1{المهمة: {count} مشكلة} other{المهمة: {count} مشكلات}}",
+  "plannerMission_factor_battery": "احتياطي البطارية",
+  "plannerMission_factor_blockedByCurrent": "تيار يعيق طريق الخروج",
+  "plannerMission_factor_exposure": "التعرض للأكسجين",
+  "plannerMission_factor_noFeasibleTow": "لا يوجد سحب ممكن",
+  "plannerMission_factor_ownGas": "غازه الخاص",
+  "plannerMission_factor_scenarioFailed": "سيناريو عطل تعذر حسابه",
+  "plannerMission_factor_surfaceSwimLimit": "حد السباحة على السطح",
+  "plannerMission_factor_teamGas": "غاز أحد أفراد الفريق",
+  "plannerMission_results_abandonment": "آخر نقطة يمكن للجميع الخروج منها: {waypoint}",
+  "plannerMission_results_assumptions": "احتياطي البطارية {reserve}% من مدة التشغيل. يتنفس الغواص الذي يتعطل سكوتره معدل RMV الخاص به مضروبًا في معامل الضغط في الخطة حتى أول توقف.",
+  "plannerMission_results_battery": "البطارية {percent}% من مدة التشغيل ({minutes}′)، الاحتياطي {reserve}%",
+  "plannerMission_results_bindsAt": "الحد عند {waypoint}: {factor}",
+  "plannerMission_results_blocked": "لا يمكن حساب المهمة بعد:",
+  "plannerMission_results_cannotGetOut": "لا يستطيع الخروج",
+  "plannerMission_results_computing": "جارٍ حساب سيناريوهات الأعطال",
+  "plannerMission_results_failed": "تعذر حساب المهمة",
+  "plannerMission_results_home": "{distance} في خط مستقيم إلى المدخل",
+  "plannerMission_results_legLine": "ذهاب {outSpeed} {outMinutes}′، عودة {backSpeed} {backMinutes}′",
+  "plannerMission_results_legs": "المقاطع",
+  "plannerMission_results_limitedBy": "يحدّها {scooter} الخاص بـ {name} عند {waypoint}: {factor}",
+  "plannerMission_results_limitedByDiver": "يحدّها {name} عند {waypoint}: {factor}",
+  "plannerMission_results_noAbandonment": "لا توجد نقطة يمكن الخروج منها عند كل عطل",
+  "plannerMission_results_noBuddy": "بلا رفيق",
+  "plannerMission_results_noLimit": "لا يوجد حد على هذا المسار",
+  "plannerMission_results_notComputed": "تعذر الحساب",
+  "plannerMission_results_safeSurface": "سطح آمن خلال {minutes}′",
+  "plannerMission_results_setsCruise": "يحدد سرعة الإبحار للفريق",
+  "plannerMission_results_surface": "السطح {minutes}′",
+  "plannerMission_results_surfaceViaShore": "السطح عبر الشاطئ {minutes}′",
+  "plannerMission_results_survives": "يخرج",
+  "plannerMission_results_swim": "سباحة {minutes}′",
+  "plannerMission_results_title": "المهمة",
+  "plannerMission_results_tow": "سحب بواسطة {name} {minutes}′",
+  "plannerMission_results_turnPressure": "الاستدارة عند {pressure}",
+  "plannerMission_results_unconstrained": "يمكن الخروج من كل نقطة عند تعطل أي سكوتر",
+  "plannerMission_results_waypointLine": "{distance}، الوصول {minutes}′",
+  "plannerMission_results_waypoints": "النقاط",
+  "plannerMission_profile_segment": "{depth}، {minutes} دقيقة",
+  "plannerMission_enableConfirm": "استبدال",
+  "plannerMission_enableMessage": "تبني المهمة الملف الشخصي من مسارها وفريقها، لذا تُستبدل مقاطع هذه الخطة. إذا أوقفت المهمة لاحقاً، يبقى الملف الشخصي للمهمة وليس هذه المقاطع.",
+  "plannerMission_enableTitle": "استبدال المقاطع بمهمة DPV؟",
+  "plannerMission_enable": "التخطيط كمهمة DPV",
+  "plannerMission_environment_openWater": "المياه المفتوحة",
+  "plannerMission_environment_overhead": "بيئة مسقوفة",
+  "plannerMission_issue_batteryReserveInvalid": "يجب أن يكون احتياطي البطارية بين 0 و100%",
+  "plannerMission_issue_emptyRoute": "أضف مقطعاً واحداً على الأقل",
+  "plannerMission_issue_emptyTeam": "أضف غواصاً واحداً على الأقل",
+  "plannerMission_issue_legDepthInvalid": "عمق {leg} غير صالح",
+  "plannerMission_issue_legTooShort": "{leg} أقصر من أن يُقطع",
+  "plannerMission_issue_memberSacUnset": "يحتاج {name} إلى قيمة RMV",
+  "plannerMission_issue_memberSwimSpeedUnset": "يحتاج {name} إلى سرعة سباحة",
+  "plannerMission_issue_openWaterInputInvalid": "قيمة خروج إلى الشاطئ أو حد السباحة على السطح أو سرعة المشي سالبة",
+  "plannerMission_issue_planHasNoTank": "أضف أسطوانة غاز رئيسية إلى الخطة",
+  "plannerMission_issue_planNotDiveable": "المسار المخطط يتجاوز حداً حرجاً",
+  "plannerMission_issue_scenarioFailed": "تعذر حساب سيناريو عطل",
+  "plannerMission_issue_scooterUnspecified": "يحتاج سكوتر {name} إلى سرعة ومدة تشغيل",
+  "plannerMission_issue_speedBelowHeadwayFloor": "سرعة سباحة {name} أو سرعة السكوتر أو السحب أبطأ من أن تحقق تقدماً",
+  "plannerMission_issue_tankBudgetUnknown": "تحتاج كل أسطوانة إلى حجم وضغط تعبئة",
+  "plannerMission_issue_unsupportedMode": "مهام DPV تخطط للغوص بالدائرة المفتوحة فقط",
+  "plannerMission_issue_untraversableLeg": "التيار يعيق {leg}",
+  "plannerMission_leg_depth": "العمق",
+  "plannerMission_leg_distance": "المسافة",
+  "plannerMission_leg_heading": "الاتجاه",
+  "plannerMission_leg_label": "اسم نقطة الطريق",
+  "plannerMission_leg_shoreExit": "خروج إلى الشاطئ من هنا",
+  "plannerMission_leg_shoreSwim": "السباحة على السطح إلى الشاطئ",
+  "plannerMission_leg_shoreWalk": "المشي إلى نقطة الدخول",
+  "plannerMission_leg_useMissionCurrent": "استخدام تيار المهمة",
+  "plannerMission_member_chooseScooter": "الاختيار من المعدات",
+  "plannerMission_member_manualScooter": "إدخال يدوي",
+  "plannerMission_member_name": "الاسم",
+  "plannerMission_member_pickBuddy": "اختر رفيقاً",
+  "plannerMission_member_sac": "Bottom RMV",
+  "plannerMission_member_scooter": "السكوتر",
+  "plannerMission_member_swimSpeed": "سرعة السباحة",
+  "plannerMission_profile_none": "لا يوجد ملف شخصي بعد: {reason}",
+  "plannerMission_profile_title": "الملف الشخصي المُنشأ",
+  "plannerMission_route_addLeg": "إضافة مقطع",
+  "plannerMission_route_deleteLeg": "حذف المقطع",
+  "plannerMission_route_editLeg": "تحرير المقطع",
+  "plannerMission_route_legSummary": "{distance} على عمق {depth}، الاتجاه {heading}",
+  "plannerMission_route_ownCurrent": "تيار {speed} باتجاه {direction}",
+  "plannerMission_route_shoreExit": "خروج إلى الشاطئ: سباحة {swim}، مشي {walk}",
+  "plannerMission_route_title": "المسار",
+  "plannerMission_route_unnamedLeg": "المقطع {number}",
+  "plannerMission_scooter_burnTime": "مدة التشغيل",
+  "plannerMission_scooter_name": "اسم السكوتر",
+  "plannerMission_scooter_speed": "السرعة الاسمية",
+  "plannerMission_scooter_towBurnFactor": "معامل استهلاك السحب",
+  "plannerMission_scooter_towSpeedFactor": "معامل سرعة السحب",
+  "plannerMission_settings_batteryReserve": "احتياطي البطارية",
+  "plannerMission_settings_defaultCurrent": "التيار الافتراضي",
+  "plannerMission_settings_environment": "البيئة",
+  "plannerMission_settings_surfaceSwimLimit": "أطول سباحة على السطح",
+  "plannerMission_settings_walkSpeed": "سرعة المشي",
+  "plannerMission_team_addDiver": "إضافة غواص",
+  "plannerMission_team_capacity": "بطارية {wh} واط ساعة",
+  "plannerMission_team_defaultName": "الغواص {number}",
+  "plannerMission_team_editDiver": "تحرير الغواص",
+  "plannerMission_team_memberSummary": "RMV {sac}، السباحة {speed}",
+  "plannerMission_team_noScooter": "لم يتم تحديد سكوتر",
+  "plannerMission_team_removeDiver": "إزالة الغواص",
+  "plannerMission_team_scooterSummary": "{name}: {speed}، مدة التشغيل {minutes} دقيقة",
+  "plannerMission_team_title": "فريق DPV",
   "planning_appBar_title": "التخطيط",
   "planning_card_decoCalculator_description": "احسب حدود عدم تخفيف الضغط، ومحطات تخفيف الضغط المطلوبة، والتعرض لـ CNS/OTU لملفات الغوص متعددة المستويات.",
   "planning_card_decoCalculator_subtitle": "خطط للغوصات مع محطات تخفيف الضغط",
@@ -6839,6 +7038,8 @@
   "tides_source_sheetTitle": "مصدر بيانات المد والجزر",
   "tides_source_datumMllw": "الارتفاعات نسبة إلى MLLW (مرجع المحطة)",
   "tides_source_datumMsl": "الارتفاعات نسبة إلى متوسط مستوى سطح البحر",
+  "tides_source_siteLocalTime": "تُعرض الأوقات بالتوقيت المحلي لموقع الغوص.",
+  "tides_source_modelResolution": "شبكة نموذج المحيط بدقة {distance}",
   "tides_title": "المد والجزر",
   "tools_gpsLogger_description": "سجّل موقعك خلال يوم الغطس وتتم مطابقة الغطسات المستوردة مع مواقع GPS تلقائيًا.",
   "tools_gpsLogger_subtitle": "تسجيل مسار السطح",
@@ -6891,17 +7092,20 @@
   "transfer_csvExport_dataTypeHeader": "نوع البيانات",
   "transfer_csvExport_descriptionDives": "تصدير جميع سجلات الغوص كجدول بيانات",
   "transfer_csvExport_descriptionEquipment": "تصدير جرد المعدات ومعلومات الصيانة",
+  "transfer_csvExport_descriptionFills": "كل تعبئة مسجلة على جواز أسطوانة، مع التحليل والضغط ومحطة التعبئة",
   "transfer_csvExport_descriptionObservations": "كل فحص سليم وكل مشكلة مُبلَّغ عنها مع الغطسة والوسوم والملاحظة",
   "transfer_csvExport_descriptionSites": "تصدير مواقع الغوص وتفاصيلها",
   "transfer_csvExport_dialogTitle": "تصدير CSV",
   "transfer_csvExport_exportButton": "تصدير CSV",
   "transfer_csvExport_optionDivesTitle": "الغوصات CSV",
   "transfer_csvExport_optionEquipmentTitle": "المعدات CSV",
+  "transfer_csvExport_optionFillsTitle": "CSV تعبئات الأسطوانات",
   "transfer_csvExport_optionObservationsTitle": "ملف CSV لفحوصات المعدات",
   "transfer_csvExport_optionSitesTitle": "المواقع CSV",
   "transfer_csvExport_semanticLabel": "تصدير {typeName}",
   "transfer_csvExport_typeDives": "الغوصات",
   "transfer_csvExport_typeEquipment": "المعدات",
+  "transfer_csvExport_typeFills": "تعبئات الأسطوانات",
   "transfer_csvExport_typeObservations": "فحوصات المعدات",
   "transfer_csvExport_typeSites": "المواقع",
   "transfer_csvExport_unitsHeader": "الوحدات",
@@ -6978,6 +7182,8 @@
   "transfer_summary_title": "النقل",
   "transfer_unknownSection": "قسم غير معروف: {sectionId}",
   "trips_appBar_title": "الرحلات",
+  "trips_list_count": "{count, plural, =1{رحلة واحدة} other{{count} رحلات}}",
+  "trips_list_countFiltered": "{shown} من {total, plural, =1{رحلة واحدة} other{{total} رحلات}}",
   "trips_appBar_tripPhotos": "صور الرحلة",
   "trips_breakdown_column_bottomTime": "Bottom Time",
   "trips_breakdown_column_day": "Day",
@@ -7067,6 +7273,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "التخطيط",
+  "trips_edit_label_diversSharing": "الغواصون المشتركون في الأسطوانات",
+  "trips_edit_hint_diversSharing": "بما في ذلك أنت. الفراغ يعني 1.",
+  "trips_edit_label_divesPerDay": "غطسات في اليوم",
+  "trips_edit_hint_divesPerDay": "لتوقع التعبئة. الفراغ يعني التقدير.",
   "trips_edit_label_expectedDives": "الغطسات المتوقعة",
   "trips_edit_hint_expectedDives": "اتركه فارغًا للتقدير من رحلاتك الأخيرة",
   "trips_edit_label_expectedRuntime": "مدة التشغيل المتوقعة لكل غطسة (بالدقائق)",
@@ -7171,6 +7381,308 @@
       }
     }
   },
+  "trips_gear_title": "المعدات",
+  "trips_gear_none": "لم تُجهز أي معدات بعد",
+  "trips_gear_add": "إضافة معدات",
+  "trips_gear_remove": "إزالة",
+  "trips_gear_failed": "تعذر تغيير المعدات. حاول مرة أخرى.",
+  "trips_cylinders_forecast_todayShort": "اليوم يحتاج إلى {needed}، ولديك {full} ممتلئة.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "غدًا يحتاج إلى {needed}، وسيكون لديك {full} ممتلئة.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "املأ قبل {time}.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "أسطوانات ممتلئة كافية حتى الغد.",
+  "trips_cylinders_forecast_daysTitle": "الغطسات المخططة",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} غطسة} other{{count} غطسات}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "الغطسات المخططة، {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "استخدام التقدير",
+  "trips_cylinders_forecast_fewer": "غطسات أقل",
+  "trips_cylinders_forecast_more": "غطسات أكثر",
+  "trips_cylinders_forecast_saveError": "تعذّر حفظ الخطة: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "خططتها أنت",
+  "trips_cylinders_segment_record": "استهلاك الغاز",
+  "trips_cylinders_recordEmpty": "لا توجد غطسات من هذه الأسطوانات بعد.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} تعبئة مسجلة} other{{count} تعبئات مسجلة}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} غطسة غير محسوبة} other{{count} غطسات غير محسوبة}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} تعبئة ضمن باقة} other{{count} تعبئات ضمن باقة}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} أسطوانة غطس غير مرتبطة بأسطوانة رحلة} other{{count} أسطوانات غطس غير مرتبطة بأسطوانة رحلة}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "غير مرتبطة بأسطوانة",
+  "trips_cylinders_record_tank": "الأسطوانة {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "مُلئت إلى {pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "التحليل {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "تم تصدير سجل الغاز",
+  "trips_cylinders_title": "الأسطوانات",
+  "trips_cylinders_summary": "ممتلئة {full} · جزئية {partial} · فارغة {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "لم تُعبّأ بعد {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "إعداد الأسطوانات",
+  "trips_cylinders_setUpHint": "تتبّع الأسطوانات التي معك في هذه الرحلة: التعبئات والخلطات وما تبقّى في كل منها.",
+  "trips_cylinders_status_full": "ممتلئة",
+  "trips_cylinders_status_partial": "جزئية",
+  "trips_cylinders_status_empty": "فارغة",
+  "trips_cylinders_status_unknown": "لم تُعبّأ بعد",
+  "trips_cylinders_mixAir": "هواء",
+  "trips_cylinders_segment_board": "اللوحة",
+  "trips_cylinders_segment_ledger": "السجل",
+  "trips_cylinders_action_add": "إضافة أسطوانات",
+  "trips_cylinders_action_fill": "تعبئة",
+  "trips_cylinders_action_fillSeveral": "تعبئة عدة أسطوانات",
+  "trips_cylinders_action_adjust": "تعديل",
+  "trips_cylinders_action_logDive": "تسجيل غطسة",
+  "trips_cylinders_bottle": "الأسطوانة {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} غطسة} other{{count} غطسات}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "عُبّئت في {place}، {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "عُبّئت {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "عُدّلت {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "غطسة في {site}، {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "غطسة {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "لا توجد أسطوانات في هذه الرحلة بعد",
+  "trips_cylinders_ledgerEmpty": "لا توجد تعبئات أو تعديلات بعد",
+  "trips_cylinders_kind_fill": "تعبئة",
+  "trips_cylinders_kind_adjustment": "تعديل",
+  "trips_cylinders_deleteConfirmUnused": "حذف هذه الأسطوانة وتعبئاتها؟",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها {count} غطسة. تحتفظ الغطسة بأسطوانتها ويُزال الربط فقط.} other{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها {count} غطسات. تحتفظ الغطسات بأسطواناتها ويُزال الربط فقط.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "حذف هذا الإدخال؟",
+  "trips_cylinders_add_tabRental": "مستأجرة",
+  "trips_cylinders_add_tabOwned": "من معداتي",
+  "trips_cylinders_add_count": "العدد",
+  "trips_cylinders_add_preset": "نوع الأسطوانة",
+  "trips_cylinders_add_prefix": "بادئة الاسم",
+  "trips_cylinders_add_prefixDefault": "الشاحنة",
+  "trips_cylinders_add_noOwned": "لم تعد هناك أسطوانات في معداتك لإضافتها.",
+  "trips_cylinders_add_errorCount": "أدخل رقمًا من 1 إلى 20.",
+  "trips_cylinders_fill_titleEdit": "تعديل التعبئة",
+  "trips_cylinders_fill_when": "متى",
+  "trips_cylinders_fill_where": "محطة التعبئة",
+  "trips_cylinders_fill_whereNone": "غير محددة",
+  "trips_cylinders_fill_pressure": "ضغط التعبئة ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 المطلوب (%)",
+  "trips_cylinders_fill_he": "He المطلوب (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 المقاس (%)",
+  "trips_cylinders_fill_analyzedHe": "He المقاس (%)",
+  "trips_cylinders_fill_bottle": "رقم الأسطوانة",
+  "trips_cylinders_fill_cost": "التكلفة",
+  "trips_cylinders_fill_costEach": "التكلفة لكل أسطوانة",
+  "trips_cylinders_fill_currency": "العملة",
+  "trips_cylinders_fill_package": "ضمن باقة",
+  "trips_cylinders_fill_slots": "الأسطوانات المراد تعبئتها",
+  "trips_cylinders_fill_errorMix": "يجب أن يكون الأكسجين بين 1 و100 بالمئة، والهيليوم بين 0 و99، ومجموعهما 100 على الأكثر.",
+  "trips_cylinders_fill_errorNoSlot": "اختر أسطوانة واحدة على الأقل.",
+  "trips_cylinders_note": "ملاحظة",
+  "trips_cylinders_adjust_titleEdit": "تعديل التصحيح",
+  "trips_cylinders_adjust_pressure": "الضغط ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "تعليم كفارغة",
+  "trips_cylinders_edit_title": "تعديل الأسطوانة",
+  "trips_cylinders_edit_label": "الاسم",
+  "trips_cylinders_edit_errorLabel": "أدخل اسمًا.",
+  "trips_cylinders_edit_errorNeedsPressure": "أدخل ضغط العمل أيضًا حتى يمكن تحويل الحجم.",
+  "trips_cylinders_edit_volume": "الحجم ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "ضغط العمل ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "مخصص",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "تاريخ الانتهاء",
@@ -8086,6 +8598,36 @@
   "sites_deleteShared_title": "حذف الموقع المشترك؟",
   "sites_unshareConfirm_body": "سيؤدي هذا إلى إزالة «{name}» من عروض ملفات الغوص الأخرى. يمكنك مشاركته مرة أخرى لاحقًا.",
   "sites_unshareConfirm_title": "إلغاء مشاركة هذا الموقع؟",
+  "settings_hiddenItems_empty": "لا يوجد شيء مخفي عن هذا الملف.",
+  "settings_hiddenItems_sites": "المواقع",
+  "settings_hiddenItems_title": "مخفي عن هذا الملف",
+  "settings_hiddenItems_trips": "الرحلات",
+  "settings_hiddenItems_unhide": "إظهار",
+  "sharedItems_bulkDeleteCount_sites": "{count, plural, one{سيتم حذف {count} موقع.} other{سيتم حذف {count} مواقع.}}",
+  "sharedItems_bulkDeleteCount_trips": "{count, plural, one{سيتم حذف {count} رحلة.} other{سيتم حذف {count} رحلات.}}",
+  "sharedItems_bulkHiddenSnackbar": "{count, plural, one{تمت إزالة {count} عنصر من ملفك} other{تمت إزالة {count} عناصر من ملفك}}",
+  "sharedItems_bulkHideCount_sites": "{count, plural, one{ستتم إزالة {count} موقع مشترك من ملفك فقط.} other{ستتم إزالة {count} مواقع مشتركة من ملفك فقط.}}",
+  "sharedItems_bulkHideCount_trips": "{count, plural, one{ستتم إزالة {count} رحلة مشتركة من ملفك فقط.} other{ستتم إزالة {count} رحلات مشتركة من ملفك فقط.}}",
+  "sharedItems_bulkRemoveTitle": "{count, plural, one{إزالة {count} عنصر من ملفك؟} other{إزالة {count} عناصر من ملفك؟}}",
+  "sharedItems_bulkSharedWarning_sites": "{count, plural, one{{count} منها مشترك مع ملفات غوص أخرى وسيُحذف للجميع.} other{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.}}",
+  "sharedItems_bulkSharedWarning_trips": "{count, plural, one{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.} other{{count} منها مشتركة مع ملفات غوص أخرى وستُحذف للجميع.}}",
+  "sharedItems_hiddenHere": "مخفي عن ملفك",
+  "sharedItems_mergeTooManyShared": "يمكن أن ينتمي موقع واحد فقط من المواقع المحددة إلى ملف غوص آخر. ألغِ تحديد المواقع الأخرى للدمج.",
+  "sharedItems_notOwner_site": "يمكن لمالك هذا الموقع فقط حذفه",
+  "sharedItems_notOwner_trip": "يمكن لمالك هذه الرحلة فقط حذفها",
+  "sharedItems_otherProfilesDives_site": "{count, plural, one{ستفقد {count} غطسة في ملف غوص آخر هذا الموقع.} other{ستفقد {count} غطسات في ملفات غوص أخرى هذا الموقع.}}",
+  "sharedItems_otherProfilesDives_trip": "{count, plural, one{ستفقد {count} غطسة في ملف غوص آخر هذه الرحلة.} other{ستفقد {count} غطسات في ملفات غوص أخرى هذه الرحلة.}}",
+  "sharedItems_ownerUnknown": "ملف غوص آخر",
+  "sharedItems_removeAction": "إزالة من ملفي",
+  "sharedItems_removeBody": "سيبقى في سجل {owner} وفي كل ملف غوص آخر. سيُخفى هنا فقط.",
+  "sharedItems_removeOwnDives": "{count, plural, one{ستبقى {count} من غطساتك مرتبطة به.} other{ستبقى {count} من غطساتك مرتبطة به.}}",
+  "sharedItems_removeRestoreHint": "يمكنك استعادته من الإعدادات > البيانات المشتركة.",
+  "sharedItems_removeTitle": "إزالة «{name}» من ملفك؟",
+  "sharedItems_removedSnackbar": "تمت الإزالة من ملفك",
+  "sharedItems_shareOwnerOnly": "يمكن لـ {owner} فقط تغيير المشاركة",
+  "sharedItems_sharedBy": "تمت المشاركة بواسطة {owner}",
+  "sharedItems_undo": "تراجع",
+  "sharedItems_unhideAction": "إظهار في ملفي",
   "trips_deleteShared_body": "«{name}» مشتركة مع ملفات غوص أخرى. حذفها من هنا يزيلها للجميع.",
   "trips_deleteShared_title": "حذف الرحلة المشتركة؟",
   "trips_unshareConfirm_body": "سيؤدي هذا إلى إزالة «{name}» من عروض ملفات الغوص الأخرى. يمكنك مشاركتها مرة أخرى لاحقًا.",
@@ -9731,6 +10273,8 @@
   "dataQuality_neverScanned": "لم يتم فحص سجل الغوص الخاص بك بعد",
   "dataQuality_empty_title": "كل شيء على ما يرام",
   "dataQuality_empty_subtitle": "لا توجد نتائج تخص جودة البيانات. افحص مكتبتك للتحقق من مشكلات الغوصات المستوردة.",
+  "dataQuality_empty_chipFiltered": "لا توجد نتائج في هذه الفئة",
+  "dataQuality_empty_showAll": "عرض كل النتائج",
   "dataQuality_banner_newChecks": "تتوفر فحوصات جودة جديدة",
   "dataQuality_banner_rescan": "إعادة الفحص",
   "dataQuality_action_dismiss": "تجاهل",
@@ -9777,6 +10321,8 @@
   "dataQuality_msg_pressureSwap": "ضغط النهاية {end} أعلى من ضغط البداية {start}",
   "dataQuality_msg_pressureEndpoint": "يذكر سجل الأسطوانة {record} لكن سلسلة المستشعر تُظهر {series}",
   "dataQuality_msg_pressureRise": "ارتفع الضغط {rise} في منتصف الغوصة دون تبديل للغاز",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{سجّل مستشعر الضغط قراءة خاطئة مرة واحدة (انقطاع أو قفزة)} other{سجّل مستشعر الضغط قراءات خاطئة {count} مرات (انقطاعات أو قفزات)}}",
+  "dataQuality_msg_pressureMixed": "تمزج سلسلة الضغط قراءات مصدرين",
   "dataQuality_msg_sac": "معدل الاستهلاك السطحي الضمني {sac} غير معقول",
   "dataQuality_msg_ppo2": "بلغ ppO2 القيمة {ppo2} على {gas} عند {depth}",
   "dataQuality_msg_hypoxic": "يظهر خليط ناقص الأكسجين ({gas}) قيد الاستخدام عند السطح",
@@ -9971,6 +10517,7 @@
   "settings_visibilityScale_customHelp": "أدخل لكل تصنيف أقصر مسافة لا تزال تُحتسب ضمنه.",
   "insights_conditions_visibility_legacySuffix": "{band} (مسجلة قبل القياس)",
   "common_selection_countSelected": "{count} محدد",
+  "common_listCount_shownOfTotal": "{shown} من {total}",
   "common_selection_enterTooltip": "تحديد العناصر",
   "common_selection_exitTooltip": "إنهاء التحديد",
   "common_selection_selectAllTooltip": "تحديد الكل",
@@ -11843,6 +12390,106 @@
   "diveLog_filter_noComputersRegistered": "لا توجد حواسيب غوص مسجَّلة",
   "diveLog_filter_sectionDepthRangeUnit": "نطاق العمق ({unit})",
   "diveLog_filter_sectionDiveComputer": "حاسوب الغوص",
+  "diveLog_filterChip_speciesCount": "{count} أنواع",
+  "diveLog_filterChip_weekdayCount": "{count, plural, =1{يوم واحد من الأسبوع} other{{count} أيام من الأسبوع}}",
+  "diveLog_filterChip_siteCount": "{count} مواقع",
+  "diveLog_filterChip_visibilityRange": "الرؤية {min} إلى {max} {unit}",
+  "diveLog_filterChip_visibilityMin": "الرؤية أكثر من {value} {unit}",
+  "diveLog_filterChip_visibilityMax": "الرؤية أقل من {value} {unit}",
+  "diveLog_filterChip_waterTempRange": "الماء {min} إلى {max}{unit}",
+  "diveLog_filterChip_waterTempMin": "الماء أكثر من {value}{unit}",
+  "diveLog_filterChip_waterTempMax": "الماء أقل من {value}{unit}",
+  "diveLog_filterChip_waterTypeCount": "{count} أنواع مياه",
+  "diveLog_filter_sectionSpecies": "الحياة البحرية",
+  "diveLog_filter_sectionVisibilityUnit": "الرؤية ({unit})",
+  "diveLog_filter_sectionWaterTempUnit": "درجة حرارة الماء ({unit})",
+  "diveLog_filter_sectionWaterType": "نوع المياه",
+  "diveLog_filter_speciesSearchHint": "البحث عن الأنواع",
+  "diveLog_listPage_tooltip_explore": "استكشف بجملة",
+  "explore_chip_favorite": "مفضل",
+  "explore_chip_deco": "غطسة تخفيف ضغط",
+  "explore_chip_fieldPeriod": "{field}: {period}",
+  "explore_chip_noDeco": "بدون تخفيف ضغط",
+  "explore_chip_noBuddy": "بدون رفيق",
+  "explore_chip_rating": "التقييم {op} {value}",
+  "explore_chip_numeric": "{field} {op} {value}",
+  "explore_chip_between": "{field} {low} إلى {high}",
+  "explore_chip_enum": "{field}: {values}",
+  "explore_chip_enumNot": "{field} ليس {values}",
+  "explore_chip_timeRange": "{start} إلى {end}",
+  "explore_chip_timeSince": "منذ {start}",
+  "explore_chip_timeBefore": "قبل {end}",
+  "explore_chip_viaDives": "الغطسات: {label}",
+  "explore_chip_withinDays": "{days, plural, =1{{field} خلال {days} يوم} other{{field} خلال {days} يوم}}",
+  "explore_count": "{count, plural, =0{لا توجد غطسات} =1{غطسة واحدة} other{{count} غطسات}}",
+  "explore_download_button": "تنزيل النموذج على الجهاز",
+  "explore_download_running": "جارٍ تنزيل النموذج",
+  "explore_error_contextExceeded": "هذه الجملة طويلة جدًا على النموذج على الجهاز. جرّب جملة أقصر.",
+  "explore_error_decodingFailure": "لم ينتج النموذج إجابة قابلة للاستخدام. جرّب إعادة الصياغة.",
+  "explore_error_guardrail": "رفض النموذج هذه الجملة.",
+  "explore_error_modelNotReady": "النموذج على الجهاز غير جاهز بعد.",
+  "explore_error_quotaExceeded": "النموذج على الجهاز مشغول. حاول مرة أخرى بعد قليل.",
+  "explore_error_refusal": "رفض النموذج هذه الجملة.",
+  "explore_error_schemaMismatch": "لم يتم فهم ذلك. حدّث التطبيق إذا استمر هذا.",
+  "explore_error_unknown": "حدث خطأ أثناء سؤال النموذج على الجهاز.",
+  "explore_error_unsupportedLocale": "النموذج على الجهاز لا يفهم هذه اللغة.",
+  "explore_field_airTemp": "درجة حرارة الهواء",
+  "explore_field_avgDepth": "متوسط العمق",
+  "explore_field_bottomTime": "وقت القاع",
+  "explore_field_currentStrength": "التيار",
+  "explore_field_depth": "العمق",
+  "explore_field_diveMode": "وضع الغطس",
+  "explore_field_diveNumber": "رقم الغطسة",
+  "explore_field_diveType": "نوع الغطسة",
+  "explore_field_entryMethod": "الدخول",
+  "explore_field_o2": "الأكسجين",
+  "explore_field_rating": "التقييم",
+  "explore_field_visibility": "الرؤية",
+  "explore_field_waterTemp": "درجة حرارة الماء",
+  "explore_field_waterType": "نوع المياه",
+  "explore_field_weekday": "يوم الأسبوع",
+  "explore_handoff_diveList": "فتح في قائمة الغطسات",
+  "explore_handoff_insights": "فتح في الرؤى",
+  "explore_handoff_list": "فتح في القائمة",
+  "explore_hint": "اسأل عن غطساتك، مثلاً سلاحف أعمق من 20 م في بونير",
+  "explore_needsAttention_title": "يحتاج إلى انتباه",
+  "explore_op_gt": "أكثر من",
+  "explore_op_gte": "على الأقل",
+  "explore_op_lt": "أقل من",
+  "explore_op_lte": "على الأكثر",
+  "explore_value_minutes": "{minutes} دقيقة",
+  "explore_op_eq": "يساوي",
+  "explore_pickCandidate_title": "ماذا قصدت بـ \"{text}\"؟",
+  "explore_recent_title": "الأخيرة",
+  "explore_results_count": "{count, plural, =1{{count} نتيجة} other{{count} نتيجة}}",
+  "explore_results_subjectTitle": "النتائج المطابقة",
+  "explore_results_subjectTruncated": "يُعرض أول {count}. افتح القائمة لعرضها كلها.",
+  "explore_results_title": "الغطسات المطابقة",
+  "explore_results_truncated": "عرض أول {count}. افتح قائمة الغطسات لرؤيتها كلها.",
+  "explore_shortcut_unavailable": "يحتاج الاستكشاف إلى النموذج على الجهاز، وهو غير جاهز على هذا الجهاز.",
+  "explore_title": "استكشاف",
+  "explore_understood_title": "تم فهمه",
+  "explore_unplaced_reason_aggregateWithScope": "لا يمكن دمجه مع شروط الغطسات بعد",
+  "explore_unplaced_reason_invalid": "تعذّرت قراءة هذه القيمة",
+  "explore_unplaced_reason_noAxis": "غير قابل للبحث بعد",
+  "explore_unplaced_reason_outOfRange": "القيمة خارج النطاق",
+  "explore_unplaced_reason_unknownField": "حقل غير معروف",
+  "explore_unplaced_reason_unknownTime": "تعذّرت قراءة هذا الوقت",
+  "explore_unresolved_noCandidates": "لا توجد مطابقة في سجلك",
+  "explore_chart_divesOverTime": "الغطسات عبر الزمن",
+  "explore_chart_depthTrend": "العمق",
+  "explore_chart_waterTempTrend": "درجة حرارة الماء",
+  "explore_chart_bottomTimeTrend": "وقت القاع",
+  "explore_chart_entityCounts": "الغطسات لكل {kind}",
+  "explore_kind_site": "موقع",
+  "explore_kind_place": "مكان",
+  "explore_kind_species": "نوع",
+  "explore_kind_gear": "معدات",
+  "explore_kind_buddy": "رفيق",
+  "explore_kind_tag": "علامة",
+  "explore_kind_center": "مركز غطس",
+  "explore_kind_trip": "رحلة",
+  "explore_kind_computer": "حاسوب",
   "diveLog_listPage_semanticsDiveAtSite": "الغوصة {diveNumber} في {siteName}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "غوصة مخططة في {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
@@ -12349,6 +12996,7 @@
   "settings_export_progress_sitesCsv": "جارٍ تصدير المواقع إلى CSV...",
   "settings_export_progress_equipmentCsv": "جارٍ تصدير المعدات إلى CSV...",
   "settings_export_progress_observationsCsv": "جارٍ تصدير فحوصات المعدات إلى CSV...",
+  "settings_export_progress_fillsCsv": "جارٍ تصدير تعبئات الأسطوانات إلى CSV...",
   "settings_export_progress_pdf": "جارٍ إنشاء سجل الغوص بصيغة PDF...",
   "settings_export_progress_loadingSignatures": "جارٍ تحميل التوقيعات...",
   "settings_export_progress_loadingProfiles": "جارٍ تحميل ملفات الغوص...",
@@ -12368,12 +13016,14 @@
   "settings_export_progress_preparingSitesCsv": "جارٍ تحضير ملف CSV للمواقع...",
   "settings_export_progress_preparingEquipmentCsv": "جارٍ تحضير ملف CSV للمعدات...",
   "settings_export_progress_preparingObservationsCsv": "جارٍ تحضير ملف CSV لفحوصات المعدات...",
+  "settings_export_progress_preparingFillsCsv": "جارٍ تجهيز CSV تعبئات الأسطوانات...",
   "settings_export_progress_preparingUddf": "جارٍ تحضير ملف UDDF...",
   "settings_export_progress_preparingPdf": "جارٍ تحضير ملف PDF...",
   "settings_export_empty_dives": "لا توجد غوصات للتصدير",
   "settings_export_empty_sites": "لا توجد مواقع للتصدير",
   "settings_export_empty_equipment": "لا توجد معدات للتصدير",
   "settings_export_empty_observations": "لا فحوصات معدات للتصدير",
+  "settings_export_empty_fills": "لا تعبئات أسطوانات للتصدير",
   "settings_export_empty_data": "لا توجد بيانات للتصدير",
   "settings_export_empty_diveSites": "لا توجد مواقع غوص للتصدير",
   "settings_export_saveFailed": "فشل الحفظ: {error}",
@@ -12381,6 +13031,7 @@
   "settings_export_success_sites": "تم تصدير المواقع بنجاح",
   "settings_export_success_equipment": "تم تصدير المعدات بنجاح",
   "settings_export_success_observations": "تم تصدير فحوصات المعدات",
+  "settings_export_success_fills": "تم تصدير تعبئات الأسطوانات",
   "settings_export_success_pdf": "تم إنشاء سجل الغوص بصيغة PDF بنجاح",
   "settings_export_success_uddf": "تم إنشاء ملف UDDF بنجاح",
   "settings_export_success_excel": "تم تصدير ملف Excel بنجاح",
@@ -12391,6 +13042,7 @@
   "settings_export_saved_sitesCsv": "تم حفظ ملف CSV للمواقع بنجاح",
   "settings_export_saved_equipmentCsv": "تم حفظ ملف CSV للمعدات بنجاح",
   "settings_export_saved_observationsCsv": "تم حفظ ملف CSV لفحوصات المعدات",
+  "settings_export_saved_fillsCsv": "تم حفظ CSV تعبئات الأسطوانات",
   "settings_export_saved_uddf": "تم حفظ ملف UDDF بنجاح",
   "settings_export_saved_pdf": "تم حفظ ملف PDF بنجاح",
   "settings_export_cancelled_save": "تم إلغاء الحفظ",
@@ -12534,6 +13186,7 @@
   "settings_export_saveSitesCsvDialogTitle": "حفظ ملف CSV للمواقع",
   "settings_export_saveEquipmentCsvDialogTitle": "حفظ ملف CSV للمعدات",
   "settings_export_saveObservationsCsvDialogTitle": "حفظ ملف CSV لفحوصات المعدات",
+  "settings_export_saveFillsCsvDialogTitle": "حفظ CSV تعبئات الأسطوانات",
   "backup_operation_created": "تم إنشاء نسخة احتياطية: {size}",
   "backup_operation_backupFailed": "فشل النسخ الاحتياطي: {error}",
   "backup_operation_restoring": "جارٍ استعادة النسخة الاحتياطية...",
@@ -13062,6 +13715,11 @@
   "navTrack_review_row_maxDepth": "أقصى عمق",
   "navTrack_review_row_maxSpeed": "أقصى سرعة",
   "navTrack_review_leaveUnlinked": "الترك بدون ربط",
+  "navTrack_review_noOverlapHint": "لا توجد غطسة تتداخل مع وقت هذا التسجيل. أقرب الغطسات حسب وقت البدء:",
+  "navTrack_review_offsetBefore": "قبل التسجيل بـ {offset}",
+  "navTrack_review_offsetAfter": "بعد التسجيل بـ {offset}",
+  "navTrack_review_offsetDays": "{days}d {hours}h",
+  "navTrack_review_chooseAnotherDive": "اختيار غطسة أخرى...",
   "navTrack_list_importFailed": "فشل الاستيراد: {error}",
   "navTrack_list_matchError": "تعذرت مطابقة المسارات.",
   "navTrack_list_matchSuccess": "تمت مطابقة المسارات مع الغطسات.",
@@ -13192,28 +13850,50 @@
   "diveCenters_rental_noteLabel": "ملاحظة",
   "diveCenters_rental_deleteConfirm": "حذف ملاحظة التأجير هذه؟",
   "query_buddies_certifications": "الشهادات",
+  "query_buddies_diveCount": "غطسات مشتركة",
+  "query_buddies_dives": "الغطسات",
   "query_buddies_email": "البريد الإلكتروني",
   "query_buddies_favorite": "مفضّل",
+  "query_buddies_lastDived": "آخر غطسة مشتركة",
   "query_buddies_name": "الاسم",
   "query_buddies_notes": "ملاحظات",
   "query_buddies_phone": "الهاتف",
+  "query_centers_affiliations": "الانتماءات",
   "query_centers_city": "المدينة",
+  "query_centers_coordinates": "الإحداثيات",
   "query_centers_country": "البلد",
+  "query_centers_diveCount": "عدد الغطسات",
+  "query_centers_dives": "الغطسات",
+  "query_centers_lastDived": "آخر غطسة",
   "query_centers_name": "الاسم",
+  "query_centers_notes": "ملاحظات",
+  "query_centers_rating": "التقييم",
+  "query_centers_stateProvince": "الولاية / المقاطعة",
   "query_certifications_agency": "الهيئة",
+  "query_certifications_buddy": "زميل الغوص",
   "query_certifications_cardNumber": "رقم البطاقة",
+  "query_certifications_course": "الدورة",
   "query_certifications_expiryDate": "تاريخ الانتهاء",
+  "query_certifications_instructor": "المدرب",
   "query_certifications_instructorName": "اسم المدرب",
+  "query_certifications_instructorNumber": "رقم المدرب",
   "query_certifications_issueDate": "تاريخ الإصدار",
   "query_certifications_level": "المستوى",
   "query_certifications_name": "الاسم",
+  "query_certifications_notes": "ملاحظات",
   "query_computers_manufacturer": "الشركة المصنعة",
   "query_computers_model": "الطراز",
   "query_computers_name": "الاسم",
   "query_computers_serialNumber": "الرقم التسلسلي",
   "query_courses_agency": "الهيئة",
+  "query_courses_certification": "الاعتماد",
   "query_courses_completionDate": "تاريخ الإكمال",
+  "query_courses_dives": "الغطسات",
+  "query_courses_instructor": "المدرب",
+  "query_courses_instructorName": "اسم المدرب",
+  "query_courses_location": "الموقع",
   "query_courses_name": "الاسم",
+  "query_courses_notes": "ملاحظات",
   "query_courses_startDate": "تاريخ البدء",
   "query_customFields_key": "المفتاح",
   "query_customFields_value": "القيمة",
@@ -13252,6 +13932,19 @@
   "query_dives_otu": "OTU",
   "query_dives_planned": "مخطط",
   "query_dives_rating": "التقييم",
+  "query_dives_findings": "نتائج السلامة",
+  "query_dives_sac": "SAC",
+  "query_dives_sacTrend": "اتجاه SAC",
+  "query_dives_sacTrend_rising": "متزايد",
+  "query_dives_sacTrend_steady": "ثابت",
+  "query_dives_sacTrend_falling": "متناقص",
+  "query_dives_sacChange": "تغير SAC",
+  "query_dives_finalStop": "التوقف الأخير",
+  "query_dives_finalStop_stable": "مستقر",
+  "query_dives_finalStop_unstable": "غير مستقر",
+  "query_dives_finalStop_noStop": "بلا توقف",
+  "query_dives_finalStopExcursion": "الانحراف في التوقف الأخير",
+  "query_dives_finalStopDuration": "مدة التوقف الأخير",
   "query_dives_runtime": "المدة الكلية",
   "query_dives_sightings": "المشاهدات",
   "query_dives_site": "الموقع",
@@ -13278,8 +13971,11 @@
   "query_entity_dives": "الغطسات",
   "query_entity_equipment": "المعدات",
   "query_entity_equipmentAttributes": "خصائص المعدات",
+  "query_entity_findings": "نتائج السلامة",
+  "query_findings_rule": "القاعدة",
   "query_entity_media": "الوسائط",
   "query_entity_sightings": "المشاهدات",
+  "query_entity_siteTypes": "أنواع الموقع",
   "query_entity_sites": "مواقع الغوص",
   "query_entity_species": "الأنواع",
   "query_entity_tags": "الوسوم",
@@ -13293,27 +13989,58 @@
   "query_equipment_active": "نشط",
   "query_equipment_attributes": "الخصائص",
   "query_equipment_brand": "العلامة التجارية",
+  "query_equipment_diveCount": "غطسات الاستخدام",
+  "query_equipment_dives": "الغطسات",
+  "query_equipment_lastDived": "آخر استخدام",
   "query_equipment_model": "الطراز",
   "query_equipment_name": "الاسم",
+  "query_equipment_nextServiceDue": "موعد الصيانة التالية",
   "query_equipment_serialNumber": "الرقم التسلسلي",
+  "query_equipment_serviceDue": "الصيانة مستحقة",
+  "query_equipment_serviceDue_dueSoon": "قريبًا",
+  "query_equipment_serviceDue_ok": "محدّث",
+  "query_equipment_serviceDue_overdue": "متأخرة",
   "query_equipment_status": "الحالة",
+  "query_equipment_tags": "الوسوم",
   "query_equipment_type": "النوع",
+  "query_filter_clear": "مسح",
+  "query_filter_tooltip": "التصفية",
+  "query_list_noMatch": "لا شيء يطابق هذا الاستعلام",
   "query_media_caption": "التعليق",
   "query_media_favorite": "مفضّل",
   "query_media_type": "النوع",
+  "query_sheet_sectionTitle": "استعلام",
   "query_sightings_count": "العدد",
   "query_sightings_notes": "ملاحظات",
   "query_sightings_species": "الأنواع",
+  "query_siteTypes_name": "الاسم",
   "query_sites_city": "المدينة",
+  "query_sites_coordinates": "الإحداثيات",
   "query_sites_country": "البلد",
+  "query_sites_difficulty": "الصعوبة",
+  "query_sites_diveCount": "عدد الغطسات",
+  "query_sites_dives": "الغطسات",
   "query_sites_island": "الجزيرة",
+  "query_sites_lastDived": "آخر غطسة",
   "query_sites_maxDepth": "أقصى عمق",
   "query_sites_name": "الاسم",
+  "query_sites_notes": "ملاحظات",
   "query_sites_rating": "التقييم",
   "query_sites_region": "المنطقة",
+  "query_sites_tags": "الوسوم",
+  "query_sites_types": "أنواع الموقع",
+  "query_species_builtIn": "مدمج",
   "query_species_category": "الفئة",
+  "query_species_description": "الوصف",
+  "query_species_diveCount": "غطسات المشاهدة",
+  "query_species_dives": "الغطسات",
+  "query_species_expectedSites": "متوقع في المواقع",
+  "query_species_firstSeen": "أول مشاهدة",
+  "query_species_lastSeen": "آخر مشاهدة",
   "query_species_name": "الاسم",
   "query_species_scientificName": "الاسم العلمي",
+  "query_species_sightings": "المشاهدات",
+  "query_species_taxonomyClass": "الصنف التصنيفي",
   "query_tags_name": "الاسم",
   "query_tanks_cylinder": "الأسطوانة",
   "query_tanks_endPressure": "ضغط النهاية",
@@ -13322,10 +14049,17 @@
   "query_tanks_o2": "الأكسجين",
   "query_tanks_startPressure": "ضغط البداية",
   "query_tanks_volume": "الحجم",
+  "query_trips_diveCount": "عدد الغطسات",
+  "query_trips_dives": "الغطسات",
   "query_trips_endDate": "تاريخ الانتهاء",
+  "query_trips_liveaboardName": "سفينة غوص",
   "query_trips_location": "الموقع",
   "query_trips_name": "الاسم",
+  "query_trips_notes": "ملاحظات",
+  "query_trips_resortName": "المنتجع",
+  "query_trips_shared": "مشترك",
   "query_trips_startDate": "تاريخ البدء",
+  "query_trips_tripType": "نوع الرحلة",
   "query_weights_amount": "الكمية",
   "query_weights_notes": "ملاحظات",
   "query_weights_type": "النوع",

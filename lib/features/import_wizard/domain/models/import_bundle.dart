@@ -67,6 +67,9 @@ enum ImportEntityType {
 
   /// Photos referenced by an imported logbook.
   media,
+
+  /// Cylinder fills from the Submersion fills CSV (passports phase 5).
+  fills,
 }
 
 /// Metadata about the source of an [ImportBundle].

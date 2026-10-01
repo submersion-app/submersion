@@ -17,10 +17,18 @@ import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/mock_channels.dart';
 import '../../../helpers/pdf_text.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/fake_hosts.dart';
 
 /// The ExportService facade must hand the diver's units through to the trip
 /// report and course training log PDFs, not just the underlying services.
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory shareDir;

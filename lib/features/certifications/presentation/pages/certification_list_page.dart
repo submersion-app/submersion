@@ -19,6 +19,12 @@ import 'package:submersion/features/certifications/presentation/widgets/certific
 import 'package:submersion/features/certifications/presentation/widgets/certification_summary_widget.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
+import 'package:submersion/features/certifications/query/certification_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_search_delegate.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_list_count_provider.dart';
 
 class CertificationListPage extends ConsumerWidget {
   const CertificationListPage({super.key});
@@ -50,6 +56,7 @@ class CertificationListPage extends ConsumerWidget {
         child: TableModeLayout(
           sectionKey: 'certifications',
           appBarTitle: context.l10n.nav_certifications,
+          appBarSubtitle: certificationListCountLabel(context, ref),
           tableContent: const CertificationListContent(showAppBar: false),
           detailBuilder: (context, certificationId) => CertificationDetailPage(
             certificationId: certificationId,
@@ -97,9 +104,15 @@ class CertificationListPage extends ConsumerWidget {
               onPressed: () {
                 showSearch(
                   context: context,
-                  delegate: CertificationSearchDelegate(ref),
+                  delegate: CertificationSearchDelegate(),
                 );
               },
+            ),
+            QueryFilterAction(
+              provider: certificationQueryProvider,
+              subject: QuerySubject.certifications,
+              root: certificationQueryEntity,
+              compact: true,
             ),
             IconButton(
               icon: const Icon(Icons.sort, size: 20),

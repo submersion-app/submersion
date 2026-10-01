@@ -6,6 +6,19 @@ const double _earthRadiusMeters = 6371000.0;
 
 double _toRadians(double degrees) => degrees * math.pi / 180.0;
 
+/// [longitude] folded into (-180, 180], the range the app stores and
+/// compares longitudes in. Both ends of the seam land on 180.
+double normalizeLongitude(double longitude) {
+  // Dart's `%` is never negative for a positive divisor, so this is [0, 360).
+  final folded = (longitude + 180) % 360;
+  return folded == 0 ? 180 : folded - 180;
+}
+
+/// The signed number of degrees to travel east from [from] to reach [to]
+/// the short way round, in (-180, 180]. Negative means west; exactly half
+/// way round counts as east.
+double longitudeDelta(double from, double to) => normalizeLongitude(to - from);
+
 /// Great-circle distance between two points in meters (Haversine).
 double distanceMeters(GeoPoint a, GeoPoint b) {
   final lat1 = _toRadians(a.latitude);

@@ -69,6 +69,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
   ServiceRecordRepository,
 ])
 import 'uddf_entity_importer_test.mocks.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 /// Records [store] calls instead of writing rows, so tests can assert
 /// whether-and-what the importer tried to persist without a database.
@@ -110,6 +111,12 @@ class _FailingImportedFiles extends ImportedFileRepository {
 }
 
 void main() {
+  // The code under test calls Nominatim; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('nominatim.openstreetmap.org');
+  });
+
   final importer = UddfEntityImporter();
   const diverId = 'diver-123';
   final now = DateTime(2024, 1, 15);
@@ -166,6 +173,12 @@ void main() {
     when(
       mockSiteRepo.getAllSites(diverId: anyNamed('diverId')),
     ).thenAnswer((_) async => []);
+
+    // Every imported dive attributes its pressure series to its source once
+    // the source row exists (#2440).
+    when(
+      mockTankPressureRepo.stampSourceWhereNull(any, any),
+    ).thenAnswer((_) async => 0);
 
     repos = ImportRepositories(
       tripRepository: mockTripRepo,
@@ -2702,6 +2715,10 @@ void main() {
         expect(pressuresByTank.keys, hasLength(2));
         expect(pressuresByTank.values.first, isNotEmpty);
         expect(pressuresByTank.values.last, isNotEmpty);
+
+        // Written before the source row exists, the series are attributed
+        // to the dive's single source once it does (#2440).
+        verify(mockTankPressureRepo.stampSourceWhereNull(any, any)).called(1);
       },
     );
 

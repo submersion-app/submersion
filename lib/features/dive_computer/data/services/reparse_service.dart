@@ -6,11 +6,14 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
@@ -241,9 +244,18 @@ class ReparseService {
           computerId: computerId,
           resolvedTanks: resolvedTanks,
         );
+        // A tank this parse gained is new, with no source yet (v251, issue
+        // #2716); a single-source dive's one source is it.
+        await attributeTankSources(
+          db,
+          _sync,
+          diveId,
+          now: now.millisecondsSinceEpoch,
+        );
         await _replaceTankPressureProfiles(
           diveId: diveId,
           computerId: computerId,
+          sourceId: sourceRow.id,
           parsed: parsed,
           tankIdsByIndex: tankIdsByIndex,
         );
@@ -505,6 +517,7 @@ class ReparseService {
     // The re-parse rewrote the profile strands; the sensor summary is
     // derived from them (condition phase 2).
     if (sources.isNotEmpty) scheduleSensorSummaryRefresh([diveId]);
+    if (sources.isNotEmpty) scheduleDerivedMetricsRefresh([diveId]);
     return (errors: errors, profilesPreserved: profilesPreserved);
   }
 
@@ -543,6 +556,10 @@ class ReparseService {
       db.diveDataSources,
     )..where((t) => t.id.equals(sourceRowId))).write(
       DiveDataSourcesCompanion(
+        // The row's own clock, so this write is newer than any peer's copy
+        // on its own; the stage() after the rewrite marks it for publishing
+        // (#2644).
+        hlc: Value(await _sync.issueRowClock()),
         maxDepth: Value(parsed.maxDepthMeters),
         avgDepth: Value(
           parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
@@ -870,6 +887,9 @@ class ReparseService {
             // before the serial was stored gains it (and a parse that stops
             // reporting one clears the stale value).
             transmitterSerial: Value(tank.transmitterSerial),
+            // A fresh clock, so a peer's newer copy cannot take the cleared
+            // serial back, nor this write's values (#2644).
+            hlc: Value(await _sync.issueRowClock()),
             // A legacy row gains its explicit source index here; a row that
             // already has one keeps it.
             sourceTankIndex: existing.sourceTankIndex == null
@@ -935,6 +955,7 @@ class ReparseService {
   Future<void> _replaceTankPressureProfiles({
     required String diveId,
     required String? computerId,
+    required String sourceId,
     required pigeon.ParsedDive parsed,
     required Map<int, String> tankIdsByIndex,
   }) async {
@@ -962,6 +983,7 @@ class ReparseService {
         diveId: diveId,
         tankId: tankId,
         computerId: computerId,
+        sourceId: sourceId,
         samples: [
           for (final point in entry.value)
             TankPressureSample(
@@ -989,16 +1011,19 @@ class ReparseService {
       final needEnd = parsedTank?.endPressureBar == null;
       if (!needStart && !needEnd) continue;
 
-      final sorted = [...entry.value]
-        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      // Signal dropouts at either end of the series must not become the
+      // recorded pressure (#2441).
+      final endpoints = cleanSeriesEndpoints([
+        for (final p in entry.value) (t: p.timestamp, bar: p.pressure),
+      ]);
+      if (endpoints == null) continue;
       await (db.update(db.diveTanks)..where((t) => t.id.equals(tankId))).write(
         DiveTanksCompanion(
           startPressure: needStart
-              ? Value(sorted.first.pressure)
+              ? Value(endpoints.start)
               : const Value.absent(),
-          endPressure: needEnd
-              ? Value(sorted.last.pressure)
-              : const Value.absent(),
+          endPressure: needEnd ? Value(endpoints.end) : const Value.absent(),
+          hlc: Value(await _sync.issueRowClock()),
         ),
       );
     }

@@ -105,6 +105,12 @@
   "gasCalculators_blender_moveGasUp": "הזז את {gas} למעלה",
   "gasCalculators_blender_moveGasDown": "הזז את {gas} למטה",
   "gasCalculators_blender_procedure": "סדר המילוי",
+  "gasCalculators_blender_logFill": "רישום המילוי הזה",
+  "gasCalculators_blender_chooseCylinder": "בחירת בלון",
+  "gasCalculators_blender_scanTag": "סריקת תג",
+  "gasCalculators_blender_notYourCylinder": "הבלון הזה אינו בציוד שלך",
+  "gasCalculators_blender_cylinderFailed": "לא ניתן לפתוח את הבלון הזה. נסו שוב.",
+  "gasCalculators_blender_filledFrom": "{name}: {mix}",
   "gasCalculators_blender_amounts": "גז להוספה",
   "gasCalculators_blender_stepStart": "התחל עם {pressure} {gas}",
   "gasCalculators_blender_stepFill": "מלא {gas} עד {pressure} → {mix}",
@@ -639,6 +645,7 @@
   "accessibility_shortcut_newDive": "צלילה חדשה",
   "accessibility_shortcut_openSettings": "פתיחת הגדרות",
   "accessibility_shortcut_searchDives": "חיפוש צלילות",
+  "accessibility_shortcut_exploreWithSentence": "חקירה באמצעות משפט",
   "accessibility_sort_selectedLabel": "מיון לפי {displayName}, נבחר כעת",
   "accessibility_sort_unselectedLabel": "מיון לפי {displayName}",
   "backup_appBar_title": "גיבוי ושחזור",
@@ -855,6 +862,8 @@
   "buddies_summary_totalBuddies": "סה\"כ חברי צוללים",
   "buddies_summary_withCertification": "עם הסמכה",
   "buddies_title": "חברי צוללים",
+  "buddies_list_count": "{count, plural, =1{חבר צוללים אחד} other{{count} חברי צוללים}}",
+  "buddies_list_countFiltered": "{shown} מתוך {total, plural, =1{חבר צוללים אחד} other{{total} חברי צוללים}}",
   "buddies_title_add": "הוסף חבר צוללים",
   "buddies_title_edit": "ערוך חבר צוללים",
   "buddies_title_singular": "חבר צוללים",
@@ -889,6 +898,8 @@
   "certifications_appBar_certificationWallet": "ארנק הסמכות",
   "certifications_appBar_editCertification": "ערוך הסמכה",
   "certifications_appBar_title": "הסמכות",
+  "certifications_list_count": "{count, plural, =1{הסמכה אחת} other{{count} הסמכות}}",
+  "certifications_list_countFiltered": "{shown} מתוך {total, plural, =1{הסמכה אחת} other{{total} הסמכות}}",
   "certifications_card_issued": "הונפק",
   "certifications_certificate_cardNumber": "מספר כרטיס: {number}",
   "certifications_certificate_footer": "תעודת צלילה רשמית",
@@ -1535,6 +1546,8 @@
   "courses_summary_title": "קורסי אימון",
   "courses_summary_total": "סה\"כ",
   "courses_title": "קורסי אימון",
+  "courses_list_count": "{count, plural, =1{קורס אחד} other{{count} קורסים}}",
+  "courses_list_countFiltered": "{shown} מתוך {total, plural, =1{קורס אחד} other{{total} קורסים}}",
   "courses_title_edit": "ערוך קורס",
   "courses_title_new": "קורס חדש",
   "courses_title_singular": "קורס",
@@ -1749,6 +1762,14 @@
   "diveCenters_section_contact": "יצירת קשר",
   "diveCenters_section_contactInfo": "פרטי קשר",
   "diveCenters_section_gpsCoordinates": "קואורדינטות GPS",
+  "diveCenters_section_fillHours": "שעות מילוי",
+  "diveCenters_fillHours_caption": "מתי התחנה ממלאת מכלים. תחזית המילוי של הטיול משתמשת בשעת הסגירה.",
+  "diveCenters_fillHours_opens": "נפתח",
+  "diveCenters_fillHours_closes": "נסגר",
+  "diveCenters_fillHours_notSet": "לא הוגדר",
+  "diveCenters_fillHours_clear": "ניקוי שעות המילוי",
+  "diveCenters_fillHours_errorBoth": "יש להגדיר את שתי השעות או אף אחת.",
+  "diveCenters_fillHours_errorOrder": "שעת הסגירה חייבת להיות אחרי שעת הפתיחה.",
   "diveCenters_section_notes": "הערות",
   "diveCenters_snackbar_coordinatesFound": "קואורדינטות נמצאו מהכתובת",
   "diveCenters_snackbar_copiedToClipboard": "הועתק ללוח",
@@ -1766,6 +1787,8 @@
   "diveCenters_summary_totalCenters": "סה\"כ מרכזים",
   "diveCenters_summary_withGps": "עם GPS",
   "diveCenters_title": "מרכזי צלילה",
+  "diveCenters_list_count": "{count, plural, =1{מרכז צלילה אחד} other{{count} מרכזי צלילה}}",
+  "diveCenters_list_countFiltered": "{shown} מתוך {total, plural, =1{מרכז צלילה אחד} other{{total} מרכזי צלילה}}",
   "diveCenters_title_add": "הוסף מרכז צלילה",
   "diveCenters_title_edit": "ערוך מרכז צלילה",
   "diveCenters_title_import": "ייבא מרכז צלילה",
@@ -2004,6 +2027,7 @@
   "diveImport_uddf_tabTypes": "סוגים",
   "diveImport_uddf_tags": "תגיות",
   "diveImport_uddf_media": "תמונות",
+  "diveImport_uddf_fills": "מילויים",
   "diveImport_uddf_title": "ייבוא מ-UDDF",
   "diveImport_uddf_toggleDiveSelection": "החלף בחירת צלילה",
   "diveImport_uddf_toggleEntitySelection": "החלף בחירה עבור {name}",
@@ -2515,6 +2539,8 @@
   "diveLog_edit_planned_switch": "צלילה מתוכננת",
   "diveLog_edit_planned_switchSubtitle": "ממתין לנתוני מחשב הצלילה. אין מספר צלילה עד שהיא נרשמת.",
   "diveLog_listPage_compactTitle": "צלילות",
+  "diveLog_listPage_count": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",
+  "diveLog_listPage_countFiltered": "{shown} מתוך {total, plural, =1{צלילה אחת} other{{total} צלילות}}",
   "diveLog_listPage_errorLoading": "שגיאה: {error}",
   "diveLog_listPage_fab_addDive": "הוספת צלילה",
   "diveLog_listPage_fab_logDive": "רישום צלילה",
@@ -2900,6 +2926,10 @@
   "diveLog_tank_tooltip_remove": "הסר בלון",
   "diveLog_tank_regulatorLabel": "וסת",
   "diveLog_tank_regulatorNone": "ללא",
+  "diveLog_tank_tripCylinderLabel": "מכל הטיול",
+  "diveLog_tank_tripCylinderNone": "ללא",
+  "diveLog_tank_tripCylinderMissing": "כבר לא בטיול הזה",
+  "diveLog_tank_tripCylinderSuggested": "הוצע מתוך המכלים המלאים של הטיול",
   "diveLog_tissue_title": "עומס רקמות",
   "diveLog_tooltip_avgCalculated": "(ממוצע, מחושב)",
   "diveLog_tooltip_ceiling": "תקרה",
@@ -3335,6 +3365,8 @@
   "diveSites_list_activeFilter_hasDives": "יש צלילות",
   "diveSites_list_activeFilter_region": "אזור: {region}",
   "diveSites_list_appBar_title": "אתרי צלילה",
+  "diveSites_list_count": "{count, plural, =1{אתר אחד} other{{count} אתרים}}",
+  "diveSites_list_countFiltered": "{shown} מתוך {total, plural, =1{אתר אחד} other{{total} אתרים}}",
   "diveSites_list_bulkDelete_cancel": "ביטול",
   "diveSites_list_bulkDelete_confirm": "מחק",
   "diveSites_list_bulkDelete_content": "האם אתה בטוח שברצונך למחוק {count} {count, plural, =1{אתר} other{אתרים}}? ניתן לבטל פעולה זו תוך 5 שניות.",
@@ -3618,6 +3650,7 @@
   "dropTarget_error_unsupportedFile": "סוג קובץ לא נתמך",
   "dropTarget_error_wizardActive": "סיים את הייבוא הנוכחי קודם",
   "dropTarget_error_readFailed": "לא ניתן לקרוא את הקובץ",
+  "dropTarget_error_someUnreadable": "{count, plural, =1{לא ניתן לקרוא קובץ אחד והוא דולג} other{לא ניתן לקרוא {count} קבצים והם דולגו}}",
   "enum_altitudeGroup_extreme": "גובה קיצוני",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",
   "enum_altitudeGroup_group1": "קבוצת גובה 1",
@@ -3939,6 +3972,8 @@
   "enum_weightType_mixed": "משולב/מעורב",
   "enum_weightType_trimWeights": "משקולות טרים",
   "equipment_appBar_title": "ציוד",
+  "equipment_list_count": "{count, plural, =1{פריט אחד} other{{count} פריטים}}",
+  "equipment_list_countFiltered": "{shown} מתוך {total, plural, =1{פריט אחד} other{{total} פריטים}}",
   "equipment_bulkTags_action": "עריכת תגיות",
   "equipment_bulkTags_adding": "מוסיף לכל {total}",
   "equipment_bulkTags_applied": "{count, plural, =1{התגיות של פריט אחד עודכנו} other{התגיות של {count} פריטים עודכנו}}",
@@ -3965,10 +4000,18 @@
   "passport_fill_mod": "MOD {depth} ב-ppO2 {ppo2}",
   "passport_fill_end": "END {depth} ב-MOD העבודה",
   "passport_fill_station": "מולא על ידי {station}",
+  "passport_fill_fromTag": "מהתג",
+  "passport_fill_analyseBeforeDiving": "נתחו את הגז בעצמכם לפני שתצללו איתו",
+  "passport_fill_writeToTagTitle": "המילוי נרשם",
+  "passport_fill_writeToTagBody": "לכתוב אותו לתג של המיכל?",
+  "passport_fill_writeToTag": "כתיבה לתג",
+  "passport_fill_notNow": "לא כעת",
+  "passport_foreign_lastFill": "המילוי האחרון על התג",
+  "passport_foreign_fillSummary": "{fill} · {date}",
+  "passport_fill_addedFromTag": "המילוי מהתג נוסף: {fill}",
   "passport_fill_analyzer": "נותח באמצעות {analyzer}",
   "passport_fill_analysis": "O2 {o2}, He {he}",
   "passport_fill_temperature": "טמפרטורת הגז {temperature}",
-  "passport_fill_unsigned": "לא חתום",
   "passport_history_title": "היסטוריית מילויים",
   "passport_history_sinceHydro": "{count, plural, =0{אין מילויים מאז מבחן הלחץ האחרון} =1{{count} מילוי מאז מבחן הלחץ האחרון} other{{count} מילויים מאז מבחן הלחץ האחרון}}",
   "passport_history_delete": "מחיקת מילוי",
@@ -4004,6 +4047,33 @@
   "passport_foreign_addToGear": "הוספה לציוד שלי",
   "passport_foreign_addFailed": "לא ניתן היה להוסיף את המיכל. נסו שוב.",
   "passport_foreign_defaultName": "מיכל",
+  "passport_nfc_tap": "הצמדת תג NFC",
+  "passport_nfc_holdNear": "הצמידו את התג לגב הטלפון.",
+  "passport_nfc_write": "כתיבת תג NFC",
+  "passport_nfc_rewrite": "כתיבה מחדש של התג",
+  "passport_nfc_reprint": "הדפסה מחדש של התווית",
+  "passport_nfc_unsupported": "המכשיר הזה אינו יכול לקרוא או לכתוב תגי NFC.",
+  "passport_nfc_disabled": "NFC כבוי. הפעילו אותו בהגדרות המערכת.",
+  "passport_nfc_written": "התג נכתב ונבדק",
+  "passport_nfc_tagInfo": "{type}, {capacity} בייטים",
+  "passport_nfc_capacity": "{capacity} בייטים",
+  "passport_nfc_allFields": "הכול נכנס לתג הזה.",
+  "passport_nfc_fieldsDropped": "הושמט כדי שייכנס: {fields}",
+  "passport_nfc_notNdef": "התג הזה אינו יכול לשמור קישור. השתמשו בתג NTAG215 או NTAG216.",
+  "passport_nfc_readOnly": "התג הזה נעול ולא ניתן לכתוב עליו.",
+  "passport_nfc_tooSmall": "התג הזה קטן מדי ({capacity} בייטים), אפילו למזהה המיכל.",
+  "passport_nfc_readBackFailed": "התג לא נקרא בחזרה כפי שנכתב, ולכן לא נכתב.",
+  "passport_nfc_writeFailed": "התג לא נכתב. החזיקו אותו יציב ונסו שוב.",
+  "passport_nfc_readFailed": "לא ניתן היה לקרוא את התג. החזיקו אותו יציב ונסו שוב.",
+  "passport_nfc_retry": "ניסיון חוזר",
+  "passport_nfc_fieldName": "שם",
+  "passport_nfc_fieldSerial": "מספר סידורי",
+  "passport_nfc_fieldO2Clean": "נקי ל-O2",
+  "passport_nfc_fieldFillAnalyzer": "מנתח המילוי",
+  "passport_nfc_fieldFilledBy": "מולא על ידי",
+  "passport_nfc_fieldFillTemperature": "טמפרטורת המילוי",
+  "passport_nfc_fieldFill": "המילוי האחרון",
+  "passport_nfc_fillIncluded": "המילוי האחרון נמצא גם על התג",
   "passport_foreign_serial": "מספר סידורי {serial}",
   "passport_logFill_date": "מולא בתאריך",
   "passport_logFill_time": "שעה",
@@ -4013,6 +4083,15 @@
   "passport_logFill_temperature": "טמפרטורת הגז",
   "passport_logFill_station": "תחנת מילוי",
   "passport_logFill_analyzer": "מנתח",
+  "passport_logFill_analysedHint": "הזינו את הערכים שניתחתם",
+  "passport_trip_title": "טיולים",
+  "passport_trip_none": "לא נארז לאף טיול",
+  "passport_trip_packedFor": "נארז עבור {trip}",
+  "passport_trip_more": "+{count}",
+  "passport_trip_assign": "אריזה לטיול",
+  "passport_trip_unassign": "הסרה מהטיול הזה",
+  "passport_trip_onBoard": "בלוח המיכלים של הטיול",
+  "passport_trip_failed": "לא ניתן לשנות את הטיול. נסו שוב.",
   "passport_logFill_notes": "הערות",
   "passport_logFill_invalidMix": "O2 ו-He חייבים להיות בין 0 ל-100 וסכומם עד 100",
   "passport_logFill_saveFailed": "לא ניתן היה לשמור את המילוי. נסו שוב.",
@@ -4330,6 +4409,7 @@
   "equipment_list_emptyState_filterText_status": "ציוד {status}",
   "equipment_list_emptyState_filterText_type": "ציוד {type}",
   "equipment_list_emptyState_noEquipment": "אין {filterText}",
+  "equipment_list_emptyState_noQueryMatch": "אין ציוד שתואם לשאילתה זו",
   "equipment_list_emptyState_noStatusMatch": "אין ציוד עם סטטוס זה",
   "equipment_list_emptyState_noTagMatch": "אין ציוד עם תגיות אלה",
   "equipment_list_emptyState_noTypeMatch": "אין ציוד בקטגוריה זו",
@@ -5368,6 +5448,125 @@
   "plannerCanvas_turnRule_halves": "חצאים",
   "plannerCanvas_turnRule_none": "ללא",
   "plannerCanvas_turnRule_thirds": "שלישים",
+  "plannerMission_buddyPicker_empty": "עדיין אין בני זוג",
+  "plannerMission_buddyPicker_me": "אני",
+  "plannerMission_buddyPicker_title": "בחירת בן זוג",
+  "plannerMission_current_setsToward": "זורם לכיוון",
+  "plannerMission_current_speed": "מהירות הזרם",
+  "plannerMission_disableConfirm": "כיבוי",
+  "plannerMission_disableMessage": "המסלול והצוות יוסרו. הפרופיל שנוצר יישאר כמקטעים רגילים שאפשר לערוך.",
+  "plannerMission_disableTitle": "לכבות את משימת ה-DPV?",
+  "plannerMission_results_legRow": "{leg}: {line}",
+  "plannerMission_results_listSeparator": ", ",
+  "plannerMission_results_memberLine": "{name}: {status}",
+  "plannerMission_results_memberLineExits": "{name}: {status} ({exits})",
+  "plannerMission_results_abandonmentUnknown": "לא ניתן היה לקבוע מאילו נקודות אפשר לצאת",
+  "plannerMission_results_safeSurfaceUnknown": "פני מים בטוחים: לא ניתן היה לחשב",
+  "plannerMission_chip_issues": "{count, plural, =1{משימה: {count} בעיה} other{משימה: {count} בעיות}}",
+  "plannerMission_factor_battery": "עתודת סוללה",
+  "plannerMission_factor_blockedByCurrent": "זרם שחוסם את הדרך החוצה",
+  "plannerMission_factor_exposure": "חשיפה לחמצן",
+  "plannerMission_factor_noFeasibleTow": "אין גרירה אפשרית",
+  "plannerMission_factor_ownGas": "הגז שלו",
+  "plannerMission_factor_scenarioFailed": "תרחיש תקלה שלא ניתן היה לחשב",
+  "plannerMission_factor_surfaceSwimLimit": "מגבלת השחייה על פני המים",
+  "plannerMission_factor_teamGas": "הגז של חבר צוות",
+  "plannerMission_results_abandonment": "הנקודה האחרונה שממנה כולם יכולים לצאת: {waypoint}",
+  "plannerMission_results_assumptions": "עתודת סוללה {reserve}% מזמן הפעולה. צולל שהסקוטר שלו מתקלקל נושם את ה-RMV שלו מוכפל במקדם הלחץ של התוכנית עד העצירה הראשונה.",
+  "plannerMission_results_battery": "סוללה {percent}% מזמן הפעולה ({minutes}′), עתודה {reserve}%",
+  "plannerMission_results_bindsAt": "מגבלה ב{waypoint}: {factor}",
+  "plannerMission_results_blocked": "עדיין אי אפשר לחשב את המשימה:",
+  "plannerMission_results_cannotGetOut": "לא יכול לצאת",
+  "plannerMission_results_computing": "מחשב את תרחישי התקלה",
+  "plannerMission_results_failed": "לא ניתן היה לחשב את המשימה",
+  "plannerMission_results_home": "{distance} בקו ישר אל הכניסה",
+  "plannerMission_results_legLine": "הלוך {outSpeed} {outMinutes}′, חזור {backSpeed} {backMinutes}′",
+  "plannerMission_results_legs": "קטעים",
+  "plannerMission_results_limitedBy": "מוגבל על ידי ה{scooter} של {name} ב{waypoint}: {factor}",
+  "plannerMission_results_limitedByDiver": "מוגבל על ידי {name} ב{waypoint}: {factor}",
+  "plannerMission_results_noAbandonment": "אין נקודה שממנה אפשר לצאת בכל תקלה",
+  "plannerMission_results_noBuddy": "אין בן זוג",
+  "plannerMission_results_noLimit": "אין מגבלה במסלול הזה",
+  "plannerMission_results_notComputed": "לא ניתן היה לחשב",
+  "plannerMission_results_safeSurface": "פני מים בטוחים בעוד {minutes}′",
+  "plannerMission_results_setsCruise": "קובע את מהירות השיוט של הצוות",
+  "plannerMission_results_surface": "פני המים {minutes}′",
+  "plannerMission_results_surfaceViaShore": "פני המים דרך החוף {minutes}′",
+  "plannerMission_results_survives": "יוצא",
+  "plannerMission_results_swim": "שחייה {minutes}′",
+  "plannerMission_results_title": "משימה",
+  "plannerMission_results_tow": "גרירה על ידי {name} {minutes}′",
+  "plannerMission_results_turnPressure": "פנייה חזרה ב{pressure}",
+  "plannerMission_results_unconstrained": "מכל נקודה אפשר לצאת בתקלה של כל סקוטר",
+  "plannerMission_results_waypointLine": "{distance}, הגעה {minutes}′",
+  "plannerMission_results_waypoints": "נקודות ציון",
+  "plannerMission_profile_segment": "{depth}, {minutes} דקות",
+  "plannerMission_enableConfirm": "החלפה",
+  "plannerMission_enableMessage": "המשימה בונה את הפרופיל מהמסלול ומהצוות שלה, ולכן המקטעים של התוכנית הזו יוחלפו. אם תכבה את המשימה מאוחר יותר, יישאר הפרופיל של המשימה ולא המקטעים האלה.",
+  "plannerMission_enableTitle": "להחליף את המקטעים במשימת DPV?",
+  "plannerMission_enable": "תכנון כמשימת DPV",
+  "plannerMission_environment_openWater": "מים פתוחים",
+  "plannerMission_environment_overhead": "סביבה סגורה",
+  "plannerMission_issue_batteryReserveInvalid": "עתודת הסוללה חייבת להיות בין 0 ל-100%",
+  "plannerMission_issue_emptyRoute": "יש להוסיף לפחות קטע אחד",
+  "plannerMission_issue_emptyTeam": "יש להוסיף לפחות צולל אחד",
+  "plannerMission_issue_legDepthInvalid": "העומק של {leg} אינו תקין",
+  "plannerMission_issue_legTooShort": "{leg} קצר מכדי לעבור אותו",
+  "plannerMission_issue_memberSacUnset": "ל-{name} חסר RMV",
+  "plannerMission_issue_memberSwimSpeedUnset": "ל-{name} חסרה מהירות שחייה",
+  "plannerMission_issue_openWaterInputInvalid": "יציאה לחוף, מגבלת השחייה על פני המים או מהירות ההליכה שלילית",
+  "plannerMission_issue_planHasNoTank": "יש להוסיף לתוכנית מכל גז ראשי",
+  "plannerMission_issue_planNotDiveable": "המסלול המתוכנן חורג ממגבלה קריטית",
+  "plannerMission_issue_scenarioFailed": "לא ניתן היה לחשב תרחיש תקלה",
+  "plannerMission_issue_scooterUnspecified": "לסקוטר של {name} חסרים מהירות וזמן פעולה",
+  "plannerMission_issue_speedBelowHeadwayFloor": "מהירות השחייה, הסקוטר או הגרירה של {name} איטית מכדי להתקדם",
+  "plannerMission_issue_tankBudgetUnknown": "לכל מכל נדרשים נפח ולחץ מילוי",
+  "plannerMission_issue_unsupportedMode": "משימות DPV מתכננות צלילות במעגל פתוח בלבד",
+  "plannerMission_issue_untraversableLeg": "הזרם חוסם את {leg}",
+  "plannerMission_leg_depth": "עומק",
+  "plannerMission_leg_distance": "מרחק",
+  "plannerMission_leg_heading": "כיוון",
+  "plannerMission_leg_label": "שם נקודת הציון",
+  "plannerMission_leg_shoreExit": "יציאה לחוף מכאן",
+  "plannerMission_leg_shoreSwim": "שחייה על פני המים עד החוף",
+  "plannerMission_leg_shoreWalk": "הליכה לנקודת הכניסה",
+  "plannerMission_leg_useMissionCurrent": "שימוש בזרם של המשימה",
+  "plannerMission_member_chooseScooter": "בחירה מהציוד",
+  "plannerMission_member_manualScooter": "הזנה ידנית",
+  "plannerMission_member_name": "שם",
+  "plannerMission_member_pickBuddy": "בחירת בן זוג",
+  "plannerMission_member_sac": "Bottom RMV",
+  "plannerMission_member_scooter": "סקוטר",
+  "plannerMission_member_swimSpeed": "מהירות שחייה",
+  "plannerMission_profile_none": "עדיין אין פרופיל: {reason}",
+  "plannerMission_profile_title": "פרופיל שנוצר",
+  "plannerMission_route_addLeg": "הוספת קטע",
+  "plannerMission_route_deleteLeg": "מחיקת קטע",
+  "plannerMission_route_editLeg": "עריכת קטע",
+  "plannerMission_route_legSummary": "{distance} בעומק {depth}, כיוון {heading}",
+  "plannerMission_route_ownCurrent": "זרם {speed} לכיוון {direction}",
+  "plannerMission_route_shoreExit": "יציאה לחוף: שחייה {swim}, הליכה {walk}",
+  "plannerMission_route_title": "מסלול",
+  "plannerMission_route_unnamedLeg": "קטע {number}",
+  "plannerMission_scooter_burnTime": "זמן פעולה",
+  "plannerMission_scooter_name": "שם הסקוטר",
+  "plannerMission_scooter_speed": "מהירות נקובה",
+  "plannerMission_scooter_towBurnFactor": "מקדם צריכה בגרירה",
+  "plannerMission_scooter_towSpeedFactor": "מקדם מהירות גרירה",
+  "plannerMission_settings_batteryReserve": "עתודת סוללה",
+  "plannerMission_settings_defaultCurrent": "זרם ברירת מחדל",
+  "plannerMission_settings_environment": "סביבה",
+  "plannerMission_settings_surfaceSwimLimit": "השחייה הארוכה ביותר על פני המים",
+  "plannerMission_settings_walkSpeed": "מהירות הליכה",
+  "plannerMission_team_addDiver": "הוספת צולל",
+  "plannerMission_team_capacity": "סוללה {wh} Wh",
+  "plannerMission_team_defaultName": "צולל {number}",
+  "plannerMission_team_editDiver": "עריכת צולל",
+  "plannerMission_team_memberSummary": "RMV {sac}, שחייה {speed}",
+  "plannerMission_team_noScooter": "לא הוגדר סקוטר",
+  "plannerMission_team_removeDiver": "הסרת צולל",
+  "plannerMission_team_scooterSummary": "{name}: {speed}, זמן פעולה {minutes} דק׳",
+  "plannerMission_team_title": "צוות DPV",
   "planning_appBar_title": "תכנון",
   "planning_card_decoCalculator_description": "חשב מגבלות ללא דקומפרסיה, עצירות דקו נדרשות וחשיפת CNS/OTU עבור פרופילי צלילה רב-שלביים.",
   "planning_card_decoCalculator_subtitle": "תכנן צלילות עם עצירות דקומפרסיה",
@@ -6839,6 +7038,8 @@
   "tides_source_sheetTitle": "מקור נתוני הגאות",
   "tides_source_datumMllw": "גבהים ביחס ל-MLLW (ייחוס התחנה)",
   "tides_source_datumMsl": "גבהים ביחס לגובה פני הים הממוצע",
+  "tides_source_siteLocalTime": "השעות מוצגות לפי השעה המקומית של אתר הצלילה.",
+  "tides_source_modelResolution": "רשת מודל אוקיינוס של {distance}",
   "tides_title": "גאות",
   "tools_gpsLogger_description": "הקלט את מיקומך במהלך יום צלילה והתאם אוטומטית צלילות מיובאות למיקומי GPS.",
   "tools_gpsLogger_subtitle": "הקלטת מסלול פני המים",
@@ -6891,17 +7092,20 @@
   "transfer_csvExport_dataTypeHeader": "סוג נתונים",
   "transfer_csvExport_descriptionDives": "ייצא את כל יומני הצלילה כגיליון אלקטרוני",
   "transfer_csvExport_descriptionEquipment": "ייצא מלאי ציוד ופרטי תחזוקה",
+  "transfer_csvExport_descriptionFills": "כל מילוי שנרשם בדרכון מכל, עם הניתוח, הלחץ ותחנת המילוי",
   "transfer_csvExport_descriptionObservations": "כל בדיקה תקינה וכל בעיה שדווחה, עם הצלילה, התגיות וההערה",
   "transfer_csvExport_descriptionSites": "ייצא מיקומי אתרי צלילה ופרטים",
   "transfer_csvExport_dialogTitle": "ייצוא CSV",
   "transfer_csvExport_exportButton": "ייצא CSV",
   "transfer_csvExport_optionDivesTitle": "CSV צלילות",
   "transfer_csvExport_optionEquipmentTitle": "CSV ציוד",
+  "transfer_csvExport_optionFillsTitle": "CSV מילויי מכלים",
   "transfer_csvExport_optionObservationsTitle": "CSV של בדיקות ציוד",
   "transfer_csvExport_optionSitesTitle": "CSV אתרים",
   "transfer_csvExport_semanticLabel": "ייצא {typeName}",
   "transfer_csvExport_typeDives": "צלילות",
   "transfer_csvExport_typeEquipment": "ציוד",
+  "transfer_csvExport_typeFills": "מילויי מכלים",
   "transfer_csvExport_typeObservations": "בדיקות ציוד",
   "transfer_csvExport_typeSites": "אתרים",
   "transfer_csvExport_unitsHeader": "יחידות",
@@ -6978,6 +7182,8 @@
   "transfer_summary_title": "העברה",
   "transfer_unknownSection": "מדור לא ידוע: {sectionId}",
   "trips_appBar_title": "טיולים",
+  "trips_list_count": "{count, plural, =1{טיול אחד} other{{count} טיולים}}",
+  "trips_list_countFiltered": "{shown} מתוך {total, plural, =1{טיול אחד} other{{total} טיולים}}",
   "trips_appBar_tripPhotos": "תמונות טיול",
   "trips_breakdown_column_bottomTime": "Bottom Time",
   "trips_breakdown_column_day": "Day",
@@ -7067,6 +7273,10 @@
   "trips_edit_label_cabinType": "Cabin Type",
   "trips_edit_label_capacity": "Passenger Capacity",
   "trips_edit_sectionTitle_planning": "תכנון",
+  "trips_edit_label_diversSharing": "צוללים החולקים מכלים",
+  "trips_edit_hint_diversSharing": "כולל אותך. ריק פירושו 1.",
+  "trips_edit_label_divesPerDay": "צלילות ליום",
+  "trips_edit_hint_divesPerDay": "לתחזית המילוי. ריק פירושו הערכה.",
   "trips_edit_label_expectedDives": "צלילות צפויות",
   "trips_edit_hint_expectedDives": "השאר ריק כדי להעריך מהטיולים האחרונים שלך",
   "trips_edit_label_expectedRuntime": "זמן ריצה צפוי לכל צלילה (דקות)",
@@ -7171,6 +7381,308 @@
       }
     }
   },
+  "trips_gear_title": "ציוד",
+  "trips_gear_none": "עדיין לא נארז ציוד",
+  "trips_gear_add": "הוספת ציוד",
+  "trips_gear_remove": "הסרה",
+  "trips_gear_failed": "לא ניתן לשנות את הציוד. נסו שוב.",
+  "trips_cylinders_forecast_todayShort": "היום צריך {needed}, יש לך {full} מלאים.",
+  "@trips_cylinders_forecast_todayShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_tomorrowShort": "מחר צריך {needed}, יהיו לך {full} מלאים.",
+  "@trips_cylinders_forecast_tomorrowShort": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "full": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_fillBefore": "למלא לפני {time}.",
+  "@trips_cylinders_forecast_fillBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_enough": "יש מספיק מכלים מלאים עד מחר.",
+  "trips_cylinders_forecast_daysTitle": "צלילות מתוכננות",
+  "trips_cylinders_forecast_plannedDives": "{count, plural, one{{count} צלילה} other{{count} צלילות}}",
+  "@trips_cylinders_forecast_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayTitle": "צלילות מתוכננות, {date}",
+  "@trips_cylinders_forecast_dayTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_useEstimate": "להשתמש בהערכה",
+  "trips_cylinders_forecast_fewer": "פחות צלילות",
+  "trips_cylinders_forecast_more": "יותר צלילות",
+  "trips_cylinders_forecast_saveError": "לא ניתן לשמור את התוכנית: {error}",
+  "@trips_cylinders_forecast_saveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_forecast_dayPlanned": "תוכנן על ידך",
+  "trips_cylinders_segment_record": "רישום",
+  "trips_cylinders_recordEmpty": "עדיין אין צלילות מהמכלים האלה.",
+  "trips_cylinders_record_fillsLogged": "{count, plural, one{{count} מילוי נרשם} other{{count} מילויים נרשמו}}",
+  "@trips_cylinders_record_fillsLogged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_leftOut": "{count, plural, one{{count} צלילה לא נספרה} other{{count} צלילות לא נספרו}}",
+  "@trips_cylinders_record_leftOut": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_packageFills": "{count, plural, one{{count} מילוי בחבילה} other{{count} מילויים בחבילה}}",
+  "@trips_cylinders_record_packageFills": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} מכל צלילה לא מקושר} other{{count} מכלי צלילה לא מקושרים}}",
+  "@trips_cylinders_record_unlinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_unlinkedTitle": "לא מקושרים למכל",
+  "trips_cylinders_record_tank": "מכל {number}",
+  "@trips_cylinders_record_tank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_record_filled": "מולא ל־{pressure}",
+  "@trips_cylinders_record_filled": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_analyzed": "נותח {mix}",
+  "@trips_cylinders_record_analyzed": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_record_exported": "רישום הגז יוצא",
+  "trips_cylinders_title": "מכלים",
+  "trips_cylinders_summary": "מלאים {full} · חלקיים {partial} · ריקים {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "טרם מולאו {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "הגדרת מכלים",
+  "trips_cylinders_setUpHint": "עקבו אחר המכלים שיש לכם בטיול הזה: מילויים, תערובות וכמה נשאר בכל אחד.",
+  "trips_cylinders_status_full": "מלא",
+  "trips_cylinders_status_partial": "חלקי",
+  "trips_cylinders_status_empty": "ריק",
+  "trips_cylinders_status_unknown": "טרם מולא",
+  "trips_cylinders_mixAir": "אוויר",
+  "trips_cylinders_segment_board": "לוח",
+  "trips_cylinders_segment_ledger": "יומן",
+  "trips_cylinders_action_add": "הוספת מכלים",
+  "trips_cylinders_action_fill": "מילוי",
+  "trips_cylinders_action_fillSeveral": "מילוי כמה מכלים",
+  "trips_cylinders_action_adjust": "תיקון",
+  "trips_cylinders_action_logDive": "רישום צלילה",
+  "trips_cylinders_bottle": "מכל {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} צלילה} other{{count} צלילות}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "מולא אצל {place}, {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "מולא {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "תוקן {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "צלילה באתר {site}, {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "צלילה {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "עדיין אין מכלים בטיול הזה",
+  "trips_cylinders_ledgerEmpty": "עדיין אין מילויים או תיקונים",
+  "trips_cylinders_kind_fill": "מילוי",
+  "trips_cylinders_kind_adjustment": "תיקון",
+  "trips_cylinders_deleteConfirmUnused": "למחוק את המכל הזה ואת המילויים שלו?",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{למחוק את המכל הזה ואת המילויים שלו? {count} צלילה השתמשה בו. הצלילה שומרת את המכל שלה; רק הקישור מוסר.} other{למחוק את המכל הזה ואת המילויים שלו? {count} צלילות השתמשו בו. הצלילות שומרות את המכלים שלהן; רק הקישור מוסר.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "למחוק את הרשומה הזו?",
+  "trips_cylinders_add_tabRental": "שכור",
+  "trips_cylinders_add_tabOwned": "מהציוד שלי",
+  "trips_cylinders_add_count": "כמה",
+  "trips_cylinders_add_preset": "סוג מכל",
+  "trips_cylinders_add_prefix": "קידומת לשם",
+  "trips_cylinders_add_prefixDefault": "טנדר",
+  "trips_cylinders_add_noOwned": "לא נותרו מכלים בציוד שלך להוספה.",
+  "trips_cylinders_add_errorCount": "הזינו מספר בין 1 ל-20.",
+  "trips_cylinders_fill_titleEdit": "עריכת מילוי",
+  "trips_cylinders_fill_when": "מתי",
+  "trips_cylinders_fill_where": "תחנת מילוי",
+  "trips_cylinders_fill_whereNone": "לא הוגדר",
+  "trips_cylinders_fill_pressure": "לחץ מילוי ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 שהוזמן (%)",
+  "trips_cylinders_fill_he": "He שהוזמן (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 שנמדד (%)",
+  "trips_cylinders_fill_analyzedHe": "He שנמדד (%)",
+  "trips_cylinders_fill_bottle": "מספר מכל",
+  "trips_cylinders_fill_cost": "עלות",
+  "trips_cylinders_fill_costEach": "עלות לכל מכל",
+  "trips_cylinders_fill_currency": "מטבע",
+  "trips_cylinders_fill_package": "כלול בחבילה",
+  "trips_cylinders_fill_slots": "מכלים למילוי",
+  "trips_cylinders_fill_errorMix": "החמצן חייב להיות בין 1 ל-100 אחוז, ההליום בין 0 ל-99, ויחד לכל היותר 100.",
+  "trips_cylinders_fill_errorNoSlot": "בחרו לפחות מכל אחד.",
+  "trips_cylinders_note": "הערה",
+  "trips_cylinders_adjust_titleEdit": "עריכת תיקון",
+  "trips_cylinders_adjust_pressure": "לחץ ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "סימון כריק",
+  "trips_cylinders_edit_title": "עריכת מכל",
+  "trips_cylinders_edit_label": "שם",
+  "trips_cylinders_edit_errorLabel": "הזינו שם.",
+  "trips_cylinders_edit_errorNeedsPressure": "הזינו גם לחץ עבודה כדי שאפשר יהיה להמיר את הגודל.",
+  "trips_cylinders_edit_volume": "גודל ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "לחץ עבודה ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "מותאם אישית",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "תאריך סיום",
@@ -8086,6 +8598,36 @@
   "sites_deleteShared_title": "למחוק את האתר המשותף?",
   "sites_unshareConfirm_body": "פעולה זו תסיר את «{name}» מתצוגות של פרופילי צלילה אחרים. תוכל לשתף שוב בהמשך.",
   "sites_unshareConfirm_title": "לבטל שיתוף של אתר זה?",
+  "settings_hiddenItems_empty": "אין פריטים מוסתרים בפרופיל זה.",
+  "settings_hiddenItems_sites": "אתרים",
+  "settings_hiddenItems_title": "מוסתרים בפרופיל זה",
+  "settings_hiddenItems_trips": "טיולים",
+  "settings_hiddenItems_unhide": "הצג",
+  "sharedItems_bulkDeleteCount_sites": "{count, plural, one{{count} אתר יימחק.} other{{count} אתרים יימחקו.}}",
+  "sharedItems_bulkDeleteCount_trips": "{count, plural, one{{count} טיול יימחק.} other{{count} טיולים יימחקו.}}",
+  "sharedItems_bulkHiddenSnackbar": "{count, plural, one{{count} פריט הוסר מהפרופיל שלך} other{{count} פריטים הוסרו מהפרופיל שלך}}",
+  "sharedItems_bulkHideCount_sites": "{count, plural, one{{count} אתר משותף יוסר מהפרופיל שלך בלבד.} other{{count} אתרים משותפים יוסרו מהפרופיל שלך בלבד.}}",
+  "sharedItems_bulkHideCount_trips": "{count, plural, one{{count} טיול משותף יוסר מהפרופיל שלך בלבד.} other{{count} טיולים משותפים יוסרו מהפרופיל שלך בלבד.}}",
+  "sharedItems_bulkRemoveTitle": "{count, plural, one{להסיר {count} פריט מהפרופיל שלך?} other{להסיר {count} פריטים מהפרופיל שלך?}}",
+  "sharedItems_bulkSharedWarning_sites": "{count, plural, one{{count} מהם משותף עם פרופילים אחרים ויימחק עבור כולם.} other{{count} מהם משותפים עם פרופילים אחרים ויימחקו עבור כולם.}}",
+  "sharedItems_bulkSharedWarning_trips": "{count, plural, one{{count} מהם משותף עם פרופילים אחרים ויימחק עבור כולם.} other{{count} מהם משותפים עם פרופילים אחרים ויימחקו עבור כולם.}}",
+  "sharedItems_hiddenHere": "מוסתר בפרופיל שלך",
+  "sharedItems_mergeTooManyShared": "רק אחד מהאתרים שנבחרו יכול להשתייך לפרופיל אחר. בטל את בחירת האחרים כדי למזג.",
+  "sharedItems_notOwner_site": "רק הבעלים יכול למחוק את האתר הזה",
+  "sharedItems_notOwner_trip": "רק הבעלים יכול למחוק את הטיול הזה",
+  "sharedItems_otherProfilesDives_site": "{count, plural, one{{count} צלילה בפרופיל אחר תאבד את האתר הזה.} other{{count} צלילות בפרופילים אחרים יאבדו את האתר הזה.}}",
+  "sharedItems_otherProfilesDives_trip": "{count, plural, one{{count} צלילה בפרופיל אחר תאבד את הטיול הזה.} other{{count} צלילות בפרופילים אחרים יאבדו את הטיול הזה.}}",
+  "sharedItems_ownerUnknown": "פרופיל צלילה אחר",
+  "sharedItems_removeAction": "הסרה מהפרופיל שלי",
+  "sharedItems_removeBody": "הוא יישאר ביומן של {owner} ובכל פרופיל אחר. הוא מוסתר רק כאן.",
+  "sharedItems_removeOwnDives": "{count, plural, one{{count} מהצלילות שלך נשארת מקושרת אליו.} other{{count} מהצלילות שלך נשארות מקושרות אליו.}}",
+  "sharedItems_removeRestoreHint": "אפשר להחזיר אותו מהגדרות > נתונים משותפים.",
+  "sharedItems_removeTitle": "להסיר את «{name}» מהפרופיל שלך?",
+  "sharedItems_removedSnackbar": "הוסר מהפרופיל שלך",
+  "sharedItems_shareOwnerOnly": "רק {owner} יכול לשנות את השיתוף",
+  "sharedItems_sharedBy": "שותף על ידי {owner}",
+  "sharedItems_undo": "בטל",
+  "sharedItems_unhideAction": "הצגה בפרופיל שלי",
   "trips_deleteShared_body": "«{name}» משותף עם פרופילי צלילה אחרים. מחיקה כאן תסיר אותו עבור כולם.",
   "trips_deleteShared_title": "למחוק את הטיול המשותף?",
   "trips_unshareConfirm_body": "פעולה זו תסיר את «{name}» מתצוגות של פרופילי צלילה אחרים. תוכל לשתף שוב בהמשך.",
@@ -9731,6 +10273,8 @@
   "dataQuality_neverScanned": "יומן הצלילה שלך עדיין לא נסרק",
   "dataQuality_empty_title": "הכול תקין",
   "dataQuality_empty_subtitle": "אין ממצאים לגבי איכות הנתונים. סרוק את הספרייה כדי לבדוק אם יש בעיות בצלילות המיובאות.",
+  "dataQuality_empty_chipFiltered": "אין ממצאים בקטגוריה זו",
+  "dataQuality_empty_showAll": "הצג את כל הממצאים",
   "dataQuality_banner_newChecks": "זמינות בדיקות איכות חדשות",
   "dataQuality_banner_rescan": "סריקה מחדש",
   "dataQuality_action_dismiss": "התעלם",
@@ -9777,6 +10321,8 @@
   "dataQuality_msg_pressureSwap": "לחץ הסיום {end} גבוה מלחץ ההתחלה {start}",
   "dataQuality_msg_pressureEndpoint": "רשומת הבלון מציינת {record}, אך סדרת החיישן מציגה {series}",
   "dataQuality_msg_pressureRise": "הלחץ עלה ב-{rise} באמצע הצלילה ללא החלפת גז",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{חיישן הלחץ רשם קריאה שגויה פעם אחת (נפילה או קפיצה)} other{חיישן הלחץ רשם קריאות שגויות {count} פעמים (נפילות או קפיצות)}}",
+  "dataQuality_msg_pressureMixed": "סדרת הלחץ מערבבת קריאות משני מקורות",
   "dataQuality_msg_sac": "צריכת פני השטח המשתמעת של {sac} אינה סבירה",
   "dataQuality_msg_ppo2": "ה-ppO2 הגיע ל-{ppo2} עם {gas} בעומק {depth}",
   "dataQuality_msg_hypoxic": "תערובת היפוקסית ({gas}) מוצגת כבשימוש בפני השטח",
@@ -9971,6 +10517,7 @@
   "settings_visibilityScale_customHelp": "הזן לכל דרגה את המרחק הקצר ביותר שעדיין נחשב לה.",
   "insights_conditions_visibility_legacySuffix": "{band} (נרשם לפני מדידה)",
   "common_selection_countSelected": "{count} נבחרו",
+  "common_listCount_shownOfTotal": "{shown} מתוך {total}",
   "common_selection_enterTooltip": "בחירת פריטים",
   "common_selection_exitTooltip": "יציאה מבחירה",
   "common_selection_selectAllTooltip": "בחר הכול",
@@ -11843,6 +12390,106 @@
   "diveLog_filter_noComputersRegistered": "לא רשומים מחשבי צלילה",
   "diveLog_filter_sectionDepthRangeUnit": "טווח עומק ({unit})",
   "diveLog_filter_sectionDiveComputer": "מחשב צלילה",
+  "diveLog_filterChip_speciesCount": "{count} מינים",
+  "diveLog_filterChip_weekdayCount": "{count, plural, =1{יום אחד בשבוע} other{{count} ימים בשבוע}}",
+  "diveLog_filterChip_siteCount": "{count} אתרים",
+  "diveLog_filterChip_visibilityRange": "ראות {min} עד {max} {unit}",
+  "diveLog_filterChip_visibilityMin": "ראות מעל {value} {unit}",
+  "diveLog_filterChip_visibilityMax": "ראות מתחת {value} {unit}",
+  "diveLog_filterChip_waterTempRange": "מים {min} עד {max}{unit}",
+  "diveLog_filterChip_waterTempMin": "מים מעל {value}{unit}",
+  "diveLog_filterChip_waterTempMax": "מים מתחת {value}{unit}",
+  "diveLog_filterChip_waterTypeCount": "{count} סוגי מים",
+  "diveLog_filter_sectionSpecies": "חיים ימיים",
+  "diveLog_filter_sectionVisibilityUnit": "ראות ({unit})",
+  "diveLog_filter_sectionWaterTempUnit": "טמפרטורת המים ({unit})",
+  "diveLog_filter_sectionWaterType": "סוג מים",
+  "diveLog_filter_speciesSearchHint": "חיפוש מינים",
+  "diveLog_listPage_tooltip_explore": "חקירה באמצעות משפט",
+  "explore_chip_favorite": "מועדף",
+  "explore_chip_deco": "צלילת דקומפרסיה",
+  "explore_chip_fieldPeriod": "{field}: {period}",
+  "explore_chip_noDeco": "ללא דקומפרסיה",
+  "explore_chip_noBuddy": "ללא שותף",
+  "explore_chip_rating": "דירוג {op} {value}",
+  "explore_chip_numeric": "{field} {op} {value}",
+  "explore_chip_between": "{field} {low} עד {high}",
+  "explore_chip_enum": "{field}: {values}",
+  "explore_chip_enumNot": "{field} לא {values}",
+  "explore_chip_timeRange": "{start} עד {end}",
+  "explore_chip_timeSince": "מאז {start}",
+  "explore_chip_timeBefore": "לפני {end}",
+  "explore_chip_viaDives": "צלילות: {label}",
+  "explore_chip_withinDays": "{days, plural, =1{{field} בתוך {days} יום} other{{field} בתוך {days} ימים}}",
+  "explore_count": "{count, plural, =0{אין צלילות} =1{צלילה אחת} other{{count} צלילות}}",
+  "explore_download_button": "הורדת המודל למכשיר",
+  "explore_download_running": "המודל בהורדה",
+  "explore_error_contextExceeded": "המשפט ארוך מדי עבור המודל במכשיר. נסו משפט קצר יותר.",
+  "explore_error_decodingFailure": "המודל לא הפיק תשובה שמישה. נסו לנסח מחדש.",
+  "explore_error_guardrail": "המודל דחה את המשפט הזה.",
+  "explore_error_modelNotReady": "המודל במכשיר עדיין לא מוכן.",
+  "explore_error_quotaExceeded": "המודל במכשיר עסוק. נסו שוב בעוד רגע.",
+  "explore_error_refusal": "המודל דחה את המשפט הזה.",
+  "explore_error_schemaMismatch": "לא ניתן להבין זאת. עדכנו את האפליקציה אם זה חוזר על עצמו.",
+  "explore_error_unknown": "משהו השתבש בפנייה למודל במכשיר.",
+  "explore_error_unsupportedLocale": "המודל במכשיר אינו מבין שפה זו.",
+  "explore_field_airTemp": "טמפרטורת האוויר",
+  "explore_field_avgDepth": "עומק ממוצע",
+  "explore_field_bottomTime": "זמן קרקעית",
+  "explore_field_currentStrength": "זרם",
+  "explore_field_depth": "עומק",
+  "explore_field_diveMode": "מצב צלילה",
+  "explore_field_diveNumber": "מספר צלילה",
+  "explore_field_diveType": "סוג צלילה",
+  "explore_field_entryMethod": "כניסה",
+  "explore_field_o2": "חמצן",
+  "explore_field_rating": "דירוג",
+  "explore_field_visibility": "ראות",
+  "explore_field_waterTemp": "טמפרטורת המים",
+  "explore_field_waterType": "סוג מים",
+  "explore_field_weekday": "יום בשבוע",
+  "explore_handoff_diveList": "פתיחה ברשימת הצלילות",
+  "explore_handoff_insights": "פתיחה בתובנות",
+  "explore_handoff_list": "פתח ברשימה",
+  "explore_hint": "שאלו על הצלילות שלכם, למשל צבים מתחת ל-20 מ' בבונייר",
+  "explore_needsAttention_title": "דורש תשומת לב",
+  "explore_op_gt": "מעל",
+  "explore_op_gte": "לפחות",
+  "explore_op_lt": "מתחת",
+  "explore_op_lte": "לכל היותר",
+  "explore_value_minutes": "{minutes} דק'",
+  "explore_op_eq": "של",
+  "explore_pickCandidate_title": "למה התכוונתם ב\"{text}\"?",
+  "explore_recent_title": "אחרונים",
+  "explore_results_count": "{count, plural, =1{{count} תוצאה} other{{count} תוצאות}}",
+  "explore_results_subjectTitle": "התאמות",
+  "explore_results_subjectTruncated": "מוצגים {count} הראשונים. פתח ברשימה כדי לראות את כולם.",
+  "explore_results_title": "צלילות מתאימות",
+  "explore_results_truncated": "מוצגים {count} הראשונים. פתחו את רשימת הצלילות לכולן.",
+  "explore_shortcut_unavailable": "חקירה דורשת את המודל במכשיר, שאינו מוכן במכשיר זה.",
+  "explore_title": "חקירה",
+  "explore_understood_title": "הובן",
+  "explore_unplaced_reason_aggregateWithScope": "עדיין לא ניתן לשלב עם תנאים על הצלילות",
+  "explore_unplaced_reason_invalid": "לא ניתן לקרוא ערך זה",
+  "explore_unplaced_reason_noAxis": "עדיין לא ניתן לחפש",
+  "explore_unplaced_reason_outOfRange": "ערך מחוץ לטווח",
+  "explore_unplaced_reason_unknownField": "שדה לא ידוע",
+  "explore_unplaced_reason_unknownTime": "לא ניתן לקרוא זמן זה",
+  "explore_unresolved_noCandidates": "אין התאמה ביומן שלכם",
+  "explore_chart_divesOverTime": "צלילות לאורך זמן",
+  "explore_chart_depthTrend": "עומק",
+  "explore_chart_waterTempTrend": "טמפרטורת המים",
+  "explore_chart_bottomTimeTrend": "זמן קרקעית",
+  "explore_chart_entityCounts": "צלילות לפי {kind}",
+  "explore_kind_site": "אתר",
+  "explore_kind_place": "מקום",
+  "explore_kind_species": "מין",
+  "explore_kind_gear": "ציוד",
+  "explore_kind_buddy": "שותף",
+  "explore_kind_tag": "תגית",
+  "explore_kind_center": "מרכז צלילה",
+  "explore_kind_trip": "טיול",
+  "explore_kind_computer": "מחשב",
   "diveLog_listPage_semanticsDiveAtSite": "צלילה {diveNumber} באתר {siteName}",
   "diveLog_listPage_semanticsPlannedDiveAtSite": "צלילה מתוכננת ב־{siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
@@ -12349,6 +12996,7 @@
   "settings_export_progress_sitesCsv": "מייצא אתרים ל-CSV...",
   "settings_export_progress_equipmentCsv": "מייצא ציוד ל-CSV...",
   "settings_export_progress_observationsCsv": "מייצא בדיקות ציוד ל-CSV...",
+  "settings_export_progress_fillsCsv": "מייצא מילויי מכלים ל-CSV...",
   "settings_export_progress_pdf": "יוצר יומן צלילות בפורמט PDF...",
   "settings_export_progress_loadingSignatures": "טוען חתימות...",
   "settings_export_progress_loadingProfiles": "טוען פרופילי צלילה...",
@@ -12368,12 +13016,14 @@
   "settings_export_progress_preparingSitesCsv": "מכין CSV של אתרים...",
   "settings_export_progress_preparingEquipmentCsv": "מכין CSV של ציוד...",
   "settings_export_progress_preparingObservationsCsv": "מכין CSV של בדיקות ציוד...",
+  "settings_export_progress_preparingFillsCsv": "מכין CSV מילויי מכלים...",
   "settings_export_progress_preparingUddf": "מכין קובץ UDDF...",
   "settings_export_progress_preparingPdf": "מכין PDF...",
   "settings_export_empty_dives": "אין צלילות לייצוא",
   "settings_export_empty_sites": "אין אתרים לייצוא",
   "settings_export_empty_equipment": "אין ציוד לייצוא",
   "settings_export_empty_observations": "אין בדיקות ציוד לייצוא",
+  "settings_export_empty_fills": "אין מילויי מכלים לייצוא",
   "settings_export_empty_data": "אין נתונים לייצוא",
   "settings_export_empty_diveSites": "אין אתרי צלילה לייצוא",
   "settings_export_saveFailed": "השמירה נכשלה: {error}",
@@ -12381,6 +13031,7 @@
   "settings_export_success_sites": "האתרים יוצאו בהצלחה",
   "settings_export_success_equipment": "הציוד יוצא בהצלחה",
   "settings_export_success_observations": "בדיקות הציוד יוצאו",
+  "settings_export_success_fills": "מילויי המכלים יוצאו",
   "settings_export_success_pdf": "יומן הצלילות בפורמט PDF נוצר בהצלחה",
   "settings_export_success_uddf": "קובץ UDDF נוצר בהצלחה",
   "settings_export_success_excel": "קובץ Excel יוצא בהצלחה",
@@ -12391,6 +13042,7 @@
   "settings_export_saved_sitesCsv": "CSV של האתרים נשמר בהצלחה",
   "settings_export_saved_equipmentCsv": "CSV של הציוד נשמר בהצלחה",
   "settings_export_saved_observationsCsv": "קובץ ה-CSV של בדיקות הציוד נשמר",
+  "settings_export_saved_fillsCsv": "CSV מילויי המכלים נשמר",
   "settings_export_saved_uddf": "קובץ UDDF נשמר בהצלחה",
   "settings_export_saved_pdf": "קובץ PDF נשמר בהצלחה",
   "settings_export_cancelled_save": "השמירה בוטלה",
@@ -12534,6 +13186,7 @@
   "settings_export_saveSitesCsvDialogTitle": "שמירת CSV של האתרים",
   "settings_export_saveEquipmentCsvDialogTitle": "שמירת CSV של הציוד",
   "settings_export_saveObservationsCsvDialogTitle": "שמירת קובץ ה-CSV של בדיקות הציוד",
+  "settings_export_saveFillsCsvDialogTitle": "שמירת CSV מילויי מכלים",
   "backup_operation_created": "נוצר גיבוי: {size}",
   "backup_operation_backupFailed": "הגיבוי נכשל: {error}",
   "backup_operation_restoring": "משחזר גיבוי...",
@@ -13062,6 +13715,11 @@
   "navTrack_review_row_maxDepth": "עומק מקס׳",
   "navTrack_review_row_maxSpeed": "מהירות מקס׳",
   "navTrack_review_leaveUnlinked": "השאר ללא קישור",
+  "navTrack_review_noOverlapHint": "אף צלילה אינה חופפת לזמן ההקלטה הזו. הצלילות הקרובות ביותר לפי שעת התחלה:",
+  "navTrack_review_offsetBefore": "{offset} לפני ההקלטה",
+  "navTrack_review_offsetAfter": "{offset} אחרי ההקלטה",
+  "navTrack_review_offsetDays": "{days}d {hours}h",
+  "navTrack_review_chooseAnotherDive": "בחר צלילה אחרת...",
   "navTrack_list_importFailed": "הייבוא נכשל: {error}",
   "navTrack_list_matchError": "לא ניתן היה להתאים את המסלולים.",
   "navTrack_list_matchSuccess": "המסלולים הותאמו לצלילות.",
@@ -13192,28 +13850,50 @@
   "diveCenters_rental_noteLabel": "הערה",
   "diveCenters_rental_deleteConfirm": "למחוק את הערת ההשכרה הזו?",
   "query_buddies_certifications": "הסמכות",
+  "query_buddies_diveCount": "צלילות משותפות",
+  "query_buddies_dives": "צלילות",
   "query_buddies_email": "דוא\"ל",
   "query_buddies_favorite": "מועדף",
+  "query_buddies_lastDived": "צלילה משותפת אחרונה",
   "query_buddies_name": "שם",
   "query_buddies_notes": "הערות",
   "query_buddies_phone": "טלפון",
+  "query_centers_affiliations": "השתייכויות",
   "query_centers_city": "עיר",
+  "query_centers_coordinates": "קואורדינטות",
   "query_centers_country": "מדינה",
+  "query_centers_diveCount": "מספר צלילות",
+  "query_centers_dives": "צלילות",
+  "query_centers_lastDived": "צלילה אחרונה",
   "query_centers_name": "שם",
+  "query_centers_notes": "הערות",
+  "query_centers_rating": "דירוג",
+  "query_centers_stateProvince": "מדינה / מחוז",
   "query_certifications_agency": "ארגון",
+  "query_certifications_buddy": "שותף",
   "query_certifications_cardNumber": "מספר כרטיס",
+  "query_certifications_course": "קורס",
   "query_certifications_expiryDate": "תאריך תפוגה",
+  "query_certifications_instructor": "מדריך",
   "query_certifications_instructorName": "שם המדריך",
+  "query_certifications_instructorNumber": "מספר המדריך",
   "query_certifications_issueDate": "תאריך הנפקה",
   "query_certifications_level": "רמה",
   "query_certifications_name": "שם",
+  "query_certifications_notes": "הערות",
   "query_computers_manufacturer": "יצרן",
   "query_computers_model": "דגם",
   "query_computers_name": "שם",
   "query_computers_serialNumber": "מספר סידורי",
   "query_courses_agency": "ארגון",
+  "query_courses_certification": "הסמכה",
   "query_courses_completionDate": "תאריך סיום",
+  "query_courses_dives": "צלילות",
+  "query_courses_instructor": "מדריך",
+  "query_courses_instructorName": "שם המדריך",
+  "query_courses_location": "מיקום",
   "query_courses_name": "שם",
+  "query_courses_notes": "הערות",
   "query_courses_startDate": "תאריך התחלה",
   "query_customFields_key": "מפתח",
   "query_customFields_value": "ערך",
@@ -13252,6 +13932,19 @@
   "query_dives_otu": "OTU",
   "query_dives_planned": "מתוכננת",
   "query_dives_rating": "דירוג",
+  "query_dives_findings": "ממצאי בטיחות",
+  "query_dives_sac": "SAC",
+  "query_dives_sacTrend": "מגמת SAC",
+  "query_dives_sacTrend_rising": "עולה",
+  "query_dives_sacTrend_steady": "יציב",
+  "query_dives_sacTrend_falling": "יורד",
+  "query_dives_sacChange": "שינוי SAC",
+  "query_dives_finalStop": "עצירה אחרונה",
+  "query_dives_finalStop_stable": "יציבה",
+  "query_dives_finalStop_unstable": "לא יציבה",
+  "query_dives_finalStop_noStop": "ללא עצירה",
+  "query_dives_finalStopExcursion": "סטייה בעצירה האחרונה",
+  "query_dives_finalStopDuration": "משך העצירה האחרונה",
   "query_dives_runtime": "משך כולל",
   "query_dives_sightings": "תצפיות",
   "query_dives_site": "אתר",
@@ -13278,8 +13971,11 @@
   "query_entity_dives": "צלילות",
   "query_entity_equipment": "ציוד",
   "query_entity_equipmentAttributes": "מאפייני ציוד",
+  "query_entity_findings": "ממצאי בטיחות",
+  "query_findings_rule": "כלל",
   "query_entity_media": "מדיה",
   "query_entity_sightings": "תצפיות",
+  "query_entity_siteTypes": "סוגי אתר",
   "query_entity_sites": "אתרי צלילה",
   "query_entity_species": "מינים",
   "query_entity_tags": "תגיות",
@@ -13293,27 +13989,58 @@
   "query_equipment_active": "פעיל",
   "query_equipment_attributes": "מאפיינים",
   "query_equipment_brand": "מותג",
+  "query_equipment_diveCount": "צלילות בשימוש",
+  "query_equipment_dives": "צלילות",
+  "query_equipment_lastDived": "שימוש אחרון",
   "query_equipment_model": "דגם",
   "query_equipment_name": "שם",
+  "query_equipment_nextServiceDue": "הטיפול הבא",
   "query_equipment_serialNumber": "מספר סידורי",
+  "query_equipment_serviceDue": "טיפול נדרש",
+  "query_equipment_serviceDue_dueSoon": "בקרוב",
+  "query_equipment_serviceDue_ok": "מעודכן",
+  "query_equipment_serviceDue_overdue": "באיחור",
   "query_equipment_status": "מצב",
+  "query_equipment_tags": "תגיות",
   "query_equipment_type": "סוג",
+  "query_filter_clear": "נקה",
+  "query_filter_tooltip": "סינון",
+  "query_list_noMatch": "אין תוצאות התואמות לשאילתה זו",
   "query_media_caption": "כיתוב",
   "query_media_favorite": "מועדף",
   "query_media_type": "סוג",
+  "query_sheet_sectionTitle": "שאילתה",
   "query_sightings_count": "כמות",
   "query_sightings_notes": "הערות",
   "query_sightings_species": "מינים",
+  "query_siteTypes_name": "שם",
   "query_sites_city": "עיר",
+  "query_sites_coordinates": "קואורדינטות",
   "query_sites_country": "מדינה",
+  "query_sites_difficulty": "רמת קושי",
+  "query_sites_diveCount": "מספר צלילות",
+  "query_sites_dives": "צלילות",
   "query_sites_island": "אי",
+  "query_sites_lastDived": "צלילה אחרונה",
   "query_sites_maxDepth": "עומק מרבי",
   "query_sites_name": "שם",
+  "query_sites_notes": "הערות",
   "query_sites_rating": "דירוג",
   "query_sites_region": "אזור",
+  "query_sites_tags": "תגיות",
+  "query_sites_types": "סוגי אתר",
+  "query_species_builtIn": "מובנה",
   "query_species_category": "קטגוריה",
+  "query_species_description": "תיאור",
+  "query_species_diveCount": "צלילות עם תצפית",
+  "query_species_dives": "צלילות",
+  "query_species_expectedSites": "צפוי באתרים",
+  "query_species_firstSeen": "נצפה לראשונה",
+  "query_species_lastSeen": "נצפה לאחרונה",
   "query_species_name": "שם",
   "query_species_scientificName": "שם מדעי",
+  "query_species_sightings": "תצפיות",
+  "query_species_taxonomyClass": "מחלקה טקסונומית",
   "query_tags_name": "שם",
   "query_tanks_cylinder": "מיכל",
   "query_tanks_endPressure": "לחץ סופי",
@@ -13322,10 +14049,17 @@
   "query_tanks_o2": "חמצן",
   "query_tanks_startPressure": "לחץ התחלתי",
   "query_tanks_volume": "נפח",
+  "query_trips_diveCount": "מספר צלילות",
+  "query_trips_dives": "צלילות",
   "query_trips_endDate": "תאריך סיום",
+  "query_trips_liveaboardName": "ספינת צלילה",
   "query_trips_location": "מיקום",
   "query_trips_name": "שם",
+  "query_trips_notes": "הערות",
+  "query_trips_resortName": "אתר נופש",
+  "query_trips_shared": "משותף",
   "query_trips_startDate": "תאריך התחלה",
+  "query_trips_tripType": "סוג טיול",
   "query_weights_amount": "כמות",
   "query_weights_notes": "הערות",
   "query_weights_type": "סוג",

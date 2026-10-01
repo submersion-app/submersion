@@ -957,6 +957,17 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
   }
 });
 
+/// Waits for [SettingsNotifier.initialLoad]. A failed load is already logged
+/// by the notifier and leaves the defaults in place, so the analysis proceeds
+/// on them, as `setAutoTagImports` does.
+Future<void> _awaitDiverSettingsLoaded(Ref ref) async {
+  try {
+    await ref.read(settingsProvider.notifier).initialLoad;
+  } catch (_) {
+    // See the doc comment: already logged, defaults are the fallback.
+  }
+}
+
 /// Runs the full analysis pipeline over [profile] samples of [dive].
 ///
 /// Extracted from [profileAnalysisProvider] so per-source analysis
@@ -975,6 +986,12 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
   String? computerId,
 }) async {
   {
+    // Every settings-derived input below (gradient factors, ppO2 and ascent
+    // thresholds, the legend's per-metric sources) reads the placeholder
+    // `const AppSettings()` until the diver's row loads. A safety review is
+    // computed once from this analysis and persisted, so building it on the
+    // placeholder would store the defaults in place of the diver's settings.
+    await _awaitDiverSettingsLoaded(ref);
     final diveId = dive.id;
     if (dive.isGauge) {
       // Gauge dives log depth+time only: no gas or decompression. Use the
