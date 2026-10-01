@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 
+import '../../../../helpers/clock_expectations.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
@@ -643,6 +645,34 @@ void main() {
       )..where((t) => t.id.equals('tank-t1'))).getSingle();
       expect(after.computerId, targetRow.computerId);
       expect(after.computerId, 'comp-t');
+    });
+
+    test('the tank computer backfill carries a fresh clock (#2644)', () async {
+      addTearDown(SyncClock.instance.reset);
+      await seedDive(
+        't',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        computerId: 'comp-t',
+        serial: 'SER-T',
+        tanks: [tank('tank-t1', o2: 21)],
+      );
+      await seedDive(
+        's',
+        entry: DateTime.utc(2026, 7, 1, 9, 1),
+        computerId: 'comp-s',
+        serial: 'SER-S',
+      );
+      final before = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals('tank-t1'))).getSingle();
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final after = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals('tank-t1'))).getSingle();
+      expect(after.computerId, 'comp-t');
+      expectFresherClock(before.hlc, after.hlc);
     });
 
     test(

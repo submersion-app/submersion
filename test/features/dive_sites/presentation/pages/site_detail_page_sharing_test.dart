@@ -58,6 +58,7 @@ void main() {
           siteListNotifierProvider.overrideWith((ref) => notifier),
         ],
         child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           // Embedded, as in the master-detail pane, whose Scaffold hosts

@@ -24,6 +24,7 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/certifications/query/certification_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_search_delegate.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_list_count_provider.dart';
 
 class CertificationListPage extends ConsumerWidget {
   const CertificationListPage({super.key});
@@ -55,6 +56,7 @@ class CertificationListPage extends ConsumerWidget {
         child: TableModeLayout(
           sectionKey: 'certifications',
           appBarTitle: context.l10n.nav_certifications,
+          appBarSubtitle: certificationListCountLabel(context, ref),
           tableContent: const CertificationListContent(showAppBar: false),
           detailBuilder: (context, certificationId) => CertificationDetailPage(
             certificationId: certificationId,

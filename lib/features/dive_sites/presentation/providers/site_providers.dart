@@ -290,11 +290,13 @@ final siteSortProvider = StateProvider<SortState<SiteSortField>>(
 
 /// The ids the site filter selects, from the compiled query (#2365). Keyed
 /// on the filter's value, so an equal filter reuses its instance; a write to
-/// any table the query read refreshes it in place.
+/// any table the query read refreshes it in place. A shared site's dives
+/// are the active diver's alone, as its tile counts them.
 final queryFilteredSiteIdsProvider = FutureProvider.autoDispose
-    .family<Set<String>, SiteFilterState>(
-      (ref, filter) => watchQueryIds(ref, compileSiteFilter(filter)),
-    );
+    .family<Set<String>, SiteFilterState>((ref, filter) async {
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return watchQueryIds(ref, compileSiteFilter(filter, diverId: diverId));
+    });
 
 /// The site list: every visible site narrowed to the compiled query's ids.
 final filteredSitesWithCountsProvider =

@@ -4,6 +4,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
+import 'package:submersion/shared/widgets/title_with_subtitle.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// The three user-toggleable surfaces that can show feature accent colors.
 enum AccentSurface { nav, header, list }
@@ -67,6 +69,7 @@ class FeatureAppBarTitle extends ConsumerWidget {
     required this.featureId,
     required this.title,
     this.style,
+    this.subtitle,
   }) : child = null;
 
   /// A title that is itself a widget, such as a header whose title doubles as
@@ -79,6 +82,7 @@ class FeatureAppBarTitle extends ConsumerWidget {
     super.key,
     required this.featureId,
     required Widget this.child,
+    this.subtitle,
   }) : title = '',
        style = null;
 
@@ -91,6 +95,10 @@ class FeatureAppBarTitle extends ConsumerWidget {
   /// Applied to the title text in both states. Compact app bars style their
   /// own title, so it has to survive the accent wrapping unchanged.
   final TextStyle? style;
+
+  /// A second, muted line under the title, such as a list's entry count
+  /// ("34 of 812 dives"). Pre-localized like [title]; null adds no line.
+  final SubtitleText? subtitle;
 
   /// A title is a single line that ellipsises, never a paragraph.
   ///
@@ -109,6 +117,16 @@ class FeatureAppBarTitle extends ConsumerWidget {
         softWrap: false,
       );
 
+  Widget _titleBlock() =>
+      TitleWithSubtitle(title: _titleText(), subtitle: subtitle);
+
+  static NavDestination? _navDestination(String featureId) {
+    for (final candidate in kNavDestinations) {
+      if (candidate.id == featureId) return candidate;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final color = resolveFeatureAccent(
@@ -117,23 +135,15 @@ class FeatureAppBarTitle extends ConsumerWidget {
       surface: AccentSurface.header,
       featureId: featureId,
     );
-    if (color == null) return _titleText();
-
-    NavDestination? destination;
-    for (final candidate in kNavDestinations) {
-      if (candidate.id == featureId) {
-        destination = candidate;
-        break;
-      }
-    }
-    if (destination == null) return _titleText();
+    final destination = color == null ? null : _navDestination(featureId);
+    if (color == null || destination == null) return _titleBlock();
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(destination.selectedIcon, color: color),
         const SizedBox(width: 8),
-        Flexible(child: _titleText()),
+        Flexible(child: _titleBlock()),
       ],
     );
   }

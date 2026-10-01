@@ -7,11 +7,12 @@ library;
 
 import 'dart:convert';
 
-const int kQuerySchemaVersion = 2;
+const int kQuerySchemaVersion = 3;
 
 /// The oldest schema version a stored or model-written parse may carry.
-/// Version 2 only added fields and units, so every version 1 payload is a
-/// valid version 2 payload and a diver's recent sentences survive the bump.
+/// Versions 2 and 3 only added fields and units (3: each subject's own
+/// fields, phase 3), so every older payload is a valid current one and a
+/// diver's recent sentences survive the bumps.
 const int kMinReadableQuerySchemaVersion = 1;
 
 enum ParsedSubject { dives, equipment, sites, buddies, species, trips, centers }

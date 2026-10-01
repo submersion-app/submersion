@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_summary
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_list_count_provider.dart';
 
 class SiteListPage extends ConsumerStatefulWidget {
   const SiteListPage({super.key});
@@ -97,6 +98,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
       return TableModeLayout(
         sectionKey: 'sites',
         appBarTitle: context.l10n.nav_sites,
+        appBarSubtitle: siteListCountLabel(context, ref),
         tableContent: const SiteListContent(showAppBar: false),
         detailBuilder: (context, id) => SiteDetailPage(
           siteId: id,

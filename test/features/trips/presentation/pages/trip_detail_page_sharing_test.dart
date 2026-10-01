@@ -70,6 +70,7 @@ void main() {
         // The page pops through go_router after a remove, so it sits one
         // route above a home page, as it does in the app.
         child: MaterialApp.router(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routerConfig: GoRouter(

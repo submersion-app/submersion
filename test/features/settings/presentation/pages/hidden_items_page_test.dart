@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
@@ -47,10 +49,20 @@ void main() {
     ),
   ];
 
+  // A trip's date range is formatted by intl, which reads the process-wide
+  // Intl.defaultLocale, not MaterialApp.locale. Pin it, and restore it so
+  // the global stays contained (as unit_formatter_date_test does).
+  late String? previousLocale;
+  setUpAll(() => initializeDateFormatting('en'));
+
   setUp(() async {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
   });
+
+  tearDown(() => Intl.defaultLocale = previousLocale);
 
   Future<(_Trips, _Sites)> pumpPage(
     WidgetTester tester,

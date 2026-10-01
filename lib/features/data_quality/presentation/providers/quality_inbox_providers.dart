@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 
 import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
@@ -24,10 +23,6 @@ final qualityFindingsStreamProvider =
     StreamProvider.autoDispose<List<QualityFinding>>(
       (ref) => ref.watch(qualityFindingsRepositoryProvider).watchFindings(),
     );
-
-final qualityInboxChipProvider = StateProvider<QualityChip>(
-  (_) => QualityChip.all,
-);
 
 /// Identities for every dive the current findings name, keyed by dive id.
 ///
