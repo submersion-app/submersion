@@ -566,9 +566,9 @@ class SubsurfaceXmlParser implements ImportParser {
   ///
   /// Subsurface has no dive type field, so a cave dive is a dive tagged
   /// 'cave'. Classifying from the tag is what keeps a cave logbook a cave
-  /// logbook: without it every dive fell back to 'recreational', or
-  /// 'technical' when its profile showed deco. The tags themselves are kept
-  /// either way: this adds a classification, it does not consume the tag.
+  /// logbook: without it every dive fell back to 'recreational'. The tags
+  /// themselves are kept either way: this adds a classification, it does not
+  /// consume the tag.
   ///
   /// A tag that names a kind of place also suggests a type for the dive's
   /// site, collected into [siteTypeSuggestions] and applied by
