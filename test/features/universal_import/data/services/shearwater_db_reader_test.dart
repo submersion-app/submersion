@@ -3,9 +3,30 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:sqlite3/sqlite3.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 
 import 'shearwater_test_helpers.dart';
+
+/// [bytes] after running [statements] against them: for an export whose
+/// schema the fixture builder does not write.
+Uint8List _rewritten(Uint8List bytes, List<String> statements) {
+  final dir = Directory.systemTemp.createTempSync('sw_rewrite_');
+  try {
+    final path = p.join(dir.path, 'fixture.db');
+    File(path).writeAsBytesSync(bytes);
+    final db = sqlite3.open(path);
+    try {
+      statements.forEach(db.execute);
+    } finally {
+      db.close();
+    }
+    return File(path).readAsBytesSync();
+  } finally {
+    dir.deleteSync(recursive: true);
+  }
+}
 
 void main() {
   group('ShearwaterGf99Sample', () {
@@ -596,6 +617,75 @@ void main() {
         expect(await modelFor(''), isNull);
         expect(await modelFor(null), isNull);
         expect(await modelFor(42), isNull);
+      });
+
+      const headerLog = ShearwaterTestDiveLog(
+        gfMin: 30,
+        gfMax: 70,
+        decoModel: 0,
+        startGFS: 18,
+      );
+
+      test('still reads the dive when dive_logs has no diveId column, '
+          'losing only the header values', () async {
+        final bytes = _rewritten(
+          createShearwaterTestDb(
+            includeDiveLogs: true,
+            dives: [const ShearwaterTestDive(diveId: 'k', diveLog: headerLog)],
+          ),
+          ['ALTER TABLE dive_logs RENAME COLUMN diveId TO dive_key'],
+        );
+
+        final dive = (await ShearwaterDbReader.readDives(bytes)).single;
+        expect(dive.diveId, 'k');
+        expect(dive.gfMin, isNull);
+        expect(dive.startGFS, isNull);
+      });
+
+      test('matches dive_logs on an integer key as stored', () async {
+        // dive_details keyed by an integer and dive_logs with an untyped
+        // key column holding the same integer: its text form matches
+        // nothing there, so the key has to be bound as it was read.
+        final base = createShearwaterTestDb(
+          includeDiveLogs: true,
+          dives: [const ShearwaterTestDive(diveId: '7', diveLog: headerLog)],
+        );
+        final dir = Directory.systemTemp.createTempSync('sw_cols_');
+        final List<String> detailColumns;
+        try {
+          final path = p.join(dir.path, 'fixture.db');
+          File(path).writeAsBytesSync(base);
+          final db = sqlite3.open(path);
+          try {
+            detailColumns = [
+              for (final row in db.select("PRAGMA table_info('dive_details')"))
+                row['name'] as String,
+            ];
+          } finally {
+            db.close();
+          }
+        } finally {
+          dir.deleteSync(recursive: true);
+        }
+        final bytes = _rewritten(base, [
+          'ALTER TABLE dive_details RENAME TO dive_details_text',
+          'CREATE TABLE dive_details AS SELECT '
+              '${[for (final c in detailColumns) c == 'DiveId' ? 'CAST(DiveId AS INTEGER) AS DiveId' : c].join(', ')} '
+              'FROM dive_details_text',
+          'DROP TABLE dive_details_text',
+          'ALTER TABLE dive_logs RENAME TO dive_logs_text',
+          'CREATE TABLE dive_logs (diveId, gfMin, gfMax, startCNS, endCNS, '
+              'decoModel, vpmbConservatism, startGFS)',
+          'INSERT INTO dive_logs SELECT CAST(diveId AS INTEGER), gfMin, '
+              'gfMax, startCNS, endCNS, decoModel, vpmbConservatism, startGFS '
+              'FROM dive_logs_text',
+          'DROP TABLE dive_logs_text',
+        ]);
+
+        final dive = (await ShearwaterDbReader.readDives(bytes)).single;
+        expect(dive.diveId, '7');
+        expect(dive.gfMin, 30);
+        expect(dive.startGFS, 18.0);
       });
 
       test(

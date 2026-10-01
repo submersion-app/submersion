@@ -172,6 +172,7 @@ ORDER BY dd.DiveDate
   // sample table refers to it through diveLogId (Shearwater Cloud's own
   // index, dive_log_records_diveLogId). Both tables are optional.
   static const _diveLogsTable = 'dive_logs';
+  static const _diveLogsKeyColumn = 'diveId';
   static const _diveLogRecordsTable = 'dive_log_records';
   static const _diveLogColumns = [
     'startGFS',
@@ -255,7 +256,9 @@ ORDER BY currentTime
               _listColumns(db, _diveLogRecordsTable).contains,
             );
         return db.select(_query).map((row) {
-          final diveId = row['DiveId'].toString();
+          // Bound as read: an integer key's text form would not match an
+          // integer stored in an untyped key column.
+          final Object? diveId = row['DiveId'];
           return _rowToRawDive(
             row,
             header: _readDiveLogHeader(db, diveId, diveLogColumns),
@@ -285,17 +288,20 @@ ORDER BY currentTime
   }
 
   /// The dive's `dive_logs` row, restricted to the tissue columns the export
-  /// actually has. Null when the table, all of those columns, or the row is
-  /// missing.
+  /// actually has. Null when the table, its key column, all of those
+  /// columns, or the row is missing, so an export without them loses only
+  /// the header values.
   static Row? _readDiveLogHeader(
     Database db,
-    String diveId,
+    Object? diveId,
     Set<String> availableColumns,
   ) {
+    if (!availableColumns.contains(_diveLogsKeyColumn)) return null;
     final columns = _diveLogColumns.where(availableColumns.contains).toList();
     if (columns.isEmpty) return null;
     final rows = db.select(
-      'SELECT ${columns.join(', ')} FROM dive_logs WHERE diveId = ? LIMIT 1',
+      'SELECT ${columns.join(', ')} FROM $_diveLogsTable '
+      'WHERE $_diveLogsKeyColumn = ? LIMIT 1',
       [diveId],
     );
     return rows.isEmpty ? null : rows.first;
@@ -304,7 +310,7 @@ ORDER BY currentTime
   /// The dive's GF99 series from `dive_log_records`, ordered by time.
   static List<ShearwaterGf99Sample> _readGf99Samples(
     Database db,
-    String diveId,
+    Object? diveId,
   ) {
     final rows = db.select(_gf99Query, [diveId]);
     final times = <int>[];
