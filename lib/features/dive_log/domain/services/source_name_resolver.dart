@@ -37,23 +37,36 @@ String resolveSourceName(
   return edited ? '$base${labels.editedSuffix}' : base;
 }
 
-/// The name of the source a dive tank was read from, so one computer's tank
-/// rows can be told from another's. A tank with no computer belongs to the
+/// The name of the source a dive tank was read from, so one recording's tank
+/// rows can be told from another's. The source is the tank's computer's when
+/// it names one; else the tank's own data source (issue #2716); else the
 /// primary source (the null-is-primary rule of `dive_tanks.computer_id`).
+/// Two sources that name no computer both read as an imported file, so such
+/// a source is named by its file wherever another source reads the same.
 /// Null on a dive with fewer than two sources, where there is nothing to
-/// tell apart, and for a computer none of [sources] carries.
+/// tell apart, and for a computer or source none of [sources] is.
 String? tankSourceName({
   required String? computerId,
+  required String? sourceId,
   required List<DiveDataSource> sources,
   required SourceNameLabels labels,
 }) {
   if (sources.length < 2) return null;
   final source = sources
       .where(
-        (s) => computerId == null ? s.isPrimary : s.computerId == computerId,
+        (s) => computerId != null
+            ? s.computerId == computerId
+            : sourceId != null
+            ? s.id == sourceId
+            : s.isPrimary,
       )
       .firstOrNull;
-  return source == null ? null : resolveSourceName(source, labels);
+  if (source == null) return null;
+  final name = resolveSourceName(source, labels);
+  final shared = sources.any(
+    (s) => s.id != source.id && resolveSourceName(s, labels) == name,
+  );
+  return shared ? source.sourceFileName ?? name : name;
 }
 
 String _typeLabel(DiveDataSource source, SourceNameLabels labels) {

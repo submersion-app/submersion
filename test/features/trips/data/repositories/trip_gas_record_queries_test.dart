@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart'
     show
         AppDatabase,
         DiveComputersCompanion,
+        DiveDataSourcesCompanion,
         DiversCompanion,
         DivesCompanion,
         DiveTanksCompanion;
@@ -72,6 +73,7 @@ void main() {
     int order = 0,
     double? volume,
     String? computerId,
+    String? sourceId,
   }) => db
       .into(db.diveTanks)
       .insert(
@@ -80,6 +82,7 @@ void main() {
           tankOrder: Value(order),
           volume: Value(volume),
           computerId: Value(computerId),
+          sourceId: Value(sourceId),
           startPressure: const Value(200),
           endPressure: const Value(60),
           o2Percent: const Value(32),
@@ -160,6 +163,29 @@ void main() {
     expect(gaps.map((g) => (g.tankId, g.computerId)), [
       ('t1', null),
       ('t2', 'perdix'),
+    ]);
+  });
+
+  test('a gap names the source its tank row came from (#2716)', () async {
+    await dive('d1', 9, diver: 'a');
+    for (final id in ['src-a', 'src-b']) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: id,
+              diveId: 'd1',
+              importedAt: DateTime.utc(2026),
+              createdAt: DateTime.utc(2026),
+            ),
+          );
+    }
+    await tankOn('t1', 'd1', sourceId: 'src-a');
+    await tankOn('t2', 'd1', order: 1, sourceId: 'src-b');
+    final gaps = await repository.getUnlinkedTanksForTrip(tripId);
+    expect(gaps.map((g) => (g.tankId, g.sourceId)), [
+      ('t1', 'src-a'),
+      ('t2', 'src-b'),
     ]);
   });
 

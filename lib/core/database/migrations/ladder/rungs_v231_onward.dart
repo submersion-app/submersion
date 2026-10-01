@@ -114,5 +114,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertTripFillForecastColumns();
     }
     if (from < 249) await reportProgress();
+    // v251: dive_tanks.source_id (issue #2716), backfilled where the
+    // source is unambiguous. 250 is claimed by open PRs (#2675, #2562).
+    if (from < 251) {
+      await _assertDiveTankSourceIdColumn();
+      await _backfillDiveTankSourceIds();
+    }
+    if (from < 251) await reportProgress();
   }
 }

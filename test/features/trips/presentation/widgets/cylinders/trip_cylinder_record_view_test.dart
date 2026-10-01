@@ -311,6 +311,54 @@ void main() {
     expect(find.text('Tank 2 · Perdix'), findsOneWidget);
   });
 
+  testWidgets('sources naming no computer are named by their file', (
+    tester,
+  ) async {
+    // Issue #2716: two file imports with no computer both read as an
+    // imported file; the file tells their rows apart.
+    DiveDataSource file(String id, String name, {required bool primary}) =>
+        DiveDataSource(
+          id: id,
+          diveId: 'd7',
+          isPrimary: primary,
+          sourceFileName: name,
+          importedAt: at,
+          createdAt: at,
+        );
+    await pump(
+      tester,
+      recordOf(
+        unlinked: [
+          TripUnlinkedTank(
+            tankId: 'n1',
+            diveId: 'd7',
+            entryTime: at,
+            siteName: 'Klein Bonaire',
+            sourceId: 'src-a',
+          ),
+          TripUnlinkedTank(
+            tankId: 'n2',
+            diveId: 'd7',
+            entryTime: at,
+            siteName: 'Klein Bonaire',
+            tankOrder: 1,
+            sourceId: 'src-b',
+          ),
+        ],
+      ),
+      sourcesByDive: {
+        'd7': [
+          file('src-a', 'morning.csv', primary: true),
+          file('src-b', 'buddy.csv', primary: false),
+        ],
+      },
+    );
+    await tester.tap(find.byKey(const Key('record-gaps')));
+    await tester.pumpAndSettle();
+    expect(find.text('Tank 1 · morning.csv'), findsOneWidget);
+    expect(find.text('Tank 2 · buddy.csv'), findsOneWidget);
+  });
+
   testWidgets('a single-computer dive\'s gap names no computer', (
     tester,
   ) async {

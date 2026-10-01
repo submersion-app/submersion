@@ -8,6 +8,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
@@ -109,6 +110,10 @@ class DiveConsolidationService {
           now: now,
         );
       }
+      // Its tanks too, for the same reason (issue #2716): once the
+      // secondaries' copies join them, two sources that name no computer
+      // leave nothing else to tell one cylinder's copies apart.
+      await attributeTankSources(_db, _sync, targetDiveId, now: now);
 
       // First consolidation: stamp the target's own children with the
       // primary computer so null stays reserved for manual entries.
@@ -311,7 +316,11 @@ class DiveConsolidationService {
           sourceIdMap[null] = sourceIdMap[fallback.id]!;
         }
 
-        // Tanks: merged ones map, kept ones copy with attribution.
+        // Tanks: merged ones map, kept ones copy with attribution: their
+        // computer, and their source re-pointed at the target's copy of it
+        // (issue #2716); a tank whose source is not known is the
+        // secondary's primary source's, as `null` is above.
+        final secTankSources = await resolveTankSources(_db, secondary.id);
         final secTanks =
             snapshot.tankRows.where((r) => r.diveId == secondary.id).toList()
               ..sort((a, b) => a.tankOrder.compareTo(b.tankOrder));
@@ -331,6 +340,10 @@ class DiveConsolidationService {
                         id: Value(freshId),
                         diveId: Value(targetDiveId),
                         computerId: Value(secRow.computerId),
+                        sourceId: Value(
+                          sourceIdMap[secTankSources[tank.id]] ??
+                              sourceIdMap[null],
+                        ),
                         tankOrder: Value(nextTankOrder++),
                       ),
                 );
@@ -874,6 +887,19 @@ class DiveConsolidationService {
         );
       }
 
+      // Data sources BEFORE the tanks: diveTanks.sourceId is an FK into
+      // diveDataSources (v251, issue #2716), enforced immediately like the
+      // tank FKs below. Sources reference no tank, so they can come first.
+      await _db.batch((batch) {
+        for (final r in snapshot.dataSourceRows) {
+          batch.insert(
+            _db.diveDataSources,
+            r.toCompanion(false),
+            mode: InsertMode.insertOrReplace,
+          );
+        }
+      });
+
       // Tanks BEFORE the batch below: tankPressureProfiles.tankId (and
       // gasSwitches.tankId further down) are FKs into diveTanks, and FK
       // enforcement is immediate under `PRAGMA foreign_keys = ON`, so the
@@ -892,13 +918,6 @@ class DiveConsolidationService {
       // Child rows verbatim (original ids never collide with consolidation
       // output: consolidated children all had fresh ids).
       await _db.batch((batch) {
-        for (final r in snapshot.dataSourceRows) {
-          batch.insert(
-            _db.diveDataSources,
-            r.toCompanion(false),
-            mode: InsertMode.insertOrReplace,
-          );
-        }
         for (final r in snapshot.tideRows) {
           batch.insert(
             _db.tideRecords,
@@ -915,8 +934,8 @@ class DiveConsolidationService {
         }
       });
       // Series restored after the batch above: dataSourceRows and diveTanks
-      // (inserted earlier) are the series' FK parents and must be back
-      // first.
+      // (both inserted before it) are the series' FK parents and must be
+      // back first.
       for (final r in snapshot.profileSeriesRows) {
         await _profileSeries.restoreSeriesRow(r, now: now);
       }

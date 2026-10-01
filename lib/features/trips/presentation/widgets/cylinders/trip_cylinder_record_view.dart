@@ -295,6 +295,7 @@ class _UnlinkedTankTile extends ConsumerWidget {
         const <DiveDataSource>[];
     final computer = tankSourceName(
       computerId: tank.computerId,
+      sourceId: tank.sourceId,
       sources: sources,
       labels: sourceNameLabelsFor(context),
     );

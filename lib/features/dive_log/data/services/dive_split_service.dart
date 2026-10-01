@@ -83,10 +83,12 @@ class DiveSplitService {
     // Series move by computer attribution. A computer-less source cannot be
     // attributed at the row level by computer, so only non-primary
     // null-computer profile series follow it (never user-edited isPrimary
-    // series) and no tanks or events move. This follows the retired
-    // unlinkComputer's convention. Pressure series are the exception: one
-    // that names the source moves with it whatever its computer, cloning
-    // the tank it sits on (issue #2440).
+    // series) and no events move. This follows the retired unlinkComputer's
+    // convention. Pressure series are the exception: one that names the
+    // source moves with it whatever its computer, cloning the tank it sits
+    // on (issue #2440). So are tanks: one that names the source is its
+    // (issue #2716), and an unattributed one falls back to the computer
+    // rule.
 
     bool ownedByComputer(String? computerId) =>
         source.computerId != null && computerId == source.computerId;
@@ -126,6 +128,15 @@ class DiveSplitService {
               : s.sourceId == source.id)
             s,
       ];
+      // Read here too, before step 2 deletes the source row:
+      // dive_tanks.source_id is ON DELETE SET NULL (v251), so reading after
+      // would lose the ownership signal the tank rule below reads.
+      final allTanks = await (_db.select(
+        _db.diveTanks,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      bool tankBelongsToSource(DiveTank t) => t.sourceId == null
+          ? ownedByComputer(t.computerId)
+          : t.sourceId == source.id;
 
       // 1. New dive: copy the original row, attribute it to the source's
       // computer, override summary fields with the source's snapshot, and
@@ -225,9 +236,6 @@ class DiveSplitService {
       // carries the departing computer's rows. Departing pressure rows on
       // a tank the source never owned get the same clone-on-demand
       // treatment.
-      final allTanks = await (_db.select(
-        _db.diveTanks,
-      )..where((t) => t.diveId.equals(diveId))).get();
       final allEvents = await (_db.select(
         _db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -241,7 +249,7 @@ class DiveSplitService {
 
       final tankIdMap = <String, String>{};
       final movedTankIds = <String>[];
-      for (final tank in allTanks.where((t) => ownedByComputer(t.computerId))) {
+      for (final tank in allTanks.where(tankBelongsToSource)) {
         final hasRemainingRefs =
             allPressureSeries.any(
               (r) => r.tankId == tank.id && !ownedByComputer(r.computerId),
@@ -258,7 +266,11 @@ class DiveSplitService {
             .insert(
               tank
                   .toCompanion(false)
-                  .copyWith(id: Value(freshId), diveId: Value(newDiveId)),
+                  .copyWith(
+                    id: Value(freshId),
+                    diveId: Value(newDiveId),
+                    sourceId: Value(newSourceId),
+                  ),
             );
         await _sync.markRecordPending(
           entityType: 'diveTanks',
@@ -267,8 +279,16 @@ class DiveSplitService {
         );
 
         if (hasRemainingRefs) {
-          await (_db.update(_db.diveTanks)..where((t) => t.id.equals(tank.id)))
-              .write(const DiveTanksCompanion(computerId: Value(null)));
+          // Its source left with the split too (v251), so the row lets go
+          // of both with this clock rather than the FK's silent SET NULL.
+          await (_db.update(
+            _db.diveTanks,
+          )..where((t) => t.id.equals(tank.id))).write(
+            const DiveTanksCompanion(
+              computerId: Value(null),
+              sourceId: Value(null),
+            ),
+          );
           await _sync.markRecordPending(
             entityType: 'diveTanks',
             recordId: tank.id,
@@ -296,6 +316,7 @@ class DiveSplitService {
                     id: Value(freshId),
                     diveId: Value(newDiveId),
                     computerId: Value(source.computerId),
+                    sourceId: Value(newSourceId),
                   ),
             );
         await _sync.markRecordPending(

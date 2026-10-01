@@ -36,15 +36,15 @@ void main() {
     },
   );
 
-  test('v249 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 249);
+  test('v249 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v251 (dive_tanks.source_id, #2716) landed on top; the
+    // newest rung owns the exact assertions.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(249));
     expect(AppDatabase.migrationVersions, contains(249));
     // 248 (trip_equipment, #2338) sits below this rung.
     expect(AppDatabase.migrationVersions, contains(248));
-    expect(AppDatabase.migrationStepCount(248), 1);
-    expect(AppDatabase.migrationStepCount(247), 2);
+    expect(AppDatabase.migrationStepCount(248), greaterThanOrEqualTo(1));
+    expect(AppDatabase.migrationStepCount(247), greaterThanOrEqualTo(2));
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

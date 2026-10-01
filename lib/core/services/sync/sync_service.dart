@@ -2726,6 +2726,10 @@ class SyncService {
       // sent, or has deleted, only clears the link.
       (field: 'tripCylinderId', parent: 'tripCylinders', nullable: true),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
+      // v251: the data source the tank row came from (#2716); nullable, as
+      // on tank pressure series, so a source the peer deleted only clears
+      // the link.
+      (field: 'sourceId', parent: 'diveDataSources', nullable: true),
     ],
     'diveWeights': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveEquipment': [

@@ -639,7 +639,7 @@ class TripCylinderRepository {
           SELECT t.id AS tank_id, t.dive_id,
                  COALESCE(d.entry_time, d.dive_date_time) AS entry_ms,
                  d.diver_id, v.name AS diver_name, s.name AS site_name,
-                 t.tank_order, t.computer_id
+                 t.tank_order, t.computer_id, t.source_id
           FROM dive_tanks t
           JOIN dives d ON d.id = t.dive_id
           LEFT JOIN divers v ON v.id = d.diver_id
@@ -675,6 +675,7 @@ class TripCylinderRepository {
           siteName: r.readNullable<String>('site_name'),
           tankOrder: r.read<int>('tank_order'),
           computerId: r.readNullable<String>('computer_id'),
+          sourceId: r.readNullable<String>('source_id'),
         ),
     ];
   }

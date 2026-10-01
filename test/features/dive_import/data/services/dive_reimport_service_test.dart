@@ -165,6 +165,38 @@ void main() {
     expect(tanks.map((t) => t.id), ['tank-a', isNot('tank-a')]);
   });
 
+  test('a brand-new tank takes the file\'s source (#2716)', () async {
+    final diveId = await seedDive(notes: '', buddy: '');
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: 'src-file',
+            diveId: diveId,
+            importedAt: DateTime.utc(2026),
+            createdAt: DateTime.utc(2026),
+          ).copyWith(isPrimary: const Value(true)),
+        );
+    await seedTank(diveId, id: 'tank-a', tankOrder: 0);
+
+    await service.applyReimport(
+      diveId: diveId,
+      diveData: {
+        'tanks': [
+          {'order': 0, 'startPressure': 200.0},
+          {'order': 1, 'startPressure': 207.0},
+        ],
+      },
+      now: DateTime(2026, 9, 3),
+    );
+
+    final tanks = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    expect(tanks, hasLength(2));
+    expect(tanks.map((t) => t.sourceId), everyElement('src-file'));
+  });
+
   test(
     'updates computer-authored dive fields but preserves notes/buddy',
     () async {

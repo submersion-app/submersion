@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_log/data/repositories/safety_findings_r
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
@@ -1295,6 +1296,14 @@ class DiveComputerRepository {
       for (final source in doomed) {
         await _profileSeries.clearSource(source.id);
       }
+      // The tanks' twin of that (v251, issue #2716): the tank rows stay,
+      // and the replacing reading claims them again.
+      await clearTankSourceLinks(
+        _db,
+        _syncRepository,
+        (t) => t.sourceId.isIn([for (final s in doomed) s.id]),
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
       // Delete the data source row for this computer+dive
       await _db.customStatement(
         'DELETE FROM dive_data_sources WHERE dive_id = ? AND computer_id = ?',
@@ -1742,6 +1751,9 @@ class DiveComputerRepository {
                 id: Value(tankId),
                 diveId: Value(diveId),
                 computerId: Value(computerId),
+                // The reading the tank came from (v251, issue #2716), as
+                // for the samples above.
+                sourceId: Value(ownerSourceId),
                 volume: Value(tank.volumeLiters),
                 workingPressure: Value.absentIfNull(tank.workingPressure),
                 tankMaterial: Value.absentIfNull(tank.material),
@@ -1778,6 +1790,14 @@ class DiveComputerRepository {
           tankIdsByIndex[tank.tankOrder] = tank.id;
           tankIdByGas[(tank.o2Percent, tank.hePercent)] = tank.id;
         }
+        // A replaced source gave up its tanks (clearSourceAndProfiles); the
+        // fresh reading claims those it unambiguously owns (v251, #2716).
+        await attributeTankSources(
+          _db,
+          _syncRepository,
+          diveId,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
       }
 
       // Insert per-tank pressure time-series data: one series insert per
