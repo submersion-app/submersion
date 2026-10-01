@@ -333,6 +333,28 @@ void main() {
       expect(await database.select(database.deletionLog).get(), isEmpty);
     });
 
+    test('a segment with its own id still follows a re-minted tank', () async {
+      await repository.savePlan(_fullPlan());
+      // Only the tanks are taken; the segments carry ids of their own.
+      final other = otherPlan();
+      await repository.savePlan(
+        other.copyWith(
+          segments: [
+            for (final s in other.segments) s.copyWith(id: '${s.id}-own'),
+          ],
+        ),
+      );
+
+      final second = (await repository.getPlan('plan-2'))!;
+      expect(second.segments.map((s) => s.id), ['seg-1-own', 'seg-2-own']);
+      expect(second.segments.map((s) => s.tankId).toSet(), {
+        second.tanks.first.id,
+      });
+      expect(second.tanks.first.id, isNot('tank-1'));
+      final first = (await repository.getPlan('plan-1'))!;
+      expect(first.tanks.map((t) => t.id), ['tank-1', 'tank-2']);
+    });
+
     test('the returned plan carries the stored ids, so a re-save updates '
         'the same rows', () async {
       await repository.savePlan(_fullPlan());
