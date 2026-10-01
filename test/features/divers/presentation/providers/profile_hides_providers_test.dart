@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -49,7 +52,8 @@ void main() {
     );
   });
 
-  test('drops a hidden trip once its owner unshares it', () async {
+  test('drops a hidden trip or site once its owner unshares it', () async {
+    await seedSite(db, 'pier', owner: 'a', shared: true);
     final container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
@@ -57,15 +61,29 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-    await container
-        .read(profileHidesRepositoryProvider)
-        .hide(SharedItemKind.trip, 'shared', 'b');
-    final sub = container.listen(hiddenItemsProvider, (_, _) {});
-    addTearDown(sub.close);
-    expect(await container.read(hiddenItemsProvider.future), hasLength(1));
+    final hides = container.read(profileHidesRepositoryProvider);
+    await hides.hide(SharedItemKind.trip, 'shared', 'b');
+    await hides.hide(SharedItemKind.site, 'pier', 'b');
+    // Waits on the provider's own refresh, not a fixed delay.
+    Future<List<String>> next(bool Function(List<String>) done) {
+      final ids = Completer<List<String>>();
+      final sub = container.listen(hiddenItemsProvider, (_, next) {
+        final value = next.value?.map((i) => i.id).toList();
+        if (value != null && done(value) && !ids.isCompleted) {
+          ids.complete(value);
+        }
+      }, fireImmediately: true);
+      return ids.future
+          .timeout(const Duration(seconds: 5))
+          .whenComplete(sub.close);
+    }
+
+    expect(await next((ids) => ids.length == 2), ['shared', 'pier']);
 
     await TripRepository().setShared('shared', false, actingDiverId: 'a');
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    expect(await container.read(hiddenItemsProvider.future), isEmpty);
+    expect(await next((ids) => ids.length == 1), ['pier']);
+
+    await SiteRepository().setShared('pier', false, actingDiverId: 'a');
+    expect(await next((ids) => ids.isEmpty), isEmpty);
   });
 }
