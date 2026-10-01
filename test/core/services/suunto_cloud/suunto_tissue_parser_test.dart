@@ -178,6 +178,21 @@ void main() {
       expect(parseSuuntoTissue({'Algorithm': 'Suunto Fused2 RGBM'}), isNull);
     });
 
+    test('trims the algorithm and reads a blank one as absent', () {
+      // The dive's decoAlgorithm treats a blank Algorithm as missing, so the
+      // snapshot has to as well, or the two disagree.
+      Map<String, dynamic> header(String algorithm) => {
+        'Algorithm': algorithm,
+        'EndTissue': {'CNS': 0.04},
+      };
+
+      expect(parseSuuntoTissue(header('   '))!.algorithm, isNull);
+      expect(
+        parseSuuntoTissue(header(' Suunto Fused2 RGBM '))!.algorithm,
+        'Suunto Fused2 RGBM',
+      );
+    });
+
     test('skips a state with no numeric content', () {
       final snapshot = parseSuuntoTissue({
         'Algorithm': 'Suunto Fused2 RGBM',

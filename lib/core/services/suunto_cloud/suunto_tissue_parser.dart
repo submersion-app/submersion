@@ -24,9 +24,10 @@ ComputerTissueSnapshot? parseSuuntoTissue(Map<String, dynamic> diving) {
   final end = _stateOf(diving['EndTissue']);
   if (start == null && end == null) return null;
 
-  final algorithm = diving['Algorithm'];
+  final raw = diving['Algorithm'];
+  final algorithm = raw is String ? raw.trim() : '';
   return ComputerTissueSnapshot(
-    algorithm: algorithm is String && algorithm.isNotEmpty ? algorithm : null,
+    algorithm: algorithm.isEmpty ? null : algorithm,
     start: start,
     end: end,
   );
