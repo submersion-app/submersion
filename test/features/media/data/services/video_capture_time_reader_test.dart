@@ -24,23 +24,32 @@ List<int> _mvhd(DateTime creation, {Duration duration = Duration.zero}) =>
     ]);
 
 /// moov > meta with one keys/ilst entry, the Apple layout (hdlr first).
-List<int> _keysMeta(String key, String value) {
+List<int> _keysMeta(String key, String value) => _keysMetaOf({key: value});
+
+/// moov > meta with a keys/ilst entry per map entry, in map order.
+List<int> _keysMetaOf(Map<String, String> entries) {
   final hdlr = box('hdlr', [
     ...u32(0),
     ...u32(0),
     ...'mdta'.codeUnits,
     ...List.filled(12, 0),
   ]);
-  final keyName = utf8.encode(key);
-  final keys = fullBox('keys', [
-    ...u32(1),
-    ...u32(8 + keyName.length),
-    ...'mdta'.codeUnits,
-    ...keyName,
-  ]);
-  final data = box('data', [...u32(1), ...u32(0), ...utf8.encode(value)]);
-  final ilst = box('ilst', [...u32(8 + data.length), ...u32(1), ...data]);
-  return box('meta', [...hdlr, ...keys, ...ilst]);
+  final keyEntries = <int>[];
+  final ilstEntries = <int>[];
+  var index = 0;
+  for (final MapEntry(:key, :value) in entries.entries) {
+    index++;
+    final keyName = utf8.encode(key);
+    keyEntries.addAll([
+      ...u32(8 + keyName.length),
+      ...'mdta'.codeUnits,
+      ...keyName,
+    ]);
+    final data = box('data', [...u32(1), ...u32(0), ...utf8.encode(value)]);
+    ilstEntries.addAll([...u32(8 + data.length), ...u32(index), ...data]);
+  }
+  final keys = fullBox('keys', [...u32(entries.length), ...keyEntries]);
+  return box('meta', [...hdlr, ...keys, ...box('ilst', ilstEntries)]);
 }
 
 /// The classic QuickTime user-data text atom: udta > ©day.
@@ -234,6 +243,21 @@ void main() {
             'com.apple.quicktime.creationdate',
             '2025-12-27T11:50:49-0500',
           ),
+        ]),
+      );
+      expect(readVideoCaptureTime(f), DateTime.utc(2025, 12, 27, 11, 50, 49));
+    });
+
+    test('finds creationdate among the other keys an iPhone writes', () {
+      final f = write(
+        'iphone-full.mov',
+        _movie([
+          ..._mvhd(mvhdUtc),
+          ..._keysMetaOf({
+            'com.apple.quicktime.make': 'Apple',
+            'com.apple.quicktime.location.ISO6709': '+20.5000-087.2500/',
+            'com.apple.quicktime.creationdate': '2025-12-27T11:50:49-0500',
+          }),
         ]),
       );
       expect(readVideoCaptureTime(f), DateTime.utc(2025, 12, 27, 11, 50, 49));
