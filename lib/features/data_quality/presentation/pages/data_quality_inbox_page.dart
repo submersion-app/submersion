@@ -481,10 +481,19 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
               // chip's number matches what tapping it shows.
               _ChipRow(chip: chip, findings: scoped),
               Expanded(
-                child: open.isEmpty
+                // Nothing in scope reads "All clear"; findings hidden only by
+                // the chip must not, or the page claims a clean logbook while
+                // the other chips still count open findings.
+                child: scoped.isEmpty
                     ? _EmptyState(
                         lastScanAt: store.lastFullScanAt,
                         onScan: _runFullScan,
+                      )
+                    : open.isEmpty
+                    ? _ChipEmptyState(
+                        onShowAll: () =>
+                            ref.read(qualityInboxChipProvider.notifier).state =
+                                QualityChip.all,
                       )
                     : ListView(
                         children: [
@@ -606,6 +615,40 @@ class _ChipRow extends ConsumerWidget {
                 visualDensity: VisualDensity.compact,
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Shown when the selected chip hides every open finding in scope while other
+/// chips still have some.
+class _ChipEmptyState extends StatelessWidget {
+  const _ChipEmptyState({required this.onShowAll});
+  final VoidCallback onShowAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.filter_list_off,
+            size: 48,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.dataQuality_empty_chipFiltered,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: onShowAll,
+            child: Text(l10n.dataQuality_empty_showAll),
+          ),
         ],
       ),
     );

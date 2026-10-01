@@ -25,7 +25,11 @@ final qualityFindingsStreamProvider =
       (ref) => ref.watch(qualityFindingsRepositoryProvider).watchFindings(),
     );
 
-final qualityInboxChipProvider = StateProvider<QualityChip>(
+/// The inbox's selected category chip. Auto-disposed so it lives only as long
+/// as the inbox is mounted: a dive pushed on top keeps the selection, while
+/// leaving the inbox resets it, so the next visit (often a deep link scoped to
+/// a different dive) never opens on a category that has nothing to show.
+final qualityInboxChipProvider = StateProvider.autoDispose<QualityChip>(
   (_) => QualityChip.all,
 );
 

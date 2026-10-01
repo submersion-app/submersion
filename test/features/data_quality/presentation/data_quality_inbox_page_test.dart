@@ -691,6 +691,149 @@ void main() {
     expect(find.byType(QualityFindingCard), findsNWidgets(2));
   });
 
+  bool chipSelected(WidgetTester tester, String label) => tester
+      .widget<FilterChip>(find.widgetWithText(FilterChip, label))
+      .selected;
+
+  testWidgets('each visit to the inbox starts on the All chip', (tester) async {
+    final prefs = await _prefs();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: _overrides(
+          prefs,
+          findings: [
+            _f(
+              id: 'v-clock',
+              detectorId: 'clock_offset',
+              category: QualityCategory.time,
+              params: const {'offsetHours': 2},
+            ),
+          ],
+        ).cast(),
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const SizedBox.shrink(),
+        ),
+      ),
+    );
+    Future<void> openInbox() async {
+      unawaited(
+        navigatorKey.currentState!.push(
+          MaterialPageRoute<void>(builder: (_) => const DataQualityInboxPage()),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await openInbox();
+    await tester.tap(find.widgetWithText(FilterChip, 'Tanks (0)'));
+    await tester.pumpAndSettle();
+    expect(chipSelected(tester, 'Tanks (0)'), isTrue);
+
+    navigatorKey.currentState!.pop();
+    await tester.pumpAndSettle();
+    await openInbox();
+
+    expect(chipSelected(tester, 'All'), isTrue);
+    expect(find.byType(QualityFindingCard), findsOneWidget);
+  });
+
+  testWidgets('the chip survives opening a dive and coming back', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: _overrides(
+          prefs,
+          findings: [
+            _f(
+              id: 's-clock',
+              detectorId: 'clock_offset',
+              category: QualityCategory.time,
+              params: const {'offsetHours': 2},
+            ),
+          ],
+        ).cast(),
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DataQualityInboxPage(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, 'Time (1)'));
+    await tester.pumpAndSettle();
+
+    // A route pushed over the inbox (a dive, say) keeps it mounted, so the
+    // diver comes back to the category they were working through.
+    unawaited(
+      navigatorKey.currentState!.push(
+        MaterialPageRoute<void>(builder: (_) => const SizedBox.shrink()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    navigatorKey.currentState!.pop();
+    await tester.pumpAndSettle();
+
+    expect(chipSelected(tester, 'Time (1)'), isTrue);
+  });
+
+  testWidgets('a chip that hides every finding says so and offers the rest', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        filterDiveId: 'd1',
+        findings: [
+          _f(
+            id: 'e-clock',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 2},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, 'Tanks (0)'));
+    await tester.pumpAndSettle();
+
+    // The dive still has a Time finding, so the page must not call it clean.
+    expect(find.byType(QualityFindingCard), findsNothing);
+    expect(find.text('All clear'), findsNothing);
+    expect(find.text('No findings in this category'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextButton, 'Show all findings'));
+    await tester.pumpAndSettle();
+
+    expect(chipSelected(tester, 'All'), isTrue);
+    expect(find.byType(QualityFindingCard), findsOneWidget);
+  });
+
+  testWidgets('with nothing in scope the inbox still reads All clear', (
+    tester,
+  ) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(_scope(prefs));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, 'Tanks (0)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('All clear'), findsOneWidget);
+    expect(find.text('No findings in this category'), findsNothing);
+  });
+
   testWidgets('one dive gets one header even when findings interleave', (
     tester,
   ) async {
