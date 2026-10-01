@@ -344,14 +344,7 @@
   "trips_story_checklistProgress": "{done} van {total} klaar",
   "trips_story_generateItinerary": "Reisplan genereren",
   "trips_story_openGallery": "Reisfoto's openen",
-  "trips_story_generateItineraryError": "Kan reisschema niet genereren: {error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "Kan het reisschema niet genereren. Probeer het opnieuw.",
   "trips_dayType_diveDay": "Duikdag",
   "trips_dayType_seaDay": "Zeedag",
   "trips_dayType_portDay": "Havendag",
@@ -2239,6 +2232,8 @@
   "diveLog_deco_tissueSlow": "Langzaam",
   "diveLog_deco_title": "Decostatus",
   "diveLog_deco_totalDecoTime": "Totaal: {time}",
+  "diveLog_deco_withheld_ccr": "Voor deze rebreatherduik is geen setpoint of loop-ppO2 vastgelegd, dus de weefselbelading, NDL en decompressie kunnen niet worden berekend. Voeg het setpoint toe bij het bewerken van de duik om ze te berekenen.",
+  "diveLog_deco_withheld_scr": "Voor deze semi-gesloten rebreatherduik is geen loop-ppO2 gemeten, dus de weefselbelading, NDL en decompressie kunnen niet worden berekend.",
   "diveLog_delete_cancel": "Annuleren",
   "diveLog_delete_confirm": "Deze actie kan niet ongedaan worden gemaakt. De duik en alle bijbehorende gegevens (profiel, flessen, waarnemingen) worden permanent verwijderd.",
   "diveLog_delete_delete": "Verwijderen",
@@ -3754,6 +3749,7 @@
   "dropTarget_error_unsupportedFile": "Niet-ondersteund bestandstype",
   "dropTarget_error_wizardActive": "Voltooi eerst de huidige import",
   "dropTarget_error_readFailed": "Kan bestand niet lezen",
+  "dropTarget_error_mediaNeedsDestination": "Sleep foto's en video's naar Media, een duik of een duikstek om ze te koppelen",
   "dropTarget_error_someUnreadable": "{count, plural, =1{{count} bestand kon niet worden gelezen en is overgeslagen} other{{count} bestanden konden niet worden gelezen en zijn overgeslagen}}",
   "enum_altitudeGroup_extreme": "Extreme hoogte",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",
@@ -4310,6 +4306,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "Deze duik komt al overeen met de configuratie",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{{count} bijgewerkt} other{{count} bijgewerkt}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "Flesgegevens vervangen?",
+  "cylinderConfigs_overwriteBody": "Het toepassen van {name} wijzigt flessen die al bij deze duik staan:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "Fles {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "Gasmengsels en begindrukken van de duik blijven behouden.",
+  "cylinderConfigs_overwriteConfirm": "Vervangen",
+  "cylinderConfigs_fieldVolume": "Volume",
+  "cylinderConfigs_fieldWorkingPressure": "Werkdruk",
+  "cylinderConfigs_fieldMaterial": "Materiaal",
   "cylinderConfigs_sectionTitle": "Configuraties",
   "equipment_serviceClocks_hoursSource": "Berekend op basis van geregistreerde duiktijd",
   "equipment_serviceClocks_hoursLeft": "{remaining} van {total} uur resterend",
@@ -4522,6 +4565,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Niets is achterstallig voor service.",
   "equipment_list_errorLoading": "Fout bij laden van uitrusting: {error}",
   "equipment_list_filterAll": "Alle uitrusting",
+  "equipment_list_filterCurrent": "Huidige uitrusting",
   "equipment_list_filterServiceDue": "Service nodig",
   "equipment_list_filterServiceDueSoon": "Binnenkort",
   "equipment_list_filterServiceOverdue": "Achterstallig",
@@ -5364,6 +5408,8 @@
   "media_import_review_chooseSite": "Site kiezen",
   "media_import_review_ambiguous": "Meerdere duiken komen overeen",
   "media_import_review_noMatch": "Geen overeenkomende duik",
+  "media_import_review_noCaptureTime": "Geen opnamedatum gevonden",
+  "media_import_review_noMatchFileDate": "Geen duik komt overeen met de bestandsdatum; het bestand heeft geen opnamedatum",
   "media_import_review_skipped": "Niet geïmporteerd",
   "media_import_review_linkChip": "Koppelen aan #{number}",
   "media_import_review_linkToDive": "Aan duik koppelen",
@@ -6163,7 +6209,7 @@
   "settings_manage_weightPresets": "Loodvoorinstellingen",
   "settings_manage_weightPresets_subtitle": "Herbruikbare loodsets voor een duik",
   "weightPresets_page_title": "Loodvoorinstellingen",
-  "weightPresets_page_empty": "Sla een loodhoeveelheid op vanuit de duikeditor, dan verschijnt die hier om te hergebruiken.",
+  "weightPresets_page_empty": "Sla een loodhoeveelheid op vanuit de duikeditor, of tik op + om er hier een samen te stellen.",
   "weightPresets_action_rename": "Naam wijzigen",
   "weightPresets_action_new": "New preset",
   "weightPresets_action_edit": "Edit",
@@ -6265,7 +6311,7 @@
   "settings_section_appearance_title": "Uiterlijk",
   "settings_section_data_subtitle": "Back-up, herstel & opslag",
   "settings_section_data_title": "Gegevens",
-  "settings_section_decompression_subtitle": "Gradiëntfactoren",
+  "settings_section_decompression_subtitle": "GF, gegevensbronnen & narcose",
   "settings_section_decompression_title": "Decompressie",
   "settings_section_diverProfile_subtitle": "Actieve duiker & profielen",
   "settings_section_diverProfile_title": "Duikersprofiel",
@@ -7116,7 +7162,7 @@
   "transfer_csvExport_unitsMine": "Mijn eenheden",
   "transfer_csvExport_unitsMineDescription": "Waarden in je eigen instellingen voor eenheden, datum en tijd, vermeld in elke kolomkop",
   "transfer_detail_backTooltip": "Terug naar overdracht",
-  "transfer_export_aboutContent": "Exporteer je duikgegevens in verschillende formaten. PDF maakt een afdrukbaar logboek. UDDF is een universeel formaat dat compatibel is met de meeste duiklogsoftware. CSV-bestanden kunnen worden geopend in spreadsheetapplicaties.",
+  "transfer_export_aboutContent": "Exporteer je duikgegevens in verschillende formaten. PDF maakt een afdrukbaar logboek. UDDF is een universeel formaat dat compatibel is met de meeste duiklogsoftware. CSV- en Excel-bestanden kunnen worden geopend in spreadsheetapplicaties. Je kunt ook je hele database back-uppen via Instellingen > Back-up en herstel.",
   "transfer_export_aboutTitle": "Over exporteren",
   "transfer_export_backupLink": "Ga naar Back-up en herstel",
   "transfer_export_completed": "Export voltooid",
@@ -7146,7 +7192,7 @@
   "transfer_export_uddfTitle": "UDDF-export",
   "transfer_import_aboutContent": "Gebruik \"Gegevens importeren\" voor de beste ervaring -- het detecteert automatisch je bestandsformaat en bronapplicatie. De individuele formaatopties hieronder zijn ook beschikbaar voor directe toegang.",
   "transfer_import_aboutTitle": "Over importeren",
-  "transfer_import_fileImportSemanticLabel": "Gegevens importeren met automatische detectie",
+  "transfer_import_fileImportSemanticLabel": "Duikgegevens importeren uit bestand",
   "transfer_import_fileImportSubtitle": "Detecteert automatisch CSV, UDDF, FIT en meer",
   "transfer_import_fileImportTitle": "Gegevens importeren",
   "transfer_import_sectionHeader": "Gegevens importeren",
@@ -7201,6 +7247,7 @@
   "trips_detail_dialog_deleteTitle": "Reis verwijderen?",
   "trips_detail_dives_empty": "Nog geen duiken in deze reis",
   "trips_detail_dives_errorLoading": "Kan duiken niet laden",
+  "trips_detail_error_loading": "Kan de reis niet laden.",
   "trips_detail_dives_unknownSite": "Onbekende duikstek",
   "trips_detail_dives_viewAll": "Alles bekijken ({count})",
   "trips_detail_durationDays": "{days} dagen",
@@ -7221,8 +7268,8 @@
   "trips_detail_label_vesselType": "Type",
   "trips_detail_scan_accessDenied": "Toegang tot fotobibliotheek geweigerd",
   "trips_detail_scan_addDivesFirst": "Voeg eerst duiken toe om foto's te koppelen",
-  "trips_detail_scan_errorLinking": "Fout bij koppelen van foto's: {error}",
-  "trips_detail_scan_errorScanning": "Fout bij scannen: {error}",
+  "trips_detail_scan_errorLinking": "Kan de foto's niet koppelen. Probeer het opnieuw.",
+  "trips_detail_scan_errorScanning": "Kan niet naar foto's zoeken. Probeer het opnieuw.",
   "trips_detail_scan_linkedPhotos": "{count} foto's gekoppeld",
   "trips_detail_scan_linkingPhotos": "Foto's koppelen...",
   "trips_detail_sectionTitle_dailyBreakdown": "Daily Breakdown",
@@ -7439,14 +7486,7 @@
   "trips_cylinders_forecast_useEstimate": "Schatting gebruiken",
   "trips_cylinders_forecast_fewer": "Minder duiken",
   "trips_cylinders_forecast_more": "Meer duiken",
-  "trips_cylinders_forecast_saveError": "Plan kon niet worden opgeslagen: {error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "Kan het plan niet opslaan. Probeer het opnieuw.",
   "trips_cylinders_forecast_dayPlanned": "Door jou gepland",
   "trips_cylinders_segment_record": "Gasverbruik",
   "trips_cylinders_recordEmpty": "Nog geen duiken met deze flessen.",
@@ -7508,6 +7548,7 @@
     }
   },
   "trips_cylinders_record_exported": "Gasverbruik geëxporteerd",
+  "trips_cylinders_record_exportFailed": "Kan het gasverbruik niet exporteren. Probeer het opnieuw.",
   "trips_cylinders_title": "Flessen",
   "trips_cylinders_summary": "Vol {full} · Deels {partial} · Leeg {empty}",
   "@trips_cylinders_summary": {
@@ -7708,8 +7749,8 @@
   "trips_edit_sectionTitle_vessel": "Vessel Details",
   "trips_edit_semanticLabel_save": "Reis opslaan",
   "trips_edit_snackBar_added": "Reis succesvol toegevoegd",
-  "trips_edit_snackBar_errorLoading": "Fout bij laden van reis: {error}",
-  "trips_edit_snackBar_errorSaving": "Fout bij opslaan van reis: {error}",
+  "trips_edit_snackBar_errorLoading": "Kan de reis niet laden. Probeer het opnieuw.",
+  "trips_edit_snackBar_errorSaving": "Kan de reis niet opslaan. Probeer het opnieuw.",
   "trips_edit_snackBar_updated": "Reis succesvol bijgewerkt",
   "trips_edit_validation_nameRequired": "Voer een reisnaam in",
   "trips_edit_validation_vesselRequired": "Vessel name is required for liveaboard trips",
@@ -7720,9 +7761,9 @@
   "trips_gallery_diveSection_title": "Duik #{number} - {site}",
   "trips_gallery_empty_subtitle": "Tik op het camerapictogram om je galerij te scannen",
   "trips_gallery_empty_title": "Geen foto's in deze reis",
-  "trips_gallery_errorLinking": "Fout bij koppelen van foto's: {error}",
-  "trips_gallery_errorScanning": "Fout bij scannen: {error}",
-  "trips_gallery_error_loading": "Fout bij laden van foto's: {error}",
+  "trips_gallery_errorLinking": "Kan de foto's niet koppelen. Probeer het opnieuw.",
+  "trips_gallery_errorScanning": "Kan niet naar foto's zoeken. Probeer het opnieuw.",
+  "trips_gallery_error_loading": "Kan de foto's niet laden.",
   "trips_gallery_linkedPhotos": "{count} foto's gekoppeld",
   "trips_gallery_linkingPhotos": "Foto's koppelen...",
   "trips_gallery_tooltip_scan": "Apparaatgalerij scannen",
@@ -7732,6 +7773,8 @@
   "trips_itinerary_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_noDives": "No dives",
+  "trips_itinerary_error_loading": "Kan het reisschema niet laden.",
+  "trips_itinerary_daySaveError": "Kan de dag niet opslaan. Probeer het opnieuw.",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_list_button_retry": "Opnieuw proberen",
@@ -7741,7 +7784,7 @@
   "trips_list_empty_filtered_title": "Geen reizen die aan je filters voldoen",
   "trips_list_empty_subtitle": "Maak reizen aan om je duiken per bestemming te groeperen",
   "trips_list_empty_title": "Nog geen reizen toegevoegd",
-  "trips_list_error_loading": "Fout bij laden van reizen: {error}",
+  "trips_list_error_loading": "Kan je reizen niet laden.",
   "trips_list_fab_addTrip": "Reis toevoegen",
   "trips_list_filters_clearAll": "Alles wissen",
   "trips_list_inProgress": "Bezig",
@@ -7763,7 +7806,7 @@
   "trips_picker_clearTooltip": "Selectie wissen",
   "trips_picker_empty_createButton": "Reis aanmaken",
   "trips_picker_empty_title": "Nog geen reizen",
-  "trips_picker_error": "Fout bij laden van reizen: {error}",
+  "trips_picker_error": "Kan je reizen niet laden.",
   "trips_picker_hint": "Tik om een reis te selecteren",
   "trips_picker_newTrip": "Nieuwe reis",
   "trips_picker_noSelection": "Geen reis geselecteerd",
@@ -7773,6 +7816,7 @@
   "trips_search_empty_hint": "Zoek op naam, locatie of resort",
   "trips_search_fieldLabel": "Reizen zoeken...",
   "trips_search_noResults": "Geen reizen gevonden voor \"{query}\"",
+  "trips_search_error": "Kan je reizen niet doorzoeken.",
   "trips_search_tooltip_back": "Terug",
   "trips_search_tooltip_clear": "Zoekopdracht wissen",
   "trips_summary_header_subtitle": "Selecteer een reis uit de lijst om details te bekijken",
@@ -8067,14 +8111,7 @@
     }
   },
   "trips_diveScan_deselectAll": "Alles deselecteren",
-  "trips_diveScan_error": "Fout bij het zoeken naar duiken: {error}",
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_diveScan_error": "Kan niet naar duiken zoeken. Probeer het opnieuw.",
   "trips_diveScan_findButton": "Zoek overeenkomende duiken",
   "trips_diveScan_groupOtherTrips": "In andere reizen ({count})",
   "@trips_diveScan_groupOtherTrips": {
@@ -8998,9 +9035,9 @@
   "@dive3d_tissue_legendAxes": {},
   "dive3d_tissue_legendDepth": "Blauwe curve: je diepte",
   "@dive3d_tissue_legendDepth": {},
-  "dive3d_tissue_onGassing": "Opzadeling",
+  "dive3d_tissue_onGassing": "Gasopname",
   "@dive3d_tissue_onGassing": {},
-  "dive3d_tissue_offGassing": "Ontzadeling",
+  "dive3d_tissue_offGassing": "Gasafgifte",
   "@dive3d_tissue_offGassing": {},
   "dive3d_tissue_tooltipCompartment": "Comp. {number}",
   "@dive3d_tissue_tooltipCompartment": {
@@ -9575,6 +9612,8 @@
   },
   "diveLog_detail_altitudeMismatch_title": "Duikstek ligt op hoogte",
   "diveLog_detail_altitudeMismatch_subtitle": "Deze stek heeft een hoogte geregistreerd maar de duik niet, dus de deco-analyse ging uit van zeeniveau. Stel de hoogte van de duik in om dit te corrigeren.",
+  "diveLog_detail_sacSegmentsNoPressure": "Alleen de begin- en einddruk van de fles zijn vastgelegd, dus het gasverbruik kan niet per segment worden verdeeld. Daarvoor zijn drukmetingen tijdens de duik nodig, bijvoorbeeld van een zender. Het gemiddelde over de hele duik staat onder Flessen.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "Geen flesdruk vastgelegd tijdens de duik",
   "diveLog_detail_sacVolumeHint": "Voeg een flesvolume toe om de RMV in {unit} te tonen",
   "emergencyCard_title": "Noodgeval",
   "emergencyCard_callDan": "Bel {name}",
@@ -11384,7 +11423,7 @@
   "species_harlequin_tuskfish_name": "Harlekijnslagtandlipvis",
   "species_harlequin_tuskfish_desc": "Kleurrijke lipvis met felblauwe slagtanden, roodoranje banden en witte vlakken, op riffen in de westelijke Pacific.",
   "species_blue_groper_name": "Australische blauwe lipvis",
-  "species_blue_groper_desc": "Grote blauwe lipvis endemisch in oost-Australië, aanhankelijk en vaak duikers benaderend op gematigde riffen.",
+  "species_blue_groper_desc": "Grote blauwe lipvis, endemisch in Oost-Australië, aanhankelijk en benadert duikers vaak op gematigde riffen.",
   "species_red_lipped_batfish_name": "Roodlipvleermuisvis",
   "species_red_lipped_batfish_desc": "Bizarre platte vis met felrode lippen die op omgevormde vinnen over de Galapagos-zeebodem loopt.",
   "species_orangeband_surgeonfish_name": "Oranjebanddoktersvis",
@@ -11508,7 +11547,7 @@
   "species_slipper_lobster_name": "Beerkreeft",
   "species_slipper_lobster_desc": "Platte nachtactieve kreeft met brede antenneplaten in plaats van lange zwepen.",
   "species_squat_lobster_name": "Galatheakreeftje",
-  "species_squat_lobster_desc": "Piepklein roze-paars kreeftachtige dat op reuzentonsponzen leeft, een favoriet voor macrofotografie.",
+  "species_squat_lobster_desc": "Piepkleine roze-paarse kreeftachtige die op reuzentonsponzen leeft, een favoriet voor macrofotografie.",
   "species_hermit_crab_name": "Blauwpotige heremietkreeft",
   "species_hermit_crab_desc": "Kleine heremietkreeft met felblauwe poten, veel gezien op Caribische riffen.",
   "species_orangutan_crab_name": "Orang-oetankrab",
@@ -11525,7 +11564,7 @@
   "species_coral_crab_desc": "Kleine gevlekte krab die in symbiose in Pocillopora-koralen leeft en zijn gastheer verdedigt.",
   "species_crown_of_thorns_starfish_name": "Doornenkroonzeester",
   "species_crown_of_thorns_starfish_desc": "Giftige veelarmige zeester die koraal eet en riffen bij plagen kan verwoesten.",
-  "species_blue_linckia_starfish_name": "Blauwe zeester",
+  "species_blue_linckia_starfish_name": "Blauwe linckia",
   "species_blue_linckia_starfish_desc": "Felblauwe zeester die veel wordt gezien op Indo-Pacifische rifplaten en -hellingen.",
   "species_red_knob_starfish_name": "Roodknobbelzeester",
   "species_red_knob_starfish_desc": "Grote grijze zeester met opvallende roodgepunte stekels, te vinden op zandige rifgebieden.",
@@ -11694,7 +11733,7 @@
   "species_horseshoe_crab_name": "Degenkrab",
   "species_horseshoe_crab_desc": "Oeroud geleedpotig dier met een helmvormig schild, te vinden op Atlantische zandbodems.",
   "species_sea_spider_name": "Zeespin",
-  "species_sea_spider_desc": "Teer langpotig zeegeleedpotige dat over hydroïdpoliepen en mosdiertjes kruipt.",
+  "species_sea_spider_desc": "Tere, langpotige zeegeleedpotige die over hydroïdpoliepen en mosdiertjes kruipt.",
   "species_sea_lily_name": "Zeelelie",
   "species_sea_lily_desc": "Gesteeld levend fossiel uit de haarsterrengroep dat in dieper water met veerachtige armen voedsel filtert.",
   "species_mantis_shrimp_lysiosquilla_name": "Speerbidsprinkhaankreeft",
@@ -11778,7 +11817,7 @@
   "species_flatback_sea_turtle_name": "Australische platrugschildpad",
   "species_flatback_sea_turtle_desc": "Endemisch in Australische wateren, herkenbaar aan het platte schild en de kustgebonden leefwijze.",
   "species_brain_coral_name": "Hersenkoraal",
-  "species_brain_coral_desc": "Massief rifbouwend koraal met een gegroefd oppervlak als een hersenen, algemeen op Caribische riffen.",
+  "species_brain_coral_desc": "Massief rifbouwend koraal met een gegroefd oppervlak dat op hersenen lijkt, algemeen op Caribische riffen.",
   "species_staghorn_coral_name": "Hertshoornkoraal",
   "species_staghorn_coral_desc": "Snelgroeiend vertakt koraal dat dichte struiken vormt, een cruciale leefomgeving voor rifvissen.",
   "species_elkhorn_coral_name": "Elandshoornkoraal",
@@ -11914,7 +11953,7 @@
   "species_walleye_name": "Breedbekbaars",
   "species_walleye_desc": "Goudolijfkleurige baarsachtige met grote, lichtweerkaatsende ogen die in de schemering boven rots- en zandbodems jaagt.",
   "species_sauger_name": "Canadese snoekbaars",
-  "species_sauger_desc": "Kleinere, vlekkerigere neef van de walleye die troebele rivieren en stuwmeren verkiest.",
+  "species_sauger_desc": "Kleinere, vlekkerigere neef van de breedbekbaars die troebele rivieren en stuwmeren verkiest.",
   "species_yellow_perch_name": "Amerikaanse gele baars",
   "species_yellow_perch_desc": "Goudgele scholenvormende baars met donkere dwarsbanden, algemeen bij steigers en waterplanten in Noord-Amerika.",
   "species_european_perch_name": "Baars",
@@ -11923,7 +11962,7 @@
   "species_zander_desc": "Grote, bleke roofvis met glazige ogen en hoektanden die na donker door troebele Europese meren en rivieren patrouilleert.",
   "species_ruffe_name": "Pos",
   "species_ruffe_desc": "Kleine gevlekte pos met een doorlopende stekelige rugvin, talrijk op zachte bodems van Europese meren.",
-  "species_largemouth_bass_name": "Largemouth Bass",
+  "species_largemouth_bass_name": "Forelbaars",
   "species_largemouth_bass_desc": "Groenrugbaars met een donkere zijstreep en enorme bek die bij boomstammen en plantenranden in warme meren loert.",
   "species_smallmouth_bass_name": "Kleinbekbaars",
   "species_smallmouth_bass_desc": "Bronskleurige baars met vage dwarsbanden die boven rots en grind in heldere, koele meren en rivieren staat.",
@@ -11983,7 +12022,7 @@
   "species_american_eel_desc": "Noord-Amerikaanse paling die zich overdag onder stenen in rivieren en meren verbergt en naar de Sargassozee terugkeert om te paaien.",
   "species_burbot_name": "Kwabaal",
   "species_burbot_desc": "De enige zoetwaterkabeljauw, een gevlekte, palingachtige vis met één kindraad die zich overdag in koud diep water verbergt.",
-  "species_channel_catfish_name": "Kanaal Meerval",
+  "species_channel_catfish_name": "Kanaalmeerval",
   "species_channel_catfish_desc": "Grijze meerval met verspreide donkere vlekken, een gevorkte staart en acht baarddraden, algemeen in rivieren en stuwmeren van Noord-Amerika.",
   "species_flathead_catfish_name": "Platkopmeerval",
   "species_flathead_catfish_desc": "Enorme bruingevlekte meerval met een afgeplatte kop en vooruitstekende onderkaak die in diepe rivierkuilen ligt.",
@@ -12018,7 +12057,7 @@
   "species_alewife_name": "Amerikaanse rivierharing",
   "species_alewife_desc": "Zilveren haring die in het voorjaar rivieren opzwemt en nu de Grote Meren in enorme scholen vult.",
   "species_nile_perch_name": "Nijlbaars",
-  "species_nile_perch_desc": "Massieve zilveren roofvis met een zwartomrande oog, uitgezet in het Victoriameer waar hij het open water beheerst.",
+  "species_nile_perch_desc": "Massieve zilveren roofvis met een zwartomrand oog, uitgezet in het Victoriameer waar hij het open water beheerst.",
   "species_nile_tilapia_name": "Nijltilapia",
   "species_nile_tilapia_desc": "Grijze cichlide met verticale staartbanden die zijn jongen in de bek uitbroedt, gekweekt en verwilderd in warm water wereldwijd.",
   "species_african_tigerfish_name": "Tijgervis",
@@ -12186,7 +12225,7 @@
   "species_spectacled_caiman_name": "Brilkaaiman",
   "species_spectacled_caiman_desc": "Kleine olijfkleurige kaaiman met een benige richel tussen de ogen, talrijk in trage rivieren en lagunes in Midden- en Zuid-Amerika.",
   "species_black_caiman_name": "Zwarte Kaaiman",
-  "species_black_caiman_desc": "De grootste roofdier van de Amazone, een zwarte gepantserde kaaiman tot vijf meter lang die 's nachts in meren en overstroomd bos jaagt.",
+  "species_black_caiman_desc": "Het grootste roofdier van de Amazone, een zwarte gepantserde kaaiman tot vijf meter lang die 's nachts in meren en overstroomd bos jaagt.",
   "species_freshwater_crocodile_name": "Australische Krokodil",
   "species_freshwater_crocodile_desc": "Smalsnuitige Australische krokodil van noordelijke rivieren en kloven, schuw en veel kleiner dan de zoutwaterkrokodil.",
   "species_northern_water_snake_name": "Noordelijke waterslang",
@@ -12220,7 +12259,7 @@
   "species_eurasian_beaver_name": "Europese Bever",
   "species_eurasian_beaver_desc": "Europa's grootste knaagdier, over het hele continent geherintroduceerd, dat oeverbomen velt en dammen en burchten bouwt.",
   "species_muskrat_name": "Muskusrat",
-  "species_muskrat_desc": "Ratgrote bruine knaagdier met een geschubde afgeplatte staart dat door lisdoddemoerassen zwemt en koepelvormige rietburchten bouwt.",
+  "species_muskrat_desc": "Ratgroot bruin knaagdier met een geschubde afgeplatte staart dat door lisdoddemoerassen zwemt en koepelvormige rietburchten bouwt.",
   "species_platypus_name": "Vogelbekdier",
   "species_platypus_desc": "Eierleggend zoogdier met een eendensnavel en zwemvliezen dat met gesloten ogen foerageert langs beken in oostelijk Australië bij zonsopgang en schemering.",
   "species_amazonian_manatee_name": "Amazonezeekoe",
@@ -13554,7 +13593,7 @@
   "transmitters_action_delete": "Zender verwijderen",
   "transmitters_action_apply": "Toepassen op bestaande duiken",
   "transmitters_apply_title": "Toepassen op bestaande duiken?",
-  "transmitters_apply_content": "{tanks} flessen in {dives} duiken dragen deze zender. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat wordt vervangen.",
+  "transmitters_apply_content": "{tanks} flessen in {dives} duiken dragen deze zender. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat of uit de zendernaam is afgeleid wordt vervangen.",
   "transmitters_apply_done": "{tanks} flessen bijgewerkt in {dives} duiken",
   "transmitters_apply_nothing": "Geen enkele fles draagt deze zender",
   "transmitters_delete_title": "Zender verwijderen?",
@@ -13581,6 +13620,7 @@
   "diveComputer_detail_transmittersSummary": "{known} bekend, {unassigned} niet toegewezen",
   "diveLog_tank_assignTransmitter": "Zender toewijzen",
   "diveLog_tank_reassignSeries": "Drukreeks opnieuw toewijzen",
+  "diveLog_tank_roleFromTransmitterName": "{role}, afgeleid uit de naam van de zender",
   "diveLog_reassignSheet_title": "Drukreeksen",
   "diveLog_reassignSheet_swap": "Wisselen",
   "diveLog_reassignSheet_moveTo": "Verplaatsen naar",
@@ -13590,6 +13630,8 @@
   "universalImport_summary_noticeUnknownTransmitterTitle": "Niet-toegewezen zenders",
   "universalImport_summary_noticeUnknownTransmitterBody": "Eén of meer zenders in deze download zijn niet aan een fles toegewezen. Wijs ze toe zodat toekomstige downloads de juiste inhoud en rol krijgen.",
   "universalImport_summary_noticeAssignTransmitters": "Zenders toewijzen",
+  "universalImport_summary_noticeTransmitterNameRolesTitle": "Flesrollen afgeleid uit zendernamen",
+  "universalImport_summary_noticeTransmitterNameRolesBody": "De duikcomputer heeft sommige zuurstof- en diluentrollen afgeleid uit de namen van zijn zenders: een naam die met O begint geldt als zuurstof, een die met D begint als diluent. Wijs de zenders toe om die rollen te bevestigen of te corrigeren.",
   "universalImport_summary_noticeDiveNumberConflictTitle": "Duiknummers al in gebruik",
   "universalImport_summary_noticeDiveNumberConflictBody": "Deze duiken hebben het nummer uit hun bron behouden, maar andere duiken in je logboek gebruiken dezelfde nummers al. Open Duiknummering in het menu van de duiklijst om ze opnieuw te nummeren.",
   "dataQuality_detector_unknown_transmitter": "Niet-toegewezen zender",

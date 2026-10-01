@@ -344,14 +344,7 @@
   "trips_story_checklistProgress": "{done} di {total} completati",
   "trips_story_generateItinerary": "Genera itinerario",
   "trips_story_openGallery": "Apri le foto del viaggio",
-  "trips_story_generateItineraryError": "Impossibile generare l'itinerario: {error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "Impossibile generare l'itinerario. Riprova.",
   "trips_dayType_diveDay": "Giorno di immersione",
   "trips_dayType_seaDay": "Giorno in mare",
   "trips_dayType_portDay": "Giorno in porto",
@@ -2137,6 +2130,8 @@
   "diveLog_deco_tissueSlow": "Lento",
   "diveLog_deco_title": "Stato deco",
   "diveLog_deco_totalDecoTime": "Totale: {time}",
+  "diveLog_deco_withheld_ccr": "Questa immersione con rebreather non ha né un setpoint né una ppO2 del loop registrati, quindi il carico tissutale, l'NDL e la decompressione non possono essere calcolati. Aggiungi il setpoint modificando l'immersione per calcolarli.",
+  "diveLog_deco_withheld_scr": "Questa immersione con rebreather semichiuso non ha una ppO2 del loop misurata, quindi il carico tissutale, l'NDL e la decompressione non possono essere calcolati.",
   "diveLog_delete_cancel": "Annulla",
   "diveLog_delete_confirm": "Questa azione non può essere annullata. L'immersione e tutti i dati associati (profilo, bombole, avvistamenti) saranno eliminati definitivamente.",
   "diveLog_delete_delete": "Elimina",
@@ -3652,6 +3647,7 @@
   "dropTarget_error_unsupportedFile": "Tipo di file non supportato",
   "dropTarget_error_wizardActive": "Completa prima l'importazione in corso",
   "dropTarget_error_readFailed": "Impossibile leggere il file",
+  "dropTarget_error_mediaNeedsDestination": "Per collegare foto e video, rilasciali su Media, su un'immersione o su un sito",
   "dropTarget_error_someUnreadable": "{count, plural, =1{Impossibile leggere {count} file, che è stato saltato} other{Impossibile leggere {count} file, che sono stati saltati}}",
   "enum_altitudeGroup_extreme": "Altitudine estrema",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",
@@ -4208,6 +4204,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "Questa immersione corrisponde già alla configurazione",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{{count} aggiornata} other{{count} aggiornate}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "Sostituire i dati delle bombole?",
+  "cylinderConfigs_overwriteBody": "Applicare {name} modifica bombole già presenti in questa immersione:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "Bombola {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "Le miscele e le pressioni iniziali dell'immersione vengono mantenute.",
+  "cylinderConfigs_overwriteConfirm": "Sostituisci",
+  "cylinderConfigs_fieldVolume": "Volume",
+  "cylinderConfigs_fieldWorkingPressure": "Pressione di esercizio",
+  "cylinderConfigs_fieldMaterial": "Materiale",
   "cylinderConfigs_sectionTitle": "Configurazioni",
   "equipment_serviceClocks_hoursSource": "Calcolato dal tempo di immersione registrato",
   "equipment_serviceClocks_hoursLeft": "{remaining} ore rimanenti su {total}",
@@ -4420,6 +4463,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Nulla ha la manutenzione scaduta.",
   "equipment_list_errorLoading": "Errore nel caricamento dell'attrezzatura: {error}",
   "equipment_list_filterAll": "Tutta l'attrezzatura",
+  "equipment_list_filterCurrent": "Attrezzatura attuale",
   "equipment_list_filterServiceDue": "Manutenzione prevista",
   "equipment_list_filterServiceDueSoon": "In scadenza",
   "equipment_list_filterServiceOverdue": "Scaduta",
@@ -5262,6 +5306,8 @@
   "media_import_review_chooseSite": "Scegli sito",
   "media_import_review_ambiguous": "Più immersioni corrispondono",
   "media_import_review_noMatch": "Nessuna immersione corrispondente",
+  "media_import_review_noCaptureTime": "Nessuna data di scatto trovata",
+  "media_import_review_noMatchFileDate": "Nessuna immersione corrisponde alla data del file; il file non ha una data di scatto",
   "media_import_review_skipped": "Non importato",
   "media_import_review_linkChip": "Collega a #{number}",
   "media_import_review_linkToDive": "Collega a un'immersione",
@@ -6057,7 +6103,7 @@
   "settings_manage_weightPresets": "Preset di zavorra",
   "settings_manage_weightPresets_subtitle": "Set di pesi riutilizzabili per un'immersione",
   "weightPresets_page_title": "Preset di zavorra",
-  "weightPresets_page_empty": "Salva una zavorra dall'editor dell'immersione e comparirà qui per riutilizzarla.",
+  "weightPresets_page_empty": "Salva una zavorra dall'editor dell'immersione oppure tocca + per crearne una qui.",
   "weightPresets_action_rename": "Rinomina",
   "weightPresets_action_new": "New preset",
   "weightPresets_action_edit": "Edit",
@@ -6159,7 +6205,7 @@
   "settings_section_appearance_title": "Aspetto",
   "settings_section_data_subtitle": "Backup, ripristino e archiviazione",
   "settings_section_data_title": "Dati",
-  "settings_section_decompression_subtitle": "Fattori di gradiente",
+  "settings_section_decompression_subtitle": "GF, fonti dei dati e narcosi",
   "settings_section_decompression_title": "Decompressione",
   "settings_section_diverProfile_subtitle": "Subacqueo attivo e profili",
   "settings_section_diverProfile_title": "Profilo subacqueo",
@@ -7010,7 +7056,7 @@
   "transfer_csvExport_unitsMine": "Le mie unità",
   "transfer_csvExport_unitsMineDescription": "Valori nelle tue impostazioni di unità, data e ora, indicate nell'intestazione di ogni colonna",
   "transfer_detail_backTooltip": "Torna al trasferimento",
-  "transfer_export_aboutContent": "Esporta i tuoi dati di immersione in vari formati. Il PDF crea un logbook stampabile. L'UDDF è un formato universale compatibile con la maggior parte dei software di registrazione immersioni. I file CSV possono essere aperti nelle applicazioni di fogli di calcolo.",
+  "transfer_export_aboutContent": "Esporta i tuoi dati di immersione in vari formati. Il PDF crea un logbook stampabile. L'UDDF è un formato universale compatibile con la maggior parte dei software di registrazione immersioni. I file CSV ed Excel possono essere aperti nelle applicazioni di fogli di calcolo. Puoi anche eseguire il backup dell'intero database da Impostazioni > Backup e ripristino.",
   "transfer_export_aboutTitle": "Informazioni sull'esportazione",
   "transfer_export_backupLink": "Vai a Backup e ripristino",
   "transfer_export_completed": "Esportazione completata",
@@ -7040,7 +7086,7 @@
   "transfer_export_uddfTitle": "Esportazione UDDF",
   "transfer_import_aboutContent": "Usa \"Importa dati\" per la migliore esperienza -- rileva automaticamente il formato del file e l'app di origine. Le opzioni per i singoli formati qui sotto sono disponibili anche per l'accesso diretto.",
   "transfer_import_aboutTitle": "Informazioni sull'importazione",
-  "transfer_import_fileImportSemanticLabel": "Importa dati con rilevamento automatico",
+  "transfer_import_fileImportSemanticLabel": "Importa dati di immersione da file",
   "transfer_import_fileImportSubtitle": "Rileva automaticamente CSV, UDDF, FIT e altro",
   "transfer_import_fileImportTitle": "Importa dati",
   "transfer_import_sectionHeader": "Importa dati",
@@ -7095,6 +7141,7 @@
   "trips_detail_dialog_deleteTitle": "Eliminare il viaggio?",
   "trips_detail_dives_empty": "Nessuna immersione in questo viaggio ancora",
   "trips_detail_dives_errorLoading": "Impossibile caricare le immersioni",
+  "trips_detail_error_loading": "Impossibile caricare il viaggio.",
   "trips_detail_dives_unknownSite": "Sito sconosciuto",
   "trips_detail_dives_viewAll": "Visualizza tutte ({count})",
   "trips_detail_durationDays": "{days} giorni",
@@ -7115,8 +7162,8 @@
   "trips_detail_label_vesselType": "Type",
   "trips_detail_scan_accessDenied": "Accesso alla libreria foto negato",
   "trips_detail_scan_addDivesFirst": "Aggiungi prima le immersioni per collegare le foto",
-  "trips_detail_scan_errorLinking": "Errore nel collegamento delle foto: {error}",
-  "trips_detail_scan_errorScanning": "Errore nella scansione: {error}",
+  "trips_detail_scan_errorLinking": "Impossibile collegare le foto. Riprova.",
+  "trips_detail_scan_errorScanning": "Impossibile cercare le foto. Riprova.",
   "trips_detail_scan_linkedPhotos": "Collegate {count} foto",
   "trips_detail_scan_linkingPhotos": "Collegamento foto in corso...",
   "trips_detail_sectionTitle_dailyBreakdown": "Daily Breakdown",
@@ -7333,14 +7380,7 @@
   "trips_cylinders_forecast_useEstimate": "Usa la stima",
   "trips_cylinders_forecast_fewer": "Meno immersioni",
   "trips_cylinders_forecast_more": "Più immersioni",
-  "trips_cylinders_forecast_saveError": "Impossibile salvare il piano: {error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "Impossibile salvare il piano. Riprova.",
   "trips_cylinders_forecast_dayPlanned": "Pianificato da te",
   "trips_cylinders_segment_record": "Consumi",
   "trips_cylinders_recordEmpty": "Ancora nessuna immersione con queste bombole.",
@@ -7402,6 +7442,7 @@
     }
   },
   "trips_cylinders_record_exported": "Consumi di gas esportati",
+  "trips_cylinders_record_exportFailed": "Impossibile esportare i consumi di gas. Riprova.",
   "trips_cylinders_title": "Bombole",
   "trips_cylinders_summary": "Piene {full} · Parziali {partial} · Vuote {empty}",
   "@trips_cylinders_summary": {
@@ -7602,8 +7643,8 @@
   "trips_edit_sectionTitle_vessel": "Vessel Details",
   "trips_edit_semanticLabel_save": "Salva viaggio",
   "trips_edit_snackBar_added": "Viaggio aggiunto con successo",
-  "trips_edit_snackBar_errorLoading": "Errore nel caricamento del viaggio: {error}",
-  "trips_edit_snackBar_errorSaving": "Errore nel salvataggio del viaggio: {error}",
+  "trips_edit_snackBar_errorLoading": "Impossibile caricare il viaggio. Riprova.",
+  "trips_edit_snackBar_errorSaving": "Impossibile salvare il viaggio. Riprova.",
   "trips_edit_snackBar_updated": "Viaggio aggiornato con successo",
   "trips_edit_validation_nameRequired": "Inserisci un nome per il viaggio",
   "trips_edit_validation_vesselRequired": "Vessel name is required for liveaboard trips",
@@ -7614,9 +7655,9 @@
   "trips_gallery_diveSection_title": "Immersione #{number} - {site}",
   "trips_gallery_empty_subtitle": "Tocca l'icona della fotocamera per scansionare la tua galleria",
   "trips_gallery_empty_title": "Nessuna foto in questo viaggio",
-  "trips_gallery_errorLinking": "Errore nel collegamento delle foto: {error}",
-  "trips_gallery_errorScanning": "Errore nella scansione: {error}",
-  "trips_gallery_error_loading": "Errore nel caricamento delle foto: {error}",
+  "trips_gallery_errorLinking": "Impossibile collegare le foto. Riprova.",
+  "trips_gallery_errorScanning": "Impossibile cercare le foto. Riprova.",
+  "trips_gallery_error_loading": "Impossibile caricare le foto.",
   "trips_gallery_linkedPhotos": "Collegate {count} foto",
   "trips_gallery_linkingPhotos": "Collegamento foto in corso...",
   "trips_gallery_tooltip_scan": "Scansiona galleria del dispositivo",
@@ -7626,6 +7667,8 @@
   "trips_itinerary_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_noDives": "No dives",
+  "trips_itinerary_error_loading": "Impossibile caricare l'itinerario.",
+  "trips_itinerary_daySaveError": "Impossibile salvare la giornata. Riprova.",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_list_button_retry": "Riprova",
@@ -7635,7 +7678,7 @@
   "trips_list_empty_filtered_title": "Nessun viaggio corrisponde ai filtri",
   "trips_list_empty_subtitle": "Crea viaggi per raggruppare le immersioni per destinazione",
   "trips_list_empty_title": "Nessun viaggio aggiunto ancora",
-  "trips_list_error_loading": "Errore nel caricamento dei viaggi: {error}",
+  "trips_list_error_loading": "Impossibile caricare i tuoi viaggi.",
   "trips_list_fab_addTrip": "Aggiungi viaggio",
   "trips_list_filters_clearAll": "Cancella tutti",
   "trips_list_inProgress": "In corso",
@@ -7657,7 +7700,7 @@
   "trips_picker_clearTooltip": "Cancella selezione",
   "trips_picker_empty_createButton": "Crea viaggio",
   "trips_picker_empty_title": "Nessun viaggio ancora",
-  "trips_picker_error": "Errore nel caricamento dei viaggi: {error}",
+  "trips_picker_error": "Impossibile caricare i tuoi viaggi.",
   "trips_picker_hint": "Tocca per selezionare un viaggio",
   "trips_picker_newTrip": "Nuovo viaggio",
   "trips_picker_noSelection": "Nessun viaggio selezionato",
@@ -7667,6 +7710,7 @@
   "trips_search_empty_hint": "Cerca per nome, località o resort",
   "trips_search_fieldLabel": "Cerca viaggi...",
   "trips_search_noResults": "Nessun viaggio trovato per \"{query}\"",
+  "trips_search_error": "Impossibile cercare nei tuoi viaggi.",
   "trips_search_tooltip_back": "Indietro",
   "trips_search_tooltip_clear": "Cancella ricerca",
   "trips_summary_header_subtitle": "Seleziona un viaggio dalla lista per visualizzare i dettagli",
@@ -7961,14 +8005,7 @@
     }
   },
   "trips_diveScan_deselectAll": "Deseleziona tutto",
-  "trips_diveScan_error": "Errore nella ricerca delle immersioni: {error}",
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_diveScan_error": "Impossibile cercare le immersioni. Riprova.",
   "trips_diveScan_findButton": "Trova immersioni corrispondenti",
   "trips_diveScan_groupOtherTrips": "In altri viaggi ({count})",
   "@trips_diveScan_groupOtherTrips": {
@@ -9575,6 +9612,8 @@
   },
   "diveLog_detail_altitudeMismatch_title": "Il sito è in quota",
   "diveLog_detail_altitudeMismatch_subtitle": "Questo sito registra un'altitudine ma l'immersione non ne ha una, quindi l'analisi di decompressione ha assunto il livello del mare. Imposta l'altitudine dell'immersione per correggere.",
+  "diveLog_detail_sacSegmentsNoPressure": "Sono state registrate solo le pressioni iniziale e finale della bombola, quindi il consumo di gas non può essere suddiviso in segmenti. Servono letture di pressione durante l'immersione, ad esempio da un trasmettitore. La media dell'intera immersione è riportata in Bombole.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "Nessuna pressione della bombola registrata durante l'immersione",
   "diveLog_detail_sacVolumeHint": "Aggiungi il volume della bombola per mostrare l'RMV in {unit}",
   "emergencyCard_title": "Emergenza",
   "emergencyCard_callDan": "Chiama {name}",
@@ -11999,7 +12038,7 @@
   "species_european_sturgeon_desc": "Storione corazzato in pericolo critico dei fiumi atlantici, oggi allevato e rilasciato nella Garonna e nell'Elba.",
   "species_alligator_gar_name": "Luccio alligatore",
   "species_alligator_gar_desc": "Gigante preistorico dal muso largo e dentato con squame corazzate a rombo, risale a ingoiare aria nei fiumi meridionali.",
-  "species_longnose_gar_name": "Luccio alligatore",
+  "species_longnose_gar_name": "Lepisosteo dal muso lungo",
   "species_longnose_gar_desc": "Pesce corazzato snello dal muso ad ago, sospeso immobile appena sotto la superficie dei fiumi caldi.",
   "species_bowfin_name": "Amia",
   "species_bowfin_desc": "Fossile vivente con lunga pinna dorsale ondulante e testa ossea, custodisce gli avannotti nelle lanche erbose.",
@@ -13554,7 +13593,7 @@
   "transmitters_action_delete": "Elimina trasmettitore",
   "transmitters_action_apply": "Applica alle immersioni esistenti",
   "transmitters_apply_title": "Applicare alle immersioni esistenti?",
-  "transmitters_apply_content": "{tanks} bombole in {dives} immersioni portano questo trasmettitore. I campi vuoti di dimensione, materiale, nome e attrezzatura verranno compilati e un ruolo ancora impostato su Gas di fondo verrà sostituito.",
+  "transmitters_apply_content": "{tanks} bombole in {dives} immersioni portano questo trasmettitore. I campi vuoti di dimensione, materiale, nome e attrezzatura verranno compilati e un ruolo ancora impostato su Gas di fondo o letto dal nome del trasmettitore verrà sostituito.",
   "transmitters_apply_done": "Aggiornate {tanks} bombole in {dives} immersioni",
   "transmitters_apply_nothing": "Nessuna bombola porta questo trasmettitore",
   "transmitters_delete_title": "Eliminare il trasmettitore?",
@@ -13581,6 +13620,7 @@
   "diveComputer_detail_transmittersSummary": "{known} noti, {unassigned} non assegnati",
   "diveLog_tank_assignTransmitter": "Assegna trasmettitore",
   "diveLog_tank_reassignSeries": "Riassegna serie di pressione",
+  "diveLog_tank_roleFromTransmitterName": "{role}, letto dal nome del trasmettitore",
   "diveLog_reassignSheet_title": "Serie di pressione",
   "diveLog_reassignSheet_swap": "Scambia",
   "diveLog_reassignSheet_moveTo": "Sposta su",
@@ -13590,6 +13630,8 @@
   "universalImport_summary_noticeUnknownTransmitterTitle": "Trasmettitori non assegnati",
   "universalImport_summary_noticeUnknownTransmitterBody": "Uno o più trasmettitori di questo download non sono assegnati a una bombola. Assegnali perché i prossimi download abbiano dimensione e ruolo corretti.",
   "universalImport_summary_noticeAssignTransmitters": "Assegna trasmettitori",
+  "universalImport_summary_noticeTransmitterNameRolesTitle": "Ruoli delle bombole letti dai nomi dei trasmettitori",
+  "universalImport_summary_noticeTransmitterNameRolesBody": "Il computer subacqueo ha ricavato alcuni ruoli di ossigeno e diluente dai nomi dati ai trasmettitori: un nome che inizia con O è letto come ossigeno, uno che inizia con D come diluente. Assegna i trasmettitori per confermare o correggere questi ruoli.",
   "universalImport_summary_noticeDiveNumberConflictTitle": "Numeri di immersione già in uso",
   "universalImport_summary_noticeDiveNumberConflictBody": "Queste immersioni hanno mantenuto il numero della loro sorgente, ma altre immersioni del tuo registro usano già gli stessi numeri. Apri Numerazione immersioni dal menu dell'elenco immersioni per rinumerarle.",
   "dataQuality_detector_unknown_transmitter": "Trasmettitore non assegnato",

@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/media/presentation/helpers/files_tab_staging.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
@@ -44,6 +45,16 @@ class PhotoPickerPage extends ConsumerStatefulWidget {
   /// importer.
   final MediaAttachTarget? target;
 
+  /// Files the user already has in hand, such as a desktop drag-and-drop
+  /// (issue #2488), staged in the Files tab for review the moment the page
+  /// opens.
+  ///
+  /// When set, the page opens on the Files tab and the Gallery tab loads
+  /// only once it is shown. On Windows and Linux loading the Gallery opens a
+  /// file dialog, which would otherwise pop up over the files the user just
+  /// dropped.
+  final List<String>? initialFilePaths;
+
   const PhotoPickerPage({
     super.key,
     required this.startTime,
@@ -51,23 +62,71 @@ class PhotoPickerPage extends ConsumerStatefulWidget {
     this.alreadyLinkedIds = const {},
     this.onSelectionConfirmed,
     this.target,
+    this.initialFilePaths,
   });
 
   @override
   ConsumerState<PhotoPickerPage> createState() => _PhotoPickerPageState();
 }
 
-class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
+class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
+    with SingleTickerProviderStateMixin {
+  static const _galleryTabIndex = 0;
+  static const _filesTabIndex = 1;
+
   List<AssetInfo>? _assets;
+  late final TabController _tabController;
+  late final ValueNotifier<int> _openSessions;
+  bool _galleryLoadStarted = false;
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(_clearStaleStaging);
+    _openSessions = ref.read(openPhotoPickerSessionsProvider);
+    _openSessions.value++;
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: widget.initialFilePaths == null
+          ? _galleryTabIndex
+          : _filesTabIndex,
+    )..addListener(_loadGalleryWhenShown);
+    Future.microtask(_startSession);
+    _loadGalleryWhenShown();
+  }
+
+  @override
+  void dispose() {
+    _openSessions.value--;
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  /// Starts the Gallery tab's permission check and asset load the first time
+  /// that tab is the one on screen.
+  void _loadGalleryWhenShown() {
+    if (_galleryLoadStarted || _tabController.index != _galleryTabIndex) {
+      return;
+    }
+    _galleryLoadStarted = true;
     logFailure(
       _checkPermissionAndLoad(),
       _PhotoPickerPageState,
       'check permission and load',
+    );
+  }
+
+  /// Clears what an earlier session left behind, then stages the files this
+  /// session was opened with. In that order, so the clear cannot wipe them.
+  Future<void> _startSession() async {
+    _clearStaleStaging();
+    final paths = widget.initialFilePaths;
+    if (!mounted || paths == null || paths.isEmpty) return;
+    await stageFilesForReview(
+      ProviderScope.containerOf(context, listen: false),
+      paths,
+      target: widget.target,
+      isActive: () => mounted,
     );
   }
 
@@ -79,8 +138,8 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
   ///
   /// Deferred by a microtask because Riverpod forbids mutating a provider
   /// inside a widget life-cycle. It still lands before the first frame the
-  /// user can interact with, and well before the Files tab is reachable
-  /// (it is not even the initially-selected tab).
+  /// user can interact with, and before [_startSession] stages any files
+  /// the page was opened with.
   void _clearStaleStaging() {
     if (!mounted) return;
     ref.read(filesTabNotifierProvider.notifier).clearStagedFiles();
@@ -170,45 +229,40 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
       ),
     );
 
-    return DefaultTabController(
-      length: 3,
-      child: Builder(
-        builder: (context) {
-          final tabController = DefaultTabController.of(context);
-          return Scaffold(
-            appBar: AppBar(
-              leading: appBarLeading,
-              title: Text(context.l10n.media_photoPicker_appBarTitle),
-              actions: [
-                // Done commits the GALLERY tab's selection; the Files and URL
-                // tabs carry their own commit buttons. Showing a
-                // permanently-greyed Done over those tabs read as "the app
-                // rejected my photos" to users who had staged files there,
-                // so the action tracks the active tab.
-                ListenableBuilder(
-                  listenable: tabController,
-                  builder: (context, _) => tabController.index == 0
-                      ? doneAction
-                      : const SizedBox.shrink(),
-                ),
-              ],
-              bottom: TabBar(
-                tabs: [
-                  Tab(text: context.l10n.media_photoPicker_tab_gallery),
-                  Tab(text: context.l10n.media_photoPicker_tab_files),
-                  Tab(text: context.l10n.media_photoPicker_tab_url),
-                ],
-              ),
-            ),
-            body: TabBarView(
-              children: [
-                _galleryTab(context),
-                FilesTab(target: widget.target),
-                UrlTab(target: widget.target),
-              ],
-            ),
-          );
-        },
+    final tabController = _tabController;
+    return Scaffold(
+      appBar: AppBar(
+        leading: appBarLeading,
+        title: Text(context.l10n.media_photoPicker_appBarTitle),
+        actions: [
+          // Done commits the GALLERY tab's selection; the Files and URL
+          // tabs carry their own commit buttons. Showing a
+          // permanently-greyed Done over those tabs read as "the app
+          // rejected my photos" to users who had staged files there,
+          // so the action tracks the active tab.
+          ListenableBuilder(
+            listenable: tabController,
+            builder: (context, _) => tabController.index == _galleryTabIndex
+                ? doneAction
+                : const SizedBox.shrink(),
+          ),
+        ],
+        bottom: TabBar(
+          controller: tabController,
+          tabs: [
+            Tab(text: context.l10n.media_photoPicker_tab_gallery),
+            Tab(text: context.l10n.media_photoPicker_tab_files),
+            Tab(text: context.l10n.media_photoPicker_tab_url),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: tabController,
+        children: [
+          _galleryTab(context),
+          FilesTab(target: widget.target),
+          UrlTab(target: widget.target),
+        ],
       ),
     );
   }
@@ -285,26 +339,27 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
       children: [
         // Date range header
         _DateRangeHeader(startTime: widget.startTime, endTime: widget.endTime),
-        // Selection toolbar (shown when items are selected)
-        if (state.selectionCount > 0)
-          _SelectionToolbar(
-            selectedCount: state.selectionCount,
-            totalCount: _assets!
+        // Selection toolbar. Always present, even with nothing selected, so
+        // the first tap does not push the grid down a row under the user's
+        // next tap (#2059).
+        _SelectionToolbar(
+          selectedCount: state.selectionCount,
+          totalCount: _assets!
+              .where((a) => !state.alreadyLinkedIds.contains(a.id))
+              .length,
+          onSelectAll: () {
+            final selectableIds = _assets!
                 .where((a) => !state.alreadyLinkedIds.contains(a.id))
-                .length,
-            onSelectAll: () {
-              final selectableIds = _assets!
-                  .where((a) => !state.alreadyLinkedIds.contains(a.id))
-                  .map((a) => a.id)
-                  .toList();
-              ref
-                  .read(photoPickerNotifierProvider.notifier)
-                  .selectAll(selectableIds);
-            },
-            onClearSelection: () {
-              ref.read(photoPickerNotifierProvider.notifier).clearSelection();
-            },
-          ),
+                .map((a) => a.id)
+                .toList();
+            ref
+                .read(photoPickerNotifierProvider.notifier)
+                .selectAll(selectableIds);
+          },
+          onClearSelection: () {
+            ref.read(photoPickerNotifierProvider.notifier).clearSelection();
+          },
+        ),
         // Photo grid
         Expanded(
           child: DragSelectGridView<AssetInfo>(
@@ -392,6 +447,9 @@ class _DateRangeHeader extends ConsumerWidget {
 }
 
 /// Toolbar showing selection count with Select All and Clear buttons.
+///
+/// A button that has nothing to do is disabled rather than removed, so the
+/// toolbar keeps the same layout for every selection.
 class _SelectionToolbar extends StatelessWidget {
   final int selectedCount;
   final int totalCount;
@@ -427,13 +485,12 @@ class _SelectionToolbar extends StatelessWidget {
             style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
           ),
           const Spacer(),
-          if (selectedCount < totalCount)
-            TextButton(
-              onPressed: onSelectAll,
-              child: Text(context.l10n.media_photoPicker_selectAllButton),
-            ),
           TextButton(
-            onPressed: onClearSelection,
+            onPressed: selectedCount < totalCount ? onSelectAll : null,
+            child: Text(context.l10n.media_photoPicker_selectAllButton),
+          ),
+          TextButton(
+            onPressed: selectedCount > 0 ? onClearSelection : null,
             child: Text(context.l10n.media_photoPicker_clearSelectionButton),
           ),
         ],
@@ -723,6 +780,8 @@ class _PlaceholderTab extends StatelessWidget {
 /// Shows the photo picker as a full-screen modal.
 ///
 /// Returns the list of selected [AssetInfo] objects, or null if cancelled.
+/// [initialFilePaths] opens it on the Files tab with those files staged; see
+/// [PhotoPickerPage.initialFilePaths].
 Future<List<AssetInfo>?> showPhotoPicker({
   required BuildContext context,
   required DateTime diveStartTime,
@@ -730,6 +789,7 @@ Future<List<AssetInfo>?> showPhotoPicker({
   Set<String> alreadyLinkedIds = const {},
   Duration buffer = const Duration(minutes: 30),
   MediaAttachTarget? target,
+  List<String>? initialFilePaths,
 }) {
   final startTime = diveStartTime.subtract(buffer);
   final endTime = diveEndTime.add(buffer);
@@ -742,6 +802,7 @@ Future<List<AssetInfo>?> showPhotoPicker({
         endTime: endTime,
         alreadyLinkedIds: alreadyLinkedIds,
         target: target,
+        initialFilePaths: initialFilePaths,
       ),
     ),
   );

@@ -603,10 +603,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(
-      find.text("Couldn't save the plan: Bad state: disk full"),
-      findsOneWidget,
-    );
+    expect(find.text("Couldn't save the plan. Try again."), findsOneWidget);
+    expect(find.textContaining('disk full'), findsNothing);
     final chip = tester.widget<ActionChip>(
       find.byKey(const Key('forecast-day-0')),
     );

@@ -1861,6 +1861,143 @@ void main() {
       expect(tank.transmitterSerial, '109623');
     });
 
+    group('DiveTanks carry-over: a role read off the transmitter name '
+        '(#2595)', () {
+      /// A Shearwater CCR parse whose one transmitter is tagged oxygen, as a
+      /// bailout the diver named "OC" arrives.
+      pigeon.ParsedDive nameTaggedOxygen() => makeParsedDive(
+        diveMode: 'ccr',
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: 4294967295,
+            startPressureBar: 200.0,
+            endPressureBar: 190.0,
+            usage: 1,
+            transmitterSerial: 109623,
+          ),
+        ],
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0)],
+      );
+
+      Future<void> seed({required String role, String? roleSource}) async {
+        await insertDive('dive-1', diveMode: 'ccr');
+        await insertComputer('comp-1');
+        await insertSource(
+          id: 'src-1',
+          diveId: 'dive-1',
+          computerId: 'comp-1',
+          isPrimary: true,
+        );
+        await db
+            .into(db.diveTanks)
+            .insert(
+              DiveTanksCompanion(
+                id: const Value('tank-0'),
+                diveId: const Value('dive-1'),
+                o2Percent: const Value(100.0),
+                tankOrder: const Value(0),
+                tankRole: Value(role),
+                roleSource: Value(roleSource),
+              ),
+            );
+      }
+
+      TransmitterMatcher bailoutEntry() => TransmitterMatcher.fromEntries([
+        Transmitter(
+          id: 'e1',
+          transmitterSerial: '109623',
+          label: 'OC',
+          role: TankRole.bailout,
+          createdAt: DateTime.utc(2026, 9, 1),
+          updatedAt: DateTime.utc(2026, 9, 1),
+        ),
+      ]);
+
+      Future<DiveTank> reparse() async {
+        await service.applyParsedUpdate(
+          diveId: 'dive-1',
+          sourceRowId: 'src-1',
+          parsed: nameTaggedOxygen(),
+          descriptorVendor: 'Shearwater',
+          descriptorProduct: 'Petrel 3',
+          descriptorModel: 0,
+          libdivecomputerVersion: null,
+        );
+        return (db.select(
+          db.diveTanks,
+        )..where((t) => t.id.equals('tank-0'))).getSingle();
+      }
+
+      test('a new row records the source', () async {
+        await insertDive('dive-1', diveMode: 'ccr');
+        await insertComputer('comp-1');
+        await insertSource(
+          id: 'src-1',
+          diveId: 'dive-1',
+          computerId: 'comp-1',
+          isPrimary: true,
+        );
+        await service.applyParsedUpdate(
+          diveId: 'dive-1',
+          sourceRowId: 'src-1',
+          parsed: nameTaggedOxygen(),
+          descriptorVendor: 'Shearwater',
+          descriptorProduct: 'Petrel 3',
+          descriptorModel: 0,
+          libdivecomputerVersion: null,
+        );
+        final tank = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.transmitterSerial.equals('109623'))).getSingle();
+        expect(tank.tankRole, 'oxygenSupply');
+        expect(tank.roleSource, 'transmitterName');
+      });
+
+      test(
+        'a row from before v254 with the same role gains the source',
+        () async {
+          await seed(role: 'oxygenSupply');
+          final tank = await reparse();
+          expect(tank.tankRole, 'oxygenSupply');
+          expect(tank.roleSource, 'transmitterName');
+        },
+      );
+
+      test('a name-derived row takes the registry role and drops the '
+          'source', () async {
+        await seed(role: 'oxygenSupply', roleSource: 'transmitterName');
+        service = ReparseService(
+          db: db,
+          transmitterMatcherLoader: () async => bailoutEntry(),
+        );
+        final tank = await reparse();
+        expect(tank.tankRole, 'bailout');
+        expect(tank.roleSource, isNull);
+      });
+
+      test('a row from before v254 is corrected once the transmitter is '
+          'registered', () async {
+        // Imported before v254, so the guess carries no source; the diver
+        // registered the transmitter as Bailout before re-parsing.
+        await seed(role: 'oxygenSupply');
+        service = ReparseService(
+          db: db,
+          transmitterMatcherLoader: () async => bailoutEntry(),
+        );
+        final tank = await reparse();
+        expect(tank.tankRole, 'bailout');
+        expect(tank.roleSource, isNull);
+      });
+
+      test('a role the diver set is never touched', () async {
+        await seed(role: 'bailout');
+        final tank = await reparse();
+        expect(tank.tankRole, 'bailout');
+        expect(tank.roleSource, isNull);
+      });
+    });
+
     test('DiveTanks carry-over: writes the transmitter serial on both an '
         'existing tank and a new one', () async {
       // Tanks downloaded before v194 have no serial; a re-parse of the stored

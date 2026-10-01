@@ -46,18 +46,79 @@ void main() {
   test('no status keeps the default view and the whole query', () {
     final f = exploreEquipmentFilter(regulators);
     expect(f.status, isNull);
+    expect(f.allStatuses, isFalse);
     expect(f.query, regulators);
   });
 
-  test('a negated or several statuses stay in the query', () {
+  test('no query keeps the default view', () {
+    final f = exploreEquipmentFilter(null);
+    expect(f.status, isNull);
+    expect(f.allStatuses, isFalse);
+    expect(f.query, isNull);
+  });
+
+  // The default view hides retired and sold gear (#636), so a status the
+  // query decides on its own reads every status instead (#2590): otherwise
+  // "retired or sold gear" found nothing and "gear that is not active" lost
+  // its retired and sold items.
+  test('a negated status stays in the query over every status', () {
     final not = NotNode(status('retired'));
-    expect(exploreEquipmentFilter(not).status, isNull);
-    expect(exploreEquipmentFilter(not).query, not);
+    final f = exploreEquipmentFilter(not);
+    expect(f.status, isNull);
+    expect(f.allStatuses, isTrue);
+    expect(f.query, not);
+  });
+
+  test('several statuses stay in the query over every status', () {
     final two = ConditionNode(
       FieldPath(const ['status']),
       QueryOp.inList,
       ListValue(const [EnumValue('retired'), EnumValue('sold')]),
     );
-    expect(exploreEquipmentFilter(two).status, isNull);
+    final f = exploreEquipmentFilter(AndNode([regulators, two]));
+    expect(f.status, isNull);
+    expect(f.allStatuses, isTrue);
+    expect(f.query, AndNode([regulators, two]));
+  });
+
+  // The default view also pins the legacy active flag, so a query on it
+  // contradicts that view the same way.
+  test('a query on the active flag reads every status', () {
+    final inactive = ConditionNode(
+      FieldPath(const ['active']),
+      QueryOp.eq,
+      const BoolValue(false),
+    );
+    final f = exploreEquipmentFilter(AndNode([regulators, inactive]));
+    expect(f.status, isNull);
+    expect(f.allStatuses, isTrue);
+    expect(f.query, AndNode([regulators, inactive]));
+  });
+
+  // Free text and a scoped condition say nothing about the item's own
+  // status (a scoped `status` would be another entity's), so they keep the
+  // default view.
+  test('free text or a scoped condition keeps the default view', () {
+    final words = TextNode(const ['apeks']);
+    final scoped = ScopedNode(
+      FieldPath(const ['tags']),
+      ConditionNode(
+        FieldPath(const ['status']),
+        QueryOp.eq,
+        const StringValue('x'),
+      ),
+    );
+    final f = exploreEquipmentFilter(AndNode([words, scoped]));
+    expect(f.status, isNull);
+    expect(f.allStatuses, isFalse);
+    expect(f.query, AndNode([words, scoped]));
+  });
+
+  test('a status inside an Or reads every status', () {
+    final either = OrNode([status('retired'), regulators]);
+    final f = exploreEquipmentFilter(either);
+    expect(f.status, isNull);
+    expect(f.allStatuses, isTrue);
+    expect(f.query, either);
   });
 }

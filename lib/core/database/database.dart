@@ -1033,12 +1033,17 @@ class AppDatabase extends _$AppDatabase {
     // linked route's dive (issue #2691 follow-up). Additive nullable column,
     // so the floor does not move. 251 is dive_tanks.source_id (#2716).
     252,
+    // v254: dive_tanks.role_source, where a cylinder's role came from
+    // (issue #2595). An additive nullable column, so the floor does not
+    // move. 251 is dive_tanks.source_id (#2716) and 252
+    // nav_tracks.diver_id (#2703); 253 is held by an open branch (#2592).
+    254,
     // v255: drops the ceilings safety stop samples carried from every
     // stored profile series (issue #2550): a safety stop is no deco
     // obligation, and its depth drew a deco stop band. Rewrites blobs in
     // place without moving their sync stamp; an older peer's copy still
-    // reads as a safety stop, so the floor does not move. 253 and 254 are
-    // held by #2748 and #2749.
+    // reads as a safety stop, so the floor does not move. 254 is
+    // dive_tanks.role_source (#2595); 253 is held by #2748.
     255,
   ];
 

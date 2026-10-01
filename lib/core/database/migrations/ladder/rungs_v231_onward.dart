@@ -137,11 +137,19 @@ extension RungsFromV231 on AppDatabase {
       await _backfillNavTrackDiverIds();
     }
     if (from < 252) await reportProgress();
+    // v254: dive_tanks.role_source, where a cylinder's role came from
+    // (issue #2595). Column only, no backfill: a stored role's origin is
+    // unknown, and a re-parse fills it. Re-asserted in beforeOpen. 253 is
+    // held by an open branch.
+    if (from < 254) {
+      await _assertTankRoleSourceColumn();
+    }
+    if (from < 254) await reportProgress();
     // v255: a safety stop is no decompression ceiling (issue #2550). Drops
     // the ceilings safety stop samples carried from every stored series.
     // Rung only: new imports no longer write them, and every reader ignores
-    // one that still arrives from an older peer. 253 and 254 are held by
-    // #2748 and #2749.
+    // one that still arrives from an older peer. 254 is dive_tanks.role_source
+    // (#2595); 253 is held by #2748.
     if (from < 255) {
       await _scrubSafetyStopCeilings();
     }

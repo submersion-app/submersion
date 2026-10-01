@@ -1419,12 +1419,14 @@ void main() {
                   AsyncValue.error(Exception('load-boom'), StackTrace.current),
             ),
           ],
+          locale: const Locale('en'),
           child: const TripListContent(showAppBar: true),
         ),
       );
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
-      expect(find.textContaining('load-boom'), findsOneWidget);
+      expect(find.text("Couldn't load your trips."), findsOneWidget);
+      expect(find.textContaining('load-boom'), findsNothing);
       expect(find.text('Retry'), findsOneWidget);
     });
   });
@@ -1619,6 +1621,37 @@ void main() {
       final subtitle = effectiveStyleOf(tester, 'Mar 2, 2025 - Mar 9, 2025');
       expect(subtitle.fontSize, theme.textTheme.bodyMedium!.fontSize);
       expect(subtitle.color, theme.colorScheme.onSurfaceVariant);
+    });
+
+    testWidgets('a failed search says so without the exception', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
+        viewMode: ListViewMode.detailed,
+      );
+      overrides.add(
+        tripSearchProvider.overrideWith(
+          (ref, query) async => throw StateError('database is locked'),
+        ),
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Mal');
+      await tester.pumpAndSettle();
+
+      expect(find.text("Couldn't search your trips."), findsOneWidget);
+      expect(find.textContaining('database is locked'), findsNothing);
     });
 
     testWidgets('title keeps the title font family under the console theme', (

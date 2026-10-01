@@ -62,12 +62,22 @@ class SuuntoDiveParser {
     final deviceInternalName = device?['Name'] as String?;
     final gasOffset = _gasOffsetFor(deviceInternalName, samples);
 
-    final headerStart = _parseIso8601(header['DateTime'] as String?);
+    final headerDateTime = header['DateTime'] as String?;
+    final headerStart = _parseIso8601(headerDateTime);
+    final headerOffset = headerDateTime == null
+        ? null
+        : _declaredOffset(headerDateTime);
 
     final firstPass = _FirstPass.scan(samples);
     final diveStartMs = firstPass.diveStartMs;
     final startTime = diveStartMs != null
-        ? DateTime.fromMillisecondsSinceEpoch(diveStartMs, isUtc: true)
+        ? DateTime.fromMillisecondsSinceEpoch(diveStartMs, isUtc: true).add(
+            _sampleClockCorrection(
+              headerStart,
+              headerOffset,
+              firstPass.firstSampleMs,
+            ),
+          )
         : (headerStart ?? DateTime.now().toUtc());
 
     final profileResult = diveStartMs == null
@@ -553,6 +563,57 @@ class SuuntoDiveParser {
 
   static double? _asDouble(dynamic value) => (value as num?)?.toDouble();
 
+  /// The smallest gap between the header and the first sample that can be a
+  /// zone error rather than the header marking the log opening a little
+  /// differently. No zone sits less than an hour from UTC.
+  static const Duration _minZoneError = Duration(minutes: 45);
+
+  /// The shift that puts the sample clock on the computer's own clock.
+  ///
+  /// The cloud's sml export stamps each sample envelope with a TimeISO8601
+  /// of its own, and that clock can disagree with the computer's
+  /// Header.DateTime by the dive's whole UTC offset: a Nautic dive logged at
+  /// 13:44 CEST arrived with samples reading 15:44 (#2604). The header is the
+  /// computer's clock, the one Suunto itself shows and the one Subsurface's
+  /// `import-suunto-json.cpp` files the dive at, so it settles the zone; the
+  /// samples still place the dive-active moment within the log.
+  ///
+  /// When the header declares its offset, the zone error can only be that
+  /// offset in one direction or the other, so the correction is whichever
+  /// of none, `+offset` and `-offset` leaves the smallest remainder. Any real
+  /// gap between the header and the first sample survives as that remainder.
+  /// A `Z` header declares a zero offset, so it never corrects. Only a header
+  /// with no designator at all, and so no offset to go on, falls back to
+  /// rounding the gap to whole quarter hours, the granularity of every real
+  /// offset, once it reaches [_minZoneError].
+  ///
+  /// Zero when either clock is missing or they already agree, which leaves
+  /// the app's JSON export, whose samples carry the header's clock, exactly
+  /// as before.
+  static Duration _sampleClockCorrection(
+    DateTime? headerStart,
+    Duration? headerOffset,
+    int? firstSampleMs,
+  ) {
+    if (headerStart == null || firstSampleMs == null) return Duration.zero;
+    final gap = Duration(
+      milliseconds: headerStart.millisecondsSinceEpoch - firstSampleMs,
+    );
+    if (headerOffset != null) {
+      var best = Duration.zero;
+      for (final candidate in [headerOffset, -headerOffset]) {
+        if ((gap - candidate).abs() < (gap - best).abs()) best = candidate;
+      }
+      return best;
+    }
+    if (gap.abs() < _minZoneError) return Duration.zero;
+    const quarterHourMs = 15 * 60 * 1000;
+    return Duration(
+      milliseconds:
+          (gap.inMilliseconds / quarterHourMs).round() * quarterHourMs,
+    );
+  }
+
   static int? _parseTimestampMs(Map<String, dynamic> sample) {
     final iso = sample['TimeISO8601'] as String?;
     final parsed = _parseIso8601(iso);
@@ -646,31 +707,43 @@ class _SurfaceFix {
 
 /// First pass over the raw samples: collects temperature readings (matched
 /// to depth samples by nearest timestamp later), the dive-active start time,
-/// and an entry GPS fix, without building any profile rows yet.
+/// the earliest sample time, and an entry GPS fix, without building any
+/// profile rows yet.
 class _FirstPass {
   const _FirstPass({
     required this.temperatureReadings,
     required this.diveStartMs,
+    required this.firstSampleMs,
     this.latitude,
     this.longitude,
   });
 
   final List<_TempReading> temperatureReadings;
   final int? diveStartMs;
+
+  /// The earliest sample timestamp: where the sample clock opens the log,
+  /// compared against the header's own clock.
+  final int? firstSampleMs;
   final double? latitude;
   final double? longitude;
 
   static _FirstPass scan(List<Map<String, dynamic>> samples) {
     final temperatureReadings = <_TempReading>[];
     int? diveStartMs;
+    int? firstSampleMs;
     double? latitude;
     double? longitude;
 
     for (final sample in samples) {
+      final sampleMs = SuuntoDiveParser._parseTimestampMs(sample);
+      if (sampleMs != null &&
+          (firstSampleMs == null || sampleMs < firstSampleMs)) {
+        firstSampleMs = sampleMs;
+      }
+
       final temp = SuuntoDiveParser._asDouble(sample['Temperature']);
-      if (temp != null && temp > 0) {
-        final ms = SuuntoDiveParser._parseTimestampMs(sample);
-        if (ms != null) temperatureReadings.add(_TempReading(ms, temp));
+      if (temp != null && temp > 0 && sampleMs != null) {
+        temperatureReadings.add(_TempReading(sampleMs, temp));
       }
 
       if (diveStartMs == null) {
@@ -711,6 +784,7 @@ class _FirstPass {
     return _FirstPass(
       temperatureReadings: temperatureReadings,
       diveStartMs: diveStartMs,
+      firstSampleMs: firstSampleMs,
       latitude: latitude,
       longitude: longitude,
     );

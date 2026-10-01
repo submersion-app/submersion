@@ -119,30 +119,33 @@ class DivePlanRepository {
         // the submitted timestamp would not be the plan as stored, and a
         // caller comparing it against the row would silently disagree. The
         // millisecond round-trip matches what getPlan reads back.
-        stored = (await _withResolvedReferences(
-          plan,
+        // The tanks and segments too: an id another plan's row holds is
+        // re-minted (see _withOwnChildIds), and the caller must see the id it
+        // can save again.
+        stored = (await _withOwnChildIds(
+          await _withResolvedReferences(plan),
         )).copyWith(updatedAt: DateTime.fromMillisecondsSinceEpoch(now));
 
         await _db
             .into(_db.divePlans)
             .insertOnConflictUpdate(_planCompanion(stored, now, summary));
 
-        for (var i = 0; i < plan.tanks.length; i++) {
+        for (var i = 0; i < stored.tanks.length; i++) {
           await _db
               .into(_db.divePlanTanks)
               .insertOnConflictUpdate(
                 _tankCompanion(
-                  plan.tanks[i],
+                  stored.tanks[i],
                   plan.id,
                   i,
                   now,
-                  createdAt: tankCreatedAt[plan.tanks[i].id],
+                  createdAt: tankCreatedAt[stored.tanks[i].id],
                 ),
               );
         }
         // Resolved so the retired geometry columns can still be written with
         // true values; see _segmentCompanion.
-        final legs = const SegmentChain().resolve(plan.segments);
+        final legs = const SegmentChain().resolve(stored.segments);
         for (var i = 0; i < legs.length; i++) {
           await _db
               .into(_db.divePlanSegments)
@@ -157,8 +160,8 @@ class DivePlanRepository {
               );
         }
 
-        final keptTankIds = plan.tanks.map((t) => t.id).toSet();
-        final keptSegmentIds = plan.segments.map((s) => s.id).toSet();
+        final keptTankIds = stored.tanks.map((t) => t.id).toSet();
+        final keptSegmentIds = stored.segments.map((s) => s.id).toSet();
         removedSegmentIds.addAll(existingSegmentIds.difference(keptSegmentIds));
         removedTankIds.addAll(existingTankIds.difference(keptTankIds));
 
@@ -241,14 +244,14 @@ class DivePlanRepository {
         recordId: plan.id,
         localUpdatedAt: now,
       );
-      for (final tank in plan.tanks) {
+      for (final tank in stored.tanks) {
         await _syncRepository.markRecordPending(
           entityType: 'divePlanTanks',
           recordId: tank.id,
           localUpdatedAt: now,
         );
       }
-      for (final segment in plan.segments) {
+      for (final segment in stored.segments) {
         await _syncRepository.markRecordPending(
           entityType: 'divePlanSegments',
           recordId: segment.id,
@@ -297,6 +300,64 @@ class DivePlanRepository {
       );
       rethrow;
     }
+  }
+
+  /// [plan] with a fresh id on every tank and segment whose id a row of
+  /// another plan already holds, each segment's tank reference following its
+  /// tank to the new id, and [plan] itself when none is held elsewhere.
+  ///
+  /// Row ids are global but the upserts in [savePlan] match on the id alone,
+  /// so writing another plan's id would move that row to this plan: the plan
+  /// that owned it would lose it with no tombstone and no pending marker, and
+  /// its segments could be left naming a tank this plan now holds (issue
+  /// #2548). Every path that makes a plan today mints fresh ids, as
+  /// [duplicatePlan] does; this is the backstop for one that forgets, as
+  /// DivePlanMissionStore is for mission rows.
+  Future<domain.DivePlan> _withOwnChildIds(domain.DivePlan plan) async {
+    final tankIds = [for (final t in plan.tanks) t.id];
+    final segmentIds = [for (final s in plan.segments) s.id];
+    final takenTanks = tankIds.isEmpty
+        ? const <String>{}
+        : {
+            for (final r
+                in await (_db.select(_db.divePlanTanks)..where(
+                      (t) => t.id.isIn(tankIds) & t.planId.isNotValue(plan.id),
+                    ))
+                    .get())
+              r.id,
+          };
+    final takenSegments = segmentIds.isEmpty
+        ? const <String>{}
+        : {
+            for (final r
+                in await (_db.select(_db.divePlanSegments)..where(
+                      (t) =>
+                          t.id.isIn(segmentIds) & t.planId.isNotValue(plan.id),
+                    ))
+                    .get())
+              r.id,
+          };
+    if (takenTanks.isEmpty && takenSegments.isEmpty) return plan;
+
+    _log.warning(
+      'Plan ${plan.id} reuses ${takenTanks.length} tank and '
+      '${takenSegments.length} segment ids another plan holds; '
+      'saving them under new ids',
+    );
+    final tankIdMap = {for (final id in takenTanks) id: _uuid.v4()};
+    return plan.copyWith(
+      tanks: [
+        for (final t in plan.tanks)
+          tankIdMap.containsKey(t.id) ? t.copyWith(id: tankIdMap[t.id]) : t,
+      ],
+      segments: [
+        for (final s in plan.segments)
+          s.copyWith(
+            id: takenSegments.contains(s.id) ? _uuid.v4() : null,
+            tankId: tankIdMap[s.tankId],
+          ),
+      ],
+    );
   }
 
   /// Returns [plan] with each of its outbound references that no longer names

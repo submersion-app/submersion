@@ -75,6 +75,35 @@ void main() {
     expect(tanks.map((t) => t.transmitterSerial), ['180777', null]);
   });
 
+  test('importProfile stores where a tank role came from (#2595)', () async {
+    final computerId = await insertComputer();
+
+    final diveId = await repository.importProfile(
+      computerId: computerId,
+      profileStartTime: DateTime(2026, 6, 1, 9, 0),
+      points: const [ProfilePointData(timestamp: 0, depth: 0.0)],
+      durationSeconds: 1800,
+      maxDepth: 25.0,
+      tanks: const [
+        TankData(
+          index: 0,
+          o2Percent: 100.0,
+          role: 'oxygenSupply',
+          roleSource: 'transmitterName',
+          transmitterSerial: '180777',
+        ),
+        TankData(index: 1, o2Percent: 21.0, role: 'diluent'),
+      ],
+    );
+
+    final tanks =
+        await (db.select(db.diveTanks)
+              ..where((t) => t.diveId.equals(diveId))
+              ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+            .get();
+    expect(tanks.map((t) => t.roleSource), ['transmitterName', null]);
+  });
+
   test('importProfile stamps the reading\'s source on the tank rows', () async {
     // Issue #2716: a later consolidation keeps each source's copies of one
     // cylinder apart by it.

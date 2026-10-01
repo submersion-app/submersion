@@ -344,14 +344,7 @@
   "trips_story_checklistProgress": "{done} sur {total} fait",
   "trips_story_generateItinerary": "Générer l'itinéraire",
   "trips_story_openGallery": "Ouvrir les photos du voyage",
-  "trips_story_generateItineraryError": "Impossible de générer l'itinéraire : {error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "Impossible de générer l'itinéraire. Réessayez.",
   "trips_dayType_diveDay": "Jour de plongée",
   "trips_dayType_seaDay": "Jour en mer",
   "trips_dayType_portDay": "Jour au port",
@@ -1614,7 +1607,7 @@
   "dashboard_quickActions_insightsTooltip": "Voir les analyses de plongée",
   "dashboard_quickStats_countries": "Pays",
   "dashboard_quickStats_countriesSubtitle": "visités",
-  "dashboard_quickStats_sectionTitle": "En un coup d'oeil",
+  "dashboard_quickStats_sectionTitle": "En un coup d'œil",
   "dashboard_quickStats_species": "Espèces",
   "dashboard_quickStats_speciesSubtitle": "découvertes",
   "dashboard_quickStats_topBuddy": "Binôme préféré",
@@ -2137,6 +2130,8 @@
   "diveLog_deco_tissueSlow": "Lent",
   "diveLog_deco_title": "Statut déco",
   "diveLog_deco_totalDecoTime": "Total : {time}",
+  "diveLog_deco_withheld_ccr": "Cette plongée recycleur n'a enregistré ni consigne (setpoint) ni ppO2 de boucle ; sa saturation des tissus, la NDL et la décompression ne peuvent donc pas être calculées. Ajoutez la consigne en modifiant la plongée pour les calculer.",
+  "diveLog_deco_withheld_scr": "Cette plongée en recycleur semi-fermé n'a pas de ppO2 de boucle mesurée ; sa saturation des tissus, la NDL et la décompression ne peuvent donc pas être calculées.",
   "diveLog_delete_cancel": "Annuler",
   "diveLog_delete_confirm": "Cette action est irréversible. La plongée et toutes les données associées (profil, blocs, observations) seront définitivement supprimées.",
   "diveLog_delete_delete": "Supprimer",
@@ -2155,7 +2150,7 @@
   "diveLog_detail_collapsed_ceiling": "Plafond : {value}",
   "diveLog_detail_collapsed_cnsMaxPpO2": "CNS : {cns} • Max ppO₂ : {maxPpO2}",
   "diveLog_detail_collapsed_cnsMaxPpO2AtTime": "CNS : {cns} • Max ppO₂ : {maxPpO2} • À {timestamp} : {ppO2} bar",
-  "diveLog_detail_collapsed_ndl": "DTR : {value}",
+  "diveLog_detail_collapsed_ndl": "NDL : {value}",
   "diveLog_detail_customFieldCount": "{count, plural, =1{{count} champ} other{{count} champs}}",
   "diveLog_detail_equipmentCount": "{count} {count, plural, =1{équipement} other{équipements}}",
   "diveLog_detail_errorLoading": "Erreur lors du chargement de la plongée",
@@ -2944,7 +2939,7 @@
   "diveLog_tooltip_marker": "Marqueur",
   "diveLog_tooltip_mean": "Moyenne",
   "diveLog_tooltip_mod": "MOD",
-  "diveLog_tooltip_ndl": "DTR",
+  "diveLog_tooltip_ndl": "NDL",
   "diveLog_tooltip_otu": "OTU",
   "diveLog_tooltip_ppHe": "ppHe",
   "diveLog_tooltip_ppN2": "ppN2",
@@ -2961,7 +2956,7 @@
   "diveLog_tooltip_srfGf": "SrfGF",
   "diveLog_tooltip_temp": "Temp",
   "diveLog_tooltip_time": "Temps",
-  "diveLog_tooltip_tts": "TDR",
+  "diveLog_tooltip_tts": "TTS",
   "diveLog_tooltip_gtr": "GTR",
   "diveLog_sources_row_metric": "Mesure",
   "diveLog_sources_row_maxDepth": "Prof. max",
@@ -3034,7 +3029,7 @@
   "divePlanner_label_gfLow": "GF bas",
   "divePlanner_label_max": "Max",
   "divePlanner_label_minutesUnit": "min",
-  "divePlanner_label_ndl": "DTR",
+  "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Paramètres du plan",
   "divePlanner_label_remaining": "Restant",
   "divePlanner_label_reserve": "Réserve",
@@ -3062,7 +3057,7 @@
   "divePlanner_savedTanks_empty": "Aucune bouteille enregistrée. Enregistrez une bouteille de ce plan pour la réutiliser dans d'autres plans.",
   "divePlanner_label_time": "Temps",
   "divePlanner_label_timeAxis": "Temps (min)",
-  "divePlanner_label_tts": "TDR",
+  "divePlanner_label_tts": "TTS",
   "divePlanner_label_used": "Utilisé",
   "divePlanner_label_warnings": "Avertissements",
   "divePlanner_legend_ascent": "Remontée",
@@ -3652,6 +3647,7 @@
   "dropTarget_error_unsupportedFile": "Type de fichier non pris en charge",
   "dropTarget_error_wizardActive": "Terminez l'importation en cours d'abord",
   "dropTarget_error_readFailed": "Impossible de lire le fichier",
+  "dropTarget_error_mediaNeedsDestination": "Pour lier des photos et des vidéos, déposez-les sur Médias, une plongée ou un site",
   "dropTarget_error_someUnreadable": "{count, plural, =1{{count} fichier illisible a été ignoré} other{{count} fichiers illisibles ont été ignorés}}",
   "enum_altitudeGroup_extreme": "Altitude extrême",
   "enum_altitudeGroup_extreme_range": ">2700m (>8858ft)",
@@ -4208,6 +4204,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "Cette plongée correspond déjà à la configuration",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{{count} mise à jour} other{{count} mises à jour}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "Remplacer les caractéristiques des bouteilles ?",
+  "cylinderConfigs_overwriteBody": "Appliquer {name} modifie des bouteilles déjà présentes sur cette plongée :",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "Bloc {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field} : {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "Les mélanges et les pressions de départ de la plongée sont conservés.",
+  "cylinderConfigs_overwriteConfirm": "Remplacer",
+  "cylinderConfigs_fieldVolume": "Volume",
+  "cylinderConfigs_fieldWorkingPressure": "Pression de service",
+  "cylinderConfigs_fieldMaterial": "Matériau",
   "cylinderConfigs_sectionTitle": "Configurations",
   "equipment_serviceClocks_hoursSource": "Calculé à partir du temps de plongée enregistré",
   "equipment_serviceClocks_hoursLeft": "{remaining} heures restantes sur {total}",
@@ -4420,6 +4463,7 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Rien n'est en retard de révision.",
   "equipment_list_errorLoading": "Erreur de chargement de l'équipement : {error}",
   "equipment_list_filterAll": "Tout l'équipement",
+  "equipment_list_filterCurrent": "Équipement actuel",
   "equipment_list_filterServiceDue": "Révision due",
   "equipment_list_filterServiceDueSoon": "Bientôt due",
   "equipment_list_filterServiceOverdue": "En retard",
@@ -5262,6 +5306,8 @@
   "media_import_review_chooseSite": "Choisir un site",
   "media_import_review_ambiguous": "Plusieurs plongées correspondent",
   "media_import_review_noMatch": "Aucune plongée correspondante",
+  "media_import_review_noCaptureTime": "Aucune date de prise de vue trouvée",
+  "media_import_review_noMatchFileDate": "Aucune plongée ne correspond à la date du fichier, qui n'a pas de date de prise de vue",
   "media_import_review_skipped": "Non importé",
   "media_import_review_linkChip": "Lier à #{number}",
   "media_import_review_linkToDive": "Lier à une plongée",
@@ -6163,7 +6209,7 @@
   "settings_section_appearance_title": "Apparence",
   "settings_section_data_subtitle": "Sauvegarde, restauration et stockage",
   "settings_section_data_title": "Données",
-  "settings_section_decompression_subtitle": "Gradient factors",
+  "settings_section_decompression_subtitle": "GF, sources de données et narcose",
   "settings_section_decompression_title": "Décompression",
   "settings_section_diverProfile_subtitle": "Plongeur actif et profils",
   "settings_section_diverProfile_title": "Profil du plongeur",
@@ -6673,7 +6719,7 @@
   "insights_tooltip_refreshRecords": "Actualiser les records",
   "insights_tooltip_refreshInsights": "Actualiser les analyses",
   "insights_valueCard_semanticLabel": "{label} : {value}",
-  "surfaceInterval_aboutTissueLoading_body": "Votre corps possède 16 compartiments tissulaires qui absorbent et libèrent l'azote à des vitesses différentes. Les tissus rapides (comme le sang) se saturent rapidement mais se désaturent aussi rapidement. Les tissus lents (comme les os et la graisse) mettent plus de temps à se charger et à se décharger. Le « compartiment directeur » est celui qui est le plus saturé et contrôle généralement votre durée totale de remontée (DTR). Pendant un intervalle de surface, tous les tissus se désaturent vers les niveaux de saturation de surface (~40% de charge).",
+  "surfaceInterval_aboutTissueLoading_body": "Votre corps possède 16 compartiments tissulaires qui absorbent et libèrent l'azote à des vitesses différentes. Les tissus rapides (comme le sang) se saturent rapidement mais se désaturent aussi rapidement. Les tissus lents (comme les os et la graisse) mettent plus de temps à se charger et à se décharger. Le « compartiment directeur » est celui qui est le plus saturé et contrôle généralement votre limite de non-décompression (NDL). Pendant un intervalle de surface, tous les tissus se désaturent vers les niveaux de saturation de surface (~40% de charge).",
   "surfaceInterval_aboutTissueLoading_title": "À propos du chargement tissulaire",
   "surfaceInterval_action_resetDefaults": "Réinitialiser aux valeurs par défaut",
   "surfaceInterval_disclaimer": "Cet outil est uniquement à des fins de planification. Utilisez toujours un ordinateur de plongée et suivez votre formation. Les résultats sont basés sur l'algorithme Buhlmann ZH-L16C et peuvent différer de votre ordinateur.",
@@ -6700,13 +6746,13 @@
   "surfaceInterval_result_inDeco": "En déco",
   "surfaceInterval_result_increaseInterval": "Augmentez l'intervalle de surface ou réduisez la profondeur/durée de la deuxième plongée",
   "surfaceInterval_result_minimumInterval": "Intervalle de surface minimum",
-  "surfaceInterval_result_ndlForSecondDive": "DTR pour la 2e plongée",
-  "surfaceInterval_result_ndlMinutes": "{minutes} min DTR",
+  "surfaceInterval_result_ndlForSecondDive": "NDL pour la 2e plongée",
+  "surfaceInterval_result_ndlMinutes": "{minutes} min NDL",
   "surfaceInterval_result_noIntervalHelps": "Aucun intervalle de surface ne suffit. La plongée sans palier la plus longue à cette profondeur avec ce mélange est de {minutes} min. Raccourcissez la deuxième plongée ou réduisez sa profondeur.",
   "surfaceInterval_result_notAchievable": "Impossible quel que soit l'intervalle de surface",
   "surfaceInterval_result_notYetSafe": "Pas encore sûr, augmentez l'intervalle de surface",
   "surfaceInterval_result_safeToDive": "Sûr pour plonger",
-  "surfaceInterval_result_semantics": "Intervalle de surface minimum : {interval}. Intervalle actuel : {current}. DTR pour la deuxième plongée : {ndl}. {status}",
+  "surfaceInterval_result_semantics": "Intervalle de surface minimum : {interval}. Intervalle actuel : {current}. NDL pour la deuxième plongée : {ndl}. {status}",
   "surfaceInterval_secondDive_depthSemantics": "Profondeur de la deuxième plongée : {depth} {unit}",
   "surfaceInterval_secondDive_heSemantics": "Hélium de la deuxième plongée : {percent}%",
   "surfaceInterval_secondDive_o2Semantics": "O2 de la deuxième plongée : {percent}%",
@@ -7014,7 +7060,7 @@
   "transfer_csvExport_unitsMine": "Mes unités",
   "transfer_csvExport_unitsMineDescription": "Valeurs selon vos réglages d'unités, de date et d'heure, indiqués dans l'en-tête de chaque colonne",
   "transfer_detail_backTooltip": "Retour au transfert",
-  "transfer_export_aboutContent": "Exportez vos données de plongée dans différents formats. Le PDF crée un carnet de plongée imprimable. L'UDDF est un format universel compatible avec la plupart des logiciels de carnet de plongée. Les fichiers CSV peuvent être ouverts dans des applications de tableur.",
+  "transfer_export_aboutContent": "Exportez vos données de plongée dans différents formats. Le PDF crée un carnet de plongée imprimable. L'UDDF est un format universel compatible avec la plupart des logiciels de carnet de plongée. Les fichiers CSV et Excel peuvent être ouverts dans des applications de tableur. Vous pouvez aussi sauvegarder toute votre base de données depuis Réglages > Sauvegarde et restauration.",
   "transfer_export_aboutTitle": "À propos de l'export",
   "transfer_export_backupLink": "Aller à Sauvegarde et restauration",
   "transfer_export_completed": "Export terminé",
@@ -7044,7 +7090,7 @@
   "transfer_export_uddfTitle": "Export UDDF",
   "transfer_import_aboutContent": "Utilisez \"Importer des données\" pour la meilleure expérience -- la détection du format de fichier et de l'application source est automatique. Les options par format ci-dessous sont également disponibles pour un accès direct.",
   "transfer_import_aboutTitle": "À propos de l'import",
-  "transfer_import_fileImportSemanticLabel": "Importer des données avec détection automatique",
+  "transfer_import_fileImportSemanticLabel": "Importer des données de plongée depuis un fichier",
   "transfer_import_fileImportSubtitle": "Détection automatique CSV, UDDF, FIT, et plus",
   "transfer_import_fileImportTitle": "Importer des données",
   "transfer_import_sectionHeader": "Importer des données",
@@ -7099,6 +7145,7 @@
   "trips_detail_dialog_deleteTitle": "Supprimer le voyage ?",
   "trips_detail_dives_empty": "Aucune plongée dans ce voyage pour le moment",
   "trips_detail_dives_errorLoading": "Impossible de charger les plongées",
+  "trips_detail_error_loading": "Impossible de charger le voyage.",
   "trips_detail_dives_unknownSite": "Site inconnu",
   "trips_detail_dives_viewAll": "Voir tout ({count})",
   "trips_detail_durationDays": "{days} jours",
@@ -7119,8 +7166,8 @@
   "trips_detail_label_vesselType": "Type",
   "trips_detail_scan_accessDenied": "Accès à la photothèque refusé",
   "trips_detail_scan_addDivesFirst": "Ajoutez d'abord des plongées pour associer des photos",
-  "trips_detail_scan_errorLinking": "Erreur lors de l'association des photos : {error}",
-  "trips_detail_scan_errorScanning": "Erreur lors du scan : {error}",
+  "trips_detail_scan_errorLinking": "Impossible d'associer les photos. Réessayez.",
+  "trips_detail_scan_errorScanning": "Impossible de rechercher les photos. Réessayez.",
   "trips_detail_scan_linkedPhotos": "{count} photos associées",
   "trips_detail_scan_linkingPhotos": "Association des photos...",
   "trips_detail_sectionTitle_dailyBreakdown": "Daily Breakdown",
@@ -7337,14 +7384,7 @@
   "trips_cylinders_forecast_useEstimate": "Utiliser l'estimation",
   "trips_cylinders_forecast_fewer": "Moins de plongées",
   "trips_cylinders_forecast_more": "Plus de plongées",
-  "trips_cylinders_forecast_saveError": "Impossible d'enregistrer le plan : {error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "Impossible d'enregistrer le plan. Réessayez.",
   "trips_cylinders_forecast_dayPlanned": "Planifié par vous",
   "trips_cylinders_segment_record": "Relevé",
   "trips_cylinders_recordEmpty": "Aucune plongée avec ces blocs pour l’instant.",
@@ -7406,6 +7446,7 @@
     }
   },
   "trips_cylinders_record_exported": "Relevé de gaz exporté",
+  "trips_cylinders_record_exportFailed": "Impossible d'exporter le relevé de gaz. Réessayez.",
   "trips_cylinders_title": "Blocs",
   "trips_cylinders_summary": "Pleins {full} · Entamés {partial} · Vides {empty}",
   "@trips_cylinders_summary": {
@@ -7606,8 +7647,8 @@
   "trips_edit_sectionTitle_vessel": "Vessel Détails",
   "trips_edit_semanticLabel_save": "Enregistrer le voyage",
   "trips_edit_snackBar_added": "Voyage ajouté avec succès",
-  "trips_edit_snackBar_errorLoading": "Erreur lors du chargement du voyage : {error}",
-  "trips_edit_snackBar_errorSaving": "Erreur lors de l'enregistrement du voyage : {error}",
+  "trips_edit_snackBar_errorLoading": "Impossible de charger le voyage. Réessayez.",
+  "trips_edit_snackBar_errorSaving": "Impossible d'enregistrer le voyage. Réessayez.",
   "trips_edit_snackBar_updated": "Voyage mis à jour avec succès",
   "trips_edit_validation_nameRequired": "Veuillez entrer un nom de voyage",
   "trips_edit_validation_vesselRequired": "Vessel name is required for liveaboard trips",
@@ -7618,9 +7659,9 @@
   "trips_gallery_diveSection_title": "Plongée n{number} - {site}",
   "trips_gallery_empty_subtitle": "Appuie sur l'icône appareil photo pour scanner ta galerie",
   "trips_gallery_empty_title": "Aucune photo dans ce voyage",
-  "trips_gallery_errorLinking": "Erreur lors de l'association des photos : {error}",
-  "trips_gallery_errorScanning": "Erreur lors du scan : {error}",
-  "trips_gallery_error_loading": "Erreur lors du chargement des photos : {error}",
+  "trips_gallery_errorLinking": "Impossible d'associer les photos. Réessayez.",
+  "trips_gallery_errorScanning": "Impossible de rechercher les photos. Réessayez.",
+  "trips_gallery_error_loading": "Impossible de charger les photos.",
   "trips_gallery_linkedPhotos": "{count} photos associées",
   "trips_gallery_linkingPhotos": "Association des photos...",
   "trips_gallery_tooltip_scan": "Scanner la galerie de l'appareil",
@@ -7630,6 +7671,8 @@
   "trips_itinerary_diveCount": "{count, plural, =1{{count} plongée} other{{count} plongées}}",
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_noDives": "No dives",
+  "trips_itinerary_error_loading": "Impossible de charger l'itinéraire.",
+  "trips_itinerary_daySaveError": "Impossible d'enregistrer la journée. Réessayez.",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_list_button_retry": "Réessayer",
@@ -7639,7 +7682,7 @@
   "trips_list_empty_filtered_title": "Aucun voyage ne correspond à vos filtres",
   "trips_list_empty_subtitle": "Créez des voyages pour regrouper vos plongées par destination",
   "trips_list_empty_title": "Aucun voyage ajouté",
-  "trips_list_error_loading": "Erreur lors du chargement des voyages : {error}",
+  "trips_list_error_loading": "Impossible de charger vos voyages.",
   "trips_list_fab_addTrip": "Ajouter un voyage",
   "trips_list_filters_clearAll": "Tout effacer",
   "trips_list_inProgress": "En cours",
@@ -7661,7 +7704,7 @@
   "trips_picker_clearTooltip": "Effacer la sélection",
   "trips_picker_empty_createButton": "Créer un voyage",
   "trips_picker_empty_title": "Aucun voyage",
-  "trips_picker_error": "Erreur lors du chargement des voyages : {error}",
+  "trips_picker_error": "Impossible de charger vos voyages.",
   "trips_picker_hint": "Appuie pour sélectionner un voyage",
   "trips_picker_newTrip": "Nouveau voyage",
   "trips_picker_noSelection": "Aucun voyage sélectionné",
@@ -7671,6 +7714,7 @@
   "trips_search_empty_hint": "Rechercher par nom, lieu ou resort",
   "trips_search_fieldLabel": "Rechercher des voyages...",
   "trips_search_noResults": "Aucun voyage trouvé pour \"{query}\"",
+  "trips_search_error": "Impossible de rechercher dans vos voyages.",
   "trips_search_tooltip_back": "Retour",
   "trips_search_tooltip_clear": "Effacer la recherche",
   "trips_summary_header_subtitle": "Sélectionnez un voyage dans la liste pour voir les détails",
@@ -7965,14 +8009,7 @@
     }
   },
   "trips_diveScan_deselectAll": "Tout désélectionner",
-  "trips_diveScan_error": "Erreur lors de la recherche de plongées : {error}",
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_diveScan_error": "Impossible de rechercher les plongées. Réessayez.",
   "trips_diveScan_findButton": "Rechercher les plongées correspondantes",
   "trips_diveScan_groupOtherTrips": "Dans d'autres voyages ({count})",
   "@trips_diveScan_groupOtherTrips": {
@@ -9575,6 +9612,8 @@
   },
   "diveLog_detail_altitudeMismatch_title": "Le site est en altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "Ce site indique une altitude mais la plongée n'en a aucune : l'analyse de décompression a supposé le niveau de la mer. Définissez l'altitude de la plongée pour corriger.",
+  "diveLog_detail_sacSegmentsNoPressure": "Seules les pressions de début et de fin du bloc ont été enregistrées, la consommation de gaz ne peut donc pas être répartie par segment. Il faut pour cela des relevés de pression pendant la plongée, par exemple d'un émetteur. La moyenne sur toute la plongée figure sous Blocs.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "Aucune pression du bloc enregistrée pendant la plongée",
   "diveLog_detail_sacVolumeHint": "Ajoutez le volume du bloc pour afficher le RMV en {unit}",
   "emergencyCard_title": "Urgence",
   "emergencyCard_callDan": "Appeler {name}",
@@ -11050,7 +11089,7 @@
   "species_threadfin_butterflyfish_name": "Chétodon à filament",
   "species_threadfin_butterflyfish_desc": "Poisson-papillon blanc au motif en chevrons prolongé par un filament dorsal, largement répandu dans l'Indo-Pacifique.",
   "species_foureye_butterflyfish_name": "Poisson-papillon à quatre yeux",
-  "species_foureye_butterflyfish_desc": "Poisson-papillon pâle portant un net faux oeil près de la queue, commun sur les récifs des Caraïbes.",
+  "species_foureye_butterflyfish_desc": "Poisson-papillon pâle portant un net faux œil près de la queue, commun sur les récifs des Caraïbes.",
   "species_spotfin_butterflyfish_name": "Poisson-papillon à tache dorsale",
   "species_spotfin_butterflyfish_desc": "Poisson-papillon blanc et jaune marqué d'un petit point sombre sur la nageoire dorsale, présent dans l'Atlantique Ouest.",
   "species_banner_butterflyfish_name": "Poisson-cocher de la mer Rouge",
@@ -11106,7 +11145,7 @@
   "species_boxfish_name": "Poisson-coffre jaune",
   "species_boxfish_desc": "Les juvéniles sont de petits cubes jaune vif à points noirs. Les adultes virent au gris-bleu. Présent dans tout l'Indo-Pacifique.",
   "species_cowfish_name": "Poisson-vache à longues cornes",
-  "species_cowfish_desc": "Poisson cubique jaune portant une corne caractéristique au-dessus de chaque oeil, présent sur les récifs indo-pacifiques.",
+  "species_cowfish_desc": "Poisson cubique jaune portant une corne caractéristique au-dessus de chaque œil, présent sur les récifs indo-pacifiques.",
   "species_napoleon_wrasse_name": "Napoléon",
   "species_napoleon_wrasse_desc": "Labre massif atteignant 2 m, à la bosse frontale proéminente. Espèce menacée et protégée, présente sur les récifs indo-pacifiques.",
   "species_cleaner_wrasse_name": "Labre nettoyeur",
@@ -11168,7 +11207,7 @@
   "species_yellowtail_snapper_name": "Vivaneau queue jaune",
   "species_yellowtail_snapper_desc": "Vivaneau élancé à la bande latérale et à la queue jaunes, souvent observé en bancs en pleine eau sur les récifs des Caraïbes.",
   "species_schoolmaster_snapper_name": "Vivaneau dents de chien",
-  "species_schoolmaster_snapper_desc": "Vivaneau jaune et argent portant des lignes bleues sous l'oeil, observé en groupes sous les surplombs des récifs des Caraïbes.",
+  "species_schoolmaster_snapper_desc": "Vivaneau jaune et argent portant des lignes bleues sous l'œil, observé en groupes sous les surplombs des récifs des Caraïbes.",
   "species_bluestripe_snapper_name": "Vivaneau à raies bleues",
   "species_bluestripe_snapper_desc": "Vivaneau jaune vif orné de quatre raies horizontales bleues, formant des bancs denses sur les récifs indo-pacifiques.",
   "species_twinspot_snapper_name": "Vivaneau à deux taches",
@@ -11190,9 +11229,9 @@
   "species_longnose_hawkfish_name": "Poisson-faucon à long nez",
   "species_longnose_hawkfish_desc": "Petit poisson blanc au quadrillage rouge et au museau allongé, perché sur les gorgones et les coraux noirs.",
   "species_arc_eye_hawkfish_name": "Poisson-faucon à arc oculaire",
-  "species_arc_eye_hawkfish_desc": "Petit poisson-faucon reconnaissable à l'arc orange derrière l'oeil, souvent perché sur les massifs coralliens des récifs indo-pacifiques.",
+  "species_arc_eye_hawkfish_desc": "Petit poisson-faucon reconnaissable à l'arc orange derrière l'œil, souvent perché sur les massifs coralliens des récifs indo-pacifiques.",
   "species_flame_hawkfish_name": "Poisson-faucon flamme",
-  "species_flame_hawkfish_desc": "Poisson-faucon rouge éclatant aux marques sombres autour de l'oeil, perché dans les coraux Pocillopora du Pacifique Ouest.",
+  "species_flame_hawkfish_desc": "Poisson-faucon rouge éclatant aux marques sombres autour de l'œil, perché dans les coraux Pocillopora du Pacifique Ouest.",
   "species_fire_goby_name": "Gobie de feu",
   "species_fire_goby_desc": "Élégant gobie blanc à la haute première nageoire dorsale et à la queue rouge orangé, en suspension au-dessus des débris coralliens indo-pacifiques.",
   "species_purple_firefish_name": "Gobie de feu pourpre",
@@ -11228,7 +11267,7 @@
   "species_cornetfish_name": "Poisson-flûte",
   "species_cornetfish_desc": "Poisson extrêmement allongé atteignant 1,5 m, prolongé par un filament caudal, souvent vu glisser au-dessus des platiers.",
   "species_yellowhead_jawfish_name": "Poisson-bâilleur à tête jaune",
-  "species_yellowhead_jawfish_desc": "Petit poisson au corps bleu et à la tête jaune, en suspension au-dessus de son terrier sableux sur les récifs des Caraïbes. Les mâles incubent les oeufs dans leur bouche.",
+  "species_yellowhead_jawfish_desc": "Petit poisson au corps bleu et à la tête jaune, en suspension au-dessus de son terrier sableux sur les récifs des Caraïbes. Les mâles incubent les œufs dans leur bouche.",
   "species_flamefish_name": "Apogon flamme",
   "species_flamefish_desc": "Petit apogon rouge vif portant une tache sombre sous la seconde nageoire dorsale, caché le jour dans les anfractuosités des récifs des Caraïbes.",
   "species_longspine_squirrelfish_name": "Poisson-écureuil à longue épine",
@@ -11388,7 +11427,7 @@
   "species_red_lipped_batfish_name": "Poisson chauve-souris à lèvres rouges",
   "species_red_lipped_batfish_desc": "Étrange poisson au corps aplati et aux lèvres rouge vif, qui marche sur des nageoires modifiées sur les fonds des Galapagos.",
   "species_orangeband_surgeonfish_name": "Chirurgien à bande orange",
-  "species_orangeband_surgeonfish_desc": "Chirurgien gris-brun marqué d'une bande horizontale orange derrière l'oeil, présent sur les pentes récifales du Pacifique.",
+  "species_orangeband_surgeonfish_desc": "Chirurgien gris-brun marqué d'une bande horizontale orange derrière l'œil, présent sur les pentes récifales du Pacifique.",
   "species_maori_wrasse_name": "Labre maori",
   "species_maori_wrasse_desc": "Labre de taille moyenne portant une bande sombre derrière la nageoire pectorale, commun sur les récifs du Pacifique et de l'océan Indien.",
   "species_blue_ringed_octopus_name": "Pieuvre à anneaux bleus",
@@ -11571,8 +11610,8 @@
   "species_upside_down_jellyfish_desc": "Méduse insolite qui repose cloche vers le bas sur les fonds sableux pour permettre à ses algues de photosynthétiser.",
   "species_blue_blubber_jellyfish_name": "Méduse bleue d'Australie",
   "species_blue_blubber_jellyfish_desc": "Méduse bleu et blanc à la cloche ferme et aux bras oraux frisés, commune dans les eaux australiennes.",
-  "species_fried_egg_jellyfish_name": "Méduse oeuf au plat",
-  "species_fried_egg_jellyfish_desc": "Méduse méditerranéenne au dôme jaune évoquant un oeuf au plat, à la piqûre légère.",
+  "species_fried_egg_jellyfish_name": "Méduse œuf au plat",
+  "species_fried_egg_jellyfish_desc": "Méduse méditerranéenne au dôme jaune évoquant un œuf au plat, à la piqûre légère.",
   "species_pacific_sea_nettle_name": "Ortie de mer du Pacifique",
   "species_pacific_sea_nettle_desc": "Méduse brun doré aux longs tentacules traînants, présente le long de la côte pacifique.",
   "species_compass_jellyfish_name": "Méduse boussole",
@@ -11816,7 +11855,7 @@
   "species_torch_coral_name": "Corail torche",
   "species_torch_coral_desc": "Corail branchu aux longs tentacules flottants terminés par des bulbes lumineux.",
   "species_frogspawn_coral_name": "Corail frai de grenouille",
-  "species_frogspawn_coral_desc": "Corail à gros polypes dont les extrémités de tentacules ramifiées évoquent des oeufs de grenouille.",
+  "species_frogspawn_coral_desc": "Corail à gros polypes dont les extrémités de tentacules ramifiées évoquent des œufs de grenouille.",
   "species_sea_fan_name": "Gorgone éventail commune",
   "species_sea_fan_desc": "Gorgone plate en éventail orientée perpendiculairement aux courants, emblématique des récifs des Caraïbes.",
   "species_venus_sea_fan_name": "Gorgone éventail de Vénus",
@@ -11841,7 +11880,7 @@
   "species_blue_coral_desc": "Octocorail singulier au squelette bleu, présent sur les platiers récifaux peu profonds indo-pacifiques.",
   "species_black_coral_name": "Corail noir",
   "species_black_coral_desc": "Corail d'eau profonde au squelette sombre, présent sur les parois et les tombants au-delà de 30 mètres.",
-  "species_carnation_coral_name": "Corail oeillet",
+  "species_carnation_coral_name": "Corail œillet",
   "species_carnation_coral_desc": "Corail mou aux couleurs vives, présent sous les surplombs et sur les parois de l'Indo-Pacifique.",
   "species_wire_coral_name": "Corail fil de fer",
   "species_wire_coral_desc": "Long corail noir en spirale formant des fouets enroulés, hôte de gobies et de crevettes.",
@@ -12067,11 +12106,11 @@
   "species_discus_desc": "Cichlidé rond et comprimé aux lignes bleues ondulées qui nourrit ses alevins du mucus de sa propre peau.",
   "species_sailfin_pleco_name": "Pléco à voile",
   "species_sailfin_pleco_desc": "Poisson-chat cuirassé à bouche en ventouse, à la haute nageoire dorsale et aux taches de léopard, râpant les algues du bois et de la roche.",
-  "species_cardinal_tetra_name": "Néon",
+  "species_cardinal_tetra_name": "Néon cardinal",
   "species_cardinal_tetra_desc": "Minuscule tétra à la rayure bleu néon surmontant une bande rouge sur toute la longueur, en bancs dans les eaux sombres du Rio Negro.",
   "species_mexican_tetra_name": "Tétra aveugle du Mexique",
   "species_mexican_tetra_desc": "Tétra argenté des rivières mexicaines dont les populations cavernicoles sont aveugles et pâles, chouchou des plongeurs de cénotes.",
-  "species_mekong_giant_catfish_name": "Silure de verre géant",
+  "species_mekong_giant_catfish_name": "Silure géant du Mékong",
   "species_mekong_giant_catfish_desc": "Géant édenté du Mékong en danger critique, gris et sans barbillons, atteignant autrefois trois mètres.",
   "species_giant_barb_name": "Barbeau géant",
   "species_giant_barb_desc": "La plus grande carpe du monde, géant du Mékong aux grandes écailles et à l'énorme tête, aujourd'hui rare dans les fosses profondes.",
@@ -12239,7 +12278,7 @@
   "species_yellow_pond_lily_desc": "Feuilles flottantes en cœur et fleurs jaunes en coupe, avec de grandes feuilles immergées translucides visibles des plongeurs.",
   "species_american_eelgrass_name": "Vallisnérie d'Amérique",
   "species_american_eelgrass_desc": "Feuilles rubanées pouvant atteindre deux mètres ondulant dans le courant des rivières et sources claires, mets favori des lamantins.",
-  "species_coontail_name": "Cératophylle nageant",
+  "species_coontail_name": "Cornifle immergé",
   "species_coontail_desc": "Plante immergée sans racines aux verticilles de feuilles rigides et fourchues comme une queue de raton laveur, dérivant en masses denses dans les eaux calmes.",
   "species_eurasian_watermilfoil_name": "Myriophylle en épis",
   "species_eurasian_watermilfoil_desc": "Plante immergée plumeuse aux verticilles de feuilles finement divisées formant d'épais tapis près de la surface, envahissante dans de nombreux lacs.",
@@ -13554,7 +13593,7 @@
   "transmitters_action_delete": "Supprimer l'émetteur",
   "transmitters_action_apply": "Appliquer aux plongées existantes",
   "transmitters_apply_title": "Appliquer aux plongées existantes ?",
-  "transmitters_apply_content": "{tanks} bouteilles sur {dives} plongées portent cet émetteur. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond sera remplacé.",
+  "transmitters_apply_content": "{tanks} bouteilles sur {dives} plongées portent cet émetteur. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond ou lu dans le nom de l'émetteur sera remplacé.",
   "transmitters_apply_done": "{tanks} bouteilles mises à jour sur {dives} plongées",
   "transmitters_apply_nothing": "Aucune bouteille ne porte cet émetteur",
   "transmitters_delete_title": "Supprimer l'émetteur ?",
@@ -13581,6 +13620,7 @@
   "diveComputer_detail_transmittersSummary": "{known} connus, {unassigned} non associés",
   "diveLog_tank_assignTransmitter": "Associer l'émetteur",
   "diveLog_tank_reassignSeries": "Réattribuer la courbe de pression",
+  "diveLog_tank_roleFromTransmitterName": "{role}, lu dans le nom de l'émetteur",
   "diveLog_reassignSheet_title": "Courbes de pression",
   "diveLog_reassignSheet_swap": "Échanger",
   "diveLog_reassignSheet_moveTo": "Déplacer vers",
@@ -13590,6 +13630,8 @@
   "universalImport_summary_noticeUnknownTransmitterTitle": "Émetteurs non associés",
   "universalImport_summary_noticeUnknownTransmitterBody": "Un ou plusieurs émetteurs de ce téléchargement ne sont associés à aucune bouteille. Associez-les pour que les prochains téléchargements aient la bonne taille et le bon rôle.",
   "universalImport_summary_noticeAssignTransmitters": "Associer les émetteurs",
+  "universalImport_summary_noticeTransmitterNameRolesTitle": "Rôles des bouteilles lus dans les noms des émetteurs",
+  "universalImport_summary_noticeTransmitterNameRolesBody": "L'ordinateur de plongée a tiré certains rôles oxygène et diluant des noms donnés à ses émetteurs : un nom commençant par O est lu comme oxygène, un nom commençant par D comme diluant. Associez les émetteurs pour confirmer ou corriger ces rôles.",
   "universalImport_summary_noticeDiveNumberConflictTitle": "Numéros de plongée déjà utilisés",
   "universalImport_summary_noticeDiveNumberConflictBody": "Ces plongées ont conservé le numéro de leur source, mais d'autres plongées de votre carnet utilisent déjà ces numéros. Ouvrez Numérotation des plongées dans le menu de la liste des plongées pour les renuméroter.",
   "dataQuality_detector_unknown_transmitter": "Émetteur non associé",

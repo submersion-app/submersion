@@ -895,14 +895,7 @@
   },
   "trips_story_generateItinerary": "Generate itinerary",
   "trips_story_openGallery": "Open trip photos",
-  "trips_story_generateItineraryError": "Couldn't generate itinerary: {error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "Couldn't generate the itinerary. Try again.",
   "trips_dayType_diveDay": "Dive Day",
   "trips_dayType_seaDay": "Sea Day",
   "trips_dayType_portDay": "Port Day",
@@ -3836,6 +3829,8 @@
   "diveLog_deco_tissueSlow": "Slow",
   "diveLog_deco_title": "Deco Status",
   "diveLog_deco_totalDecoTime": "Total: {time}",
+  "diveLog_deco_withheld_ccr": "This rebreather dive has no recorded setpoint or loop ppO2, so its tissue loading, NDL and decompression cannot be calculated. Add the setpoint when editing the dive to calculate them.",
+  "diveLog_deco_withheld_scr": "This semi-closed rebreather dive has no measured loop ppO2, so its tissue loading, NDL and decompression cannot be calculated.",
   "diveLog_delete_cancel": "Cancel",
   "diveLog_delete_confirm": "This action cannot be undone. The dive and all associated data (profile, tanks, sightings) will be permanently deleted.",
   "diveLog_delete_delete": "Delete",
@@ -8416,6 +8411,53 @@
     }
   },
   "cylinderConfigs_applyNothingToDo": "This dive already matches the configuration",
+  "cylinderConfigs_applyUpdated": "{count, plural, =1{updated {count}} other{updated {count}}}",
+  "@cylinderConfigs_applyUpdated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTitle": "Replace cylinder details?",
+  "cylinderConfigs_overwriteBody": "Applying {name} changes cylinders already on this dive:",
+  "@cylinderConfigs_overwriteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteTank": "Tank {number} · {role}",
+  "@cylinderConfigs_overwriteTank": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteChange": "{field}: {from} → {to}",
+  "@cylinderConfigs_overwriteChange": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "cylinderConfigs_overwriteKeepsGas": "Gas mixes and start pressures already on the dive are kept.",
+  "cylinderConfigs_overwriteConfirm": "Replace",
+  "cylinderConfigs_fieldVolume": "Volume",
+  "cylinderConfigs_fieldWorkingPressure": "Working pressure",
+  "cylinderConfigs_fieldMaterial": "Material",
   "cylinderConfigs_sectionTitle": "Configurations",
   "equipment_serviceClocks_hoursSource": "Counted from logged dive time",
   "equipment_serviceClocks_hoursLeft": "{remaining} of {total} hours left",
@@ -8914,6 +8956,9 @@
   "equipment_list_emptyState_serviceNoneOverdue": "Nothing is overdue for service.",
   "equipment_list_errorLoading": "Error loading equipment: {error}",
   "equipment_list_filterAll": "All Equipment",
+  "@equipment_list_filterAll": {"description": "Status chip that narrows by no status. On the Equipment list it shows every item, retired and sold included; in the dive gear picker, every item the picker offers."},
+  "equipment_list_filterCurrent": "Current Equipment",
+  "@equipment_list_filterCurrent": {"description": "Equipment filter status chip for the default view: every item except retired and sold gear"},
   "equipment_list_filterServiceDue": "Service Due",
   "equipment_list_filterServiceDueSoon": "Due Soon",
   "equipment_list_filterServiceOverdue": "Overdue",
@@ -11232,6 +11277,14 @@
   "media_import_review_noMatch": "No matching dive",
   "@media_import_review_noMatch": {
     "description": "Review row subtitle when no dive matches the timestamp"
+  },
+  "media_import_review_noCaptureTime": "No capture date found",
+  "@media_import_review_noCaptureTime": {
+    "description": "Review row subtitle when the file has no capture date to match a dive by"
+  },
+  "media_import_review_noMatchFileDate": "No matching dive by the file date; the file has no capture date",
+  "@media_import_review_noMatchFileDate": {
+    "description": "Review row subtitle when no dive matches and the only date was the file's modified time, because the file carries no capture date"
   },
   "media_import_review_skipped": "Not imported",
   "@media_import_review_skipped": {
@@ -15591,6 +15644,7 @@
   "trips_detail_dialog_deleteTitle": "Delete Trip?",
   "trips_detail_dives_empty": "No dives in this trip yet",
   "trips_detail_dives_errorLoading": "Unable to load dives",
+  "trips_detail_error_loading": "Couldn't load the trip.",
   "trips_detail_dives_unknownSite": "Unknown Site",
   "trips_detail_dives_viewAll": "View All ({count})",
   "trips_detail_durationDays": "{days} days",
@@ -15605,8 +15659,8 @@
   "trips_detail_label_resort": "Resort",
   "trips_detail_scan_accessDenied": "Photo library access denied",
   "trips_detail_scan_addDivesFirst": "Add dives first to link photos",
-  "trips_detail_scan_errorLinking": "Error linking photos: {error}",
-  "trips_detail_scan_errorScanning": "Error scanning: {error}",
+  "trips_detail_scan_errorLinking": "Couldn't link the photos. Try again.",
+  "trips_detail_scan_errorScanning": "Couldn't scan for photos. Try again.",
   "trips_detail_scan_linkedPhotos": "Linked {count} photos",
   "trips_detail_scan_linkingPhotos": "Linking photos...",
   "trips_detail_sectionTitle_details": "Trip Details",
@@ -15649,14 +15703,7 @@
     }
   },
   "trips_diveScan_deselectAll": "Deselect all",
-  "trips_diveScan_error": "Error scanning for dives: {error}",
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_diveScan_error": "Couldn't scan for dives. Try again.",
   "trips_diveScan_findButton": "Find matching dives",
   "trips_diveScan_groupOtherTrips": "On other trips ({count})",
   "@trips_diveScan_groupOtherTrips": {
@@ -15718,8 +15765,8 @@
   "trips_edit_sectionTitle_notes": "Notes",
   "trips_edit_semanticLabel_save": "Save trip",
   "trips_edit_snackBar_added": "Trip added successfully",
-  "trips_edit_snackBar_errorLoading": "Error loading trip: {error}",
-  "trips_edit_snackBar_errorSaving": "Error saving trip: {error}",
+  "trips_edit_snackBar_errorLoading": "Couldn't load the trip. Try again.",
+  "trips_edit_snackBar_errorSaving": "Couldn't save the trip. Try again.",
   "trips_edit_snackBar_updated": "Trip updated successfully",
   "trips_edit_validation_nameRequired": "Please enter a trip name",
   "trips_gallery_accessDenied": "Photo library access denied",
@@ -15729,9 +15776,9 @@
   "trips_gallery_diveSection_title": "Dive #{number} - {site}",
   "trips_gallery_empty_subtitle": "Tap the camera icon to scan your gallery",
   "trips_gallery_empty_title": "No photos in this trip",
-  "trips_gallery_errorLinking": "Error linking photos: {error}",
-  "trips_gallery_errorScanning": "Error scanning: {error}",
-  "trips_gallery_error_loading": "Error loading photos: {error}",
+  "trips_gallery_errorLinking": "Couldn't link the photos. Try again.",
+  "trips_gallery_errorScanning": "Couldn't scan for photos. Try again.",
+  "trips_gallery_error_loading": "Couldn't load the photos.",
   "trips_gallery_linkedPhotos": "Linked {count} photos",
   "trips_gallery_linkingPhotos": "Linking photos...",
   "trips_gallery_tooltip_scan": "Scan device gallery",
@@ -15750,7 +15797,7 @@
   "trips_list_empty_filtered_title": "No trips match your filters",
   "trips_list_empty_subtitle": "Create trips to group your dives by destination",
   "trips_list_empty_title": "No trips added yet",
-  "trips_list_error_loading": "Error loading trips: {error}",
+  "trips_list_error_loading": "Couldn't load your trips.",
   "trips_list_fab_addTrip": "Add Trip",
   "trips_list_filters_clearAll": "Clear all",
   "trips_list_inProgress": "In progress",
@@ -15772,7 +15819,7 @@
   "trips_picker_clearTooltip": "Clear selection",
   "trips_picker_empty_createButton": "Create Trip",
   "trips_picker_empty_title": "No trips yet",
-  "trips_picker_error": "Error loading trips: {error}",
+  "trips_picker_error": "Couldn't load your trips.",
   "trips_picker_hint": "Tap to select a trip",
   "trips_picker_newTrip": "New Trip",
   "trips_picker_noSelection": "No trip selected",
@@ -15782,6 +15829,7 @@
   "trips_search_empty_hint": "Search by name, location, or resort",
   "trips_search_fieldLabel": "Search trips...",
   "trips_search_noResults": "No trips found for \"{query}\"",
+  "trips_search_error": "Couldn't search your trips.",
   "trips_search_tooltip_back": "Back",
   "trips_search_tooltip_clear": "Clear search",
   "trips_summary_header_subtitle": "Select a trip from the list to view details",
@@ -15976,14 +16024,7 @@
   "trips_cylinders_forecast_useEstimate": "Use the estimate",
   "trips_cylinders_forecast_fewer": "Fewer dives",
   "trips_cylinders_forecast_more": "More dives",
-  "trips_cylinders_forecast_saveError": "Couldn't save the plan: {error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "Couldn't save the plan. Try again.",
   "trips_cylinders_forecast_dayPlanned": "Planned by you",
   "trips_cylinders_segment_record": "Record",
   "trips_cylinders_recordEmpty": "No dives breathed from these cylinders yet.",
@@ -16045,6 +16086,7 @@
     }
   },
   "trips_cylinders_record_exported": "Gas record exported",
+  "trips_cylinders_record_exportFailed": "Couldn't export the gas record. Try again.",
   "trips_cylinders_title": "Cylinders",
   "trips_cylinders_summary": "Full {full} · Partial {partial} · Empty {empty}",
   "@trips_cylinders_summary": {
@@ -16272,6 +16314,8 @@
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_noDives": "No dives",
+  "trips_itinerary_error_loading": "Couldn't load the itinerary.",
+  "trips_itinerary_daySaveError": "Couldn't save the day. Try again.",
   "trips_vesselType_catamaran": "Catamaran",
   "trips_vesselType_motorYacht": "Motor Yacht",
   "trips_vesselType_sailingYacht": "Sailing Yacht",
@@ -16297,20 +16341,6 @@
       }
     }
   },
-  "@trips_detail_scan_errorLinking": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_detail_scan_errorScanning": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
   "@trips_detail_scan_linkedPhotos": {
     "placeholders": {
       "count": {
@@ -16321,20 +16351,6 @@
   "@trips_edit_durationDays": {
     "placeholders": {
       "days": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_edit_snackBar_errorLoading": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_edit_snackBar_errorSaving": {
-    "placeholders": {
-      "error": {
         "type": "Object"
       }
     }
@@ -16356,37 +16372,9 @@
       }
     }
   },
-  "@trips_gallery_errorLinking": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_gallery_errorScanning": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_gallery_error_loading": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
   "@trips_gallery_linkedPhotos": {
     "placeholders": {
       "count": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_list_error_loading": {
-    "placeholders": {
-      "error": {
         "type": "Object"
       }
     }
@@ -16408,13 +16396,6 @@
   "@trips_photos_moreIndicator_semanticLabel": {
     "placeholders": {
       "count": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_picker_error": {
-    "placeholders": {
-      "error": {
         "type": "Object"
       }
     }
@@ -19338,6 +19319,8 @@
   "dropTarget_error_unsupportedFile": "Unsupported file type",
   "dropTarget_error_wizardActive": "Finish current import first",
   "dropTarget_error_readFailed": "Could not read file",
+  "dropTarget_error_mediaNeedsDestination": "To link photos and videos, drop them on Media, a dive or a dive site",
+  "@dropTarget_error_mediaNeedsDestination": {"description": "Snackbar when photos or videos are dropped on a screen that cannot take them"},
   "dropTarget_error_someUnreadable": "{count, plural, =1{{count} file could not be read and was skipped} other{{count} files could not be read and were skipped}}",
   "@dropTarget_error_someUnreadable": {"description": "Snackbar after a share-sheet import that skipped files it could not read, while the rest were imported", "placeholders": {"count": {"type": "int"}}},
   "enum_cloudCover_clear": "Clear",
@@ -21154,6 +21137,8 @@
   "safetyHub_noFly_disclaimer": "DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer's no-fly time.",
   "diveLog_detail_altitudeMismatch_title": "Site is at altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive's altitude to correct it.",
+  "diveLog_detail_sacSegmentsNoPressure": "Only start and end tank pressures were recorded, so gas use can't be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "No tank pressure recorded during the dive",
   "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show RMV in {unit}",
   "@diveLog_detail_sacVolumeHint": {
     "placeholders": {
@@ -28221,7 +28206,7 @@
   "transmitters_action_delete": "Delete transmitter",
   "transmitters_action_apply": "Apply to existing dives",
   "transmitters_apply_title": "Apply to existing dives?",
-  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas will be replaced.",
+  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter's name will be replaced.",
   "@transmitters_apply_content": {
     "placeholders": {
       "tanks": { "type": "int" },
@@ -28292,6 +28277,13 @@
   },
   "diveLog_tank_assignTransmitter": "Assign transmitter",
   "diveLog_tank_reassignSeries": "Reassign pressure series",
+  "diveLog_tank_roleFromTransmitterName": "{role}, read from the transmitter's name",
+  "@diveLog_tank_roleFromTransmitterName": {
+    "description": "Under a cylinder whose role the dive computer took from the name the diver gave its transmitter (a name starting with O reads as oxygen, D as diluent), so the role is unconfirmed. role is the localized tank role, e.g. O₂ Supply.",
+    "placeholders": {
+      "role": { "type": "String" }
+    }
+  },
   "diveLog_reassignSheet_title": "Pressure series",
   "diveLog_reassignSheet_swap": "Swap",
   "diveLog_reassignSheet_moveTo": "Move to",
@@ -28306,6 +28298,8 @@
   "universalImport_summary_noticeUnknownTransmitterTitle": "Unassigned transmitters",
   "universalImport_summary_noticeUnknownTransmitterBody": "One or more transmitters in this download are not assigned to a cylinder. Assign them so future downloads get the right size and role.",
   "universalImport_summary_noticeAssignTransmitters": "Assign transmitters",
+  "universalImport_summary_noticeTransmitterNameRolesTitle": "Cylinder roles read from transmitter names",
+  "universalImport_summary_noticeTransmitterNameRolesBody": "The dive computer took some oxygen and diluent roles from the names given to its transmitters: a name starting with O reads as oxygen, one starting with D as diluent. Assign the transmitters to confirm or correct those roles.",
   "universalImport_summary_noticeDiveNumberConflictTitle": "Dive numbers already in use",
   "universalImport_summary_noticeDiveNumberConflictBody": "These dives kept the number from their source, but other dives in your log already use the same numbers. Open Dive Numbering from the dive list menu to renumber them.",
   "dataQuality_detector_unknown_transmitter": "Unassigned transmitter",

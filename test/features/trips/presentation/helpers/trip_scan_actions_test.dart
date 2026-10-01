@@ -84,6 +84,18 @@ class _NoCandidatesRepo extends TripRepository {
   }) async => [];
 }
 
+/// Trip repository whose candidate lookup fails the way a locked database
+/// does.
+class _FailingCandidatesRepo extends TripRepository {
+  @override
+  Future<List<DiveCandidate>> findCandidateDivesForTrip({
+    required String tripId,
+    required DateTime startDate,
+    required DateTime endDate,
+    required String diverId,
+  }) async => throw StateError('database is locked');
+}
+
 /// Trip repository that records the diverId it was queried with, so tests
 /// can assert which diver's dives get searched.
 class _RecordingCandidatesRepo extends TripRepository {
@@ -187,6 +199,20 @@ void main() {
     expect(find.text('No matching dives found'), findsOneWidget);
   });
 
+  testWidgets('a failed scanForTripDives says so without the exception', (
+    tester,
+  ) async {
+    await pumpActionButton(tester, [
+      tripRepositoryProvider.overrideWithValue(_FailingCandidatesRepo()),
+      currentDiverIdProvider.overrideWith((ref) => _FixedDiverIdNotifier('d1')),
+    ], (context, ref) => scanForTripDives(context, ref, _trip(diverId: 'd1')));
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text("Couldn't scan for dives. Try again."), findsOneWidget);
+    expect(find.textContaining('database is locked'), findsNothing);
+  });
+
   testWidgets('scanForTripDives searches the active diver, not the trip owner '
       '(shared trip)', (tester) async {
     // Trip is owned by BAB but shared with, and being viewed by, MAB.
@@ -214,6 +240,25 @@ void main() {
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
     expect(find.text('Add dives first to link photos'), findsOneWidget);
+  });
+
+  testWidgets('a failed scanGalleryForTripPhotos says so without the '
+      'exception', (tester) async {
+    await pumpActionButton(
+      tester,
+      [
+        divesForTripProvider(
+          'trip-1',
+        ).overrideWith((ref) async => throw StateError('database is locked')),
+      ],
+      (context, ref) =>
+          scanGalleryForTripPhotos(context, ref, 'trip-1', _trip()),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text("Couldn't scan for photos. Try again."), findsOneWidget);
+    expect(find.textContaining('database is locked'), findsNothing);
   });
 
   testWidgets('scanGalleryForTripPhotos reports denied photo access', (

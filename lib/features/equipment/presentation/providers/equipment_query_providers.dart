@@ -71,6 +71,7 @@ final equipmentStatusViewHasItemsProvider = Provider<bool>((ref) {
   final diverId = ref.watch(validatedCurrentDiverIdProvider).value;
   final base = EquipmentFilterState(
     status: filter.status,
+    allStatuses: filter.allStatuses,
     serviceDue: filter.serviceDue,
   );
   final items = _narrow(

@@ -119,7 +119,7 @@ class _RecordingCoordinator implements MediaDeletionCoordinator {
 }
 
 void main() {
-  // No takenAt: the review shows "No matching dive" and never touches a
+  // No takenAt: the review shows "No capture date found" and never touches a
   // dive repository, which keeps that test free of that provider.
   const entry = ManifestEntry(
     entryKey: 'k1',
@@ -181,7 +181,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(MediaImportReviewPage), findsOneWidget);
-    expect(find.text('No matching dive'), findsOneWidget);
+    expect(find.text('No capture date found'), findsOneWidget);
     expect(pipeline.inserted, isEmpty);
   });
 

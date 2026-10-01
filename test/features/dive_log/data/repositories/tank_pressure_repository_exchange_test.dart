@@ -108,6 +108,28 @@ void main() {
     },
   );
 
+  test('a swap drops a role read off the transmitter name (#2595)', () async {
+    // The flag names the row's old transmitter; after the swap it would
+    // let the other transmitter's registry entry rewrite this row's role.
+    await seed();
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      "UPDATE dive_tanks SET role_source = 'transmitterName' "
+      "WHERE id IN ('tA', 'tB')",
+    );
+
+    await tankRepo.exchangeTankSources(
+      diveId: 'd1',
+      tankIdA: 'tA',
+      tankIdB: 'tB',
+    );
+
+    final rows = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.id.isIn(['tA', 'tB']))).get();
+    expect(rows.map((r) => r.roleSource), [null, null]);
+  });
+
   test('legacy rows without a source index get explicit ones', () async {
     await seed(withSourceIndex: false);
     await tankRepo.exchangeTankSources(

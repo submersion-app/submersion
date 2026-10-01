@@ -51,16 +51,18 @@ void main() {
     },
   );
 
-  test('v252 is in the ladder', () {
-    // v255 (#2550) is the newest rung and owns the exact assertion.
+  test('v252 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v254 (dive_tanks.role_source, #2595) landed on top; the
+    // newest rung owns the exact assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(252));
     expect(AppDatabase.migrationVersions, contains(252));
     // v251 (dive_tanks.source_id, #2716) sits directly below this rung,
     // and v250 (profile hides, #2594) below that.
     expect(AppDatabase.migrationVersions, containsAll([250, 251]));
-    final above252 = AppDatabase.migrationStepCount(252);
-    expect(AppDatabase.migrationStepCount(251), above252 + 1);
-    expect(AppDatabase.migrationStepCount(250), above252 + 2);
+    expect(
+      AppDatabase.migrationStepCount(250),
+      AppDatabase.migrationStepCount(251) + 1,
+    );
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
