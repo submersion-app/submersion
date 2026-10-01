@@ -851,6 +851,40 @@ void main() {
         isTrue,
       );
     });
+
+    test('watchGasRecordChanges fires on a slot write', () async {
+      await seedParents();
+      expect(
+        await fires(
+          TripCylinderRepository().watchGasRecordChanges(),
+          () => db
+              .into(db.tripCylinders)
+              .insert(
+                TripCylindersCompanion.insert(
+                  id: 'slot-1',
+                  tripId: 't1',
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('watchGasRecordChanges fires on a diver rename', () async {
+      // The record names each tank's diver, and a rename writes only the
+      // divers row (issue #2666).
+      await seedParents();
+      expect(
+        await fires(
+          TripCylinderRepository().watchGasRecordChanges(),
+          () => (db.update(db.divers)..where((d) => d.id.equals('diver-1')))
+              .write(const DiversCompanion(name: Value('Renamed'))),
+        ),
+        isTrue,
+      );
+    });
   });
 
   group('maps', () {

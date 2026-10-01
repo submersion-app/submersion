@@ -28,6 +28,8 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_edit_
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_list_count_provider.dart';
+import 'package:submersion/shared/widgets/title_with_subtitle.dart';
 
 class EquipmentListPage extends ConsumerStatefulWidget {
   const EquipmentListPage({super.key});
@@ -99,6 +101,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         child: TableModeLayout(
           sectionKey: 'equipment',
           appBarTitle: context.l10n.nav_equipment,
+          appBarSubtitle: equipmentListCountLabel(context, ref),
           tableContent: const EquipmentListContent(showAppBar: false),
           detailBuilder: (context, id) => EquipmentDetailPage(
             equipmentId: id,
@@ -192,9 +195,14 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             // the switcher's own 8px label padding puts the text at the 16px
             // every other app bar title sits at.
             titleSpacing: _phoneTitleSpacing,
-            title: DefaultTextStyle.merge(
-              style: titleStyle,
-              child: _buildSectionToggle(context),
+            title: TitleWithSubtitle(
+              title: DefaultTextStyle.merge(
+                style: titleStyle,
+                child: _buildSectionToggle(context),
+              ),
+              subtitle: _isEquipmentTab && !selection.isActive
+                  ? equipmentListCountLabel(context, ref)
+                  : null,
             ),
             // One row whenever the switcher and the actions both fit; a
             // second row under the switcher otherwise, for the longer

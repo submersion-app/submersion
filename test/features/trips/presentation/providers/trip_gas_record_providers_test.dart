@@ -2,7 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/database/database.dart'
-    show AppDatabase, DivesCompanion, DiveTanksCompanion;
+    show AppDatabase, DiversCompanion, DivesCompanion, DiveTanksCompanion;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
@@ -145,5 +145,68 @@ void main() {
     final after = await container.read(tripGasRecordProvider(tripId).future);
     expect(after.unlinked, isEmpty);
     expect(after.rows.single.tank.tankId, 't1');
+  });
+
+  test('renaming a diver refreshes the record', () async {
+    // A rename writes only the divers row, yet the record and its export
+    // name each tank's diver (issue #2666).
+    final at = DateTime.utc(2026, 3, 9, 7);
+    final slot = await cylinders.createCylinder(
+      TripCylinder(
+        id: '',
+        tripId: tripId,
+        label: 'Truck 1',
+        workingPressure: 207,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'v1',
+            name: 'Ana',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'd1',
+            diveDateTime: DateTime.utc(2026, 3, 9, 9).millisecondsSinceEpoch,
+            tripId: Value(tripId),
+            diverId: const Value('v1'),
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    for (final (id, link) in [('t1', slot.id), ('t2', null)]) {
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: id,
+              diveId: 'd1',
+            ).copyWith(tripCylinderId: Value(link)),
+          );
+    }
+    // Auto-disposed: keep it alive across the write, as the open tab does.
+    final sub = container.listen(tripGasRecordProvider(tripId), (_, _) {});
+    addTearDown(sub.close);
+    final before = await container.read(tripGasRecordProvider(tripId).future);
+    expect(before.rows.single.tank.diverName, 'Ana');
+    expect(before.unlinked.single.diverName, 'Ana');
+
+    await (db.update(db.divers)..where((v) => v.id.equals('v1'))).write(
+      const DiversCompanion(name: Value('Ana Silva')),
+    );
+    await pumpEventQueue();
+
+    final after = await container.read(tripGasRecordProvider(tripId).future);
+    expect(after.rows.single.tank.diverName, 'Ana Silva');
+    expect(after.unlinked.single.diverName, 'Ana Silva');
   });
 }
