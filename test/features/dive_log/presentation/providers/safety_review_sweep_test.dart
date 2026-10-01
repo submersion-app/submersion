@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_sweep.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 import '../../domain/services/safety_review_fixtures.dart';
 
@@ -86,6 +87,9 @@ void main() {
     );
     final container = ProviderContainer(
       overrides: [
+        // Loaded settings: a review is persisted only once the diver's
+        // settings have loaded.
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         safetyFindingsRepositoryProvider.overrideWithValue(repo),
         safetyReviewEnabledProvider.overrideWithValue(true),
         profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
@@ -212,6 +216,7 @@ void main() {
     );
     final container = ProviderContainer(
       overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         safetyFindingsRepositoryProvider.overrideWithValue(repo),
         safetyReviewEnabledProvider.overrideWithValue(true),
         profileAnalysisProvider(

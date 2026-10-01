@@ -64,7 +64,9 @@ class DecoClassificationService {
 
     // The active diver's settings, once loaded: during a diver switch the
     // previous diver's are still in state (#2564).
-    await awaitActiveDiverSettings(ref);
+    // A failed load leaves state that is not the diver's; the pass still
+    // answers, but nothing is cached under it.
+    final settingsLoaded = await awaitActiveDiverSettings(ref);
     final settingsFingerprint = ref
         .read(diverAnalysisSettingsProvider)
         .fingerprint;
@@ -123,7 +125,8 @@ class DecoClassificationService {
           // since the hashes above were taken, still answers this pass but
           // is not kept under a fingerprint it does not match.
           final ranOn = analysis.inputsFingerprint;
-          if (ranOn == null || ranOn == settingsFingerprint) {
+          if (settingsLoaded &&
+              (ranOn == null || ranOn == settingsFingerprint)) {
             await cache.put(
               diveId,
               hadDeco: hadDeco,

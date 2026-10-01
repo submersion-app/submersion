@@ -29,6 +29,13 @@ class _FakeRepo extends SafetyFindingsRepository {
   Future<SafetyReview> saveReview(SafetyReview review) async => saved = review;
 }
 
+/// A settings notifier whose latest load failed: [state] is not the active
+/// diver's settings (the placeholder, or the previous diver's after a switch).
+class _FailedLoadSettingsNotifier extends MockSettingsNotifier {
+  @override
+  Future<void> get loaded async => throw StateError('settings read failed');
+}
+
 void main() {
   final now = DateTime.utc(2026, 7, 16);
 
@@ -230,6 +237,34 @@ void main() {
     expect(repo.saved, isNull);
     expect(result, stored, reason: 'the stored review is shown instead');
   });
+
+  // Copilot review on #2748: when the active diver's settings fail to load,
+  // state still holds the placeholder or, after a switch, the previous
+  // diver's settings. Nothing may be persisted from an analysis built on it.
+  test(
+    'does not save a review when the diver settings failed to load',
+    () async {
+      final repo = _FakeRepo();
+      final profile = rapidAscentProfile();
+      final analysis = analyzeFixture(
+        depths: profile.depths,
+        timestamps: profile.timestamps,
+      );
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _FailedLoadSettingsNotifier()),
+          safetyFindingsRepositoryProvider.overrideWithValue(repo),
+          safetyReviewEnabledProvider.overrideWithValue(true),
+          profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = await container.read(safetyReviewProvider('d1').future);
+      expect(repo.saved, isNull);
+      expect(result, isNull, reason: 'only what is stored is shown');
+    },
+  );
 
   // Regression: a freshly synced library imports safety review/finding rows
   // straight into their tables (SyncDataSerializer.insertOnConflictUpdate),

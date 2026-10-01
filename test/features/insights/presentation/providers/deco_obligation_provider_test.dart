@@ -47,6 +47,13 @@ import '../../../../helpers/test_database.dart';
   return (depths, times);
 }
 
+/// A settings notifier whose latest load failed (see the safety review
+/// provider test of the same name).
+class _FailedLoadSettingsNotifier extends MockSettingsNotifier {
+  @override
+  Future<void> get loaded async => throw StateError('settings read failed');
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -265,6 +272,24 @@ void main() {
       ),
       reason: 'the recomputed entry records the settings it ran on',
     );
+  });
+
+  test('nothing is cached when the diver settings failed to load', () async {
+    await insertDive('deep');
+    await insertBareProfile('deep', 40, 25);
+
+    final container = ProviderContainer(
+      overrides: (await getBaseOverrides(
+        settingsNotifier: _FailedLoadSettingsNotifier(),
+      )).cast(),
+    );
+    addTearDown(container.dispose);
+
+    final stats = await container.read(decoObligationStatsProvider.future);
+
+    expect(stats.decoCount, 1, reason: 'the pass still answers');
+    final cached = await cacheDb.select(cacheDb.decoClassificationCache).get();
+    expect(cached, isEmpty, reason: 'but keeps nothing under those settings');
   });
 
   test('editing a dive invalidates its cached classification', () async {

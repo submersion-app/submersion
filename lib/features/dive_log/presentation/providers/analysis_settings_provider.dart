@@ -205,15 +205,20 @@ final analysisSettingsProvider = Provider<AnalysisSettings>((ref) {
 /// Waits until the active diver's settings have loaded, including the reload
 /// a diver switch starts ([SettingsNotifier.loaded]), so a following read of
 /// [analysisSettingsProvider] or [diverAnalysisSettingsProvider] is that
-/// diver's and not the placeholder or the
-/// previous diver's (issues #1859, #2564).
+/// diver's and not the placeholder or the previous diver's (issues #1859,
+/// #2564).
 ///
-/// A failed load is already logged by the notifier and leaves the defaults in
-/// place, so the caller proceeds on them, as `setAutoTagImports` does.
-Future<void> awaitActiveDiverSettings(Ref ref) async {
+/// Returns whether that load succeeded. A failed load is already logged by
+/// the notifier and leaves [settingsProvider] holding whatever it held: the
+/// placeholder defaults, or the previous diver's settings after a switch. An
+/// analysis for display may still proceed on them, but nothing may be
+/// persisted from it: a caller that saves a result checks this first.
+Future<bool> awaitActiveDiverSettings(Ref ref) async {
   try {
     await ref.read(settingsProvider.notifier).loaded;
+    return true;
   } catch (_) {
-    // See the doc comment: already logged, defaults are the fallback.
+    // See the doc comment: already logged.
+    return false;
   }
 }

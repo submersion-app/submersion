@@ -46,7 +46,7 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
 
   // Compare against the active diver's settings, not the placeholder or the
   // previous diver's still in state during a switch.
-  await awaitActiveDiverSettings(ref);
+  final settingsLoaded = await awaitActiveDiverSettings(ref);
   final currentInputs = ref.watch(diverAnalysisSettingsProvider).fingerprint;
 
   final stored = await repo.getReview(diveId);
@@ -58,6 +58,9 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
 
   // Master toggle off: surface whatever is stored but never compute.
   if (!ref.watch(safetyReviewEnabledProvider)) return stored;
+  // The diver's settings failed to load, so state is not theirs: computing
+  // would persist a review built on the placeholder or another diver's.
+  if (!settingsLoaded) return stored;
 
   final analysis = await ref.watch(profileAnalysisProvider(diveId).future);
   if (analysis == null || analysis.ascentRates.isEmpty) return stored;
