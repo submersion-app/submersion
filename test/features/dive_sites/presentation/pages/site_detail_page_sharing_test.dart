@@ -37,6 +37,7 @@ void main() {
     WidgetTester tester, {
     required String active,
     bool profileUnreadable = false,
+    bool hidden = false,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(390, 844);
@@ -58,7 +59,9 @@ void main() {
             (_) async =>
                 profileUnreadable ? throw StateError('no profile') : active,
           ),
-          profileHidesRepositoryProvider.overrideWithValue(_FakeHides()),
+          profileHidesRepositoryProvider.overrideWithValue(
+            _FakeHides(hidden: hidden),
+          ),
           siteListNotifierProvider.overrideWith((ref) => notifier),
         ],
         child: MaterialApp(
@@ -117,6 +120,28 @@ void main() {
     expect(find.text('Removed from your profile'), findsOneWidget);
   });
 
+  testWidgets('a site already hidden here offers Unhide, not Remove (#2679)', (
+    tester,
+  ) async {
+    final (notifier, closed) = await pump(tester, active: 'd2', hidden: true);
+    expect(
+      find.text('Shared by Alice · Hidden from your profile'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Remove from my profile'), findsNothing);
+    expect(find.text('Delete'), findsNothing);
+    await tester.tap(find.text('Show in my profile'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.unhidden, ['pier']);
+    expect(notifier.hidden, isEmpty);
+    expect(closed, isEmpty);
+    expect(find.byType(SnackBar), findsNothing);
+  });
+
   testWidgets('the owner deletes it, warned about other profiles\' dives', (
     tester,
   ) async {
@@ -138,6 +163,18 @@ void main() {
 }
 
 class _FakeHides extends Fake implements ProfileHidesRepository {
+  _FakeHides({this.hidden = false});
+
+  /// Whether the active profile has already hidden the item.
+  final bool hidden;
+
+  @override
+  Stream<void> watchChanges() => const Stream.empty();
+
+  @override
+  Future<bool> isHidden(SharedItemKind kind, String id, String diverId) async =>
+      hidden;
+
   @override
   Future<({int mine, int others})> diveLinkCounts(
     SharedItemKind kind,
@@ -153,6 +190,7 @@ class _RecordingSiteListNotifier
 
   final hidden = <String>[];
   final deleted = <String>[];
+  final unhidden = <String>[];
 
   @override
   Future<int> hideSites(List<String> ids) async {
@@ -167,7 +205,7 @@ class _RecordingSiteListNotifier
   }
 
   @override
-  Future<void> unhideSites(List<String> ids) async {}
+  Future<void> unhideSites(List<String> ids) async => unhidden.addAll(ids);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

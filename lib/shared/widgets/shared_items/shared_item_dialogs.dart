@@ -38,6 +38,19 @@ Future<({int mine, int others})> readDiveLinkCounts(
   }
 }
 
+/// Whether the active profile has already hidden this shared trip or site,
+/// so its page offers Unhide instead of Remove (issue #2679). False for an
+/// item the profile may destroy, and until the answer has loaded. Watches,
+/// so call it during build.
+bool watchHiddenHere(
+  WidgetRef ref,
+  SharedItemKind kind,
+  String id, {
+  required bool canDestroy,
+}) =>
+    !canDestroy &&
+    (ref.watch(isHiddenProvider((kind: kind, id: id))).value ?? false);
+
 /// The active profile and how many profiles exist, for splitting a bulk
 /// selection and choosing its warning (issue #2594). A failed read of
 /// either logs, tells the diver to try again and gives null, so the bulk

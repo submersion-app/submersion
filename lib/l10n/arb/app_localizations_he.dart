@@ -29208,6 +29208,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dropTarget_error_readFailed => 'לא ניתן לקרוא את הקובץ';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן לקרוא $count קבצים והם דולגו',
+      one: 'לא ניתן לקרוא קובץ אחד והוא דולג',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'בהיר';
 
   @override
@@ -29915,6 +29926,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'מוסתר בפרופיל שלך';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'רק אחד מהאתרים שנבחרו יכול להשתייך לפרופיל אחר. בטל את בחירת האחרים כדי למזג.';
 
@@ -29992,6 +30006,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedItems_undo => 'בטל';
+
+  @override
+  String get sharedItems_unhideAction => 'הצגה בפרופיל שלי';
 
   @override
   String get sites_deleteShared_title => 'למחוק את האתר המשותף?';

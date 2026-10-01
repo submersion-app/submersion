@@ -25,13 +25,18 @@ class ItineraryDayRepository {
   Stream<void> watchItineraryChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.tripItineraryDays));
 
-  /// Get all itinerary days for a trip, ordered by dayNumber ascending.
+  /// Get all itinerary days for a trip, ordered by date ascending. Not by the
+  /// stored dayNumber: it is numbered from the trip's start when the row was
+  /// written and goes stale when the start moves (#2664).
   Future<List<domain.ItineraryDay>> getByTripId(String tripId) async {
     try {
       _log.info('Getting itinerary days for trip: $tripId');
       final query = _db.select(_db.tripItineraryDays)
         ..where((t) => t.tripId.equals(tripId))
-        ..orderBy([(t) => OrderingTerm.asc(t.dayNumber)]);
+        ..orderBy([
+          (t) => OrderingTerm.asc(t.date),
+          (t) => OrderingTerm.asc(t.id),
+        ]);
 
       final rows = await query.get();
       final result = rows.map(_mapRow).toList();

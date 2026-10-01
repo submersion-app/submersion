@@ -374,7 +374,12 @@ class _TripDetailContent extends ConsumerWidget {
   Widget _headerCards(Trip trip) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      SharedByBanner(ownerId: trip.diverId, isShared: trip.isShared),
+      SharedByBanner(
+        kind: SharedItemKind.trip,
+        itemId: trip.id,
+        ownerId: trip.diverId,
+        isShared: trip.isShared,
+      ),
       TripHeaderCards(
         children: [
           TripGearAlertsPanel(trip: trip),
@@ -468,6 +473,13 @@ class _TripDetailContent extends ConsumerWidget {
       ref.watch(validatedCurrentDiverIdProvider),
       ownerId: trip.diverId,
     );
+    // A trip this profile already removed offers Unhide (issue #2679).
+    final hidden = watchHiddenHere(
+      ref,
+      SharedItemKind.trip,
+      trip.id,
+      canDestroy: canDestroy != false,
+    );
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
@@ -504,6 +516,8 @@ class _TripDetailContent extends ConsumerWidget {
           }
         } else if (value == 'remove') {
           await _removeFromProfile(context, ref, trip);
+        } else if (value == 'unhide') {
+          await ref.read(tripListNotifierProvider.notifier).unhideTrip(trip.id);
         } else if (value == 'export') {
           _showExportOptions(context, ref);
         } else if (value == 'scan-dives') {
@@ -571,6 +585,17 @@ class _TripDetailContent extends ConsumerWidget {
                   context.l10n.trips_detail_action_delete,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
+              ],
+            ),
+          )
+        else if (hidden)
+          PopupMenuItem(
+            value: 'unhide',
+            child: Row(
+              children: [
+                const Icon(Icons.visibility_outlined),
+                const SizedBox(width: 8),
+                Flexible(child: Text(context.l10n.sharedItems_unhideAction)),
               ],
             ),
           )

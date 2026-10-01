@@ -1169,13 +1169,27 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       actions: [
         if (widget.isEditing && (!widget.embedded || widget.onDeleted != null))
           // Delete for the owner; another profile only removes the shared
-          // site from itself (issue #2594); neither while the profile is
-          // unknown (issue #2682).
+          // site from itself (issue #2594), or unhides it once it has
+          // (issue #2679); none of these while the profile is unknown
+          // (issue #2682).
           if (_mayShare() == true)
             IconButton(
               icon: const Icon(Icons.delete),
               tooltip: context.l10n.diveSites_edit_appBar_deleteSiteTooltip,
               onPressed: _confirmDelete,
+            )
+          else if (watchHiddenHere(
+            ref,
+            SharedItemKind.site,
+            widget.siteId!,
+            canDestroy: _mayShare() != false,
+          ))
+            IconButton(
+              icon: const Icon(Icons.visibility_outlined),
+              tooltip: context.l10n.sharedItems_unhideAction,
+              onPressed: () => ref
+                  .read(siteListNotifierProvider.notifier)
+                  .unhideSites([widget.siteId!]),
             )
           else if (_mayShare() == false)
             IconButton(
