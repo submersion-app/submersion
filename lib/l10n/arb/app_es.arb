@@ -2237,6 +2237,8 @@
   "diveLog_deco_tissueSlow": "Lento",
   "diveLog_deco_title": "Estado deco",
   "diveLog_deco_totalDecoTime": "Total: {time}",
+  "diveLog_deco_withheld_ccr": "Esta inmersión con rebreather no tiene registrado ningún setpoint ni ppO2 del circuito, así que no se pueden calcular su carga tisular, el NDL ni la descompresión. Añade el setpoint al editar la inmersión para calcularlos.",
+  "diveLog_deco_withheld_scr": "Esta inmersión con rebreather semicerrado no tiene ppO2 del circuito medida, así que no se pueden calcular su carga tisular, el NDL ni la descompresión.",
   "diveLog_delete_cancel": "Cancelar",
   "diveLog_delete_confirm": "Esta acción no se puede deshacer. La inmersión y todos los datos asociados (perfil, tanques, avistamientos) se eliminarán permanentemente.",
   "diveLog_delete_delete": "Eliminar",

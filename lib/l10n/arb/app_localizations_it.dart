@@ -6467,6 +6467,14 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'Questa immersione con rebreather non ha né un setpoint né una ppO2 del loop registrati, quindi il carico tissutale, l\'NDL e la decompressione non possono essere calcolati. Aggiungi il setpoint modificando l\'immersione per calcolarli.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'Questa immersione con rebreather semichiuso non ha una ppO2 del loop misurata, quindi il carico tissutale, l\'NDL e la decompressione non possono essere calcolati.';
+
+  @override
   String get diveLog_delete_cancel => 'Annulla';
 
   @override

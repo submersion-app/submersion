@@ -6473,6 +6473,14 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'Für diesen Rebreather-Tauchgang wurde weder ein Setpoint noch ein Loop-ppO2 aufgezeichnet, daher lassen sich Gewebesättigung, NDL und Dekompression nicht berechnen. Trage den Setpoint beim Bearbeiten des Tauchgangs ein, um sie zu berechnen.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'Für diesen halbgeschlossenen Rebreather-Tauchgang wurde kein Loop-ppO2 gemessen, daher lassen sich Gewebesättigung, NDL und Dekompression nicht berechnen.';
+
+  @override
   String get diveLog_delete_cancel => 'Abbrechen';
 
   @override

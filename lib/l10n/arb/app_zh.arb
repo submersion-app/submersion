@@ -2341,6 +2341,8 @@
   "diveLog_deco_tissueSlow": "慢速",
   "diveLog_deco_title": "减压状态",
   "diveLog_deco_totalDecoTime": "总计：{time}",
+  "diveLog_deco_withheld_ccr": "这次循环呼吸器潜水没有记录设定点或回路 ppO2，因此无法计算其组织饱和度、免减压极限和减压。编辑潜水时添加设定点即可计算。",
+  "diveLog_deco_withheld_scr": "这次半闭式循环呼吸器潜水没有测得的回路 ppO2，因此无法计算其组织饱和度、免减压极限和减压。",
   "diveLog_delete_cancel": "取消",
   "diveLog_delete_confirm": "此操作无法撤消。潜水及所有关联数据（轮廓、气瓶、目击）将被永久删除。",
   "diveLog_delete_delete": "删除",

@@ -2135,6 +2135,8 @@
   "diveLog_deco_tissueSlow": "Lassú",
   "diveLog_deco_title": "Dekó állapot",
   "diveLog_deco_totalDecoTime": "Összes: {time}",
+  "diveLog_deco_withheld_ccr": "Ehhez a rebreatheres merüléshez nincs rögzített setpoint vagy hurok-ppO2, ezért a szövetterheltség, az NDL és a dekompresszió nem számítható. A számításhoz add meg a setpointot a merülés szerkesztésekor.",
+  "diveLog_deco_withheld_scr": "Ehhez a félig zárt rebreatheres merüléshez nincs mért hurok-ppO2, ezért a szövetterheltség, az NDL és a dekompresszió nem számítható.",
   "diveLog_delete_cancel": "Mégse",
   "diveLog_delete_confirm": "Ez a művelet nem vonható vissza. A merülés és az összes kapcsolódó adat (profil, palackok, észlelések) véglegesen törlődik.",
   "diveLog_delete_delete": "Törlés",

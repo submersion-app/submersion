@@ -2135,6 +2135,8 @@
   "diveLog_deco_tissueSlow": "איטית",
   "diveLog_deco_title": "מצב דקו",
   "diveLog_deco_totalDecoTime": "סה\"כ: {time}",
+  "diveLog_deco_withheld_ccr": "בצלילת הריבריד'ר הזו לא תועדו נקודת קביעה (setpoint) או ppO2 של הלולאה, ולכן לא ניתן לחשב את עומס הרקמות, ה-NDL והדקומפרסיה. הוסף את נקודת הקביעה בעריכת הצלילה כדי לחשב אותם.",
+  "diveLog_deco_withheld_scr": "בצלילת הריבריד'ר הסגור-למחצה הזו לא נמדד ppO2 של הלולאה, ולכן לא ניתן לחשב את עומס הרקמות, ה-NDL והדקומפרסיה.",
   "diveLog_delete_cancel": "ביטול",
   "diveLog_delete_confirm": "פעולה זו אינה ניתנת לביטול. הצלילה וכל הנתונים המשויכים (פרופיל, בלונים, תצפיות) יימחקו לצמיתות.",
   "diveLog_delete_delete": "מחיקה",

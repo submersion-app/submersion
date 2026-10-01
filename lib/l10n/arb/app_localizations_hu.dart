@@ -6453,6 +6453,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'Ehhez a rebreatheres merüléshez nincs rögzített setpoint vagy hurok-ppO2, ezért a szövetterheltség, az NDL és a dekompresszió nem számítható. A számításhoz add meg a setpointot a merülés szerkesztésekor.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'Ehhez a félig zárt rebreatheres merüléshez nincs mért hurok-ppO2, ezért a szövetterheltség, az NDL és a dekompresszió nem számítható.';
+
+  @override
   String get diveLog_delete_cancel => 'Mégse';
 
   @override

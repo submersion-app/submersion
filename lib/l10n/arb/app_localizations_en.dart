@@ -6361,6 +6361,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'This rebreather dive has no recorded setpoint or loop ppO2, so its tissue loading, NDL and decompression cannot be calculated. Add the setpoint when editing the dive to calculate them.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'This semi-closed rebreather dive has no measured loop ppO2, so its tissue loading, NDL and decompression cannot be calculated.';
+
+  @override
   String get diveLog_delete_cancel => 'Cancel';
 
   @override

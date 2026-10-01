@@ -2237,6 +2237,8 @@
   "diveLog_deco_tissueSlow": "Langzaam",
   "diveLog_deco_title": "Decostatus",
   "diveLog_deco_totalDecoTime": "Totaal: {time}",
+  "diveLog_deco_withheld_ccr": "Voor deze rebreatherduik is geen setpoint of loop-ppO2 vastgelegd, dus de weefselbelading, NDL en decompressie kunnen niet worden berekend. Voeg het setpoint toe bij het bewerken van de duik om ze te berekenen.",
+  "diveLog_deco_withheld_scr": "Voor deze semi-gesloten rebreatherduik is geen loop-ppO2 gemeten, dus de weefselbelading, NDL en decompressie kunnen niet worden berekend.",
   "diveLog_delete_cancel": "Annuleren",
   "diveLog_delete_confirm": "Deze actie kan niet ongedaan worden gemaakt. De duik en alle bijbehorende gegevens (profiel, flessen, waarnemingen) worden permanent verwijderd.",
   "diveLog_delete_delete": "Verwijderen",

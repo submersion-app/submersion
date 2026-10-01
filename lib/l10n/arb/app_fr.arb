@@ -2135,6 +2135,8 @@
   "diveLog_deco_tissueSlow": "Lent",
   "diveLog_deco_title": "Statut déco",
   "diveLog_deco_totalDecoTime": "Total : {time}",
+  "diveLog_deco_withheld_ccr": "Cette plongée recycleur n'a enregistré ni consigne (setpoint) ni ppO2 de boucle ; sa saturation des tissus, la NDL et la décompression ne peuvent donc pas être calculées. Ajoutez la consigne en modifiant la plongée pour les calculer.",
+  "diveLog_deco_withheld_scr": "Cette plongée en recycleur semi-fermé n'a pas de ppO2 de boucle mesurée ; sa saturation des tissus, la NDL et la décompression ne peuvent donc pas être calculées.",
   "diveLog_delete_cancel": "Annuler",
   "diveLog_delete_confirm": "Cette action est irréversible. La plongée et toutes les données associées (profil, blocs, observations) seront définitivement supprimées.",
   "diveLog_delete_delete": "Supprimer",

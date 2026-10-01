@@ -6486,6 +6486,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'Cette plongée recycleur n\'a enregistré ni consigne (setpoint) ni ppO2 de boucle ; sa saturation des tissus, la NDL et la décompression ne peuvent donc pas être calculées. Ajoutez la consigne en modifiant la plongée pour les calculer.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'Cette plongée en recycleur semi-fermé n\'a pas de ppO2 de boucle mesurée ; sa saturation des tissus, la NDL et la décompression ne peuvent donc pas être calculées.';
+
+  @override
   String get diveLog_delete_cancel => 'Annuler';
 
   @override

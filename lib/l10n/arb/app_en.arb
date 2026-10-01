@@ -3834,6 +3834,8 @@
   "diveLog_deco_tissueSlow": "Slow",
   "diveLog_deco_title": "Deco Status",
   "diveLog_deco_totalDecoTime": "Total: {time}",
+  "diveLog_deco_withheld_ccr": "This rebreather dive has no recorded setpoint or loop ppO2, so its tissue loading, NDL and decompression cannot be calculated. Add the setpoint when editing the dive to calculate them.",
+  "diveLog_deco_withheld_scr": "This semi-closed rebreather dive has no measured loop ppO2, so its tissue loading, NDL and decompression cannot be calculated.",
   "diveLog_delete_cancel": "Cancel",
   "diveLog_delete_confirm": "This action cannot be undone. The dive and all associated data (profile, tanks, sightings) will be permanently deleted.",
   "diveLog_delete_delete": "Delete",

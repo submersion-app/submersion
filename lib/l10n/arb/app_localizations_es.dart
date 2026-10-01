@@ -6464,6 +6464,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'Esta inmersión con rebreather no tiene registrado ningún setpoint ni ppO2 del circuito, así que no se pueden calcular su carga tisular, el NDL ni la descompresión. Añade el setpoint al editar la inmersión para calcularlos.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'Esta inmersión con rebreather semicerrado no tiene ppO2 del circuito medida, así que no se pueden calcular su carga tisular, el NDL ni la descompresión.';
+
+  @override
   String get diveLog_delete_cancel => 'Cancelar';
 
   @override

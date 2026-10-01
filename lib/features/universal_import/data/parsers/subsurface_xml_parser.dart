@@ -256,7 +256,7 @@ class SubsurfaceXmlParser implements ImportParser {
     final computers = dive.findElements('divecomputer').toList();
     final divecomputer = computers.firstOrNull;
     if (divecomputer != null) {
-      final diveMode = _mapDiveMode(divecomputer.getAttribute('dctype'));
+      final diveMode = _diveModeOf(computers);
       if (diveMode != null) result['diveMode'] = diveMode;
       result.addAll(_parseComputerSummary(divecomputer));
     }
@@ -1248,11 +1248,30 @@ class SubsurfaceXmlParser implements ImportParser {
     _ => null,
   };
 
+  /// The dive's mode across all of its computers. A loop logged by any of
+  /// them wins: a CCR diver's backup computer often runs in open-circuit mode
+  /// beside the controller, and Subsurface may list it first. Importing that
+  /// dive as open circuit loads the tissues from a cylinder instead of the
+  /// loop (issue #2593).
+  static DiveMode? _diveModeOf(List<XmlElement> computers) {
+    final modes = [
+      for (final computer in computers)
+        _mapDiveMode(computer.getAttribute('dctype')),
+    ];
+    for (final mode in modes) {
+      if (mode == DiveMode.ccr || mode == DiveMode.scr) return mode;
+    }
+    return modes.firstOrNull;
+  }
+
+  /// Subsurface's `dctype` is OC, CCR, PSCR or Freedive. PSCR, its passive
+  /// semi-closed mode, is a semi-closed loop. Freedive stays unmapped (open
+  /// circuit), as the libdivecomputer download maps it.
   static DiveMode? _mapDiveMode(String? value) {
     final normalized = value?.trim().toLowerCase();
     return switch (normalized) {
       'ccr' => DiveMode.ccr,
-      'scr' => DiveMode.scr,
+      'scr' || 'pscr' => DiveMode.scr,
       'oc' => DiveMode.oc,
       _ => null,
     };

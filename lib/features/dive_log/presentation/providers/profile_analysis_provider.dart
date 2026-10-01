@@ -341,6 +341,53 @@ List<ProfileGasSegment>? buildCcrProfileGasSegments({
   return segments;
 }
 
+/// The gas schedule a rebreather dive's tissues load from, or null when the
+/// loop cannot be modelled. The analysis then withholds tissue loading rather
+/// than load the first cylinder as open circuit, which on an imported CCR dive
+/// is the O2 supply or a bailout as often as not (issue #2593).
+///
+/// [profile] is the series being analysed (one computer's on a multi-source
+/// dive) and [rebreatherPpO2] its resolved loop ppO2.
+///
+/// CCR: the loop ppO2 ([rebreatherPpO2]: measured, else recorded setpoint
+/// samples, else the dive-level setpoint) over the diluent.
+///
+/// SCR: a semi-closed loop holds no setpoint, so only a MEASURED loop ppO2
+/// (cells or computer-supplied) describes it. Its loop is supply gas with O2
+/// taken out, so the inspired inert pressure is ambient less that ppO2, split
+/// by the supply's He:N2 ratio: the CCR model with the supply as diluent.
+///
+/// Null for open-circuit and gauge dives, which are not loop dives.
+@visibleForTesting
+List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
+  Dive dive, {
+  required List<DiveProfilePoint> profile,
+  required RebreatherPpO2? rebreatherPpO2,
+}) {
+  final timestamps = [for (final p in profile) p.timestamp];
+  switch (dive.diveMode) {
+    case DiveMode.ccr:
+      return buildCcrProfileGasSegments(
+        timestamps: timestamps,
+        loopPpO2Curve: rebreatherPpO2?.curve,
+        diluentMix: resolveCcrDiluentMix(dive),
+        fallbackSetpoint: dive.setpointHigh ?? dive.setpointLow,
+      );
+    case DiveMode.scr:
+      final measured = profile.any(
+        (p) => p.ppO2 != null || _cellAverage(p) != null,
+      );
+      if (!measured) return null;
+      return buildCcrProfileGasSegments(
+        timestamps: timestamps,
+        loopPpO2Curve: rebreatherPpO2?.curve,
+        diluentMix: resolveCcrDiluentMix(dive),
+      );
+    case DiveMode.oc || DiveMode.gauge:
+      return null;
+  }
+}
+
 /// Maps the dive's recorded cylinders to the gas set the ideal ascent may use.
 ///
 /// [maxPpO2] is the diver's ppO2MaxDeco ceiling; each gas's MOD is derived from
@@ -1119,15 +1166,15 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         // earlier); seed the schedule there instead of a hardcoded 0.
         startTimestamp: timestamps.isEmpty ? 0 : timestamps.first,
       ),
-      DiveMode.ccr => buildCcrProfileGasSegments(
-        timestamps: timestamps,
-        loopPpO2Curve: rebreatherPpO2?.curve,
-        diluentMix: resolveCcrDiluentMix(dive),
-        fallbackSetpoint: dive.setpointHigh ?? dive.setpointLow,
+      // Gauge dives return a profile-only analysis before this point; they
+      // take the rebreather arm only for exhaustiveness (it returns null).
+      DiveMode.ccr ||
+      DiveMode.scr ||
+      DiveMode.gauge => buildRebreatherProfileGasSegments(
+        dive,
+        profile: profile,
+        rebreatherPpO2: rebreatherPpO2,
       ),
-      // Gauge dives return a profile-only analysis before this point; the arm
-      // exists only for exhaustiveness.
-      DiveMode.scr || DiveMode.gauge => null,
     };
     final ascentMaxPpO2 = ref.watch(ppO2MaxDecoProvider);
     final ascentGases = dive.diveMode == DiveMode.oc
@@ -1674,14 +1721,11 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
         ? null
         : resolveRebreatherPpO2(dive.profile);
 
-    final gasSegments = dive.diveMode == DiveMode.ccr
-        ? buildCcrProfileGasSegments(
-            timestamps: timestamps,
-            loopPpO2Curve: rebreatherPpO2?.curve,
-            diluentMix: resolveCcrDiluentMix(dive),
-            fallbackSetpoint: dive.setpointHigh ?? dive.setpointLow,
-          )
-        : null;
+    final gasSegments = buildRebreatherProfileGasSegments(
+      dive,
+      profile: dive.profile,
+      rebreatherPpO2: rebreatherPpO2,
+    );
 
     final ascentGases = dive.diveMode == DiveMode.oc
         ? buildAvailableGases(

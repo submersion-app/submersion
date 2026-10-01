@@ -10222,6 +10222,18 @@ abstract class AppLocalizations {
   /// **'Total: {time}'**
   String diveLog_deco_totalDecoTime(Object time);
 
+  /// No description provided for @diveLog_deco_withheld_ccr.
+  ///
+  /// In en, this message translates to:
+  /// **'This rebreather dive has no recorded setpoint or loop ppO2, so its tissue loading, NDL and decompression cannot be calculated. Add the setpoint when editing the dive to calculate them.'**
+  String get diveLog_deco_withheld_ccr;
+
+  /// No description provided for @diveLog_deco_withheld_scr.
+  ///
+  /// In en, this message translates to:
+  /// **'This semi-closed rebreather dive has no measured loop ppO2, so its tissue loading, NDL and decompression cannot be calculated.'**
+  String get diveLog_deco_withheld_scr;
+
   /// No description provided for @diveLog_delete_cancel.
   ///
   /// In en, this message translates to:

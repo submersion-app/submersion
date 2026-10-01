@@ -6153,6 +6153,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      '这次循环呼吸器潜水没有记录设定点或回路 ppO2，因此无法计算其组织饱和度、免减压极限和减压。编辑潜水时添加设定点即可计算。';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      '这次半闭式循环呼吸器潜水没有测得的回路 ppO2，因此无法计算其组织饱和度、免减压极限和减压。';
+
+  @override
   String get diveLog_delete_cancel => '取消';
 
   @override

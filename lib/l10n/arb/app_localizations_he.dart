@@ -6319,6 +6319,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'בצלילת הריבריד\'ר הזו לא תועדו נקודת קביעה (setpoint) או ppO2 של הלולאה, ולכן לא ניתן לחשב את עומס הרקמות, ה-NDL והדקומפרסיה. הוסף את נקודת הקביעה בעריכת הצלילה כדי לחשב אותם.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'בצלילת הריבריד\'ר הסגור-למחצה הזו לא נמדד ppO2 של הלולאה, ולכן לא ניתן לחשב את עומס הרקמות, ה-NDL והדקומפרסיה.';
+
+  @override
   String get diveLog_delete_cancel => 'ביטול';
 
   @override

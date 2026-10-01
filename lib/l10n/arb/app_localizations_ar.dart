@@ -6345,6 +6345,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'لم يُسجَّل لهذه الغطسة بجهاز إعادة التنفس أي نقطة ضبط (setpoint) ولا ppO2 للدائرة، لذا لا يمكن حساب تحميل الأنسجة وNDL وتخفيف الضغط. أضف نقطة الضبط عند تعديل الغطسة لحسابها.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'لم يُقَس ppO2 للدائرة في هذه الغطسة بجهاز إعادة التنفس شبه المغلق، لذا لا يمكن حساب تحميل الأنسجة وNDL وتخفيف الضغط.';
+
+  @override
   String get diveLog_delete_cancel => 'إلغاء';
 
   @override

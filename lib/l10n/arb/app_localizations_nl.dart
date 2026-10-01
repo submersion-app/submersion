@@ -6421,6 +6421,14 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_withheld_ccr =>
+      'Voor deze rebreatherduik is geen setpoint of loop-ppO2 vastgelegd, dus de weefselbelading, NDL en decompressie kunnen niet worden berekend. Voeg het setpoint toe bij het bewerken van de duik om ze te berekenen.';
+
+  @override
+  String get diveLog_deco_withheld_scr =>
+      'Voor deze semi-gesloten rebreatherduik is geen loop-ppO2 gemeten, dus de weefselbelading, NDL en decompressie kunnen niet worden berekend.';
+
+  @override
   String get diveLog_delete_cancel => 'Annuleren';
 
   @override

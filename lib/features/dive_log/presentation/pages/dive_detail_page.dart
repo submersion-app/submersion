@@ -108,6 +108,7 @@ import 'package:submersion/features/dive_log/domain/services/source_name_resolve
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_loading_withheld_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show TooltipPresentation;
@@ -2337,7 +2338,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           )),
         )
         .valueOrNull;
-    final isUsable = current != null && current.decoStatuses.isNotEmpty;
+    // A withheld analysis is a real answer, not a transient blank: it carries
+    // the reason the deco cards are missing, so it is usable and retained.
+    final isUsable =
+        current != null &&
+        (current.decoStatuses.isNotEmpty || current.tissueLoadingWithheld);
 
     // Retain the last usable analysis for THIS dive and fall back to it when the
     // provider momentarily yields null/empty (e.g. a mid-sync empty-profile
@@ -2355,15 +2360,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               : null);
 
     // Don't show if no analysis is, or ever was, available for this dive.
-    if (analysis == null || analysis.decoStatuses.isEmpty) return null;
-
-    // Use selected point or default to final status
-    final index =
-        selectedPointIndex != null &&
-            selectedPointIndex < analysis.decoStatuses.length
-        ? selectedPointIndex
-        : analysis.decoStatuses.length - 1;
-    final status = analysis.decoStatuses[index];
+    if (analysis == null ||
+        (analysis.decoStatuses.isEmpty && !analysis.tissueLoadingWithheld)) {
+      return null;
+    }
 
     // Build "at time" subtitle when a point is selected. The index came from
     // the chart, which draws the active source's series, so it is resolved
@@ -2378,31 +2378,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             _formatTimestamp(chartProfile[selectedPointIndex].timestamp),
           )
         : null;
-
-    Widget buildTissueCard({bool expand = false}) {
-      return CompactTissueLoadingCard(
-        status: status,
-        decoStatuses: analysis.decoStatuses,
-        selectedIndex: selectedPointIndex,
-        subtitle: timeSubtitle,
-        expandVisualization: expand,
-        onHeatMapHover: (index) {
-          ref.read(profileTrackingIndexProvider(diveId).notifier).state = index;
-        },
-        onOpen3dView: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) =>
-                Dive3dPage(diveId: dive.id, initialMode: SceneKind.tissue),
-          ),
-        ),
-      );
-    }
-
-    final decoCard = CompactDecoStatusCard(
-      status: status,
-      gfSource: analysis.gfSource,
-      subtitle: timeSubtitle,
-    );
 
     final weeklyOtuAsync = ref.watch(weeklyOtuProvider(dive.id));
     final weeklyOtu = weeklyOtuAsync.valueOrNull;
@@ -2428,6 +2403,53 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           : null,
       subtitle: timeSubtitle,
       weeklyOtu: weeklyOtu,
+    );
+
+    // A rebreather loop the analysis could not model (#2593): say why in place
+    // of the deco and tissue cards. The O2 card stays; it reads the loop ppO2,
+    // not the tissue model.
+    if (analysis.tissueLoadingWithheld) {
+      Widget withheld(String title) =>
+          TissueLoadingWithheldCard(title: title, diveMode: dive.diveMode);
+      return (
+        deco: withheld(context.l10n.diveLog_detail_section_decoStatus),
+        o2: o2Card,
+        tissue: ({bool expand = false}) =>
+            withheld(context.l10n.diveLog_deco_sectionTissueLoading),
+      );
+    }
+
+    // Use selected point or default to final status
+    final index =
+        selectedPointIndex != null &&
+            selectedPointIndex < analysis.decoStatuses.length
+        ? selectedPointIndex
+        : analysis.decoStatuses.length - 1;
+    final status = analysis.decoStatuses[index];
+
+    Widget buildTissueCard({bool expand = false}) {
+      return CompactTissueLoadingCard(
+        status: status,
+        decoStatuses: analysis.decoStatuses,
+        selectedIndex: selectedPointIndex,
+        subtitle: timeSubtitle,
+        expandVisualization: expand,
+        onHeatMapHover: (index) {
+          ref.read(profileTrackingIndexProvider(diveId).notifier).state = index;
+        },
+        onOpen3dView: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) =>
+                Dive3dPage(diveId: dive.id, initialMode: SceneKind.tissue),
+          ),
+        ),
+      );
+    }
+
+    final decoCard = CompactDecoStatusCard(
+      status: status,
+      gfSource: analysis.gfSource,
+      subtitle: timeSubtitle,
     );
 
     return (deco: decoCard, o2: o2Card, tissue: buildTissueCard);

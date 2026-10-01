@@ -45,6 +45,14 @@ class DecoStatus extends Equatable {
   /// Surface pressure in bar used for surface-referenced metrics (SurfGF).
   final double surfacePressureBar;
 
+  /// Inspired N2 partial pressure in bar (alveolar, after water vapour) of the
+  /// gas being breathed at this instant, or null when unknown. On a rebreather
+  /// this is the loop's, not the diluent's at ambient.
+  final double? inspiredN2Bar;
+
+  /// Inspired He partial pressure in bar, as [inspiredN2Bar].
+  final double? inspiredHeBar;
+
   const DecoStatus({
     required this.compartments,
     required this.ndlSeconds,
@@ -57,7 +65,26 @@ class DecoStatus extends Equatable {
     required this.currentDepthMeters,
     required this.ambientPressureBar,
     this.surfacePressureBar = 1.0,
+    this.inspiredN2Bar,
+    this.inspiredHeBar,
   });
+
+  /// Whether [compartment] is releasing inert gas at this instant, or null
+  /// when the inspired gas is unknown.
+  ///
+  /// Gas moves toward the inspired partial pressure, not toward ambient: a
+  /// tissue below ambient still off-gasses at a stop where the breathed inert
+  /// pressure is lower still. N2 and He each move at their own half-time rate,
+  /// so the direction is the sign of their combined Haldane rate.
+  bool? isOffgassing(TissueCompartment compartment) {
+    final pN2 = inspiredN2Bar;
+    final pHe = inspiredHeBar;
+    if (pN2 == null || pHe == null) return null;
+    final netRate =
+        (pN2 - compartment.currentPN2) / compartment.halfTimeN2 +
+        (pHe - compartment.currentPHe) / compartment.halfTimeHe;
+    return netRate < 0;
+  }
 
   /// Whether the diver is currently in decompression obligation.
   ///
@@ -189,6 +216,8 @@ class DecoStatus extends Equatable {
     double? currentDepthMeters,
     double? ambientPressureBar,
     double? surfacePressureBar,
+    double? inspiredN2Bar,
+    double? inspiredHeBar,
   }) {
     return DecoStatus(
       compartments: compartments ?? this.compartments,
@@ -202,6 +231,8 @@ class DecoStatus extends Equatable {
       currentDepthMeters: currentDepthMeters ?? this.currentDepthMeters,
       ambientPressureBar: ambientPressureBar ?? this.ambientPressureBar,
       surfacePressureBar: surfacePressureBar ?? this.surfacePressureBar,
+      inspiredN2Bar: inspiredN2Bar ?? this.inspiredN2Bar,
+      inspiredHeBar: inspiredHeBar ?? this.inspiredHeBar,
     );
   }
 
@@ -218,6 +249,8 @@ class DecoStatus extends Equatable {
     currentDepthMeters,
     ambientPressureBar,
     surfacePressureBar,
+    inspiredN2Bar,
+    inspiredHeBar,
   ];
 }
 

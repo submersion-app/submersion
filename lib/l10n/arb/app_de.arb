@@ -2248,6 +2248,8 @@
   "diveLog_deco_tissueSlow": "Langsam",
   "diveLog_deco_title": "Dekostatus",
   "diveLog_deco_totalDecoTime": "Gesamt: {time}",
+  "diveLog_deco_withheld_ccr": "Für diesen Rebreather-Tauchgang wurde weder ein Setpoint noch ein Loop-ppO2 aufgezeichnet, daher lassen sich Gewebesättigung, NDL und Dekompression nicht berechnen. Trage den Setpoint beim Bearbeiten des Tauchgangs ein, um sie zu berechnen.",
+  "diveLog_deco_withheld_scr": "Für diesen halbgeschlossenen Rebreather-Tauchgang wurde kein Loop-ppO2 gemessen, daher lassen sich Gewebesättigung, NDL und Dekompression nicht berechnen.",
   "diveLog_delete_cancel": "Abbrechen",
   "diveLog_delete_confirm": "Diese Aktion kann nicht rückgängig gemacht werden. Der Tauchgang und alle zugehörigen Daten (Profil, Flaschen, Sichtungen) werden dauerhaft gelöscht.",
   "diveLog_delete_delete": "Löschen",
