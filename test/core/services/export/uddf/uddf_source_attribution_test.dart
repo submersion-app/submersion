@@ -73,6 +73,7 @@ void main() {
           diveId: 'dive-a',
           tankId: 'tank-1',
           sourceId: 'src-other',
+          computerId: 'comp-b',
           samples: [(1, 201.5), (11, 191.5), (21, 181.5)],
         ),
         testTankSeries(
@@ -130,6 +131,7 @@ void main() {
                 s.getAttribute('diveref'),
                 s.getAttribute('tankref'),
                 s.getAttribute('source'),
+                s.getAttribute('computer'),
                 [
                   for (final sample in s.findElements('sample'))
                     '${sample.getAttribute('divetime')}:'
@@ -138,9 +140,21 @@ void main() {
               ),
           ],
           [
-            ('dive_dive-a', 'tank_tank-1', '1', '1:201.5 11:191.5 21:181.5'),
-            ('dive_dive-a', 'tank_tank-1', '0', '0:200.0 10:190.0 20:180.0'),
-            ('dive_dive-a', 'tank_tank-1', null, '30:170.25'),
+            (
+              'dive_dive-a',
+              'tank_tank-1',
+              '1',
+              '1',
+              '1:201.5 11:191.5 21:181.5',
+            ),
+            (
+              'dive_dive-a',
+              'tank_tank-1',
+              '0',
+              null,
+              '0:200.0 10:190.0 20:180.0',
+            ),
+            ('dive_dive-a', 'tank_tank-1', null, null, '30:170.25'),
           ],
         );
       });
@@ -218,6 +232,7 @@ void main() {
               (
                 e['tankRef'],
                 e['sourceOrdinal'],
+                e['computerOrdinal'],
                 [
                   for (final s
                       in e['samples']
@@ -227,9 +242,9 @@ void main() {
               ),
           ],
           [
-            ('tank_tank-1', 1, '1:201.5 11:191.5 21:181.5'),
-            ('tank_tank-1', 0, '0:200.0 10:190.0 20:180.0'),
-            ('tank_tank-1', null, '30:170.25'),
+            ('tank_tank-1', 1, 1, '1:201.5 11:191.5 21:181.5'),
+            ('tank_tank-1', 0, null, '0:200.0 10:190.0 20:180.0'),
+            ('tank_tank-1', null, null, '30:170.25'),
           ],
         );
       });

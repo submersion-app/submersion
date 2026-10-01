@@ -10,6 +10,7 @@ TankPressureSeries testTankSeries(
   String diveId = 'dive-1',
   required String tankId,
   String? sourceId,
+  String? computerId,
   required List<(int, double)> samples,
 }) {
   final list = [
@@ -19,6 +20,7 @@ TankPressureSeries testTankSeries(
     id: id,
     diveId: diveId,
     tankId: tankId,
+    computerId: computerId,
     sourceId: sourceId,
     summary: TankPressureSeriesSummary.of(list),
     samples: list,

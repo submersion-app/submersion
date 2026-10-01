@@ -260,4 +260,113 @@ void main() {
       ],
     );
   });
+
+  test('keeps each series of a source its own stretch', () async {
+    // Source A recorded two stretches with B's recording between them.
+    // Joined into one series, A would span B and the drawn curve would
+    // drop B after the restore.
+    final xml = await UddfFullExportService().generateAllDataXmlForTest(
+      dives: [dive],
+      dataSources: [
+        source('src-primary', 0, primary: true),
+        source('src-other', 1),
+      ],
+      diveTankPressures: {
+        'dive-a': DiveTankPressureExport(
+          primarySourceId: 'src-primary',
+          series: [
+            testTankSeries(
+              's-a1',
+              diveId: 'dive-a',
+              tankId: 'tank-1',
+              sourceId: 'src-primary',
+              samples: [(0, 200), (10, 195)],
+            ),
+            testTankSeries(
+              's-b',
+              diveId: 'dive-a',
+              tankId: 'tank-1',
+              sourceId: 'src-other',
+              samples: [(50, 180), (60, 175)],
+            ),
+            testTankSeries(
+              's-a2',
+              diveId: 'dive-a',
+              tankId: 'tank-1',
+              sourceId: 'src-primary',
+              samples: [(100, 160), (110, 155)],
+            ),
+          ],
+        ),
+      },
+    );
+
+    await restore(xml);
+
+    expect(await restoredSeries(), [
+      ('src-other.uddf', '50:180.0 60:175.0'),
+      ('src-primary.uddf', '0:200.0 10:195.0'),
+      ('src-primary.uddf', '100:160.0 110:155.0'),
+    ]);
+  });
+
+  test('restores the computer each series recorded', () async {
+    // The per-computer chart narrows a tank by its series' computer.
+    final xml = await UddfFullExportService().generateAllDataXmlForTest(
+      dives: [dive],
+      dataSources: [
+        source(
+          'src-primary',
+          0,
+          primary: true,
+          computerId: 'comp-a',
+          computerSerial: 'SN-A',
+        ),
+        source('src-other', 1, computerId: 'comp-b', computerSerial: 'SN-B'),
+      ],
+      diveTankPressures: {
+        'dive-a': DiveTankPressureExport(
+          primarySourceId: 'src-primary',
+          series: [
+            // A primary-source series recorded with no computer stays so.
+            testTankSeries(
+              's-primary',
+              diveId: 'dive-a',
+              tankId: 'tank-1',
+              sourceId: 'src-primary',
+              samples: [(0, 200), (10, 190)],
+            ),
+            testTankSeries(
+              's-other',
+              diveId: 'dive-a',
+              tankId: 'tank-1',
+              sourceId: 'src-other',
+              computerId: 'comp-b',
+              samples: [(1, 201), (11, 191)],
+            ),
+          ],
+        ),
+      },
+    );
+
+    await restore(xml);
+
+    final serials = {
+      for (final row in await db.select(db.diveComputers).get())
+        row.id: row.serialNumber,
+    };
+    final diveId = (await db.select(db.dives).getSingle()).id;
+    final series = await TankPressureSeriesRepository().getSeriesForDive(
+      diveId,
+    );
+    expect(
+      {
+        for (final s in series)
+          s.samples.first.timestamp: s.computerId == null
+              ? null
+              : serials[s.computerId],
+      },
+      {0: null, 1: 'SN-B'},
+    );
+  });
 }

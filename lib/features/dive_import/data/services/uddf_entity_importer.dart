@@ -2822,9 +2822,9 @@ class UddfEntityImporter {
       // recorded each pressure series (issue #2492). Those series are
       // written once the source rows exist, below, in place of the
       // waypoint pressures, which hold only the series the app drew.
-      final PressuresBySourceOrdinal perSourceSeries =
+      final perSourceSeries =
           _entriesForDive(diveData, dataSourcesByDiveRef).isEmpty
-          ? const {}
+          ? const <RestoredTankSeries>[]
           : restoredTankPressureSeries(diveData, tanks);
 
       // Store per-tank pressure data
@@ -3042,30 +3042,36 @@ class UddfEntityImporter {
         await repos.diveRepository.saveComputerReadings(restored);
         restoredDataSources += sourceEntries.length;
         // Each series under the restored row of the <source> that recorded
-        // it; a series no source owned stays unattributed. The companions
-        // are built in entry order, so entry i is restored as row i.
+        // it, and the computer of the one its computer recorded; a series
+        // that named neither keeps neither. The companions are built in
+        // entry order, so entry i is restored as row i.
         final sourceIdByOrdinal = <int, String>{
           for (var i = 0; i < sourceEntries.length; i++)
             if (sourceEntries[i]['ordinal'] case final int ordinal)
               ordinal: restored[i].id.value,
         };
-        for (final entry in perSourceSeries.entries) {
-          await repos.tankPressureRepository.insertTankPressures(
-            diveId,
-            entry.value,
-            sourceId: sourceIdByOrdinal[entry.key],
-          );
+        final computerIdByOrdinal = <int, String?>{
+          for (var i = 0; i < sourceEntries.length; i++)
+            if (sourceEntries[i]['ordinal'] case final int ordinal)
+              ordinal: restored[i].computerId.value,
+        };
+        if (perSourceSeries.isNotEmpty) {
+          await repos.tankPressureRepository.insertTankSeries(diveId, [
+            for (final s in perSourceSeries)
+              (
+                tankId: s.tankId,
+                sourceId: sourceIdByOrdinal[s.sourceOrdinal],
+                computerId: computerIdByOrdinal[s.computerOrdinal],
+                samples: s.samples,
+              ),
+          ]);
         }
         // Each tank row under its own source and computer (#2716).
         final tankLinks = restoredTankAttribution(
           diveData,
           tanks,
           sourceIdByOrdinal: sourceIdByOrdinal,
-          computerIdByOrdinal: {
-            for (var i = 0; i < sourceEntries.length; i++)
-              if (sourceEntries[i]['ordinal'] case final int ordinal)
-                ordinal: restored[i].computerId.value,
-          },
+          computerIdByOrdinal: computerIdByOrdinal,
         );
         if (tankLinks.isNotEmpty) {
           await repos.diveRepository.restoreTankAttribution(tankLinks);

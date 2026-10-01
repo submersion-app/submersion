@@ -1,48 +1,44 @@
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
-/// Pressures by the `ordinal` of the `<source>` that recorded them (null for
-/// none), then by restored tank id.
-typedef PressuresBySourceOrdinal =
-    Map<int?, Map<String, List<({int timestamp, double pressure})>>>;
+/// One series of a backup's per-source block, resolved to a restored tank:
+/// the `ordinal`s of the `<source>` that recorded it and of one its computer
+/// recorded (either null when the file names none).
+typedef RestoredTankSeries = ({
+  String tankId,
+  int? sourceOrdinal,
+  int? computerOrdinal,
+  List<({int timestamp, double pressure})> samples,
+});
 
-/// The pressures of [diveData]'s per-source tank series (issue #2492),
-/// keyed by the `ordinal` of the `<source>` that recorded them (null for a
-/// series no source owned), then by the id of the restored tank.
+/// [diveData]'s per-source tank series (issue #2492), each still a series
+/// of its own: one source can record a tank in two stretches with another
+/// source's recording between them, and joining the two would make them
+/// span the other.
 ///
 /// [tanks] are the dive's tanks as the importer built them, in the order of
 /// the parsed `tanks` list, whose `uddfTankId` is what a series' `tankRef`
-/// names. A series naming no tank of the dive is dropped. Two series of one
-/// source and tank are joined in time order.
+/// names. A series naming no tank of the dive is dropped.
 ///
 /// Empty when the dive carries no series block, which leaves the restore to
 /// the waypoint pressures as before.
-PressuresBySourceOrdinal restoredTankPressureSeries(
+List<RestoredTankSeries> restoredTankPressureSeries(
   Map<String, dynamic> diveData,
   List<DiveTank> tanks,
 ) {
   final entries = diveData[UddfSourceAttribution.seriesKey];
-  if (entries is! List || entries.isEmpty) return const {};
+  if (entries is! List || entries.isEmpty) return const [];
   final tankIdByRef = _tankIdByRef(diveData, tanks);
-
-  final PressuresBySourceOrdinal result = {};
-  for (final entry in entries.cast<Map<String, dynamic>>()) {
-    final tankId = tankIdByRef[entry['tankRef']];
-    if (tankId == null) continue;
-    final samples =
-        entry['samples'] as List<({int timestamp, double pressure})>;
-    ((result[entry['sourceOrdinal'] as int?] ??= {})[tankId] ??= []).addAll(
-      samples,
-    );
-  }
-  return {
-    for (final bySource in result.entries)
-      bySource.key: {
-        for (final byTank in bySource.value.entries)
-          byTank.key: [...byTank.value]
-            ..sort((a, b) => a.timestamp.compareTo(b.timestamp)),
-      },
-  };
+  return [
+    for (final entry in entries.cast<Map<String, dynamic>>())
+      if (tankIdByRef[entry['tankRef']] case final tankId?)
+        (
+          tankId: tankId,
+          sourceOrdinal: entry['sourceOrdinal'] as int?,
+          computerOrdinal: entry['computerOrdinal'] as int?,
+          samples: entry['samples'] as List<({int timestamp, double pressure})>,
+        ),
+  ];
 }
 
 /// The data source and computer each restored tank of [diveData] came from

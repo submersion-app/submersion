@@ -142,8 +142,36 @@ class TankPressureRepository {
     String diveId,
     Map<String, List<({int timestamp, double pressure})>> pressuresByTank, {
     String? sourceId,
-  }) async {
-    if (pressuresByTank.isEmpty) return;
+  }) => insertTankSeries(diveId, [
+    for (final entry in pressuresByTank.entries)
+      (
+        tankId: entry.key,
+        sourceId: sourceId,
+        computerId: null,
+        samples: entry.value,
+      ),
+  ]);
+
+  /// Inserts each of [series] as a series of its own, with its own source
+  /// and computer, in one transaction like [insertTankPressures].
+  ///
+  /// A restore needs this (issue #2492): one source can record a tank in
+  /// two stretches with another source's recording between them, and
+  /// [selectTankSeriesPerSource] judges overlap series by series, so
+  /// joining the two would make them span the other and hide it.
+  Future<void> insertTankSeries(
+    String diveId,
+    List<
+      ({
+        String tankId,
+        String? sourceId,
+        String? computerId,
+        List<({int timestamp, double pressure})> samples,
+      })
+    >
+    series,
+  ) async {
+    if (series.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     // One transaction for the whole pressure set. Each insertSeries commits
     // and marks itself pending on its own, so a tank that cannot be written
@@ -153,14 +181,15 @@ class TankPressureRepository {
     // row-per-sample write was one batch and had the same all-or-nothing
     // behaviour.
     await _db.transaction(() async {
-      for (final entry in pressuresByTank.entries) {
-        if (entry.value.isEmpty) continue;
+      for (final entry in series) {
+        if (entry.samples.isEmpty) continue;
         await _tankSeries.insertSeries(
           diveId: diveId,
-          tankId: entry.key,
-          sourceId: sourceId,
+          tankId: entry.tankId,
+          sourceId: entry.sourceId,
+          computerId: entry.computerId,
           samples: [
-            for (final point in entry.value)
+            for (final point in entry.samples)
               TankPressureSample(
                 timestamp: point.timestamp,
                 pressure: point.pressure,

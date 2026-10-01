@@ -25,7 +25,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 ///   <tank diveref="dive_..." tankref="tank_..." source="1" computer="1"/>
 /// </tanksources>
 /// <tankpressureseries>
-///   <series diveref="dive_..." tankref="tank_..." source="1">
+///   <series diveref="dive_..." tankref="tank_..." source="1" computer="1">
 ///     <sample divetime="12" pressure="198.5"/>
 ///   </series>
 /// </tankpressureseries>
@@ -33,10 +33,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 ///
 /// `source` is the `ordinal` of a `<source>` entry of the same dive, which
 /// is how that block identifies a source; it is absent when no source owned
-/// the row. A tank's `computer` is the ordinal of a source that computer
-/// recorded, whose restored computer the tank takes, so no second way of
-/// naming a computer is needed. Pressures are bar, unconverted, so a round
-/// trip is exact.
+/// the row. A row's `computer` is the ordinal of a source that computer
+/// recorded, whose restored computer the row takes, so no second way of
+/// naming a computer is needed; it is absent when the row named none. Each
+/// series stays a series of its own, since one source can record a tank in
+/// two stretches. Pressures are bar, unconverted, so a round trip is exact.
 class UddfSourceAttribution {
   const UddfSourceAttribution._();
 
@@ -88,19 +89,25 @@ class UddfSourceAttribution {
     final series = [
       for (final dive in attributed)
         for (final s in pressures[dive.id]?.series ?? const [])
-          (dive.id, s, _ordinalOf(sourcesByDive[dive.id]!, s.sourceId)),
+          (
+            dive.id,
+            s,
+            _ordinalOf(sourcesByDive[dive.id]!, s.sourceId),
+            _computerOrdinal(sourcesByDive[dive.id]!, s.computerId, s.sourceId),
+          ),
     ];
     if (series.isEmpty) return;
     builder.element(
       'tankpressureseries',
       nest: () {
-        for (final (diveId, s, ordinal) in series) {
+        for (final (diveId, s, ordinal, computer) in series) {
           builder.element(
             'series',
             attributes: {
               'diveref': 'dive_$diveId',
               'tankref': 'tank_${s.tankId}',
               'source': ?ordinal?.toString(),
+              'computer': ?computer?.toString(),
             },
             nest: () {
               for (final sample in s.samples) {
@@ -128,17 +135,7 @@ class UddfSourceAttribution {
     List<DiveSourceExport> sources,
   ) {
     final source = _ordinalOf(sources, tank.sourceId);
-    // The tank's own source when that recorded its computer, else the
-    // first source that did.
-    final ofComputer = [
-      if (tank.computerId != null)
-        for (final s in sources)
-          if (s.computerId == tank.computerId) s,
-    ];
-    final computer =
-        (ofComputer.where((s) => s.id == tank.sourceId).firstOrNull ??
-                ofComputer.firstOrNull)
-            ?.ordinal;
+    final computer = _computerOrdinal(sources, tank.computerId, tank.sourceId);
     if (source == null && computer == null) return null;
     return {
       'diveref': 'dive_$diveId',
@@ -146,6 +143,24 @@ class UddfSourceAttribution {
       'source': ?source?.toString(),
       'computer': ?computer?.toString(),
     };
+  }
+
+  /// The ordinal of a source in [sources] that [computerId] recorded: the
+  /// row's own source ([sourceId]) when it did, else the first that did.
+  /// Null for no computer, or one none of [sources] recorded.
+  static int? _computerOrdinal(
+    List<DiveSourceExport> sources,
+    String? computerId,
+    String? sourceId,
+  ) {
+    if (computerId == null) return null;
+    final ofComputer = [
+      for (final s in sources)
+        if (s.computerId == computerId) s,
+    ];
+    return (ofComputer.where((s) => s.id == sourceId).firstOrNull ??
+            ofComputer.firstOrNull)
+        ?.ordinal;
   }
 
   static int? _ordinalOf(List<DiveSourceExport> sources, String? sourceId) {
@@ -159,8 +174,8 @@ class UddfSourceAttribution {
   /// Every `<series>` in [uddfElement]'s `<applicationdata><submersion>`
   /// blocks, keyed by its `diveref`, in document order.
   ///
-  /// Each entry holds `tankRef` (the `<tankdata>` id), `sourceOrdinal`
-  /// (null when absent) and `samples`. A series without a dive or tank ref,
+  /// Each entry holds `tankRef` (the `<tankdata>` id), `sourceOrdinal` and
+  /// `computerOrdinal` (either null when absent) and `samples`. A series without a dive or tank ref,
   /// or with no readable sample, is skipped: it names nothing to restore.
   static Map<String, List<Map<String, dynamic>>> parseSeries(
     XmlElement uddfElement,
@@ -183,6 +198,7 @@ class UddfSourceAttribution {
       byDiveRef.putIfAbsent(diveRef, () => []).add({
         'tankRef': tankRef,
         'sourceOrdinal': _int(series, 'source'),
+        'computerOrdinal': _int(series, 'computer'),
         'samples': samples,
       });
     }
