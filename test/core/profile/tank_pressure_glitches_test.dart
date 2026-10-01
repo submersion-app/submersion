@@ -494,6 +494,36 @@ void main() {
       );
     });
 
+    test('a non-finite value is never kept', () {
+      // The series agrees the cylinder ended near zero: its own reading
+      // stands in for a value that describes nothing.
+      final drained = [
+        for (var i = 0; i < 30; i++) (t: i * 10, bar: 60 - i * 2.0),
+      ];
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: double.nan,
+          otherBar: 60,
+          readings: drained,
+          atStart: false,
+        ),
+        2.0,
+      );
+      // No series and no real pressure at the other end to go by.
+      for (final other in [null, 0.2]) {
+        expect(
+          replaceNearZeroEndpoint(
+            reportedBar: double.infinity,
+            otherBar: other,
+            readings: const [],
+            atStart: true,
+          ),
+          isNull,
+          reason: 'other endpoint $other',
+        );
+      }
+    });
+
     test('a value at the near-zero bound is a real pressure and kept', () {
       expect(
         replaceNearZeroEndpoint(

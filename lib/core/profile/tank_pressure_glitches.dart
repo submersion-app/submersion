@@ -188,8 +188,9 @@ double? replaceGlitchedEndpoint({
 /// its signal logs, and a source can report one as a header pressure even
 /// when no reading of its series matches it, which [replaceGlitchedEndpoint]
 /// requires (issue #2687). A value that is not finite describes no cylinder
-/// either and is treated the same way. Such a value is resolved from
-/// [readings]:
+/// either and is treated the same way, except that it is never kept: where
+/// the rules below would keep it, the series reading stands in for it, or
+/// with no series it is cleared. Such a value is resolved from [readings]:
 ///
 /// * where the first or last clean, finite reading is itself at or above
 ///   that bound, the series contradicts the value and that reading replaces
@@ -227,14 +228,15 @@ double? replaceNearZeroEndpoint({
     ];
     if (clean.isNotEmpty) {
       final seriesBar = atStart ? clean.first.bar : clean.last.bar;
-      return seriesBar >= kPressureGlitchNearZeroBar ? seriesBar : reportedBar;
+      final seriesIsReal = seriesBar >= kPressureGlitchNearZeroBar;
+      return seriesIsReal || !reportedBar.isFinite ? seriesBar : reportedBar;
     }
   }
   final otherIsReal =
       otherBar != null &&
       otherBar.isFinite &&
       otherBar >= kPressureGlitchNearZeroBar;
-  return otherIsReal ? null : reportedBar;
+  return otherIsReal || !reportedBar.isFinite ? null : reportedBar;
 }
 
 /// The first and last clean reading of a tank pressure series, in any order,
