@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
@@ -17,10 +18,6 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Handles PDF export for training course logs.
 class PdfCourseExportService {
-  /// File names stay ISO no matter what the diver reads in the document, so a
-  /// folder of exports still sorts chronologically (#964).
-  static final _fileNameDate = DateFormat('yyyy-MM-dd');
-
   /// Export a training course log to PDF with instructor signatures.
   ///
   /// Creates a professional training log document containing:
@@ -239,9 +236,11 @@ class PdfCourseExportService {
     }
 
     final bytes = await pdf.save();
-    final fileName =
-        'training_log_${course.name.replaceAll(RegExp(r'[^\w]'), '_')}_${_fileNameDate.format(DateTime.now())}.pdf';
-    return saveAndShareFileBytes(bytes, fileName, 'application/pdf');
+    return saveAndShareFileBytes(
+      bytes,
+      trainingLogFileName(course.name, DateTime.now()),
+      'application/pdf',
+    );
   }
 
   // ==================== Widget Helpers ====================
@@ -427,3 +426,12 @@ class PdfCourseExportService {
     );
   }
 }
+
+/// `training_log_<course>_<yyyy-MM-dd>.pdf`, the course name as a
+/// [fileNameSegment]. The date stays ISO no matter what the diver reads in
+/// the document, so a folder of exports still sorts chronologically (#964).
+String trainingLogFileName(String courseName, DateTime date) => exportFileName([
+  'training_log',
+  fileNameSegment(courseName),
+  DateFormat('yyyy-MM-dd').format(date),
+], 'pdf');

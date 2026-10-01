@@ -95,7 +95,6 @@ void main() {
           builder: (_, _) => const Scaffold(
             body: TripCylinderRecordView(
               tripId: 't1',
-              tripName: 'Bonaire',
               centerNames: {'c1': 'Dive Friends'},
             ),
           ),

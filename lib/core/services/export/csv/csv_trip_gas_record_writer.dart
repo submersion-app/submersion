@@ -4,11 +4,14 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
+import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 
 /// The trip gas record as a CSV: one line per dive tank breathed from a
 /// trip cylinder (decided 2026-09-30: rows only, totals stay on screen).
 /// Always a Diver column, so the layout is the same for every trip.
+/// Each mix pair (ordered, analyzed) is blank only when there is no mix;
+/// otherwise both cells are numbers, so a nitrox fill reads He 0.
 class CsvTripGasRecordWriter {
   CsvTripGasRecordWriter(this.units);
 
@@ -47,11 +50,11 @@ class CsvTripGasRecordWriter {
         sanitizeCsvField(r.tank.diverName),
         sanitizeCsvField(r.tank.siteName),
         sanitizeCsvField(r.cylinder.label),
-        sanitizeCsvField(r.bottleLabel),
+        sanitizeCsvField(r.namedBottle),
         percent(ordered?.o2),
         percent(ordered?.he),
         percent(analyzed?.o2),
-        analyzed == null || analyzed.he == 0 ? '' : percent(analyzed.he),
+        percent(analyzed?.he),
         units.value(CsvColumns.recordFillPressure, r.fillPressure),
         units.value(CsvColumns.startPressure, r.tank.startPressure),
         units.value(CsvColumns.endPressure, r.tank.endPressure),
@@ -63,8 +66,10 @@ class CsvTripGasRecordWriter {
   }
 }
 
-/// `gas_record_<trip>_<yyyy-MM-dd>.csv`, the trip name reduced to letters,
-/// digits and underscores so every platform accepts it.
-String tripGasRecordFileName(String tripName, DateTime date) =>
-    'gas_record_${tripName.replaceAll(RegExp(r'[^\w]'), '_')}_'
-    '${DateFormat('yyyy-MM-dd').format(date)}.csv';
+/// `gas_record_<trip>_<yyyy-MM-dd>.csv`, the trip name as a
+/// [fileNameSegment]; `gas_record_<yyyy-MM-dd>.csv` when it has none.
+String tripGasRecordFileName(String tripName, DateTime date) => exportFileName([
+  'gas_record',
+  fileNameSegment(tripName),
+  DateFormat('yyyy-MM-dd').format(date),
+], 'csv');

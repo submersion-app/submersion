@@ -106,6 +106,10 @@ class TripGasRecordRow extends Equatable {
 
   /// The bottle the slot held (the slot's own label when no fill named one).
   final String bottleLabel;
+
+  /// The bottle a fill named, or null when [bottleLabel] is only the slot's
+  /// label, which the board's lines leave out the same way.
+  String? get namedBottle => bottleLabel == cylinder.label ? null : bottleLabel;
   final TripCylinderEvent? fill;
 
   /// The fill's reading, else the slot's working pressure; null with no

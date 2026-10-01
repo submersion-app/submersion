@@ -18,12 +18,10 @@ class TripCylinderRecordView extends ConsumerWidget {
   const TripCylinderRecordView({
     super.key,
     required this.tripId,
-    required this.tripName,
     required this.centerNames,
   });
 
   final String tripId;
-  final String tripName;
   final Map<String, String> centerNames;
 
   @override
@@ -45,7 +43,7 @@ class TripCylinderRecordView extends ConsumerWidget {
         units: units,
         trailing: TripGasRecordExportButton(
           record: record,
-          tripName: tripName,
+          tripId: tripId,
           centerNames: centerNames,
         ),
       ),

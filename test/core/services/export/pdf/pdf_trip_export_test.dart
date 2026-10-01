@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
@@ -289,4 +290,16 @@ void main() {
       expect(text, contains(plain(fr.l10n.pdf_totalRuntime)));
     },
   );
+
+  test('the file is named after the trip in any script', () async {
+    final path = await service.exportTripToPdf(
+      trip.copyWith(name: 'Curaçao 2026!'),
+      const [],
+      dates: isoDates,
+      units: metric,
+    );
+    expect(p.basename(path), 'trip_Curaçao_2026.pdf');
+    expect(tripPdfFileName('台湾'), 'trip_台湾.pdf');
+    expect(tripPdfFileName(''), 'trip.pdf');
+  });
 }
