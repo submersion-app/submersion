@@ -7,6 +7,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// Mock SettingsNotifier that doesn't access the database
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
@@ -95,6 +96,7 @@ Widget _buildRoutedTestWidget({
 Widget _buildLayout({
   String sectionKey = 'dives',
   String appBarTitle = 'Dives',
+  SubtitleText? appBarSubtitle,
   Widget? mapContent,
   Widget? profilePanelContent,
   Widget? columnSettingsAction,
@@ -110,6 +112,7 @@ Widget _buildLayout({
   return TableModeLayout(
     sectionKey: sectionKey,
     appBarTitle: appBarTitle,
+    appBarSubtitle: appBarSubtitle,
     tableContent: const Text('Table Content'),
     detailBuilder: (_, id) => Text('Detail $id'),
     summaryBuilder: (_) => const Text('Summary'),
@@ -338,6 +341,59 @@ void main() {
 
         await tester.tap(find.byKey(const ValueKey('map_toggle')));
         expect(toggled, isTrue);
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // App bar subtitle (the list's entry count)
+    // ------------------------------------------------------------------
+    group('appBarSubtitle', () {
+      testWidgets('renders under the title in the full-width layout', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          _buildTestWidget(
+            child: _buildLayout(
+              appBarSubtitle: const SubtitleText('34 of 812 dives'),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('34 of 812 dives'), findsOneWidget);
+        expect(
+          tester.getRect(find.text('34 of 812 dives')).top,
+          greaterThanOrEqualTo(tester.getRect(find.text('Dives')).bottom),
+        );
+      });
+
+      testWidgets('renders under the title with the details pane on', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          _buildRoutedTestWidget(
+            overrides: [
+              tableDetailsPaneProvider('dives').overrideWith((_) => true),
+            ],
+            child: _buildLayout(
+              appBarSubtitle: const SubtitleText('34 of 812 dives'),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('34 of 812 dives'), findsOneWidget);
+      });
+
+      testWidgets('adds nothing when null', (tester) async {
+        await tester.pumpWidget(_buildTestWidget(child: _buildLayout()));
+        await tester.pumpAndSettle();
+
+        final appBar = find.byType(AppBar);
+        expect(
+          find.descendant(of: appBar, matching: find.byType(Column)),
+          findsNothing,
+        );
       });
     });
 

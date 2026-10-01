@@ -397,6 +397,8 @@ class SafetyFindingsRepository {
           await (_db.update(_db.diveSafetyFindings)..where(pending)).write(
             DiveSafetyFindingsCompanion(
               dismissedAt: Value(dismissed ? nowMs : null),
+              // Its own clock, beside the marks below (#2644).
+              hlc: Value(await _syncRepository.issueRowClock()),
             ),
           );
           for (final row in rows) {

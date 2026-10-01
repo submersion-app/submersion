@@ -7,9 +7,12 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/theme/full_themes/console_theme.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -19,6 +22,7 @@ import 'package:submersion/features/trips/presentation/widgets/dense_trip_list_t
 import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -149,6 +153,8 @@ Future<List<Override>> _buildPhoneOverrides({
   ListViewMode viewMode = ListViewMode.detailed,
   String? highlightedTripId,
   List<Diver>? divers,
+  List<TripWithStats>? allTrips,
+  TripFilterState? filter,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -158,7 +164,7 @@ Future<List<Override>> _buildPhoneOverrides({
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     tripListNotifierProvider.overrideWith(
-      (ref) => _MockTripListNotifier(trips),
+      (ref) => _MockTripListNotifier(allTrips ?? trips),
     ),
     tripListViewModeProvider.overrideWith((ref) => viewMode),
     tripTableConfigProvider.overrideWith(
@@ -167,10 +173,64 @@ Future<List<Override>> _buildPhoneOverrides({
     sortedFilteredTripsProvider.overrideWith((ref) => AsyncValue.data(trips)),
     highlightedTripIdProvider.overrideWith((ref) => highlightedTripId),
     if (divers != null) allDiversProvider.overrideWith((ref) async => divers),
+    if (filter != null) tripFilterProvider.overrideWith((ref) => filter),
   ];
 }
 
 void main() {
+  // The title's subtitle counts the list (#2669), in both the phone app bar
+  // and the desktop pane header.
+  group('entry count subtitle', () {
+    testWidgets('a filter counts against every trip', (tester) async {
+      final all = [
+        _makeTrip(id: 't1', name: 'Bonaire'),
+        _makeTrip(id: 't2', name: 'Palau'),
+        _makeTrip(id: 't3', name: 'Truk'),
+      ];
+      final overrides = await _buildPhoneOverrides(
+        trips: all.take(1).toList(),
+        allTrips: all,
+        filter: const TripFilterState(equipmentId: 'reg'),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 of 3 trips'), findsOneWidget);
+    });
+
+    for (final showAppBar in const [true, false]) {
+      testWidgets('${showAppBar ? 'app bar' : 'compact bar'} counts the list', (
+        tester,
+      ) async {
+        final overrides = await _buildPhoneOverrides(
+          trips: [
+            _makeTrip(id: 't1', name: 'Bonaire'),
+            _makeTrip(id: 't2', name: 'Palau'),
+          ],
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: TripListContent(showAppBar: showAppBar),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(
+            of: find.byType(FeatureAppBarTitle),
+            matching: find.text('2 trips'),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+  });
   group('bulk delete', () {
     late _MockTripListNotifier notifier;
 
@@ -1382,6 +1442,102 @@ void main() {
           .style!;
 
       expect(effective.fontFamily, titleFamily);
+    });
+  });
+
+  group('query filter (#2365, Explore phase 3)', () {
+    final liveaboard = ConditionNode(
+      FieldPath(const ['tripType']),
+      QueryOp.inList,
+      ListValue(const [EnumValue('liveaboard')]),
+    );
+
+    testWidgets('an active query shows its chips above the trips', (
+      tester,
+    ) async {
+      final overrides = [
+        ...await _buildOverrides(
+          trips: [_makeTrip(id: 't1', name: 'Bali Dive Trip')],
+        ),
+        tripFilterProvider.overrideWith(
+          (ref) => TripFilterState(query: liveaboard),
+        ),
+      ];
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+      final frame = tester.widget<QueryChipsFrame>(
+        find.byType(QueryChipsFrame),
+      );
+      expect(frame.query, liveaboard);
+    });
+
+    testWidgets('a query that keeps nothing blames the query', (tester) async {
+      final overrides = [
+        ...await _buildOverrides(trips: []),
+        tripFilterProvider.overrideWith(
+          (ref) => TripFilterState(query: liveaboard),
+        ),
+      ];
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(QueryNoMatchState), findsOneWidget);
+    });
+
+    testWidgets('the phone app bar offers the query filter', (tester) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Bali Dive Trip')],
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(QueryFilterButton), findsOneWidget);
+
+      await tester.tap(find.byType(QueryFilterButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(QueryFilterSheet), findsOneWidget);
+    });
+
+    testWidgets('clearing a query that keeps nothing clears only it', (
+      tester,
+    ) async {
+      final overrides = [
+        ...await _buildOverrides(trips: []),
+        tripFilterProvider.overrideWith(
+          (ref) => TripFilterState(query: liveaboard),
+        ),
+      ];
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(QueryNoMatchState),
+          matching: find.byType(OutlinedButton),
+        ),
+      );
+      await tester.pump();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripListContent)),
+      );
+      expect(container.read(tripFilterProvider).query, isNull);
     });
   });
 }
