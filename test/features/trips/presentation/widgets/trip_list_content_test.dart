@@ -65,8 +65,12 @@ class _MockTripListNotifier
   /// Ids bulk delete hid instead (issue #2594), in one batch.
   final hidden = <String>[];
 
+  /// Whether the batch hide throws (issue #2682).
+  bool hideThrows = false;
+
   @override
   Future<int> hideTrips(List<String> ids) async {
+    if (hideThrows) throw StateError('no profile');
     hidden.addAll(ids);
     return allowed ? ids.length : 0;
   }
@@ -414,8 +418,8 @@ void main() {
       expect(notifier.deleted, isEmpty);
     });
 
-    // A read that fails after the dialog stopped the loop with an uncaught
-    // error and no message (issue #2682).
+    // A read that fails after the dialog stopped the loop part way with no
+    // message (issue #2682).
     testWidgets('a delete that fails partway reports what was done and the '
         'failure', (tester) async {
       await openDelete(tester, [
@@ -426,8 +430,30 @@ void main() {
       await tester.tap(find.text('Delete').hitTestable().last);
       await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
       expect(notifier.deleted, ['a']);
+      expect(
+        find.text('1 deleted · Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a hide that fails after the deletes reports both', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2'),
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      notifier.hideThrows = true;
+      await tester.tap(find.text('Delete').hitTestable().last);
+      await tester.pumpAndSettle();
+
+      expect(notifier.deleted, ['mine']);
       expect(
         find.text('1 deleted · Something went wrong. Please try again.'),
         findsOneWidget,

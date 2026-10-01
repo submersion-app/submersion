@@ -312,7 +312,8 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     // Another profile's shared trips are hidden, not deleted, and the
     // owner's shared ones are named as going for everyone (issue #2594).
     final sharing = await readSharingContext(ref, context);
-    if (sharing == null || !mounted) return BulkActionOutcome.cancelled;
+    if (sharing == null) return BulkActionOutcome.failed;
+    if (!mounted) return BulkActionOutcome.cancelled;
     final trips = ref.read(tripListNotifierProvider).value ?? const [];
     final selected = [
       for (final t in trips)

@@ -49,10 +49,12 @@ Future<({String? activeDiverId, int diverCount})?> readSharingContext(
   BuildContext context,
 ) async {
   try {
-    final (activeDiverId, divers) = await (
-      ref.read(validatedCurrentDiverIdProvider.future),
-      ref.read(allDiversProvider.future),
-    ).wait;
+    // One after the other, not `.wait`: both are cached app-wide, and a
+    // ParallelWaitError would log the wait's stack, not the failing read's.
+    final activeDiverId = await ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    final divers = await ref.read(allDiversProvider.future);
     return (activeDiverId: activeDiverId, diverCount: divers.length);
   } catch (e, stackTrace) {
     _log.error(
