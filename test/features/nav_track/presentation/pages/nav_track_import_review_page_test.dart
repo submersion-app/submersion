@@ -286,6 +286,33 @@ class _RecordingImportService implements NavTrackImportService {
   }
 }
 
+/// A `commit` that rejects the parsed recording, to exercise the save path's
+/// own parse-error branch (as opposed to the preview's).
+class _ParseRejectingImportService implements NavTrackImportService {
+  @override
+  Future<NavTrackImportPreview> prepare(
+    Uint8List bytes, {
+    String? fileName,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<String> commit({
+    required ParsedNavTrack parsed,
+    required String sourceRef,
+    Dive? dive,
+    String? siteId,
+    String? name,
+    String? deviceName,
+    String? equipmentId,
+    String? replacingRouteId,
+  }) async {
+    throw const NavTrackParseException(
+      'bad file',
+      reason: NavTrackParseReason.unreadable,
+    );
+  }
+}
+
 /// A `commit` that always fails, to prove a duplicate is not deleted ahead
 /// of a commit that never lands.
 class _ThrowingImportService implements NavTrackImportService {
@@ -660,6 +687,31 @@ void main() {
       },
     );
   }
+
+  testWidgets('a parse error raised by commit is shown on the page and Save is '
+      'offered again', (tester) async {
+    await _pumpWithRouter(
+      tester,
+      preview: _preview(),
+      service: _ParseRejectingImportService(),
+    );
+
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavTrackImportReviewPage), findsOneWidget);
+    expect(find.text('ROUTE_DETAIL_PAGE'), findsNothing);
+    expect(
+      find.textContaining('could not be read as a Seacraft ENC'),
+      findsOneWidget,
+    );
+    final save = tester.widget<FilledButton>(
+      find.byKey(const ValueKey('nav-track-import-save')),
+    );
+    expect(save.onPressed, isNotNull);
+  });
 
   testWidgets('hands the ticked duplicate to commit as the route to replace', (
     tester,
