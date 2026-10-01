@@ -125,6 +125,48 @@ void main() {
       expect(result.gasSwitches.map((s) => s['tankIndex']), [1, 0, 1]);
     });
 
+    test('a rebreather diluent and bailout keep their roles and their own '
+        'cylinders when they share a mix', () {
+      final result = ParsedDiveProfileMapper.gasSwitches(
+        _dive(
+          [
+            pigeon.GasMix(index: 0, o2Percent: 10.0, hePercent: 50.0),
+            pigeon.GasMix(index: 1, o2Percent: 10.0, hePercent: 50.0, usage: 2),
+          ],
+          [_sample(0, 0.0, 1), _sample(2000, 90.0, 0)],
+          diveMode: 'ccr',
+        ),
+        const [],
+      );
+
+      expect(result.tanks.map((t) => t['role']), [
+        TankRole.diluent,
+        TankRole.bailout,
+      ]);
+      expect(result.gasSwitches, [
+        {'timestamp': 2000, 'depth': 90.0, 'tankIndex': 1},
+      ]);
+    });
+
+    test('a change between two gases on the same listed tank is not a '
+        'switch', () {
+      final result = ParsedDiveProfileMapper.gasSwitches(
+        _dive(
+          [
+            pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 35.0),
+            pigeon.GasMix(index: 1, o2Percent: 21.0, hePercent: 35.0),
+            pigeon.GasMix(index: 2, o2Percent: 50.0, hePercent: 0.0),
+          ],
+          [_sample(0, 0.0, 0), _sample(900, 40.0, 1), _sample(1800, 21.0, 2)],
+        ),
+        [tank(21.0, 35.0), tank(50.0)],
+      );
+
+      expect(result.gasSwitches, [
+        {'timestamp': 1800, 'depth': 21.0, 'tankIndex': 1},
+      ]);
+    });
+
     test('a single-gas dive has no switches and keeps its tanks', () {
       final listed = [tank(32.0)];
       final result = ParsedDiveProfileMapper.gasSwitches(
@@ -168,8 +210,9 @@ pigeon.ProfileSample _sample(int time, double depth, int? gas) =>
 
 pigeon.ParsedDive _dive(
   List<pigeon.GasMix> gasMixes,
-  List<pigeon.ProfileSample> samples,
-) => pigeon.ParsedDive(
+  List<pigeon.ProfileSample> samples, {
+  String? diveMode,
+}) => pigeon.ParsedDive(
   fingerprint: 'fp',
   dateTimeYear: 2026,
   dateTimeMonth: 3,
@@ -184,4 +227,5 @@ pigeon.ParsedDive _dive(
   tanks: [],
   gasMixes: gasMixes,
   events: [],
+  diveMode: diveMode,
 );

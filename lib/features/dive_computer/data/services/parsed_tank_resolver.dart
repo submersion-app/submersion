@@ -115,11 +115,16 @@ List<BreathedGas> breathedGasSequence(pigeon.ParsedDive parsed) {
   return sequence;
 }
 
-/// The [TankRole] an open-circuit cylinder holding this gas gets when the
-/// computer reported no usage for it: deco at 41% O2 or more without helium,
-/// back gas otherwise. The same rule [resolveParsedTanks] applies.
-TankRole openCircuitTankRole(double o2Percent, double hePercent) =>
-    TankRole.values.byName(_inferRole(null, o2Percent, hePercent));
+/// The [TankRole] of a cylinder with no transmitter holding the gas mix at
+/// [gasIndex] in `parsed.gasMixes`: the role [resolveParsedTanks] gives the
+/// same gas, so the gas's own usage tag and, on a rebreather dive, the bailout
+/// ranking apply.
+TankRole sensorlessTankRole(pigeon.ParsedDive parsed, int gasIndex) =>
+    TankRole.values.byName(
+      _inferSensorlessRoles(parsed.gasMixes, [
+        gasIndex,
+      ], parsed.diveMode)[gasIndex]!,
+    );
 
 /// The resolved cylinders plus the map from each gas-mix index to the cylinder
 /// index that holds it, so tank labeling and gas-switch derivation share one

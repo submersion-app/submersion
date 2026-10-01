@@ -108,7 +108,10 @@ class ParsedDiveProfileMapper {
   /// pressureless cylinder appended for every gas it breathed that the source
   /// never listed, starting gas included: Shearwater Cloud lists only tanks
   /// with a transmitter, so a deco bottle usually has no tank of its own, and
-  /// a switch needs a cylinder to point to.
+  /// a switch needs a cylinder to point to. Each unlisted gas gets its own,
+  /// even when it shares a mix with another (a rebreather's diluent and its
+  /// bailout often do). A change between two gases that land on the same tank
+  /// is not a switch.
   ///
   /// Returns [tanks] itself, unchanged, when the dive never switched gas.
   static ({
@@ -123,13 +126,13 @@ class ParsedDiveProfileMapper {
     final positionOfGas = <int, int>{};
     int positionOf(int gasIndex) => positionOfGas.putIfAbsent(gasIndex, () {
       final gas = parsed.gasMixes[gasIndex];
-      final listed = resolvedTanks.indexWhere(
+      final listed = tanks.indexWhere(
         (t) => _sameGas(t['gasMix'] as GasMix?, gas),
       );
       if (listed >= 0) return listed;
       resolvedTanks.add(<String, dynamic>{
         'gasMix': GasMix(o2: gas.o2Percent, he: gas.hePercent),
-        'role': openCircuitTankRole(gas.o2Percent, gas.hePercent),
+        'role': sensorlessTankRole(parsed, gasIndex),
         'order': resolvedTanks.length,
       });
       return resolvedTanks.length - 1;
@@ -142,11 +145,12 @@ class ParsedDiveProfileMapper {
       tanks: resolvedTanks,
       gasSwitches: [
         for (var i = 1; i < sequence.length; i++)
-          <String, dynamic>{
-            'timestamp': sequence[i].timeSeconds,
-            'depth': sequence[i].depthMeters,
-            'tankIndex': positions[i],
-          },
+          if (positions[i] != positions[i - 1])
+            <String, dynamic>{
+              'timestamp': sequence[i].timeSeconds,
+              'depth': sequence[i].depthMeters,
+              'tankIndex': positions[i],
+            },
       ],
     );
   }
