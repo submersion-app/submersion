@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 
 /// How many dives and dive plans a delete of some sites would leave without
 /// a site (issue #1952), for its confirmation.
@@ -12,7 +13,7 @@ class SiteUsage {
   const SiteUsage({this.dives = 0, this.plans = 0});
 }
 
-/// The links a site delete cleared, so an undo can point them back.
+/// The links and hides a site delete cleared, so an undo can put them back.
 class SiteLinks {
   /// Dive id -> the site it was logged at.
   final Map<String, String> diveSiteIds;
@@ -24,11 +25,28 @@ class SiteLinks {
   /// whose stamp differs was edited since, and the undo leaves it alone.
   final int clearedAt;
 
+  /// Every profile's hide of the sites (issue #2680): the owner's delete
+  /// removes them, so its undo puts them back.
+  final List<ProfileHide> hides;
+
   const SiteLinks({
     this.diveSiteIds = const {},
     this.planSiteIds = const {},
     this.clearedAt = 0,
+    this.hides = const [],
   });
+
+  SiteLinks copyWith({
+    Map<String, String>? diveSiteIds,
+    Map<String, String>? planSiteIds,
+    int? clearedAt,
+    List<ProfileHide>? hides,
+  }) => SiteLinks(
+    diveSiteIds: diveSiteIds ?? this.diveSiteIds,
+    planSiteIds: planSiteIds ?? this.planSiteIds,
+    clearedAt: clearedAt ?? this.clearedAt,
+    hides: hides ?? this.hides,
+  );
 }
 
 /// Counts every dive and plan at [siteIds]. Every dive counts, excluded and

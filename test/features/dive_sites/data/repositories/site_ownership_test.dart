@@ -67,6 +67,22 @@ void main() {
     expect(await sites.getSiteById('mine'), isNull);
   });
 
+  test('undoing the owner\'s bulk delete brings back every profile\'s hide '
+      '(issue #2680)', () async {
+    await ProfileHidesRepository().hide(SharedItemKind.site, 'theirs', 'b');
+    final hide = (await db.select(db.siteHides).get()).single;
+    final site = (await sites.getSiteById('theirs'))!;
+    final links = await sites.bulkDeleteSites(['theirs'], actingDiverId: 'a');
+    expect(links.hides.map((h) => h.id), [hide.id]);
+    expect(await db.select(db.siteHides).get(), isEmpty);
+
+    await sites.createSite(site);
+    await sites.restoreSiteLinks(links);
+    final back = (await db.select(db.siteHides).get()).single;
+    expect((back.id, back.siteId, back.diverId), (hide.id, 'theirs', 'b'));
+    expect(await tombstoneCount(db, ProfileHidesRepository.siteEntity), 0);
+  });
+
   test('merge refuses another profile\'s duplicate', () async {
     final survivor = (await sites.getSiteById('mine'))!;
     final snapshot = await sites.mergeSites(

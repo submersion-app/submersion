@@ -86,6 +86,77 @@ void main() {
     expect((await db.select(db.tripHides).get()).single.diverId, 'b');
   });
 
+  test('deleteHides returns every hide it removed', () async {
+    await seedDivers(db, ['c']);
+    await repository.hide(SharedItemKind.site, 'pier', 'b');
+    await repository.hide(SharedItemKind.site, 'pier', 'c');
+    final rows = await db.select(db.siteHides).get();
+    final removed = await db.transaction(
+      () => repository.deleteHides(SharedItemKind.site, ['pier']),
+    );
+    expect(removed.toSet(), {
+      for (final r in rows)
+        (
+          id: r.id,
+          itemId: r.siteId,
+          diverId: r.diverId,
+          createdAt: r.createdAt,
+        ),
+    });
+  });
+
+  group('restoreHides (issue #2680)', () {
+    Future<List<ProfileHide>> hideThenDelete() async {
+      await repository.hide(SharedItemKind.site, 'pier', 'b');
+      return db.transaction(
+        () => repository.deleteHides(SharedItemKind.site, ['pier']),
+      );
+    }
+
+    test('puts a removed hide back under its id, pending, and drops its '
+        'tombstone', () async {
+      final removed = await hideThenDelete();
+      await clearPendingMarks(db);
+      await repository.restoreHides(SharedItemKind.site, removed);
+      final row = (await db.select(db.siteHides).get()).single;
+      expect((
+        id: row.id,
+        itemId: row.siteId,
+        diverId: row.diverId,
+        createdAt: row.createdAt,
+      ), removed.single);
+      expect(
+        await pendingCount(db, ProfileHidesRepository.siteEntity, row.id),
+        1,
+      );
+      expect(await tombstoneCount(db, ProfileHidesRepository.siteEntity), 0);
+    });
+
+    test('skips a hide whose item is gone', () async {
+      final removed = await hideThenDelete();
+      await db.customStatement("DELETE FROM dive_sites WHERE id = 'pier'");
+      await repository.restoreHides(SharedItemKind.site, removed);
+      expect(await db.select(db.siteHides).get(), isEmpty);
+      expect(await tombstoneCount(db, ProfileHidesRepository.siteEntity), 1);
+    });
+
+    test('skips a hide whose profile is gone', () async {
+      final removed = await hideThenDelete();
+      await db.customStatement("DELETE FROM divers WHERE id = 'b'");
+      await repository.restoreHides(SharedItemKind.site, removed);
+      expect(await db.select(db.siteHides).get(), isEmpty);
+    });
+
+    test('leaves a profile that hid the item again alone', () async {
+      final removed = await hideThenDelete();
+      await repository.hide(SharedItemKind.site, 'pier', 'b');
+      final again = (await db.select(db.siteHides).get()).single;
+      await repository.restoreHides(SharedItemKind.site, removed);
+      expect((await db.select(db.siteHides).get()).single.id, again.id);
+      expect(await tombstoneCount(db, ProfileHidesRepository.siteEntity), 1);
+    });
+  });
+
   test('diveLinkCounts splits the item\'s dives by profile', () async {
     await seedDive(db, 'a1', diver: 'a', tripId: 'shared', siteId: 'pier');
     await seedDive(db, 'b1', diver: 'b', tripId: 'shared');

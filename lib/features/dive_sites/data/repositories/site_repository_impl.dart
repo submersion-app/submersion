@@ -583,8 +583,8 @@ class SiteRepository {
   /// relinks media to the survivor inside its own transaction BEFORE
   /// deleting duplicates, so it never needs this cascade.
   ///
-  /// Returns the links it cleared, read in the same transaction, so an undo
-  /// covers exactly the rows the delete touched.
+  /// Returns the links and hides it cleared, read in the same transaction,
+  /// so an undo covers exactly the rows the delete touched.
   Future<SiteLinks> _deleteSiteRows(
     List<String> ids, {
     required bool cascadeMedia,
@@ -597,15 +597,19 @@ class SiteRepository {
       final cleared = await readLinksToSites(_db, ids, clearedAt: now);
       await clearDiveSiteLinks(_db, _syncRepository, ids, now: now);
       await clearPlanLinksToSites(_db, _syncRepository, ids, now: now);
-      // Every profile's hide of the sites (issue #2594), tombstoned.
-      await ProfileHidesRepository().deleteHides(SharedItemKind.site, ids);
+      // Every profile's hide of the sites (issue #2594), tombstoned, and
+      // kept for the undo (issue #2680).
+      final hides = await ProfileHidesRepository().deleteHides(
+        SharedItemKind.site,
+        ids,
+      );
       await (_db.delete(_db.diveSites)..where((t) => t.id.isIn(ids))).go();
       // One batch for every tombstone, not a transaction per site.
       await _syncRepository.logDeletions(
         entityType: 'diveSites',
         recordIds: ids,
       );
-      return cleared;
+      return cleared.copyWith(hides: hides);
     });
     if (split == null) return links;
     // The sites are gone by now, so a failure here cannot undo the delete
@@ -671,14 +675,21 @@ class SiteRepository {
 
   /// Undo for a bulk delete: points the dives and plans of [links] (what
   /// [bulkDeleteSites] returned) back at their re-created sites, leaving any
-  /// row edited since.
+  /// row edited since, and puts back every profile's hide of them (issue
+  /// #2680).
   Future<void> restoreSiteLinks(SiteLinks links) async {
-    await restoreLinksToSites(
-      _db,
-      _syncRepository,
-      links,
-      now: DateTime.now().millisecondsSinceEpoch,
-    );
+    await _db.transaction(() async {
+      await restoreLinksToSites(
+        _db,
+        _syncRepository,
+        links,
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
+      await ProfileHidesRepository().restoreHides(
+        SharedItemKind.site,
+        links.hides,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
@@ -701,7 +712,7 @@ class SiteRepository {
 
   /// Bulk delete multiple sites: only those [actingDiverId] may destroy
   /// (issue #2594); the rest are skipped. Returns the dive and plan links
-  /// the delete cleared, for [restoreSiteLinks] to undo.
+  /// and the hides the delete cleared, for [restoreSiteLinks] to undo.
   Future<SiteLinks> bulkDeleteSites(
     List<String> ids, {
     bool cascadeMedia = true,
