@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -14,8 +13,10 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -129,40 +130,15 @@ class NavTrackDetailPage extends ConsumerWidget {
     NavTrack route,
   ) async {
     final dives = await ref.read(divesProvider.future);
-    final sorted = [...dives]
-      ..sort(
-        (a, b) =>
-            (a.effectiveEntryTime.millisecondsSinceEpoch - route.startTime)
-                .abs()
-                .compareTo(
-                  (b.effectiveEntryTime.millisecondsSinceEpoch -
-                          route.startTime)
-                      .abs(),
-                ),
-      );
+    final nearest = NavTrackMatcher.nearestByStart(
+      routeStartSeconds: route.startTime ~/ 1000,
+      dives: dives,
+    );
     if (!context.mounted) return;
-    final l10n = context.l10n;
-    final chosen = await showModalBottomSheet<Dive>(
-      context: context,
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        children: [
-          for (final dive in sorted.take(20))
-            ListTile(
-              title: Text(
-                l10n.navTrack_common_diveNumber(
-                  (dive.diveNumber ?? dive.id).toString(),
-                ),
-              ),
-              subtitle: Text(
-                UnitFormatter(
-                  ref.read(settingsProvider),
-                ).formatDateTime(dive.effectiveEntryTime),
-              ),
-              onTap: () => Navigator.of(context).pop(dive),
-            ),
-        ],
-      ),
+    final chosen = await showNavTrackDiveChoiceSheet(
+      context,
+      dives: nearest,
+      selectedDiveId: route.diveId,
     );
     if (chosen == null) return;
     await ref

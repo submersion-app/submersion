@@ -90,6 +90,52 @@ void main() {
       );
 
       expect(preview.candidateDives.map((d) => d.id), ['d1']);
+      // An overlap match is the whole proposal; the nearest-dive fallback
+      // is only for a recording nothing overlaps.
+      expect(preview.nearbyDives, isEmpty);
+    });
+
+    test('offers the nearest dives by start time when no dive overlaps, '
+        'e.g. a recording console clock set 2 hours ahead', () async {
+      // The short fixture starts 15.1.2025 16:16:07 local-as-UTC; the dives
+      // were logged by a dive computer 2 hours behind the console.
+      final routeStart = DateTime.utc(2025, 1, 15, 16, 16, 7);
+      final twoHoursEarlier = routeStart.subtract(const Duration(hours: 2));
+      await seedDive(
+        'right-dive',
+        twoHoursEarlier.millisecondsSinceEpoch,
+        exitTimeMs: twoHoursEarlier
+            .add(const Duration(minutes: 50))
+            .millisecondsSinceEpoch,
+      );
+      final dayBefore = routeStart.subtract(const Duration(days: 1));
+      await seedDive(
+        'day-before',
+        dayBefore.millisecondsSinceEpoch,
+        exitTimeMs: dayBefore
+            .add(const Duration(minutes: 50))
+            .millisecondsSinceEpoch,
+      );
+
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.candidateDives, isEmpty);
+      expect(preview.nearbyDives.map((d) => d.id), [
+        'right-dive',
+        'day-before',
+      ]);
+    });
+
+    test('offers nothing when the log has no dives at all', () async {
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+      expect(preview.candidateDives, isEmpty);
+      expect(preview.nearbyDives, isEmpty);
     });
 
     test('reports no duplicate for a fresh import', () async {

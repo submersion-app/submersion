@@ -17,6 +17,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_parse_error_text.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -30,7 +31,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// import button -- calls this rather than building the page itself, so a
 /// route path or a button label never needs to be duplicated.
 ///
-/// [preselectedDiveId] is a hint only, used to pre-select that dive in the
+/// [preselectedDive] is a hint only, used to pre-select that dive in the
 /// link proposal once the preview loads (e.g. importing from a dive's own
 /// "Underwater Route" section, where the dive is already known); it does
 /// not skip the parse or the review step.
@@ -38,14 +39,14 @@ Future<void> navigateToNavTrackReview(
   BuildContext context,
   Uint8List bytes, {
   required String fileName,
-  String? preselectedDiveId,
+  Dive? preselectedDive,
 }) {
   return Navigator.of(context).push<void>(
     MaterialPageRoute(
       builder: (_) => NavTrackImportReviewPage(
         bytes: bytes,
         fileName: fileName,
-        preselectedDiveId: preselectedDiveId,
+        preselectedDive: preselectedDive,
       ),
     ),
   );
@@ -66,13 +67,17 @@ class NavTrackImportReviewPage extends ConsumerStatefulWidget {
     super.key,
     required this.bytes,
     required this.fileName,
-    this.preselectedDiveId,
+    this.preselectedDive,
     this.preview,
   });
 
   final Uint8List bytes;
   final String fileName;
-  final String? preselectedDiveId;
+
+  /// The dive the caller already knows this route belongs to. Pre-selected
+  /// even when the recording's clock puts it outside every overlap window:
+  /// the diver has already said which dive this is.
+  final Dive? preselectedDive;
 
   /// Already-parsed preview, when a caller (e.g. the routes area's import
   /// button) ran `NavTrackImportService.prepare` itself. Null re-parses
@@ -121,16 +126,22 @@ class _NavTrackImportReviewPageState
   }
 
   /// The link proposal defaults to the unique overlap match, or to
-  /// [widget.preselectedDiveId] when the caller already knows the dive;
+  /// [widget.preselectedDive] when the caller already knows the dive;
   /// several candidates or none leave the route unlinked until the diver
-  /// chooses. Runs once, the first time the preview is available.
+  /// chooses, and a nearest-by-time fallback dive is never proposed on its
+  /// own. Runs once, the first time the preview is available.
   void _initializeDiveChoice(NavTrackImportPreview preview) {
     if (_diveChoiceInitialized) return;
     _diveChoiceInitialized = true;
-    if (widget.preselectedDiveId != null) {
-      _selectedDive = preview.candidateDives
-          .where((d) => d.id == widget.preselectedDiveId)
-          .firstOrNull;
+    final preselected = widget.preselectedDive;
+    if (preselected != null) {
+      // The preview's own copy when it has one, freshly read with the rest.
+      _selectedDive =
+          [
+            ...preview.candidateDives,
+            ...preview.nearbyDives,
+          ].where((d) => d.id == preselected.id).firstOrNull ??
+          preselected;
     }
     _selectedDive ??= preview.candidateDives.length == 1
         ? preview.candidateDives.single
@@ -153,6 +164,22 @@ class _NavTrackImportReviewPageState
     final site = _selectedDive?.site;
     _siteId = site?.id;
     _siteName = site?.name;
+  }
+
+  void _selectDive(Dive? dive) => setState(() {
+    _selectedDive = dive;
+    _applySiteFromSelectedDive();
+  });
+
+  /// Opens the full nearest-by-time list (the same sheet as the detail
+  /// page's "Choose dive") for a dive past the few shown inline.
+  Future<void> _chooseAnotherDive(NavTrackImportPreview preview) async {
+    final chosen = await showNavTrackDiveChoiceSheet(
+      context,
+      dives: preview.nearbyDives,
+      selectedDiveId: _selectedDive?.id,
+    );
+    if (chosen != null && mounted) _selectDive(chosen);
   }
 
   Future<void> _pickSite() async {
@@ -424,12 +451,12 @@ class _NavTrackImportReviewPageState
         const SizedBox(height: 8),
         _DiveLinkPicker(
           candidates: preview.candidateDives,
+          nearby: preview.nearbyDives,
           selected: _selectedDive,
+          recordingStartSeconds: points.first.timestamp,
           units: units,
-          onChanged: (dive) => setState(() {
-            _selectedDive = dive;
-            _applySiteFromSelectedDive();
-          }),
+          onChanged: _selectDive,
+          onChooseAnother: () => _chooseAnotherDive(preview),
         ),
         const SizedBox(height: 24),
         Text(l10n.navTrack_review_diveSite, style: theme.textTheme.titleSmall),
@@ -520,15 +547,25 @@ class _SummaryGrid extends StatelessWidget {
 class _DiveLinkPicker extends StatelessWidget {
   const _DiveLinkPicker({
     required this.candidates,
+    required this.nearby,
     required this.selected,
+    required this.recordingStartSeconds,
     required this.units,
     required this.onChanged,
+    required this.onChooseAnother,
   });
 
+  /// How many of [nearby] are offered inline; the rest are one tap away in
+  /// the "Choose another dive..." sheet.
+  static const int inlineNearbyCount = 5;
+
   final List<Dive> candidates;
+  final List<Dive> nearby;
   final Dive? selected;
+  final int recordingStartSeconds;
   final UnitFormatter units;
   final ValueChanged<Dive?> onChanged;
+  final VoidCallback onChooseAnother;
 
   // A minimal inline picker: candidates ordered by NavTrackMatcher's own
   // overlap ranking, plus "leave unlinked". The fuller `DiveLinkPicker`
@@ -536,22 +573,47 @@ class _DiveLinkPicker extends StatelessWidget {
   // being built by another agent on this branch for the dive detail
   // section and the routes-area detail page; once it exists, this can
   // delegate to it instead of its own RadioListTile column.
+  //
+  // With no overlap candidate at all (a recording device's clock too far
+  // off, issue #2691) it falls back to the dives nearest by start time,
+  // each labelled with how far it lies from the recording.
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final fallback = candidates.isEmpty;
+    final candidateIds = {for (final dive in candidates) dive.id};
+    final rows = [...fallback ? nearby.take(inlineNearbyCount) : candidates];
+    // The current choice is always visible, even when it came from the
+    // sheet or from the caller rather than from the rows above.
+    final current = selected;
+    if (current != null && rows.every((d) => d.id != current.id)) {
+      rows.add(current);
+    }
     return RadioGroup<String?>(
       groupValue: selected?.id,
-      onChanged: (id) =>
-          onChanged(candidates.where((d) => d.id == id).firstOrNull),
+      onChanged: (id) => onChanged(rows.where((d) => d.id == id).firstOrNull),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (fallback && nearby.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                l10n.navTrack_review_noOverlapHint,
+                key: const ValueKey('nav-track-link-no-overlap-hint'),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
           RadioListTile<String?>(
             key: const ValueKey('nav-track-link-unlinked'),
             value: null,
             dense: true,
             title: Text(l10n.navTrack_review_leaveUnlinked),
           ),
-          for (final dive in candidates)
+          for (final dive in rows)
             RadioListTile<String?>(
               key: ValueKey('nav-track-link-${dive.id}'),
               value: dive.id,
@@ -560,10 +622,46 @@ class _DiveLinkPicker extends StatelessWidget {
                 '${units.formatDate(dive.effectiveEntryTime)} '
                 '${units.formatTime(dive.effectiveEntryTime)}',
               ),
+              subtitle: candidateIds.contains(dive.id)
+                  ? null
+                  : Text(_offsetFromRecording(l10n, dive)),
+            ),
+          if (fallback && nearby.length > inlineNearbyCount)
+            ListTile(
+              key: const ValueKey('nav-track-link-choose-another'),
+              dense: true,
+              leading: const Icon(Icons.more_horiz),
+              title: Text(l10n.navTrack_review_chooseAnotherDive),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: onChooseAnother,
             ),
         ],
       ),
     );
+  }
+
+  /// How far [dive]'s entry lies from the recording's first sample, e.g.
+  /// "2h 0min before the recording": a consistent offset across a
+  /// diver's imports points at a device clock set wrong.
+  String _offsetFromRecording(AppLocalizations l10n, Dive dive) {
+    final diveStartSeconds =
+        dive.effectiveEntryTime.millisecondsSinceEpoch ~/ 1000;
+    final deltaSeconds = diveStartSeconds - recordingStartSeconds;
+    final offset = Duration(seconds: deltaSeconds.abs());
+    final amount = offset.inDays > 0
+        ? l10n.navTrack_review_offsetDays(
+            offset.inDays,
+            offset.inHours.remainder(24),
+          )
+        : offset.inHours > 0
+        ? l10n.navTrack_list_durationHours(
+            offset.inHours,
+            offset.inMinutes.remainder(60),
+          )
+        : l10n.navTrack_list_durationMinutes(offset.inMinutes);
+    return deltaSeconds < 0
+        ? l10n.navTrack_review_offsetBefore(amount)
+        : l10n.navTrack_review_offsetAfter(amount);
   }
 }
 

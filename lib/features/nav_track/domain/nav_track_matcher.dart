@@ -52,6 +52,34 @@ class NavTrackMatcher {
     return [for (final s in scored) s.$1];
   }
 
+  /// How many dives [nearestByStart] offers by default: enough to reach the
+  /// right dive past a recording device's wrong clock, few enough to scan.
+  static const int nearestLimit = 20;
+
+  /// The [limit] dives in [dives] whose `effectiveEntryTime` lies closest to
+  /// [routeStartSeconds], nearest first; a tie goes to the earlier dive.
+  ///
+  /// Unlike [candidatesFor] there is no tolerance window: this is the
+  /// fallback for a manual choice when a recording device's clock is too
+  /// far off for any window to overlap (issue #2691), never a basis for
+  /// linking on its own.
+  static List<Dive> nearestByStart({
+    required int routeStartSeconds,
+    required List<Dive> dives,
+    int limit = nearestLimit,
+  }) {
+    int startOf(Dive dive) =>
+        dive.effectiveEntryTime.millisecondsSinceEpoch ~/ 1000;
+    final sorted = [...dives]
+      ..sort((a, b) {
+        final byDistance = (startOf(a) - routeStartSeconds).abs().compareTo(
+          (startOf(b) - routeStartSeconds).abs(),
+        );
+        return byDistance != 0 ? byDistance : startOf(a).compareTo(startOf(b));
+      });
+    return sorted.take(limit).toList();
+  }
+
   static int _diveEndSeconds(Dive dive, int diveStartSeconds) {
     final exit = dive.exitTime;
     if (exit != null) return exit.millisecondsSinceEpoch ~/ 1000;

@@ -23,6 +23,13 @@ class NavTrackImportPreview {
   /// means the diver must choose; exactly one is the pre-selected proposal.
   final List<Dive> candidateDives;
 
+  /// The dives nearest the recording's start by time
+  /// (`NavTrackMatcher.nearestByStart`), offered for a manual link only
+  /// when [candidateDives] is empty: a recording device's clock set too far
+  /// off for any dive to overlap (issue #2691). Empty whenever
+  /// [candidateDives] is not, and never pre-selected.
+  final List<Dive> nearbyDives;
+
   /// An existing route already stored from the same file (same [sourceRef],
   /// overlapping recording window), or null when this looks like a fresh
   /// import. The review page offers "replace" rather than importing a twin.
@@ -35,6 +42,7 @@ class NavTrackImportPreview {
     required this.stats,
     required this.segmentation,
     required this.candidateDives,
+    required this.nearbyDives,
     required this.duplicateOfRouteId,
     required this.sourceRef,
   });
@@ -81,6 +89,12 @@ class NavTrackImportService {
       routeEndSeconds: routeEndSeconds,
       dives: dives,
     );
+    final nearby = candidates.isEmpty
+        ? NavTrackMatcher.nearestByStart(
+            routeStartSeconds: routeStartSeconds,
+            dives: dives,
+          )
+        : const <Dive>[];
 
     final sourceRef = fileName ?? 'import.csv';
     final duplicateOfRouteId = await _findDuplicate(
@@ -94,6 +108,7 @@ class NavTrackImportService {
       stats: stats,
       segmentation: segmentation,
       candidateDives: candidates,
+      nearbyDives: nearby,
       duplicateOfRouteId: duplicateOfRouteId,
       sourceRef: sourceRef,
     );
