@@ -16,6 +16,7 @@ import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_t
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
+import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_parse_error_text.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
@@ -385,11 +386,36 @@ class NavTrackListRow extends ConsumerWidget {
   String _linkLabel(AppLocalizations l10n, WidgetRef ref) {
     final diveId = route.diveId;
     if (diveId == null) return l10n.navTrack_common_unlinked;
-    final dive = ref.watch(diveProvider(diveId)).value;
-    if (dive == null) return l10n.navTrack_common_diveById(diveId);
-    return dive.diveNumber != null
-        ? l10n.navTrack_common_diveNumber(dive.diveNumber.toString())
-        : l10n.navTrack_common_diveById(diveId);
+    return navTrackDiveLabel(
+      l10n,
+      diveId,
+      ref.watch(diveProvider(diveId)).value,
+    );
+  }
+
+  /// The link chip: a plain chip for an unlinked route, or one that opens
+  /// the linked dive.
+  Widget _linkChip(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
+    const key = ValueKey('nav-track-link-chip');
+    final label = Text(_linkLabel(l10n, ref));
+    const density = VisualDensity.compact;
+    const tapTarget = MaterialTapTargetSize.shrinkWrap;
+    final diveId = route.diveId;
+    if (diveId == null) {
+      return Chip(
+        key: key,
+        label: label,
+        visualDensity: density,
+        materialTapTargetSize: tapTarget,
+      );
+    }
+    return ActionChip(
+      key: key,
+      label: label,
+      visualDensity: density,
+      materialTapTargetSize: tapTarget,
+      onPressed: () => context.push('/dives/$diveId'),
+    );
   }
 
   /// Duration up to the last dead-reckoned sample, as stored at import
@@ -431,41 +457,39 @@ class NavTrackListRow extends ConsumerWidget {
         ? const <NavTrackPoint>[]
         : ref.watch(navTrackByIdProvider(route.id)).value?.points ??
               const <NavTrackPoint>[];
+    // The link chip sits below the status line rather than in trailing: a
+    // ListTile measures its trailing widget against the full tile width and
+    // gives the title column whatever is left, so a text-bearing chip there
+    // starves the file name down to one fragment per line on a phone or in
+    // the map view's list pane (issue #2692, same hazard as #935).
     return ListTile(
       selected: selected,
+      isThreeLine: true,
       leading: anchored
           ? const Icon(Icons.route)
           : NavTrackShapeThumbnail(points: hydratedPoints),
       title: Text(route.name ?? route.sourceRef ?? route.id),
-      subtitle: Text(
-        [
-          units.formatDate(startedAt),
-          if (route.deviceName != null) route.deviceName!,
-          if (route.totalDistance != null)
-            units.formatDistance(route.totalDistance!),
-          if (route.maxDepth != null) units.formatDepth(route.maxDepth),
-          _formatDuration(l10n),
-        ].join(' · '),
-      ),
-      trailing: Row(
+      subtitle: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          route.diveId == null
-              ? Chip(
-                  key: const ValueKey('nav-track-link-chip'),
-                  label: Text(_linkLabel(l10n, ref)),
-                )
-              : ActionChip(
-                  key: const ValueKey('nav-track-link-chip'),
-                  label: Text(_linkLabel(l10n, ref)),
-                  onPressed: () => context.push('/dives/${route.diveId}'),
-                ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: l10n.navTrack_common_delete,
-            onPressed: onDelete,
+          Text(
+            [
+              units.formatDate(startedAt),
+              if (route.deviceName != null) route.deviceName!,
+              if (route.totalDistance != null)
+                units.formatDistance(route.totalDistance!),
+              if (route.maxDepth != null) units.formatDepth(route.maxDepth),
+              _formatDuration(l10n),
+            ].join(' · '),
           ),
+          _linkChip(context, l10n, ref),
         ],
+      ),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete_outline),
+        tooltip: l10n.navTrack_common_delete,
+        onPressed: onDelete,
       ),
       onTap: onTap,
     );

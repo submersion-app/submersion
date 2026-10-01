@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -99,6 +100,7 @@ Future<_RecordingNavTrackRepository> _pump(
   NavTrackMatchService? matchService,
   MockSettingsNotifier? settingsNotifier,
   List<Override> extraOverrides = const [],
+  Locale? locale,
 }) async {
   final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
   final repository = _RecordingNavTrackRepository();
@@ -119,10 +121,11 @@ Future<_RecordingNavTrackRepository> _pump(
             ).overrideWith((ref) async => entry.value),
         ...extraOverrides,
       ],
-      child: const MaterialApp(
+      child: MaterialApp(
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: NavTrackListPage(),
+        home: const NavTrackListPage(),
       ),
     ),
   );
@@ -194,6 +197,104 @@ void main() {
     expect(find.text('unlinked'), findsNothing);
     expect(find.textContaining('Dive'), findsOneWidget);
     expect(find.textContaining('#412'), findsOneWidget);
+  });
+
+  testWidgets(
+    'a linked row keeps its name and status line readable on a narrow '
+    'phone in German (#2692)',
+    (tester) async {
+      // "Tauchgang #412" is far wider than "Dive #412". A ListTile measures
+      // its trailing widget against the full tile width first, so a link chip
+      // there starved the file name down to one fragment per line.
+      await tester.binding.setSurfaceSize(const Size(360, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      const name = '011.DAT.csv';
+      final dive = Dive(
+        id: 'dive-1',
+        diveNumber: 412,
+        dateTime: DateTime(2026, 8, 22, 10, 8),
+      );
+      await _pump(
+        tester,
+        routes: [
+          _route(
+            id: 'r1',
+            name: name,
+            diveId: 'dive-1',
+            deviceName: 'Seacraft ENC3',
+            distance: 1050,
+            maxDepth: 38,
+          ),
+        ],
+        linkedDive: dive,
+        locale: const Locale('de'),
+      );
+
+      final title = tester.getRect(find.text(name));
+      final status = tester.getRect(find.textContaining(' · '));
+      final chip = tester.getRect(
+        find.byKey(const ValueKey('nav-track-link-chip')),
+      );
+
+      expect(
+        title.width,
+        greaterThan(150),
+        reason:
+            'Name collapsed to ${title.width}px wide on a 360px screen; the '
+            'link chip is starving the ListTile text column.',
+      );
+      expect(status.width, greaterThan(150));
+      expect(
+        chip.top,
+        greaterThanOrEqualTo(status.bottom),
+        reason: 'The link chip belongs on its own line below the status line.',
+      );
+    },
+  );
+
+  testWidgets('tapping a linked row\'s chip opens the linked dive', (
+    tester,
+  ) async {
+    final dive = Dive(
+      id: 'dive-1',
+      diveNumber: 412,
+      dateTime: DateTime(2026, 8, 22, 10, 8),
+    );
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      routes: [
+        GoRoute(path: '/', builder: (_, _) => const NavTrackListPage()),
+        GoRoute(
+          path: '/dives/:id',
+          builder: (_, state) =>
+              Text('dive page ${state.pathParameters['id']}'),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          allNavTracksProvider.overrideWith(
+            (ref) async => [_route(id: 'r1', name: 'Wreck', diveId: 'dive-1')],
+          ),
+          diveProvider('dive-1').overrideWith((ref) async => dive),
+        ],
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-link-chip')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('dive page dive-1'), findsOneWidget);
   });
 
   testWidgets('shows an empty message with no routes', (tester) async {
