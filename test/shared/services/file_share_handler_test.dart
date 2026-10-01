@@ -175,6 +175,46 @@ void main() {
         expect(lines.where((m) => m.contains('meet at the dock')), isEmpty);
       });
 
+      test('ignores a link share even when it looks like a path', () async {
+        Object? error;
+        final handler = FileShareHandler(
+          onFileReceived: (bytes, name) async {},
+          onError: (e) => error = e,
+        );
+
+        await handler.handleMediaFiles([
+          SharedMediaFile(path: '/r/scuba', type: SharedMediaType.url),
+        ]);
+
+        expect(error, isNull);
+      });
+
+      test(
+        'imports a text-typed file, as Android types a shared CSV',
+        () async {
+          // The plugin derives the type from the mime type, so a text/csv
+          // route export (#2689) arrives as text with a real file path.
+          final tempDir = await Directory.systemTemp.createTemp('test_share_');
+          addTearDown(() => tempDir.delete(recursive: true));
+          final route = File(p.join(tempDir.path, 'route.csv'))
+            ..writeAsStringSync('lat,lon');
+          final received = <String>[];
+          final handler = FileShareHandler(
+            onFileReceived: (bytes, name) async => received.add(name),
+          );
+
+          await handler.handleMediaFiles([
+            SharedMediaFile(
+              path: route.path,
+              type: SharedMediaType.text,
+              mimeType: 'text/csv',
+            ),
+          ]);
+
+          expect(received, ['route.csv']);
+        },
+      );
+
       test('counts only the files of a share that also carries text', () async {
         Object? error;
         final handler = FileShareHandler(

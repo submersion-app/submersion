@@ -73,7 +73,12 @@ class FileShareHandlerDelegate {
       // in `path`. It was never a file, so it is neither imported nor
       // reported. A file whose URI the plugin could not resolve looks the
       // same, so the skip is logged, by type only: the text may be private.
-      if (!p.isAbsolute(shared.path)) {
+      //
+      // The type alone cannot tell text from a file: the plugin derives it
+      // from the mime type, so a shared text/csv route (#2689) is typed as
+      // text. A link is never a file, though. What remains ambiguous is text
+      // that starts with `/`, which is treated as a path.
+      if (shared.type == SharedMediaType.url || !p.isAbsolute(shared.path)) {
         _log.info(
           'Ignored a shared ${shared.type.value} entry that is not a file '
           '(mime type: ${shared.mimeType ?? 'unknown'})',
