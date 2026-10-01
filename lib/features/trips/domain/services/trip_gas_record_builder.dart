@@ -29,18 +29,20 @@ TripGasRecord buildTripGasRecord({
   final bySlot = {for (final c in cylinders) c.id: c};
   final ordered = [...tanks]
     ..sort(_inDiveOrder((t) => (t.entryTime, t.diveId, t.tankOrder)));
-  final copies = <(String, String), List<TripGasRecordRow>>{};
-  for (final t in ordered) {
-    if (bySlot[t.tripCylinderId] case final cylinder?) {
-      (copies[(t.diveId, cylinder.id)] ??= []).add(
+  final linked = [
+    for (final t in ordered)
+      if (bySlot[t.tripCylinderId] case final cylinder?)
         _row(t, cylinder, eventsBySlot[cylinder.id] ?? const [], gasModel),
-      );
-    }
-  }
-  // Map literals keep insertion order, so the rows stay in dive order.
+  ];
+  (String, String) copyKey(TripGasRecordRow r) =>
+      (r.tank.diveId, r.cylinder.id);
+  // Set literals keep insertion order, so the rows stay in dive order.
   final rows = [
-    for (final same in copies.values)
-      same.firstWhere((r) => r.litres != null, orElse: () => same.first),
+    for (final key in {for (final r in linked) copyKey(r)})
+      _standIn([
+        for (final r in linked)
+          if (copyKey(r) == key) r,
+      ]),
   ];
 
   final rowsBySlot = <String, List<TripGasRecordRow>>{};
@@ -77,6 +79,11 @@ TripGasRecord buildTripGasRecord({
     multipleDivers: divers.length > 1,
   );
 }
+
+/// The copy that stands for a cylinder [copies] all logged: the first with
+/// a litres figure, else the first.
+TripGasRecordRow _standIn(List<TripGasRecordRow> copies) =>
+    copies.firstWhere((r) => r.litres != null, orElse: () => copies.first);
 
 TripGasRecordRow _row(
   TripGasRecordTank t,

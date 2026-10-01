@@ -45,6 +45,8 @@ class _Item {
 ///   it carries one.
 /// - A dive tank sets the pressure to its end pressure; unknown makes the
 ///   pressure unknown but the slot used. It never changes the slot's mix.
+/// - Of a dive's tanks on the slot (computers' copies of one cylinder), one
+///   with no end pressure is passed over when another has one.
 ///
 /// Status comes from the last item: a fill is full; an adjustment at or
 /// above [kTripCylinderFullFraction] of the working pressure is full;
@@ -65,7 +67,7 @@ TripCylinderState foldCylinderState({
                 : _rankAdjustment,
             event: e,
           ),
-        for (final u in uses)
+        for (final u in _readingsFirst(uses))
           _Item(
             at: u.entryTime.millisecondsSinceEpoch,
             rank: _rankDive,
@@ -119,6 +121,22 @@ TripCylinderState foldCylinderState({
     lastEvent: last?.event,
     lastUse: last?.use,
   );
+}
+
+/// [uses] less any tank with no end pressure on a dive where another tank
+/// of the slot has one. Two tanks on one dive holding one slot are two
+/// computers' copies of one cylinder (issue #2661), and the copy that
+/// logged no reading must not make the slot's pressure unknown. Between
+/// copies that both have one, the tank-id tie-break still decides.
+List<TripCylinderTankUse> _readingsFirst(List<TripCylinderTankUse> uses) {
+  final read = {
+    for (final u in uses)
+      if (u.endPressure != null) u.diveId,
+  };
+  return [
+    for (final u in uses)
+      if (u.endPressure != null || !read.contains(u.diveId)) u,
+  ];
 }
 
 TripCylinderStatus _statusOf(
