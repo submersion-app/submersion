@@ -121,9 +121,11 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 255);
     expect(AppDatabase.migrationVersions, contains(255));
-    // 253 and 254 are claimed by open PRs (#2748, #2749); this rung is the
-    // only step above 252 on this branch.
-    expect(AppDatabase.migrationStepCount(252), 1);
+    // 254 (dive_tanks.role_source, #2595) sits directly below this rung;
+    // 253 is held by an open branch (#2748).
+    expect(AppDatabase.migrationVersions, contains(254));
+    expect(AppDatabase.migrationStepCount(254), 1);
+    expect(AppDatabase.migrationStepCount(252), 2);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
