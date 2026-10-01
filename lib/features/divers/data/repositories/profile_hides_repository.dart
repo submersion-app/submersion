@@ -209,7 +209,7 @@ class ProfileHidesRepository {
 
   /// Whether [diverId] has hidden item [id] from itself (issue #2679).
   Future<bool> isHidden(SharedItemKind kind, String id, String diverId) async =>
-      (await _hideIds(_of(kind), [id], diverId: diverId)).isNotEmpty;
+      (await _hides(_of(kind), [id], diverId: diverId)).isNotEmpty;
 
   /// [diverId]'s hidden trips (newest first), then sites (by name): the
   /// hides that still keep an item from [diverId], that is, of items it
