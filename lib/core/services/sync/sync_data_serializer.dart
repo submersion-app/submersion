@@ -4432,6 +4432,10 @@ class SyncDataSerializer {
             );
         return;
       case 'navTracks':
+        // The data-class upsert leaves null columns out (nullToAbsent), so a
+        // peer below v252 that omits diverId keeps the local owner on the
+        // adopt and restore paths, which skip the merge overlay. Do not
+        // switch this to `.toCompanion(false)`: that would clear it.
         await _db
             .into(_db.navTracks)
             .insertOnConflictUpdate(

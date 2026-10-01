@@ -37,6 +37,13 @@ class NavTrackImportPreview {
 
   final String sourceRef;
 
+  /// The diver this preview was prepared for: whose dives it proposes and
+  /// whose routes it checked for a duplicate. Saving passes it back to
+  /// [NavTrackImportService.commit], so switching profile while the review
+  /// is open cannot apply this preview to another diver's data. Null with no
+  /// diver profile (every dive and route was considered).
+  final String? diverId;
+
   const NavTrackImportPreview({
     required this.parsed,
     required this.stats,
@@ -45,6 +52,7 @@ class NavTrackImportPreview {
     required this.nearbyDives,
     required this.duplicateOfRouteId,
     required this.sourceRef,
+    this.diverId,
   });
 
   /// True when the recording shows no movement at all: distance and speed
@@ -123,6 +131,7 @@ class NavTrackImportService {
       nearbyDives: nearby,
       duplicateOfRouteId: duplicateOfRouteId,
       sourceRef: sourceRef,
+      diverId: diverId,
     );
   }
 
@@ -134,12 +143,17 @@ class NavTrackImportService {
   /// without a dive means the diver chose "Leave unlinked" (or there was no
   /// single match to propose), and a sweep would only override that choice.
   ///
+  /// [diverId] is the preview's own [NavTrackImportPreview.diverId], never
+  /// the active diver re-read at save time: [dive] and [replacingRouteId]
+  /// came from that diver's scope. It owns an unlinked route.
+  ///
   /// [replacingRouteId] is the duplicate the review page's "replace" option
   /// supersedes. It is removed only after the new route is stored, so a
   /// failure anywhere above leaves the original recording in place.
   Future<String> commit({
     required ParsedNavTrack parsed,
     required String sourceRef,
+    required String? diverId,
     Dive? dive,
     String? siteId,
     String? name,
@@ -154,7 +168,7 @@ class NavTrackImportService {
       deviceName: deviceName,
       name: name,
       diveId: dive?.id,
-      diverId: await _currentDiverId(),
+      diverId: diverId,
       siteId: siteId,
       equipmentId: equipmentId,
     );

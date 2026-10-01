@@ -110,6 +110,7 @@ void main() {
       final id = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
       );
       final owner = await db
           .customSelect("SELECT diver_id FROM nav_tracks WHERE id = '$id'")

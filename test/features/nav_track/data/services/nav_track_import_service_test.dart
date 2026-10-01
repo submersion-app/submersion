@@ -129,7 +129,11 @@ void main() {
           _fixture('seacraft_enc3_short.csv'),
           fileName: '005.DAT.csv',
         );
-        await buddy.commit(parsed: first.parsed, sourceRef: first.sourceRef);
+        await buddy.commit(
+          parsed: first.parsed,
+          sourceRef: first.sourceRef,
+          diverId: first.diverId,
+        );
 
         final preview = await mine.prepare(
           _fixture('seacraft_enc3_short.csv'),
@@ -140,6 +144,33 @@ void main() {
       },
     );
 
+    test('a profile switch during review changes neither the proposal\'s '
+        'scope nor the saved route\'s owner', () async {
+      var active = 'me';
+      final switching = NavTrackImportService(
+        routeRepository: routeRepo,
+        diveRepository: diveRepo,
+        currentDiverId: () async => active,
+      );
+      final preview = await switching.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+      expect(preview.diverId, 'me');
+
+      active = 'buddy';
+      final id = await switching.commit(
+        parsed: preview.parsed,
+        sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
+      );
+
+      final owner = await db
+          .customSelect("SELECT diver_id FROM nav_tracks WHERE id = '$id'")
+          .getSingle();
+      expect(owner.read<String?>('diver_id'), 'me');
+    });
+
     test('an unlinked route belongs to the diver who imported it', () async {
       final preview = await mine.prepare(
         _fixture('seacraft_enc3_short.csv'),
@@ -148,6 +179,7 @@ void main() {
       final id = await mine.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
       );
 
       final owner = await db
@@ -261,6 +293,7 @@ void main() {
       final firstId = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
       );
 
       final reimport = await service.prepare(
@@ -314,6 +347,7 @@ void main() {
         final id = await service.commit(
           parsed: preview.parsed,
           sourceRef: preview.sourceRef,
+          diverId: preview.diverId,
         );
 
         final route = await routeRepo.getById(id);
@@ -334,6 +368,7 @@ void main() {
       final id = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
         dive: chosenDive,
       );
 
@@ -354,6 +389,7 @@ void main() {
       final id = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
         siteId: 's1',
       );
 
@@ -374,6 +410,7 @@ void main() {
       final id = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
         equipmentId: 'eq1',
       );
 
@@ -390,6 +427,7 @@ void main() {
       final id = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
       );
 
       final route = await routeRepo.getById(id);
@@ -406,11 +444,13 @@ void main() {
       final oldId = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
       );
 
       final newId = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
         replacingRouteId: oldId,
       );
 
@@ -429,6 +469,7 @@ void main() {
       final oldId = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
         dive: dive,
       );
       // A second route on the same dive, recorded before the fixture, so
@@ -446,6 +487,7 @@ void main() {
       final newId = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
         dive: dive,
         replacingRouteId: oldId,
       );

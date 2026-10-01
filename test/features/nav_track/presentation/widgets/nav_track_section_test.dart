@@ -98,6 +98,7 @@ class _PreparedImportService implements NavTrackImportService {
   Future<String> commit({
     required ParsedNavTrack parsed,
     required String sourceRef,
+    required String? diverId,
     Dive? dive,
     String? siteId,
     String? name,

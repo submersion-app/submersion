@@ -67,6 +67,7 @@ NavTrackImportPreview _preview({
   List<Dive> nearbyDives = const [],
   String? duplicateOfRouteId,
   List<NavTrackPoint>? points,
+  String? diverId,
 }) {
   final p = points ?? _points();
   return NavTrackImportPreview(
@@ -77,6 +78,7 @@ NavTrackImportPreview _preview({
     nearbyDives: nearbyDives,
     duplicateOfRouteId: duplicateOfRouteId,
     sourceRef: '005.DAT.csv',
+    diverId: diverId,
   );
 }
 
@@ -267,6 +269,7 @@ Future<GoRouter> _pumpWithRouter(
 class _RecordingImportService implements NavTrackImportService {
   String? lastEquipmentId;
   String? lastReplacingRouteId;
+  String? lastDiverId;
   int commitCount = 0;
 
   @override
@@ -279,6 +282,7 @@ class _RecordingImportService implements NavTrackImportService {
   Future<String> commit({
     required ParsedNavTrack parsed,
     required String sourceRef,
+    required String? diverId,
     Dive? dive,
     String? siteId,
     String? name,
@@ -288,6 +292,7 @@ class _RecordingImportService implements NavTrackImportService {
   }) async {
     lastEquipmentId = equipmentId;
     lastReplacingRouteId = replacingRouteId;
+    lastDiverId = diverId;
     commitCount++;
     return 'new-route-id';
   }
@@ -306,6 +311,7 @@ class _ParseRejectingImportService implements NavTrackImportService {
   Future<String> commit({
     required ParsedNavTrack parsed,
     required String sourceRef,
+    required String? diverId,
     Dive? dive,
     String? siteId,
     String? name,
@@ -333,6 +339,7 @@ class _ThrowingImportService implements NavTrackImportService {
   Future<String> commit({
     required ParsedNavTrack parsed,
     required String sourceRef,
+    required String? diverId,
     Dive? dive,
     String? siteId,
     String? name,
@@ -847,6 +854,24 @@ void main() {
     expect(service.lastEquipmentId, 'eq1');
   });
 
+  testWidgets('saves for the diver the preview was prepared for, even if the '
+      'active profile changed meanwhile', (tester) async {
+    final service = _RecordingImportService();
+    await _pumpWithRouter(
+      tester,
+      preview: _preview(diverId: 'me'),
+      service: service,
+      equipment: const [],
+    );
+
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+    await tester.pumpAndSettle();
+
+    expect(service.lastDiverId, 'me');
+  });
+
   testWidgets('saving without picking equipment commits a null equipmentId', (
     tester,
   ) async {
@@ -1117,6 +1142,7 @@ class _FailingImportService implements NavTrackImportService {
   Future<String> commit({
     required ParsedNavTrack parsed,
     required String sourceRef,
+    required String? diverId,
     Dive? dive,
     String? siteId,
     String? name,
@@ -1142,6 +1168,7 @@ class _GenericFailingImportService implements NavTrackImportService {
   Future<String> commit({
     required ParsedNavTrack parsed,
     required String sourceRef,
+    required String? diverId,
     Dive? dive,
     String? siteId,
     String? name,

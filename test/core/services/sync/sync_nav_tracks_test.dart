@@ -118,6 +118,33 @@ void main() {
     expect(row.read<String?>('diver_id'), 'me');
   });
 
+  test('an adopted or restored row from a peer that predates the owner '
+      'column keeps an unlinked route\'s local owner', () async {
+    await db.customStatement(
+      "INSERT INTO divers (id, name, created_at, updated_at) "
+      "VALUES ('me', 'me', 1, 1)",
+    );
+    final id = await repo.insertImportedRoute(
+      points: samplePoints(),
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: '008.DAT.csv',
+      diverId: 'me',
+    );
+    final fetched = (await serializer.fetchRecord('navTracks', id))!;
+    // The adopt and restore paths hand a peer's row straight to
+    // upsertRecord, with no merge overlay; a v240-v251 peer omits diverId.
+    final fromOlderPeer = {...fetched, 'name': 'Renamed'}..remove('diverId');
+
+    await serializer.upsertRecord('navTracks', fromOlderPeer);
+    await serializer.repairDanglingForeignKeys();
+
+    final row = await db
+        .customSelect("SELECT diver_id, name FROM nav_tracks WHERE id = '$id'")
+        .getSingle();
+    expect(row.read<String?>('name'), 'Renamed');
+    expect(row.read<String?>('diver_id'), 'me');
+  });
+
   test('the repair leaves an unlinked route\'s owner alone', () async {
     await db.customStatement(
       "INSERT INTO divers (id, name, created_at, updated_at) "

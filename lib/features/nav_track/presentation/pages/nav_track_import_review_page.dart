@@ -306,6 +306,7 @@ class _NavTrackImportReviewPageState
           .commit(
             parsed: preview.parsed,
             sourceRef: preview.sourceRef,
+            diverId: preview.diverId,
             dive: _selectedDive,
             siteId: _siteId,
             name: name.isEmpty ? null : name,
