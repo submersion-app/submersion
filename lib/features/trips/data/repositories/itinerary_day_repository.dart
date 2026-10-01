@@ -270,8 +270,8 @@ class ItineraryDayRepository {
   /// day strip) left outside a shortened or moved trip is a dead row, and a
   /// shore trip has no screen to remove it. Days with any content stay, as
   /// orphaned days always have. Cleanup only: rows that reach the database
-  /// by another path (sync, import) stay until the next local date change,
-  /// and the trip story ignores them meanwhile (#2663).
+  /// by another path (sync, import) stay until the trip is next saved on
+  /// this device, and the trip story ignores them meanwhile (#2663).
   Future<void> deleteBarePlanDaysOutside(
     String tripId,
     DateTime start,

@@ -109,7 +109,8 @@ void main() {
         dives: [],
         itineraryDays: [
           _itin(0, DateTime(2026, 3, 5)).copyWith(plannedDives: 2),
-          _itin(6, DateTime(2026, 3, 12)).copyWith(plannedDives: 3),
+          // A synced payload may carry a blank note; it is still bare.
+          _itin(6, DateTime(2026, 3, 12)).copyWith(plannedDives: 3, notes: ' '),
         ],
         mediaByDiveId: {},
         sightingsByDiveId: {},

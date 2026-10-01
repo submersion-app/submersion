@@ -34,7 +34,9 @@ TripStory buildTripStory({
 
   // A row outside the trip that carries nothing but a plan has no content to
   // keep, so it is not part of the story. updateTrip prunes such rows, but
-  // dates that change by sync, import or an older build never run it (#2663).
+  // dates that change by sync, import or an older build never run it, and a
+  // day planned on one device while another shortened the trip reaches the
+  // shortening device only after its prune (#2663).
   final storyItinerary = [
     for (final day in itineraryDays)
       if (trip.containsDate(day.date) || !isBarePlanDay(day)) day,

@@ -69,6 +69,14 @@ void main() {
       );
     });
 
+    test('a blank port or note is not content', () {
+      // Sync and import payloads write the columns unnormalized; the story
+      // widgets already read whitespace as absent.
+      final bare = row(9, DayType.diveDay);
+      expect(isBarePlanDay(bare.copyWith(portName: '  ')), isTrue);
+      expect(isBarePlanDay(bare.copyWith(notes: ' \n ')), isTrue);
+    });
+
     test('any content or another day type makes it more than a plan', () {
       final bare = row(9, DayType.diveDay);
       expect(isBarePlanDay(row(9, DayType.seaDay)), isFalse);

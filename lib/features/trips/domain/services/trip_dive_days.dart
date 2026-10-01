@@ -35,13 +35,15 @@ bool isTripDiveDay(ItineraryDay? row) =>
 /// Pure. Whether an itinerary row carries nothing but a plan: a dive day
 /// with no port, position or notes. Its planned dive count is the plan
 /// itself, which means nothing outside the trip's dates, so such a row
-/// outside them holds nothing the trip still has.
+/// outside them holds nothing the trip still has. A blank port or note is
+/// no content: sync and import write the columns unnormalized, and the
+/// story already reads whitespace as absent.
 bool isBarePlanDay(ItineraryDay row) =>
     row.dayType == DayType.diveDay &&
-    (row.portName ?? '').isEmpty &&
+    (row.portName ?? '').trim().isEmpty &&
     row.latitude == null &&
     row.longitude == null &&
-    row.notes.isEmpty;
+    row.notes.trim().isEmpty;
 
 /// Pure. The trip's dive days from [start] to [end] under [isTripDiveDay];
 /// itinerary rows outside the trip are ignored.
