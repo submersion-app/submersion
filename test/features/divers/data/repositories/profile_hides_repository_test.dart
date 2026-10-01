@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
@@ -134,9 +135,22 @@ void main() {
     test('puts a removed hide back under its id, pending, and drops its '
         'tombstone', () async {
       final removed = await hideThenDelete();
+      final deleteClock =
+          (await db
+                  .customSelect(
+                    'SELECT hlc FROM deletion_log WHERE entity_type = ?',
+                    variables: [
+                      const Variable<String>(ProfileHidesRepository.siteEntity),
+                    ],
+                  )
+                  .getSingle())
+              .read<String>('hlc');
       await clearPendingMarks(db);
       await repository.restoreHides(SharedItemKind.site, removed);
       final row = (await db.select(db.siteHides).get()).single;
+      // A peer that applied the delete revives the hide only for a clock
+      // newer than the delete's (SyncService's local-deletion guard).
+      expect(row.hlc!.compareTo(deleteClock), greaterThan(0));
       expect((
         id: row.id,
         itemId: row.siteId,

@@ -73,6 +73,22 @@ void main() {
     expect((await hides.hiddenItems('b')).map((i) => i.id), ['theirs']);
   });
 
+  test('Undo of the owner\'s merge keeps another profile\'s hide of a '
+      'merged-away site (issue #2710)', () async {
+    await seedSite(db, 'dup', owner: 'a', shared: true);
+    final hides = ProfileHidesRepository();
+    await hides.hide(SharedItemKind.site, 'dup', 'b');
+    final c = await containerFor('a');
+    final notifier = c.read(siteListNotifierProvider.notifier);
+    final survivor = (await SiteRepository().getSiteById('theirs'))!;
+    final snapshot = await notifier.mergeSites(survivor, ['theirs', 'dup']);
+    expect(listed(c), isNot(contains('dup')));
+
+    await notifier.undoMerge(snapshot!);
+    expect(listed(c), contains('dup'));
+    expect((await hides.hiddenItems('b')).map((i) => i.id), ['dup']);
+  });
+
   test('a non-owner cannot delete it but hides and unhides it', () async {
     final c = await containerFor('b');
     final notifier = c.read(siteListNotifierProvider.notifier);
