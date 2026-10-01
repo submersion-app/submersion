@@ -135,11 +135,8 @@ class NavTrackDetailPage extends ConsumerWidget {
       dives: dives,
     );
     if (!context.mounted) return;
-    final chosen = await showNavTrackDiveChoiceSheet(
-      context,
-      dives: nearest,
-      selectedDiveId: route.diveId,
-    );
+    // Only an unlinked route offers "Choose dive", so nothing is marked.
+    final chosen = await showNavTrackDiveChoiceSheet(context, dives: nearest);
     if (chosen == null) return;
     await ref
         .read(navTrackRepositoryProvider)

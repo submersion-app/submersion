@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,11 +8,18 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
+import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
+import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/mock_providers.dart';
 
 /// Records calls instead of touching a real database.
@@ -44,6 +53,23 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   }
 }
 
+/// Hands back a fixed preview instead of parsing, so the section's import
+/// button can be driven without a real file or database.
+class _FixedPreviewImportService implements NavTrackImportService {
+  _FixedPreviewImportService(this.preview);
+
+  final NavTrackImportPreview preview;
+
+  @override
+  Future<NavTrackImportPreview> prepare(
+    Uint8List bytes, {
+    String? fileName,
+  }) async => preview;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 final _dive = Dive(
   id: 'dive-1',
   diveNumber: 1,
@@ -71,6 +97,7 @@ Future<_RecordingNavTrackRepository> _pump(
   List<NavTrack> unlinkedRoutes = const [],
   bool expanded = true,
   GoRouter? router,
+  NavTrackImportService? importService,
 }) async {
   // Pinned so the English finders below pass regardless of the host's
   // platform locale: without this, a supported non-English translation can
@@ -92,6 +119,8 @@ Future<_RecordingNavTrackRepository> _pump(
     ).overrideWith((ref) async => linkedRoutes),
     unlinkedNavTracksProvider.overrideWith((ref) async => unlinkedRoutes),
     navTrackRepositoryProvider.overrideWithValue(repository),
+    if (importService != null)
+      navTrackImportServiceProvider.overrideWithValue(importService),
   ];
   if (router != null) {
     await tester.pumpWidget(
@@ -133,6 +162,63 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'importing from a dive\'s section pre-selects that dive on the review '
+    'page, even when the recording overlaps no dive (issue #2691)',
+    (tester) async {
+      const points = [
+        NavTrackPoint(
+          timestamp: 1755856800,
+          north: 0,
+          east: 0,
+          depth: 5,
+          distance: 0,
+          speed: 0.3,
+        ),
+        NavTrackPoint(
+          timestamp: 1755857400,
+          north: 40,
+          east: 0,
+          depth: 5,
+          distance: 40,
+          speed: 0.3,
+        ),
+      ];
+      final preview = NavTrackImportPreview(
+        parsed: const ParsedNavTrack(points: points),
+        stats: NavTrackStats.of(points),
+        segmentation: NavTrackSegmenter.classify(points),
+        candidateDives: const [],
+        nearbyDives: const [],
+        duplicateOfRouteId: null,
+        sourceRef: '005.DAT.csv',
+      );
+      final originalPicker = FilePickerPlatform.instance;
+      FilePickerPlatform.instance = MockFilePickerPlatform()
+        ..pickFilesResult = [
+          FakePlatformFile.contentUri(
+            Uri.parse('content://picked/005.DAT.csv'),
+            name: '005.DAT.csv',
+            bytes: Uint8List(0),
+          ),
+        ];
+      addTearDown(() => FilePickerPlatform.instance = originalPicker);
+
+      await _pump(
+        tester,
+        linkedRoutes: const [],
+        importService: _FixedPreviewImportService(preview),
+      );
+      await tester.tap(find.byKey(const ValueKey('nav-track-import-button')));
+      await tester.pumpAndSettle();
+
+      final group = tester.widget<RadioGroup<String?>>(
+        find.byType(RadioGroup<String?>),
+      );
+      expect(group.groupValue, _dive.id);
+    },
+  );
 
   testWidgets('empty state hides Link route when nothing is unlinked', (
     tester,

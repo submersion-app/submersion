@@ -75,6 +75,20 @@ void main() {
     expect(picked, [second]);
   });
 
+  testWidgets('labels a dive with no number by its id, without a number sign', (
+    tester,
+  ) async {
+    final unnumbered = Dive(
+      id: 'imported-1',
+      dateTime: DateTime.utc(2025, 1, 15, 9),
+      entryTime: DateTime.utc(2025, 1, 15, 9),
+    );
+    await _pump(tester, dives: [unnumbered]);
+
+    expect(find.text('Dive imported-1'), findsOneWidget);
+    expect(find.textContaining('#'), findsNothing);
+  });
+
   testWidgets('joins date and time with the locale\'s own connector', (
     tester,
   ) async {

@@ -54,9 +54,9 @@ class NavTrackDiveChoiceSheet extends ConsumerWidget {
             key: ValueKey('nav-track-dive-choice-${dive.id}'),
             selected: dive.id == selectedDiveId,
             title: Text(
-              l10n.navTrack_common_diveNumber(
-                (dive.diveNumber ?? dive.id).toString(),
-              ),
+              dive.diveNumber != null
+                  ? l10n.navTrack_common_diveNumber(dive.diveNumber.toString())
+                  : l10n.navTrack_common_diveById(dive.id),
             ),
             subtitle: Text(
               units.formatDateTime(dive.effectiveEntryTime, l10n: l10n),
