@@ -49,6 +49,10 @@ Taken during brainstorming on 2026-09-25 and fixed for this spec.
 - Data model: approach A, identity rows plus an event ledger plus a nullable
   link column on `dive_tanks`. Mutable status columns (B) and label-only
   linking without a cylinder table (C) were rejected.
+- Planned dives (added 2026-10-01, issue #2660): a planned dive uses no gas
+  until it is logged. Its linked tanks stay out of the board's fold, the
+  gas record and the forecast's dives logged today, as they already stayed
+  out of the record's gaps. Logging the dive brings them in.
 
 ## Data model
 
@@ -177,8 +181,9 @@ delete.
 ## Deriving a slot's state
 
 `foldCylinderState` in `lib/features/trips/domain/services/` is pure.
-Input: the slot, its events, and the tanks linked to it, each carrying its
-dive's entry time, start and end pressure and mix. Output
+Input: the slot, its events, and the tanks linked to it on logged dives
+(planned dives are left out), each carrying its dive's entry time, start
+and end pressure and mix. Output
 `TripCylinderState`: current pressure (bar, nullable), current mix
 (nullable), bottle label, status, last fill (nullable), last timeline item,
 linked dive count.
@@ -276,7 +281,8 @@ else 2; `divers_sharing_cylinders`; slot states; fill hours from the dive
 center of the trip's most recent fill, when set.
 
 Rules: a day's demand is planned dives times divers sharing. Today's demand
-is reduced by dives already logged on the trip today, floored at zero.
+is reduced by dives already logged on the trip today (planned dives do not
+count), floored at zero.
 Supply is the count of `full` slots; partial slots are reported but never
 counted. Shortfall is demand minus supply, floored at zero. A fill run is
 needed when tomorrow's demand exceeds supply. The deadline is today's
@@ -303,7 +309,8 @@ or has no slots, shows no forecast.
 
 `buildTripGasRecord` in the trips domain is pure, fed by the same lean tank
 rows and events. The Record segment of the board shows one row per linked
-dive tank on the trip, in dive order: dive date and time, site, slot label,
+dive tank on the trip's logged dives (planned dives are left out), in dive
+order: dive date and time, site, slot label,
 bottle number, analyzed O2 and He, ordered mix, fill pressure, dive start
 and end pressure, fill center. Bottle number and analysis come from the
 fill in effect at the dive's entry time, found by the same timeline walk as

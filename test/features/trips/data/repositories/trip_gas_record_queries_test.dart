@@ -125,6 +125,17 @@ void main() {
     expect(tanks.first.tripCylinderId, slot.id);
   });
 
+  test('record tanks skip planned dives: no gas was breathed', () async {
+    // Issue #2660: one rule for planned dives across the board, the
+    // forecast and the record. A planned dive uses no gas until logged.
+    await dive('d1', 9, diver: 'a');
+    await dive('d2', 13, diver: 'a', planned: true);
+    await tankOn('t1', 'd1', slotId: slot.id);
+    await tankOn('t2', 'd2', slotId: slot.id);
+    final tanks = await repository.getGasRecordTanksForTrip(tripId);
+    expect(tanks.map((t) => t.tankId), ['t1']);
+  });
+
   test('unlinked tanks skip planned dives, include foreign links', () async {
     await dive('d1', 9, diver: 'a');
     await dive('d3', 13, planned: true);

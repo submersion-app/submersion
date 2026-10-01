@@ -526,7 +526,8 @@ class TripCylinderRepository {
 
   /// The dive tanks linked to a trip's slots, as the lean facts the state
   /// fold needs: no profile, no gear, no full dive. Keyed by slot id, each
-  /// list in entry order.
+  /// list in entry order. Planned dives are left out: a planned dive uses
+  /// no gas until it is logged.
   Future<Map<String, List<TripCylinderTankUse>>> getTankUsesForTrip(
     String tripId,
   ) async {
@@ -543,6 +544,7 @@ class TripCylinderRepository {
           JOIN dives d ON d.id = t.dive_id
           LEFT JOIN dive_sites s ON s.id = d.site_id
           WHERE d.trip_id = ?1
+            AND d.is_planned = 0
             AND t.trip_cylinder_id IN
                 (SELECT id FROM trip_cylinders WHERE trip_id = ?1)
           ORDER BY entry_ms ASC, t.tank_order ASC
@@ -580,7 +582,8 @@ class TripCylinderRepository {
 
   /// The trip's linked dive tanks for the gas record: the lean facts the
   /// fold reads plus the diver, the site and the tank's size. Every diver's
-  /// tanks (decided 2026-09-30), in dive order, then tank order.
+  /// tanks (decided 2026-09-30), in dive order, then tank order. Planned
+  /// dives are left out, as the board leaves them out.
   Future<List<TripGasRecordTank>> getGasRecordTanksForTrip(
     String tripId,
   ) async {
@@ -599,6 +602,7 @@ class TripCylinderRepository {
           LEFT JOIN divers v ON v.id = d.diver_id
           LEFT JOIN dive_sites s ON s.id = d.site_id
           WHERE d.trip_id = ?1
+            AND d.is_planned = 0
             AND t.trip_cylinder_id IN
                 (SELECT id FROM trip_cylinders WHERE trip_id = ?1)
           ORDER BY entry_ms ASC, t.dive_id ASC, t.tank_order ASC
@@ -694,7 +698,7 @@ class TripCylinderRepository {
   /// wall-clock frame every dive time is stored in: the fill forecast's
   /// "dives already logged today". A shared trip carries each diver
   /// profile's own log of the same dive, so this is the most any one diver
-  /// logged that day, not the row count.
+  /// logged that day, not the row count. A planned dive is not logged yet.
   Future<int> countTripDiveRoundsOn(String tripId, DateTime day) async {
     final from = DateTime.utc(day.year, day.month, day.day);
     final to = DateTime.utc(day.year, day.month, day.day + 1);
@@ -706,6 +710,7 @@ class TripCylinderRepository {
           SELECT COALESCE(MAX(n), 0) AS n FROM (
             SELECT COUNT(*) AS n FROM dives
             WHERE trip_id = ?1
+              AND is_planned = 0
               AND COALESCE(entry_time, dive_date_time) >= ?2
               AND COALESCE(entry_time, dive_date_time) < ?3
             GROUP BY diver_id
