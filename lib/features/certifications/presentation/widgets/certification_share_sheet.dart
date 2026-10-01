@@ -6,12 +6,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/services/certification_card_renderer.dart';
+import 'package:submersion/features/certifications/presentation/services/certification_file_names.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 
@@ -116,7 +116,7 @@ class _CertificationShareSheetState
       final tempDir = await getTemporaryDirectory();
       final filename = certificationImageFileName(
         certificationTitle(widget.certification),
-        'card',
+        CertificationImage.card,
       );
       final file = File(p.join(tempDir.path, filename));
       await file.writeAsBytes(bytes);
@@ -158,7 +158,7 @@ class _CertificationShareSheetState
       final tempDir = await getTemporaryDirectory();
       final filename = certificationImageFileName(
         certificationTitle(widget.certification),
-        'certificate',
+        CertificationImage.certificate,
       );
       final file = File(p.join(tempDir.path, filename));
       await file.writeAsBytes(bytes);
@@ -281,8 +281,3 @@ class _ShareOptionTile extends StatelessWidget {
     );
   }
 }
-
-/// `certification_<title>_<kind>.png`, the title as a [fileNameSegment] in
-/// its own case, [kind] naming the image ("card" or "certificate").
-String certificationImageFileName(String title, String kind) =>
-    exportFileName(['certification', fileNameSegment(title), kind], 'png');

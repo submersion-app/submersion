@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/services/export/shared/export_file_name.dart';
 
 void main() {
@@ -46,6 +48,12 @@ void main() {
         '${'a' * (fileNameSegmentMaxBytes - 2)}𝐀𝐀',
       );
       expect(astral, 'a' * (fileNameSegmentMaxBytes - 2));
+      // Nor a letter without the accent that follows it: "e" fits, its
+      // U+0301 does not, so the cut falls before the "e".
+      final accent = fileNameSegment(
+        '${'a' * (fileNameSegmentMaxBytes - 1)}e\u0301',
+      );
+      expect(accent, 'a' * (fileNameSegmentMaxBytes - 1));
     });
 
     test('is empty when nothing usable is left', () {
@@ -58,12 +66,30 @@ void main() {
     expect(fileNameDate(DateTime(2026, 3, 5, 23, 59)), '2026-03-05');
   });
 
+  test('fileNameDate keeps ASCII digits under a native-digit locale', () async {
+    await initializeDateFormatting('fa');
+    final previousLocale = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    Intl.defaultLocale = 'fa';
+    expect(fileNameDate(DateTime(2026, 3, 5)), '2026-03-05');
+  });
+
   group('exportFileName', () {
     test('joins the parts with underscores and adds the extension', () {
       expect(
         exportFileName(['gas_record', 'Curaçao', '2026-03-15'], 'csv'),
         'gas_record_Curaçao_2026-03-15.csv',
       );
+    });
+
+    test('steers clear of the names Windows reserves for devices', () {
+      expect(exportFileName(['AUX'], 'subplan'), 'AUX_.subplan');
+      expect(exportFileName(['con'], 'subplan'), 'con_.subplan');
+      expect(exportFileName(['Com1'], 'pdf'), 'Com1_.pdf');
+      expect(exportFileName(['LPT¹'], 'pdf'), 'LPT¹_.pdf');
+      // Only the whole name is reserved, not a name that contains one.
+      expect(exportFileName(['Auxiliary'], 'pdf'), 'Auxiliary.pdf');
+      expect(exportFileName(['trip', 'Con'], 'pdf'), 'trip_Con.pdf');
     });
 
     test('drops empty parts, so a missing name never leaves "__"', () {
