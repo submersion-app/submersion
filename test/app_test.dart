@@ -173,6 +173,25 @@ class _UnreadableImport extends UniversalImportNotifier {
   }
 }
 
+/// An import that holds each file until [release] completes, standing in
+/// for a slow parse a soft restart can interrupt.
+class _SlowImport extends UniversalImportNotifier {
+  _SlowImport(super.ref, this.release);
+
+  final Future<void> release;
+  var started = false;
+
+  @override
+  Future<DetectionResult> loadFileFromBytes(
+    Uint8List bytes,
+    String fileName,
+  ) async {
+    started = true;
+    await release;
+    return super.loadFileFromBytes(bytes, fileName);
+  }
+}
+
 /// An import that takes any batch of files at once, so a share that
 /// reaches it too early shows up without waiting on real parsing.
 class _InstantBatchImport extends UniversalImportNotifier {
@@ -756,6 +775,47 @@ void main() {
         'first.uddf',
         'second.uddf',
       ]);
+    }, variant: _shareSheetPlatform);
+
+    testWidgets('a file being opened when a soft restart replaces the app '
+        'root is opened by the new root', (tester) async {
+      shareOnLaunch({'dive.uddf': uddfBytes});
+      final shares = NavigationReadyGate<IncomingShare>();
+      final release = Completer<void>();
+      _SlowImport? slow;
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        router: setupRouter()..go('/'),
+        extraOverrides: [
+          diverCountProvider.overrideWith((ref) async => 1),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          incomingShareGateProvider.overrideWithValue(shares),
+          universalImportNotifierProvider.overrideWith(
+            (ref) => slow = _SlowImport(ref, release.future),
+          ),
+        ],
+      );
+      await settleShare(tester);
+      expect(slow?.started, isTrue);
+
+      // restartApp() while the first root is still reading the file.
+      await tester.pumpWidget(const SizedBox.shrink());
+      release.complete();
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        router: setupRouter()..go('/'),
+        scopeKey: UniqueKey(),
+        extraOverrides: [
+          diverCountProvider.overrideWith((ref) async => 1),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          incomingShareGateProvider.overrideWithValue(shares),
+        ],
+      );
+      await settleShare(tester, until: wizard);
+
+      expect(wizard, findsOneWidget);
     }, variant: _shareSheetPlatform);
 
     testWidgets('a file held during setup is opened by the app root that a '

@@ -18,7 +18,9 @@ import 'dart:collection';
 ///
 /// Items are handled one at a time, in arrival order, including ones that
 /// arrive while an earlier one is still being handled: two files never load
-/// into the one import notifier at once.
+/// into the one import notifier at once. An owner that cannot finish an item
+/// (it was replaced while opening it) hands it back, and it stays first in
+/// line for whichever owner is ready next.
 class NavigationReadyGate<T> {
   final _waiting = Queue<(T, Completer<void>)>();
   NavigationReadyGateOwner<T>? _owner;
@@ -36,7 +38,11 @@ class NavigationReadyGate<T> {
 
   /// Makes [handle] the owner of every item, held or still to come, in
   /// place of any earlier owner. The new owner starts out not ready.
-  NavigationReadyGateOwner<T> attach(Future<void> Function(T item) handle) {
+  ///
+  /// [handle] returns whether it finished the item. False hands it back
+  /// unfinished, to be offered again: to a newer owner at once if one is
+  /// ready, otherwise at this owner's next readiness or the next owner's.
+  NavigationReadyGateOwner<T> attach(Future<bool> Function(T item) handle) {
     final owner = NavigationReadyGateOwner<T>._(this, handle);
     _owner = owner;
     return owner;
@@ -49,9 +55,16 @@ class NavigationReadyGate<T> {
       while (_waiting.isNotEmpty) {
         final owner = _owner;
         if (owner == null || !owner._ready) return;
-        final (item, done) = _waiting.removeFirst();
+        final held = _waiting.removeFirst();
+        final (item, done) = held;
         try {
-          await owner._handle(item);
+          if (!await owner._handle(item)) {
+            _waiting.addFirst(held);
+            // The same owner, still current, will not finish it on another
+            // pass now; a newer one that became ready meanwhile can.
+            if (identical(_owner, owner)) return;
+            continue;
+          }
           done.complete();
         } catch (error, stackTrace) {
           done.completeError(error, stackTrace);
@@ -70,7 +83,7 @@ class NavigationReadyGateOwner<T> {
   NavigationReadyGateOwner._(this._gate, this._handle);
 
   final NavigationReadyGate<T> _gate;
-  final Future<void> Function(T item) _handle;
+  final Future<bool> Function(T item) _handle;
   bool _ready = false;
 
   bool get _current => identical(_gate._owner, this);

@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/root_overrides.dart';
@@ -61,7 +64,10 @@ void main() {
       'outlives a soft restart (#2690)', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    final logFileService = LogFileService(logDirectory: '/tmp/submersion-test');
+    // Never initialized, so no directory is created.
+    final logFileService = LogFileService(
+      logDirectory: p.join(Directory.systemTemp.path, 'submersion-test'),
+    );
     final shares = NavigationReadyGate<IncomingShare>();
 
     ProviderContainer containerWith({

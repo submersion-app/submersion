@@ -365,24 +365,31 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     });
   }
 
-  /// Opens a share the gate has let through. Failures are reported here,
-  /// by the root that opened it: the share handler that received it may
-  /// belong to a root a soft restart has since replaced.
-  Future<void> _openShare(IncomingShare share) async {
+  /// Opens a share the gate has let through, returning whether it finished
+  /// with it. A root that a soft restart disposed while it was opening the
+  /// share hands it back for the root that replaced it. Failures are
+  /// reported here, by the root that opened it: the share handler that
+  /// received it may belong to a root since replaced.
+  Future<bool> _openShare(IncomingShare share) async {
     try {
-      switch (share) {
-        case SharedFile(:final bytes, :final fileName):
-          await _handleIncomingFile(bytes, fileName);
-        case SharedFileBatch(:final paths):
-          await _handleIncomingFiles(paths);
-      }
+      return switch (share) {
+        SharedFile(:final bytes, :final fileName) => await _handleIncomingFile(
+          bytes,
+          fileName,
+        ),
+        SharedFileBatch(:final paths) => await _handleIncomingFiles(paths),
+      };
     } catch (error, stackTrace) {
+      // Torn down mid-way, the old scope's providers throw; that is the
+      // restart, not the file, so the new root gets to try it.
+      if (!mounted) return false;
       LoggerService.forClass(SubmersionApp).warning(
         'A shared file could not be opened',
         error: error,
         stackTrace: stackTrace,
       );
       _showShareReadFailed();
+      return true;
     }
   }
 
@@ -399,7 +406,8 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     );
   }
 
-  Future<void> _handleIncomingFile(Uint8List bytes, String fileName) async {
+  /// Opens one shared file. False when this root can no longer open it.
+  Future<bool> _handleIncomingFile(Uint8List bytes, String fileName) async {
     final router = ref.read(appRouterProvider);
     final location = router.routeInformationProvider.value.uri.path;
 
@@ -417,7 +425,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       unsupportedFileMessage: l10n?.dropTarget_error_unsupportedFile,
     );
 
-    if (!mounted) return;
+    if (!mounted) return false;
 
     switch (outcome) {
       case IncomingFileOutcome.navigateToWizard:
@@ -426,14 +434,10 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         router.push('/transfer/import-wizard');
       case IncomingFileOutcome.navigateToNavTrackReview:
         // The share gate held this until the navigator was built, so a
-        // missing one here means the app is going away, not starting.
+        // missing one means the app root is being replaced: hand the route
+        // back for the next one.
         final navContext = rootNavigatorKey.currentContext;
-        if (navContext == null || !navContext.mounted) {
-          LoggerService.forClass(
-            SubmersionApp,
-          ).warning('A shared route arrived with no navigator to review it in');
-          return;
-        }
+        if (navContext == null || !navContext.mounted) return false;
         // Not awaited: the review stays open until the diver leaves it, and
         // the share gate must not hold the next shared file until then.
         unawaited(
@@ -442,6 +446,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       case IncomingFileOutcome.none:
         break;
     }
+    return true;
   }
 
   /// Whether a passport link or a shared file can open its page now: a
@@ -477,7 +482,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     await openScannedTag(context, ref, text);
   }
 
-  Future<void> _handleIncomingFiles(List<String> paths) async {
+  /// Opens a batch of shared files. False when this root can no longer
+  /// open them.
+  Future<bool> _handleIncomingFiles(List<String> paths) async {
     final router = ref.read(appRouterProvider);
     final location = router.routeInformationProvider.value.uri.path;
 
@@ -493,10 +500,12 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       wizardActiveMessage: l10n?.dropTarget_error_wizardActive,
     );
 
+    if (!mounted) return false;
     if (shouldNavigate) {
       // PUSH (not go), for the same reason as _handleIncomingFile (#647).
       router.push('/transfer/import-wizard');
     }
+    return true;
   }
 
   Locale? _resolveLocale(String localeSetting) {
