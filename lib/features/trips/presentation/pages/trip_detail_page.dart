@@ -646,35 +646,18 @@ class _TripDetailContent extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     Trip trip,
-  ) async {
-    final divers = await ref.read(allDiversProvider.future);
-    final counts = await readDiveLinkCounts(ref, SharedItemKind.trip, trip.id);
-    if (!context.mounted) return;
-    final confirmed = await confirmRemoveFromProfile(
-      context,
-      name: trip.name,
-      ownerName: sharedItemOwnerName(divers, trip.diverId, context.l10n),
-      ownDiveCount: counts.mine,
-    );
-    if (!confirmed || !context.mounted) return;
+  ) {
     final notifier = ref.read(tripListNotifierProvider.notifier);
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    if (!await notifier.hideTrip(trip.id)) return;
-    if (!context.mounted) return;
-    if (embedded) {
-      onDeleted?.call();
-    } else {
-      context.pop();
-    }
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(l10n.sharedItems_removedSnackbar),
-        action: SnackBarAction(
-          label: l10n.sharedItems_undo,
-          onPressed: () => notifier.unhideTrip(trip.id),
-        ),
-      ),
+    return removeSharedItemFromProfile(
+      context,
+      ref,
+      kind: SharedItemKind.trip,
+      id: trip.id,
+      name: trip.name,
+      ownerId: trip.diverId,
+      hide: () => notifier.hideTrip(trip.id),
+      unhide: () => notifier.unhideTrip(trip.id),
+      onRemoved: () => embedded ? onDeleted?.call() : context.pop(),
     );
   }
 

@@ -40,6 +40,8 @@ void main() {
 
   test('a site already gone counts as deleted, not as refused', () async {
     expect(await sites.deleteSite('nope', actingDiverId: 'b'), isTrue);
+    // Nothing to delete, so nothing to tell the peers either.
+    expect(await tombstoneCount(db, 'diveSites'), 0);
   });
 
   test(

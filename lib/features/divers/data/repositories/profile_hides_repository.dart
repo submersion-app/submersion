@@ -99,53 +99,86 @@ class ProfileHidesRepository {
   /// including when it already was. False, writing nothing, when
   /// [canHideSharedItem] refuses (the owner, an unshared or ownerless
   /// item) or the item does not exist.
-  Future<bool> hide(SharedItemKind kind, String id, String diverId) async {
+  Future<bool> hide(SharedItemKind kind, String id, String diverId) async =>
+      await hideAll(kind, [id], diverId) == 1;
+
+  /// Hides each of [ids] from [diverId] with one read of the items and one
+  /// transaction. Returns how many are hidden afterwards, counting those
+  /// already hidden; an item [canHideSharedItem] refuses, or one that does
+  /// not exist, is skipped and not counted.
+  Future<int> hideAll(
+    SharedItemKind kind,
+    List<String> ids,
+    String diverId,
+  ) async {
     final t = _of(kind);
+    if (ids.isEmpty) return 0;
     try {
-      final parent = await _db
+      final parents = await _db
           .customSelect(
-            'SELECT diver_id, is_shared FROM ${t.parentTable} WHERE id = ?',
-            variables: [Variable.withString(id)],
+            'SELECT id, diver_id, is_shared FROM ${t.parentTable} '
+            'WHERE id IN (${List.filled(ids.length, '?').join(', ')})',
+            variables: [for (final id in ids) Variable.withString(id)],
           )
-          .getSingleOrNull();
-      if (parent == null ||
-          !canHideSharedItem(
-            ownerId: parent.read<String?>('diver_id'),
-            isShared: parent.read<int>('is_shared') != 0,
+          .get();
+      final hideable = {
+        for (final p in parents)
+          if (canHideSharedItem(
+            ownerId: p.read<String?>('diver_id'),
+            isShared: p.read<int>('is_shared') != 0,
             activeDiverId: diverId,
-          )) {
-        _log.warning('Refused to hide ${t.parentTable} $id for $diverId');
-        return false;
+          ))
+            p.read<String>('id'),
+      };
+      if (hideable.length < ids.toSet().length) {
+        _log.warning(
+          'Refused to hide ${ids.toSet().length - hideable.length} '
+          '${t.parentTable} rows for $diverId',
+        );
       }
+      if (hideable.isEmpty) return 0;
       final added = await _db.transaction(() async {
-        if ((await _hides(t, [id], diverId: diverId)).isNotEmpty) {
-          return false;
-        }
+        final existing = await _db
+            .customSelect(
+              'SELECT ${t.parentColumn} AS parent FROM ${t.table} '
+              'WHERE diver_id = ? AND ${t.parentColumn} IN '
+              '(${List.filled(hideable.length, '?').join(', ')})',
+              variables: [
+                Variable.withString(diverId),
+                for (final id in hideable) Variable.withString(id),
+              ],
+            )
+            .get();
+        final already = {for (final r in existing) r.read<String>('parent')};
         final now = DateTime.now().millisecondsSinceEpoch;
-        final hideId = _uuid.v4();
-        await _db.customInsert(
-          'INSERT INTO ${t.table} (id, ${t.parentColumn}, diver_id, '
-          'created_at) VALUES (?, ?, ?, ?)',
-          variables: [
-            Variable.withString(hideId),
-            Variable.withString(id),
-            Variable.withString(diverId),
-            Variable.withInt(now),
-          ],
-          updates: {_tableOf(kind)},
-        );
-        await _syncRepository.markRecordPending(
-          entityType: t.entity,
-          recordId: hideId,
-          localUpdatedAt: now,
-        );
-        return true;
+        var inserted = 0;
+        for (final id in hideable.difference(already)) {
+          final hideId = _uuid.v4();
+          await _db.customInsert(
+            'INSERT INTO ${t.table} (id, ${t.parentColumn}, diver_id, '
+            'created_at) VALUES (?, ?, ?, ?)',
+            variables: [
+              Variable.withString(hideId),
+              Variable.withString(id),
+              Variable.withString(diverId),
+              Variable.withInt(now),
+            ],
+            updates: {_tableOf(kind)},
+          );
+          await _syncRepository.markRecordPending(
+            entityType: t.entity,
+            recordId: hideId,
+            localUpdatedAt: now,
+          );
+          inserted++;
+        }
+        return inserted;
       });
-      if (added) SyncEventBus.notifyLocalChange();
-      return true;
+      if (added > 0) SyncEventBus.notifyLocalChange();
+      return hideable.length;
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to hide ${t.parentTable} $id for $diverId',
+        'Failed to hide ${t.parentTable} $ids for $diverId',
         error: e,
         stackTrace: stackTrace,
       );

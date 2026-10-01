@@ -1865,6 +1865,16 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         }
 
         mergeSnapshot = await notifier.mergeSites(site, widget.mergeSiteIds!);
+        if (mergeSnapshot == null) {
+          // Refused (a duplicate belongs to another profile, issue #2594):
+          // nothing merged, so stay, say so and write nothing more.
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(context.l10n.sharedItems_notOwner_site)),
+            );
+          }
+          return;
+        }
         savedId = widget.mergeSiteIds!.first;
       } else if (widget.isEditing) {
         await notifier.updateSite(site, classification: classification);
@@ -2005,45 +2015,26 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
   /// Hides another profile's shared site from the active profile only
   /// (issue #2594), then leaves the page as a delete does, with Undo.
-  Future<void> _confirmRemove() async {
-    final divers = await ref.read(allDiversProvider.future);
-    final counts = await readDiveLinkCounts(
-      ref,
-      SharedItemKind.site,
-      widget.siteId!,
-    );
-    if (!mounted) return;
-    final confirmed = await confirmRemoveFromProfile(
-      context,
-      name: _originalSite?.name ?? _nameController.text.trim(),
-      ownerName: sharedItemOwnerName(
-        divers,
-        _originalSite?.diverId,
-        context.l10n,
-      ),
-      ownDiveCount: counts.mine,
-    );
-    if (!confirmed || !mounted) return;
+  Future<void> _confirmRemove() {
     final notifier = ref.read(siteListNotifierProvider.notifier);
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
     final siteId = widget.siteId!;
-    if (await notifier.hideSites([siteId]) != 1) return;
-    if (!mounted) return;
-    _hasChanges = false;
-    if (widget.embedded) {
-      widget.onDeleted?.call();
-    } else {
-      context.go('/sites');
-    }
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(l10n.sharedItems_removedSnackbar),
-        action: SnackBarAction(
-          label: l10n.sharedItems_undo,
-          onPressed: () => notifier.unhideSites([siteId]),
-        ),
-      ),
+    return removeSharedItemFromProfile(
+      context,
+      ref,
+      kind: SharedItemKind.site,
+      id: siteId,
+      name: _originalSite?.name ?? _nameController.text.trim(),
+      ownerId: _originalSite?.diverId,
+      hide: () async => await notifier.hideSites([siteId]) == 1,
+      unhide: () => notifier.unhideSites([siteId]),
+      onRemoved: () {
+        _hasChanges = false;
+        if (widget.embedded) {
+          widget.onDeleted?.call();
+        } else {
+          context.go('/sites');
+        }
+      },
     );
   }
 
