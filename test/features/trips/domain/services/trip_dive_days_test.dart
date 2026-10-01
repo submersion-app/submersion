@@ -54,4 +54,28 @@ void main() {
       7,
     );
   });
+
+  group('isBarePlanDay', () {
+    test('a dive day with no port, position or notes is bare', () {
+      expect(isBarePlanDay(row(9, DayType.diveDay)), isTrue);
+      // A planned count is the plan itself, not content.
+      expect(
+        isBarePlanDay(row(9, DayType.diveDay).copyWith(plannedDives: 3)),
+        isTrue,
+      );
+      expect(
+        isBarePlanDay(row(9, DayType.diveDay).copyWith(portName: '')),
+        isTrue,
+      );
+    });
+
+    test('any content or another day type makes it more than a plan', () {
+      final bare = row(9, DayType.diveDay);
+      expect(isBarePlanDay(row(9, DayType.seaDay)), isFalse);
+      expect(isBarePlanDay(bare.copyWith(portName: 'Sorong')), isFalse);
+      expect(isBarePlanDay(bare.copyWith(latitude: -0.9)), isFalse);
+      expect(isBarePlanDay(bare.copyWith(longitude: 131.2)), isFalse);
+      expect(isBarePlanDay(bare.copyWith(notes: 'Manta point')), isFalse);
+    });
+  });
 }

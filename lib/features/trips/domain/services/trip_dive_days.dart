@@ -32,6 +32,17 @@ Map<DateTime, ItineraryDay> itineraryByDay(List<ItineraryDay> itinerary) => {
 bool isTripDiveDay(ItineraryDay? row) =>
     row == null || row.dayType == DayType.diveDay;
 
+/// Pure. Whether an itinerary row carries nothing but a plan: a dive day
+/// with no port, position or notes. Its planned dive count is the plan
+/// itself, which means nothing outside the trip's dates, so such a row
+/// outside them holds nothing the trip still has.
+bool isBarePlanDay(ItineraryDay row) =>
+    row.dayType == DayType.diveDay &&
+    (row.portName ?? '').isEmpty &&
+    row.latitude == null &&
+    row.longitude == null &&
+    row.notes.isEmpty;
+
 /// Pure. The trip's dive days from [start] to [end] under [isTripDiveDay];
 /// itinerary rows outside the trip are ignored.
 int tripDiveDayCount({

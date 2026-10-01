@@ -100,6 +100,77 @@ void main() {
       expect(story.days.last.date, DateTime(2026, 3, 12));
       expect(story.days.last.itineraryDay?.portName, 'Sorong');
     });
+
+    // A planned day left outside the trip when its dates change by sync,
+    // import or an older build is never pruned by updateTrip (#2663).
+    test('ignores bare plan days outside the trip on either side', () {
+      final story = buildTripStory(
+        trip: _trip(),
+        dives: [],
+        itineraryDays: [
+          _itin(0, DateTime(2026, 3, 5)).copyWith(plannedDives: 2),
+          _itin(6, DateTime(2026, 3, 12)).copyWith(plannedDives: 3),
+        ],
+        mediaByDiveId: {},
+        sightingsByDiveId: {},
+        checklistItems: [],
+        today: DateTime(2026, 6, 1),
+      );
+      expect(story.days.length, 4); // Mar 7..10
+      expect(story.days.first.date, DateTime(2026, 3, 7));
+      expect(story.days.last.date, DateTime(2026, 3, 10));
+      expect(story.days.map((d) => d.itineraryDay), everyElement(isNull));
+    });
+
+    test('keeps a bare plan day inside the trip on its day', () {
+      final story = buildTripStory(
+        trip: _trip(),
+        dives: [],
+        itineraryDays: [
+          _itin(2, DateTime(2026, 3, 8)).copyWith(plannedDives: 2),
+        ],
+        mediaByDiveId: {},
+        sightingsByDiveId: {},
+        checklistItems: [],
+        today: DateTime(2026, 6, 1),
+      );
+      expect(story.days.length, 4);
+      expect(story.days[1].itineraryDay?.plannedDives, 2);
+    });
+
+    test('still extends for an outside day with notes or another type', () {
+      final story = buildTripStory(
+        trip: _trip(),
+        dives: [],
+        itineraryDays: [
+          _itin(0, DateTime(2026, 3, 6)).copyWith(dayType: DayType.seaDay),
+          _itin(6, DateTime(2026, 3, 12)).copyWith(notes: 'Night dive'),
+        ],
+        mediaByDiveId: {},
+        sightingsByDiveId: {},
+        checklistItems: [],
+        today: DateTime(2026, 6, 1),
+      );
+      expect(story.days.length, 7); // Mar 6..12
+      expect(story.days.first.itineraryDay?.dayType, DayType.seaDay);
+      expect(story.days.last.itineraryDay?.notes, 'Night dive');
+    });
+
+    test('a dive outside the trip keeps its day but not a bare plan', () {
+      // The dive still widens the span; the bare row on that day stays out.
+      final story = buildTripStory(
+        trip: _trip(),
+        dives: [_dive('d1', DateTime(2026, 3, 11, 9))],
+        itineraryDays: [_itin(5, DateTime(2026, 3, 11))],
+        mediaByDiveId: {},
+        sightingsByDiveId: {},
+        checklistItems: [],
+        today: DateTime(2026, 6, 1),
+      );
+      expect(story.days.length, 5); // Mar 7..11
+      expect(story.days.last.dives, hasLength(1));
+      expect(story.days.last.itineraryDay, isNull);
+    });
   });
 
   group('buildTripStory grouping', () {
