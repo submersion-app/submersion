@@ -16,6 +16,12 @@ between 1.3x and 2x faster, and stops concurrent worktrees from fighting over
 the SSD. The benefit scales with how busy the machine is: nearer 1.3x when
 little else is running, nearer 2x when several worktrees are testing at once.
 
+A RAM disk has a fixed size, and a full one makes `flutter test` hang rather
+than fail. A small `flutter` shim (step 5) therefore gives each run its own
+temp directory and places it on the SSD instead whenever the RAM disk has no
+room left for another run. It also deletes the directories of runs that were
+killed.
+
 The tuning is machine-local by design. Only these instructions live in the
 repository; the scripts, shell config, and launch agents all sit outside it, in
 `~/.local/bin`, `~/.zshenv`, and `~/Library/LaunchAgents`. Nothing here changes
@@ -111,6 +117,13 @@ Create `~/.local/bin/flutter-ramtmp`:
 #   flutter-ramtmp --recreate [size_gb]  detach and rebuild at a new size;
 #                                        refuses while any flutter test
 #                                        process is alive (contents are lost)
+#   flutter-ramtmp --run-dir <pid>       make a private temp dir for one
+#                                        `flutter test` run owned by <pid>
+#                                        and print it: on the RAM disk while
+#                                        it has room for another run, else
+#                                        on the SSD overflow dir. Deletes
+#                                        run dirs whose owner has exited
+#                                        first. Used by ~/.local/bin/flutter.
 #
 # A ram:// device cannot be resized in place (`hdiutil resize` returns EINVAL
 # and there is no partition to grow), which is why --recreate exists.
@@ -121,6 +134,16 @@ DEFAULT_GB="${FLUTTER_RAMTMP_GB:-24}"
 VOL_NAME="fltmp"
 MOUNT="/Volumes/${VOL_NAME}"
 TMPSUB="${MOUNT}/tmp"
+# Where runs go when the RAM disk is full or missing. On the boot SSD, and
+# under ~/Library/Caches so Time Machine skips it.
+OVERFLOW="${FLUTTER_RAMTMP_OVERFLOW:-${HOME}/Library/Caches/flutter-ramtmp-overflow}"
+# Space held back for each run on the RAM disk until it has written that
+# much itself. One run's temp has been seen at 2.4 GB.
+RESERVE_MB=$(( ${FLUTTER_RAMTMP_RESERVE_GB:-3} * 1024 ))
+# Left free on top of the reservations, for TMPDIR users that bypass the
+# shim (IDEs, dart, other tools).
+FLOOR_MB=1024
+LOCK="${OVERFLOW}/.lock"
 
 is_mounted() {
   mount | grep -q " on ${MOUNT} "
@@ -196,6 +219,95 @@ clean() {
   fi
 }
 
+# Serialize run-dir placement across concurrent `flutter test` starts. A lock
+# older than a minute belongs to a process that died holding it.
+lock() {
+  mkdir -p "${OVERFLOW}"
+  local tries=0
+  until mkdir "${LOCK}" 2>/dev/null; do
+    if [ -n "$(find "${LOCK}" -maxdepth 0 -mmin +1 2>/dev/null)" ]; then
+      rmdir "${LOCK}" 2>/dev/null || true
+      continue
+    fi
+    tries=$(( tries + 1 ))
+    # Placement is best effort: after ~10s, go ahead unlocked.
+    [ "${tries}" -ge 100 ] && return 0
+    sleep 0.1
+  done
+}
+
+unlock() {
+  rmdir "${LOCK}" 2>/dev/null || true
+}
+
+# True while the process that owns run dir $1 is alive. The shim execs the
+# real flutter, so the recorded PID is the flutter_tools process itself; the
+# command check guards against PID reuse.
+owner_alive() {
+  local pid cmd
+  pid="$(cat "$1/owner.pid" 2>/dev/null || true)"
+  case "${pid}" in ''|*[!0-9]*) return 1 ;; esac
+  cmd="$(ps -o command= -p "${pid}" 2>/dev/null || true)"
+  case "${cmd}" in *flutter*|*dart*) return 0 ;; *) return 1 ;; esac
+}
+
+# Delete run dirs under $1 whose owner has exited, unless a live process
+# (an orphaned flutter_tester) still names a file inside.
+reap() {
+  local base="$1" dry_run="$2" live d kb
+  [ -d "${base}" ] || return 0
+  live="$(ps -axo command= || true)"
+  for d in "${base}"/run.*; do
+    [ -d "${d}" ] || continue
+    owner_alive "${d}" && continue
+    printf '%s\n' "${live}" | grep -qF "${d}/" && continue
+    kb="$(du -sk "${d}" | awk '{print $1}')"
+    if [ "${dry_run}" = 1 ]; then
+      echo "would delete ${d} ($(( kb / 1024 )) MB)"
+    else
+      rm -rf "${d}"
+      echo "deleted ${d} ($(( kb / 1024 )) MB)"
+    fi
+  done
+}
+
+# MB the RAM disk can still promise to a new run: free space, less what live
+# runs have reserved but not yet written, less the floor.
+ram_room_mb() {
+  local avail_kb used_mb held=0 d
+  avail_kb="$(df -Pk "${MOUNT}" | awk 'NR == 2 {print $4}')"
+  for d in "${TMPSUB}"/run.*; do
+    [ -d "${d}" ] || continue
+    used_mb=$(( $(du -sk "${d}" | awk '{print $1}') / 1024 ))
+    [ "${used_mb}" -lt "${RESERVE_MB}" ] && held=$(( held + RESERVE_MB - used_mb ))
+  done
+  echo $(( avail_kb / 1024 - held - FLOOR_MB ))
+}
+
+run_dir() {
+  local pid="$1" base dir
+  case "${pid}" in ''|*[!0-9]*)
+    echo "flutter-ramtmp: --run-dir needs the owner PID" >&2
+    return 2 ;;
+  esac
+  lock
+  # Reap even if a step below fails, so the lock is always released.
+  {
+    is_mounted && reap "${TMPSUB}" 0 >/dev/null
+    reap "${OVERFLOW}" 0 >/dev/null
+    base="${OVERFLOW}"
+    if is_mounted && [ "$(ram_room_mb)" -ge "${RESERVE_MB}" ]; then
+      base="${TMPSUB}"
+    else
+      echo "flutter-ramtmp: RAM disk full or missing, using ${OVERFLOW}" >&2
+    fi
+    dir="$(mktemp -d "${base}/run.XXXXXX")" &&
+      echo "${pid}" > "${dir}/owner.pid"
+  } || { unlock; return 1; }
+  unlock
+  echo "${dir}"
+}
+
 recreate() {
   local size_gb="$1"
   local procs
@@ -216,10 +328,11 @@ recreate() {
 }
 
 case "${1:-}" in
-  --clean) clean "${2:-3}" 0 ;;
-  --clean-dry-run) clean "${2:-3}" 1 ;;
+  --clean) reap "${TMPSUB}" 0; reap "${OVERFLOW}" 0; clean "${2:-3}" 0 ;;
+  --clean-dry-run) reap "${TMPSUB}" 1; reap "${OVERFLOW}" 1; clean "${2:-3}" 1 ;;
   --recreate) recreate "${2:-${DEFAULT_GB}}" ;;
-  -h|--help) sed -n '2,24p' "$0" ;;
+  --run-dir) run_dir "${2:-}" ;;
+  -h|--help) sed -n '2,31p' "$0" ;;
   *) create "${1:-${DEFAULT_GB}}" ;;
 esac
 ```
@@ -359,7 +472,116 @@ Load it with
 `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/app.local.flutter-ramtmp-clean.plist`.
 `flutter-ramtmp --clean-dry-run` lists what it would delete.
 
-### 5. A wrapper that applies the tuning
+`--clean` also deletes the per-run directories the shim from step 5 creates,
+as soon as the run that owns one has exited, on the RAM disk and in the SSD
+overflow directory alike. The 3-hour idle window applies only to
+`flutter_tools.*` directories written by runs that bypassed the shim.
+
+### 5. Fail over to the SSD when the RAM disk is full
+
+The RAM disk's pages are ordinary pageable memory (only about 4 GB of the
+machine's memory is wired), so under memory pressure macOS already compresses
+them and swaps them out. What runs out is the volume's size, not RAM, and
+macOS has no `tmpfs` that grows into swap. `flutter_tools` also picks its temp
+directory once, at startup, so a run cannot move off a filling disk midway.
+Failover therefore has to happen when each run starts.
+
+Create `~/.local/bin/flutter`. `~/.local/bin` has to come before the real
+`flutter` on `PATH` in every shell that runs tests, including the
+non-interactive `zsh -c` shells tooling starts, so put that `PATH` entry in
+`~/.zshenv` for the same reason as `TMPDIR` in step 2. Moving the entry to
+the front, rather than skipping it when it is already present, also fixes an
+inherited `PATH` that lists it after Homebrew, and keeps nested shells from
+stacking duplicates:
+
+```zsh
+path=("${HOME}/.local/bin" ${path:#${HOME}/.local/bin})
+export PATH
+```
+
+The shim itself:
+
+```bash
+#!/usr/bin/env bash
+# Front for the real `flutter` that gives each `flutter test` run its own
+# TMPDIR from `flutter-ramtmp --run-dir`: on the RAM disk while it has room
+# for another run, on the SSD once it does not. A full RAM disk therefore
+# slows new runs down instead of hanging them (the compiler dies on ENOSPC
+# and flutter_tools waits forever for its result).
+#
+# The run dir records this script's PID, which the exec below hands to the
+# real flutter, so a killed run's dir is deleted by the next run to start.
+# Every other subcommand passes straight through.
+set -euo pipefail
+
+real=""
+IFS=: read -ra path_dirs <<< "${PATH}"
+for d in "${path_dirs[@]}"; do
+  [ -n "${d}" ] && [ -x "${d}/flutter" ] || continue
+  [ "${d}/flutter" -ef "${BASH_SOURCE[0]}" ] && continue
+  real="${d}/flutter"
+  break
+done
+if [ -z "${real}" ]; then
+  echo "flutter (shim): no other flutter on PATH" >&2
+  exit 127
+fi
+
+# The subcommand is the first argument that is not a flag.
+is_test=0
+for a in "$@"; do
+  case "${a}" in
+    -*) continue ;;
+    test) is_test=1 ;;
+  esac
+  break
+done
+
+ramtmp="${HOME}/.local/bin/flutter-ramtmp"
+if [ "${is_test}" = 1 ] && [ -x "${ramtmp}" ] && [ -z "${FLUTTER_SHIM_OFF:-}" ]; then
+  if dir="$("${ramtmp}" --run-dir "$$")"; then
+    export TMPDIR="${dir}/"
+  else
+    echo "flutter (shim): no run dir, using TMPDIR=${TMPDIR:-unset}" >&2
+  fi
+fi
+
+exec "${real}" "$@"
+```
+
+Then `chmod +x ~/.local/bin/flutter`. Set `FLUTTER_SHIM_OFF=1` in front of a
+command to bypass it.
+
+How the placement works, all inside `flutter-ramtmp --run-dir`:
+
+- **Each run reserves space.** A run directory on the RAM disk holds back
+  `FLUTTER_RAMTMP_RESERVE_GB` (default 3) until it has written that much
+  itself. A new run goes to the RAM disk only if free space, less every
+  outstanding reservation, less a 1 GB floor for tools that bypass the shim,
+  still covers its own reservation. Otherwise it goes to
+  `~/Library/Caches/flutter-ramtmp-overflow` on the SSD (override with
+  `FLUTTER_RAMTMP_OVERFLOW`) and says so on stderr. Without reservations, a
+  dozen runs starting together would all see the same free space and all
+  pick the RAM disk.
+- **A lock serializes placement.** A `mkdir` lock under the overflow directory
+  makes check-then-create atomic across concurrent starts. A lock older than
+  a minute is treated as abandoned, and after about 10 seconds of waiting a
+  run proceeds unlocked rather than stalling.
+- **Each run directory names its owner.** It holds `owner.pid`, the shim's own
+  PID. Homebrew's launcher ends in `exec "$DART" ... flutter_tools.snapshot`,
+  so that PID stays alive for exactly as long as the `flutter test` process
+  does. A directory whose owner has exited is deleted by the next run to
+  start, even after `kill -9`, unless a live process (an orphaned
+  `flutter_tester`) still names a file inside it. The command check on the
+  PID guards against reuse.
+
+The reservation is an estimate, not a guarantee. Runs already placed can still
+grow past their reservation together, so a burst of unusually large runs can
+fill the volume. The floor absorbs ordinary overshoot; if hangs come back,
+raise `FLUTTER_RAMTMP_RESERVE_GB`. Overflow runs are slower, at roughly the
+SSD numbers under [Results](#results), but they finish.
+
+### 6. A wrapper that applies the tuning
 
 Create `~/.local/bin/ft` so you do not have to remember the flags:
 
@@ -381,6 +603,10 @@ exec flutter test -j "${FT_JOBS:-18}" "$@"
 
 Set `FT_JOBS` to roughly your core count. The default of 18 is tuned for an
 18-core machine and should be lowered on smaller hardware.
+
+`ft` calls `flutter` through `PATH`, so it goes through the shim from step 5,
+which replaces the `TMPDIR` set here with a per-run directory. The `TMPDIR`
+lines only matter on a machine without the shim.
 
 ## Results
 
@@ -439,11 +665,19 @@ when runs stall:
 
 ```bash
 df -h /Volumes/fltmp
-ls -d /Volumes/fltmp/tmp/flutter_tools.* | wc -l
+ls -d /Volumes/fltmp/tmp/flutter_tools.* /Volumes/fltmp/tmp/run.* | wc -l
 ```
 
-The cleanup agent from step 4 handles this on its own. To reclaim space
-immediately:
+With the shim from step 5 in place, a run whose temp directory landed on the
+SSD prints `RAM disk full or missing` when it starts, and the overflow
+directory shows how many runs have spilled:
+
+```bash
+ls -d ~/Library/Caches/flutter-ramtmp-overflow/run.* | wc -l
+```
+
+The shim and the cleanup agent from step 4 handle leftovers on their own. To
+reclaim space immediately:
 
 ```bash
 ~/.local/bin/flutter-ramtmp --clean-dry-run   # list what would go
