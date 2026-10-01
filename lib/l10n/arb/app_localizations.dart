@@ -47408,6 +47408,12 @@ abstract class AppLocalizations {
   /// **'Could not read file'**
   String get dropTarget_error_readFailed;
 
+  /// Snackbar after a share-sheet import that skipped files it could not read, while the rest were imported
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} file could not be read and was skipped} other{{count} files could not be read and were skipped}}'**
+  String dropTarget_error_someUnreadable(int count);
+
   /// No description provided for @enum_cloudCover_clear.
   ///
   /// In en, this message translates to:
@@ -48438,6 +48444,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} of them is shared with other profiles and will be deleted for everyone.} other{{count} of them are shared with other profiles and will be deleted for everyone.}}'**
   String sharedItems_bulkSharedWarning_trips(int count);
 
+  /// Added after the Shared by line on a shared trip or site that the active profile has hidden from itself.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden from your profile'**
+  String get sharedItems_hiddenHere;
+
   /// Shown when a merge selection holds more than one site owned by another profile.
   ///
   /// In en, this message translates to:
@@ -48527,6 +48539,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Undo'**
   String get sharedItems_undo;
+
+  /// Menu action on a shared trip or site the active profile has hidden, showing it in that profile again. The counterpart of sharedItems_removeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in my profile'**
+  String get sharedItems_unhideAction;
 
   /// Title of the strengthened delete confirmation dialog shown when the dive site being deleted is shared with other dive profiles.
   ///

@@ -10,12 +10,13 @@ DiveDataSource _source({
   String? computerId,
   String? sourceFormat,
   String? sourceFileName,
+  bool isPrimary = true,
 }) {
   return DiveDataSource(
     id: 'src-1',
     diveId: 'dive-1',
     computerId: computerId,
-    isPrimary: true,
+    isPrimary: isPrimary,
     computerName: computerName,
     computerModel: computerModel,
     computerSerial: computerSerial,
@@ -92,5 +93,54 @@ void main() {
       resolveSourceName(source, labels, edited: true),
       'Kiyans Teric (edited)',
     );
+  });
+
+  group('tankSourceName', () {
+    final teric = _source(computerName: 'Teric', computerId: 'dc-1');
+    final perdix = _source(
+      computerName: 'Perdix',
+      computerId: 'dc-2',
+      isPrimary: false,
+    );
+
+    test('names the computer a tank was attributed to', () {
+      expect(
+        tankSourceName(
+          computerId: 'dc-2',
+          sources: [teric, perdix],
+          labels: labels,
+        ),
+        'Perdix',
+      );
+    });
+
+    test('a tank with no computer belongs to the primary source', () {
+      expect(
+        tankSourceName(
+          computerId: null,
+          sources: [perdix, teric],
+          labels: labels,
+        ),
+        'Teric',
+      );
+    });
+
+    test('a single-source dive has nothing to tell apart', () {
+      expect(
+        tankSourceName(computerId: 'dc-1', sources: [teric], labels: labels),
+        isNull,
+      );
+    });
+
+    test('a computer none of the sources carries is not named', () {
+      expect(
+        tankSourceName(
+          computerId: 'dc-9',
+          sources: [teric, perdix],
+          labels: labels,
+        ),
+        isNull,
+      );
+    });
   });
 }

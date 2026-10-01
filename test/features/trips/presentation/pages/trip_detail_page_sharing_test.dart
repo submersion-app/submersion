@@ -46,6 +46,7 @@ void main() {
     bool allowed = true,
     bool failHides = false,
     GatedActiveProfile? activeProfile,
+    bool hidden = false,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(390, 844);
@@ -73,7 +74,9 @@ void main() {
           validatedCurrentDiverIdProvider.overrideWith(
             (_) => activeProfile?.read() ?? Future.value(active),
           ),
-          profileHidesRepositoryProvider.overrideWithValue(_FakeHides()),
+          profileHidesRepositoryProvider.overrideWithValue(
+            _FakeHides(hidden: hidden),
+          ),
         ],
         // The page pops through go_router after a remove, so it sits one
         // route above a home page, as it does in the app.
@@ -129,6 +132,28 @@ void main() {
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
     expect(notifier.unhidden, ['shared-trip']);
+  });
+
+  testWidgets('a trip already hidden here offers Unhide, not Remove (#2679)', (
+    tester,
+  ) async {
+    final notifier = await pump(tester, active: 'd2', hidden: true);
+    expect(
+      find.text('Shared by Alice · Hidden from your profile'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Remove from my profile'), findsNothing);
+    expect(find.text('Delete'), findsNothing);
+    await tester.tap(find.text('Show in my profile'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.unhidden, ['shared-trip']);
+    expect(notifier.hidden, isEmpty);
+    expect(find.text('home'), findsNothing);
+    expect(find.byType(SnackBar), findsNothing);
   });
 
   testWidgets('a refused remove stays on the page and says nothing', (
@@ -217,6 +242,27 @@ void main() {
     expect(find.text('Delete'), findsNothing);
   });
 
+  testWidgets('a failed Show in my profile says to try again (issue #2677)', (
+    tester,
+  ) async {
+    final notifier = await pump(
+      tester,
+      active: 'd2',
+      hidden: true,
+      failHides: true,
+    );
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Show in my profile'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.unhidden, isEmpty);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('an owner whose trip changed hands meanwhile is refused', (
     tester,
   ) async {
@@ -254,6 +300,18 @@ void main() {
 }
 
 class _FakeHides extends Fake implements ProfileHidesRepository {
+  _FakeHides({this.hidden = false});
+
+  /// Whether the active profile has already hidden the item.
+  final bool hidden;
+
+  @override
+  Stream<void> watchChanges() => const Stream.empty();
+
+  @override
+  Future<bool> isHidden(SharedItemKind kind, String id, String diverId) async =>
+      hidden;
+
   @override
   Future<({int mine, int others})> diveLinkCounts(
     SharedItemKind kind,

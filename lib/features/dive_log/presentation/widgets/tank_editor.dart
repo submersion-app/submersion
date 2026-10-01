@@ -70,7 +70,9 @@ class TankEditor extends ConsumerStatefulWidget {
   final List<TripCylinderState>? tripCylinderStates;
 
   /// Slots other tanks on this dive already hold: not offered, since two
-  /// tanks cannot breathe from one cylinder.
+  /// tanks cannot breathe from one cylinder. Only tanks from this tank's
+  /// computer count ([tripCylinderIdsTakenFor]): another computer's tank
+  /// may be its copy of the same cylinder (issue #2661).
   final Set<String> takenTripCylinderIds;
 
   /// The link was preselected as a suggestion, so the picker says so until

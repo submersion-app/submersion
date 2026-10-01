@@ -47,6 +47,7 @@ void main() {
     String site = 'Salt Pier',
     TripCylinderEvent? withFill,
     double? litres = 1554,
+    String? bottle,
   }) => TripGasRecordRow(
     tank: TripGasRecordTank(
       tankId: 't1',
@@ -60,7 +61,7 @@ void main() {
       tripCylinderId: 'a',
     ),
     cylinder: slot,
-    bottleLabel: withFill == null ? 'Truck 1' : '14',
+    bottleLabel: bottle ?? (withFill == null ? 'Truck 1' : '14'),
     fill: withFill,
     fillPressure: withFill == null ? null : 200,
     litres: litres,
@@ -87,7 +88,9 @@ void main() {
     expect(r['O2 %'], '32');
     expect(r['He %'], '0');
     expect(r['Analyzed O2 %'], '31.8');
-    expect(r['Analyzed He %'], '');
+    // An O2 analysis of a nitrox fill reads as that mix, He 0, the same as
+    // the ordered pair beside it.
+    expect(r['Analyzed He %'], '0');
     expect(r['Fill Pressure (bar)'], '200.0');
     expect(r['Start Pressure (bar)'], '200.0');
     expect(r['End Pressure (bar)'], '60.0');
@@ -112,8 +115,12 @@ void main() {
       CsvExportUnits.metric,
     ).write(recordOf([row(litres: null)]));
     final r = rowOf(csv, 1);
-    expect(r['Bottle'], 'Truck 1');
+    // The slot's label is not a bottle number.
+    expect(r['Bottle'], '');
     expect(r['O2 %'], '');
+    expect(r['He %'], '');
+    expect(r['Analyzed O2 %'], '');
+    expect(r['Analyzed He %'], '');
     expect(r['Fill Pressure (bar)'], '');
     expect(r['Gas Breathed (L)'], '');
     expect(r['Fill Station'], '');
@@ -126,10 +133,72 @@ void main() {
     expect(rowOf(csv, 1)['Site'], "'=cmd");
   });
 
-  test('the file is named after the trip and the date', () {
-    expect(
-      tripGasRecordFileName('Bonaire 2026!', DateTime(2026, 3, 15)),
-      'gas_record_Bonaire_2026__2026-03-15.csv',
+  test('a fill that named no bottle leaves Bottle empty', () {
+    final csv = CsvTripGasRecordWriter(CsvExportUnits.metric).write(
+      recordOf([
+        row(withFill: fill.copyWith(bottleLabel: null), bottle: 'Truck 1'),
+      ]),
     );
+    expect(rowOf(csv, 1)['Bottle'], '');
+  });
+
+  test('a fill with no analysis leaves both analyzed cells empty', () {
+    final csv = CsvTripGasRecordWriter(
+      CsvExportUnits.metric,
+    ).write(recordOf([row(withFill: fill.copyWith(analyzedO2: null))]));
+    final r = rowOf(csv, 1);
+    expect(r['O2 %'], '32');
+    expect(r['He %'], '0');
+    expect(r['Analyzed O2 %'], '');
+    expect(r['Analyzed He %'], '');
+  });
+
+  test('a trimix fill writes both helium figures', () {
+    final csv = CsvTripGasRecordWriter(CsvExportUnits.metric).write(
+      recordOf([
+        row(
+          withFill: fill.copyWith(
+            o2Percent: 21.0,
+            hePercent: 35.0,
+            analyzedO2: 20.8,
+            analyzedHe: 34.6,
+          ),
+        ),
+      ]),
+    );
+    final r = rowOf(csv, 1);
+    expect(r['He %'], '35');
+    expect(r['Analyzed He %'], '34.6');
+  });
+
+  group('the file name', () {
+    final day = DateTime(2026, 3, 15);
+
+    test('is named after the trip and the date', () {
+      expect(
+        tripGasRecordFileName('Bonaire 2026!', day),
+        'gas_record_Bonaire_2026_2026-03-15.csv',
+      );
+    });
+
+    test('keeps a trip name in any script', () {
+      expect(
+        tripGasRecordFileName('Curaçao', day),
+        'gas_record_Curaçao_2026-03-15.csv',
+      );
+      expect(
+        tripGasRecordFileName('台湾 潜水', day),
+        'gas_record_台湾_潜水_2026-03-15.csv',
+      );
+      expect(
+        tripGasRecordFileName('אילת', day),
+        'gas_record_אילת_2026-03-15.csv',
+      );
+    });
+
+    test('drops a name with nothing usable in it', () {
+      expect(tripGasRecordFileName('', day), 'gas_record_2026-03-15.csv');
+      expect(tripGasRecordFileName('?!', day), 'gas_record_2026-03-15.csv');
+    });
   });
 }

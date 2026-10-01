@@ -216,7 +216,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             const SizedBox(height: kSiteDetailCardGap),
           ],
           SiteDetailHeader(site: site),
-          SharedByBanner(ownerId: site.diverId, isShared: site.isShared),
+          SharedByBanner(
+            kind: SharedItemKind.site,
+            itemId: site.id,
+            ownerId: site.diverId,
+            isShared: site.isShared,
+          ),
           const SizedBox(height: kSiteDetailCardGap),
           SiteDetailSectionList(
             sections: sections,
@@ -383,6 +388,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     // Watched, as the trip page does, so the menu follows the profile once
     // it has settled (issue #2594).
     final standing = watchSharedItemStanding(ref, ownerId: site.diverId);
+    // A site this profile already removed offers Unhide (issue #2679).
+    final hidden = watchHiddenHere(
+      ref,
+      SharedItemKind.site,
+      site.id,
+      canDestroy: standing != SharedItemStanding.other,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -481,6 +493,15 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                       contentPadding: EdgeInsets.zero,
                     ),
                   )
+                else if (hidden)
+                  PopupMenuItem(
+                    value: 'unhide',
+                    child: ListTile(
+                      leading: const Icon(Icons.visibility_outlined),
+                      title: Text(context.l10n.sharedItems_unhideAction),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  )
                 else if (standing == SharedItemStanding.other)
                   PopupMenuItem(
                     value: 'remove',
@@ -514,6 +535,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     }
     if (action == 'remove') {
       await _removeFromProfile(context, ref, site);
+      return;
+    }
+    if (action == 'unhide') {
+      // A failed unhide says so (issue #2677).
+      await runHideChange(
+        ScaffoldMessenger.of(context),
+        context.l10n,
+        () =>
+            ref.read(siteListNotifierProvider.notifier).unhideSites([site.id]),
+      );
       return;
     }
     if (action == 'delete') {

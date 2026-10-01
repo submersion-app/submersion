@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
+
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
@@ -13,6 +15,11 @@ import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fo
 /// fill at the dive's own minute was for that dive), the rule the dive
 /// detail line uses, so a bottle swapped mid-week is credited correctly on
 /// both sides of the swap. Rows run in dive order, then tank order.
+///
+/// One row per dive and slot: the tank editor gives a slot to one tank per
+/// computer, so two tanks on one dive holding the same slot are two
+/// computers' copies of one cylinder (issue #2661), and its gas counts
+/// once. The first copy with a litres figure stands for it, else the first.
 TripGasRecord buildTripGasRecord({
   required List<TripCylinder> cylinders,
   required Map<String, List<TripCylinderEvent>> eventsBySlot,
@@ -24,10 +31,16 @@ TripGasRecord buildTripGasRecord({
   final bySlot = {for (final c in cylinders) c.id: c};
   final ordered = [...tanks]
     ..sort(_inDiveOrder((t) => (t.entryTime, t.diveId, t.tankOrder)));
-  final rows = [
+  final linked = [
     for (final t in ordered)
       if (bySlot[t.tripCylinderId] case final cylinder?)
         _row(t, cylinder, eventsBySlot[cylinder.id] ?? const [], gasModel),
+  ];
+  // One group per dive and slot, in first-appearance (dive) order.
+  final rows = [
+    for (final copies
+        in linked.groupListsBy((r) => (r.tank.diveId, r.cylinder.id)).values)
+      _standIn(copies),
   ];
 
   final rowsBySlot = <String, List<TripGasRecordRow>>{};
@@ -64,6 +77,11 @@ TripGasRecord buildTripGasRecord({
     multipleDivers: divers.length > 1,
   );
 }
+
+/// The copy that stands for a cylinder [copies] all logged: the first with
+/// a litres figure, else the first.
+TripGasRecordRow _standIn(List<TripGasRecordRow> copies) =>
+    copies.firstWhere((r) => r.litres != null, orElse: () => copies.first);
 
 TripGasRecordRow _row(
   TripGasRecordTank t,

@@ -19336,6 +19336,8 @@
   "dropTarget_error_unsupportedFile": "Unsupported file type",
   "dropTarget_error_wizardActive": "Finish current import first",
   "dropTarget_error_readFailed": "Could not read file",
+  "dropTarget_error_someUnreadable": "{count, plural, =1{{count} file could not be read and was skipped} other{{count} files could not be read and were skipped}}",
+  "@dropTarget_error_someUnreadable": {"description": "Snackbar after a share-sheet import that skipped files it could not read, while the rest were imported", "placeholders": {"count": {"type": "int"}}},
   "enum_cloudCover_clear": "Clear",
   "enum_cloudCover_partlyCloudy": "Partly Cloudy",
   "enum_cloudCover_mostlyCloudy": "Mostly Cloudy",
@@ -19925,6 +19927,10 @@
       }
     }
   },
+  "sharedItems_hiddenHere": "Hidden from your profile",
+  "@sharedItems_hiddenHere": {
+    "description": "Added after the Shared by line on a shared trip or site that the active profile has hidden from itself."
+  },
   "sharedItems_mergeTooManyShared": "Only one of the selected sites can belong to another profile. Deselect the others to merge.",
   "@sharedItems_mergeTooManyShared": {
     "description": "Shown when a merge selection holds more than one site owned by another profile."
@@ -20026,6 +20032,10 @@
   "sharedItems_undo": "Undo",
   "@sharedItems_undo": {
     "description": "Snackbar action that undoes hiding a shared trip or site."
+  },
+  "sharedItems_unhideAction": "Show in my profile",
+  "@sharedItems_unhideAction": {
+    "description": "Menu action on a shared trip or site the active profile has hidden, showing it in that profile again. The counterpart of sharedItems_removeAction."
   },
   "sites_deleteShared_title": "Delete shared site?",
   "@sites_deleteShared_title": {

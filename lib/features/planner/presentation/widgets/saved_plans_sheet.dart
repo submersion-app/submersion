@@ -9,6 +9,7 @@ import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
+import 'package:submersion/features/planner/data/services/plan_file_names.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
@@ -272,13 +273,9 @@ class _PlanTile extends ConsumerWidget {
                   final anchor = shareAnchorFrom(menuContext);
                   final plan = await repository.getPlan(summary.id);
                   if (plan == null) return;
-                  final safeName = plan.name
-                      .replaceAll(RegExp(r'[^\w\s-]'), '')
-                      .trim()
-                      .replaceAll(RegExp(r'\s+'), '_');
                   await saveAndShareFile(
                     planToSubplanJson(plan),
-                    '${safeName.isEmpty ? 'dive_plan' : safeName}.$subplanExtension',
+                    subplanFileName(plan.name),
                     'application/json',
                     sharePositionOrigin: anchor,
                   );
