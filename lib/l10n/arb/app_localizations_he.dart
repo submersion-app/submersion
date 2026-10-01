@@ -29821,6 +29821,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedItems_undo => 'בטל';
 
   @override
+  String get sharedItems_unhideAction => 'הצגה בפרופיל שלי';
+
+  @override
   String get sites_deleteShared_title => 'למחוק את האתר המשותף?';
 
   @override

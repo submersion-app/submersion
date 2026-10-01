@@ -30568,6 +30568,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sharedItems_undo => 'Deshacer';
 
   @override
+  String get sharedItems_unhideAction => 'Mostrar en mi perfil';
+
+  @override
   String get sites_deleteShared_title => '¿Eliminar el sitio compartido?';
 
   @override

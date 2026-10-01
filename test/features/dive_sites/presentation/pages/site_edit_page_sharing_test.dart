@@ -167,7 +167,7 @@ void main() {
       findsNothing,
     );
 
-    await tester.tap(find.byTooltip('Unhide'));
+    await tester.tap(find.byTooltip('Show in my profile'));
     await tester.pumpAndSettle();
 
     expect(await db.select(db.siteHides).get(), isEmpty);

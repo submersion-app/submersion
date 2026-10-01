@@ -8610,6 +8610,7 @@
   "sharedItems_shareOwnerOnly": "Só {owner} pode alterar a partilha",
   "sharedItems_sharedBy": "Partilhado por {owner}",
   "sharedItems_undo": "Desfazer",
+  "sharedItems_unhideAction": "Mostrar no meu perfil",
   "trips_deleteShared_body": "«{name}» está partilhada com outros perfis de mergulho. Eliminá-la aqui remove-a para todos.",
   "trips_deleteShared_title": "Eliminar viagem partilhada?",
   "trips_unshareConfirm_body": "Isto irá remover «{name}» das vistas dos outros perfis de mergulho. Poderás voltar a partilhar mais tarde.",

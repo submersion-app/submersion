@@ -8610,6 +8610,7 @@
   "sharedItems_shareOwnerOnly": "Csak {owner} módosíthatja a megosztást",
   "sharedItems_sharedBy": "Megosztotta: {owner}",
   "sharedItems_undo": "Visszavonás",
+  "sharedItems_unhideAction": "Megjelenítés a profilomban",
   "trips_deleteShared_body": "A(z) „{name}\" meg van osztva más búvárprofilokkal. Ha itt törlöd, mindenkinél eltávolítódik.",
   "trips_deleteShared_title": "Megosztott túra törlése?",
   "trips_unshareConfirm_body": "Ez eltávolítja a(z) „{name}\" elemet a többi búvárprofil nézetéből. Később újra megoszthatod.",

@@ -30331,6 +30331,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sharedItems_undo => 'Ongedaan maken';
 
   @override
+  String get sharedItems_unhideAction => 'In mijn profiel tonen';
+
+  @override
   String get sites_deleteShared_title => 'Gedeelde site verwijderen?';
 
   @override

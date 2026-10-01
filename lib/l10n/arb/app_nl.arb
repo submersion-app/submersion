@@ -8610,6 +8610,7 @@
   "sharedItems_shareOwnerOnly": "Alleen {owner} kan het delen wijzigen",
   "sharedItems_sharedBy": "Gedeeld door {owner}",
   "sharedItems_undo": "Ongedaan maken",
+  "sharedItems_unhideAction": "In mijn profiel tonen",
   "trips_deleteShared_body": "‘{name}’ wordt gedeeld met andere duikersprofielen. Hier verwijderen haalt het voor iedereen weg.",
   "trips_deleteShared_title": "Gedeelde trip verwijderen?",
   "trips_unshareConfirm_body": "Hiermee wordt ‘{name}’ uit de weergaven van andere duikersprofielen verwijderd. Je kunt het later weer delen.",

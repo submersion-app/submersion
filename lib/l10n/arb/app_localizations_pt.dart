@@ -30547,6 +30547,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sharedItems_undo => 'Desfazer';
 
   @override
+  String get sharedItems_unhideAction => 'Mostrar no meu perfil';
+
+  @override
   String get sites_deleteShared_title => 'Eliminar local partilhado?';
 
   @override

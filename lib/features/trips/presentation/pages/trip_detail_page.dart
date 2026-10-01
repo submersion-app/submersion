@@ -594,7 +594,7 @@ class _TripDetailContent extends ConsumerWidget {
               children: [
                 const Icon(Icons.visibility_outlined),
                 const SizedBox(width: 8),
-                Flexible(child: Text(context.l10n.settings_hiddenItems_unhide)),
+                Flexible(child: Text(context.l10n.sharedItems_unhideAction)),
               ],
             ),
           )

@@ -8610,6 +8610,7 @@
   "sharedItems_shareOwnerOnly": "يمكن لـ {owner} فقط تغيير المشاركة",
   "sharedItems_sharedBy": "تمت المشاركة بواسطة {owner}",
   "sharedItems_undo": "تراجع",
+  "sharedItems_unhideAction": "إظهار في ملفي",
   "trips_deleteShared_body": "«{name}» مشتركة مع ملفات غوص أخرى. حذفها من هنا يزيلها للجميع.",
   "trips_deleteShared_title": "حذف الرحلة المشتركة؟",
   "trips_unshareConfirm_body": "سيؤدي هذا إلى إزالة «{name}» من عروض ملفات الغوص الأخرى. يمكنك مشاركتها مرة أخرى لاحقًا.",

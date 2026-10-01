@@ -30160,6 +30160,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedItems_undo => 'تراجع';
 
   @override
+  String get sharedItems_unhideAction => 'إظهار في ملفي';
+
+  @override
   String get sites_deleteShared_title => 'حذف الموقع المشترك؟';
 
   @override

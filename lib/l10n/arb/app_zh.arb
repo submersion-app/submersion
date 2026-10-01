@@ -8610,6 +8610,7 @@
   "sharedItems_shareOwnerOnly": "只有 {owner} 可以更改共享设置",
   "sharedItems_sharedBy": "由 {owner} 共享",
   "sharedItems_undo": "撤消",
+  "sharedItems_unhideAction": "在我的资料中显示",
   "trips_deleteShared_body": "「{name}」已与其他潜水员资料共享。在此处删除会对所有人生效。",
   "trips_deleteShared_title": "删除共享行程？",
   "trips_unshareConfirm_body": "此操作会将「{name}」从其他潜水员资料的视图中移除。您之后可以再次共享。",

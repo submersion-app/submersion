@@ -8610,6 +8610,7 @@
   "sharedItems_shareOwnerOnly": "Solo {owner} puede cambiar el uso compartido",
   "sharedItems_sharedBy": "Compartido por {owner}",
   "sharedItems_undo": "Deshacer",
+  "sharedItems_unhideAction": "Mostrar en mi perfil",
   "trips_deleteShared_body": "«{name}» está compartido con otros perfiles de buceo. Eliminarlo aquí lo elimina para todos.",
   "trips_deleteShared_title": "¿Eliminar el viaje compartido?",
   "trips_unshareConfirm_body": "Esto eliminará «{name}» de la vista de los demás perfiles de buceo. Podrás volver a compartirlo más tarde.",

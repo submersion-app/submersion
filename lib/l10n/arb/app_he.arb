@@ -8610,6 +8610,7 @@
   "sharedItems_shareOwnerOnly": "רק {owner} יכול לשנות את השיתוף",
   "sharedItems_sharedBy": "שותף על ידי {owner}",
   "sharedItems_undo": "בטל",
+  "sharedItems_unhideAction": "הצגה בפרופיל שלי",
   "trips_deleteShared_body": "«{name}» משותף עם פרופילי צלילה אחרים. מחיקה כאן תסיר אותו עבור כולם.",
   "trips_deleteShared_title": "למחוק את הטיול המשותף?",
   "trips_unshareConfirm_body": "פעולה זו תסיר את «{name}» מתצוגות של פרופילי צלילה אחרים. תוכל לשתף שוב בהמשך.",

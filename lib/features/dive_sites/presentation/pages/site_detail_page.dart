@@ -499,7 +499,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                     value: 'unhide',
                     child: ListTile(
                       leading: const Icon(Icons.visibility_outlined),
-                      title: Text(context.l10n.settings_hiddenItems_unhide),
+                      title: Text(context.l10n.sharedItems_unhideAction),
                       contentPadding: EdgeInsets.zero,
                     ),
                   )

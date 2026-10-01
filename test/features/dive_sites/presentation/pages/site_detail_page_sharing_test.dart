@@ -115,7 +115,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Remove from my profile'), findsNothing);
     expect(find.text('Delete'), findsNothing);
-    await tester.tap(find.text('Unhide'));
+    await tester.tap(find.text('Show in my profile'));
     await tester.pumpAndSettle();
 
     expect(notifier.unhidden, ['pier']);

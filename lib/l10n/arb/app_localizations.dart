@@ -48438,6 +48438,12 @@ abstract class AppLocalizations {
   /// **'Undo'**
   String get sharedItems_undo;
 
+  /// Menu action on a shared trip or site the active profile has hidden, showing it in that profile again. The counterpart of sharedItems_removeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in my profile'**
+  String get sharedItems_unhideAction;
+
   /// Title of the strengthened delete confirmation dialog shown when the dive site being deleted is shared with other dive profiles.
   ///
   /// In en, this message translates to:

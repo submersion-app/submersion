@@ -30644,6 +30644,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sharedItems_undo => 'Annuler';
 
   @override
+  String get sharedItems_unhideAction => 'Afficher dans mon profil';
+
+  @override
   String get sites_deleteShared_title => 'Supprimer le site partagé ?';
 
   @override

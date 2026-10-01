@@ -30448,6 +30448,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sharedItems_undo => 'Visszavonás';
 
   @override
+  String get sharedItems_unhideAction => 'Megjelenítés a profilomban';
+
+  @override
   String get sites_deleteShared_title => 'Megosztott helyszín törlése?';
 
   @override

@@ -1184,7 +1184,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           ))
             IconButton(
               icon: const Icon(Icons.visibility_outlined),
-              tooltip: context.l10n.settings_hiddenItems_unhide,
+              tooltip: context.l10n.sharedItems_unhideAction,
               onPressed: () => ref
                   .read(siteListNotifierProvider.notifier)
                   .unhideSites([widget.siteId!]),

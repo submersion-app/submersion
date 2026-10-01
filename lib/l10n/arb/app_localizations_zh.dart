@@ -28963,6 +28963,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedItems_undo => '撤消';
 
   @override
+  String get sharedItems_unhideAction => '在我的资料中显示';
+
+  @override
   String get sites_deleteShared_title => '删除共享潜点？';
 
   @override

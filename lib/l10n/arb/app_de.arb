@@ -8713,6 +8713,7 @@
   "sharedItems_shareOwnerOnly": "Nur {owner} kann das Teilen ändern",
   "sharedItems_sharedBy": "Geteilt von {owner}",
   "sharedItems_undo": "Rückgängig",
+  "sharedItems_unhideAction": "In meinem Profil einblenden",
   "trips_deleteShared_body": "„{name}\" wird mit anderen Taucherprofilen geteilt. Löschen entfernt die Reise für alle.",
   "trips_deleteShared_title": "Geteilte Reise löschen?",
   "trips_unshareConfirm_body": "„{name}\" wird aus den Ansichten anderer Taucherprofile entfernt. Du kannst die Reise später wieder teilen.",

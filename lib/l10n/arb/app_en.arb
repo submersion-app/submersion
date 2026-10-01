@@ -19863,6 +19863,10 @@
   "@sharedItems_undo": {
     "description": "Snackbar action that undoes hiding a shared trip or site."
   },
+  "sharedItems_unhideAction": "Show in my profile",
+  "@sharedItems_unhideAction": {
+    "description": "Menu action on a shared trip or site the active profile has hidden, showing it in that profile again. The counterpart of sharedItems_removeAction."
+  },
   "sites_deleteShared_title": "Delete shared site?",
   "@sites_deleteShared_title": {
     "description": "Title of the strengthened delete confirmation dialog shown when the dive site being deleted is shared with other dive profiles."

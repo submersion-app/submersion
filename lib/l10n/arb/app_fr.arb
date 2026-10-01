@@ -8610,6 +8610,7 @@
   "sharedItems_shareOwnerOnly": "Seul {owner} peut modifier le partage",
   "sharedItems_sharedBy": "Partagé par {owner}",
   "sharedItems_undo": "Annuler",
+  "sharedItems_unhideAction": "Afficher dans mon profil",
   "trips_deleteShared_body": "« {name} » est partagé avec d'autres profils de plongée. Le supprimer ici le retire pour tout le monde.",
   "trips_deleteShared_title": "Supprimer le voyage partagé ?",
   "trips_unshareConfirm_body": "« {name} » sera retiré des vues des autres profils de plongée. Vous pourrez le partager à nouveau plus tard.",
