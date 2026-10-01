@@ -97,6 +97,7 @@ Future<_RecordingNavTrackRepository> _pump(
   DiveSite? site,
   GoRouter? router,
   List<Dive>? allDives,
+  Locale? locale,
 }) async {
   final overrides = await getBaseOverrides();
   final repository = _RecordingNavTrackRepository();
@@ -129,6 +130,7 @@ Future<_RecordingNavTrackRepository> _pump(
       ProviderScope(
         overrides: effectiveOverrides,
         child: MaterialApp(
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: NavTrackDetailPage(trackId: route.id),
@@ -147,6 +149,57 @@ void main() {
     expect(find.byKey(const ValueKey('nav-track-no-dive')), findsOneWidget);
     expect(find.text('No dive linked'), findsOneWidget);
     expect(find.text('Choose dive'), findsOneWidget);
+  });
+
+  group('on a narrow phone in German (#2692)', () {
+    // A ListTile measures its trailing widget against the full tile width
+    // first, so a translated action button there ("Tauchgang wählen",
+    // "Tauchplatz wählen") starved the card's label down to one fragment per
+    // line. The action belongs below the label instead.
+    Future<void> pumpNarrow(WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(360, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await _pump(tester, route: _route(), locale: const Locale('de'));
+    }
+
+    void expectReadableAboveAction(
+      WidgetTester tester, {
+      required String label,
+      required Finder action,
+    }) {
+      final labelRect = tester.getRect(find.text(label));
+      final actionRect = tester.getRect(action);
+      expect(
+        labelRect.width,
+        greaterThan(150),
+        reason:
+            '"$label" collapsed to ${labelRect.width}px wide on a 360px '
+            'screen; the action button is starving the ListTile text column.',
+      );
+      expect(actionRect.top, greaterThanOrEqualTo(labelRect.bottom));
+    }
+
+    testWidgets('the "no dive linked" card keeps its label readable', (
+      tester,
+    ) async {
+      await pumpNarrow(tester);
+
+      expectReadableAboveAction(
+        tester,
+        label: 'Kein Tauchgang verknüpft',
+        action: find.widgetWithText(TextButton, 'Tauchgang wählen'),
+      );
+    });
+
+    testWidgets('the site card keeps its label readable', (tester) async {
+      await pumpNarrow(tester);
+
+      expectReadableAboveAction(
+        tester,
+        label: 'Kein Tauchplatz',
+        action: find.byKey(const ValueKey('nav-track-change-site')),
+      );
+    });
   });
 
   testWidgets('shows the linked dive for a linked route', (tester) async {

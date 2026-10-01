@@ -431,41 +431,52 @@ class NavTrackListRow extends ConsumerWidget {
         ? const <NavTrackPoint>[]
         : ref.watch(navTrackByIdProvider(route.id)).value?.points ??
               const <NavTrackPoint>[];
+    // The link chip sits below the status line rather than in trailing: a
+    // ListTile measures its trailing widget against the full tile width and
+    // gives the title column whatever is left, so a text-bearing chip there
+    // starves the file name down to one fragment per line on a phone or in
+    // the map view's list pane (issue #2692, same hazard as #935).
     return ListTile(
       selected: selected,
+      isThreeLine: true,
       leading: anchored
           ? const Icon(Icons.route)
           : NavTrackShapeThumbnail(points: hydratedPoints),
       title: Text(route.name ?? route.sourceRef ?? route.id),
-      subtitle: Text(
-        [
-          units.formatDate(startedAt),
-          if (route.deviceName != null) route.deviceName!,
-          if (route.totalDistance != null)
-            units.formatDistance(route.totalDistance!),
-          if (route.maxDepth != null) units.formatDepth(route.maxDepth),
-          _formatDuration(l10n),
-        ].join(' · '),
-      ),
-      trailing: Row(
+      subtitle: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            [
+              units.formatDate(startedAt),
+              if (route.deviceName != null) route.deviceName!,
+              if (route.totalDistance != null)
+                units.formatDistance(route.totalDistance!),
+              if (route.maxDepth != null) units.formatDepth(route.maxDepth),
+              _formatDuration(l10n),
+            ].join(' · '),
+          ),
           route.diveId == null
               ? Chip(
                   key: const ValueKey('nav-track-link-chip'),
                   label: Text(_linkLabel(l10n, ref)),
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 )
               : ActionChip(
                   key: const ValueKey('nav-track-link-chip'),
                   label: Text(_linkLabel(l10n, ref)),
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   onPressed: () => context.push('/dives/${route.diveId}'),
                 ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: l10n.navTrack_common_delete,
-            onPressed: onDelete,
-          ),
         ],
+      ),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete_outline),
+        tooltip: l10n.navTrack_common_delete,
+        onPressed: onDelete,
       ),
       onTap: onTap,
     );
