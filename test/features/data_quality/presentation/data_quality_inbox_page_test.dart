@@ -787,6 +787,53 @@ void main() {
     expect(chipSelected(tester, 'Time (1)'), isTrue);
   });
 
+  testWidgets('an inbox stacked on another keeps its own chip', (tester) async {
+    // Library inbox -> a dive -> that dive's Data Quality link mounts a second
+    // inbox over the first; each must keep its own selection.
+    final prefs = await _prefs();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: _overrides(
+          prefs,
+          findings: [
+            _f(
+              id: 'k-clock',
+              detectorId: 'clock_offset',
+              category: QualityCategory.time,
+              params: const {'offsetHours': 2},
+            ),
+          ],
+        ).cast(),
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const DataQualityInboxPage(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, 'Tanks (0)'));
+    await tester.pumpAndSettle();
+
+    unawaited(
+      navigatorKey.currentState!.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const DataQualityInboxPage(filterDiveId: 'd1'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(chipSelected(tester, 'All'), isTrue);
+    expect(find.byType(QualityFindingCard), findsOneWidget);
+
+    navigatorKey.currentState!.pop();
+    await tester.pumpAndSettle();
+    expect(chipSelected(tester, 'Tanks (0)'), isTrue);
+  });
+
   testWidgets('a chip that hides every finding says so and offers the rest', (
     tester,
   ) async {
