@@ -93,7 +93,10 @@ Future<int> attributeTankSources(
     for (final MapEntry(key: tankId, value: sourceId) in resolved.entries) {
       if (!unattributed.contains(tankId)) continue;
       await (db.update(db.diveTanks)..where((t) => t.id.equals(tankId))).write(
-        DiveTanksCompanion(sourceId: Value(sourceId)),
+        DiveTanksCompanion(
+          sourceId: Value(sourceId),
+          hlc: Value(await syncRepository.issueRowClock()),
+        ),
       );
       await syncRepository.markRecordPending(
         entityType: 'diveTanks',
@@ -126,9 +129,14 @@ Future<int> clearTankSourceLinks(
           .map((r) => r.read(db.diveTanks.id)!)
           .get();
   if (ids.isEmpty) return 0;
-  await (db.update(
-    db.diveTanks,
-  )..where(where)).write(const DiveTanksCompanion(sourceId: Value(null)));
+  await (db.update(db.diveTanks)..where(where)).write(
+    DiveTanksCompanion(
+      sourceId: const Value(null),
+      // Its own clock, beside the marks below, as clearTankComputerLinks
+      // does (#2644): a cleared value must reach peers.
+      hlc: Value(await syncRepository.issueRowClock()),
+    ),
+  );
   for (final id in ids) {
     await syncRepository.markRecordPending(
       entityType: 'diveTanks',
