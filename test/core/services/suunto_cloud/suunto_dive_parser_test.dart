@@ -214,12 +214,42 @@ void main() {
       expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
     });
 
+    test('keeps a real header-to-sample delay alongside the zone error', () {
+      // 27 minutes of the gap are real and 2 hours are the zone. Rounding
+      // the whole 2h27m to quarter hours would take 2h30m and move the dive
+      // 3 minutes early; the header's own +02:00 says which part is zone.
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T15:00:00+02:00'),
+        samples: samplesFrom('17:27', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 15, 27, 40));
+    });
+
+    test('keeps the sample clock when the gap is not the header offset', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T14:14:00+02:00'),
+        samples: samplesFrom('13:44', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
+    test('rounds to quarter hours when the header declares no offset', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00'),
+        samples: samplesFrom('15:44', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
     test('keeps the sample clock for a gap shorter than any zone', () {
       // Half an hour rounds cleanly to quarter hours, but no zone sits that
       // close to UTC, so it cannot be an offset error.
       final result = SuuntoDiveParser.parse(
-        header: headerAt('2026-04-19T14:14:00+02:00'),
-        samples: samplesFrom('13:44', '+02:00'),
+        header: headerAt('2026-04-19T14:14:00'),
+        samples: samplesFrom('13:44', ''),
       );
 
       expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));

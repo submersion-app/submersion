@@ -62,15 +62,22 @@ class SuuntoDiveParser {
     final deviceInternalName = device?['Name'] as String?;
     final gasOffset = _gasOffsetFor(deviceInternalName, samples);
 
-    final headerStart = _parseIso8601(header['DateTime'] as String?);
+    final headerDateTime = header['DateTime'] as String?;
+    final headerStart = _parseIso8601(headerDateTime);
+    final headerOffset = headerDateTime == null
+        ? null
+        : _declaredOffset(headerDateTime);
 
     final firstPass = _FirstPass.scan(samples);
     final diveStartMs = firstPass.diveStartMs;
     final startTime = diveStartMs != null
-        ? DateTime.fromMillisecondsSinceEpoch(
-            diveStartMs,
-            isUtc: true,
-          ).add(_sampleClockCorrection(headerStart, firstPass.firstSampleMs))
+        ? DateTime.fromMillisecondsSinceEpoch(diveStartMs, isUtc: true).add(
+            _sampleClockCorrection(
+              headerStart,
+              headerOffset,
+              firstPass.firstSampleMs,
+            ),
+          )
         : (headerStart ?? DateTime.now().toUtc());
 
     final profileResult = diveStartMs == null
@@ -558,8 +565,7 @@ class SuuntoDiveParser {
 
   /// The smallest gap between the header and the first sample that can be a
   /// zone error rather than the header marking the log opening a little
-  /// differently. No zone sits less than an hour from UTC, so a gap this
-  /// large is never surface time before the descent.
+  /// differently. No zone sits less than an hour from UTC.
   static const Duration _minZoneError = Duration(minutes: 45);
 
   /// The shift that puts the sample clock on the computer's own clock.
@@ -570,22 +576,40 @@ class SuuntoDiveParser {
   /// 13:44 CEST arrived with samples reading 15:44 (#2604). The header is the
   /// computer's clock, the one Suunto itself shows and the one Subsurface's
   /// `import-suunto-json.cpp` files the dive at, so it settles the zone; the
-  /// samples still place the dive-active moment within the log. The gap is
-  /// rounded to whole quarter hours, the granularity of every real offset.
+  /// samples still place the dive-active moment within the log.
   ///
-  /// Zero when either clock is missing or they agree to within
-  /// [_minZoneError], which leaves the app's JSON export, whose samples carry
-  /// the header's clock, exactly as before.
+  /// When the header declares its offset, the zone error can only be that
+  /// offset in one direction or the other, so the correction is whichever
+  /// of none, `+offset` and `-offset` leaves the smallest remainder. Any real
+  /// gap between the header and the first sample survives as that remainder.
+  /// A header with no offset to go on falls back to rounding the gap to whole
+  /// quarter hours, the granularity of every real offset, once it reaches
+  /// [_minZoneError].
+  ///
+  /// Zero when either clock is missing or they already agree, which leaves
+  /// the app's JSON export, whose samples carry the header's clock, exactly
+  /// as before.
   static Duration _sampleClockCorrection(
     DateTime? headerStart,
+    Duration? headerOffset,
     int? firstSampleMs,
   ) {
     if (headerStart == null || firstSampleMs == null) return Duration.zero;
-    final gapMs = headerStart.millisecondsSinceEpoch - firstSampleMs;
-    if (gapMs.abs() < _minZoneError.inMilliseconds) return Duration.zero;
+    final gap = Duration(
+      milliseconds: headerStart.millisecondsSinceEpoch - firstSampleMs,
+    );
+    if (headerOffset != null && headerOffset != Duration.zero) {
+      var best = Duration.zero;
+      for (final candidate in [headerOffset, -headerOffset]) {
+        if ((gap - candidate).abs() < (gap - best).abs()) best = candidate;
+      }
+      return best;
+    }
+    if (gap.abs() < _minZoneError) return Duration.zero;
     const quarterHourMs = 15 * 60 * 1000;
     return Duration(
-      milliseconds: (gapMs / quarterHourMs).round() * quarterHourMs,
+      milliseconds:
+          (gap.inMilliseconds / quarterHourMs).round() * quarterHourMs,
     );
   }
 
