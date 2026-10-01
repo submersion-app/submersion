@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
@@ -1139,6 +1140,40 @@ void main() {
       expect(dive.cnsEnd, 18.0);
       expect(dive.otu, 12.0);
       expect(dive.decoConservatism, 1);
+    });
+
+    test('writes the computer tissue snapshot the file parse carries, and '
+        'clears one it no longer reports', () async {
+      const tissue = ComputerTissueSnapshot(
+        algorithm: 'zhl_16c',
+        start: ComputerTissueState(n2LoadPercent: 0),
+        end: ComputerTissueState(n2LoadPercent: 86, cnsPercent: 12),
+      );
+      final diveId = await seedDive(notes: '', buddy: '');
+      await seedSource(diveId, id: 'src-file');
+
+      Future<String?> stored() async => (await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle()).computerTissueJson;
+
+      await service.applyReimport(
+        diveId: diveId,
+        diveData: {
+          'dateTime': DateTime(2026, 9, 1, 9),
+          'computerTissue': tissue,
+        },
+        now: DateTime(2026, 9, 3),
+      );
+      expect(ComputerTissueSnapshot.decode(await stored()), tissue);
+
+      // Like the summary columns beside it, the snapshot belongs to the
+      // parse: a fixed parser that stops emitting one clears it.
+      await service.applyReimport(
+        diveId: diveId,
+        diveData: {'dateTime': DateTime(2026, 9, 1, 9)},
+        now: DateTime(2026, 9, 4),
+      );
+      expect(await stored(), isNull);
     });
 
     test('rewrites the dive mode the parse reports', () async {

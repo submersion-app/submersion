@@ -89,7 +89,7 @@ class Dives extends Table {
       text().nullable()(); // "buhlmann", "vpm", "rgbm", "dciem"
   IntColumn get decoConservatism =>
       integer().nullable()(); // Personal adjustment (0=neutral)
-  // Tissue state the dive computer itself reported (v241): the JSON of
+  // Tissue state the dive computer itself reported (v256): the JSON of
   // ComputerTissueSnapshot.toJson, or null when the source carried none.
   TextColumn get computerTissueJson => text().nullable()();
   // Dive computer that logged this dive (for display/export, separate from computerId relation)

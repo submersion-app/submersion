@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_log/domain/services/source_ownership.dart';
@@ -338,6 +339,12 @@ class DiveReimportService {
     final decoConservatism = _asInt(diveData['decoConservatism']);
     final gfLow = _asInt(diveData['gradientFactorLow']);
     final gfHigh = _asInt(diveData['gradientFactorHigh']);
+    // The dive-level tissue state the computer reported. It belongs to the
+    // parse like the summary columns beside it, so a parse without one
+    // clears it.
+    final computerTissue = ComputerTissueSnapshot.from(
+      diveData['computerTissue'],
+    );
 
     await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
       DivesCompanion(
@@ -358,6 +365,7 @@ class DiveReimportService {
         otu: Value(_asDouble(diveData['otu'])),
         decoAlgorithm: Value(decoAlgorithm),
         decoConservatism: Value(decoConservatism),
+        computerTissueJson: Value(computerTissue?.encode()),
         gradientFactorLow: Value(gfLow),
         gradientFactorHigh: Value(gfHigh),
         entryLatitude: entryLatitude != null
