@@ -652,6 +652,7 @@ class UddfEntityImporter {
       sourceFileBytes: sourceFileBytes,
       sourceFilesById: sourceFilesById,
       retainSourceDiveNumbers: retainSourceDiveNumbers,
+      sourceHasTrips: data.trips.isNotEmpty,
       now: now,
       dataSourcesByDiveRef: data.dataSourcesByDiveRef,
       onProgress: onProgress,
@@ -2318,6 +2319,7 @@ class UddfEntityImporter {
     Uint8List? sourceFileBytes,
     Map<String, ImportSourceFile> sourceFilesById = const {},
     bool retainSourceDiveNumbers = false,
+    bool sourceHasTrips = false,
     required DateTime now,
     Map<String, List<Map<String, dynamic>>> dataSourcesByDiveRef = const {},
     ImportProgressCallback? onProgress,
@@ -2440,8 +2442,8 @@ class UddfEntityImporter {
       return storedIdByKey[key];
     }
 
-    // The trips the diver can see, read on the first dive the file puts in
-    // no trip. Trips are imported before dives, so the file's own are here.
+    // The trips the diver can see, read on the first dive placed by date.
+    // Trips are imported before dives, so the file's own are here.
     List<Trip>? diverTrips;
 
     for (final i in sortedSelected) {
@@ -2560,13 +2562,19 @@ class UddfEntityImporter {
         }
       }
 
-      final dateTime = diveData['dateTime'] as DateTime? ?? now;
-      // A dive the file puts in no trip joins the diver's trip whose dates
-      // cover it (#2618). MacDive has no trips at all, so every trip the
-      // diver had made showed 0 dives after a MacDive import.
-      if (linkedTripId == null) {
+      final sourceDateTime = diveData['dateTime'] as DateTime?;
+      final dateTime = sourceDateTime ?? now;
+      // A dive with no trip joins the diver's trip whose dates cover it
+      // (#2618). MacDive has no trips at all, so every trip the diver had
+      // made showed 0 dives after a MacDive import. A file that has trips
+      // leaves a dive out of them on purpose, so only a dive whose own trip
+      // was not imported is placed by date there. An undated dive would be
+      // placed by the import clock, so it is not placed at all.
+      if (linkedTripId == null &&
+          sourceDateTime != null &&
+          (tripRef != null || !sourceHasTrips)) {
         diverTrips ??= await repos.tripRepository.getAllTrips(diverId: diverId);
-        linkedTripId = tripForDiveDate(dateTime, diverTrips)?.id;
+        linkedTripId = tripForDiveDate(sourceDateTime, diverTrips)?.id;
       }
       // CSV imports provide only 'duration' (used as bottomTime); fall back
       // to it for runtime so the total dive time is populated.

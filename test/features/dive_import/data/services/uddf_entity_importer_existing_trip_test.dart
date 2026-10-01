@@ -49,13 +49,16 @@ void main() {
     'tripRef': ?tripRef,
   };
 
-  Future<void> import(UddfImportResult data, String diverId) =>
-      UddfEntityImporter().import(
-        data: data,
-        selections: UddfImportSelections.selectAll(data),
-        repositories: buildRepositories(),
-        diverId: diverId,
-      );
+  Future<void> import(
+    UddfImportResult data,
+    String diverId, {
+    UddfImportSelections? selections,
+  }) => UddfEntityImporter().import(
+    data: data,
+    selections: selections ?? UddfImportSelections.selectAll(data),
+    repositories: buildRepositories(),
+    diverId: diverId,
+  );
 
   Future<Map<int, String?>> tripIdByDay(String diverId) async => {
     for (final d in await DiveRepository().getAllDives(diverId: diverId))
@@ -143,5 +146,87 @@ void main() {
     );
 
     expect(await tripIdByDay(diverId), {10: shared.id});
+  });
+
+  test('a file that has trips keeps its tripless dives out of them', () async {
+    // Subsurface, Diving Log and Submersion's own UDDF say which dives are
+    // in a trip; a dive they leave out stays out.
+    final diverId = await createTestDiver();
+    await existingTrip('bonaire', diverId);
+
+    await import(
+      UddfImportResult(
+        trips: [
+          {
+            'uddfId': 'trip_file',
+            'name': 'From the file',
+            'startDate': DateTime(2026, 3, 9),
+            'endDate': DateTime(2026, 3, 11),
+          },
+        ],
+        dives: [
+          dive(DateTime.utc(2026, 3, 10, 9), tripRef: 'trip_file'),
+          dive(DateTime.utc(2026, 3, 12, 9)),
+        ],
+      ),
+      diverId,
+    );
+
+    final ids = await tripIdByDay(diverId);
+    expect(ids[10], isNotNull);
+    expect(ids[12], isNull);
+  });
+
+  test('a dive whose trip was not imported is placed by date', () async {
+    // The reviewer skipped the file's trip, say as a duplicate of one the
+    // diver already has.
+    final diverId = await createTestDiver();
+    final trip = await existingTrip('bonaire', diverId);
+
+    await import(
+      UddfImportResult(
+        trips: [
+          {
+            'uddfId': 'trip_file',
+            'name': 'Bonaire',
+            'startDate': DateTime(2026, 3, 7),
+            'endDate': DateTime(2026, 3, 14),
+          },
+        ],
+        dives: [dive(DateTime.utc(2026, 3, 10, 9), tripRef: 'trip_file')],
+      ),
+      diverId,
+      selections: const UddfImportSelections(dives: {0}),
+    );
+
+    expect(await tripIdByDay(diverId), {10: trip.id});
+  });
+
+  test('an undated dive is not placed in the trip covering today', () async {
+    final diverId = await createTestDiver();
+    final today = DateTime.now();
+    await TripRepository().createTrip(
+      Trip(
+        id: 'current',
+        diverId: diverId,
+        name: 'current',
+        startDate: DateTime(today.year, today.month, today.day - 1),
+        endDate: DateTime(today.year, today.month, today.day + 1),
+        createdAt: created,
+        updatedAt: created,
+      ),
+    );
+
+    await import(
+      const UddfImportResult(
+        dives: [
+          {'maxDepth': 18.0, 'duration': Duration(minutes: 45)},
+        ],
+      ),
+      diverId,
+    );
+
+    final dives = await DiveRepository().getAllDives(diverId: diverId);
+    expect(dives.single.tripId, isNull);
   });
 }
