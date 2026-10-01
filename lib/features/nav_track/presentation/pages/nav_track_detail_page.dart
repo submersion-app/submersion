@@ -458,17 +458,14 @@ class _LinkCard extends ConsumerWidget {
         onAction: onChooseDive,
       );
     }
-    final diveAsync = ref.watch(diveProvider(diveId));
+    final diveNumber = ref.watch(diveProvider(diveId)).value?.diveNumber;
     return Card(
       child: ListTile(
         key: const ValueKey('nav-track-linked-dive'),
         leading: const Icon(Icons.link),
         title: Text(
-          diveAsync.value != null
-              ? l10n.navTrack_common_diveNumber(
-                  (diveAsync.value!.diveNumber ?? diveAsync.value!.id)
-                      .toString(),
-                )
+          diveNumber != null
+              ? l10n.navTrack_common_diveNumber(diveNumber.toString())
               : l10n.navTrack_common_diveById(diveId),
         ),
         trailing: const Icon(Icons.chevron_right),
@@ -544,6 +541,7 @@ class _ActionCard extends StatelessWidget {
             style: TextButton.styleFrom(
               padding: EdgeInsets.zero,
               visualDensity: VisualDensity.compact,
+              alignment: AlignmentDirectional.centerStart,
             ),
             onPressed: onAction,
             child: Text(actionLabel),

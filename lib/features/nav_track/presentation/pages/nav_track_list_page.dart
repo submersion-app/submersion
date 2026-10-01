@@ -392,6 +392,31 @@ class NavTrackListRow extends ConsumerWidget {
         : l10n.navTrack_common_diveById(diveId);
   }
 
+  /// The link chip: a plain chip for an unlinked route, or one that opens
+  /// the linked dive.
+  Widget _linkChip(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
+    const key = ValueKey('nav-track-link-chip');
+    final label = Text(_linkLabel(l10n, ref));
+    const density = VisualDensity.compact;
+    const tapTarget = MaterialTapTargetSize.shrinkWrap;
+    final diveId = route.diveId;
+    if (diveId == null) {
+      return Chip(
+        key: key,
+        label: label,
+        visualDensity: density,
+        materialTapTargetSize: tapTarget,
+      );
+    }
+    return ActionChip(
+      key: key,
+      label: label,
+      visualDensity: density,
+      materialTapTargetSize: tapTarget,
+      onPressed: () => context.push('/dives/$diveId'),
+    );
+  }
+
   /// Duration up to the last dead-reckoned sample, as stored at import
   /// (`durationSeconds`, the same active range `NavTrackStats.of` and the
   /// 3D/2D ribbons stop at). `route.endTime` is the raw recording's own last
@@ -457,20 +482,7 @@ class NavTrackListRow extends ConsumerWidget {
               _formatDuration(l10n),
             ].join(' · '),
           ),
-          route.diveId == null
-              ? Chip(
-                  key: const ValueKey('nav-track-link-chip'),
-                  label: Text(_linkLabel(l10n, ref)),
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                )
-              : ActionChip(
-                  key: const ValueKey('nav-track-link-chip'),
-                  label: Text(_linkLabel(l10n, ref)),
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onPressed: () => context.push('/dives/${route.diveId}'),
-                ),
+          _linkChip(context, l10n, ref),
         ],
       ),
       trailing: IconButton(

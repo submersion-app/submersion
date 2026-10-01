@@ -218,6 +218,19 @@ void main() {
     expect(find.textContaining('#412'), findsOneWidget);
   });
 
+  testWidgets('a linked dive without a number is labelled by its id, not as a '
+      'numbered dive (matching the routes list chip)', (tester) async {
+    final dive = Dive(id: 'dive-1', dateTime: DateTime(2026, 8, 22, 10, 8));
+    await _pump(
+      tester,
+      route: _route(diveId: 'dive-1'),
+      linkedDive: dive,
+    );
+
+    expect(find.text('Dive dive-1'), findsOneWidget);
+    expect(find.textContaining('#'), findsNothing);
+  });
+
   testWidgets('tapping "Choose dive" and picking one links the route to it', (
     tester,
   ) async {
