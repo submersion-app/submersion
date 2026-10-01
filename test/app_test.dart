@@ -12,6 +12,8 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/shared/services/incoming_share.dart';
+import 'package:submersion/shared/services/navigation_ready_gate.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -153,6 +155,10 @@ class _PendingNavTrackImport implements NavTrackImportService {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
+
+/// The share sheet exists only on Android and iOS; the handler ignores it
+/// anywhere else, so the share tests pin a mobile platform.
+final _shareSheetPlatform = TargetPlatformVariant.only(TargetPlatform.android);
 
 /// An import that cannot read any file it is handed.
 class _UnreadableImport extends UniversalImportNotifier {
@@ -616,7 +622,7 @@ void main() {
       await settleShare(tester, until: review);
 
       expect(review, findsOneWidget);
-    });
+    }, variant: _shareSheetPlatform);
 
     testWidgets('a soft restart does not open the launch share again', (
       tester,
@@ -644,7 +650,7 @@ void main() {
       await settleShare(tester);
 
       expect(review, findsNothing);
-    });
+    }, variant: _shareSheetPlatform);
 
     testWidgets(
       'a Seacraft route shared before the navigator is built opens its '
@@ -666,6 +672,7 @@ void main() {
 
         expect(review, findsOneWidget);
       },
+      variant: _shareSheetPlatform,
     );
 
     testWidgets(
@@ -695,6 +702,7 @@ void main() {
 
         expect(message, findsOneWidget);
       },
+      variant: _shareSheetPlatform,
     );
 
     testWidgets('a dive log shared during setup opens the import wizard once '
@@ -718,7 +726,7 @@ void main() {
       await settleShare(tester, until: wizard);
 
       expect(wizard, findsOneWidget);
-    });
+    }, variant: _shareSheetPlatform);
 
     testWidgets('several dive logs shared during setup open the import '
         'wizard once setup is left', (tester) async {
@@ -748,7 +756,45 @@ void main() {
         'first.uddf',
         'second.uddf',
       ]);
-    });
+    }, variant: _shareSheetPlatform);
+
+    testWidgets('a file held during setup is opened by the app root that a '
+        'soft restart puts in its place', (tester) async {
+      shareOnLaunch({'dive.uddf': uddfBytes});
+      // One gate for the process, as SubmersionRestart provides it.
+      final shares = NavigationReadyGate<IncomingShare>();
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        router: setupRouter(),
+        extraOverrides: [
+          diverCountProvider.overrideWith((ref) async => 1),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          incomingShareGateProvider.overrideWithValue(shares),
+        ],
+      );
+      await settleShare(tester);
+      expect(wizard, findsNothing);
+
+      // A restore from the setup wizard ends in restartApp(), which mounts
+      // a fresh app root; the restored library has a diver, so it leaves
+      // setup at once.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        router: setupRouter()..go('/'),
+        scopeKey: UniqueKey(),
+        extraOverrides: [
+          diverCountProvider.overrideWith((ref) async => 1),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          incomingShareGateProvider.overrideWithValue(shares),
+        ],
+      );
+      await settleShare(tester, until: wizard);
+
+      expect(wizard, findsOneWidget);
+    }, variant: _shareSheetPlatform);
   });
 
   testWidgets('NFC turned on in the system settings is noticed on return', (

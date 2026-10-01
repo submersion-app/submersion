@@ -39,6 +39,7 @@ import 'package:submersion/features/settings/presentation/widgets/adopt_replaced
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
 import 'package:submersion/shared/services/incoming_file_handler.dart';
+import 'package:submersion/shared/services/incoming_share.dart';
 import 'package:submersion/shared/services/navigation_ready_gate.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
@@ -102,8 +103,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   bool _hasDivers = false;
   bool _navigationReadyRetryScheduled = false;
 
-  /// Share-sheet files wait here until the app can show the page they open.
-  final _sharedFiles = NavigationReadyGate();
+  /// This root's hold on the share gate, which outlives it (see
+  /// [incomingShareGateProvider]).
+  late final NavigationReadyGateOwner<IncomingShare> _shares;
   late final AppLifecycleListener _lifecycleListener;
 
   @override
@@ -113,28 +115,17 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     _lifecycleListener = AppLifecycleListener(onExitRequested: _closeDatabases);
     registerUpdateMenuChannel(ref);
     registerDisplayZoomMenuChannel(ref);
+    // Each share waits until the app can open the page it leads to (see
+    // _updateNavigationReady): one that cold-started the app arrives ahead
+    // of the navigator (#2690), and one on a fresh install ahead of the end
+    // of setup. Attached first: the readiness updates below report to it.
+    final shareGate = ref.read(incomingShareGateProvider);
+    _shares = shareGate.attach(_openShare);
     _fileShareHandler = FileShareHandler(
-      // Each waits until the app can open the page it leads to (see
-      // _updateNavigationReady): a share that cold-started the app arrives
-      // ahead of the navigator (#2690), and one on a fresh install ahead of
-      // the end of setup. The handler awaits the wait too, so its "Could
-      // not read file" snackbar still covers work that had to.
       onFileReceived: (bytes, fileName) =>
-          _sharedFiles.run(() => _handleIncomingFile(bytes, fileName)),
-      onFilesReceived: (paths) =>
-          _sharedFiles.run(() => _handleIncomingFiles(paths)),
-      onError: (_) {
-        final l10n = _scaffoldMessengerKey.currentContext != null
-            ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
-            : null;
-        _scaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n?.dropTarget_error_readFailed ?? 'Could not read file',
-            ),
-          ),
-        );
-      },
+          shareGate.run(SharedFile(bytes, fileName)),
+      onFilesReceived: (paths) => shareGate.run(SharedFileBatch(paths)),
+      onError: (_) => _showShareReadFailed(),
     );
     _passportLinks = PassportLinkDispatcher(
       source: ref.read(incomingLinkSourceProvider),
@@ -174,6 +165,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   @override
   void dispose() {
     _linkRouter.routeInformationProvider.removeListener(_updateNavigationReady);
+    _shares.release();
     unawaited(_passportLinks.dispose());
     _fileShareHandler.dispose();
     _lifecycleListener.dispose();
@@ -373,6 +365,40 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     });
   }
 
+  /// Opens a share the gate has let through. Failures are reported here,
+  /// by the root that opened it: the share handler that received it may
+  /// belong to a root a soft restart has since replaced.
+  Future<void> _openShare(IncomingShare share) async {
+    try {
+      switch (share) {
+        case SharedFile(:final bytes, :final fileName):
+          await _handleIncomingFile(bytes, fileName);
+        case SharedFileBatch(:final paths):
+          await _handleIncomingFiles(paths);
+      }
+    } catch (error, stackTrace) {
+      LoggerService.forClass(SubmersionApp).warning(
+        'A shared file could not be opened',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      _showShareReadFailed();
+    }
+  }
+
+  void _showShareReadFailed() {
+    final l10n = _scaffoldMessengerKey.currentContext != null
+        ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
+        : null;
+    _scaffoldMessengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(
+          l10n?.dropTarget_error_readFailed ?? 'Could not read file',
+        ),
+      ),
+    );
+  }
+
   Future<void> _handleIncomingFile(Uint8List bytes, String fileName) async {
     final router = ref.read(appRouterProvider);
     final location = router.routeInformationProvider.value.uri.path;
@@ -431,7 +457,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     final navigatorBuilt = rootNavigatorKey.currentContext != null;
     final ready = settled && navigatorBuilt;
     _passportLinks.setReady(ready);
-    _sharedFiles.setReady(ready);
+    _shares.setReady(ready);
     // One pending retry at most, however many updates arrive meanwhile.
     if (settled && !navigatorBuilt && !_navigationReadyRetryScheduled) {
       _navigationReadyRetryScheduled = true;

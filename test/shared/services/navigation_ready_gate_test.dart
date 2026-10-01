@@ -5,128 +5,201 @@ import 'package:submersion/shared/services/navigation_ready_gate.dart';
 
 void main() {
   group('NavigationReadyGate', () {
-    test('runs work at once when the app can already show a page', () async {
-      final gate = NavigationReadyGate()..setReady(true);
-      final ran = <String>[];
+    test('hands an item over at once when its owner is ready', () async {
+      final gate = NavigationReadyGate<String>();
+      final handled = <String>[];
+      gate.attach((item) async => handled.add(item)).setReady(true);
 
-      await gate.run(() async => ran.add('file'));
+      await gate.run('file');
 
-      expect(ran, ['file']);
+      expect(handled, ['file']);
     });
 
-    test('holds work until ready, then runs it (#2690)', () async {
-      final gate = NavigationReadyGate();
-      final ran = <String>[];
+    test('holds an item until its owner is ready (#2690)', () async {
+      final gate = NavigationReadyGate<String>();
+      final handled = <String>[];
+      final owner = gate.attach((item) async => handled.add(item));
 
-      final done = gate.run(() async => ran.add('file'));
+      final done = gate.run('file');
       await pumpEventQueue();
-      expect(ran, isEmpty);
+      expect(handled, isEmpty);
 
-      gate.setReady(true);
+      owner.setReady(true);
       await done;
-      expect(ran, ['file']);
+      expect(handled, ['file']);
     });
 
-    test('a not-ready update keeps the work held', () async {
-      final gate = NavigationReadyGate();
-      final ran = <String>[];
+    test('holds an item while no owner is attached', () async {
+      final gate = NavigationReadyGate<String>();
+      final handled = <String>[];
 
-      unawaited(gate.run(() async => ran.add('file')));
-      gate.setReady(false);
+      final done = gate.run('file');
+      await pumpEventQueue();
+      expect(handled, isEmpty);
+
+      gate.attach((item) async => handled.add(item)).setReady(true);
+      await done;
+      expect(handled, ['file']);
+    });
+
+    test('a not-ready update keeps the item held', () async {
+      final gate = NavigationReadyGate<String>();
+      final handled = <String>[];
+      final owner = gate.attach((item) async => handled.add(item));
+
+      unawaited(gate.run('file'));
+      owner.setReady(false);
       await pumpEventQueue();
 
-      expect(ran, isEmpty);
+      expect(handled, isEmpty);
     });
 
-    test('the caller gets the result of held work once it runs', () async {
-      final gate = NavigationReadyGate();
+    test('an item held for one owner goes to the owner that replaces it, '
+        'not the one released', () async {
+      final gate = NavigationReadyGate<String>();
+      final first = <String>[];
+      final second = <String>[];
+      final old = gate.attach((item) async => first.add(item));
 
-      final result = gate.run(() async => 42);
-      gate.setReady(true);
+      final done = gate.run('file');
+      // A soft restart: the new app root attaches before the old one is
+      // disposed, so the old release and readiness must not touch it.
+      final replacement = gate.attach((item) async => second.add(item));
+      old
+        ..setReady(true)
+        ..release();
+      await pumpEventQueue();
+      expect(first, isEmpty);
+      expect(second, isEmpty);
 
-      expect(await result, 42);
+      replacement.setReady(true);
+      await done;
+      expect(first, isEmpty);
+      expect(second, ['file']);
     });
 
-    test('the caller gets the error of held work once it runs', () async {
-      final gate = NavigationReadyGate();
+    test('releasing the current owner holds later items again', () async {
+      final gate = NavigationReadyGate<String>();
+      final handled = <String>[];
+      gate.attach((item) async => handled.add(item))
+        ..setReady(true)
+        ..release();
 
-      final result = gate.run<void>(() async => throw StateError('unread'));
-      gate.setReady(true);
+      unawaited(gate.run('file'));
+      await pumpEventQueue();
 
-      await expectLater(result, throwsStateError);
+      expect(handled, isEmpty);
     });
+
+    test('the caller learns when a held item has been handled', () async {
+      final gate = NavigationReadyGate<String>();
+      var handled = false;
+      final owner = gate.attach((item) async => handled = true);
+
+      final done = gate.run('file');
+      owner.setReady(true);
+      await done;
+
+      expect(handled, isTrue);
+    });
+
+    test(
+      'the caller gets the error of a held item once it is handled',
+      () async {
+        final gate = NavigationReadyGate<String>();
+        final owner = gate.attach((item) async => throw StateError('unread'));
+
+        final done = gate.run('file');
+        owner.setReady(true);
+
+        await expectLater(done, throwsStateError);
+      },
+    );
 
     test('a failed item does not stop the ones behind it', () async {
-      final gate = NavigationReadyGate();
-      final ran = <String>[];
+      final gate = NavigationReadyGate<String>();
+      final handled = <String>[];
+      final owner = gate.attach((item) async {
+        if (item == 'bad') throw StateError('unread');
+        handled.add(item);
+      });
 
-      final first = gate.run<void>(() async => throw StateError('unread'));
-      final second = gate.run(() async => ran.add('second'));
-      gate.setReady(true);
+      final first = gate.run('bad');
+      final second = gate.run('good');
+      owner.setReady(true);
 
       await expectLater(first, throwsStateError);
       await second;
-      expect(ran, ['second']);
+      expect(handled, ['good']);
     });
 
-    test('held work runs one item at a time, in arrival order', () async {
-      final gate = NavigationReadyGate();
+    test('held items are handled one at a time, in arrival order', () async {
+      final gate = NavigationReadyGate<String>();
       final events = <String>[];
       final firstMayFinish = Completer<void>();
-
-      final first = gate.run(() async {
-        events.add('first started');
-        await firstMayFinish.future;
-        events.add('first finished');
+      final owner = gate.attach((item) async {
+        events.add('$item started');
+        if (item == 'first') await firstMayFinish.future;
+        events.add('$item finished');
       });
-      final second = gate.run(() async => events.add('second started'));
 
-      gate.setReady(true);
+      final first = gate.run('first');
+      final second = gate.run('second');
+      owner.setReady(true);
       await pumpEventQueue();
       expect(events, ['first started']);
 
       firstMayFinish.complete();
       await Future.wait([first, second]);
-      expect(events, ['first started', 'first finished', 'second started']);
+      expect(events, [
+        'first started',
+        'first finished',
+        'second started',
+        'second finished',
+      ]);
     });
 
-    test('work arriving while ready waits behind work still running', () async {
-      final gate = NavigationReadyGate()..setReady(true);
+    test('an item arriving while ready waits behind one still being '
+        'handled', () async {
+      final gate = NavigationReadyGate<String>();
       final events = <String>[];
       final firstMayFinish = Completer<void>();
+      gate
+          .attach((item) async {
+            events.add('$item started');
+            if (item == 'first') await firstMayFinish.future;
+          })
+          .setReady(true);
 
-      final first = gate.run(() async {
-        events.add('first started');
-        await firstMayFinish.future;
-        events.add('first finished');
-      });
-      final second = gate.run(() async => events.add('second started'));
+      final first = gate.run('first');
+      final second = gate.run('second');
       await pumpEventQueue();
       expect(events, ['first started']);
 
       firstMayFinish.complete();
       await Future.wait([first, second]);
-      expect(events, ['first started', 'first finished', 'second started']);
+      expect(events, ['first started', 'second started']);
     });
 
     test('going unready mid-queue holds the rest until ready again', () async {
-      final gate = NavigationReadyGate();
-      final ran = <String>[];
-
-      final first = gate.run(() async {
-        ran.add('first');
-        gate.setReady(false);
+      final gate = NavigationReadyGate<String>();
+      final handled = <String>[];
+      late final NavigationReadyGateOwner owner;
+      owner = gate.attach((item) async {
+        handled.add(item);
+        owner.setReady(false);
       });
-      final second = gate.run(() async => ran.add('second'));
 
-      gate.setReady(true);
+      final first = gate.run('first');
+      final second = gate.run('second');
+      owner.setReady(true);
       await first;
       await pumpEventQueue();
-      expect(ran, ['first']);
+      expect(handled, ['first']);
 
-      gate.setReady(true);
+      owner.setReady(true);
       await second;
-      expect(ran, ['first', 'second']);
+      expect(handled, ['first', 'second']);
     });
   });
 }
