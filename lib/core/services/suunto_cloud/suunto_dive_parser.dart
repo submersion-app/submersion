@@ -151,7 +151,10 @@ class SuuntoDiveParser {
       gasSwitches: profileResult.gasSwitches,
       gfLow: gfLow,
       gfHigh: gfHigh,
-      decoAlgorithm: (gfLow != null && gfHigh != null) ? 'buhlmann' : null,
+      decoAlgorithm: _decoAlgorithm(
+        diving?['Algorithm'],
+        hasGradientFactors: gfLow != null && gfHigh != null,
+      ),
       computerTissue: computerTissue,
       events: profileResult.events,
     );
@@ -533,6 +536,24 @@ class SuuntoDiveParser {
     }
     if (bestKelvin == null || bestDiff >= 15000) return null;
     return _kelvinToCelsius(bestKelvin);
+  }
+
+  /// The dive's deco model id from the header's `Algorithm` ("Suunto
+  /// Fused2 RGBM", "Bühlmann 16 GF"), so the dive agrees with its tissue
+  /// snapshot. RGBM and Bühlmann map to the app's ids; any other name is kept
+  /// lowercased, as other importers do. Only a header without one falls back
+  /// to the GF pair, which a Suunto writes whatever model it runs.
+  static String? _decoAlgorithm(
+    Object? algorithm, {
+    required bool hasGradientFactors,
+  }) {
+    final name = algorithm is String ? algorithm.trim().toLowerCase() : '';
+    if (name.isEmpty) return hasGradientFactors ? 'buhlmann' : null;
+    if (name.contains('rgbm')) return 'rgbm';
+    if (name.contains('buhlmann') || name.contains('bühlmann')) {
+      return 'buhlmann';
+    }
+    return name;
   }
 
   static double _kelvinToCelsius(double kelvin) => kelvin - 273.15;

@@ -989,6 +989,47 @@ void main() {
       expect(result.computerTissue!.end!.cnsPercent, closeTo(4.0, 1e-9));
     });
 
+    group('decoAlgorithm follows the header Algorithm', () {
+      // The header carries a GF pair in every case below, which alone used
+      // to make the dive Buhlmann even when the computer ran RGBM.
+      final cases = {
+        'Suunto Fused2 RGBM': 'rgbm',
+        'Suunto Technical RGBM': 'rgbm',
+        'Bühlmann 16 GF': 'buhlmann',
+        'Buhlmann 16 GF': 'buhlmann',
+        ' Something New ': 'something new',
+      };
+      for (final MapEntry(key: algorithm, value: expected) in cases.entries) {
+        test('"$algorithm" is $expected', () {
+          final result = SuuntoDiveParser.parse(
+            header: headerWithDiving({'Algorithm': algorithm}),
+            samples: const [],
+          );
+          expect(result.dive.decoAlgorithm, expected);
+        });
+      }
+
+      test('a blank Algorithm falls back to the GF pair', () {
+        final result = SuuntoDiveParser.parse(
+          header: headerWithDiving({'Algorithm': '  '}),
+          samples: const [],
+        );
+        expect(result.dive.decoAlgorithm, 'buhlmann');
+      });
+
+      test('the dive and its snapshot agree on the model', () {
+        final result = SuuntoDiveParser.parse(
+          header: headerWithDiving({
+            'Algorithm': 'Suunto Fused2 RGBM',
+            'EndTissue': {'CNS': 0.04},
+          }),
+          samples: const [],
+        );
+        expect(result.dive.decoAlgorithm, 'rgbm');
+        expect(result.computerTissue!.algorithm, 'Suunto Fused2 RGBM');
+      });
+    });
+
     test('leaves the snapshot null for a header without tissue data', () {
       final result = SuuntoDiveParser.parse(header: _header(), samples: []);
       expect(result.computerTissue, isNull);
