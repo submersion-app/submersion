@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/map_tile_config.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
@@ -23,23 +24,59 @@ import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Fullscreen spatial seascape: the dive's reconstructed swim path threaded
-/// through a synthesized seafloor, viewable above and below the waterline.
-/// Two captions keep the reconstruction honest (estimated path / synthesized
-/// seafloor). The scrub timeline moves the diver along the route.
-class SpatialSitePage extends ConsumerStatefulWidget {
+/// Fullscreen spatial seascape for one dive: the dive's reconstructed swim
+/// path, threaded through real terrain when the dive has a site to place
+/// `SiteTerrainPane`'s site-level markers, features and LOD against, or
+/// through a synthesized seafloor otherwise (a dive need not have a site).
+///
+/// Routes to whichever the dive actually has:
+/// - a site -> `SiteTerrainPane` with a [DivePlaybackContext], the same
+///   shared base `SiteTerrainPane` gives the site-only view and the
+///   underwater-route view, extended with this dive's path and timeline.
+/// - no site -> [_DiveSeascapeStandalone], this page's original
+///   self-contained implementation (own terrain fetch centered on the
+///   dive's own entry fix, no markers/features/LOD -- there is no site
+///   record to hang those on).
+class SpatialSitePage extends ConsumerWidget {
   final String diveId;
 
   const SpatialSitePage({super.key, required this.diveId});
 
   @override
-  ConsumerState<SpatialSitePage> createState() => _SpatialSitePageState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diveAsync = ref.watch(diveProvider(diveId));
+    final siteId = diveAsync.valueOrNull?.site?.id;
+    if (siteId == null) {
+      return _DiveSeascapeStandalone(diveId: diveId);
+    }
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
+      body: SiteTerrainPane(
+        siteId: siteId,
+        playbackContext: DivePlaybackContext(diveId),
+      ),
+    );
+  }
 }
 
-class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
+class _DiveSeascapeStandalone extends ConsumerStatefulWidget {
+  final String diveId;
+
+  const _DiveSeascapeStandalone({required this.diveId});
+
+  @override
+  ConsumerState<_DiveSeascapeStandalone> createState() =>
+      _DiveSeascapeStandaloneState();
+}
+
+class _DiveSeascapeStandaloneState
+    extends ConsumerState<_DiveSeascapeStandalone>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _position = ValueNotifier(0);
   final ValueNotifier<ScenePick?> _hoverPick = ValueNotifier(null);
