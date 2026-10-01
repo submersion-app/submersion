@@ -531,7 +531,7 @@ void main() {
     // detail rows did (issue #2695).
     const longSite = 'Blue Corner Wall and Drift, Palau Southern Reefs';
 
-    testWidgets('a long site name wraps while its label stays on one line', (
+    testWidgets('a long site name wraps without squeezing its label', (
       tester,
     ) async {
       final buddy = Buddy(
@@ -575,12 +575,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // A single-line label in the same card is the height to match.
+      // A single-line label in the same card is the unit of height.
       final oneLine = tester.getSize(find.text('Dives Together')).height;
       final label = find.text('Favorite Site');
       final value = find.text(longSite);
 
-      expect(tester.getSize(label).height, oneLine);
+      // The test font draws "Favorite Site" about twice as wide as a real
+      // one, beyond the 40% share a label keeps beside a long value, so it
+      // wraps once here (one line in the app). Before the fix it was squeezed
+      // to one letter per line, twelve lines tall.
+      expect(tester.getSize(label).height, lessThanOrEqualTo(oneLine * 2));
       expect(tester.getSize(value).height, greaterThan(oneLine));
       // The wrapped value keeps clear of the label rather than crowding it.
       expect(

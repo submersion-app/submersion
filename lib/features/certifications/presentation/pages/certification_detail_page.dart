@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/icon_detail_row.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -496,24 +497,24 @@ class _CertificationDetailContent extends ConsumerWidget {
             // Only shown when the stored name says something the agency and
             // certification rows do not already say.
             if (customNameOrNull(certification) != null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.card_membership,
                 label: context.l10n.certifications_detail_label_type,
                 value: customNameOrNull(certification)!,
               ),
-            _InfoRow(
+            IconDetailRow(
               icon: Icons.business,
               label: context.l10n.certifications_detail_label_agency,
               value: certification.agency.localizedName(context.l10n),
             ),
             if (certification.level != null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.workspace_premium,
                 label: context.l10n.certifications_detail_label_certification,
                 value: certification.level!.localizedName(context.l10n),
               ),
             if (certification.hasMultipleCredentials)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.workspace_premium_outlined,
                 label: context.l10n.certifications_detail_label_alsoRecognized,
                 value: certification.additionalCredentials
@@ -525,7 +526,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                     .join(' · '),
               ),
             if (certification.cardNumber != null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.numbers,
                 label: context.l10n.certifications_detail_label_cardNumber,
                 value: certification.cardNumber!,
@@ -551,13 +552,13 @@ class _CertificationDetailContent extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             if (certification.issueDate != null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.event_available,
                 label: context.l10n.certifications_detail_label_issueDate,
                 value: units.formatDate(certification.issueDate),
               ),
             if (certification.expiryDate != null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.event_busy,
                 label: context.l10n.certifications_detail_label_expiryDate,
                 value: units.formatDate(certification.expiryDate),
@@ -568,7 +569,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                     : null,
               ),
             if (certification.expiryDate == null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.all_inclusive,
                 label: context.l10n.certifications_detail_label_validity,
                 value: context.l10n.certifications_detail_noExpiration,
@@ -627,7 +628,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                         }
                       },
                     )
-                  : _InfoRow(
+                  : IconDetailRow(
                       icon: Icons.person,
                       label: context
                           .l10n
@@ -635,7 +636,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                       value: displayName,
                     ),
             if (certification.instructorNumber != null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.badge,
                 label:
                     context.l10n.certifications_detail_label_instructorNumber,
@@ -719,7 +720,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                     ),
                     if (course.instructorDisplay.isNotEmpty) ...[
                       const Divider(),
-                      _InfoRow(
+                      IconDetailRow(
                         icon: Icons.person,
                         label: 'Instructor',
                         value: course.instructorDisplay,
@@ -953,59 +954,5 @@ class _CertificationDetailContent extends ConsumerWidget {
       return displayName;
     }
     return displayName.substring(0, 4);
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color? valueColor;
-
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: '$label: $value',
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        // Top-align so a wrapped value keeps the icon and label on its first
-        // line rather than centring them against the whole block.
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ExcludeSemantics(
-              child: Icon(
-                icon,
-                size: 20,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(label, style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(width: 16),
-            // The value, not the label, takes the remaining width, so a long
-            // certification name wraps instead of squeezing the label onto
-            // several lines (issue #2695).
-            Expanded(
-              child: Text(
-                value,
-                textAlign: TextAlign.end,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: valueColor,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
