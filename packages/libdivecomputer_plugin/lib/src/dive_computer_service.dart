@@ -2,6 +2,12 @@ import 'dart:async';
 
 import 'package:libdivecomputer_plugin/src/generated/dive_computer_api.g.dart';
 
+/// PlatformException code a native startDiscovery fails with when the
+/// Bluetooth radio is off or missing, so the app can say that instead of
+/// showing the platform's error text (issue #2507). Windows reports it; the
+/// other platforms end the scan without an error.
+const bluetoothUnavailableErrorCode = 'bluetooth_unavailable';
+
 /// Events emitted during a download.
 sealed class DownloadEvent {}
 

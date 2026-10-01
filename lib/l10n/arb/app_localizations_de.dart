@@ -28270,6 +28270,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_scan_bluetoothUnavailable =>
+      'Bluetooth ist ausgeschaltet oder nicht verfügbar. Schalten Sie es ein und tippen Sie auf Wiederholen, oder verbinden Sie sich über den Tab USB-Kabel.';
+
+  @override
   String get diveComputer_scan_emptyStateInstructions =>
       'Stellen Sie sicher, dass Ihr Tauchcomputer:\n• Eingeschaltet ist\n• Im Bluetooth-Kopplungsmodus ist\n• Sich in der Nähe Ihres Geräts befindet';
 

@@ -8405,6 +8405,7 @@
   "diveComputer_pinCode_submit": "שלח",
   "diveComputer_pinCode_title": "נדרש קוד PIN",
   "diveComputer_scan_bluetoothSemanticLabel": "התקן Bluetooth: {name}",
+  "diveComputer_scan_bluetoothUnavailable": "Bluetooth כבוי או לא זמין. הפעל אותו והקש על נסה שוב, או התחבר דרך הכרטיסייה כבל USB.",
   "diveComputer_scan_emptyStateInstructions": "ודא שמחשב הצלילה שלך:\n• דלוק\n• במצב התאמת Bluetooth\n• קרוב למכשיר שלך",
   "diveComputer_scan_knownBadge": "מוכר",
   "diveComputer_scan_lookingForDevicesTitle": "מחפש התקנים",

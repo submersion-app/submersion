@@ -27958,6 +27958,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_scan_bluetoothUnavailable =>
+      'Bluetooth متوقف أو غير متاح. شغّله واضغط على إعادة المحاولة، أو اتصل عبر علامة التبويب كابل USB.';
+
+  @override
   String get diveComputer_scan_emptyStateInstructions =>
       'تأكد من أن كمبيوتر الغوص:\n• قيد التشغيل\n• في وضع إقران Bluetooth\n• قريب من جهازك';
 

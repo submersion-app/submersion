@@ -28304,6 +28304,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_scan_bluetoothUnavailable =>
+      'Il Bluetooth è spento o non disponibile. Attivalo e tocca Riprova, oppure collegati con la scheda Cavo USB.';
+
+  @override
   String get diveComputer_scan_emptyStateInstructions =>
       'Assicurati che il tuo computer da sub sia:\n• Acceso\n• In modalità di abbinamento Bluetooth\n• Vicino al tuo dispositivo';
 

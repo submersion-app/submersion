@@ -27863,6 +27863,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_scan_bluetoothUnavailable =>
+      'Bluetooth is off or unavailable. Turn it on and tap Retry, or connect with the USB Cable tab.';
+
+  @override
   String get diveComputer_scan_emptyStateInstructions =>
       'Make sure your dive computer is:\n• Turned on\n• In Bluetooth pairing mode\n• Close to your device';
 

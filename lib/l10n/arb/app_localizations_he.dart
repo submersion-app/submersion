@@ -27639,6 +27639,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_scan_bluetoothUnavailable =>
+      'Bluetooth כבוי או לא זמין. הפעל אותו והקש על נסה שוב, או התחבר דרך הכרטיסייה כבל USB.';
+
+  @override
   String get diveComputer_scan_emptyStateInstructions =>
       'ודא שמחשב הצלילה שלך:\n• דלוק\n• במצב התאמת Bluetooth\n• קרוב למכשיר שלך';
 

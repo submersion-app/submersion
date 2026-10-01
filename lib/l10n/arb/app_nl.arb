@@ -8405,6 +8405,7 @@
   "diveComputer_pinCode_submit": "Verzenden",
   "diveComputer_pinCode_title": "Pincode vereist",
   "diveComputer_scan_bluetoothSemanticLabel": "Bluetooth-apparaat: {name}",
+  "diveComputer_scan_bluetoothUnavailable": "Bluetooth staat uit of is niet beschikbaar. Zet het aan en tik op Opnieuw proberen, of maak verbinding via het tabblad USB-kabel.",
   "diveComputer_scan_emptyStateInstructions": "Zorg ervoor dat je duikcomputer:\n• Is ingeschakeld\n• In Bluetooth-koppelmodus staat\n• In de buurt van je apparaat is",
   "diveComputer_scan_knownBadge": "Bekend",
   "diveComputer_scan_lookingForDevicesTitle": "Apparaten zoeken",

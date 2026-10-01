@@ -8405,6 +8405,7 @@
   "diveComputer_pinCode_submit": "Enviar",
   "diveComputer_pinCode_title": "Código PIN requerido",
   "diveComputer_scan_bluetoothSemanticLabel": "Dispositivo Bluetooth: {name}",
+  "diveComputer_scan_bluetoothUnavailable": "Bluetooth está apagado o no disponible. Actívalo y toca Reintentar, o conéctate con la pestaña Cable USB.",
   "diveComputer_scan_emptyStateInstructions": "Asegúrate de que tu ordenador de buceo:\n• Esté encendido\n• Esté en modo de emparejamiento Bluetooth\n• Esté cerca de tu dispositivo",
   "diveComputer_scan_knownBadge": "Conocido",
   "diveComputer_scan_lookingForDevicesTitle": "Buscando dispositivos",

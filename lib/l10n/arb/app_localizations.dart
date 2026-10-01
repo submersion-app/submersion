@@ -44848,6 +44848,12 @@ abstract class AppLocalizations {
   /// **'Bluetooth device: {name}'**
   String diveComputer_scan_bluetoothSemanticLabel(String name);
 
+  /// No description provided for @diveComputer_scan_bluetoothUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth is off or unavailable. Turn it on and tap Retry, or connect with the USB Cable tab.'**
+  String get diveComputer_scan_bluetoothUnavailable;
+
   /// No description provided for @diveComputer_scan_emptyStateInstructions.
   ///
   /// In en, this message translates to:

@@ -8405,6 +8405,7 @@
   "diveComputer_pinCode_submit": "提交",
   "diveComputer_pinCode_title": "需要 PIN 码",
   "diveComputer_scan_bluetoothSemanticLabel": "蓝牙设备:{name}",
+  "diveComputer_scan_bluetoothUnavailable": "蓝牙已关闭或不可用。请开启蓝牙后点击重试，或使用 USB 线缆标签页连接。",
   "diveComputer_scan_emptyStateInstructions": "请确保您的潜水电脑:\n• 已开启\n• 处于蓝牙配对模式\n• 靠近您的设备",
   "diveComputer_scan_knownBadge": "已知",
   "diveComputer_scan_lookingForDevicesTitle": "查找设备",

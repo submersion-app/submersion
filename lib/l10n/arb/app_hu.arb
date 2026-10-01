@@ -8405,6 +8405,7 @@
   "diveComputer_pinCode_submit": "Küldés",
   "diveComputer_pinCode_title": "PIN-kód szükséges",
   "diveComputer_scan_bluetoothSemanticLabel": "Bluetooth eszköz: {name}",
+  "diveComputer_scan_bluetoothUnavailable": "A Bluetooth ki van kapcsolva, vagy nem érhető el. Kapcsold be, és koppints az Újra gombra, vagy csatlakozz az USB-kábel lapon.",
   "diveComputer_scan_emptyStateInstructions": "Győződj meg arról, hogy a merülő számítógéped:\n• Be van kapcsolva\n• Bluetooth párosítási módban van\n• Közel van az eszközödhöz",
   "diveComputer_scan_knownBadge": "Ismert",
   "diveComputer_scan_lookingForDevicesTitle": "Eszközök keresése",

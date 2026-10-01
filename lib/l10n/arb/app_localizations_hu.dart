@@ -28221,6 +28221,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_scan_bluetoothUnavailable =>
+      'A Bluetooth ki van kapcsolva, vagy nem érhető el. Kapcsold be, és koppints az Újra gombra, vagy csatlakozz az USB-kábel lapon.';
+
+  @override
   String get diveComputer_scan_emptyStateInstructions =>
       'Győződj meg arról, hogy a merülő számítógéped:\n• Be van kapcsolva\n• Bluetooth párosítási módban van\n• Közel van az eszközödhöz';
 

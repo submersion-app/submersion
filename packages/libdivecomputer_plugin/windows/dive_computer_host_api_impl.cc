@@ -95,7 +95,15 @@ void DiveComputerHostApiImpl::StartDiscovery(
                 flutter_api_->OnDiscoveryComplete(
                     [] {}, [](const auto&) {});
             });
-            ble_scanner_->Start();
+            std::optional<std::string> failure = ble_scanner_->Start();
+            if (failure.has_value()) {
+                ble_scanner_.reset();
+                // The Dart side matches this code to tell the user Bluetooth
+                // is off, rather than showing the HRESULT (issue #2507).
+                result(FlutterError("bluetooth_unavailable",
+                                    "Bluetooth is unavailable: " + *failure));
+                break;
+            }
             result(std::nullopt);
             break;
         }
