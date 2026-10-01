@@ -18,6 +18,8 @@ import 'package:submersion/features/trips/domain/services/scrubber_margin_servic
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
+import 'package:submersion/features/trips/domain/services/trip_gear_scope.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_gear_ids_providers.dart';
 
 /// The built-in service kind whose clock marks the last repack: its baseline
 /// date, else its newest record.
@@ -30,11 +32,12 @@ final tripHistoryRepositoryProvider = Provider<TripHistoryRepository>(
   (ref) => TripHistoryRepository(),
 );
 
-/// One margin per active rebreather of the trip's diver, computed as of
+/// One margin per active rebreather of the trip's diver that is on the
+/// trip (packed, or installed in packed gear; issue #2727), computed as of
 /// the trip start: loop minutes since the last repack (the repack clock's
 /// anchor as of the start), the diver's own overrides on the trip, and the
 /// medians of recent history (see [computeScrubberMargin]). Empty for an
-/// unknown trip or a diver with no active rebreather. A provider, never a
+/// unknown trip or one with no rebreather on it. A provider, never a
 /// stored finding.
 final tripScrubberMarginsProvider =
     FutureProvider.family<List<ScrubberMargin>, String>((ref, tripId) async {
@@ -62,10 +65,13 @@ final tripScrubberMarginsProvider =
 
       final trip = await ref.watch(tripByIdProvider(tripId).future);
       if (trip == null) return const [];
+      final onTrip = await ref.watch(tripGearIdsProvider(tripId).future);
+      if (onTrip.isEmpty) return const [];
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-      final rebreathers = (await equipment.getActiveEquipment(
-        diverId: diverId,
-      )).where((e) => e.type == EquipmentType.rebreather).toList();
+      final rebreathers = gearOnTrip(
+        await equipment.getActiveEquipment(diverId: diverId),
+        onTrip,
+      ).where((e) => e.type == EquipmentType.rebreather).toList();
       if (rebreathers.isEmpty) return const [];
 
       final start = trip.startDate;

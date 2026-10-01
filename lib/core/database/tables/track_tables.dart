@@ -10,6 +10,7 @@ library;
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/tables/dive_tables.dart';
+import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/site_tables.dart';
 
@@ -93,6 +94,16 @@ class NavTracks extends Table {
   /// in the routes area, ready to be matched again.
   TextColumn get diveId =>
       text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
+
+  /// The diver this route belongs to (v252). Stamped with the active diver
+  /// at import and moved to the dive's diver whenever the route is linked,
+  /// so a linked route's owner always matches its dive. Null is a route
+  /// with no owner (imported before v252 and never linked, or with no
+  /// diver profile): every diver sees it, the house meaning of an ownerless
+  /// row. No ON DELETE action: deleting a diver deletes and tombstones
+  /// their routes (`diver_owned_rows.dart`), so a peer never shows them to
+  /// everyone after its FK repair nulls the owner.
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
 
   /// 'auto' when the match sweep linked it, 'manual' when the diver did.
   /// The sweep never touches a linked row of either kind; the flag exists

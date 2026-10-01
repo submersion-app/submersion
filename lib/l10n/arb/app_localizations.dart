@@ -73397,6 +73397,36 @@ abstract class AppLocalizations {
   /// **'Leave unlinked'**
   String get navTrack_review_leaveUnlinked;
 
+  /// No description provided for @navTrack_review_noOverlapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No dive overlaps this recording\'s time. Nearest dives by start time:'**
+  String get navTrack_review_noOverlapHint;
+
+  /// No description provided for @navTrack_review_offsetBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'{offset} before the recording'**
+  String navTrack_review_offsetBefore(String offset);
+
+  /// No description provided for @navTrack_review_offsetAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'{offset} after the recording'**
+  String navTrack_review_offsetAfter(String offset);
+
+  /// No description provided for @navTrack_review_offsetDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h'**
+  String navTrack_review_offsetDays(int days, int hours);
+
+  /// No description provided for @navTrack_review_chooseAnotherDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another dive...'**
+  String get navTrack_review_chooseAnotherDive;
+
   /// No description provided for @navTrack_list_importFailed.
   ///
   /// In en, this message translates to:

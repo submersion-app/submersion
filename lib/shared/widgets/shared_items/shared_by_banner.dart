@@ -27,14 +27,14 @@ class SharedByBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+    // Nothing until the active profile is known, rather than describe the
+    // previous profile's standing during a switch (issue #2677 review).
+    final canDestroy = canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
+      ownerId: ownerId,
+    );
     final divers = ref.watch(allDiversProvider).value;
-    if (divers == null ||
-        !canHideSharedItem(
-          ownerId: ownerId,
-          isShared: isShared,
-          activeDiverId: activeDiverId,
-        )) {
+    if (divers == null || !isShared || canDestroy != false) {
       return const SizedBox.shrink();
     }
     final hidden = watchHiddenHere(ref, kind, itemId, canDestroy: false);

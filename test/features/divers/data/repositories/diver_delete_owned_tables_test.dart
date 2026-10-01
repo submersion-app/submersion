@@ -225,6 +225,24 @@ void main() {
           );
       return [('saved_queries', 'savedQueries', 'sq-a')];
     },
+    'an underwater route': () async {
+      await db
+          .into(db.navTracks)
+          .insert(
+            NavTracksCompanion.insert(
+              id: 'route-a',
+              diverId: const Value('diver-a'),
+              source: 'seacraft_enc',
+              startTime: stale,
+              endTime: stale,
+              pointCount: 0,
+              points: Uint8List(0),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [('nav_tracks', 'navTracks', 'route-a')];
+    },
     'a cylinder fill': () async {
       await db
           .into(db.cylinderFills)
@@ -796,6 +814,7 @@ const _clearedByDelete = {
   'transmitters',
   'cylinder_fills',
   'saved_queries',
+  'nav_tracks',
   'trips',
   'weight_presets',
 };

@@ -16,6 +16,8 @@ import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/shared_items_fixture.dart';
+
 /// Pumps a fresh-trip page behind a router, so the `context.pop(savedId)` that
 /// follows a successful save has somewhere to go. Creating a trip always
 /// triggers the post-save scan (`datesChanged` is `!isEditing`), which keeps
@@ -661,6 +663,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // No active profile, as before sharing: every action is the owner's.
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
             tripRepositoryProvider.overrideWithValue(
               _MockTripRepositoryWithSharedTrip(),
             ),
@@ -720,6 +724,7 @@ void main() {
     Future<SwitchListTile> shareSwitch(
       WidgetTester tester, {
       required String active,
+      GatedActiveProfile? activeProfile,
       bool profileUnreadable = false,
     }) async {
       await tester.pumpWidget(
@@ -733,8 +738,11 @@ void main() {
             }),
             allDiversProvider.overrideWith((_) async => twoDivers),
             validatedCurrentDiverIdProvider.overrideWith(
-              (_) async =>
-                  profileUnreadable ? throw StateError('no profile') : active,
+              (_) =>
+                  activeProfile?.read() ??
+                  (profileUnreadable
+                      ? Future<String?>.error(StateError('no profile'))
+                      : Future.value(active)),
             ),
             shareByDefaultProvider.overrideWith((_) async => true),
           ],
@@ -768,6 +776,36 @@ void main() {
     ) async {
       final tile = await shareSwitch(tester, active: 'd2');
       expect(tile.onChanged, isNull);
+      expect(find.text('Only Alice can change sharing'), findsOneWidget);
+    });
+
+    testWidgets('is locked while a profile switch re-reads the profile '
+        '(issue #2677 review)', (tester) async {
+      final activeProfile = GatedActiveProfile.settled('d1');
+      final tile = await shareSwitch(
+        tester,
+        active: 'd1',
+        activeProfile: activeProfile,
+      );
+      expect(tile.onChanged, isNotNull);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(TripEditPage)),
+      ).invalidate(validatedCurrentDiverIdProvider);
+      await tester.pump();
+      final locked = tester.widget<SwitchListTile>(
+        find.byWidgetPredicate(
+          (w) =>
+              w is SwitchListTile &&
+              w.title is Text &&
+              (w.title as Text).data == 'Share with all dive profiles',
+        ),
+      );
+      expect(locked.onChanged, isNull);
+      expect(find.text('Only Alice can change sharing'), findsNothing);
+
+      activeProfile.settle('d2');
+      await tester.pumpAndSettle();
       expect(find.text('Only Alice can change sharing'), findsOneWidget);
     });
 
@@ -1843,6 +1881,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // No active profile, as before sharing: every action is the owner's.
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
             tripRepositoryProvider.overrideWithValue(
               _MockTripRepositoryWithSharedTrip(),
             ),
@@ -1901,6 +1941,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // No active profile, as before sharing: every action is the owner's.
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
             tripRepositoryProvider.overrideWithValue(
               _MockTripRepositoryWithSharedTrip(),
             ),

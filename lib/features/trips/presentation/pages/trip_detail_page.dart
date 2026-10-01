@@ -517,7 +517,13 @@ class _TripDetailContent extends ConsumerWidget {
         } else if (value == 'remove') {
           await _removeFromProfile(context, ref, trip);
         } else if (value == 'unhide') {
-          await ref.read(tripListNotifierProvider.notifier).unhideTrip(trip.id);
+          // A failed unhide says so (issue #2677).
+          await runHideChange(
+            ScaffoldMessenger.of(context),
+            context.l10n,
+            () =>
+                ref.read(tripListNotifierProvider.notifier).unhideTrip(trip.id),
+          );
         } else if (value == 'export') {
           _showExportOptions(context, ref);
         } else if (value == 'scan-dives') {

@@ -45930,6 +45930,28 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navTrack_review_leaveUnlinked => 'Ongekoppeld laten';
 
   @override
+  String get navTrack_review_noOverlapHint =>
+      'Geen duik overlapt met de tijd van deze opname. Dichtstbijzijnde duiken op begintijd:';
+
+  @override
+  String navTrack_review_offsetBefore(String offset) {
+    return '$offset vóór de opname';
+  }
+
+  @override
+  String navTrack_review_offsetAfter(String offset) {
+    return '$offset na de opname';
+  }
+
+  @override
+  String navTrack_review_offsetDays(int days, int hours) {
+    return '${days}d ${hours}u';
+  }
+
+  @override
+  String get navTrack_review_chooseAnotherDive => 'Andere duik kiezen...';
+
+  @override
   String navTrack_list_importFailed(String error) {
     return 'Importeren mislukt: $error';
   }

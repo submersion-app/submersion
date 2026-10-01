@@ -128,10 +128,19 @@ extension RungsFromV231 on AppDatabase {
       await _backfillDiveTankSourceIds();
     }
     if (from < 251) await reportProgress();
+    // v252: nav_tracks.diver_id, the route's owner (issue #2691 follow-up),
+    // backfilled from each linked route's dive. The column is re-asserted in
+    // beforeOpen; the backfill stays in the rung. 251 is
+    // dive_tanks.source_id (#2716).
+    if (from < 252) {
+      await _assertNavTrackDiverIdColumn();
+      await _backfillNavTrackDiverIds();
+    }
+    if (from < 252) await reportProgress();
     // v254: dive_tanks.role_source, where a cylinder's role came from
     // (issue #2595). Column only, no backfill: a stored role's origin is
-    // unknown, and a re-parse fills it. Re-asserted in beforeOpen. 252 and
-    // 253 are held by open branches.
+    // unknown, and a re-parse fills it. Re-asserted in beforeOpen. 253 is
+    // held by an open branch.
     if (from < 254) {
       await _assertTankRoleSourceColumn();
     }

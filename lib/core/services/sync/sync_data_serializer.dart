@@ -2538,7 +2538,38 @@ class SyncDataSerializer {
   /// COMMIT and abort the whole sync. Must run inside
   /// [applyInDeferredFkTransaction] so COMMIT sees a consistent graph. Loops
   /// because deleting an orphan can in turn dangle its own children.
+  ///
+  /// Every batch apply path ends here, so it then re-derives the one value a
+  /// peer's row may not carry: a linked route's owner (see
+  /// [alignLinkedRouteOwners]).
   Future<void> repairDanglingForeignKeys() async {
+    await _repairDanglingReferences();
+    await alignLinkedRouteOwners();
+  }
+
+  /// A linked route belongs to its dive's diver (v252). A peer below v252,
+  /// still inside the compatibility floor, sends `navTracks` rows without
+  /// `diverId`, so its link would land ownerless (or keep a stale local
+  /// owner) and show to the wrong divers. Called by
+  /// [repairDanglingForeignKeys] after the FK repair, so a route whose dive
+  /// was just deleted is already unlinked and keeps its owner, and directly
+  /// by the conflict resolution's single-record writes, which skip that
+  /// repair. Not marked pending: every device derives the same owner from
+  /// the same synced dive.
+  Future<void> alignLinkedRouteOwners() async {
+    await _db.customStatement('''
+      UPDATE nav_tracks
+      SET diver_id = (
+        SELECT d.diver_id FROM dives d WHERE d.id = nav_tracks.dive_id
+      )
+      WHERE dive_id IS NOT NULL
+        AND diver_id IS NOT (
+          SELECT d.diver_id FROM dives d WHERE d.id = nav_tracks.dive_id
+        )
+    ''');
+  }
+
+  Future<void> _repairDanglingReferences() async {
     for (var pass = 0; pass < 5; pass++) {
       final violations = await _db
           .customSelect('PRAGMA foreign_key_check')
@@ -4404,6 +4435,10 @@ class SyncDataSerializer {
             );
         return;
       case 'navTracks':
+        // The data-class upsert leaves null columns out (nullToAbsent), so a
+        // peer below v252 that omits diverId keeps the local owner on the
+        // adopt and restore paths, which skip the merge overlay. Do not
+        // switch this to `.toCompanion(false)`: that would clear it.
         await _db
             .into(_db.navTracks)
             .insertOnConflictUpdate(

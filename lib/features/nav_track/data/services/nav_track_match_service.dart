@@ -10,12 +10,21 @@ import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 class NavTrackMatchService {
   final NavTrackRepository _routeRepository;
   final DiveRepository _diveRepository;
+  final Future<String?> Function() _currentDiverId;
 
+  /// [currentDiverId] resolves the active diver: a sweep then considers
+  /// only that diver's routes and the ownerless ones, and links them only
+  /// to that diver's dives. Omitted (or resolving to null), every route and
+  /// dive is considered.
   NavTrackMatchService({
     required NavTrackRepository routeRepository,
     required DiveRepository diveRepository,
+    Future<String?> Function()? currentDiverId,
   }) : _routeRepository = routeRepository,
-       _diveRepository = diveRepository;
+       _diveRepository = diveRepository,
+       _currentDiverId = currentDiverId ?? _noDiver;
+
+  static Future<String?> _noDiver() async => null;
 
   /// Links every unlinked route that overlaps exactly one dive's time
   /// window (see `NavTrackMatcher`) with `NavTrackLinkMode.auto`.
@@ -36,7 +45,8 @@ class NavTrackMatchService {
     List<String>? limitToRouteIds,
     List<String>? limitToDiveIds,
   }) async {
-    var routes = await _routeRepository.getUnlinked();
+    final diverId = await _currentDiverId();
+    var routes = await _routeRepository.getUnlinked(diverId: diverId);
     if (limitToRouteIds != null) {
       final ids = limitToRouteIds.toSet();
       routes = [
@@ -47,8 +57,13 @@ class NavTrackMatchService {
     if (routes.isEmpty) return (linked: <String>[], needsChoice: <String>[]);
 
     final dives = limitToDiveIds != null
-        ? await _diveRepository.getDivesByIds(limitToDiveIds)
-        : await _diveRepository.getAllDives();
+        ? [
+            for (final dive in await _diveRepository.getDivesByIds(
+              limitToDiveIds,
+            ))
+              if (diverId == null || dive.diverId == diverId) dive,
+          ]
+        : await _diveRepository.getAllDives(diverId: diverId);
     if (dives.isEmpty) {
       return (linked: <String>[], needsChoice: <String>[]);
     }

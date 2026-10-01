@@ -135,6 +135,7 @@ class _PreparedImportService implements NavTrackImportService {
       stats: NavTrackStats.of(points),
       segmentation: NavTrackSegmenter.classify(points),
       candidateDives: const [],
+      nearbyDives: const [],
       duplicateOfRouteId: null,
       sourceRef: fileName ?? '',
     );
@@ -144,6 +145,7 @@ class _PreparedImportService implements NavTrackImportService {
   Future<String> commit({
     required ParsedNavTrack parsed,
     required String sourceRef,
+    required String? diverId,
     Dive? dive,
     String? siteId,
     String? name,

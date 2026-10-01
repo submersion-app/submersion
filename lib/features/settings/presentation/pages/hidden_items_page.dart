@@ -117,14 +117,19 @@ class _HiddenRow extends ConsumerWidget {
           ].join(' · '),
         ),
         TileSubtitleAction(
-          onPressed: () => switch (item.kind) {
-            SharedItemKind.trip =>
-              ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
-            SharedItemKind.site =>
-              ref.read(siteListNotifierProvider.notifier).unhideSites([
-                item.id,
-              ]),
-          },
+          // A failed unhide keeps the row and says so (issue #2677).
+          onPressed: () => runHideChange(
+            ScaffoldMessenger.of(context),
+            context.l10n,
+            () => switch (item.kind) {
+              SharedItemKind.trip =>
+                ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
+              SharedItemKind.site =>
+                ref.read(siteListNotifierProvider.notifier).unhideSites([
+                  item.id,
+                ]),
+            },
+          ),
           label: context.l10n.settings_hiddenItems_unhide,
         ),
       ],

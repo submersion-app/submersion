@@ -46334,6 +46334,29 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_review_leaveUnlinked => 'Laisser sans lien';
 
   @override
+  String get navTrack_review_noOverlapHint =>
+      'Aucune plongée ne chevauche l\'heure de cet enregistrement. Plongées les plus proches par heure de début :';
+
+  @override
+  String navTrack_review_offsetBefore(String offset) {
+    return '$offset avant l\'enregistrement';
+  }
+
+  @override
+  String navTrack_review_offsetAfter(String offset) {
+    return '$offset après l\'enregistrement';
+  }
+
+  @override
+  String navTrack_review_offsetDays(int days, int hours) {
+    return '${days}j ${hours}h';
+  }
+
+  @override
+  String get navTrack_review_chooseAnotherDive =>
+      'Choisir une autre plongée...';
+
+  @override
   String navTrack_list_importFailed(String error) {
     return 'Échec de l\'import : $error';
   }

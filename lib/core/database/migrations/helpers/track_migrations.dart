@@ -17,6 +17,51 @@ extension TrackMigrations on AppDatabase {
     await customStatement('''
       CREATE INDEX IF NOT EXISTS idx_nav_tracks_start ON nav_tracks(start_time)
     ''');
+    // A table this creates already has diver_id; this adds its index, and
+    // the column to a pre-v252 table, whichever backstop runs first.
+    await _assertNavTrackDiverIdColumn();
+  }
+
+  /// v252: nav_tracks.diver_id, the route's owner, and its index.
+  /// Idempotent; called from the v252 onUpgrade step and the beforeOpen
+  /// backstop.
+  Future<void> _assertNavTrackDiverIdColumn() async {
+    if (!await _tableExists('nav_tracks')) return;
+    await _addColumnIfMissing(
+      'nav_tracks',
+      'diver_id',
+      'TEXT REFERENCES divers(id)',
+    );
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_nav_tracks_diver ON nav_tracks(diver_id)
+    ''');
+  }
+
+  /// v252 backfill: a linked route takes its dive's diver. An unlinked
+  /// route, or one linked to an ownerless dive, stays ownerless (shared
+  /// with every diver). Runs in the rung only, never in beforeOpen: a
+  /// restored or adopted file keeps the owners it arrived with. Re-runs
+  /// only touch rows still null.
+  Future<void> _backfillNavTrackDiverIds() async {
+    // Guarded on columns, like the backstops: a partially built test
+    // database may hold either table without the columns this reads.
+    Future<Set<String>> columnsOf(String table) async => {
+      for (final c in await customSelect("PRAGMA table_info('$table')").get())
+        c.read<String>('name'),
+    };
+    final routeColumns = await columnsOf('nav_tracks');
+    final diveColumns = await columnsOf('dives');
+    if (!routeColumns.containsAll(const ['dive_id', 'diver_id']) ||
+        !diveColumns.containsAll(const ['id', 'diver_id'])) {
+      return;
+    }
+    await customStatement('''
+      UPDATE nav_tracks
+      SET diver_id = (
+        SELECT d.diver_id FROM dives d WHERE d.id = nav_tracks.dive_id
+      )
+      WHERE diver_id IS NULL AND dive_id IS NOT NULL
+    ''');
   }
 
   /// Idempotent DDL for the v145 gps_tracks provenance, label, and

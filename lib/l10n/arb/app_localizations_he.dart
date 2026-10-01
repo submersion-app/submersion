@@ -45304,6 +45304,28 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_review_leaveUnlinked => 'השאר ללא קישור';
 
   @override
+  String get navTrack_review_noOverlapHint =>
+      'אף צלילה אינה חופפת לזמן ההקלטה הזו. הצלילות הקרובות ביותר לפי שעת התחלה:';
+
+  @override
+  String navTrack_review_offsetBefore(String offset) {
+    return '$offset לפני ההקלטה';
+  }
+
+  @override
+  String navTrack_review_offsetAfter(String offset) {
+    return '$offset אחרי ההקלטה';
+  }
+
+  @override
+  String navTrack_review_offsetDays(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String get navTrack_review_chooseAnotherDive => 'בחר צלילה אחרת...';
+
+  @override
   String navTrack_list_importFailed(String error) {
     return 'הייבוא נכשל: $error';
   }
