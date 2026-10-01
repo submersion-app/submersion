@@ -29695,6 +29695,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Kan bestand niet lezen';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden konden niet worden gelezen en zijn overgeslagen',
+      one: '$count bestand kon niet worden gelezen en is overgeslagen',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'Helder';
 
   @override
@@ -30423,6 +30434,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'Verborgen in je profiel';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'Slechts één van de geselecteerde stekken mag bij een ander profiel horen. Deselecteer de andere om samen te voegen.';
 
@@ -30502,6 +30516,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get sharedItems_undo => 'Ongedaan maken';
+
+  @override
+  String get sharedItems_unhideAction => 'In mijn profiel tonen';
 
   @override
   String get sites_deleteShared_title => 'Gedeelde site verwijderen?';

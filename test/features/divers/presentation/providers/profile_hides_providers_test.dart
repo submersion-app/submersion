@@ -7,6 +7,7 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -88,5 +89,45 @@ void main() {
 
     await SiteRepository().setShared('pier', false, actingDiverId: 'a');
     expect(await next((ids) => ids.isEmpty), isEmpty);
+  });
+
+  test('isHiddenProvider follows the active profile\'s hide (#2679)', () async {
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'b'),
+      ],
+    );
+    addTearDown(container.dispose);
+    const key = (kind: SharedItemKind.trip, id: 'shared');
+    final sub = container.listen(isHiddenProvider(key), (_, _) {});
+    addTearDown(sub.close);
+    expect(await container.read(isHiddenProvider(key).future), isFalse);
+
+    final hides = container.read(profileHidesRepositoryProvider);
+    await hides.hide(SharedItemKind.trip, 'shared', 'b');
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(await container.read(isHiddenProvider(key).future), isTrue);
+
+    await hides.unhide(SharedItemKind.trip, 'shared', 'b');
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(await container.read(isHiddenProvider(key).future), isFalse);
+  });
+
+  test('isHiddenProvider is false for another profile\'s hide', () async {
+    await ProfileHidesRepository().hide(SharedItemKind.trip, 'shared', 'b');
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'a'),
+      ],
+    );
+    addTearDown(container.dispose);
+    expect(
+      await container.read(
+        isHiddenProvider((kind: SharedItemKind.trip, id: 'shared')).future,
+      ),
+      isFalse,
+    );
   });
 }

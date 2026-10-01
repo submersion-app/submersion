@@ -40,6 +40,16 @@ class HiddenItem {
   final bool isShared;
 }
 
+/// One profile's hide of a shared trip or site ([itemId]), as
+/// [ProfileHidesRepository.deleteHides] removed it, for
+/// [ProfileHidesRepository.restoreHides] to put back (issue #2680).
+typedef ProfileHide = ({
+  String id,
+  String itemId,
+  String diverId,
+  int createdAt,
+});
+
 typedef _HideTable = ({
   String table,
   String parentTable,
@@ -197,12 +207,16 @@ class ProfileHidesRepository {
     }
   }
 
+  /// Whether [diverId] has hidden item [id] from itself (issue #2679).
+  Future<bool> isHidden(SharedItemKind kind, String id, String diverId) async =>
+      (await _hideIds(_of(kind), [id], diverId: diverId)).isNotEmpty;
+
   /// [diverId]'s hidden trips (newest first), then sites (by name): the
   /// hides that still keep an item from [diverId], that is, of items it
   /// would see without them (it owns them, or they are shared:
-  /// [VisibilityFilter.ownerOrSharedSql]). The hide of an item its owner has since unshared
-  /// stays, so a re-share keeps it hidden, but lists nothing until then
-  /// (issue #2678).
+  /// [VisibilityFilter.ownerOrSharedSql]). The hide of an item its owner
+  /// has since unshared stays, so a re-share keeps it hidden, but lists
+  /// nothing until then (issue #2678).
   Future<List<HiddenItem>> hiddenItems(String diverId) async {
     final trips = await _db
         .customSelect(
@@ -258,15 +272,18 @@ class ProfileHidesRepository {
   /// only [diverId]'s. Runs inside the caller's transaction and notifies
   /// nothing. A cascade from the parent writes no tombstone, so a trip or
   /// site delete calls this first and every peer drops the hides too.
-  Future<void> deleteHides(
+  ///
+  /// Returns the hides it removed, so an undo can [restoreHides] them.
+  Future<List<ProfileHide>> deleteHides(
     SharedItemKind kind,
     List<String> ids, {
     String? diverId,
   }) async {
-    if (ids.isEmpty) return;
+    if (ids.isEmpty) return const [];
     final t = _of(kind);
-    final hideIds = await _hideIds(t, ids, diverId: diverId);
-    if (hideIds.isEmpty) return;
+    final hides = await _hides(t, ids, diverId: diverId);
+    if (hides.isEmpty) return const [];
+    final hideIds = [for (final hide in hides) hide.id];
     await _db.customUpdate(
       'DELETE FROM ${t.table} WHERE id IN '
       '(${List.filled(hideIds.length, '?').join(', ')})',
@@ -278,6 +295,55 @@ class ProfileHidesRepository {
       entityType: t.entity,
       recordIds: hideIds,
     );
+    return hides;
+  }
+
+  /// Undo for a delete of the items: puts [hides] (what [deleteHides]
+  /// returned) back under their own ids, stamped and marked pending, and
+  /// drops their tombstones, which would otherwise ride the next changeset
+  /// beside the rows and delete them on every peer. Re-create the items
+  /// first: a hide whose item or profile does not exist is skipped, as is
+  /// one whose profile has hidden the item again since. Notifies nothing.
+  Future<void> restoreHides(
+    SharedItemKind kind,
+    List<ProfileHide> hides,
+  ) async {
+    if (hides.isEmpty) return;
+    final t = _of(kind);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      for (final hide in hides) {
+        // The FKs would refuse a missing item or profile outright, so the
+        // insert checks both itself; OR IGNORE covers a hide already there.
+        final added = await _db.customUpdate(
+          'INSERT OR IGNORE INTO ${t.table} '
+          '(id, ${t.parentColumn}, diver_id, created_at) '
+          'SELECT ?, ?, ?, ? '
+          'WHERE EXISTS (SELECT 1 FROM ${t.parentTable} WHERE id = ?) '
+          'AND EXISTS (SELECT 1 FROM divers WHERE id = ?)',
+          variables: [
+            Variable.withString(hide.id),
+            Variable.withString(hide.itemId),
+            Variable.withString(hide.diverId),
+            Variable.withInt(hide.createdAt),
+            Variable.withString(hide.itemId),
+            Variable.withString(hide.diverId),
+          ],
+          updates: {_tableOf(kind)},
+          updateKind: UpdateKind.insert,
+        );
+        if (added == 0) continue;
+        await _syncRepository.removeDeletion(
+          entityType: t.entity,
+          recordId: hide.id,
+        );
+        await _syncRepository.markRecordPending(
+          entityType: t.entity,
+          recordId: hide.id,
+          localUpdatedAt: now,
+        );
+      }
+    });
   }
 
   /// The dives linked to item [id]: those [diverId] logged, and those every
@@ -308,14 +374,15 @@ class ProfileHidesRepository {
     return (mine: row.read<int>('mine'), others: row.read<int>('others'));
   }
 
-  Future<List<String>> _hideIds(
+  Future<List<ProfileHide>> _hides(
     _HideTable t,
     List<String> ids, {
     String? diverId,
   }) async {
     final rows = await _db
         .customSelect(
-          'SELECT id FROM ${t.table} WHERE ${t.parentColumn} IN '
+          'SELECT id, ${t.parentColumn}, diver_id, created_at FROM ${t.table} '
+          'WHERE ${t.parentColumn} IN '
           '(${List.filled(ids.length, '?').join(', ')})'
           '${diverId == null ? '' : ' AND diver_id = ?'}',
           variables: [
@@ -324,6 +391,14 @@ class ProfileHidesRepository {
           ],
         )
         .get();
-    return [for (final r in rows) r.read<String>('id')];
+    return [
+      for (final r in rows)
+        (
+          id: r.read<String>('id'),
+          itemId: r.read<String>(t.parentColumn),
+          diverId: r.read<String>('diver_id'),
+          createdAt: r.read<int>('created_at'),
+        ),
+    ];
   }
 }

@@ -322,4 +322,17 @@ void main() {
     expect(text, contains(fr.l10n.pdf_completionDate));
     expect(text, contains(fr.l10n.pdf_statusCompleted));
   });
+
+  test('the training log is named after the course in any script', () {
+    final day = DateTime(2026, 5, 28);
+    expect(
+      trainingLogFileName('Advanced Open Water', day),
+      'training_log_Advanced_Open_Water_2026-05-28.pdf',
+    );
+    expect(
+      trainingLogFileName('Plongée Épave', day),
+      'training_log_Plongée_Épave_2026-05-28.pdf',
+    );
+    expect(trainingLogFileName('', day), 'training_log_2026-05-28.pdf');
+  });
 }

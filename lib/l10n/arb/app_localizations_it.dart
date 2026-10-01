@@ -29905,6 +29905,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Impossibile leggere il file';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Impossibile leggere $count file, che sono stati saltati',
+      one: 'Impossibile leggere $count file, che è stato saltato',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'Sereno';
 
   @override
@@ -30636,6 +30647,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'Nascosto nel tuo profilo';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'Solo uno dei siti selezionati può appartenere a un altro profilo. Deseleziona gli altri per unirli.';
 
@@ -30715,6 +30729,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sharedItems_undo => 'Annulla';
+
+  @override
+  String get sharedItems_unhideAction => 'Mostra nel mio profilo';
 
   @override
   String get sites_deleteShared_title => 'Eliminare il sito condiviso?';

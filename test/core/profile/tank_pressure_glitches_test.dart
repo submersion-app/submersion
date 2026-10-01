@@ -371,4 +371,236 @@ void main() {
       );
     });
   });
+
+  // Issue #2687: a source can report an endpoint no cylinder is breathed at
+  // (0.34 bar) that matches no reading of its own series, which shows the
+  // cylinder at 84-93 bar.
+  group('replaceNearZeroEndpoint', () {
+    test('a near-zero end the series contradicts takes its last reading', () {
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: 0.34,
+          otherBar: 200,
+          readings: draining(),
+          atStart: false,
+        ),
+        closeTo(200 - 29 * 0.3, 1e-9),
+      );
+    });
+
+    test('a near-zero start the series contradicts takes its first', () {
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: 0.46,
+          otherBar: 120,
+          readings: draining(start: 190),
+          atStart: true,
+        ),
+        190,
+      );
+    });
+
+    test('the replacement skips a lead-in at that end of the series', () {
+      // The reported 0.46 bar matches no reading, so the glitch rule leaves
+      // it; the first clean reading is the one after the 3.9 bar lead-in.
+      final series = withValues(draining(), {0: 3.9});
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: 0.46,
+          otherBar: 80,
+          readings: series,
+          atStart: true,
+        ),
+        closeTo(199.7, 1e-9),
+      );
+    });
+
+    test('a series that drops to near zero and stays there agrees', () {
+      // Nothing follows the drop to show it was a misread, and a cylinder
+      // really draining fast (a CCR oxygen cylinder bleeding down after
+      // surfacing, issue #1092) looks the same, so the series stands.
+      final series = withValues(draining(), {27: 0.3, 28: 0.3, 29: 0.3});
+      expect(scanPressureGlitches(series).glitchIndices, isEmpty);
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: 0.3,
+          otherBar: 200,
+          readings: series,
+          atStart: false,
+        ),
+        0.3,
+      );
+    });
+
+    test('a sparse series that drains into near zero is believed', () {
+      // Five minutes between readings: a 10 bar step is the gas breathed in
+      // that gap, as the glitch scan's own span rule holds for a dip.
+      final series = <PressureReading>[
+        for (final (i, bar) in [40.0, 31.0, 22.0, 13.0, 3.0].indexed)
+          (t: i * 300, bar: bar),
+      ];
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: 3.0,
+          otherBar: 40,
+          readings: series,
+          atStart: false,
+        ),
+        3.0,
+      );
+    });
+
+    test('a non-finite other end is no real pressure', () {
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: 0.3,
+          otherBar: double.infinity,
+          readings: const [],
+          atStart: false,
+        ),
+        0.3,
+      );
+    });
+
+    test('a non-finite series reading never becomes the replacement', () {
+      final series = withValues(draining(), {29: double.infinity});
+      final resolved = replaceNearZeroEndpoint(
+        reportedBar: 0.3,
+        otherBar: 200,
+        readings: series,
+        atStart: false,
+      );
+      expect(resolved, closeTo(200 - 28 * 0.3, 1e-9));
+    });
+
+    test('a non-finite value is resolved like a near-zero one', () {
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: double.nan,
+          otherBar: 200,
+          readings: const [],
+          atStart: false,
+        ),
+        isNull,
+      );
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: double.infinity,
+          otherBar: 60,
+          readings: draining(),
+          atStart: true,
+        ),
+        200,
+      );
+    });
+
+    test('a non-finite value is never kept', () {
+      // The series agrees the cylinder ended near zero: its own reading
+      // stands in for a value that describes nothing.
+      final drained = [
+        for (var i = 0; i < 30; i++) (t: i * 10, bar: 60 - i * 2.0),
+      ];
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: double.nan,
+          otherBar: 60,
+          readings: drained,
+          atStart: false,
+        ),
+        2.0,
+      );
+      // No series and no real pressure at the other end to go by.
+      for (final other in [null, 0.2]) {
+        expect(
+          replaceNearZeroEndpoint(
+            reportedBar: double.infinity,
+            otherBar: other,
+            readings: const [],
+            atStart: true,
+          ),
+          isNull,
+          reason: 'other endpoint $other',
+        );
+      }
+    });
+
+    test('a value at the near-zero bound is a real pressure and kept', () {
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: kPressureGlitchNearZeroBar,
+          otherBar: 200,
+          readings: draining(),
+          atStart: false,
+        ),
+        kPressureGlitchNearZeroBar,
+      );
+    });
+
+    test('a near-zero value the series agrees with is kept', () {
+      // A series that runs down to near zero itself corroborates the value.
+      final series = [
+        for (var i = 0; i < 30; i++) (t: i * 10, bar: 60 - i * 2.0),
+      ];
+      expect(series.last.bar, lessThan(kPressureGlitchNearZeroBar));
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: 2.0,
+          otherBar: 60,
+          readings: series,
+          atStart: false,
+        ),
+        2.0,
+      );
+    });
+
+    test('without a series it is cleared when the other end is real', () {
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: 0.34,
+          otherBar: 200,
+          readings: const [],
+          atStart: false,
+        ),
+        isNull,
+      );
+      expect(
+        replaceNearZeroEndpoint(
+          reportedBar: 0.46,
+          otherBar: 90,
+          readings: const [],
+          atStart: true,
+        ),
+        isNull,
+      );
+    });
+
+    test('without a series it is kept when the other end is no help', () {
+      for (final other in [null, 0.2]) {
+        expect(
+          replaceNearZeroEndpoint(
+            reportedBar: 0.34,
+            otherBar: other,
+            readings: const [],
+            atStart: false,
+          ),
+          0.34,
+          reason: 'other endpoint $other',
+        );
+      }
+    });
+
+    test('a plausible value and null come back unchanged', () {
+      for (final reported in [null, 84.0]) {
+        expect(
+          replaceNearZeroEndpoint(
+            reportedBar: reported,
+            otherBar: 200,
+            readings: const [],
+            atStart: false,
+          ),
+          reported,
+        );
+      }
+    });
+  });
 }

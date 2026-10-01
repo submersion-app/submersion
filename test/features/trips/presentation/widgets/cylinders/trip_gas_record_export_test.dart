@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,7 +9,9 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_gas_record_export.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -63,11 +67,20 @@ void main() {
     unlinked: [],
     multipleDivers: false,
   );
+  final bonaire = Trip(
+    id: 't1',
+    name: 'Bonaire',
+    startDate: DateTime(2026, 3, 8),
+    endDate: DateTime(2026, 3, 15),
+    createdAt: DateTime(2026, 3, 1),
+    updatedAt: DateTime(2026, 3, 1),
+  );
 
   Future<_FakeExportService> pump(
     WidgetTester tester, {
     Map<String, Object> prefs = const {},
     _FakeExportService? service,
+    Future<Trip?> Function()? trip,
   }) async {
     SharedPreferences.setMockInitialValues(prefs);
     final preferences = await SharedPreferences.getInstance();
@@ -78,6 +91,9 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           exportServiceProvider.overrideWithValue(fake),
           sharedPreferencesProvider.overrideWithValue(preferences),
+          tripByIdProvider(
+            't1',
+          ).overrideWith((ref) => trip?.call() ?? Future.value(bonaire)),
         ],
         child: const MaterialApp(
           locale: Locale('en'),
@@ -86,7 +102,7 @@ void main() {
           home: Scaffold(
             body: TripGasRecordExportButton(
               record: record,
-              tripName: 'Bonaire',
+              tripId: 't1',
               centerNames: {},
             ),
           ),
@@ -123,6 +139,45 @@ void main() {
     await tester.tap(find.text('Save to File'));
     await tester.pumpAndSettle();
     expect(fake.savedTrip, 'Bonaire');
+  });
+
+  testWidgets('a trip still loading is waited for, not left out', (
+    tester,
+  ) async {
+    final loading = Completer<Trip?>();
+    final fake = await pump(tester, trip: () => loading.future);
+    await tester.tap(find.byKey(const Key('record-export')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+    expect(fake.sharedTrip, isNull);
+    loading.complete(bonaire);
+    await tester.pumpAndSettle();
+    expect(fake.sharedTrip, 'Bonaire');
+  });
+
+  testWidgets('a missing trip exports without a name', (tester) async {
+    final fake = await pump(tester, trip: () async => null);
+    await tester.tap(find.byKey(const Key('record-export')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+    expect(fake.sharedTrip, '');
+  });
+
+  testWidgets('a trip that fails to load says the export failed', (
+    tester,
+  ) async {
+    final fake = await pump(
+      tester,
+      trip: () => Future.error(StateError('database closed')),
+    );
+    await tester.tap(find.byKey(const Key('record-export')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+    expect(fake.sharedTrip, isNull);
+    expect(find.textContaining('Export failed'), findsOneWidget);
   });
 
   Future<void> export(WidgetTester tester, String destination) async {

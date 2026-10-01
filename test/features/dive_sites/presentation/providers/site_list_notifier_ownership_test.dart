@@ -1,10 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -55,6 +57,36 @@ void main() {
         .bulkDeleteSites(['theirs', 'mine']);
     expect(result.sites.map((s) => s.id), ['mine']);
     expect(await SiteRepository().getSiteById('theirs'), isNotNull);
+  });
+
+  test('Undo of the owner\'s bulk delete keeps another profile\'s hide '
+      '(issue #2680)', () async {
+    final hides = ProfileHidesRepository();
+    await hides.hide(SharedItemKind.site, 'theirs', 'b');
+    final c = await containerFor('a');
+    final notifier = c.read(siteListNotifierProvider.notifier);
+    final deleted = await notifier.bulkDeleteSites(['theirs']);
+    expect(deleted.sites.map((s) => s.id), ['theirs']);
+
+    await notifier.restoreSites(deleted.sites, links: deleted.links);
+    expect(listed(c), contains('theirs'));
+    expect((await hides.hiddenItems('b')).map((i) => i.id), ['theirs']);
+  });
+
+  test('Undo of the owner\'s merge keeps another profile\'s hide of a '
+      'merged-away site (issue #2710)', () async {
+    await seedSite(db, 'dup', owner: 'a', shared: true);
+    final hides = ProfileHidesRepository();
+    await hides.hide(SharedItemKind.site, 'dup', 'b');
+    final c = await containerFor('a');
+    final notifier = c.read(siteListNotifierProvider.notifier);
+    final survivor = (await SiteRepository().getSiteById('theirs'))!;
+    final snapshot = await notifier.mergeSites(survivor, ['theirs', 'dup']);
+    expect(listed(c), isNot(contains('dup')));
+
+    await notifier.undoMerge(snapshot!);
+    expect(listed(c), contains('dup'));
+    expect((await hides.hiddenItems('b')).map((i) => i.id), ['dup']);
   });
 
   test('a non-owner cannot delete it but hides and unhides it', () async {
