@@ -266,21 +266,65 @@ void main() {
       expect(kicks, 0);
     });
 
-    test('Undo after the drain clears the stale stamps and queues a '
-        're-upload', () async {
+    /// Deletes the site, lets [drain] move the held intent on, then undoes.
+    Future<void> undoAfter(Future<void> Function(int intentId) drain) async {
       final site = (await sites.getSiteById('s1'))!;
       final links = await sites.bulkDeleteSites(['s1']);
-      final intent = (await queue.allForTesting()).single;
-      await queue.markDone(intent.id);
+      await drain((await queue.allForTesting()).single.id);
       await sites.createSite(site);
       await sites.restoreSiteLinks(links);
+    }
 
+    Future<void> expectRepaired() async {
       expect((await media.getMediaById('up'))?.remoteUploadedAt, isNull);
       final upload = (await queue.allForTesting()).where(
         (e) => e.direction == 'upload',
       );
       expect(upload.map((e) => (e.mediaId, e.state)), [('up', 'pending')]);
       expect(kicks, 1);
+    }
+
+    test('Undo after the drain clears the stale stamps and queues a '
+        're-upload', () async {
+      await undoAfter(queue.markDone);
+      await expectRepaired();
+    });
+
+    test('Undo after an attempt that failed partway repairs too: the '
+        'attempt may have deleted some tiers before it threw', () async {
+      await undoAfter((id) async {
+        await queue.markTransferring(id);
+        await queue.markFailed(id, 'thumb delete failed');
+      });
+      await expectRepaired();
     });
   });
+
+  test(
+    'a site whose media cleanup failed gets its media linked back',
+    () async {
+      sites = SiteRepository(
+        mediaRepository: media,
+        mediaDeletionCoordinator: _FailingCoordinator(media, queue),
+      );
+      await media.createMedia(photo('only'));
+      await deleteAndUndo();
+      expect((await media.getMediaById('only'))?.siteId, 's1');
+    },
+  );
+}
+
+/// A media store that fails every delete, after the site rows commit.
+class _FailingCoordinator extends MediaDeletionCoordinator {
+  _FailingCoordinator(
+    MediaRepository mediaRepository,
+    MediaTransferQueueRepository queue,
+  ) : super(mediaRepository: mediaRepository, queue: () => queue);
+
+  @override
+  Future<void> deleteMediaItems(
+    List<MediaItem> items, {
+    bool Function(MediaData row)? keepIf,
+    bool holdRemoteDelete = false,
+  }) async => throw StateError('media store unavailable');
 }

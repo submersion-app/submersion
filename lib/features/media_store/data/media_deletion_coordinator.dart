@@ -64,11 +64,12 @@ class MediaDeletionCoordinator {
 
   /// Undo for a held [deleteMediaItems] (issue #2718): [rows] are media the
   /// undo has put back. An intent still held for a row's hash no-ops at
-  /// drain time now that the row exists again. One that has drained, or is
-  /// draining, took the remote blobs, so the row's upload stamps are stale:
-  /// they are cleared and a re-upload queued, the Verify Library sweep's
-  /// repair (spec 6.2). Like the delete, no media-store problem may fail
-  /// the undo; a row this misses waits for the sweep.
+  /// drain time now that the row exists again. One that has drained, is
+  /// draining, or failed partway may have taken some of the remote blobs,
+  /// so the row's upload stamps cannot be trusted: they are cleared and a
+  /// re-upload queued, the Verify Library sweep's repair (spec 6.2). Like
+  /// the delete, no media-store problem may fail the undo; a row this
+  /// misses waits for the sweep.
   Future<void> repairRestoredMedia(List<MediaData> rows) async {
     var queued = false;
     for (final row in rows) {
