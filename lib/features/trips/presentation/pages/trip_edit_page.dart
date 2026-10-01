@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -21,6 +22,8 @@ import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
+
+const _log = LoggerService('tripEditPage');
 
 class TripEditPage extends ConsumerStatefulWidget {
   final String? tripId;
@@ -178,12 +181,13 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           _hasChanges = false;
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error('Failed to load trip', error: e, stackTrace: stackTrace);
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.trips_edit_snackBar_errorLoading('$e')),
+            content: Text(context.l10n.trips_edit_snackBar_errorLoading),
           ),
         );
       }
@@ -1153,11 +1157,12 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           context.pop(savedId);
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error('Failed to save trip', error: e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.trips_edit_snackBar_errorSaving('$e')),
+            content: Text(context.l10n.trips_edit_snackBar_errorSaving),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

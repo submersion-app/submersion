@@ -353,14 +353,7 @@
   "trips_story_checklistProgress": "{done} von {total} erledigt",
   "trips_story_generateItinerary": "Reiseplan erstellen",
   "trips_story_openGallery": "Reisefotos öffnen",
-  "trips_story_generateItineraryError": "Reiseplan konnte nicht erstellt werden: {error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "Der Reiseplan konnte nicht erstellt werden. Versuche es erneut.",
   "trips_dayType_diveDay": "Tauchtag",
   "trips_dayType_seaDay": "Seetag",
   "trips_dayType_portDay": "Hafentag",
@@ -7322,8 +7315,8 @@
   "trips_detail_label_vesselType": "Type",
   "trips_detail_scan_accessDenied": "Zugriff auf Fotobibliothek verweigert",
   "trips_detail_scan_addDivesFirst": "Fügen Sie zuerst Tauchgänge hinzu, um Fotos zu verknüpfen",
-  "trips_detail_scan_errorLinking": "Fehler beim Verknüpfen der Fotos: {error}",
-  "trips_detail_scan_errorScanning": "Fehler beim Scannen: {error}",
+  "trips_detail_scan_errorLinking": "Die Fotos konnten nicht verknüpft werden. Versuche es erneut.",
+  "trips_detail_scan_errorScanning": "Die Fotos konnten nicht gescannt werden. Versuche es erneut.",
   "trips_detail_scan_linkedPhotos": "{count} Fotos verknüpft",
   "trips_detail_scan_linkingPhotos": "Fotos werden verknüpft...",
   "trips_detail_sectionTitle_dailyBreakdown": "Daily Breakdown",
@@ -7540,14 +7533,7 @@
   "trips_cylinders_forecast_useEstimate": "Schätzung verwenden",
   "trips_cylinders_forecast_fewer": "Weniger Tauchgänge",
   "trips_cylinders_forecast_more": "Mehr Tauchgänge",
-  "trips_cylinders_forecast_saveError": "Plan konnte nicht gespeichert werden: {error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "Der Plan konnte nicht gespeichert werden. Versuche es erneut.",
   "trips_cylinders_forecast_dayPlanned": "Von dir geplant",
   "trips_cylinders_segment_record": "Protokoll",
   "trips_cylinders_recordEmpty": "Noch keine Tauchgänge mit diesen Flaschen.",
@@ -7609,6 +7595,7 @@
     }
   },
   "trips_cylinders_record_exported": "Gasprotokoll exportiert",
+  "trips_cylinders_record_exportFailed": "Das Gasprotokoll konnte nicht exportiert werden. Versuche es erneut.",
   "trips_cylinders_title": "Flaschen",
   "trips_cylinders_summary": "Voll {full} · Teilweise {partial} · Leer {empty}",
   "@trips_cylinders_summary": {
@@ -7809,8 +7796,8 @@
   "trips_edit_sectionTitle_vessel": "Vessel Details",
   "trips_edit_semanticLabel_save": "Reise speichern",
   "trips_edit_snackBar_added": "Reise erfolgreich hinzugefügt",
-  "trips_edit_snackBar_errorLoading": "Fehler beim Laden der Reise: {error}",
-  "trips_edit_snackBar_errorSaving": "Fehler beim Speichern der Reise: {error}",
+  "trips_edit_snackBar_errorLoading": "Die Reise konnte nicht geladen werden. Versuche es erneut.",
+  "trips_edit_snackBar_errorSaving": "Die Reise konnte nicht gespeichert werden. Versuche es erneut.",
   "trips_edit_snackBar_updated": "Reise erfolgreich aktualisiert",
   "trips_edit_validation_nameRequired": "Bitte geben Sie einen Reisenamen ein",
   "trips_edit_validation_vesselRequired": "Vessel name is required for liveaboard trips",
@@ -7821,9 +7808,9 @@
   "trips_gallery_diveSection_title": "Tauchgang #{number} - {site}",
   "trips_gallery_empty_subtitle": "Tippen Sie auf das Kamerasymbol, um Ihre Galerie zu durchsuchen",
   "trips_gallery_empty_title": "Keine Fotos in dieser Reise",
-  "trips_gallery_errorLinking": "Fehler beim Verknüpfen der Fotos: {error}",
-  "trips_gallery_errorScanning": "Fehler beim Scannen: {error}",
-  "trips_gallery_error_loading": "Fehler beim Laden der Fotos: {error}",
+  "trips_gallery_errorLinking": "Die Fotos konnten nicht verknüpft werden. Versuche es erneut.",
+  "trips_gallery_errorScanning": "Die Fotos konnten nicht gescannt werden. Versuche es erneut.",
+  "trips_gallery_error_loading": "Die Fotos konnten nicht geladen werden.",
   "trips_gallery_linkedPhotos": "{count} Fotos verknüpft",
   "trips_gallery_linkingPhotos": "Fotos werden verknüpft...",
   "trips_gallery_tooltip_scan": "Gerätegalerie durchsuchen",
@@ -7842,7 +7829,7 @@
   "trips_list_empty_filtered_title": "Keine Reisen entsprechen Ihren Filtern",
   "trips_list_empty_subtitle": "Erstellen Sie Reisen, um Ihre Tauchgänge nach Reiseziel zu gruppieren",
   "trips_list_empty_title": "Noch keine Reisen hinzugefügt",
-  "trips_list_error_loading": "Fehler beim Laden der Reisen: {error}",
+  "trips_list_error_loading": "Deine Reisen konnten nicht geladen werden.",
   "trips_list_fab_addTrip": "Reise hinzufügen",
   "trips_list_filters_clearAll": "Alle löschen",
   "trips_list_inProgress": "Läuft gerade",
@@ -7864,7 +7851,7 @@
   "trips_picker_clearTooltip": "Auswahl löschen",
   "trips_picker_empty_createButton": "Reise erstellen",
   "trips_picker_empty_title": "Noch keine Reisen",
-  "trips_picker_error": "Fehler beim Laden der Reisen: {error}",
+  "trips_picker_error": "Deine Reisen konnten nicht geladen werden.",
   "trips_picker_hint": "Tippen, um eine Reise auszuwählen",
   "trips_picker_newTrip": "Neue Reise",
   "trips_picker_noSelection": "Keine Reise ausgewählt",
@@ -8168,14 +8155,7 @@
     }
   },
   "trips_diveScan_deselectAll": "Alle abwählen",
-  "trips_diveScan_error": "Fehler beim Suchen nach Tauchgängen: {error}",
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_diveScan_error": "Die Suche nach Tauchgängen ist fehlgeschlagen. Versuche es erneut.",
   "trips_diveScan_findButton": "Passende Tauchgänge finden",
   "trips_diveScan_groupOtherTrips": "In anderen Reisen ({count})",
   "@trips_diveScan_groupOtherTrips": {

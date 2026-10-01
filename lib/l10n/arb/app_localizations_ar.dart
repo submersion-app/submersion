@@ -1362,9 +1362,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_story_openGallery => 'فتح صور الرحلة';
 
   @override
-  String trips_story_generateItineraryError(String error) {
-    return 'تعذّر إنشاء برنامج الرحلة: $error';
-  }
+  String get trips_story_generateItineraryError =>
+      'تعذّر إنشاء برنامج الرحلة. حاول مرة أخرى.';
 
   @override
   String get trips_dayType_diveDay => 'يوم غوص';
@@ -25177,14 +25176,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_detail_scan_addDivesFirst => 'أضف غوصات أولًا لربط الصور';
 
   @override
-  String trips_detail_scan_errorLinking(Object error) {
-    return 'خطأ في ربط الصور: $error';
-  }
+  String get trips_detail_scan_errorLinking =>
+      'تعذّر ربط الصور. حاول مرة أخرى.';
 
   @override
-  String trips_detail_scan_errorScanning(Object error) {
-    return 'خطأ في المسح: $error';
-  }
+  String get trips_detail_scan_errorScanning =>
+      'تعذّر البحث عن الصور. حاول مرة أخرى.';
 
   @override
   String trips_detail_scan_linkedPhotos(Object count) {
@@ -25258,9 +25255,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_diveScan_deselectAll => 'إلغاء تحديد الكل';
 
   @override
-  String trips_diveScan_error(String error) {
-    return 'خطأ في البحث عن الغوصات: $error';
-  }
+  String get trips_diveScan_error => 'تعذّر البحث عن الغوصات. حاول مرة أخرى.';
 
   @override
   String get trips_diveScan_findButton => 'البحث عن الغوصات المطابقة';
@@ -25392,14 +25387,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_snackBar_added => 'تمت إضافة الرحلة بنجاح';
 
   @override
-  String trips_edit_snackBar_errorLoading(Object error) {
-    return 'خطأ في تحميل الرحلة: $error';
-  }
+  String get trips_edit_snackBar_errorLoading =>
+      'تعذّر تحميل الرحلة. حاول مرة أخرى.';
 
   @override
-  String trips_edit_snackBar_errorSaving(Object error) {
-    return 'خطأ في حفظ الرحلة: $error';
-  }
+  String get trips_edit_snackBar_errorSaving =>
+      'تعذّر حفظ الرحلة. حاول مرة أخرى.';
 
   @override
   String get trips_edit_snackBar_updated => 'تم تحديث الرحلة بنجاح';
@@ -25440,19 +25433,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_gallery_empty_title => 'لا توجد صور في هذه الرحلة';
 
   @override
-  String trips_gallery_errorLinking(Object error) {
-    return 'خطأ في ربط الصور: $error';
-  }
+  String get trips_gallery_errorLinking => 'تعذّر ربط الصور. حاول مرة أخرى.';
 
   @override
-  String trips_gallery_errorScanning(Object error) {
-    return 'خطأ في المسح: $error';
-  }
+  String get trips_gallery_errorScanning =>
+      'تعذّر البحث عن الصور. حاول مرة أخرى.';
 
   @override
-  String trips_gallery_error_loading(Object error) {
-    return 'خطأ في تحميل الصور: $error';
-  }
+  String get trips_gallery_error_loading => 'تعذّر تحميل الصور.';
 
   @override
   String trips_gallery_linkedPhotos(Object count) {
@@ -25501,9 +25489,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_list_empty_title => 'لم تتم إضافة رحلات بعد';
 
   @override
-  String trips_list_error_loading(Object error) {
-    return 'خطأ في تحميل الرحلات: $error';
-  }
+  String get trips_list_error_loading => 'تعذّر تحميل رحلاتك.';
 
   @override
   String get trips_list_fab_addTrip => 'إضافة رحلة';
@@ -25575,9 +25561,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_picker_empty_title => 'لا توجد رحلات بعد';
 
   @override
-  String trips_picker_error(Object error) {
-    return 'خطأ في تحميل الرحلات: $error';
-  }
+  String get trips_picker_error => 'تعذّر تحميل رحلاتك.';
 
   @override
   String get trips_picker_hint => 'انقر لاختيار رحلة';
@@ -25896,9 +25880,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_cylinders_forecast_more => 'غطسات أكثر';
 
   @override
-  String trips_cylinders_forecast_saveError(String error) {
-    return 'تعذّر حفظ الخطة: $error';
-  }
+  String get trips_cylinders_forecast_saveError =>
+      'تعذّر حفظ الخطة. حاول مرة أخرى.';
 
   @override
   String get trips_cylinders_forecast_dayPlanned => 'خططتها أنت';
@@ -25974,6 +25957,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_cylinders_record_exported => 'تم تصدير سجل الغاز';
+
+  @override
+  String get trips_cylinders_record_exportFailed =>
+      'تعذّر تصدير سجل الغاز. حاول مرة أخرى.';
 
   @override
   String get trips_cylinders_title => 'الأسطوانات';

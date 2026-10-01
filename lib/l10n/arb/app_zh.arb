@@ -342,14 +342,7 @@
   "trips_story_checklistProgress": "已完成 {done}/{total}",
   "trips_story_generateItinerary": "生成行程",
   "trips_story_openGallery": "打开行程照片",
-  "trips_story_generateItineraryError": "无法生成行程：{error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "无法生成行程，请重试。",
   "trips_dayType_diveDay": "潜水日",
   "trips_dayType_seaDay": "海上日",
   "trips_dayType_portDay": "港口日",
@@ -651,13 +644,6 @@
   "@trips_diveScan_currentTrip": {
     "placeholders": {
       "tripName": {
-        "type": "String"
-      }
-    }
-  },
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
         "type": "String"
       }
     }
@@ -7391,8 +7377,8 @@
   "trips_detail_label_vesselType": "类型",
   "trips_detail_scan_accessDenied": "相册访问被拒绝",
   "trips_detail_scan_addDivesFirst": "请先添加潜水以关联照片",
-  "trips_detail_scan_errorLinking": "关联照片时出错：{error}",
-  "trips_detail_scan_errorScanning": "扫描出错: {error}",
+  "trips_detail_scan_errorLinking": "无法关联照片，请重试。",
+  "trips_detail_scan_errorScanning": "无法扫描照片，请重试。",
   "trips_detail_scan_linkedPhotos": "已关联 {count} 照片",
   "trips_detail_scan_linkingPhotos": "正在关联照片...",
   "trips_detail_sectionTitle_dailyBreakdown": "每日分解",
@@ -7426,7 +7412,7 @@
   "trips_diveScan_cancel": "取消",
   "trips_diveScan_currentTrip": "当前旅行：{tripName}",
   "trips_diveScan_deselectAll": "取消全选",
-  "trips_diveScan_error": "扫描潜水时出错：{error}",
+  "trips_diveScan_error": "无法扫描潜水，请重试。",
   "trips_diveScan_findButton": "查找匹配的潜水",
   "trips_diveScan_groupOtherTrips": "在其他旅行中（{count}）",
   "trips_diveScan_groupUnassigned": "未分配（{count}）",
@@ -7624,14 +7610,7 @@
   "trips_cylinders_forecast_useEstimate": "使用估计值",
   "trips_cylinders_forecast_fewer": "减少潜水",
   "trips_cylinders_forecast_more": "增加潜水",
-  "trips_cylinders_forecast_saveError": "无法保存计划：{error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "无法保存计划，请重试。",
   "trips_cylinders_forecast_dayPlanned": "由你计划",
   "trips_cylinders_segment_record": "用气",
   "trips_cylinders_recordEmpty": "还没有使用这些气瓶的潜水。",
@@ -7693,6 +7672,7 @@
     }
   },
   "trips_cylinders_record_exported": "用气记录已导出",
+  "trips_cylinders_record_exportFailed": "无法导出用气记录，请重试。",
   "trips_cylinders_title": "气瓶",
   "trips_cylinders_summary": "满瓶 {full} · 部分 {partial} · 空瓶 {empty}",
   "@trips_cylinders_summary": {
@@ -7893,8 +7873,8 @@
   "trips_edit_sectionTitle_vessel": "船只详情",
   "trips_edit_semanticLabel_save": "保存旅行",
   "trips_edit_snackBar_added": "旅行添加成功",
-  "trips_edit_snackBar_errorLoading": "加载旅行时出错：{error}",
-  "trips_edit_snackBar_errorSaving": "保存旅行时出错：{error}",
+  "trips_edit_snackBar_errorLoading": "无法加载旅行，请重试。",
+  "trips_edit_snackBar_errorSaving": "无法保存旅行，请重试。",
   "trips_edit_snackBar_updated": "旅行更新成功",
   "trips_edit_validation_nameRequired": "请输入旅行名称",
   "trips_edit_validation_vesselRequired": "船宿旅行需要填写船只名称",
@@ -7905,9 +7885,9 @@
   "trips_gallery_diveSection_title": "潜水 #{number} - {site}",
   "trips_gallery_empty_subtitle": "点击相机图标以扫描您的相册",
   "trips_gallery_empty_title": "此旅行暂无照片",
-  "trips_gallery_errorLinking": "关联照片时出错：{error}",
-  "trips_gallery_errorScanning": "扫描出错: {error}",
-  "trips_gallery_error_loading": "加载照片时出错：{error}",
+  "trips_gallery_errorLinking": "无法关联照片，请重试。",
+  "trips_gallery_errorScanning": "无法扫描照片，请重试。",
+  "trips_gallery_error_loading": "无法加载照片。",
   "trips_gallery_linkedPhotos": "已关联 {count} 照片",
   "trips_gallery_linkingPhotos": "正在关联照片...",
   "trips_gallery_tooltip_scan": "扫描设备图库",
@@ -7926,7 +7906,7 @@
   "trips_list_empty_filtered_title": "没有匹配筛选条件的旅行",
   "trips_list_empty_subtitle": "创建旅行以按目的地组织您的潜水",
   "trips_list_empty_title": "尚未添加旅行",
-  "trips_list_error_loading": "加载旅行时出错：{error}",
+  "trips_list_error_loading": "无法加载旅行。",
   "trips_list_fab_addTrip": "添加旅行",
   "trips_list_filters_clearAll": "清除全部",
   "trips_list_inProgress": "进行中",
@@ -7948,7 +7928,7 @@
   "trips_picker_clearTooltip": "清除选择",
   "trips_picker_empty_createButton": "创建旅行",
   "trips_picker_empty_title": "暂无旅行",
-  "trips_picker_error": "加载旅行时出错：{error}",
+  "trips_picker_error": "无法加载旅行。",
   "trips_picker_hint": "点击选择旅行",
   "trips_picker_newTrip": "新建旅行",
   "trips_picker_noSelection": "无旅行已选择",

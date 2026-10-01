@@ -2140,8 +2140,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_story_generateItineraryError.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t generate itinerary: {error}'**
-  String trips_story_generateItineraryError(String error);
+  /// **'Couldn\'t generate the itinerary. Try again.'**
+  String get trips_story_generateItineraryError;
 
   /// No description provided for @trips_dayType_diveDay.
   ///
@@ -40579,14 +40579,14 @@ abstract class AppLocalizations {
   /// No description provided for @trips_detail_scan_errorLinking.
   ///
   /// In en, this message translates to:
-  /// **'Error linking photos: {error}'**
-  String trips_detail_scan_errorLinking(Object error);
+  /// **'Couldn\'t link the photos. Try again.'**
+  String get trips_detail_scan_errorLinking;
 
   /// No description provided for @trips_detail_scan_errorScanning.
   ///
   /// In en, this message translates to:
-  /// **'Error scanning: {error}'**
-  String trips_detail_scan_errorScanning(Object error);
+  /// **'Couldn\'t scan for photos. Try again.'**
+  String get trips_detail_scan_errorScanning;
 
   /// No description provided for @trips_detail_scan_linkedPhotos.
   ///
@@ -40717,8 +40717,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_diveScan_error.
   ///
   /// In en, this message translates to:
-  /// **'Error scanning for dives: {error}'**
-  String trips_diveScan_error(String error);
+  /// **'Couldn\'t scan for dives. Try again.'**
+  String get trips_diveScan_error;
 
   /// No description provided for @trips_diveScan_findButton.
   ///
@@ -40963,14 +40963,14 @@ abstract class AppLocalizations {
   /// No description provided for @trips_edit_snackBar_errorLoading.
   ///
   /// In en, this message translates to:
-  /// **'Error loading trip: {error}'**
-  String trips_edit_snackBar_errorLoading(Object error);
+  /// **'Couldn\'t load the trip. Try again.'**
+  String get trips_edit_snackBar_errorLoading;
 
   /// No description provided for @trips_edit_snackBar_errorSaving.
   ///
   /// In en, this message translates to:
-  /// **'Error saving trip: {error}'**
-  String trips_edit_snackBar_errorSaving(Object error);
+  /// **'Couldn\'t save the trip. Try again.'**
+  String get trips_edit_snackBar_errorSaving;
 
   /// No description provided for @trips_edit_snackBar_updated.
   ///
@@ -41029,20 +41029,20 @@ abstract class AppLocalizations {
   /// No description provided for @trips_gallery_errorLinking.
   ///
   /// In en, this message translates to:
-  /// **'Error linking photos: {error}'**
-  String trips_gallery_errorLinking(Object error);
+  /// **'Couldn\'t link the photos. Try again.'**
+  String get trips_gallery_errorLinking;
 
   /// No description provided for @trips_gallery_errorScanning.
   ///
   /// In en, this message translates to:
-  /// **'Error scanning: {error}'**
-  String trips_gallery_errorScanning(Object error);
+  /// **'Couldn\'t scan for photos. Try again.'**
+  String get trips_gallery_errorScanning;
 
   /// No description provided for @trips_gallery_error_loading.
   ///
   /// In en, this message translates to:
-  /// **'Error loading photos: {error}'**
-  String trips_gallery_error_loading(Object error);
+  /// **'Couldn\'t load the photos.'**
+  String get trips_gallery_error_loading;
 
   /// No description provided for @trips_gallery_linkedPhotos.
   ///
@@ -41113,8 +41113,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_list_error_loading.
   ///
   /// In en, this message translates to:
-  /// **'Error loading trips: {error}'**
-  String trips_list_error_loading(Object error);
+  /// **'Couldn\'t load your trips.'**
+  String get trips_list_error_loading;
 
   /// No description provided for @trips_list_fab_addTrip.
   ///
@@ -41245,8 +41245,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_picker_error.
   ///
   /// In en, this message translates to:
-  /// **'Error loading trips: {error}'**
-  String trips_picker_error(Object error);
+  /// **'Couldn\'t load your trips.'**
+  String get trips_picker_error;
 
   /// No description provided for @trips_picker_hint.
   ///
@@ -41715,8 +41715,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_cylinders_forecast_saveError.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t save the plan: {error}'**
-  String trips_cylinders_forecast_saveError(String error);
+  /// **'Couldn\'t save the plan. Try again.'**
+  String get trips_cylinders_forecast_saveError;
 
   /// No description provided for @trips_cylinders_forecast_dayPlanned.
   ///
@@ -41789,6 +41789,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas record exported'**
   String get trips_cylinders_record_exported;
+
+  /// No description provided for @trips_cylinders_record_exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t export the gas record. Try again.'**
+  String get trips_cylinders_record_exportFailed;
 
   /// No description provided for @trips_cylinders_title.
   ///

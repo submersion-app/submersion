@@ -1371,9 +1371,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_story_openGallery => 'Open trip photos';
 
   @override
-  String trips_story_generateItineraryError(String error) {
-    return 'Couldn\'t generate itinerary: $error';
-  }
+  String get trips_story_generateItineraryError =>
+      'Couldn\'t generate the itinerary. Try again.';
 
   @override
   String get trips_dayType_diveDay => 'Dive Day';
@@ -25097,14 +25096,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add dives first to link photos';
 
   @override
-  String trips_detail_scan_errorLinking(Object error) {
-    return 'Error linking photos: $error';
-  }
+  String get trips_detail_scan_errorLinking =>
+      'Couldn\'t link the photos. Try again.';
 
   @override
-  String trips_detail_scan_errorScanning(Object error) {
-    return 'Error scanning: $error';
-  }
+  String get trips_detail_scan_errorScanning =>
+      'Couldn\'t scan for photos. Try again.';
 
   @override
   String trips_detail_scan_linkedPhotos(Object count) {
@@ -25178,9 +25175,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_diveScan_deselectAll => 'Deselect all';
 
   @override
-  String trips_diveScan_error(String error) {
-    return 'Error scanning for dives: $error';
-  }
+  String get trips_diveScan_error => 'Couldn\'t scan for dives. Try again.';
 
   @override
   String get trips_diveScan_findButton => 'Find matching dives';
@@ -25313,14 +25308,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_edit_snackBar_added => 'Trip added successfully';
 
   @override
-  String trips_edit_snackBar_errorLoading(Object error) {
-    return 'Error loading trip: $error';
-  }
+  String get trips_edit_snackBar_errorLoading =>
+      'Couldn\'t load the trip. Try again.';
 
   @override
-  String trips_edit_snackBar_errorSaving(Object error) {
-    return 'Error saving trip: $error';
-  }
+  String get trips_edit_snackBar_errorSaving =>
+      'Couldn\'t save the trip. Try again.';
 
   @override
   String get trips_edit_snackBar_updated => 'Trip updated successfully';
@@ -25361,19 +25354,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_gallery_empty_title => 'No photos in this trip';
 
   @override
-  String trips_gallery_errorLinking(Object error) {
-    return 'Error linking photos: $error';
-  }
+  String get trips_gallery_errorLinking =>
+      'Couldn\'t link the photos. Try again.';
 
   @override
-  String trips_gallery_errorScanning(Object error) {
-    return 'Error scanning: $error';
-  }
+  String get trips_gallery_errorScanning =>
+      'Couldn\'t scan for photos. Try again.';
 
   @override
-  String trips_gallery_error_loading(Object error) {
-    return 'Error loading photos: $error';
-  }
+  String get trips_gallery_error_loading => 'Couldn\'t load the photos.';
 
   @override
   String trips_gallery_linkedPhotos(Object count) {
@@ -25422,9 +25411,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_list_empty_title => 'No trips added yet';
 
   @override
-  String trips_list_error_loading(Object error) {
-    return 'Error loading trips: $error';
-  }
+  String get trips_list_error_loading => 'Couldn\'t load your trips.';
 
   @override
   String get trips_list_fab_addTrip => 'Add Trip';
@@ -25496,9 +25483,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_picker_empty_title => 'No trips yet';
 
   @override
-  String trips_picker_error(Object error) {
-    return 'Error loading trips: $error';
-  }
+  String get trips_picker_error => 'Couldn\'t load your trips.';
 
   @override
   String get trips_picker_hint => 'Tap to select a trip';
@@ -25807,9 +25792,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_cylinders_forecast_more => 'More dives';
 
   @override
-  String trips_cylinders_forecast_saveError(String error) {
-    return 'Couldn\'t save the plan: $error';
-  }
+  String get trips_cylinders_forecast_saveError =>
+      'Couldn\'t save the plan. Try again.';
 
   @override
   String get trips_cylinders_forecast_dayPlanned => 'Planned by you';
@@ -25885,6 +25869,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_cylinders_record_exported => 'Gas record exported';
+
+  @override
+  String get trips_cylinders_record_exportFailed =>
+      'Couldn\'t export the gas record. Try again.';
 
   @override
   String get trips_cylinders_title => 'Cylinders';

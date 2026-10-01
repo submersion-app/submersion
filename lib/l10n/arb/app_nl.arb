@@ -342,14 +342,7 @@
   "trips_story_checklistProgress": "{done} van {total} klaar",
   "trips_story_generateItinerary": "Reisplan genereren",
   "trips_story_openGallery": "Reisfoto's openen",
-  "trips_story_generateItineraryError": "Kan reisschema niet genereren: {error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "Kan het reisschema niet genereren. Probeer het opnieuw.",
   "trips_dayType_diveDay": "Duikdag",
   "trips_dayType_seaDay": "Zeedag",
   "trips_dayType_portDay": "Havendag",
@@ -7219,8 +7212,8 @@
   "trips_detail_label_vesselType": "Type",
   "trips_detail_scan_accessDenied": "Toegang tot fotobibliotheek geweigerd",
   "trips_detail_scan_addDivesFirst": "Voeg eerst duiken toe om foto's te koppelen",
-  "trips_detail_scan_errorLinking": "Fout bij koppelen van foto's: {error}",
-  "trips_detail_scan_errorScanning": "Fout bij scannen: {error}",
+  "trips_detail_scan_errorLinking": "Kan de foto's niet koppelen. Probeer het opnieuw.",
+  "trips_detail_scan_errorScanning": "Kan niet naar foto's zoeken. Probeer het opnieuw.",
   "trips_detail_scan_linkedPhotos": "{count} foto's gekoppeld",
   "trips_detail_scan_linkingPhotos": "Foto's koppelen...",
   "trips_detail_sectionTitle_dailyBreakdown": "Daily Breakdown",
@@ -7437,14 +7430,7 @@
   "trips_cylinders_forecast_useEstimate": "Schatting gebruiken",
   "trips_cylinders_forecast_fewer": "Minder duiken",
   "trips_cylinders_forecast_more": "Meer duiken",
-  "trips_cylinders_forecast_saveError": "Plan kon niet worden opgeslagen: {error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "Kan het plan niet opslaan. Probeer het opnieuw.",
   "trips_cylinders_forecast_dayPlanned": "Door jou gepland",
   "trips_cylinders_segment_record": "Gasverbruik",
   "trips_cylinders_recordEmpty": "Nog geen duiken met deze flessen.",
@@ -7506,6 +7492,7 @@
     }
   },
   "trips_cylinders_record_exported": "Gasverbruik geëxporteerd",
+  "trips_cylinders_record_exportFailed": "Kan het gasverbruik niet exporteren. Probeer het opnieuw.",
   "trips_cylinders_title": "Flessen",
   "trips_cylinders_summary": "Vol {full} · Deels {partial} · Leeg {empty}",
   "@trips_cylinders_summary": {
@@ -7706,8 +7693,8 @@
   "trips_edit_sectionTitle_vessel": "Vessel Details",
   "trips_edit_semanticLabel_save": "Reis opslaan",
   "trips_edit_snackBar_added": "Reis succesvol toegevoegd",
-  "trips_edit_snackBar_errorLoading": "Fout bij laden van reis: {error}",
-  "trips_edit_snackBar_errorSaving": "Fout bij opslaan van reis: {error}",
+  "trips_edit_snackBar_errorLoading": "Kan de reis niet laden. Probeer het opnieuw.",
+  "trips_edit_snackBar_errorSaving": "Kan de reis niet opslaan. Probeer het opnieuw.",
   "trips_edit_snackBar_updated": "Reis succesvol bijgewerkt",
   "trips_edit_validation_nameRequired": "Voer een reisnaam in",
   "trips_edit_validation_vesselRequired": "Vessel name is required for liveaboard trips",
@@ -7718,9 +7705,9 @@
   "trips_gallery_diveSection_title": "Duik #{number} - {site}",
   "trips_gallery_empty_subtitle": "Tik op het camerapictogram om je galerij te scannen",
   "trips_gallery_empty_title": "Geen foto's in deze reis",
-  "trips_gallery_errorLinking": "Fout bij koppelen van foto's: {error}",
-  "trips_gallery_errorScanning": "Fout bij scannen: {error}",
-  "trips_gallery_error_loading": "Fout bij laden van foto's: {error}",
+  "trips_gallery_errorLinking": "Kan de foto's niet koppelen. Probeer het opnieuw.",
+  "trips_gallery_errorScanning": "Kan niet naar foto's zoeken. Probeer het opnieuw.",
+  "trips_gallery_error_loading": "Kan de foto's niet laden.",
   "trips_gallery_linkedPhotos": "{count} foto's gekoppeld",
   "trips_gallery_linkingPhotos": "Foto's koppelen...",
   "trips_gallery_tooltip_scan": "Apparaatgalerij scannen",
@@ -7739,7 +7726,7 @@
   "trips_list_empty_filtered_title": "Geen reizen die aan je filters voldoen",
   "trips_list_empty_subtitle": "Maak reizen aan om je duiken per bestemming te groeperen",
   "trips_list_empty_title": "Nog geen reizen toegevoegd",
-  "trips_list_error_loading": "Fout bij laden van reizen: {error}",
+  "trips_list_error_loading": "Kan je reizen niet laden.",
   "trips_list_fab_addTrip": "Reis toevoegen",
   "trips_list_filters_clearAll": "Alles wissen",
   "trips_list_inProgress": "Bezig",
@@ -7761,7 +7748,7 @@
   "trips_picker_clearTooltip": "Selectie wissen",
   "trips_picker_empty_createButton": "Reis aanmaken",
   "trips_picker_empty_title": "Nog geen reizen",
-  "trips_picker_error": "Fout bij laden van reizen: {error}",
+  "trips_picker_error": "Kan je reizen niet laden.",
   "trips_picker_hint": "Tik om een reis te selecteren",
   "trips_picker_newTrip": "Nieuwe reis",
   "trips_picker_noSelection": "Geen reis geselecteerd",
@@ -8065,14 +8052,7 @@
     }
   },
   "trips_diveScan_deselectAll": "Alles deselecteren",
-  "trips_diveScan_error": "Fout bij het zoeken naar duiken: {error}",
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_diveScan_error": "Kan niet naar duiken zoeken. Probeer het opnieuw.",
   "trips_diveScan_findButton": "Zoek overeenkomende duiken",
   "trips_diveScan_groupOtherTrips": "In andere reizen ({count})",
   "@trips_diveScan_groupOtherTrips": {

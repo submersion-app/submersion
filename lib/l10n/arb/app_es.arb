@@ -342,14 +342,7 @@
   "trips_story_checklistProgress": "{done} de {total} completado",
   "trips_story_generateItinerary": "Generar itinerario",
   "trips_story_openGallery": "Abrir fotos del viaje",
-  "trips_story_generateItineraryError": "No se pudo generar el itinerario: {error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "No se pudo generar el itinerario. Inténtalo de nuevo.",
   "trips_dayType_diveDay": "Día de buceo",
   "trips_dayType_seaDay": "Día de mar",
   "trips_dayType_portDay": "Día de puerto",
@@ -7219,8 +7212,8 @@
   "trips_detail_label_vesselType": "Type",
   "trips_detail_scan_accessDenied": "Acceso a la biblioteca de fotos denegado",
   "trips_detail_scan_addDivesFirst": "Agrega inmersiones primero para vincular fotos",
-  "trips_detail_scan_errorLinking": "Error al vincular fotos: {error}",
-  "trips_detail_scan_errorScanning": "Error al escanear: {error}",
+  "trips_detail_scan_errorLinking": "No se pudieron vincular las fotos. Inténtalo de nuevo.",
+  "trips_detail_scan_errorScanning": "No se pudieron escanear las fotos. Inténtalo de nuevo.",
   "trips_detail_scan_linkedPhotos": "Se vincularon {count} fotos",
   "trips_detail_scan_linkingPhotos": "Vinculando fotos...",
   "trips_detail_sectionTitle_dailyBreakdown": "Daily Breakdown",
@@ -7437,14 +7430,7 @@
   "trips_cylinders_forecast_useEstimate": "Usar la estimación",
   "trips_cylinders_forecast_fewer": "Menos inmersiones",
   "trips_cylinders_forecast_more": "Más inmersiones",
-  "trips_cylinders_forecast_saveError": "No se pudo guardar el plan: {error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "No se pudo guardar el plan. Inténtalo de nuevo.",
   "trips_cylinders_forecast_dayPlanned": "Planificado por ti",
   "trips_cylinders_segment_record": "Consumo",
   "trips_cylinders_recordEmpty": "Aún no hay inmersiones con estas botellas.",
@@ -7506,6 +7492,7 @@
     }
   },
   "trips_cylinders_record_exported": "Consumo de gas exportado",
+  "trips_cylinders_record_exportFailed": "No se pudo exportar el consumo de gas. Inténtalo de nuevo.",
   "trips_cylinders_title": "Botellas",
   "trips_cylinders_summary": "Llenas {full} · Parciales {partial} · Vacías {empty}",
   "@trips_cylinders_summary": {
@@ -7706,8 +7693,8 @@
   "trips_edit_sectionTitle_vessel": "Vessel Details",
   "trips_edit_semanticLabel_save": "Guardar viaje",
   "trips_edit_snackBar_added": "Viaje agregado correctamente",
-  "trips_edit_snackBar_errorLoading": "Error al cargar el viaje: {error}",
-  "trips_edit_snackBar_errorSaving": "Error al guardar el viaje: {error}",
+  "trips_edit_snackBar_errorLoading": "No se pudo cargar el viaje. Inténtalo de nuevo.",
+  "trips_edit_snackBar_errorSaving": "No se pudo guardar el viaje. Inténtalo de nuevo.",
   "trips_edit_snackBar_updated": "Viaje actualizado correctamente",
   "trips_edit_validation_nameRequired": "Por favor, introduce un nombre de viaje",
   "trips_edit_validation_vesselRequired": "Vessel name is required for liveaboard trips",
@@ -7718,9 +7705,9 @@
   "trips_gallery_diveSection_title": "Inmersión #{number} - {site}",
   "trips_gallery_empty_subtitle": "Toca el icono de cámara para escanear tu galería",
   "trips_gallery_empty_title": "No hay fotos en este viaje",
-  "trips_gallery_errorLinking": "Error al vincular fotos: {error}",
-  "trips_gallery_errorScanning": "Error al escanear: {error}",
-  "trips_gallery_error_loading": "Error al cargar fotos: {error}",
+  "trips_gallery_errorLinking": "No se pudieron vincular las fotos. Inténtalo de nuevo.",
+  "trips_gallery_errorScanning": "No se pudieron escanear las fotos. Inténtalo de nuevo.",
+  "trips_gallery_error_loading": "No se pudieron cargar las fotos.",
   "trips_gallery_linkedPhotos": "Se vincularon {count} fotos",
   "trips_gallery_linkingPhotos": "Vinculando fotos...",
   "trips_gallery_tooltip_scan": "Escanear galería del dispositivo",
@@ -7739,7 +7726,7 @@
   "trips_list_empty_filtered_title": "Ningún viaje coincide con tus filtros",
   "trips_list_empty_subtitle": "Crea viajes para agrupar tus inmersiones por destino",
   "trips_list_empty_title": "No se han agregado viajes",
-  "trips_list_error_loading": "Error al cargar viajes: {error}",
+  "trips_list_error_loading": "No se pudieron cargar tus viajes.",
   "trips_list_fab_addTrip": "Agregar viaje",
   "trips_list_filters_clearAll": "Borrar todos",
   "trips_list_inProgress": "En curso",
@@ -7761,7 +7748,7 @@
   "trips_picker_clearTooltip": "Borrar selección",
   "trips_picker_empty_createButton": "Crear viaje",
   "trips_picker_empty_title": "No hay viajes aún",
-  "trips_picker_error": "Error al cargar viajes: {error}",
+  "trips_picker_error": "No se pudieron cargar tus viajes.",
   "trips_picker_hint": "Toca para seleccionar un viaje",
   "trips_picker_newTrip": "Nuevo viaje",
   "trips_picker_noSelection": "No se ha seleccionado viaje",
@@ -8065,14 +8052,7 @@
     }
   },
   "trips_diveScan_deselectAll": "Deseleccionar todo",
-  "trips_diveScan_error": "Error al buscar inmersiones: {error}",
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_diveScan_error": "No se pudieron buscar inmersiones. Inténtalo de nuevo.",
   "trips_diveScan_findButton": "Buscar inmersiones coincidentes",
   "trips_diveScan_groupOtherTrips": "En otros viajes ({count})",
   "@trips_diveScan_groupOtherTrips": {

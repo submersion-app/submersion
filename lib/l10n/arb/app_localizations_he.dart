@@ -1366,9 +1366,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_openGallery => 'פתיחת תמונות הטיול';
 
   @override
-  String trips_story_generateItineraryError(String error) {
-    return 'לא ניתן ליצור מסלול: $error';
-  }
+  String get trips_story_generateItineraryError =>
+      'לא ניתן ליצור מסלול. נסו שוב.';
 
   @override
   String get trips_dayType_diveDay => 'יום צלילה';
@@ -24886,14 +24885,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'הוסף צלילות תחילה כדי לקשר תמונות';
 
   @override
-  String trips_detail_scan_errorLinking(Object error) {
-    return 'שגיאה בקישור תמונות: $error';
-  }
+  String get trips_detail_scan_errorLinking =>
+      'לא ניתן לקשר את התמונות. נסו שוב.';
 
   @override
-  String trips_detail_scan_errorScanning(Object error) {
-    return 'שגיאה בסריקה: $error';
-  }
+  String get trips_detail_scan_errorScanning =>
+      'לא ניתן לסרוק תמונות. נסו שוב.';
 
   @override
   String trips_detail_scan_linkedPhotos(Object count) {
@@ -24967,9 +24964,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_diveScan_deselectAll => 'בטל בחירת הכל';
 
   @override
-  String trips_diveScan_error(String error) {
-    return 'שגיאה בחיפוש צלילות: $error';
-  }
+  String get trips_diveScan_error => 'לא ניתן לחפש צלילות. נסו שוב.';
 
   @override
   String get trips_diveScan_findButton => 'מצא צלילות תואמות';
@@ -25101,14 +25096,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_snackBar_added => 'הטיול נוסף בהצלחה';
 
   @override
-  String trips_edit_snackBar_errorLoading(Object error) {
-    return 'שגיאה בטעינת הטיול: $error';
-  }
+  String get trips_edit_snackBar_errorLoading =>
+      'לא ניתן לטעון את הטיול. נסו שוב.';
 
   @override
-  String trips_edit_snackBar_errorSaving(Object error) {
-    return 'שגיאה בשמירת הטיול: $error';
-  }
+  String get trips_edit_snackBar_errorSaving =>
+      'לא ניתן לשמור את הטיול. נסו שוב.';
 
   @override
   String get trips_edit_snackBar_updated => 'הטיול עודכן בהצלחה';
@@ -25149,19 +25142,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_gallery_empty_title => 'אין תמונות בטיול זה';
 
   @override
-  String trips_gallery_errorLinking(Object error) {
-    return 'שגיאה בקישור תמונות: $error';
-  }
+  String get trips_gallery_errorLinking => 'לא ניתן לקשר את התמונות. נסו שוב.';
 
   @override
-  String trips_gallery_errorScanning(Object error) {
-    return 'שגיאה בסריקה: $error';
-  }
+  String get trips_gallery_errorScanning => 'לא ניתן לסרוק תמונות. נסו שוב.';
 
   @override
-  String trips_gallery_error_loading(Object error) {
-    return 'שגיאה בטעינת תמונות: $error';
-  }
+  String get trips_gallery_error_loading => 'לא ניתן לטעון את התמונות.';
 
   @override
   String trips_gallery_linkedPhotos(Object count) {
@@ -25211,9 +25198,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_list_empty_title => 'עדיין לא נוספו טיולים';
 
   @override
-  String trips_list_error_loading(Object error) {
-    return 'שגיאה בטעינת טיולים: $error';
-  }
+  String get trips_list_error_loading => 'לא ניתן לטעון את הטיולים.';
 
   @override
   String get trips_list_fab_addTrip => 'הוסף טיול';
@@ -25285,9 +25270,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_picker_empty_title => 'עדיין אין טיולים';
 
   @override
-  String trips_picker_error(Object error) {
-    return 'שגיאה בטעינת טיולים: $error';
-  }
+  String get trips_picker_error => 'לא ניתן לטעון את הטיולים.';
 
   @override
   String get trips_picker_hint => 'הקש כדי לבחור טיול';
@@ -25594,9 +25577,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_cylinders_forecast_more => 'יותר צלילות';
 
   @override
-  String trips_cylinders_forecast_saveError(String error) {
-    return 'לא ניתן לשמור את התוכנית: $error';
-  }
+  String get trips_cylinders_forecast_saveError =>
+      'לא ניתן לשמור את התוכנית. נסו שוב.';
 
   @override
   String get trips_cylinders_forecast_dayPlanned => 'תוכנן על ידך';
@@ -25671,6 +25653,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_cylinders_record_exported => 'רישום הגז יוצא';
+
+  @override
+  String get trips_cylinders_record_exportFailed =>
+      'לא ניתן לייצא את רישום הגז. נסו שוב.';
 
   @override
   String get trips_cylinders_title => 'מכלים';

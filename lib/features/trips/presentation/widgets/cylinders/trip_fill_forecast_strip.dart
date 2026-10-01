@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/trips/domain/services/fill_forecast.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+const _log = LoggerService('tripFillForecastStrip');
 
 /// The most dives the day editor offers (ruling R7).
 const int _maxPlannedDives = 12;
@@ -51,13 +54,16 @@ class _TripFillForecastStripState extends ConsumerState<TripFillForecastStrip> {
             date: day.date,
             plannedDives: result.plannedDives,
           );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to save planned dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              context.l10n.trips_cylinders_forecast_saveError('$e'),
-            ),
+            content: Text(context.l10n.trips_cylinders_forecast_saveError),
           ),
         );
       }

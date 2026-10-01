@@ -298,8 +298,9 @@ class TripPickerSheet extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) =>
-                Center(child: Text(context.l10n.trips_picker_error('$error'))),
+            // The repository logs the failure; the diver gets a plain line.
+            error: (_, _) =>
+                Center(child: Text(context.l10n.trips_picker_error)),
           ),
         ),
       ],

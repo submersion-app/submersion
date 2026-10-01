@@ -1198,7 +1198,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
-      expect(find.textContaining('load-boom'), findsOneWidget);
+      expect(find.text("Couldn't load your trips."), findsOneWidget);
+      expect(find.textContaining('load-boom'), findsNothing);
       expect(find.text('Retry'), findsOneWidget);
     });
   });

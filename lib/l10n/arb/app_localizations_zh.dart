@@ -1334,9 +1334,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_story_openGallery => '打开行程照片';
 
   @override
-  String trips_story_generateItineraryError(String error) {
-    return '无法生成行程：$error';
-  }
+  String get trips_story_generateItineraryError => '无法生成行程，请重试。';
 
   @override
   String get trips_dayType_diveDay => '潜水日';
@@ -24206,14 +24204,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_detail_scan_addDivesFirst => '请先添加潜水以关联照片';
 
   @override
-  String trips_detail_scan_errorLinking(Object error) {
-    return '关联照片时出错：$error';
-  }
+  String get trips_detail_scan_errorLinking => '无法关联照片，请重试。';
 
   @override
-  String trips_detail_scan_errorScanning(Object error) {
-    return '扫描出错: $error';
-  }
+  String get trips_detail_scan_errorScanning => '无法扫描照片，请重试。';
 
   @override
   String trips_detail_scan_linkedPhotos(Object count) {
@@ -24287,9 +24281,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_diveScan_deselectAll => '取消全选';
 
   @override
-  String trips_diveScan_error(String error) {
-    return '扫描潜水时出错：$error';
-  }
+  String get trips_diveScan_error => '无法扫描潜水，请重试。';
 
   @override
   String get trips_diveScan_findButton => '查找匹配的潜水';
@@ -24420,14 +24412,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_snackBar_added => '旅行添加成功';
 
   @override
-  String trips_edit_snackBar_errorLoading(Object error) {
-    return '加载旅行时出错：$error';
-  }
+  String get trips_edit_snackBar_errorLoading => '无法加载旅行，请重试。';
 
   @override
-  String trips_edit_snackBar_errorSaving(Object error) {
-    return '保存旅行时出错：$error';
-  }
+  String get trips_edit_snackBar_errorSaving => '无法保存旅行，请重试。';
 
   @override
   String get trips_edit_snackBar_updated => '旅行更新成功';
@@ -24467,19 +24455,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_gallery_empty_title => '此旅行暂无照片';
 
   @override
-  String trips_gallery_errorLinking(Object error) {
-    return '关联照片时出错：$error';
-  }
+  String get trips_gallery_errorLinking => '无法关联照片，请重试。';
 
   @override
-  String trips_gallery_errorScanning(Object error) {
-    return '扫描出错: $error';
-  }
+  String get trips_gallery_errorScanning => '无法扫描照片，请重试。';
 
   @override
-  String trips_gallery_error_loading(Object error) {
-    return '加载照片时出错：$error';
-  }
+  String get trips_gallery_error_loading => '无法加载照片。';
 
   @override
   String trips_gallery_linkedPhotos(Object count) {
@@ -24526,9 +24508,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_list_empty_title => '尚未添加旅行';
 
   @override
-  String trips_list_error_loading(Object error) {
-    return '加载旅行时出错：$error';
-  }
+  String get trips_list_error_loading => '无法加载旅行。';
 
   @override
   String get trips_list_fab_addTrip => '添加旅行';
@@ -24600,9 +24580,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_picker_empty_title => '暂无旅行';
 
   @override
-  String trips_picker_error(Object error) {
-    return '加载旅行时出错：$error';
-  }
+  String get trips_picker_error => '无法加载旅行。';
 
   @override
   String get trips_picker_hint => '点击选择旅行';
@@ -24899,9 +24877,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_cylinders_forecast_more => '增加潜水';
 
   @override
-  String trips_cylinders_forecast_saveError(String error) {
-    return '无法保存计划：$error';
-  }
+  String get trips_cylinders_forecast_saveError => '无法保存计划，请重试。';
 
   @override
   String get trips_cylinders_forecast_dayPlanned => '由你计划';
@@ -24972,6 +24948,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_cylinders_record_exported => '用气记录已导出';
+
+  @override
+  String get trips_cylinders_record_exportFailed => '无法导出用气记录，请重试。';
 
   @override
   String get trips_cylinders_title => '气瓶';

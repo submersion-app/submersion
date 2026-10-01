@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
@@ -16,6 +17,8 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/presentation/helpers/offer_site_review_after_import.dart';
+
+const _log = LoggerService('tripScanActions');
 
 /// Dismisses a non-dismissible loading dialog exactly once, via a navigator
 /// captured before the first await. This survives the initiating widget being
@@ -101,13 +104,16 @@ Future<void> scanGalleryForTripPhotos(
     if (dialogResult.confirmed != true || !context.mounted) return;
 
     await _importPhotos(context, ref, tripId, dialogResult.selectedPhotos);
-  } catch (e) {
+  } catch (e, stackTrace) {
+    _log.error(
+      'Failed to scan for trip photos',
+      error: e,
+      stackTrace: stackTrace,
+    );
     loading.dismiss();
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.trips_detail_scan_errorScanning('$e')),
-        ),
+        SnackBar(content: Text(context.l10n.trips_detail_scan_errorScanning)),
       );
     }
   }
@@ -178,13 +184,12 @@ Future<void> _importPhotos(
         photosByDive.keys.map((d) => d.id),
       );
     }
-  } catch (e) {
+  } catch (e, stackTrace) {
+    _log.error('Failed to link trip photos', error: e, stackTrace: stackTrace);
     loading.dismiss();
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.trips_detail_scan_errorLinking('$e')),
-        ),
+        SnackBar(content: Text(context.l10n.trips_detail_scan_errorLinking)),
       );
     }
   }
@@ -281,11 +286,16 @@ Future<void> scanForTripDives(
         ),
       );
     }
-  } catch (e) {
+  } catch (e, stackTrace) {
+    _log.error(
+      'Failed to scan for trip dives',
+      error: e,
+      stackTrace: stackTrace,
+    );
     loading.dismiss();
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.trips_diveScan_error('$e'))),
+        SnackBar(content: Text(context.l10n.trips_diveScan_error)),
       );
     }
   }

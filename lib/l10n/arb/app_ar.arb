@@ -342,14 +342,7 @@
   "trips_story_checklistProgress": "اكتمل {done} من {total}",
   "trips_story_generateItinerary": "إنشاء خط سير",
   "trips_story_openGallery": "فتح صور الرحلة",
-  "trips_story_generateItineraryError": "تعذّر إنشاء برنامج الرحلة: {error}",
-  "@trips_story_generateItineraryError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_story_generateItineraryError": "تعذّر إنشاء برنامج الرحلة. حاول مرة أخرى.",
   "trips_dayType_diveDay": "يوم غوص",
   "trips_dayType_seaDay": "يوم بحري",
   "trips_dayType_portDay": "يوم في الميناء",
@@ -7219,8 +7212,8 @@
   "trips_detail_label_vesselType": "Type",
   "trips_detail_scan_accessDenied": "تم رفض الوصول إلى مكتبة الصور",
   "trips_detail_scan_addDivesFirst": "أضف غوصات أولًا لربط الصور",
-  "trips_detail_scan_errorLinking": "خطأ في ربط الصور: {error}",
-  "trips_detail_scan_errorScanning": "خطأ في المسح: {error}",
+  "trips_detail_scan_errorLinking": "تعذّر ربط الصور. حاول مرة أخرى.",
+  "trips_detail_scan_errorScanning": "تعذّر البحث عن الصور. حاول مرة أخرى.",
   "trips_detail_scan_linkedPhotos": "تم ربط {count} صور",
   "trips_detail_scan_linkingPhotos": "جارٍ ربط الصور...",
   "trips_detail_sectionTitle_dailyBreakdown": "Daily Breakdown",
@@ -7437,14 +7430,7 @@
   "trips_cylinders_forecast_useEstimate": "استخدام التقدير",
   "trips_cylinders_forecast_fewer": "غطسات أقل",
   "trips_cylinders_forecast_more": "غطسات أكثر",
-  "trips_cylinders_forecast_saveError": "تعذّر حفظ الخطة: {error}",
-  "@trips_cylinders_forecast_saveError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_cylinders_forecast_saveError": "تعذّر حفظ الخطة. حاول مرة أخرى.",
   "trips_cylinders_forecast_dayPlanned": "خططتها أنت",
   "trips_cylinders_segment_record": "استهلاك الغاز",
   "trips_cylinders_recordEmpty": "لا توجد غطسات من هذه الأسطوانات بعد.",
@@ -7506,6 +7492,7 @@
     }
   },
   "trips_cylinders_record_exported": "تم تصدير سجل الغاز",
+  "trips_cylinders_record_exportFailed": "تعذّر تصدير سجل الغاز. حاول مرة أخرى.",
   "trips_cylinders_title": "الأسطوانات",
   "trips_cylinders_summary": "ممتلئة {full} · جزئية {partial} · فارغة {empty}",
   "@trips_cylinders_summary": {
@@ -7706,8 +7693,8 @@
   "trips_edit_sectionTitle_vessel": "Vessel Details",
   "trips_edit_semanticLabel_save": "حفظ الرحلة",
   "trips_edit_snackBar_added": "تمت إضافة الرحلة بنجاح",
-  "trips_edit_snackBar_errorLoading": "خطأ في تحميل الرحلة: {error}",
-  "trips_edit_snackBar_errorSaving": "خطأ في حفظ الرحلة: {error}",
+  "trips_edit_snackBar_errorLoading": "تعذّر تحميل الرحلة. حاول مرة أخرى.",
+  "trips_edit_snackBar_errorSaving": "تعذّر حفظ الرحلة. حاول مرة أخرى.",
   "trips_edit_snackBar_updated": "تم تحديث الرحلة بنجاح",
   "trips_edit_validation_nameRequired": "يرجى إدخال اسم الرحلة",
   "trips_edit_validation_vesselRequired": "Vessel name is required for liveaboard trips",
@@ -7718,9 +7705,9 @@
   "trips_gallery_diveSection_title": "غوصة #{number} - {site}",
   "trips_gallery_empty_subtitle": "انقر على أيقونة الكاميرا لمسح معرض الصور",
   "trips_gallery_empty_title": "لا توجد صور في هذه الرحلة",
-  "trips_gallery_errorLinking": "خطأ في ربط الصور: {error}",
-  "trips_gallery_errorScanning": "خطأ في المسح: {error}",
-  "trips_gallery_error_loading": "خطأ في تحميل الصور: {error}",
+  "trips_gallery_errorLinking": "تعذّر ربط الصور. حاول مرة أخرى.",
+  "trips_gallery_errorScanning": "تعذّر البحث عن الصور. حاول مرة أخرى.",
+  "trips_gallery_error_loading": "تعذّر تحميل الصور.",
   "trips_gallery_linkedPhotos": "تم ربط {count} صور",
   "trips_gallery_linkingPhotos": "جارٍ ربط الصور...",
   "trips_gallery_tooltip_scan": "مسح معرض الجهاز",
@@ -7739,7 +7726,7 @@
   "trips_list_empty_filtered_title": "لا توجد رحلات تطابق عوامل التصفية",
   "trips_list_empty_subtitle": "أنشئ رحلات لتجميع غوصاتك حسب الوجهة",
   "trips_list_empty_title": "لم تتم إضافة رحلات بعد",
-  "trips_list_error_loading": "خطأ في تحميل الرحلات: {error}",
+  "trips_list_error_loading": "تعذّر تحميل رحلاتك.",
   "trips_list_fab_addTrip": "إضافة رحلة",
   "trips_list_filters_clearAll": "مسح الكل",
   "trips_list_inProgress": "جارية",
@@ -7761,7 +7748,7 @@
   "trips_picker_clearTooltip": "مسح الاختيار",
   "trips_picker_empty_createButton": "إنشاء رحلة",
   "trips_picker_empty_title": "لا توجد رحلات بعد",
-  "trips_picker_error": "خطأ في تحميل الرحلات: {error}",
+  "trips_picker_error": "تعذّر تحميل رحلاتك.",
   "trips_picker_hint": "انقر لاختيار رحلة",
   "trips_picker_newTrip": "رحلة جديدة",
   "trips_picker_noSelection": "لم يتم اختيار رحلة",
@@ -8065,14 +8052,7 @@
     }
   },
   "trips_diveScan_deselectAll": "إلغاء تحديد الكل",
-  "trips_diveScan_error": "خطأ في البحث عن الغوصات: {error}",
-  "@trips_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "trips_diveScan_error": "تعذّر البحث عن الغوصات. حاول مرة أخرى.",
   "trips_diveScan_findButton": "البحث عن الغوصات المطابقة",
   "trips_diveScan_groupOtherTrips": "في رحلات أخرى ({count})",
   "@trips_diveScan_groupOtherTrips": {
