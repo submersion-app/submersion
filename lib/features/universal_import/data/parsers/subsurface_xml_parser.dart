@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/two_digit_year.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
@@ -368,10 +369,15 @@ class SubsurfaceXmlParser implements ImportParser {
   /// A Subsurface `date` ('2025-03-10') and `time` ('09:00:00') as a UTC
   /// wall-clock instant, or midnight when the time is absent or unreadable.
   /// Null when the date itself cannot be read.
+  ///
+  /// A hand-edited `91-03-10` is 1991, never the year 91 (#2617).
   static DateTime? _parseDateTime(String dateStr, String? timeStr) {
     final dateParts = dateStr.split('-');
     if (dateParts.length != 3) return null;
-    final year = int.tryParse(dateParts[0]);
+    final parsedYear = int.tryParse(dateParts[0]);
+    final year = parsedYear != null && dateParts[0].trim().length == 2
+        ? expandTwoDigitYear(parsedYear, now: DateTime.now())
+        : parsedYear;
     final month = int.tryParse(dateParts[1]);
     final day = int.tryParse(dateParts[2]);
     if (year == null || month == null || day == null) return null;
