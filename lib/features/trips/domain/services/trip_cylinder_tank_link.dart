@@ -26,15 +26,28 @@ DiveTank tankFromTripCylinder(DiveTank tank, TripCylinderState slot) {
 }
 
 /// Pure. The slots [tank] cannot take because a sibling on its dive holds
-/// them. Only a sibling from the same computer counts (null is the primary
-/// source, as on `dive_tanks.computer_id`): one computer's two tanks are two
-/// cylinders, but another computer's tank may be that computer's copy of
-/// this very cylinder, a row consolidation did not merge, and must be able
-/// to share its slot (issue #2661).
-Set<String> tripCylinderIdsTakenFor(DiveTank tank, List<DiveTank> tanks) => {
-  for (final t in tanks)
-    if (t.id != tank.id && t.computerId == tank.computerId) ?t.tripCylinderId,
-};
+/// them. Only a sibling from the same computer counts: one computer's two
+/// tanks are two cylinders, but another computer's tank may be that
+/// computer's copy of this very cylinder, a row consolidation did not
+/// merge, and must be able to share its slot (issue #2661).
+///
+/// A tank with no computer (one the diver added, or one written before
+/// attribution) is the dive's own, [primaryComputerId] (`Dive.computerId`),
+/// as on `dive_tanks.computer_id`: a download stamps its computer on every
+/// tank it writes, so without this a hand-added tank would pass for another
+/// computer and could share a downloaded tank's slot.
+Set<String> tripCylinderIdsTakenFor(
+  DiveTank tank,
+  List<DiveTank> tanks, {
+  required String? primaryComputerId,
+}) {
+  String? computerOf(DiveTank t) => t.computerId ?? primaryComputerId;
+  return {
+    for (final t in tanks)
+      if (t.id != tank.id && computerOf(t) == computerOf(tank))
+        ?t.tripCylinderId,
+  };
+}
 
 /// Pure. Links each tank in [eligibleTankIds] that has no link to the slot
 /// [suggestTripCylinder] picks for it, filled by [tankFromTripCylinder].

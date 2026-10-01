@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/database/database.dart'
-    show AppDatabase, DiveComputersCompanion;
+    show AppDatabase, DiveComputersCompanion, DivesCompanion;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/app_router.dart' show newDivePage;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -278,6 +279,50 @@ void main() {
           const DiveTank(id: 'k3', order: 2, computerId: 'perdix'),
         ],
       ),
+    );
+    await pumpEditPage(tester, diveId: dive.id);
+    await settleTrip(tester);
+    await tester.tap(find.text('Gas & Gear').first);
+    await settleTrip(tester);
+    final r = rows(tester);
+    expect(r.map((row) => row.tank.id), ['k1', 'k2', 'k3']);
+    expect(r[1].takenTripCylinderIds, {a.id});
+    expect(r[2].takenTripCylinderIds, isEmpty);
+  });
+
+  testWidgets('a hand-added tank on a downloaded dive cannot share', (
+    tester,
+  ) async {
+    // A download stamps the computer on every tank it writes; a tank the
+    // diver adds carries none, and is the dive's own computer's, so the
+    // slot the downloaded tank holds stays taken for it.
+    for (final id in ['teric', 'perdix']) {
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    }
+    final dive = await repository.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime.now(),
+        trip: trip,
+        tanks: [
+          DiveTank(id: 'k1', computerId: 'teric', tripCylinderId: a.id),
+          const DiveTank(id: 'k2', order: 1),
+          const DiveTank(id: 'k3', order: 2, computerId: 'perdix'),
+        ],
+      ),
+    );
+    // Saving never writes the dive's computer: the download does.
+    await (db.update(db.dives)..where((d) => d.id.equals(dive.id))).write(
+      const DivesCompanion(computerId: Value('teric')),
     );
     await pumpEditPage(tester, diveId: dive.id);
     await settleTrip(tester);

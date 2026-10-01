@@ -180,21 +180,57 @@ void main() {
     const perdix = DiveTank(id: 's1', order: 2, computerId: 'perdix');
 
     test('a slot a sibling from the same computer holds is taken', () {
-      expect(tripCylinderIdsTakenFor(primaryStage, [primary, primaryStage]), {
-        'a',
-      });
+      expect(
+        tripCylinderIdsTakenFor(primaryStage, [
+          primary,
+          primaryStage,
+        ], primaryComputerId: null),
+        {'a'},
+      );
     });
 
     test('the tank\'s own link is not taken from it', () {
-      expect(tripCylinderIdsTakenFor(primary, [primary]), isEmpty);
+      expect(
+        tripCylinderIdsTakenFor(primary, [primary], primaryComputerId: null),
+        isEmpty,
+      );
     });
 
     test('another computer\'s copy of a cylinder leaves its slot open', () {
       // Issue #2661: the second computer's row for one cylinder must be
       // able to share the slot the first computer's row holds.
       expect(
-        tripCylinderIdsTakenFor(perdix, [primary, primaryStage, perdix]),
+        tripCylinderIdsTakenFor(perdix, [
+          primary,
+          primaryStage,
+          perdix,
+        ], primaryComputerId: null),
         isEmpty,
+      );
+    });
+
+    test('a hand-added tank belongs to the dive\'s own computer', () {
+      // A download stamps its computer on every tank; a tank the diver adds
+      // carries none, which is the dive's primary computer, not another one.
+      const downloaded = DiveTank(
+        id: 'd1',
+        computerId: 'teric',
+        tripCylinderId: 'a',
+      );
+      const added = DiveTank(id: 'd2', order: 1, tripCylinderId: 'b');
+      expect(
+        tripCylinderIdsTakenFor(added, [
+          downloaded,
+          added,
+        ], primaryComputerId: 'teric'),
+        {'a'},
+      );
+      expect(
+        tripCylinderIdsTakenFor(downloaded, [
+          downloaded,
+          added,
+        ], primaryComputerId: 'teric'),
+        {'b'},
       );
     });
 
@@ -205,9 +241,14 @@ void main() {
         computerId: 'perdix',
         tripCylinderId: 'b',
       );
-      expect(tripCylinderIdsTakenFor(perdix, [primary, perdix, perdixStage]), {
-        'b',
-      });
+      expect(
+        tripCylinderIdsTakenFor(perdix, [
+          primary,
+          perdix,
+          perdixStage,
+        ], primaryComputerId: null),
+        {'b'},
+      );
     });
   });
 }

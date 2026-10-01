@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
+
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
@@ -34,15 +36,11 @@ TripGasRecord buildTripGasRecord({
       if (bySlot[t.tripCylinderId] case final cylinder?)
         _row(t, cylinder, eventsBySlot[cylinder.id] ?? const [], gasModel),
   ];
-  (String, String) copyKey(TripGasRecordRow r) =>
-      (r.tank.diveId, r.cylinder.id);
-  // Set literals keep insertion order, so the rows stay in dive order.
+  // One group per dive and slot, in first-appearance (dive) order.
   final rows = [
-    for (final key in {for (final r in linked) copyKey(r)})
-      _standIn([
-        for (final r in linked)
-          if (copyKey(r) == key) r,
-      ]),
+    for (final copies
+        in linked.groupListsBy((r) => (r.tank.diveId, r.cylinder.id)).values)
+      _standIn(copies),
   ];
 
   final rowsBySlot = <String, List<TripGasRecordRow>>{};
