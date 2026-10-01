@@ -56,6 +56,24 @@ void main() {
     expect(labels['a']!.bottle, '22');
   });
 
+  test('a fill stamped with seconds in the dive\'s minute counts', () {
+    // The fill sheet's default "now" carries seconds; the dive's typed
+    // entry does not (issue #2662).
+    final labels = tripCylinderLabelsAt(
+      cylinders: [truck],
+      eventsBySlot: {
+        'a': [
+          fill(0, '14'),
+          fill(600, '22').copyWith(
+            occurredAt: t0.add(const Duration(minutes: 600, seconds: 35)),
+          ),
+        ],
+      },
+      atMillis: at(600),
+    );
+    expect(labels['a']!.bottle, '22');
+  });
+
   test('no fill before the dive, or an adjustment, names only the slot', () {
     final labels = tripCylinderLabelsAt(
       cylinders: [truck],

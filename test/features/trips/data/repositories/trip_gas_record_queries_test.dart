@@ -1,7 +1,12 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart'
-    show AppDatabase, DiversCompanion, DivesCompanion, DiveTanksCompanion;
+    show
+        AppDatabase,
+        DiveComputersCompanion,
+        DiversCompanion,
+        DivesCompanion,
+        DiveTanksCompanion;
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -66,6 +71,7 @@ void main() {
     String? slotId,
     int order = 0,
     double? volume,
+    String? computerId,
   }) => db
       .into(db.diveTanks)
       .insert(
@@ -73,6 +79,7 @@ void main() {
           tripCylinderId: Value(slotId),
           tankOrder: Value(order),
           volume: Value(volume),
+          computerId: Value(computerId),
           startPressure: const Value(200),
           endPressure: const Value(60),
           o2Percent: const Value(32),
@@ -131,6 +138,29 @@ void main() {
     expect(gaps.map((g) => g.tankId), ['t2', 't3']);
     expect(gaps.first.diverName, 'Diver a');
     expect(gaps.first.diveId, 'd1');
+  });
+
+  test('a gap names the computer its tank row came from', () async {
+    // Issue #2661: a dive from two computers whose tank rows were not
+    // consolidated. The sheet tells the rows apart by their computer.
+    await db
+        .into(db.diveComputers)
+        .insert(
+          DiveComputersCompanion.insert(
+            id: 'perdix',
+            name: 'Perdix',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await dive('d1', 9, diver: 'a');
+    await tankOn('t1', 'd1');
+    await tankOn('t2', 'd1', order: 1, computerId: 'perdix');
+    final gaps = await repository.getUnlinkedTanksForTrip(tripId);
+    expect(gaps.map((g) => (g.tankId, g.computerId)), [
+      ('t1', null),
+      ('t2', 'perdix'),
+    ]);
   });
 
   test('a trip with no dives has an empty record', () async {

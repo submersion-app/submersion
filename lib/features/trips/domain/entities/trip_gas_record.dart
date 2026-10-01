@@ -67,6 +67,7 @@ class TripUnlinkedTank extends Equatable {
     this.diverName,
     this.siteName,
     this.tankOrder = 0,
+    this.computerId,
   });
 
   final String tankId;
@@ -77,6 +78,10 @@ class TripUnlinkedTank extends Equatable {
   final String? siteName;
   final int tankOrder;
 
+  /// The computer the tank row came from; null is the dive's primary
+  /// source. On a dive from two computers it tells their rows apart.
+  final String? computerId;
+
   @override
   List<Object?> get props => [
     tankId,
@@ -86,6 +91,7 @@ class TripUnlinkedTank extends Equatable {
     diverName,
     siteName,
     tankOrder,
+    computerId,
   ];
 }
 
@@ -115,6 +121,10 @@ class TripGasRecordRow extends Equatable {
   /// Gas breathed in free litres; null when the tank has no volume or a
   /// pressure is missing.
   final double? litres;
+
+  /// The bottle a fill named, or null when [bottleLabel] is only the slot's
+  /// label, which the board's lines leave out the same way.
+  String? get namedBottle => bottleLabel == cylinder.label ? null : bottleLabel;
 
   GasMix? get orderedMix => fill?.orderedMix;
   GasMix? get analyzedMix => fill?.analyzedMix;

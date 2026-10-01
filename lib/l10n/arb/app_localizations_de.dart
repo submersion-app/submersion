@@ -29865,6 +29865,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dropTarget_error_readFailed => 'Datei konnte nicht gelesen werden';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Dateien konnten nicht gelesen werden und wurden übersprungen',
+      one: '$count Datei konnte nicht gelesen werden und wurde übersprungen',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => 'Klar';
 
   @override
@@ -30591,6 +30603,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => 'In deinem Profil ausgeblendet';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       'Nur einer der ausgewählten Orte darf zu einem anderen Profil gehören. Hebe die Auswahl der anderen auf, um zusammenzuführen.';
 
@@ -30670,6 +30685,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sharedItems_undo => 'Rückgängig';
+
+  @override
+  String get sharedItems_unhideAction => 'In meinem Profil einblenden';
 
   @override
   String get sites_deleteShared_title => 'Geteilten Ort löschen?';

@@ -112,16 +112,15 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     _fileShareHandler = FileShareHandler(
       onFileReceived: _handleIncomingFile,
       onFilesReceived: _handleIncomingFiles,
-      onError: (_) {
+      onError: (error) {
         final l10n = _scaffoldMessengerKey.currentContext != null
             ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
             : null;
-        _scaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n?.dropTarget_error_readFailed ?? 'Could not read file',
-            ),
-          ),
+        reportIncomingFileError(
+          error,
+          messenger: _scaffoldMessengerKey.currentState,
+          readFailedMessage: l10n?.dropTarget_error_readFailed,
+          someUnreadableMessage: l10n?.dropTarget_error_someUnreadable,
         );
       },
     );

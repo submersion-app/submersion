@@ -12,10 +12,12 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 /// resolves it.
 ///
 /// Unlike the surfacing rule this is not a preference: a pressure read off a
-/// transmitter that had lost its signal is wrong for every diver. Only a
-/// value that matches a glitch reading is replaced, so a source that read
-/// its pressures from a log header is left alone. The payload is rebuilt,
-/// never mutated.
+/// transmitter that had lost its signal is wrong for every diver. A value
+/// that matches a glitch reading is replaced, and so is a near-zero value
+/// the series contradicts even though no reading matches it; without a
+/// series, a near-zero value is cleared when the other end is a real
+/// pressure (issue #2687). Any other header pressure is left alone. The
+/// payload is rebuilt, never mutated.
 ImportPayload replaceGlitchedTankPressures(ImportPayload payload) {
   final dives = payload.entitiesOf(ImportEntityType.dives);
   if (dives.isEmpty) {
@@ -35,15 +37,13 @@ ImportPayload replaceGlitchedTankPressures(ImportPayload payload) {
 
 Map<String, dynamic> _fixDive(Map<String, dynamic> dive) {
   final tanks = dive['tanks'];
+  if (tanks is! List || tanks.isEmpty) {
+    return dive;
+  }
   final profile = dive['profile'];
-  if (tanks is! List || tanks.isEmpty || profile is! List || profile.isEmpty) {
-    return dive;
-  }
-
-  final readingsByTank = _readingsByTank(profile);
-  if (readingsByTank.isEmpty) {
-    return dive;
-  }
+  final readingsByTank = profile is List
+      ? _readingsByTank(profile)
+      : const <int, List<PressureReading>>{};
 
   var changed = false;
   final fixed = <Map<String, dynamic>>[];
@@ -52,22 +52,32 @@ Map<String, dynamic> _fixDive(Map<String, dynamic> dive) {
     if (tank is! Map<String, dynamic>) {
       return dive;
     }
-    final readings = readingsByTank[i];
-    if (readings == null) {
-      fixed.add(tank);
-      continue;
-    }
+    final readings = readingsByTank[i] ?? const <PressureReading>[];
     final start = (tank['startPressure'] as num?)?.toDouble();
     final end = (tank['endPressure'] as num?)?.toDouble();
     final glitches = scanPressureGlitches(readings);
-    final newStart = replaceGlitchedEndpoint(
+    final deglitchedStart = replaceGlitchedEndpoint(
       reportedBar: start,
       readings: readings,
       atStart: true,
       scan: glitches,
     );
-    final newEnd = replaceGlitchedEndpoint(
+    final deglitchedEnd = replaceGlitchedEndpoint(
       reportedBar: end,
+      readings: readings,
+      atStart: false,
+      scan: glitches,
+    );
+    final newStart = replaceNearZeroEndpoint(
+      reportedBar: deglitchedStart,
+      otherBar: deglitchedEnd,
+      readings: readings,
+      atStart: true,
+      scan: glitches,
+    );
+    final newEnd = replaceNearZeroEndpoint(
+      reportedBar: deglitchedEnd,
+      otherBar: deglitchedStart,
       readings: readings,
       atStart: false,
       scan: glitches,

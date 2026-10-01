@@ -28386,6 +28386,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dropTarget_error_readFailed => '无法读取文件';
 
   @override
+  String dropTarget_error_someUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文件无法读取，已跳过',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get enum_cloudCover_clear => '清除';
 
   @override
@@ -29061,6 +29071,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get sharedItems_hiddenHere => '已在您的资料中隐藏';
+
+  @override
   String get sharedItems_mergeTooManyShared =>
       '所选潜点中只能有一个属于其他资料。请取消选择其他潜点后再合并。';
 
@@ -29134,6 +29147,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sharedItems_undo => '撤消';
+
+  @override
+  String get sharedItems_unhideAction => '在我的资料中显示';
 
   @override
   String get sites_deleteShared_title => '删除共享潜点？';

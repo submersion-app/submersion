@@ -7,6 +7,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_import/data/services/missing_computer_attacher.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
@@ -29,13 +30,21 @@ class DiveReimportResult {
   /// (#1164): callers must not tell the diver the dive was rewritten.
   final bool profilePreserved;
 
-  const DiveReimportResult.updated({this.profilePreserved = false})
-    : updated = true,
-      skippedReason = null;
+  /// Further computers the fresh parse carried and the dive did not, added
+  /// as sources of their own (issue #2672). A dive imported before the
+  /// importer kept every computer gains them on its first resync.
+  final int computersAdded;
+
+  const DiveReimportResult.updated({
+    this.profilePreserved = false,
+    this.computersAdded = 0,
+  }) : updated = true,
+       skippedReason = null;
 
   const DiveReimportResult.skipped(this.skippedReason)
     : updated = false,
-      profilePreserved = false;
+      profilePreserved = false,
+      computersAdded = 0;
 }
 
 /// Writes a freshly re-parsed file-import payload back onto an EXISTING
@@ -70,14 +79,17 @@ class DiveReimportService {
     SyncRepository? syncRepository,
     ProfileSeriesRepository? profileSeries,
     TankPressureRepository? tankPressureRepository,
+    MissingComputerAttacher? missingComputers,
   }) : _syncRepository = syncRepository ?? SyncRepository(database: db),
        _profileSeries = profileSeries ?? ProfileSeriesRepository(database: db),
        _tankPressureRepository =
-           tankPressureRepository ?? TankPressureRepository(database: db);
+           tankPressureRepository ?? TankPressureRepository(database: db),
+       _missingComputers = missingComputers ?? MissingComputerAttacher(db: db);
 
   final SyncRepository _syncRepository;
   final ProfileSeriesRepository _profileSeries;
   final TankPressureRepository _tankPressureRepository;
+  final MissingComputerAttacher _missingComputers;
 
   Future<DiveReimportResult> applyReimport({
     required String diveId,
@@ -92,6 +104,7 @@ class DiveReimportService {
     }
 
     var profilePreserved = false;
+    DiveDataSourcesData? primarySource;
     await db.transaction(() async {
       final sourceRows = await (db.select(
         db.diveDataSources,
@@ -117,6 +130,7 @@ class DiveReimportService {
       final ownsEverything =
           sourceRows.isEmpty || (ownsStrand && !isMultiSource);
       profilePreserved = !ownsEverything;
+      primarySource = primary;
 
       // Outside the ownership gate, inside a primary-source one: the dive's
       // summary belongs to whichever source is primary, which on a resync is
@@ -170,7 +184,47 @@ class DiveReimportService {
     });
 
     SyncEventBus.notifyLocalChange();
-    return DiveReimportResult.updated(profilePreserved: profilePreserved);
+    final computersAdded = await _addMissingComputers(
+      diveId: diveId,
+      diveData: diveData,
+      primary: primarySource,
+      now: now,
+    );
+    return DiveReimportResult.updated(
+      profilePreserved: profilePreserved,
+      computersAdded: computersAdded,
+    );
+  }
+
+  /// Adds the computers the fresh parse carries and the dive lacks, after
+  /// the primary's own data is rewritten: a dive holding one source still
+  /// owns its strand then, so its samples are refreshed first (issue #2672).
+  ///
+  /// Best-effort: the resync above has already committed, so a failure here
+  /// costs the added computers, never the resync itself.
+  Future<int> _addMissingComputers({
+    required String diveId,
+    required Map<String, dynamic> diveData,
+    required DiveDataSourcesData? primary,
+    required DateTime now,
+  }) async {
+    if (primary == null) return 0;
+    try {
+      return await _missingComputers.attach(
+        diveId: diveId,
+        diveData: diveData,
+        sourceFileName: primary.sourceFileName,
+        sourceFileFormat: primary.sourceFileFormat ?? 'uddf',
+        now: now,
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Resync of dive $diveId could not add its further computers',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return 0;
+    }
   }
 
   static double? _asDouble(Object? v) => v is num ? v.toDouble() : null;

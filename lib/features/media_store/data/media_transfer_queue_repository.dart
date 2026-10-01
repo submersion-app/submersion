@@ -282,6 +282,28 @@ class MediaTransferQueueRepository {
     });
   }
 
+  /// Whether a delete intent for [contentHash] is still held: pending and
+  /// never attempted, so its blobs are all still in the store, and it will
+  /// no-op at drain time while a media row has the hash (issue #2718). An
+  /// attempt that failed (pending again, or terminally failed) may have
+  /// deleted some tiers before it threw, a transferring one may be
+  /// deleting them now, and a done one has (or found the hash in use), so
+  /// none of those counts.
+  Future<bool> hasHeldDelete(String contentHash) async {
+    final row =
+        await (_db.select(_db.mediaTransferQueue)
+              ..where(
+                (t) =>
+                    t.direction.equals('delete') &
+                    t.contentHash.equals(contentHash) &
+                    t.state.equals('pending') &
+                    t.attempts.equals(0),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
+  }
+
   /// Whether any row is still outstanding: pending (due or deferred) or
   /// stranded in transferring. The resume gate's question, because each of
   /// those needs a built runtime to move: a drain to take or reclaim it, or
