@@ -124,16 +124,16 @@ void main() {
     );
     expect(find.text('Bonaire'), findsOneWidget);
 
-    ScaffoldMessenger.of(
-      tester.element(find.byType(HiddenItemsPage)),
-    ).removeCurrentSnackBar();
-    await tester.pumpAndSettle();
+    // A second failure replaces the first message rather than queueing.
     await tester.tap(find.text('Unhide').last);
     await tester.pumpAndSettle();
     expect(
       find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    expect(find.text('Something went wrong. Please try again.'), findsNothing);
     expect(trips.unhidden, isEmpty);
     expect(sites.unhidden, isEmpty);
   });

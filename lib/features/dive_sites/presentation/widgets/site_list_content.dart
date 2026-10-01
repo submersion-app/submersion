@@ -454,8 +454,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           : 0;
 
       _deletedSites = deleted;
-      // A failed hide hid nothing for Undo to show again.
-      _hiddenSiteIds = hidden == null ? const [] : hideIds;
+      // Even after a failed hide: it may have been written before the
+      // refresh failed, and an unhide of one not hidden does nothing.
+      _hiddenSiteIds = hideIds;
 
       final summary = [
         if (deleted != null && deleted.sites.isNotEmpty)
@@ -465,15 +466,16 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         if (hidden == null) l10n.common_error_tryAgain,
       ];
       // Only a failed hide to report: nothing for Undo to take back.
-      if (mounted && summary.length == 1 && hidden == null) {
+      if (hidden == null && (deleted?.sites.isEmpty ?? true)) {
         scaffoldMessenger.clearSnackBars();
         scaffoldMessenger.showSnackBar(
           SnackBar(content: Text(l10n.common_error_tryAgain)),
         );
         return BulkActionOutcome.completed;
       }
-      // Nothing done (every action refused): no empty snackbar.
-      if (mounted && summary.isNotEmpty) {
+      // Nothing done (every action refused): no empty snackbar. A failure
+      // says so even once the list has closed.
+      if ((mounted || hidden == null) && summary.isNotEmpty) {
         scaffoldMessenger.clearSnackBars();
         scaffoldMessenger.showSnackBar(
           SnackBar(
@@ -485,23 +487,38 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               onPressed: () async {
                 final toRestore = _deletedSites;
                 final toUnhide = _hiddenSiteIds;
+                var restored = true;
                 if (toRestore != null && toRestore.sites.isNotEmpty) {
-                  await notifier.restoreSites(
-                    toRestore.sites,
-                    links: toRestore.links,
-                  );
+                  try {
+                    await notifier.restoreSites(
+                      toRestore.sites,
+                      links: toRestore.links,
+                    );
+                  } catch (e, stackTrace) {
+                    _log.error(
+                      'Could not restore the deleted sites',
+                      error: e,
+                      stackTrace: stackTrace,
+                    );
+                    restored = false;
+                  }
                 }
                 final unhidden =
                     toUnhide.isEmpty ||
-                    await runHideChange(scaffoldMessenger, l10n, () async {
-                          await notifier.unhideSites(toUnhide);
-                          return true;
-                        }) ==
+                    await tryHideChange(
+                          () =>
+                              notifier.unhideSites(toUnhide).then((_) => true),
+                        ) ==
                         true;
                 _deletedSites = null;
                 _hiddenSiteIds = const [];
-                // A failed unhide has said so: not everything is back.
-                if (unhidden && mounted) {
+                if (!restored || !unhidden) {
+                  // Not everything is back: say so, even once the list has
+                  // closed.
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(content: Text(l10n.common_error_tryAgain)),
+                  );
+                } else if (mounted) {
                   scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text(l10n.diveSites_list_bulkDelete_restored),

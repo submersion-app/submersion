@@ -70,14 +70,22 @@ Future<({String? activeDiverId, int diverCount})> readSharingContext(
 }
 
 /// Runs [change], a hide or unhide of a shared trip or site, and gives its
-/// result, or null when it failed (issue #2677). A failure is logged and
-/// otherwise left to the caller, as a bulk action does when it joins it
-/// into its own summary.
-Future<T?> tryHideChange<T>(Future<T> Function() change) async {
+/// result, or null when it failed (issue #2677). A failure is logged, then
+/// [onFailed] runs; without it the failure is left to the caller, as a
+/// bulk action does when it joins it into its own summary.
+Future<T?> tryHideChange<T>(
+  Future<T> Function() change, {
+  VoidCallback? onFailed,
+}) async {
   try {
     return await change();
   } catch (e, stackTrace) {
-    _logHideChangeFailed(e, stackTrace);
+    _log.warning(
+      'Could not hide or unhide a shared item',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    onFailed?.call();
     return null;
   }
 }
@@ -85,29 +93,20 @@ Future<T?> tryHideChange<T>(Future<T> Function() change) async {
 /// [tryHideChange], telling the diver through [messenger] to try again
 /// when it fails, so the caller only leaves the page as it was. The
 /// messenger, read before any await, still reaches the diver after the
-/// page that offered the change has closed, as it has for an Undo.
+/// page that offered the change has closed, as it has for an Undo. The
+/// message replaces the one showing, so repeated failures do not queue.
 Future<T?> runHideChange<T>(
   ScaffoldMessengerState messenger,
   AppLocalizations l10n,
   Future<T> Function() change,
-) async {
-  try {
-    return await change();
-  } catch (e, stackTrace) {
-    _logHideChangeFailed(e, stackTrace);
-    if (messenger.mounted) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.common_error_tryAgain)),
-      );
-    }
-    return null;
-  }
-}
-
-void _logHideChangeFailed(Object error, StackTrace stackTrace) => _log.warning(
-  'Could not hide or unhide a shared item',
-  error: error,
-  stackTrace: stackTrace,
+) => tryHideChange(
+  change,
+  onFailed: () {
+    if (!messenger.mounted) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.common_error_tryAgain)));
+  },
 );
 
 /// The owning profile's name, or a neutral fallback for a profile that is

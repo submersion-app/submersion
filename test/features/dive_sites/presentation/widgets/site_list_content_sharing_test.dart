@@ -7,6 +7,7 @@ import 'package:submersion/core/database/database.dart' hide DiveSite;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -192,6 +193,34 @@ void main() {
       expect(find.text('Undo'), findsNothing);
     });
 
+    testWidgets('after the hide was written still lets Undo unhide it', (
+      tester,
+    ) async {
+      await seedSite(db, 'mine', owner: 'd2', shared: true, name: 'Alpha');
+      await seedSite(db, 'theirs', owner: 'd1', shared: true, name: 'Bravo');
+      await pump(tester, hides: FailingProfileHides()..failAfterHide = true);
+      await confirmBulkDelete(tester, ['Alpha', 'Bravo']);
+      expect(find.text('Deleted 1 site · $tryAgain'), findsOneWidget);
+      expect(await db.select(db.siteHides).get(), hasLength(1));
+
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(await db.select(db.siteHides).get(), isEmpty);
+      expect(await SiteRepository().getSiteById('mine'), isNotNull);
+    });
+
+    testWidgets('a failed restore in Undo says to try again', (tester) async {
+      await seedSite(db, 'mine', owner: 'd2', name: 'Alpha');
+      await pump(tester, repository: _UnrestorableSites());
+      await confirmBulkDelete(tester, ['Alpha']);
+      expect(await SiteRepository().getSiteById('mine'), isNull);
+
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(find.text(tryAgain), findsOneWidget);
+      expect(find.text('Sites restored'), findsNothing);
+    });
+
     testWidgets('in Undo keeps the hide and says to try again', (tester) async {
       await seedSite(db, 'theirs', owner: 'd1', shared: true, name: 'Bravo');
       final hides = FailingProfileHides();
@@ -271,6 +300,16 @@ void main() {
       findsOneWidget,
     );
   });
+}
+
+/// A site repository whose re-create fails, as a database error would, so
+/// an Undo cannot bring a deleted site back.
+class _UnrestorableSites extends SiteRepository {
+  @override
+  Future<DiveSite> createSite(
+    DiveSite site, {
+    SiteClassification? classification,
+  }) async => throw StateError('database unavailable');
 }
 
 /// A site repository whose lookup by ids fails, as a database error would.

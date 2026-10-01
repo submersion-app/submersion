@@ -389,15 +389,15 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             () => notifier.hideTrips([for (final t in split.hide) t.id]),
           );
 
-    if (!mounted) return BulkActionOutcome.completed;
     final summary = [
       if (deleted > 0) l10n.common_bulkDelete_snackbar(deleted),
       if (hidden case final n? when n > 0)
         l10n.sharedItems_bulkHiddenSnackbar(n),
       if (hidden == null) l10n.common_error_tryAgain,
     ];
-    // Nothing done (every action refused): no empty snackbar.
-    if (summary.isNotEmpty) {
+    // Nothing done (every action refused): no empty snackbar. A failure
+    // says so even once the list has closed.
+    if ((mounted || hidden == null) && summary.isNotEmpty) {
       messenger.showSnackBar(SnackBar(content: Text(summary.join(' · '))));
     }
     return BulkActionOutcome.completed;

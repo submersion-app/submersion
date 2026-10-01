@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -63,8 +65,12 @@ class _MockTripListNotifier
   /// A hide throws, as a database error does (issue #2677).
   bool failHides = false;
 
+  /// Holds a hide open until the test completes it.
+  Completer<int>? hideGate;
+
   @override
   Future<int> hideTrips(List<String> ids) async {
+    if (hideGate case final gate?) return gate.future;
     if (failHides) throw StateError('database unavailable');
     hidden.addAll(ids);
     return allowed ? ids.length : 0;
@@ -241,6 +247,10 @@ void main() {
 
   group('bulk delete of shared trips (issue #2594)', () {
     late _MockTripListNotifier notifier;
+    // False takes the list out of the tree, as leaving the page does.
+    final showList = ValueNotifier(true);
+    setUp(() => showList.value = true);
+    tearDownAll(showList.dispose);
 
     Future<void> openDelete(
       WidgetTester tester,
@@ -274,7 +284,12 @@ void main() {
             ),
             highlightedTripIdProvider.overrideWith((ref) => null),
           ],
-          child: const TripListContent(showAppBar: true),
+          child: ValueListenableBuilder(
+            valueListenable: showList,
+            builder: (_, show, _) => show
+                ? const TripListContent(showAppBar: true)
+                : const SizedBox(),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -358,6 +373,31 @@ void main() {
       expect(notifier.deleted, ['mine']);
       expect(
         find.text('1 deleted · Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a failed hide says so after the list has closed '
+        '(issue #2677)', (tester) async {
+      await openDelete(tester, [
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      final gate = Completer<int>();
+      notifier.hideGate = gate;
+      await tester.tap(find.text('Remove').hitTestable().last);
+      await tester.pump();
+      showList.value = false;
+      await tester.pump();
+      gate.completeError(StateError('database unavailable'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TripListContent), findsNothing);
+      expect(
+        find.text('Something went wrong. Please try again.'),
         findsOneWidget,
       );
     });

@@ -119,6 +119,10 @@ class FailingProfileHides extends ProfileHidesRepository {
   bool failHide = false;
   bool failUnhide = false;
 
+  /// The hide is written, then the call throws, as it does when the list
+  /// refresh after a committed hide fails.
+  bool failAfterHide = false;
+
   // [hide] writes through [hideAll], so failing here fails both.
   @override
   Future<int> hideAll(
@@ -127,7 +131,9 @@ class FailingProfileHides extends ProfileHidesRepository {
     String diverId,
   ) async {
     if (failHide) throw StateError('database unavailable');
-    return super.hideAll(kind, ids, diverId);
+    final hidden = await super.hideAll(kind, ids, diverId);
+    if (failAfterHide) throw StateError('database unavailable');
+    return hidden;
   }
 
   @override
