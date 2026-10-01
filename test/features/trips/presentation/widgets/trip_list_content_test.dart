@@ -402,6 +402,42 @@ void main() {
       );
     });
 
+    testWidgets('a second bulk action replaces the first one\'s message '
+        '(issue #2677)', (tester) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2', isShared: true),
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      notifier.failHides = true;
+      await tester.tap(find.text('Delete').hitTestable().last);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('1 deleted · Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+
+      // A second remove, of the shared trip alone, fails too.
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bbb Trip'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_delete')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove').hitTestable().last);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a failed hide alone says only to try again (issue #2677)', (
       tester,
     ) async {

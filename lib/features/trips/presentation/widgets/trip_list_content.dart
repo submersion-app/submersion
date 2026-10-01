@@ -398,7 +398,11 @@ class _TripListContentState extends ConsumerState<TripListContent> {
     // Nothing done (every action refused): no empty snackbar. A failure
     // says so even once the list has closed.
     if ((mounted || hidden == null) && summary.isNotEmpty) {
-      messenger.showSnackBar(SnackBar(content: Text(summary.join(' · '))));
+      // Replaces any earlier summary, as the site list's does, so the
+      // latest outcome is the one showing.
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(content: Text(summary.join(' · '))));
     }
     return BulkActionOutcome.completed;
   }
