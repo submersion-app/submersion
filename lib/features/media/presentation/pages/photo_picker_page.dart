@@ -285,26 +285,27 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
       children: [
         // Date range header
         _DateRangeHeader(startTime: widget.startTime, endTime: widget.endTime),
-        // Selection toolbar (shown when items are selected)
-        if (state.selectionCount > 0)
-          _SelectionToolbar(
-            selectedCount: state.selectionCount,
-            totalCount: _assets!
+        // Selection toolbar. Always present, even with nothing selected, so
+        // the first tap does not push the grid down a row under the user's
+        // next tap (#2059).
+        _SelectionToolbar(
+          selectedCount: state.selectionCount,
+          totalCount: _assets!
+              .where((a) => !state.alreadyLinkedIds.contains(a.id))
+              .length,
+          onSelectAll: () {
+            final selectableIds = _assets!
                 .where((a) => !state.alreadyLinkedIds.contains(a.id))
-                .length,
-            onSelectAll: () {
-              final selectableIds = _assets!
-                  .where((a) => !state.alreadyLinkedIds.contains(a.id))
-                  .map((a) => a.id)
-                  .toList();
-              ref
-                  .read(photoPickerNotifierProvider.notifier)
-                  .selectAll(selectableIds);
-            },
-            onClearSelection: () {
-              ref.read(photoPickerNotifierProvider.notifier).clearSelection();
-            },
-          ),
+                .map((a) => a.id)
+                .toList();
+            ref
+                .read(photoPickerNotifierProvider.notifier)
+                .selectAll(selectableIds);
+          },
+          onClearSelection: () {
+            ref.read(photoPickerNotifierProvider.notifier).clearSelection();
+          },
+        ),
         // Photo grid
         Expanded(
           child: DragSelectGridView<AssetInfo>(
@@ -392,6 +393,9 @@ class _DateRangeHeader extends ConsumerWidget {
 }
 
 /// Toolbar showing selection count with Select All and Clear buttons.
+///
+/// A button that has nothing to do is disabled rather than removed, so the
+/// toolbar keeps the same layout for every selection.
 class _SelectionToolbar extends StatelessWidget {
   final int selectedCount;
   final int totalCount;
@@ -427,13 +431,12 @@ class _SelectionToolbar extends StatelessWidget {
             style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
           ),
           const Spacer(),
-          if (selectedCount < totalCount)
-            TextButton(
-              onPressed: onSelectAll,
-              child: Text(context.l10n.media_photoPicker_selectAllButton),
-            ),
           TextButton(
-            onPressed: onClearSelection,
+            onPressed: selectedCount < totalCount ? onSelectAll : null,
+            child: Text(context.l10n.media_photoPicker_selectAllButton),
+          ),
+          TextButton(
+            onPressed: selectedCount > 0 ? onClearSelection : null,
             child: Text(context.l10n.media_photoPicker_clearSelectionButton),
           ),
         ],
