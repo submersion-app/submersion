@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The shared trips and sites the active profile has hidden from itself,
 /// each with Unhide (issue #2594).
@@ -104,15 +105,27 @@ class _HiddenRow extends ConsumerWidget {
     ];
     return ListTile(
       title: Text(item.name),
-      subtitle: details.isEmpty ? null : Text(details.join(' · ')),
-      trailing: TextButton(
-        onPressed: () => switch (item.kind) {
-          SharedItemKind.trip =>
-            ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
-          SharedItemKind.site =>
-            ref.read(siteListNotifierProvider.notifier).unhideSites([item.id]),
-        },
-        child: Text(context.l10n.settings_hiddenItems_unhide),
+      // Unhide sits on its own line under the details rather than in
+      // trailing: a ListTile lays trailing out at its natural width first,
+      // so a translated label there squeezes the item name (issue #2717).
+      isThreeLine: details.isNotEmpty,
+      subtitle: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (details.isNotEmpty) Text(details.join(' · ')),
+          TileSubtitleAction(
+            onPressed: () => switch (item.kind) {
+              SharedItemKind.trip =>
+                ref.read(tripListNotifierProvider.notifier).unhideTrip(item.id),
+              SharedItemKind.site =>
+                ref.read(siteListNotifierProvider.notifier).unhideSites([
+                  item.id,
+                ]),
+            },
+            label: context.l10n.settings_hiddenItems_unhide,
+          ),
+        ],
       ),
     );
   }
