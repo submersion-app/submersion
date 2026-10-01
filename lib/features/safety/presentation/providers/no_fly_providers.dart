@@ -23,7 +23,11 @@ final noFlyStatusProvider = FutureProvider<NoFlyStatus?>((ref) async {
   // would otherwise scan the whole logbook.
   if (diverId == null) return null;
 
-  final now = DateTime.now().toUtc();
+  // Dive end times are wall-clock-as-UTC, so "now" must be too. The true UTC
+  // instant runs ahead of or behind them by the device's UTC offset: east of
+  // UTC a dive that just surfaced looked like a future dive and was ignored
+  // until the offset elapsed (issue #2587).
+  final now = NoFlyService.wallClockNowUtc();
   final dives = await repository.getNoFlyDiveInputs(
     since: now.subtract(NoFlyService.lookback),
     diverId: diverId,
@@ -39,7 +43,7 @@ final noFlyStatusProvider = FutureProvider<NoFlyStatus?>((ref) async {
   // the deadline. Without it the provider (and the dashboard alert that reads
   // it) would keep reporting an expired restriction until the next dive write.
   if (status != null) {
-    final untilExpiry = status.until.difference(DateTime.now().toUtc());
+    final untilExpiry = status.until.difference(NoFlyService.wallClockNowUtc());
     if (untilExpiry > Duration.zero) {
       final timer = Timer(
         untilExpiry + const Duration(seconds: 1),

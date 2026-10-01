@@ -663,7 +663,7 @@ void main() {
           hasGear: true,
           insurance: null,
           noFlyStatus: NoFlyStatus(
-            until: DateTime.now().toUtc().add(
+            until: NoFlyService.wallClockNowUtc().add(
               const Duration(hours: 5, minutes: 30),
             ),
             category: NoFlyCategory.single,
@@ -685,7 +685,7 @@ void main() {
           hasGear: true,
           insurance: null,
           noFlyStatus: NoFlyStatus(
-            until: DateTime.now().toUtc().add(
+            until: NoFlyService.wallClockNowUtc().add(
               const Duration(hours: 5, minutes: 30),
             ),
             category: NoFlyCategory.single,
@@ -704,7 +704,9 @@ void main() {
           hasGear: true,
           insurance: null,
           noFlyStatus: NoFlyStatus(
-            until: DateTime.now().toUtc().subtract(const Duration(hours: 1)),
+            until: NoFlyService.wallClockNowUtc().subtract(
+              const Duration(hours: 1),
+            ),
             category: NoFlyCategory.single,
             interval: const Duration(hours: 12),
           ),

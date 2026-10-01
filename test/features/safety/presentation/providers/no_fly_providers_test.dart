@@ -73,7 +73,9 @@ void main() {
       // One no-deco dive an hour ago -> single-dive category, 12 h guideline.
       final repo = _StubDiveRepository([
         NoFlyDiveInput(
-          endTime: DateTime.now().toUtc().subtract(const Duration(hours: 1)),
+          endTime: NoFlyService.wallClockNowUtc().subtract(
+            const Duration(hours: 1),
+          ),
           hadDecoObligation: false,
         ),
       ]);
@@ -95,4 +97,37 @@ void main() {
       expect(repo.queriedDiverId, 'diver-1');
     },
   );
+
+  test('counts a dive that surfaced minutes ago (issue #2587)', () async {
+    // Dive end times are stored wall-clock-as-UTC. East of UTC, a dive that
+    // ended a few minutes ago carries a value later than the true UTC
+    // instant, so comparing against DateTime.now().toUtc() dropped it as
+    // "in the future" and the countdown kept reporting the previous dive.
+    final yesterdayEnd = NoFlyService.wallClockNowUtc().subtract(
+      const Duration(hours: 20),
+    );
+    final justSurfaced = NoFlyService.wallClockNowUtc().subtract(
+      const Duration(minutes: 5),
+    );
+    final repo = _StubDiveRepository([
+      NoFlyDiveInput(endTime: yesterdayEnd, hadDecoObligation: false),
+      NoFlyDiveInput(endTime: justSurfaced, hadDecoObligation: false),
+    ]);
+    final diverNotifier = MockCurrentDiverIdNotifier();
+    diverNotifier.setCurrentDiver('diver-1');
+
+    final container = ProviderContainer(
+      overrides: [
+        diveRepositoryProvider.overrideWithValue(repo),
+        currentDiverIdProvider.overrideWith((ref) => diverNotifier),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final status = await container.read(noFlyStatusProvider.future);
+    expect(status, isNotNull);
+    expect(status!.category, NoFlyCategory.repetitive);
+    expect(status.until, justSurfaced.add(status.interval));
+  });
 }

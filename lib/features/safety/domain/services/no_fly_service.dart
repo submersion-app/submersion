@@ -29,6 +29,9 @@ class NoFlyDiveInput {
 
 /// An active flying restriction.
 class NoFlyStatus {
+  /// End of the restriction, wall-clock-as-UTC (the dive-time frame).
+  /// Compare it against [NoFlyService.wallClockNowUtc], and format its
+  /// components directly rather than through `toLocal()`.
   final DateTime until;
   final NoFlyCategory category;
 
