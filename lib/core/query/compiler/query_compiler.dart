@@ -50,7 +50,9 @@ class CompiledQuery {
 /// [diverId] narrows every dive the query reaches from outside the root to
 /// that diver's: a hop into an entity with `scopesHopsToDiver`, and a
 /// field's own dive subquery (`{diver:<alias>}`). The root itself stays the
-/// caller's to scope. Null reads every diver's, as a query always did.
+/// caller's to scope. With no [diverId], a dive root narrows them to its
+/// own diver's instead (every dive path scopes its root to the active
+/// diver), and any other root reads every diver's, as a query always did.
 CompiledQuery compileQuery(
   QueryNode? node,
   QueryEntity root,
@@ -58,7 +60,17 @@ CompiledQuery compileQuery(
   String rootAlias = 'r0',
   String? diverId,
 }) {
-  final ctx = _Ctx(registry, diverId)..tables.add(root.table);
+  final column = root.diverScopeColumn;
+  final ctx = _Ctx(
+    registry,
+    diverId,
+    diverMatch: diverId != null
+        ? '= ?'
+        // IS, so a legacy dive with no diver still reaches its own kind.
+        : root.scopesHopsToDiver && column != null
+        ? 'IS $rootAlias.$column'
+        : null,
+  )..tables.add(root.table);
   final where = node == null ? '' : ctx.emit(node, root, rootAlias);
   return CompiledQuery(
     where: where,
@@ -73,6 +85,10 @@ CompiledQuery compileQuery(
 class _Ctx {
   final QueryRegistry registry;
   final String? diverId;
+
+  /// How a reached dive's diver column compares with the scope: `= ?`
+  /// (binding [diverId]), `IS <root>.diver_id`, or null for no scope.
+  final String? diverMatch;
   final params = <Object?>[];
   final tables = <String>{};
   int _aliasCounter = 0;
@@ -81,7 +97,7 @@ class _Ctx {
   /// counts against [kMaxPathHops] like a path does.
   int _depth = 0;
 
-  _Ctx(this.registry, this.diverId);
+  _Ctx(this.registry, this.diverId, {required this.diverMatch});
 
   String nextAlias() => 'r${++_aliasCounter}';
 
@@ -171,11 +187,11 @@ class _Ctx {
   /// it; binds the diver.
   String _hopScope(QueryEntity target, String alias) {
     final column = target.diverScopeColumn;
-    if (diverId == null || !target.scopesHopsToDiver || column == null) {
+    if (diverMatch == null || !target.scopesHopsToDiver || column == null) {
       return '';
     }
-    params.add(diverId);
-    return ' AND $alias.$column = ?';
+    if (diverId != null) params.add(diverId);
+    return ' AND $alias.$column $diverMatch';
   }
 
   /// A field fragment over [alias], its diver token bound in place. Call it
@@ -187,7 +203,7 @@ class _Ctx {
         params.add(diverId);
       }
     }
-    return substituteDiver(row, scoped: diverId != null);
+    return substituteDiver(row, match: diverMatch);
   }
 
   String _scoped(

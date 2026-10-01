@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/compiler/query_compiler.dart';
 import 'package:submersion/core/query/compiler/sql_templates.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
@@ -128,6 +129,40 @@ void main() {
       expect(await sites(none, diverId: 'me'), isEmpty);
       await (db.delete(db.dives)..where((d) => d.id.equals('m1'))).go();
       expect(await sites(none, diverId: 'me'), {'reef'});
+    });
+  });
+
+  group('from a dive, with no diver named', () {
+    // Every dive path scopes its root to the active diver, so the dives a
+    // dive query reaches are its own diver's: the dive list, Statistics and
+    // Explore's dive answers agree with the site and trip lists.
+    Future<Set<String>> dives(QueryNode node) {
+      final compiled = compileQuery(node, diveQueryEntity, appQueryRegistry);
+      expect(countPlaceholders(compiled.where), compiled.params.length);
+      return QueryIdSetRunner(db).ids(compiled);
+    }
+
+    test('a count at the dive\'s site is its own diver\'s', () async {
+      final q = ConditionNode(
+        FieldPath(const ['site', 'diveCount']),
+        QueryOp.gte,
+        const NumberValue(2, null),
+      );
+      // The partner has two dives at the reef, I have one.
+      expect(await dives(q), {'p1', 'p2'});
+    });
+
+    test('a hop back into dives is its own diver\'s', () async {
+      final q = ScopedNode(
+        FieldPath(const ['site', 'dives']),
+        ConditionNode(
+          FieldPath(const ['depth']),
+          QueryOp.gte,
+          const NumberValue(20, null),
+        ),
+      );
+      // The reef's deep dives are the partner's, none of them mine.
+      expect(await dives(q), {'p1', 'p2'});
     });
   });
 

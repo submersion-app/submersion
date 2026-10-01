@@ -6,12 +6,13 @@ String substituteRow(String template, String alias) =>
 /// `{diver:ad}` over the subquery's alias `ad`. Only field SQL carries it.
 final kDiverToken = RegExp(r'\{diver:(\w+)\}');
 
-/// [template]'s diver tokens as ` AND <alias>.diver_id = ?` when [scoped]
-/// (one bind each, see [kDiverToken]), or as nothing.
-String substituteDiver(String template, {required bool scoped}) =>
+/// [template]'s diver tokens as ` AND <alias>.diver_id <match>` (`= ?`, one
+/// bind each, or `IS r0.diver_id`; see [kDiverToken]), or as nothing when
+/// [match] is null.
+String substituteDiver(String template, {required String? match}) =>
     template.replaceAllMapped(
       kDiverToken,
-      (m) => scoped ? ' AND ${m[1]}.diver_id = ?' : '',
+      (m) => match == null ? '' : ' AND ${m[1]}.diver_id $match',
     );
 
 /// `{from}` is the row we are on, `{to}` the related row.

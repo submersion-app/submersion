@@ -199,6 +199,41 @@ void main() {
     expect((r.item as SiteWithDiveCount).diveCount, 1);
   });
 
+  test("a partner's dives on a shared trip are not the diver's", () async {
+    await db
+        .into(db.trips)
+        .insert(
+          TripsCompanion.insert(
+            id: 'shared',
+            name: 'shared',
+            startDate: now,
+            endDate: now,
+            createdAt: now,
+            updatedAt: now,
+          ).copyWith(
+            diverId: const Value('other'),
+            isShared: const Value(true),
+          ),
+        );
+    for (final id in ['p1', 'p2', 'p3']) {
+      await dive(id, null, tripId: 'shared', diverId: 'other');
+    }
+    await dive('m1', null, tripId: 'shared');
+    final c = await container();
+    c.read(exploreSubjectProvider.notifier).state = ParsedSubject.trips;
+
+    // "Trips with at least three dives": the count is mine.
+    c.read(exploreQueryNodeProvider.notifier).state = ConditionNode(
+      FieldPath(const ['diveCount']),
+      QueryOp.gte,
+      const NumberValue(3, null),
+    );
+    expect(await rows(c), isEmpty);
+
+    c.read(exploreQueryNodeProvider.notifier).state = null;
+    expect((await rows(c)).single.dives, 1);
+  });
+
   test('retired gear is an answer when the sentence names retired', () async {
     // The equipment list's unset status hides retired gear; Explore lifts
     // the named status into that axis instead of contradicting it.

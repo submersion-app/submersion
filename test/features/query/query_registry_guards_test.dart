@@ -44,12 +44,13 @@ void main() {
           if (f.boolSql != null) substituteRow(f.boolSql!.whenTrue, 'r0'),
           if (f.boolSql != null) substituteRow(f.boolSql!.whenFalse, 'r0'),
         ];
-        // A diver token compiles both ways the compiler writes it.
+        // A diver token compiles every way the compiler writes it (the
+        // root dive's column stands in as NULL: r0 here is not a dive).
         for (final fragment in fragments) {
-          for (final scoped in [false, true]) {
+          for (final match in [null, '= ?', 'IS NULL']) {
             final sql =
                 'SELECT 1 FROM ${e.table} r0 WHERE '
-                '${substituteDiver(fragment, scoped: scoped)}';
+                '${substituteDiver(fragment, match: match)}';
             await expectLater(
               db
                   .customSelect(
