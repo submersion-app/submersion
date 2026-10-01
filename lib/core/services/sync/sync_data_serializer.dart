@@ -3523,6 +3523,46 @@ class SyncDataSerializer {
         return {
           for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
         };
+      case 'emergencyChambers':
+        final rows = await (_db.select(
+          _db.emergencyChambers,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'incidents':
+        final rows = await (_db.select(
+          _db.incidents,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'equipmentObservations':
+        final rows = await (_db.select(
+          _db.equipmentObservations,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'equipmentFindings':
+        final rows = await (_db.select(
+          _db.equipmentFindings,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'siteFeatures':
+        final rows = await (_db.select(
+          _db.siteFeatures,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      // The points BLOB rides as base64, matching fetchRecord.
+      case 'gpsTracks':
+        final rows = await (_db.select(
+          _db.gpsTracks,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {
+          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+        };
+      case 'navTracks':
+        final rows = await (_db.select(
+          _db.navTracks,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {
+          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+        };
       default:
         // Clockless / composite-key entities are never fetched by the merge;
         // fall back to per-id reads so the method is total and correct.
