@@ -42,6 +42,8 @@ Widget _buildTestApp({String initialLocation = '/home'}) {
       routerConfig: router,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      // The tests match English snackbar text.
+      locale: const Locale('en'),
     ),
   );
 }
