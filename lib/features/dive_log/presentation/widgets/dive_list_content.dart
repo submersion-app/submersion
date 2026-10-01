@@ -66,7 +66,9 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// True if [d]'s date falls within [r], inclusive of the end calendar day.
 bool inDateRange(DiveSummary d, DateTimeRange r) {
@@ -1147,6 +1149,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
   }
 
+  /// "812 dives", or "34 of 812 dives" while a filter is active (#2669);
+  /// null until the first page loads.
+  SubtitleText? _countSubtitle(BuildContext context) =>
+      diveCountSubtitle(context, ref.watch(diveListCountProvider));
+
   AppBar _buildAppBar(
     BuildContext context,
     DiveFilterState filter, {
@@ -1157,6 +1164,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       title: FeatureAppBarTitle(
         featureId: 'dives',
         title: title ?? context.l10n.diveLog_listPage_compactTitle,
+        subtitle: _countSubtitle(context),
       ),
       actions: [
         ...extraActions,
@@ -1376,6 +1384,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             child: FeatureAppBarTitle(
               featureId: 'dives',
               title: context.l10n.diveLog_listPage_compactTitle,
+              subtitle: _countSubtitle(context),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),

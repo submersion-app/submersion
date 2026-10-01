@@ -2825,6 +2825,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_title => 'Tauchpartner';
 
   @override
+  String buddies_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchpartner',
+      one: '$count Tauchpartner',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String buddies_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Tauchpartner',
+      one: '$total Tauchpartner',
+    );
+    return '$shown von $_temp0';
+  }
+
+  @override
   String get buddies_title_add => 'Tauchpartner hinzufügen';
 
   @override
@@ -2971,6 +2993,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get certifications_appBar_title => 'Zertifizierungen';
+
+  @override
+  String certifications_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zertifizierungen',
+      one: '$count Zertifizierung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String certifications_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Zertifizierungen',
+      one: '$total Zertifizierung',
+    );
+    return '$shown von $_temp0';
+  }
 
   @override
   String get certifications_detail_action_delete => 'Löschen';
@@ -4665,6 +4709,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get courses_title => 'Ausbildungskurse';
 
   @override
+  String courses_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Kurse',
+      one: '$count Kurs',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String courses_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Kurse',
+      one: '$total Kurs',
+    );
+    return '$shown von $_temp0';
+  }
+
+  @override
   String get courses_title_edit => 'Kurs bearbeiten';
 
   @override
@@ -5870,6 +5936,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveCenters_title => 'Tauchcenter';
+
+  @override
+  String diveCenters_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchcenter',
+      one: '$count Tauchcenter',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveCenters_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Tauchcenter',
+      one: '$total Tauchcenter',
+    );
+    return '$shown von $_temp0';
+  }
 
   @override
   String get diveCenters_title_add => 'Tauchcenter hinzufügen';
@@ -7837,6 +7925,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_compactTitle => 'Tauchgänge';
+
+  @override
+  String diveLog_listPage_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '$count Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_listPage_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Tauchgänge',
+      one: '$total Tauchgang',
+    );
+    return '$shown von $_temp0';
+  }
 
   @override
   String diveLog_listPage_errorLoading(Object error) {
@@ -10982,6 +11092,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_list_appBar_title => 'Tauchplätze';
 
   @override
+  String diveSites_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze',
+      one: '$count Tauchplatz',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveSites_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Tauchplätze',
+      one: '$total Tauchplatz',
+    );
+    return '$shown von $_temp0';
+  }
+
+  @override
   String get diveSites_list_bulkDelete_cancel => 'Abbrechen';
 
   @override
@@ -13094,6 +13226,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_appBar_title => 'Ausrüstung';
+
+  @override
+  String equipment_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ausrüstungsteile',
+      one: '$count Ausrüstungsteil',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Ausrüstungsteile',
+      one: '$total Ausrüstungsteil',
+    );
+    return '$shown von $_temp0';
+  }
 
   @override
   String get equipment_bulkTags_action => 'Tags bearbeiten';
@@ -25197,6 +25351,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_appBar_title => 'Reisen';
 
   @override
+  String trips_list_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Reisen',
+      one: '$count Reise',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_list_countFiltered(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total Reisen',
+      one: '$total Reise',
+    );
+    return '$shown von $_temp0';
+  }
+
+  @override
   String get trips_appBar_tripPhotos => 'Reisefotos';
 
   @override
@@ -34475,6 +34651,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String common_listCount_shownOfTotal(int shown, int total) {
+    return '$shown von $total';
+  }
+
+  @override
   String get common_selection_enterTooltip => 'Elemente auswählen';
 
   @override
@@ -41144,6 +41325,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get explore_chip_deco => 'Dekompressionstauchgang';
 
   @override
+  String explore_chip_fieldPeriod(String field, String period) {
+    return '$field: $period';
+  }
+
+  @override
   String get explore_chip_noDeco => 'Ohne Dekompression';
 
   @override
@@ -41187,6 +41373,22 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String explore_chip_timeBefore(Object end) {
     return 'Vor $end';
+  }
+
+  @override
+  String explore_chip_viaDives(String label) {
+    return 'Tauchgänge: $label';
+  }
+
+  @override
+  String explore_chip_withinDays(int days, String field) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$field innerhalb von $days Tagen',
+      one: '$field innerhalb von $days Tag',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -41293,6 +41495,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get explore_handoff_insights => 'In Einblicken öffnen';
 
   @override
+  String get explore_handoff_list => 'In Liste öffnen';
+
+  @override
   String get explore_hint =>
       'Fragen Sie nach Ihren Tauchgängen, zum Beispiel Schildkröten tiefer als 20 m auf Bonaire';
 
@@ -41328,6 +41533,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get explore_recent_title => 'Zuletzt';
 
   @override
+  String explore_results_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ergebnisse',
+      one: '$count Ergebnis',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_results_subjectTitle => 'Treffer';
+
+  @override
+  String explore_results_subjectTruncated(Object count) {
+    return 'Die ersten $count werden angezeigt. In der Liste öffnen, um alle zu sehen.';
+  }
+
+  @override
   String get explore_results_title => 'Passende Tauchgänge';
 
   @override
@@ -41340,14 +41564,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Erkunden benötigt das Modell auf dem Gerät, das auf diesem Gerät nicht bereit ist.';
 
   @override
-  String get explore_subjectNotSupported =>
-      'Derzeit können nur Tauchgänge gesucht werden.';
-
-  @override
   String get explore_title => 'Erkunden';
 
   @override
   String get explore_understood_title => 'Verstanden';
+
+  @override
+  String get explore_unplaced_reason_aggregateWithScope =>
+      'Noch nicht mit Bedingungen zu den Tauchgängen kombinierbar';
 
   @override
   String get explore_unplaced_reason_invalid =>
@@ -46221,6 +46445,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_buddies_certifications => 'Zertifizierungen';
 
   @override
+  String get query_buddies_diveCount => 'Gemeinsame Tauchgänge';
+
+  @override
   String get query_buddies_dives => 'Tauchgänge';
 
   @override
@@ -46228,6 +46455,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_buddies_favorite => 'Favorit';
+
+  @override
+  String get query_buddies_lastDived => 'Zuletzt gemeinsam getaucht';
 
   @override
   String get query_buddies_name => 'Name';
@@ -46251,7 +46481,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_centers_country => 'Land';
 
   @override
+  String get query_centers_diveCount => 'Anzahl Tauchgänge';
+
+  @override
   String get query_centers_dives => 'Tauchgänge';
+
+  @override
+  String get query_centers_lastDived => 'Zuletzt getaucht';
 
   @override
   String get query_centers_name => 'Name';
@@ -46626,13 +46862,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_equipment_brand => 'Marke';
 
   @override
+  String get query_equipment_diveCount => 'Tauchgänge im Einsatz';
+
+  @override
   String get query_equipment_dives => 'Tauchgänge';
+
+  @override
+  String get query_equipment_lastDived => 'Zuletzt verwendet';
 
   @override
   String get query_equipment_model => 'Modell';
 
   @override
   String get query_equipment_name => 'Name';
+
+  @override
+  String get query_equipment_nextServiceDue => 'Nächste Wartung fällig';
 
   @override
   String get query_equipment_serialNumber => 'Seriennummer';
@@ -46704,10 +46949,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_sites_difficulty => 'Schwierigkeitsgrad';
 
   @override
+  String get query_sites_diveCount => 'Anzahl Tauchgänge';
+
+  @override
   String get query_sites_dives => 'Tauchgänge';
 
   @override
   String get query_sites_island => 'Insel';
+
+  @override
+  String get query_sites_lastDived => 'Zuletzt betaucht';
 
   @override
   String get query_sites_maxDepth => 'Maximale Tiefe';
@@ -46740,10 +46991,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_species_description => 'Beschreibung';
 
   @override
+  String get query_species_diveCount => 'Tauchgänge mit Sichtung';
+
+  @override
   String get query_species_dives => 'Tauchgänge';
 
   @override
   String get query_species_expectedSites => 'Erwartet an Tauchplätzen';
+
+  @override
+  String get query_species_firstSeen => 'Zuerst gesehen';
+
+  @override
+  String get query_species_lastSeen => 'Zuletzt gesehen';
 
   @override
   String get query_species_name => 'Name';
@@ -46780,6 +47040,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_tanks_volume => 'Volumen';
+
+  @override
+  String get query_trips_diveCount => 'Anzahl Tauchgänge';
 
   @override
   String get query_trips_dives => 'Tauchgänge';

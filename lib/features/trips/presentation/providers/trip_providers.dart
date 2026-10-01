@@ -65,6 +65,15 @@ final tripFilterProvider = StateProvider<TripFilterState>(
   (ref) => const TripFilterState(),
 );
 
+/// Replaces the trip list's query (#2365), keeping its equipment axis.
+void setTripQuery(WidgetRef ref, QueryNode? query) {
+  final notifier = ref.read(tripFilterProvider.notifier);
+  notifier.state = notifier.state.copyWith(
+    query: query,
+    clearQuery: query == null,
+  );
+}
+
 /// Repository provider
 final tripRepositoryProvider = Provider<TripRepository>((ref) {
   return TripRepository();
@@ -104,11 +113,13 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
 
 /// The ids the trip filter selects, from the compiled query (#2365). Keyed
 /// on the filter's value; a write to any table the query read refreshes it
-/// in place.
+/// in place. A shared trip's dives are the active diver's alone, as its
+/// stats count them.
 final queryFilteredTripIdsProvider = FutureProvider.autoDispose
-    .family<Set<String>, TripFilterState>(
-      (ref, filter) => watchQueryIds(ref, compileTripFilter(filter)),
-    );
+    .family<Set<String>, TripFilterState>((ref, filter) async {
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return watchQueryIds(ref, compileTripFilter(filter, diverId: diverId));
+    });
 
 /// Filtered trips provider - applies current filter to trip list.
 /// Uses synchronous Provider returning AsyncValue instead of FutureProvider

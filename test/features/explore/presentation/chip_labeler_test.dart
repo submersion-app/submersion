@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/features/explore/domain/explore_fields.dart';
+import 'package:submersion/features/explore/domain/explore_subject_fields.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/chip_labeler.dart';
@@ -295,5 +296,55 @@ void main() {
       ),
       contains(l10n.query_dives_finalStop_unstable),
     );
+  });
+
+  group('phase 3 subjects', () {
+    test('every subject field has a registry label', () {
+      for (final f in kExploreSubjectFields.values.expand((l) => l)) {
+        final name = metric.fieldName(f);
+        expect(name, isNot(f.field!.labelKey), reason: f.name);
+        expect(name, isNot(f.name), reason: f.name);
+      }
+    });
+
+    test('a date field reads as a period', () {
+      final f = exploreFieldFor(ParsedSubject.sites, 'lastDived')!.field;
+      final label = metric.label(
+        ClauseChip(
+          field: f,
+          op: ClauseOp.lt,
+          value: (start: DateTime(2022), end: DateTime(2022, 12, 31)),
+          dimension: FieldDimension.none,
+        ),
+      );
+      expect(label, startsWith('${metric.fieldName(f)}: '));
+      expect(label, contains('2022'));
+    });
+
+    test('a due window reads in days', () {
+      final f = exploreFieldFor(
+        ParsedSubject.equipment,
+        'serviceDueWithin',
+      )!.field;
+      final label = metric.label(
+        ClauseChip(
+          field: f,
+          op: ClauseOp.lte,
+          value: 30,
+          dimension: FieldDimension.none,
+        ),
+      );
+      expect(label, contains('30 days'));
+    });
+
+    test('a chip about the dives says so', () {
+      final chip = QueryChip(
+        ref: ChipRef.time,
+        index: 0,
+        payload: TimeChip(start: DateTime(2026)),
+        viaDives: true,
+      );
+      expect(metric.chipLabel(chip), startsWith('Dives: '));
+    });
   });
 }

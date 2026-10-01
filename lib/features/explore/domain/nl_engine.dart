@@ -1,4 +1,5 @@
 import 'package:submersion/features/explore/domain/explore_fields.dart';
+import 'package:submersion/features/explore/domain/explore_subject_fields.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 enum NlAvailability {
@@ -48,7 +49,7 @@ abstract final class NlPrompt {
   static Map<String, Object?> vocabulary() => {
     'schemaVersion': kQuerySchemaVersion,
     'subjects': ParsedSubject.values.map((s) => s.name).toList(),
-    'fields': [for (final f in kExploreFields) f.name],
+    'fields': exploreFieldNames(),
     'ops': ClauseOp.values.map((o) => o.jsonName).toList(),
     'units': ClauseUnit.values.map((u) => u.jsonName).toList(),
     'mentionKinds': MentionKind.values.map((k) => k.name).toList(),
@@ -61,17 +62,31 @@ abstract final class NlPrompt {
     return '${values.take(values.length - 1).join(', ')} or ${values.last}';
   }
 
+  /// A subject field's values as prose, like [_oneOf].
+  static String _oneOfFor(ParsedSubject subject, String name) {
+    final values = exploreFieldFor(subject, name)!.field.enumValues!;
+    return '${values.take(values.length - 1).join(', ')} or ${values.last}';
+  }
+
   static String instructions() =>
       '''
 You turn one sentence about a scuba diver's logbook into a JSON object. Reply with JSON only.
 
 Shape:
-{"schemaVersion": $kQuerySchemaVersion, "subject": "dives", "clauses": [...], "mentions": [...], "time": null or {"text": "..."}, "unplaced": [...]}
+{"schemaVersion": $kQuerySchemaVersion, "subject": "...", "clauses": [...], "mentions": [...], "time": null or {"text": "..."}, "unplaced": [...]}
 
-subject is one of: dives, equipment, sites, buddies, species, trips, centers. Use "dives" unless the sentence clearly asks for another kind of thing.
+subject is one of: dives, equipment, sites, buddies, species, trips, centers. Use "dives" unless the sentence asks for the sites, gear, buddies, species, trips or dive centers themselves; "turtles in Bonaire" is still dives.
 
 A clause is {"field", "op", "value", "unit", "text"}. text is the words of the sentence the clause came from. Fields:
 depth: maximum depth of the dive. avgDepth: average depth. bottomTime: minutes of bottom time. waterTemp: water temperature. airTemp: air temperature. visibility: underwater visibility distance. rating: 1 to 5 stars. o2: oxygen percent of the gas. diveNumber: the dive's number. waterType: ${_oneOf('waterType')}. diveMode: ${_oneOf('diveMode')}. entryMethod: ${_oneOf('entryMethod')}. currentStrength: ${_oneOf('currentStrength')}. favorite: true. deco: true or false. noBuddy: true. weekday: ${kWeekdayTokens.join(', ')}. diveType: the name of a dive type. sac: gas consumption rate, as pressure per minute at the surface. sacTrend: whether gas consumption was ${_oneOf('sacTrend')} through the dive. sacChange: percent change in gas consumption from the first half of the dive to the second; a rise is a positive number. finalStop: ${_oneOf('finalStop')}, for the last safety or decompression stop. finalStopExcursion: how far the diver drifted from the depth of the last stop. finalStopDuration: minutes spent at the last stop. finding: a safety finding, ${_oneOf('finding')}.
+
+Under another subject these are its own fields, and any dive field above describes its dives. A time field takes a time phrase from the shapes below as its value; lt means before it, lte up to and including it, gte since it, gt after it.
+sites: depth (the site's deepest point), rating, difficulty: ${_oneOfFor(ParsedSubject.sites, 'difficulty')}, diveCount (times dived there), lastDived (time field).
+equipment: gearType: ${_oneOfFor(ParsedSubject.equipment, 'gearType')}. gearStatus: ${_oneOfFor(ParsedSubject.equipment, 'gearStatus')}. serviceDue: ${_oneOfFor(ParsedSubject.equipment, 'serviceDue')}. serviceDueWithin: days until service is due. diveCount (dives used on), lastDived (last used, time field).
+buddies: favorite: true. diveCount (dives together), lastDived (time field).
+species: speciesCategory: ${_oneOfFor(ParsedSubject.species, 'speciesCategory')}. diveCount (dives it was seen on), firstSeen and lastSeen (time fields).
+trips: tripType: ${_oneOfFor(ParsedSubject.trips, 'tripType')}. diveCount. A time phrase is when the trip took place.
+centers: rating, diveCount (dives with them), lastDived (time field).
 
 op is one of: lt, lte, gt, gte, eq, between, in, not. "below 20m" on depth means deeper, so op gt. "shallower than" means op lt. between takes value [low, high]. in takes a list. not excludes one value.
 unit is one of: ${ClauseUnit.values.map((u) => u.jsonName).join(', ')}. Omit unit when the sentence gives none; never convert numbers.
@@ -93,5 +108,13 @@ Sentence: Show cold-water dives using my trilaminate suit where SAC increased af
 Example 3
 Sentence: favourite night dives with Sarah last year deeper than 60
 {"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[{"field":"favorite","op":"eq","value":true,"text":"favourite"},{"field":"depth","op":"gt","value":60,"text":"deeper than 60"}],"mentions":[{"kind":"tag","text":"night"},{"kind":"buddy","text":"Sarah"}],"time":{"text":"last year"},"unplaced":[]}
+
+Example 4
+Sentence: Sites in Bonaire I have not dived since 2022
+{"schemaVersion":$kQuerySchemaVersion,"subject":"sites","clauses":[{"field":"lastDived","op":"lt","value":"2022","text":"not dived since 2022"}],"mentions":[{"kind":"place","text":"Bonaire"}],"time":null,"unplaced":[]}
+
+Example 5
+Sentence: Regulators due for service in the next 30 days
+{"schemaVersion":$kQuerySchemaVersion,"subject":"equipment","clauses":[{"field":"gearType","op":"eq","value":"regulator","text":"Regulators"},{"field":"serviceDueWithin","op":"lte","value":30,"text":"due for service in the next 30 days"}],"mentions":[],"time":null,"unplaced":[]}
 ''';
 }

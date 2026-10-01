@@ -346,14 +346,4 @@ void main() {
       containsAll(['Green Turtle', 'Hawksbill Turtle']),
     );
   });
-
-  test('a non-dive subject is one unplaced item and an empty filter', () {
-    final q = ParsedQuery.fromJson({
-      'schemaVersion': kQuerySchemaVersion,
-      'subject': 'equipment',
-    });
-    final c = compile(q);
-    expect(c.query, isNull);
-    expect(c.unplaced.single.reason, 'subjectNotSupported');
-  });
 }
