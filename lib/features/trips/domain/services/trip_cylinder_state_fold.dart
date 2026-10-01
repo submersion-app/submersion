@@ -30,9 +30,11 @@ class _Item {
   final TripCylinderEvent? event;
   final TripCylinderTankUse? use;
 
-  const _Item({required this.at, required this.rank, this.event, this.use});
+  /// The minute [at] falls in, the fold's first sort key.
+  final int minute;
 
-  int get minute => _minuteOf(at);
+  _Item({required this.at, required this.rank, this.event, this.use})
+    : minute = _minuteOf(at);
 
   /// Breaks a tie on instant and rank, so every replica folds the same rows
   /// in the same order whatever order the query returned them in.
@@ -40,8 +42,8 @@ class _Item {
 }
 
 /// Pure. Walks the slot's fills, adjustments and linked dive tanks in time
-/// order (a dive's own minute ranked as [_rankFill] says) and reports where
-/// that leaves it. Nothing is stored; a corrected fill time or a late import
+/// order (in a dive's own minute: its fills, the dive, then corrections)
+/// and reports where that leaves it. Nothing is stored; a corrected fill time or a late import
 /// re-sorts on the next read.
 ///
 /// Rules, applied in order down the timeline:
@@ -239,10 +241,12 @@ List<TripCylinderState> foldCylinderStatesAt({
     ),
 ];
 
-/// Pure. The [events] at or before [atMillis], to the minute: a fill in a
-/// dive's own minute was for that dive, whatever its seconds, as the fold
-/// ranks it. Every reader of a slot at a dive's start (the editor's picker,
-/// the dive detail's bottle line, the gas record) takes its events here.
+/// Pure. The [events] in the slot by [atMillis], a dive's start. A fill
+/// counts to the minute: one in the dive's own minute was for that dive,
+/// whatever its seconds. A correction counts only up to the instant itself,
+/// since in the dive's minute the fold puts corrections after the dive.
+/// Every reader of a slot at a dive's start (the editor's picker, the dive
+/// detail's bottle line, the gas record) takes its events here.
 List<TripCylinderEvent> tripCylinderEventsUpTo(
   List<TripCylinderEvent> events,
   int atMillis,
@@ -250,7 +254,10 @@ List<TripCylinderEvent> tripCylinderEventsUpTo(
   final minute = _minuteOf(atMillis);
   return [
     for (final e in events)
-      if (_minuteOf(e.occurredAt.millisecondsSinceEpoch) <= minute) e,
+      if (e.kind == TripCylinderEventKind.fill
+          ? _minuteOf(e.occurredAt.millisecondsSinceEpoch) <= minute
+          : e.occurredAt.millisecondsSinceEpoch <= atMillis)
+        e,
   ];
 }
 

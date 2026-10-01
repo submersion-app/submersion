@@ -553,6 +553,24 @@ void main() {
       expect(atTime(300, events: [fill(0), next]).single.pressure, 200);
     });
 
+    test('a correction later in the instant\'s minute is not yet in', () {
+      // In a dive's minute the fold puts a correction after the dive, so
+      // the slot at the dive's start has not seen it; one on the instant
+      // itself counts, as it always has.
+      final later = adjust(
+        300,
+        pressure: 0,
+      ).copyWith(occurredAt: at(300).add(const Duration(seconds: 30)));
+      expect(atTime(300, events: [fill(0), later]).single.pressure, 200);
+      expect(
+        atTime(
+          300,
+          events: [fill(0), adjust(300, pressure: 0)],
+        ).single.pressure,
+        0,
+      );
+    });
+
     test('before any event the slot is unknown', () {
       expect(atTime(-10).single.status, TripCylinderStatus.unknown);
     });
