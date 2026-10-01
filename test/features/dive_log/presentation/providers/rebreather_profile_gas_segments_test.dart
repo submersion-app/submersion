@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 
@@ -41,7 +42,14 @@ void main() {
       rebreatherPpO2: resolveRebreatherPpO2(dive.profile),
     );
     return segments
-        ?.map((s) => (fN2: s.fN2, fHe: s.fHe, setpoint: s.setpoint))
+        ?.map(
+          (s) => (
+            fN2: s.fN2,
+            fHe: s.fHe,
+            setpoint: s.setpoint,
+            holds: s.loopHoldsSetpoint,
+          ),
+        )
         .toList();
   }
 
@@ -55,7 +63,9 @@ void main() {
         profile: profile(setpoint: 1.3),
       );
 
-      expect(segmentsFor(dive), [(fN2: 0.4, fHe: 0.5, setpoint: 1.3)]);
+      expect(segmentsFor(dive), [
+        (fN2: 0.4, fHe: 0.5, setpoint: 1.3, holds: true),
+      ]);
     });
 
     test('falls back to the dive-level setpoint', () {
@@ -68,7 +78,9 @@ void main() {
         profile: profile(),
       );
 
-      expect(segmentsFor(dive), [(fN2: 0.4, fHe: 0.5, setpoint: 1.2)]);
+      expect(segmentsFor(dive), [
+        (fN2: 0.4, fHe: 0.5, setpoint: 1.2, holds: true),
+      ]);
     });
 
     test('is null with no setpoint and no measured ppO2', () {
@@ -94,7 +106,9 @@ void main() {
         profile: profile(cell: 0.9),
       );
 
-      expect(segmentsFor(dive), [(fN2: 0.68, fHe: 0.0, setpoint: 0.9)]);
+      expect(segmentsFor(dive), [
+        (fN2: 0.68, fHe: 0.0, setpoint: 0.9, holds: false),
+      ]);
     });
 
     test('takes the computer-supplied loop ppO2 as measured', () {
@@ -106,7 +120,9 @@ void main() {
         profile: profile(ppO2: 1.1),
       );
 
-      expect(segmentsFor(dive), [(fN2: 0.68, fHe: 0.0, setpoint: 1.1)]);
+      expect(segmentsFor(dive), [
+        (fN2: 0.68, fHe: 0.0, setpoint: 1.1, holds: false),
+      ]);
     });
 
     test(
@@ -126,6 +142,42 @@ void main() {
     );
   });
 
+  group('measured-only loop ppO2 (a semi-closed loop has no setpoint)', () {
+    test('ignores setpoint samples', () {
+      expect(
+        resolveRebreatherPpO2(profile(setpoint: 1.3), measuredOnly: true),
+        isNull,
+      );
+      expect(resolveRebreatherPpO2(profile(setpoint: 1.3)), isNotNull);
+    });
+
+    test('keeps measured cells and computer ppO2', () {
+      expect(
+        resolveRebreatherPpO2(profile(cell: 0.9), measuredOnly: true)?.curve,
+        everyElement(0.9),
+      );
+      expect(
+        resolveRebreatherPpO2(profile(ppO2: 1.1), measuredOnly: true)?.curve,
+        everyElement(1.1),
+      );
+    });
+
+    test('the display overlay does not bring a setpoint back', () {
+      final points = profile(setpoint: 1.3);
+      final analysis = ProfileAnalysis.empty().copyWith(
+        ppO2Curve: List.filled(points.length, 0.0),
+      );
+
+      final (overlaid, _) = overlayComputerDecoData(
+        analysis,
+        points,
+        measuredPpO2Only: true,
+      );
+
+      expect(overlaid.ppO2Curve, everyElement(0.0));
+    });
+  });
+
   test('is null for open circuit and gauge dives', () {
     for (final mode in [DiveMode.oc, DiveMode.gauge]) {
       final dive = Dive(
@@ -141,4 +193,9 @@ void main() {
   });
 }
 
-typedef ProfileGasSegmentView = ({double fN2, double fHe, double? setpoint});
+typedef ProfileGasSegmentView = ({
+  double fN2,
+  double fHe,
+  double? setpoint,
+  bool holds,
+});

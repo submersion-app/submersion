@@ -1119,7 +1119,7 @@ class BuhlmannAlgorithm {
           fN2: sampleGas.fN2,
           fHe: sampleGas.fHe,
           safetyStopTimeAccumulated: safetyStopTimeAccumulated,
-          ascentGas: ascentGasPlan ?? _loopAscentPlanFor(sampleGas),
+          ascentGas: ascentGasPlan ?? _loopAscentPlanFor(sampleGas, depths[i]),
           breathing: _breathingFor(sampleGas),
         ),
       );
@@ -1162,12 +1162,25 @@ class BuhlmannAlgorithm {
   /// simulation keeps constant-ppO2 physics (inert fraction changes with depth
   /// as ppO2 stays fixed). Null for open-circuit segments.
   ///
+  /// A semi-closed loop ([ProfileGasSegment.loopHoldsSetpoint] false) does not
+  /// hold its measured ppO2 on the way up. Its ascent breathes the loop's
+  /// inert fractions at [depthMeters] instead: a constant loop FO2, close to a
+  /// constant-mass-flow SCR and conservative for a passive one, whose loop
+  /// gets richer as it shallows.
+  ///
   /// Memoized on (setpoint, fN2, fHe): the plan is requested once per profile
   /// sample but only changes when the active segment changes, so reusing the
   /// last instance avoids an allocation per sample on long profiles.
-  CcrLoopAscentGas? _loopAscentPlanFor(ProfileGasSegment gas) {
+  AscentGasPlan? _loopAscentPlanFor(ProfileGasSegment gas, double depthMeters) {
     final setpoint = gas.setpoint;
     if (setpoint == null) return null;
+    if (!gas.loopHoldsSetpoint) {
+      final ambient = environment.pressureAtDepth(depthMeters);
+      final pAlv = ambient - waterVaporPressure;
+      final inspired = _breathingFor(gas)!.inspiredAt(ambient);
+      if (pAlv <= 0) return FixedAscentGas(fN2: gas.fN2, fHe: gas.fHe);
+      return FixedAscentGas(fN2: inspired.pN2 / pAlv, fHe: inspired.pHe / pAlv);
+    }
     final cached = _loopPlanCache;
     if (cached != null &&
         _loopPlanSetpoint == setpoint &&

@@ -378,11 +378,24 @@ List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
         (p) => p.ppO2 != null || _cellAverage(p) != null,
       );
       if (!measured) return null;
-      return buildCcrProfileGasSegments(
+      // The measured ppO2 is what was breathed, not a value the loop holds:
+      // the simulated ascent must not carry it to the surface.
+      final segments = buildCcrProfileGasSegments(
         timestamps: timestamps,
         loopPpO2Curve: rebreatherPpO2?.curve,
         diluentMix: resolveCcrDiluentMix(dive),
       );
+      if (segments == null) return null;
+      return [
+        for (final segment in segments)
+          ProfileGasSegment(
+            startTimestamp: segment.startTimestamp,
+            fN2: segment.fN2,
+            fHe: segment.fHe,
+            setpoint: segment.setpoint,
+            loopHoldsSetpoint: false,
+          ),
+      ];
     case DiveMode.oc || DiveMode.gauge:
       return null;
   }
@@ -499,6 +512,7 @@ ProfileAnalysisService _resolveAnalysisService(
   MetricDataSource decoStopSource = MetricDataSource.calculated,
   MetricDataSource gtrSource = MetricDataSource.calculated,
   RebreatherPpO2? rebreatherPpO2,
+  bool measuredPpO2Only = false,
 }) {
   // A zero is not a reading. Computers that do not measure one of these
   // still leave a zero in every sample, so a series that is zero from end to
@@ -534,7 +548,9 @@ ProfileAnalysisService _resolveAnalysisService(
   // into the analysis (see [resolveRebreatherPpO2]) so the CNS/OTU numbers match
   // the displayed ppO2. Callers that already resolved it pass it in to avoid a
   // second pass over the profile; otherwise resolve it here.
-  final resolved = rebreatherPpO2 ?? resolveRebreatherPpO2(profile);
+  final resolved =
+      rebreatherPpO2 ??
+      resolveRebreatherPpO2(profile, measuredOnly: measuredPpO2Only);
   final resolvedPpO2 = resolved?.curve;
   final o2SensorCurves = resolved?.sensorCurves;
   final ppO2FromSensorAverage = resolved?.fromSensorAverage ?? false;
@@ -733,10 +749,16 @@ typedef RebreatherPpO2 = ({
 /// display the ppO2 curve and to drive the CNS/OTU calculation, so the two never
 /// disagree. ppO2 priority is computer ppO2 (dc_supplied) -> cell average ->
 /// setpoint, never the OC depth x FO2 fallback (the CCR ppO2 source rule).
-RebreatherPpO2? resolveRebreatherPpO2(List<DiveProfilePoint> profile) {
+///
+/// [measuredOnly] drops the setpoint fallback, for a semi-closed loop: it holds
+/// no setpoint, so a recorded one says nothing about what was breathed.
+RebreatherPpO2? resolveRebreatherPpO2(
+  List<DiveProfilePoint> profile, {
+  bool measuredOnly = false,
+}) {
   final hasComputerPpO2 = profile.any((p) => p.ppO2 != null);
   final hasCells = profile.any((p) => _cellAverage(p) != null);
-  final hasSetpoint = profile.any((p) => p.setpoint != null);
+  final hasSetpoint = !measuredOnly && profile.any((p) => p.setpoint != null);
   final hasSensorData = hasComputerPpO2 || hasCells;
   final hasRebreatherPpO2 = hasSensorData || hasSetpoint;
   if (!hasRebreatherPpO2) return null;
@@ -1144,7 +1166,10 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     // always agree.
     final rebreatherPpO2 = dive.diveMode == DiveMode.oc
         ? null
-        : resolveRebreatherPpO2(profile);
+        : resolveRebreatherPpO2(
+            profile,
+            measuredOnly: dive.diveMode == DiveMode.scr,
+          );
     final gasSegments = switch (dive.diveMode) {
       DiveMode.oc => buildProfileGasSegments(
         dive,
@@ -1247,6 +1272,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       decoStopSource: decoStopSource,
       gtrSource: gtrSource,
       rebreatherPpO2: rebreatherPpO2,
+      measuredPpO2Only: dive.diveMode == DiveMode.scr,
     );
 
     // Publish actual source info for legend badge display. Guard with
@@ -1719,7 +1745,10 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
     // (CNS/OTU) and the display overlay so the two always agree.
     final rebreatherPpO2 = dive.diveMode == DiveMode.oc
         ? null
-        : resolveRebreatherPpO2(dive.profile);
+        : resolveRebreatherPpO2(
+            dive.profile,
+            measuredOnly: dive.diveMode == DiveMode.scr,
+          );
 
     final gasSegments = buildRebreatherProfileGasSegments(
       dive,
@@ -1774,6 +1803,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       decoStopSource: MetricDataSource.computer,
       gtrSource: MetricDataSource.computer,
       rebreatherPpO2: rebreatherPpO2,
+      measuredPpO2Only: dive.diveMode == DiveMode.scr,
     );
     return overlaid;
   } catch (e, stackTrace) {
