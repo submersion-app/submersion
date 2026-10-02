@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_computer/data/services/raw_dive_data_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/raw_dive_data_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -80,6 +81,26 @@ void main() {
     expect(await container.read(rawDataCountProvider('c1').future), (
       withRawData: 0,
       withoutRawData: 1,
+    ));
+  });
+
+  test('the usage tile\'s provider reads the live database and refreshes '
+      'after a discard', () async {
+    // No service override: setUpTestDatabase installed the database the
+    // production providers read through DatabaseService.
+    final live = ProviderContainer();
+    addTearDown(live.dispose);
+    live.listen(rawDiveDataUsageProvider, (_, _) {});
+    final before = await live.read(rawDiveDataUsageProvider.future);
+    expect(before.diveCount, 1);
+    expect(before.storedBytes, greaterThan(0));
+
+    await live.read(rawDiveDataServiceProvider).discard(computerId: 'c1');
+    await pumpEventQueue();
+
+    expect(await live.read(rawDiveDataUsageProvider.future), (
+      diveCount: 0,
+      storedBytes: 0,
     ));
   });
 }
