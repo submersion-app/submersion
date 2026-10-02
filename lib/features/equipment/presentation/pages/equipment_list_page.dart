@@ -195,7 +195,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             // the switcher's own 8px label padding puts the text at the 16px
             // every other app bar title sits at.
             titleSpacing: _phoneTitleSpacing,
-            toolbarHeight: _phoneToolbarHeight(context),
+            toolbarHeight: _phoneToolbarHeight(context, titleStyle),
             title: TitleWithSubtitle(
               title: DefaultTextStyle.merge(
                 style: titleStyle,
@@ -247,18 +247,37 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   /// Horizontal space either side of the phone title; see [_phoneRowFits].
   static const double _phoneTitleSpacing = 8;
 
+  /// The text scale [AppBar] caps its title at (its private
+  /// `_kMaxTitleTextScaleFactor`), which the switcher and count both sit in.
+  static const double _appBarTitleMaxTextScale = 1.34;
+
   /// The standard toolbar height, or taller when a large text size needs
   /// more room for the switcher and the entry count under it.
   ///
   /// The app bar clips a title taller than its toolbar instead of growing,
   /// so the count lost its bottom edge to the switcher's full-height tabs
-  /// (issue #2776). Room for the count is kept on the Sets tab and while
-  /// selecting too, so the bar holds its height as the count comes and goes.
-  double _phoneToolbarHeight(BuildContext context) => math.max(
-    kToolbarHeight,
-    EquipmentSectionToggle.heightFor(EquipmentSectionToggle.compactTabHeight) +
-        TitleWithSubtitle.subtitleLineHeight(context),
-  );
+  /// (issue #2776). Measured at the app bar's clamped scale, since that is
+  /// the scale the title renders at. Room for the count is kept on the Sets
+  /// tab and while selecting too, so the bar holds its height as the count
+  /// comes and goes.
+  double _phoneToolbarHeight(BuildContext context, TextStyle titleStyle) {
+    final scaler = MediaQuery.textScalerOf(
+      context,
+    ).clamp(maxScaleFactor: _appBarTitleMaxTextScale);
+    final switcher = EquipmentSectionToggle.heightFor(
+      EquipmentSectionToggle.fittedTabHeight(
+        context,
+        titleStyle,
+        minHeight: EquipmentSectionToggle.compactTabHeight,
+        textScaler: scaler,
+      ),
+    );
+    return math.max(
+      kToolbarHeight,
+      switcher +
+          TitleWithSubtitle.subtitleLineHeight(context, textScaler: scaler),
+    );
+  }
 
   /// The phone title at 18px: a step under the usual 22px app bar title,
   /// which is what lets the switcher share its row with the actions in most

@@ -595,6 +595,65 @@ void main() {
       });
     }
 
+    // A Tab boxes its label at the tab's height and fades what overflows, so
+    // compact tabs that do not grow with the text fade the names' lower
+    // half away at a large text size.
+    for (final (label, window, pane, textScale)
+        in <(String, Size, double?, double)>[
+          ('phone at 1.5x', const Size(600, 844), null, 1.5),
+          ('phone at 2x', const Size(600, 844), null, 2),
+          ('desktop at 2x', const Size(1400, 900), 700, 2),
+        ]) {
+      testWidgets('$label: each name is laid out whole', (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = textScale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await _pump(tester, window: window, paneWidth: pane);
+        final l10n = await en();
+
+        for (final name in [
+          l10n.equipment_tab_equipment,
+          l10n.equipment_tab_sets,
+        ]) {
+          final paragraph = tester.renderObject<RenderParagraph>(
+            find.descendant(of: _switcher, matching: find.text(name)),
+          );
+          expect(
+            paragraph.size.height,
+            greaterThanOrEqualTo(
+              paragraph.getMaxIntrinsicHeight(double.infinity) - 0.5,
+            ),
+            reason: '"$name" is clipped to its tab',
+          );
+        }
+        if (pane == null) {
+          final toolbar = tester.getRect(
+            find.descendant(
+              of: appBar,
+              matching: find.byType(NavigationToolbar),
+            ),
+          );
+          expect(
+            tester.getRect(_switcher).top,
+            greaterThanOrEqualTo(toolbar.top - 0.5),
+          );
+          expect(
+            tester
+                .getRect(inAppBar(find.text(l10n.equipment_list_count(0))))
+                .bottom,
+            lessThanOrEqualTo(toolbar.bottom + 0.5),
+          );
+          // Grown for the scale the title renders at, which the app bar
+          // caps, not the system's: no dead space under the count.
+          expect(
+            tester
+                .getRect(inAppBar(find.text(l10n.equipment_list_count(0))))
+                .bottom,
+            closeTo(toolbar.bottom, 0.5),
+          );
+        }
+      });
+    }
+
     testWidgets('the bar keeps the standard height every list has', (
       tester,
     ) async {
