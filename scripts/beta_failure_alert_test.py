@@ -274,6 +274,17 @@ class AlertTest(unittest.TestCase):
         (edit,) = gh.commands("issue", "edit")
         self.assertEqual(_value(edit, "--add-assignee"), alert.DEFAULT_ASSIGNEE)
 
+    def test_an_assignee_written_with_an_at_sign_still_notifies(self):
+        # "@name" is how GitHub users write a login; taken verbatim it becomes
+        # an "@@name" mention and an assignment GitHub rejects.
+        gh = FakeGh()
+        _quiet(alert.run, PLAY_RED, dict(CONTEXT, assignee=" @maintainer "), gh)
+        (edit,) = gh.commands("issue", "edit")
+        self.assertEqual(_value(edit, "--add-assignee"), "maintainer")
+        body = _value(gh.commands("issue", "create")[0], "--body")
+        self.assertIn("@maintainer ", body)
+        self.assertNotIn("@@", body)
+
 
 class ResolveTest(unittest.TestCase):
     def test_closes_the_open_alert_once_every_lane_publishes(self):

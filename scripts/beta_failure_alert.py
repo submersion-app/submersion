@@ -157,7 +157,9 @@ def _assign(gh, repo, number, assignee):
 
 def raise_alert(gh, ctx, failed_ids):
     repo = ctx["repo"]
-    assignee = ctx["assignee"] or DEFAULT_ASSIGNEE
+    # A login is often written "@name"; verbatim it would be an "@@name"
+    # mention and an assignment GitHub rejects, so nobody would be notified.
+    assignee = ctx["assignee"].strip().lstrip("@") or DEFAULT_ASSIGNEE
     report = _report(gh, ctx, failed_ids, assignee)
     number = _open_alert(gh, repo)
     if number is None:
