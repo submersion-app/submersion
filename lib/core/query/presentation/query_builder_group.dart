@@ -97,13 +97,18 @@ class _Group extends StatelessWidget {
           children: [
             Row(
               children: [
-                // Expanded, not a bare child: SegmentedButton gives itself
-                // an unbounded width when its incoming constraint is
-                // unbounded (as a plain Row child's is), painting past its
-                // reported size instead of raising an overflow error. Bounding
-                // its width here makes it wrap a too-long segment label onto a
-                // second line instead (#2787).
-                Expanded(
+                // Flexible (loose), not a bare child or Expanded:
+                // SegmentedButton gives itself an unbounded width when its
+                // incoming constraint is unbounded (as a plain Row child's
+                // is), painting past its reported size instead of raising an
+                // overflow error. Expanded would fix that but forces a tight
+                // constraint, which SegmentedButton reads as "fill it" and
+                // stretches both segments to half the row even when there is
+                // room to spare. Flexible caps the width without forcing it,
+                // so the toggle keeps its natural size on a wide screen and
+                // only wraps a too-long segment label onto a second line
+                // where space actually runs out (#2787).
+                Flexible(
                   child: SegmentedButton<bool>(
                     segments: [
                       ButtonSegment(value: true, label: Text(strings.allOf)),

@@ -304,4 +304,36 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'the all-of/any-of toggle stays its natural compact size on a wide '
+    'screen instead of stretching to fill the row (#2787)',
+    (tester) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: QueryBuilderGroup(
+                context: context,
+                root: AndNode([depth(30)]),
+                onChanged: (_) {},
+                strings: kTestBuilderStrings,
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      // A row this wide has room to spare: the toggle should keep its
+      // intrinsic size (a few hundred px for "All of"/"Any of"), not stretch
+      // to fill all 1200px the way a bare Expanded child would (#2787).
+      final width = tester.getSize(find.byType(SegmentedButton<bool>)).width;
+      expect(width, lessThan(600));
+    },
+  );
 }
