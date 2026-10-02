@@ -12866,6 +12866,7 @@
   "universalImport_counts_new": "{count, plural, other{{count} 项新增}}",
   "universalImport_counts_merging": "{count, plural, other{{count} 项合并}}",
   "universalImport_counts_replacing": "{count, plural, other{{count} 项替换}}",
+  "universalImport_counts_filling": "{count, plural, other{{count} 项填充计划潜水}}",
   "universalImport_counts_skipped": "{count, plural, other{{count} 项跳过}}",
   "universalImport_counts_nothingSelected": "未选择任何内容",
   "universalImport_section_potentialDuplicates": "潜在重复项",

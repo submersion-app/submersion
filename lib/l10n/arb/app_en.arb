@@ -25961,6 +25961,7 @@
   "universalImport_counts_new": "{count, plural, other{{count} new}}",
   "universalImport_counts_merging": "{count, plural, other{{count} merging}}",
   "universalImport_counts_replacing": "{count, plural, other{{count} replacing}}",
+  "universalImport_counts_filling": "{count, plural, one{{count} filling a planned dive} other{{count} filling planned dives}}",
   "universalImport_counts_skipped": "{count, plural, other{{count} skipped}}",
   "universalImport_counts_nothingSelected": "Nothing selected",
   "universalImport_section_potentialDuplicates": "Potential Duplicates",
@@ -26389,6 +26390,14 @@
   },
   "@universalImport_counts_replacing": {
     "description": "Review bar fragment: how many items will replace existing source data.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@universalImport_counts_filling": {
+    "description": "Review bar fragment: how many downloaded dives will fill a planned dive.",
     "placeholders": {
       "count": {
         "type": "int"

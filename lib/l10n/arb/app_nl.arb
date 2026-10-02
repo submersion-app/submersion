@@ -12866,6 +12866,7 @@
   "universalImport_counts_new": "{count, plural, other{{count} nieuw}}",
   "universalImport_counts_merging": "{count, plural, other{{count} samenvoegen}}",
   "universalImport_counts_replacing": "{count, plural, other{{count} vervangen}}",
+  "universalImport_counts_filling": "{count, plural, one{{count} geplande duik invullen} other{{count} geplande duiken invullen}}",
   "universalImport_counts_skipped": "{count, plural, other{{count} overgeslagen}}",
   "universalImport_counts_nothingSelected": "Niets geselecteerd",
   "universalImport_section_potentialDuplicates": "Potentiële duplicaten",

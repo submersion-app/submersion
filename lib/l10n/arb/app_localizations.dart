@@ -68955,6 +68955,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, other{{count} replacing}}'**
   String universalImport_counts_replacing(int count);
 
+  /// Review bar fragment: how many downloaded dives will fill a planned dive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} filling a planned dive} other{{count} filling planned dives}}'**
+  String universalImport_counts_filling(int count);
+
   /// Review bar fragment: how many items will be skipped.
   ///
   /// In en, this message translates to:

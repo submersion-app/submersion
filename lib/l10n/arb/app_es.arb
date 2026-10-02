@@ -12866,6 +12866,7 @@
   "universalImport_counts_new": "{count, plural, one{{count} nuevo} other{{count} nuevos}}",
   "universalImport_counts_merging": "{count, plural, other{{count} a consolidar}}",
   "universalImport_counts_replacing": "{count, plural, other{{count} a reemplazar}}",
+  "universalImport_counts_filling": "{count, plural, one{{count} a completar una inmersión planificada} other{{count} a completar inmersiones planificadas}}",
   "universalImport_counts_skipped": "{count, plural, one{{count} omitido} other{{count} omitidos}}",
   "universalImport_counts_nothingSelected": "Nada seleccionado",
   "universalImport_section_potentialDuplicates": "Duplicados potenciales",

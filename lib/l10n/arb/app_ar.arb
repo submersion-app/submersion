@@ -12866,6 +12866,7 @@
   "universalImport_counts_new": "{count, plural, zero{{count} جديد} one{{count} جديد} two{{count} جديدان} few{{count} جديدة} many{{count} جديدًا} other{{count} جديد}}",
   "universalImport_counts_merging": "{count, plural, other{{count} قيد الدمج}}",
   "universalImport_counts_replacing": "{count, plural, other{{count} قيد الاستبدال}}",
+  "universalImport_counts_filling": "{count, plural, other{{count} لإكمال غوصات مخططة}}",
   "universalImport_counts_skipped": "{count, plural, zero{{count} متخطى} one{{count} متخطى} two{{count} متخطيان} few{{count} متخطاة} many{{count} متخطى} other{{count} متخطى}}",
   "universalImport_counts_nothingSelected": "لم يتم تحديد أي شيء",
   "universalImport_section_potentialDuplicates": "تكرارات محتملة",

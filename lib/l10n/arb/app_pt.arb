@@ -12866,6 +12866,7 @@
   "universalImport_counts_new": "{count, plural, one{{count} novo} other{{count} novos}}",
   "universalImport_counts_merging": "{count, plural, other{{count} mesclando}}",
   "universalImport_counts_replacing": "{count, plural, other{{count} substituindo}}",
+  "universalImport_counts_filling": "{count, plural, one{{count} preenchendo mergulho planejado} other{{count} preenchendo mergulhos planejados}}",
   "universalImport_counts_skipped": "{count, plural, one{{count} pulado} other{{count} pulados}}",
   "universalImport_counts_nothingSelected": "Nada selecionado",
   "universalImport_section_potentialDuplicates": "Duplicatas Potenciais",

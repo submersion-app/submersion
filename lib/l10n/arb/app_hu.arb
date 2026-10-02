@@ -12866,6 +12866,7 @@
   "universalImport_counts_new": "{count, plural, other{{count} új}}",
   "universalImport_counts_merging": "{count, plural, other{{count} összevonandó}}",
   "universalImport_counts_replacing": "{count, plural, other{{count} cserélendő}}",
+  "universalImport_counts_filling": "{count, plural, other{{count} tervezett merülés kitöltése}}",
   "universalImport_counts_skipped": "{count, plural, other{{count} kihagyandó}}",
   "universalImport_counts_nothingSelected": "Semmi sincs kijelölve",
   "universalImport_section_potentialDuplicates": "Lehetséges duplikátumok",

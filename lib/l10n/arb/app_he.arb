@@ -12866,6 +12866,7 @@
   "universalImport_counts_new": "{count, plural, one{{count} חדש} two{{count} חדשים} many{{count} חדשים} other{{count} חדשים}}",
   "universalImport_counts_merging": "{count, plural, other{{count} במיזוג}}",
   "universalImport_counts_replacing": "{count, plural, other{{count} בהחלפה}}",
+  "universalImport_counts_filling": "{count, plural, other{{count} בהשלמת צלילות מתוכננות}}",
   "universalImport_counts_skipped": "{count, plural, one{{count} דולג} two{{count} דולגו} many{{count} דולגו} other{{count} דולגו}}",
   "universalImport_counts_nothingSelected": "לא נבחר דבר",
   "universalImport_section_potentialDuplicates": "כפילויות פוטנציאליות",

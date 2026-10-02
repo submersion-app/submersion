@@ -12978,6 +12978,7 @@
   "universalImport_counts_new": "{count, plural, other{{count} neu}}",
   "universalImport_counts_merging": "{count, plural, other{{count} zusammenführen}}",
   "universalImport_counts_replacing": "{count, plural, other{{count} ersetzen}}",
+  "universalImport_counts_filling": "{count, plural, one{{count} geplanten Tauchgang ausfüllen} other{{count} geplante Tauchgänge ausfüllen}}",
   "universalImport_counts_skipped": "{count, plural, other{{count} übersprungen}}",
   "universalImport_counts_nothingSelected": "Nichts ausgewählt",
   "universalImport_section_potentialDuplicates": "Potenzielle Duplikate",
