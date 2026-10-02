@@ -381,6 +381,10 @@ class BulkDiveEditService {
         // The cylinder link the registry recorded; bulkReplaceTanks writes
         // it only when told this is a restore.
         equipmentId: r.equipmentId,
+        // What the source log recorded (#1496), likewise restore-only.
+        usageDuration: r.usageDuration != null
+            ? Duration(seconds: r.usageDuration!)
+            : null,
       ),
   ];
 

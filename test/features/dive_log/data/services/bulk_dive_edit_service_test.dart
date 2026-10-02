@@ -304,6 +304,28 @@ void main() {
     });
   });
 
+  test('undoing a tank replace restores its recorded usage (#1496)', () async {
+    await seed('d1');
+    await diveRepo.bulkAddTank(['d1'], tank('OrigTank'));
+    await db.customStatement('UPDATE dive_tanks SET usage_duration = 1800');
+    final snap = await service.apply(
+      BulkEditRequest(
+        diveIds: const ['d1'],
+        ops: [
+          TanksOp(mode: BulkCollectionMode.replace, tanks: [tank('NewTank')]),
+        ],
+      ),
+    );
+
+    await service.undo(snap);
+
+    final row = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals('d1'))).getSingle();
+    expect(row.tankName, 'OrigTank');
+    expect(row.usageDuration, 1800);
+  });
+
   test('a bulk template never writes a cylinder link', () async {
     // The link belongs to the transmitter registry, which knows which
     // physical cylinder a tank was. A template copied from a linked tank
