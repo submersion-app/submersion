@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_date_group.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_count_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_group_tile.dart';
 import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -64,7 +66,16 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
     _close();
   }
 
-  List<Widget> _groups() => const [];
+  List<Widget> _groups() {
+    final l10n = context.l10n;
+    return [
+      RefineGroupTile(
+        title: RefineDateGroup.title(l10n),
+        activeCount: RefineDateGroup.activeCount(_draft),
+        child: RefineDateGroup(draft: _draft, onChanged: _update),
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
