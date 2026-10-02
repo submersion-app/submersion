@@ -45,6 +45,7 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'planning': Color(0xFF512DA8),
       'transfer': Color(0xFF0097A7),
       'gps-log': Color(0xFFD32F2F),
+      'tracks': Color(0xFFD32F2F),
       'settings': Color(0xFF455A64),
       // Settings root sections: identical to the colors previously hardcoded
       // on settingsSections so the root page look does not change.
@@ -81,6 +82,7 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'planning': Color(0xFF9575CD),
       'transfer': Color(0xFF4DD0E1),
       'gps-log': Color(0xFFE57373),
+      'tracks': Color(0xFFE57373),
       'settings': Color(0xFF90A4AE),
       'settings-about': Color(0xFF90A4AE),
       'settings-appearance': Color(0xFFF06292),
