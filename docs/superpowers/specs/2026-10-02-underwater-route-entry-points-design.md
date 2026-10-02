@@ -117,11 +117,15 @@ that would discard the diver's unsaved form.
 (for example `returnRouteId: true`, returning `Future<String?>`):
 
 - the "Link to dive" picker is hidden;
-- the route is committed with `dive: null`;
-- the site picker is pre-filled from the edit form's currently chosen site,
-  when there is one;
-- on success the page pops with the new route id and performs no other
-  navigation.
+- the route is committed with `dive: null` and no site of its own unless the
+  diver picks one, so when it is linked on Save it takes the dive's final
+  site (the form's site can still change before Save);
+- a ticked "replace duplicate" is not applied at import: the page returns
+  the duplicate's id, and the Dive Edit page replaces it on Save after
+  linking the new route, so the new route inherits the primary role and a
+  cancelled edit keeps the original;
+- on success the page pops with the new route id (and the replaced id, if
+  any) and performs no other navigation.
 
 All existing callers keep today's behaviour. The doc comment listing entry
 points is updated (the dive detail section is no longer one; the dive edit

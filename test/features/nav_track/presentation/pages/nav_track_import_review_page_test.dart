@@ -133,7 +133,6 @@ Future<List<NavTrackImportResult?>> _pumpReturnMode(
   WidgetTester tester, {
   required NavTrackImportPreview preview,
   required NavTrackImportService service,
-  DiveSite? initialSite,
 }) async {
   tester.platformDispatcher.localesTestValue = const [
     Locale('de'),
@@ -162,7 +161,6 @@ Future<List<NavTrackImportResult?>> _pumpReturnMode(
                   Uint8List(0),
                   fileName: '005.DAT.csv',
                   preview: preview,
-                  initialSite: initialSite,
                 ),
               ),
               child: const Text('HOST'),
@@ -1225,23 +1223,6 @@ void main() {
       // The caller replaces it on its own Save, so the duplicate survives a
       // cancelled edit.
       expect(service.lastReplacingRouteId, isNull);
-    });
-
-    testWidgets('pre-fills the site the edit form already chose', (
-      tester,
-    ) async {
-      final service = _RecordingImportService();
-      await _pumpReturnMode(
-        tester,
-        preview: _preview(),
-        service: service,
-        initialSite: const DiveSite(id: 'site-1', name: 'Blue Hole'),
-      );
-
-      expect(find.text('Blue Hole'), findsOneWidget);
-      await _tapSave(tester);
-
-      expect(service.lastSiteId, 'site-1');
     });
 
     testWidgets('pops null when the diver backs out', (tester) async {

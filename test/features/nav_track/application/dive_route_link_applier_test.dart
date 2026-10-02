@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/nav_track/application/dive_route_link_applier.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/dive_route_link_draft.dart';
@@ -120,6 +122,32 @@ void main() {
 
     tearDown(() async {
       await tearDownTestDatabase();
+    });
+
+    test('a route imported without a site takes the dive\'s site when '
+        'linked', () async {
+      final site = await SiteRepository().createSite(
+        const DiveSite(id: 'site-final', name: 'Final site'),
+      );
+      final dive = await DiveRepository().createDive(
+        Dive(id: 'd-site', dateTime: DateTime.utc(2025, 8, 22, 10), site: site),
+      );
+      final routes = NavTrackRepository();
+      final routeId = await routes.insertImportedRoute(
+        points: kTestNavTrackPoints,
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'site.csv',
+      );
+      final route = (await routes.getById(routeId, includePoints: false))!;
+
+      await applyDiveRouteLinkDraft(
+        routes,
+        diveId: dive.id,
+        draft: DiveRouteLinkDraft.initial(const []).add(route),
+      );
+
+      final linked = await routes.getById(routeId, includePoints: false);
+      expect(linked!.siteId, site.id);
     });
 
     test('a re-import of the primary route takes over as primary', () async {

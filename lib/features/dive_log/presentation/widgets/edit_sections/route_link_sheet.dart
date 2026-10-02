@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/dive_route_link_draft.dart';
@@ -24,12 +23,13 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// the review page saves unlinked.
 ///
 /// [entryTime] is the form's current entry time, which orders the link
-/// candidates. [site] pre-fills an imported route's site.
+/// candidates. An imported route is saved without a site, so on Save it
+/// takes the dive's final site (`link` inherits it), not whatever site the
+/// form showed when the file was imported.
 Future<void> showRouteLinkSheet(
   BuildContext context, {
   required DiveRouteLinkDraft draft,
   required DateTime entryTime,
-  DiveSite? site,
   required ValueChanged<DiveRouteLinkDraft> onChanged,
 }) {
   return showModalBottomSheet<void>(
@@ -38,7 +38,6 @@ Future<void> showRouteLinkSheet(
     builder: (_) => _RouteLinkSheet(
       draft: draft,
       entryTime: entryTime,
-      site: site,
       onChanged: onChanged,
     ),
   );
@@ -48,13 +47,11 @@ class _RouteLinkSheet extends ConsumerStatefulWidget {
   const _RouteLinkSheet({
     required this.draft,
     required this.entryTime,
-    required this.site,
     required this.onChanged,
   });
 
   final DiveRouteLinkDraft draft;
   final DateTime entryTime;
-  final DiveSite? site;
   final ValueChanged<DiveRouteLinkDraft> onChanged;
 
   @override
@@ -140,7 +137,6 @@ class _RouteLinkSheetState extends ConsumerState<_RouteLinkSheet> {
       bytes,
       fileName: file.name,
       preview: preview,
-      initialSite: widget.site,
     );
     if (result == null || !mounted) return;
     final saved = await ref

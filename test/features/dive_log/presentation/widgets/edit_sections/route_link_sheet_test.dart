@@ -40,6 +40,9 @@ class _FakeImportService implements NavTrackImportService {
   /// Thrown by `prepare` instead of returning a preview, when set.
   final Object? prepareError;
 
+  /// The site the last `commit` stored on the route.
+  String? lastSiteId;
+
   @override
   Future<NavTrackImportPreview> prepare(
     Uint8List bytes, {
@@ -67,7 +70,10 @@ class _FakeImportService implements NavTrackImportService {
     String? deviceName,
     String? equipmentId,
     String? replacingRouteId,
-  }) async => 'new-route';
+  }) async {
+    lastSiteId = siteId;
+    return 'new-route';
+  }
 }
 
 Future<List<DiveRouteLinkDraft>> _openSheet(
@@ -292,6 +298,26 @@ void main() {
     expect(changes.last.toUnlink, isEmpty);
     expect(changes.last.toLink, ['new-route']);
     expect(changes.last.replacements, {'old': 'new-route'});
+  });
+
+  testWidgets('an imported route is saved without a site, so it takes the '
+      'dive\'s final site when it is linked on Save', (tester) async {
+    _mockPickedFile();
+    final service = _FakeImportService();
+    await _openSheet(
+      tester,
+      draft: DiveRouteLinkDraft.initial(const []),
+      repository: _FakeRouteRepository({
+        'new-route': testNavTrack('new-route'),
+      }),
+      service: service,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('route-sheet-import-button')));
+    await tester.pumpAndSettle();
+    await _saveReviewPage(tester);
+
+    expect(service.lastSiteId, isNull);
   });
 
   testWidgets('a file that cannot be imported says so inside the sheet', (

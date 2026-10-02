@@ -1076,7 +1076,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       context,
       draft: draft,
       entryTime: _currentEntryTime(),
-      site: _selectedSite,
       onChanged: (next) {
         setState(() => _routeDraft = next);
         _markDirty();

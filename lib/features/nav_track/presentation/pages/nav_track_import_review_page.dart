@@ -66,15 +66,13 @@ typedef NavTrackImportResult = ({String routeId, String? replacedRouteId});
 /// Opens the review page in return mode, for a caller that links the route
 /// itself later (the Dive Edit page's route sheet, which stages links until
 /// the dive is saved). The page hides its dive picker, saves the route
-/// unlinked, and pops with the result instead of opening the route.
-/// [initialSite] pre-fills the site picker. Null when the diver leaves
-/// without saving.
+/// unlinked, and pops with the result instead of opening the route. Null
+/// when the diver leaves without saving.
 Future<NavTrackImportResult?> navigateToNavTrackReviewForResult(
   BuildContext context,
   Uint8List bytes, {
   required String fileName,
   NavTrackImportPreview? preview,
-  DiveSite? initialSite,
 }) {
   return Navigator.of(context).push<NavTrackImportResult>(
     MaterialPageRoute(
@@ -83,7 +81,6 @@ Future<NavTrackImportResult?> navigateToNavTrackReviewForResult(
         fileName: fileName,
         preview: preview,
         returnResult: true,
-        initialSite: initialSite,
       ),
     ),
   );
@@ -108,7 +105,6 @@ class NavTrackImportReviewPage extends ConsumerStatefulWidget {
     this.preselectedDive,
     this.preview,
     this.returnResult = false,
-    this.initialSite,
   });
 
   final Uint8List bytes;
@@ -128,9 +124,6 @@ class NavTrackImportReviewPage extends ConsumerStatefulWidget {
   /// the route is saved unlinked, and the page pops with a
   /// [NavTrackImportResult] instead of opening the route.
   final bool returnResult;
-
-  /// The site to pre-fill, as if the diver had picked it. Return mode only.
-  final DiveSite? initialSite;
 
   @override
   ConsumerState<NavTrackImportReviewPage> createState() =>
@@ -160,13 +153,6 @@ class _NavTrackImportReviewPageState
   @override
   void initState() {
     super.initState();
-    final site = widget.initialSite;
-    if (site != null) {
-      _siteId = site.id;
-      _siteName = site.name;
-      // Treated as the diver's own pick, so no dive selection replaces it.
-      _siteChosenManually = true;
-    }
     _previewFuture = widget.preview != null
         ? Future.value(widget.preview)
         : ref
