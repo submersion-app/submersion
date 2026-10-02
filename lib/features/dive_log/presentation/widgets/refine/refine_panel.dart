@@ -113,7 +113,14 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
       ),
       tile(
         RefineGasEquipmentGroup.title(l10n),
-        RefineGasEquipmentGroup.activeCount(d),
+        // A computer deleted since the filter was set shows as All in the
+        // group, so it is not counted either.
+        RefineGasEquipmentGroup.activeCount(
+          RefineGasEquipmentGroup.resolveOnApply(
+            d,
+            ref.watch(allDiveComputersProvider),
+          ),
+        ),
         RefineGasEquipmentGroup(draft: d, onChanged: _update),
       ),
       tile(

@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/text/fuzzy_match.dart' show normalize;
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_group_tile.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
@@ -69,11 +70,6 @@ class _RefinePeopleGroupState extends ConsumerState<RefinePeopleGroup> {
     ),
   );
 
-  Widget _label(BuildContext context, String text) => Padding(
-    padding: const EdgeInsets.only(top: 16, bottom: 8),
-    child: Text(text, style: Theme.of(context).textTheme.titleSmall),
-  );
-
   Iterable<String> _buddyOptions(String text, List<String> names) {
     if (text.isEmpty) return const [];
     final parts = text.split(',').map((e) => e.trim()).toList();
@@ -119,7 +115,7 @@ class _RefinePeopleGroupState extends ConsumerState<RefinePeopleGroup> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _label(context, l10n.diveLog_filter_sectionBuddy),
+        RefineSubLabel(l10n.diveLog_filter_sectionBuddy),
         RawAutocomplete<String>(
           textEditingController: _buddy,
           focusNode: _buddyFocus,
@@ -163,7 +159,7 @@ class _RefinePeopleGroupState extends ConsumerState<RefinePeopleGroup> {
             );
           },
         ),
-        _label(context, l10n.diveLog_filter_sectionSpecies),
+        RefineSubLabel(l10n.diveLog_filter_sectionSpecies),
         if (d.speciesIds.isNotEmpty)
           Wrap(
             spacing: 8,

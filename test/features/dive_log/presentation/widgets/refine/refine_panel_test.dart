@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_panel.dart';
 import 'package:submersion/features/query/domain/entities/saved_query.dart';
@@ -149,5 +150,23 @@ void main() {
     await tester.tap(find.byKey(kRefineApplyKey));
     await tester.pumpAndSettle();
     expect(c.read(t), handoff);
+  });
+
+  // Code review: a computer deleted since the filter was set is not counted,
+  // matching the dropdown, which shows All computers for it.
+  testWidgets('a deleted computer does not count as set', (tester) async {
+    final t = StateProvider<DiveFilterState>(
+      (ref) => const DiveFilterState(computerId: 'gone'),
+    );
+    await openRefinePanel(
+      tester,
+      target: t,
+      extra: [allDiveComputersProvider.overrideWith((ref) async => const [])],
+    );
+    final gas = find.widgetWithText(ExpansionTile, 'Gas & Equipment');
+    expect(
+      find.descendant(of: gas, matching: find.text('Any')),
+      findsOneWidget,
+    );
   });
 }

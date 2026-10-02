@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_group_tile.dart';
 import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_gear_attributes_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
@@ -112,11 +113,6 @@ class _RefineGasEquipmentGroupState
         NumberInvalid() => previous,
       };
 
-  Widget _label(BuildContext context, String text) => Padding(
-    padding: const EdgeInsets.only(top: 16, bottom: 8),
-    child: Text(text, style: Theme.of(context).textTheme.titleSmall),
-  );
-
   Widget _thicknessField(
     BuildContext context, {
     required Key key,
@@ -150,7 +146,7 @@ class _RefineGasEquipmentGroupState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _label(context, l10n.diveLog_filter_sectionDiveType),
+        RefineSubLabel(l10n.diveLog_filter_sectionDiveType),
         ref
             .watch(diveTypesProvider)
             .when(
@@ -173,7 +169,7 @@ class _RefineGasEquipmentGroupState
                 ),
               ),
             ),
-        _label(context, l10n.diveLog_filter_sectionGasMix),
+        RefineSubLabel(l10n.diveLog_filter_sectionGasMix),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -193,7 +189,7 @@ class _RefineGasEquipmentGroupState
               ),
           ],
         ),
-        _label(context, l10n.diveLog_search_label_equipment),
+        RefineSubLabel(l10n.diveLog_search_label_equipment),
         ref
             .watch(allEquipmentProvider)
             .when(
@@ -232,7 +228,7 @@ class _RefineGasEquipmentGroupState
                       ],
                     ),
             ),
-        _label(context, l10n.diveLog_filter_sectionSuitThickness),
+        RefineSubLabel(l10n.diveLog_filter_sectionSuitThickness),
         Row(
           children: [
             Expanded(
@@ -274,7 +270,7 @@ class _RefineGasEquipmentGroupState
             _writeConditions();
           },
         ),
-        _label(context, l10n.diveLog_filter_sectionDiveComputer),
+        RefineSubLabel(l10n.diveLog_filter_sectionDiveComputer),
         ref
             .watch(allDiveComputersProvider)
             .when(

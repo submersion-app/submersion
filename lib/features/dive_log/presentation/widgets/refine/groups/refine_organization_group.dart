@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_group_tile.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart'
     show TagScope;
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -38,11 +39,6 @@ class RefineOrganizationGroup extends ConsumerWidget {
   static String title(AppLocalizations l10n) =>
       l10n.diveLog_search_section_organization;
 
-  Widget _label(BuildContext context, String text) => Padding(
-    padding: const EdgeInsets.only(top: 16, bottom: 8),
-    child: Text(text, style: Theme.of(context).textTheme.titleSmall),
-  );
-
   void _setRating(int? rating) => onChanged(
     draft.copyWith(minRating: rating, clearMinRating: rating == null),
   );
@@ -55,7 +51,7 @@ class RefineOrganizationGroup extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _label(context, l10n.diveLog_filter_sectionTags),
+        RefineSubLabel(l10n.diveLog_filter_sectionTags),
         ref
             .watch(tagListNotifierProvider)
             .when(
@@ -101,7 +97,7 @@ class RefineOrganizationGroup extends ConsumerWidget {
                 );
               },
             ),
-        _label(context, l10n.diveLog_filter_sectionMinRating),
+        RefineSubLabel(l10n.diveLog_filter_sectionMinRating),
         Row(
           children: [
             for (var rating = 1; rating <= 5; rating++)

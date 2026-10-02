@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_group_tile.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -119,11 +120,6 @@ class _RefineConditionsGroupState extends ConsumerState<RefineConditionsGroup> {
     NumberInvalid() => previous,
   };
 
-  Widget _label(BuildContext context, String text) => Padding(
-    padding: const EdgeInsets.only(top: 16, bottom: 8),
-    child: Text(text, style: Theme.of(context).textTheme.titleSmall),
-  );
-
   Widget _pair({
     required String keyPrefix,
     required IconData icon,
@@ -188,8 +184,7 @@ class _RefineConditionsGroupState extends ConsumerState<RefineConditionsGroup> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _label(
-          context,
+        RefineSubLabel(
           l10n.diveLog_filter_sectionDepthRangeUnit(units.depthSymbol),
         ),
         _pair(
@@ -207,7 +202,7 @@ class _RefineConditionsGroupState extends ConsumerState<RefineConditionsGroup> {
             write(d.copyWith(maxDepth: v, clearMaxDepth: v == null));
           },
         ),
-        _label(context, l10n.diveLog_filter_sectionDuration),
+        RefineSubLabel(l10n.diveLog_filter_sectionDuration),
         _pair(
           keyPrefix: 'refine-duration',
           icon: Icons.timer,
@@ -234,7 +229,7 @@ class _RefineConditionsGroupState extends ConsumerState<RefineConditionsGroup> {
             );
           },
         ),
-        _label(context, l10n.diveLog_search_label_deco),
+        RefineSubLabel(l10n.diveLog_search_label_deco),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -256,8 +251,7 @@ class _RefineConditionsGroupState extends ConsumerState<RefineConditionsGroup> {
               ),
           ],
         ),
-        _label(
-          context,
+        RefineSubLabel(
           l10n.diveLog_filter_sectionWaterTempUnit(units.temperatureSymbol),
         ),
         _pair(
@@ -277,8 +271,7 @@ class _RefineConditionsGroupState extends ConsumerState<RefineConditionsGroup> {
             write(d.copyWith(maxWaterTemp: v, clearMaxWaterTemp: v == null));
           },
         ),
-        _label(
-          context,
+        RefineSubLabel(
           l10n.diveLog_filter_sectionVisibilityUnit(units.depthSymbol),
         ),
         _pair(
@@ -296,7 +289,7 @@ class _RefineConditionsGroupState extends ConsumerState<RefineConditionsGroup> {
             write(d.copyWith(maxVisibility: v, clearMaxVisibility: v == null));
           },
         ),
-        _label(context, l10n.diveLog_filter_sectionWaterType),
+        RefineSubLabel(l10n.diveLog_filter_sectionWaterType),
         Wrap(
           spacing: 8,
           children: [
