@@ -122,6 +122,19 @@ void main() {
     expect(find.text(l10n.diveLog_edit_equipmentCaption), findsOneWidget);
   });
 
+  testWidgets('a gauge dive, which has no tanks, explains neither list', (
+    tester,
+  ) async {
+    final dive = await repository.getDiveById('d1');
+    await repository.updateDive(dive!.copyWith(diveMode: DiveMode.gauge));
+    final l10n = await pumpExpanded(tester);
+
+    // The equipment caption sends the diver to Tanks, which a gauge dive
+    // does not show.
+    expect(find.text(l10n.diveLog_edit_tanksCaption), findsNothing);
+    expect(find.text(l10n.diveLog_edit_equipmentCaption), findsNothing);
+  });
+
   testWidgets('a cylinder picked into a tank joins the equipment list', (
     tester,
   ) async {

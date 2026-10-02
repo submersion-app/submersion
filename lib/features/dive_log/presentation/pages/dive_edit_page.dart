@@ -3895,8 +3895,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ],
         ),
         // A Tank item here counts toward its dives and service but feeds no
-        // gas data; the tank rows above do that (issue #2599).
-        FormCaption(context.l10n.diveLog_edit_equipmentCaption),
+        // gas data; the tank rows above do that (issue #2599). A gauge dive
+        // shows no tank rows, so there is nothing to tell apart.
+        if (_diveMode != DiveMode.gauge)
+          FormCaption(context.l10n.diveLog_edit_equipmentCaption),
         if (_geofenceSuggestion != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
