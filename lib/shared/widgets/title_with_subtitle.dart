@@ -26,21 +26,25 @@ class TitleWithSubtitle extends StatelessWidget {
   /// own edge (a name inside a pill), so the two lines still start together.
   final double subtitleIndent;
 
-  /// The height the subtitle line takes, at [textScaler] or else the
-  /// context's text scale.
+  /// The height a subtitle line showing [text] takes, at [textScaler] or
+  /// else the context's text scale.
   ///
   /// For a host with a fixed height, such as an app bar's toolbar, which
   /// clips a title column taller than itself instead of reporting it. An app
   /// bar clamps its title's text scale, so a host measuring from outside it
   /// passes the clamped scaler.
+  ///
+  /// [text] is the subtitle itself, or a string in its script: a line drawn
+  /// in a fallback font (Arabic, Hebrew) can stand a pixel taller than the
+  /// primary font's, so a placeholder such as a space under-measures it.
   static double subtitleLineHeight(
     BuildContext context, {
+    required String text,
     TextScaler? textScaler,
   }) {
     final painter = TextPainter(
       text: TextSpan(
-        // Any text: one line's height depends on the style, not the words.
-        text: ' ',
+        text: text,
         style: DefaultTextStyle.of(context).style.merge(_style(context)),
       ),
       textDirection: Directionality.of(context),

@@ -259,7 +259,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   /// (issue #2776). Measured at the app bar's clamped scale, since that is
   /// the scale the title renders at. Room for the count is kept on the Sets
   /// tab and while selecting too, so the bar holds its height as the count
-  /// comes and goes.
+  /// comes and goes; the line is measured in the count's own words, whose
+  /// script decides the font it is drawn in.
   double _phoneToolbarHeight(BuildContext context, TextStyle titleStyle) {
     final scaler = MediaQuery.textScalerOf(
       context,
@@ -275,7 +276,13 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
     return math.max(
       kToolbarHeight,
       switcher +
-          TitleWithSubtitle.subtitleLineHeight(context, textScaler: scaler),
+          TitleWithSubtitle.subtitleLineHeight(
+            context,
+            text:
+                equipmentListCountLabel(context, ref)?.full ??
+                context.l10n.equipment_list_count(0),
+            textScaler: scaler,
+          ),
     );
   }
 

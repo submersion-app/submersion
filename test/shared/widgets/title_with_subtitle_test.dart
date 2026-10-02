@@ -103,6 +103,7 @@ void main() {
       final rendered = tester.getSize(find.text('34 of 812 dives')).height;
       final measured = TitleWithSubtitle.subtitleLineHeight(
         tester.element(find.text('34 of 812 dives')),
+        text: '34 of 812 dives',
       );
       expect(measured, closeTo(rendered, 0.5));
     });
