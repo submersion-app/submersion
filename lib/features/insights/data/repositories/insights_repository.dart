@@ -18,6 +18,8 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
+import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
+    show dartWhitespaceSqlChars;
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
@@ -1988,7 +1990,11 @@ class InsightsRepository {
   // Geographic Statistics
   // ============================================================================
 
-  /// Get countries visited with dive counts
+  /// Get countries visited with dive counts.
+  ///
+  /// Grouped on the country trimmed of every character Dart's `trim`
+  /// strips, the form `site.country` compares, so a row opens exactly the
+  /// dives it counts (#2623) and stray whitespace never splits a country.
   Future<List<RankingItem>> getCountriesVisited({
     String? diverId,
     int limit = 10,
@@ -2003,12 +2009,12 @@ class InsightsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          ds.country,
+          TRIM(ds.country, $dartWhitespaceSqlChars) AS country,
           COUNT(d.id) AS dive_count
         FROM dive_sites ds
         JOIN dives d ON d.site_id = ds.id
-        WHERE ds.country IS NOT NULL AND ds.country != '' $diverFilter ${df.clause}
-        GROUP BY ds.country
+        WHERE TRIM(ds.country, $dartWhitespaceSqlChars) != '' $diverFilter ${df.clause}
+        GROUP BY 1
         ORDER BY dive_count DESC
         LIMIT ?
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -2031,7 +2037,9 @@ class InsightsRepository {
     }
   }
 
-  /// Get regions explored with dive counts
+  /// Get regions explored with dive counts, one row per region and
+  /// country. Trimmed like [getCountriesVisited]; a blank country reads as
+  /// none, the same way `site.country :none` does.
   Future<List<RankingItem>> getRegionsExplored({
     String? diverId,
     int limit = 10,
@@ -2046,13 +2054,13 @@ class InsightsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          ds.region,
-          ds.country,
+          TRIM(ds.region, $dartWhitespaceSqlChars) AS region,
+          NULLIF(TRIM(ds.country, $dartWhitespaceSqlChars), '') AS country,
           COUNT(d.id) AS dive_count
         FROM dive_sites ds
         JOIN dives d ON d.site_id = ds.id
-        WHERE ds.region IS NOT NULL AND ds.region != '' $diverFilter ${df.clause}
-        GROUP BY ds.region, ds.country
+        WHERE TRIM(ds.region, $dartWhitespaceSqlChars) != '' $diverFilter ${df.clause}
+        GROUP BY 1, 2
         ORDER BY dive_count DESC
         LIMIT ?
         ''', variables: params.map((p) => Variable(p)).toList()).get();
