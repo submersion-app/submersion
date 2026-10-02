@@ -2125,6 +2125,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_schedule_retention => '保留备份';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count 个备份当前占用 $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle => '旧备份将自动删除';
 
   @override
@@ -28987,6 +28992,44 @@ class AppLocalizationsZh extends AppLocalizations {
   ) {
     return '$count 次潜水有原始数据（$without 次没有）';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => '丢弃';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return '要删除所有潜水电脑为 $count 次潜水保存的原始下载数据（$size）吗？之后潜水解析器改进时，这些潜水将无法再重新解析。潜水及您的编辑保持不变，您的其他同步设备也会删除这些数据。';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => '丢弃原始数据';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return '要删除 $computer 为 $count 次潜水保存的原始下载数据吗？之后潜水解析器改进时，这些潜水将无法再重新解析。潜水及您的编辑保持不变，您的其他同步设备也会删除这些数据。';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed => '无法丢弃原始数据';
+
+  @override
+  String get diveComputer_rawData_discardTitle => '丢弃原始数据？';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return '已丢弃 $count 次潜水的原始数据';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count 次潜水，$size。保留这些数据，以便在解析器改进时重新解析这些潜水。';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle => '潜水电脑原始数据';
 
   @override
   String get diveLog_detail_menu_reparseRawData => '重新解析原始数据';

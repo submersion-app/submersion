@@ -2199,6 +2199,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_schedule_retention => 'שמור גיבויים';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count גיבויים תופסים כעת $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'גיבויים ישנים יותר מוסרים אוטומטית';
 
@@ -29845,6 +29850,45 @@ class AppLocalizationsHe extends AppLocalizations {
   ) {
     return '$count צלילות עם נתונים גולמיים ($without ללא)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'מחק';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'להסיר את נתוני ההורדה הגולמיים השמורים של $count צלילות מכל מחשבי הצלילה ($size)? לא ניתן יהיה עוד לנתח מחדש צלילות אלה כאשר מנתח הצלילות ישתפר. הצלילות והעריכות שלך יישארו כפי שהן, וגם המכשירים המסונכרנים האחרים שלך יסירו את הנתונים.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'מחק נתונים גולמיים';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'להסיר את נתוני ההורדה הגולמיים השמורים של $count צלילות מ־$computer? לא ניתן יהיה עוד לנתח מחדש צלילות אלה כאשר מנתח הצלילות ישתפר. הצלילות והעריכות שלך יישארו כפי שהן, וגם המכשירים המסונכרנים האחרים שלך יסירו את הנתונים.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'לא ניתן למחוק את הנתונים הגולמיים';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'למחוק נתונים גולמיים?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'הנתונים הגולמיים של $count צלילות נמחקו';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count צלילות, $size. נשמרים כדי שניתן יהיה לנתח מחדש צלילות אלה כאשר המנתח ישתפר.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle => 'נתונים גולמיים ממחשבי צלילה';
 
   @override
   String get diveLog_detail_menu_reparseRawData => 'נתח מחדש נתונים גולמיים';

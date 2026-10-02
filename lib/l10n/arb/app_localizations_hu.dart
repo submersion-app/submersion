@@ -2238,6 +2238,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get backup_schedule_retention => 'Mentések megőrzése';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count mentés jelenleg $size helyet foglal';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'A régebbi mentések automatikusan eltávolításra kerülnek';
 
@@ -30461,6 +30466,46 @@ class AppLocalizationsHu extends AppLocalizations {
   ) {
     return '$count merülés nyers adattal ($without anélkül)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Elvetés';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'Eltávolítod $count merülés tárolt nyers letöltési adatait az összes merülésszámítógépről ($size)? Ezek a merülések ezután nem elemezhetők újra, amikor a merüléselemző fejlődik. A merülések és a módosításaid változatlanok maradnak, és a többi szinkronizált eszközöd is eltávolítja az adatokat.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'Nyers adatok elvetése';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'Eltávolítod $count merülés tárolt nyers letöltési adatait a(z) $computer eszközről? Ezek a merülések ezután nem elemezhetők újra, amikor a merüléselemző fejlődik. A merülések és a módosításaid változatlanok maradnak, és a többi szinkronizált eszközöd is eltávolítja az adatokat.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'A nyers adatok nem vethetők el';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'Elveted a nyers adatokat?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return '$count merülés nyers adatai elvetve';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count merülés, $size. Megőrizve, hogy ezek a merülések újraelemezhetők legyenek, amikor az elemző fejlődik.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle =>
+      'Merülésszámítógépek nyers adatai';
 
   @override
   String get diveLog_detail_menu_reparseRawData => 'Nyers adatok újraelemzése';

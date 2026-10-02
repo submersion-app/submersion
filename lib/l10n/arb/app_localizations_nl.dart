@@ -2229,6 +2229,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_schedule_retention => 'Back-ups bewaren';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count back-ups gebruiken momenteel $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'Oudere back-ups worden automatisch verwijderd';
 
@@ -30343,6 +30348,45 @@ class AppLocalizationsNl extends AppLocalizations {
   ) {
     return '$count duiken met ruwe data ($without zonder)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Verwijderen';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'De bewaarde ruwe downloaddata van $count duiken van alle duikcomputers verwijderen ($size)? Deze duiken kunnen daarna niet meer opnieuw worden verwerkt wanneer de duikparser verbetert. De duiken en je wijzigingen blijven behouden, en je andere gesynchroniseerde apparaten verwijderen de data ook.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'Ruwe data verwijderen';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'De bewaarde ruwe downloaddata van $count duiken van $computer verwijderen? Deze duiken kunnen daarna niet meer opnieuw worden verwerkt wanneer de duikparser verbetert. De duiken en je wijzigingen blijven behouden, en je andere gesynchroniseerde apparaten verwijderen de data ook.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'Kan ruwe data niet verwijderen';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'Ruwe data verwijderen?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'Ruwe data van $count duiken verwijderd';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count duiken, $size. Bewaard zodat deze duiken opnieuw verwerkt kunnen worden wanneer de parser verbetert.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle => 'Ruwe duikcomputerdata';
 
   @override
   String get diveLog_detail_menu_reparseRawData =>

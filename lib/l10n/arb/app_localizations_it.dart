@@ -2244,6 +2244,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get backup_schedule_retention => 'Conserva backup';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count backup occupano attualmente $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'I backup più vecchi vengono rimossi automaticamente';
 
@@ -30557,6 +30562,46 @@ class AppLocalizationsIt extends AppLocalizations {
   ) {
     return '$count immersioni con dati grezzi ($without senza)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Elimina';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'Rimuovere i dati grezzi di download conservati per $count immersioni da tutti i computer subacquei ($size)? Queste immersioni non potranno più essere rianalizzate quando il parser delle immersioni migliorerà. Le immersioni e le tue modifiche restano invariate, e anche gli altri dispositivi sincronizzati rimuovono i dati.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'Elimina dati grezzi';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'Rimuovere i dati grezzi di download conservati per $count immersioni da $computer? Queste immersioni non potranno più essere rianalizzate quando il parser delle immersioni migliorerà. Le immersioni e le tue modifiche restano invariate, e anche gli altri dispositivi sincronizzati rimuovono i dati.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'Impossibile eliminare i dati grezzi';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'Eliminare i dati grezzi?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'Dati grezzi eliminati per $count immersioni';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count immersioni, $size. Conservati per poter rianalizzare queste immersioni quando il parser migliora.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle =>
+      'Dati grezzi dei computer subacquei';
 
   @override
   String get diveLog_detail_menu_reparseRawData => 'Rianalizza dati grezzi';

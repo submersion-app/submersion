@@ -2238,6 +2238,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get backup_schedule_retention => 'Sicherungen behalten';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count Sicherungen belegen derzeit $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'Ältere Sicherungen werden automatisch entfernt';
 
@@ -30518,6 +30523,45 @@ class AppLocalizationsDe extends AppLocalizations {
   ) {
     return '$count Tauchgänge mit Rohdaten ($without ohne)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Verwerfen';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'Die gespeicherten Rohdaten von $count Tauchgängen aller Tauchcomputer entfernen ($size)? Diese Tauchgänge können danach nicht mehr neu ausgewertet werden, wenn sich der Tauchgang-Parser verbessert. Die Tauchgänge und deine Änderungen bleiben erhalten, und deine anderen synchronisierten Geräte entfernen die Daten ebenfalls.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'Rohdaten verwerfen';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'Die gespeicherten Rohdaten von $count Tauchgängen von $computer entfernen? Diese Tauchgänge können danach nicht mehr neu ausgewertet werden, wenn sich der Tauchgang-Parser verbessert. Die Tauchgänge und deine Änderungen bleiben erhalten, und deine anderen synchronisierten Geräte entfernen die Daten ebenfalls.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'Rohdaten konnten nicht verworfen werden';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'Rohdaten verwerfen?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'Rohdaten von $count Tauchgängen verworfen';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count Tauchgänge, $size. Aufbewahrt, damit diese Tauchgänge neu ausgewertet werden können, wenn sich der Parser verbessert.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle => 'Tauchcomputer-Rohdaten';
 
   @override
   String get diveLog_detail_menu_reparseRawData => 'Rohdaten neu auswerten';

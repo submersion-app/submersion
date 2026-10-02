@@ -3547,6 +3547,12 @@ abstract class AppLocalizations {
   /// **'Keep backups'**
   String get backup_schedule_retention;
 
+  /// No description provided for @backup_schedule_retention_footprint.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} backups currently use {size}'**
+  String backup_schedule_retention_footprint(int count, String size);
+
   /// No description provided for @backup_schedule_retention_subtitle.
   ///
   /// In en, this message translates to:
@@ -48419,6 +48425,63 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} dives with raw data ({without} without)'**
   String diveComputer_detail_reparseRawDataCountWithout(int count, int without);
+
+  /// No description provided for @diveComputer_rawData_discardAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get diveComputer_rawData_discardAction;
+
+  /// No description provided for @diveComputer_rawData_discardAllMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the raw download data kept for {count} dives from every dive computer ({size})? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.'**
+  String diveComputer_rawData_discardAllMessage(int count, String size);
+
+  /// No description provided for @diveComputer_rawData_discardButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard raw data'**
+  String get diveComputer_rawData_discardButton;
+
+  /// No description provided for @diveComputer_rawData_discardComputerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the raw download data kept for {count} dives from {computer}? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.'**
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  );
+
+  /// No description provided for @diveComputer_rawData_discardFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not discard raw data'**
+  String get diveComputer_rawData_discardFailed;
+
+  /// No description provided for @diveComputer_rawData_discardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard raw data?'**
+  String get diveComputer_rawData_discardTitle;
+
+  /// No description provided for @diveComputer_rawData_discarded.
+  ///
+  /// In en, this message translates to:
+  /// **'Discarded raw data for {count} dives'**
+  String diveComputer_rawData_discarded(int count);
+
+  /// No description provided for @diveComputer_rawData_tileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives, {size}. Kept so these dives can be re-parsed when the parser improves.'**
+  String diveComputer_rawData_tileSubtitle(int count, String size);
+
+  /// No description provided for @diveComputer_rawData_tileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw dive computer data'**
+  String get diveComputer_rawData_tileTitle;
 
   /// Menu item to re-parse raw dive data
   ///

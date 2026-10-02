@@ -2211,6 +2211,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_schedule_retention => 'Keep backups';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count backups currently use $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'Older backups are automatically removed';
 
@@ -30082,6 +30087,44 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return '$count dives with raw data ($without without)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Discard';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'Remove the raw download data kept for $count dives from every dive computer ($size)? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'Discard raw data';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'Remove the raw download data kept for $count dives from $computer? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed => 'Could not discard raw data';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'Discard raw data?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'Discarded raw data for $count dives';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count dives, $size. Kept so these dives can be re-parsed when the parser improves.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle => 'Raw dive computer data';
 
   @override
   String get diveLog_detail_menu_reparseRawData => 'Re-parse raw data';

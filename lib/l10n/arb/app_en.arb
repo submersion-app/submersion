@@ -1409,6 +1409,19 @@
   "backup_schedule_enabled_subtitle": "Back up your data on a schedule",
   "backup_schedule_frequency": "Frequency",
   "backup_schedule_retention": "Keep backups",
+  "backup_schedule_retention_footprint": "{count} backups currently use {size}",
+  "@backup_schedule_retention_footprint": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      },
+      "size": {
+        "type": "String",
+        "example": "4.2 MB"
+      }
+    }
+  },
   "backup_schedule_retention_subtitle": "Older backups are automatically removed",
   "backup_section_auto": "Automatic Backups",
   "backup_section_cloud": "Cloud",
@@ -19630,6 +19643,59 @@
       }
     }
   },
+  "diveComputer_rawData_discardAction": "Discard",
+  "diveComputer_rawData_discardAllMessage": "Remove the raw download data kept for {count} dives from every dive computer ({size})? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.",
+  "@diveComputer_rawData_discardAllMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      },
+      "size": {
+        "type": "String",
+        "example": "4.2 MB"
+      }
+    }
+  },
+  "diveComputer_rawData_discardButton": "Discard raw data",
+  "diveComputer_rawData_discardComputerMessage": "Remove the raw download data kept for {count} dives from {computer}? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.",
+  "@diveComputer_rawData_discardComputerMessage": {
+    "placeholders": {
+      "computer": {
+        "type": "String",
+        "example": "Perdix"
+      },
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "diveComputer_rawData_discardFailed": "Could not discard raw data",
+  "diveComputer_rawData_discardTitle": "Discard raw data?",
+  "diveComputer_rawData_discarded": "Discarded raw data for {count} dives",
+  "@diveComputer_rawData_discarded": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "diveComputer_rawData_tileSubtitle": "{count} dives, {size}. Kept so these dives can be re-parsed when the parser improves.",
+  "@diveComputer_rawData_tileSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      },
+      "size": {
+        "type": "String",
+        "example": "4.2 MB"
+      }
+    }
+  },
+  "diveComputer_rawData_tileTitle": "Raw dive computer data",
   "diveLog_detail_menu_reparseRawData": "Re-parse raw data",
   "@diveLog_detail_menu_reparseRawData": {
     "description": "Menu item to re-parse raw dive data"

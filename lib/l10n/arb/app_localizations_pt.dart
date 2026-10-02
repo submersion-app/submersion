@@ -2240,6 +2240,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get backup_schedule_retention => 'Manter backups';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count backups ocupam atualmente $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'Backups mais antigos são removidos automaticamente';
 
@@ -30565,6 +30570,46 @@ class AppLocalizationsPt extends AppLocalizations {
   ) {
     return '$count mergulhos com dados brutos ($without sem)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Descartar';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'Remover os dados brutos de download guardados de $count mergulhos de todos os computadores de mergulho ($size)? Esses mergulhos não poderão mais ser reanalisados quando o analisador de mergulhos melhorar. Os mergulhos e suas edições permanecem como estão, e seus outros dispositivos sincronizados também removem os dados.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'Descartar dados brutos';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'Remover os dados brutos de download guardados de $count mergulhos de $computer? Esses mergulhos não poderão mais ser reanalisados quando o analisador de mergulhos melhorar. Os mergulhos e suas edições permanecem como estão, e seus outros dispositivos sincronizados também removem os dados.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'Não foi possível descartar os dados brutos';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'Descartar dados brutos?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'Dados brutos descartados de $count mergulhos';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count mergulhos, $size. Guardados para que esses mergulhos possam ser reanalisados quando o analisador melhorar.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle =>
+      'Dados brutos dos computadores de mergulho';
 
   @override
   String get diveLog_detail_menu_reparseRawData => 'Reanalisar dados brutos';

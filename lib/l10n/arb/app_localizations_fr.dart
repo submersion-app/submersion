@@ -2250,6 +2250,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get backup_schedule_retention => 'Conserver les sauvegardes';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count sauvegardes occupent actuellement $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'Les anciennes sauvegardes sont supprimées automatiquement';
 
@@ -30660,6 +30665,48 @@ class AppLocalizationsFr extends AppLocalizations {
   ) {
     return '$count plongées avec données brutes ($without sans)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Supprimer';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'Supprimer les données brutes de téléchargement conservées pour $count plongées de tous les ordinateurs de plongée ($size) ? Ces plongées ne pourront plus être réanalysées lorsque l\'analyseur de plongées s\'améliorera. Les plongées et vos modifications restent inchangées, et vos autres appareils synchronisés suppriment aussi ces données.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton =>
+      'Supprimer les données brutes';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'Supprimer les données brutes de téléchargement conservées pour $count plongées de $computer ? Ces plongées ne pourront plus être réanalysées lorsque l\'analyseur de plongées s\'améliorera. Les plongées et vos modifications restent inchangées, et vos autres appareils synchronisés suppriment aussi ces données.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'Impossible de supprimer les données brutes';
+
+  @override
+  String get diveComputer_rawData_discardTitle =>
+      'Supprimer les données brutes ?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'Données brutes supprimées pour $count plongées';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count plongées, $size. Conservées pour pouvoir réanalyser ces plongées lorsque l\'analyseur s\'améliore.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle =>
+      'Données brutes des ordinateurs de plongée';
 
   @override
   String get diveLog_detail_menu_reparseRawData =>

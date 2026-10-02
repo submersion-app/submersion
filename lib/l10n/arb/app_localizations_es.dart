@@ -2246,6 +2246,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get backup_schedule_retention => 'Conservar copias';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count copias ocupan actualmente $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'Las copias más antiguas se eliminan automáticamente';
 
@@ -30583,6 +30588,48 @@ class AppLocalizationsEs extends AppLocalizations {
   ) {
     return '$count inmersiones con datos sin procesar ($without sin)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Descartar';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return '¿Eliminar los datos de descarga sin procesar guardados de $count inmersiones de todos los ordenadores de buceo ($size)? Esas inmersiones ya no podrán reanalizarse cuando mejore el analizador de inmersiones. Las inmersiones y tus cambios se mantienen, y tus otros dispositivos sincronizados también eliminan los datos.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton =>
+      'Descartar datos sin procesar';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return '¿Eliminar los datos de descarga sin procesar guardados de $count inmersiones de $computer? Esas inmersiones ya no podrán reanalizarse cuando mejore el analizador de inmersiones. Las inmersiones y tus cambios se mantienen, y tus otros dispositivos sincronizados también eliminan los datos.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'No se pudieron descartar los datos sin procesar';
+
+  @override
+  String get diveComputer_rawData_discardTitle =>
+      '¿Descartar datos sin procesar?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'Datos sin procesar descartados de $count inmersiones';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count inmersiones, $size. Se conservan para poder reanalizar estas inmersiones cuando mejore el analizador.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle =>
+      'Datos sin procesar de los ordenadores de buceo';
 
   @override
   String get diveLog_detail_menu_reparseRawData =>

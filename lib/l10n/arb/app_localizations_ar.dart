@@ -2210,6 +2210,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_schedule_retention => 'الاحتفاظ بالنسخ';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return 'تشغل $count نسخة احتياطية حالياً $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'تتم إزالة النسخ الاحتياطية القديمة تلقائياً';
 
@@ -30186,6 +30191,45 @@ class AppLocalizationsAr extends AppLocalizations {
   ) {
     return '$count غطسة بها بيانات أولية ($without بدون)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'حذف';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'إزالة بيانات التنزيل الأولية المحفوظة لـ $count غطسة من جميع كمبيوترات الغوص ($size)؟ لن يعود بالإمكان إعادة تحليل هذه الغطسات عند تحسين محلل الغطسات. تبقى الغطسات وتعديلاتك كما هي، وستزيل أجهزتك المتزامنة الأخرى البيانات أيضاً.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'حذف البيانات الأولية';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'إزالة بيانات التنزيل الأولية المحفوظة لـ $count غطسة من $computer؟ لن يعود بالإمكان إعادة تحليل هذه الغطسات عند تحسين محلل الغطسات. تبقى الغطسات وتعديلاتك كما هي، وستزيل أجهزتك المتزامنة الأخرى البيانات أيضاً.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed => 'تعذر حذف البيانات الأولية';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'حذف البيانات الأولية؟';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'تم حذف البيانات الأولية لـ $count غطسة';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count غطسة، $size. محفوظة لإعادة تحليل هذه الغطسات عند تحسين المحلل.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle =>
+      'البيانات الأولية لكمبيوترات الغوص';
 
   @override
   String get diveLog_detail_menu_reparseRawData =>
