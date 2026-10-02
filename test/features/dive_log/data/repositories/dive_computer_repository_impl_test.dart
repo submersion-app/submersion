@@ -6,6 +6,7 @@ import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
@@ -1594,6 +1595,120 @@ void main() {
         expect(stored.tankRole, 'backGas');
         expect(stored.startPressure, 195.0);
         expect(stored.endPressure, isNull);
+      });
+
+      Future<void> insertStoredTank(
+        String id, {
+        required String computerId,
+        required int order,
+        required int sourceIndex,
+      }) => db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion(
+              id: Value(id),
+              diveId: const Value('dive-sidemount'),
+              computerId: Value(computerId),
+              o2Percent: const Value(32.0),
+              hePercent: const Value(0.0),
+              tankOrder: Value(order),
+              sourceTankIndex: Value(sourceIndex),
+            ),
+          );
+
+      Future<Map<String, int>> seriesCountByTank(String diveId) async {
+        final series = await (db.select(
+          db.tankPressureSeries,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        final counts = <String, int>{};
+        for (final s in series) {
+          counts[s.tankId] = (counts[s.tankId] ?? 0) + 1;
+        }
+        return counts;
+      }
+
+      test('routes series by source index, not stored order', () async {
+        // The diver swapped the pair: the row shown first holds the
+        // computer's tank 1, and the row shown second its tank 0 (#1314).
+        final computerId = await insertComputer();
+        await insertDive(
+          id: 'dive-sidemount',
+          computerId: computerId,
+          diveDateTime: start.millisecondsSinceEpoch,
+          entryTime: start.millisecondsSinceEpoch,
+          exitTime: start
+              .add(const Duration(minutes: 30))
+              .millisecondsSinceEpoch,
+          duration: 1800,
+          maxDepth: 20.0,
+        );
+        await insertStoredTank(
+          'tank-shown-first',
+          computerId: computerId,
+          order: 0,
+          sourceIndex: 1,
+        );
+        await insertStoredTank(
+          'tank-shown-second',
+          computerId: computerId,
+          order: 1,
+          sourceIndex: 0,
+        );
+
+        await reimport(computerId, add: true);
+
+        final tanks = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals('dive-sidemount'))).get();
+        expect(tanks, hasLength(2), reason: 'both indices have a row');
+
+        // Tank 0 opened at 195 bar and tank 1 at 210 bar; each series lands
+        // on the row whose source index it is, not the one at that order.
+        final series = await TankPressureSeriesRepository(
+          database: db,
+        ).getSeriesForDive('dive-sidemount');
+        expect(
+          {for (final s in series) s.tankId: s.samples.first.pressure},
+          {'tank-shown-first': 210.0, 'tank-shown-second': 195.0},
+        );
+      });
+
+      test('adds the index a reassigned row no longer holds', () async {
+        // One stored row, shown second but holding the computer's tank 0.
+        // By stored order it would look like tank 1 was already there.
+        final computerId = await insertComputer();
+        await insertDive(
+          id: 'dive-sidemount',
+          computerId: computerId,
+          diveDateTime: start.millisecondsSinceEpoch,
+          entryTime: start.millisecondsSinceEpoch,
+          exitTime: start
+              .add(const Duration(minutes: 30))
+              .millisecondsSinceEpoch,
+          duration: 1800,
+          maxDepth: 20.0,
+        );
+        await insertStoredTank(
+          'tank-reassigned',
+          computerId: computerId,
+          order: 1,
+          sourceIndex: 0,
+        );
+
+        await reimport(computerId, add: true);
+
+        final tanks = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals('dive-sidemount'))).get();
+        expect(tanks, hasLength(2));
+        final added = tanks.singleWhere((t) => t.id != 'tank-reassigned');
+        expect(added.sourceTankIndex, 1);
+        expect(added.tankRole, 'sidemountRight');
+        expect(added.startPressure, 210.0);
+        expect(await seriesCountByTank('dive-sidemount'), {
+          'tank-reassigned': 1,
+          added.id: 1,
+        });
       });
 
       test('adds nothing when off', () async {

@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
+import 'package:submersion/features/dive_log/data/repositories/stored_tank_matching.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
@@ -846,26 +847,13 @@ class ReparseService {
       computerId: computerId,
     );
 
-    // Which existing row takes parsed tank [index]. A row's source index wins
-    // (a reassignment, issue #1314); rows from before v200 carry null and
-    // fall back to their order, as the old path did. The fallback accepts
-    // rows attributed to this computer or to none (legacy and manual rows),
-    // never another computer's row on a multi-source dive. A row marked
-    // kNoSourceTankIndex takes nothing.
-    final matchedIds = <String>{};
-    DiveTank? existingFor(int index) {
-      for (final t in existingTanks) {
-        if (matchedIds.contains(t.id)) continue;
-        if (t.computerId != computerId) continue;
-        if (t.sourceTankIndex == index) return t;
-      }
-      for (final t in existingTanks) {
-        if (matchedIds.contains(t.id)) continue;
-        if (t.computerId != null && t.computerId != computerId) continue;
-        if (t.sourceTankIndex == null && t.tankOrder == index) return t;
-      }
-      return null;
-    }
+    // Which existing row takes each parsed tank index (see
+    // [matchStoredTanks]): a row's source index wins, with the pre-v200
+    // fallback to its order.
+    final matches = matchStoredTanks(existingTanks, [
+      for (final tank in parsedTanks) tank.index,
+    ], computerId: computerId);
+    final matchedIds = {for (final row in matches.values) row.id};
 
     // The parse before the registry: whether a role came from the
     // transmitter's name is a fact about the computer's data, which a
@@ -878,9 +866,8 @@ class ReparseService {
     final newTankOrders = <int>{};
     for (final tank in parsedTanks) {
       newTankOrders.add(tank.index);
-      final existing = existingFor(tank.index);
+      final existing = matches[tank.index];
       if (existing != null) {
-        matchedIds.add(existing.id);
         tankIdsByIndex[tank.index] = existing.id;
         final parsedRole = tank.role ?? TankRole.backGas.name;
         // The role is the diver's once they set it, so a re-parse leaves it

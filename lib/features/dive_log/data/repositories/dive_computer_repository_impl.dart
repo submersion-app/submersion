@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/data/repositories/stored_tank_matching.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
@@ -1851,13 +1852,21 @@ class DiveComputerRepository {
                   ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
                 .get();
         for (final tank in existingTanks) {
-          tankIdsByIndex[tank.tankOrder] = tank.id;
           tankIdByGas.putIfAbsent((
             tank.o2Percent,
             tank.hePercent,
           ), () => tank.id);
         }
-        if (addMissingTanks && tanks != null) {
+        if (addMissingTanks && tanks != null && tanks.isNotEmpty) {
+          // This computer's own reading again, so its rows are found the way
+          // a re-parse finds them: by source index, which a diver's
+          // reassignment moves, before falling back to the stored order.
+          final matches = matchStoredTanks(existingTanks, [
+            for (final tank in tanks) tank.index,
+          ], computerId: computerId);
+          for (final MapEntry(key: index, value: row) in matches.entries) {
+            tankIdsByIndex[index] = row.id;
+          }
           final missing = [
             for (final tank in tanks)
               if (!tankIdsByIndex.containsKey(tank.index)) tank,
@@ -1865,6 +1874,10 @@ class DiveComputerRepository {
           if (missing.isNotEmpty) {
             _log.info('Adding ${missing.length} new tanks to dive $diveId');
             await insertTanks(missing);
+          }
+        } else {
+          for (final tank in existingTanks) {
+            tankIdsByIndex[tank.tankOrder] = tank.id;
           }
         }
         // A replaced source gave up its tanks (clearSourceAndProfiles); the
