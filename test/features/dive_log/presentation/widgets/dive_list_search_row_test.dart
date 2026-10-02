@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -33,8 +34,10 @@ class _MockPaginatedNotifier
 void main() {
   Future<Widget> buildContent(
     DiveFilterState filter,
-    List<DiveSummary> dives,
-  ) async {
+    List<DiveSummary> dives, {
+    List<DiveSummary> jump = const [],
+    void Function(String?)? onItemSelected,
+  }) async {
     final base = await getBaseOverrides();
     return testApp(
       locale: const Locale('en'),
@@ -46,9 +49,9 @@ void main() {
           (ref) => _MockPaginatedNotifier(dives),
         ),
         queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
-        diveJumpResultsProvider.overrideWith((ref, _) async => const []),
+        diveJumpResultsProvider.overrideWith((ref, _) async => jump),
       ],
-      child: const DiveListContent(showAppBar: false),
+      child: DiveListContent(showAppBar: false, onItemSelected: onItemSelected),
     );
   }
 
@@ -78,5 +81,61 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(kDiveSearchFieldKey), findsOneWidget);
     expect(find.widgetWithText(Chip, 'Favorites'), findsOneWidget);
+  });
+
+  final summaries = [
+    DiveSummary.fromDive(
+      Dive(id: 'd1', dateTime: DateTime(2026, 3, 15), diveNumber: 1),
+    ),
+  ];
+
+  Future<void> searchInSelectionMode(WidgetTester tester) async {
+    await tester.tap(find.byKey(const ValueKey('dive-search-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump(kDiveSearchDebounce);
+    await tester.pumpAndSettle();
+  }
+
+  // Code review: a jump row is "Jump to dive", whatever mode the list is in.
+  testWidgets('a jump row opens its dive in selection mode too', (
+    tester,
+  ) async {
+    String? opened;
+    await tester.pumpWidget(
+      await buildContent(
+        const DiveFilterState(),
+        summaries,
+        jump: summaries,
+        onItemSelected: (id) => opened = id,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await searchInSelectionMode(tester);
+    await tester.tap(find.byKey(const ValueKey('dive-jump-d1')));
+    await tester.pump();
+    expect(opened, 'd1');
+  });
+
+  // Code review: Esc during selection leaves selection, as it does in the
+  // list, rather than throwing the search away.
+  testWidgets('Esc in the field during selection keeps the search', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      await buildContent(const DiveFilterState(), summaries, jump: summaries),
+    );
+    await tester.pumpAndSettle();
+    await searchInSelectionMode(tester);
+    expect(find.byKey(const ValueKey('enter_selection')), findsNothing);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveListContent)),
+    );
+    expect(container.read(diveFilterProvider).query, TextNode(['manta']));
   });
 }

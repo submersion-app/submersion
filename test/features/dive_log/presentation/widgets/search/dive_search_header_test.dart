@@ -356,4 +356,18 @@ void main() {
     await tester.pump();
     expect(find.byKey(const ValueKey('dive-jump-d1')), findsNothing);
   });
+
+  // Code review: clearing the field must not leave the last jump rows up
+  // for a debounce.
+  testWidgets('clearing the field hides the jump rows at once', (tester) async {
+    await pumpHeader(tester, jump: jumpRows);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump(kDiveSearchDebounce);
+    await tester.pump();
+    expect(find.byKey(const ValueKey('dive-jump-d1')), findsOneWidget);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), '');
+    await tester.pump();
+    expect(find.byKey(const ValueKey('dive-jump-d1')), findsNothing);
+    await tester.pump(kDiveSearchDebounce);
+  });
 }

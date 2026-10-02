@@ -35,10 +35,14 @@ const kDiveSearchInsightsKey = ValueKey('dive-search-insights');
 /// sits under every layout's app bar, outside the list's loading and empty
 /// states, and shows while opened or while anything is filtered.
 class DiveSearchHeader extends ConsumerStatefulWidget {
-  const DiveSearchHeader({super.key, required this.onOpenDive});
+  const DiveSearchHeader({super.key, required this.onOpenDive, this.onEscape});
 
   /// Opens one dive, the way tapping its list row does.
   final ValueChanged<DiveSummary> onOpenDive;
+
+  /// Replaces Escape's close-and-clear while set; the list passes its
+  /// selection exit, so Esc leaves selection mode first, as it does there.
+  final VoidCallback? onEscape;
 
   @override
   ConsumerState<DiveSearchHeader> createState() => _DiveSearchHeaderState();
@@ -92,7 +96,11 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
   }
 
   void _onQueryChanged(QueryNode? node) {
-    setState(() => _local = node);
+    // An emptied field hides the jump rows now, not after the debounce.
+    setState(() {
+      _local = node;
+      if (node == null) _jumpQuery = null;
+    });
     _debounce?.cancel();
     _debounce = Timer(kDiveSearchDebounce, () {
       if (mounted) setState(() => _jumpQuery = node);
@@ -152,7 +160,8 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   describeError: (e) => describeQueryError(l10n, e),
                   fieldKey: kDiveSearchFieldKey,
                   focusNode: _focus,
-                  onEscape: () => closeDiveSearch(context, ref),
+                  onEscape:
+                      widget.onEscape ?? () => closeDiveSearch(context, ref),
                 ),
               ),
               IconButton(

@@ -1029,7 +1029,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       _toggleSelection(dive.id);
       return;
     }
+    _openDive(dive);
+  }
 
+  /// Opens [dive] the way a list tap does outside selection mode. The search
+  /// row's jump list calls this directly: its rows may not be in the list
+  /// at all, so selecting them would do nothing visible.
+  void _openDive(DiveSummary dive) {
     // In map mode, call onItemTapForMap instead of navigating
     if (widget.isMapMode && widget.onItemTapForMap != null) {
       // Also update the visual selection highlight
@@ -1123,7 +1129,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           // search that matches nothing never takes its own field away.
           final body = Column(
             children: [
-              DiveSearchHeader(onOpenDive: _handleItemTap),
+              DiveSearchHeader(
+                onOpenDive: _openDive,
+                onEscape: selection.isActive ? _selection.exit : null,
+              ),
               Expanded(child: content),
             ],
           );
@@ -1669,7 +1678,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 )
               else
                 SelectionEntryBar(controller: _selection),
-              DiveSearchHeader(onOpenDive: _handleItemTap),
+              DiveSearchHeader(
+                onOpenDive: _openDive,
+                onEscape: selection.isActive ? _selection.exit : null,
+              ),
               Expanded(child: content),
             ],
           );
