@@ -34,11 +34,28 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   String? linkedRouteId;
   String? linkedDiveId;
   NavTrackLinkMode? linkMode;
+  String? setSiteRouteId;
+  String? setSiteId;
+  GeoPoint? setSiteAnchor;
+  bool? setSiteClearAnchor;
 
   @override
   Future<void> rename(String routeId, String? name) async {
     renamedId = routeId;
     newName = name;
+  }
+
+  @override
+  Future<void> setSite(
+    String routeId,
+    String? siteId, {
+    GeoPoint? anchor,
+    bool clearAnchor = false,
+  }) async {
+    setSiteRouteId = routeId;
+    setSiteId = siteId;
+    setSiteAnchor = anchor;
+    setSiteClearAnchor = clearAnchor;
   }
 
   @override
@@ -97,14 +114,16 @@ Future<_RecordingNavTrackRepository> _pump(
   DiveSite? site,
   GoRouter? router,
   List<Dive>? allDives,
+  List<DiveSite>? allSites,
   Locale? locale,
+  _RecordingNavTrackRepository? repository,
 }) async {
   final overrides = await getBaseOverrides();
-  final repository = _RecordingNavTrackRepository();
+  final effectiveRepository = repository ?? _RecordingNavTrackRepository();
   final effectiveOverrides = [
     ...overrides,
     navTrackByIdProvider(route.id).overrideWith((ref) async => route),
-    navTrackRepositoryProvider.overrideWithValue(repository),
+    navTrackRepositoryProvider.overrideWithValue(effectiveRepository),
     if (linkedDive != null)
       diveProvider(linkedDive.id).overrideWith((ref) async => linkedDive),
     if (equipment != null)
@@ -113,6 +132,7 @@ Future<_RecordingNavTrackRepository> _pump(
       ).overrideWith((ref) async => equipment),
     if (site != null) siteProvider(site.id).overrideWith((ref) async => site),
     if (allDives != null) divesProvider.overrideWith((ref) async => allDives),
+    if (allSites != null) sitesProvider.overrideWith((ref) async => allSites),
   ];
   if (router != null) {
     await tester.pumpWidget(
@@ -139,7 +159,7 @@ Future<_RecordingNavTrackRepository> _pump(
     );
   }
   await tester.pumpAndSettle();
-  return repository;
+  return effectiveRepository;
 }
 
 void main() {
@@ -353,6 +373,87 @@ void main() {
 
       expect(find.byType(SitePickerSheet), findsOneWidget);
     });
+
+    testWidgets('picking an existing site in the picker assigns it to the '
+        'route', (tester) async {
+      const oldSite = DiveSite(
+        id: 'site-1',
+        name: 'Test Site',
+        location: GeoPoint(47.1, 8.3),
+      );
+      const newSite = DiveSite(
+        id: 'site-2',
+        name: 'Other Site',
+        location: GeoPoint(47.2, 8.4),
+      );
+      final repository = await _pump(
+        tester,
+        route: _route(siteId: 'site-1'),
+        site: oldSite,
+        allSites: [oldSite, newSite],
+      );
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-change-site')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(newSite.name));
+      await tester.pumpAndSettle();
+
+      expect(repository.setSiteRouteId, 'r1');
+      expect(repository.setSiteId, 'site-2');
+      expect(repository.setSiteAnchor, const GeoPoint(47.2, 8.4));
+    });
+
+    testWidgets(
+      'creating a new site in the picker pushes /sites/new and assigns the '
+      'saved site to the route',
+      (tester) async {
+        final route = _route();
+        const newSite = DiveSite(
+          id: 'site-new',
+          name: 'Brand New Site',
+          location: GeoPoint(47.5, 8.6),
+        );
+        final router = GoRouter(
+          initialLocation: '/nav-routes/${route.id}',
+          routes: [
+            GoRoute(
+              path: '/nav-routes/:id',
+              builder: (context, state) =>
+                  NavTrackDetailPage(trackId: state.pathParameters['id']!),
+            ),
+            GoRoute(
+              path: '/sites/new',
+              builder: (context, state) => Scaffold(
+                body: TextButton(
+                  onPressed: () => context.pop(newSite.id),
+                  child: const Text('save new site'),
+                ),
+              ),
+            ),
+          ],
+        );
+        final repository = await _pump(
+          tester,
+          route: route,
+          router: router,
+          site: newSite,
+          allSites: const [],
+        );
+
+        await tester.tap(find.byKey(const ValueKey('nav-track-change-site')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('New Dive Site'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('save new site'), findsOneWidget);
+        await tester.tap(find.text('save new site'));
+        await tester.pumpAndSettle();
+
+        expect(repository.setSiteRouteId, 'r1');
+        expect(repository.setSiteId, 'site-new');
+        expect(repository.setSiteAnchor, const GeoPoint(47.5, 8.6));
+      },
+    );
   });
 
   testWidgets('shows a loading indicator while the route resolves', (

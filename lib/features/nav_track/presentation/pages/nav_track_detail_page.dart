@@ -56,6 +56,13 @@ bool navTrackAnchorShouldFollowSiteChange(
   return (write: true, anchor: newSiteLocation);
 }
 
+/// Returned by the site picker's "New Dive Site" button in place of a
+/// [DiveSite], so the caller can tell "create a new one" apart from "picked
+/// this existing one" without widening every other picker consumer's return
+/// type to a sum type. Mirrors `_createNewSiteSentinel` in
+/// `dive_edit_page.dart`.
+const _createNewSiteSentinel = '__create_new__';
+
 /// One route: stats, an inline map when anchored, its dive link, correction
 /// status, and 3D (spec 2026-09-10-underwater-nav-track-design.md, "The
 /// routes area", detail page).
@@ -166,7 +173,7 @@ class NavTrackDetailPage extends ConsumerWidget {
               .then((s) => s?.location);
     if (!context.mounted) return;
 
-    final chosen = await showModalBottomSheet<DiveSite>(
+    final chosen = await showModalBottomSheet<Object>(
       context: context,
       isScrollControlled: true,
       builder: (sheetContext) => DraggableScrollableSheet(
@@ -178,22 +185,36 @@ class NavTrackDetailPage extends ConsumerWidget {
           scrollController: scrollController,
           selectedSiteId: oldSiteId,
           onSiteSelected: (site) => Navigator.of(sheetContext).pop(site),
-          onCreateNewSite: () => Navigator.of(sheetContext).pop(),
+          onCreateNewSite: () =>
+              Navigator.of(sheetContext).pop(_createNewSiteSentinel),
         ),
       ),
     );
-    if (chosen == null) return;
+
+    DiveSite? site;
+    if (chosen is DiveSite) {
+      site = chosen;
+    } else if (chosen == _createNewSiteSentinel) {
+      if (!context.mounted) return;
+      final newSiteId = await context.push<String>(
+        '/sites/new',
+        extra: route.anchor,
+      );
+      if (newSiteId == null || !context.mounted) return;
+      site = await ref.read(siteProvider(newSiteId).future);
+    }
+    if (site == null || !context.mounted) return;
 
     final anchorChange = navTrackAnchorChangeForSite(
       route.anchor,
       oldSiteLocation,
-      chosen.location,
+      site.location,
     );
     await ref
         .read(navTrackRepositoryProvider)
         .setSite(
           route.id,
-          chosen.id,
+          site.id,
           anchor: anchorChange.anchor,
           clearAnchor: anchorChange.write && anchorChange.anchor == null,
         );
