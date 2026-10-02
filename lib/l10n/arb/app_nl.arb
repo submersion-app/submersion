@@ -2825,7 +2825,7 @@
   "diveLog_listPage_tooltip_listView": "Lijstweergave",
   "diveLog_listPage_tooltip_mapView": "Kaartweergave",
   "diveLog_listPage_tooltip_searchDives": "Duiken zoeken",
-  "diveLog_search_fieldHint": "Woorden, \"exacte zin\" of depth > 30m",
+  "diveLog_search_fieldHint": "Zoek, bv. depth > 30m",
   "diveLog_search_refineTooltip": "Verfijnen",
   "diveLog_search_closeTooltip": "Zoeken sluiten",
   "diveLog_search_scopeWithin": "Binnen filters",

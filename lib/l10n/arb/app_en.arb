@@ -4993,7 +4993,7 @@
   "diveLog_listPage_tooltip_listView": "List View",
   "diveLog_listPage_tooltip_mapView": "Map View",
   "diveLog_listPage_tooltip_searchDives": "Search dives",
-  "diveLog_search_fieldHint": "Words, \"exact phrase\" or depth > 30m",
+  "diveLog_search_fieldHint": "Search, or try depth > 30m",
   "diveLog_search_refineTooltip": "Refine",
   "diveLog_search_closeTooltip": "Close search",
   "diveLog_search_scopeWithin": "Within filters",

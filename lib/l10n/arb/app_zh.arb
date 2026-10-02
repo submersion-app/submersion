@@ -2952,7 +2952,7 @@
   "diveLog_listPage_tooltip_listView": "列表视图",
   "diveLog_listPage_tooltip_mapView": "地图视图",
   "diveLog_listPage_tooltip_searchDives": "搜索潜水",
-  "diveLog_search_fieldHint": "词语、\"精确短语\"或 depth > 30m",
+  "diveLog_search_fieldHint": "搜索，或试试 depth > 30m",
   "diveLog_search_refineTooltip": "细化",
   "diveLog_search_closeTooltip": "关闭搜索",
   "diveLog_search_scopeWithin": "在筛选范围内",

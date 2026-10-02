@@ -2723,7 +2723,7 @@
   "diveLog_listPage_tooltip_listView": "Vista elenco",
   "diveLog_listPage_tooltip_mapView": "Vista mappa",
   "diveLog_listPage_tooltip_searchDives": "Cerca immersioni",
-  "diveLog_search_fieldHint": "Parole, \"frase esatta\" o depth > 30m",
+  "diveLog_search_fieldHint": "Cerca o prova depth > 30m",
   "diveLog_search_refineTooltip": "Affina",
   "diveLog_search_closeTooltip": "Chiudi ricerca",
   "diveLog_search_scopeWithin": "Nei filtri",

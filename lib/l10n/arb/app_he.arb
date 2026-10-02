@@ -2723,7 +2723,7 @@
   "diveLog_listPage_tooltip_listView": "תצוגת רשימה",
   "diveLog_listPage_tooltip_mapView": "תצוגת מפה",
   "diveLog_listPage_tooltip_searchDives": "חיפוש צלילות",
-  "diveLog_search_fieldHint": "מילים, \"ביטוי מדויק\" או depth > 30m",
+  "diveLog_search_fieldHint": "חיפוש, או נסו depth > 30m",
   "diveLog_search_refineTooltip": "צמצום",
   "diveLog_search_closeTooltip": "סגירת החיפוש",
   "diveLog_search_scopeWithin": "בתוך המסננים",

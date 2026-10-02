@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_error_code.dart';
@@ -108,6 +109,36 @@ void main() {
       );
       expect(suggestionsReplaceSpan(bare, text), isFalse);
     });
+  });
+
+  testWidgets('the hint uses the body font, typed text stays monospace', (
+    tester,
+  ) async {
+    // A monospace hint runs about 0.6 em a glyph, too wide for a phone's
+    // search row; the hint is prose, only the typed query is code.
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: QueryTextField(
+            context: context,
+            value: null,
+            onChanged: (_) {},
+            fieldKey: fieldKey,
+            hintText: 'Search, or try depth > 30m',
+          ),
+        ),
+      ),
+    );
+    final body = Theme.of(
+      tester.element(find.byKey(fieldKey)),
+    ).textTheme.bodyLarge!.fontFamily;
+    expect(body, isNot('monospace'));
+    final hint = tester.renderObject<RenderParagraph>(
+      find.text('Search, or try depth > 30m'),
+    );
+    expect(hint.text.style!.fontFamily, body);
+    final field = tester.widget<TextField>(find.byKey(fieldKey));
+    expect(field.style!.fontFamily, 'monospace');
   });
 
   testWidgets('a valid query is committed', (tester) async {

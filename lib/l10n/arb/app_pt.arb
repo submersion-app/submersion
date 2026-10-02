@@ -2825,7 +2825,7 @@
   "diveLog_listPage_tooltip_listView": "Visualização em Lista",
   "diveLog_listPage_tooltip_mapView": "Visualização no Mapa",
   "diveLog_listPage_tooltip_searchDives": "Buscar mergulhos",
-  "diveLog_search_fieldHint": "Palavras, \"frase exata\" ou depth > 30m",
+  "diveLog_search_fieldHint": "Pesquise, ex. depth > 30m",
   "diveLog_search_refineTooltip": "Refinar",
   "diveLog_search_closeTooltip": "Fechar busca",
   "diveLog_search_scopeWithin": "Dentro dos filtros",

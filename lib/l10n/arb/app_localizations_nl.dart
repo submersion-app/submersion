@@ -8842,8 +8842,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Duiken zoeken';
 
   @override
-  String get diveLog_search_fieldHint =>
-      'Woorden, \"exacte zin\" of depth > 30m';
+  String get diveLog_search_fieldHint => 'Zoek, bv. depth > 30m';
 
   @override
   String get diveLog_search_refineTooltip => 'Verfijnen';

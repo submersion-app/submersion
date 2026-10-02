@@ -8907,8 +8907,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Tauchgänge suchen';
 
   @override
-  String get diveLog_search_fieldHint =>
-      'Wörter, \"genaue Phrase\" oder depth > 30m';
+  String get diveLog_search_fieldHint => 'Suche, z. B. depth > 30m';
 
   @override
   String get diveLog_search_refineTooltip => 'Verfeinern';

@@ -8943,8 +8943,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Rechercher des plongées';
 
   @override
-  String get diveLog_search_fieldHint =>
-      'Mots, \"expression exacte\" ou depth > 30m';
+  String get diveLog_search_fieldHint => 'Chercher, ex. depth > 30m';
 
   @override
   String get diveLog_search_refineTooltip => 'Affiner';

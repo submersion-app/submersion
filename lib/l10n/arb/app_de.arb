@@ -2836,7 +2836,7 @@
   "diveLog_listPage_tooltip_listView": "Listenansicht",
   "diveLog_listPage_tooltip_mapView": "Kartenansicht",
   "diveLog_listPage_tooltip_searchDives": "Tauchgänge suchen",
-  "diveLog_search_fieldHint": "Wörter, \"genaue Phrase\" oder depth > 30m",
+  "diveLog_search_fieldHint": "Suche, z. B. depth > 30m",
   "diveLog_search_refineTooltip": "Verfeinern",
   "diveLog_search_closeTooltip": "Suche schließen",
   "diveLog_search_scopeWithin": "Innerhalb der Filter",

@@ -2825,7 +2825,7 @@
   "diveLog_listPage_tooltip_listView": "عرض القائمة",
   "diveLog_listPage_tooltip_mapView": "عرض الخريطة",
   "diveLog_listPage_tooltip_searchDives": "البحث في الغوصات",
-  "diveLog_search_fieldHint": "كلمات أو \"عبارة دقيقة\" أو depth > 30m",
+  "diveLog_search_fieldHint": "ابحث، أو جرّب depth > 30m",
   "diveLog_search_refineTooltip": "تحسين البحث",
   "diveLog_search_closeTooltip": "إغلاق البحث",
   "diveLog_search_scopeWithin": "ضمن عوامل التصفية",

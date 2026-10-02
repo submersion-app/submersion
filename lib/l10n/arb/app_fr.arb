@@ -2723,7 +2723,7 @@
   "diveLog_listPage_tooltip_listView": "Vue liste",
   "diveLog_listPage_tooltip_mapView": "Vue carte",
   "diveLog_listPage_tooltip_searchDives": "Rechercher des plongées",
-  "diveLog_search_fieldHint": "Mots, \"expression exacte\" ou depth > 30m",
+  "diveLog_search_fieldHint": "Chercher, ex. depth > 30m",
   "diveLog_search_refineTooltip": "Affiner",
   "diveLog_search_closeTooltip": "Fermer la recherche",
   "diveLog_search_scopeWithin": "Dans les filtres",

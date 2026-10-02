@@ -8888,8 +8888,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Merülések keresése';
 
   @override
-  String get diveLog_search_fieldHint =>
-      'Szavak, \"pontos kifejezés\" vagy depth > 30m';
+  String get diveLog_search_fieldHint => 'Keresés, pl. depth > 30m';
 
   @override
   String get diveLog_search_refineTooltip => 'Szűkítés';

@@ -8473,7 +8473,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => '搜索潜水';
 
   @override
-  String get diveLog_search_fieldHint => '词语、\"精确短语\"或 depth > 30m';
+  String get diveLog_search_fieldHint => '搜索，或试试 depth > 30m';
 
   @override
   String get diveLog_search_refineTooltip => '细化';
