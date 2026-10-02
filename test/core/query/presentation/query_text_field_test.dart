@@ -266,6 +266,47 @@ void main() {
     await tester.pump();
     expect(escaped, 1);
   });
+
+  testWidgets('a replaced outside focus node no longer drives the field', (
+    tester,
+  ) async {
+    final first = FocusNode();
+    final second = FocusNode();
+    addTearDown(first.dispose);
+    addTearDown(second.dispose);
+    // [first] moves to another widget after the swap; if the field kept
+    // listening to it, focusing it once the field is gone would call
+    // setState on a disposed state.
+    Widget host(FocusNode fieldNode, {bool field = true, bool other = false}) =>
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                if (other) Focus(focusNode: first, child: const SizedBox()),
+                if (field)
+                  QueryTextField(
+                    context: context,
+                    value: null,
+                    onChanged: (_) {},
+                    fieldKey: fieldKey,
+                    focusNode: fieldNode,
+                  ),
+              ],
+            ),
+          ),
+        );
+    await tester.pumpWidget(host(first));
+    await tester.pumpWidget(host(second, other: true));
+    expect(
+      tester.widget<TextField>(find.byKey(fieldKey)).focusNode,
+      same(second),
+    );
+    await tester.pumpWidget(host(second, field: false, other: true));
+    first.requestFocus();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(first.hasFocus, isTrue);
+  });
 }
 
 class _FakeContext extends Fake implements BuildContext {}
