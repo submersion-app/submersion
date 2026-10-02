@@ -1,0 +1,123 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_panel.dart';
+import 'package:submersion/features/query/domain/entities/saved_query.dart';
+import 'package:submersion/features/query/domain/saved_query_load.dart';
+
+import 'refine_test_host.dart';
+
+void main() {
+  final seeded = DiveFilterState(
+    minDepth: 30,
+    query: TextNode(['manta']),
+    axesSuspended: true,
+  );
+  StateProvider<DiveFilterState> target() =>
+      StateProvider<DiveFilterState>((ref) => seeded);
+
+  testWidgets('Cancel leaves the filter as it was', (tester) async {
+    final t = target();
+    final c = await openRefinePanel(tester, target: t);
+    await tester.tap(find.byKey(kRefineCancelKey));
+    await tester.pumpAndSettle();
+    expect(c.read(t), seeded);
+    expect(find.byType(RefinePanel), findsNothing);
+  });
+
+  // Review Focus 2.
+  testWidgets('Clear all then Cancel changes nothing', (tester) async {
+    final t = target();
+    final c = await openRefinePanel(tester, target: t);
+    await tester.tap(find.byKey(kRefineClearAllKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(kRefineCancelKey));
+    await tester.pumpAndSettle();
+    expect(c.read(t), seeded);
+  });
+
+  testWidgets('Clear all then Show clears everything', (tester) async {
+    final t = target();
+    final c = await openRefinePanel(tester, target: t);
+    await tester.tap(find.byKey(kRefineClearAllKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(kRefineApplyKey));
+    await tester.pumpAndSettle();
+    expect(c.read(t), const DiveFilterState());
+  });
+
+  testWidgets('Show applies the draft and leaves All dives', (tester) async {
+    final t = target();
+    final c = await openRefinePanel(tester, target: t);
+    await tester.tap(find.byKey(kRefineApplyKey));
+    await tester.pumpAndSettle();
+    expect(c.read(t), seeded.copyWith(axesSuspended: false));
+  });
+
+  testWidgets('the button counts, holds its count while the next loads', (
+    tester,
+  ) async {
+    final pending = Completer<int>();
+    final t = target();
+    await openRefinePanel(
+      tester,
+      target: t,
+      count: (draft) => draft == seeded ? 2 : pending.future,
+    );
+    expect(find.text('Show 2 dives'), findsOneWidget);
+    await tester.tap(find.byKey(kRefineClearAllKey));
+    await tester.pump();
+    expect(find.text('Show 2 dives'), findsOneWidget);
+    pending.complete(1);
+    await tester.pumpAndSettle();
+    expect(find.text('Show 1 dive'), findsOneWidget);
+  });
+
+  testWidgets('a failed count reads Show dives', (tester) async {
+    final t = target();
+    await openRefinePanel(
+      tester,
+      target: t,
+      count: (_) => throw StateError('boom'),
+    );
+    expect(find.text('Show dives'), findsOneWidget);
+  });
+
+  testWidgets('a saved query applies at once, keeping other axes', (
+    tester,
+  ) async {
+    final depth = ConditionNode(
+      FieldPath(['depth']),
+      QueryOp.gt,
+      const NumberValue(40, null),
+    );
+    final t = target();
+    final c = await openRefinePanel(
+      tester,
+      target: t,
+      saved: [
+        SavedQueryLoad(
+          SavedQuery(
+            id: 's',
+            subject: 'dives',
+            name: 'Deep',
+            queryJson: '{}',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+          node: depth,
+        ),
+      ],
+    );
+    await tester.tap(find.widgetWithText(ActionChip, 'Deep'));
+    await tester.pumpAndSettle();
+    expect(c.read(t).query, depth);
+    expect(c.read(t).minDepth, 30);
+    expect(c.read(t).axesSuspended, isFalse);
+    expect(find.byType(RefinePanel), findsNothing);
+  });
+}
