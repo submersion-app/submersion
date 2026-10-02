@@ -52,9 +52,11 @@ class _RefineCustomFieldsGroupState
     final l10n = context.l10n;
     final d = widget.draft;
     final diverId = ref.watch(currentDiverIdProvider);
+    // `.value` keeps the last keys through a reload, failed or pending, so
+    // the controls never blink out to the "no custom fields" text.
     final keys = diverId == null
         ? const <String>[]
-        : ref.watch(customFieldKeySuggestionsProvider(diverId)).valueOrNull ??
+        : ref.watch(customFieldKeySuggestionsProvider(diverId)).value ??
               const <String>[];
     if (keys.isEmpty) {
       return Text(

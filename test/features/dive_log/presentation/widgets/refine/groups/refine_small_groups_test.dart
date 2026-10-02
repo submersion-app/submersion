@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -284,6 +286,44 @@ void main() {
       await tester.pumpAndSettle();
       expect(h.draft.customFieldKey, isNull);
       expect(h.draft.customFieldValue, isNull);
+    });
+
+    testWidgets('the keys stay while they reload, and when a reload fails', (
+      tester,
+    ) async {
+      var calls = 0;
+      final pending = Completer<List<String>>();
+      final h = await pumpGroup(
+        tester,
+        (d, on) => RefineCustomFieldsGroup(draft: d, onChanged: on),
+        initial: const DiveFilterState(customFieldKey: 'Guide'),
+        overrides: [
+          customFieldKeySuggestionsProvider('diver-1').overrideWith((ref) {
+            calls++;
+            if (calls == 1) return Future.value(const ['Guide']);
+            if (calls == 2) return pending.future;
+            return Future.error(StateError('read failed'));
+          }),
+        ],
+      );
+      await h.container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver('diver-1');
+      await tester.pumpAndSettle();
+      expect(find.byKey(kRefineCustomValueKey), findsOneWidget);
+
+      // A custom field write reloads the keys; the controls must not blink
+      // out to the "no custom fields" text meanwhile.
+      h.container.invalidate(customFieldKeySuggestionsProvider('diver-1'));
+      await tester.pump();
+      expect(find.byKey(kRefineCustomValueKey), findsOneWidget);
+      pending.complete(const ['Guide']);
+      await tester.pumpAndSettle();
+
+      h.container.invalidate(customFieldKeySuggestionsProvider('diver-1'));
+      await tester.pumpAndSettle();
+      expect(calls, 3);
+      expect(find.byKey(kRefineCustomValueKey), findsOneWidget);
     });
   });
 
