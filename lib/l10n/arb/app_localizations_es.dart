@@ -4319,13 +4319,50 @@ class AppLocalizationsEs extends AppLocalizations {
   String get connections_selection_topConnections => 'Conexiones principales';
 
   @override
-  String connections_selection_firstLast(String first, String last) {
-    return 'Primera $first, última $last';
-  }
-
-  @override
   String get connections_selection_hint =>
       'Toca un nodo o una línea para ver los detalles.';
+
+  @override
+  String get connections_details_dives => 'Inmersiones';
+
+  @override
+  String get connections_details_connections => 'Conexiones';
+
+  @override
+  String get connections_details_first => 'Primera';
+
+  @override
+  String get connections_details_last => 'Última';
+
+  @override
+  String get connections_kindOne_buddy => 'Compañero';
+
+  @override
+  String get connections_kindOne_site => 'Punto de buceo';
+
+  @override
+  String get connections_kindOne_trip => 'Viaje';
+
+  @override
+  String get connections_kindOne_diveCenter => 'Centro de buceo';
+
+  @override
+  String get connections_kindOne_equipment => 'Equipo';
+
+  @override
+  String get connections_kindOne_species => 'Especie';
+
+  @override
+  String get connections_kindOne_tag => 'Etiqueta';
+
+  @override
+  String get connections_kindOne_diveType => 'Tipo de inmersión';
+
+  @override
+  String get connections_kindOne_diveComputer => 'Ordenador de buceo';
+
+  @override
+  String get connections_kindOne_course => 'Curso';
 
   @override
   String get connections_empty_noDives =>

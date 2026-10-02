@@ -17,6 +17,21 @@ String kindLabel(AppLocalizations l10n, ConnectionKind kind) => switch (kind) {
   ConnectionKind.course => l10n.connections_kind_course,
 };
 
+/// One entity's kind ("Buddy"), where [kindLabel] names the group.
+String kindNameOne(AppLocalizations l10n, ConnectionKind kind) =>
+    switch (kind) {
+      ConnectionKind.buddy => l10n.connections_kindOne_buddy,
+      ConnectionKind.site => l10n.connections_kindOne_site,
+      ConnectionKind.trip => l10n.connections_kindOne_trip,
+      ConnectionKind.diveCenter => l10n.connections_kindOne_diveCenter,
+      ConnectionKind.equipment => l10n.connections_kindOne_equipment,
+      ConnectionKind.species => l10n.connections_kindOne_species,
+      ConnectionKind.tag => l10n.connections_kindOne_tag,
+      ConnectionKind.diveType => l10n.connections_kindOne_diveType,
+      ConnectionKind.diveComputer => l10n.connections_kindOne_diveComputer,
+      ConnectionKind.course => l10n.connections_kindOne_course,
+    };
+
 /// One swatch per kind in view. [showTitle] is false on the compact overlay.
 class ConnectionsLegend extends StatelessWidget {
   const ConnectionsLegend({

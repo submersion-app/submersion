@@ -4292,13 +4292,50 @@ class AppLocalizationsNl extends AppLocalizations {
   String get connections_selection_topConnections => 'Sterkste verbindingen';
 
   @override
-  String connections_selection_firstLast(String first, String last) {
-    return 'Eerste $first, laatste $last';
-  }
-
-  @override
   String get connections_selection_hint =>
       'Tik op een knooppunt of lijn voor details.';
+
+  @override
+  String get connections_details_dives => 'Duiken';
+
+  @override
+  String get connections_details_connections => 'Verbindingen';
+
+  @override
+  String get connections_details_first => 'Eerste';
+
+  @override
+  String get connections_details_last => 'Laatste';
+
+  @override
+  String get connections_kindOne_buddy => 'Buddy';
+
+  @override
+  String get connections_kindOne_site => 'Duikplek';
+
+  @override
+  String get connections_kindOne_trip => 'Reis';
+
+  @override
+  String get connections_kindOne_diveCenter => 'Duikcentrum';
+
+  @override
+  String get connections_kindOne_equipment => 'Uitrusting';
+
+  @override
+  String get connections_kindOne_species => 'Soort';
+
+  @override
+  String get connections_kindOne_tag => 'Label';
+
+  @override
+  String get connections_kindOne_diveType => 'Duiktype';
+
+  @override
+  String get connections_kindOne_diveComputer => 'Duikcomputer';
+
+  @override
+  String get connections_kindOne_course => 'Cursus';
 
   @override
   String get connections_empty_noDives =>

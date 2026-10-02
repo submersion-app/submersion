@@ -4238,12 +4238,49 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_selection_topConnections => 'أقوى الروابط';
 
   @override
-  String connections_selection_firstLast(String first, String last) {
-    return 'الأولى $first، الأخيرة $last';
-  }
+  String get connections_selection_hint => 'انقر على عقدة أو خط لعرض التفاصيل.';
 
   @override
-  String get connections_selection_hint => 'انقر على عقدة أو خط لعرض التفاصيل.';
+  String get connections_details_dives => 'الغوصات';
+
+  @override
+  String get connections_details_connections => 'الروابط';
+
+  @override
+  String get connections_details_first => 'الأولى';
+
+  @override
+  String get connections_details_last => 'الأخيرة';
+
+  @override
+  String get connections_kindOne_buddy => 'رفيق';
+
+  @override
+  String get connections_kindOne_site => 'موقع';
+
+  @override
+  String get connections_kindOne_trip => 'رحلة';
+
+  @override
+  String get connections_kindOne_diveCenter => 'مركز غوص';
+
+  @override
+  String get connections_kindOne_equipment => 'معدات';
+
+  @override
+  String get connections_kindOne_species => 'نوع';
+
+  @override
+  String get connections_kindOne_tag => 'وسم';
+
+  @override
+  String get connections_kindOne_diveType => 'نوع الغوص';
+
+  @override
+  String get connections_kindOne_diveComputer => 'كمبيوتر غوص';
+
+  @override
+  String get connections_kindOne_course => 'دورة';
 
   @override
   String get connections_empty_noDives =>

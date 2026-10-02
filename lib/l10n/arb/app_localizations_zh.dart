@@ -4100,12 +4100,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_selection_topConnections => '主要关联';
 
   @override
-  String connections_selection_firstLast(String first, String last) {
-    return '首次 $first，最近 $last';
-  }
+  String get connections_selection_hint => '点击节点或连线查看详情。';
 
   @override
-  String get connections_selection_hint => '点击节点或连线查看详情。';
+  String get connections_details_dives => '潜水';
+
+  @override
+  String get connections_details_connections => '关联';
+
+  @override
+  String get connections_details_first => '首次';
+
+  @override
+  String get connections_details_last => '最近';
+
+  @override
+  String get connections_kindOne_buddy => '潜伴';
+
+  @override
+  String get connections_kindOne_site => '潜点';
+
+  @override
+  String get connections_kindOne_trip => '行程';
+
+  @override
+  String get connections_kindOne_diveCenter => '潜店';
+
+  @override
+  String get connections_kindOne_equipment => '装备';
+
+  @override
+  String get connections_kindOne_species => '物种';
+
+  @override
+  String get connections_kindOne_tag => '标签';
+
+  @override
+  String get connections_kindOne_diveType => '潜水类型';
+
+  @override
+  String get connections_kindOne_diveComputer => '潜水电脑';
+
+  @override
+  String get connections_kindOne_course => '课程';
 
   @override
   String get connections_empty_noDives => '还没有潜水记录。日志中有潜水后会显示关联。';

@@ -4220,12 +4220,49 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_selection_topConnections => 'קשרים מובילים';
 
   @override
-  String connections_selection_firstLast(String first, String last) {
-    return 'ראשונה $first, אחרונה $last';
-  }
+  String get connections_selection_hint => 'הקישו על צומת או על קו לפרטים.';
 
   @override
-  String get connections_selection_hint => 'הקישו על צומת או על קו לפרטים.';
+  String get connections_details_dives => 'צלילות';
+
+  @override
+  String get connections_details_connections => 'קשרים';
+
+  @override
+  String get connections_details_first => 'ראשונה';
+
+  @override
+  String get connections_details_last => 'אחרונה';
+
+  @override
+  String get connections_kindOne_buddy => 'שותף';
+
+  @override
+  String get connections_kindOne_site => 'אתר';
+
+  @override
+  String get connections_kindOne_trip => 'טיול';
+
+  @override
+  String get connections_kindOne_diveCenter => 'מרכז צלילה';
+
+  @override
+  String get connections_kindOne_equipment => 'ציוד';
+
+  @override
+  String get connections_kindOne_species => 'מין';
+
+  @override
+  String get connections_kindOne_tag => 'תגית';
+
+  @override
+  String get connections_kindOne_diveType => 'סוג צלילה';
+
+  @override
+  String get connections_kindOne_diveComputer => 'מחשב צלילה';
+
+  @override
+  String get connections_kindOne_course => 'קורס';
 
   @override
   String get connections_empty_noDives =>

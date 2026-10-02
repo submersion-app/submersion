@@ -4313,13 +4313,50 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_selection_topConnections => 'Legerősebb kapcsolatok';
 
   @override
-  String connections_selection_firstLast(String first, String last) {
-    return 'Első $first, utolsó $last';
-  }
-
-  @override
   String get connections_selection_hint =>
       'Koppints egy csomópontra vagy vonalra a részletekhez.';
+
+  @override
+  String get connections_details_dives => 'Merülések';
+
+  @override
+  String get connections_details_connections => 'Kapcsolatok';
+
+  @override
+  String get connections_details_first => 'Első';
+
+  @override
+  String get connections_details_last => 'Utolsó';
+
+  @override
+  String get connections_kindOne_buddy => 'Búvártárs';
+
+  @override
+  String get connections_kindOne_site => 'Merülőhely';
+
+  @override
+  String get connections_kindOne_trip => 'Út';
+
+  @override
+  String get connections_kindOne_diveCenter => 'Búvárközpont';
+
+  @override
+  String get connections_kindOne_equipment => 'Felszerelés';
+
+  @override
+  String get connections_kindOne_species => 'Faj';
+
+  @override
+  String get connections_kindOne_tag => 'Címke';
+
+  @override
+  String get connections_kindOne_diveType => 'Merüléstípus';
+
+  @override
+  String get connections_kindOne_diveComputer => 'Búvárcomputer';
+
+  @override
+  String get connections_kindOne_course => 'Tanfolyam';
 
   @override
   String get connections_empty_noDives =>

@@ -4250,13 +4250,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connections_selection_topConnections => 'Top connections';
 
   @override
-  String connections_selection_firstLast(String first, String last) {
-    return 'First $first, last $last';
-  }
-
-  @override
   String get connections_selection_hint =>
       'Tap a node or a line to see details.';
+
+  @override
+  String get connections_details_dives => 'Dives';
+
+  @override
+  String get connections_details_connections => 'Connections';
+
+  @override
+  String get connections_details_first => 'First';
+
+  @override
+  String get connections_details_last => 'Last';
+
+  @override
+  String get connections_kindOne_buddy => 'Buddy';
+
+  @override
+  String get connections_kindOne_site => 'Site';
+
+  @override
+  String get connections_kindOne_trip => 'Trip';
+
+  @override
+  String get connections_kindOne_diveCenter => 'Dive center';
+
+  @override
+  String get connections_kindOne_equipment => 'Equipment';
+
+  @override
+  String get connections_kindOne_species => 'Species';
+
+  @override
+  String get connections_kindOne_tag => 'Tag';
+
+  @override
+  String get connections_kindOne_diveType => 'Dive type';
+
+  @override
+  String get connections_kindOne_diveComputer => 'Dive computer';
+
+  @override
+  String get connections_kindOne_course => 'Course';
 
   @override
   String get connections_empty_noDives =>
