@@ -1,4 +1,5 @@
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_import/data/services/dive_reimport_service.dart';
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
@@ -128,9 +129,7 @@ class DiveResyncOrchestrator {
         wearableStartTime: candidateTime,
         wearableMaxDepth: candidateDepth,
         wearableDurationSeconds: candidateDuration,
-        existingStartTime: DateTime.fromMillisecondsSinceEpoch(
-          dive.diveDateTime,
-        ),
+        existingStartTime: wallClockUtcFromMillis(dive.diveDateTime),
         existingMaxDepth: dive.maxDepth ?? 0.0,
         existingDurationSeconds: dive.runtime ?? dive.bottomTime ?? 0,
       );
