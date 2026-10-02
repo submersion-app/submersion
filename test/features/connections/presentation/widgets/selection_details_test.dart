@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -198,6 +199,24 @@ void main() {
       container.read(connectionsSelectionProvider),
       EdgeSelection(_b('jane'), _reef),
     );
+  });
+
+  testWidgets('a top connection is a labelled button a screen reader can tap', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    final container = await _pump(tester, NodeSelection(_b('jane')));
+    final row = find.byKey(ValueKey('connections-top-${_reef.wire}'));
+    final node = tester.getSemantics(row);
+    expect(node.label, 'Reef, Site, 1 dive');
+    expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+    tester.semantics.tap(find.semantics.byLabel('Reef, Site, 1 dive'));
+    await tester.pump();
+    expect(
+      container.read(connectionsSelectionProvider),
+      EdgeSelection(_b('jane'), _reef),
+    );
+    handle.dispose();
   });
 
   testWidgets('the actions are spaced and never wrap into each other', (

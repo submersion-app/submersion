@@ -18,7 +18,8 @@ import 'package:submersion/features/dive_roles/presentation/providers/dive_role_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Body shared by the compact bottom card and the wide side panel.
+/// The Details tab's body for a selected node or line, in the wide side
+/// panel and in the phone sheet alike.
 class GraphSelectionDetails extends ConsumerWidget {
   const GraphSelectionDetails({
     super.key,

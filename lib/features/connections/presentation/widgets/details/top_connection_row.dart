@@ -31,10 +31,13 @@ class TopConnectionRow extends StatelessWidget {
     final theme = Theme.of(context);
     final kindName = kindNameOne(l10n, kind);
     final color = ConnectionKindColors.of(context).colorFor(kind);
+    // One spoken button. Excluding the children drops the InkWell's own tap
+    // action, so the node carries [onTap] itself.
     return Semantics(
       button: true,
       excludeSemantics: true,
       label: '$label, $kindName, ${l10n.connections_selection_dives(weight)}',
+      onTap: onTap,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
