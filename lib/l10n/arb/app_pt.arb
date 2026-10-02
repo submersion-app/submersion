@@ -13810,6 +13810,7 @@
   "navTrack_list_noMapRoutes": "Nenhuma rota colocada no mapa ainda.",
   "navTrack_list_empty": "Nenhuma rota subaquática ainda.",
   "navTrack_review_saveConfirmation": "Route saved.",
+  "navTrack_list_pendingChoice": "{count, plural, one{{count} route needs your choice} other{{count} routes need your choice}}",
   "navTrack_list_loadError": "Could not load routes: {error}",
   "navTrack_seascape_title": "Paisagem subaquática da rota",
   "navTrack_seascape_noScene": "Esta rota não tem uma paisagem subaquática utilizável.",

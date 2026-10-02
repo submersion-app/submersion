@@ -45796,10 +45796,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'Could not match routes.';
+  String get navTrack_list_matchError => 'Could not check for route matches.';
 
   @override
-  String get navTrack_list_matchSuccess => 'Routes matched to dives.';
+  String get navTrack_list_matchSuccess =>
+      'Checked for routes needing your choice.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -45824,6 +45825,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navTrack_review_saveConfirmation => 'Route saved.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count routes need your choice',
+      one: '$count route needs your choice',
+    );
+    return '$_temp0';
+  }
 
   @override
   String navTrack_list_loadError(String error) {

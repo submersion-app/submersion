@@ -21,3 +21,16 @@ final navTrackMatchServiceProvider = Provider<NavTrackMatchService>(
     currentDiverId: () => ref.read(validatedCurrentDiverIdProvider.future),
   ),
 );
+
+/// How many of the active diver's unlinked routes `NavTrackMatchService`
+/// reports -- every one of them, since a sweep no longer links anything by
+/// itself (#2394). Drives the routes list's "N routes need your choice"
+/// hint; refreshes whenever the route list itself changes (a route
+/// imported, linked or removed). A dive added or removed with no route-list
+/// change of its own does not retrigger this until the next manual "Check
+/// now", the same staleness window the hint already accepts elsewhere.
+final navTrackPendingChoiceCountProvider = FutureProvider<int>((ref) async {
+  ref.watch(allNavTracksProvider);
+  final suggestions = await ref.watch(navTrackMatchServiceProvider).sweep();
+  return suggestions.length;
+});

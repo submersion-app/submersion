@@ -132,6 +132,10 @@ class _NavTrackListPageState extends ConsumerState<NavTrackListPage> {
     final l10n = context.l10n;
     try {
       await ref.read(navTrackMatchServiceProvider).sweep();
+      // The sweep itself never writes anything any more (#2394); this just
+      // refreshes the "N routes need your choice" hint on demand, the same
+      // way a route or dive change already does.
+      ref.invalidate(navTrackPendingChoiceCountProvider);
     } catch (e, stackTrace) {
       _log.error(
         'Manual route match sweep failed',
@@ -295,21 +299,62 @@ class _NavTrackListPageState extends ConsumerState<NavTrackListPage> {
     final l10n = context.l10n;
     return _scaffoldShell(
       context,
-      routes.isEmpty
-          ? Center(child: Text(l10n.navTrack_list_empty))
-          : ListView.builder(
-              itemCount: routes.length,
-              itemBuilder: (context, index) {
-                final route = routes[index];
-                return NavTrackListRow(
-                  key: ValueKey(route.id),
-                  route: route,
-                  units: units,
-                  onTap: () => _openRoute(route.id),
-                  onDelete: () => _deleteRoute(route),
-                );
-              },
-            ),
+      Column(
+        children: [
+          const _PendingChoiceBanner(),
+          Expanded(
+            child: routes.isEmpty
+                ? Center(child: Text(l10n.navTrack_list_empty))
+                : ListView.builder(
+                    itemCount: routes.length,
+                    itemBuilder: (context, index) {
+                      final route = routes[index];
+                      return NavTrackListRow(
+                        key: ValueKey(route.id),
+                        route: route,
+                        units: units,
+                        onTap: () => _openRoute(route.id),
+                        onDelete: () => _deleteRoute(route),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "N routes need your choice": every unlinked route `NavTrackMatchService`
+/// reports, now that a sweep never links one by itself (#2394). Purely
+/// informational -- each route's own "Choose dive" already lets the diver
+/// confirm or pick a different one, so this only says where to look.
+class _PendingChoiceBanner extends ConsumerWidget {
+  const _PendingChoiceBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(navTrackPendingChoiceCountProvider).value ?? 0;
+    if (count == 0) return const SizedBox.shrink();
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('nav-track-pending-choice-banner'),
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.help_outline, color: colorScheme.primary, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(context.l10n.navTrack_list_pendingChoice(count)),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1440,9 +1440,10 @@ class SyncNotifier extends StateNotifier<SyncState> {
             );
           }
           // An underwater route synced in from another device may cover a
-          // dive that already exists here (or vice versa): sweep unlinked
-          // routes against every dive now that the merge is complete.
-          // Best-effort, same reasoning as the GPS sweep above.
+          // dive that already exists here (or vice versa). The sweep no
+          // longer links anything by itself (#2394: that is always the
+          // diver's own choice), so this is now a no-op kept for the
+          // trigger's own sake; a later pass may drop it.
           try {
             await _ref.read(navTrackMatchServiceProvider).sweep();
           } catch (e, stackTrace) {

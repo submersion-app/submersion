@@ -84,8 +84,8 @@ void main() {
       );
     });
 
-    test('links to the active diver\'s dive when a buddy logged the same '
-        'dive', () async {
+    test('suggests the active diver\'s dive when a buddy logged the same '
+        'dive, without linking it', () async {
       await seedDive('my-dive', 1000000, exitTimeMs: 2000000, diverId: 'me');
       await seedDive(
         'buddy-dive',
@@ -101,11 +101,11 @@ void main() {
 
       final result = await mine.sweep();
 
-      expect(result.linked, [routeId]);
-      expect((await routeRepo.getById(routeId))!.diveId, 'my-dive');
+      expect(result, [(routeId: routeId, suggestedDiveId: 'my-dive')]);
+      expect((await routeRepo.getById(routeId))!.diveId, isNull);
     });
 
-    test('never links to another diver\'s dive', () async {
+    test('never suggests another diver\'s dive', () async {
       // The active diver has a dive, just not one this route overlaps.
       await seedDive('my-other-dive', 9000000, diverId: 'me');
       await seedDive(
@@ -122,83 +122,74 @@ void main() {
 
       final result = await mine.sweep();
 
-      expect(result.linked, isEmpty);
-      expect(result.needsChoice, [routeId]);
-      expect((await routeRepo.getById(routeId))!.diveId, isNull);
+      expect(result, [(routeId: routeId, suggestedDiveId: null)]);
     });
 
-    test('leaves another diver\'s route alone', () async {
+    test('leaves another diver\'s route out of the report entirely', () async {
       await seedDive('my-dive', 1000000, exitTimeMs: 2000000, diverId: 'me');
-      final buddyRoute = await seedRoute(
-        startSeconds: 1400,
-        endSeconds: 1600,
-        diverId: 'buddy',
-      );
+      await seedRoute(startSeconds: 1400, endSeconds: 1600, diverId: 'buddy');
 
       final result = await mine.sweep();
 
-      expect(result.linked, isEmpty);
-      expect(result.needsChoice, isEmpty);
-      expect((await routeRepo.getById(buddyRoute))!.diveId, isNull);
+      expect(result, isEmpty);
     });
 
-    test('links an ownerless route, which then belongs to the dive\'s '
-        'diver', () async {
+    test('reports an ownerless route, with no ownership change (nothing is '
+        'written any more)', () async {
       await seedDive('my-dive', 1000000, exitTimeMs: 2000000, diverId: 'me');
       final routeId = await seedRoute(startSeconds: 1400, endSeconds: 1600);
 
       final result = await mine.sweep();
 
-      expect(result.linked, [routeId]);
+      expect(result, [(routeId: routeId, suggestedDiveId: 'my-dive')]);
       final owner = await db
           .customSelect("SELECT diver_id FROM nav_tracks WHERE id = '$routeId'")
           .getSingle();
-      expect(owner.read<String?>('diver_id'), 'me');
+      expect(owner.read<String?>('diver_id'), isNull);
     });
   });
 
-  test('links a route that overlaps exactly one dive', () async {
+  test('reports the sole overlapping dive as a suggestion, without linking it '
+      '(#2394: a route used to be linked silently the moment exactly one '
+      'dive overlapped it)', () async {
     await seedDive('d1', 1500000, exitTimeMs: 1800000);
     final routeId = await seedRoute(startSeconds: 1600, endSeconds: 1700);
 
     final result = await service.sweep();
 
-    expect(result.linked, [routeId]);
-    expect(result.needsChoice, isEmpty);
+    expect(result, [(routeId: routeId, suggestedDiveId: 'd1')]);
     final route = await routeRepo.getById(routeId);
-    expect(route!.diveId, 'd1');
-    expect(route.linkMode, NavTrackLinkMode.auto);
+    expect(route!.diveId, isNull);
+    expect(route.linkMode, isNull);
   });
 
-  test('leaves an ambiguous route (two overlapping dives) unlinked and '
-      'reports it', () async {
+  test('reports an ambiguous route (two overlapping dives) with no '
+      'suggestion', () async {
     await seedDive('d1', 1000000, exitTimeMs: 2000000);
     await seedDive('d2', 1200000, exitTimeMs: 1800000);
     final routeId = await seedRoute(startSeconds: 1400, endSeconds: 1600);
 
     final result = await service.sweep();
 
-    expect(result.linked, isEmpty);
-    expect(result.needsChoice, [routeId]);
+    expect(result, [(routeId: routeId, suggestedDiveId: null)]);
     expect((await routeRepo.getById(routeId))!.diveId, isNull);
   });
 
-  test('leaves an unmatched route (no dive close in time) unlinked and '
-      'reports it as needing a choice too', () async {
+  test('reports an unmatched route (no dive close in time) with no '
+      'suggestion too', () async {
     await seedDive('d1', 9000000, exitTimeMs: 9100000);
     final routeId = await seedRoute(startSeconds: 1000, endSeconds: 1100);
 
     final result = await service.sweep();
 
-    expect(result.linked, isEmpty);
-    expect(result.needsChoice, [routeId]);
+    expect(result, [(routeId: routeId, suggestedDiveId: null)]);
   });
 
-  test('never reconsiders an already-linked route', () async {
+  test('never reports an already-linked route', () async {
     await seedDive('d1', 1000000, exitTimeMs: 1100000);
     await seedDive('d2', 1000000, exitTimeMs: 1100000);
     // Manually linked already, so the sweep must not touch it even though
-    // both dives would otherwise make it needsChoice.
+    // both dives would otherwise make it ambiguous.
     final routeId = await seedRoute(
       startSeconds: 1000,
       endSeconds: 1050,
@@ -207,8 +198,7 @@ void main() {
 
     final result = await service.sweep();
 
-    expect(result.linked, isEmpty);
-    expect(result.needsChoice, isEmpty);
+    expect(result, isEmpty);
     expect((await routeRepo.getById(routeId))!.diveId, 'd1');
     expect(
       (await routeRepo.getById(routeId))!.linkMode,
@@ -216,29 +206,29 @@ void main() {
     );
   });
 
-  test('a sweep is idempotent: running it twice changes nothing the '
-      'second time', () async {
-    await seedDive('d1', 1500000, exitTimeMs: 1800000);
-    final routeId = await seedRoute(startSeconds: 1600, endSeconds: 1700);
+  test(
+    'a sweep is idempotent: running it twice reports the same thing',
+    () async {
+      await seedDive('d1', 1500000, exitTimeMs: 1800000);
+      final routeId = await seedRoute(startSeconds: 1600, endSeconds: 1700);
 
-    final first = await service.sweep();
-    final second = await service.sweep();
+      final first = await service.sweep();
+      final second = await service.sweep();
 
-    expect(first.linked, [routeId]);
-    expect(second.linked, isEmpty);
-    expect(second.needsChoice, isEmpty);
-  });
+      expect(first, [(routeId: routeId, suggestedDiveId: 'd1')]);
+      expect(second, first);
+    },
+  );
 
   test('limitToRouteIds scopes the sweep to specific routes', () async {
     await seedDive('d1', 1500000, exitTimeMs: 1800000);
     await seedDive('d2', 5500000, exitTimeMs: 5800000);
     final routeA = await seedRoute(startSeconds: 1600, endSeconds: 1700);
-    final routeB = await seedRoute(startSeconds: 5600, endSeconds: 5700);
+    await seedRoute(startSeconds: 5600, endSeconds: 5700);
 
     final result = await service.sweep(limitToRouteIds: [routeA]);
 
-    expect(result.linked, [routeA]);
-    expect((await routeRepo.getById(routeB))!.diveId, isNull);
+    expect(result, [(routeId: routeA, suggestedDiveId: 'd1')]);
   });
 
   test('limitToDiveIds scopes candidate dives to specific ones', () async {
@@ -247,24 +237,24 @@ void main() {
     final routeId = await seedRoute(startSeconds: 1600, endSeconds: 1700);
 
     // Both dives overlap, but only d1 is in scope, so the ambiguity never
-    // arises and the route links to the one candidate the sweep could see.
+    // arises and the route reports the one candidate the sweep could see.
     final result = await service.sweep(limitToDiveIds: ['d1']);
 
-    expect(result.linked, [routeId]);
-    expect((await routeRepo.getById(routeId))!.diveId, 'd1');
+    expect(result, [(routeId: routeId, suggestedDiveId: 'd1')]);
   });
 
   test('returns immediately when there are no unlinked routes', () async {
     await seedDive('d1', 1500000, exitTimeMs: 1800000);
     final result = await service.sweep();
-    expect(result.linked, isEmpty);
-    expect(result.needsChoice, isEmpty);
+    expect(result, isEmpty);
   });
 
-  test('returns immediately when there are no dives at all', () async {
-    await seedRoute(startSeconds: 1600, endSeconds: 1700);
-    final result = await service.sweep();
-    expect(result.linked, isEmpty);
-    expect(result.needsChoice, isEmpty);
-  });
+  test(
+    'reports a route with no suggestion when there are no dives at all',
+    () async {
+      final routeId = await seedRoute(startSeconds: 1600, endSeconds: 1700);
+      final result = await service.sweep();
+      expect(result, [(routeId: routeId, suggestedDiveId: null)]);
+    },
+  );
 }

@@ -46210,6 +46210,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navTrack_review_saveConfirmation => 'Route saved.';
 
   @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count routes need your choice',
+      one: '$count route needs your choice',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String navTrack_list_loadError(String error) {
     return 'Could not load routes: $error';
   }

@@ -13810,6 +13810,7 @@
   "navTrack_list_noMapRoutes": "Még nincs útvonal a térképen elhelyezve.",
   "navTrack_list_empty": "Még nincsenek vízalatti útvonalak.",
   "navTrack_review_saveConfirmation": "Route saved.",
+  "navTrack_list_pendingChoice": "{count, plural, one{{count} route needs your choice} other{{count} routes need your choice}}",
   "navTrack_list_loadError": "Could not load routes: {error}",
   "navTrack_seascape_title": "Útvonal tengeri tája",
   "navTrack_seascape_noScene": "Ehhez az útvonalhoz nincs használható tengeri táj.",

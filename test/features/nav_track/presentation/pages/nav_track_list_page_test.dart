@@ -18,6 +18,7 @@ import 'package:submersion/features/nav_track/data/services/nav_track_service_pr
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_match_suggestion.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
@@ -45,23 +46,26 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
 /// Stubs `sweep()` with a canned result, or an error, instead of running a
 /// real sweep against a database.
 class _FakeNavTrackMatchService extends NavTrackMatchService {
-  _FakeNavTrackMatchService({this.error})
-    : super(
-        routeRepository: NavTrackRepository(),
-        diveRepository: DiveRepository(),
-      );
+  _FakeNavTrackMatchService({
+    this.error,
+    this.suggestions = const <NavTrackMatchSuggestion>[],
+  }) : super(
+         routeRepository: NavTrackRepository(),
+         diveRepository: DiveRepository(),
+       );
 
   final Object? error;
+  final List<NavTrackMatchSuggestion> suggestions;
   int callCount = 0;
 
   @override
-  Future<({List<String> linked, List<String> needsChoice})> sweep({
+  Future<List<NavTrackMatchSuggestion>> sweep({
     List<String>? limitToRouteIds,
     List<String>? limitToDiveIds,
   }) async {
     callCount++;
     if (error != null) throw error!;
-    return (linked: const <String>[], needsChoice: const <String>[]);
+    return suggestions;
   }
 }
 
@@ -624,8 +628,13 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('nav-track-match')));
       await tester.pumpAndSettle();
 
-      expect(service.callCount, 1);
-      expect(find.text('Routes matched to dives.'), findsOneWidget);
+      // The pending-choice banner (#2394) also calls sweep() on its own
+      // build, so this only confirms the tap triggered at least one.
+      expect(service.callCount, greaterThanOrEqualTo(1));
+      expect(
+        find.text('Checked for routes needing your choice.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('shows an error snackbar when the sweep throws', (
@@ -637,7 +646,48 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('nav-track-match')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Could not match routes.'), findsOneWidget);
+      expect(find.text('Could not check for route matches.'), findsOneWidget);
+    });
+  });
+
+  group('pending-choice hint (#2394)', () {
+    testWidgets('shows no banner when nothing needs a choice', (tester) async {
+      final service = _FakeNavTrackMatchService();
+      await _pump(
+        tester,
+        routes: [_route(id: 'r1', name: 'Wreck dive')],
+        matchService: service,
+      );
+
+      expect(
+        find.byKey(const ValueKey('nav-track-pending-choice-banner')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('shows a banner with the count when routes need a choice', (
+      tester,
+    ) async {
+      final service = _FakeNavTrackMatchService(
+        suggestions: const [
+          (routeId: 'r1', suggestedDiveId: 'dive-1'),
+          (routeId: 'r2', suggestedDiveId: null),
+        ],
+      );
+      await _pump(
+        tester,
+        routes: [
+          _route(id: 'r1', name: 'Wreck dive'),
+          _route(id: 'r2', name: 'Reef dive'),
+        ],
+        matchService: service,
+      );
+
+      expect(
+        find.byKey(const ValueKey('nav-track-pending-choice-banner')),
+        findsOneWidget,
+      );
+      expect(find.text('2 routes need your choice'), findsOneWidget);
     });
   });
 

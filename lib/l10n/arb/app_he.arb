@@ -13810,6 +13810,7 @@
   "navTrack_list_noMapRoutes": "עדיין לא הוצבו מסלולים על המפה.",
   "navTrack_list_empty": "עדיין אין מסלולים תת-ימיים.",
   "navTrack_review_saveConfirmation": "Route saved.",
+  "navTrack_list_pendingChoice": "{count, plural, one{{count} route needs your choice} other{{count} routes need your choice}}",
   "navTrack_list_loadError": "Could not load routes: {error}",
   "navTrack_seascape_title": "נוף תת-ימי של המסלול",
   "navTrack_seascape_noScene": "למסלול הזה אין נוף תת-ימי שמיש.",

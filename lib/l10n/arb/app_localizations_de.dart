@@ -46401,12 +46401,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError =>
-      'Routen konnten nicht zugeordnet werden.';
+  String get navTrack_list_matchError => 'Routen-Abgleich fehlgeschlagen.';
 
   @override
   String get navTrack_list_matchSuccess =>
-      'Routen wurden Tauchgängen zugeordnet.';
+      'Prüfung auf wartende Routen abgeschlossen.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -46431,6 +46430,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get navTrack_review_saveConfirmation => 'Route gespeichert.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Routen warten auf deine Wahl',
+      one: '$count Route wartet auf deine Wahl',
+    );
+    return '$_temp0';
+  }
 
   @override
   String navTrack_list_loadError(String error) {

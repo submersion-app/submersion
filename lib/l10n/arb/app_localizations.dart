@@ -73808,13 +73808,13 @@ abstract class AppLocalizations {
   /// No description provided for @navTrack_list_matchError.
   ///
   /// In en, this message translates to:
-  /// **'Could not match routes.'**
+  /// **'Could not check for route matches.'**
   String get navTrack_list_matchError;
 
   /// No description provided for @navTrack_list_matchSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Routes matched to dives.'**
+  /// **'Checked for routes needing your choice.'**
   String get navTrack_list_matchSuccess;
 
   /// No description provided for @navTrack_list_deleteMessage.
@@ -73858,6 +73858,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Route saved.'**
   String get navTrack_review_saveConfirmation;
+
+  /// No description provided for @navTrack_list_pendingChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} route needs your choice} other{{count} routes need your choice}}'**
+  String navTrack_list_pendingChoice(num count);
 
   /// No description provided for @navTrack_list_loadError.
   ///

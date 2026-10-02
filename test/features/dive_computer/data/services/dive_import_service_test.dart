@@ -20,6 +20,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_match_service.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_match_suggestion.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'dive_import_service_test.mocks.dart';
 
@@ -32,13 +33,13 @@ class _FakeNavTrackMatchService implements NavTrackMatchService {
   List<String>? capturedLimitToDiveIds;
 
   @override
-  Future<({List<String> linked, List<String> needsChoice})> sweep({
+  Future<List<NavTrackMatchSuggestion>> sweep({
     List<String>? limitToRouteIds,
     List<String>? limitToDiveIds,
   }) async {
     callCount++;
     capturedLimitToDiveIds = limitToDiveIds;
-    return (linked: <String>[], needsChoice: <String>[]);
+    return const [];
   }
 }
 
@@ -46,7 +47,7 @@ class _FakeNavTrackMatchService implements NavTrackMatchService {
 /// matching failure must never fail the dive import itself.
 class _ThrowingNavTrackMatchService implements NavTrackMatchService {
   @override
-  Future<({List<String> linked, List<String> needsChoice})> sweep({
+  Future<List<NavTrackMatchSuggestion>> sweep({
     List<String>? limitToRouteIds,
     List<String>? limitToDiveIds,
   }) {
