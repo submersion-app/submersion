@@ -13809,6 +13809,7 @@
   "navTrack_list_title": "Trajets sous-marins",
   "navTrack_list_noMapRoutes": "Aucun trajet placé sur la carte pour l'instant.",
   "navTrack_list_empty": "Aucun trajet sous-marin pour l'instant.",
+  "navTrack_list_loadError": "Could not load routes: {error}",
   "navTrack_seascape_title": "Paysage sous-marin du trajet",
   "navTrack_seascape_noScene": "Ce trajet n'a pas de paysage sous-marin exploitable.",
   "navTrack_handoff_recognized": "Journal de navigation Seacraft ENC reconnu",

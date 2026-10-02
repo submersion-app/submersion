@@ -13809,6 +13809,7 @@
   "navTrack_list_title": "Rutas submarinas",
   "navTrack_list_noMapRoutes": "Aún no hay rutas colocadas en el mapa.",
   "navTrack_list_empty": "Aún no hay rutas submarinas.",
+  "navTrack_list_loadError": "Could not load routes: {error}",
   "navTrack_seascape_title": "Paisaje submarino de la ruta",
   "navTrack_seascape_noScene": "Esta ruta no tiene un paisaje submarino disponible.",
   "navTrack_handoff_recognized": "Registro de navegación Seacraft ENC reconocido",

@@ -13809,6 +13809,7 @@
   "navTrack_list_title": "水下路线",
   "navTrack_list_noMapRoutes": "尚未在地图上放置任何路线。",
   "navTrack_list_empty": "尚无水下路线。",
+  "navTrack_list_loadError": "Could not load routes: {error}",
   "navTrack_seascape_title": "路线的海景",
   "navTrack_seascape_noScene": "此路线没有可用的海景。",
   "navTrack_handoff_recognized": "已识别 Seacraft ENC 导航日志",

@@ -13809,6 +13809,7 @@
   "navTrack_list_title": "Percorsi subacquei",
   "navTrack_list_noMapRoutes": "Nessun percorso posizionato sulla mappa per ora.",
   "navTrack_list_empty": "Nessun percorso subacqueo ancora.",
+  "navTrack_list_loadError": "Could not load routes: {error}",
   "navTrack_seascape_title": "Paesaggio subacqueo del percorso",
   "navTrack_seascape_noScene": "Questo percorso non ha un paesaggio subacqueo utilizzabile.",
   "navTrack_handoff_recognized": "Registro di navigazione Seacraft ENC riconosciuto",

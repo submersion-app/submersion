@@ -13809,6 +13809,7 @@
   "navTrack_list_title": "Onderwaterroutes",
   "navTrack_list_noMapRoutes": "Nog geen routes op de kaart geplaatst.",
   "navTrack_list_empty": "Nog geen onderwaterroutes.",
+  "navTrack_list_loadError": "Could not load routes: {error}",
   "navTrack_seascape_title": "Onderwaterlandschap van de route",
   "navTrack_seascape_noScene": "Deze route heeft geen bruikbaar onderwaterlandschap.",
   "navTrack_handoff_recognized": "Seacraft ENC-navigatielog herkend",

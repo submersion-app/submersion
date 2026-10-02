@@ -46321,6 +46321,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_list_empty => 'Még nincsenek vízalatti útvonalak.';
 
   @override
+  String navTrack_list_loadError(String error) {
+    return 'Could not load routes: $error';
+  }
+
+  @override
   String get navTrack_seascape_title => 'Útvonal tengeri tája';
 
   @override

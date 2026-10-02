@@ -73853,6 +73853,12 @@ abstract class AppLocalizations {
   /// **'No underwater routes yet.'**
   String get navTrack_list_empty;
 
+  /// No description provided for @navTrack_list_loadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load routes: {error}'**
+  String navTrack_list_loadError(String error);
+
   /// No description provided for @navTrack_seascape_title.
   ///
   /// In en, this message translates to:

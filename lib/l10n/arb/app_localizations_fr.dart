@@ -46615,6 +46615,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_list_empty => 'Aucun trajet sous-marin pour l\'instant.';
 
   @override
+  String navTrack_list_loadError(String error) {
+    return 'Could not load routes: $error';
+  }
+
+  @override
   String get navTrack_seascape_title => 'Paysage sous-marin du trajet';
 
   @override

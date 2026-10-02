@@ -46500,6 +46500,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navTrack_list_empty => 'Nessun percorso subacqueo ancora.';
 
   @override
+  String navTrack_list_loadError(String error) {
+    return 'Could not load routes: $error';
+  }
+
+  @override
   String get navTrack_seascape_title => 'Paesaggio subacqueo del percorso';
 
   @override

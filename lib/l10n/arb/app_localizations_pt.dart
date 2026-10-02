@@ -46523,6 +46523,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navTrack_list_empty => 'Nenhuma rota subaquática ainda.';
 
   @override
+  String navTrack_list_loadError(String error) {
+    return 'Could not load routes: $error';
+  }
+
+  @override
   String get navTrack_seascape_title => 'Paisagem subaquática da rota';
 
   @override

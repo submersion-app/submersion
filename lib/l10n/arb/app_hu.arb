@@ -13809,6 +13809,7 @@
   "navTrack_list_title": "Vízalatti útvonalak",
   "navTrack_list_noMapRoutes": "Még nincs útvonal a térképen elhelyezve.",
   "navTrack_list_empty": "Még nincsenek vízalatti útvonalak.",
+  "navTrack_list_loadError": "Could not load routes: {error}",
   "navTrack_seascape_title": "Útvonal tengeri tája",
   "navTrack_seascape_noScene": "Ehhez az útvonalhoz nincs használható tengeri táj.",
   "navTrack_handoff_recognized": "Seacraft ENC navigációs napló felismerve",

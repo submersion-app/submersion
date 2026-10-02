@@ -28706,6 +28706,14 @@
   "navTrack_list_title": "Underwater Routes",
   "navTrack_list_noMapRoutes": "No routes are placed on the map yet.",
   "navTrack_list_empty": "No underwater routes yet.",
+  "navTrack_list_loadError": "Could not load routes: {error}",
+  "@navTrack_list_loadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "navTrack_seascape_title": "Route seascape",
   "navTrack_seascape_noScene": "This route has no usable seascape.",
   "navTrack_handoff_recognized": "Seacraft ENC navigation log recognised",

@@ -13921,6 +13921,7 @@
   "navTrack_list_title": "Unterwasser-Routen",
   "navTrack_list_noMapRoutes": "Noch keine Routen auf der Karte platziert.",
   "navTrack_list_empty": "Noch keine Unterwasser-Routen.",
+  "navTrack_list_loadError": "Routen konnten nicht geladen werden: {error}",
   "navTrack_seascape_title": "Routen-Unterwasserwelt",
   "navTrack_seascape_noScene": "Für diese Route gibt es keine nutzbare Unterwasserwelt.",
   "navTrack_handoff_recognized": "Seacraft-ENC-Navigationsprotokoll erkannt",

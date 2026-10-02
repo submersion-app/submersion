@@ -13809,6 +13809,7 @@
   "navTrack_list_title": "Rotas subaquáticas",
   "navTrack_list_noMapRoutes": "Nenhuma rota colocada no mapa ainda.",
   "navTrack_list_empty": "Nenhuma rota subaquática ainda.",
+  "navTrack_list_loadError": "Could not load routes: {error}",
   "navTrack_seascape_title": "Paisagem subaquática da rota",
   "navTrack_seascape_noScene": "Esta rota não tem uma paisagem subaquática utilizável.",
   "navTrack_handoff_recognized": "Registro de navegação Seacraft ENC reconhecido",

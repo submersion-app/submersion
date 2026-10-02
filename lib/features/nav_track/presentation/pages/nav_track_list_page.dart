@@ -16,11 +16,11 @@ import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_t
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
-import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_parse_error_text.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_card_stat_row.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_shape_thumbnail.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -202,13 +202,18 @@ class _NavTrackListPageState extends ConsumerState<NavTrackListPage> {
   @override
   Widget build(BuildContext context) {
     final routesAsync = ref.watch(allNavTracksProvider);
-    final routes = routesAsync.value ?? const <NavTrack>[];
     final units = UnitFormatter(ref.watch(settingsProvider));
     final l10n = context.l10n;
 
     if (!ResponsiveBreakpoints.isMasterDetail(context)) {
-      return _buildColumn(context, routes, units);
+      return routesAsync.when(
+        loading: () => _buildLoading(context, l10n),
+        error: (e, st) => _buildError(context, l10n, e),
+        data: (routes) => _buildColumn(context, routes, units),
+      );
     }
+
+    final routes = routesAsync.value ?? const <NavTrack>[];
 
     final selection = ref.watch(mapListSelectionProvider(kNavTrackSectionKey));
     final anchoredRoutes = routes.where((r) => r.anchor != null).toList();
@@ -265,18 +270,32 @@ class _NavTrackListPageState extends ConsumerState<NavTrackListPage> {
     );
   }
 
+  Scaffold _scaffoldShell(BuildContext context, Widget body) => Scaffold(
+    appBar: AppBar(
+      title: Text(context.l10n.navTrack_list_title),
+      actions: [_matchAction(), _importAction()],
+    ),
+    body: body,
+  );
+
+  Widget _buildLoading(BuildContext context, AppLocalizations l10n) =>
+      _scaffoldShell(context, const Center(child: CircularProgressIndicator()));
+
+  Widget _buildError(BuildContext context, AppLocalizations l10n, Object e) =>
+      _scaffoldShell(
+        context,
+        Center(child: Text(l10n.navTrack_list_loadError(e.toString()))),
+      );
+
   Widget _buildColumn(
     BuildContext context,
     List<NavTrack> routes,
     UnitFormatter units,
   ) {
     final l10n = context.l10n;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.navTrack_list_title),
-        actions: [_matchAction(), _importAction()],
-      ),
-      body: routes.isEmpty
+    return _scaffoldShell(
+      context,
+      routes.isEmpty
           ? Center(child: Text(l10n.navTrack_list_empty))
           : ListView.builder(
               itemCount: routes.length,
@@ -358,9 +377,11 @@ class _NavTrackListPane extends StatelessWidget {
   }
 }
 
-/// One route row: name, date, device, distance, max depth, duration, and a
-/// link chip (`Dive #<n>` or "unlinked"). Unanchored routes show their shape
-/// thumbnail in place of a map preview.
+/// One route card, styled after `DiveListTile` (#2813): a route-icon badge
+/// (anchor, or compass for an unanchored route), plus a dive-number badge
+/// when linked; a shape-thumbnail preview and a chevron; a stat row with
+/// depth/duration/distance icons. Delete lives in the overflow menu since
+/// the thumbnail and chevron now occupy the row's trailing side.
 class NavTrackListRow extends ConsumerWidget {
   const NavTrackListRow({
     super.key,
@@ -376,43 +397,6 @@ class NavTrackListRow extends ConsumerWidget {
   final bool selected;
   final VoidCallback onTap;
   final VoidCallback onDelete;
-
-  /// `Dive #<n>` once the dive has loaded, its id while it is still
-  /// resolving or missing, or "unlinked".
-  String _linkLabel(AppLocalizations l10n, WidgetRef ref) {
-    final diveId = route.diveId;
-    if (diveId == null) return l10n.navTrack_common_unlinked;
-    return navTrackDiveLabel(
-      l10n,
-      diveId,
-      ref.watch(diveProvider(diveId)).value,
-    );
-  }
-
-  /// The link chip: a plain chip for an unlinked route, or one that opens
-  /// the linked dive.
-  Widget _linkChip(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
-    const key = ValueKey('nav-track-link-chip');
-    final label = Text(_linkLabel(l10n, ref));
-    const density = VisualDensity.compact;
-    const tapTarget = MaterialTapTargetSize.shrinkWrap;
-    final diveId = route.diveId;
-    if (diveId == null) {
-      return Chip(
-        key: key,
-        label: label,
-        visualDensity: density,
-        materialTapTargetSize: tapTarget,
-      );
-    }
-    return ActionChip(
-      key: key,
-      label: label,
-      visualDensity: density,
-      materialTapTargetSize: tapTarget,
-      onPressed: () => context.push('/dives/$diveId'),
-    );
-  }
 
   /// Duration up to the last dead-reckoned sample, as stored at import
   /// (`durationSeconds`, the same active range `NavTrackStats.of` and the
@@ -432,6 +416,20 @@ class NavTrackListRow extends ConsumerWidget {
         : l10n.navTrack_list_durationMinutes(m);
   }
 
+  List<NavTrackCardStat> _stats(AppLocalizations l10n) => [
+    if (route.maxDepth != null)
+      NavTrackCardStat(
+        icon: Icons.arrow_downward,
+        text: units.formatDepth(route.maxDepth),
+      ),
+    NavTrackCardStat(icon: Icons.timer_outlined, text: _formatDuration(l10n)),
+    if (route.totalDistance != null)
+      NavTrackCardStat(
+        icon: Icons.straighten,
+        text: units.formatDistance(route.totalDistance!),
+      ),
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // route.startTime is wall-clock-as-UTC epoch milliseconds, the same
@@ -443,51 +441,157 @@ class NavTrackListRow extends ConsumerWidget {
       isUtc: true,
     );
     final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
     // route.points is always empty here: allNavTracksProvider reads with
     // includePoints: false so the list query never decodes every route's
-    // blob just to render a row (design spec "Points codec"). Only the shape
-    // thumbnail of an unanchored row needs actual points, so only that row
-    // hydrates its own route; everything else reads the stored summary.
-    final anchored = route.anchor != null;
-    final hydratedPoints = anchored
-        ? const <NavTrackPoint>[]
-        : ref.watch(navTrackByIdProvider(route.id)).value?.points ??
-              const <NavTrackPoint>[];
-    // The link chip sits below the status line rather than in trailing: a
-    // ListTile measures its trailing widget against the full tile width and
-    // gives the title column whatever is left, so a text-bearing chip there
-    // starves the file name down to one fragment per line on a phone or in
-    // the map view's list pane (issue #2692, same hazard as #935).
-    return ListTile(
-      selected: selected,
-      isThreeLine: true,
-      leading: anchored
-          ? const Icon(Icons.route)
-          : NavTrackShapeThumbnail(points: hydratedPoints),
-      title: Text(route.name ?? route.sourceRef ?? route.id),
-      subtitle: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            [
-              units.formatDate(startedAt),
-              if (route.deviceName != null) route.deviceName!,
-              if (route.totalDistance != null)
-                units.formatDistance(route.totalDistance!),
-              if (route.maxDepth != null) units.formatDepth(route.maxDepth),
-              _formatDuration(l10n),
-            ].join(' · '),
+    // blob just to render a row (design spec "Points codec"). Every row now
+    // shows its shape thumbnail (#2813), not only unanchored ones, but
+    // ListView.builder only builds rows actually on screen, so this still
+    // hydrates at most a screenful of routes at a time, not the whole list.
+    final hydratedPoints =
+        ref.watch(navTrackByIdProvider(route.id)).value?.points ??
+        const <NavTrackPoint>[];
+    final diveId = route.diveId;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      color: selected
+          ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+          : null,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  _RouteIconBadge(anchored: route.anchor != null),
+                  if (diveId != null) ...[
+                    const SizedBox(width: 6),
+                    _DiveNumberBadge(diveId: diveId),
+                  ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          route.name ?? route.sourceRef ?? route.id,
+                          style: Theme.of(context).textTheme.titleMedium,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (route.deviceName != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            route.deviceName!,
+                            style: Theme.of(context).textTheme.bodySmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        const SizedBox(height: 2),
+                        Text(
+                          units.formatDate(startedAt),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  NavTrackShapeThumbnail(points: hydratedPoints),
+                  Icon(
+                    Icons.chevron_right,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: (_) => onDelete(),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Text(l10n.navTrack_common_delete),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 52),
+                child: NavTrackCardStatRow(stats: _stats(l10n)),
+              ),
+            ],
           ),
-          _linkChip(context, l10n, ref),
-        ],
+        ),
       ),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline),
-        tooltip: l10n.navTrack_common_delete,
-        onPressed: onDelete,
+    );
+  }
+}
+
+/// The route-icon badge: an anchor for an anchored route, or a compass for
+/// one that is not -- unanchored routes have no fixed position to map, so a
+/// compass stands for "recorded in place" rather than "pinned on a chart".
+class _RouteIconBadge extends StatelessWidget {
+  const _RouteIconBadge({required this.anchored});
+
+  final bool anchored;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return CircleAvatar(
+      key: const ValueKey('nav-track-route-badge'),
+      radius: 18,
+      backgroundColor: colorScheme.secondaryContainer,
+      child: Icon(
+        anchored ? Icons.anchor : Icons.explore_outlined,
+        size: 18,
+        color: colorScheme.onSecondaryContainer,
       ),
-      onTap: onTap,
+    );
+  }
+}
+
+/// The linked dive's number, mirroring `DiveListTile`'s own badge
+/// (`#<n>`). Shows a plain link icon while the dive is still resolving or
+/// has no number of its own; tapping opens that dive.
+class _DiveNumberBadge extends ConsumerWidget {
+  const _DiveNumberBadge({required this.diveId});
+
+  final String diveId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final diveNumber = ref.watch(diveProvider(diveId)).value?.diveNumber;
+    return InkWell(
+      key: const ValueKey('nav-track-dive-badge'),
+      customBorder: const CircleBorder(),
+      onTap: () => context.push('/dives/$diveId'),
+      child: CircleAvatar(
+        radius: 18,
+        backgroundColor: colorScheme.primaryContainer,
+        child: diveNumber != null
+            ? FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: Text(
+                    '#$diveNumber',
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              )
+            : Icon(Icons.link, size: 16, color: colorScheme.onPrimaryContainer),
+      ),
     );
   }
 }
