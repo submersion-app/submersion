@@ -184,9 +184,49 @@ class _MultiTypeLayout extends StatefulWidget {
 }
 
 class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
+  /// One per tab, so the bar's Review action can bring a tab's decision
+  /// controls back into view (issue #2607).
+  final Map<ImportEntityType, ScrollController> _scrollControllers = {};
+
+  ScrollController _scrollControllerFor(ImportEntityType type) =>
+      _scrollControllers.putIfAbsent(type, ScrollController.new);
+
+  @override
+  void dispose() {
+    for (final controller in _scrollControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  /// Switches to the first tab with an undecided duplicate and scrolls it to
+  /// the top, where its bulk decision row and pending cards are listed.
+  /// Switching tabs alone did nothing visible when that tab was already
+  /// open, which on a single-tab download is always (issue #2607).
+  void _revealPending(BuildContext tabContext) {
+    final loc = widget.notifier.firstPendingLocation();
+    if (loc == null) return;
+    final tabIdx = widget.types.indexOf(loc.type);
+    if (tabIdx < 0) return;
+    DefaultTabController.maybeOf(tabContext)?.animateTo(tabIdx);
+    // The target tab's list may only attach during the tab animation.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final controller = _scrollControllers[loc.type];
+      if (controller == null || !controller.hasClients) return;
+      controller.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
   void _showImportOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      // The sheet covers the review bar and its Import button, so it needs
+      // a visible way out besides tapping the scrim (issue #2607).
+      showDragHandle: true,
       // Two switches plus a tag field that grows with every chip added can
       // outgrow the sheet's default ~half-screen cap (issue #998 follow-up
       // added the second switch). isScrollControlled lets it grow with its
@@ -272,6 +312,7 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
                 for (final type in widget.types)
                   _EntityTab(
                     type: type,
+                    scrollController: _scrollControllerFor(type),
                     bundle: widget.bundle,
                     state: widget.state,
                     notifier: widget.notifier,
@@ -289,13 +330,7 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
               onBack: widget.onBack,
               hasPendingReviews: widget.state.hasPendingReviews,
               totalPending: widget.state.totalPending,
-              onReviewPending: () {
-                final loc = widget.notifier.firstPendingLocation();
-                if (loc == null) return;
-                final tabIdx = widget.types.indexOf(loc.type);
-                if (tabIdx < 0) return;
-                DefaultTabController.maybeOf(ctx)?.animateTo(tabIdx);
-              },
+              onReviewPending: () => _revealPending(ctx),
             ),
           ),
         ],
@@ -346,6 +381,7 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
 
 class _EntityTab extends ConsumerWidget {
   final ImportEntityType type;
+  final ScrollController scrollController;
   final ImportBundle bundle;
   final ImportWizardState state;
   final ImportWizardNotifier notifier;
@@ -353,6 +389,7 @@ class _EntityTab extends ConsumerWidget {
 
   const _EntityTab({
     required this.type,
+    required this.scrollController,
     required this.bundle,
     required this.state,
     required this.notifier,
@@ -410,6 +447,7 @@ class _EntityTab extends ConsumerWidget {
     }
 
     return SingleChildScrollView(
+      controller: scrollController,
       child: EntityReviewList(
         group: group,
         selectedIndices: selectedIndices,
@@ -516,13 +554,20 @@ class _BottomBar extends StatelessWidget {
     if (counts.replacing > 0) {
       parts.add(l10n.universalImport_counts_replacing(counts.replacing));
     }
+    if (counts.filling > 0) {
+      parts.add(l10n.universalImport_counts_filling(counts.filling));
+    }
     if (counts.skipping > 0) {
       parts.add(l10n.universalImport_counts_skipped(counts.skipping));
     }
 
-    final countsText = parts.isEmpty
-        ? l10n.universalImport_counts_nothingSelected
-        : parts.join(', ');
+    // While duplicates await a decision the hint above already says so;
+    // "Nothing selected" would point the diver at the wrong control.
+    final countsText = parts.isNotEmpty
+        ? parts.join(', ')
+        : hasPendingReviews
+        ? ''
+        : l10n.universalImport_counts_nothingSelected;
 
     return SafeArea(
       child: Padding(
@@ -579,12 +624,7 @@ class _BottomBar extends StatelessWidget {
                   ),
                 ),
                 FilledButton(
-                  onPressed:
-                      (hasPendingReviews ||
-                          (counts.importing +
-                                  counts.consolidating +
-                                  counts.replacing) ==
-                              0)
+                  onPressed: (hasPendingReviews || counts.writing == 0)
                       ? null
                       : onImport,
                   child: Text(l10n.universalImport_action_importSelected),
@@ -620,6 +660,10 @@ class _AggregateCounts {
     this.filling = 0,
   });
 
+  /// Rows the import will write: everything but skips. A download whose
+  /// every dive fills a planned dive must still be importable (issue #2607).
+  int get writing => importing + consolidating + replacing + filling;
+
   /// Compute counts from [ImportWizardState].
   ///
   /// - importing: selected non-duplicate items + duplicates with
@@ -628,6 +672,11 @@ class _AggregateCounts {
   /// - skipping: duplicates with [DuplicateAction.skip] + non-selected
   ///   non-duplicate items
   /// - replacing: duplicates with [DuplicateAction.replaceSource]
+  /// - filling: duplicates with [DuplicateAction.fillPlanned]
+  ///
+  /// A duplicate still pending review counts toward none of these: it is
+  /// not yet decided, and calling it skipped beside the "needs a decision"
+  /// hint contradicted the hint (issue #2607).
   static _AggregateCounts compute(ImportWizardState state) {
     final bundle = state.bundle;
     if (bundle == null) {
@@ -651,6 +700,7 @@ class _AggregateCounts {
       final selectedIndices = state.selections[type] ?? const <int>{};
       final duplicateActions =
           state.duplicateActions[type] ?? const <int, DuplicateAction>{};
+      final pending = state.pendingFor(type);
 
       // Non-duplicate items
       for (int i = 0; i < group.items.length; i++) {
@@ -665,6 +715,7 @@ class _AggregateCounts {
 
       // Duplicate items
       for (final dupIndex in group.duplicateIndices) {
+        if (pending.contains(dupIndex)) continue;
         final action =
             duplicateActions[dupIndex] ?? _defaultAction(group, dupIndex);
         switch (action) {
@@ -801,6 +852,15 @@ class _ImportOptionsSheetState extends State<_ImportOptionsSheet> {
             onRemove: (index) => widget.notifier.removeImportTag(index),
           ),
           const SizedBox(height: 16),
+          // The sheet hides the Import button beneath it; without this the
+          // only way back was tapping the scrim (issue #2607).
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(context.l10n.common_action_done),
+            ),
+          ),
         ],
       ),
     );
