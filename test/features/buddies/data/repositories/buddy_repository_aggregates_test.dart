@@ -64,8 +64,9 @@ void main() {
       Buddy(id: 'ken', name: 'Ken', createdAt: now, updatedAt: now),
     );
     await _insertDive(database, id: 'd1', at: DateTime.utc(2024, 1, 10));
-    // Late in the evening, so reading it back with the device's UTC offset
-    // applied would move it to another day for most of the world.
+    // Read back as local time, 23:30 moves to the next day east of UTC and
+    // 00:30 to the previous day west of it, so between them every non-UTC
+    // zone shows a wrong date.
     await _insertDive(database, id: 'd2', at: DateTime.utc(2024, 3, 5, 23, 30));
     await _insertDive(database, id: 'd3', at: DateTime.utc(2024, 2, 1, 0, 30));
   });
