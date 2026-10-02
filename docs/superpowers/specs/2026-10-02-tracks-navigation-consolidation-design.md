@@ -270,7 +270,7 @@ with `sectionKey: kTracksSectionKey`.
   latch both pages use today. Loading, error and empty keep the three-way
   split from `GpsLoggerPage`.
 - **Info card:** `GpsTrackInfoCard` for GPS, a `NavTrackInfoCard` (new, same
-  shape: name, date, distance, max depth, linked dive, Details, Close) for
+  shape: name and the row's detail line, Details, Close) for
   underwater.
 - Unanchored underwater tracks appear only in the list, with their shape
   thumbnail as today.
