@@ -9,11 +9,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/seascape_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_depth_legend.dart';
@@ -28,6 +26,7 @@ import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/site_scape/presentation/path_provenance_chip.dart';
 import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -366,14 +365,7 @@ class _DiveSeascapeStandaloneState
     if (inputs == null) return null;
     final units = UnitFormatter(ref.watch(settingsProvider));
     return buildSeascapeAxes(
-      projection: SpatialProjection(
-        minEast: inputs.minEast,
-        maxEast: inputs.maxEast,
-        minNorth: inputs.minNorth,
-        maxNorth: inputs.maxNorth,
-        maxDepth: inputs.maxDepth,
-        verticalExaggeration: inputs.verticalExaggeration,
-      ),
+      projection: seascapeProjection(inputs),
       minEast: inputs.minEast,
       maxEast: inputs.maxEast,
       minNorth: inputs.minNorth,
@@ -411,16 +403,11 @@ class _DiveSeascapeStandaloneState
     // otherwise the honest synthesized label.
     final sourceId = result.bathymetrySourceId;
     final resolution = result.bathymetryResolutionMeters;
-    final pathLabel = switch (result.pathProvenance) {
-      PathProvenance.measured =>
-        result.pathSourceLabel != null
-            ? context.l10n.dive3d_spatial_recordedPathWithSource(
-                result.pathSourceLabel!,
-              )
-            : context.l10n.dive3d_spatial_recordedPath,
-      PathProvenance.deadReckoned ||
-      PathProvenance.straightLine => context.l10n.dive3d_spatial_estimatedPath,
-    };
+    final pathLabel = pathProvenanceLabel(
+      context,
+      result.pathProvenance,
+      result.pathSourceLabel,
+    );
     return Wrap(
       children: [
         chip(pathLabel),

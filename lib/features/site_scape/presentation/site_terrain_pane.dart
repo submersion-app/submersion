@@ -20,7 +20,6 @@ import 'package:submersion/features/site_scape/presentation/path_provenance_chip
 import 'package:submersion/features/site_scape/presentation/site_feature_info_sheet.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/seascape_chrome.dart';
@@ -297,24 +296,23 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
               // the site scene (see SiteTerrainPane.playbackContext); null
               // for the plain site view, where there is nothing to play.
               final playbackContext = widget.playbackContext;
-              final activePath = playbackContext == null
+              final activePathAsync = playbackContext == null
                   ? null
-                  : ref
-                        .watch(
-                          siteActivePathOverlayProvider((
-                            siteId: widget.siteId,
-                            pathId: switch (playbackContext) {
-                              DivePlaybackContext(diveId: final id) => id,
-                              NavTrackPlaybackContext(trackId: final id) => id,
-                            },
-                            source: switch (playbackContext) {
-                              DivePlaybackContext() => PathOverlaySource.dive,
-                              NavTrackPlaybackContext() =>
-                                PathOverlaySource.navTrack,
-                            },
-                          )),
-                        )
-                        .value;
+                  : ref.watch(
+                      siteActivePathOverlayProvider((
+                        siteId: widget.siteId,
+                        pathId: switch (playbackContext) {
+                          DivePlaybackContext(diveId: final id) => id,
+                          NavTrackPlaybackContext(trackId: final id) => id,
+                        },
+                        source: switch (playbackContext) {
+                          DivePlaybackContext() => PathOverlaySource.dive,
+                          NavTrackPlaybackContext() =>
+                            PathOverlaySource.navTrack,
+                        },
+                      )),
+                    );
+              final activePath = activePathAsync?.value;
               // scene.layers can legitimately be empty (e.g. right after a
               // source switch, before the terrain layer has been added);
               // there is then no base layer to insert the patch ahead of,
@@ -451,16 +449,22 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                           ),
                         // Sits below the source chip at top: 8 -- only the
                         // dive variant has a provenance to caption; a route
-                        // IS the recorded path, nothing to caption.
+                        // IS the recorded path, nothing to caption. A dive
+                        // with no usable path says so, as the standalone
+                        // view does, instead of silently showing the site.
                         if (playbackContext is DivePlaybackContext &&
-                            activePath != null)
+                            (activePathAsync?.hasSettled ?? false))
                           Positioned(
                             top: 40,
                             left: 8,
                             right: 8,
-                            child: PathProvenanceChip(
-                              overlay: activePath.overlay,
-                            ),
+                            child: activePath == null
+                                ? SeascapeCaptionChip(
+                                    label: context.l10n.dive3d_spatial_noPath,
+                                  )
+                                : PathProvenanceChip(
+                                    overlay: activePath.overlay,
+                                  ),
                           ),
                         // The legend describes the depth ramp; a photographed
                         // surface has no ramp to explain. It sits LEFT because the
@@ -608,14 +612,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
   SeascapeAxes _buildAxes(SeascapeAxisInputs inputs) {
     final units = UnitFormatter(ref.watch(settingsProvider));
     return buildSeascapeAxes(
-      projection: SpatialProjection(
-        minEast: inputs.minEast,
-        maxEast: inputs.maxEast,
-        minNorth: inputs.minNorth,
-        maxNorth: inputs.maxNorth,
-        maxDepth: inputs.maxDepth,
-        verticalExaggeration: inputs.verticalExaggeration,
-      ),
+      projection: seascapeProjection(inputs),
       minEast: inputs.minEast,
       maxEast: inputs.maxEast,
       minNorth: inputs.minNorth,

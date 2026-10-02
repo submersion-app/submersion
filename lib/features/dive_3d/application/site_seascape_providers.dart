@@ -83,20 +83,6 @@ const int _maxDivePaths = 30;
 /// FakeAsync deadlock rule); above it, in a compute() isolate.
 const int _isolateCellThreshold = 4000;
 
-/// The site scene's own projection, rebuilt from the frame it reported.
-/// Everything layered onto a built site scene afterwards (the LOD patch,
-/// the played-back path) must use exactly this, or it lands at a different
-/// place or vertical scale from the base terrain.
-SpatialProjection _siteProjection(SeascapeAxisInputs frame) =>
-    SpatialProjection(
-      minEast: frame.minEast,
-      maxEast: frame.maxEast,
-      minNorth: frame.minNorth,
-      maxNorth: frame.maxNorth,
-      maxDepth: frame.maxDepth,
-      verticalExaggeration: frame.verticalExaggeration,
-    );
-
 /// Where a dive's reconstructed [path] starts. A linked primary route
 /// carries its own georeferenced start point ([routeAnchor]), set by the
 /// diver on the alignment page; when the path IS that measured route, it is
@@ -459,7 +445,7 @@ final siteSeascapePatchLayerProvider = FutureProvider.autoDispose
       // default. The factor is per site and can reach 8x, so a patch built
       // at true scale would sit at a visibly different vertical scale from
       // the base square it overlays instead of continuing its surface.
-      final proj = _siteProjection(base.axisInputs);
+      final proj = seascapeProjection(base.axisInputs);
       final sceneInput = _PatchSceneInput(
         grid: patchGrid,
         center: center,
@@ -575,7 +561,7 @@ final siteActivePathOverlayProvider = FutureProvider.autoDispose
           anchorPoint = track.anchor;
       }
 
-      final proj = _siteProjection(base.axisInputs);
+      final proj = seascapeProjection(base.axisInputs);
       final anchor = anchorPoint == null
           ? (east: 0.0, north: 0.0)
           : enuOffsetMeters(center, anchorPoint);

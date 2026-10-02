@@ -45,4 +45,27 @@ void main() {
     await tester.pumpWidget(_host(_overlay(PathProvenance.straightLine)));
     expect(find.text('Estimated path (dead reckoning)'), findsOneWidget);
   });
+
+  testWidgets('a long source label wraps instead of overflowing on a phone', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(375, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      _host(
+        _overlay(
+          PathProvenance.measured,
+          label:
+              'Seacraft Ghost ENC export 2026-07-28 Salt Pier north wall '
+              'drift, second attempt, corrected heading',
+        ),
+      ),
+    );
+
+    // A RenderFlex overflow is reported through FlutterError, which the
+    // test binding surfaces as a takeException().
+    expect(tester.takeException(), isNull);
+  });
 }

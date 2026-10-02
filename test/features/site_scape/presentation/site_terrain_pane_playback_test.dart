@@ -141,7 +141,7 @@ void main() {
     },
   );
 
-  testWidgets('playback context with no resolved path hides the timeline', (
+  testWidgets('a dive with no resolved path hides the timeline and says so', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -161,6 +161,12 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(find.byType(TimeScrubBar), findsNothing);
+    // The standalone view says the path could not be reconstructed; the
+    // site-hosted view must too, not silently show only the site.
+    expect(
+      find.text('Not enough data to reconstruct the dive path'),
+      findsOneWidget,
+    );
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));
