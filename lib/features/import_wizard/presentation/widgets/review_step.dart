@@ -209,7 +209,11 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
     final tabIdx = widget.types.indexOf(loc.type);
     if (tabIdx < 0) return;
     DefaultTabController.maybeOf(tabContext)?.animateTo(tabIdx);
-    // The target tab's list may only attach during the tab animation.
+    // The target tab's list may only attach during the tab animation. A
+    // post-frame callback does not request a frame itself, and when the
+    // pending tab is already open nothing else may (a screen reader's tap
+    // draws no splash), so ask for one explicitly.
+    WidgetsBinding.instance.ensureVisualUpdate();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final controller = _scrollControllers[loc.type];
       if (controller == null || !controller.hasClients) return;

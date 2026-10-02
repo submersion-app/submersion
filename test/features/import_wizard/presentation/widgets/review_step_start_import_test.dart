@@ -207,6 +207,46 @@ void main() {
     });
   });
 
+  testWidgets('Review reaches the decision row on another, scrolled tab', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      ImportBundle(
+        source: const ImportSourceInfo(
+          type: ImportSourceType.uddf,
+          displayName: 'logbook.uddf',
+        ),
+        groups: {
+          ImportEntityType.dives: EntityGroup(items: [_dive(0)]),
+          ImportEntityType.sites: EntityGroup(
+            items: [
+              for (var i = 0; i < _diveCount; i++)
+                EntityItem(title: 'Site ${i + 1}', subtitle: ''),
+            ],
+            duplicateIndices: {for (var i = 0; i < _diveCount; i++) i},
+          ),
+        },
+      ),
+    );
+
+    // Scroll the sites tab past its decision row, then leave it.
+    await tester.tap(find.text('Sites ($_diveCount)'));
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byType(SingleChildScrollView).last,
+      const Offset(0, -2000),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dives (1)'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, 'Review'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Skip all ($_diveCount)').hitTestable(), findsOne);
+  });
+
   group('planned-dive fills', () {
     testWidgets('enable Import Selected and are counted in the review bar', (
       tester,
