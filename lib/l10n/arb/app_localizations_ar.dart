@@ -25511,6 +25511,7 @@ class AppLocalizationsAr extends AppLocalizations {
       days,
       locale: localeName,
       other: '$days أيام',
+      two: 'يومان',
       one: 'يوم واحد',
     );
     return '$_temp0';

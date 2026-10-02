@@ -7339,7 +7339,7 @@
   "trips_edit_dialog_discardContent": "لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد المغادرة؟",
   "trips_edit_dialog_discardTitle": "تجاهل التغييرات؟",
   "trips_edit_dialog_keepEditing": "متابعة التعديل",
-  "trips_edit_durationDays": "{days, plural, =1{يوم واحد} other{{days} أيام}}",
+  "trips_edit_durationDays": "{days, plural, =1{يوم واحد} =2{يومان} other{{days} أيام}}",
   "trips_edit_hint_cabinType": "e.g. Deluxe Double",
   "trips_edit_hint_disembarkPort": "e.g. Hurghada Marina",
   "trips_edit_hint_embarkPort": "e.g. Hurghada Marina",
