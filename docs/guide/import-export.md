@@ -307,12 +307,12 @@ Imported data includes start/end times, heart rate samples, and GPS coordinates 
 
 ## Garmin FIT File Import
 
-Garmin dive computers (Descent series) store dive activities in the FIT binary format. Submersion can parse these files to extract dive profiles, depth, temperature, heart rate, and GPS data.
+Garmin dive computers store dive activities in the FIT binary format. Submersion can parse these files to extract dive profiles, depth, temperature, heart rate, and GPS data. Supported models include the Descent Mk1, Mk2 / Mk2i, Mk2s, Mk3, Mk3i, X50i, G1 and G2, plus Fenix, Epix, Enduro and Tactix watches that log dives; [Dive Computer Integration](dive-computer.md#garmin-file-and-cloud-import) has the full list.
 
 ### Importing FIT Files
 
-1. Go to **Transfer** > **Garmin FIT Import**
-2. Tap **Select FIT Files** and choose one or more `.fit` files
+1. Go to **Transfer** > **File Import**
+2. Choose one or more `.fit` files (on desktop, with the watch connected by cable, **Import from Garmin Device** reads them straight from it)
 3. The parser filters for dive activities and skips non-dive files automatically
 4. Review parsed dives and handle duplicates
 5. Confirm import
