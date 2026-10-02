@@ -89,7 +89,9 @@ A cylinder in **Equipment** adds no gas data to the dive. Adding a Tank item fro
 
 One cylinder can be on a dive in both lists, and for a cylinder you own that is the normal case: the Equipment entry counts the dive toward that cylinder's history, and the tank holds this dive's gas and pressures. The tank copies the cylinder's details when you fill it in. It does not stay linked, so later changes to the cylinder in your catalog do not rewrite past dives.
 
-To fill a tank from a cylinder you own, open the tank and tap **Fill from my cylinders** (the box icon next to the tag scanner, shown once your gear catalog has a Tank item), then choose the cylinder. Submersion copies its size, working pressure, material and latest recorded fill into the tank and adds the cylinder to the dive's **Equipment**. Scanning a cylinder's tag does the same.
+To fill a tank from a cylinder you own, open the tank and tap **Fill from my cylinders** (the box icon next to the tag scanner), then choose the cylinder. Submersion copies its size, working pressure, material and latest recorded fill into the tank and adds the cylinder to the dive's **Equipment**. Scanning a cylinder's tag does the same.
+
+The button appears when your gear catalog has a Tank item in use. Spare cylinders are not listed. A cylinder another diver profile has shared with you is listed with its owner's name, and using it adds it to this dive's equipment the same way.
 
 When a dive computer downloads pressures from an air-integrated transmitter you have registered, the tank is matched to that cylinder automatically.
 

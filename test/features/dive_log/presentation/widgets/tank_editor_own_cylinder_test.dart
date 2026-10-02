@@ -15,6 +15,8 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_owner_chip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
@@ -131,6 +133,7 @@ void main() {
     required void Function(DiveTank) onChanged,
     Future<void> Function(EquipmentItem)? onOwnCylinderUsed,
     List<EquipmentItem>? gear,
+    List<dynamic> extra = const [],
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -149,6 +152,7 @@ void main() {
           ),
           tankPresetsProvider.overrideWith((ref) => Future.value(presets)),
           activeEquipmentProvider.overrideWith((ref) async => active),
+          ...extra,
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),
@@ -235,6 +239,47 @@ void main() {
     // Spare gear is not offered (#1803), nor is gear that is not a tank.
     expect(find.byKey(Key('own-cylinder-${spare.id}')), findsNothing);
     expect(find.byKey(Key('own-cylinder-${regulator.id}')), findsNothing);
+  });
+
+  // Shared gear is usable on a dive (#2046), so a cylinder another diver
+  // shared is offered, marked with its owner as the gear list marks it.
+  testWidgets('a shared cylinder is offered with its owner', (tester) async {
+    final shared = faber.copyWith(
+      id: 'eq-shared',
+      name: 'Sam 15',
+      diverId: 'diver-2',
+    );
+    await pump(
+      tester,
+      onChanged: (_) {},
+      onOwnCylinderUsed: (_) async {},
+      gear: [bare, shared],
+      extra: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver-1'),
+        hasMultipleDiversProvider.overrideWithValue(true),
+        diverNamesByIdProvider.overrideWith(
+          (ref) async => {'diver-1': 'Alex', 'diver-2': 'Sam'},
+        ),
+      ],
+    );
+    await tester.tap(pickerButton);
+    await tester.pumpAndSettle();
+
+    final sharedTile = find.byKey(const Key('own-cylinder-eq-shared'));
+    expect(
+      find.descendant(
+        of: sharedTile,
+        matching: find.byType(EquipmentOwnerChip),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(Key('own-cylinder-${bare.id}')),
+        matching: find.byType(EquipmentOwnerChip),
+      ),
+      findsNothing,
+    );
   });
 
   testWidgets('no picker when the diver owns no cylinder', (tester) async {
