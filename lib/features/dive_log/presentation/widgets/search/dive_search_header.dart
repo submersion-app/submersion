@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
@@ -8,14 +9,15 @@ import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_text_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
-import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/close_dive_search.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_jump_list.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_scope_toggle.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/presentation/app_query_labels.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
@@ -173,6 +175,42 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
         if (_focus.hasFocus && _local != null)
           DiveJumpList(query: _local!, onOpen: widget.onOpenDive),
         if (panelAxes > 0) const DiveSearchScopeToggle(),
+        if (filter.hasActiveFilters)
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 8, 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: activeDiveFilterChips(
+                        context,
+                        ref,
+                        diveFilterProvider,
+                      ),
+                    ),
+                  ),
+                ),
+                TextButton(
+                  key: kDiveSearchInsightsKey,
+                  onPressed: () {
+                    // What applies, not what is set: Insights has no
+                    // "All dives" toggle to show a suspension with.
+                    ref.read(insightsFilterProvider.notifier).state =
+                        filter.effective;
+                    context.go('/insights');
+                  },
+                  child: Text(l10n.diveLog_search_openInsights),
+                ),
+                TextButton(
+                  onPressed: () => ref.read(diveFilterProvider.notifier).state =
+                      const DiveFilterState(),
+                  child: Text(l10n.diveLog_filterChip_clearAll),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

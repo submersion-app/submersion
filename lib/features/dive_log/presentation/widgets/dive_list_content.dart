@@ -51,12 +51,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -1120,6 +1120,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, stack) => _buildErrorState(context, error),
           );
+          // The search row sits OUTSIDE the loading and empty states, so a
+          // search that matches nothing never takes its own field away.
+          final body = Column(
+            children: [
+              DiveSearchHeader(onOpenDive: _handleItemTap),
+              Expanded(child: content),
+            ],
+          );
 
           if (!widget.showAppBar) {
             // Used inside MasterDetailScaffold - no Scaffold wrapper
@@ -1129,7 +1137,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   _buildSelectionBar(loadedDives)
                 else
                   _buildCompactAppBar(context, filter),
-                Expanded(child: content),
+                Expanded(child: body),
               ],
             );
           }
@@ -1139,7 +1147,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             appBar: selection.isActive
                 ? _buildSelectionAppBar(loadedDives)
                 : _buildAppBar(context, filter),
-            body: content,
+            body: body,
             floatingActionButton: selection.isActive
                 ? null
                 : widget.floatingActionButton,
@@ -1702,6 +1710,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 )
               else
                 SelectionEntryBar(controller: _selection),
+              DiveSearchHeader(onOpenDive: _handleItemTap),
               Expanded(child: content),
             ],
           );
@@ -1726,7 +1735,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         }
         return Column(
           children: [
-            if (filter.hasActiveFilters) _buildActiveFiltersBar(context),
             Expanded(
               child: DiveTableView(
                 dives: dives,
@@ -1901,7 +1909,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       onRefresh: () => ref.read(paginatedDiveListProvider.notifier).refresh(),
       child: Column(
         children: [
-          if (hasActiveFilters) _buildActiveFiltersBar(context),
           Expanded(
             child: CustomScrollView(
               controller: _scrollController,
@@ -2106,31 +2113,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ),
           ),
           if (!section.collapsed) sliverForEntries(section.entries),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActiveFiltersBar(BuildContext context) {
-    final chips = activeDiveFilterChips(context, ref, diveFilterProvider);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(children: chips),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              ref.read(diveFilterProvider.notifier).state =
-                  const DiveFilterState();
-            },
-            child: Text(context.l10n.diveLog_filterChip_clearAll),
-          ),
         ],
       ),
     );

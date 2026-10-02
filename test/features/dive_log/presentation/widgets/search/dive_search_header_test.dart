@@ -2,15 +2,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
-import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_app.dart';
@@ -218,5 +220,64 @@ void main() {
     await tester.tap(find.text('Within filters'));
     await tester.pumpAndSettle();
     expect(filterOf().axesSuspended, isFalse);
+  });
+
+  testWidgets('Open in Insights hands over the effective search', (
+    tester,
+  ) async {
+    final base = await getBaseOverrides();
+    final router = GoRouter(
+      initialLocation: '/dives',
+      routes: [
+        GoRoute(
+          path: '/dives',
+          builder: (context, _) => Scaffold(
+            body: Builder(
+              builder: (context) {
+                container = ProviderScope.containerOf(context);
+                return DiveSearchHeader(onOpenDive: (_) {});
+              },
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/insights',
+          builder: (_, _) => const Text('Insights page'),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    final q = TextNode(['manta']);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          diveFilterProvider.overrideWith(
+            (ref) =>
+                DiveFilterState(minDepth: 30, query: q, axesSuspended: true),
+          ),
+          queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+          diveJumpResultsProvider.overrideWith((ref, _) async => const []),
+        ],
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(kDiveSearchInsightsKey));
+    await tester.pumpAndSettle();
+    expect(find.text('Insights page'), findsOneWidget);
+    expect(container.read(insightsFilterProvider), DiveFilterState(query: q));
+  });
+
+  testWidgets('Clear all empties the search', (tester) async {
+    await pumpHeader(tester, filter: const DiveFilterState(minDepth: 30));
+    await tester.tap(find.text('Clear all'));
+    await tester.pumpAndSettle();
+    expect(filterOf(), const DiveFilterState());
   });
 }
