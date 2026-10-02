@@ -2661,6 +2661,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_stat_lastDive => '最近潜水';
 
   @override
+  String get buddies_summary_mostDives => 'Most Dives';
+
+  @override
   String get buddies_summary_overview => '概览';
 
   @override

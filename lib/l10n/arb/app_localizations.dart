@@ -4399,6 +4399,12 @@ abstract class AppLocalizations {
   /// **'Last Dive'**
   String get buddies_stat_lastDive;
 
+  /// No description provided for @buddies_summary_mostDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Most Dives'**
+  String get buddies_summary_mostDives;
+
   /// No description provided for @buddies_summary_overview.
   ///
   /// In en, this message translates to:

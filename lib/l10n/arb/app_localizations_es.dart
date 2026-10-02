@@ -2808,6 +2808,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_stat_lastDive => 'Última Inmersión';
 
   @override
+  String get buddies_summary_mostDives => 'Most Dives';
+
+  @override
   String get buddies_summary_overview => 'Resumen';
 
   @override

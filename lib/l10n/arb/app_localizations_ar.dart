@@ -2765,6 +2765,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_stat_lastDive => 'آخر غطسة';
 
   @override
+  String get buddies_summary_mostDives => 'Most Dives';
+
+  @override
   String get buddies_summary_overview => 'نظرة عامة';
 
   @override

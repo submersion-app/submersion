@@ -2803,6 +2803,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_stat_lastDive => 'Utolsó merülés';
 
   @override
+  String get buddies_summary_mostDives => 'Most Dives';
+
+  @override
   String get buddies_summary_overview => 'Áttekintés';
 
   @override

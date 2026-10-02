@@ -2767,6 +2767,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_stat_lastDive => 'Last Dive';
 
   @override
+  String get buddies_summary_mostDives => 'Most Dives';
+
+  @override
   String get buddies_summary_overview => 'Overview';
 
   @override

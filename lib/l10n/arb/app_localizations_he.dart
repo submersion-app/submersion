@@ -2755,6 +2755,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_stat_lastDive => 'צלילה אחרונה';
 
   @override
+  String get buddies_summary_mostDives => 'Most Dives';
+
+  @override
   String get buddies_summary_overview => 'סקירה כללית';
 
   @override
