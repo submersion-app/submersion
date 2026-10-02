@@ -123,7 +123,7 @@ class RenderTitleActionsLayout extends RenderBox
   ) {
     final title = heightOf(_title, width);
     final actions = heightOf(_actions, width);
-    return computeMaxIntrinsicWidth(double.infinity) <= width
+    return getMaxIntrinsicWidth(double.infinity) <= width
         ? math.max(title, actions)
         : title + actions;
   }
