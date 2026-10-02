@@ -2825,7 +2825,7 @@
   "diveLog_refine_summaryCount": "{count, plural, =1{{count} ingesteld} other{{count} ingesteld}}",
   "diveLog_refine_showDives": "{count, plural, =1{{count} duik tonen} other{{count} duiken tonen}}",
   "diveLog_refine_showDivesNoCount": "Duiken tonen",
-  "diveLog_search_fieldHint": "Woorden, \"exacte zin\" of depth > 30m",
+  "diveLog_search_fieldHint": "Zoek, bv. depth > 30m",
   "diveLog_search_refineTooltip": "Verfijnen",
   "diveLog_search_closeTooltip": "Zoeken sluiten",
   "diveLog_search_scopeWithin": "Binnen filters",

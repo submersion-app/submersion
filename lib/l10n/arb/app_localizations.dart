@@ -14220,7 +14220,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_search_fieldHint.
   ///
   /// In en, this message translates to:
-  /// **'Words, \"exact phrase\" or depth > 30m'**
+  /// **'Search, or try depth > 30m'**
   String get diveLog_search_fieldHint;
 
   /// No description provided for @diveLog_search_refineTooltip.

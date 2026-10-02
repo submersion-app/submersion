@@ -8749,8 +8749,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => 'عرض الغوصات';
 
   @override
-  String get diveLog_search_fieldHint =>
-      'كلمات أو \"عبارة دقيقة\" أو depth > 30m';
+  String get diveLog_search_fieldHint => 'ابحث، أو جرّب depth > 30m';
 
   @override
   String get diveLog_search_refineTooltip => 'تحسين البحث';

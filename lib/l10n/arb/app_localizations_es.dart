@@ -8920,8 +8920,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => 'Mostrar inmersiones';
 
   @override
-  String get diveLog_search_fieldHint =>
-      'Palabras, \"frase exacta\" o depth > 30m';
+  String get diveLog_search_fieldHint => 'Busca, p. ej. depth > 30m';
 
   @override
   String get diveLog_search_refineTooltip => 'Refinar';

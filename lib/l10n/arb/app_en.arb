@@ -4995,7 +4995,7 @@
   "diveLog_refine_showDives": "{count, plural, =1{Show {count} dive} other{Show {count} dives}}",
   "@diveLog_refine_showDives": {"placeholders": {"count": {"type": "int"}}},
   "diveLog_refine_showDivesNoCount": "Show dives",
-  "diveLog_search_fieldHint": "Words, \"exact phrase\" or depth > 30m",
+  "diveLog_search_fieldHint": "Search, or try depth > 30m",
   "diveLog_search_refineTooltip": "Refine",
   "diveLog_search_closeTooltip": "Close search",
   "diveLog_search_scopeWithin": "Within filters",

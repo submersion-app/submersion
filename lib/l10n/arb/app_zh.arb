@@ -2952,7 +2952,7 @@
   "diveLog_refine_summaryCount": "{count, plural, =1{已设 {count} 项} other{已设 {count} 项}}",
   "diveLog_refine_showDives": "{count, plural, =1{显示 {count} 次潜水} other{显示 {count} 次潜水}}",
   "diveLog_refine_showDivesNoCount": "显示潜水",
-  "diveLog_search_fieldHint": "词语、\"精确短语\"或 depth > 30m",
+  "diveLog_search_fieldHint": "搜索，或试试 depth > 30m",
   "diveLog_search_refineTooltip": "细化",
   "diveLog_search_closeTooltip": "关闭搜索",
   "diveLog_search_scopeWithin": "在筛选范围内",

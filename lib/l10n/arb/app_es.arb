@@ -2825,7 +2825,7 @@
   "diveLog_refine_summaryCount": "{count, plural, =1{{count} activo} other{{count} activos}}",
   "diveLog_refine_showDives": "{count, plural, =1{Mostrar {count} inmersión} other{Mostrar {count} inmersiones}}",
   "diveLog_refine_showDivesNoCount": "Mostrar inmersiones",
-  "diveLog_search_fieldHint": "Palabras, \"frase exacta\" o depth > 30m",
+  "diveLog_search_fieldHint": "Busca, p. ej. depth > 30m",
   "diveLog_search_refineTooltip": "Refinar",
   "diveLog_search_closeTooltip": "Cerrar búsqueda",
   "diveLog_search_scopeWithin": "Dentro de los filtros",

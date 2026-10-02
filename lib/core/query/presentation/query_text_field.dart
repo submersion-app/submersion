@@ -207,6 +207,11 @@ class _QueryTextFieldState extends State<QueryTextField> {
             style: const TextStyle(fontFamily: 'monospace'),
             decoration: InputDecoration(
               hintText: widget.hintText,
+              // The hint is prose: in the field's monospace it is too wide
+              // for a phone's search row.
+              hintStyle: TextStyle(
+                fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+              ),
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _controller.text.isEmpty
                   ? null

@@ -8711,8 +8711,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => 'הצגת צלילות';
 
   @override
-  String get diveLog_search_fieldHint =>
-      'מילים, \"ביטוי מדויק\" או depth > 30m';
+  String get diveLog_search_fieldHint => 'חיפוש, או נסו depth > 30m';
 
   @override
   String get diveLog_search_refineTooltip => 'צמצום';
