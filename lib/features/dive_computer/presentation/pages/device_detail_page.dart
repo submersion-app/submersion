@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_computer/domain/services/dive_computer_
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_merge_sheet.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/raw_dive_data_discard.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -529,6 +530,26 @@ class DeviceDetailPage extends ConsumerWidget {
                                         c.withRawData,
                                       ),
                             style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: TextButton.icon(
+                            key: const ValueKey('discard_raw_data_button'),
+                            onPressed: () => confirmAndDiscardRawDiveData(
+                              context,
+                              ref,
+                              computerId: computer.id,
+                              message: context.l10n
+                                  .diveComputer_rawData_discardComputerMessage(
+                                    computer.displayName,
+                                    c.withRawData,
+                                  ),
+                            ),
+                            icon: const Icon(Icons.delete_outline),
+                            label: Text(
+                              context.l10n.diveComputer_rawData_discardButton,
+                            ),
                           ),
                         ),
                       ],

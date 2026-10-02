@@ -550,6 +550,7 @@ void main() {
     Future<void> pumpApp(
       WidgetTester tester, {
       Map<String, Object> initialPrefs = const {},
+      List<BackupRecord> history = const [],
     }) async {
       tester.view.physicalSize = const Size(1200, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -574,7 +575,7 @@ void main() {
             cloudStorageProviderProvider.overrideWithValue(
               _FakeCloudProvider(),
             ),
-            backupHistoryProvider.overrideWith((ref) async => const []),
+            backupHistoryProvider.overrideWith((ref) async => history),
             quarantinedDatabasesProvider.overrideWith((ref) async => const []),
           ],
           child: const MaterialApp(
@@ -637,6 +638,45 @@ void main() {
       expect(frequencyY, lessThan(retentionY));
       expect(retentionY, lessThan(locationY));
       expect(locationY, lessThan(cloudY));
+    });
+
+    testWidgets('retention shows what the retained backups cost', (
+      tester,
+    ) async {
+      // Every backup is a full copy of the database, so the count alone
+      // hides the cost of the choice (issue #1376).
+      BackupRecord record(String id, int sizeBytes) => BackupRecord(
+        id: id,
+        filename: '$id.db',
+        timestamp: _kNow,
+        sizeBytes: sizeBytes,
+        location: BackupLocation.local,
+      );
+      await pumpApp(
+        tester,
+        initialPrefs: {'backup_enabled': true},
+        history: [record('a', 1024 * 1024), record('b', 2 * 1024 * 1024)],
+      );
+
+      expect(
+        find.descendant(
+          of: find.widgetWithText(ListTile, 'Keep backups'),
+          matching: find.text('2 backups currently use 3.0 MB'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('retention shows no footprint while there are no backups', (
+      tester,
+    ) async {
+      await pumpApp(tester, initialPrefs: {'backup_enabled': true});
+
+      expect(find.text('Keep backups'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('backup_retention_footprint')),
+        findsNothing,
+      );
     });
 
     testWidgets('enabling cloud backup clears a custom location', (
