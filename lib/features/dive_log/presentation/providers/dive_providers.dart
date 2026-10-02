@@ -720,7 +720,17 @@ class PaginatedDiveListNotifier
     _ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
       if (previous != next) {
         _followFilterTicks(next);
-        loadFirstPage();
+        // The search row re-runs the list on every typing pause (#2773):
+        // keep the rows on screen until the new ones arrive.
+        final searchOnly =
+            previous != null &&
+            previous.copyWith(
+                  query: next.query,
+                  clearQuery: next.query == null,
+                  axesSuspended: next.axesSuspended,
+                ) ==
+                next;
+        _enqueuePaging(() => _loadFirstPage(quiet: searchOnly));
       }
     });
     _followFilterTicks(_ref.read(diveFilterProvider));
@@ -810,12 +820,14 @@ class PaginatedDiveListNotifier
         hold: false,
       );
 
-  Future<void> _loadFirstPage() async {
+  /// A [quiet] load keeps the current rows until the new first page lands,
+  /// instead of showing a spinner.
+  Future<void> _loadFirstPage({bool quiet = false}) async {
     // Queued work can reach its turn after the notifier is gone: this provider
     // is invalidated from half a dozen places (imports, merges, renumbering),
     // and writing state on a disposed StateNotifier throws.
     if (!mounted) return;
-    state = const AsyncValue.loading();
+    if (!quiet || !state.hasValue) state = const AsyncValue.loading();
     _currentOffset = 0;
     try {
       final filter = _ref.read(diveFilterProvider);
