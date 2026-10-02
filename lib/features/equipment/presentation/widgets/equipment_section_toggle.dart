@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_section_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
@@ -27,9 +30,37 @@ import 'package:submersion/shared/widgets/feature_accent.dart';
 /// The text takes its size and weight from the surrounding [DefaultTextStyle]:
 /// an app bar's title style on phone, the pane header's on desktop.
 class EquipmentSectionToggle extends StatelessWidget {
-  const EquipmentSectionToggle({super.key, required this.controller});
+  const EquipmentSectionToggle({
+    super.key,
+    required this.controller,
+    this.tabHeight = defaultTabHeight,
+  });
 
   final TabController controller;
+
+  /// Height of each [Tab], not counting the [indicatorWeight] the [TabBar]
+  /// pads under it. The pill keeps its size whatever this is.
+  final double tabHeight;
+
+  /// A text [Tab]'s own height, kept wherever the header grows to fit.
+  static const double defaultTabHeight = 46;
+
+  /// The tab height that leaves a subtitle line room in a standard 56px
+  /// toolbar: [heightFor] gives 40, and the entry count under it takes 16.
+  /// The phone app bar uses it, where the toolbar clips rather than grows
+  /// (issue #2776).
+  static const double compactTabHeight = 38;
+
+  /// [TabBar]'s default, set here because it pads the bottom of every tab
+  /// even with a custom [TabBar.indicator], so it counts toward the height.
+  static const double indicatorWeight = 2;
+
+  /// The selected section's pill: [defaultTabHeight] and [indicatorWeight]
+  /// less the 7px inset it has always had above and below.
+  static const double pillHeight = 34;
+
+  /// The switcher's laid-out height with tabs of [tabHeight].
+  static double heightFor(double tabHeight) => tabHeight + indicatorWeight;
 
   /// Horizontal padding either side of each name, inside its pill.
   static const double labelPadding = 8;
@@ -37,6 +68,24 @@ class EquipmentSectionToggle extends StatelessWidget {
   /// The icon and gap [FeatureAppBarTitle] puts in front of a title when the
   /// section-headers accent is on.
   static const double _accentLead = 24 + 8;
+
+  /// How far in from the switcher's leading edge the first name's text
+  /// starts: its pill's padding, and the accent icon and gap ahead of it
+  /// when the icon shows. A line under the switcher, such as the entry
+  /// count, indents by this to start under the text the way every other
+  /// list's does, rather than under the pill's edge.
+  static double textInset({required bool withAccentIcon}) =>
+      labelPadding + (withAccentIcon ? _accentLead : 0);
+
+  /// Whether [FeatureAppBarTitle] puts the accent icon ahead of the names.
+  static bool showsAccentIcon(BuildContext context, WidgetRef ref) =>
+      resolveFeatureAccent(
+        context,
+        ref,
+        surface: AccentSurface.header,
+        featureId: 'equipment',
+      ) !=
+      null;
 
   /// The width the switcher needs to show both names in full in [style].
   ///
@@ -92,7 +141,12 @@ class EquipmentSectionToggle extends StatelessWidget {
         // that side.
         labelPadding: const EdgeInsets.symmetric(horizontal: labelPadding),
         indicatorSize: TabBarIndicatorSize.tab,
-        indicatorPadding: const EdgeInsets.symmetric(vertical: 7),
+        indicatorWeight: indicatorWeight,
+        // Centred in whatever height the tabs have, so a compact switcher
+        // trims the space around the pill rather than the pill itself.
+        indicatorPadding: EdgeInsets.symmetric(
+          vertical: math.max(0, (heightFor(tabHeight) - pillHeight) / 2),
+        ),
         indicator: BoxDecoration(color: colors.pill, borderRadius: pillRadius),
         // Hover and focus take the pill's shape, so a highlight reads as a
         // preview of selection rather than a stray rectangle.
@@ -103,8 +157,8 @@ class EquipmentSectionToggle extends StatelessWidget {
         labelColor: colors.selected,
         unselectedLabelColor: colors.unselected,
         tabs: [
-          Tab(text: context.l10n.equipment_tab_equipment),
-          Tab(text: context.l10n.equipment_tab_sets),
+          Tab(text: context.l10n.equipment_tab_equipment, height: tabHeight),
+          Tab(text: context.l10n.equipment_tab_sets, height: tabHeight),
         ],
       ),
     );
