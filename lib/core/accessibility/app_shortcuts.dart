@@ -9,6 +9,7 @@ import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
@@ -268,9 +269,16 @@ class AppShortcuts {
         }
       },
 
-      // Search
+      // Search: the dive list's search row (#2773), opened with the caret
+      // in it. From another section this switches to Dives, like digit1.
       platformShortcut(LogicalKeyboardKey.keyF): () {
-        context.push('/dives/search');
+        final container = ProviderScope.containerOf(context, listen: false);
+        container.read(diveSearchBarOpenProvider.notifier).state = true;
+        container.read(diveSearchFocusPendingProvider.notifier).state = true;
+        final path = GoRouter.of(
+          context,
+        ).routerDelegate.currentConfiguration.uri.path;
+        if (path != '/dives') context.go('/dives');
       },
       if (exploreSupported)
         platformShortcut(LogicalKeyboardKey.keyE): () => _openExplore(context),
