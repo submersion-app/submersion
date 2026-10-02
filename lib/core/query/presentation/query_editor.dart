@@ -6,6 +6,7 @@ import 'package:submersion/core/query/presentation/query_builder_group.dart';
 import 'package:submersion/core/query/presentation/query_builder_strings.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_text_field.dart';
+import 'package:submersion/core/utils/text_measurement.dart';
 
 @immutable
 class QueryEditorStrings {
@@ -88,24 +89,15 @@ class _QueryEditorState extends State<QueryEditor>
         Theme.of(context).textTheme.titleSmall ?? const TextStyle(fontSize: 14);
     final buttonStyle =
         Theme.of(context).textTheme.labelLarge ?? const TextStyle(fontSize: 14);
-    double measure(String text, TextStyle style) {
-      final painter = TextPainter(
-        text: TextSpan(text: text, style: style),
-        textDirection: direction,
-        textScaler: scaler,
-        maxLines: 1,
-      )..layout();
-      final width = painter.width;
-      painter.dispose();
-      return width;
-    }
 
     final strings = widget.strings;
     final tabsWidth =
-        measure(strings.tabText, tabStyle) +
-        measure(strings.tabBuilder, tabStyle) +
+        measureTextWidth(strings.tabText, tabStyle, direction, scaler) +
+        measureTextWidth(strings.tabBuilder, tabStyle, direction, scaler) +
         4 * _tabLabelPadding;
-    final saveWidth = measure(strings.save, buttonStyle) + _saveButtonChrome;
+    final saveWidth =
+        measureTextWidth(strings.save, buttonStyle, direction, scaler) +
+        _saveButtonChrome;
     return maxWidth >= tabsWidth + _rowSpacing + saveWidth;
   }
 
