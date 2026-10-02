@@ -1199,34 +1199,39 @@ void main() {
   });
 
   // #2773: Advanced Search became the Refine panel; an old link or a
-  // bookmark lands on the dive list with its search row open.
+  // bookmark lands on the dive list with its search row open, including on
+  // a cold start, when the redirect runs while the tree builds.
   group('diveSearch route redirects to the dive list', () {
-    for (final uri in ['/dives/search', '/dives/search?section=query']) {
-      testWidgets('$uri opens the search row', (tester) async {
-        await tester.pumpWidget(
-          const ProviderScope(child: MaterialApp(home: SizedBox())),
-        );
-        final context = tester.element(find.byType(SizedBox));
+    for (final location in ['/dives/search', '/dives/search?section=query']) {
+      testWidgets('a cold start at $location opens the search row', (
+        tester,
+      ) async {
         final route = _findRouteByName(
           router.configuration.routes,
           'diveSearch',
         )!;
-        final target = route.redirect!(
-          context,
-          GoRouterState(
-            router.configuration,
-            uri: Uri.parse(uri),
-            matchedLocation: '/dives/search',
-            fullPath: '/dives/search',
-            pathParameters: const {},
-            pageKey: const ValueKey('/dives/search'),
-          ),
+        expect(route.redirect, same(redirectRetiredDiveSearch));
+        final coldStart = GoRouter(
+          initialLocation: location,
+          routes: [
+            GoRoute(
+              path: '/dives',
+              builder: (context, _) => Consumer(
+                builder: (context, ref, _) =>
+                    Text('open=${ref.watch(diveSearchBarOpenProvider)}'),
+              ),
+              routes: [
+                GoRoute(path: 'search', redirect: redirectRetiredDiveSearch),
+              ],
+            ),
+          ],
         );
-        expect(await target, '/dives');
-        expect(
-          ProviderScope.containerOf(context).read(diveSearchBarOpenProvider),
-          isTrue,
+        addTearDown(coldStart.dispose);
+        await tester.pumpWidget(
+          ProviderScope(child: MaterialApp.router(routerConfig: coldStart)),
         );
+        await tester.pumpAndSettle();
+        expect(find.text('open=true'), findsOneWidget);
       });
     }
   });

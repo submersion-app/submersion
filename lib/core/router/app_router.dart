@@ -398,13 +398,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 // Advanced Search became the Refine panel (#2773): an old
                 // link or bookmark lands on the dive list with its search
                 // row open.
-                redirect: (context, state) {
-                  ProviderScope.containerOf(
-                    context,
-                    listen: false,
-                  ).read(diveSearchBarOpenProvider.notifier).state = true;
-                  return '/dives';
-                },
+                redirect: redirectRetiredDiveSearch,
               ),
               GoRoute(
                 path: 'match-sites',
@@ -1979,3 +1973,16 @@ DiveEditPage newDivePage(GoRouterState state) => DiveEditPage(
   tripId: state.uri.queryParameters['tripId'],
   tripCylinderId: state.uri.queryParameters['tripCylinderId'],
 );
+
+/// `/dives/search` was Advanced Search; it is the Refine panel now (#2773),
+/// so an old link or a bookmark lands on the dive list with its search row
+/// open. The open flag is written after the frame: go_router evaluates a
+/// redirect while parsing the location, which on a cold start happens while
+/// the widget tree builds, where Riverpod refuses provider writes.
+String redirectRetiredDiveSearch(BuildContext context, GoRouterState state) {
+  final container = ProviderScope.containerOf(context, listen: false);
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    container.read(diveSearchBarOpenProvider.notifier).state = true;
+  });
+  return '/dives';
+}
