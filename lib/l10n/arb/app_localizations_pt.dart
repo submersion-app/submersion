@@ -43392,12 +43392,28 @@ class AppLocalizationsPt extends AppLocalizations {
       'Prosseguindo para a revisão...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Importar de arquivo';
+
+  @override
   String get importWizard_dc_knownComputer => 'Computador Conhecido';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Salvo como \"$name\". Somente mergulhos novos serão baixados.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Não é possível baixar diretamente deste computador';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'O Submersion não tem uma conexão salva para $name. Importe os mergulhos de um arquivo ou adicione-o novamente em Computadores de Mergulho para baixar por Bluetooth ou USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Os relógios Garmin armazenam os mergulhos como arquivos FIT em vez de oferecer um download direto. Conecte o relógio por USB, copie os arquivos da pasta GARMIN/Activity e depois importe-os.';
 
   @override
   String get importWizard_dc_noNewDives => 'Nenhum mergulho novo para baixar';

@@ -43196,12 +43196,28 @@ class AppLocalizationsHu extends AppLocalizations {
       'Továbblépés az áttekintésre...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Importálás fájlból';
+
+  @override
   String get importWizard_dc_knownComputer => 'Ismert búvárszámítógép';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Mentve mint \"$name\". Csak az új merülések töltődnek le.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Erről a búvárszámítógépről nem lehet közvetlenül letölteni';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'A Submersion nem tárol mentett kapcsolatot ehhez: $name. Importálja a merüléseit fájlból, vagy adja hozzá újra a Merülésszámítógépek oldalon, hogy Bluetooth-on vagy USB-n keresztül tölthessen le.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'A Garmin órák FIT-fájlokként tárolják a merüléseket, és nem kínálnak közvetlen letöltést. Csatlakoztassa az órát USB-n, másolja ki a fájlokat a GARMIN/Activity mappájából, majd importálja őket.';
 
   @override
   String get importWizard_dc_noNewDives => 'Nincs letöltendő új merülés';

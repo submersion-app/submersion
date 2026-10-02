@@ -69081,6 +69081,12 @@ abstract class AppLocalizations {
   /// **'Proceeding to review...'**
   String get diveImport_healthkit_proceedingToReview;
 
+  /// No description provided for @importWizard_dc_importFromFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from File'**
+  String get importWizard_dc_importFromFile;
+
   /// No description provided for @importWizard_dc_knownComputer.
   ///
   /// In en, this message translates to:
@@ -69092,6 +69098,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved as \"{name}\". Only new dives will be downloaded.'**
   String importWizard_dc_knownComputerBody(String name);
+
+  /// No description provided for @importWizard_dc_noDirectDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t download this computer directly'**
+  String get importWizard_dc_noDirectDownload;
+
+  /// Download step body when a saved dive computer has no stored connection to download from.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion has no saved connection for {name}. Import its dives from a file, or add it again from Dive Computers to download over Bluetooth or USB.'**
+  String importWizard_dc_noDirectDownloadBody(String name);
+
+  /// No description provided for @importWizard_dc_noDirectDownloadGarminBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.'**
+  String get importWizard_dc_noDirectDownloadGarminBody;
 
   /// No description provided for @importWizard_dc_noNewDives.
   ///

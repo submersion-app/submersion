@@ -43049,12 +43049,28 @@ class AppLocalizationsAr extends AppLocalizations {
       'جارٍ الانتقال إلى المراجعة...';
 
   @override
+  String get importWizard_dc_importFromFile => 'استيراد من ملف';
+
+  @override
   String get importWizard_dc_knownComputer => 'كمبيوتر غوص معروف';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'محفوظ باسم \"$name\". سيتم تنزيل الغوصات الجديدة فقط.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'لا يمكن التنزيل من كمبيوتر الغوص هذا مباشرةً';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'لا يوجد في Submersion اتصال محفوظ لـ $name. استورد غوصاته من ملف، أو أضفه مجدداً من كمبيوترات الغوص للتنزيل عبر Bluetooth أو USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'تخزّن ساعات Garmin الغوصات كملفات FIT بدلاً من توفير تنزيل مباشر. وصّل الساعة عبر USB، وانسخ الملفات من مجلد GARMIN/Activity فيها، ثم استوردها.';
 
   @override
   String get importWizard_dc_noNewDives => 'لا توجد غوصات جديدة للتنزيل';

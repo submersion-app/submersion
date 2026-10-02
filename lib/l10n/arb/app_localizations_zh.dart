@@ -40909,12 +40909,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveImport_healthkit_proceedingToReview => '正在进入审查...';
 
   @override
+  String get importWizard_dc_importFromFile => '从文件导入';
+
+  @override
   String get importWizard_dc_knownComputer => '已知潜水电脑';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return '已保存为「$name」。仅会下载新的潜水记录。';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload => '无法直接从此潜水电脑下载';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Submersion 没有保存 $name 的连接。请从文件导入其潜水记录，或在潜水电脑中重新添加，以通过蓝牙或 USB 下载。';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Garmin 手表将潜水记录存储为 FIT 文件，不提供直接下载。请通过 USB 连接手表，从其 GARMIN/Activity 文件夹复制文件，然后导入。';
 
   @override
   String get importWizard_dc_noNewDives => '没有可下载的新潜水记录';

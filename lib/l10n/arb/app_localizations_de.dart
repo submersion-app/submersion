@@ -43294,12 +43294,28 @@ class AppLocalizationsDe extends AppLocalizations {
       'Weiter zur Überprüfung...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Aus Datei importieren';
+
+  @override
   String get importWizard_dc_knownComputer => 'Bekannter Computer';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Gespeichert als „$name“. Es werden nur neue Tauchgänge heruntergeladen.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Direkter Download von diesem Computer nicht möglich';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Für $name ist in Submersion keine Verbindung gespeichert. Importieren Sie die Tauchgänge aus einer Datei, oder fügen Sie den Computer unter Tauchcomputer erneut hinzu, um per Bluetooth oder USB herunterzuladen.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Garmin-Uhren speichern Tauchgänge als FIT-Dateien und bieten keinen direkten Download. Verbinden Sie die Uhr per USB, kopieren Sie die Dateien aus ihrem Ordner GARMIN/Activity und importieren Sie sie anschließend.';
 
   @override
   String get importWizard_dc_noNewDives =>

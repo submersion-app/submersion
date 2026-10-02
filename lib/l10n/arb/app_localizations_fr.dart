@@ -43477,12 +43477,28 @@ class AppLocalizationsFr extends AppLocalizations {
       'Passage à la vérification...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Importer depuis un fichier';
+
+  @override
   String get importWizard_dc_knownComputer => 'Ordinateur connu';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Enregistré sous « $name ». Seules les nouvelles plongées seront téléchargées.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Téléchargement direct impossible depuis cet ordinateur';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Submersion n\'a aucune connexion enregistrée pour $name. Importez ses plongées depuis un fichier, ou ajoutez-le à nouveau depuis Ordinateurs de plongée pour télécharger via Bluetooth ou USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Les montres Garmin enregistrent les plongées sous forme de fichiers FIT au lieu de proposer un téléchargement direct. Connectez la montre en USB, copiez les fichiers de son dossier GARMIN/Activity, puis importez-les.';
 
   @override
   String get importWizard_dc_noNewDives =>

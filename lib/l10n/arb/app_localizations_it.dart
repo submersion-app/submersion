@@ -43370,12 +43370,28 @@ class AppLocalizationsIt extends AppLocalizations {
       'Passaggio alla revisione...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Importa da file';
+
+  @override
   String get importWizard_dc_knownComputer => 'Computer conosciuto';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Salvato come «$name». Verranno scaricate solo le nuove immersioni.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Impossibile scaricare direttamente da questo computer';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Submersion non ha una connessione salvata per $name. Importa le sue immersioni da un file, oppure aggiungilo di nuovo da Computer subacquei per scaricare tramite Bluetooth o USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Gli orologi Garmin salvano le immersioni come file FIT invece di offrire un download diretto. Collega l\'orologio via USB, copia i file dalla sua cartella GARMIN/Activity, quindi importali.';
 
   @override
   String get importWizard_dc_noNewDives =>

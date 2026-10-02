@@ -43097,12 +43097,28 @@ class AppLocalizationsNl extends AppLocalizations {
       'Doorgaan naar controleren...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Importeren uit bestand';
+
+  @override
   String get importWizard_dc_knownComputer => 'Bekende computer';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Opgeslagen als ‘$name’. Alleen nieuwe duiken worden gedownload.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Direct downloaden van deze computer is niet mogelijk';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Submersion heeft geen opgeslagen verbinding voor $name. Importeer de duiken uit een bestand, of voeg de computer opnieuw toe via Duikcomputers om via Bluetooth of USB te downloaden.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Garmin-horloges slaan duiken op als FIT-bestanden in plaats van een directe download te bieden. Sluit het horloge via USB aan, kopieer de bestanden uit de map GARMIN/Activity en importeer ze daarna.';
 
   @override
   String get importWizard_dc_noNewDives =>

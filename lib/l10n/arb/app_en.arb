@@ -25982,8 +25982,12 @@
   "diveImport_healthkit_fetchFailedBody": "Failed to fetch dives: {error}",
   "diveImport_healthkit_foundDives": "{count, plural, =1{Found 1 dive} other{Found {count} dives}}",
   "diveImport_healthkit_proceedingToReview": "Proceeding to review...",
+  "importWizard_dc_importFromFile": "Import from File",
   "importWizard_dc_knownComputer": "Known Computer",
   "importWizard_dc_knownComputerBody": "Saved as \"{name}\". Only new dives will be downloaded.",
+  "importWizard_dc_noDirectDownload": "Can't download this computer directly",
+  "importWizard_dc_noDirectDownloadBody": "Submersion has no saved connection for {name}. Import its dives from a file, or add it again from Dive Computers to download over Bluetooth or USB.",
+  "importWizard_dc_noDirectDownloadGarminBody": "Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.",
   "importWizard_dc_noNewDives": "No new dives to download",
   "importWizard_dc_noNewDivesBody": "All dives from this computer have already been imported.",
   "universalImport_compare_noDiveData": "Dive data not available for comparison.",
@@ -26429,6 +26433,14 @@
   },
   "@importWizard_dc_knownComputerBody": {
     "description": "Badge body shown when the connected dive computer is already saved in the library.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@importWizard_dc_noDirectDownloadBody": {
+    "description": "Download step body when a saved dive computer has no stored connection to download from.",
     "placeholders": {
       "name": {
         "type": "String"

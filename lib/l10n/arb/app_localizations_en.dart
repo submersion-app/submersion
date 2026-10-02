@@ -42763,12 +42763,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'Proceeding to review...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Import from File';
+
+  @override
   String get importWizard_dc_knownComputer => 'Known Computer';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Saved as \"$name\". Only new dives will be downloaded.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Can\'t download this computer directly';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Submersion has no saved connection for $name. Import its dives from a file, or add it again from Dive Computers to download over Bluetooth or USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.';
 
   @override
   String get importWizard_dc_noNewDives => 'No new dives to download';

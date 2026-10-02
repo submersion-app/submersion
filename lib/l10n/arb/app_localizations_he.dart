@@ -42538,12 +42538,28 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_healthkit_proceedingToReview => 'ממשיך לסקירה...';
 
   @override
+  String get importWizard_dc_importFromFile => 'ייבוא מקובץ';
+
+  @override
   String get importWizard_dc_knownComputer => 'מחשב צלילה מוכר';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'נשמר בשם \"$name\". רק צלילות חדשות יורדו.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'לא ניתן להוריד ישירות ממחשב הצלילה הזה';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'ל-Submersion אין חיבור שמור עבור $name. ייבא את הצלילות שלו מקובץ, או הוסף אותו מחדש ממחשבי צלילה כדי להוריד דרך Bluetooth או USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'שעוני Garmin שומרים צלילות כקובצי FIT במקום לאפשר הורדה ישירה. חבר את השעון ב-USB, העתק את הקבצים מהתיקייה GARMIN/Activity שלו, ולאחר מכן ייבא אותם.';
 
   @override
   String get importWizard_dc_noNewDives => 'אין צלילות חדשות להורדה';
