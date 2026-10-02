@@ -16,7 +16,6 @@ import 'package:submersion/features/universal_import/data/services/macdive_media
 import 'package:submersion/features/universal_import/data/services/macdive_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_samples_decoder.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_sqlite_sample.dart';
-import 'package:submersion/features/universal_import/data/services/macdive_start_seconds.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_time_zone.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_unit_converter.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_unit_inference.dart';
@@ -903,12 +902,10 @@ class MacDiveDiveMapper {
     // was logged in lives in `ZTIMEZONE`. Emit the wall clock of that zone
     // as UTC components, the convention the MacDive XML reader and every
     // other importer use. [MacDiveZoneResolver] documents which zone wins.
-    // ZRAWDATE is stored to the minute, so the seconds come back from
-    // ZIDENTIFIER first, on the instant, before any zone is applied (#2509).
     final rawDate = d.rawDate;
     if (rawDate != null) {
       map['dateTime'] = zones.wallClockUtc(
-        MacDiveStartSeconds.restore(rawDate, d.identifier),
+        rawDate,
         archive: d.timezoneBplist,
         site: logbook.sitesByPk[d.diveSiteFk],
       );

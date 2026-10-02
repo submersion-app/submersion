@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 /// Recovers the seconds MacDive drops from a dive's start time (#2509).
 ///
 /// MacDive stores the start (`ZRAWDATE`, and `<date>` in its XML export) to
@@ -8,29 +10,38 @@
 class MacDiveStartSeconds {
   const MacDiveStartSeconds._();
 
-  /// Exactly fourteen digits, then the serial. Older computers (the Suunto
-  /// Cobra, for one) write unpadded stamps such as `2015122911130-822199`,
-  /// which cannot be split into fields reliably and so never match.
+  /// Exactly fourteen digits, then the serial or the end. Older computers
+  /// (the Suunto Cobra, for one) write unpadded stamps such as
+  /// `2015122911130-822199`, which cannot be split into fields reliably and
+  /// so never match.
   static final RegExp _stamp = RegExp(
-    r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})-',
+    r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(?:-|$)',
   );
 
-  /// Every time zone in use is a whole number of quarter hours from UTC, and
-  /// none is more than 14 hours away.
+  /// intl cannot split abutting numeric fields (`yyyy` takes every digit),
+  /// so the stamp's fields are joined with spaces before parsing.
+  static final DateFormat _fields = DateFormat('yyyy MM dd HH mm ss');
+
+  /// Every time zone in use is a whole number of quarter hours from UTC,
+  /// between UTC-12 and UTC+14. Two wall clocks in different zones can
+  /// therefore be up to 26 hours apart.
   static const int _zoneStepSeconds = 15 * 60;
-  static const int _maxZoneOffsetSeconds = 14 * 60 * 60;
+  static const int _maxGapSeconds = 26 * 60 * 60;
 
   /// [start] with the seconds from [identifier] added back.
   ///
   /// [start] may be the absolute instant (SQLite) or the wall clock encoded
-  /// as UTC (XML). The identifier is the wall clock, so it differs from the
-  /// start by a zone offset plus the dropped seconds. The offset is a whole
-  /// number of quarter hours, so the difference modulo 15 minutes is the
-  /// seconds, and that needs no knowledge of the dive's zone.
+  /// as UTC (XML). The identifier is the computer's wall clock, so it
+  /// differs from the start by a whole number of quarter hours (one zone
+  /// offset for an instant, the gap between two zones for a wall clock)
+  /// plus the dropped seconds. The difference modulo 15 minutes is
+  /// therefore the seconds, and that needs no knowledge of either zone.
   ///
   /// Returns [start] unchanged when it already has seconds, when the
-  /// identifier is not a full timestamp, or when it names a moment no zone
-  /// offset can explain.
+  /// identifier is not a full timestamp, or when the difference, less its
+  /// seconds, is not a whole number of quarter hours within 26 hours. A
+  /// stamp 15, 30 or 45 minutes from the start passes, since zones can be
+  /// that close; only its seconds are taken, so the minute never moves.
   static DateTime restore(DateTime start, String? identifier) {
     if (start.second != 0 || start.millisecond != 0 || start.microsecond != 0) {
       return start;
@@ -39,7 +50,7 @@ class MacDiveStartSeconds {
     if (stamp == null) return start;
 
     final difference = stamp.difference(start).inSeconds;
-    if (difference.abs() > _maxZoneOffsetSeconds + 59) return start;
+    if (difference.abs() > _maxGapSeconds + 59) return start;
     // Dart's % is never negative for a positive divisor, so a zone west of
     // UTC lands on the same seconds as one east of it.
     final seconds = difference % _zoneStepSeconds;
@@ -50,24 +61,13 @@ class MacDiveStartSeconds {
   static DateTime? _parse(String? identifier) {
     final match = identifier == null ? null : _stamp.firstMatch(identifier);
     if (match == null) return null;
-    final fields = [for (var i = 1; i <= 6; i++) int.parse(match.group(i)!)];
-    final stamp = DateTime.utc(
-      fields[0],
-      fields[1],
-      fields[2],
-      fields[3],
-      fields[4],
-      fields[5],
-    );
-    // DateTime rolls out-of-range fields over (month 13 becomes January),
-    // so a stamp that does not read back field for field is not a date.
-    final roundTrips =
-        stamp.year == fields[0] &&
-        stamp.month == fields[1] &&
-        stamp.day == fields[2] &&
-        stamp.hour == fields[3] &&
-        stamp.minute == fields[4] &&
-        stamp.second == fields[5];
-    return roundTrips ? stamp : null;
+    final fields = [for (var i = 1; i <= 6; i++) match.group(i)!].join(' ');
+    // parseStrict rejects fields DateTime would roll over (month 13, second
+    // 75), so digits that are not a real date and time give no stamp.
+    try {
+      return _fields.parseStrict(fields, true);
+    } on FormatException {
+      return null;
+    }
   }
 }

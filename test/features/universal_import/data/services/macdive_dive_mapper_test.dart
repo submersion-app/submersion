@@ -804,6 +804,22 @@ void main() {
         expect(dive['dateTime'], DateTime.utc(2024, 7, 1, 10, 5));
       });
 
+      test('keeps the seconds through the zone conversion (#2509)', () async {
+        // The reader has already put back the seconds ZIDENTIFIER keeps.
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2024, 7, 1, 17, 5, 17),
+              timezoneBplist: losAngelesBplist,
+            ),
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['dateTime'], DateTime.utc(2024, 7, 1, 10, 5, 17));
+      });
+
       test('a dive with no ZTIMEZONE uses the zone of its site', () async {
         final payload = await MacDiveDiveMapper.toPayload(
           _singleDiveLogbook(

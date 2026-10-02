@@ -60,6 +60,45 @@ void main() {
         );
         expect(restored, DateTime.utc(2025, 1, 2, 10, 30, 17));
       });
+
+      test('takes the seconds when the computer clock is an hour off', () {
+        // A computer left on standard time over daylight saving: seen in a
+        // real export, <date> 11:21:54 beside identifier 10:21:54.
+        final restored = MacDiveStartSeconds.restore(
+          DateTime.utc(2024, 2, 14, 11, 21),
+          '20240214102154-F1F2A537',
+        );
+        expect(restored, DateTime.utc(2024, 2, 14, 11, 21, 54));
+      });
+
+      test('takes the seconds across two zones more than 14 hours apart', () {
+        // The computer kept on Hawaii time (UTC-10), the dive logged in
+        // Australia (UTC+10): both are wall clocks, 20 hours apart.
+        final restored = MacDiveStartSeconds.restore(
+          DateTime.utc(2025, 1, 2, 10, 30),
+          '20250101143017-1234567890',
+        );
+        expect(restored, DateTime.utc(2025, 1, 2, 10, 30, 17));
+      });
+    });
+
+    test('takes the seconds from a stamp with no serial', () {
+      final restored = MacDiveStartSeconds.restore(
+        DateTime.utc(2025, 1, 2, 10, 30),
+        '20250102103017',
+      );
+      expect(restored, DateTime.utc(2025, 1, 2, 10, 30, 17));
+    });
+
+    test('takes the seconds from an identifier a quarter hour away', () {
+      // 15 minutes is a whole number of quarter hours, so it passes as a
+      // zone offset even where both values share a zone. Only the seconds
+      // are taken, so the minute of the start is never moved.
+      final restored = MacDiveStartSeconds.restore(
+        DateTime.utc(2025, 1, 2, 10, 30),
+        '20250102104517-1234567890',
+      );
+      expect(restored, DateTime.utc(2025, 1, 2, 10, 30, 17));
     });
 
     group('leaves the start unchanged', () {
@@ -90,6 +129,8 @@ void main() {
           MacDiveStartSeconds.restore(start, '20250102103017ABCDEF'),
           start,
         );
+        // MacDive's own numeric identifiers are longer than a stamp.
+        expect(MacDiveStartSeconds.restore(start, '326792381627904761'), start);
       });
 
       test('for digits that are not a real date and time', () {
@@ -101,6 +142,13 @@ void main() {
         expect(
           MacDiveStartSeconds.restore(start, '20250102103075-1234567890'),
           start,
+        );
+        // Rolled over, 10:30:75 would read as 10:31:15 and hand a 10:31
+        // start 15 seconds it never had.
+        final nextMinute = DateTime.utc(2025, 1, 2, 10, 31);
+        expect(
+          MacDiveStartSeconds.restore(nextMinute, '20250102103075-1234567890'),
+          nextMinute,
         );
       });
 
@@ -116,6 +164,11 @@ void main() {
       test('when the identifier is further away than any time zone', () {
         expect(
           MacDiveStartSeconds.restore(start, '20250104103017-1234567890'),
+          start,
+        );
+        // 27 hours is more than two zones can be apart.
+        expect(
+          MacDiveStartSeconds.restore(start, '20250103183017-1234567890'),
           start,
         );
       });
