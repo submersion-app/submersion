@@ -67,6 +67,7 @@ void main() {
     List<EquipmentSet> sets = const [],
     Set<String> unshared = const {},
     Locale? locale,
+    bool diverUnreadable = false,
   }) async {
     final fake = _FakePacks();
     final overrides = await getBaseOverrides();
@@ -83,7 +84,10 @@ void main() {
           equipmentSetWithItemsProvider.overrideWith(
             (ref, id) async => sets.where((s) => s.id == id).firstOrNull,
           ),
-          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (ref) async =>
+                diverUnreadable ? throw StateError('database is locked') : 'd1',
+          ),
           equipmentRepositoryProvider.overrideWithValue(
             _FakeEquipment(unshared),
           ),
@@ -229,6 +233,36 @@ void main() {
       );
       await useSet(tester);
       expect(fake.packed.single.$2, ['bcd', 'reg']);
+    });
+
+    testWidgets('a set with no member still shared packs nothing', (
+      tester,
+    ) async {
+      final fake = await pump(
+        tester,
+        sets: [
+          kit(const [bcd, fins]),
+        ],
+        unshared: {'bcd', 'fins'},
+      );
+      await useSet(tester);
+      expect(fake.packed, isEmpty);
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('an unreadable diver packs every member unscoped', (
+      tester,
+    ) async {
+      final fake = await pump(
+        tester,
+        sets: [
+          kit(const [bcd, fins]),
+        ],
+        unshared: {'fins'},
+        diverUnreadable: true,
+      );
+      await useSet(tester);
+      expect(fake.packed.single.$2, ['bcd', 'fins']);
     });
 
     testWidgets('a set already packed says nothing was added', (tester) async {

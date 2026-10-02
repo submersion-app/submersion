@@ -5,6 +5,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -77,10 +78,17 @@ class TripGearCard extends ConsumerWidget {
     final (set, items) = picked;
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+    // Everything from ref is read before the first await: the card can be
+    // gone by the time the diver resolves.
+    final trips = ref.read(tripEquipmentRepositoryProvider);
+    final equipment = ref.read(equipmentRepositoryProvider);
+    final diverId = ref.read(validatedCurrentDiverIdProvider.future);
     await _change(context, () async {
-      final added = await ref
-          .read(tripEquipmentRepositoryProvider)
-          .pack(trip.id, await _usableIds(ref, items));
+      final ids = await _usableIds(equipment, diverId, items);
+      // No member still shared with the diver: nothing to pack, as on the
+      // dive edit page.
+      if (ids.isEmpty) return;
+      final added = await trips.pack(trip.id, ids);
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.trips_gear_packedFromSet(added, set.name))),
       );
@@ -92,20 +100,23 @@ class TripGearCard extends ConsumerWidget {
   /// unreadable diver packs unscoped, as the dive edit page adds, rather
   /// than failing the pack.
   Future<List<String>> _usableIds(
-    WidgetRef ref,
+    EquipmentRepository equipment,
+    Future<String?> diverIdFuture,
     List<EquipmentItem> items,
   ) async {
     final ids = [for (final item in items) item.id];
     String? diverId;
     try {
-      diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    } catch (_) {
-      diverId = null;
+      diverId = await diverIdFuture;
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not read the current diver; packing the set unscoped',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
     if (diverId == null) return ids;
-    return ref
-        .read(equipmentRepositoryProvider)
-        .usableSetMemberIds(ids, diverId);
+    return equipment.usableSetMemberIds(ids, diverId);
   }
 
   /// Runs a pack or an unpack; a failure is logged and said.
