@@ -21190,10 +21190,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_data_header_backupSync => 'Sicherung & Synchronisierung';
 
   @override
-  String get settings_data_header_storage => 'Speicher';
+  String get settings_data_header_import => 'Import';
 
   @override
-  String get settings_data_header_import => 'Import';
+  String get settings_data_header_storage => 'Speicher';
 
   @override
   String get settings_data_import_completed => 'Vorgang abgeschlossen';

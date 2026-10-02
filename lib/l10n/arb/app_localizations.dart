@@ -34043,17 +34043,17 @@ abstract class AppLocalizations {
   /// **'Backup & Sync'**
   String get settings_data_header_backupSync;
 
-  /// No description provided for @settings_data_header_storage.
-  ///
-  /// In en, this message translates to:
-  /// **'Storage'**
-  String get settings_data_header_storage;
-
   /// No description provided for @settings_data_header_import.
   ///
   /// In en, this message translates to:
   /// **'Import'**
   String get settings_data_header_import;
+
+  /// No description provided for @settings_data_header_storage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get settings_data_header_storage;
 
   /// No description provided for @settings_data_import_completed.
   ///

@@ -21219,10 +21219,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_data_header_backupSync => 'Respaldo y sincronización';
 
   @override
-  String get settings_data_header_storage => 'Almacenamiento';
+  String get settings_data_header_import => 'Importación';
 
   @override
-  String get settings_data_header_import => 'Importación';
+  String get settings_data_header_storage => 'Almacenamiento';
 
   @override
   String get settings_data_import_completed => 'Operación completada';

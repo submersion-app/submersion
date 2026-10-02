@@ -18,7 +18,12 @@ class ImportPreferencesCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
+    final sensitivity = ref.watch(
+      settingsProvider.select((s) => s.siteMatchSensitivity),
+    );
+    final trimAtSurfacing = ref.watch(
+      settingsProvider.select((s) => s.trimTankPressureAtSurfacing),
+    );
 
     return Card(
       child: Column(
@@ -28,7 +33,7 @@ class ImportPreferencesCard extends ConsumerWidget {
             title: Text(context.l10n.settings_siteMatch_title),
             subtitle: Text(context.l10n.settings_siteMatch_subtitle),
             trailing: DropdownButton<SiteMatchSensitivity>(
-              value: settings.siteMatchSensitivity,
+              value: sensitivity,
               underline: const SizedBox.shrink(),
               onChanged: (value) {
                 if (value != null) {
@@ -60,7 +65,7 @@ class ImportPreferencesCard extends ConsumerWidget {
             subtitle: Text(
               context.l10n.settings_tankPressureAtSurfacing_subtitle,
             ),
-            value: settings.trimTankPressureAtSurfacing,
+            value: trimAtSurfacing,
             onChanged: (value) => ref
                 .read(settingsProvider.notifier)
                 .setTrimTankPressureAtSurfacing(value),

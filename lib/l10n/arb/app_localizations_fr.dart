@@ -21284,10 +21284,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_data_header_backupSync => 'Sauvegarde et synchronisation';
 
   @override
-  String get settings_data_header_storage => 'Stockage';
+  String get settings_data_header_import => 'Importation';
 
   @override
-  String get settings_data_header_import => 'Importation';
+  String get settings_data_header_storage => 'Stockage';
 
   @override
   String get settings_data_import_completed => 'Opération terminée';

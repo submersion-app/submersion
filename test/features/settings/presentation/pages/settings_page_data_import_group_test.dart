@@ -97,8 +97,11 @@ void main() {
     for (final element in texts.evaluate()) {
       final text = (element.widget as Text).data;
       if (text == 'Backup & Sync') continue;
+      // Read the element's own box: a widget-based lookup would throw on a
+      // widget instance mounted in more than one place.
+      final box = element.renderObject! as RenderBox;
       expect(
-        tester.getTopLeft(find.byWidget(element.widget)).dy,
+        box.localToGlobal(Offset.zero).dy,
         greaterThan(firstHeaderTop),
         reason: '"$text" sits above the first header',
       );

@@ -20890,10 +20890,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_data_header_backupSync => 'Backup & Sync';
 
   @override
-  String get settings_data_header_storage => 'Storage';
+  String get settings_data_header_import => 'Import';
 
   @override
-  String get settings_data_header_import => 'Import';
+  String get settings_data_header_storage => 'Storage';
 
   @override
   String get settings_data_import_completed => 'Operation completed';

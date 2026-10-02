@@ -20178,10 +20178,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_header_backupSync => '备份与同步';
 
   @override
-  String get settings_data_header_storage => '存储';
+  String get settings_data_header_import => '导入';
 
   @override
-  String get settings_data_header_import => '导入';
+  String get settings_data_header_storage => '存储';
 
   @override
   String get settings_data_import_completed => '操作完成';

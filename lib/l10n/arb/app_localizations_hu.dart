@@ -21157,10 +21157,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Biztonsági mentés és szinkronizálás';
 
   @override
-  String get settings_data_header_storage => 'Tárolás';
+  String get settings_data_header_import => 'Importálás';
 
   @override
-  String get settings_data_header_import => 'Importálás';
+  String get settings_data_header_storage => 'Tárolás';
 
   @override
   String get settings_data_import_completed => 'Művelet befejezve';
