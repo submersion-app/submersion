@@ -447,11 +447,19 @@ rm -rf "$tmp"
 
 # --- Test 7b: a push with no Dart change skips the architecture guards ------
 #
-# The guards cost a few seconds of isolate startup, so a docs-only push must
-# not pay for them.
+# The guards cost tens of seconds of isolate startup, so a docs-only push must
+# not pay for them. "lacks" alone would also pass if the hook died before
+# printing its selection, so first prove it reached the DRY_RUN listing.
 
 tmp="$(make_proximity_fixture 'NOTES.md')"
 run_hook "$tmp"
+
+if [ "$hook_status" -eq 0 ] && [[ "$hook_output" == *DRY_RUN* ]]; then
+    pass 'reaches the test selection for a push with no Dart change'
+else
+    fail 'reaches the test selection for a push with no Dart change' \
+        "exit $hook_status: $hook_output"
+fi
 
 assert_selected lacks 'test/architecture/sample_guard_test.dart' \
     'skips the architecture guards for a push with no Dart change'
