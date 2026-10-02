@@ -19,8 +19,11 @@ class MacDiveStartSeconds {
   );
 
   /// intl cannot split abutting numeric fields (`yyyy` takes every digit),
-  /// so the stamp's fields are joined with spaces before parsing.
-  static final DateFormat _fields = DateFormat('yyyy MM dd HH mm ss');
+  /// so the stamp's fields are joined with spaces before parsing. The stamp
+  /// is ASCII whatever language the diver reads the app in, so the format
+  /// is pinned to en_US, the one locale intl carries without
+  /// initializeDateFormatting, rather than following `Intl.defaultLocale`.
+  static final DateFormat _fields = DateFormat('yyyy MM dd HH mm ss', 'en_US');
 
   /// Every time zone in use is a whole number of quarter hours from UTC,
   /// between UTC-12 and UTC+14. Two wall clocks in different zones can
