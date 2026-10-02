@@ -359,3 +359,10 @@ the Advanced Search overflow item still exist beside the new bar.
 5. **Applying the (legacy) Filter sheet clears `axesSuspended`,** so a
    filter added while "All dives" is selected takes effect instead of
    arriving dimmed. PR 2's Refine panel keeps the rule.
+6. **A hyphen inside a word is part of the word** (maintainer's choice,
+   2026-10-02, from the PR 1 code review). The old Search overlay matched
+   any text literally; the query grammar read `Abu-Nuhas` as `Abu` AND NOT
+   `Nuhas`. Now only a hyphen that starts a term negates it (`-wreck`), and
+   a number keeps a trailing `%` (`100%` is one text term; `cns > 40%` is
+   accepted on a percent field and refused elsewhere). Commas, colons and
+   brackets in plain text still need quotes.
