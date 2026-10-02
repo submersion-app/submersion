@@ -203,4 +203,47 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets(
+    'the pause icon reverts to play once the timeline finishes on its own',
+    (tester) async {
+      await tester.pumpWidget(
+        page(
+          readyState(),
+          playbackContext: const DivePlaybackContext('d1'),
+          extraOverrides: [
+            siteActivePathOverlayProvider((
+              siteId: 'site-1',
+              pathId: 'd1',
+              source: PathOverlaySource.dive,
+            )).overrideWith(
+              (ref) async => (overlay: _overlay(), hasLinkedRoute: false),
+            ),
+          ],
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      await tester.tap(find.byIcon(Icons.play_arrow));
+      await tester.pump();
+      expect(
+        tester.widget<TimeScrubBar>(find.byType(TimeScrubBar)).playing,
+        isTrue,
+      );
+
+      // The timeline's own AnimationController runs for 45 seconds; letting
+      // it run past that (with no further taps) must rebuild the pane on
+      // its own once it completes, or the pause icon stays up forever.
+      await tester.pump(const Duration(seconds: 46));
+
+      expect(
+        tester.widget<TimeScrubBar>(find.byType(TimeScrubBar)).playing,
+        isFalse,
+      );
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
 }

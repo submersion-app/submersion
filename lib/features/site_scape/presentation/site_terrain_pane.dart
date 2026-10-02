@@ -143,10 +143,21 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
       return;
     }
     if (previous != null && _player != null) return;
-    _player = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 45),
-    )..addListener(() => _scrub.value = _player!.value);
+    _player =
+        AnimationController(vsync: this, duration: const Duration(seconds: 45))
+          ..addListener(() => _scrub.value = _player!.value)
+          // Playback reaching the end stops the controller on its own, with no
+          // call to _togglePlay -- without this, the pane never rebuilds for
+          // that, so _timeline()'s cached `player.isAnimating` read (captured
+          // at the last build) keeps reading true and the pause icon stays up
+          // forever after the timeline finishes (code review).
+          ..addStatusListener((status) {
+            if ((status == AnimationStatus.completed ||
+                    status == AnimationStatus.dismissed) &&
+                mounted) {
+              setState(() {});
+            }
+          });
   }
 
   void _togglePlay() {
