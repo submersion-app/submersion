@@ -139,6 +139,16 @@ void main() {
     });
   });
 
+  group('wallClockUtcFromMillis', () {
+    test('keeps the stored wall clock, flagged UTC', () {
+      // A late-evening dive: decoding it as local time would move it to
+      // another calendar day on most devices (issue #2805).
+      final stored = DateTime.utc(2024, 3, 5, 23, 30).millisecondsSinceEpoch;
+
+      expect(wallClockUtcFromMillis(stored), DateTime.utc(2024, 3, 5, 23, 30));
+    });
+  });
+
   group('fromWallClockUtc', () {
     test('reads the UTC components back as local digits', () {
       final got = fromWallClockUtc(DateTime.utc(2024, 4, 12, 14, 32, 5, 250));

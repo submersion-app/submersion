@@ -79,6 +79,10 @@ void main() {
     return all.singleWhere((b) => b.buddy.id == id);
   }
 
+  // Issue #2805: dive_date_time is a wall clock flagged UTC, and CI runs in
+  // UTC, where a local decode shows the same date. DateTime equality also
+  // compares the isUtc flag, so expecting DateTime.utc(...) catches a local
+  // decode in any time zone.
   test('lastDiveAt is the most recent linked dive', () async {
     await _link(database, diveId: 'd1', buddyId: 'jane');
     await _link(database, diveId: 'd2', buddyId: 'jane');
@@ -88,22 +92,6 @@ void main() {
 
     expect(jane.diveCount, 3);
     expect(jane.lastDiveAt, DateTime.utc(2024, 3, 5, 23, 30));
-  });
-
-  // Issue #2805: dive_date_time is a wall clock flagged UTC. Decoding it as a
-  // local DateTime shifts the displayed date by the device's UTC offset, which
-  // CI (running in UTC) cannot see, so these assert the flag as well as the
-  // wall-clock fields.
-  test('lastDiveAt keeps the dive wall clock, flagged UTC (#2805)', () async {
-    await _link(database, diveId: 'd2', buddyId: 'jane');
-
-    final lastDiveAt = (await load('jane')).lastDiveAt!;
-
-    expect(lastDiveAt.isUtc, isTrue);
-    expect(
-      [lastDiveAt.year, lastDiveAt.month, lastDiveAt.day, lastDiveAt.hour],
-      [2024, 3, 5, 23],
-    );
   });
 
   test(
@@ -117,8 +105,6 @@ void main() {
 
       expect(stats.firstDive, DateTime.utc(2024, 1, 10));
       expect(stats.lastDive, DateTime.utc(2024, 3, 5, 23, 30));
-      expect(stats.firstDive!.isUtc, isTrue);
-      expect(stats.lastDive!.isUtc, isTrue);
     },
   );
 

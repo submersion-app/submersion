@@ -14,6 +14,8 @@
 ///   but should match wall-clock-UTC dive times.
 /// * [fromWallClockUtc] — the inverse, for reading a stored wall-clock-UTC
 ///   value back into the local `DateTime` the UI works in.
+/// * [wallClockUtcFromMillis] decodes a stored wall-clock-UTC column, such
+///   as `dives.dive_date_time`, from its epoch milliseconds.
 /// * [wallClockUtcDayStart] gives the start of a calendar day in
 ///   wall-clock-UTC, for comparing a date the user picked against stored
 ///   wall-clock values.
@@ -93,6 +95,16 @@ DateTime fromWallClockUtc(DateTime wallClockUtc) {
     wallClockUtc.millisecond,
   );
 }
+
+/// Decodes epoch milliseconds stored under the wall-clock-UTC convention
+/// (for example `dives.dive_date_time`, including its MIN/MAX aggregates)
+/// into a UTC `DateTime` whose components are the stored wall clock.
+///
+/// A plain `DateTime.fromMillisecondsSinceEpoch(millis)` returns a local
+/// `DateTime` instead, which shifts the digits by the device's UTC offset and
+/// can move a dive to another calendar day (issue #2805).
+DateTime wallClockUtcFromMillis(int millis) =>
+    DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true);
 
 /// Start of [date]'s calendar day in wall-clock-UTC, discarding any
 /// time-of-day component and any timezone offset [date] carries.
