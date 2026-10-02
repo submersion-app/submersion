@@ -54,8 +54,8 @@ class FigureNameLabel extends StatelessWidget {
     String text,
     TextStyle style,
     TextDirection direction, {
+    required int? number,
     TextScaler textScaler = TextScaler.noScaling,
-    int? number = 1,
   }) {
     final width = _measure(text, style, direction, textScaler);
     final badge = number == null
@@ -131,10 +131,12 @@ class FigureNameLabel extends StatelessWidget {
             // Too narrow for any of the name (a phone column in a very
             // narrow pane): show the number alone, scaled down if even the
             // badge does not fit, rather than overflow the row. With no
-            // number there is nothing to show, and the semantics label
-            // still names the item.
+            // number there is nothing to show, so the slot keeps only the
+            // name for a screen reader.
             if (constraints.maxWidth < badgeWidth + padding * 2 + 12) {
-              if (number == null) return const SizedBox.shrink();
+              if (number == null) {
+                return Semantics(label: text, child: const SizedBox.shrink());
+              }
               return Align(
                 alignment: alignEnd
                     ? Alignment.centerRight
@@ -175,10 +177,10 @@ class FigureNameLabel extends StatelessWidget {
 }
 
 /// The visible part of a figure label: the number badge (none when [number]
-/// is null), an optional leading icon, and the name, on a pill fill in the wide layout and plain in
-/// a phone column, with the contrast-derived highlight when selected. Shared
-/// by the labels on the figure and the tiles in the tray, so both stay in
-/// step.
+/// is null), an optional leading icon, and the name, on a pill fill in the
+/// wide layout and plain in a phone column, with the contrast-derived
+/// highlight when selected. Shared by the labels on the figure and the tiles
+/// in the tray, so both stay in step.
 class FigureLabelBody extends StatelessWidget {
   const FigureLabelBody({
     super.key,

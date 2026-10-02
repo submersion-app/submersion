@@ -492,6 +492,7 @@ void main() {
         'Item bcd',
         style,
         TextDirection.ltr,
+        number: 1,
       );
       final unnumbered = FigureNameLabel.preferredWidth(
         'Item bcd',
@@ -507,6 +508,27 @@ void main() {
       await pump(tester, withTray, width: 100, showNumbers: false);
       expect(tester.takeException(), isNull);
       expect(find.byType(FigureNumberBadge), findsNothing);
+    });
+
+    testWidgets('a label too narrow to draw still names its item', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 10,
+                height: 40,
+                child: FigureNameLabel(number: null, text: 'Item mask'),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.text('Item mask'), findsNothing);
+      expect(find.bySemanticsLabel('Item mask'), findsOneWidget);
     });
   });
 
