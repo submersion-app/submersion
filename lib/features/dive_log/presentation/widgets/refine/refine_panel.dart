@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/
 import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_location_group.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_organization_group.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_people_group.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_rules_group.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_count_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_group_tile.dart';
 import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
@@ -82,6 +83,11 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
     Widget tile(String title, int active, Widget child) =>
         RefineGroupTile(title: title, activeCount: active, child: child);
     return [
+      tile(
+        RefineRulesGroup.title(l10n),
+        RefineRulesGroup.activeCount(d),
+        RefineRulesGroup(draft: d, onChanged: _update),
+      ),
       tile(
         RefineDateGroup.title(l10n),
         RefineDateGroup.activeCount(d),
