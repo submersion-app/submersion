@@ -52,7 +52,9 @@ Future<void> showRefinePanel(
         ),
       ),
     ),
-    transitionBuilder: (_, animation, _, child) => SlideTransition(
+    transitionBuilder: (context, animation, _, child) => SlideTransition(
+      // Enters from the edge it rests on: the left in RTL.
+      textDirection: Directionality.of(context),
       position: Tween(
         begin: const Offset(1, 0),
         end: Offset.zero,

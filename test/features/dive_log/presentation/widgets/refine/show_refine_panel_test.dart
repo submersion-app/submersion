@@ -13,14 +13,19 @@ final _target = StateProvider<DiveFilterState>(
 void main() {
   late ProviderContainer container;
 
-  Future<void> pumpHost(WidgetTester tester, Size size) async {
+  Future<void> pumpHost(
+    WidgetTester tester,
+    Size size, {
+    Locale locale = const Locale('en'),
+    bool settle = true,
+  }) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = size;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
-          locale: const Locale('en'),
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
@@ -47,7 +52,7 @@ void main() {
       ),
     );
     await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
+    if (settle) await tester.pumpAndSettle();
   }
 
   testWidgets('opens as a bottom sheet on a phone', (tester) async {
@@ -92,5 +97,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('2 set'), findsOneWidget);
     expect(find.text('group body'), findsOneWidget);
+  });
+
+  // Code review: in RTL the panel sits at the left, so it slides in from
+  // the left edge, not across the list from the right.
+  testWidgets('in RTL the side panel slides in from the left', (tester) async {
+    await pumpHost(
+      tester,
+      const Size(1280, 800),
+      locale: const Locale('he'),
+      settle: false,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(tester.getRect(find.text('panel body')).left, lessThan(0));
+    await tester.pumpAndSettle();
   });
 }
