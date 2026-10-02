@@ -82,9 +82,9 @@ class TripGearCard extends ConsumerWidget {
     // gone by the time the diver resolves.
     final trips = ref.read(tripEquipmentRepositoryProvider);
     final equipment = ref.read(equipmentRepositoryProvider);
-    final diverId = ref.read(validatedCurrentDiverIdProvider.future);
+    final diverIdFuture = ref.read(validatedCurrentDiverIdProvider.future);
     await _change(context, () async {
-      final ids = await _usableIds(equipment, diverId, items);
+      final ids = await _usableIds(equipment, diverIdFuture, items);
       // No member still shared with the diver: nothing to pack, as on the
       // dive edit page.
       if (ids.isEmpty) return;
@@ -96,25 +96,17 @@ class TripGearCard extends ConsumerWidget {
   }
 
   /// The set members the current diver may pack: a member no longer shared
-  /// with them stays in the set but is not applied (issue #2046). An
-  /// unreadable diver packs unscoped, as the dive edit page adds, rather
-  /// than failing the pack.
+  /// with them stays in the set but is not applied (issue #2046). With no
+  /// diver yet every member is packed. A diver that cannot be read fails the
+  /// pack, said by [_change], rather than packing past the share filter; the
+  /// set picker lists sets only once the diver resolves anyway.
   Future<List<String>> _usableIds(
     EquipmentRepository equipment,
     Future<String?> diverIdFuture,
     List<EquipmentItem> items,
   ) async {
     final ids = [for (final item in items) item.id];
-    String? diverId;
-    try {
-      diverId = await diverIdFuture;
-    } catch (e, stackTrace) {
-      _log.warning(
-        'Could not read the current diver; packing the set unscoped',
-        error: e,
-        stackTrace: stackTrace,
-      );
-    }
+    final diverId = await diverIdFuture;
     if (diverId == null) return ids;
     return equipment.usableSetMemberIds(ids, diverId);
   }

@@ -68,6 +68,7 @@ void main() {
     Set<String> unshared = const {},
     Locale? locale,
     bool diverUnreadable = false,
+    bool noDiver = false,
   }) async {
     final fake = _FakePacks();
     final overrides = await getBaseOverrides();
@@ -85,8 +86,9 @@ void main() {
             (ref, id) async => sets.where((s) => s.id == id).firstOrNull,
           ),
           validatedCurrentDiverIdProvider.overrideWith(
-            (ref) async =>
-                diverUnreadable ? throw StateError('database is locked') : 'd1',
+            (ref) async => diverUnreadable
+                ? throw StateError('database is locked')
+                : (noDiver ? null : 'd1'),
           ),
           equipmentRepositoryProvider.overrideWithValue(
             _FakeEquipment(unshared),
@@ -250,7 +252,22 @@ void main() {
       expect(find.byType(SnackBar), findsNothing);
     });
 
-    testWidgets('an unreadable diver packs every member unscoped', (
+    testWidgets('with no diver yet every member is packed', (tester) async {
+      final fake = await pump(
+        tester,
+        sets: [
+          kit(const [bcd, fins]),
+        ],
+        unshared: {'fins'},
+        noDiver: true,
+      );
+      await useSet(tester);
+      expect(fake.packed.single.$2, ['bcd', 'fins']);
+    });
+
+    // Packing unscoped would skip the #2046 share filter, so a diver that
+    // cannot be read fails the pack and says so.
+    testWidgets('an unreadable diver packs nothing and says so', (
       tester,
     ) async {
       final fake = await pump(
@@ -262,7 +279,8 @@ void main() {
         diverUnreadable: true,
       );
       await useSet(tester);
-      expect(fake.packed.single.$2, ['bcd', 'fins']);
+      expect(fake.packed, isEmpty);
+      expect(find.text(l10nOf(tester).trips_gear_failed), findsOneWidget);
     });
 
     testWidgets('a set already packed says nothing was added', (tester) async {
