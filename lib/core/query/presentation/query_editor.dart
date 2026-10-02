@@ -64,41 +64,114 @@ class _QueryEditorState extends State<QueryEditor>
     super.dispose();
   }
 
+  /// Horizontal label padding Material gives each scrollable tab
+  /// (`kTabLabelPadding`), needed on both sides of every tab's own text.
+  static const double _tabLabelPadding = 16;
+
+  /// Icon, gap and button padding the Save button carries around its own
+  /// label text; approximate, since only the decision to wrap needs it, not
+  /// a pixel-perfect layout.
+  static const double _saveButtonChrome = 64;
+
+  static const double _rowSpacing = 8;
+
+  /// Whether the tabs and the Save button fit on one row without squeezing
+  /// the tabs down to a sliver that needs scrolling just to read "Builder"
+  /// (#2787 follow-up). Mirrors how [EquipmentSectionToggle.naturalWidth]
+  /// measures its own labels to decide a layout rather than guessing a
+  /// breakpoint in logical pixels, which would drift from the actual text at
+  /// another locale or text scale.
+  bool _rowFits(BuildContext context, double maxWidth) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    final tabStyle =
+        Theme.of(context).textTheme.titleSmall ?? const TextStyle(fontSize: 14);
+    final buttonStyle =
+        Theme.of(context).textTheme.labelLarge ?? const TextStyle(fontSize: 14);
+    double measure(String text, TextStyle style) {
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: style),
+        textDirection: direction,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      final width = painter.width;
+      painter.dispose();
+      return width;
+    }
+
+    final strings = widget.strings;
+    final tabsWidth =
+        measure(strings.tabText, tabStyle) +
+        measure(strings.tabBuilder, tabStyle) +
+        4 * _tabLabelPadding;
+    final saveWidth = measure(strings.save, buttonStyle) + _saveButtonChrome;
+    return maxWidth >= tabsWidth + _rowSpacing + saveWidth;
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = widget.strings;
+    final tabBar = TabBar(
+      controller: _tabs,
+      // A fixed TabBar stretches both tabs into equal slots across the row;
+      // a label too wide for its slot is clipped outright with no
+      // ellipsis. Scrollable gives each tab its natural width instead, the
+      // same fix already used for the Equipment/Sets toggle (issue #2256,
+      // #2787).
+      isScrollable: true,
+      tabAlignment: TabAlignment.start,
+      tabs: [
+        Tab(text: strings.tabText),
+        Tab(text: strings.tabBuilder),
+      ],
+    );
+    final saveButton = widget.onSave == null
+        ? null
+        : FilledButton.tonalIcon(
+            icon: const Icon(Icons.bookmark_add_outlined),
+            label: Text(strings.save),
+            onPressed: widget.value == null ? null : widget.onSave,
+          );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: TabBar(
-                controller: _tabs,
-                // A fixed TabBar stretches both tabs into equal slots across
-                // the row; a label too wide for its slot is clipped outright
-                // with no ellipsis. Scrollable gives each tab its natural
-                // width instead, the same fix already used for the
-                // Equipment/Sets toggle (issue #2256, #2787).
-                isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                tabs: [
-                  Tab(text: strings.tabText),
-                  Tab(text: strings.tabBuilder),
+        if (saveButton == null)
+          tabBar
+        else
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (_rowFits(context, constraints.maxWidth)) {
+                return Row(
+                  children: [
+                    Expanded(child: tabBar),
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                        start: _rowSpacing,
+                      ),
+                      child: saveButton,
+                    ),
+                  ],
+                );
+              }
+              // Not enough room for both: stack them, so the tabs keep the
+              // full row's width instead of being squeezed down to a sliver
+              // that needs scrolling to read "Builder" (#2787 follow-up).
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  tabBar,
+                  Padding(
+                    padding: const EdgeInsets.only(top: _rowSpacing),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: saveButton,
+                    ),
+                  ),
                 ],
-              ),
-            ),
-            if (widget.onSave != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 8),
-                child: FilledButton.tonalIcon(
-                  icon: const Icon(Icons.bookmark_add_outlined),
-                  label: Text(strings.save),
-                  onPressed: widget.value == null ? null : widget.onSave,
-                ),
-              ),
-          ],
-        ),
+              );
+            },
+          ),
         const SizedBox(height: 8),
         // Not a TabBarView: that needs a bounded height, which a section
         // inside a ListView does not give it. Swapping the child takes the

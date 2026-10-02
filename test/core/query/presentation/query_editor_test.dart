@@ -125,4 +125,49 @@ void main() {
       expect(tabBar.tabAlignment, TabAlignment.start);
     },
   );
+
+  Widget narrowHost(double width, {VoidCallback? onSave}) => MaterialApp(
+    home: Scaffold(
+      body: Align(
+        alignment: Alignment.topLeft,
+        child: SizedBox(
+          width: width,
+          child: QueryEditor(
+            context: context,
+            value: null,
+            onChanged: (_) {},
+            strings: strings,
+            onSave: onSave,
+          ),
+        ),
+      ),
+    ),
+  );
+
+  testWidgets('the save button shares the tab row when both fit (#2787)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(narrowHost(800, onSave: () {}));
+    expect(tester.takeException(), isNull);
+    final tabsBottom = tester.getBottomLeft(find.byType(TabBar)).dy;
+    final saveTop = tester.getTopLeft(find.text('Save query')).dy;
+    // Same row: the button's top sits above the tab bar's own bottom
+    // edge, however the row's cross-axis centering offsets each by a
+    // few pixels.
+    expect(saveTop, lessThan(tabsBottom));
+  });
+
+  testWidgets('the save button moves under the tabs instead of squeezing them '
+      'into a sliver that needs scrolling to read (#2787)', (tester) async {
+    await tester.pumpWidget(narrowHost(220, onSave: () {}));
+    expect(tester.takeException(), isNull);
+    final tabsY = tester.getTopLeft(find.byType(TabBar)).dy;
+    final saveY = tester.getTopLeft(find.text('Save query')).dy;
+    expect(saveY, greaterThan(tabsY));
+    // The tabs get the full row width now, not squeezed down to a sliver.
+    expect(
+      tester.getSize(find.byType(TabBar)).width,
+      greaterThanOrEqualTo(220 - 1),
+    );
+  });
 }
