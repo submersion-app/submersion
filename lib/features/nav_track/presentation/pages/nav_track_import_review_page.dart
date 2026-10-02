@@ -204,8 +204,8 @@ class _NavTrackImportReviewPageState
           // Creating a brand-new site from mid-review is a separate flow
           // this page does not open; the diver can still pick one already
           // in their log, or leave the route unanchored and set a site
-          // later from the routes area.
-          onCreateNewSite: () => Navigator.of(sheetContext).pop(),
+          // later from the routes area. No callback is supplied, so the
+          // sheet does not offer the button in the first place.
         ),
       ),
     );

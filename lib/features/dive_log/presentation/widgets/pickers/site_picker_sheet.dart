@@ -22,7 +22,7 @@ class SitePickerSheet extends ConsumerStatefulWidget {
   final LocationResult? currentLocation;
   final GeoPoint? diveLocation;
   final void Function(DiveSite) onSiteSelected;
-  final VoidCallback onCreateNewSite;
+  final VoidCallback? onCreateNewSite;
 
   const SitePickerSheet({
     super.key,
@@ -31,7 +31,7 @@ class SitePickerSheet extends ConsumerStatefulWidget {
     this.currentLocation,
     this.diveLocation,
     required this.onSiteSelected,
-    required this.onCreateNewSite,
+    this.onCreateNewSite,
   });
 
   @override
@@ -187,11 +187,12 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
                   ],
                 ),
               ),
-              TextButton.icon(
-                onPressed: widget.onCreateNewSite,
-                icon: const Icon(Icons.add),
-                label: Text(context.l10n.diveLog_sitePicker_newDiveSite),
-              ),
+              if (widget.onCreateNewSite != null)
+                TextButton.icon(
+                  onPressed: widget.onCreateNewSite,
+                  icon: const Icon(Icons.add),
+                  label: Text(context.l10n.diveLog_sitePicker_newDiveSite),
+                ),
             ],
           ),
         ),
@@ -257,14 +258,16 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
                         context.l10n.diveLog_sitePicker_noSites,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      const SizedBox(height: 8),
-                      TextButton.icon(
-                        onPressed: widget.onCreateNewSite,
-                        icon: const Icon(Icons.add),
-                        label: Text(
-                          context.l10n.diveLog_sitePicker_addDiveSite,
+                      if (widget.onCreateNewSite != null) ...[
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: widget.onCreateNewSite,
+                          icon: const Icon(Icons.add),
+                          label: Text(
+                            context.l10n.diveLog_sitePicker_addDiveSite,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 );
