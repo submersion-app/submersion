@@ -118,7 +118,7 @@ void main() {
   // The dive figure names every item itself, so the rows carry no number
   // (issue #2774).
   testWidgets('rows never lead with a figure number badge', (tester) async {
-    await tester.pumpWidget(build(arrangement: flat, selectedItemId: 'fins'));
+    await tester.pumpWidget(build(arrangement: flat));
     await tester.pumpAndSettle();
     expect(find.byType(FigureNumberBadge), findsNothing);
   });
