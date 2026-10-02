@@ -45823,6 +45823,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_list_empty => 'No underwater routes yet.';
 
   @override
+  String get navTrack_review_saveConfirmation => 'Route saved.';
+
+  @override
   String navTrack_list_loadError(String error) {
     return 'Could not load routes: $error';
   }

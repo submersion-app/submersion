@@ -13809,6 +13809,7 @@
   "navTrack_list_title": "المسارات تحت الماء",
   "navTrack_list_noMapRoutes": "لا توجد مسارات موضوعة على الخريطة بعد.",
   "navTrack_list_empty": "لا توجد مسارات تحت الماء بعد.",
+  "navTrack_review_saveConfirmation": "Route saved.",
   "navTrack_list_loadError": "Could not load routes: {error}",
   "navTrack_seascape_title": "المشهد البحري للمسار",
   "navTrack_seascape_noScene": "لا يحتوي هذا المسار على مشهد بحري قابل للاستخدام.",

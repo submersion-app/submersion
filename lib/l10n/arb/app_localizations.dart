@@ -73853,6 +73853,12 @@ abstract class AppLocalizations {
   /// **'No underwater routes yet.'**
   String get navTrack_list_empty;
 
+  /// No description provided for @navTrack_review_saveConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Route saved.'**
+  String get navTrack_review_saveConfirmation;
+
   /// No description provided for @navTrack_list_loadError.
   ///
   /// In en, this message translates to:
