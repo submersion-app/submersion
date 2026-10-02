@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -14,6 +15,58 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_sites/presentation/widgets/similar_value_hint.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+/// Returned by the site picker's "New Dive Site" button in place of a
+/// [DiveSite], so [pickOrCreateSite] can tell "create a new one" apart from
+/// "picked this existing one" (the sheet resolves to null when merely
+/// dismissed).
+const _createNewSiteSentinel = '__create_new__';
+
+/// Opens [SitePickerSheet] in a draggable bottom sheet and, on "New Dive
+/// Site", pushes the new-site form seeded with [newSiteSeedLocation] and
+/// resolves once the site has been saved.
+///
+/// Returns the picked or newly created [DiveSite], or null if the sheet was
+/// dismissed or the new-site form was cancelled.
+Future<DiveSite?> pickOrCreateSite(
+  BuildContext context,
+  WidgetRef ref, {
+  required String? selectedSiteId,
+  LocationResult? currentLocation,
+  GeoPoint? diveLocation,
+  GeoPoint? newSiteSeedLocation,
+}) async {
+  final chosen = await showModalBottomSheet<Object>(
+    context: context,
+    isScrollControlled: true,
+    builder: (sheetContext) => DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (sheetContext, scrollController) => SitePickerSheet(
+        scrollController: scrollController,
+        selectedSiteId: selectedSiteId,
+        currentLocation: currentLocation,
+        diveLocation: diveLocation,
+        onSiteSelected: (site) => Navigator.of(sheetContext).pop(site),
+        onCreateNewSite: () =>
+            Navigator.of(sheetContext).pop(_createNewSiteSentinel),
+      ),
+    ),
+  );
+
+  if (chosen is DiveSite) return chosen;
+  if (chosen != _createNewSiteSentinel) return null;
+
+  if (!context.mounted) return null;
+  final newSiteId = await context.push<String>(
+    '/sites/new',
+    extra: newSiteSeedLocation,
+  );
+  if (newSiteId == null || !context.mounted) return null;
+  return ref.read(siteProvider(newSiteId).future);
+}
 
 /// Site picker bottom sheet with nearby site suggestions
 class SitePickerSheet extends ConsumerStatefulWidget {
