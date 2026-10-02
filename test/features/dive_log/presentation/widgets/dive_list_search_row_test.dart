@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_list_cont
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/selection/selection_app_bar.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -92,6 +93,9 @@ void main() {
   Future<void> searchInSelectionMode(WidgetTester tester) async {
     await tester.tap(find.byKey(const ValueKey('dive-search-action')));
     await tester.pumpAndSettle();
+    // "Select items" lives in the overflow menu (#2783).
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('enter_selection')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
@@ -129,10 +133,10 @@ void main() {
     );
     await tester.pumpAndSettle();
     await searchInSelectionMode(tester);
-    expect(find.byKey(const ValueKey('enter_selection')), findsNothing);
+    expect(find.byType(SelectionAppBar), findsOneWidget);
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
+    expect(find.byType(SelectionAppBar), findsNothing);
     final container = ProviderScope.containerOf(
       tester.element(find.byType(DiveListContent)),
     );

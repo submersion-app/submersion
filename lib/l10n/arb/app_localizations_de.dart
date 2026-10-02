@@ -11230,9 +11230,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_list_menu_import => 'Importieren';
 
   @override
-  String get diveSites_list_menu_select => 'Tauchplätze auswählen';
-
-  @override
   String get diveSites_list_menu_fillLocationDetails =>
       'Fehlende Ortsangaben ergänzen';
 
@@ -15224,6 +15221,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String equipment_figure_itemLabel(int number, String type, String name) {
     return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_itemLabelUnnumbered(String type, String name) {
+    return '$type, $name';
   }
 
   @override
@@ -21199,6 +21201,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_data_header_backupSync => 'Sicherung & Synchronisierung';
+
+  @override
+  String get settings_data_header_import => 'Import';
 
   @override
   String get settings_data_header_storage => 'Speicher';

@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_composer.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_model.dart';
 import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -41,5 +42,35 @@ void main() {
     expect(find.text('Also carried'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('figure-label-b')));
     expect(tapped?.item.id, 'b');
+  });
+
+  testWidgets('unnumbered, an item reads as its type and name (issue #2774)', (
+    tester,
+  ) async {
+    final model = composeFigure(const [
+      FigureItemInput(id: 'b', type: EquipmentType.bcd, name: 'Hollis SMS75'),
+    ]);
+    tester.view.physicalSize = const Size(900, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: GearFigure(
+              model: model,
+              title: 'Reef set',
+              showNumbers: false,
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.bySemanticsLabel('BCD, Hollis SMS75'), findsOneWidget);
+    expect(find.bySemanticsLabel('1, BCD, Hollis SMS75'), findsNothing);
+    expect(find.byType(FigureNumberBadge), findsNothing);
   });
 }

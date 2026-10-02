@@ -42,10 +42,8 @@ void main() {
     ],
   );
 
-  Finder treeBadges() => find.descendant(
-    of: find.byType(DiveGearTreeView),
-    matching: find.byType(FigureNumberBadge),
-  );
+  ListTile row(WidgetTester tester, String id) =>
+      tester.widget<ListTile>(find.byKey(ValueKey('gear-row-$id')));
 
   Future<void> pump(
     WidgetTester tester, {
@@ -94,7 +92,7 @@ void main() {
     expect(find.byType(FigureNumberBadge), findsNothing);
   });
 
-  testWidgets('on, the figure sits above the tree and the numbers match', (
+  testWidgets('on, the figure sits above the tree and nothing is numbered', (
     tester,
   ) async {
     await pump(tester, showFigure: true);
@@ -104,11 +102,10 @@ void main() {
       tester.getTopLeft(find.byType(DiverFigure)).dy,
       lessThan(tester.getTopLeft(find.byType(DiveGearTreeView)).dy),
     );
-    final badgeNumbers = tester
-        .widgetList<FigureNumberBadge>(treeBadges())
-        .map((b) => b.number)
-        .toSet();
-    expect(badgeNumbers, {1, 2});
+    // The figure names every item, so neither it nor the rows carry a
+    // number (issue #2774), and a label reads without one.
+    expect(find.byType(FigureNumberBadge), findsNothing);
+    expect(find.bySemanticsLabel('Mask, Cressi'), findsOneWidget);
   });
 
   testWidgets('a linked tank is drawn where its role puts it', (tester) async {
@@ -125,10 +122,22 @@ void main() {
     await pump(tester, showFigure: true);
     await tester.tap(find.byKey(const ValueKey('figure-label-mask')));
     await tester.pump();
-    final selected = tester
-        .widgetList<FigureNumberBadge>(treeBadges())
-        .where((b) => b.selected);
-    expect(selected.single.number, 1);
+    expect(row(tester, 'mask').tileColor, isNotNull);
+    expect(row(tester, 'tank').tileColor, isNull);
+    await tester.pump(const Duration(milliseconds: 1300));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('hiding the figure mid-flash leaves no row highlighted', (
+    tester,
+  ) async {
+    await pump(tester, showFigure: true);
+    await tester.tap(find.byKey(const ValueKey('figure-label-mask')));
+    await tester.pump();
+    expect(row(tester, 'mask').tileColor, isNotNull);
+    // The diver turns the figure off before the flash times out.
+    await pump(tester, showFigure: false);
+    expect(row(tester, 'mask').tileColor, isNull);
     await tester.pump(const Duration(milliseconds: 1300));
     await tester.pumpAndSettle();
   });

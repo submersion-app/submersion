@@ -1,8 +1,10 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
@@ -66,7 +68,8 @@ Trip _trip() => Trip(
   updatedAt: DateTime(2026, 1, 1),
 );
 
-Future<void> pumpHeader(
+/// Pumps the map inside a scrolling page and returns its controller.
+Future<MapController> pumpHeader(
   WidgetTester tester,
   TripStoryMapGeometry geometry,
 ) async {
@@ -103,7 +106,29 @@ Future<void> pumpHeader(
   );
   await tester.pump();
   await tester.pump(const Duration(seconds: 1));
+  return controller;
 }
+
+const _twoPoints = TripStoryMapGeometry(
+  points: [
+    TripStoryMapPoint(
+      latitude: 12.1,
+      longitude: -68.2,
+      dayIndex: 0,
+      label: 'A',
+    ),
+    TripStoryMapPoint(
+      latitude: 12.2,
+      longitude: -68.3,
+      dayIndex: 1,
+      label: 'B',
+    ),
+  ],
+);
+
+/// A spot on the map well clear of the day pins and the attribution.
+Offset _openMapSpot(WidgetTester tester) =>
+    tester.getTopLeft(find.byType(FlutterMap)) + const Offset(40, 40);
 
 Future<void> pumpStrip(
   WidgetTester tester,
@@ -174,6 +199,89 @@ void main() {
     await pumpHeader(tester, geometry);
 
     expect(find.byType(FlutterMap), findsNothing);
+  });
+
+  testWidgets('dragging the map pans it instead of scrolling the page '
+      '(issue #2777)', (tester) async {
+    final controller = await pumpHeader(tester, _twoPoints);
+    final scroll = tester.state<ScrollableState>(find.byType(Scrollable).first);
+    final before = controller.camera.center;
+
+    // Vertical: the drag an enclosing scroll view would otherwise claim.
+    await tester.dragFrom(_openMapSpot(tester), const Offset(0, 120));
+    await tester.pumpAndSettle();
+    final afterVertical = controller.camera.center;
+    expect(afterVertical.latitude, isNot(closeTo(before.latitude, 1e-9)));
+    expect(scroll.position.pixels, 0);
+
+    await tester.dragFrom(_openMapSpot(tester), const Offset(-120, 0));
+    await tester.pumpAndSettle();
+    expect(
+      controller.camera.center.longitude,
+      isNot(closeTo(afterVertical.longitude, 1e-9)),
+    );
+    expect(scroll.position.pixels, 0);
+  });
+
+  testWidgets('a double-tap zooms the map in', (tester) async {
+    final controller = await pumpHeader(tester, _twoPoints);
+    final before = controller.camera.zoom;
+
+    await tester.tapAt(_openMapSpot(tester));
+    await tester.pump(kDoubleTapMinTime);
+    await tester.tapAt(_openMapSpot(tester));
+    await tester.pumpAndSettle();
+
+    expect(controller.camera.zoom, greaterThan(before));
+  });
+
+  testWidgets('zooming in stops at the map style\'s deepest tiles', (
+    tester,
+  ) async {
+    final controller = await pumpHeader(tester, _twoPoints);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(FlutterMap)),
+    );
+    final tileMaxZoom = container.read(mapTileMaxZoomProvider);
+
+    // Each double-tap zooms one level; enough of them would run far past the
+    // last zoom the tile server draws and blank the map.
+    for (var i = 0; i < 14; i++) {
+      await tester.tapAt(_openMapSpot(tester));
+      await tester.pump(kDoubleTapMinTime);
+      await tester.tapAt(_openMapSpot(tester));
+      await tester.pumpAndSettle();
+      await tester.pump(kDoubleTapTimeout);
+    }
+
+    expect(controller.camera.zoom, lessThanOrEqualTo(tileMaxZoom));
+  });
+
+  testWidgets('dragging stops at the poles', (tester) async {
+    final controller = await pumpHeader(tester, _twoPoints);
+    controller.move(controller.camera.center, 2);
+    await tester.pump();
+
+    // Far more than the distance to the north pole at zoom 2.
+    await tester.dragFrom(_openMapSpot(tester), const Offset(0, 2000));
+    await tester.pumpAndSettle();
+
+    // In world pixels, the top of the world is y = 0; past it is empty grey.
+    expect(controller.camera.pixelBounds.top, greaterThanOrEqualTo(-0.5));
+  });
+
+  testWidgets('the map never rotates', (tester) async {
+    await pumpHeader(tester, _twoPoints);
+
+    // A north-up overview: rotation is the one gesture the embedded detail
+    // maps leave out.
+    final flags = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .options
+        .interactionOptions
+        .flags;
+    expect(flags & InteractiveFlag.rotate, 0);
+    expect(flags & InteractiveFlag.drag, isNot(0));
   });
 
   testWidgets('stat strip shows the dive count', (tester) async {
@@ -260,6 +368,75 @@ void main() {
     );
     expect(size.width, greaterThanOrEqualTo(48));
     expect(size.height, greaterThanOrEqualTo(48));
+  });
+
+  testWidgets('a drag on the map stops a camera move in flight', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: _AnimatorHarness()));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1)); // attach the map camera
+
+    await tester.tap(find.text('animate'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // dragFrom sends its moves without pumping frames, so the eased move only
+    // ticks again after the drag has ended.
+    await tester.dragFrom(
+      tester.getCenter(find.byType(FlutterMap)),
+      const Offset(-150, 0),
+    );
+    await tester.pump(const Duration(seconds: 1));
+
+    final center = tester
+        .state<_AnimatorHarnessState>(find.byType(_AnimatorHarness))
+        ._controller
+        .camera
+        .center;
+    // Left running, the animation would land exactly on its target.
+    expect(center.longitude, isNot(closeTo(20, 1e-6)));
+  });
+
+  testWidgets('another camera move stops a camera move in flight', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: _AnimatorHarness()));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1)); // attach the map camera
+
+    await tester.tap(find.text('animate'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // The trackpad zoom moves the camera through the controller, as the
+    // animator does, rather than through a flutter_map gesture.
+    final controller = tester
+        .state<_AnimatorHarnessState>(find.byType(_AnimatorHarness))
+        ._controller;
+    controller.move(controller.camera.center, 8);
+    await tester.pump(const Duration(seconds: 1));
+
+    // Left running, the animation would land exactly on zoom 6.
+    expect(controller.camera.zoom, 8);
+  });
+
+  testWidgets('a finished camera move stops watching for gestures', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: _AnimatorHarness()));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1)); // attach the map camera
+
+    await tester.tap(find.text('animate'));
+    await tester.pump();
+    final animator = tester
+        .state<_AnimatorHarnessState>(find.byType(_AnimatorHarness))
+        ._animator!;
+    expect(animator.isWatchingGestures, isTrue);
+
+    await tester.pump(const Duration(seconds: 1));
+    expect(animator.isWatchingGestures, isFalse);
   });
 
   testWidgets('MapCameraAnimator eases the camera then disposes cleanly', (

@@ -34,6 +34,7 @@ class DiverFigure extends StatefulWidget {
     this.onItemTap,
     this.itemSemantics,
     this.trayTitle,
+    this.showNumbers = true,
   });
 
   static const double wideBreakpoint = 600;
@@ -65,6 +66,11 @@ class DiverFigure extends StatefulWidget {
 
   /// Heading over the tray. The tray is hidden when the model has none.
   final String? trayTitle;
+
+  /// Whether each label and tray tile leads with the item's number, to
+  /// match a numbered item list beside the figure. Off where the list
+  /// carries no numbers, so the names stand alone (issue #2774).
+  final bool showNumbers;
 
   @override
   State<DiverFigure> createState() => _DiverFigureState();
@@ -142,6 +148,7 @@ class _DiverFigureState extends State<DiverFigure> {
                 for (final item in widget.model.tray)
                   _TrayTile(
                     item: item,
+                    number: _numberOf(item),
                     name: widget.labelText(item),
                     selected: item.item.id == widget.selectedItemId,
                     semanticsLabel: widget.itemSemantics?.call(item),
@@ -156,6 +163,8 @@ class _DiverFigureState extends State<DiverFigure> {
       },
     );
   }
+
+  int? _numberOf(PlacedItem item) => widget.showNumbers ? item.number : null;
 
   Widget _phone(BuildContext context, double width) {
     final counts = {
@@ -207,7 +216,16 @@ class _DiverFigureState extends State<DiverFigure> {
     final scaler = MediaQuery.textScalerOf(context);
     final labelHeight = FigureNameLabel.heightFor(context, pill: true);
     final slots = _cachedSlots(
-      (#wide, widget.model, width, scaler, direction, style, labelHeight),
+      (
+        #wide,
+        widget.model,
+        width,
+        scaler,
+        direction,
+        style,
+        labelHeight,
+        widget.showNumbers,
+      ),
       () => labelPills(
         model: widget.model,
         layout: layout,
@@ -219,7 +237,7 @@ class _DiverFigureState extends State<DiverFigure> {
           style,
           direction,
           textScaler: scaler,
-          number: p.number,
+          number: _numberOf(p),
         ),
       ),
     );
@@ -269,7 +287,7 @@ class _DiverFigureState extends State<DiverFigure> {
               rect: slot.rect,
               child: FigureNameLabel(
                 key: ValueKey('figure-label-${slot.item.item.id}'),
-                number: slot.item.number,
+                number: _numberOf(slot.item),
                 text: widget.labelText(slot.item),
                 alignEnd: slot.onLeft,
                 pill: only == null,
@@ -289,6 +307,7 @@ class _DiverFigureState extends State<DiverFigure> {
 class _TrayTile extends StatelessWidget {
   const _TrayTile({
     required this.item,
+    required this.number,
     required this.name,
     required this.selected,
     required this.semanticsLabel,
@@ -296,6 +315,7 @@ class _TrayTile extends StatelessWidget {
   });
 
   final PlacedItem item;
+  final int? number;
   final String name;
   final bool selected;
   final String? semanticsLabel;
@@ -312,7 +332,7 @@ class _TrayTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: FigureLabelBody(
-          number: item.number,
+          number: number,
           text: name,
           selected: selected,
           leading: Icon(equipmentTypeIcon(item.item.type)),

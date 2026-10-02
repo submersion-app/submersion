@@ -18117,12 +18117,6 @@ abstract class AppLocalizations {
   /// **'Import'**
   String get diveSites_list_menu_import;
 
-  /// No description provided for @diveSites_list_menu_select.
-  ///
-  /// In en, this message translates to:
-  /// **'Select sites'**
-  String get diveSites_list_menu_select;
-
   /// No description provided for @diveSites_list_menu_fillLocationDetails.
   ///
   /// In en, this message translates to:
@@ -24769,6 +24763,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{number}, {type}, {name}'**
   String equipment_figure_itemLabel(int number, String type, String name);
+
+  /// Screen-reader label of an item on a diver figure drawn without numbers: the item's type, then its name.
+  ///
+  /// In en, this message translates to:
+  /// **'{type}, {name}'**
+  String equipment_figure_itemLabelUnnumbered(String type, String name);
 
   /// No description provided for @equipment_figure_summary.
   ///
@@ -34072,6 +34072,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backup & Sync'**
   String get settings_data_header_backupSync;
+
+  /// No description provided for @settings_data_header_import.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get settings_data_header_import;
 
   /// No description provided for @settings_data_header_storage.
   ///

@@ -9,6 +9,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -35,7 +36,8 @@ class DiveCenterListPage extends ConsumerStatefulWidget {
   ConsumerState<DiveCenterListPage> createState() => _DiveCenterListPageState();
 }
 
-class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
+class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
+    with TableSelectionOwner {
   bool get _isMapView {
     final state = GoRouterState.of(context);
     return state.uri.queryParameters['view'] == 'map';
@@ -83,6 +85,8 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
       label: Text(context.l10n.diveCenters_title_add),
     );
 
+    resetTableSelectionOffTable(diveCenterListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane and map.
     final viewMode = ref.watch(diveCenterListViewModeProvider);
@@ -91,7 +95,10 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
         sectionKey: 'diveCenters',
         appBarTitle: context.l10n.nav_diveCenters,
         appBarSubtitle: diveCenterListCountLabel(context, ref),
-        tableContent: const DiveCenterListContent(showAppBar: false),
+        tableContent: DiveCenterListContent(
+          showAppBar: false,
+          selectionController: tableSelection,
+        ),
         detailBuilder: (context, centerId) => DiveCenterDetailPage(
           centerId: centerId,
           embedded: true,
@@ -188,6 +195,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
             itemBuilder: (context) {
               final currentMode = ref.read(diveCenterListViewModeProvider);
               return [
+                ...tableSelectItemsEntries(context),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,

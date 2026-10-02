@@ -6,10 +6,10 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
-import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -44,12 +44,20 @@ class CertificationListContent extends ConsumerStatefulWidget {
   final bool showAppBar;
   final Widget? floatingActionButton;
 
+  /// Drives bulk selection from outside the list when set.
+  ///
+  /// In table mode the page's header carries the overflow menu, "Select
+  /// items" among it, so the page has to reach the same controller the rows
+  /// use. Left null, the list owns its own.
+  final SelectionController? selectionController;
+
   const CertificationListContent({
     super.key,
     this.onItemSelected,
     this.selectedId,
     this.showAppBar = true,
     this.floatingActionButton,
+    this.selectionController,
   });
 
   @override
@@ -59,8 +67,19 @@ class CertificationListContent extends ConsumerStatefulWidget {
 
 class _CertificationListContentState
     extends ConsumerState<CertificationListContent> {
-  /// Owns the bulk-selection state machine for this list.
-  final SelectionController _selection = SelectionController();
+  /// The bulk-selection state machine for this list: the page's when it
+  /// passes one, otherwise this list's own.
+  late final SelectionController _selection = _adoptSelection();
+
+  /// Only a controller this list created is this list's to dispose. Set in
+  /// the same step that picks the controller, so the two cannot disagree.
+  bool _ownsSelection = false;
+
+  SelectionController _adoptSelection() {
+    final external = widget.selectionController;
+    _ownsSelection = external == null;
+    return external ?? SelectionController();
+  }
 
   /// Convenience mirrors of the controller, so the widget tree reads clearly.
   bool get _isSelectionMode => _selection.value.isActive;
@@ -83,7 +102,7 @@ class _CertificationListContentState
   @override
   void dispose() {
     _scrollController.dispose();
-    _selection.dispose();
+    if (_ownsSelection) _selection.dispose();
     super.dispose();
   }
 
@@ -246,18 +265,10 @@ class _CertificationListContentState
                       tooltip: context.l10n.certifications_list_tooltip_sort,
                       onPressed: () => _showSortSheet(context),
                     ),
-                    // The only way into bulk actions: entry by long-press was removed,
-                    // so nothing but this control opens selection mode on touch.
                     QueryFilterAction(
                       provider: certificationQueryProvider,
                       subject: QuerySubject.certifications,
                       root: certificationQueryEntity,
-                    ),
-                    IconButton(
-                      key: const ValueKey('enter_selection'),
-                      icon: const Icon(Icons.checklist),
-                      tooltip: context.l10n.common_selection_enterTooltip,
-                      onPressed: _selection.enterExplicit,
                     ),
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert),
@@ -279,6 +290,10 @@ class _CertificationListContentState
                           certificationListViewModeProvider,
                         );
                         return [
+                          ...selectItemsMenuEntries(
+                            context,
+                            onSelect: _selection.enterExplicit,
+                          ),
                           ...ListViewModeToggle.menuItems(
                             context,
                             currentMode: currentMode,
@@ -403,16 +418,13 @@ class _CertificationListContentState
         builder: (context, selection, _) {
           final certifications =
               certificationsAsync.value ?? const <Certification>[];
-          // Table mode has no app bar of its own, so both bars live here: the
-          // contextual one while selecting, and the Select affordance while
-          // not. They share a slot and a height, so the table does not shift
-          // as the mode opens.
+          // Table mode has no app bar of its own: "Select items" sits in the
+          // page header's overflow menu, and the contextual bar opens above
+          // the table while selecting.
           return Column(
             children: [
               if (selection.isActive)
-                _buildSelectionBar(certifications, SelectionBarShell.pane)
-              else
-                SelectionEntryBar(controller: _selection),
+                _buildSelectionBar(certifications, SelectionBarShell.pane),
               Expanded(
                 child: _withQueryChips(
                   _buildTableView(context, certificationsAsync),
@@ -517,19 +529,11 @@ class _CertificationListContentState
             tooltip: context.l10n.certifications_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
-          // The only way into bulk actions: entry by long-press was removed,
-          // so nothing but this control opens selection mode on touch.
           QueryFilterAction(
             provider: certificationQueryProvider,
             subject: QuerySubject.certifications,
             root: certificationQueryEntity,
             compact: true,
-          ),
-          IconButton(
-            key: const ValueKey('enter_selection'),
-            icon: const Icon(Icons.checklist, size: 20),
-            tooltip: context.l10n.common_selection_enterTooltip,
-            onPressed: _selection.enterExplicit,
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
@@ -545,6 +549,10 @@ class _CertificationListContentState
             itemBuilder: (context) {
               final currentMode = ref.read(certificationListViewModeProvider);
               return [
+                ...selectItemsMenuEntries(
+                  context,
+                  onSelect: _selection.enterExplicit,
+                ),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,

@@ -10711,9 +10711,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_list_menu_import => '导入';
 
   @override
-  String get diveSites_list_menu_select => '选择潜水点';
-
-  @override
   String get diveSites_list_menu_fillLocationDetails => '补全缺失的地点信息';
 
   @override
@@ -14558,6 +14555,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String equipment_figure_itemLabel(int number, String type, String name) {
     return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_itemLabelUnnumbered(String type, String name) {
+    return '$type, $name';
   }
 
   @override
@@ -20187,6 +20189,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_data_header_backupSync => '备份与同步';
+
+  @override
+  String get settings_data_header_import => '导入';
 
   @override
   String get settings_data_header_storage => '存储';
