@@ -152,6 +152,23 @@ void main() {
         expect(result, isA<ConsolidationReady>());
       });
 
+      // A recorded zero runtime is a length, not a missing one: it is not
+      // stretched to the other dive's.
+      test('a recorded zero runtime does not borrow the other length', () {
+        final result = builder.classify([
+          makeDive('a', entry: t, runtimeMin: 0),
+          makeDive(
+            'b',
+            entry: t.add(const Duration(minutes: 3)),
+            runtimeMin: 45,
+          ),
+        ]);
+        expect(
+          (result as ConsolidationInvalid).reason,
+          ConsolidationInvalidReason.notOverlapping,
+        );
+      });
+
       test('does not overlap a dive starting after that length', () {
         final result = builder.classify([
           instant,
