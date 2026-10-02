@@ -119,6 +119,7 @@ void main() {
         descriptorProduct: anyNamed('descriptorProduct'),
         descriptorModel: anyNamed('descriptorModel'),
         libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+        addMissingTanks: anyNamed('addMissingTanks'),
       ),
     ).thenAnswer((_) async => 'dive-id');
   });
@@ -165,6 +166,7 @@ void main() {
                 descriptorProduct: anyNamed('descriptorProduct'),
                 descriptorModel: anyNamed('descriptorModel'),
                 libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+                addMissingTanks: anyNamed('addMissingTanks'),
               ),
             ).captured.single
             as ComputerTissueSnapshot?;
@@ -854,6 +856,7 @@ void main() {
             descriptorProduct: 'Perdix',
             descriptorModel: 42,
             libdivecomputerVersion: '0.8.0',
+            addMissingTanks: true,
           ),
         ).called(1);
       },
@@ -924,6 +927,7 @@ void main() {
                   descriptorProduct: anyNamed('descriptorProduct'),
                   descriptorModel: anyNamed('descriptorModel'),
                   libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+                  addMissingTanks: anyNamed('addMissingTanks'),
                 ),
               ).captured.single
               as List<GasSwitchData>;

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -211,20 +212,15 @@ class GarminDiveMapper {
     ];
   }
 
-  /// Maps profile samples 1:1, except a sample with more than one
-  /// simultaneous tank-pressure reading (multiple air-integration
-  /// transmitters): the first reading rides on the main sample, and every
-  /// additional reading becomes an extra minimal sample at the same
-  /// timestamp/depth. [ProfileSample] carries only one pressure/tankIndex
-  /// pair per row, so this mirrors how multi-transmitter dive-computer
-  /// downloads are represented elsewhere in this app (see
-  /// SuuntoDiveParser._buildProfile, which documents the same convention).
+  /// Maps profile samples 1:1. A sample with more than one simultaneous
+  /// tank-pressure reading (multiple air-integration transmitters) carries
+  /// them all in [ProfileSample.tankPressures] (issue #1223), as libdivecomputer
+  /// downloads and Suunto Cloud imports do; a row per extra reading would
+  /// repeat the sample's timestamp in the stored profile. The single
+  /// pressure/tankIndex pair holds the last reading, as that field documents.
   static List<ProfileSample> _mapProfile(List<ImportedProfileSample> profile) {
-    final result = <ProfileSample>[];
-    for (final sample in profile) {
-      final pressures = sample.tankPressures ?? const [];
-
-      result.add(
+    return [
+      for (final sample in profile)
         ProfileSample(
           timeSeconds: sample.timeSeconds,
           depth: sample.depth,
@@ -234,22 +230,27 @@ class GarminDiveMapper {
           ndl: sample.ndlSeconds,
           tts: sample.ttsSeconds,
           ceiling: sample.ceiling,
-          pressure: pressures.isEmpty ? null : pressures.first.pressureBar,
-          tankIndex: pressures.isEmpty ? null : pressures.first.tankIndex,
+          pressure: sample.tankPressures?.lastOrNull?.pressureBar,
+          tankIndex: sample.tankPressures?.lastOrNull?.tankIndex,
+          tankPressures: _byTankIndex(sample.tankPressures),
         ),
-      );
+    ];
+  }
 
-      for (final extra in pressures.skip(1)) {
-        result.add(
-          ProfileSample(
-            timeSeconds: sample.timeSeconds,
-            depth: sample.depth,
-            pressure: extra.pressureBar,
-            tankIndex: extra.tankIndex,
-          ),
-        );
-      }
+  /// [readings] as a list indexed by tank index, null where a tank has none,
+  /// or null when there are fewer than two readings to hold. The FIT parser
+  /// buckets readings by whole second, so one transmitter can land twice in
+  /// a sample; its tank then holds the later reading, as the single pair
+  /// does.
+  static List<double?>? _byTankIndex(
+    List<ImportedTankPressureSample>? readings,
+  ) {
+    if (readings == null || readings.length < 2) return null;
+    final highest = readings.map((r) => r.tankIndex).reduce(math.max);
+    final byTank = List<double?>.filled(highest + 1, null);
+    for (final reading in readings) {
+      byTank[reading.tankIndex] = reading.pressureBar;
     }
-    return result;
+    return List.unmodifiable(byTank);
   }
 }

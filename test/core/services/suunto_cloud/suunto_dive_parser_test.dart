@@ -488,8 +488,9 @@ void main() {
 
       final atTen = result.dive.profile[1];
       expect(atTen.depth, 18.0);
-      expect(atTen.tankIndex, 0);
-      expect(atTen.pressure, closeTo(195.0, 0.001));
+      // The single pair holds the last reading, as ProfileSample documents.
+      expect(atTen.tankIndex, 1);
+      expect(atTen.pressure, closeTo(210.0, 0.001));
       expect(atTen.tankPressures, hasLength(2));
       expect(atTen.tankPressures![0], closeTo(195.0, 0.001));
       expect(atTen.tankPressures![1], closeTo(210.0, 0.001));
@@ -676,6 +677,156 @@ void main() {
 
       expect(result.dive.tanks, isEmpty);
       expect(result.dive.profile, hasLength(2));
+    });
+
+    const sidemountAndStage = [
+      {'Oxygen': 0.32, 'Helium': 0.0, 'TankSize': 0.0111},
+      {'Oxygen': 0.5, 'Helium': 0.0, 'TankSize': 0.0057},
+    ];
+
+    test('pairs a sidemount gas the watch never switched to', () {
+      // Multi-gas dive, no GasSwitch at all: the readings alone say the
+      // sidemount gas was breathed.
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(gases: sidemountAndStage),
+        samples: [
+          start(),
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000, 'Pressure2': 21000000},
+          ]),
+        ],
+      );
+
+      final roles = {for (final t in result.dive.tanks) t.index: t.role};
+      expect(roles, {
+        0: TankRole.sidemountLeft.name,
+        2: TankRole.sidemountRight.name,
+      });
+    });
+
+    test('keeps each gas on its own index when the dive starts on gas 1', () {
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(gases: sidemountAndStage),
+        samples: [
+          {
+            ...start(),
+            'Events': const [
+              {
+                'GasSwitch': {'GasNumber': 1},
+              },
+            ],
+          },
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000, 'Pressure2': 21000000},
+          ]),
+          {
+            'TimeISO8601': '2026-05-01T10:00:20Z',
+            'Depth': 18.0,
+            'Events': const [
+              {
+                'GasSwitch': {'GasNumber': 0},
+              },
+            ],
+          },
+        ],
+      );
+
+      final o2ByIndex = {
+        for (final t in result.dive.tanks) t.index: t.o2Percent.round(),
+      };
+      expect(o2ByIndex, {0: 32, 1: 50, 2: 32});
+    });
+
+    test('ignores readings on samples the profile skips', () {
+      // Pressure2 shows up only before the dive starts, while the
+      // transmitters pair: no profile row, so no Sidemount Right either.
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(),
+        samples: [
+          {
+            'TimeISO8601': '2026-05-01T09:59:50Z',
+            'Depth': 0.0,
+            'Cylinders': const [
+              {'GasNumber': 0, 'Pressure': 19500000, 'Pressure2': 21000000},
+            ],
+          },
+          start(),
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000},
+          ]),
+        ],
+      );
+
+      expect(result.dive.tanks, hasLength(1));
+      expect(result.dive.tanks.single.role, isNull);
+      expect(result.dive.profile.every((s) => s.tankPressures == null), isTrue);
+    });
+
+    test('keeps the first of two readings for one gas', () {
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(),
+        samples: [
+          start(),
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000},
+            {'GasNumber': 0, 'Pressure': 18000000},
+          ]),
+        ],
+      );
+
+      final atTen = result.dive.profile[1];
+      expect(atTen.tankIndex, 0);
+      expect(atTen.pressure, closeTo(195.0, 0.001));
+      expect(atTen.tankPressures, isNull);
+    });
+
+    test('pairs a gas whose only extra transmitter is Pressure3', () {
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(),
+        samples: [
+          start(),
+          at(10, const [
+            {
+              'GasNumber': 0,
+              'Pressure': 19500000,
+              'Pressure2': null,
+              'Pressure3': 21000000,
+            },
+          ]),
+        ],
+      );
+
+      final roles = {for (final t in result.dive.tanks) t.index: t.role};
+      expect(roles, {
+        0: TankRole.sidemountLeft.name,
+        1: TankRole.sidemountRight.name,
+      });
+    });
+
+    test('gives a third transmitter on one gas no sidemount role', () {
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(),
+        samples: [
+          start(),
+          at(10, const [
+            {
+              'GasNumber': 0,
+              'Pressure': 19500000,
+              'Pressure2': 21000000,
+              'Pressure3': 20000000,
+            },
+          ]),
+        ],
+      );
+
+      final roles = {for (final t in result.dive.tanks) t.index: t.role};
+      expect(roles, {
+        0: TankRole.sidemountLeft.name,
+        1: TankRole.sidemountRight.name,
+        2: null,
+      });
+      final third = result.dive.tanks.singleWhere((t) => t.index == 2);
+      expect(third.o2Percent, closeTo(32.0, 0.001));
     });
   });
 
@@ -918,7 +1069,7 @@ void main() {
       });
     });
 
-    test('records a gas switch and assigns tanks by switch order', () {
+    test('records a gas switch and gives each gas its own tank', () {
       final header = _header(deviceName: 'EON Steel')
         ..['Diving']['Gases'] = [
           {'Oxygen': 0.21, 'Helium': 0.0, 'TankSize': 0.012},
