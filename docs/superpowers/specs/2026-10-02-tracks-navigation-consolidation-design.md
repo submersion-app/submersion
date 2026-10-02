@@ -80,18 +80,25 @@ Rejected alternatives:
 lib/features/tracks/
   domain/track_list_item.dart            # sealed TrackListItem: GpsTrackItem | UnderwaterTrackItem
   domain/track_kind.dart                 # enum TrackKind { gps, underwater }, TrackKindFilter { all, gps, underwater }
+  domain/tracks_query.dart               # pure: merge, date bound, combined overview cap
   domain/tracks_summary.dart             # pure: counts, recorded time, dives covered (deduplicated)
   application/tracks_match_controller.dart   # runs both sweeps sequentially, combined result
-  application/tracks_import_controller.dart  # pick file, detect ENC, route to the right review page
   presentation/providers/tracks_providers.dart
+  presentation/tracks_import.dart            # one Import action: detect ENC, route to the right review page
+  presentation/track_item_location.dart      # detail path for a TrackListItem
   presentation/pages/tracks_page.dart        # landing: MapListScaffold (wide) / column (narrow)
   presentation/pages/tracks_map_page.dart    # phone full-screen map (was GpsTrackMapPage)
   presentation/widgets/track_kind_badge.dart
-  presentation/widgets/track_kind_filter_action.dart
+  presentation/widgets/track_kind_filter_control.dart
+  presentation/widgets/tracks_list_header.dart
   presentation/widgets/tracks_list_pane.dart
+  presentation/widgets/tracks_map_pane.dart
+  presentation/widgets/tracks_match_snackbar.dart
   presentation/widgets/tracks_overview_map.dart
   presentation/widgets/tracks_summary_strip.dart
   presentation/widgets/tracks_empty_state.dart
+
+lib/core/router/track_locations.dart     # every Tracks path, shared by the router and all callers
 
 test/features/tracks/...                 # mirrors lib
 ```
@@ -162,7 +169,7 @@ the filter on the page updates the provider only; the URL is not rewritten.
 | `/nav-routes/:id` | `/tracks/underwater/:id` |
 | `/nav-routes/:id/align` | `/tracks/underwater/:id/align` |
 | `/nav-routes/:id/3d` | `/tracks/underwater/:id/3d` |
-| `/tools/gps-logger` | `/tracks` |
+| `/planning/gps-logger` | `/tracks` |
 
 `/gps-log/map` is declared before `/gps-log/:id` so `map` is not read as an
 id. Redirects exist for stale links only; every internal `push`/`go` call
@@ -196,9 +203,8 @@ sealed class TrackListItem {
   TrackKind get kind;
   int get startTime;        // wall-clock-as-UTC epoch ms; GPS uses effectiveStartTime (trim-aware)
   int? get endTime;         // GPS: effectiveEndTime (null while recording)
-  int get tzOffsetMinutes;
-  String get displayName;
   bool get isMappable;
+  Duration? get recordedTime; // what the summary counts
   String get selectionKey;  // '${kind.name}:$id'
 }
 
@@ -218,8 +224,10 @@ Providers (`tracks_providers.dart`):
 - `tracksListProvider`: merges `gpsTracksProvider` and
   `allNavTracksProvider` (which stays point-free, so list rows never decode
   blobs), applies the existing `trackDateFilterProvider` to both kinds and
-  the kind filter, sorts by `startTime` descending.
-- `tracksOverviewProvider`: the newest `kOverviewTrackLimit` (40) mappable
+  the kind filter, sorts by `startTime` descending, breaking ties by
+  `selectionKey` (`List.sort` is not stable).
+- `tracksOverviewProvider`: the newest `kTracksOverviewLimit` (40, in
+  `tracks_query.dart`, replacing the GPS-only `kOverviewTrackLimit`) mappable
   items. The cap is now combined across kinds, so the map never hydrates
   more than 40 point blobs whatever the mix.
 - `tracksOverviewTruncatedProvider`: true when mappable items exceed the cap;
@@ -245,14 +253,17 @@ read by GPS detail code); moving it is not required.
 Wide screens (`ResponsiveBreakpoints.isMasterDetail`): `MapListScaffold`
 with `sectionKey: kTracksSectionKey`.
 
-- **App bar:** title "Tracks" (`FeatureAppBarTitle(featureId: 'tracks')`),
-  kind filter (segmented button), date filter, Import, Match.
-- **List pane,** top to bottom: `GpsRecordCard` (record-capable devices
-  only, every filter), `TracksSummaryStrip`, then rows. The existing
-  truncation notice sits above the rows when it applies.
+- **App bar:** title "Tracks" (`FeatureAppBarTitle(featureId: 'tracks')`)
+  and Import.
+- **List pane,** top to bottom, the same header on both widths:
+  `GpsRecordCard` (record-capable devices only, every filter),
+  `TracksSummaryStrip`, the kind filter (segmented All / GPS / Underwater),
+  the date filter, the "Match tracks to dives" button (where GPS Log had
+  its match button), the truncation notice when it applies, then rows.
 - **Rows:** a `switch` over `TrackListItem` renders `GpsTrackListTile` or
-  `NavTrackListRow`, each with a `TrackKindBadge` ("GPS" / "Underwater") in
-  a shared trailing-title slot. Rows are keyed by `selectionKey`.
+  `NavTrackListRow`, each with a `TrackKindBadge` ("GPS" / "Underwater") on
+  the subtitle line, below the status text, so the title keeps the full row
+  width (the #2692 hazard). Rows are keyed by `selectionKey`.
 - **Map pane:** one `FlutterMap` drawing GPS polylines and anchored
   underwater polylines with their existing layers and distinct styling.
   Camera framing uses the union of both sets, with the framing-signature
@@ -264,13 +275,12 @@ with `sectionKey: kTracksSectionKey`.
 - Unanchored underwater tracks appear only in the list, with their shape
   thumbnail as today.
 
-Narrow screens: `Scaffold` with a `CustomScrollView` (rows carry live map
-thumbnails, so the list must be lazily built).
+Narrow screens: `Scaffold` whose body is the same list pane, a builder list
+(rows carry live map thumbnails, so it must be lazily built).
 
-- **App bar:** title, kind filter (popup menu), map button to `/tracks/map`,
-  overflow with date filter, Import, Match.
-- **Body:** record card, summary strip, rows; tapping a row pushes its
-  detail path.
+- **App bar:** title, map button to `/tracks/map`, Import.
+- **Body:** the header above, then rows; tapping a row pushes its detail
+  path.
 
 ### Empty states
 
@@ -281,7 +291,7 @@ thumbnails, so the list must be lazily built).
 
 ## Import
 
-`TracksImportController` takes over `GpsLoggerPage._importTrack` unchanged
+`importTrackFile` (`tracks_import.dart`) takes over `GpsLoggerPage._importTrack` unchanged
 in behaviour:
 
 1. Pick a file, `allowedExtensions: ['gpx', 'kml', 'csv', 'fit']`, read
@@ -304,18 +314,20 @@ Drag-and-drop and share-sheet handling (`handleIncomingFile`) are unchanged.
 GPS sweep also writes dive coordinates. Each sweep is wrapped separately, so
 a failure in one does not skip the other.
 
-Result:
-
-```dart
-({int gpsLinked, int underwaterLinked, bool anyFailed})
-```
+Result: `TracksMatchOutcome(positionedDiveIds, linkedUnderwaterIds,
+anyFailed)`. The GPS sweep reports the dives it positioned, not tracks, and
+those ids feed the existing "Review site matches" action, which the merged
+page keeps.
 
 Snackbar:
 
-- any linked and none failed: "Linked {count} tracks to dives"
-- none linked and none failed: "No new matches"
+- something matched and nothing failed: "Dives positioned: {positioned} ·
+  Underwater tracks linked: {linked}" (label and value pairs, so no plural
+  forms to translate)
+- nothing matched and nothing failed: "No new matches"
 - any failed: "Some tracks could not be matched. Try again." (each failure
   logged separately)
+- whenever dives were positioned: the "Review site matches" action
 
 ## Vocabulary (PR 2)
 
@@ -333,8 +345,9 @@ Rules:
   reworded, so no stale translation keeps the old wording.
 - All 11 locales get translations in the same PR; none fall back to English.
 - Dart identifiers and storage are untouched.
-- l10n keys used only by the deleted pages are removed in PR 1; the unused
-  ARB key check catches leftovers.
+- l10n keys used only by the deleted pages are removed in PR 1. No
+  automated check finds unused keys, so each removed key is first grepped
+  for live users.
 
 ## Testing
 
@@ -354,7 +367,7 @@ Unit:
   when `durationSeconds` is null.
 - `TracksMatchController`: both sweeps run in order; one throwing still runs
   the other and reports `anyFailed`.
-- `TracksImportController`: ENC CSV routes to underwater review; GPX and a
+- `importTrackFile`: ENC CSV routes to underwater review; GPX and a
   non-ENC CSV route to GPS review; parse error shows the localized message.
 
 Nav:
@@ -424,4 +437,4 @@ After PR 1 merges, #2398 is closed as superseded with a comment pointing to
   hydration; unchanged from today's GPS-only bound.
 - **Stale external links** (notes, desktop bookmarks, an older build's
   deep link). Covered by the redirects, which are cheap and kept
-  indefinitely, like the existing `/tools/gps-logger` redirect.
+  indefinitely, like the existing `/planning/gps-logger` redirect.
