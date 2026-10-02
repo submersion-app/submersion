@@ -12840,10 +12840,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_profileEvent_decoViolation => 'Deco-overtreding';
 
   @override
+  String get enum_profileEvent_decompressionDive => 'Decompressieduik';
+
+  @override
   String get enum_profileEvent_gasSwitch => 'Gaswisseling';
 
   @override
   String get enum_profileEvent_lowGas => 'Waarschuwing laag gas';
+
+  @override
+  String get enum_profileEvent_lowNoDecoTime => 'Lage nultijd';
 
   @override
   String get enum_profileEvent_maxDepth => 'Max diepte';
@@ -12868,6 +12874,77 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_profileEvent_setpointChange => 'Setpointwijziging';
+
+  @override
+  String get enum_profileEvent_suunto_ascentRateAlarm =>
+      'Alarm opstijgsnelheid';
+
+  @override
+  String get enum_profileEvent_suunto_ceilingBroken =>
+      'Decoplafond overschreden';
+
+  @override
+  String get enum_profileEvent_suunto_cns100Alarm => 'Alarm CNS 100%';
+
+  @override
+  String get enum_profileEvent_suunto_cns80Warning => 'Waarschuwing CNS 80%';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopBroken => 'Decostop onderbroken';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopReached => 'Decostop bereikt';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopBroken =>
+      'Diepe stop onderbroken';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopReached => 'Diepe stop bereikt';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeAlarm => 'Alarm gastijd';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeNotification => 'Melding gastijd';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeWarning => 'Waarschuwing gastijd';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Alarm => 'Alarm hoge ppO2';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Warning =>
+      'Waarschuwing hoge ppO2';
+
+  @override
+  String get enum_profileEvent_suunto_lowPpo2Alarm => 'Alarm lage ppO2';
+
+  @override
+  String get enum_profileEvent_suunto_otu250Warning => 'Waarschuwing OTU 250';
+
+  @override
+  String get enum_profileEvent_suunto_otu300Alarm => 'Alarm OTU 300';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopBroken =>
+      'Veiligheidsstop onderbroken';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopReached =>
+      'Veiligheidsstop bereikt';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureAlarm => 'Alarm flesdruk';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureNotification =>
+      'Melding flesdruk';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureWarning =>
+      'Waarschuwing flesdruk';
 
   @override
   String get enum_profileMetricCategory_decompression => 'Decompressie';

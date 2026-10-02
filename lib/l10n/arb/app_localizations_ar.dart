@@ -12719,10 +12719,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_profileEvent_decoViolation => 'انتهاك تخفيف الضغط';
 
   @override
+  String get enum_profileEvent_decompressionDive => 'غوصة تخفيف ضغط';
+
+  @override
   String get enum_profileEvent_gasSwitch => 'تبديل الغاز';
 
   @override
   String get enum_profileEvent_lowGas => 'تحذير انخفاض الغاز';
+
+  @override
+  String get enum_profileEvent_lowNoDecoTime => 'انخفاض وقت عدم تخفيف الضغط';
 
   @override
   String get enum_profileEvent_maxDepth => 'أقصى عمق';
@@ -12747,6 +12753,75 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_profileEvent_setpointChange => 'تغيير نقطة الضبط';
+
+  @override
+  String get enum_profileEvent_suunto_ascentRateAlarm => 'إنذار معدل الصعود';
+
+  @override
+  String get enum_profileEvent_suunto_ceilingBroken => 'تجاوز سقف تخفيف الضغط';
+
+  @override
+  String get enum_profileEvent_suunto_cns100Alarm => 'إنذار CNS 100%';
+
+  @override
+  String get enum_profileEvent_suunto_cns80Warning => 'تحذير CNS 80%';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopBroken => 'كسر توقف تخفيف الضغط';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopReached =>
+      'الوصول إلى توقف تخفيف الضغط';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopBroken => 'كسر التوقف العميق';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopReached =>
+      'الوصول إلى التوقف العميق';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeAlarm => 'إنذار وقت الغاز';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeNotification => 'إشعار وقت الغاز';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeWarning => 'تحذير وقت الغاز';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Alarm => 'إنذار ppO2 مرتفع';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Warning => 'تحذير ppO2 مرتفع';
+
+  @override
+  String get enum_profileEvent_suunto_lowPpo2Alarm => 'إنذار ppO2 منخفض';
+
+  @override
+  String get enum_profileEvent_suunto_otu250Warning => 'تحذير OTU 250';
+
+  @override
+  String get enum_profileEvent_suunto_otu300Alarm => 'إنذار OTU 300';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopBroken => 'كسر توقف الأمان';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopReached =>
+      'الوصول إلى توقف الأمان';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureAlarm =>
+      'إنذار ضغط الأسطوانة';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureNotification =>
+      'إشعار ضغط الأسطوانة';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureWarning =>
+      'تحذير ضغط الأسطوانة';
 
   @override
   String get enum_profileMetricCategory_decompression => 'تخفيف الضغط';

@@ -21052,6 +21052,12 @@ abstract class AppLocalizations {
   /// **'Deco Violation'**
   String get enum_profileEvent_decoViolation;
 
+  /// No description provided for @enum_profileEvent_decompressionDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression Dive'**
+  String get enum_profileEvent_decompressionDive;
+
   /// No description provided for @enum_profileEvent_gasSwitch.
   ///
   /// In en, this message translates to:
@@ -21063,6 +21069,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Low Gas Warning'**
   String get enum_profileEvent_lowGas;
+
+  /// No description provided for @enum_profileEvent_lowNoDecoTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Low No-Deco Time'**
+  String get enum_profileEvent_lowNoDecoTime;
 
   /// No description provided for @enum_profileEvent_maxDepth.
   ///
@@ -21111,6 +21123,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Setpoint Change'**
   String get enum_profileEvent_setpointChange;
+
+  /// No description provided for @enum_profileEvent_suunto_ascentRateAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent Rate Alarm'**
+  String get enum_profileEvent_suunto_ascentRateAlarm;
+
+  /// No description provided for @enum_profileEvent_suunto_ceilingBroken.
+  ///
+  /// In en, this message translates to:
+  /// **'Ceiling Broken'**
+  String get enum_profileEvent_suunto_ceilingBroken;
+
+  /// No description provided for @enum_profileEvent_suunto_cns100Alarm.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS 100% Alarm'**
+  String get enum_profileEvent_suunto_cns100Alarm;
+
+  /// No description provided for @enum_profileEvent_suunto_cns80Warning.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS 80% Warning'**
+  String get enum_profileEvent_suunto_cns80Warning;
+
+  /// No description provided for @enum_profileEvent_suunto_decoStopBroken.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco Stop Broken'**
+  String get enum_profileEvent_suunto_decoStopBroken;
+
+  /// No description provided for @enum_profileEvent_suunto_decoStopReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco Stop Reached'**
+  String get enum_profileEvent_suunto_decoStopReached;
+
+  /// No description provided for @enum_profileEvent_suunto_deepStopBroken.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep Stop Broken'**
+  String get enum_profileEvent_suunto_deepStopBroken;
+
+  /// No description provided for @enum_profileEvent_suunto_deepStopReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Deep Stop Reached'**
+  String get enum_profileEvent_suunto_deepStopReached;
+
+  /// No description provided for @enum_profileEvent_suunto_gasTimeAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Time Alarm'**
+  String get enum_profileEvent_suunto_gasTimeAlarm;
+
+  /// No description provided for @enum_profileEvent_suunto_gasTimeNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Time Notification'**
+  String get enum_profileEvent_suunto_gasTimeNotification;
+
+  /// No description provided for @enum_profileEvent_suunto_gasTimeWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Time Warning'**
+  String get enum_profileEvent_suunto_gasTimeWarning;
+
+  /// No description provided for @enum_profileEvent_suunto_highPpo2Alarm.
+  ///
+  /// In en, this message translates to:
+  /// **'High ppO2 Alarm'**
+  String get enum_profileEvent_suunto_highPpo2Alarm;
+
+  /// No description provided for @enum_profileEvent_suunto_highPpo2Warning.
+  ///
+  /// In en, this message translates to:
+  /// **'High ppO2 Warning'**
+  String get enum_profileEvent_suunto_highPpo2Warning;
+
+  /// No description provided for @enum_profileEvent_suunto_lowPpo2Alarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Low ppO2 Alarm'**
+  String get enum_profileEvent_suunto_lowPpo2Alarm;
+
+  /// No description provided for @enum_profileEvent_suunto_otu250Warning.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU 250 Warning'**
+  String get enum_profileEvent_suunto_otu250Warning;
+
+  /// No description provided for @enum_profileEvent_suunto_otu300Alarm.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU 300 Alarm'**
+  String get enum_profileEvent_suunto_otu300Alarm;
+
+  /// No description provided for @enum_profileEvent_suunto_safetyStopBroken.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety Stop Broken'**
+  String get enum_profileEvent_suunto_safetyStopBroken;
+
+  /// No description provided for @enum_profileEvent_suunto_safetyStopReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety Stop Reached'**
+  String get enum_profileEvent_suunto_safetyStopReached;
+
+  /// No description provided for @enum_profileEvent_suunto_tankPressureAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank Pressure Alarm'**
+  String get enum_profileEvent_suunto_tankPressureAlarm;
+
+  /// No description provided for @enum_profileEvent_suunto_tankPressureNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank Pressure Notification'**
+  String get enum_profileEvent_suunto_tankPressureNotification;
+
+  /// No description provided for @enum_profileEvent_suunto_tankPressureWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank Pressure Warning'**
+  String get enum_profileEvent_suunto_tankPressureWarning;
 
   /// No description provided for @enum_profileMetricCategory_decompression.
   ///

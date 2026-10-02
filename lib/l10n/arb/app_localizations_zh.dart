@@ -12339,10 +12339,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_profileEvent_decoViolation => '减压违规';
 
   @override
+  String get enum_profileEvent_decompressionDive => '减压潜水';
+
+  @override
   String get enum_profileEvent_gasSwitch => '气体切换';
 
   @override
   String get enum_profileEvent_lowGas => '低气体警告';
+
+  @override
+  String get enum_profileEvent_lowNoDecoTime => '免减压时间不足';
 
   @override
   String get enum_profileEvent_maxDepth => '最大深度';
@@ -12367,6 +12373,69 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_profileEvent_setpointChange => '设定值变更';
+
+  @override
+  String get enum_profileEvent_suunto_ascentRateAlarm => '上升速率警报';
+
+  @override
+  String get enum_profileEvent_suunto_ceilingBroken => '突破减压上限';
+
+  @override
+  String get enum_profileEvent_suunto_cns100Alarm => 'CNS 100% 警报';
+
+  @override
+  String get enum_profileEvent_suunto_cns80Warning => 'CNS 80% 警告';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopBroken => '减压停留中断';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopReached => '已到达减压停留';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopBroken => '深停中断';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopReached => '已到达深停';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeAlarm => '气体时间警报';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeNotification => '气体时间提醒';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeWarning => '气体时间警告';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Alarm => '氧分压过高警报';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Warning => '氧分压过高警告';
+
+  @override
+  String get enum_profileEvent_suunto_lowPpo2Alarm => '氧分压过低警报';
+
+  @override
+  String get enum_profileEvent_suunto_otu250Warning => 'OTU 250 警告';
+
+  @override
+  String get enum_profileEvent_suunto_otu300Alarm => 'OTU 300 警报';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopBroken => '安全停留中断';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopReached => '已到达安全停留';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureAlarm => '气瓶压力警报';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureNotification => '气瓶压力提醒';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureWarning => '气瓶压力警告';
 
   @override
   String get enum_profileMetricCategory_decompression => '减压';

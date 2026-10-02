@@ -6841,7 +6841,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       if (t < visibleMinX || t > visibleMaxX) continue;
       final painter = TextPainter(
         text: TextSpan(
-          text: kept[i].eventType.localizedName(context.l10n),
+          text: kept[i].markerLabel(context.l10n),
           style: labelStyle,
         ),
         // Deliberately LTR regardless of locale: fl_chart's painter lays
@@ -6919,7 +6919,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           fontSize: 9,
           backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
         ),
-        labelResolver: (line) => event.eventType.localizedName(context.l10n),
+        labelResolver: (line) => event.markerLabel(context.l10n),
       ),
     );
   }

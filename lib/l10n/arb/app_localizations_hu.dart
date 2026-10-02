@@ -12910,10 +12910,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_profileEvent_decoViolation => 'Dekó megszegés';
 
   @override
+  String get enum_profileEvent_decompressionDive => 'Dekompressziós merülés';
+
+  @override
   String get enum_profileEvent_gasSwitch => 'Gázcserélés';
 
   @override
   String get enum_profileEvent_lowGas => 'Alacsony gáz figyelmeztetés';
+
+  @override
+  String get enum_profileEvent_lowNoDecoTime => 'Alacsony dekómentes idő';
 
   @override
   String get enum_profileEvent_maxDepth => 'Max mélység';
@@ -12938,6 +12944,78 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_profileEvent_setpointChange => 'Setpoint változás';
+
+  @override
+  String get enum_profileEvent_suunto_ascentRateAlarm =>
+      'Felszállási sebesség riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_ceilingBroken => 'Dekó plafon megsértve';
+
+  @override
+  String get enum_profileEvent_suunto_cns100Alarm => 'CNS 100% riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_cns80Warning => 'CNS 80% figyelmeztetés';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopBroken =>
+      'Dekó megálló megszakítva';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopReached => 'Dekó megálló elérve';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopBroken =>
+      'Mély megálló megszakítva';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopReached => 'Mély megálló elérve';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeAlarm => 'Gázidő riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeNotification => 'Gázidő értesítés';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeWarning => 'Gázidő figyelmeztetés';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Alarm => 'Magas ppO2 riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Warning =>
+      'Magas ppO2 figyelmeztetés';
+
+  @override
+  String get enum_profileEvent_suunto_lowPpo2Alarm => 'Alacsony ppO2 riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_otu250Warning => 'OTU 250 figyelmeztetés';
+
+  @override
+  String get enum_profileEvent_suunto_otu300Alarm => 'OTU 300 riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopBroken =>
+      'Biztonsági megállás megszakítva';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopReached =>
+      'Biztonsági megállás elérve';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureAlarm =>
+      'Palacknyomás riasztás';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureNotification =>
+      'Palacknyomás értesítés';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureWarning =>
+      'Palacknyomás figyelmeztetés';
 
   @override
   String get enum_profileMetricCategory_decompression => 'Dekompresszió';

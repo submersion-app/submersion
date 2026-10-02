@@ -12646,10 +12646,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_profileEvent_decoViolation => 'הפרת דקומפרסיה';
 
   @override
+  String get enum_profileEvent_decompressionDive => 'צלילת דקומפרסיה';
+
+  @override
   String get enum_profileEvent_gasSwitch => 'החלפת גז';
 
   @override
   String get enum_profileEvent_lowGas => 'אזהרת גז נמוך';
+
+  @override
+  String get enum_profileEvent_lowNoDecoTime => 'זמן ללא דקו נמוך';
 
   @override
   String get enum_profileEvent_maxDepth => 'עומק מרבי';
@@ -12674,6 +12680,70 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_profileEvent_setpointChange => 'שינוי נקודת כוונון';
+
+  @override
+  String get enum_profileEvent_suunto_ascentRateAlarm => 'אזעקת קצב עלייה';
+
+  @override
+  String get enum_profileEvent_suunto_ceilingBroken => 'חריגה מתקרת הדקו';
+
+  @override
+  String get enum_profileEvent_suunto_cns100Alarm => 'אזעקת CNS 100%';
+
+  @override
+  String get enum_profileEvent_suunto_cns80Warning => 'אזהרת CNS 80%';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopBroken => 'עצירת דקו הופרה';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopReached => 'הגעה לעצירת דקו';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopBroken => 'עצירה עמוקה הופרה';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopReached => 'הגעה לעצירה עמוקה';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeAlarm => 'אזעקת זמן גז';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeNotification => 'התראת זמן גז';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeWarning => 'אזהרת זמן גז';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Alarm => 'אזעקת ppO2 גבוה';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Warning => 'אזהרת ppO2 גבוה';
+
+  @override
+  String get enum_profileEvent_suunto_lowPpo2Alarm => 'אזעקת ppO2 נמוך';
+
+  @override
+  String get enum_profileEvent_suunto_otu250Warning => 'אזהרת OTU 250';
+
+  @override
+  String get enum_profileEvent_suunto_otu300Alarm => 'אזעקת OTU 300';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopBroken => 'עצירת ביטחון הופרה';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopReached => 'הגעה לעצירת ביטחון';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureAlarm => 'אזעקת לחץ מיכל';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureNotification =>
+      'התראת לחץ מיכל';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureWarning => 'אזהרת לחץ מיכל';
 
   @override
   String get enum_profileMetricCategory_decompression => 'דקומפרסיה';

@@ -12981,10 +12981,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_profileEvent_decoViolation => 'Violation de palier';
 
   @override
+  String get enum_profileEvent_decompressionDive =>
+      'Plongée avec décompression';
+
+  @override
   String get enum_profileEvent_gasSwitch => 'Changement de gaz';
 
   @override
   String get enum_profileEvent_lowGas => 'Alerte gaz faible';
+
+  @override
+  String get enum_profileEvent_lowNoDecoTime => 'Faible temps sans palier';
 
   @override
   String get enum_profileEvent_maxDepth => 'Profondeur max';
@@ -13009,6 +13016,82 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_profileEvent_setpointChange => 'Changement de consigne';
+
+  @override
+  String get enum_profileEvent_suunto_ascentRateAlarm =>
+      'Alarme vitesse de remontée';
+
+  @override
+  String get enum_profileEvent_suunto_ceilingBroken =>
+      'Plafond de décompression franchi';
+
+  @override
+  String get enum_profileEvent_suunto_cns100Alarm => 'Alarme CNS 100%';
+
+  @override
+  String get enum_profileEvent_suunto_cns80Warning => 'Avertissement CNS 80%';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopBroken =>
+      'Palier de décompression rompu';
+
+  @override
+  String get enum_profileEvent_suunto_decoStopReached =>
+      'Palier de décompression atteint';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopBroken => 'Palier profond rompu';
+
+  @override
+  String get enum_profileEvent_suunto_deepStopReached =>
+      'Palier profond atteint';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeAlarm => 'Alarme temps de gaz';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeNotification =>
+      'Notification temps de gaz';
+
+  @override
+  String get enum_profileEvent_suunto_gasTimeWarning =>
+      'Avertissement temps de gaz';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Alarm => 'Alarme ppO2 élevée';
+
+  @override
+  String get enum_profileEvent_suunto_highPpo2Warning =>
+      'Avertissement ppO2 élevée';
+
+  @override
+  String get enum_profileEvent_suunto_lowPpo2Alarm => 'Alarme ppO2 basse';
+
+  @override
+  String get enum_profileEvent_suunto_otu250Warning => 'Avertissement OTU 250';
+
+  @override
+  String get enum_profileEvent_suunto_otu300Alarm => 'Alarme OTU 300';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopBroken =>
+      'Palier de sécurité rompu';
+
+  @override
+  String get enum_profileEvent_suunto_safetyStopReached =>
+      'Palier de sécurité atteint';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureAlarm =>
+      'Alarme pression du bloc';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureNotification =>
+      'Notification pression du bloc';
+
+  @override
+  String get enum_profileEvent_suunto_tankPressureWarning =>
+      'Avertissement pression du bloc';
 
   @override
   String get enum_profileMetricCategory_decompression => 'Décompression';
