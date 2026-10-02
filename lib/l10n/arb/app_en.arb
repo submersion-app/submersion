@@ -11229,7 +11229,6 @@
   "nav_diveCenters": "Dive Centers",
   "nav_dives": "Dives",
   "nav_equipment": "Equipment",
-  "nav_gpsLog": "GPS Log",
   "media_console_library": "Library",
   "@media_console_library": {
     "description": "Media console sidebar/tab label for the library view"
@@ -18762,18 +18761,7 @@
     }
   },
   "gpsLogger_locationOff": "Location services are turned off.",
-  "gpsLogger_matchButton": "Match dives to GPS logs",
-  "gpsLogger_matchResult": "{count} dives positioned",
-  "@gpsLogger_matchResult": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "gpsLogger_matchResultNone": "No dives matched a recorded track",
   "gpsLogger_noFixYet": "Waiting for GPS fix",
-  "gpsLogger_noTracks": "No GPS tracks recorded yet",
   "gpsLogger_permissionDenied": "Location permission is required to record a GPS track. Enable it in system settings.",
   "gpsLogger_recordingStatus": "Recording - {count, plural, one{{count} point} other{{count} points}}",
   "@gpsLogger_recordingStatus": {
@@ -18817,7 +18805,6 @@
       }
     }
   },
-  "gpsLogger_tracksHeader": "Recorded tracks",
   "gpsTrack_action_trim": "Trim...",
   "gpsTrack_action_split": "Split...",
   "gpsTrack_action_resetTrim": "Reset trim",
@@ -19241,8 +19228,6 @@
   "tankPresets_setAsDefault": "Set as default",
   "tankPresets_showInPickers": "Show in tank pickers",
   "tankPresets_title": "Tank Presets",
-  "tools_gpsLogger_description": "Record your position during a dive day and match imported dives to GPS locations automatically.",
-  "tools_gpsLogger_subtitle": "Record a surface track",
   "tools_gpsLogger_title": "GPS Logger",
   "tools_weight_aluminumImperial": "More buoyant when empty (+4 lbs)",
   "tools_weight_aluminumMetric": "More buoyant when empty (+2 kg)",
@@ -28666,8 +28651,6 @@
       }
     }
   },
-  "navTrack_list_matchError": "Could not match routes.",
-  "navTrack_list_matchSuccess": "Routes matched to dives.",
   "navTrack_list_deleteMessage": "Delete \"{name}\"?",
   "@navTrack_list_deleteMessage": {
     "placeholders": {
@@ -28676,11 +28659,6 @@
       }
     }
   },
-  "navTrack_list_importTooltip": "Import route file",
-  "navTrack_list_matchTooltip": "Match now",
-  "navTrack_list_title": "Underwater Routes",
-  "navTrack_list_noMapRoutes": "No routes are placed on the map yet.",
-  "navTrack_list_empty": "No underwater routes yet.",
   "navTrack_seascape_title": "Route seascape",
   "navTrack_seascape_noScene": "This route has no usable seascape.",
   "navTrack_handoff_recognized": "Seacraft ENC navigation log recognised",
@@ -28709,7 +28687,6 @@
   "navTrack_importError_tooLarge": "This recording has more samples than a route can store.",
   "diveDetailSection_navTrack_name": "Underwater Route",
   "diveDetailSection_navTrack_description": "Measured underwater route from a navigation console",
-  "dashboard_quickActions_navRoutes": "Underwater Routes",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
   "@navTrack_list_durationHours": {
     "placeholders": {

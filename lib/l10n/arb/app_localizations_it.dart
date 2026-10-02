@@ -18567,9 +18567,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get nav_equipment => 'Attrezzatura';
 
   @override
-  String get nav_gpsLog => 'Registro GPS';
-
-  @override
   String get media_console_library => 'Libreria';
 
   @override
@@ -29115,22 +29112,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'I servizi di localizzazione sono disattivati.';
 
   @override
-  String get gpsLogger_matchButton => 'Abbina le immersioni ai registri GPS';
-
-  @override
-  String gpsLogger_matchResult(int count) {
-    return '$count immersioni posizionate';
-  }
-
-  @override
-  String get gpsLogger_matchResultNone =>
-      'Nessuna immersione corrisponde a una traccia registrata';
-
-  @override
   String get gpsLogger_noFixYet => 'In attesa del segnale GPS';
-
-  @override
-  String get gpsLogger_noTracks => 'Nessuna traccia GPS registrata';
 
   @override
   String get gpsLogger_permissionDenied =>
@@ -29191,9 +29173,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'Ritagliata, $duration';
   }
-
-  @override
-  String get gpsLogger_tracksHeader => 'Tracce registrate';
 
   @override
   String get gpsTrack_action_trim => 'Ritaglia...';
@@ -29759,13 +29738,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tankPresets_title => 'Preset bombole';
-
-  @override
-  String get tools_gpsLogger_description =>
-      'Registra la tua posizione durante una giornata di immersioni e abbina automaticamente le immersioni importate alle posizioni GPS.';
-
-  @override
-  String get tools_gpsLogger_subtitle => 'Registra una traccia di superficie';
 
   @override
   String get tools_gpsLogger_title => 'Registratore GPS';
@@ -46394,31 +46366,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'Impossibile abbinare i percorsi.';
-
-  @override
-  String get navTrack_list_matchSuccess => 'Percorsi abbinati alle immersioni.';
-
-  @override
   String navTrack_list_deleteMessage(String name) {
     return 'Eliminare «$name»?';
   }
-
-  @override
-  String get navTrack_list_importTooltip => 'Importa file di percorso';
-
-  @override
-  String get navTrack_list_matchTooltip => 'Abbina ora';
-
-  @override
-  String get navTrack_list_title => 'Percorsi subacquei';
-
-  @override
-  String get navTrack_list_noMapRoutes =>
-      'Nessun percorso posizionato sulla mappa per ora.';
-
-  @override
-  String get navTrack_list_empty => 'Nessun percorso subacqueo ancora.';
 
   @override
   String get navTrack_seascape_title => 'Paesaggio subacqueo del percorso';
@@ -46499,9 +46449,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'Percorso subacqueo misurato da una consolle di navigazione';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'Percorsi subacquei';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {

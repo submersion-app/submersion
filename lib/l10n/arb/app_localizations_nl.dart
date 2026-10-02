@@ -18437,9 +18437,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get nav_equipment => 'Uitrusting';
 
   @override
-  String get nav_gpsLog => 'GPS-log';
-
-  @override
   String get media_console_library => 'Bibliotheek';
 
   @override
@@ -28906,22 +28903,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gpsLogger_locationOff => 'Locatievoorzieningen staan uit.';
 
   @override
-  String get gpsLogger_matchButton => 'Duiken koppelen aan GPS-logs';
-
-  @override
-  String gpsLogger_matchResult(int count) {
-    return '$count duiken gepositioneerd';
-  }
-
-  @override
-  String get gpsLogger_matchResultNone =>
-      'Geen duiken komen overeen met een opgenomen track';
-
-  @override
   String get gpsLogger_noFixYet => 'Wachten op GPS-fix';
-
-  @override
-  String get gpsLogger_noTracks => 'Nog geen GPS-tracks opgenomen';
 
   @override
   String get gpsLogger_permissionDenied =>
@@ -28982,9 +28964,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'Bijgesneden, $duration';
   }
-
-  @override
-  String get gpsLogger_tracksHeader => 'Opgenomen tracks';
 
   @override
   String get gpsTrack_action_trim => 'Bijsnijden...';
@@ -29547,13 +29526,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tankPresets_title => 'Flesinstellingen';
-
-  @override
-  String get tools_gpsLogger_description =>
-      'Registreer je positie tijdens een duikdag en koppel geïmporteerde duiken automatisch aan GPS-locaties.';
-
-  @override
-  String get tools_gpsLogger_subtitle => 'Neem een oppervlaktetrack op';
 
   @override
   String get tools_gpsLogger_title => 'GPS-logger';
@@ -46100,31 +46072,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'Routes konden niet worden gekoppeld.';
-
-  @override
-  String get navTrack_list_matchSuccess => 'Routes gekoppeld aan duiken.';
-
-  @override
   String navTrack_list_deleteMessage(String name) {
     return '\"$name\" verwijderen?';
   }
-
-  @override
-  String get navTrack_list_importTooltip => 'Routebestand importeren';
-
-  @override
-  String get navTrack_list_matchTooltip => 'Nu koppelen';
-
-  @override
-  String get navTrack_list_title => 'Onderwaterroutes';
-
-  @override
-  String get navTrack_list_noMapRoutes =>
-      'Nog geen routes op de kaart geplaatst.';
-
-  @override
-  String get navTrack_list_empty => 'Nog geen onderwaterroutes.';
 
   @override
   String get navTrack_seascape_title => 'Onderwaterlandschap van de route';
@@ -46204,9 +46154,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'Gemeten onderwaterroute vanaf een navigatieconsole';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'Onderwaterroutes';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {

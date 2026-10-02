@@ -18550,9 +18550,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_equipment => 'Ausrüstung';
 
   @override
-  String get nav_gpsLog => 'GPS-Log';
-
-  @override
   String get media_console_library => 'Bibliothek';
 
   @override
@@ -29078,22 +29075,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gpsLogger_locationOff => 'Ortungsdienste sind deaktiviert.';
 
   @override
-  String get gpsLogger_matchButton => 'Tauchgänge mit GPS-Logs abgleichen';
-
-  @override
-  String gpsLogger_matchResult(int count) {
-    return '$count Tauchgänge positioniert';
-  }
-
-  @override
-  String get gpsLogger_matchResultNone =>
-      'Keine Tauchgänge passen zu einem aufgezeichneten Track';
-
-  @override
   String get gpsLogger_noFixYet => 'Warte auf GPS-Fix';
-
-  @override
-  String get gpsLogger_noTracks => 'Noch keine GPS-Tracks aufgezeichnet';
 
   @override
   String get gpsLogger_permissionDenied =>
@@ -29154,9 +29136,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'Gekürzt, $duration';
   }
-
-  @override
-  String get gpsLogger_tracksHeader => 'Aufgezeichnete Tracks';
 
   @override
   String get gpsTrack_action_trim => 'Zuschneiden...';
@@ -29720,13 +29699,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tankPresets_title => 'Flaschenvorlagen';
-
-  @override
-  String get tools_gpsLogger_description =>
-      'Zeichne deine Position während eines Tauchtags auf und ordne importierte Tauchgänge automatisch GPS-Positionen zu.';
-
-  @override
-  String get tools_gpsLogger_subtitle => 'Oberflächen-Track aufzeichnen';
 
   @override
   String get tools_gpsLogger_title => 'GPS-Logger';
@@ -46321,33 +46293,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError =>
-      'Routen konnten nicht zugeordnet werden.';
-
-  @override
-  String get navTrack_list_matchSuccess =>
-      'Routen wurden Tauchgängen zugeordnet.';
-
-  @override
   String navTrack_list_deleteMessage(String name) {
     return '„$name“ löschen?';
   }
-
-  @override
-  String get navTrack_list_importTooltip => 'Routendatei importieren';
-
-  @override
-  String get navTrack_list_matchTooltip => 'Jetzt zuordnen';
-
-  @override
-  String get navTrack_list_title => 'Unterwasser-Routen';
-
-  @override
-  String get navTrack_list_noMapRoutes =>
-      'Noch keine Routen auf der Karte platziert.';
-
-  @override
-  String get navTrack_list_empty => 'Noch keine Unterwasser-Routen.';
 
   @override
   String get navTrack_seascape_title => 'Routen-Unterwasserwelt';
@@ -46428,9 +46376,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'Gemessene Unterwasser-Route aus einer Navigationskonsole';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'Unterwasser-Routen';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {

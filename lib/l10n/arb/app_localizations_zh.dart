@@ -17690,9 +17690,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_equipment => '装备';
 
   @override
-  String get nav_gpsLog => 'GPS 记录';
-
-  @override
   String get media_console_library => '媒体库';
 
   @override
@@ -27615,21 +27612,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsLogger_locationOff => '定位服务已关闭。';
 
   @override
-  String get gpsLogger_matchButton => '将潜水与 GPS 记录匹配';
-
-  @override
-  String gpsLogger_matchResult(int count) {
-    return '已定位 $count 次潜水';
-  }
-
-  @override
-  String get gpsLogger_matchResultNone => '没有潜水与已记录的轨迹匹配';
-
-  @override
   String get gpsLogger_noFixYet => '正在等待 GPS 定位';
-
-  @override
-  String get gpsLogger_noTracks => '尚未记录 GPS 轨迹';
 
   @override
   String get gpsLogger_permissionDenied => '记录 GPS 轨迹需要位置权限。请在系统设置中启用。';
@@ -27686,9 +27669,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return '已裁剪，$duration';
   }
-
-  @override
-  String get gpsLogger_tracksHeader => '已记录的轨迹';
 
   @override
   String get gpsTrack_action_trim => '裁剪...';
@@ -28234,12 +28214,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tankPresets_title => '气瓶预设';
-
-  @override
-  String get tools_gpsLogger_description => '在潜水日记录你的位置，自动将导入的潜水与 GPS 位置匹配。';
-
-  @override
-  String get tools_gpsLogger_subtitle => '记录水面轨迹';
 
   @override
   String get tools_gpsLogger_title => 'GPS 记录器';
@@ -43711,30 +43685,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => '无法匹配路线。';
-
-  @override
-  String get navTrack_list_matchSuccess => '路线已与潜水记录匹配。';
-
-  @override
   String navTrack_list_deleteMessage(String name) {
     return '删除“$name”？';
   }
-
-  @override
-  String get navTrack_list_importTooltip => '导入路线文件';
-
-  @override
-  String get navTrack_list_matchTooltip => '立即匹配';
-
-  @override
-  String get navTrack_list_title => '水下路线';
-
-  @override
-  String get navTrack_list_noMapRoutes => '尚未在地图上放置任何路线。';
-
-  @override
-  String get navTrack_list_empty => '尚无水下路线。';
 
   @override
   String get navTrack_seascape_title => '路线的海景';
@@ -43807,9 +43760,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveDetailSection_navTrack_description => '通过导航控制台测量的水下路线';
-
-  @override
-  String get dashboard_quickActions_navRoutes => '水下路线';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {

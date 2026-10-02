@@ -3,13 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
-import 'package:submersion/features/gps_log/presentation/pages/gps_logger_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/tracks/presentation/pages/tracks_page.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_thumbnail.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-import '../../helpers/mock_providers.dart';
+import '../../../../helpers/mock_providers.dart';
 
 /// Fifty tracks, one per day, three fixes each.
 List<GpsTrack> _fiftyTracks() => [
@@ -55,6 +57,8 @@ Future<void> _pumpFifty(WidgetTester tester) async {
       overrides: [
         ...base,
         gpsTracksProvider.overrideWith((ref) async => tracks),
+        allNavTracksProvider.overrideWith((ref) async => const []),
+        divesProvider.overrideWith((ref) async => const []),
         for (final track in tracks)
           gpsTrackGeometryProvider((
             track.id,
@@ -65,7 +69,7 @@ Future<void> _pumpFifty(WidgetTester tester) async {
         locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: GpsLoggerPage(),
+        home: TracksPage(),
       ),
     ),
   );
@@ -85,7 +89,7 @@ void main() {
     expect(
       built,
       lessThan(15),
-      reason: 'SliverList.builder must not build offscreen rows',
+      reason: 'the list builder must not build offscreen rows',
     );
     expect(built, greaterThan(0), reason: 'visible rows must render');
   });
@@ -96,7 +100,7 @@ void main() {
     await _pumpFifty(tester);
 
     await tester.fling(
-      find.byType(CustomScrollView),
+      find.byType(ListView).first,
       const Offset(0, -3000),
       1000,
     );

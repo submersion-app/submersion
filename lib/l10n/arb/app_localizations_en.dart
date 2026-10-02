@@ -18281,9 +18281,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_equipment => 'Equipment';
 
   @override
-  String get nav_gpsLog => 'GPS Log';
-
-  @override
   String get media_console_library => 'Library';
 
   @override
@@ -28661,21 +28658,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsLogger_locationOff => 'Location services are turned off.';
 
   @override
-  String get gpsLogger_matchButton => 'Match dives to GPS logs';
-
-  @override
-  String gpsLogger_matchResult(int count) {
-    return '$count dives positioned';
-  }
-
-  @override
-  String get gpsLogger_matchResultNone => 'No dives matched a recorded track';
-
-  @override
   String get gpsLogger_noFixYet => 'Waiting for GPS fix';
-
-  @override
-  String get gpsLogger_noTracks => 'No GPS tracks recorded yet';
 
   @override
   String get gpsLogger_permissionDenied =>
@@ -28736,9 +28719,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'Trimmed, $duration';
   }
-
-  @override
-  String get gpsLogger_tracksHeader => 'Recorded tracks';
 
   @override
   String get gpsTrack_action_trim => 'Trim...';
@@ -29297,13 +29277,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tankPresets_title => 'Tank Presets';
-
-  @override
-  String get tools_gpsLogger_description =>
-      'Record your position during a dive day and match imported dives to GPS locations automatically.';
-
-  @override
-  String get tools_gpsLogger_subtitle => 'Record a surface track';
 
   @override
   String get tools_gpsLogger_title => 'GPS Logger';
@@ -45717,31 +45690,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'Could not match routes.';
-
-  @override
-  String get navTrack_list_matchSuccess => 'Routes matched to dives.';
-
-  @override
   String navTrack_list_deleteMessage(String name) {
     return 'Delete \"$name\"?';
   }
-
-  @override
-  String get navTrack_list_importTooltip => 'Import route file';
-
-  @override
-  String get navTrack_list_matchTooltip => 'Match now';
-
-  @override
-  String get navTrack_list_title => 'Underwater Routes';
-
-  @override
-  String get navTrack_list_noMapRoutes =>
-      'No routes are placed on the map yet.';
-
-  @override
-  String get navTrack_list_empty => 'No underwater routes yet.';
 
   @override
   String get navTrack_seascape_title => 'Route seascape';
@@ -45821,9 +45772,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'Measured underwater route from a navigation console';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'Underwater Routes';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {

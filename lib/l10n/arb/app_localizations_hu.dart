@@ -18508,9 +18508,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_equipment => 'Felszerelés';
 
   @override
-  String get nav_gpsLog => 'GPS-napló';
-
-  @override
   String get media_console_library => 'Könyvtár';
 
   @override
@@ -29028,22 +29025,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gpsLogger_locationOff => 'A helymeghatározás ki van kapcsolva.';
 
   @override
-  String get gpsLogger_matchButton => 'Merülések párosítása GPS-naplókkal';
-
-  @override
-  String gpsLogger_matchResult(int count) {
-    return '$count merülés pozicionálva';
-  }
-
-  @override
-  String get gpsLogger_matchResultNone =>
-      'Egyik merülés sem illeszkedik rögzített útvonalhoz';
-
-  @override
   String get gpsLogger_noFixYet => 'Várakozás GPS-jelre';
-
-  @override
-  String get gpsLogger_noTracks => 'Még nincs rögzített GPS-útvonal';
 
   @override
   String get gpsLogger_permissionDenied =>
@@ -29104,9 +29086,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'Levágva, $duration';
   }
-
-  @override
-  String get gpsLogger_tracksHeader => 'Rögzített útvonalak';
 
   @override
   String get gpsTrack_action_trim => 'Vágás...';
@@ -29669,13 +29648,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tankPresets_title => 'Palacksablonok';
-
-  @override
-  String get tools_gpsLogger_description =>
-      'Rögzítsd a pozíciódat a merülőnap során, és párosítsd automatikusan az importált merüléseket GPS-helyekhez.';
-
-  @override
-  String get tools_gpsLogger_subtitle => 'Felszíni útvonal rögzítése';
 
   @override
   String get tools_gpsLogger_title => 'GPS-naplózó';
@@ -46214,32 +46186,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError =>
-      'Nem sikerült az útvonalakat párosítani.';
-
-  @override
-  String get navTrack_list_matchSuccess => 'Útvonalak merülésekhez párosítva.';
-
-  @override
   String navTrack_list_deleteMessage(String name) {
     return '„$name” törlése?';
   }
-
-  @override
-  String get navTrack_list_importTooltip => 'Útvonalfájl importálása';
-
-  @override
-  String get navTrack_list_matchTooltip => 'Párosítás most';
-
-  @override
-  String get navTrack_list_title => 'Vízalatti útvonalak';
-
-  @override
-  String get navTrack_list_noMapRoutes =>
-      'Még nincs útvonal a térképen elhelyezve.';
-
-  @override
-  String get navTrack_list_empty => 'Még nincsenek vízalatti útvonalak.';
 
   @override
   String get navTrack_seascape_title => 'Útvonal tengeri tája';
@@ -46320,9 +46269,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'Navigációs konzolról mért vízalatti útvonal';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'Vízalatti útvonalak';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {

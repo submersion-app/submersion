@@ -18141,9 +18141,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_equipment => 'ציוד';
 
   @override
-  String get nav_gpsLog => 'יומן GPS';
-
-  @override
   String get media_console_library => 'ספרייה';
 
   @override
@@ -28426,21 +28423,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gpsLogger_locationOff => 'שירותי המיקום כבויים.';
 
   @override
-  String get gpsLogger_matchButton => 'התאמת צלילות ליומני GPS';
-
-  @override
-  String gpsLogger_matchResult(int count) {
-    return '$count צלילות מוקמו';
-  }
-
-  @override
-  String get gpsLogger_matchResultNone => 'אף צלילה לא תואמת מסלול שהוקלט';
-
-  @override
   String get gpsLogger_noFixYet => 'ממתין לאות GPS';
-
-  @override
-  String get gpsLogger_noTracks => 'עדיין לא הוקלטו מסלולי GPS';
 
   @override
   String get gpsLogger_permissionDenied =>
@@ -28504,9 +28487,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'נחתך, $duration';
   }
-
-  @override
-  String get gpsLogger_tracksHeader => 'מסלולים שהוקלטו';
 
   @override
   String get gpsTrack_action_trim => 'חיתוך...';
@@ -29062,13 +29042,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tankPresets_title => 'תבניות מיכל';
-
-  @override
-  String get tools_gpsLogger_description =>
-      'הקלט את מיקומך במהלך יום צלילה והתאם אוטומטית צלילות מיובאות למיקומי GPS.';
-
-  @override
-  String get tools_gpsLogger_subtitle => 'הקלטת מסלול פני המים';
 
   @override
   String get tools_gpsLogger_title => 'מקליט GPS';
@@ -45470,30 +45443,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'לא ניתן היה להתאים את המסלולים.';
-
-  @override
-  String get navTrack_list_matchSuccess => 'המסלולים הותאמו לצלילות.';
-
-  @override
   String navTrack_list_deleteMessage(String name) {
     return 'למחוק את \"$name\"?';
   }
-
-  @override
-  String get navTrack_list_importTooltip => 'ייבוא קובץ מסלול';
-
-  @override
-  String get navTrack_list_matchTooltip => 'התאם עכשיו';
-
-  @override
-  String get navTrack_list_title => 'מסלולים תת-ימיים';
-
-  @override
-  String get navTrack_list_noMapRoutes => 'עדיין לא הוצבו מסלולים על המפה.';
-
-  @override
-  String get navTrack_list_empty => 'עדיין אין מסלולים תת-ימיים.';
 
   @override
   String get navTrack_seascape_title => 'נוף תת-ימי של המסלול';
@@ -45573,9 +45525,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'מסלול תת-ימי שנמדד ממסוף ניווט';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'מסלולים תת-ימיים';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {

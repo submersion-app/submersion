@@ -18279,9 +18279,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_equipment => 'المعدات';
 
   @override
-  String get nav_gpsLog => 'سجل GPS';
-
-  @override
   String get media_console_library => 'المكتبة';
 
   @override
@@ -28752,21 +28749,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gpsLogger_locationOff => 'خدمات الموقع متوقفة.';
 
   @override
-  String get gpsLogger_matchButton => 'مطابقة الغطسات مع سجلات GPS';
-
-  @override
-  String gpsLogger_matchResult(int count) {
-    return 'تم تحديد موقع $count غطسة';
-  }
-
-  @override
-  String get gpsLogger_matchResultNone => 'لا توجد غطسات تطابق مسارًا مسجّلًا';
-
-  @override
   String get gpsLogger_noFixYet => 'في انتظار إشارة GPS';
-
-  @override
-  String get gpsLogger_noTracks => 'لا توجد مسارات GPS مسجّلة بعد';
 
   @override
   String get gpsLogger_permissionDenied =>
@@ -28833,9 +28816,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'مقتطع، $duration';
   }
-
-  @override
-  String get gpsLogger_tracksHeader => 'المسارات المسجّلة';
 
   @override
   String get gpsTrack_action_trim => 'اقتصاص...';
@@ -29395,13 +29375,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tankPresets_title => 'إعدادات الأسطوانات';
-
-  @override
-  String get tools_gpsLogger_description =>
-      'سجّل موقعك خلال يوم الغطس وتتم مطابقة الغطسات المستوردة مع مواقع GPS تلقائيًا.';
-
-  @override
-  String get tools_gpsLogger_subtitle => 'تسجيل مسار السطح';
 
   @override
   String get tools_gpsLogger_title => 'مسجّل GPS';
@@ -46021,31 +45994,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'تعذرت مطابقة المسارات.';
-
-  @override
-  String get navTrack_list_matchSuccess => 'تمت مطابقة المسارات مع الغطسات.';
-
-  @override
   String navTrack_list_deleteMessage(String name) {
     return 'حذف \"$name\"؟';
   }
-
-  @override
-  String get navTrack_list_importTooltip => 'استيراد ملف مسار';
-
-  @override
-  String get navTrack_list_matchTooltip => 'المطابقة الآن';
-
-  @override
-  String get navTrack_list_title => 'المسارات تحت الماء';
-
-  @override
-  String get navTrack_list_noMapRoutes =>
-      'لا توجد مسارات موضوعة على الخريطة بعد.';
-
-  @override
-  String get navTrack_list_empty => 'لا توجد مسارات تحت الماء بعد.';
 
   @override
   String get navTrack_seascape_title => 'المشهد البحري للمسار';
@@ -46128,9 +46079,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'مسار تحت الماء تم قياسه من وحدة تحكم ملاحية';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'المسارات تحت الماء';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {

@@ -29810,12 +29810,6 @@ abstract class AppLocalizations {
   /// **'Equipment'**
   String get nav_equipment;
 
-  /// No description provided for @nav_gpsLog.
-  ///
-  /// In en, this message translates to:
-  /// **'GPS Log'**
-  String get nav_gpsLog;
-
   /// Media console sidebar/tab label for the library view
   ///
   /// In en, this message translates to:
@@ -46123,35 +46117,11 @@ abstract class AppLocalizations {
   /// **'Location services are turned off.'**
   String get gpsLogger_locationOff;
 
-  /// No description provided for @gpsLogger_matchButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Match dives to GPS logs'**
-  String get gpsLogger_matchButton;
-
-  /// No description provided for @gpsLogger_matchResult.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} dives positioned'**
-  String gpsLogger_matchResult(int count);
-
-  /// No description provided for @gpsLogger_matchResultNone.
-  ///
-  /// In en, this message translates to:
-  /// **'No dives matched a recorded track'**
-  String get gpsLogger_matchResultNone;
-
   /// No description provided for @gpsLogger_noFixYet.
   ///
   /// In en, this message translates to:
   /// **'Waiting for GPS fix'**
   String get gpsLogger_noFixYet;
-
-  /// No description provided for @gpsLogger_noTracks.
-  ///
-  /// In en, this message translates to:
-  /// **'No GPS tracks recorded yet'**
-  String get gpsLogger_noTracks;
 
   /// No description provided for @gpsLogger_permissionDenied.
   ///
@@ -46218,12 +46188,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trimmed, {duration}'**
   String gpsLogger_trackSubtitleTrimmed(String duration);
-
-  /// No description provided for @gpsLogger_tracksHeader.
-  ///
-  /// In en, this message translates to:
-  /// **'Recorded tracks'**
-  String get gpsLogger_tracksHeader;
 
   /// No description provided for @gpsTrack_action_trim.
   ///
@@ -47155,18 +47119,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tank Presets'**
   String get tankPresets_title;
-
-  /// No description provided for @tools_gpsLogger_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Record your position during a dive day and match imported dives to GPS locations automatically.'**
-  String get tools_gpsLogger_description;
-
-  /// No description provided for @tools_gpsLogger_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Record a surface track'**
-  String get tools_gpsLogger_subtitle;
 
   /// No description provided for @tools_gpsLogger_title.
   ///
@@ -73685,53 +73637,11 @@ abstract class AppLocalizations {
   /// **'Import failed: {error}'**
   String navTrack_list_importFailed(String error);
 
-  /// No description provided for @navTrack_list_matchError.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not match routes.'**
-  String get navTrack_list_matchError;
-
-  /// No description provided for @navTrack_list_matchSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Routes matched to dives.'**
-  String get navTrack_list_matchSuccess;
-
   /// No description provided for @navTrack_list_deleteMessage.
   ///
   /// In en, this message translates to:
   /// **'Delete \"{name}\"?'**
   String navTrack_list_deleteMessage(String name);
-
-  /// No description provided for @navTrack_list_importTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Import route file'**
-  String get navTrack_list_importTooltip;
-
-  /// No description provided for @navTrack_list_matchTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Match now'**
-  String get navTrack_list_matchTooltip;
-
-  /// No description provided for @navTrack_list_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Underwater Routes'**
-  String get navTrack_list_title;
-
-  /// No description provided for @navTrack_list_noMapRoutes.
-  ///
-  /// In en, this message translates to:
-  /// **'No routes are placed on the map yet.'**
-  String get navTrack_list_noMapRoutes;
-
-  /// No description provided for @navTrack_list_empty.
-  ///
-  /// In en, this message translates to:
-  /// **'No underwater routes yet.'**
-  String get navTrack_list_empty;
 
   /// No description provided for @navTrack_seascape_title.
   ///
@@ -73858,12 +73768,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Measured underwater route from a navigation console'**
   String get diveDetailSection_navTrack_description;
-
-  /// No description provided for @dashboard_quickActions_navRoutes.
-  ///
-  /// In en, this message translates to:
-  /// **'Underwater Routes'**
-  String get dashboard_quickActions_navRoutes;
 
   /// No description provided for @navTrack_list_durationHours.
   ///

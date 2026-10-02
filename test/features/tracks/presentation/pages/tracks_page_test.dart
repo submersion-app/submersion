@@ -1,10 +1,16 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
@@ -13,10 +19,16 @@ import 'package:submersion/features/gps_log/presentation/providers/gps_log_provi
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_thumbnail.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
+import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_match_service.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
+import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -28,7 +40,61 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 
+import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/test_database.dart';
+
+/// Hands back a fixed preview so the flow can be followed past the picker.
+class _PreparedNavImport implements NavTrackImportService {
+  int prepareCount = 0;
+
+  @override
+  Future<NavTrackImportPreview> prepare(
+    Uint8List bytes, {
+    String? fileName,
+  }) async {
+    prepareCount++;
+    const points = [
+      NavTrackPoint(
+        timestamp: 1755856800,
+        north: 0,
+        east: 0,
+        depth: 5,
+        distance: 0,
+        speed: 0.3,
+      ),
+      NavTrackPoint(
+        timestamp: 1755857400,
+        north: 40,
+        east: 0,
+        depth: 5,
+        distance: 40,
+        speed: 0.3,
+      ),
+    ];
+    return NavTrackImportPreview(
+      parsed: const ParsedNavTrack(points: points),
+      stats: NavTrackStats.of(points),
+      segmentation: NavTrackSegmenter.classify(points),
+      candidateDives: const [],
+      nearbyDives: const [],
+      duplicateOfRouteId: null,
+      sourceRef: fileName ?? '',
+    );
+  }
+
+  @override
+  Future<String> commit({
+    required ParsedNavTrack parsed,
+    required String sourceRef,
+    required String? diverId,
+    Dive? dive,
+    String? siteId,
+    String? name,
+    String? deviceName,
+    String? equipmentId,
+    String? replacingRouteId,
+  }) async => throw UnimplementedError();
+}
 
 class _GpsMatch extends GpsTrackMatchService {
   _GpsMatch({this.result = const [], this.fail = false})
@@ -138,6 +204,8 @@ void main() {
     Size? size,
     String initialLocation = '/tracks',
     Map<String, List<GpsTrackPoint>> geometry = const {},
+    // Riverpod's sealed Override type is not re-exported; see test_app.dart.
+    List<dynamic> extraOverrides = const [],
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -192,6 +260,7 @@ void main() {
             entry.key,
             TrackLod.thumbnail,
           )).overrideWith((ref) async => entry.value),
+        ...extraOverrides.cast(),
       ],
       child: MaterialApp.router(
         routerConfig: router,
@@ -544,5 +613,35 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Start logging'), findsOneWidget);
     }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+  });
+
+  testWidgets('the Import action sends an ENC log to the underwater review', (
+    tester,
+  ) async {
+    final original = FilePickerPlatform.instance;
+    addTearDown(() => FilePickerPlatform.instance = original);
+    FilePickerPlatform.instance = MockFilePickerPlatform()
+      ..pickFilesResult = [
+        FakePlatformFile.contentUri(
+          Uri.parse('content://picked/005.DAT.csv'),
+          name: '005.DAT.csv',
+          bytes: File(
+            p.join('test', 'fixtures', 'nav_tracks', 'seacraft_enc3_short.csv'),
+          ).readAsBytesSync(),
+        ),
+      ];
+    await tester.pumpWidget(
+      await app(
+        extraOverrides: [
+          navTrackImportServiceProvider.overrideWithValue(_PreparedNavImport()),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('tracks-import')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavTrackImportReviewPage), findsOneWidget);
   });
 }
