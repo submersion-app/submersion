@@ -10,8 +10,14 @@ class FakeRawDiveDataService implements RawDiveDataService {
   @override
   AppDatabase get db => throw UnimplementedError();
 
+  RawDiveDataUsage usage = (diveCount: 0, storedBytes: 0);
+  final usageRequests = <String?>[];
+
   @override
-  Future<RawDiveDataUsage> getUsage() async => (sourceCount: 0, storedBytes: 0);
+  Future<RawDiveDataUsage> getUsage({String? computerId}) async {
+    usageRequests.add(computerId);
+    return usage;
+  }
 
   @override
   Future<int> discard({String? computerId}) async {

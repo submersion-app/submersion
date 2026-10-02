@@ -26,7 +26,7 @@ void main() {
   const discardAll = ValueKey('raw_dive_data_discard_all');
 
   testWidgets('is hidden when no source keeps raw data', (tester) async {
-    await tester.pumpWidget(build((sourceCount: 0, storedBytes: 0)));
+    await tester.pumpWidget(build((diveCount: 0, storedBytes: 0)));
     await tester.pumpAndSettle();
 
     expect(find.byKey(tile), findsNothing);
@@ -35,7 +35,7 @@ void main() {
   testWidgets('shows how many dives keep raw data and its size', (
     tester,
   ) async {
-    await tester.pumpWidget(build((sourceCount: 3, storedBytes: 4096)));
+    await tester.pumpWidget(build((diveCount: 3, storedBytes: 4096)));
     await tester.pumpAndSettle();
 
     expect(find.byKey(tile), findsOneWidget);
@@ -50,7 +50,7 @@ void main() {
   });
 
   testWidgets('cancelling the confirmation discards nothing', (tester) async {
-    await tester.pumpWidget(build((sourceCount: 3, storedBytes: 4096)));
+    await tester.pumpWidget(build((diveCount: 3, storedBytes: 4096)));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(discardAll));
@@ -67,7 +67,7 @@ void main() {
 
   testWidgets('confirming discards every computer\'s raw data and reports '
       'how many dives it cleared', (tester) async {
-    await tester.pumpWidget(build((sourceCount: 3, storedBytes: 4096)));
+    await tester.pumpWidget(build((diveCount: 3, storedBytes: 4096)));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(discardAll));
@@ -88,7 +88,7 @@ void main() {
     tester,
   ) async {
     service.failure = StateError('database is locked');
-    await tester.pumpWidget(build((sourceCount: 3, storedBytes: 4096)));
+    await tester.pumpWidget(build((diveCount: 3, storedBytes: 4096)));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(discardAll));

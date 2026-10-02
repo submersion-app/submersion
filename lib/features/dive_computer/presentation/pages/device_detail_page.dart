@@ -536,16 +536,12 @@ class DeviceDetailPage extends ConsumerWidget {
                           alignment: AlignmentDirectional.centerStart,
                           child: TextButton.icon(
                             key: const ValueKey('discard_raw_data_button'),
-                            onPressed: () => confirmAndDiscardRawDiveData(
-                              context,
-                              ref,
-                              computerId: computer.id,
-                              message: context.l10n
-                                  .diveComputer_rawData_discardComputerMessage(
-                                    computer.displayName,
-                                    c.withRawData,
-                                  ),
-                            ),
+                            onPressed: () =>
+                                confirmAndDiscardComputerRawDiveData(
+                                  context,
+                                  ref,
+                                  computer,
+                                ),
                             icon: const Icon(Icons.delete_outline),
                             label: Text(
                               context.l10n.diveComputer_rawData_discardButton,

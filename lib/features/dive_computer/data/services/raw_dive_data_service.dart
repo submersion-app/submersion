@@ -7,7 +7,10 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 
 /// How much raw dive computer data the library holds.
-typedef RawDiveDataUsage = ({int sourceCount, int storedBytes});
+///
+/// [diveCount] counts dives, not `dive_data_sources` rows: a dive recorded by
+/// two computers, or a Combine's two halves, keeps a row per source.
+typedef RawDiveDataUsage = ({int diveCount, int storedBytes});
 
 /// The raw bytes libdivecomputer returned for each download, kept on the
 /// `dive_data_sources` row so a later parser fix can re-parse the dive
@@ -23,27 +26,31 @@ class RawDiveDataService {
   final AppDatabase db;
   final SyncRepository _sync;
 
-  /// Sources holding raw bytes across every computer, including those whose
-  /// computer was deleted (the FK sets `computer_id` to null and keeps the
-  /// row). [RawDiveDataUsage.storedBytes] is the size as stored, which is
-  /// compressed at rest (issue #227).
-  Future<RawDiveDataUsage> getUsage() async {
+  /// Dives whose sources hold raw bytes, for [computerId] or across every
+  /// computer when it is null. The latter includes sources whose computer was
+  /// deleted (the FK sets `computer_id` to null and keeps the row).
+  /// [RawDiveDataUsage.storedBytes] is the size as stored, which is compressed
+  /// at rest (issue #227).
+  Future<RawDiveDataUsage> getUsage({String? computerId}) async {
     final row = await db
         .customSelect(
-          'SELECT COUNT(*) AS cnt, COALESCE(SUM(LENGTH(raw_data)), 0) AS bytes '
-          'FROM dive_data_sources WHERE raw_data IS NOT NULL',
+          'SELECT COUNT(DISTINCT dive_id) AS dives, '
+          'COALESCE(SUM(LENGTH(raw_data)), 0) AS bytes '
+          'FROM dive_data_sources WHERE raw_data IS NOT NULL'
+          '${computerId != null ? ' AND computer_id = ?' : ''}',
+          variables: [if (computerId != null) Variable(computerId)],
           readsFrom: {db.diveDataSources},
         )
         .getSingle();
     return (
-      sourceCount: row.read<int>('cnt'),
+      diveCount: row.read<int>('dives'),
       storedBytes: row.read<int>('bytes'),
     );
   }
 
   /// Clears the raw bytes of [computerId]'s sources, or of every source when
-  /// it is null, and returns how many sources were cleared. Those dives can no
-  /// longer be re-parsed.
+  /// it is null, and returns how many dives those sources belong to. Those
+  /// dives can no longer be re-parsed from the cleared sources.
   ///
   /// Each cleared row gets a fresh clock and is staged, so peers drop their
   /// copy of the bytes too and the cloud base shrinks; without the clock the
@@ -51,13 +58,15 @@ class RawDiveDataService {
   Future<int> discard({String? computerId}) async {
     final rows = await db
         .customSelect(
-          'SELECT id FROM dive_data_sources WHERE raw_data IS NOT NULL'
+          'SELECT id, dive_id FROM dive_data_sources '
+          'WHERE raw_data IS NOT NULL'
           '${computerId != null ? ' AND computer_id = ?' : ''}',
           variables: [if (computerId != null) Variable(computerId)],
           readsFrom: {db.diveDataSources},
         )
         .get();
     final ids = rows.map((r) => r.read<String>('id')).toList();
+    final diveCount = rows.map((r) => r.read<String>('dive_id')).toSet().length;
     if (ids.isEmpty) return 0;
 
     final stagedAt = DateTime.now().millisecondsSinceEpoch;
@@ -88,6 +97,6 @@ class RawDiveDataService {
       }
     });
     SyncEventBus.notifyLocalChange();
-    return ids.length;
+    return diveCount;
   }
 }

@@ -41,11 +41,12 @@ void main() {
     String id, {
     required String? computerId,
     Uint8List? rawData,
+    String? onDive,
   }) async {
-    final diveId = 'dive-$id';
+    final diveId = onDive ?? 'dive-$id';
     await db
         .into(db.dives)
-        .insert(
+        .insertOnConflictUpdate(
           DivesCompanion(
             id: Value(diveId),
             diveDateTime: const Value(nowMs),
@@ -88,14 +89,39 @@ void main() {
     await seedSource('orphan', computerId: null, rawData: bytes(1000));
   }
 
+  /// One dive recorded by two computers, the second folded in by
+  /// consolidation: two source rows, one dive.
+  Future<void> seedMultiSourceDive() async {
+    await seedComputer('c1');
+    await seedComputer('c2');
+    await seedSource('m-1', computerId: 'c1', rawData: bytes(500), onDive: 'm');
+    await seedSource('m-2', computerId: 'c2', rawData: bytes(500), onDive: 'm');
+  }
+
   group('getUsage', () {
+    test('counts dives, not their source rows', () async {
+      await seedMultiSourceDive();
+
+      expect((await service.getUsage()).diveCount, 1);
+      expect((await service.getUsage(computerId: 'c1')).diveCount, 1);
+    });
+
+    test('for one computer counts only that computer\'s dives', () async {
+      await seedLibrary();
+
+      final usage = await service.getUsage(computerId: 'c1');
+
+      expect(usage.diveCount, 2);
+      expect(usage.storedBytes, greaterThan(0));
+    });
+
     test('counts every source holding raw bytes and sums their stored '
         'size', () async {
       await seedLibrary();
 
       final usage = await service.getUsage();
 
-      expect(usage.sourceCount, 4);
+      expect(usage.diveCount, 4);
       // Stored compressed at rest (issue #227), so the size is what the
       // database actually holds, which is non-zero and below the raw total.
       expect(usage.storedBytes, greaterThan(0));
@@ -108,12 +134,19 @@ void main() {
 
       final usage = await service.getUsage();
 
-      expect(usage.sourceCount, 0);
+      expect(usage.diveCount, 0);
       expect(usage.storedBytes, 0);
     });
   });
 
   group('discard', () {
+    test('reports dives cleared, not source rows', () async {
+      await seedMultiSourceDive();
+
+      expect(await service.discard(), 1);
+      expect((await service.getUsage()).diveCount, 0);
+    });
+
     test('for one computer clears only that computer\'s bytes', () async {
       await seedLibrary();
 
@@ -137,7 +170,7 @@ void main() {
         db.diveDataSources,
       )..where((t) => t.rawData.isNotNull())).get();
       expect(remaining, isEmpty);
-      expect((await service.getUsage()).sourceCount, 0);
+      expect((await service.getUsage()).diveCount, 0);
     });
 
     test('keeps the fingerprint the importer matches downloads on', () async {

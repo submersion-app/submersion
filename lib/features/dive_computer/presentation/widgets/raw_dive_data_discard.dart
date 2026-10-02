@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/raw_dive_data_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
@@ -63,6 +64,28 @@ Future<void> confirmAndDiscardRawDiveData(
   messenger.showSnackBar(SnackBar(content: Text(outcome)));
 }
 
+/// [confirmAndDiscardRawDiveData] for one [computer]. The dialog counts dives
+/// rather than the counter's source rows, matching what the discard reports.
+Future<void> confirmAndDiscardComputerRawDiveData(
+  BuildContext context,
+  WidgetRef ref,
+  DiveComputer computer,
+) async {
+  final usage = await ref
+      .read(rawDiveDataServiceProvider)
+      .getUsage(computerId: computer.id);
+  if (usage.diveCount == 0 || !context.mounted) return;
+  await confirmAndDiscardRawDiveData(
+    context,
+    ref,
+    computerId: computer.id,
+    message: context.l10n.diveComputer_rawData_discardComputerMessage(
+      computer.displayName,
+      usage.diveCount,
+    ),
+  );
+}
+
 /// How much raw dive computer data the library keeps across every computer,
 /// with the action to discard it all. Hidden while there is none.
 class RawDiveDataTile extends ConsumerWidget {
@@ -71,7 +94,7 @@ class RawDiveDataTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final usage = ref.watch(rawDiveDataUsageProvider).value;
-    if (usage == null || usage.sourceCount == 0) {
+    if (usage == null || usage.diveCount == 0) {
       return const SizedBox.shrink();
     }
     final l10n = context.l10n;
@@ -88,7 +111,7 @@ class RawDiveDataTile extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n.diveComputer_rawData_tileSubtitle(usage.sourceCount, size),
+                l10n.diveComputer_rawData_tileSubtitle(usage.diveCount, size),
               ),
               TileSubtitleAction(
                 actionKey: const ValueKey('raw_dive_data_discard_all'),
@@ -96,7 +119,7 @@ class RawDiveDataTile extends ConsumerWidget {
                   context,
                   ref,
                   message: l10n.diveComputer_rawData_discardAllMessage(
-                    usage.sourceCount,
+                    usage.diveCount,
                     size,
                   ),
                 ),

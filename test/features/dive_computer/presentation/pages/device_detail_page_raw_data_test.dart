@@ -35,7 +35,13 @@ void main() {
     updatedAt: DateTime(2026),
   );
 
-  setUp(() => service = FakeRawDiveDataService()..cleared = 5);
+  setUp(
+    () => service = FakeRawDiveDataService()
+      ..cleared = 4
+      // 5 source rows on the counter, 4 dives: one dive holds two of this
+      // computer's sources. The dialog and the snackbar speak in dives.
+      ..usage = (diveCount: 4, storedBytes: 2048),
+  );
 
   Future<void> pump(
     WidgetTester tester, {
@@ -107,7 +113,7 @@ void main() {
     await tester.tap(find.byKey(button));
     await tester.pumpAndSettle();
     expect(
-      find.textContaining('kept for 5 dives from My Perdix?'),
+      find.textContaining('kept for 4 dives from My Perdix?'),
       findsOneWidget,
     );
 
@@ -119,7 +125,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(service.usageRequests, ['comp-1']);
     expect(service.calls, ['comp-1']);
-    expect(find.text('Discarded raw data for 5 dives'), findsOneWidget);
+    expect(find.text('Discarded raw data for 4 dives'), findsOneWidget);
   });
 }
