@@ -1062,6 +1062,54 @@ void main() {
       expect(src.exitTime!.millisecondsSinceEpoch, dive.exitTime);
     });
 
+    // A parser with no clock leaves every date field at 0, which
+    // DateTime.utc would roll back to -0001-11-30 (#1640).
+    test('keeps the stored start when the re-parse reports no date', () async {
+      final start = DateTime.utc(2026, 1, 15, 10, 0);
+      await insertDive('dive-1', diveDateTime: start.millisecondsSinceEpoch);
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+        duration: 2400,
+        entryTime: start,
+        exitTime: start.add(const Duration(seconds: 2400)),
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: makeParsedDive(
+          year: 0,
+          month: 0,
+          day: 0,
+          hour: 0,
+          minute: 0,
+          second: 0,
+          durationSeconds: 3000,
+        ),
+        descriptorVendor: 'Suunto',
+        descriptorProduct: 'Solution',
+        descriptorModel: 0,
+        libdivecomputerVersion: '0.9.0',
+      );
+
+      final dive = await getDive('dive-1');
+      final src = await getSource('src-1');
+      final end = start.add(const Duration(seconds: 3000));
+      expect(dive.diveDateTime, start.millisecondsSinceEpoch);
+      expect(dive.entryTime, start.millisecondsSinceEpoch);
+      expect(dive.exitTime, end.millisecondsSinceEpoch);
+      expect(dive.runtime, 3000);
+      expect(
+        src.entryTime!.millisecondsSinceEpoch,
+        start.millisecondsSinceEpoch,
+      );
+      expect(src.exitTime!.millisecondsSinceEpoch, end.millisecondsSinceEpoch);
+    });
+
     test('records the raw parsed window on an offset-bearing source, not the '
         're-based one (#1207)', () async {
       // Arrange: a consolidated secondary whose profile is re-based by 10

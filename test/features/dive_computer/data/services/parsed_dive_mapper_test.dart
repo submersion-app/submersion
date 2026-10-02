@@ -173,6 +173,24 @@ void main() {
       expect(result.startTime.second, 30);
     });
 
+    // A parser with no clock leaves every date field at 0, which
+    // DateTime.utc would roll back to -0001-11-30 (#1640).
+    test('falls back to the download time, as wall clock, when the parser '
+        'reported no date', () {
+      final parsed = makeParsedDive(
+        year: 0,
+        month: 0,
+        day: 0,
+        hour: 0,
+        minute: 0,
+        second: 0,
+      );
+      final downloadedAt = DateTime(2026, 10, 2, 16, 5, 9);
+      final result = parsedDiveToDownloaded(parsed, now: () => downloadedAt);
+
+      expect(result.startTime, DateTime.utc(2026, 10, 2, 16, 5, 9));
+    });
+
     test('ignores timezone offset (components treated as wall-clock)', () {
       final parsed = makeParsedDive(
         year: 2024,
