@@ -95,6 +95,20 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     });
   }
 
+  /// Writes a typed query still waiting on the debounce now, so a surface
+  /// that reads the filter next (the Refine panel) starts from it.
+  void _flushPending() {
+    if (_debounce?.isActive != true) return;
+    _debounce!.cancel();
+    final node = _local;
+    setState(() => _jumpQuery = node);
+    final notifier = ref.read(diveFilterProvider.notifier);
+    notifier.state = notifier.state.copyWith(
+      query: node,
+      clearQuery: node == null,
+    );
+  }
+
   void _onQueryChanged(QueryNode? node) {
     // An emptied field hides the jump rows now, not after the debounce.
     setState(() {
@@ -172,10 +186,10 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   label: Text('$panelAxes'),
                   child: const Icon(Icons.tune),
                 ),
-                onPressed: () => showRefinePanel(
-                  context,
-                  filterProvider: diveFilterProvider,
-                ),
+                onPressed: () {
+                  _flushPending();
+                  showRefinePanel(context, filterProvider: diveFilterProvider);
+                },
               ),
               IconButton(
                 key: kDiveSearchCloseKey,

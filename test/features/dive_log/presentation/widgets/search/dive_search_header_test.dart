@@ -378,4 +378,26 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(RefinePanel), findsOneWidget);
   });
+
+  // Review finding (#2773): text typed just before opening Refine must not
+  // be lost when the panel applies its draft.
+  testWidgets('opening Refine inside the debounce keeps what was typed', (
+    tester,
+  ) async {
+    await pumpHeader(tester);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.byKey(kDiveSearchRefineKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(kRefineApplyKey));
+    await tester.pumpAndSettle();
+    expect(filterOf().query, TextNode(['manta']));
+    expect(
+      tester
+          .widget<TextField>(find.byKey(kDiveSearchFieldKey))
+          .controller!
+          .text,
+      'manta',
+    );
+  });
 }
