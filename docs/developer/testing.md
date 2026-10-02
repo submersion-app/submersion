@@ -575,9 +575,10 @@ pull request, `CI Success` compares each failed job with the same job in
 | Also failing on main (warning) | `main` fails the same job. The failure is probably inherited; the annotation links `main`'s run |
 | Not failing on main (notice) | `main` passes that job, so the failure is new on this pull request |
 
-The pull request stays red either way. A job covers a whole test shard, so a
-shard `main` is failing can still hide a second failure your branch added:
-read the log before assuming the failure is not yours. Re-running the old job
+The pull request stays red either way. Test shards are compared as one job,
+since a branch that changes the test files moves them between shards. A
+failing shard can still hide a second failure your branch added on top of
+`main`'s, so read the log before assuming the failure is not yours. Re-running the old job
 does not pick up a fix on `main`; push a commit or merge `main` instead.
 
 ## Best Practices

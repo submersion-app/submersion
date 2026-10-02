@@ -95,6 +95,21 @@ class ClassifyTest(unittest.TestCase):
         self.assertEqual(inherited, ["Code Generation", "Test (shard 3)"])
         self.assertEqual(new, ["Analyze & Format"])
 
+    def test_test_shards_compare_as_one_job(self):
+        # Shards are load-balanced over test weights, so a pull request that
+        # adds or resizes a test file can move main's broken file from shard 4
+        # to shard 1. The shard number says nothing about which test failed.
+        main_jobs = [job("Test (shard 4)", "failure"), job("Test (shard 1)", "success")]
+        inherited, new = report.classify(["Test (shard 1)"], main_jobs)
+        self.assertEqual(inherited, ["Test (shard 1)"])
+        self.assertEqual(new, [])
+
+    def test_other_jobs_still_compare_by_exact_name(self):
+        main_jobs = [job("Build iOS", "failure")]
+        inherited, new = report.classify(["Build macOS"], main_jobs)
+        self.assertEqual(inherited, [])
+        self.assertEqual(new, ["Build macOS"])
+
     def test_a_job_main_never_ran_is_new(self):
         inherited, new = report.classify(["Build Windows"], [])
         self.assertEqual(inherited, [])

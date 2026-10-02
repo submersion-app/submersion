@@ -12,9 +12,10 @@ emits:
     the failure is probably inherited, and the run on main is linked;
   - a notice, "Not failing on main", when it did not: the failure is new.
 
-The pull request stays red either way. A job name covers a whole matrix shard,
-so a shard main is failing can still hide a second failure the branch added;
-the annotation says "likely" for that reason.
+The pull request stays red either way. Test shards are compared as one job,
+because a branch that changes the test files moves them between shards. So a
+failing shard can still hide a second failure the branch added on top of
+main's; the annotation says "likely" for that reason.
 
 The baseline is main's finished run at the pull request's base commit, the one
 this merge was built on, or failing that the newest finished run on main.
@@ -32,6 +33,7 @@ GITHUB_STEP_SUMMARY (optional), GITHUB_API_URL (optional).
 
 import json
 import os
+import re
 import sys
 import urllib.request
 
@@ -45,6 +47,8 @@ FAILED = frozenset({"failure", "timed_out"})
 _USABLE_RUN = frozenset({"success", "failure", "timed_out"})
 
 _PAGE = 100
+
+_SHARD_SUFFIX = re.compile(r"\s*\(shard \d+\)$")
 
 
 def escape_data(text):
@@ -81,13 +85,23 @@ def pick_baseline(runs, base_sha):
     return usable[0] if usable else None
 
 
+def job_family(name):
+    """The name a job is compared under: test shards share one.
+
+    Shards are load-balanced over test weights (scripts/bundle_tests.py), so a
+    pull request that adds, removes or resizes a test file moves files between
+    shards. main's broken file can then fail in a different shard number.
+    """
+    return _SHARD_SUFFIX.sub("", name)
+
+
 def classify(pr_failed, main_jobs):
     """Split failed job names into (inherited, new) against main's jobs."""
     main_failed = {
-        j["name"] for j in main_jobs if j.get("conclusion") in FAILED
+        job_family(j["name"]) for j in main_jobs if j.get("conclusion") in FAILED
     }
-    inherited = [name for name in pr_failed if name in main_failed]
-    new = [name for name in pr_failed if name not in main_failed]
+    inherited = [name for name in pr_failed if job_family(name) in main_failed]
+    new = [name for name in pr_failed if job_family(name) not in main_failed]
     return inherited, new
 
 
