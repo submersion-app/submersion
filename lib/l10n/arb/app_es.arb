@@ -13788,6 +13788,10 @@
   "navTrack_section_menuOpen": "Abrir ruta",
   "navTrack_section_menuOpen3d": "Abrir paisaje 3D",
   "navTrack_section_menuMakePrimary": "Marcar como principal",
+  "navTrack_editRow_none": "Ninguna",
+  "navTrack_editRow_more": "{name} +{count}",
+  "navTrack_editSheet_removeTooltip": "Quitar ruta",
+  "navTrack_editRow_saveFailed": "No se pudieron actualizar las rutas submarinas de esta inmersión: {error}",
   "navTrack_importError_unsupportedFormat": "Este archivo no es un registro de navegación Seacraft ENC.",
   "navTrack_importError_unreadable": "No se pudo leer este archivo como un registro de navegación Seacraft ENC.",
   "navTrack_importError_tooShort": "Esta grabación tiene muy pocas muestras para ser una ruta utilizable.",
@@ -14217,6 +14221,7 @@
   "savedQueries_snackbar_deleted": "Consulta \"{name}\" eliminada",
   "settings_manage_savedQueries": "Consultas guardadas",
   "settings_manage_savedQueries_subtitle": "Renombrar, reordenar y eliminar consultas guardadas",
+  "settings_manage_navRoutes_subtitle": "Importar, alinear y vincular rutas grabadas",
   "query_editor_needsText": "Escribe al menos una palabra",
   "query_saveNeedsDiver": "Crea un perfil de buceador para guardar consultas"
 }

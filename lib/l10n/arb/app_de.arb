@@ -13900,6 +13900,10 @@
   "navTrack_section_menuOpen": "Route öffnen",
   "navTrack_section_menuOpen3d": "3D-Unterwasserwelt öffnen",
   "navTrack_section_menuMakePrimary": "Als primär festlegen",
+  "navTrack_editRow_none": "Keine",
+  "navTrack_editRow_more": "{name} +{count}",
+  "navTrack_editSheet_removeTooltip": "Route entfernen",
+  "navTrack_editRow_saveFailed": "Unterwasser-Routen dieses Tauchgangs konnten nicht aktualisiert werden: {error}",
   "navTrack_importError_unsupportedFormat": "Diese Datei ist kein Seacraft-ENC-Navigationsprotokoll.",
   "navTrack_importError_unreadable": "Diese Datei konnte nicht als Seacraft-ENC-Navigationsprotokoll gelesen werden.",
   "navTrack_importError_tooShort": "Diese Aufzeichnung hat zu wenige Messpunkte für eine brauchbare Route.",
@@ -14317,6 +14321,7 @@
   "savedQueries_snackbar_deleted": "\"{name}\" gelöscht",
   "settings_manage_savedQueries": "Gespeicherte Abfragen",
   "settings_manage_savedQueries_subtitle": "Gespeicherte Abfragen umbenennen, sortieren und löschen",
+  "settings_manage_navRoutes_subtitle": "Aufgezeichnete Routen importieren, ausrichten und verknüpfen",
   "query_editor_needsText": "Mindestens ein Wort eingeben",
   "query_saveNeedsDiver": "Legen Sie ein Taucherprofil an, um Abfragen zu speichern"
 }

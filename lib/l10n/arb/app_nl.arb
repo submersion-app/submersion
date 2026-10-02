@@ -13788,6 +13788,10 @@
   "navTrack_section_menuOpen": "Route openen",
   "navTrack_section_menuOpen3d": "3D-landschap openen",
   "navTrack_section_menuMakePrimary": "Als primair instellen",
+  "navTrack_editRow_none": "Geen",
+  "navTrack_editRow_more": "{name} +{count}",
+  "navTrack_editSheet_removeTooltip": "Route verwijderen",
+  "navTrack_editRow_saveFailed": "Kan de onderwaterroutes van deze duik niet bijwerken: {error}",
   "navTrack_importError_unsupportedFormat": "Dit bestand is geen Seacraft ENC-navigatielog.",
   "navTrack_importError_unreadable": "Dit bestand kon niet worden gelezen als Seacraft ENC-navigatielog.",
   "navTrack_importError_tooShort": "Deze opname heeft te weinig metingen om een bruikbare route te zijn.",
@@ -14217,6 +14221,7 @@
   "savedQueries_snackbar_deleted": "\"{name}\" verwijderd",
   "settings_manage_savedQueries": "Opgeslagen query's",
   "settings_manage_savedQueries_subtitle": "Opgeslagen query's hernoemen, herschikken en verwijderen",
+  "settings_manage_navRoutes_subtitle": "Opgenomen routes importeren, uitlijnen en koppelen",
   "query_editor_needsText": "Voer minstens één woord in",
   "query_saveNeedsDiver": "Maak een duikersprofiel aan om query's op te slaan"
 }

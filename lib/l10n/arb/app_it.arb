@@ -13788,6 +13788,10 @@
   "navTrack_section_menuOpen": "Apri percorso",
   "navTrack_section_menuOpen3d": "Apri paesaggio 3D",
   "navTrack_section_menuMakePrimary": "Imposta come primario",
+  "navTrack_editRow_none": "Nessuno",
+  "navTrack_editRow_more": "{name} +{count}",
+  "navTrack_editSheet_removeTooltip": "Rimuovi percorso",
+  "navTrack_editRow_saveFailed": "Impossibile aggiornare i percorsi subacquei di questa immersione: {error}",
   "navTrack_importError_unsupportedFormat": "Questo file non è un registro di navigazione Seacraft ENC.",
   "navTrack_importError_unreadable": "Impossibile leggere questo file come registro di navigazione Seacraft ENC.",
   "navTrack_importError_tooShort": "Questa registrazione ha troppo pochi campioni per essere un percorso utilizzabile.",
@@ -14217,6 +14221,7 @@
   "savedQueries_snackbar_deleted": "\"{name}\" eliminata",
   "settings_manage_savedQueries": "Query salvate",
   "settings_manage_savedQueries_subtitle": "Rinomina, riordina ed elimina le query salvate",
+  "settings_manage_navRoutes_subtitle": "Importa, allinea e collega i percorsi registrati",
   "query_editor_needsText": "Inserisci almeno una parola",
   "query_saveNeedsDiver": "Crea un profilo subacqueo per salvare le query"
 }

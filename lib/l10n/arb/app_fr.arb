@@ -13788,6 +13788,10 @@
   "navTrack_section_menuOpen": "Ouvrir le trajet",
   "navTrack_section_menuOpen3d": "Ouvrir le paysage 3D",
   "navTrack_section_menuMakePrimary": "Définir comme principal",
+  "navTrack_editRow_none": "Aucun",
+  "navTrack_editRow_more": "{name} +{count}",
+  "navTrack_editSheet_removeTooltip": "Retirer le trajet",
+  "navTrack_editRow_saveFailed": "Impossible de mettre à jour les trajets sous-marins de cette plongée : {error}",
   "navTrack_importError_unsupportedFormat": "Ce fichier n'est pas un journal de navigation Seacraft ENC.",
   "navTrack_importError_unreadable": "Ce fichier n'a pas pu être lu comme un journal de navigation Seacraft ENC.",
   "navTrack_importError_tooShort": "Cet enregistrement a trop peu d'échantillons pour constituer un trajet utilisable.",
@@ -14217,6 +14221,7 @@
   "savedQueries_snackbar_deleted": "« {name} » supprimée",
   "settings_manage_savedQueries": "Requêtes enregistrées",
   "settings_manage_savedQueries_subtitle": "Renommer, réorganiser et supprimer les requêtes enregistrées",
+  "settings_manage_navRoutes_subtitle": "Importer, aligner et lier les trajets enregistrés",
   "query_editor_needsText": "Saisissez au moins un mot",
   "query_saveNeedsDiver": "Créez un profil de plongeur pour enregistrer des requêtes"
 }

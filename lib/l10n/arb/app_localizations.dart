@@ -73721,6 +73721,30 @@ abstract class AppLocalizations {
   /// **'Make primary'**
   String get navTrack_section_menuMakePrimary;
 
+  /// No description provided for @navTrack_editRow_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get navTrack_editRow_none;
+
+  /// Dive Edit route row value when several routes are linked: the first route's name and how many more there are
+  ///
+  /// In en, this message translates to:
+  /// **'{name} +{count}'**
+  String navTrack_editRow_more(int count, String name);
+
+  /// No description provided for @navTrack_editSheet_removeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove route'**
+  String get navTrack_editSheet_removeTooltip;
+
+  /// No description provided for @navTrack_editRow_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update this dive\'s underwater routes: {error}'**
+  String navTrack_editRow_saveFailed(String error);
+
   /// No description provided for @navTrack_importError_unsupportedFormat.
   ///
   /// In en, this message translates to:
@@ -75742,6 +75766,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rename, reorder and delete saved queries'**
   String get settings_manage_savedQueries_subtitle;
+
+  /// No description provided for @settings_manage_navRoutes_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import, align and link recorded routes'**
+  String get settings_manage_navRoutes_subtitle;
 
   /// Query error message.
   ///

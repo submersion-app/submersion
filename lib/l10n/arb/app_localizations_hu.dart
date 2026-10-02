@@ -46239,6 +46239,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => 'Beállítás elsődlegesként';
 
   @override
+  String get navTrack_editRow_none => 'Nincs';
+
+  @override
+  String navTrack_editRow_more(int count, String name) {
+    return '$name +$count';
+  }
+
+  @override
+  String get navTrack_editSheet_removeTooltip => 'Útvonal eltávolítása';
+
+  @override
+  String navTrack_editRow_saveFailed(String error) {
+    return 'Nem sikerült frissíteni a merülés vízalatti útvonalait: $error';
+  }
+
+  @override
   String get navTrack_importError_unsupportedFormat =>
       'Ez a fájl nem Seacraft ENC navigációs napló.';
 
@@ -47322,6 +47338,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_manage_savedQueries_subtitle =>
       'Mentett lekérdezések átnevezése, átrendezése és törlése';
+
+  @override
+  String get settings_manage_navRoutes_subtitle =>
+      'Rögzített útvonalak importálása, igazítása és összekapcsolása';
 
   @override
   String get query_error_unterminatedQuote => 'lezáratlan idézőjel';

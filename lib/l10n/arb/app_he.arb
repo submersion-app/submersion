@@ -13788,6 +13788,10 @@
   "navTrack_section_menuOpen": "פתיחת המסלול",
   "navTrack_section_menuOpen3d": "פתיחת נוף תלת-ממד",
   "navTrack_section_menuMakePrimary": "הגדרה כראשי",
+  "navTrack_editRow_none": "אין",
+  "navTrack_editRow_more": "{name} +{count}",
+  "navTrack_editSheet_removeTooltip": "הסרת מסלול",
+  "navTrack_editRow_saveFailed": "לא ניתן לעדכן את המסלולים התת-ימיים של צלילה זו: {error}",
   "navTrack_importError_unsupportedFormat": "קובץ זה אינו יומן ניווט Seacraft ENC.",
   "navTrack_importError_unreadable": "לא ניתן היה לקרוא את הקובץ הזה כיומן ניווט Seacraft ENC.",
   "navTrack_importError_tooShort": "בהקלטה זו יש מעט מדי דגימות כדי להיות מסלול שמיש.",
@@ -14217,6 +14221,7 @@
   "savedQueries_snackbar_deleted": "\"{name}\" נמחקה",
   "settings_manage_savedQueries": "שאילתות שמורות",
   "settings_manage_savedQueries_subtitle": "שינוי שם, סידור מחדש ומחיקה של שאילתות שמורות",
+  "settings_manage_navRoutes_subtitle": "ייבוא, יישור וקישור של מסלולים מוקלטים",
   "query_editor_needsText": "הזן לפחות מילה אחת",
   "query_saveNeedsDiver": "צור פרופיל צולל כדי לשמור שאילתות"
 }

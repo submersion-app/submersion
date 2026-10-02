@@ -46124,6 +46124,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => 'Als primair instellen';
 
   @override
+  String get navTrack_editRow_none => 'Geen';
+
+  @override
+  String navTrack_editRow_more(int count, String name) {
+    return '$name +$count';
+  }
+
+  @override
+  String get navTrack_editSheet_removeTooltip => 'Route verwijderen';
+
+  @override
+  String navTrack_editRow_saveFailed(String error) {
+    return 'Kan de onderwaterroutes van deze duik niet bijwerken: $error';
+  }
+
+  @override
   String get navTrack_importError_unsupportedFormat =>
       'Dit bestand is geen Seacraft ENC-navigatielog.';
 
@@ -47205,6 +47221,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_manage_savedQueries_subtitle =>
       'Opgeslagen query\'s hernoemen, herschikken en verwijderen';
+
+  @override
+  String get settings_manage_navRoutes_subtitle =>
+      'Opgenomen routes importeren, uitlijnen en koppelen';
 
   @override
   String get query_error_unterminatedQuote => 'niet-afgesloten aanhalingsteken';
