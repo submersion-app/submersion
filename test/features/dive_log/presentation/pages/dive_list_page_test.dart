@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -395,7 +396,9 @@ void main() {
       expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
     });
 
-    testWidgets('table mode search button opens search', (tester) async {
+    testWidgets('table mode search button opens the search row', (
+      tester,
+    ) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(1200, 800);
       addTearDown(() {
@@ -414,11 +417,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.search));
+      await tester.tap(find.byKey(const ValueKey('dive-search-action')));
       await tester.pumpAndSettle();
 
-      // The search delegate should open, showing a search bar
-      expect(find.byType(TextField), findsOneWidget);
+      // The one search row (#2773) opens under the app bar.
+      expect(find.byKey(kDiveSearchFieldKey), findsOneWidget);
     });
 
     testWidgets('tapping FAB in table mode shows add dive sheet', (
@@ -574,7 +577,7 @@ void main() {
       expect(find.byType(MasterDetailScaffold), findsOneWidget);
     });
 
-    testWidgets('table mode filter button with Badge is present', (
+    testWidgets('table mode search button with Badge is present', (
       tester,
     ) async {
       tester.view.devicePixelRatio = 1.0;
@@ -595,15 +598,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // The filter button with Badge indicator should be present. (The
+      // The search action carries the old filter icon's Badge (#2773). (The
       // data-quality review button also wears a Badge, so scope the check to
-      // the Badge wrapping the filter icon.)
-      expect(find.byIcon(Icons.filter_list), findsOneWidget);
+      // the search action.)
+      final action = find.byKey(const ValueKey('dive-search-action'));
+      expect(action, findsOneWidget);
       expect(
-        find.ancestor(
-          of: find.byIcon(Icons.filter_list),
-          matching: find.byType(Badge),
-        ),
+        find.descendant(of: action, matching: find.byType(Badge)),
         findsOneWidget,
       );
     });

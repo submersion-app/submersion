@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
@@ -50,10 +51,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
@@ -1200,27 +1199,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             tooltip: context.l10n.diveLog_listPage_tooltip_explore,
             onPressed: () => context.push('/dives/explore'),
           ),
-        IconButton(
-          icon: const Icon(Icons.search),
-          tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
-          onPressed: () {
-            showSearch(context: context, delegate: DiveSearchDelegate(ref));
-          },
-        ),
-        IconButton(
-          icon: Badge(
-            isLabelVisible: filter.hasActiveFilters,
-            child: const Icon(Icons.filter_list),
-          ),
-          tooltip: context.l10n.diveLog_listPage_tooltip_filterDives,
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => DiveFilterSheet(ref: ref),
-            );
-          },
-        ),
+        const DiveSearchAction(),
         IconButton(
           icon: const Icon(Icons.sort),
           tooltip: context.l10n.diveLog_listPage_tooltip_sort,
@@ -1417,27 +1396,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               tooltip: context.l10n.diveLog_listPage_tooltip_explore,
               onPressed: () => context.push('/dives/explore'),
             ),
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
-            tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
-            onPressed: () {
-              showSearch(context: context, delegate: DiveSearchDelegate(ref));
-            },
-          ),
-          IconButton(
-            icon: Badge(
-              isLabelVisible: filter.hasActiveFilters,
-              child: const Icon(Icons.filter_list, size: 20),
-            ),
-            tooltip: context.l10n.diveLog_listPage_tooltip_filterDives,
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => DiveFilterSheet(ref: ref),
-              );
-            },
-          ),
+          const DiveSearchAction(iconSize: 20),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
             tooltip: context.l10n.diveLog_listPage_tooltip_sort,
