@@ -8905,6 +8905,34 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Merülések keresése';
 
   @override
+  String get diveLog_search_fieldHint =>
+      'Szavak, \"pontos kifejezés\" vagy depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Szűkítés';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Keresés bezárása';
+
+  @override
+  String get diveLog_search_scopeWithin => 'A szűrőkön belül';
+
+  @override
+  String get diveLog_search_scopeAll => 'Összes merülés';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Ugrás a merüléshez';
+
+  @override
+  String get diveLog_search_openInsights => 'Megnyitás az Elemzésekben';
+
+  @override
+  String get diveLog_search_cleared => 'Keresés törölve';
+
+  @override
+  String get diveLog_search_undo => 'Visszavonás';
+
+  @override
   String get diveLog_listPage_tooltip_sort => 'Rendezés';
 
   @override

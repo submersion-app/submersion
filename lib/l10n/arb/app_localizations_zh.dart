@@ -8489,6 +8489,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => '搜索潜水';
 
   @override
+  String get diveLog_search_fieldHint => '词语、\"精确短语\"或 depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => '细化';
+
+  @override
+  String get diveLog_search_closeTooltip => '关闭搜索';
+
+  @override
+  String get diveLog_search_scopeWithin => '在筛选范围内';
+
+  @override
+  String get diveLog_search_scopeAll => '全部潜水';
+
+  @override
+  String get diveLog_search_jumpTitle => '跳转到潜水';
+
+  @override
+  String get diveLog_search_openInsights => '在洞察中打开';
+
+  @override
+  String get diveLog_search_cleared => '已清除搜索';
+
+  @override
+  String get diveLog_search_undo => '撤消';
+
+  @override
   String get diveLog_listPage_tooltip_sort => '排序';
 
   @override

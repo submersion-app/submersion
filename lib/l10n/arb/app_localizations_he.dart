@@ -8712,6 +8712,34 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'חיפוש צלילות';
 
   @override
+  String get diveLog_search_fieldHint =>
+      'מילים, \"ביטוי מדויק\" או depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'צמצום';
+
+  @override
+  String get diveLog_search_closeTooltip => 'סגירת החיפוש';
+
+  @override
+  String get diveLog_search_scopeWithin => 'בתוך המסננים';
+
+  @override
+  String get diveLog_search_scopeAll => 'כל הצלילות';
+
+  @override
+  String get diveLog_search_jumpTitle => 'מעבר לצלילה';
+
+  @override
+  String get diveLog_search_openInsights => 'פתיחה בתובנות';
+
+  @override
+  String get diveLog_search_cleared => 'החיפוש נוקה';
+
+  @override
+  String get diveLog_search_undo => 'ביטול';
+
+  @override
   String get diveLog_listPage_tooltip_sort => 'מיון';
 
   @override

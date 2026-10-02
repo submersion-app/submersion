@@ -14241,6 +14241,60 @@ abstract class AppLocalizations {
   /// **'Search dives'**
   String get diveLog_listPage_tooltip_searchDives;
 
+  /// No description provided for @diveLog_search_fieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Words, \"exact phrase\" or depth > 30m'**
+  String get diveLog_search_fieldHint;
+
+  /// No description provided for @diveLog_search_refineTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refine'**
+  String get diveLog_search_refineTooltip;
+
+  /// No description provided for @diveLog_search_closeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close search'**
+  String get diveLog_search_closeTooltip;
+
+  /// No description provided for @diveLog_search_scopeWithin.
+  ///
+  /// In en, this message translates to:
+  /// **'Within filters'**
+  String get diveLog_search_scopeWithin;
+
+  /// No description provided for @diveLog_search_scopeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All dives'**
+  String get diveLog_search_scopeAll;
+
+  /// No description provided for @diveLog_search_jumpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to dive'**
+  String get diveLog_search_jumpTitle;
+
+  /// No description provided for @diveLog_search_openInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Insights'**
+  String get diveLog_search_openInsights;
+
+  /// No description provided for @diveLog_search_cleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Search cleared'**
+  String get diveLog_search_cleared;
+
+  /// No description provided for @diveLog_search_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get diveLog_search_undo;
+
   /// No description provided for @diveLog_listPage_tooltip_sort.
   ///
   /// In en, this message translates to:

@@ -8750,6 +8750,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'البحث في الغوصات';
 
   @override
+  String get diveLog_search_fieldHint =>
+      'كلمات أو \"عبارة دقيقة\" أو depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'تحسين البحث';
+
+  @override
+  String get diveLog_search_closeTooltip => 'إغلاق البحث';
+
+  @override
+  String get diveLog_search_scopeWithin => 'ضمن عوامل التصفية';
+
+  @override
+  String get diveLog_search_scopeAll => 'كل الغوصات';
+
+  @override
+  String get diveLog_search_jumpTitle => 'الانتقال إلى غوصة';
+
+  @override
+  String get diveLog_search_openInsights => 'فتح في الرؤى';
+
+  @override
+  String get diveLog_search_cleared => 'تم مسح البحث';
+
+  @override
+  String get diveLog_search_undo => 'تراجع';
+
+  @override
   String get diveLog_listPage_tooltip_sort => 'ترتيب';
 
   @override

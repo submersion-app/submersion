@@ -8928,6 +8928,34 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Cerca immersioni';
 
   @override
+  String get diveLog_search_fieldHint =>
+      'Parole, \"frase esatta\" o depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Affina';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Chiudi ricerca';
+
+  @override
+  String get diveLog_search_scopeWithin => 'Nei filtri';
+
+  @override
+  String get diveLog_search_scopeAll => 'Tutte le immersioni';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Vai all\'immersione';
+
+  @override
+  String get diveLog_search_openInsights => 'Apri in Analisi';
+
+  @override
+  String get diveLog_search_cleared => 'Ricerca cancellata';
+
+  @override
+  String get diveLog_search_undo => 'Annulla';
+
+  @override
   String get diveLog_listPage_tooltip_sort => 'Ordina';
 
   @override

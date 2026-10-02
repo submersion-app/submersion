@@ -8923,6 +8923,34 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Buscar mergulhos';
 
   @override
+  String get diveLog_search_fieldHint =>
+      'Palavras, \"frase exata\" ou depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Refinar';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Fechar busca';
+
+  @override
+  String get diveLog_search_scopeWithin => 'Dentro dos filtros';
+
+  @override
+  String get diveLog_search_scopeAll => 'Todos os mergulhos';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Ir para o mergulho';
+
+  @override
+  String get diveLog_search_openInsights => 'Abrir em Análises';
+
+  @override
+  String get diveLog_search_cleared => 'Busca limpa';
+
+  @override
+  String get diveLog_search_undo => 'Desfazer';
+
+  @override
   String get diveLog_listPage_tooltip_sort => 'Ordenar';
 
   @override

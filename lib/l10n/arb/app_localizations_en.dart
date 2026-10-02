@@ -8776,6 +8776,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Search dives';
 
   @override
+  String get diveLog_search_fieldHint =>
+      'Words, \"exact phrase\" or depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Refine';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Close search';
+
+  @override
+  String get diveLog_search_scopeWithin => 'Within filters';
+
+  @override
+  String get diveLog_search_scopeAll => 'All dives';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Jump to dive';
+
+  @override
+  String get diveLog_search_openInsights => 'Open in Insights';
+
+  @override
+  String get diveLog_search_cleared => 'Search cleared';
+
+  @override
+  String get diveLog_search_undo => 'Undo';
+
+  @override
   String get diveLog_listPage_tooltip_sort => 'Sort';
 
   @override

@@ -8859,6 +8859,34 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Duiken zoeken';
 
   @override
+  String get diveLog_search_fieldHint =>
+      'Woorden, \"exacte zin\" of depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Verfijnen';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Zoeken sluiten';
+
+  @override
+  String get diveLog_search_scopeWithin => 'Binnen filters';
+
+  @override
+  String get diveLog_search_scopeAll => 'Alle duiken';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Naar duik springen';
+
+  @override
+  String get diveLog_search_openInsights => 'Openen in Inzichten';
+
+  @override
+  String get diveLog_search_cleared => 'Zoekopdracht gewist';
+
+  @override
+  String get diveLog_search_undo => 'Ongedaan maken';
+
+  @override
   String get diveLog_listPage_tooltip_sort => 'Sorteren';
 
   @override
