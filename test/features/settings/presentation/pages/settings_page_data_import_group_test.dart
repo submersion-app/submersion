@@ -84,9 +84,25 @@ void main() {
   testWidgets('nothing sits above the Backup & Sync header', (tester) async {
     await pumpDataSection(tester);
 
+    // Every text on the Data page, not just cards: a bare tile or label
+    // reintroduced above the first header must fail this too.
+    final page = find
+        .ancestor(
+          of: find.text('Backup & Sync'),
+          matching: find.byType(SingleChildScrollView),
+        )
+        .first;
+    final texts = find.descendant(of: page, matching: find.byType(Text));
     final firstHeaderTop = topOf(tester, 'Backup & Sync');
-    final firstCardTop = tester.getTopLeft(find.byType(Card).first).dy;
-    expect(firstCardTop, greaterThan(firstHeaderTop));
+    for (final element in texts.evaluate()) {
+      final text = (element.widget as Text).data;
+      if (text == 'Backup & Sync') continue;
+      expect(
+        tester.getTopLeft(find.byWidget(element.widget)).dy,
+        greaterThan(firstHeaderTop),
+        reason: '"$text" sits above the first header',
+      );
+    }
   });
 
   testWidgets('the two options share one card', (tester) async {

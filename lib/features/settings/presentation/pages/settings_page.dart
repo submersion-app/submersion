@@ -44,7 +44,6 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
-import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
@@ -53,6 +52,7 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/widgets/import_preferences_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -2875,7 +2875,6 @@ class _DataSectionContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
     final storageState = ref.watch(storageConfigNotifierProvider);
     final isCustomFolder =
         storageState.config.mode == StorageLocationMode.customFolder;
@@ -2958,64 +2957,12 @@ class _DataSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Preferences for how incoming dives are interpreted: site
-          // matching on downloads, and the end-pressure trim on downloads,
-          // file imports and reparses.
           _buildSectionHeader(
             context,
             context.l10n.settings_data_header_import,
           ),
           const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.add_location_alt_outlined),
-                  title: Text(context.l10n.settings_siteMatch_title),
-                  subtitle: Text(context.l10n.settings_siteMatch_subtitle),
-                  trailing: DropdownButton<SiteMatchSensitivity>(
-                    value: settings.siteMatchSensitivity,
-                    underline: const SizedBox.shrink(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        ref
-                            .read(settingsProvider.notifier)
-                            .setSiteMatchSensitivity(value);
-                      }
-                    },
-                    items: [
-                      DropdownMenuItem(
-                        value: SiteMatchSensitivity.strict,
-                        child: Text(context.l10n.settings_siteMatch_strict),
-                      ),
-                      DropdownMenuItem(
-                        value: SiteMatchSensitivity.balanced,
-                        child: Text(context.l10n.settings_siteMatch_balanced),
-                      ),
-                      DropdownMenuItem(
-                        value: SiteMatchSensitivity.relaxed,
-                        child: Text(context.l10n.settings_siteMatch_relaxed),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-                SwitchListTile(
-                  secondary: const Icon(Icons.compress),
-                  title: Text(
-                    context.l10n.settings_tankPressureAtSurfacing_title,
-                  ),
-                  subtitle: Text(
-                    context.l10n.settings_tankPressureAtSurfacing_subtitle,
-                  ),
-                  value: settings.trimTankPressureAtSurfacing,
-                  onChanged: (value) => ref
-                      .read(settingsProvider.notifier)
-                      .setTrimTankPressureAtSurfacing(value),
-                ),
-              ],
-            ),
-          ),
+          const ImportPreferencesCard(),
           const SizedBox(height: 16),
           _buildSectionHeader(
             context,
