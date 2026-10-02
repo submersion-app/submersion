@@ -12135,12 +12135,6 @@ abstract class AppLocalizations {
   /// **'All types'**
   String get diveLog_filter_allTypes;
 
-  /// No description provided for @diveLog_filter_apply.
-  ///
-  /// In en, this message translates to:
-  /// **'Apply Filters'**
-  String get diveLog_filter_apply;
-
   /// No description provided for @diveLog_filter_buddyHint.
   ///
   /// In en, this message translates to:
@@ -12315,23 +12309,11 @@ abstract class AppLocalizations {
   /// **'Buddy'**
   String get diveLog_filter_sectionBuddy;
 
-  /// No description provided for @diveLog_filter_sectionDateRange.
-  ///
-  /// In en, this message translates to:
-  /// **'Date Range'**
-  String get diveLog_filter_sectionDateRange;
-
   /// No description provided for @diveLog_filter_sectionDepthRange.
   ///
   /// In en, this message translates to:
   /// **'Depth Range (meters)'**
   String get diveLog_filter_sectionDepthRange;
-
-  /// No description provided for @diveLog_filter_sectionDiveSite.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Site'**
-  String get diveLog_filter_sectionDiveSite;
 
   /// No description provided for @diveLog_filter_sectionDiveType.
   ///
@@ -12386,24 +12368,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start Date'**
   String get diveLog_filter_startDate;
-
-  /// No description provided for @diveLog_filter_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Filter Dives'**
-  String get diveLog_filter_title;
-
-  /// No description provided for @diveLog_filter_resizeGrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Resize filter panel'**
-  String get diveLog_filter_resizeGrip;
-
-  /// No description provided for @diveLog_filter_tooltip_close.
-  ///
-  /// In en, this message translates to:
-  /// **'Close filter'**
-  String get diveLog_filter_tooltip_close;
 
   /// No description provided for @diveLog_fullscreenProfile_close.
   ///
@@ -12776,12 +12740,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log Dive'**
   String get diveLog_listPage_fab_logDive;
-
-  /// No description provided for @diveLog_listPage_menuAdvancedSearch.
-  ///
-  /// In en, this message translates to:
-  /// **'Advanced Search'**
-  String get diveLog_listPage_menuAdvancedSearch;
 
   /// No description provided for @diveLog_listPage_menuDiveNumbering.
   ///
@@ -14901,23 +14859,11 @@ abstract class AppLocalizations {
   /// **'All trips'**
   String get diveLog_search_allTrips;
 
-  /// No description provided for @diveLog_search_appBar.
-  ///
-  /// In en, this message translates to:
-  /// **'Advanced Search'**
-  String get diveLog_search_appBar;
-
   /// No description provided for @diveLog_search_cancel.
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
   String get diveLog_search_cancel;
-
-  /// No description provided for @diveLog_search_clearAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear All'**
-  String get diveLog_search_clearAll;
 
   /// No description provided for @diveLog_search_customFieldKey.
   ///
@@ -14931,23 +14877,11 @@ abstract class AppLocalizations {
   /// **'Value contains...'**
   String get diveLog_search_customFieldValue;
 
-  /// No description provided for @diveLog_search_end.
-  ///
-  /// In en, this message translates to:
-  /// **'End'**
-  String get diveLog_search_end;
-
   /// No description provided for @diveLog_search_errorLoadingCenters.
   ///
   /// In en, this message translates to:
   /// **'Error loading dive centers'**
   String get diveLog_search_errorLoadingCenters;
-
-  /// No description provided for @diveLog_search_errorLoadingDiveTypes.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading dive types'**
-  String get diveLog_search_errorLoadingDiveTypes;
 
   /// No description provided for @diveLog_search_errorLoadingEquipment.
   ///
@@ -14997,18 +14931,6 @@ abstract class AppLocalizations {
   /// **'Dive Site'**
   String get diveLog_search_label_diveSite;
 
-  /// No description provided for @diveLog_search_label_diveType.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Type'**
-  String get diveLog_search_label_diveType;
-
-  /// No description provided for @diveLog_search_label_durationRange.
-  ///
-  /// In en, this message translates to:
-  /// **'Duration Range (min)'**
-  String get diveLog_search_label_durationRange;
-
   /// No description provided for @diveLog_search_label_equipment.
   ///
   /// In en, this message translates to:
@@ -15020,12 +14942,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trip'**
   String get diveLog_search_label_trip;
-
-  /// No description provided for @diveLog_search_search.
-  ///
-  /// In en, this message translates to:
-  /// **'Search'**
-  String get diveLog_search_search;
 
   /// No description provided for @diveLog_search_section_conditions.
   ///
@@ -15056,18 +14972,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Organization'**
   String get diveLog_search_section_organization;
-
-  /// No description provided for @diveLog_search_section_social.
-  ///
-  /// In en, this message translates to:
-  /// **'Social'**
-  String get diveLog_search_section_social;
-
-  /// No description provided for @diveLog_search_start.
-  ///
-  /// In en, this message translates to:
-  /// **'Start'**
-  String get diveLog_search_start;
 
   /// No description provided for @diveLog_selection_countSelected.
   ///
@@ -75694,18 +75598,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No'**
   String get query_editor_valueFalse;
-
-  /// Quick filter sheet row that opens the advanced search on its query editor
-  ///
-  /// In en, this message translates to:
-  /// **'Query'**
-  String get diveLog_filter_queryRow;
-
-  /// Advanced search section that hosts the query editor
-  ///
-  /// In en, this message translates to:
-  /// **'Query'**
-  String get diveLog_search_section_query;
 
   /// Dialog that names a query being saved
   ///

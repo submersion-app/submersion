@@ -7607,9 +7607,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_allTypes => 'Alle types';
 
   @override
-  String get diveLog_filter_apply => 'Filters toepassen';
-
-  @override
   String get diveLog_filter_buddyHint => 'Zoek op buddynaam';
 
   @override
@@ -7697,13 +7694,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'Datumbereik';
-
-  @override
   String get diveLog_filter_sectionDepthRange => 'Dieptebereik (meters)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'Duikstek';
 
   @override
   String get diveLog_filter_sectionDiveType => 'Duiktype';
@@ -7732,15 +7723,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'Startdatum';
-
-  @override
-  String get diveLog_filter_title => 'Duiken filteren';
-
-  @override
-  String get diveLog_filter_resizeGrip => 'Formaat van filterpaneel wijzigen';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'Filter sluiten';
 
   @override
   String get diveLog_fullscreenProfile_close => 'Volledig scherm sluiten';
@@ -7956,9 +7938,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'Duik loggen';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'Geavanceerd zoeken';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'Duiknummering';
@@ -9248,13 +9227,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_allTrips => 'Alle reizen';
 
   @override
-  String get diveLog_search_appBar => 'Geavanceerd zoeken';
-
-  @override
   String get diveLog_search_cancel => 'Annuleren';
-
-  @override
-  String get diveLog_search_clearAll => 'Alles wissen';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9263,14 +9236,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'Einde';
-
-  @override
   String get diveLog_search_errorLoadingCenters =>
       'Fout bij laden van duikcentra';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes => 'Fout bij laden duiktypes';
 
   @override
   String get diveLog_search_errorLoadingEquipment =>
@@ -9298,19 +9265,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'Duikstek';
 
   @override
-  String get diveLog_search_label_diveType => 'Duiktype';
-
-  @override
-  String get diveLog_search_label_durationRange => 'Duurbereik (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'Uitrusting';
 
   @override
   String get diveLog_search_label_trip => 'Reis';
-
-  @override
-  String get diveLog_search_search => 'Zoeken';
 
   @override
   String get diveLog_search_section_conditions => 'Omstandigheden';
@@ -9326,12 +9284,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'Organisatie';
-
-  @override
-  String get diveLog_search_section_social => 'Sociaal';
-
-  @override
-  String get diveLog_search_start => 'Start';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -47178,12 +47130,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'Nee';
-
-  @override
-  String get diveLog_filter_queryRow => 'Query';
-
-  @override
-  String get diveLog_search_section_query => 'Query';
 
   @override
   String get query_saveDialog_title => 'Query opslaan';

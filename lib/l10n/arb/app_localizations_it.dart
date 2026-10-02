@@ -7658,9 +7658,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_filter_allTypes => 'Tutti i tipi';
 
   @override
-  String get diveLog_filter_apply => 'Applica filtri';
-
-  @override
   String get diveLog_filter_buddyHint => 'Cerca per nome compagno';
 
   @override
@@ -7752,14 +7749,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'Compagno';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'Intervallo date';
-
-  @override
   String get diveLog_filter_sectionDepthRange =>
       'Intervallo profondità (metri)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'Sito di immersione';
 
   @override
   String get diveLog_filter_sectionDiveType => 'Tipo di immersione';
@@ -7789,15 +7780,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'Data di inizio';
-
-  @override
-  String get diveLog_filter_title => 'Filtra immersioni';
-
-  @override
-  String get diveLog_filter_resizeGrip => 'Ridimensiona il pannello dei filtri';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'Chiudi filtro';
 
   @override
   String get diveLog_fullscreenProfile_close => 'Chiudi schermo intero';
@@ -8016,9 +7998,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'Registra immersione';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'Ricerca avanzata';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'Numerazione immersioni';
@@ -9319,13 +9298,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_search_allTrips => 'Tutti i viaggi';
 
   @override
-  String get diveLog_search_appBar => 'Ricerca avanzata';
-
-  @override
   String get diveLog_search_cancel => 'Annulla';
-
-  @override
-  String get diveLog_search_clearAll => 'Cancella tutto';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9334,15 +9307,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'Fine';
-
-  @override
   String get diveLog_search_errorLoadingCenters =>
       'Errore nel caricamento dei centri immersione';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes =>
-      'Errore durante il caricamento dei tipi di immersione';
 
   @override
   String get diveLog_search_errorLoadingEquipment =>
@@ -9371,19 +9337,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'Sito di immersione';
 
   @override
-  String get diveLog_search_label_diveType => 'Tipo di immersione';
-
-  @override
-  String get diveLog_search_label_durationRange => 'Intervallo durata (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'Attrezzatura';
 
   @override
   String get diveLog_search_label_trip => 'Viaggio';
-
-  @override
-  String get diveLog_search_search => 'Cerca';
 
   @override
   String get diveLog_search_section_conditions => 'Condizioni';
@@ -9399,12 +9356,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'Organizzazione';
-
-  @override
-  String get diveLog_search_section_social => 'Sociale';
-
-  @override
-  String get diveLog_search_start => 'Inizio';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -47473,12 +47424,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'No';
-
-  @override
-  String get diveLog_filter_queryRow => 'Query';
-
-  @override
-  String get diveLog_search_section_query => 'Query';
 
   @override
   String get query_saveDialog_title => 'Salva query';

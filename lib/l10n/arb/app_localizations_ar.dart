@@ -7507,9 +7507,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_allTypes => 'جميع الأنواع';
 
   @override
-  String get diveLog_filter_apply => 'تطبيق عوامل التصفية';
-
-  @override
   String get diveLog_filter_buddyHint => 'البحث باسم زميل الغوص';
 
   @override
@@ -7597,13 +7594,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'زميل الغوص';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'نطاق التاريخ';
-
-  @override
   String get diveLog_filter_sectionDepthRange => 'نطاق العمق (بالأمتار)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'موقع الغوص';
 
   @override
   String get diveLog_filter_sectionDiveType => 'نوع الغوصة';
@@ -7631,15 +7622,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'تاريخ البدء';
-
-  @override
-  String get diveLog_filter_title => 'تصفية الغوصات';
-
-  @override
-  String get diveLog_filter_resizeGrip => 'تغيير حجم لوحة التصفية';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'إغلاق التصفية';
 
   @override
   String get diveLog_fullscreenProfile_close => 'إغلاق ملء الشاشة';
@@ -7855,9 +7837,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'تسجيل غوصة';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'بحث متقدم';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'ترقيم الغوصات';
@@ -9135,13 +9114,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_search_allTrips => 'جميع الرحلات';
 
   @override
-  String get diveLog_search_appBar => 'بحث متقدم';
-
-  @override
   String get diveLog_search_cancel => 'إلغاء';
-
-  @override
-  String get diveLog_search_clearAll => 'مسح الكل';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9150,13 +9123,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'النهاية';
-
-  @override
   String get diveLog_search_errorLoadingCenters => 'خطأ في تحميل مراكز الغوص';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes => 'خطأ في تحميل أنواع الغوص';
 
   @override
   String get diveLog_search_errorLoadingEquipment => 'خطأ في تحميل المعدات';
@@ -9183,19 +9150,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'موقع غوص';
 
   @override
-  String get diveLog_search_label_diveType => 'نوع الغوصة';
-
-  @override
-  String get diveLog_search_label_durationRange => 'نطاق المدة (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'المعدات';
 
   @override
   String get diveLog_search_label_trip => 'رحلة';
-
-  @override
-  String get diveLog_search_search => 'بحث';
 
   @override
   String get diveLog_search_section_conditions => 'الظروف';
@@ -9211,12 +9169,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'المنظمة';
-
-  @override
-  String get diveLog_search_section_social => 'اجتماعي';
-
-  @override
-  String get diveLog_search_start => 'البداية';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -47101,12 +47053,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'لا';
-
-  @override
-  String get diveLog_filter_queryRow => 'استعلام';
-
-  @override
-  String get diveLog_search_section_query => 'استعلام';
 
   @override
   String get query_saveDialog_title => 'حفظ الاستعلام';

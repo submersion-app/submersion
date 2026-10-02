@@ -7532,9 +7532,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_allTypes => 'All types';
 
   @override
-  String get diveLog_filter_apply => 'Apply Filters';
-
-  @override
   String get diveLog_filter_buddyHint => 'Search by buddy name';
 
   @override
@@ -7622,13 +7619,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'Date Range';
-
-  @override
   String get diveLog_filter_sectionDepthRange => 'Depth Range (meters)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'Dive Site';
 
   @override
   String get diveLog_filter_sectionDiveType => 'Dive Type';
@@ -7657,15 +7648,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'Start Date';
-
-  @override
-  String get diveLog_filter_title => 'Filter Dives';
-
-  @override
-  String get diveLog_filter_resizeGrip => 'Resize filter panel';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'Close filter';
 
   @override
   String get diveLog_fullscreenProfile_close => 'Close fullscreen';
@@ -7880,9 +7862,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'Log Dive';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'Advanced Search';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'Dive Numbering';
@@ -9161,13 +9140,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_search_allTrips => 'All trips';
 
   @override
-  String get diveLog_search_appBar => 'Advanced Search';
-
-  @override
   String get diveLog_search_cancel => 'Cancel';
-
-  @override
-  String get diveLog_search_clearAll => 'Clear All';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9176,13 +9149,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'End';
-
-  @override
   String get diveLog_search_errorLoadingCenters => 'Error loading dive centers';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes => 'Error loading dive types';
 
   @override
   String get diveLog_search_errorLoadingEquipment => 'Error loading equipment';
@@ -9209,19 +9176,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'Dive Site';
 
   @override
-  String get diveLog_search_label_diveType => 'Dive Type';
-
-  @override
-  String get diveLog_search_label_durationRange => 'Duration Range (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'Equipment';
 
   @override
   String get diveLog_search_label_trip => 'Trip';
-
-  @override
-  String get diveLog_search_search => 'Search';
 
   @override
   String get diveLog_search_section_conditions => 'Conditions';
@@ -9237,12 +9195,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'Organization';
-
-  @override
-  String get diveLog_search_section_social => 'Social';
-
-  @override
-  String get diveLog_search_start => 'Start';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -46792,12 +46744,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'No';
-
-  @override
-  String get diveLog_filter_queryRow => 'Query';
-
-  @override
-  String get diveLog_search_section_query => 'Query';
 
   @override
   String get query_saveDialog_title => 'Save query';

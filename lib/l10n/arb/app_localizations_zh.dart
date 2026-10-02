@@ -7281,9 +7281,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_allTypes => '所有类型';
 
   @override
-  String get diveLog_filter_apply => '应用筛选';
-
-  @override
   String get diveLog_filter_buddyHint => '按潜伴姓名搜索';
 
   @override
@@ -7371,13 +7368,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => '潜伴';
 
   @override
-  String get diveLog_filter_sectionDateRange => '日期范围';
-
-  @override
   String get diveLog_filter_sectionDepthRange => '深度范围（米）';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => '潜水点';
 
   @override
   String get diveLog_filter_sectionDiveType => '潜水类型';
@@ -7405,15 +7396,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => '开始日期';
-
-  @override
-  String get diveLog_filter_title => '筛选潜水';
-
-  @override
-  String get diveLog_filter_resizeGrip => '调整筛选面板大小';
-
-  @override
-  String get diveLog_filter_tooltip_close => '关闭筛选';
 
   @override
   String get diveLog_fullscreenProfile_close => '关闭全屏';
@@ -7622,9 +7604,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => '记录潜水';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => '高级搜索';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => '潜水编号';
@@ -8866,13 +8845,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_search_allTrips => '所有旅行';
 
   @override
-  String get diveLog_search_appBar => '高级搜索';
-
-  @override
   String get diveLog_search_cancel => '取消';
-
-  @override
-  String get diveLog_search_clearAll => '清除全部';
 
   @override
   String get diveLog_search_customFieldKey => '自定义字段键';
@@ -8881,13 +8854,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_search_customFieldValue => '值包含...';
 
   @override
-  String get diveLog_search_end => '结束';
-
-  @override
   String get diveLog_search_errorLoadingCenters => '加载潜水中心出错';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes => '加载潜水类型出错';
 
   @override
   String get diveLog_search_errorLoadingEquipment => '加载装备出错';
@@ -8914,19 +8881,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_search_label_diveSite => '潜水点';
 
   @override
-  String get diveLog_search_label_diveType => '潜水类型';
-
-  @override
-  String get diveLog_search_label_durationRange => '时长范围（分钟）';
-
-  @override
   String get diveLog_search_label_equipment => '装备';
 
   @override
   String get diveLog_search_label_trip => '旅行';
-
-  @override
-  String get diveLog_search_search => '搜索';
 
   @override
   String get diveLog_search_section_conditions => '条件';
@@ -8942,12 +8900,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => '组织';
-
-  @override
-  String get diveLog_search_section_social => '社交';
-
-  @override
-  String get diveLog_search_start => '开始';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -44778,12 +44730,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => '否';
-
-  @override
-  String get diveLog_filter_queryRow => '查询';
-
-  @override
-  String get diveLog_search_section_query => '查询';
 
   @override
   String get query_saveDialog_title => '保存查询';
