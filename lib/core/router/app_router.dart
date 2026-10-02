@@ -158,13 +158,14 @@ import 'package:submersion/features/marine_life/presentation/pages/species_edit_
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_chart_fullscreen_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
-import 'package:submersion/features/gps_log/presentation/pages/gps_logger_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
-import 'package:submersion/features/nav_track/presentation/pages/nav_track_list_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
-import 'package:submersion/features/gps_log/presentation/pages/gps_track_map_page.dart';
+import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/features/tracks/domain/track_kind.dart';
+import 'package:submersion/features/tracks/presentation/pages/tracks_map_page.dart';
+import 'package:submersion/features/tracks/presentation/pages/tracks_page.dart';
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
 import 'package:submersion/features/deco_calculator/presentation/pages/deco_calculator_page.dart';
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
@@ -359,11 +360,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'noFly',
                 builder: (context, state) => const NoFlyPage(),
               ),
-              // GPS Logger moved to top-level /gps-log; keep old deep
+              // The GPS logger moved into the Tracks area; keep old deep
               // links working.
               GoRoute(
                 path: 'gps-logger',
-                redirect: (context, state) => '/gps-log',
+                redirect: (context, state) => kTracksLocation,
               ),
             ],
           ),
@@ -1017,68 +1018,89 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // GPS surface track logger
+          // Tracks: GPS surface tracks and underwater tracks in one area
+          // (spec 2026-10-02-tracks-navigation-consolidation-design.md).
+          // Every page is a top-level SIBLING of /tracks, never a child:
+          // go_router builds one page per matched segment, and /tracks has
+          // its own pageBuilder, so nesting stacked the landing page under a
+          // detail pushed from a dive and needed two Back presses. Static
+          // paths are declared before parameterised ones so 'map' is not
+          // swallowed by ':id'.
           GoRoute(
-            path: '/gps-log',
-            name: 'gpsLog',
+            path: kTracksLocation,
+            name: 'tracks',
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
-              child: const GpsLoggerPage(),
+              child: TracksPage(
+                initialKind: TrackKindFilter.fromQuery(
+                  state.uri.queryParameters['kind'],
+                ),
+              ),
             ),
           ),
-
-          // The track map and track detail are SIBLINGS of /gps-log, not
-          // children. go_router builds one page per matched segment, and
-          // /gps-log has its own pageBuilder, so nesting them stacked a
-          // GpsLoggerPage underneath: pushing a track from the dive detail's
-          // Surface GPS link needed two Back presses, the first landing on a
-          // logger page the diver never visited. Same failure the editPlan
-          // route above was fixed for.
-          //
-          // Static path declared before the parameterised one so 'map' is
-          // not swallowed by ':id'.
           GoRoute(
-            path: '/gps-log/map',
-            name: 'gpsTrackMap',
-            builder: (context, state) => const GpsTrackMapPage(),
+            path: kTracksMapLocation,
+            name: 'tracksMap',
+            builder: (context, state) => const TracksMapPage(),
           ),
           GoRoute(
-            path: '/gps-log/:id',
+            path: '$kTracksLocation/gps/:id',
             name: 'gpsTrackDetail',
             builder: (context, state) =>
                 GpsTrackDetailPage(trackId: state.pathParameters['id']!),
           ),
-
-          // Underwater navigation routes (spec
-          // 2026-09-10-underwater-nav-track-design.md, "The routes area"):
-          // siblings of /gps-log for the same reason -- pushing a route from
-          // the dive detail's "Underwater Route" section must not stack a
-          // list page underneath it.
           GoRoute(
-            path: '/nav-routes',
-            name: 'navRoutes',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const NavTrackListPage(),
-            ),
-          ),
-          GoRoute(
-            path: '/nav-routes/:id',
-            name: 'navRouteDetail',
+            path: '$kTracksLocation/underwater/:id',
+            name: 'underwaterTrackDetail',
             builder: (context, state) =>
                 NavTrackDetailPage(trackId: state.pathParameters['id']!),
           ),
           GoRoute(
-            path: '/nav-routes/:id/align',
-            name: 'navRouteAlign',
+            path: '$kTracksLocation/underwater/:id/align',
+            name: 'underwaterTrackAlign',
             builder: (context, state) =>
                 NavTrackAlignPage(routeId: state.pathParameters['id']!),
           ),
           GoRoute(
-            path: '/nav-routes/:id/3d',
-            name: 'navRouteSeascape',
+            path: '$kTracksLocation/underwater/:id/3d',
+            name: 'underwaterTrackSeascape',
             builder: (context, state) =>
                 NavTrackSeascapePage(trackId: state.pathParameters['id']!),
+          ),
+
+          // Locations from before the Tracks area, kept so stale links (a
+          // bookmark, an older synced build's deep link) still land.
+          GoRoute(
+            path: '/gps-log',
+            redirect: (context, state) => kTracksLocation,
+          ),
+          GoRoute(
+            path: '/gps-log/map',
+            redirect: (context, state) => kTracksMapLocation,
+          ),
+          GoRoute(
+            path: '/gps-log/:id',
+            redirect: (context, state) =>
+                gpsTrackLocation(state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/nav-routes',
+            redirect: (context, state) => kUnderwaterTracksLocation,
+          ),
+          GoRoute(
+            path: '/nav-routes/:id',
+            redirect: (context, state) =>
+                underwaterTrackLocation(state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/nav-routes/:id/align',
+            redirect: (context, state) =>
+                underwaterTrackAlignLocation(state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/nav-routes/:id/3d',
+            redirect: (context, state) =>
+                underwaterTrackSeascapeLocation(state.pathParameters['id']!),
           ),
 
           // Near-miss incident log (entry point: Settings > Manage)

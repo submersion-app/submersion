@@ -15,8 +15,8 @@ Widget app() {
         ),
       ),
       GoRoute(
-        path: '/gps-log',
-        builder: (context, state) => const Scaffold(body: Text('GPS-LOG-PAGE')),
+        path: '/tracks',
+        builder: (context, state) => const Scaffold(body: Text('TRACKS-PAGE')),
       ),
     ],
   );
@@ -24,11 +24,11 @@ Widget app() {
 }
 
 void main() {
-  testWidgets('GPS Logger quick action navigates to /gps-log', (tester) async {
+  testWidgets('GPS Logger quick action navigates to /tracks', (tester) async {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
     await tester.tap(find.text('GPS Logger'));
     await tester.pumpAndSettle();
-    expect(find.text('GPS-LOG-PAGE'), findsOneWidget);
+    expect(find.text('TRACKS-PAGE'), findsOneWidget);
   });
 }

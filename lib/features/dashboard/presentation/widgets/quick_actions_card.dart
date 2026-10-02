@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
@@ -71,7 +72,7 @@ class QuickActionsCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => context.go('/gps-log'),
+                onPressed: () => context.go(kTracksLocation),
                 icon: const Icon(Icons.gps_fixed),
                 label: Text(context.l10n.tools_gpsLogger_title),
               ),

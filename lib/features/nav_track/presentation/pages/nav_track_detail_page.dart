@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
@@ -239,13 +240,15 @@ class NavTrackDetailPage extends ConsumerWidget {
                 key: const ValueKey('nav-track-align'),
                 icon: const Icon(Icons.tune),
                 tooltip: l10n.navTrack_align_title,
-                onPressed: () => context.push('/nav-routes/${route.id}/align'),
+                onPressed: () =>
+                    context.push(underwaterTrackAlignLocation(route.id)),
               ),
               IconButton(
                 key: const ValueKey('nav-track-open-3d'),
                 icon: const Icon(Icons.view_in_ar),
                 tooltip: l10n.navTrack_common_open3dTooltip,
-                onPressed: () => context.push('/nav-routes/${route.id}/3d'),
+                onPressed: () =>
+                    context.push(underwaterTrackSeascapeLocation(route.id)),
               ),
               PopupMenuButton<String>(
                 onSelected: (value) async {

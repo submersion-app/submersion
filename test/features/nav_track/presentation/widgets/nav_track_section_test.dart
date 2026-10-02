@@ -349,7 +349,7 @@ void main() {
                 Scaffold(body: NavTrackSection(dive: _dive)),
           ),
           GoRoute(
-            path: '/nav-routes/:id',
+            path: '/tracks/underwater/:id',
             builder: (context, state) =>
                 const Scaffold(body: Text('ROUTE_DETAIL_PAGE')),
           ),
@@ -381,7 +381,7 @@ void main() {
                 Scaffold(body: NavTrackSection(dive: _dive)),
           ),
           GoRoute(
-            path: '/nav-routes/:id/3d',
+            path: '/tracks/underwater/:id/3d',
             builder: (context, state) =>
                 const Scaffold(body: Text('ROUTE_3D_PAGE')),
           ),
