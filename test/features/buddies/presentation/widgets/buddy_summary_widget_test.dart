@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
@@ -44,6 +45,19 @@ Future<Widget> _widget(List<BuddyWithDiveCount> entries) async => testApp(
 );
 
 void main() {
+  // The trailing date in "Recent Buddies" is formatted by intl, which
+  // resolves against Intl.defaultLocale: a process global that a preceding
+  // test can leave on a non-English locale. Pin it so the asserted month
+  // spelling ("Mar 15, 2026") is deterministic regardless of run order.
+  late String? previousLocale;
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   testWidgets('a buddy with a stored photo renders it in the preview list', (
     tester,
   ) async {
