@@ -94,6 +94,17 @@ void main() {
     );
   });
 
+  testWidgets('switching the text direction lays it out again', (tester) async {
+    await pump(tester, width: 300);
+    final render = renderOf(tester);
+    expect(tester.getRect(find.byKey(title)).left, 0);
+
+    await pump(tester, width: 300, direction: TextDirection.rtl);
+    expect(renderOf(tester), same(render));
+    expect(tester.getRect(find.byKey(title)).left, 200);
+    expect(tester.getRect(find.byKey(actions)).left, 0);
+  });
+
   testWidgets('dry layout agrees with layout', (tester) async {
     await pump(tester, width: 300);
     final render = renderOf(tester);
