@@ -352,11 +352,13 @@ void main() {
     });
 
     // Issue #2489: a GoPro and an OM System clip from one Bonaire dive,
-    // imported on a Windows PC at UTC-4 (Bonaire's own offset). Explorer
-    // showed "Media created" and "Date modified" with the same digits as the
-    // camera clock, so both cameras wrote UTC into mvhd and the card kept the
-    // camera's close time as the mtime. The photos from the dive linked; the
-    // clips read their UTC digits as local time, four hours after the dive.
+    // imported on a Windows PC at UTC-4 (Bonaire's own offset). For the OM
+    // System clip, Explorer showed "Media created" and "Date modified" with
+    // the camera clock's digits, so its mvhd held UTC and the card kept the
+    // camera's close time as the mtime. The GoPro clip is inferred to be the
+    // same: a local-clock mvhd would have linked under the old reading. The
+    // photos from the dive linked; the clips read their UTC digits as local
+    // time, four hours after the dive.
     group('issue #2489: Bonaire clips imported on a UTC-4 PC', () {
       DateTime utcMinus4(DateTime utc) =>
           utc.subtract(const Duration(hours: 4));
