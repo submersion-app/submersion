@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:submersion/core/query/compiler/query_validator.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
@@ -39,6 +40,8 @@ class QueryTextField extends StatefulWidget {
     this.describeError,
     this.fieldKey,
     this.autofocus = false,
+    this.focusNode,
+    this.onEscape,
   });
 
   final QueryEditorContext context;
@@ -49,13 +52,21 @@ class QueryTextField extends StatefulWidget {
   final Key? fieldKey;
   final bool autofocus;
 
+  /// Focus for the text field; the field makes and disposes its own when
+  /// null. An outside node stays the caller's to dispose.
+  final FocusNode? focusNode;
+
+  /// Called on Escape while the field has focus.
+  final VoidCallback? onEscape;
+
   @override
   State<QueryTextField> createState() => _QueryTextFieldState();
 }
 
 class _QueryTextFieldState extends State<QueryTextField> {
   late final QueryErrorHighlightController _controller;
-  final _focus = FocusNode();
+  final _ownFocus = FocusNode();
+  FocusNode get _focus => widget.focusNode ?? _ownFocus;
   QueryError? _error;
   List<Completion> _completions = const [];
 
@@ -78,6 +89,10 @@ class _QueryTextFieldState extends State<QueryTextField> {
   @override
   void didUpdateWidget(QueryTextField old) {
     super.didUpdateWidget(old);
+    if (old.focusNode != widget.focusNode) {
+      (old.focusNode ?? _ownFocus).removeListener(_onFocusChange);
+      _focus.addListener(_onFocusChange);
+    }
     if (widget.value != _committed) {
       _committed = widget.value;
       _controller
@@ -100,9 +115,8 @@ class _QueryTextFieldState extends State<QueryTextField> {
 
   @override
   void dispose() {
-    _focus
-      ..removeListener(_onFocusChange)
-      ..dispose();
+    _focus.removeListener(_onFocusChange);
+    _ownFocus.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -176,27 +190,34 @@ class _QueryTextFieldState extends State<QueryTextField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextField(
-          key: widget.fieldKey,
-          controller: _controller,
-          focusNode: _focus,
-          autofocus: widget.autofocus,
-          autocorrect: false,
-          enableSuggestions: false,
-          textInputAction: TextInputAction.search,
-          style: const TextStyle(fontFamily: 'monospace'),
-          decoration: InputDecoration(
-            hintText: widget.hintText,
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: _controller.text.isEmpty
-                ? null
-                : IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () => _replace(0, _controller.text.length, ''),
-                  ),
-            errorText: error == null ? null : describe(error),
+        CallbackShortcuts(
+          bindings: {
+            if (widget.onEscape != null)
+              const SingleActivator(LogicalKeyboardKey.escape):
+                  widget.onEscape!,
+          },
+          child: TextField(
+            key: widget.fieldKey,
+            controller: _controller,
+            focusNode: _focus,
+            autofocus: widget.autofocus,
+            autocorrect: false,
+            enableSuggestions: false,
+            textInputAction: TextInputAction.search,
+            style: const TextStyle(fontFamily: 'monospace'),
+            decoration: InputDecoration(
+              hintText: widget.hintText,
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _controller.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => _replace(0, _controller.text.length, ''),
+                    ),
+              errorText: error == null ? null : describe(error),
+            ),
+            onChanged: _onTextChanged,
           ),
-          onChanged: _onTextChanged,
         ),
         if (error != null && suggestionsReplaceSpan(error, _controller.text))
           Padding(

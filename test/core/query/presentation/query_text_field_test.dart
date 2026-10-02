@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_error_code.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
@@ -212,6 +213,58 @@ void main() {
           .children,
       isNull,
     );
+  });
+
+  testWidgets('uses an outside focus node and leaves it undisposed', (
+    tester,
+  ) async {
+    final focus = FocusNode();
+    addTearDown(focus.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: QueryTextField(
+            context: context,
+            value: null,
+            onChanged: (_) {},
+            fieldKey: fieldKey,
+            focusNode: focus,
+          ),
+        ),
+      ),
+    );
+    focus.requestFocus();
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byKey(fieldKey)).focusNode,
+      same(focus),
+    );
+    expect(focus.hasFocus, isTrue);
+    await tester.pumpWidget(const SizedBox());
+    // Still usable: the field did not dispose a node it does not own.
+    focus.addListener(() {});
+  });
+
+  testWidgets('Escape in the field calls onEscape', (tester) async {
+    var escaped = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: QueryTextField(
+            context: context,
+            value: null,
+            onChanged: (_) {},
+            fieldKey: fieldKey,
+            onEscape: () => escaped++,
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(fieldKey));
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pump();
+    expect(escaped, 1);
   });
 }
 
