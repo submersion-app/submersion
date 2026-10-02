@@ -8869,9 +8869,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_tooltip_back => 'Vissza';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'Vissza a merülések listájához';
 

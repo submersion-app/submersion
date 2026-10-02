@@ -23,6 +23,12 @@ final diveSearchBarOpenProvider = StateProvider<bool>((ref) => false);
 /// the request (and clears it) once it is built.
 final diveSearchFocusPendingProvider = StateProvider<bool>((ref) => false);
 
+/// Bumped by every close or clear of the search ([closeDiveSearch]), so
+/// the row drops text still waiting on its debounce, which would otherwise
+/// land after the clear. Clear all, Close, Esc and the empty state's Clear
+/// filters all go through it.
+final diveSearchClearTickProvider = StateProvider<int>((ref) => 0);
+
 /// Whether the search row is on screen: opened, or anything filtered, so a
 /// search is never active out of sight.
 final diveSearchBarVisibleProvider = Provider<bool>(

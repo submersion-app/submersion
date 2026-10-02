@@ -8455,9 +8455,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_tooltip_back => '返回';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList => '返回潜水列表';
 
   @override

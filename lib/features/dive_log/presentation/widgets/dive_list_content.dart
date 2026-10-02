@@ -55,6 +55,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/add_dive_botto
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/close_dive_search.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -2127,10 +2128,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
-              onPressed: () {
-                ref.read(diveFilterProvider.notifier).state =
-                    const DiveFilterState();
-              },
+              onPressed: () => closeDiveSearch(context, ref, collapse: false),
               icon: const Icon(Icons.clear_all),
               label: Text(context.l10n.diveLog_emptyFiltered_clearFilters),
             ),

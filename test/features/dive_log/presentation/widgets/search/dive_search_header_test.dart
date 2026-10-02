@@ -28,6 +28,7 @@ void main() {
     bool open = true,
     List<DiveSummary> jump = const [],
     ValueChanged<DiveSummary>? onOpenDive,
+    double? width,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -43,7 +44,12 @@ void main() {
         child: Builder(
           builder: (context) {
             container = ProviderScope.containerOf(context);
-            return DiveSearchHeader(onOpenDive: onOpenDive ?? (_) {});
+            final header = DiveSearchHeader(onOpenDive: onOpenDive ?? (_) {});
+            if (width == null) return header;
+            return Align(
+              alignment: AlignmentDirectional.topStart,
+              child: SizedBox(width: width, child: header),
+            );
           },
         ),
       ),
@@ -286,6 +292,22 @@ void main() {
     expect(filterOf(), const DiveFilterState());
   });
 
+  // Code review: with no query committed yet, an outside reset left the
+  // typed text in the field and its pending write landed after the clear.
+  testWidgets('Clear all drops a first query still waiting to apply', (
+    tester,
+  ) async {
+    await pumpHeader(tester, filter: const DiveFilterState(minDepth: 30));
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.text('Clear all'));
+    await tester.pump();
+    await tester.pump(kDiveSearchDebounce * 2);
+    expect(filterOf(), const DiveFilterState());
+    expect(fieldOf(tester).controller!.text, isEmpty);
+    await tester.pumpAndSettle();
+  });
+
   // Review finding: the jump list ran a full-log query per keystroke.
   testWidgets('the jump list queries only the debounced text', (tester) async {
     final queried = <QueryNode>[];
@@ -380,6 +402,25 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('dive-jump-d1')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('dive-jump-d1')), findsNothing);
+  });
+
+  // Code review: on desktop the row sits in the narrow master pane, so the
+  // pane's width decides, not the screen's.
+  testWidgets('a narrow pane on a wide screen shows the Insights icon', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1400, 900);
+    addTearDown(tester.view.reset);
+    await pumpHeader(
+      tester,
+      filter: const DiveFilterState(minDepth: 30),
+      width: 400,
+    );
+    expect(
+      tester.widget(find.byKey(kDiveSearchInsightsKey)),
+      isA<IconButton>(),
+    );
   });
 
   // Code review: on a phone, Open in Insights is an icon so the chips keep

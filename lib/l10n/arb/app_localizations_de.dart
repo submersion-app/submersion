@@ -8888,9 +8888,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_tooltip_back => 'Zurück';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'Zurück zur Tauchgangliste';
 

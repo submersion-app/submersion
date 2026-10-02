@@ -8924,9 +8924,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_tooltip_back => 'Retour';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'Retour à la liste des plongées';
 

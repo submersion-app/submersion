@@ -96,6 +96,19 @@ void main() {
     expect(seen.where((s) => s.isLoading), isEmpty);
   });
 
+  // Code review: each typing pause queued its own load, and every queued
+  // load re-ran the same latest filter.
+  test('filter changes queued behind one load run it once', () async {
+    final (container, seen) = await loaded();
+    final notifier = container.read(diveFilterProvider.notifier);
+    for (final word in ['manta', 'mant', 'ray']) {
+      notifier.state = DiveFilterState(query: TextNode([word]));
+    }
+    await waitForIds(container, {'c'});
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    expect(seen.where((s) => s.hasValue && !s.isLoading), hasLength(1));
+  });
+
   test('other filter changes still reload from the first page', () async {
     final (container, seen) = await loaded();
     container.read(diveFilterProvider.notifier).state = const DiveFilterState(

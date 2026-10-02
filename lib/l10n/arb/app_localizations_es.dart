@@ -8886,9 +8886,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_tooltip_back => 'Atrás';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'Volver a la lista de inmersiones';
 

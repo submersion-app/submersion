@@ -2946,7 +2946,6 @@
   "diveLog_listPage_tripGroupExpand": "显示 {tripName} 的潜水",
   "diveLog_listPage_tripGroupCollapse": "隐藏 {tripName} 的潜水",
   "diveLog_listPage_tripGroupOpenTrip": "打开旅行 {tripName}",
-  "diveLog_listPage_tooltip_back": "返回",
   "diveLog_listPage_tooltip_backToDiveList": "返回潜水列表",
   "diveLog_listPage_tooltip_clearSearch": "清除搜索",
   "diveLog_listPage_tooltip_listView": "列表视图",
