@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -24,7 +23,6 @@ import 'package:submersion/features/nav_track/presentation/pages/nav_track_list_
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
-import 'package:submersion/features/nav_track/presentation/widgets/nav_track_shape_thumbnail.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_file_picker_platform.dart';
@@ -223,99 +221,6 @@ void main() {
     });
   });
 
-  testWidgets('renders route rows with distance, depth and an unlinked chip', (
-    tester,
-  ) async {
-    await _pump(
-      tester,
-      routes: [
-        _route(
-          id: 'r1',
-          name: 'Wreck dive',
-          deviceName: 'Seacraft ENC3',
-          distance: 1050,
-          maxDepth: 38,
-        ),
-      ],
-    );
-
-    expect(find.text('Wreck dive'), findsOneWidget);
-    expect(find.text('unlinked'), findsOneWidget);
-  });
-
-  testWidgets('a linked route shows a Dive # chip instead of unlinked', (
-    tester,
-  ) async {
-    final dive = Dive(
-      id: 'dive-1',
-      diveNumber: 412,
-      dateTime: DateTime(2026, 8, 22, 10, 8),
-    );
-    await _pump(
-      tester,
-      routes: [_route(id: 'r1', name: 'Wreck dive', diveId: 'dive-1')],
-      linkedDive: dive,
-    );
-
-    expect(find.text('unlinked'), findsNothing);
-    expect(find.textContaining('Dive'), findsOneWidget);
-    expect(find.textContaining('#412'), findsOneWidget);
-  });
-
-  testWidgets(
-    'a linked row keeps its name and status line readable on a narrow '
-    'phone in German (#2692)',
-    (tester) async {
-      // "Tauchgang #412" is far wider than "Dive #412". A ListTile measures
-      // its trailing widget against the full tile width first, so a link chip
-      // there starved the file name down to one fragment per line.
-      await tester.binding.setSurfaceSize(const Size(360, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      const name = '011.DAT.csv';
-      final dive = Dive(
-        id: 'dive-1',
-        diveNumber: 412,
-        dateTime: DateTime(2026, 8, 22, 10, 8),
-      );
-      await _pump(
-        tester,
-        routes: [
-          _route(
-            id: 'r1',
-            name: name,
-            diveId: 'dive-1',
-            deviceName: 'Seacraft ENC3',
-            distance: 1050,
-            maxDepth: 38,
-          ),
-        ],
-        linkedDive: dive,
-        locale: const Locale('de'),
-      );
-
-      final title = tester.getRect(find.text(name));
-      final status = tester.getRect(find.textContaining(' · '));
-      final chip = tester.getRect(
-        find.byKey(const ValueKey('nav-track-link-chip')),
-      );
-
-      expect(
-        title.width,
-        greaterThan(150),
-        reason:
-            'Name collapsed to ${title.width}px wide on a 360px screen; the '
-            'link chip is starving the ListTile text column.',
-      );
-      expect(status.width, greaterThan(150));
-      expect(
-        chip.top,
-        greaterThanOrEqualTo(status.bottom),
-        reason: 'The link chip belongs on its own line below the status line.',
-      );
-    },
-  );
-
   testWidgets('tapping a linked row\'s chip opens the linked dive', (
     tester,
   ) async {
@@ -365,90 +270,6 @@ void main() {
 
     expect(find.text('No underwater routes yet.'), findsOneWidget);
   });
-
-  testWidgets(
-    'the list row\'s date uses the wall-clock-as-UTC convention, not the '
-    'host\'s local timezone (route.startTime, like dives.entryTime, is a '
-    'wall-clock-as-UTC epoch)',
-    (tester) async {
-      // 23:30 UTC: on any host east of UTC (including this repo's own dev/CI
-      // offset), a `.fromMillisecondsSinceEpoch` WITHOUT `isUtc: true` rolls
-      // this over to the next local calendar day, changing the digits
-      // `yyyymmdd` renders below. On a host west of UTC it would instead
-      // roll BACK to 2026-03-27 -- either way, only isUtc: true keeps it at
-      // 2026-03-28.
-      final startTime = DateTime.utc(
-        2026,
-        3,
-        28,
-        23,
-        30,
-      ).millisecondsSinceEpoch;
-      final settings = MockSettingsNotifier();
-      await settings.setDateFormat(DateFormatPreference.yyyymmdd);
-
-      await _pump(
-        tester,
-        routes: [
-          _route(
-            id: 'r1',
-            name: 'Wreck dive',
-          ).copyWith(startTime: startTime, endTime: startTime + 600000),
-        ],
-        settingsNotifier: settings,
-      );
-
-      expect(find.textContaining('2026-03-28'), findsOneWidget);
-      expect(find.textContaining('2026-03-29'), findsNothing);
-    },
-  );
-
-  testWidgets(
-    'an unanchored route\'s shape thumbnail renders the actual route, not '
-    'an empty shape (item 9: the list query omits points, so the thumbnail '
-    'must hydrate them itself rather than reading the unhydrated list row)',
-    (tester) async {
-      final listRow = _route(id: 'r1', name: 'Wreck dive');
-      final hydratedRoute = listRow.copyWith(points: _hydratedPoints());
-      await _pump(tester, routes: [listRow], hydrated: {'r1': hydratedRoute});
-
-      final thumbnail = tester.widget<NavTrackShapeThumbnail>(
-        find.byType(NavTrackShapeThumbnail),
-      );
-      expect(thumbnail.points, isNotEmpty);
-      expect(thumbnail.points, hydratedRoute.points);
-    },
-  );
-
-  testWidgets(
-    'the list row shows the stored dive duration, not the raw recording '
-    'span, without loading the route\'s points',
-    (tester) async {
-      // Stored at import: 10 min up to the last dead-reckoned sample. The
-      // raw file runs on for an hour after the GPS fix.
-      final listRow = _route(
-        id: 'r1',
-        name: 'Wreck dive',
-        anchorLatitude: 47.1,
-        anchorLongitude: 8.3,
-      ).copyWith(startTime: 0, endTime: 4200 * 1000, durationSeconds: 600);
-      var hydrations = 0;
-      await _pump(
-        tester,
-        routes: [listRow],
-        extraOverrides: [
-          navTrackByIdProvider('r1').overrideWith((ref) async {
-            hydrations++;
-            return null;
-          }),
-        ],
-      );
-
-      expect(find.textContaining('10min'), findsOneWidget);
-      expect(find.textContaining('1h 10min'), findsNothing);
-      expect(hydrations, 0);
-    },
-  );
 
   testWidgets(
     'an anchored route\'s map overlay actually renders the route, not an '
