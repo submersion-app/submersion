@@ -37,7 +37,8 @@ class _RecordingRepository extends NavTrackRepository {
   }
 
   @override
-  Future<void> unlink(String routeId) async => calls.add('unlink $routeId');
+  Future<void> unlink(String routeId, {String? onlyFromDiveId}) async =>
+      calls.add('unlink $routeId from $onlyFromDiveId');
 
   @override
   Future<void> replace(String routeId, {required String withRouteId}) async =>
@@ -59,7 +60,7 @@ void main() {
       draft: draft,
     );
 
-    expect(repository.calls, ['unlink a', 'link b d1 manual']);
+    expect(repository.calls, ['unlink a from d1', 'link b d1 manual']);
     expect(skipped, isEmpty);
   });
 
@@ -90,9 +91,10 @@ void main() {
     },
   );
 
-  test('leaves a removed route alone once it is on another dive', () async {
-    // Sync moved "a" to another dive while the form was open.
-    final repository = _RecordingRepository(diveOf: {'a': 'other-dive'});
+  test('unlinks a removal only from this dive, in the same write', () async {
+    // The guard lives in the update itself, so sync moving "a" to another
+    // dive between a read and the write cannot detach it from that dive.
+    final repository = _RecordingRepository();
 
     await applyDiveRouteLinkDraft(
       repository,
@@ -100,8 +102,25 @@ void main() {
       draft: DiveRouteLinkDraft.initial([a]).remove('a'),
     );
 
-    expect(repository.calls, isEmpty);
+    expect(repository.calls, ['unlink a from d1']);
   });
+
+  test(
+    'skips the replacement when the re-import was linked elsewhere first',
+    () async {
+      final repository = _RecordingRepository(alreadyLinked: {'c'});
+
+      final skipped = await applyDiveRouteLinkDraft(
+        repository,
+        diveId: 'd1',
+        draft: DiveRouteLinkDraft.initial([a]).replaced('a', c),
+      );
+
+      // The dive keeps its original route rather than losing it to a delete.
+      expect(repository.calls, ['link c d1 manual']);
+      expect(skipped, ['c']);
+    },
+  );
 
   test('links a re-import before replacing the route it supersedes', () async {
     final repository = _RecordingRepository(diveOf: {'a': 'd1'});

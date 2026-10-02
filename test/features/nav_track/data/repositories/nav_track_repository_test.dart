@@ -1058,4 +1058,38 @@ void main() {
       await expectLater(future, completes);
     });
   });
+
+  group('unlink onlyFromDiveId', () {
+    Future<String> routeOn(String diveId) => repo.insertImportedRoute(
+      points: _samplePoints(),
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'guard.csv',
+      diveId: diveId,
+    );
+
+    test(
+      'leaves a route that is now linked to a different dive alone',
+      () async {
+        await _insertMinimalDive(db, 'dive-a');
+        await _insertMinimalDive(db, 'dive-b');
+        final id = await routeOn('dive-b');
+
+        await repo.unlink(id, onlyFromDiveId: 'dive-a');
+
+        final route = await repo.getById(id, includePoints: false);
+        expect(route!.diveId, 'dive-b');
+        expect(route.isPrimary, isTrue);
+      },
+    );
+
+    test('unlinks a route still on the expected dive', () async {
+      await _insertMinimalDive(db, 'dive-a');
+      final id = await routeOn('dive-a');
+
+      await repo.unlink(id, onlyFromDiveId: 'dive-a');
+
+      final route = await repo.getById(id, includePoints: false);
+      expect(route!.diveId, isNull);
+    });
+  });
 }

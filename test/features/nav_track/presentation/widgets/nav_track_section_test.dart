@@ -19,7 +19,7 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   String? primaryId;
 
   @override
-  Future<void> unlink(String routeId) async {
+  Future<void> unlink(String routeId, {String? onlyFromDiveId}) async {
     unlinkedId = routeId;
   }
 
