@@ -11,6 +11,8 @@
 const Map<String, String> kRenamedNavIds = {
   // The Statistics section became Insights.
   'statistics': 'insights',
+  // GPS Log became Tracks, which also holds underwater tracks (#2833).
+  'gps-log': 'tracks',
 };
 
 /// [ids] as they should be saved: each renamed destination's old id written

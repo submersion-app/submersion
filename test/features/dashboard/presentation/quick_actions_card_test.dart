@@ -31,4 +31,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('TRACKS-PAGE'), findsOneWidget);
   });
+
+  testWidgets('there is no Underwater Routes quick action', (tester) async {
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.route), findsNothing);
+  });
 }

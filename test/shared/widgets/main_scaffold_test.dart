@@ -63,8 +63,12 @@ Future<Widget> _buildTestApp({
             builder: (context, state) => const Text('Transfer'),
           ),
           GoRoute(
-            path: '/gps-log',
-            builder: (context, state) => const Text('GPS Log Page'),
+            path: '/tracks',
+            builder: (context, state) => const Text('Tracks Page'),
+          ),
+          GoRoute(
+            path: '/tracks/underwater/:id/3d',
+            builder: (context, state) => const Text('Seascape Page'),
           ),
           GoRoute(
             path: '/settings',
@@ -268,7 +272,7 @@ void main() {
       expect(find.text('Dives'), findsWidgets);
     });
 
-    testWidgets('desktop rail navigates to the GPS Log destination', (
+    testWidgets('desktop rail navigates to the Tracks destination', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(1400, 900);
@@ -279,17 +283,38 @@ void main() {
       await tester.pumpWidget(await _buildTestApp());
       await tester.pumpAndSettle();
 
-      // GPS Log is rail index 14 (after Transfer, before Settings).
+      // Tracks is rail index 14 (after Transfer, before Settings).
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
       rail.onDestinationSelected!(14);
       await tester.pumpAndSettle();
 
-      expect(find.text('GPS Log Page'), findsOneWidget);
-      // Re-reading recomputes the selected index from the /gps-log route.
+      expect(find.text('Tracks Page'), findsOneWidget);
+      // Re-reading recomputes the selected index from the /tracks route.
       final selected = tester
           .widget<NavigationRail>(find.byType(NavigationRail))
           .selectedIndex;
       expect(selected, 14);
+    });
+
+    testWidgets('the Tracks destination stays selected on a nested tracks '
+        'page', (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        await _buildTestApp(initialLocation: '/tracks/underwater/r1/3d'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Seascape Page'), findsOneWidget);
+      expect(
+        tester
+            .widget<NavigationRail>(find.byType(NavigationRail))
+            .selectedIndex,
+        14,
+      );
     });
 
     testWidgets('recording strip appears while a GPS session is active', (
@@ -868,7 +893,7 @@ void main() {
         'Insights',
         'Planning',
         'Transfer',
-        'GPS Log',
+        'Tracks',
         'Settings',
       ]);
     });
@@ -1019,7 +1044,7 @@ void main() {
       );
       await container.read(navRailOrderNotifierProvider.notifier).setOrder([
         'transfer',
-        'gps-log',
+        'tracks',
       ]);
       await tester.pump();
 

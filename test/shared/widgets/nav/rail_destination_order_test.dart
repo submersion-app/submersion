@@ -23,7 +23,7 @@ void main() {
       ('insights', '/insights'),
       ('planning', '/planning'),
       ('transfer', '/transfer'),
-      ('gps-log', '/gps-log'),
+      ('tracks', '/tracks'),
       ('settings', '/settings'),
     ];
     expect(rail.length, expected.length);

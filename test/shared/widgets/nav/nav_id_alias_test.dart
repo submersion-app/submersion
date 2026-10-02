@@ -89,6 +89,44 @@ void main() {
       }
     });
 
+    test('a stored GPS Log id keeps its slot as Tracks', () {
+      expect(
+        normalizeNavOrder(
+          stored: const ['settings', 'gps-log', 'dives'],
+          movableIds: movableNavIds,
+        ).take(3).toList(),
+        ['settings', 'tracks', 'dives'],
+      );
+    });
+
+    test('an order holding both gps-log and tracks keeps one Tracks slot', () {
+      for (final stored in const [
+        ['tracks', 'gps-log', 'dives'],
+        ['gps-log', 'dives', 'tracks'],
+      ]) {
+        final order = normalizeNavOrder(
+          stored: stored,
+          movableIds: movableNavIds,
+        );
+        expect(
+          order.where((id) => id == 'tracks').length,
+          1,
+          reason: '$stored',
+        );
+        expect(order, isNot(contains('gps-log')));
+        expect(order.first, 'tracks', reason: '$stored');
+      }
+    });
+
+    test('a save writes gps-log right after tracks for older builds', () {
+      expect(withLegacyNavIds(const ['tracks', 'insights']), [
+        'tracks',
+        'gps-log',
+        'insights',
+        'statistics',
+      ]);
+    });
+
     test('a phone order saved before the rename keeps Insights in its '
         'slot', () async {
       final repo = FakeAppSettingsRepository()
@@ -111,7 +149,7 @@ void main() {
 
       final order = await _loaded(container, navRailOrderNotifierProvider);
 
-      expect(order.take(2).toList(), ['insights', 'gps-log']);
+      expect(order.take(2).toList(), ['insights', 'tracks']);
     });
 
     test('the next save writes the new id', () async {
