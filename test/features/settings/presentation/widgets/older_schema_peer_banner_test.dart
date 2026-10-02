@@ -38,7 +38,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.textContaining('next stable release'), findsOneWidget);
+    expect(find.textContaining('by joining the beta'), findsOneWidget);
   });
 
   testWidgets('joins several peers and falls back to a short id', (

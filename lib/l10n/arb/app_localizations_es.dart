@@ -20803,7 +20803,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_cloudSync_peerBehind_action =>
-      'Un dispositivo en el canal estable que aún no tenga una actualización disponible se pondrá al día con la próxima versión estable, o puede cambiar al canal de actualizaciones beta.';
+      'Cada uno se pondrá al día cuando use una versión al menos tan reciente como la de este. Si todavía no se le ofrece esa actualización, llegará con la próxima versión, o antes si se une a la beta.';
 
   @override
   String settings_cloudSync_peerBehind_banner(Object deviceList) {

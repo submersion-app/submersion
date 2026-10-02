@@ -20487,7 +20487,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_cloudSync_peerBehind_action =>
-      'الجهاز على القناة المستقرة الذي لم يُعرض عليه تحديث بعد سيلحق بالإصدار المستقر التالي، أو يمكنه التبديل إلى قناة تحديثات البيتا.';
+      'يلحق كل جهاز منها بمجرد أن يشغّل إصدارًا لا يقل حداثة عن إصدار هذا الجهاز. إذا لم يُعرض عليه هذا التحديث بعد، فسيصل مع الإصدار التالي، أو في وقت أبكر بالانضمام إلى البيتا.';
 
   @override
   String settings_cloudSync_peerBehind_banner(Object deviceList) {

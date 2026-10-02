@@ -20779,7 +20779,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_cloudSync_peerBehind_action =>
-      'Ein Gerät im stabilen Kanal, dem noch kein Update angeboten wird, holt mit der nächsten stabilen Version auf oder kann auf den Beta-Update-Kanal wechseln.';
+      'Jedes Gerät holt auf, sobald es eine mindestens ebenso neue Version wie dieses verwendet. Wird ihm noch kein solches Update angeboten, kommt es mit der nächsten Version, oder früher über die Teilnahme an der Beta.';
 
   @override
   String settings_cloudSync_peerBehind_banner(Object deviceList) {

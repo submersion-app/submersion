@@ -19783,7 +19783,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_cloudSync_peerBehind_action =>
-      '处于稳定版渠道且尚未收到更新的设备，会在下一个稳定版发布后跟上，也可以切换到 Beta 更新渠道。';
+      '每台设备运行至少与此设备同样新的版本后即可跟上。如果尚未收到此类更新，它会随下一个版本到来，也可以通过加入 Beta 提前获得。';
 
   @override
   String settings_cloudSync_peerBehind_banner(Object deviceList) {

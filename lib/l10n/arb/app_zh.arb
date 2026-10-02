@@ -6097,7 +6097,7 @@
   "settings_cloudSync_header_syncBehavior": "同步行为",
   "settings_cloudSync_lastSynced": "上次同步：{time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 个待同步更改} other{{count} 个待同步更改}}",
-  "settings_cloudSync_peerBehind_action": "处于稳定版渠道且尚未收到更新的设备，会在下一个稳定版发布后跟上，也可以切换到 Beta 更新渠道。",
+  "settings_cloudSync_peerBehind_action": "每台设备运行至少与此设备同样新的版本后即可跟上。如果尚未收到此类更新，它会随下一个版本到来，也可以通过加入 Beta 提前获得。",
   "settings_cloudSync_peerBehind_banner": "{deviceList} 运行的是较旧版本的 Submersion，无法读取此设备的最新更改，因此在其更新之前不会收到这些更改。",
   "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} 运行的是较旧版本的 Submersion，无法读取此设备的最新更改，因此在它们更新之前不会收到这些更改。",
   "settings_cloudSync_peerNeedsAdopt_banner": "{deviceList} 仍使用较旧或未知的库版本，因此其更改未被合并。请在该设备上打开 Submersion 以采用当前的库。",

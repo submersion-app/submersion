@@ -5938,7 +5938,7 @@
   "settings_cloudSync_header_syncBehavior": "התנהגות סנכרון",
   "settings_cloudSync_lastSynced": "סנכרון אחרון: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{שינוי ממתין אחד} other{{count} שינויים ממתינים}}",
-  "settings_cloudSync_peerBehind_action": "מכשיר בערוץ היציב שעדיין לא מוצע לו עדכון יתעדכן עם הגרסה היציבה הבאה, או יכול לעבור לערוץ עדכוני הבטא.",
+  "settings_cloudSync_peerBehind_action": "כל מכשיר כזה יתעדכן ברגע שיריץ גרסה חדשה לפחות כמו של מכשיר זה. אם עדיין לא מוצע לו עדכון כזה, הוא יגיע עם הגרסה הבאה, או מוקדם יותר בהצטרפות לבטא.",
   "settings_cloudSync_peerBehind_banner": "{deviceList} מריץ גרסה ישנה יותר של Submersion שאינה יכולה לקרוא את השינויים האחרונים של מכשיר זה, ולכן לא יקבל אותם עד שיתעדכן.",
   "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} מריצים גרסה ישנה יותר של Submersion שאינה יכולה לקרוא את השינויים האחרונים של מכשיר זה, ולכן לא יקבלו אותם עד שיתעדכנו.",
   "settings_cloudSync_peerNeedsAdopt_banner": "ל{deviceList} עדיין יש גרסת ספרייה ישנה או לא מוכרת, ולכן השינויים שלו לא מוזגו. פתח את Submersion במכשיר כדי לאמץ את הספרייה הנוכחית.",

@@ -20661,7 +20661,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_cloudSync_peerBehind_action =>
-      'Een apparaat op het stabiele kanaal waarvoor nog geen update wordt aangeboden, loopt bij met de volgende stabiele versie, of kan overschakelen naar het bèta-updatekanaal.';
+      'Elk apparaat loopt bij zodra het een minstens even nieuwe versie gebruikt als dit apparaat. Wordt zo\'n update nog niet aangeboden, dan komt die met de volgende versie, of eerder door deel te nemen aan de bèta.';
 
   @override
   String settings_cloudSync_peerBehind_banner(Object deviceList) {

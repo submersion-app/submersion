@@ -12827,7 +12827,7 @@
   "settings_cloudSync_header_syncBehavior": "Sync Behavior",
   "settings_cloudSync_lastSynced": "Last synced: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 pending change} other{{count} pending changes}}",
-  "settings_cloudSync_peerBehind_action": "A device on the stable channel with no update offered yet catches up with the next stable release, or can switch to the beta update channel.",
+  "settings_cloudSync_peerBehind_action": "Each one catches up once it runs a version at least as new as this one. If no such update is offered to it yet, it arrives with the next release, or sooner by joining the beta.",
   "settings_cloudSync_peerBehind_banner": "{deviceList} runs an older version of Submersion that cannot read this device's latest changes, so it will not receive them until it updates.",
   "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} run an older version of Submersion that cannot read this device's latest changes, so they will not receive them until they update.",
   "settings_cloudSync_peerNeedsAdopt_banner": "{deviceList} still has an older or unknown library version, so its changes were not merged. Open Submersion on it to adopt the current library.",

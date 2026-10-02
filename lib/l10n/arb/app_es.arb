@@ -5934,7 +5934,7 @@
   "settings_cloudSync_header_syncBehavior": "Comportamiento de sincronización",
   "settings_cloudSync_lastSynced": "Última sincronización: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 cambio pendiente} other{{count} cambios pendientes}}",
-  "settings_cloudSync_peerBehind_action": "Un dispositivo en el canal estable que aún no tenga una actualización disponible se pondrá al día con la próxima versión estable, o puede cambiar al canal de actualizaciones beta.",
+  "settings_cloudSync_peerBehind_action": "Cada uno se pondrá al día cuando use una versión al menos tan reciente como la de este. Si todavía no se le ofrece esa actualización, llegará con la próxima versión, o antes si se une a la beta.",
   "settings_cloudSync_peerBehind_banner": "{deviceList} usa una versión anterior de Submersion que no puede leer los últimos cambios de este dispositivo, por lo que no los recibirá hasta que se actualice.",
   "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} usan una versión anterior de Submersion que no puede leer los últimos cambios de este dispositivo, por lo que no los recibirán hasta que se actualicen.",
   "settings_cloudSync_peerNeedsAdopt_banner": "{deviceList} todavía tiene una versión de biblioteca antigua o desconocida, por lo que sus cambios no se combinaron. Abre Submersion en él para adoptar la biblioteca actual.",

@@ -5832,7 +5832,7 @@
   "settings_cloudSync_header_syncBehavior": "Szinkronizálási viselkedés",
   "settings_cloudSync_lastSynced": "Utolsó szinkronizálás: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 függő változtatás} other{{count} függő változtatás}}",
-  "settings_cloudSync_peerBehind_action": "A stabil csatornán lévő eszköz, amelynek még nem érhető el frissítés, a következő stabil kiadással felzárkózik, vagy átválthat a béta frissítési csatornára.",
+  "settings_cloudSync_peerBehind_action": "Mindegyik felzárkózik, amint legalább ugyanilyen új verziót futtat, mint ez az eszköz. Ha még nem kap ilyen frissítést, az a következő kiadással érkezik, vagy korábban, ha csatlakozik a bétához.",
   "settings_cloudSync_peerBehind_banner": "{deviceList} a Submersion egy régebbi verzióját futtatja, amely nem tudja olvasni ennek az eszköznek a legújabb változtatásait, ezért csak frissítés után kapja meg őket.",
   "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} a Submersion egy régebbi verzióját futtatják, amely nem tudja olvasni ennek az eszköznek a legújabb változtatásait, ezért csak frissítés után kapják meg őket.",
   "settings_cloudSync_peerNeedsAdopt_banner": "{deviceList} még régebbi vagy ismeretlen könyvtárverziót használ, ezért a változásai nem lettek egyesítve. Nyissa meg rajta a Submersiont az aktuális könyvtár átvételéhez.",

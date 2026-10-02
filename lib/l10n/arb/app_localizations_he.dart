@@ -20325,7 +20325,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_cloudSync_peerBehind_action =>
-      'מכשיר בערוץ היציב שעדיין לא מוצע לו עדכון יתעדכן עם הגרסה היציבה הבאה, או יכול לעבור לערוץ עדכוני הבטא.';
+      'כל מכשיר כזה יתעדכן ברגע שיריץ גרסה חדשה לפחות כמו של מכשיר זה. אם עדיין לא מוצע לו עדכון כזה, הוא יגיע עם הגרסה הבאה, או מוקדם יותר בהצטרפות לבטא.';
 
   @override
   String settings_cloudSync_peerBehind_banner(Object deviceList) {

@@ -33393,7 +33393,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_cloudSync_peerBehind_action.
   ///
   /// In en, this message translates to:
-  /// **'A device on the stable channel with no update offered yet catches up with the next stable release, or can switch to the beta update channel.'**
+  /// **'Each one catches up once it runs a version at least as new as this one. If no such update is offered to it yet, it arrives with the next release, or sooner by joining the beta.'**
   String get settings_cloudSync_peerBehind_action;
 
   /// No description provided for @settings_cloudSync_peerBehind_banner.

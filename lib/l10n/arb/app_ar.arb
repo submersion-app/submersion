@@ -5934,7 +5934,7 @@
   "settings_cloudSync_header_syncBehavior": "سلوك المزامنة",
   "settings_cloudSync_lastSynced": "آخر مزامنة: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{تغيير معلق واحد} other{{count} تغييرات معلقة}}",
-  "settings_cloudSync_peerBehind_action": "الجهاز على القناة المستقرة الذي لم يُعرض عليه تحديث بعد سيلحق بالإصدار المستقر التالي، أو يمكنه التبديل إلى قناة تحديثات البيتا.",
+  "settings_cloudSync_peerBehind_action": "يلحق كل جهاز منها بمجرد أن يشغّل إصدارًا لا يقل حداثة عن إصدار هذا الجهاز. إذا لم يُعرض عليه هذا التحديث بعد، فسيصل مع الإصدار التالي، أو في وقت أبكر بالانضمام إلى البيتا.",
   "settings_cloudSync_peerBehind_banner": "{deviceList} يشغّل إصدارًا أقدم من Submersion لا يستطيع قراءة أحدث تغييرات هذا الجهاز، لذا لن يستلمها حتى يتم تحديثه.",
   "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} تشغّل إصدارًا أقدم من Submersion لا يستطيع قراءة أحدث تغييرات هذا الجهاز، لذا لن تستلمها حتى يتم تحديثها.",
   "settings_cloudSync_peerNeedsAdopt_banner": "{deviceList} لا يزال يستخدم إصدار مكتبة أقدم أو غير معروف، لذلك لم تُدمج تغييراته. افتح Submersion عليه لاعتماد المكتبة الحالية.",

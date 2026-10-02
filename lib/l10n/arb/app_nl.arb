@@ -5934,7 +5934,7 @@
   "settings_cloudSync_header_syncBehavior": "Synchronisatiegedrag",
   "settings_cloudSync_lastSynced": "Laatst gesynchroniseerd: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 wachtende wijziging} other{{count} wachtende wijzigingen}}",
-  "settings_cloudSync_peerBehind_action": "Een apparaat op het stabiele kanaal waarvoor nog geen update wordt aangeboden, loopt bij met de volgende stabiele versie, of kan overschakelen naar het bèta-updatekanaal.",
+  "settings_cloudSync_peerBehind_action": "Elk apparaat loopt bij zodra het een minstens even nieuwe versie gebruikt als dit apparaat. Wordt zo'n update nog niet aangeboden, dan komt die met de volgende versie, of eerder door deel te nemen aan de bèta.",
   "settings_cloudSync_peerBehind_banner": "{deviceList} gebruikt een oudere versie van Submersion die de nieuwste wijzigingen van dit apparaat niet kan lezen, en ontvangt ze dus pas na een update.",
   "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} gebruiken een oudere versie van Submersion die de nieuwste wijzigingen van dit apparaat niet kan lezen, en ontvangen ze dus pas na een update.",
   "settings_cloudSync_peerNeedsAdopt_banner": "{deviceList} heeft nog een oudere of onbekende bibliotheekversie, dus de wijzigingen zijn niet samengevoegd. Open Submersion daar om de huidige bibliotheek over te nemen.",

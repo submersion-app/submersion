@@ -20740,7 +20740,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_cloudSync_peerBehind_action =>
-      'A stabil csatornán lévő eszköz, amelynek még nem érhető el frissítés, a következő stabil kiadással felzárkózik, vagy átválthat a béta frissítési csatornára.';
+      'Mindegyik felzárkózik, amint legalább ugyanilyen új verziót futtat, mint ez az eszköz. Ha még nem kap ilyen frissítést, az a következő kiadással érkezik, vagy korábban, ha csatlakozik a bétához.';
 
   @override
   String settings_cloudSync_peerBehind_banner(Object deviceList) {
