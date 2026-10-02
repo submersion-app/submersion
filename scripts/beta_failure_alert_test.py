@@ -100,7 +100,9 @@ class FakeGh:
     """Records every gh invocation and answers from a scripted table.
 
     `responses` maps a command prefix (tuple of leading args) to either the
-    stdout string or an exception instance to raise.
+    stdout string or an exception instance to raise. A list answers each call
+    with its next entry and repeats the last one, for a listing that changes
+    between two reads.
     """
 
     def __init__(self, responses=None, open_issues=()):
@@ -118,6 +120,8 @@ class FakeGh:
         for prefix in sorted(self.responses, key=len, reverse=True):
             if tuple(args[: len(prefix)]) == prefix:
                 answer = self.responses[prefix]
+                if isinstance(answer, list):
+                    answer = answer.pop(0) if len(answer) > 1 else answer[0]
                 if isinstance(answer, Exception):
                     raise answer
                 return answer
@@ -138,6 +142,8 @@ def _quiet(fn, *args, **kwargs):
 
 
 OPEN_ALERT = {"number": 2650, "body": f"{alert.MARKER}\nBeta is failing."}
+OUR_ALERT = {"number": 2700, "body": f"{alert.MARKER}\nBeta is failing."}
+NEWER_ALERT = {"number": 2710, "body": f"{alert.MARKER}\nBeta is failing."}
 UNRELATED = {"number": 2611, "body": "CI: a green pre-push hook can still redden main"}
 
 
@@ -171,6 +177,21 @@ class FailedStepsTest(unittest.TestCase):
         self.assertEqual(
             alert.failed_steps(RUN_JOBS["jobs"]),
             [("Upload Android beta to Play open testing", ["Upload to Play open testing"])],
+        )
+
+    def test_a_timed_out_job_counts_as_failed(self):
+        # needs reports a timeout as `failure`; the jobs API does not.
+        jobs = [
+            {
+                "name": "Upload macOS beta to TestFlight",
+                "conclusion": "timed_out",
+                "steps": [{"name": "Distribute to Public Beta group", "conclusion": "cancelled"}],
+            },
+            {"name": "Build / Build Linux", "conclusion": "startup_failure", "steps": []},
+        ]
+        self.assertEqual(
+            [name for name, _ in alert.failed_steps(jobs)],
+            ["Upload macOS beta to TestFlight", "Build / Build Linux"],
         )
 
     def test_a_job_that_failed_outside_any_step_is_still_listed(self):
@@ -213,10 +234,65 @@ class AlertTest(unittest.TestCase):
         self.assertIn("Upload to Play open testing", body)
         self.assertNotIn(alert.MARKER, body)
 
+    def test_comments_on_the_oldest_alert_when_several_are_open(self):
+        gh = FakeGh(open_issues=[NEWER_ALERT, OPEN_ALERT])
+        _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        (comment,) = gh.commands("issue", "comment")
+        self.assertEqual(comment[2], "2650")
+
+    def test_lists_every_failed_job_even_when_the_api_misses_one(self):
+        # A timed-out build is `failure` in needs but may be missing from the
+        # API's failed jobs. Step details for Play must not hide it.
+        both = dict(PLAY_RED, **needs(build="failure"))
+        gh = FakeGh()
+        _quiet(alert.run, both, CONTEXT, gh)
+        body = _value(gh.commands("issue", "create")[0], "--body")
+        self.assertIn("`build`", body)
+        self.assertIn("`upload-play`", body)
+        self.assertIn("Upload to Play open testing", body)
+
+    def test_a_duplicate_opened_by_a_concurrent_run_folds_into_the_oldest(self):
+        # Two failing runs both found no alert and both opened one. The newer
+        # issue hands its report to the older and closes itself.
+        gh = FakeGh(
+            responses={
+                ("issue", "list"): [
+                    json.dumps([UNRELATED]),
+                    json.dumps([UNRELATED, OUR_ALERT, OPEN_ALERT]),
+                ]
+            }
+        )
+        code, _ = _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        self.assertEqual(code, 0)
+        (comment,) = gh.commands("issue", "comment")
+        self.assertEqual(comment[2], "2650")
+        self.assertIn("Upload to Play open testing", _value(comment, "--body"))
+        (close,) = gh.commands("issue", "close")
+        self.assertEqual(close[2], "2700")
+        self.assertIn("#2650", _value(close, "--comment"))
+        (edit,) = gh.commands("issue", "edit")
+        self.assertEqual(edit[2], "2650")
+
+    def test_the_oldest_alert_survives_a_newer_duplicate(self):
+        # The run that opened the newer issue closes it; this one keeps its own.
+        gh = FakeGh(
+            responses={
+                ("issue", "list"): [
+                    json.dumps([]),
+                    json.dumps([NEWER_ALERT, OUR_ALERT]),
+                ]
+            }
+        )
+        _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        self.assertEqual(gh.commands("issue", "close"), [])
+        self.assertEqual(gh.commands("issue", "comment"), [])
+        (edit,) = gh.commands("issue", "edit")
+        self.assertEqual(edit[2], "2700")
+
     def test_reads_only_open_ci_issues(self):
         gh = FakeGh()
         _quiet(alert.run, PLAY_RED, CONTEXT, gh)
-        (listing,) = gh.commands("issue", "list")
+        listing = gh.commands("issue", "list")[0]
         self.assertEqual(_value(listing, "--state"), "open")
         self.assertEqual(_value(listing, "--label"), alert.LABEL)
 
@@ -346,6 +422,14 @@ class WorkflowWiringTest(unittest.TestCase):
             f"{alert.ALERT_JOB}.needs omits {missing}: a failure there would "
             "never raise the beta alert",
         )
+
+    def test_the_alert_job_has_no_concurrency_group(self):
+        # A concurrency group keeps one pending job and cancels the one it
+        # replaces whatever cancel-in-progress says, so a green run queued
+        # behind an alert could discard a pending failure. Duplicates from
+        # unserialized runs are folded together by the script instead.
+        body = dict(gate._job_lines(self.text))[alert.ALERT_JOB]
+        self.assertFalse(any(line.strip().startswith("concurrency:") for line in body))
 
     def test_the_alert_job_runs_this_script(self):
         body = dict(gate._job_lines(self.text))[alert.ALERT_JOB]

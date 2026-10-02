@@ -612,11 +612,10 @@ jobs:
       issues: write
       # Reads this run's jobs to name the failed steps in the alert.
       actions: read
-    # Two runs failing at once must not both find no open alert and each open
-    # one; serialized, the second comments on the issue the first opened.
-    concurrency:
-      group: beta-alert
-      cancel-in-progress: false
+    # No concurrency group, on purpose: a group keeps one pending job and
+    # cancels the one it replaces whatever cancel-in-progress says, so a green
+    # run queued behind an alert could discard a pending failure. Two failing
+    # runs that each open an issue are folded together by the script instead.
     steps:
       - uses: actions/checkout@v7
         with:

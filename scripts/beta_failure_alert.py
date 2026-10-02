@@ -19,6 +19,10 @@ Behaviour, decided from the workflow's `toJSON(needs)`:
 
 The rolling issue is found by MARKER in its body rather than by title, so
 editing the title by hand does not make the next failure open a duplicate.
+Runs are deliberately not serialized: a concurrency group keeps only one
+pending job and cancels the one it replaces, so a green run could discard a
+queued failure alert. Instead, two failing runs that each opened an issue fold
+together afterwards: the newer issue hands its report to the oldest and closes.
 
 A failure to write the issue exits non-zero. An alert that cannot be delivered
 must not report success, which is how the promotion alert hid its own failure
@@ -47,6 +51,10 @@ TITLE = "Beta pipeline failing: testers are not getting new builds"
 # Used when the BETA_ALERT_ASSIGNEE Actions variable is unset.
 DEFAULT_ASSIGNEE = "ericgriffin"
 
+# Job conclusions the jobs API uses for a job that needs.*.result reports as
+# `failure`. A timeout is `failure` to needs but `timed_out` here.
+FAILED_CONCLUSIONS = frozenset({"failure", "timed_out", "startup_failure"})
+
 
 def decide(needs):
     """Return (action, failed_job_ids) for a `toJSON(needs)` mapping."""
@@ -71,7 +79,7 @@ def failed_steps(jobs):
             ],
         )
         for job in jobs
-        if job.get("conclusion") == "failure"
+        if job.get("conclusion") in FAILED_CONCLUSIONS
     ]
 
 
@@ -102,12 +110,12 @@ def _run_jobs(gh, ctx):
 
 
 def _failure_lines(gh, ctx, failed_ids):
+    # The ids from needs are always listed: they are the complete set, while
+    # the API's per-job details can miss one (a timeout reported as
+    # `cancelled`), and details for one job must not hide another.
+    lines = ["Failed: " + ", ".join(f"`{job}`" for job in failed_ids), ""]
     jobs = _run_jobs(gh, ctx)
-    details = failed_steps(jobs) if jobs is not None else []
-    if not details:
-        return [f"- `{job}`" for job in failed_ids]
-    lines = []
-    for name, steps in details:
+    for name, steps in failed_steps(jobs) if jobs is not None else []:
         suffix = ", at " + ", ".join(f"`{s}`" for s in steps) if steps else ""
         lines.append(f"- **{name}**{suffix}")
     return lines
@@ -131,18 +139,46 @@ def _report(gh, ctx, failed_ids, assignee):
     )
 
 
-def _open_alert(gh, repo):
-    """Return the number of the open rolling alert issue, or None."""
+def _open_alerts(gh, repo):
+    """Return the numbers of every open rolling alert issue, oldest first."""
     listing = gh(
         [
             "issue", "list", "--repo", repo, "--state", "open",
             "--label", LABEL, "--limit", "200", "--json", "number,body",
         ]
     )
-    for issue in json.loads(listing or "[]"):
-        if MARKER in (issue.get("body") or ""):
-            return issue["number"]
-    return None
+    return sorted(
+        int(issue["number"])
+        for issue in json.loads(listing or "[]")
+        if MARKER in (issue.get("body") or "")
+    )
+
+
+def _open_alert(gh, repo):
+    """Return the number of the oldest open rolling alert issue, or None."""
+    numbers = _open_alerts(gh, repo)
+    return numbers[0] if numbers else None
+
+
+def _fold_duplicate(gh, repo, number, report):
+    """Fold a just-opened issue into an older one a concurrent run opened.
+
+    Returns the issue the alert now lives on.
+    """
+    oldest = _open_alert(gh, repo)
+    if oldest is None or oldest >= number:
+        return number
+    gh(["issue", "comment", str(oldest), "--repo", repo, "--body", report])
+    gh(
+        [
+            "issue", "close", str(number), "--repo", repo, "--reason",
+            "not planned", "--comment",
+            f"Duplicate of #{oldest}, opened by a concurrent run; "
+            "its report is copied there.",
+        ]
+    )
+    print(f"Folded duplicate #{number} into beta failure alert #{oldest}")
+    return oldest
 
 
 def _assign(gh, repo, number, assignee):
@@ -178,8 +214,9 @@ def raise_alert(gh, ctx, failed_ids):
                 "--label", LABEL, "--body", body,
             ]
         ).strip()
-        number = url.rstrip("/").rsplit("/", 1)[-1]
+        number = int(url.rstrip("/").rsplit("/", 1)[-1])
         print(f"Opened beta failure alert {url}")
+        number = _fold_duplicate(gh, repo, number, report)
     else:
         gh(["issue", "comment", str(number), "--repo", repo, "--body", report])
         print(f"Commented on open beta failure alert #{number}")
