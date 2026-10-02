@@ -10,17 +10,26 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The newest dives matching the typed query over the WHOLE log, ignoring
 /// the list's other filters (#2773, the Search overlay's old job).
-class DiveJumpList extends ConsumerWidget {
+class DiveJumpList extends ConsumerStatefulWidget {
   const DiveJumpList({super.key, required this.query, required this.onOpen});
 
   final QueryNode query;
   final ValueChanged<DiveSummary> onOpen;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final dives =
-        ref.watch(diveJumpResultsProvider(query)).value ??
-        const <DiveSummary>[];
+  ConsumerState<DiveJumpList> createState() => _DiveJumpListState();
+}
+
+class _DiveJumpListState extends ConsumerState<DiveJumpList> {
+  /// The last rows a query answered, kept while the next one loads so the
+  /// list does not collapse and reappear as the diver types.
+  List<DiveSummary> _shown = const [];
+
+  @override
+  Widget build(BuildContext context) {
+    final latest = ref.watch(diveJumpResultsProvider(widget.query)).value;
+    if (latest != null) _shown = latest;
+    final dives = _shown;
     if (dives.isEmpty) return const SizedBox.shrink();
     final units = UnitFormatter(ref.watch(settingsProvider));
     final theme = Theme.of(context);
@@ -56,7 +65,7 @@ class DiveJumpList extends ConsumerWidget {
                   '${units.formatMonthDayWithYear(d.dateTime)} · '
                   '${units.formatDepth(d.maxDepth)}',
                 ),
-                onTap: () => onOpen(d),
+                onTap: () => widget.onOpen(d),
               ),
           ],
         ),

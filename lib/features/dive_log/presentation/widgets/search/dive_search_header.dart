@@ -51,10 +51,15 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
   /// The field's latest clean tree, ahead of the debounced write.
   QueryNode? _local;
 
+  /// What the jump list searches: [_local] once typing rests, so it runs
+  /// one whole-log query per pause rather than one per keystroke.
+  QueryNode? _jumpQuery;
+
   @override
   void initState() {
     super.initState();
     _local = ref.read(diveFilterProvider).query;
+    _jumpQuery = _local;
     _focus.addListener(_onFocusChange);
     WidgetsBinding.instance.addPostFrameCallback((_) => _takeFocusRequest());
   }
@@ -90,6 +95,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     setState(() => _local = node);
     _debounce?.cancel();
     _debounce = Timer(kDiveSearchDebounce, () {
+      if (mounted) setState(() => _jumpQuery = node);
       final notifier = ref.read(diveFilterProvider.notifier);
       // Read at write time, so a change made during the debounce survives.
       notifier.state = notifier.state.copyWith(
@@ -110,7 +116,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
       // must not revert what the diver is typing.
       if (previous?.query == next.query || next.query == _local) return;
       _debounce?.cancel();
-      setState(() => _local = next.query);
+      setState(() => _local = _jumpQuery = next.query);
     });
 
     if (!ref.watch(diveSearchBarVisibleProvider)) {
@@ -172,8 +178,8 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
             ],
           ),
         ),
-        if (_focus.hasFocus && _local != null)
-          DiveJumpList(query: _local!, onOpen: widget.onOpenDive),
+        if (_focus.hasFocus && _jumpQuery != null)
+          DiveJumpList(query: _jumpQuery!, onOpen: widget.onOpenDive),
         if (panelAxes > 0) const DiveSearchScopeToggle(),
         if (filter.hasActiveFilters)
           Padding(

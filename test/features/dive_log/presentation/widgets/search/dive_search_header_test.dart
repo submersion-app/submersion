@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -157,8 +159,9 @@ void main() {
     await pumpHeader(tester, jump: jumpRows);
     expect(find.byKey(const ValueKey('dive-jump-d1')), findsNothing);
     await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
-    await tester.pump();
-    // The jump results provider resolves on the next frame.
+    // The jump list searches once typing rests, and its provider
+    // resolves on the next frame.
+    await tester.pump(kDiveSearchDebounce);
     await tester.pump();
     expect(find.byKey(const ValueKey('dive-jump-d1')), findsOneWidget);
     expect(find.text('Jump to dive'), findsOneWidget);
@@ -168,8 +171,9 @@ void main() {
     DiveSummary? opened;
     await pumpHeader(tester, jump: jumpRows, onOpenDive: (d) => opened = d);
     await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
-    await tester.pump();
-    // The jump results provider resolves on the next frame.
+    // The jump list searches once typing rests, and its provider
+    // resolves on the next frame.
+    await tester.pump(kDiveSearchDebounce);
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('dive-jump-d1')));
     await tester.pump();
@@ -185,8 +189,9 @@ void main() {
     DiveSummary? opened;
     await pumpHeader(tester, jump: jumpRows, onOpenDive: (d) => opened = d);
     await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
-    await tester.pump();
-    // The jump results provider resolves on the next frame.
+    // The jump list searches once typing rests, and its provider
+    // resolves on the next frame.
+    await tester.pump(kDiveSearchDebounce);
     await tester.pump();
     // A real click spans frames: the press could unfocus the field and
     // rebuild without the rows before the release lands.
@@ -279,5 +284,76 @@ void main() {
     await tester.tap(find.text('Clear all'));
     await tester.pumpAndSettle();
     expect(filterOf(), const DiveFilterState());
+  });
+
+  // Review finding: the jump list ran a full-log query per keystroke.
+  testWidgets('the jump list queries only the debounced text', (tester) async {
+    final queried = <QueryNode>[];
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          ...base,
+          diveSearchBarOpenProvider.overrideWith((ref) => true),
+          queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+          diveJumpResultsProvider.overrideWith((ref, q) async {
+            queried.add(q);
+            return jumpRows;
+          }),
+        ],
+        child: DiveSearchHeader(onOpenDive: (_) {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+    for (final text in ['m', 'ma', 'man']) {
+      await tester.enterText(find.byKey(kDiveSearchFieldKey), text);
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    await tester.pump(kDiveSearchDebounce);
+    await tester.pump();
+    expect(queried, [
+      TextNode(['man']),
+    ]);
+    expect(find.byKey(const ValueKey('dive-jump-d1')), findsOneWidget);
+  });
+
+  testWidgets('jump rows stay while the next query loads', (tester) async {
+    final pending = Completer<List<DiveSummary>>();
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          ...base,
+          diveSearchBarOpenProvider.overrideWith((ref) => true),
+          queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+          diveJumpResultsProvider.overrideWith(
+            (ref, q) => q == TextNode(['manta'])
+                ? Future.value(jumpRows)
+                : pending.future,
+          ),
+        ],
+        child: DiveSearchHeader(onOpenDive: (_) {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump(kDiveSearchDebounce);
+    await tester.pump();
+    expect(find.byKey(const ValueKey('dive-jump-d1')), findsOneWidget);
+
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta ray');
+    await tester.pump(kDiveSearchDebounce);
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey('dive-jump-d1')),
+      findsOneWidget,
+      reason: 'the previous rows stay until the new ones arrive',
+    );
+    pending.complete(const <DiveSummary>[]);
+    await tester.pump();
+    await tester.pump();
+    expect(find.byKey(const ValueKey('dive-jump-d1')), findsNothing);
   });
 }
