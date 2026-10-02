@@ -1,157 +1,43 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
-import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
-import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
-import 'package:submersion/features/nav_track/presentation/nav_track_parse_error_text.dart';
-import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
-import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_shape_thumbnail.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The dive detail "Underwater Route" section (spec
-/// 2026-09-10-underwater-nav-track-design.md, "Dive detail section"):
-/// linked routes, a way to link one, and a way to import a file straight to
-/// this dive.
+/// 2026-09-10-underwater-nav-track-design.md, "Dive detail section"): the
+/// routes linked to this dive. The detail page only shows it when at least
+/// one route is linked; linking and importing happen on the Dive Edit page
+/// (spec 2026-10-02-underwater-route-entry-points-design.md).
 class NavTrackSection extends ConsumerWidget {
   const NavTrackSection({super.key, required this.dive});
 
   final Dive dive;
 
-  Future<void> _linkRoute(BuildContext context, WidgetRef ref) async {
-    final unlinked = await ref.read(unlinkedNavTracksProvider.future);
-    final sorted = [...unlinked]
-      ..sort(
-        (a, b) => (a.startTime - dive.effectiveEntryTime.millisecondsSinceEpoch)
-            .abs()
-            .compareTo(
-              (b.startTime - dive.effectiveEntryTime.millisecondsSinceEpoch)
-                  .abs(),
-            ),
-      );
-    if (!context.mounted) return;
-    final chosen = await showModalBottomSheet<NavTrack>(
-      context: context,
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        children: [
-          for (final route in sorted)
-            ListTile(
-              title: Text(route.name ?? route.sourceRef ?? route.id),
-              onTap: () => Navigator.of(context).pop(route),
-            ),
-        ],
-      ),
-    );
-    if (chosen == null) return;
-    await ref
-        .read(navTrackRepositoryProvider)
-        .link(chosen.id, dive.id, linkMode: NavTrackLinkMode.manual);
-  }
-
-  Future<void> _importFile(BuildContext context, WidgetRef ref) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    final log = LoggerService.forClass(NavTrackSection);
-
-    final file = await FilePicker.pickFile(
-      type: FileType.custom,
-      allowedExtensions: const ['csv'],
-    );
-    if (file == null) return;
-    final bytes = await file.readAsBytes();
-    if (!context.mounted) return;
-
-    final NavTrackImportPreview preview;
-    try {
-      preview = await ref
-          .read(navTrackImportServiceProvider)
-          .prepare(bytes, fileName: file.name);
-    } on NavTrackParseException catch (e) {
-      log.warning('Route import rejected: ${e.message}');
-      messenger.showSnackBar(
-        SnackBar(content: Text(navTrackParseErrorText(l10n, e))),
-      );
-      return;
-    } catch (e, stackTrace) {
-      log.error('Route import failed', error: e, stackTrace: stackTrace);
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.navTrack_list_importFailed(e.toString()))),
-      );
-      return;
-    }
-    if (!context.mounted) return;
-
-    await navigateToNavTrackReview(
-      context,
-      bytes,
-      fileName: file.name,
-      preview: preview,
-      preselectedDive: dive,
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final routesAsync = ref.watch(navTracksForDiveProvider(dive.id));
-    final unlinkedAsync = ref.watch(unlinkedNavTracksProvider);
     final routes = routesAsync.value ?? const <NavTrack>[];
     final isExpanded = ref.watch(navTrackSectionExpandedProvider);
     final l10n = context.l10n;
 
-    final subtitle = routes.isEmpty
-        ? l10n.navTrack_section_noRouteLinked
-        : l10n.navTrack_section_routeCount(routes.length);
-
     return CollapsibleCardSection(
       title: l10n.navTrack_section_title,
       icon: Icons.route,
-      collapsedSubtitle: subtitle,
+      collapsedSubtitle: l10n.navTrack_section_routeCount(routes.length),
       isExpanded: isExpanded,
       onToggle: (expanded) =>
           ref.read(navTrackSectionExpandedProvider.notifier).state = expanded,
       contentBuilder: (context) {
-        if (!isExpanded) return const SizedBox.shrink();
-        if (routes.isEmpty) {
-          final hasUnlinked = (unlinkedAsync.value ?? const []).isNotEmpty;
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Divider(),
-                Text(l10n.navTrack_section_noRouteLinked),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    if (hasUnlinked)
-                      OutlinedButton(
-                        key: const ValueKey('nav-track-link-button'),
-                        onPressed: () => _linkRoute(context, ref),
-                        child: Text(l10n.navTrack_section_linkButton),
-                      ),
-                    OutlinedButton(
-                      key: const ValueKey('nav-track-import-button'),
-                      onPressed: () => _importFile(context, ref),
-                      child: Text(l10n.navTrack_section_importButton),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        }
+        if (!isExpanded || routes.isEmpty) return const SizedBox.shrink();
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: Column(

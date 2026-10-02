@@ -99,6 +99,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_di
 import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
@@ -504,9 +505,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         return [_surfaceGpsCard(dive, computerReadingsAsync, settings)];
       },
       DiveDetailSectionId.navTrack: (_) {
-        // Unlike surfaceGps this section always renders: an empty state
-        // ("No route linked", with "Link route"/"Import file") is itself
-        // useful, whereas the GPS section has nothing to show without a fix.
+        // Like surfaceGps, only when there is something to show: routes are
+        // linked and imported from the Dive Edit page (spec 2026-10-02,
+        // section 3). Nothing while loading, so no empty card flashes.
+        final routes = ref.watch(navTracksForDiveProvider(dive.id)).value;
+        if (routes == null || routes.isEmpty) return [];
         return [NavTrackSection(dive: dive)];
       },
       DiveDetailSectionId.weights: (_) {
