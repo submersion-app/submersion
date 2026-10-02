@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_conditions_group.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_date_group.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_count_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_group_tile.dart';
@@ -73,6 +74,11 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
         title: RefineDateGroup.title(l10n),
         activeCount: RefineDateGroup.activeCount(_draft),
         child: RefineDateGroup(draft: _draft, onChanged: _update),
+      ),
+      RefineGroupTile(
+        title: RefineConditionsGroup.title(l10n),
+        activeCount: RefineConditionsGroup.activeCount(_draft),
+        child: RefineConditionsGroup(draft: _draft, onChanged: _update),
       ),
     ];
   }
