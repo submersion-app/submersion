@@ -383,6 +383,34 @@ class ResolveTest(unittest.TestCase):
         self.assertEqual(gh.calls, [])
 
 
+class GhCliTest(unittest.TestCase):
+    """The real runner: its raising on failure is what fails the job."""
+
+    def setUp(self):
+        self.real_run = subprocess.run
+        self.addCleanup(setattr, subprocess, "run", self.real_run)
+
+    def test_runs_gh_and_returns_its_stdout(self):
+        seen = {}
+
+        def fake_run(cmd, **kwargs):
+            seen.update(cmd=cmd, **kwargs)
+            return subprocess.CompletedProcess(cmd, 0, stdout="out\n", stderr="")
+
+        subprocess.run = fake_run
+        self.assertEqual(alert.gh_cli(["issue", "list"]), "out\n")
+        self.assertEqual(seen["cmd"], ["gh", "issue", "list"])
+        self.assertTrue(seen["check"])
+
+    def test_a_failing_gh_raises(self):
+        def fake_run(cmd, **kwargs):
+            raise subprocess.CalledProcessError(1, cmd, stderr="HTTP 403")
+
+        subprocess.run = fake_run
+        with self.assertRaises(subprocess.CalledProcessError):
+            alert.gh_cli(["issue", "create"])
+
+
 class MainTest(unittest.TestCase):
     def test_reads_its_inputs_from_the_environment(self):
         env = {
