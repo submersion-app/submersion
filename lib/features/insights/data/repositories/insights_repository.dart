@@ -1992,9 +1992,14 @@ class InsightsRepository {
 
   /// Get countries visited with dive counts.
   ///
-  /// Grouped on the country trimmed of every character Dart's `trim`
-  /// strips, the form `site.country` compares, so a row opens exactly the
-  /// dives it counts (#2623) and stray whitespace never splits a country.
+  /// Grouped the way `site.country` compares: trimmed of every character
+  /// Dart's `trim` strips, and case-insensitively. So stray whitespace or
+  /// casing never splits a country, and a row opens the dives it counts
+  /// (#2623). Each row shows the first spelling in binary order.
+  ///
+  /// Like every Insights card, the count leaves out planned dives and dives
+  /// excluded from statistics (DiveStatsScope); the dive list a row opens
+  /// still shows the excluded ones.
   Future<List<RankingItem>> getCountriesVisited({
     String? diverId,
     int limit = 10,
@@ -2009,12 +2014,12 @@ class InsightsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          TRIM(ds.country, $dartWhitespaceSqlChars) AS country,
+          MIN(TRIM(ds.country, $dartWhitespaceSqlChars)) AS country,
           COUNT(d.id) AS dive_count
         FROM dive_sites ds
         JOIN dives d ON d.site_id = ds.id
         WHERE TRIM(ds.country, $dartWhitespaceSqlChars) != '' $diverFilter ${df.clause}
-        GROUP BY 1
+        GROUP BY LOWER(TRIM(ds.country, $dartWhitespaceSqlChars))
         ORDER BY dive_count DESC
         LIMIT ?
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -2038,7 +2043,7 @@ class InsightsRepository {
   }
 
   /// Get regions explored with dive counts, one row per region and
-  /// country. Trimmed like [getCountriesVisited]; a blank country reads as
+  /// country. Grouped like [getCountriesVisited]; a blank country reads as
   /// none, the same way `site.country :none` does.
   Future<List<RankingItem>> getRegionsExplored({
     String? diverId,
@@ -2054,13 +2059,14 @@ class InsightsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          TRIM(ds.region, $dartWhitespaceSqlChars) AS region,
-          NULLIF(TRIM(ds.country, $dartWhitespaceSqlChars), '') AS country,
+          MIN(TRIM(ds.region, $dartWhitespaceSqlChars)) AS region,
+          MIN(NULLIF(TRIM(ds.country, $dartWhitespaceSqlChars), '')) AS country,
           COUNT(d.id) AS dive_count
         FROM dive_sites ds
         JOIN dives d ON d.site_id = ds.id
         WHERE TRIM(ds.region, $dartWhitespaceSqlChars) != '' $diverFilter ${df.clause}
-        GROUP BY 1, 2
+        GROUP BY LOWER(TRIM(ds.region, $dartWhitespaceSqlChars)),
+          LOWER(NULLIF(TRIM(ds.country, $dartWhitespaceSqlChars), ''))
         ORDER BY dive_count DESC
         LIMIT ?
         ''', variables: params.map((p) => Variable(p)).toList()).get();

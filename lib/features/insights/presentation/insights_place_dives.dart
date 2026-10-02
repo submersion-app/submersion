@@ -9,9 +9,10 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 /// Insights filter [scope] the row was counted under, narrowed to sites in
 /// [country].
 ///
-/// The row's count comes from `getCountriesVisited`, which groups on the
-/// same trimmed column `site.country` compares, so the list it opens holds
-/// exactly that many dives.
+/// The row's count comes from `getCountriesVisited`, which groups the way
+/// `site.country` compares (trimmed, case-insensitive), so the list it opens
+/// holds the dives it counted. The list also shows any dives there that are
+/// excluded from statistics, which Insights leaves out of its counts.
 DiveFilterState countryDivesFilter(DiveFilterState scope, String country) =>
     _withPlace(scope, [_site('country', StringValue(country))]);
 

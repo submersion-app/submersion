@@ -149,6 +149,9 @@ void main() {
       // Imported with a trailing no-break space: the same country to the
       // location chips and the dive query, so the same row here too.
       await siteWithDives('b', country: 'Mexico ', dives: 2);
+      // Differently cased: the dive query matches text case-insensitively,
+      // so the ranking counts it in the same row.
+      await siteWithDives('f', country: 'mexico', dives: 1);
       await siteWithDives('c', country: 'Bonaire', dives: 1);
       await siteWithDives('d', country: '   ', dives: 4);
       await siteWithDives('e', dives: 5);
@@ -157,7 +160,7 @@ void main() {
 
       expect(
         [for (final r in rows) (r.name, r.count)],
-        [('Mexico', 5), ('Bonaire', 1)],
+        [('Mexico', 6), ('Bonaire', 1)],
       );
       for (final row in rows) {
         expect(
@@ -174,6 +177,7 @@ void main() {
       await siteWithDives('a', region: 'North', country: 'Fiji', dives: 3);
       await siteWithDives('b', region: 'North ', country: 'Fiji', dives: 1);
       await siteWithDives('c', region: 'North', country: 'Palau', dives: 2);
+      await siteWithDives('g', region: 'north', country: 'FIJI', dives: 2);
       await siteWithDives('d', region: 'North', dives: 2);
       await siteWithDives('e', region: 'North', country: ' ', dives: 1);
 
@@ -182,7 +186,7 @@ void main() {
       expect(
         [for (final r in rows) (r.name, r.subtitle, r.count)],
         unorderedEquals([
-          ('North', 'Fiji', 4),
+          ('North', 'FIJI', 6),
           ('North', 'Palau', 2),
           ('North', null, 3),
         ]),
