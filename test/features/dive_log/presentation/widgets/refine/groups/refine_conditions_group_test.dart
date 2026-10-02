@@ -135,4 +135,27 @@ void main() {
       2,
     );
   });
+
+  // Code review: a unit change while the panel is open re-reads the bounds
+  // in the new unit (the Advanced Search page did; seeding never writes).
+  testWidgets('a unit change re-seeds the bound fields', (tester) async {
+    final h = await pump(tester, initial: const DiveFilterState(minDepth: 30));
+    String depthText() => tester
+        .widget<TextField>(
+          find.descendant(
+            of: find.byKey(const ValueKey('refine-depth-min')),
+            matching: find.byType(TextField),
+          ),
+        )
+        .controller!
+        .text;
+    expect(depthText(), '30');
+    (h.container.read(settingsProvider.notifier) as MockSettingsNotifier)
+        .state = const AppSettings(
+      depthUnit: DepthUnit.feet,
+    );
+    await tester.pumpAndSettle();
+    expect(depthText(), '98');
+    expect(h.draft.minDepth, 30, reason: 're-seeding never writes');
+  });
 }

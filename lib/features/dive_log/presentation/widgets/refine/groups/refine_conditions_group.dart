@@ -70,7 +70,12 @@ class _RefineConditionsGroupState extends ConsumerState<RefineConditionsGroup> {
   @override
   void initState() {
     super.initState();
-    // Stored metric, shown in the diver's units (as the Filter sheet did).
+    _seed();
+  }
+
+  /// Shows the stored metric bounds in the diver's units. Never writes the
+  /// draft, so an untouched bound cannot drift through a rounded display.
+  void _seed() {
     final units = UnitFormatter(ref.read(settingsProvider));
     final d = widget.draft;
     String shown(double? v, double Function(double) convert) =>
@@ -165,6 +170,11 @@ class _RefineConditionsGroupState extends ConsumerState<RefineConditionsGroup> {
 
   @override
   Widget build(BuildContext context) {
+    // A unit change while open re-reads the bounds in the new unit.
+    ref.listen(
+      settingsProvider.select((s) => (s.depthUnit, s.temperatureUnit)),
+      (_, _) => _seed(),
+    );
     final l10n = context.l10n;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final d = widget.draft;
