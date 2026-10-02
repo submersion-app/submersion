@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/site_active_path_overlay_builder.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/site_scape/presentation/patch_aware_hover_picker.dart';
 import 'package:submersion/features/site_scape/presentation/path_provenance_chip.dart';
@@ -111,7 +112,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
   @override
   void initState() {
     super.initState();
-    _syncPlayer(null);
+    _syncPlayer();
   }
 
   @override
@@ -126,23 +127,21 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
     if (widget.siteId != oldWidget.siteId) {
       _settledZoom = 1.0;
     }
-    _syncPlayer(oldWidget.playbackContext);
+    _syncPlayer();
   }
 
   /// Creates or disposes [_player] to match whether
-  /// [SiteTerrainPane.playbackContext] is currently set, comparing against
-  /// [previous] so a dive-to-dive or route-to-route switch (same kind of
-  /// context, different id) keeps the existing controller and timeline
-  /// position instead of restarting playback from 0.
-  void _syncPlayer(SeascapePlaybackContext? previous) {
-    final context = widget.playbackContext;
-    if (context == null) {
+  /// [SiteTerrainPane.playbackContext] is currently set. An existing
+  /// controller is kept, so a dive-to-dive or route-to-route switch keeps
+  /// the timeline position instead of restarting playback from 0.
+  void _syncPlayer() {
+    if (widget.playbackContext == null) {
       _player?.dispose();
       _player = null;
       _scrub.value = 0;
       return;
     }
-    if (previous != null && _player != null) return;
+    if (_player != null) return;
     _player =
         AnimationController(vsync: this, duration: const Duration(seconds: 45))
           ..addListener(() => _scrub.value = _player!.value)
@@ -333,18 +332,13 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                       bounds: scene.bounds,
                       scrubPath: scene.scrubPath,
                     );
-              // The active path's scrub path rides on top of whichever
-              // scene (base or patched) is showing; it never changes the
-              // terrain/markers, only which ScrubPath the scrub bar and the
-              // viewport's diver marker follow.
+              // The active path rides on top of whichever scene (base or
+              // patched) is showing: its own ribbon and pins, and the
+              // ScrubPath the scrub bar and the viewport's diver marker
+              // follow. Terrain and markers are unchanged.
               final scrubbableScene = activePath == null
                   ? displayScene
-                  : Scene3d(
-                      layers: displayScene.layers,
-                      markers: displayScene.markers,
-                      bounds: displayScene.bounds,
-                      scrubPath: activePath.overlay.scrubPath,
-                    );
+                  : sceneWithActivePath(displayScene, activePath.overlay);
               return Column(
                 children: [
                   Expanded(

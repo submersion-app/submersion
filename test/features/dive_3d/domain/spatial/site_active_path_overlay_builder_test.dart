@@ -1,7 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
+import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_active_path_overlay_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 
 ReckonedPath _twoPointPath({
   PathProvenance provenance = PathProvenance.measured,
@@ -80,6 +83,53 @@ void main() {
       );
 
       expect(overlay, isNull);
+    });
+
+    test('draws its own ribbon and pins under the Paths overlay', () {
+      // The site scene draws only its most recent dives and never a
+      // route, so the played-back path must bring its own geometry or the
+      // cursor slides over bare terrain.
+      final overlay = buildSiteActivePathOverlay(
+        path: _twoPointPath(),
+        anchor: (east: 0.0, north: 0.0),
+        projection: projection,
+      )!;
+
+      expect(overlay.layers, hasLength(3));
+      expect(
+        overlay.layers.map((l) => l.overlay),
+        everyElement(SceneOverlay.paths),
+      );
+    });
+  });
+
+  group('sceneWithActivePath', () {
+    test('adds the path ahead of the water layer and swaps the scrub path', () {
+      final overlay = buildSiteActivePathOverlay(
+        path: _twoPointPath(),
+        anchor: (east: 0.0, north: 0.0),
+        projection: SpatialProjection(
+          minEast: -50,
+          maxEast: 50,
+          minNorth: -50,
+          maxNorth: 50,
+          maxDepth: 20,
+        ),
+      )!;
+      final mesh = overlay.layers.first.mesh;
+      final terrain = SceneLayer(mesh);
+      final water = SceneLayer(mesh, overlay: SceneOverlay.water);
+      final scene = Scene3d(
+        layers: [terrain, water],
+        markers: const [],
+        bounds: const SceneBounds(durationSeconds: 1, maxDepthMeters: 20),
+      );
+
+      final merged = sceneWithActivePath(scene, overlay);
+
+      expect(merged.layers, [terrain, ...overlay.layers, water]);
+      expect(merged.scrubPath, same(overlay.scrubPath));
+      expect(merged.bounds, same(scene.bounds));
     });
   });
 }

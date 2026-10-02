@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/constants/map_tile_config.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
+import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
@@ -36,10 +37,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// through a synthesized seafloor otherwise (a dive need not have a site).
 ///
 /// Routes to whichever the dive actually has:
-/// - a site -> `SiteTerrainPane` with a [DivePlaybackContext], the same
+/// - a site with renderable terrain -> `SiteTerrainPane` with a
+///   [DivePlaybackContext], the same
 ///   shared base `SiteTerrainPane` gives the site-only view and the
 ///   underwater-route view, extended with this dive's path and timeline.
-/// - no site -> [_DiveSeascapeStandalone], this page's original
+/// - no site, or one with no coordinates or bathymetry ->
+///   [_DiveSeascapeStandalone], this page's original
 ///   self-contained implementation (own terrain fetch centered on the
 ///   dive's own entry fix, no markers/features/LOD -- there is no site
 ///   record to hang those on).
@@ -64,6 +67,21 @@ class SpatialSitePage extends ConsumerWidget {
     }
     final siteId = diveAsync.valueOrNull?.site?.id;
     if (siteId == null) {
+      return _DiveSeascapeStandalone(diveId: diveId);
+    }
+    // A site that cannot render terrain (no coordinates, or no bathymetry
+    // reachable) would leave SiteTerrainPane showing only a message, with
+    // no path or timeline at all; the standalone view still shows the
+    // dive's path there, over terrain centered on its own fix or a
+    // synthesized seafloor.
+    final siteSceneAsync = ref.watch(siteSeascapeProvider(siteId));
+    if (!siteSceneAsync.hasSettled) {
+      return Scaffold(
+        appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (siteSceneAsync.valueOrNull is! SiteSeascapeReady) {
       return _DiveSeascapeStandalone(diveId: diveId);
     }
     return Scaffold(

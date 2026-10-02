@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -13,6 +14,8 @@ import 'package:submersion/features/site_scape/presentation/site_terrain_pane.da
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../site_scape/presentation/site_terrain_pane_test_support.dart'
+    show readyState;
 
 const _site = DiveSite(id: 'site-1', name: 'Salt Pier');
 
@@ -41,7 +44,13 @@ void main() {
             diveProvider('d1').overrideWith((ref) => completer.future),
             siteSeascapeProvider(
               'site-1',
-            ).overrideWith((ref) async => const SiteSeascapeNoCoordinates()),
+            ).overrideWith((ref) async => readyState()),
+            siteFeaturesProvider('site-1').overrideWith((ref) async => []),
+            siteActivePathOverlayProvider((
+              siteId: 'site-1',
+              pathId: 'd1',
+              source: PathOverlaySource.dive,
+            )).overrideWith((ref) async => null),
           ],
           child: const SpatialSitePage(diveId: 'd1'),
         ),
@@ -89,4 +98,38 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets(
+    'a dive whose site has no coordinates keeps the standalone implementation',
+    (tester) async {
+      // SiteTerrainPane would only show a "no coordinates" message there,
+      // with no path or timeline; the standalone view still plays it back.
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            diveProvider('d1').overrideWith(
+              (ref) async => Dive(
+                id: 'd1',
+                dateTime: DateTime.utc(2026, 7, 28),
+                site: _site,
+              ),
+            ),
+            siteSeascapeProvider(
+              'site-1',
+            ).overrideWith((ref) async => const SiteSeascapeNoCoordinates()),
+          ],
+          child: const SpatialSitePage(diveId: 'd1'),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(find.byType(SiteTerrainPane), findsNothing);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
 }

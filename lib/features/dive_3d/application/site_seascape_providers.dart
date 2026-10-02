@@ -83,6 +83,36 @@ const int _maxDivePaths = 30;
 /// FakeAsync deadlock rule); above it, in a compute() isolate.
 const int _isolateCellThreshold = 4000;
 
+/// The site scene's own projection, rebuilt from the frame it reported.
+/// Everything layered onto a built site scene afterwards (the LOD patch,
+/// the played-back path) must use exactly this, or it lands at a different
+/// place or vertical scale from the base terrain.
+SpatialProjection _siteProjection(SeascapeAxisInputs frame) =>
+    SpatialProjection(
+      minEast: frame.minEast,
+      maxEast: frame.maxEast,
+      minNorth: frame.minNorth,
+      maxNorth: frame.maxNorth,
+      maxDepth: frame.maxDepth,
+      verticalExaggeration: frame.verticalExaggeration,
+    );
+
+/// Where a dive's reconstructed [path] starts. A linked primary route
+/// carries its own georeferenced start point ([routeAnchor]), set by the
+/// diver on the alignment page; when the path IS that measured route, it is
+/// used in place of the dive's own [entry] fix (mirrors spatial_providers
+/// .dart's per-dive scene). Gated on provenance: a dive whose path fell back
+/// to dead reckoning (route toggled off, or too short) must anchor at its
+/// own entry fix, not the route's, or the dead-reckoned path renders offset
+/// from where it was actually reckoned from. Shared by the site scene and
+/// the played-back path so the cursor stays on the drawn ribbon.
+GeoPoint? _divePathAnchor(
+  ReckonedPath path, {
+  required GeoPoint? routeAnchor,
+  required GeoPoint? entry,
+}) =>
+    path.provenance == PathProvenance.measured ? (routeAnchor ?? entry) : entry;
+
 final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
   ref,
   siteId,
@@ -110,14 +140,7 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
   final paths = await Future.wait(
     kept.map((d) => ref.watch(spatialReckonedPathProvider(d.id).future)),
   );
-  // A linked primary route carries its own georeferenced start point
-  // (`anchor`), set by the diver on the alignment page; when the scene is
-  // drawing that measured route, use it in place of the dive's own entry
-  // fix (mirrors spatial_providers.dart's per-dive scene). Gated on
-  // provenance: a dive whose path fell back to dead reckoning (route
-  // toggled off, or too short) must anchor at its own entry fix, not the
-  // route's, or the dead-reckoned path renders offset from where it was
-  // actually reckoned from.
+  // Each dive's linked primary route, for its anchor (see _divePathAnchor).
   final routes = await Future.wait(
     kept.map((d) => ref.watch(primaryNavTrackForDiveProvider(d.id).future)),
   );
@@ -125,9 +148,11 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
   for (var i = 0; i < kept.length; i++) {
     final path = paths[i];
     if (path == null || path.points.length < 2) continue;
-    final anchorPoint = path.provenance == PathProvenance.measured
-        ? (routes[i]?.anchor ?? kept[i].entryLocation)
-        : kept[i].entryLocation;
+    final anchorPoint = _divePathAnchor(
+      path,
+      routeAnchor: routes[i]?.anchor,
+      entry: kept[i].entryLocation,
+    );
     divePaths.add(
       SiteDivePathInput(
         diveId: kept[i].id,
@@ -434,14 +459,7 @@ final siteSeascapePatchLayerProvider = FutureProvider.autoDispose
       // default. The factor is per site and can reach 8x, so a patch built
       // at true scale would sit at a visibly different vertical scale from
       // the base square it overlays instead of continuing its surface.
-      final proj = SpatialProjection(
-        minEast: base.axisInputs.minEast,
-        maxEast: base.axisInputs.maxEast,
-        minNorth: base.axisInputs.minNorth,
-        maxNorth: base.axisInputs.maxNorth,
-        maxDepth: base.axisInputs.maxDepth,
-        verticalExaggeration: base.axisInputs.verticalExaggeration,
-      );
+      final proj = _siteProjection(base.axisInputs);
       final sceneInput = _PatchSceneInput(
         grid: patchGrid,
         center: center,
@@ -534,13 +552,19 @@ final siteActivePathOverlayProvider = FutureProvider.autoDispose
           // points even when the raw route has plenty. Checking
           // route.points.length alone would show the toggle for a route
           // that silently has no effect when switched on.
+          // A measured path already IS the adapted route, so only a
+          // dead-reckoned one (route toggled off, or too short) needs the
+          // adapter run again to tell the two apart.
           hasLinkedRoute =
               route != null &&
-              NavTrackPathAdapter.toReckonedPath(route).points.length >= 2;
+              (path.provenance == PathProvenance.measured ||
+                  NavTrackPathAdapter.toReckonedPath(route).points.length >= 2);
           final dive = await ref.watch(diveProvider(request.pathId).future);
-          anchorPoint = path.provenance == PathProvenance.measured
-              ? (route?.anchor ?? dive?.entryLocation)
-              : dive?.entryLocation;
+          anchorPoint = _divePathAnchor(
+            path,
+            routeAnchor: route?.anchor,
+            entry: dive?.entryLocation,
+          );
         case PathOverlaySource.navTrack:
           final track = await ref.watch(
             navTrackByIdProvider(request.pathId).future,
@@ -551,14 +575,7 @@ final siteActivePathOverlayProvider = FutureProvider.autoDispose
           anchorPoint = track.anchor;
       }
 
-      final proj = SpatialProjection(
-        minEast: base.axisInputs.minEast,
-        maxEast: base.axisInputs.maxEast,
-        minNorth: base.axisInputs.minNorth,
-        maxNorth: base.axisInputs.maxNorth,
-        maxDepth: base.axisInputs.maxDepth,
-        verticalExaggeration: base.axisInputs.verticalExaggeration,
-      );
+      final proj = _siteProjection(base.axisInputs);
       final anchor = anchorPoint == null
           ? (east: 0.0, north: 0.0)
           : enuOffsetMeters(center, anchorPoint);

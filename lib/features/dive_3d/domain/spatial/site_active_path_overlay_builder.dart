@@ -1,17 +1,26 @@
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/spatial_path_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 
 /// A single active path (one dive, or one underwater route) rendered as a
 /// scrubbable [ScrubPath] inside a SITE scene, plus the caption details the
 /// UI shows alongside it.
 class SiteActivePathOverlay {
   final ScrubPath scrubPath;
+
+  /// The path's own ribbon and entry/exit pins. The site scene cannot be
+  /// relied on to have drawn this path already: it draws only the most
+  /// recent dives at the site, and never an underwater route, so without
+  /// these the scrub cursor would slide across bare terrain.
+  final List<SceneLayer> layers;
   final PathProvenance provenance;
   final String? pathSourceLabel;
 
   const SiteActivePathOverlay({
     required this.scrubPath,
+    this.layers = const [],
     required this.provenance,
     this.pathSourceLabel,
   });
@@ -49,7 +58,47 @@ SiteActivePathOverlay? buildSiteActivePathOverlay({
       ys: [for (final p in placed.points) projection.yOf(p.depth)],
       zs: [for (final p in placed.points) projection.zOf(p.north)],
     ),
+    layers: [
+      SceneLayer(
+        SpatialPathBuilder.buildRibbon(placed, projection),
+        overlay: SceneOverlay.paths,
+      ),
+      SceneLayer(
+        SpatialPathBuilder.buildPin(
+          placed.points.first,
+          projection,
+          isEntry: true,
+        ),
+        overlay: SceneOverlay.paths,
+      ),
+      SceneLayer(
+        SpatialPathBuilder.buildPin(
+          placed.points.last,
+          projection,
+          isEntry: false,
+        ),
+        overlay: SceneOverlay.paths,
+      ),
+    ],
     provenance: placed.provenance,
     pathSourceLabel: placed.sourceLabel,
+  );
+}
+
+/// [scene] with [overlay]'s path drawn into it and its scrub path made the
+/// one the cursor follows. The path layers go ahead of the water layer, the
+/// same order the site scene gives its own dive paths, so the translucent
+/// surface still paints over them.
+Scene3d sceneWithActivePath(Scene3d scene, SiteActivePathOverlay overlay) {
+  bool isWater(SceneLayer l) => l.overlay == SceneOverlay.water;
+  return Scene3d(
+    layers: [
+      ...scene.layers.where((l) => !isWater(l)),
+      ...overlay.layers,
+      ...scene.layers.where(isWater),
+    ],
+    markers: scene.markers,
+    bounds: scene.bounds,
+    scrubPath: overlay.scrubPath,
   );
 }
