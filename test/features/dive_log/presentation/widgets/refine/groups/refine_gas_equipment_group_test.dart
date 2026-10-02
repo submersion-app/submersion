@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -27,7 +29,19 @@ void main() {
   );
   final now = DateTime(2026, 6, 1);
   final computers = [
+    // No serial (#1064): firmware that never reports one must still be
+    // offered, since attribution rides the computer id.
     DiveComputer(id: 'c1', name: 'Perdix', createdAt: now, updatedAt: now),
+    DiveComputer(
+      id: 'c2',
+      name: 'Teric',
+      serialNumber: 'SN9',
+      createdAt: now,
+      updatedAt: now,
+    ),
+  ];
+  final diveTypes = [
+    DiveTypeEntity(id: 'wreck', name: 'Wreck', createdAt: now, updatedAt: now),
   ];
 
   Future<GroupHarness> pump(
@@ -39,7 +53,7 @@ void main() {
     (d, on) => RefineGasEquipmentGroup(draft: d, onChanged: on),
     initial: initial,
     overrides: [
-      diveTypesProvider.overrideWith((ref) async => const []),
+      diveTypesProvider.overrideWith((ref) async => diveTypes),
       allDiveComputersProvider.overrideWith((ref) async => computers),
       allEquipmentProvider.overrideWith((ref) async => gear),
     ],
@@ -216,5 +230,33 @@ void main() {
     );
     await tester.pump();
     expect(h.draft.equipmentAttrConditions.single.max, 1250);
+  });
+
+  Finder fieldShowing(String label) =>
+      find.ancestor(of: find.text(label), matching: find.byType(TextField));
+
+  Future<void> pick(WidgetTester tester, String all, String hit) async {
+    await tester.tap(fieldShowing(all));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(searchableFilterOptionsKey),
+        matching: find.text(hit),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  // #1064: every computer is offered, serial or not.
+  testWidgets('a computer with no serial is offered and picks', (tester) async {
+    final h = await pump(tester);
+    await pick(tester, 'All computers', 'Perdix');
+    expect(h.draft.computerId, 'c1');
+  });
+
+  testWidgets('a dive type pick writes its id', (tester) async {
+    final h = await pump(tester);
+    await pick(tester, 'All types', 'Wreck');
+    expect(h.draft.diveTypeId, 'wreck');
   });
 }

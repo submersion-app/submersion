@@ -86,7 +86,10 @@ class _RefinePeopleGroupState extends ConsumerState<RefinePeopleGroup> {
   }
 
   void _pickBuddy(String selection) {
-    final parts = _buddy.text.split(',')..removeLast();
+    // From the draft, not the controller: RawAutocomplete has already
+    // replaced the field's text with the selection before this runs, which
+    // would drop every name typed before the comma.
+    final parts = (widget.draft.buddyNameFilter ?? '').split(',')..removeLast();
     final prefix = parts.join(',').trim();
     final next = prefix.isEmpty ? selection : '$prefix, $selection';
     _buddy.value = TextEditingValue(

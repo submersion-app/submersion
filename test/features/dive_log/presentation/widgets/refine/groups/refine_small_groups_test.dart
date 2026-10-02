@@ -1,5 +1,8 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart'
+    show AppDatabase, TagsCompanion;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -150,6 +153,23 @@ void main() {
       expect(h.draft.buddyNameFilter, 'Ana');
     });
 
+    testWidgets('a second buddy is suggested after a comma and appended', (
+      tester,
+    ) async {
+      final h = await pump(tester);
+      await tester.enterText(find.byKey(kRefineBuddyFieldKey), 'Ana, ');
+      await tester.pumpAndSettle();
+      // Names already chosen are not offered again.
+      expect(find.text('Cid'), findsWidgets);
+      expect(
+        find.descendant(of: find.byType(ListView), matching: find.text('Ana')),
+        findsNothing,
+      );
+      await tester.tap(find.text('Cid').last);
+      await tester.pumpAndSettle();
+      expect(h.draft.buddyNameFilter, 'Ana, Cid');
+    });
+
     testWidgets('a species is found by scientific name and removable', (
       tester,
     ) async {
@@ -159,6 +179,14 @@ void main() {
       await tester.tap(find.text('Manta ray').last);
       await tester.pumpAndSettle();
       expect(h.draft.speciesIds, ['sp1']);
+      // The search empties for the next pick.
+      expect(
+        tester
+            .widget<TextField>(find.byKey(kRefineSpeciesFieldKey))
+            .controller!
+            .text,
+        isEmpty,
+      );
       tester.widget<InputChip>(find.byType(InputChip)).onDeleted!();
       await tester.pump();
       expect(h.draft.speciesIds, isEmpty);
@@ -167,8 +195,33 @@ void main() {
 
   group('Organization', () {
     // Tags load from the database.
-    setUp(setUpTestDatabase);
+    late AppDatabase db;
+    setUp(() async => db = await setUpTestDatabase());
     tearDown(tearDownTestDatabase);
+
+    testWidgets('a tag chip toggles its id', (tester) async {
+      final stamp = now.millisecondsSinceEpoch;
+      await db
+          .into(db.tags)
+          .insert(
+            TagsCompanion(
+              id: const Value('t1'),
+              name: const Value('Night'),
+              createdAt: Value(stamp),
+              updatedAt: Value(stamp),
+            ),
+          );
+      final h = await pumpGroup(
+        tester,
+        (d, on) => RefineOrganizationGroup(draft: d, onChanged: on),
+      );
+      await tester.tap(find.widgetWithText(FilterChip, 'Night'));
+      await tester.pump();
+      expect(h.draft.tagIds, ['t1']);
+      await tester.tap(find.widgetWithText(FilterChip, 'Night'));
+      await tester.pump();
+      expect(h.draft.tagIds, isEmpty);
+    });
 
     testWidgets('stars, switches; the same star clears', (tester) async {
       final h = await pumpGroup(

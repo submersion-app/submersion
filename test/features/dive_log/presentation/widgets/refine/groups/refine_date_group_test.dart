@@ -74,4 +74,11 @@ void main() {
       2,
     );
   });
+
+  testWidgets('a weekday chip adds its day', (tester) async {
+    final h = await pump(tester);
+    await tester.tap(find.text('Sat'));
+    await tester.pump();
+    expect(h.draft.weekdays, [6]);
+  });
 }

@@ -165,7 +165,7 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
               TextButton(
                 key: kRefineClearAllKey,
                 onPressed: _clearAll,
-                child: Text(l10n.diveLog_filter_clearAll),
+                child: Text(l10n.diveLog_filterChip_clearAll),
               ),
             ],
           ),
