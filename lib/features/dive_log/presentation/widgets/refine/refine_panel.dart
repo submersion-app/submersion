@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_conditions_group.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_date_group.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_gas_equipment_group.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_count_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_group_tile.dart';
 import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
@@ -55,7 +57,10 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
 
   /// The draft as it should be written: a group may correct a value that
   /// went stale while the panel was open.
-  DiveFilterState _resolvedDraft() => _draft;
+  DiveFilterState _resolvedDraft() => RefineGasEquipmentGroup.resolveOnApply(
+    _draft,
+    ref.read(allDiveComputersProvider),
+  );
 
   void _close() => Navigator.of(context).pop();
 
@@ -79,6 +84,11 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
         title: RefineConditionsGroup.title(l10n),
         activeCount: RefineConditionsGroup.activeCount(_draft),
         child: RefineConditionsGroup(draft: _draft, onChanged: _update),
+      ),
+      RefineGroupTile(
+        title: RefineGasEquipmentGroup.title(l10n),
+        activeCount: RefineGasEquipmentGroup.activeCount(_draft),
+        child: RefineGasEquipmentGroup(draft: _draft, onChanged: _update),
       ),
     ];
   }
