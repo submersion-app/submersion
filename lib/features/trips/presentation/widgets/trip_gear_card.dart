@@ -3,17 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/title_actions_layout.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('tripGearCard');
 
 /// The gear packed for a trip (issue #2338), right after the Cylinders card:
-/// Add gear through the equipment picker, and Unpack on each item. Like the
-/// Cylinders card it says nothing until the gear loads, and nothing on a
-/// past trip with no gear.
+/// Add gear through the equipment picker, Use set to pack a whole equipment
+/// set (issue #2794), and Unpack on each item. Like the Cylinders card it
+/// says nothing until the gear loads, and nothing on a past trip with no
+/// gear.
 class TripGearCard extends ConsumerWidget {
   const TripGearCard({super.key, required this.trip});
 
@@ -45,6 +51,61 @@ class TripGearCard extends ConsumerWidget {
       () =>
           ref.read(tripEquipmentRepositoryProvider).pack(trip.id, [picked.id]),
     );
+  }
+
+  /// Packs the members of a picked set that are not packed yet, merging
+  /// into the trip's gear the way every other Use set merges, and says how
+  /// many it added.
+  Future<void> _useSet(BuildContext context, WidgetRef ref) async {
+    final picked =
+        await showModalBottomSheet<(EquipmentSet, List<EquipmentItem>)>(
+          context: context,
+          isScrollControlled: true,
+          builder: (sheetContext) => DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            expand: false,
+            builder: (_, scrollController) => EquipmentSetPickerSheet(
+              scrollController: scrollController,
+              onSetSelected: (set, items) =>
+                  Navigator.of(sheetContext).pop((set, items)),
+            ),
+          ),
+        );
+    if (picked == null || !context.mounted) return;
+    final (set, items) = picked;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    await _change(context, () async {
+      final added = await ref
+          .read(tripEquipmentRepositoryProvider)
+          .pack(trip.id, await _usableIds(ref, items));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.trips_gear_packedFromSet(added, set.name))),
+      );
+    });
+  }
+
+  /// The set members the current diver may pack: a member no longer shared
+  /// with them stays in the set but is not applied (issue #2046). An
+  /// unreadable diver packs unscoped, as the dive edit page adds, rather
+  /// than failing the pack.
+  Future<List<String>> _usableIds(
+    WidgetRef ref,
+    List<EquipmentItem> items,
+  ) async {
+    final ids = [for (final item in items) item.id];
+    String? diverId;
+    try {
+      diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    } catch (_) {
+      diverId = null;
+    }
+    if (diverId == null) return ids;
+    return ref
+        .read(equipmentRepositoryProvider)
+        .usableSetMemberIds(ids, diverId);
   }
 
   /// Runs a pack or an unpack; a failure is logged and said.
@@ -84,22 +145,43 @@ class TripGearCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.luggage_outlined, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    l10n.trips_gear_title,
-                    style: theme.textTheme.titleMedium,
+            // Use set and Add gear sit beside the title when they fit and
+            // drop under it when a long translation would not (#2794).
+            TitleActionsLayout(
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.luggage_outlined,
+                    color: theme.colorScheme.primary,
                   ),
-                ),
-                TextButton(
-                  key: const Key('trip-gear-add'),
-                  onPressed: () => _add(context, ref, items),
-                  child: Text(l10n.trips_gear_add),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      l10n.trips_gear_title,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              ),
+              // No alignment: with one, OverflowBar takes the full width and
+              // the buttons could never sit beside the title. Stacked, on the
+              // narrowest phones, they keep to the end edge.
+              actions: OverflowBar(
+                overflowAlignment: OverflowBarAlignment.end,
+                children: [
+                  TextButton(
+                    key: const Key('trip-gear-use-set'),
+                    onPressed: () => _useSet(context, ref),
+                    child: Text(l10n.trips_gear_useSet),
+                  ),
+                  TextButton(
+                    key: const Key('trip-gear-add'),
+                    onPressed: () => _add(context, ref, items),
+                    child: Text(l10n.trips_gear_add),
+                  ),
+                ],
+              ),
             ),
             if (items.isEmpty)
               Text(l10n.trips_gear_none)
