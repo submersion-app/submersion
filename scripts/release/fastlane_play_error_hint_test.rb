@@ -11,8 +11,9 @@
 # The cause was a third signing key Google holds (internal app sharing) that the
 # API error never names; only the Console's manual-release dialog prints the
 # missing fingerprint. A re-run after the fix then failed again on "Version code
-# ... has already been used", because Play keeps a version code once an AAB has
-# been sent. Neither message says what to do, so the lane has to.
+# ... has already been used": Play never takes a version code twice, and a
+# bundle with that code had reached it in the meantime. Neither message says
+# what to do, so the lane has to.
 
 require 'stringio'
 
@@ -60,6 +61,15 @@ ensure
   previous.each { |k, v| v.nil? ? ENV.delete(k) : ENV[k] = v }
 end
 
+# A bare `puts` in a Fastfile is not Kernel#puts: fastlane's FastFile overrides
+# it with the puts action, which prints through UI.message behind a timestamp.
+# Mirror that here, so a workflow command printed with a bare `puts` lands
+# mid-line, exactly where GitHub ignores it in a real run.
+def puts(*values)
+  values.each { |v| $stdout.puts("[00:00:00]: #{v}") }
+  nil
+end
+
 # Runs the block with $stdout captured, returning what it printed.
 def capture_stdout
   original = $stdout
@@ -74,7 +84,7 @@ FASTFILE_PATH = File.join(ROOT, 'android', 'fastlane', 'Fastfile')
 load FASTFILE_PATH
 
 unless respond_to?(:play_error_hint, true) && respond_to?(:upload_to_play_with_hint, true)
-  puts 'FAIL: the android Fastfile does not define play_error_hint and upload_to_play_with_hint'
+  $stdout.puts 'FAIL: the android Fastfile does not define play_error_hint and upload_to_play_with_hint'
   exit 1
 end
 
@@ -217,8 +227,8 @@ end
 # --- Report -----------------------------------------------------------------
 
 if $failures.empty?
-  puts 'PASS: all fastlane Play error hint tests passed'
+  $stdout.puts 'PASS: all fastlane Play error hint tests passed'
 else
-  $failures.each { |f| puts "FAIL: #{f}" }
+  $failures.each { |f| $stdout.puts "FAIL: #{f}" }
   exit 1
 end
