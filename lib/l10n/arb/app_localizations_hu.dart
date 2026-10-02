@@ -7647,9 +7647,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_buddyName => 'Búvártárs neve';
 
   @override
-  String get diveLog_filter_clearAll => 'Összes törlése';
-
-  @override
   String get diveLog_filter_clearDates => 'Dátumok törlése';
 
   @override

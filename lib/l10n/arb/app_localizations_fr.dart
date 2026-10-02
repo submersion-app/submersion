@@ -7689,9 +7689,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_filter_buddyName => 'Nom du binôme';
 
   @override
-  String get diveLog_filter_clearAll => 'Tout effacer';
-
-  @override
   String get diveLog_filter_clearDates => 'Effacer les dates';
 
   @override

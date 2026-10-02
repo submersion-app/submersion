@@ -7664,9 +7664,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_filter_buddyName => 'Nome compagno';
 
   @override
-  String get diveLog_filter_clearAll => 'Cancella tutto';
-
-  @override
   String get diveLog_filter_clearDates => 'Cancella date';
 
   @override

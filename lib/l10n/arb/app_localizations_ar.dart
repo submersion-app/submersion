@@ -7513,9 +7513,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_buddyName => 'اسم زميل الغوص';
 
   @override
-  String get diveLog_filter_clearAll => 'مسح الكل';
-
-  @override
   String get diveLog_filter_clearDates => 'مسح التواريخ';
 
   @override

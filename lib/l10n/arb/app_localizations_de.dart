@@ -7662,9 +7662,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_buddyName => 'Tauchpartnername';
 
   @override
-  String get diveLog_filter_clearAll => 'Alle zurücksetzen';
-
-  @override
   String get diveLog_filter_clearDates => 'Daten zurücksetzen';
 
   @override

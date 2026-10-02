@@ -7538,9 +7538,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_buddyName => 'Buddy Name';
 
   @override
-  String get diveLog_filter_clearAll => 'Clear All';
-
-  @override
   String get diveLog_filter_clearDates => 'Clear dates';
 
   @override

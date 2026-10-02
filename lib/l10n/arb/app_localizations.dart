@@ -12147,12 +12147,6 @@ abstract class AppLocalizations {
   /// **'Buddy Name'**
   String get diveLog_filter_buddyName;
 
-  /// No description provided for @diveLog_filter_clearAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear All'**
-  String get diveLog_filter_clearAll;
-
   /// No description provided for @diveLog_filter_clearDates.
   ///
   /// In en, this message translates to:

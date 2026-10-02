@@ -7666,9 +7666,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_filter_buddyName => 'Nome da Dupla';
 
   @override
-  String get diveLog_filter_clearAll => 'Limpar Tudo';
-
-  @override
   String get diveLog_filter_clearDates => 'Limpar datas';
 
   @override

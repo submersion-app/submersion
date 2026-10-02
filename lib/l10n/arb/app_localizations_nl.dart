@@ -7613,9 +7613,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_buddyName => 'Buddynaam';
 
   @override
-  String get diveLog_filter_clearAll => 'Alles wissen';
-
-  @override
   String get diveLog_filter_clearDates => 'Datums wissen';
 
   @override

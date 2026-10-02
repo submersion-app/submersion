@@ -7287,9 +7287,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_buddyName => '潜伴姓名';
 
   @override
-  String get diveLog_filter_clearAll => '清除全部';
-
-  @override
   String get diveLog_filter_clearDates => '清除日期';
 
   @override
