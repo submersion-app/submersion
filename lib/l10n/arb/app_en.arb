@@ -15792,7 +15792,7 @@
   "trips_edit_dialog_discardContent": "You have unsaved changes. Are you sure you want to leave?",
   "trips_edit_dialog_discardTitle": "Discard Changes?",
   "trips_edit_dialog_keepEditing": "Keep Editing",
-  "trips_edit_durationDays": "{days} days",
+  "trips_edit_durationDays": "{days, plural, =1{{days} day} other{{days} days}}",
   "trips_edit_hint_liveaboardName": "e.g., MY Blue Force One",
   "trips_edit_hint_location": "e.g., Egypt, Red Sea",
   "trips_edit_hint_notes": "Any additional notes about this trip",
@@ -15897,6 +15897,10 @@
   "trips_type_liveaboard": "Liveaboard",
   "trips_type_resort": "Resort",
   "trips_type_dayTrip": "Day Trip",
+  "trips_type_description_dayTrip": "A single day out, such as one local dive",
+  "trips_type_description_liveaboard": "Living aboard a dive boat, with vessel and itinerary details",
+  "trips_type_description_resort": "A stay at a dive resort",
+  "trips_type_description_shore": "Shore dives over one or more days",
   "trips_edit_label_tripType": "Trip Type",
   "trips_edit_sectionTitle_vessel": "Vessel Details",
   "trips_edit_label_vesselName": "Vessel Name *",
@@ -16407,7 +16411,7 @@
   "@trips_edit_durationDays": {
     "placeholders": {
       "days": {
-        "type": "Object"
+        "type": "int"
       }
     }
   },

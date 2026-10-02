@@ -25214,8 +25214,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_dialog_keepEditing => 'המשך עריכה';
 
   @override
-  String trips_edit_durationDays(Object days) {
-    return '$days ימים';
+  String trips_edit_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days ימים',
+      two: 'יומיים',
+      one: 'יום אחד',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -25550,6 +25557,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_type_dayTrip => 'טיול יום';
+
+  @override
+  String get trips_type_description_dayTrip =>
+      'יום אחד בלבד, כמו צלילה מקומית אחת';
+
+  @override
+  String get trips_type_description_liveaboard =>
+      'מגורים על סיפון ספינת צלילה, עם פרטי הספינה והמסלול';
+
+  @override
+  String get trips_type_description_resort => 'שהייה באתר נופש לצלילה';
+
+  @override
+  String get trips_type_description_shore => 'צלילות חוף ביום אחד או יותר';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

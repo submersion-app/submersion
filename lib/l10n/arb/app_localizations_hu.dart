@@ -25758,7 +25758,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_edit_dialog_keepEditing => 'Szerkesztés folytatása';
 
   @override
-  String trips_edit_durationDays(Object days) {
+  String trips_edit_durationDays(int days) {
     return '$days nap';
   }
 
@@ -26100,6 +26100,21 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_type_dayTrip => 'Napi túra';
+
+  @override
+  String get trips_type_description_dayTrip =>
+      'Egyetlen nap, például egy helyi merülés';
+
+  @override
+  String get trips_type_description_liveaboard =>
+      'Merülőhajó fedélzetén, a hajó és az útvonal adataival';
+
+  @override
+  String get trips_type_description_resort => 'Tartózkodás egy búvárüdülőben';
+
+  @override
+  String get trips_type_description_shore =>
+      'Partról indított merülések egy vagy több napon';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

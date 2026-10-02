@@ -549,6 +549,100 @@ void main() {
     });
   });
 
+  group('TripEditPage - day trip (#2625)', () {
+    Future<void> pumpNewTrip(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: const MaterialApp(
+            // Pin the locale: one test types a US-format date.
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    const dayTripHint = 'A single day out, such as one local dive';
+    const shoreHint = 'Shore dives over one or more days';
+
+    testWidgets('the type selector describes the selected type', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+      expect(find.text(shoreHint), findsOneWidget);
+      expect(find.text(dayTripHint), findsNothing);
+
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(dayTripHint), findsOneWidget);
+      expect(find.text(shoreHint), findsNothing);
+    });
+
+    testWidgets('choosing Day Trip collapses the dates to one day', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+      expect(find.text('8 days'), findsOneWidget);
+
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 day'), findsOneWidget);
+    });
+
+    testWidgets('a Day Trip keeps its end date on a moved start date', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+
+      // A start date in the past: moving the start later than the end is
+      // already synced for every type, so only an earlier start shows whether
+      // the end follows it.
+      await tester.tap(find.text('Start Date'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(DatePickerDialog),
+          matching: find.byType(TextField),
+        ),
+        '01/15/2023',
+      );
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 day'), findsOneWidget);
+    });
+
+    testWidgets('leaving Day Trip keeps the collapsed dates', (tester) async {
+      await pumpNewTrip(tester);
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Shore'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 day'), findsOneWidget);
+      expect(find.text(shoreHint), findsOneWidget);
+    });
+  });
+
   group('share toggle', () {
     testWidgets('hides the toggle when only one diver exists', (tester) async {
       final oneDiver = [

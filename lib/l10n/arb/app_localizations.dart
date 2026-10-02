@@ -41137,8 +41137,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_edit_durationDays.
   ///
   /// In en, this message translates to:
-  /// **'{days} days'**
-  String trips_edit_durationDays(Object days);
+  /// **'{days, plural, =1{{days} day} other{{days} days}}'**
+  String trips_edit_durationDays(int days);
 
   /// No description provided for @trips_edit_hint_liveaboardName.
   ///
@@ -41721,6 +41721,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Day Trip'**
   String get trips_type_dayTrip;
+
+  /// No description provided for @trips_type_description_dayTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'A single day out, such as one local dive'**
+  String get trips_type_description_dayTrip;
+
+  /// No description provided for @trips_type_description_liveaboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Living aboard a dive boat, with vessel and itinerary details'**
+  String get trips_type_description_liveaboard;
+
+  /// No description provided for @trips_type_description_resort.
+  ///
+  /// In en, this message translates to:
+  /// **'A stay at a dive resort'**
+  String get trips_type_description_resort;
+
+  /// No description provided for @trips_type_description_shore.
+  ///
+  /// In en, this message translates to:
+  /// **'Shore dives over one or more days'**
+  String get trips_type_description_shore;
 
   /// No description provided for @trips_edit_label_tripType.
   ///

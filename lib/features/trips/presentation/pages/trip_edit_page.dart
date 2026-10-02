@@ -258,9 +258,23 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     onSelectionChanged: (selected) {
                       setState(() {
                         _tripType = selected.first;
+                        // A day trip is one calendar day. Switching away
+                        // leaves the dates alone for the diver to widen.
+                        if (_tripType == TripType.dayTrip) {
+                          _endDate = _startDate;
+                        }
                         _hasChanges = true;
                       });
                     },
+                  ),
+                  const SizedBox(height: 8),
+                  // Says what each type is for, so a diver with a single
+                  // local dive learns that Day Trip is its home (#2625).
+                  Text(
+                    _tripTypeDescription(context, _tripType),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -835,6 +849,15 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     );
   }
 
+  String _tripTypeDescription(BuildContext context, TripType type) {
+    return switch (type) {
+      TripType.shore => context.l10n.trips_type_description_shore,
+      TripType.liveaboard => context.l10n.trips_type_description_liveaboard,
+      TripType.resort => context.l10n.trips_type_description_resort,
+      TripType.dayTrip => context.l10n.trips_type_description_dayTrip,
+    };
+  }
+
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final initialDate = isStartDate
         ? _startDate
@@ -853,7 +876,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       setState(() {
         if (isStartDate) {
           _startDate = pickedDate;
-          if (_startDate.isAfter(_endDate)) {
+          if (_tripType == TripType.dayTrip || _startDate.isAfter(_endDate)) {
             _endDate = _startDate;
           }
         } else {

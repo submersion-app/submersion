@@ -25789,8 +25789,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_edit_dialog_keepEditing => 'Weiter bearbeiten';
 
   @override
-  String trips_edit_durationDays(Object days) {
-    return '$days Tage';
+  String trips_edit_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days Tage',
+      one: '$days Tag',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -26133,6 +26139,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_type_dayTrip => 'Tagesausflug';
+
+  @override
+  String get trips_type_description_dayTrip =>
+      'Ein einzelner Tag, etwa ein Tauchgang vor Ort';
+
+  @override
+  String get trips_type_description_liveaboard =>
+      'An Bord eines Tauchschiffs, mit Schiffs- und Routendetails';
+
+  @override
+  String get trips_type_description_resort =>
+      'Ein Aufenthalt in einem Tauchresort';
+
+  @override
+  String get trips_type_description_shore =>
+      'Landtauchgänge an einem oder mehreren Tagen';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';

@@ -24521,7 +24521,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_dialog_keepEditing => '继续编辑';
 
   @override
-  String trips_edit_durationDays(Object days) {
+  String trips_edit_durationDays(int days) {
     return '$days 天';
   }
 
@@ -24850,6 +24850,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_type_dayTrip => '一日游';
+
+  @override
+  String get trips_type_description_dayTrip => '仅一天，例如一次本地潜水';
+
+  @override
+  String get trips_type_description_liveaboard => '住在潜水船上，包含船只和行程详情';
+
+  @override
+  String get trips_type_description_resort => '入住潜水度假村';
+
+  @override
+  String get trips_type_description_shore => '一天或多天的岸潜';
 
   @override
   String get trips_edit_label_tripType => '旅行类型';

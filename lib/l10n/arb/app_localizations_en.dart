@@ -25426,8 +25426,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_edit_dialog_keepEditing => 'Keep Editing';
 
   @override
-  String trips_edit_durationDays(Object days) {
-    return '$days days';
+  String trips_edit_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '$days day',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -25763,6 +25769,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_type_dayTrip => 'Day Trip';
+
+  @override
+  String get trips_type_description_dayTrip =>
+      'A single day out, such as one local dive';
+
+  @override
+  String get trips_type_description_liveaboard =>
+      'Living aboard a dive boat, with vessel and itinerary details';
+
+  @override
+  String get trips_type_description_resort => 'A stay at a dive resort';
+
+  @override
+  String get trips_type_description_shore =>
+      'Shore dives over one or more days';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
