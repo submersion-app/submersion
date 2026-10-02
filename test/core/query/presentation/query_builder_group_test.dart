@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/presentation/query_builder_group.dart';
+import 'package:submersion/core/query/presentation/query_builder_strings.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_labels.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
@@ -248,4 +249,59 @@ void main() {
     // It can still be removed.
     expect(find.byKey(const ValueKey('remove-0')), findsOneWidget);
   });
+
+  testWidgets(
+    'the all-of/any-of toggle does not overflow on a narrow phone (#2787)',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      // Longer than the test suite's default 'All of'/'Any of': close to the
+      // German strings ("Alle Bedingungen"/"Eine der Bedingungen") that
+      // triggered the overflow. A bare SegmentedButton gets an unbounded
+      // width from its parent Row, so it paints at its full intrinsic width
+      // regardless of how little space is actually available, bleeding past
+      // the screen edge instead of raising a RenderFlex overflow.
+      const strings = QueryBuilderStrings(
+        allOf: 'All of the conditions',
+        anyOf: 'Any of the conditions',
+        addCondition: 'Add condition',
+        addGroup: 'Add group',
+        negate: 'Not',
+        remove: 'Remove',
+        pickField: 'Field',
+        pickFieldSearch: 'Search fields',
+        useRelation: 'Use {name}',
+        fieldsOf: 'Fields of {name}',
+        pickRef: 'Pick {name}',
+        pickRefSearch: 'Search',
+        done: 'Done',
+        unresolvedRef: 'No longer exists',
+        needsText: 'Enter at least one word',
+        scopedRow: 'in {name}',
+        textRow: 'Text',
+        betweenAnd: 'and',
+        valueTrue: 'Yes',
+        valueFalse: 'No',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: QueryBuilderGroup(
+                context: context,
+                root: AndNode([depth(30)]),
+                onChanged: (_) {},
+                strings: strings,
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

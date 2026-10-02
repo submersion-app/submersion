@@ -110,4 +110,19 @@ void main() {
     await tester.pumpWidget(host(null, (_) {}));
     expect(find.text('Save query'), findsNothing);
   });
+
+  testWidgets(
+    'the tab bar is scrollable so a long label is never clipped (#2787)',
+    (tester) async {
+      await tester.pumpWidget(host(null, (_) {}));
+      final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+      // A fixed TabBar stretches both tabs into equal slots across the row;
+      // a label too wide for its slot is clipped outright, with no ellipsis
+      // (Flutter's Tab draws its text with the default TextOverflow.clip).
+      // Scrollable gives each tab its own natural width instead, the same
+      // fix already used for the Equipment/Sets toggle (issue #2256).
+      expect(tabBar.isScrollable, isTrue);
+      expect(tabBar.tabAlignment, TabAlignment.start);
+    },
+  );
 }

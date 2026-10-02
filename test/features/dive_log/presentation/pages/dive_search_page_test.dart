@@ -49,6 +49,56 @@ void main() {
       expect(find.byType(DiveSearchPage), findsOneWidget);
     });
 
+    testWidgets(
+      'cancel/search button labels shrink instead of wrapping on a narrow '
+      'German phone (#2787)',
+      (tester) async {
+        tester.view.physicalSize = const Size(360, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final overrides = await getBaseOverrides();
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              diveRepositoryProvider.overrideWithValue(repository),
+              diveListNotifierProvider.overrideWith((ref) {
+                return DiveListNotifier(repository, ref);
+              }),
+            ].cast(),
+            child: const MaterialApp(
+              // Pinned: "Abbrechen" is the longer word that used to wrap
+              // onto two lines in the Expanded(flex: 1) cancel button.
+              locale: Locale('de'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(body: DiveSearchPage()),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(
+          find.ancestor(
+            of: find.text('Abbrechen'),
+            matching: find.byType(FittedBox),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.ancestor(
+            of: find.text('Suchen'),
+            matching: find.byType(FittedBox),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
     testWidgets('renders with initial filter containing bottomTime range', (
       tester,
     ) async {

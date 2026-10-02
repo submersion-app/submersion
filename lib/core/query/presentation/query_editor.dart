@@ -75,6 +75,13 @@ class _QueryEditorState extends State<QueryEditor>
             Expanded(
               child: TabBar(
                 controller: _tabs,
+                // A fixed TabBar stretches both tabs into equal slots across
+                // the row; a label too wide for its slot is clipped outright
+                // with no ellipsis. Scrollable gives each tab its natural
+                // width instead, the same fix already used for the
+                // Equipment/Sets toggle (issue #2256, #2787).
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
                 tabs: [
                   Tab(text: strings.tabText),
                   Tab(text: strings.tabBuilder),

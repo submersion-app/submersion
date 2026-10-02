@@ -345,7 +345,13 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () => context.pop(),
-                  child: Text(context.l10n.diveLog_search_cancel),
+                  // Shrinks instead of wrapping onto two lines when the
+                  // Expanded column is too narrow for the label at the
+                  // diver's locale or text scale (#2787).
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(context.l10n.diveLog_search_cancel),
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -358,10 +364,13 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
                   icon: Icon(
                     _targetsDiveList ? Icons.search : Icons.filter_alt,
                   ),
-                  label: Text(
-                    _targetsDiveList
-                        ? context.l10n.diveLog_search_search
-                        : context.l10n.diveLog_filter_apply,
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      _targetsDiveList
+                          ? context.l10n.diveLog_search_search
+                          : context.l10n.diveLog_filter_apply,
+                    ),
                   ),
                 ),
               ),

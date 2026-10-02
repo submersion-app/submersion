@@ -97,17 +97,24 @@ class _Group extends StatelessWidget {
           children: [
             Row(
               children: [
-                SegmentedButton<bool>(
-                  segments: [
-                    ButtonSegment(value: true, label: Text(strings.allOf)),
-                    ButtonSegment(value: false, label: Text(strings.anyOf)),
-                  ],
-                  selected: {isAnd},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (s) =>
-                      onTree(setGroupOp(root, path, and: s.single)),
+                // Expanded, not a bare child: SegmentedButton gives itself
+                // an unbounded width when its incoming constraint is
+                // unbounded (as a plain Row child's is), painting past its
+                // reported size instead of raising an overflow error. Bounding
+                // its width here makes it wrap a too-long segment label onto a
+                // second line instead (#2787).
+                Expanded(
+                  child: SegmentedButton<bool>(
+                    segments: [
+                      ButtonSegment(value: true, label: Text(strings.allOf)),
+                      ButtonSegment(value: false, label: Text(strings.anyOf)),
+                    ],
+                    selected: {isAnd},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (s) =>
+                        onTree(setGroupOp(root, path, and: s.single)),
+                  ),
                 ),
-                const Spacer(),
                 if (path.isNotEmpty)
                   IconButton(
                     key: ValueKey('remove-${path.join('.')}'),
