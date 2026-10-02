@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.d
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
 
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
 import 'dive_list_trip_grouping_test.dart' show groupingOverrides, makeDive;
 
@@ -51,8 +52,7 @@ void main() {
     ) async {
       await pumpList(tester);
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
 
       expect(headerCheckbox(), findsOneWidget);
       expect(
@@ -76,8 +76,7 @@ void main() {
     ) async {
       await pumpList(tester);
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(tileFinder('d2'));
       await tester.pumpAndSettle();
 
@@ -93,8 +92,7 @@ void main() {
     ) async {
       await pumpList(tester);
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
 
       // Select the loose dive as well, so the clear has something to spare.
       await tester.tap(tileFinder('d1'));
@@ -123,8 +121,7 @@ void main() {
     ) async {
       await pumpList(tester);
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(headerCheckbox());
       await tester.pumpAndSettle();
 

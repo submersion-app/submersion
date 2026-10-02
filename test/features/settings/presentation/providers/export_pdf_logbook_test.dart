@@ -29,6 +29,8 @@ import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, DivesCompanion, MediaCompanion;
 
+import '../../../../helpers/fake_hosts.dart';
+import '../../../../helpers/mock_channels.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_database.dart';
@@ -169,6 +171,13 @@ String _fileNameDate(String fileName) =>
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   late Directory workDir;
   late _RecordingPicker picker;
   late FilePickerPlatform originalPicker;
@@ -189,6 +198,7 @@ void main() {
           (call) async => null,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (await workDir.exists()) await workDir.delete(recursive: true);

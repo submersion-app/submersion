@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:flutter/foundation.dart' show listEquals;
 
 import 'package:submersion/core/query/domain/query_node.dart';
@@ -97,6 +98,26 @@ class DiveFilterState {
   /// ([EquipmentAttrCondition.suitThickness]).
   final List<EquipmentAttrCondition> equipmentAttrConditions;
 
+  /// Water temperature bounds in celsius against `dives.water_temp`. A dive
+  /// with no recorded temperature never matches a set bound.
+  final double? minWaterTemp;
+  final double? maxWaterTemp;
+
+  /// Visibility bounds in metres against `dives.visibility_meters` only; the
+  /// legacy `visibility` bucket column is read-only and ignored.
+  final double? minVisibility;
+  final double? maxVisibility;
+
+  /// Water types to keep (OR within the axis), matched on `dives.water_type`.
+  final List<WaterType> waterTypes;
+
+  /// Species ids: keep dives with a sighting of ANY listed species.
+  final List<String> speciesIds;
+
+  /// Site ids (OR within the axis), the set form of [siteId]; both apply when
+  /// both are set. Explore lowers a place mention ("Bonaire") to this.
+  final List<String> siteIds;
+
   /// The advanced part of the filter: a query tree the typed field or the
   /// rule builder edits (#2365). ANDed with every other axis by
   /// `toQuery()`. Null means no advanced conditions.
@@ -130,6 +151,13 @@ class DiveFilterState {
     this.customFieldKey,
     this.customFieldValue,
     this.equipmentAttrConditions = const [],
+    this.minWaterTemp,
+    this.maxWaterTemp,
+    this.minVisibility,
+    this.maxVisibility,
+    this.waterTypes = const [],
+    this.speciesIds = const [],
+    this.siteIds = const [],
     this.query,
   });
 
@@ -156,34 +184,43 @@ class DiveFilterState {
     ).add(const Duration(days: 1)).millisecondsSinceEpoch;
   }
 
-  bool get hasActiveFilters =>
-      startDate != null ||
-      endDate != null ||
-      diveTypeId != null ||
-      siteId != null ||
-      tripId != null ||
-      diveCenterId != null ||
-      minDepth != null ||
-      maxDepth != null ||
-      favoritesOnly == true ||
-      excludedFromStatsOnly == true ||
-      decoOnly != null ||
-      noBuddyOnly == true ||
-      tagIds.isNotEmpty ||
-      weekdays.isNotEmpty ||
-      equipmentIds.isNotEmpty ||
-      (buddyNameFilter != null && buddyNameFilter!.isNotEmpty) ||
-      buddyId != null ||
-      diveIds.isNotEmpty ||
-      minO2Percent != null ||
-      maxO2Percent != null ||
-      minRating != null ||
-      minBottomTimeMinutes != null ||
-      maxBottomTimeMinutes != null ||
-      computerId != null ||
-      (customFieldKey != null && customFieldKey!.isNotEmpty) ||
-      equipmentAttrConditions.isNotEmpty ||
-      query != null;
+  bool get hasActiveFilters => activeAxisCount > 0;
+
+  /// How many independent axes are active; a range (dates, depth, O2,
+  /// bottom time) counts once. The single list of axes: [hasActiveFilters]
+  /// is derived from it, so a new axis cannot be counted by one and missed
+  /// by the other.
+  int get activeAxisCount => [
+    startDate != null || endDate != null,
+    diveTypeId != null,
+    siteId != null,
+    tripId != null,
+    diveCenterId != null,
+    minDepth != null || maxDepth != null,
+    favoritesOnly == true,
+    excludedFromStatsOnly == true,
+    decoOnly != null,
+    noBuddyOnly == true,
+    tagIds.isNotEmpty,
+    weekdays.isNotEmpty,
+    equipmentIds.isNotEmpty,
+    buddyNameFilter != null && buddyNameFilter!.isNotEmpty,
+    buddyId != null,
+    diveIds.isNotEmpty,
+    minO2Percent != null || maxO2Percent != null,
+    minRating != null,
+    minBottomTimeMinutes != null || maxBottomTimeMinutes != null,
+    computerId != null,
+    customFieldKey != null && customFieldKey!.isNotEmpty,
+    equipmentAttrConditions.isNotEmpty,
+    // Explore's axes (#2195); a bound pair counts once, like depth.
+    minWaterTemp != null || maxWaterTemp != null,
+    minVisibility != null || maxVisibility != null,
+    waterTypes.isNotEmpty,
+    speciesIds.isNotEmpty,
+    siteIds.isNotEmpty,
+    query != null,
+  ].where((active) => active).length;
 
   /// Value equality over every axis, so an unchanged filter set again is
   /// no change to a listener, and the id-set family keyed on the filter
@@ -219,6 +256,13 @@ class DiveFilterState {
           other.customFieldKey == customFieldKey &&
           other.customFieldValue == customFieldValue &&
           listEquals(other.equipmentAttrConditions, equipmentAttrConditions) &&
+          other.minWaterTemp == minWaterTemp &&
+          other.maxWaterTemp == maxWaterTemp &&
+          other.minVisibility == minVisibility &&
+          other.maxVisibility == maxVisibility &&
+          listEquals(other.waterTypes, waterTypes) &&
+          listEquals(other.speciesIds, speciesIds) &&
+          listEquals(other.siteIds, siteIds) &&
           other.query == query;
 
   @override
@@ -250,6 +294,13 @@ class DiveFilterState {
     customFieldKey,
     customFieldValue,
     Object.hashAll(equipmentAttrConditions),
+    minWaterTemp,
+    maxWaterTemp,
+    minVisibility,
+    maxVisibility,
+    Object.hashAll(waterTypes),
+    Object.hashAll(speciesIds),
+    Object.hashAll(siteIds),
     query,
   ]);
 
@@ -281,6 +332,13 @@ class DiveFilterState {
     String? customFieldKey,
     String? customFieldValue,
     List<EquipmentAttrCondition>? equipmentAttrConditions,
+    double? minWaterTemp,
+    double? maxWaterTemp,
+    double? minVisibility,
+    double? maxVisibility,
+    List<WaterType>? waterTypes,
+    List<String>? speciesIds,
+    List<String>? siteIds,
     QueryNode? query,
     bool clearStartDate = false,
     bool clearEndDate = false,
@@ -309,9 +367,31 @@ class DiveFilterState {
     bool clearCustomFieldKey = false,
     bool clearCustomFieldValue = false,
     bool clearEquipmentAttrConditions = false,
+    bool clearMinWaterTemp = false,
+    bool clearMaxWaterTemp = false,
+    bool clearMinVisibility = false,
+    bool clearMaxVisibility = false,
+    bool clearWaterTypes = false,
+    bool clearSpeciesIds = false,
+    bool clearSiteIds = false,
     bool clearQuery = false,
   }) {
     return DiveFilterState(
+      minWaterTemp: clearMinWaterTemp
+          ? null
+          : (minWaterTemp ?? this.minWaterTemp),
+      maxWaterTemp: clearMaxWaterTemp
+          ? null
+          : (maxWaterTemp ?? this.maxWaterTemp),
+      minVisibility: clearMinVisibility
+          ? null
+          : (minVisibility ?? this.minVisibility),
+      maxVisibility: clearMaxVisibility
+          ? null
+          : (maxVisibility ?? this.maxVisibility),
+      waterTypes: clearWaterTypes ? const [] : (waterTypes ?? this.waterTypes),
+      speciesIds: clearSpeciesIds ? const [] : (speciesIds ?? this.speciesIds),
+      siteIds: clearSiteIds ? const [] : (siteIds ?? this.siteIds),
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
       endDate: clearEndDate ? null : (endDate ?? this.endDate),
       diveTypeId: clearDiveType ? null : (diveTypeId ?? this.diveTypeId),

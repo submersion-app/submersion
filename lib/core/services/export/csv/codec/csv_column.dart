@@ -15,7 +15,8 @@ class CsvColumn {
   final int? metricDecimals;
 }
 
-/// Every unit-bearing column the dives, sites and equipment exports write.
+/// Every unit-bearing column the dives, sites, equipment and fills exports
+/// write.
 abstract final class CsvColumns {
   static const maxDepth = CsvColumn(
     'Max Depth',
@@ -94,5 +95,33 @@ abstract final class CsvColumns {
     'Dry Weight',
     CsvQuantity.weight,
     metricDecimals: null,
+  );
+
+  /// Fills sheet (cylinder passports phase 5): gas pressure at the fill.
+  static const fillPressure = CsvColumn(
+    'Pressure',
+    CsvQuantity.pressure,
+    metricDecimals: 1,
+  );
+
+  /// Fills sheet: gas temperature at the reading.
+  static const fillTemperature = CsvColumn(
+    'Temperature',
+    CsvQuantity.temperature,
+    metricDecimals: 1,
+  );
+
+  /// Trip gas record (issue #2325): the fill in effect at the dive.
+  static const recordFillPressure = CsvColumn(
+    'Fill Pressure',
+    CsvQuantity.pressure,
+    metricDecimals: 1,
+  );
+
+  /// Trip gas record: free gas breathed from the tank.
+  static const gasBreathed = CsvColumn(
+    'Gas Breathed',
+    CsvQuantity.volume,
+    metricDecimals: 0,
   );
 }

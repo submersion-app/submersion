@@ -18,6 +18,7 @@ import 'package:submersion/core/database/imported_computer_backfill.dart';
 import 'package:submersion/core/database/performance_indexes.dart';
 import 'package:submersion/core/database/profile_series_pack_coverage.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
+import 'package:submersion/core/database/profile_series_safety_stop_scrub.dart';
 import 'package:submersion/core/database/raw_dive_data_codec.dart';
 import 'package:submersion/core/database/site_classification_uniqueness.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
@@ -27,8 +28,10 @@ import 'package:submersion/core/constants/enums.dart';
 
 part 'before_open.dart';
 part 'helpers/buddy_migrations.dart';
+part 'helpers/connection_migrations.dart';
 part 'helpers/cylinder_migrations.dart';
 part 'helpers/data_source_migrations.dart';
+part 'helpers/derived_metrics_migrations.dart';
 part 'helpers/dive_migrations.dart';
 part 'helpers/dive_plan_migrations.dart';
 part 'helpers/dive_profile_migrations.dart';

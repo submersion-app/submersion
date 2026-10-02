@@ -132,4 +132,17 @@ extension DivePlanMigrations on AppDatabase {
       );
     }
   }
+
+  /// Idempotent creation of the v244 DPV mission tables (issue #2086).
+  /// Called from the v244 rung and the beforeOpen backstop.
+  ///
+  /// Not guarded on dive_plans: SQLite accepts a REFERENCES clause to a
+  /// table that does not exist yet, so the create does not depend on where
+  /// it runs relative to the v100 backstop that re-creates dive_plans.
+  Future<void> _assertDivePlanMissionSchema() async {
+    final migrator = Migrator(this);
+    await migrator.createTable(divePlanMissions);
+    await migrator.createTable(divePlanMissionLegs);
+    await migrator.createTable(divePlanMissionMembers);
+  }
 }

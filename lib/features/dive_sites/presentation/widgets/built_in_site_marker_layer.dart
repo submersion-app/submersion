@@ -5,11 +5,13 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
+import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 
 /// A recessive marker-cluster layer for built-in (bundled) dive sites.
 /// Rendered BELOW the user-site layer and clustered separately, so built-in
 /// markers never merge into the user's clusters. Markers are hollow grey pins,
-/// smaller than the user's filled circles.
+/// smaller than the user's filled circles. Repeats across the date line with
+/// the user-site layer (issue #2516).
 class BuiltInSiteMarkerLayer extends StatelessWidget {
   final List<ExternalDiveSite> sites;
   final String? selectedExternalId;
@@ -28,7 +30,7 @@ class BuiltInSiteMarkerLayer extends StatelessWidget {
   Widget build(BuildContext context) {
     if (sites.isEmpty) return const SizedBox.shrink();
 
-    return MarkerClusterLayerWidget(
+    return WorldWrappedMarkerClusterLayer(
       options: MarkerClusterLayerOptions(
         maxClusterRadius: 80,
         size: const Size(40, 40),

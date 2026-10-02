@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/pdf_roboto.dart';
 import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -24,6 +25,9 @@ void main() {
     timeFormat: TimeFormat.twentyFourHour,
   );
   const units = UnitFormatter(AppSettings());
+
+  setUpAll(loadPdfRoboto);
+  tearDownAll(unloadPdfRoboto);
 
   setUp(setUpTestDatabase);
   tearDown(tearDownTestDatabase);

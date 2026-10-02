@@ -39,17 +39,155 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<void> seedDive(String id, int diveDateTimeMs, {int? exitTimeMs}) => db
+  Future<void> seedDive(
+    String id,
+    int diveDateTimeMs, {
+    int? exitTimeMs,
+    String? diverId,
+  }) => db
       .into(db.dives)
       .insert(
         DivesCompanion.insert(
           id: id,
+          diverId: Value(diverId),
           diveDateTime: diveDateTimeMs,
           exitTime: Value(exitTimeMs),
           createdAt: diveDateTimeMs,
           updatedAt: diveDateTimeMs,
         ),
       );
+
+  group('scoped to the active diver', () {
+    late NavTrackImportService mine;
+    final routeStart = DateTime.utc(2025, 1, 15, 16, 16, 7);
+
+    setUp(() async {
+      for (final id in ['me', 'buddy']) {
+        await db.customStatement(
+          "INSERT INTO divers (id, name, created_at, updated_at) "
+          "VALUES ('$id', '$id', 1, 1)",
+        );
+      }
+      mine = NavTrackImportService(
+        routeRepository: routeRepo,
+        diveRepository: diveRepo,
+        currentDiverId: () async => 'me',
+      );
+    });
+
+    test('proposes only the active diver\'s overlapping dive', () async {
+      for (final (id, diver) in [('my-dive', 'me'), ('buddy-dive', 'buddy')]) {
+        await seedDive(
+          id,
+          routeStart.millisecondsSinceEpoch,
+          exitTimeMs: routeStart
+              .add(const Duration(hours: 1))
+              .millisecondsSinceEpoch,
+          diverId: diver,
+        );
+      }
+
+      final preview = await mine.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.candidateDives.map((d) => d.id), ['my-dive']);
+    });
+
+    test('offers only the active diver\'s dives as nearest', () async {
+      final earlier = routeStart.subtract(const Duration(hours: 2));
+      await seedDive(
+        'buddy-dive',
+        earlier.millisecondsSinceEpoch,
+        diverId: 'buddy',
+      );
+      await seedDive(
+        'my-dive',
+        earlier.subtract(const Duration(days: 1)).millisecondsSinceEpoch,
+        diverId: 'me',
+      );
+
+      final preview = await mine.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.candidateDives, isEmpty);
+      expect(preview.nearbyDives.map((d) => d.id), ['my-dive']);
+    });
+
+    test(
+      'never flags another diver\'s route as the duplicate to replace',
+      () async {
+        final buddy = NavTrackImportService(
+          routeRepository: routeRepo,
+          diveRepository: diveRepo,
+          currentDiverId: () async => 'buddy',
+        );
+        final first = await buddy.prepare(
+          _fixture('seacraft_enc3_short.csv'),
+          fileName: '005.DAT.csv',
+        );
+        await buddy.commit(
+          parsed: first.parsed,
+          sourceRef: first.sourceRef,
+          diverId: first.diverId,
+        );
+
+        final preview = await mine.prepare(
+          _fixture('seacraft_enc3_short.csv'),
+          fileName: '005.DAT.csv',
+        );
+
+        expect(preview.duplicateOfRouteId, isNull);
+      },
+    );
+
+    test('a profile switch during review changes neither the proposal\'s '
+        'scope nor the saved route\'s owner', () async {
+      var active = 'me';
+      final switching = NavTrackImportService(
+        routeRepository: routeRepo,
+        diveRepository: diveRepo,
+        currentDiverId: () async => active,
+      );
+      final preview = await switching.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+      expect(preview.diverId, 'me');
+
+      active = 'buddy';
+      final id = await switching.commit(
+        parsed: preview.parsed,
+        sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
+      );
+
+      final owner = await db
+          .customSelect("SELECT diver_id FROM nav_tracks WHERE id = '$id'")
+          .getSingle();
+      expect(owner.read<String?>('diver_id'), 'me');
+    });
+
+    test('an unlinked route belongs to the diver who imported it', () async {
+      final preview = await mine.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+      final id = await mine.commit(
+        parsed: preview.parsed,
+        sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
+      );
+
+      final owner = await db
+          .customSelect("SELECT diver_id FROM nav_tracks WHERE id = '$id'")
+          .getSingle();
+      expect(owner.read<String?>('diver_id'), 'me');
+    });
+  });
 
   group('prepare', () {
     test('parses a real ENC3 fixture and reports its stats', () async {
@@ -90,6 +228,52 @@ void main() {
       );
 
       expect(preview.candidateDives.map((d) => d.id), ['d1']);
+      // An overlap match is the whole proposal; the nearest-dive fallback
+      // is only for a recording nothing overlaps.
+      expect(preview.nearbyDives, isEmpty);
+    });
+
+    test('offers the nearest dives by start time when no dive overlaps, '
+        'e.g. a recording console clock set 2 hours ahead', () async {
+      // The short fixture starts 15.1.2025 16:16:07 local-as-UTC; the dives
+      // were logged by a dive computer 2 hours behind the console.
+      final routeStart = DateTime.utc(2025, 1, 15, 16, 16, 7);
+      final twoHoursEarlier = routeStart.subtract(const Duration(hours: 2));
+      await seedDive(
+        'right-dive',
+        twoHoursEarlier.millisecondsSinceEpoch,
+        exitTimeMs: twoHoursEarlier
+            .add(const Duration(minutes: 50))
+            .millisecondsSinceEpoch,
+      );
+      final dayBefore = routeStart.subtract(const Duration(days: 1));
+      await seedDive(
+        'day-before',
+        dayBefore.millisecondsSinceEpoch,
+        exitTimeMs: dayBefore
+            .add(const Duration(minutes: 50))
+            .millisecondsSinceEpoch,
+      );
+
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.candidateDives, isEmpty);
+      expect(preview.nearbyDives.map((d) => d.id), [
+        'right-dive',
+        'day-before',
+      ]);
+    });
+
+    test('offers nothing when the log has no dives at all', () async {
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+      expect(preview.candidateDives, isEmpty);
+      expect(preview.nearbyDives, isEmpty);
     });
 
     test('reports no duplicate for a fresh import', () async {
@@ -109,6 +293,7 @@ void main() {
       final firstId = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
       );
 
       final reimport = await service.prepare(
@@ -162,6 +347,7 @@ void main() {
         final id = await service.commit(
           parsed: preview.parsed,
           sourceRef: preview.sourceRef,
+          diverId: preview.diverId,
         );
 
         final route = await routeRepo.getById(id);
@@ -182,6 +368,7 @@ void main() {
       final id = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
         dive: chosenDive,
       );
 
@@ -202,6 +389,7 @@ void main() {
       final id = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
         siteId: 's1',
       );
 
@@ -222,6 +410,7 @@ void main() {
       final id = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
         equipmentId: 'eq1',
       );
 
@@ -238,6 +427,7 @@ void main() {
       final id = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
       );
 
       final route = await routeRepo.getById(id);
@@ -254,11 +444,13 @@ void main() {
       final oldId = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
       );
 
       final newId = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
         replacingRouteId: oldId,
       );
 
@@ -277,6 +469,7 @@ void main() {
       final oldId = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
         dive: dive,
       );
       // A second route on the same dive, recorded before the fixture, so
@@ -294,6 +487,7 @@ void main() {
       final newId = await service.commit(
         parsed: preview.parsed,
         sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
         dive: dive,
         replacingRouteId: oldId,
       );

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
+import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
 
 /// Permission status for photo library access.
 enum PhotoPermissionStatus {
@@ -60,6 +61,14 @@ class AssetInfo {
   /// `MediaImportService`.
   final String? filePath;
 
+  /// Where [createDateTime] was read from, when the picker read the file
+  /// itself (Windows / Linux). Null for a platform photo library, whose own
+  /// creation date is the capture time.
+  ///
+  /// [TakenAtSource.fileModifiedTime] means the file carried no capture date
+  /// at all, so the review page can say that rather than a bare "no match".
+  final TakenAtSource? takenAtSource;
+
   const AssetInfo({
     required this.id,
     required this.type,
@@ -71,6 +80,7 @@ class AssetInfo {
     this.longitude,
     this.filename,
     this.filePath,
+    this.takenAtSource,
   });
 
   /// Whether this asset is a video.

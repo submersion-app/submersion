@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/presentation/widgets/service_sched
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The Service clocks card on the equipment detail page: one row per
 /// schedule with severity dot, binding trigger text, and per-clock actions.
@@ -240,17 +241,30 @@ class ServiceClocksCard extends ConsumerWidget {
                             color: Theme.of(context).colorScheme.outline,
                           ),
                         ),
-                        subtitle: Text(l10n.equipment_serviceClocks_paused),
-                        trailing: TextButton(
-                          onPressed: () async {
-                            await ref
-                                .read(serviceScheduleRepositoryProvider)
-                                .updateSchedule(
-                                  schedule.copyWith(enabled: true),
+                        // Resume sits on its own line under "Paused" rather
+                        // than in trailing: a ListTile lays trailing out at
+                        // its natural width first, so a translated label
+                        // there starves the kind name (issue #2717).
+                        subtitle: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(l10n.equipment_serviceClocks_paused),
+                            TileSubtitleAction(
+                              onPressed: () async {
+                                await ref
+                                    .read(serviceScheduleRepositoryProvider)
+                                    .updateSchedule(
+                                      schedule.copyWith(enabled: true),
+                                    );
+                                invalidateServiceClockProviders(
+                                  ref,
+                                  equipmentId,
                                 );
-                            invalidateServiceClockProviders(ref, equipmentId);
-                          },
-                          child: Text(l10n.equipment_serviceClocks_resume),
+                              },
+                              label: l10n.equipment_serviceClocks_resume,
+                            ),
+                          ],
                         ),
                       ),
                   ],

@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/fake_hosts.dart';
 import '../../../../helpers/test_database.dart';
 
 /// The dive list and dive detail exports reach the Detailed template through
@@ -29,6 +30,13 @@ import '../../../../helpers/test_database.dart';
 /// a minute ticking over between two exports can change their sizes (#2446,
 /// see pdf_export_generated_at_test.dart).
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   late PdfExportService service;
 
   final dates = PdfDateFormatter(

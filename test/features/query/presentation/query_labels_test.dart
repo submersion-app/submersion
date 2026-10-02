@@ -80,7 +80,24 @@ void main() {
     expect(labels.op(QueryOp.isEmpty), 'is not set');
     expect(labels.enumValue(dives.field('waterType')!, 'salt'), 'Salt Water');
     expect(labels.enumValue(dives.field('weekday')!, 'monday'), 'Mon');
+    expect(labels.enumValue(dives.field('sacTrend')!, 'rising'), 'Rising');
+    expect(labels.enumValue(dives.field('finalStop')!, 'noStop'), 'No stop');
+    final rule = appQueryRegistry
+        .entityFor(QuerySubject.findings)
+        .field('rule')!;
+    expect(labels.enumValue(rule, 'rapidAscent'), 'Rapid ascents');
+    expect(labels.enumValue(rule, 'noSuchRule'), 'noSuchRule');
     // An unknown enum value falls back to its stored name.
     expect(labels.enumValue(dives.field('waterType')!, 'brine'), 'brine');
+    final certs = appQueryRegistry.entityFor(QuerySubject.certifications);
+    expect(labels.enumValue(certs.field('agency')!, 'padi'), 'PADI');
+    expect(labels.enumValue(certs.field('level')!, 'rescue'), 'Rescue Diver');
+    final courses = appQueryRegistry.entityFor(QuerySubject.courses);
+    expect(labels.enumValue(courses.field('agency')!, 'padi'), 'PADI');
+    final species = appQueryRegistry.entityFor(QuerySubject.species);
+    expect(
+      labels.enumValue(species.field('category')!, 'plant'),
+      'Plant/Algae',
+    );
   });
 }

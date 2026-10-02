@@ -9,7 +9,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
-import 'package:submersion/features/query/data/query_name_index.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/query/domain/entities/saved_query.dart';
 
 /// Why a saved row cannot be used as saved (spec Unit 7): unreadable JSON
@@ -48,7 +48,7 @@ List<FieldPath> unresolvedRefPaths(
   QueryNode node,
   QueryEntity root,
   QueryRegistry registry,
-  QueryNameIndex names,
+  NameIndex names,
 ) {
   final out = <FieldPath>[];
   void walk(QueryNode n, QueryEntity scope, List<String> prefix) {
@@ -94,7 +94,7 @@ QueryNode refreshRefLabels(
   QueryNode node,
   QueryEntity root,
   QueryRegistry registry,
-  QueryNameIndex names,
+  NameIndex names,
 ) {
   RefValue fresh(QuerySubject target, RefValue ref) {
     final label = names.labelOf(target, ref.id);
@@ -141,7 +141,7 @@ QueryNode refreshRefLabels(
 SavedQueryLoad loadSavedQuery(
   SavedQuery saved,
   QueryRegistry registry,
-  QueryNameIndex names,
+  NameIndex names,
 ) {
   final subject = saved.querySubject;
   final root = subject == null ? null : registry.maybeEntityFor(subject);

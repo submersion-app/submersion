@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
@@ -17,14 +18,18 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// Control-based activators here.
 void main() {
   Future<void> pumpShell(WidgetTester tester, Widget body) async {
+    // The app shell always sits under a ProviderScope; the bindings read
+    // the Explore platform gate from it.
     await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Builder(
-          builder: (context) => CallbackShortcuts(
-            bindings: AppShortcuts.globalBindings(context),
-            child: Focus(autofocus: true, child: Scaffold(body: body)),
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => CallbackShortcuts(
+              bindings: AppShortcuts.globalBindings(context),
+              child: Focus(autofocus: true, child: Scaffold(body: body)),
+            ),
           ),
         ),
       ),
@@ -151,9 +156,13 @@ void main() {
   });
 
   group('shortcuts help catalog entries', () {
-    // No clear() first: the widget tests above already registered through
-    // globalBindings, and AppShortcuts' static flag would stop a re-register.
-    setUpAll(AppShortcuts.ensureRegistered);
+    // Another file in the isolate may have cleared the catalog after the
+    // shortcuts were registered. Start from a known state.
+    setUpAll(() {
+      ShortcutCatalog.instance.clear();
+      AppShortcuts.debugReset();
+      AppShortcuts.ensureRegistered();
+    });
 
     test('lists both "?" and Ctrl+/ for the keyboard shortcuts help', () {
       final helpKeys = ShortcutCatalog.instance.entries

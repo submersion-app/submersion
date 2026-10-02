@@ -26,6 +26,9 @@ class _StubTripListNotifier
   _StubTripListNotifier(List<TripWithStats> trips)
     : super(AsyncValue.data(trips));
 
+  _StubTripListNotifier.failed(Object error)
+    : super(AsyncValue.error(error, StackTrace.empty));
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -188,5 +191,31 @@ void main() {
           '${upcoming.day.toString().padLeft(2, '0')}';
       expect(find.textContaining('$iso • In '), findsOneWidget);
     });
+  });
+
+  testWidgets('a failed trip load says so without the exception', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          tripListNotifierProvider.overrideWith(
+            (ref) =>
+                _StubTripListNotifier.failed(StateError('database is locked')),
+          ),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: TripSummaryWidget(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text("Couldn't load your trips."), findsOneWidget);
+    expect(find.textContaining('database is locked'), findsNothing);
   });
 }

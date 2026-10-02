@@ -28,6 +28,13 @@ class FolderPickException implements Exception {
 }
 
 /// Outcome of the startup accessibility check for a custom DB location.
+///
+/// No outcome changes the stored configuration. The check used to reset it on
+/// macOS and iOS when the database could not be read, with nothing said on
+/// screen, so the next launch opened an empty default database while the
+/// diver's real one sat untouched in their folder (#2178). Going back to the
+/// default location is now something only the diver can choose, from the
+/// startup failure screen.
 enum StartupLocationCheck {
   /// No custom location configured; nothing to check.
   defaultLocation,
@@ -36,18 +43,34 @@ enum StartupLocationCheck {
   accessible,
 
   /// The folder is configured but holds no database yet -- the normal
-  /// first launch after choosing a location. The configuration is KEPT on
-  /// every platform; the database is created at the chosen path.
+  /// first launch after choosing a location. The database is created at the
+  /// chosen path.
   keptDatabaseMissing,
 
-  /// Custom database is not accessible, but the configuration is KEPT
-  /// (non-sandbox platforms; the open will create the file or surface a
-  /// real error instead of silently discarding the user's choice, #218).
+  /// The folder itself cannot be read: one the sandbox no longer grants, a
+  /// permissions fault on the folder. The open surfaces a real error (#218).
   keptInaccessible,
 
-  /// Custom database is not accessible and the configuration was reset
-  /// (sandbox platforms, where folder access can be permanently revoked).
-  resetToDefault,
+  /// The folder can be read but the database in it cannot be opened: a
+  /// permissions fault on the file, or something that is not a file at all.
+  /// The folder is fine, so this is not [isUnreachable]; the failure screen
+  /// keeps the routes that repair or replace the file.
+  keptDatabaseUnreadable,
+
+  /// The custom database is in iCloud but its contents are not on this
+  /// device. Not [isUnreachable]: it is a fetch still to happen, which
+  /// startup does under the splash instead of creating an empty dive log
+  /// (#2177).
+  keptNotDownloaded,
+
+  /// The configured folder itself is not there: an unplugged drive, a share
+  /// that is not mounted, a folder that was moved or deleted.
+  keptFolderMissing;
+
+  /// Whether the configured folder cannot be used as things stand.
+  bool get isUnreachable =>
+      this == StartupLocationCheck.keptInaccessible ||
+      this == StartupLocationCheck.keptFolderMissing;
 }
 
 class DatabaseLocationService {
@@ -265,65 +288,189 @@ class DatabaseLocationService {
     await saveStorageConfig(config.copyWith(lastVerified: DateTime.now()));
   }
 
-  /// Clear the storage configuration and reset to default
-  /// Verifies a configured custom database location at startup (#218).
+  /// Stamps a custom location as one that has held a dive log, if nothing
+  /// has stamped it yet (#2177).
   ///
-  /// On bookmark platforms (macOS/iOS) an inaccessible custom database
-  /// resets to the default location: the sandbox may permanently revoke
-  /// folder access, and opening at the default path beats crashing. On
-  /// every other platform the user's choice is KEPT -- there is no sandbox
-  /// to lose access to, a missing file is created by the open, and the old
-  /// unconditional reset made the setting appear to never persist on
-  /// Linux.
+  /// Called once a dive log has opened there. Every flow that saves a custom
+  /// location stamps it today, but configurations saved before the stamp
+  /// existed carry none, and without it a later loss reads as a first launch
+  /// and an empty dive log is created in its place. This records a fact the
+  /// app just observed; it changes no choice the diver made.
+  Future<void> markCustomLocationVerified() async {
+    final config = await getStorageConfig();
+    if (!config.isCustomLocation || config.lastVerified != null) return;
+    await saveStorageConfig(config.copyWith(lastVerified: DateTime.now()));
+  }
+
+  /// Restores access to a configured custom database location, then reports
+  /// on it (#218).
+  ///
+  /// On bookmark platforms (macOS/iOS) the stored security-scoped bookmark is
+  /// resolved first, because the sandbox drops folder access when the app
+  /// quits. The diver's choice is KEPT whatever the check finds, on every
+  /// platform: a folder that cannot be read right now is very often one that
+  /// can be read later, and the failed open reports it on screen (#2178).
+  /// A database iCloud holds but has not downloaded is left unread: that is a
+  /// fetch still to happen, not lost access (#2177).
   Future<StartupLocationCheck> validateCustomLocationAtStartup({
     bool? isBookmarkPlatform,
   }) async {
     final bookmarkPlatform =
         isBookmarkPlatform ?? SecurityScopedBookmarkService.isSupported;
+    final config = await restoreCustomLocationAccess(
+      isBookmarkPlatform: bookmarkPlatform,
+    );
+    return _check(config, sandboxed: bookmarkPlatform);
+  }
+
+  /// The part of [validateCustomLocationAtStartup] that opening the database
+  /// depends on: restores sandbox access through the stored bookmark and
+  /// follows a folder the bookmark tracked to a new path. Returns the config
+  /// in force afterwards. Reads nothing in the folder.
+  ///
+  /// Split out so startup can await just this before its first frame and
+  /// leave the check, which only feeds a log line there, unawaited: on a dead
+  /// network mount each of its file calls can block for the network timeout.
+  Future<StorageConfig> restoreCustomLocationAccess({
+    bool? isBookmarkPlatform,
+  }) async {
+    final bookmarkPlatform =
+        isBookmarkPlatform ?? SecurityScopedBookmarkService.isSupported;
     final config = await getStorageConfig();
-    if (config.mode != StorageLocationMode.customFolder ||
-        config.customFolderPath == null) {
+    if (!config.isCustomLocation || !bookmarkPlatform || !hasStoredBookmark()) {
+      return config;
+    }
+    final resolved = await resolveStoredBookmark();
+    return _followMovedFolder(config, resolved);
+  }
+
+  /// Points the config at the folder's new path when the bookmark followed a
+  /// folder the diver moved or renamed.
+  ///
+  /// The same folder, not a new choice: a bookmark tracks its folder across a
+  /// move, the stored path does not. Only a stored path that is GONE is
+  /// replaced, and only by one that exists, so a folder still where the diver
+  /// put it is never second-guessed.
+  Future<StorageConfig> _followMovedFolder(
+    StorageConfig config,
+    String? resolved,
+  ) async {
+    final stored = config.customFolderPath;
+    if (resolved == null || stored == null || p.equals(resolved, stored)) {
+      return config;
+    }
+    if (await Directory(stored).exists() ||
+        !await Directory(resolved).exists()) {
+      return config;
+    }
+    debugPrint('Custom folder moved: $stored -> $resolved (from its bookmark)');
+    final moved = config.copyWith(customFolderPath: resolved);
+    await saveStorageConfig(moved);
+    return moved;
+  }
+
+  /// Reports on a configured custom database location, changing nothing.
+  ///
+  /// Separate from [validateCustomLocationAtStartup] so the startup failure
+  /// screen can ask again without resolving the bookmark a second time, which
+  /// would start another security-scoped access that nothing stops.
+  Future<StartupLocationCheck> checkCustomLocation() async =>
+      _check(await getStorageConfig());
+
+  Future<StartupLocationCheck> _check(
+    StorageConfig config, {
+    bool? sandboxed,
+  }) async {
+    final folder = config.customFolderPath;
+    if (!config.isCustomLocation || folder == null) {
       return StartupLocationCheck.defaultLocation;
     }
 
-    if (bookmarkPlatform && hasStoredBookmark()) {
-      await resolveStoredBookmark();
+    final dbPath = p.join(folder, databaseFilename);
+
+    // A dive log iCloud has evicted is a fetch still to happen, not lost
+    // access, so it is kept and left unread. Reading an evicted file would
+    // fetch all of it before the read returned, with no limit and before the
+    // app has drawn a frame. Startup fetches it instead, under the splash,
+    // where it can say what is happening and give up (#2177).
+    if (await isOnlyInICloud(dbPath)) {
+      return StartupLocationCheck.keptNotDownloaded;
     }
 
-    final dbPath = await getDatabasePath();
-    final file = File(dbPath);
-
-    // Nothing at the path is NOT an access failure: it is the first launch
-    // after choosing a folder. Resetting here would wipe a freshly-chosen
-    // location before the database was ever created (#218). Anything that
-    // DOES occupy the path (including a directory) has to be opened to
-    // decide, so test the entity type rather than File.exists().
+    // Nothing at the path is NOT an access failure when the folder is there:
+    // it is the first launch after choosing it (#218). Anything that DOES
+    // occupy the path (including a directory) has to be opened to decide, so
+    // test the entity type rather than File.exists().
     if (await FileSystemEntity.type(dbPath) == FileSystemEntityType.notFound) {
-      return StartupLocationCheck.keptDatabaseMissing;
+      if (!await Directory(folder).exists()) {
+        return StartupLocationCheck.keptFolderMissing;
+      }
+      // A folder that cannot be entered hides its contents, so the database
+      // reads as absent. That is lost access, not a first launch.
+      return await _canList(folder)
+          ? StartupLocationCheck.keptDatabaseMissing
+          : StartupLocationCheck.keptInaccessible;
     }
 
-    var canAccess = false;
-    RandomAccessFile? handle;
-    try {
-      handle = await file.open(mode: FileMode.read);
-      await handle.read(16);
-      canAccess = true;
-    } catch (_) {
-      canAccess = false;
-    } finally {
-      // Close even when the read throws, or the handle leaks on every
-      // launch that hits a revoked-permission folder.
-      await handle?.close();
-    }
-
-    if (canAccess) return StartupLocationCheck.accessible;
-    if (bookmarkPlatform) {
-      await resetToDefault();
-      return StartupLocationCheck.resetToDefault;
-    }
-    return StartupLocationCheck.keptInaccessible;
+    final error = await readProbeError(dbPath);
+    if (error == null) return StartupLocationCheck.accessible;
+    return unreadableVerdict(
+      error,
+      folderListable: await _canList(folder),
+      sandboxed: sandboxed ?? SecurityScopedBookmarkService.isSupported,
+    );
   }
 
+  /// Decides whether a database that would not open is the FOLDER's fault.
+  ///
+  /// A folder that cannot be listed always is. But listing alone cannot
+  /// decide it: a security-scoped folder can still be listed after the
+  /// sandbox refuses its files (the headless guard in background_service.dart
+  /// was written against exactly that). The refusal is the sandbox's
+  /// signature instead: it denies a read with EPERM ("Operation not
+  /// permitted"), where plain file permissions answer EACCES. So on a
+  /// [sandboxed] platform EPERM blames the folder. Anything else in a folder
+  /// that can be read is the file.
+  @visibleForTesting
+  static StartupLocationCheck unreadableVerdict(
+    Object error, {
+    required bool folderListable,
+    required bool sandboxed,
+  }) {
+    if (!folderListable) return StartupLocationCheck.keptInaccessible;
+    if (sandboxed &&
+        error is FileSystemException &&
+        error.osError?.errorCode == _ePerm) {
+      return StartupLocationCheck.keptInaccessible;
+    }
+    return StartupLocationCheck.keptDatabaseUnreadable;
+  }
+
+  /// POSIX EPERM, which macOS and iOS share.
+  static const int _ePerm = 1;
+
+  /// Whether [folder]'s contents can be listed. Never throws.
+  static Future<bool> _canList(String folder) async {
+    try {
+      await Directory(folder).list().isEmpty;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// The configured custom folder, when it cannot be used as things stand.
+  ///
+  /// Null at the default location and whenever the folder is reachable, so a
+  /// startup failure with some other cause is never blamed on the folder.
+  Future<String?> unreachableCustomFolder() async {
+    final config = await getStorageConfig();
+    final check = await _check(config);
+    return check.isUnreachable ? config.customFolderPath : null;
+  }
+
+  /// Clears the storage configuration, so the app goes back to its default
+  /// location. Nothing at the custom location is moved or deleted.
   Future<void> resetToDefault() async {
     // Stop accessing any security-scoped resource first
     await SecurityScopedBookmarkService.stopAccessingSecurityScopedResource();
@@ -483,4 +630,30 @@ Future<String?> resolveAndroidDbDir(
   final dbDir = p.join(chosen.path, kAppDocumentsFolder);
   await Directory(dbDir).create(recursive: true);
   return dbDir;
+}
+
+/// Why [path] cannot be read, or null when it can.
+///
+/// Opens it and reads the first 16 bytes (the SQLite header), which is what
+/// proves access: a sandboxed folder can be stat-ed and still refuse the
+/// open. Shared by the foreground startup check and the headless background
+/// guard so the two can never disagree about readability. Never throws.
+Future<Object?> readProbeError(String path) async {
+  RandomAccessFile? handle;
+  try {
+    handle = await File(path).open(mode: FileMode.read);
+    await handle.read(16);
+    return null;
+  } catch (e) {
+    return e;
+  } finally {
+    // Close even when the read throws, or the handle leaks on every launch
+    // that hits a revoked-permission folder. Guarded, because an exception
+    // raised in a finally block REPLACES the answer the try/catch settled on.
+    try {
+      await handle?.close();
+    } catch (_) {
+      // Nothing to do: the probe's answer is already decided.
+    }
+  }
 }

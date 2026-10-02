@@ -276,4 +276,11 @@ extension ServiceMigrations on AppDatabase {
       }
     }
   }
+
+  /// v242: the local service-due cache (issue #2365). Idempotent; skipped
+  /// on a partial fixture with no equipment table to reference.
+  Future<void> _assertEquipmentServiceStatusTable() async {
+    if (!await _tableExists('equipment')) return;
+    await Migrator(this).createTable(equipmentServiceStatus);
+  }
 }

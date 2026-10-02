@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/utils/two_digit_year.dart';
 import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/date_order.dart';
 
@@ -336,7 +337,7 @@ class TimeResolver {
   /// first reading is not a real date.
   DateTime? _parseYearLast(YearLastDate date, DateOrder? order) {
     final year = date.year.length == 2
-        ? _expandTwoDigitYear(int.parse(date.year))
+        ? expandTwoDigitYear(int.parse(date.year), now: _clock())
         : int.parse(date.year);
     final preferred =
         order ??
@@ -352,13 +353,6 @@ class TimeResolver {
               ? DateOrder.monthFirst
               : DateOrder.dayFirst,
         );
-  }
-
-  /// The latest year ending in [twoDigits] that is not in the future.
-  int _expandTwoDigitYear(int twoDigits) {
-    final thisYear = _clock().year;
-    final candidate = thisYear - thisYear % 100 + twoDigits;
-    return candidate > thisYear ? candidate - 100 : candidate;
   }
 
   /// A UTC midnight for the given parts, or null if they are not a real date

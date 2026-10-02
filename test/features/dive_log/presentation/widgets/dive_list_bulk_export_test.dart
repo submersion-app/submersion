@@ -35,9 +35,11 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 
 import '../../../../helpers/dive_participants.dart';
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
 
 Dive _dive(String id, {DiveSite? site}) {
@@ -169,7 +171,7 @@ class _RecordingExportService implements ExportService {
   Future<String> exportDivesToUddf(
     List<Dive> dives, {
     List<DiveSite>? sites,
-    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
@@ -184,7 +186,7 @@ class _RecordingExportService implements ExportService {
   Future<String?> saveDivesToUddfFile(
     List<Dive> dives, {
     List<DiveSite>? sites,
-    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
@@ -325,8 +327,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
+    await enterSelectionViaMenu(tester);
     await tester.tap(_tile('d1'));
     await tester.pumpAndSettle();
     await tester.tap(_tile('d2'));
@@ -671,8 +672,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
+    await enterSelectionViaMenu(tester);
     await tester.tap(_tile('d1'));
     await tester.pumpAndSettle();
     await tester.tap(_tile('d2'));

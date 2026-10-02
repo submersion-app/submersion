@@ -161,10 +161,6 @@ void main() {
       );
     });
 
-    test('extractMetadata returns null', () async {
-      expect(await resolver().extractMetadata(_gallery(assetId: 'A')), isNull);
-    });
-
     test('names the origin device when a label is known', () async {
       final labelled = PlatformGalleryResolver(
         resolutionService: _UnconsultedResolutionService(),
@@ -292,12 +288,6 @@ void main() {
         expect(await r.verify(row), VerifyResult.notFound);
       },
     );
-  });
-
-  test('extractMetadata returns null when assetId missing', () async {
-    final r = PlatformGalleryResolver(resolutionService: _unavailableService());
-    final m = await r.extractMetadata(_gallery(assetId: null));
-    expect(m, isNull);
   });
 
   test('verify returns notFound when assetId missing', () async {

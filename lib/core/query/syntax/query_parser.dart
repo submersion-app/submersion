@@ -16,9 +16,8 @@ import 'package:submersion/core/query/units/unit_prefs.dart';
 export 'package:submersion/core/query/domain/query_errors.dart'
     show ParseFailure, ParseOk, ParseResult;
 
-/// Resolves a typed name to a row of [kind]. The NameIndex from Explore
-/// implements this in PR 5 of #2365; PR 2's editor builds one from the
-/// repositories.
+/// Resolves a typed name to a row of [kind]. `NameIndex` in
+/// lib/core/query/names/ implements this (#2365).
 abstract class NameResolver {
   RefValue? resolve(QuerySubject kind, String text);
   List<String> candidates(QuerySubject kind, String text);

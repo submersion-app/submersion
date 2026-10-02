@@ -10,7 +10,6 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 
 /// Resolves [MediaSourceType.platformGallery] items via [photo_manager].
@@ -71,8 +70,8 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     }
   }
 
-  /// [assetReader] performs the byte and metadata reads once an id is
-  /// resolved. Production uses photo_manager; tests inject a fake library.
+  /// [assetReader] performs the byte reads and existence checks once an id
+  /// is resolved. Production uses photo_manager; tests inject a fake library.
   ///
   /// [localDeviceId] names this device, so a miss can be judged by where the
   /// row was linked. Fetched lazily, only when a search fails, and memoized
@@ -252,15 +251,6 @@ class PlatformGalleryResolver implements MediaSourceResolver {
 
   Future<Uint8List?> _thumbBytes(String id, int width, int height) =>
       _reader.thumbnailBytes(id, width, height);
-
-  @override
-  Future<MediaSourceMetadata?> extractMetadata(MediaItem item) async {
-    final assetId = item.platformAssetId;
-    if (assetId == null || assetId.isEmpty || !_hasPhotoLibrary) return null;
-    final resolvedId = await _resolveId(item);
-    if (resolvedId == null) return null;
-    return _reader.metadata(resolvedId);
-  }
 
   @override
   Future<VerifyResult> verify(MediaItem item) async {

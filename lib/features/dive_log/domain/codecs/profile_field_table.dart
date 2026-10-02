@@ -54,3 +54,14 @@ const List<ProfileField> kProfileFieldTableV1 = [
   ProfileField('o2_sensor_mv5', ProfileFieldKind.deltaInt),
   ProfileField('o2_sensor_mv6', ProfileFieldKind.deltaInt),
 ];
+
+/// Codec v2: v1 plus the tissue-loading figures a dive computer reports per
+/// sample, both whole percents. `gf99` is the computer's own GF99 (Shearwater,
+/// UDDF `<gradientfactor>`); `n2_load` its aggregate N2 tissue loading
+/// (Garmin FIT `n2_load`). Same freeze rule as v1: append under a new
+/// version, never edit.
+const List<ProfileField> kProfileFieldTableV2 = [
+  ...kProfileFieldTableV1,
+  ProfileField('gf99', ProfileFieldKind.deltaInt),
+  ProfileField('n2_load', ProfileFieldKind.deltaInt),
+];

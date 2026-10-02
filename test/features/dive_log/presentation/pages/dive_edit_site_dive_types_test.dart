@@ -118,19 +118,6 @@ void main() {
     await pumpFrames(tester);
   }
 
-  /// The Conditions section is collapsed by default and its children are not
-  /// mounted while collapsed. The whole header row is the toggle tap target.
-  Future<void> expandConditions(WidgetTester tester) async {
-    final header = find.text('Conditions');
-    await tester.scrollUntilVisible(
-      header,
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(header);
-    await pumpFrames(tester);
-  }
-
   List<String> selectedDiveTypeIds(WidgetTester tester) => tester
       .widget<DiveTypeMultiSelectField>(find.byType(DiveTypeMultiSelectField))
       .selectedTypeIds;
@@ -140,7 +127,6 @@ void main() {
       tester,
       siteTypes: [siteType('wreck', 'Wreck'), siteType('reef', 'Reef')],
     );
-    await expandConditions(tester);
 
     expect(selectedDiveTypeIds(tester), ['recreational', 'wreck']);
   });
@@ -160,7 +146,6 @@ void main() {
 
   testWidgets('clearing the site takes back the type it added', (tester) async {
     await pumpNewDivePage(tester, siteTypes: [siteType('wreck', 'Wreck')]);
-    await expandConditions(tester);
 
     await clearSite(tester);
 
@@ -171,7 +156,6 @@ void main() {
     tester,
   ) async {
     await pumpNewDivePage(tester, siteTypes: [siteType('wreck', 'Wreck')]);
-    await expandConditions(tester);
 
     await pickDiveTypes(tester, ['recreational']);
     await pickDiveTypes(tester, ['recreational', 'wreck']);
@@ -184,7 +168,6 @@ void main() {
     tester,
   ) async {
     await pumpNewDivePage(tester, siteTypesError: StateError('db closed'));
-    await expandConditions(tester);
 
     expect(selectedDiveTypeIds(tester), ['recreational']);
   });
@@ -223,7 +206,6 @@ void main() {
     tester,
   ) async {
     await pumpNewDivePage(tester, siteTypes: [siteType('reef', 'Reef')]);
-    await expandConditions(tester);
 
     expect(selectedDiveTypeIds(tester), ['recreational']);
   });

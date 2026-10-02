@@ -8,6 +8,7 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 
+import '../../../helpers/mock_channels.dart';
 import '../../../helpers/mock_file_picker_platform.dart';
 
 /// Every dives CSV entry point hands the diver's dive types through, so each
@@ -34,6 +35,7 @@ void main() {
       (call) async => null,
     );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (await workDir.exists()) await workDir.delete(recursive: true);

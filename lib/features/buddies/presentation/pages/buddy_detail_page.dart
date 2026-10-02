@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
+import 'package:submersion/shared/widgets/icon_detail_row.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
@@ -182,13 +186,19 @@ class _BuddyDetailContent extends ConsumerWidget {
           ),
           PopupMenuButton<String>(
             onSelected: (value) async {
-              if (value == 'share') {
+              if (value == kOpenInConnectionsAction) {
+                openInConnections(
+                  context,
+                  NodeRef(ConnectionKind.buddy, buddy.id),
+                );
+              } else if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
               } else if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
+              openInConnectionsMenuItem(context),
               PopupMenuItem(
                 value: 'share',
                 child: Row(
@@ -283,13 +293,19 @@ class _BuddyDetailContent extends ConsumerWidget {
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) async {
-              if (value == 'share') {
+              if (value == kOpenInConnectionsAction) {
+                openInConnections(
+                  context,
+                  NodeRef(ConnectionKind.buddy, buddy.id),
+                );
+              } else if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
               } else if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
+              openInConnectionsMenuItem(context),
               PopupMenuItem(
                 value: 'share',
                 child: Row(
@@ -487,25 +503,25 @@ class _BuddyDetailContent extends ConsumerWidget {
             statsAsync.when(
               data: (stats) => Column(
                 children: [
-                  _StatRow(
+                  IconDetailRow(
                     icon: Icons.scuba_diving,
                     label: context.l10n.buddies_stat_divesTogether,
                     value: stats.totalDives.toString(),
                   ),
                   if (stats.firstDive != null)
-                    _StatRow(
+                    IconDetailRow(
                       icon: Icons.first_page,
                       label: context.l10n.buddies_stat_firstDive,
                       value: units.formatDate(stats.firstDive),
                     ),
                   if (stats.lastDive != null)
-                    _StatRow(
+                    IconDetailRow(
                       icon: Icons.last_page,
                       label: context.l10n.buddies_stat_lastDive,
                       value: units.formatDate(stats.lastDive),
                     ),
                   if (stats.favoriteSite != null)
-                    _StatRow(
+                    IconDetailRow(
                       icon: Icons.place,
                       label: context.l10n.buddies_stat_favoriteSite,
                       value: stats.favoriteSite!,
@@ -582,39 +598,5 @@ class _BuddyDetailContent extends ConsumerWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
-  }
-}
-
-class _StatRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _StatRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          ),
-          Text(
-            value,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
   }
 }

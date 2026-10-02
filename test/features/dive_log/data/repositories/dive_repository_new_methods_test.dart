@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
@@ -1076,6 +1077,39 @@ void main() {
       // The other computer reported no OTU, so the Garmin value must not
       // linger beside its CNS.
       expect(row.otu, isNull);
+    });
+  });
+
+  group('setPrimaryDataSource sync (#2644)', () {
+    test('publishes the dive and both sources it re-points', () async {
+      addTearDown(SyncClock.instance.reset);
+      final diveId = await insertTestDive(id: 'dive-primary-sync');
+      await repository.saveComputerReading(
+        buildReading(id: 'reading-a', diveId: diveId, isPrimary: true),
+      );
+      await repository.saveComputerReading(
+        buildReading(id: 'reading-b', diveId: diveId),
+      );
+      await db.customStatement('DELETE FROM sync_records');
+
+      await repository.setPrimaryDataSource(
+        diveId: diveId,
+        computerReadingId: 'reading-b',
+      );
+
+      final pending = {
+        for (final r in await db.select(db.syncRecords).get())
+          '${r.entityType}:${r.recordId}',
+      };
+      expect(
+        pending,
+        containsAll(<String>[
+          'dives:$diveId',
+          'diveDataSources:reading-a',
+          'diveDataSources:reading-b',
+        ]),
+        reason: 'a primary chosen here never reached another device',
+      );
     });
   });
 

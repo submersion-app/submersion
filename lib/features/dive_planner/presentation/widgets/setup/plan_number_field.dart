@@ -194,8 +194,13 @@ class PlanNumberFieldState extends State<PlanNumberField> {
     }
     if (_inRange(parsed)) return;
 
+    // A missing bound is open, not the typed value: clamp(min, parsed)
+    // throws when the text is below a field that has only a minimum.
     final clamped = parsed
-        .clamp(widget.min ?? parsed, widget.max ?? parsed)
+        .clamp(
+          widget.min ?? double.negativeInfinity,
+          widget.max ?? double.infinity,
+        )
         .toDouble();
     _controller.text = _seed(clamped);
     _setOutOfRange(false);

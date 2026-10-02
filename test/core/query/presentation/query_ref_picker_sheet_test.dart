@@ -116,4 +116,35 @@ void main() {
     await tester.pumpAndSettle();
     expect(picked, const RefValue('s2', 'Blue Hole'));
   });
+
+  testWidgets(
+    'the multi picker keeps Done above the keyboard its search field opens '
+    '(#2717)',
+    (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(390, 800);
+      // The search field autofocuses, so on a phone the keyboard is up as
+      // soon as the sheet opens.
+      tester.view.viewInsets = const FakeViewPadding(bottom: 320);
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        host(
+          (ctx) => showQueryRefMultiPicker(
+            ctx,
+            editor: context,
+            kind: QuerySubject.sites,
+            title: 'Choose sites',
+            searchHint: 'Search',
+            doneLabel: 'Done',
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      final done = tester.getRect(find.widgetWithText(FilledButton, 'Done'));
+      expect(done.bottom, lessThanOrEqualTo(800 - 320));
+    },
+  );
 }

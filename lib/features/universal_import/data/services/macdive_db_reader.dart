@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:sqlite3/sqlite3.dart';
 
 import 'package:submersion/features/universal_import/data/services/macdive_raw_types.dart';
+import 'package:submersion/features/universal_import/data/services/sqlite_temp_copy.dart';
 
 /// Reads a MacDive Core Data SQLite export into a [MacDiveRawLogbook].
 ///
@@ -29,24 +29,20 @@ class MacDiveDbReader {
   /// [_requiredTables]. Returns false (doesn't throw) for non-SQLite
   /// inputs or unrelated schemas.
   static Future<bool> isMacDiveDb(Uint8List bytes) async {
-    final tmpPath = _tmpPath();
-    final tmpFile = File(tmpPath);
     try {
-      await tmpFile.writeAsBytes(bytes);
-      final db = sqlite3.open(tmpPath, mode: OpenMode.readOnly);
-      try {
-        final rows = db.select(
-          "SELECT name FROM sqlite_master WHERE type='table'",
-        );
-        final tables = rows.map<String>((r) => r['name'] as String).toSet();
-        return _requiredTables.every(tables.contains);
-      } finally {
-        db.close();
-      }
+      return await withTempSqliteCopy(
+        bytes,
+        prefix: _tempPrefix,
+        body: (db) {
+          final rows = db.select(
+            "SELECT name FROM sqlite_master WHERE type='table'",
+          );
+          final tables = rows.map<String>((r) => r['name'] as String).toSet();
+          return _requiredTables.every(tables.contains);
+        },
+      );
     } catch (_) {
       return false;
-    } finally {
-      _deleteTempFile(tmpFile);
     }
   }
 
@@ -59,95 +55,87 @@ class MacDiveDbReader {
   /// unpopulated table produces an empty collection rather than an
   /// error — some MacDive schema versions omit tables the user has
   /// never touched.
-  static Future<MacDiveRawLogbook> readAll(Uint8List bytes) async {
-    final tmpPath = _tmpPath();
-    final tmpFile = File(tmpPath);
-    try {
-      await tmpFile.writeAsBytes(bytes);
-      final db = sqlite3.open(tmpPath, mode: OpenMode.readOnly);
-      try {
-        _validateRequiredTables(db);
-        final unitsPreference = _readUnitsPreference(db);
-        final sites = _readSites(db);
-        final buddies = _readBuddies(db);
-        final tags = _readTags(db);
-        final gear = _readGear(db);
-        final tanks = _readTanks(db);
-        final gases = _readGases(db);
-        final critters = _readCritters(db);
-        final certifications = _readCertifications(db);
-        final serviceRecords = _readServiceRecords(db);
-        final events = _readEvents(db);
-        final diveTypes = _readDiveTypes(db);
-        final diveLogs = _readDiveLogs(db);
-        final divers = _readDivers(db);
-        final diveImages = _readDiveImages(db);
-        final tankAndGases = _readTankAndGases(db);
-        final dives = _readDives(db);
+  static Future<MacDiveRawLogbook> readAll(Uint8List bytes) {
+    return withTempSqliteCopy(bytes, prefix: _tempPrefix, body: _readLogbook);
+  }
 
-        final diveToBuddyPks = _readJunction(
-          db,
-          table: 'Z_1RELATIONSHIPDIVE',
-          dividingColumn: 'Z_5RELATIONSHIPDIVE',
-          relatedColumn: 'Z_1RELATIONSHIPBUDDIES',
-        );
-        final diveToTagPks = _readJunction(
-          db,
-          table: 'Z_5RELATIONSHIPTAGS',
-          dividingColumn: 'Z_5RELATIONSHIPDIVES',
-          relatedColumn: 'Z_17RELATIONSHIPTAGS',
-        );
-        final diveToGearPks = _readJunction(
-          db,
-          table: 'Z_5RELATIONSHIPGEARITEMS',
-          dividingColumn: 'Z_5RELATIONSHIPGEARTODIVES',
-          relatedColumn: 'Z_14RELATIONSHIPGEARITEMS',
-        );
-        final diveToCritterPks = _readJunction(
-          db,
-          table: 'Z_3RELATIONSHIPCRITTERTODIVE',
-          dividingColumn: 'Z_3RELATIONSHIPDIVETOCRITTER',
-          relatedColumn: 'Z_5RELATIONSHIPCRITTERTODIVE',
-        );
-        // Core Data names junction columns after the entity number on each
-        // side: Z_5 is ZDIVE, Z_10 is ZDIVETYPE.
-        final diveToDiveTypePks = _readJunction(
-          db,
-          table: 'Z_5RELATIONSHIPDIVETYPES',
-          dividingColumn: 'Z_5RELATIONSHIPTYPETODIVES',
-          relatedColumn: 'Z_10RELATIONSHIPDIVETYPES',
-        );
+  static MacDiveRawLogbook _readLogbook(Database db) {
+    _validateRequiredTables(db);
+    final unitsPreference = _readUnitsPreference(db);
+    final sites = _readSites(db);
+    final buddies = _readBuddies(db);
+    final tags = _readTags(db);
+    final gear = _readGear(db);
+    final tanks = _readTanks(db);
+    final gases = _readGases(db);
+    final critters = _readCritters(db);
+    final certifications = _readCertifications(db);
+    final serviceRecords = _readServiceRecords(db);
+    final events = _readEvents(db);
+    final diveTypes = _readDiveTypes(db);
+    final diveLogs = _readDiveLogs(db);
+    final divers = _readDivers(db);
+    final diveImages = _readDiveImages(db);
+    final tankAndGases = _readTankAndGases(db);
+    final dives = _readDives(db);
 
-        return MacDiveRawLogbook(
-          dives: dives,
-          sitesByPk: {for (final s in sites) s.pk: s},
-          buddiesByPk: {for (final b in buddies) b.pk: b},
-          tagsByPk: {for (final t in tags) t.pk: t},
-          gearByPk: {for (final g in gear) g.pk: g},
-          tanksByPk: {for (final t in tanks) t.pk: t},
-          gasesByPk: {for (final g in gases) g.pk: g},
-          tankAndGases: tankAndGases,
-          crittersByPk: {for (final c in critters) c.pk: c},
-          certifications: certifications,
-          serviceRecords: serviceRecords,
-          events: events,
-          diveToBuddyPks: diveToBuddyPks,
-          diveToTagPks: diveToTagPks,
-          diveToGearPks: diveToGearPks,
-          diveToCritterPks: diveToCritterPks,
-          unitsPreference: unitsPreference,
-          diveTypesByPk: {for (final t in diveTypes) t.pk: t},
-          diveToDiveTypePks: diveToDiveTypePks,
-          diveLogsByPk: {for (final l in diveLogs) l.pk: l},
-          diversByPk: {for (final d in divers) d.pk: d},
-          diveImages: diveImages,
-        );
-      } finally {
-        db.close();
-      }
-    } finally {
-      _deleteTempFile(tmpFile);
-    }
+    final diveToBuddyPks = _readJunction(
+      db,
+      table: 'Z_1RELATIONSHIPDIVE',
+      dividingColumn: 'Z_5RELATIONSHIPDIVE',
+      relatedColumn: 'Z_1RELATIONSHIPBUDDIES',
+    );
+    final diveToTagPks = _readJunction(
+      db,
+      table: 'Z_5RELATIONSHIPTAGS',
+      dividingColumn: 'Z_5RELATIONSHIPDIVES',
+      relatedColumn: 'Z_17RELATIONSHIPTAGS',
+    );
+    final diveToGearPks = _readJunction(
+      db,
+      table: 'Z_5RELATIONSHIPGEARITEMS',
+      dividingColumn: 'Z_5RELATIONSHIPGEARTODIVES',
+      relatedColumn: 'Z_14RELATIONSHIPGEARITEMS',
+    );
+    final diveToCritterPks = _readJunction(
+      db,
+      table: 'Z_3RELATIONSHIPCRITTERTODIVE',
+      dividingColumn: 'Z_3RELATIONSHIPDIVETOCRITTER',
+      relatedColumn: 'Z_5RELATIONSHIPCRITTERTODIVE',
+    );
+    // Core Data names junction columns after the entity number on each
+    // side: Z_5 is ZDIVE, Z_10 is ZDIVETYPE.
+    final diveToDiveTypePks = _readJunction(
+      db,
+      table: 'Z_5RELATIONSHIPDIVETYPES',
+      dividingColumn: 'Z_5RELATIONSHIPTYPETODIVES',
+      relatedColumn: 'Z_10RELATIONSHIPDIVETYPES',
+    );
+
+    return MacDiveRawLogbook(
+      dives: dives,
+      sitesByPk: {for (final s in sites) s.pk: s},
+      buddiesByPk: {for (final b in buddies) b.pk: b},
+      tagsByPk: {for (final t in tags) t.pk: t},
+      gearByPk: {for (final g in gear) g.pk: g},
+      tanksByPk: {for (final t in tanks) t.pk: t},
+      gasesByPk: {for (final g in gases) g.pk: g},
+      tankAndGases: tankAndGases,
+      crittersByPk: {for (final c in critters) c.pk: c},
+      certifications: certifications,
+      serviceRecords: serviceRecords,
+      events: events,
+      diveToBuddyPks: diveToBuddyPks,
+      diveToTagPks: diveToTagPks,
+      diveToGearPks: diveToGearPks,
+      diveToCritterPks: diveToCritterPks,
+      unitsPreference: unitsPreference,
+      diveTypesByPk: {for (final t in diveTypes) t.pk: t},
+      diveToDiveTypePks: diveToDiveTypePks,
+      diveLogsByPk: {for (final l in diveLogs) l.pk: l},
+      diversByPk: {for (final d in divers) d.pk: d},
+      diveImages: diveImages,
+    );
   }
 
   // ---- per-table readers ----
@@ -527,16 +515,7 @@ class MacDiveDbReader {
 
   // ---- utilities ----
 
-  static String _tmpPath() =>
-      '${Directory.systemTemp.path}/macdive_import_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-
-  static void _deleteTempFile(File f) {
-    try {
-      if (f.existsSync()) f.deleteSync();
-    } catch (_) {
-      // Best-effort cleanup.
-    }
-  }
+  static const _tempPrefix = 'macdive_import_';
 
   static String? _str(dynamic value) {
     if (value == null) return null;

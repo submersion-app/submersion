@@ -38,9 +38,27 @@ write_stubs() {
     stub_tmp="$1"
     mkdir -p "$stub_tmp/bin"
 
+    # flutter test also records its arguments and how many bundles existed
+    # while it ran, and with FLUTTER_TEST_FAIL=1 fails the way a real run
+    # prints it: the entrypoint as an absolute path, then the test's name. In
+    # a bundle that name starts with the file's path relative to test/; a file
+    # that ran on its own is the entrypoint itself.
     cat > "$stub_tmp/bin/flutter" <<'STUB'
 #!/bin/bash
 pwd -P >> "$CWD_LOG"
+if [ "${1:-}" = "test" ] && [ -n "${FLUTTER_TEST_LOG:-}" ]; then
+    printf '%s\n' "$*" >> "$FLUTTER_TEST_LOG"
+    find test/.bundles -name 'bundle_*.dart' 2>/dev/null | wc -l | tr -d ' ' \
+        >> "$FLUTTER_TEST_LOG.bundles"
+    if [ "${FLUTTER_TEST_FAIL:-0}" = "1" ]; then
+        root="$(pwd -P)"
+        echo "00:01 +1 -1: $root/test/.bundles/bundle_000_root.dart: b_test.dart fails on purpose [E]"
+        echo "00:02 +1 -2: $root/test/a_test.dart: fails while running alone [E]"
+        echo "00:02 +1 -2: $root/test/.bundles/bundle_000_root.dart: b_test.dart (tearDownAll)"
+        echo "00:02 +1 -2: Some tests failed."
+        exit 1
+    fi
+fi
 exit 0
 STUB
 
@@ -83,6 +101,9 @@ make_fixture() {
     # path in the real repo, so every worktree executes this exact file.
     cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
     chmod +x "$main_tree/hooks/pre-push"
+    # The hook sources its concurrency helper from beside itself.
+    mkdir -p "$main_tree/scripts"
+    cp "$REPO_ROOT/scripts/test_concurrency.sh" "$main_tree/scripts/test_concurrency.sh"
 
     git worktree add -q "$tmp/wt" -b feature
     cd "$tmp/wt" || exit 1
@@ -110,17 +131,22 @@ run_hook() {
     cd "$tmp/wt" || exit 1
     : > "$tmp/cwd.log"
     : > "$tmp/dart.log"
+    : > "$tmp/flutter_test.log"
+    : > "$tmp/flutter_test.log.bundles"
 
     printf 'refs/heads/feature %s refs/heads/feature %s\n' \
         "$(git rev-parse HEAD)" "$ZERO" > "$tmp/refline"
 
     hook_output="$(env "$@" PATH="$tmp/bin:$PATH" CWD_LOG="$tmp/cwd.log" \
-        DART_LOG="$tmp/dart.log" DRY_RUN=1 \
+        DART_LOG="$tmp/dart.log" FLUTTER_TEST_LOG="$tmp/flutter_test.log" \
+        DRY_RUN=1 \
         /bin/bash "$tmp/main/hooks/pre-push" < "$tmp/refline" 2>&1)"
     hook_status=$?
 
     analyze_cwd="$(head -1 "$tmp/cwd.log" 2>/dev/null || true)"
     dart_args="$(cat "$tmp/dart.log" 2>/dev/null || true)"
+    flutter_test_args="$(cat "$tmp/flutter_test.log" 2>/dev/null || true)"
+    bundles_during_run="$(head -1 "$tmp/flutter_test.log.bundles" 2>/dev/null || true)"
 }
 
 # As run_hook, but the caller supplies the whole ref line. Used to simulate a
@@ -286,6 +312,9 @@ make_proximity_fixture() {
 
     cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
     chmod +x "$main_tree/hooks/pre-push"
+    # The hook sources its concurrency helper from beside itself.
+    mkdir -p "$main_tree/scripts"
+    cp "$REPO_ROOT/scripts/test_concurrency.sh" "$main_tree/scripts/test_concurrency.sh"
 
     git worktree add -q "$tmp/wt" -b feature
     cd "$tmp/wt" || exit 1
@@ -468,6 +497,181 @@ if [ "$selected_l10n" -eq 40 ]; then
 else
     fail 'falls back to the default sample size of 40' "selected $selected_l10n of 60"
 fi
+
+# Zero in another spelling is still zero: `head -n 000` would select nothing.
+run_hook "$tmp" TEST_CONCURRENCY=00 L10N_SAMPLE=000
+
+case "$hook_output" in
+    *"invalid TEST_CONCURRENCY='00'"*"invalid L10N_SAMPLE='000'"*)
+        pass 'refuses zero spelled 00 or 000'
+        ;;
+    *)
+        fail 'refuses zero spelled 00 or 000' "output: $hook_output"
+        ;;
+esac
+
+selected_l10n="$(printf '%s\n' "$hook_output" | grep -c 'test/features/gamma/l10n_' || true)"
+if [ "$selected_l10n" -eq 40 ]; then
+    pass 'a zero sample size falls back to 40 instead of selecting nothing'
+else
+    fail 'a zero sample size falls back to 40 instead of selecting nothing' \
+        "selected $selected_l10n of 60"
+fi
+
+rm -rf "$tmp"
+
+# Build a repo for the full-suite path: runnable test files, the real
+# scripts/run_all_tests.sh and the bundler it calls, both of which the hook
+# runs from the tree being pushed. Echoes the temp dir.
+make_full_run_fixture() {
+    tmp="$(mktemp -d)"
+    main_tree="$tmp/main"
+
+    mkdir -p "$main_tree"
+    cd "$main_tree" || exit 1
+
+    git init -q -b main .
+    git config user.email 'test@example.com'
+    git config user.name 'Test'
+    git config commit.gpgsign false
+
+    mkdir -p lib test hooks scripts
+    printf '// lib\n' > lib/sample.dart
+    for name in a b; do
+        printf "import 'package:flutter_test/flutter_test.dart';\n\nvoid main() {\n  test('%s', () {});\n}\n" \
+            "$name" > "test/${name}_test.dart"
+    done
+    cp "$REPO_ROOT/scripts/bundle_tests.py" scripts/bundle_tests.py
+    cp "$REPO_ROOT/scripts/run_all_tests.sh" scripts/run_all_tests.sh
+    cp "$REPO_ROOT/scripts/test_concurrency.sh" scripts/test_concurrency.sh
+    git add -A
+    git commit -q -m 'initial'
+
+    cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
+    chmod +x "$main_tree/hooks/pre-push"
+    # The hook sources its concurrency helper from beside itself.
+    mkdir -p "$main_tree/scripts"
+    cp "$REPO_ROOT/scripts/test_concurrency.sh" "$main_tree/scripts/test_concurrency.sh"
+
+    git worktree add -q "$tmp/wt" -b feature
+    cd "$tmp/wt" || exit 1
+    printf '// changed on the branch\n' >> lib/sample.dart
+    git add -A
+    git commit -q -m 'change on feature'
+
+    write_stubs "$tmp"
+
+    printf '%s\n' "$tmp"
+}
+
+# --- Test 10: RUN_ALL_TESTS=1 runs the suite as bundles ---------------------
+#
+# A full local run as separate files took 10m11s at -j 16; as bundles of up to
+# 40 files it took 2m52s (issue #2512). The hook runs scripts/run_all_tests.sh,
+# which bundles the suite and removes the bundles afterwards; that script's own
+# cases are in scripts/run_all_tests_test.sh.
+
+tmp="$(make_full_run_fixture)"
+run_hook "$tmp" RUN_ALL_TESTS=1
+
+case "$flutter_test_args" in
+    *'test/.bundles/'*'/bundle_'*)
+        pass 'RUN_ALL_TESTS=1 hands flutter test the generated bundles'
+        ;;
+    *)
+        fail 'RUN_ALL_TESTS=1 hands flutter test the generated bundles' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+
+# The hook's default depends on the machine's core count, so compare with the
+# value it announced rather than a fixed number.
+hook_concurrency="$(printf '%s\n' "$hook_output" \
+    | sed -n 's/.*RUN_ALL_TESTS=1, concurrency \([0-9]*\).*/\1/p' | head -1)"
+case "$flutter_test_args" in
+    *"--exclude-tags performance --concurrency=${hook_concurrency:-none} "*)
+        pass 'the bundled run keeps the tag filter and the hook concurrency'
+        ;;
+    *)
+        fail 'the bundled run keeps the tag filter and the hook concurrency' \
+            "hook announced '${hook_concurrency}'; flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+
+run_hook "$tmp" RUN_ALL_TESTS=1 TEST_CONCURRENCY=5
+case "$flutter_test_args" in
+    *'--concurrency=5 '*)
+        pass 'RUN_ALL_TESTS=1 passes TEST_CONCURRENCY through'
+        ;;
+    *)
+        fail 'RUN_ALL_TESTS=1 passes TEST_CONCURRENCY through' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+run_hook "$tmp" RUN_ALL_TESTS=1
+
+if [ "${bundles_during_run:-0}" -gt 0 ] && [ ! -e "$tmp/wt/test/.bundles" ]; then
+    pass 'the bundles exist during the run and are removed after it'
+else
+    fail 'the bundles exist during the run and are removed after it' \
+        "bundles during the run: '${bundles_during_run}'; left behind: $(ls "$tmp/wt/test/.bundles" 2>&1)"
+fi
+
+if [ "$hook_status" -eq 0 ]; then
+    pass 'a passing bundled run lets the push through'
+else
+    fail 'a passing bundled run lets the push through' "exit $hook_status: $hook_output"
+fi
+
+# --- Test 11: a failing bundled run names the failing test files ------------
+
+run_hook "$tmp" RUN_ALL_TESTS=1 FLUTTER_TEST_FAIL=1
+
+if [ "$hook_status" -ne 0 ]; then
+    pass 'a failing bundled run blocks the push'
+else
+    fail 'a failing bundled run blocks the push' "exit 0: $hook_output"
+fi
+
+failing_list="$(printf '%s\n' "$hook_output" | sed -n '/Failing test files/,$p' \
+    | grep -E '^ +test/' | sed 's/^ *//' | sort | tr '\n' ' ')"
+if [ "$failing_list" = 'test/a_test.dart test/b_test.dart ' ]; then
+    pass 'a failing run lists each failing test file once, relative to the repo'
+else
+    fail 'a failing run lists each failing test file once, relative to the repo' \
+        "listed: '$failing_list'; output: $hook_output"
+fi
+
+if [ ! -e "$tmp/wt/test/.bundles" ]; then
+    pass 'the bundles are removed after a failing run too'
+else
+    fail 'the bundles are removed after a failing run too' \
+        "left behind: $(ls "$tmp/wt/test/.bundles" 2>&1)"
+fi
+
+# --- Test 12: a branch without scripts/run_all_tests.sh runs plain ----------
+#
+# Every worktree runs the main checkout's hook, so an up-to-date hook meets
+# branches cut before the script existed. Those still get a full run.
+
+rm "$tmp/wt/scripts/run_all_tests.sh"
+run_hook "$tmp" RUN_ALL_TESTS=1
+
+if [ "$hook_status" -eq 0 ] && [ -n "$flutter_test_args" ]; then
+    pass 'RUN_ALL_TESTS=1 still runs on a branch without run_all_tests.sh'
+else
+    fail 'RUN_ALL_TESTS=1 still runs on a branch without run_all_tests.sh' \
+        "exit $hook_status; flutter test args: '$flutter_test_args'"
+fi
+
+case "$flutter_test_args" in
+    *'bundle_'*)
+        fail 'runs the test files one by one there' "flutter was invoked as: $flutter_test_args"
+        ;;
+    *)
+        pass 'runs the test files one by one there'
+        ;;
+esac
 
 rm -rf "$tmp"
 

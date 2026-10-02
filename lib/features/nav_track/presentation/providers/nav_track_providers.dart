@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 
@@ -6,20 +7,23 @@ final navTrackRepositoryProvider = Provider<NavTrackRepository>(
   (ref) => NavTrackRepository(),
 );
 
-/// Every route, for the routes area's list page: unlinked first, then most
-/// recently recorded within each group (the repository already sorts this).
+/// The active diver's routes and the ownerless ones, for the routes area's
+/// list page: unlinked first, then most recently recorded within each group
+/// (the repository already sorts this).
 final allNavTracksProvider = FutureProvider<List<NavTrack>>((ref) async {
   final repository = ref.watch(navTrackRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchChanges());
-  return repository.getAll();
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getAll(diverId: diverId);
 });
 
-/// Every route with no dive link, for the routes area and the manual link
-/// pickers.
+/// The active diver's unlinked routes and the ownerless ones, for the
+/// routes area and the manual link pickers.
 final unlinkedNavTracksProvider = FutureProvider<List<NavTrack>>((ref) async {
   final repository = ref.watch(navTrackRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchChanges());
-  return repository.getUnlinked();
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getUnlinked(diverId: diverId);
 });
 
 /// Every route linked to [diveId], primary first (the dive detail section's

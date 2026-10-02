@@ -406,6 +406,15 @@ void main() {
       );
     });
 
+    test('setShowDiveFigure toggles value', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).showDiveFigure, isFalse);
+      await container.read(settingsProvider.notifier).setShowDiveFigure(true);
+      expect(container.read(settingsProvider).showDiveFigure, isTrue);
+    });
+
     test('setShowDataSourceBadges toggles value', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

@@ -113,4 +113,40 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Enter 0 or more'), findsOneWidget);
   });
+
+  testWidgets('renders the dive types row after the site row (#2596)', (
+    tester,
+  ) async {
+    final controllers = List.generate(6, (_) => TextEditingController());
+    for (final c in controllers) {
+      addTearDown(c.dispose);
+    }
+    await tester.pumpWidget(
+      _wrap(
+        TheDiveSection(
+          depthSymbol: 'm',
+          nameController: controllers[0],
+          maxDepthController: controllers[1],
+          avgDepthController: controllers[2],
+          bottomTimeController: controllers[3],
+          runtimeController: controllers[4],
+          diveNumberController: controllers[5],
+          entryText: 'ENTRY_TS',
+          onEditEntry: () {},
+          exitText: 'EXIT_TS',
+          onEditExit: () {},
+          siteName: 'Blue Hole',
+          onPickSite: () {},
+          diveTypesRow: const Text('DIVE_TYPES_ROW'),
+        ),
+      ),
+    );
+
+    double top(Finder f) => tester.getTopLeft(f).dy;
+    expect(find.text('DIVE_TYPES_ROW'), findsOneWidget);
+    expect(
+      top(find.text('Blue Hole')),
+      lessThan(top(find.text('DIVE_TYPES_ROW'))),
+    );
+  });
 }

@@ -31,6 +31,11 @@ const _censusFiles = <String>[
   'lib/features/equipment/data/repositories/equipment_repository_impl.dart',
   'lib/features/courses/data/repositories/course_repository.dart',
   'lib/features/courses/data/repositories/course_requirement_repository.dart',
+  'lib/features/connections/data/connections_scope_sql.dart',
+  'lib/features/connections/data/connections_membership_sql.dart',
+  'lib/features/connections/data/connections_edge_sql.dart',
+  'lib/features/connections/data/connections_node_sql.dart',
+  'lib/features/connections/data/repositories/connections_repository.dart',
 ];
 
 final _readsDives = RegExp(
@@ -97,9 +102,10 @@ List<String> _memberChunks(String source) {
       if (!_readsDives.hasMatch(chunk)) continue;
       scanned++;
 
-      // Only two things count as applying the scope: naming DiveStatsScope,
-      // or calling InsightsRepository's own `_diveFilter` wrapper, which
-      // emits it unconditionally.
+      // Only three things count as applying the scope: naming DiveStatsScope,
+      // calling InsightsRepository's own `_diveFilter` wrapper, or calling
+      // the connections feature's `diveScopeSql` wrapper; both wrappers emit
+      // it unconditionally.
       //
       // A bare `excluded_from_stats` mention deliberately does NOT count.
       // Hand-writing that one column satisfies the letter of the rule while
@@ -107,8 +113,12 @@ List<String> _memberChunks(String source) {
       // and the gauge-mode rule), which is exactly the partial-copy rot this
       // census exists to prevent. Go through the helper or mark the query
       // exempt; there is no third option.
+      // `diveScopeSql(` is the connections feature's wrapper; like
+      // `_diveFilter` it emits the scope unconditionally.
       final applied =
-          chunk.contains('DiveStatsScope') || chunk.contains('_diveFilter(');
+          chunk.contains('DiveStatsScope') ||
+          chunk.contains('_diveFilter(') ||
+          chunk.contains('diveScopeSql(');
       final exempt = chunk.contains('stats-scope-exempt');
 
       if (!applied && !exempt) {

@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
@@ -20,7 +21,11 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 
 /// Thresholds and policy limits the engine evaluates plans against.
-class PlanEngineConfig {
+///
+/// A value type: `planEngineConfigProvider` rebuilds it from Settings, and
+/// equality is what keeps an unchanged config from rerunning every plan
+/// engine consumer downstream (issue #2632).
+class PlanEngineConfig extends Equatable {
   final double ppO2Working;
   final double ppO2Deco;
   final int cnsWarningThreshold;
@@ -90,6 +95,65 @@ class PlanEngineConfig {
     this.gasModel = GasModel.real,
   });
 
+  @override
+  List<Object?> get props => [
+    ppO2Working,
+    ppO2Deco,
+    cnsWarningThreshold,
+    o2Narcotic,
+    endLimitMeters,
+    bestMixEndMeters,
+    otuLimit,
+    o2MetabolicRateLpm,
+    loopVolumeLiters,
+    buddyFactor,
+    scrInjectionRateLpm,
+    pscrO2ConsumptionMlMin,
+    pscrSacMlMin,
+    pscrRatio,
+    cnsMethod,
+    gasModel,
+  ];
+
+  PlanEngineConfig copyWith({
+    double? ppO2Working,
+    double? ppO2Deco,
+    int? cnsWarningThreshold,
+    bool? o2Narcotic,
+    double? endLimitMeters,
+    double? bestMixEndMeters,
+    double? otuLimit,
+    double? o2MetabolicRateLpm,
+    double? loopVolumeLiters,
+    double? buddyFactor,
+    double? scrInjectionRateLpm,
+    double? pscrO2ConsumptionMlMin,
+    double? pscrSacMlMin,
+    double? pscrRatio,
+    CnsCalculationMethod? cnsMethod,
+    GasModel? gasModel,
+  }) {
+    return PlanEngineConfig(
+      ppO2Working: ppO2Working ?? this.ppO2Working,
+      ppO2Deco: ppO2Deco ?? this.ppO2Deco,
+      cnsWarningThreshold: cnsWarningThreshold ?? this.cnsWarningThreshold,
+      o2Narcotic: o2Narcotic ?? this.o2Narcotic,
+      endLimitMeters: endLimitMeters ?? this.endLimitMeters,
+      bestMixEndMeters: bestMixEndMeters ?? this.bestMixEndMeters,
+      otuLimit: otuLimit ?? this.otuLimit,
+      o2MetabolicRateLpm: o2MetabolicRateLpm ?? this.o2MetabolicRateLpm,
+      loopVolumeLiters: loopVolumeLiters ?? this.loopVolumeLiters,
+      buddyFactor: buddyFactor ?? this.buddyFactor,
+      scrInjectionRateLpm: scrInjectionRateLpm ?? this.scrInjectionRateLpm,
+      pscrO2ConsumptionMlMin:
+          pscrO2ConsumptionMlMin ?? this.pscrO2ConsumptionMlMin,
+      pscrSacMlMin: pscrSacMlMin ?? this.pscrSacMlMin,
+      pscrRatio: pscrRatio ?? this.pscrRatio,
+      cnsMethod: cnsMethod ?? this.cnsMethod,
+      gasModel: gasModel ?? this.gasModel,
+    );
+  }
+
   /// Merges this app-wide config with [plan]'s per-plan gas-option
   /// overrides. A set plan value always wins; an unset (null) one falls back
   /// to this config unchanged.
@@ -97,26 +161,16 @@ class PlanEngineConfig {
   /// `sacFactor` and `bestMixEndMeters` have no global-settings source today
   /// (they are plain defaulted fields, not nullable overrides), so they
   /// always replace [buddyFactor] and [bestMixEndMeters] for this plan.
-  /// [endLimitMeters] is the diver's Settings END limit and passes through
-  /// unchanged.
+  /// Every other field, [endLimitMeters] (the diver's Settings END limit)
+  /// included, carries over through [copyWith], so a field added later
+  /// cannot silently fall back to its default here (issue #2640).
   PlanEngineConfig resolvedFor(domain.DivePlan plan) {
-    return PlanEngineConfig(
-      ppO2Working: plan.ppO2Bottom ?? ppO2Working,
-      ppO2Deco: plan.ppO2Deco ?? ppO2Deco,
-      cnsWarningThreshold: cnsWarningThreshold,
-      o2Narcotic: plan.o2Narcotic ?? o2Narcotic,
-      endLimitMeters: endLimitMeters,
+    return copyWith(
+      ppO2Working: plan.ppO2Bottom,
+      ppO2Deco: plan.ppO2Deco,
+      o2Narcotic: plan.o2Narcotic,
       bestMixEndMeters: plan.bestMixEndMeters,
-      otuLimit: otuLimit,
-      o2MetabolicRateLpm: o2MetabolicRateLpm,
-      loopVolumeLiters: loopVolumeLiters,
       buddyFactor: plan.sacFactor,
-      scrInjectionRateLpm: scrInjectionRateLpm,
-      pscrO2ConsumptionMlMin: pscrO2ConsumptionMlMin,
-      pscrSacMlMin: pscrSacMlMin,
-      pscrRatio: pscrRatio,
-      cnsMethod: cnsMethod,
-      gasModel: gasModel,
     );
   }
 }

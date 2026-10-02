@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -42,6 +43,7 @@ Future<void> _pumpFiltered(
         serviceDueEquipmentProvider.overrideWith(
           (ref, _) async => const <EquipmentItem>[],
         ),
+        fakeEquipmentQueryIds(),
         equipmentListViewModeProvider.overrideWith(
           (ref) => ListViewMode.detailed,
         ),

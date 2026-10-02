@@ -10,6 +10,7 @@ import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_mission_store.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
@@ -40,6 +41,7 @@ class DivePlanRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DivePlanRepository);
+  final _missions = const DivePlanMissionStore();
 
   /// Fires on any change to the plan tables.
   Stream<void> watchPlanChanges() => _db.tableUpdates(
@@ -48,6 +50,9 @@ class DivePlanRepository {
       _db.divePlanTanks,
       _db.divePlanSegments,
       _db.divePlanEquipment,
+      _db.divePlanMissions,
+      _db.divePlanMissionLegs,
+      _db.divePlanMissionMembers,
     ]),
   );
 
@@ -75,6 +80,8 @@ class DivePlanRepository {
     final addedEquipmentIds = <String>[];
     final changedEquipmentIds = <String>[];
     final removedEquipmentIds = <String>[];
+    var missionWritten = MissionRowIds.none;
+    var missionRemoved = MissionRowIds.none;
 
     try {
       await _db.transaction(() async {
@@ -112,30 +119,33 @@ class DivePlanRepository {
         // the submitted timestamp would not be the plan as stored, and a
         // caller comparing it against the row would silently disagree. The
         // millisecond round-trip matches what getPlan reads back.
-        stored = (await _withResolvedReferences(
-          plan,
+        // The tanks and segments too: an id another plan's row holds is
+        // re-minted (see _withOwnChildIds), and the caller must see the id it
+        // can save again.
+        stored = (await _withOwnChildIds(
+          await _withResolvedReferences(plan),
         )).copyWith(updatedAt: DateTime.fromMillisecondsSinceEpoch(now));
 
         await _db
             .into(_db.divePlans)
             .insertOnConflictUpdate(_planCompanion(stored, now, summary));
 
-        for (var i = 0; i < plan.tanks.length; i++) {
+        for (var i = 0; i < stored.tanks.length; i++) {
           await _db
               .into(_db.divePlanTanks)
               .insertOnConflictUpdate(
                 _tankCompanion(
-                  plan.tanks[i],
+                  stored.tanks[i],
                   plan.id,
                   i,
                   now,
-                  createdAt: tankCreatedAt[plan.tanks[i].id],
+                  createdAt: tankCreatedAt[stored.tanks[i].id],
                 ),
               );
         }
         // Resolved so the retired geometry columns can still be written with
         // true values; see _segmentCompanion.
-        final legs = const SegmentChain().resolve(plan.segments);
+        final legs = const SegmentChain().resolve(stored.segments);
         for (var i = 0; i < legs.length; i++) {
           await _db
               .into(_db.divePlanSegments)
@@ -150,8 +160,8 @@ class DivePlanRepository {
               );
         }
 
-        final keptTankIds = plan.tanks.map((t) => t.id).toSet();
-        final keptSegmentIds = plan.segments.map((s) => s.id).toSet();
+        final keptTankIds = stored.tanks.map((t) => t.id).toSet();
+        final keptSegmentIds = stored.segments.map((s) => s.id).toSet();
         removedSegmentIds.addAll(existingSegmentIds.difference(keptSegmentIds));
         removedTankIds.addAll(existingTankIds.difference(keptTankIds));
 
@@ -211,6 +221,20 @@ class DivePlanRepository {
               ))
               .go();
         }
+        final missionWrite = await _missions.write(
+          _db,
+          plan.id,
+          plan.mission,
+          now,
+          _uuid.v4,
+        );
+        missionWritten = missionWrite.written;
+        missionRemoved = missionWrite.removed;
+        // The mission as stored: a leg or member id another plan held was
+        // re-minted, and the caller must see the id it can save again.
+        if (missionWrite.mission != null) {
+          stored = stored.copyWith(mission: missionWrite.mission);
+        }
       });
 
       // Sync bookkeeping AFTER the transaction commits so a rollback leaves
@@ -220,14 +244,14 @@ class DivePlanRepository {
         recordId: plan.id,
         localUpdatedAt: now,
       );
-      for (final tank in plan.tanks) {
+      for (final tank in stored.tanks) {
         await _syncRepository.markRecordPending(
           entityType: 'divePlanTanks',
           recordId: tank.id,
           localUpdatedAt: now,
         );
       }
-      for (final segment in plan.segments) {
+      for (final segment in stored.segments) {
         await _syncRepository.markRecordPending(
           entityType: 'divePlanSegments',
           recordId: segment.id,
@@ -259,6 +283,13 @@ class DivePlanRepository {
           recordId: '${plan.id}|$id',
         );
       }
+      await _missions.recordWrite(
+        _syncRepository,
+        plan.id,
+        missionWritten,
+        missionRemoved,
+        now,
+      );
       SyncEventBus.notifyLocalChange();
       return stored;
     } catch (e, stackTrace) {
@@ -269,6 +300,64 @@ class DivePlanRepository {
       );
       rethrow;
     }
+  }
+
+  /// [plan] with a fresh id on every tank and segment whose id a row of
+  /// another plan already holds, each segment's tank reference following its
+  /// tank to the new id, and [plan] itself when none is held elsewhere.
+  ///
+  /// Row ids are global but the upserts in [savePlan] match on the id alone,
+  /// so writing another plan's id would move that row to this plan: the plan
+  /// that owned it would lose it with no tombstone and no pending marker, and
+  /// its segments could be left naming a tank this plan now holds (issue
+  /// #2548). Every path that makes a plan today mints fresh ids, as
+  /// [duplicatePlan] does; this is the backstop for one that forgets, as
+  /// DivePlanMissionStore is for mission rows.
+  Future<domain.DivePlan> _withOwnChildIds(domain.DivePlan plan) async {
+    final tankIds = [for (final t in plan.tanks) t.id];
+    final segmentIds = [for (final s in plan.segments) s.id];
+    final takenTanks = tankIds.isEmpty
+        ? const <String>{}
+        : {
+            for (final r
+                in await (_db.select(_db.divePlanTanks)..where(
+                      (t) => t.id.isIn(tankIds) & t.planId.isNotValue(plan.id),
+                    ))
+                    .get())
+              r.id,
+          };
+    final takenSegments = segmentIds.isEmpty
+        ? const <String>{}
+        : {
+            for (final r
+                in await (_db.select(_db.divePlanSegments)..where(
+                      (t) =>
+                          t.id.isIn(segmentIds) & t.planId.isNotValue(plan.id),
+                    ))
+                    .get())
+              r.id,
+          };
+    if (takenTanks.isEmpty && takenSegments.isEmpty) return plan;
+
+    _log.warning(
+      'Plan ${plan.id} reuses ${takenTanks.length} tank and '
+      '${takenSegments.length} segment ids another plan holds; '
+      'saving them under new ids',
+    );
+    final tankIdMap = {for (final id in takenTanks) id: _uuid.v4()};
+    return plan.copyWith(
+      tanks: [
+        for (final t in plan.tanks)
+          tankIdMap.containsKey(t.id) ? t.copyWith(id: tankIdMap[t.id]) : t,
+      ],
+      segments: [
+        for (final s in plan.segments)
+          s.copyWith(
+            id: takenSegments.contains(s.id) ? _uuid.v4() : null,
+            tankId: tankIdMap[s.tankId],
+          ),
+      ],
+    );
   }
 
   /// Returns [plan] with each of its outbound references that no longer names
@@ -364,7 +453,7 @@ class DivePlanRepository {
         _db.divePlanEquipment,
       )..where((e) => e.planId.equals(id))).get();
 
-      return _mapPlan(
+      final plan = _mapPlan(
         row,
         tankRows,
         segmentRows,
@@ -378,6 +467,8 @@ class DivePlanRepository {
             ),
         ],
       );
+      final mission = await _missions.read(_db, id);
+      return mission == null ? plan : plan.copyWith(mission: mission);
     } catch (e, stackTrace) {
       _log.error('Failed to load plan $id', error: e, stackTrace: stackTrace);
       rethrow;
@@ -450,8 +541,10 @@ class DivePlanRepository {
       final segmentIds = (await (_db.select(
         _db.divePlanSegments,
       )..where((t) => t.planId.equals(id))).get()).map((r) => r.id).toList();
+      final missionIds = await _missions.idsFor(_db, id);
 
       await _db.transaction(() async {
+        await _missions.deleteAll(_db, id);
         await (_db.delete(
           _db.divePlanSegments,
         )..where((t) => t.planId.equals(id))).go();
@@ -461,6 +554,7 @@ class DivePlanRepository {
         await (_db.delete(_db.divePlans)..where((t) => t.id.equals(id))).go();
       });
 
+      await _missions.recordDeletion(_syncRepository, id, missionIds);
       for (final segmentId in segmentIds) {
         await _syncRepository.logDeletion(
           entityType: 'divePlanSegments',
@@ -509,6 +603,9 @@ class DivePlanRepository {
       updatedAt: now,
       tanks: newTanks,
       segments: newSegments,
+      mission: source.mission == null
+          ? null
+          : _missions.remint(source.mission!, _uuid.v4),
       clearLinkedDiveId: true,
     );
     final sourceRow = await (_db.select(

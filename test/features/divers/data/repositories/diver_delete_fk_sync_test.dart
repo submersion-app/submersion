@@ -193,6 +193,80 @@ void main() {
     );
   });
 
+  test("a foreign dive's tank naming the diver's computer is cleared "
+      'and staged', () async {
+    // Bob's tank was attributed to Alice's computer. Deleting Alice deletes
+    // her computers, and the FK's ON DELETE SET NULL would clear the tank
+    // with no clock: peers would never learn of it.
+    await insertDiver('diver-a');
+    await insertDiver('diver-b');
+    const stale = 1000;
+    await db
+        .into(db.diveComputers)
+        .insert(
+          DiveComputersCompanion.insert(
+            id: 'comp-a',
+            name: 'Perdix',
+            diverId: const Value('diver-a'),
+            createdAt: stale,
+            updatedAt: stale,
+          ),
+        );
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'dive-b',
+            diverId: const Value('diver-b'),
+            diveDateTime: stale,
+            createdAt: stale,
+            updatedAt: stale,
+          ),
+        );
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'tank-b',
+            diveId: 'dive-b',
+          ).copyWith(computerId: const Value('comp-a')),
+        );
+    // Alice's own dive and tank go with her: staging the tank first would
+    // export an upsert for a row the same delete removes.
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'dive-a',
+            diverId: const Value('diver-a'),
+            diveDateTime: stale,
+            createdAt: stale,
+            updatedAt: stale,
+          ),
+        );
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'tank-a',
+            diveId: 'dive-a',
+          ).copyWith(computerId: const Value('comp-a')),
+        );
+
+    await repository.deleteDiverWithReassignment('diver-a');
+
+    final tank = await db
+        .customSelect(
+          "SELECT computer_id, hlc FROM dive_tanks WHERE id = 'tank-b'",
+        )
+        .getSingle();
+    expect(tank.readNullable<String>('computer_id'), isNull);
+    expect(tank.readNullable<String>('hlc'), isNotNull);
+    expect(await pendingCountFor('diveTanks', 'tank-b'), 1);
+    expect(await pendingCountFor('dives', 'dive-b'), 0);
+    expect(await pendingCountFor('diveTanks', 'tank-a'), 0);
+  });
+
   test('a cleared data source marks its own dive pending', () async {
     // The dive itself never referenced the computer, so only the source
     // clear can be what publishes this change.

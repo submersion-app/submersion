@@ -334,6 +334,8 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
         return l10n.diveImport_uddf_tabCourses;
       case ImportEntityType.media:
         return l10n.diveImport_uddf_media;
+      case ImportEntityType.fills:
+        return l10n.diveImport_uddf_fills;
     }
   }
 }

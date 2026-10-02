@@ -3,10 +3,10 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 
 void main() {
-  test('deco stop legend state defaults to visible and calculated', () {
+  test('deco stop legend state defaults to visible and the computer', () {
     const state = ProfileLegendState();
     expect(state.showDecoStops, isTrue);
-    expect(state.decoStopSource, MetricDataSource.calculated);
+    expect(state.decoStopSource, MetricDataSource.computer);
   });
 
   test('copyWith toggles deco stops without touching the ceiling', () {
@@ -19,19 +19,19 @@ void main() {
 
   test('deco stop source is independent of other metric sources', () {
     const state = ProfileLegendState();
-    final updated = state.copyWith(decoStopSource: MetricDataSource.computer);
+    final updated = state.copyWith(decoStopSource: MetricDataSource.calculated);
 
-    expect(updated.decoStopSource, MetricDataSource.computer);
+    expect(updated.decoStopSource, MetricDataSource.calculated);
     // The ceiling line has no source toggle (issue #755); other metric sources
     // are untouched when only the deco stop source changes.
-    expect(updated.ndlSource, MetricDataSource.calculated);
+    expect(updated.ndlSource, MetricDataSource.computer);
   });
 
   test('equality accounts for the deco stop fields', () {
     const state = ProfileLegendState();
     expect(state.copyWith(showDecoStops: false) == state, isFalse);
     expect(
-      state.copyWith(decoStopSource: MetricDataSource.computer) == state,
+      state.copyWith(decoStopSource: MetricDataSource.calculated) == state,
       isFalse,
     );
   });

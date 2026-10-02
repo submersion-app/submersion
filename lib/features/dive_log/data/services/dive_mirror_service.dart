@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_profile_link_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -133,7 +134,18 @@ class DiveMirrorService {
       // site the diver had already shared.
       final siteId = source.site?.id;
       final site = siteId == null ? null : await _sites.getSiteById(siteId);
-      final flippedSiteId = site != null && !site.isShared ? site.id : null;
+      // Only the site's owner changes its sharing (issue #2594): a mirror of
+      // a dive at another profile's private site neither shares the site
+      // nor gives the sibling a site its profile cannot see.
+      final flippedSiteId =
+          site != null &&
+              !site.isShared &&
+              canDestroySharedItem(
+                ownerId: site.diverId,
+                activeDiverId: source.diverId,
+              )
+          ? site.id
+          : null;
 
       final existingOwners = <String>{
         for (final d in await _dives.getDivesByOutingId(outingId))
@@ -202,7 +214,10 @@ class DiveMirrorService {
       source,
       targetDiverId: targetDiverId,
       outingId: outingId,
-      includeSite: await _shareSite(source.site?.id),
+      includeSite: await _shareSite(
+        source.site?.id,
+        actingDiverId: source.diverId,
+      ),
       tripId: await _sharedTripId(source.tripId ?? source.trip?.id),
       includeDiveCenter: await _centerIsVisible(source.diveCenter?.id),
       diveTypeIds: await _resolveTypeIds(source.diveTypeIds, targetDiverId),
@@ -253,14 +268,16 @@ class DiveMirrorService {
     await _sites.setShared(siteId, false);
   }
 
-  /// A site two profiles hold dives at is shared; flip the flag if needed.
-  /// Returns whether the sibling should reference the site at all.
-  Future<bool> _shareSite(String? siteId) async {
+  /// A site two profiles hold dives at is shared; flip the flag if needed,
+  /// as [actingDiverId] (the source dive's profile). Returns whether the
+  /// sibling should reference the site at all: not when the site is private
+  /// to another profile, whose sharing only its owner changes (#2594).
+  Future<bool> _shareSite(String? siteId, {String? actingDiverId}) async {
     if (siteId == null) return false;
     final site = await _sites.getSiteById(siteId);
     if (site == null) return false;
-    if (!site.isShared) await _sites.setShared(siteId, true);
-    return true;
+    if (site.isShared) return true;
+    return _sites.setShared(siteId, true, actingDiverId: actingDiverId);
   }
 
   Future<String?> _sharedTripId(String? tripId) async {

@@ -23,6 +23,12 @@ class DiveSafetyReviews extends Table {
   IntColumn get engineVersion => integer()();
   IntColumn get reviewedAt => integer()();
 
+  /// v253: the fingerprint of the diver settings the review's analysis ran
+  /// on (AnalysisSettings.fingerprint, issue #2592). A review whose
+  /// fingerprint no longer matches the active settings is recomputed on next
+  /// view. Null for a review stored before v253, which recomputes once.
+  TextColumn get inputsHash => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {diveId};
 

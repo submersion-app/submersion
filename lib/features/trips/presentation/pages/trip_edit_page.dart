@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -19,6 +20,9 @@ import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
+
+const _log = LoggerService('tripEditPage');
 
 class TripEditPage extends ConsumerStatefulWidget {
   final String? tripId;
@@ -47,6 +51,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   final _notesController = TextEditingController();
   final _expectedDivesController = TextEditingController();
   final _expectedRuntimeController = TextEditingController();
+  final _diversSharingController = TextEditingController();
+  final _divesPerDayController = TextEditingController();
 
   TripType _tripType = TripType.shore;
   final _vesselNameController = TextEditingController();
@@ -112,6 +118,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     _notesController.addListener(_onFieldChanged);
     _expectedDivesController.addListener(_onFieldChanged);
     _expectedRuntimeController.addListener(_onFieldChanged);
+    _diversSharingController.addListener(_onFieldChanged);
+    _divesPerDayController.addListener(_onFieldChanged);
     _vesselNameController.addListener(_onFieldChanged);
     _operatorController.addListener(_onFieldChanged);
     _cabinTypeController.addListener(_onFieldChanged);
@@ -142,6 +150,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         _expectedDivesController.text = trip.expectedDives?.toString() ?? '';
         _expectedRuntimeController.text =
             trip.expectedRuntimeMinutes?.toString() ?? '';
+        _diversSharingController.text = '${trip.diversSharingCylinders}';
+        _divesPerDayController.text = trip.divesPerDayTarget?.toString() ?? '';
         _tripType = trip.tripType;
 
         // Load liveaboard details if applicable
@@ -170,12 +180,13 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           _hasChanges = false;
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error('Failed to load trip', error: e, stackTrace: stackTrace);
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.trips_edit_snackBar_errorLoading('$e')),
+            content: Text(context.l10n.trips_edit_snackBar_errorLoading),
           ),
         );
       }
@@ -191,6 +202,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     _notesController.dispose();
     _expectedDivesController.dispose();
     _expectedRuntimeController.dispose();
+    _diversSharingController.dispose();
+    _divesPerDayController.dispose();
     _vesselNameController.dispose();
     _operatorController.dispose();
     _cabinTypeController.dispose();
@@ -597,6 +610,33 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
+                  // Fill forecast (#2325): who breathes from the trip's
+                  // cylinders, and a dives-per-day target. Blank sharing is
+                  // one diver; a blank target derives it.
+                  TextFormField(
+                    controller: _diversSharingController,
+                    inputFormatters: numberInputFormatters(),
+                    validator: numberValidator(context, integer: true),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.trips_edit_label_diversSharing,
+                      prefixIcon: const Icon(Icons.groups_outlined),
+                      hintText: context.l10n.trips_edit_hint_diversSharing,
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _divesPerDayController,
+                    inputFormatters: numberInputFormatters(),
+                    validator: numberValidator(context, integer: true),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.trips_edit_label_divesPerDay,
+                      prefixIcon: const Icon(Icons.today_outlined),
+                      hintText: context.l10n.trips_edit_hint_divesPerDay,
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
 
                   // Share toggle — only shown when multiple diver profiles exist
                   ref
@@ -609,23 +649,38 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                                       .l10n
                                       .common_label_shareWithAllProfiles,
                                 ),
+                                // Only the owner changes sharing (#2594).
+                                subtitle: _mayShare() != false
+                                    ? null
+                                    : Text(
+                                        context.l10n.sharedItems_shareOwnerOnly(
+                                          sharedItemOwnerName(
+                                            divers,
+                                            _originalTrip?.diverId,
+                                            context.l10n,
+                                          ),
+                                        ),
+                                      ),
                                 value: _isShared,
-                                onChanged: (v) async {
-                                  if (!v &&
-                                      isEditing &&
-                                      (_originalTrip?.isShared ?? false)) {
-                                    final confirmed =
-                                        await _showUnshareConfirmDialog(
-                                          context,
-                                        );
-                                    if (!mounted) return;
-                                    if (confirmed != true) return;
-                                  }
-                                  setState(() {
-                                    _isShared = v;
-                                    _hasChanges = true;
-                                  });
-                                },
+                                onChanged: _mayShare() != true
+                                    ? null
+                                    : (v) async {
+                                        if (!v &&
+                                            isEditing &&
+                                            (_originalTrip?.isShared ??
+                                                false)) {
+                                          final confirmed =
+                                              await _showUnshareConfirmDialog(
+                                                context,
+                                              );
+                                          if (!mounted) return;
+                                          if (confirmed != true) return;
+                                        }
+                                        setState(() {
+                                          _isShared = v;
+                                          _hasChanges = true;
+                                        });
+                                      },
                               )
                             : const SizedBox.shrink(),
                         orElse: () => const SizedBox.shrink(),
@@ -880,6 +935,17 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
   /// Asks the user to confirm un-sharing an existing shared trip.
   /// Returns [true] if confirmed, [false] or [null] to cancel.
+  /// Whether the active profile may change this trip's sharing: always for
+  /// a new trip, and only the owner for an existing one (issue #2594); null
+  /// while the profile is unknown, which locks it without naming an owner
+  /// (issue #2682). Read during build, so it watches the active profile.
+  bool? _mayShare() => _originalTrip == null
+      ? true
+      : canDestroySharedItemOnceKnown(
+          ref.watch(validatedCurrentDiverIdProvider),
+          ownerId: _originalTrip?.diverId,
+        );
+
   Future<bool?> _showUnshareConfirmDialog(BuildContext ctx) {
     final tripName = _nameController.text.trim().isNotEmpty
         ? _nameController.text.trim()
@@ -950,6 +1016,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         expectedRuntimeMinutes: _positiveOrNull(
           _expectedRuntimeController.text,
         ),
+        // Blank or non-positive is the default: one diver, the estimate.
+        diversSharingCylinders:
+            _positiveOrNull(_diversSharingController.text) ?? 1,
+        divesPerDayTarget: _positiveOrNull(_divesPerDayController.text),
         createdAt: _originalTrip?.createdAt ?? now,
         updatedAt: now,
       );
@@ -1087,11 +1157,12 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           context.pop(savedId);
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error('Failed to save trip', error: e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.trips_edit_snackBar_errorSaving('$e')),
+            content: Text(context.l10n.trips_edit_snackBar_errorSaving),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

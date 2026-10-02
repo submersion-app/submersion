@@ -9,6 +9,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -20,12 +21,24 @@ import 'package:submersion/features/buddies/presentation/widgets/buddy_summary_w
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_search_delegate.dart';
+import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
 
-class BuddyListPage extends ConsumerWidget {
+class BuddyListPage extends ConsumerStatefulWidget {
   const BuddyListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BuddyListPage> createState() => _BuddyListPageState();
+}
+
+class _BuddyListPageState extends ConsumerState<BuddyListPage>
+    with TableSelectionOwner {
+  @override
+  Widget build(BuildContext context) {
     final fab = FloatingActionButton.extended(
       onPressed: () {
         final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
@@ -43,6 +56,8 @@ class BuddyListPage extends ConsumerWidget {
       label: Text(context.l10n.buddies_action_add),
     );
 
+    resetTableSelectionOffTable(buddyListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane.
     final viewMode = ref.watch(buddyListViewModeProvider);
@@ -51,7 +66,11 @@ class BuddyListPage extends ConsumerWidget {
         child: TableModeLayout(
           sectionKey: 'buddies',
           appBarTitle: context.l10n.nav_buddies,
-          tableContent: const BuddyListContent(showAppBar: false),
+          appBarSubtitle: buddyListCountLabel(context, ref),
+          tableContent: BuddyListContent(
+            showAppBar: false,
+            selectionController: tableSelection,
+          ),
           detailBuilder: (context, buddyId) => BuddyDetailPage(
             buddyId: buddyId,
             embedded: true,
@@ -96,6 +115,12 @@ class BuddyListPage extends ConsumerWidget {
                 );
               },
             ),
+            QueryFilterAction(
+              provider: buddyQueryProvider,
+              subject: QuerySubject.buddies,
+              root: buddyQueryEntity,
+              compact: true,
+            ),
             IconButton(
               icon: const Icon(Icons.sort, size: 20),
               tooltip: context.l10n.buddies_action_sort,
@@ -132,6 +157,7 @@ class BuddyListPage extends ConsumerWidget {
               itemBuilder: (context) {
                 final currentMode = ref.read(buddyListViewModeProvider);
                 return [
+                  ...tableSelectItemsEntries(context),
                   ...ListViewModeToggle.menuItems(
                     context,
                     currentMode: currentMode,

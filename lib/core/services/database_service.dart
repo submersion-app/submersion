@@ -113,6 +113,17 @@ class DatabaseService {
   /// The current database file path (set after initialization)
   String? get currentPath => _currentDatabasePath;
 
+  /// Whether the last [initialize] reached the database file: an open was
+  /// attempted, even one that failed part way, or a connection is open.
+  ///
+  /// The connection is only recorded once the open fully succeeds, but the
+  /// open touches the file well before that (the background connection, the
+  /// forcing query, the schema ladder). False therefore means the file was
+  /// never reached, as when its folder could not even be created. Scoped to
+  /// one attempt: [initialize] and [close] both clear it.
+  bool get hasReachedFile => _database != null || _openAttempted;
+  bool _openAttempted = false;
+
   /// For testing only: allows injecting a test database
   @visibleForTesting
   void setTestDatabase(AppDatabase db) {
@@ -132,6 +143,7 @@ class DatabaseService {
   @visibleForTesting
   void resetForTesting() {
     _database = null;
+    _openAttempted = false;
     _background = null;
     _locationService = null;
     _currentDatabasePath = null;
@@ -173,6 +185,7 @@ class DatabaseService {
     bool allowSchemaUpgrade = true,
   }) async {
     if (_database != null) return;
+    _openAttempted = false;
 
     // Keep an already-registered service when called without one. [restore]
     // reopens via a bare `initialize()`, and clearing the location service
@@ -188,6 +201,7 @@ class DatabaseService {
       await dbDir.create(recursive: true);
     }
 
+    _openAttempted = true;
     _database = await _openDatabase(
       dbPath,
       onMigrationProgress: onMigrationProgress,
@@ -564,7 +578,12 @@ class DatabaseService {
   /// non-null so the still-open connection is not orphaned and the caller
   /// can retry — [_database] is cleared ONLY on a clean close.
   Future<void> close({bool strict = false}) async {
-    if (_database == null) return;
+    // A close ends the attempt [hasReachedFile] describes, including one
+    // whose open failed before a connection was ever recorded.
+    if (_database == null) {
+      _openAttempted = false;
+      return;
+    }
 
     if (strict) {
       // Graceful close first, but only briefly: GeneratedDatabase.close()
@@ -608,6 +627,7 @@ class DatabaseService {
       );
       _background = null;
       _database = null;
+      _openAttempted = false;
       return;
     }
 
@@ -625,6 +645,7 @@ class DatabaseService {
     } finally {
       _background = null;
       _database = null;
+      _openAttempted = false;
     }
   }
 
@@ -957,6 +978,10 @@ class DatabaseService {
     // filesystem, so the swap is an atomic metadata operation rather than a
     // cross-device copy.
     final stagingPath = '$destinationPath.restore-staging';
+    // The folder can be gone: the startup "dive log not found" screen offers a
+    // restore into a configured folder that no longer exists (#2177). It is
+    // created here exactly as initialize() creates it for a new dive log.
+    await Directory(p.dirname(destinationPath)).create(recursive: true);
     await _deleteIfExists(stagingPath);
     try {
       await backupFile.copy(stagingPath);
@@ -1037,7 +1062,11 @@ class DatabaseService {
       // (the same lock that likely broke the swap above) must not skip the
       // reopen below and leave the app with no database until restart.
       await _bestEffortDelete(stagingPath);
-      await initialize();
+      // Reopen only what was there to put back. With no database at the path
+      // before the restore (one reached from the startup "dive log not
+      // found" screen), a reopen would create an empty one that the next
+      // launch opens as the diver's dive log (#2177).
+      if (hadDest) await initialize();
       rethrow;
     }
 
@@ -1088,7 +1117,8 @@ class DatabaseService {
         await _deleteIfExists(destinationPath);
       }
       await _commitIfNothingAside(journal);
-      await initialize();
+      // As in the swap rollback above: nothing was there, so nothing reopens.
+      if (hadDest) await initialize();
       rethrow;
     }
 

@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_planner/presentation/widgets/segment_li
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
+import 'package:submersion/features/planner/data/services/plan_file_names.dart';
 import 'package:submersion/features/planner/data/services/plan_slate_pdf_service.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -563,13 +564,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   Future<void> _sharePlanFile(Rect? shareAnchor) async {
     final state = ref.read(divePlanNotifierProvider);
     final json = planToSubplanJson(divePlanFromState(state));
-    final safeName = state.name
-        .replaceAll(RegExp(r'[^\w\s-]'), '')
-        .trim()
-        .replaceAll(RegExp(r'\s+'), '_');
     await saveAndShareFile(
       json,
-      '${safeName.isEmpty ? 'dive_plan' : safeName}.$subplanExtension',
+      subplanFileName(state.name),
       'application/json',
       sharePositionOrigin: shareAnchor,
     );
@@ -610,13 +607,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       labels: labels,
     );
 
-    final safeName = state.name
-        .replaceAll(RegExp(r'[^\w\s-]'), '')
-        .trim()
-        .replaceAll(RegExp(r'\s+'), '_');
     await sharePdfBytes(
       bytes,
-      '${safeName.isEmpty ? 'dive_plan' : safeName}_slate.pdf',
+      planSlateFileName(state.name),
       sharePositionOrigin: shareAnchor,
     );
   }

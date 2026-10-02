@@ -15,6 +15,7 @@ import 'package:submersion/features/settings/presentation/providers/export_provi
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:xml/xml.dart';
 
+import '../../../../helpers/mock_channels.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -60,6 +61,7 @@ void main() {
           (call) async => null,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (await workDir.exists()) await workDir.delete(recursive: true);

@@ -19,12 +19,20 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 /// Issue #1861: once the CSV and PADI exports print linked buddies, they must
 /// print the CURRENT names. [divesProvider] only refreshes on `dives` table
 /// writes, and renaming a buddy writes `buddies` alone, so an export that read
 /// the cached list printed the old name until some dive happened to change.
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Buddy buddy;

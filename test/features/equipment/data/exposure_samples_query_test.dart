@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -279,6 +280,72 @@ void main() {
     expect(byDive['edited']!.maxDepth, 30.0);
     expect(byDive['edited']!.minTemperature, 12.0);
     expect(byDive['older']!.maxDepth, 30.0);
+  });
+
+  test('the stamp includes every series of the dive', () async {
+    // Series are synced child rows that never re-stamp their dive (#1769).
+    // A summary built after one arrived carries the series' stamp, so the
+    // sample must carry it too, in both queries, or the summary would read
+    // as stale for good and the condition review would wait on it forever.
+    final mask = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'Mask', type: EquipmentType.mask),
+    );
+    await insertDive('d1', dateMs: t1, maxDepth: 30, waterTemp: 12);
+    await link('d1', mask.id);
+    await db
+        .into(db.diveProfileSeries)
+        .insert(
+          DiveProfileSeriesCompanion.insert(
+            id: 'ps1',
+            diveId: 'd1',
+            startTimestamp: 0,
+            endTimestamp: 60,
+            sampleCount: 1,
+            maxDepth: 30,
+            firstDepth: 0,
+            lastDepth: 0,
+            codecVersion: 1,
+            samples: Uint8List.fromList([1]),
+            createdAt: t1 + 50,
+            updatedAt: t1 + 50,
+          ),
+        );
+    await tank('tk', 'd1');
+    await db
+        .into(db.tankPressureSeries)
+        .insert(
+          TankPressureSeriesCompanion.insert(
+            id: 'tp1',
+            diveId: 'd1',
+            tankId: 'tk',
+            sampleCount: 1,
+            startTimestamp: 0,
+            endTimestamp: 60,
+            codecVersion: 1,
+            samples: Uint8List.fromList([1]),
+            createdAt: t1 + 90,
+            updatedAt: t1 + 90,
+          ),
+        );
+    // The dive's stamp plus both series'.
+    final stamp = t1 + (t1 + 50) + (t1 + 90);
+    await db
+        .into(db.diveSensorSummaries)
+        .insert(
+          DiveSensorSummariesCompanion.insert(
+            diveId: 'd1',
+            engineVersion: DiveSensorSummaryService.version,
+            sourceUpdatedAt: stamp,
+            computedAt: 1,
+          ).copyWith(maxDepth: const Value(40.0)),
+        );
+
+    final single = await repo.getExposureSamplesForEquipment(mask.id);
+    expect(single.single.updatedAt, stamp);
+    expect(single.single.maxDepth, 40.0);
+    final batched = await repo.getItemExposures([mask]);
+    expect(batched[mask.id]!.samples.single.updatedAt, stamp);
+    expect(batched[mask.id]!.samples.single.maxDepth, 40.0);
   });
 
   test('a dive linked three ways is one sample', () async {

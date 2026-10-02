@@ -15,8 +15,11 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -188,6 +191,8 @@ void main() {
       ),
     );
 
+    await TripEquipmentRepository().pack(trip.id, [tank.id]);
+
     // hydro due mid-trip (day 12); vip due in ~1 year (after the trip).
     final schedules = await scheduleRepo.getSchedulesForEquipment(tank.id);
     final hydro = schedules.firstWhere((s) => s.serviceKindId == 'hydro');
@@ -227,6 +232,7 @@ void main() {
         updatedAt: now,
       ),
     );
+    await TripEquipmentRepository().pack(trip.id, [tank.id]);
     // A pre-v213 hydro baseline six years back: overdue, and any hydro
     // record takes the clock over.
     final hydro = (await scheduleRepo.getSchedulesForEquipment(
@@ -264,5 +270,150 @@ void main() {
       tripServiceAlertsProvider(trip.id).future,
     );
     expect(after.map((a) => a.status.kind.id), isNot(contains('hydro')));
+  });
+
+  group('tripServiceAlertsProvider covers only the gear on the trip '
+      '(issue #2727)', () {
+    Future<Trip> upcomingTrip(String diverId) {
+      final now = DateTime.now();
+      return TripRepository().createTrip(
+        Trip(
+          id: '',
+          diverId: diverId,
+          name: 'Liveaboard',
+          startDate: now.add(const Duration(days: 200)),
+          endDate: now.add(const Duration(days: 207)),
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    }
+
+    // A hydro baseline six years back: overdue now, so it blocks any trip
+    // the tank goes on.
+    Future<void> makeHydroOverdue(String equipmentId) async {
+      final hydro = (await scheduleRepo.getSchedulesForEquipment(
+        equipmentId,
+      )).firstWhere((s) => s.serviceKindId == 'hydro');
+      await scheduleRepo.updateSchedule(
+        hydro.copyWith(
+          anchorDate: DateTime.now().subtract(const Duration(days: 2190)),
+        ),
+      );
+    }
+
+    Future<List<String>> alertedIds(
+      ProviderContainer container,
+      String tripId,
+    ) async => [
+      for (final a in await container.read(
+        tripServiceAlertsProvider(tripId).future,
+      ))
+        a.item.id,
+    ];
+
+    test('an overdue tank left at home does not warn on the trip', () async {
+      final diver = await seedCurrentDiver();
+      final tank = await seedTank(diver.id);
+      await makeHydroOverdue(tank.id);
+      final trip = await upcomingTrip(diver.id);
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      expect(await alertedIds(container, trip.id), isEmpty);
+      // The home screen still warns: the tank is overdue, just not going.
+      final due = await container.read(dueClocksProvider.future);
+      expect(due.map((d) => d.item.id), contains(tank.id));
+    });
+
+    test('a packed tank warns, and only the packed one', () async {
+      final diver = await seedCurrentDiver();
+      final packed = await seedTank(diver.id);
+      final home = await seedTank(diver.id);
+      await makeHydroOverdue(packed.id);
+      await makeHydroOverdue(home.id);
+      final trip = await upcomingTrip(diver.id);
+      await TripEquipmentRepository().pack(trip.id, [packed.id]);
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      expect((await alertedIds(container, trip.id)).toSet(), {packed.id});
+    });
+
+    test('a tank on the trip cylinder board warns', () async {
+      final diver = await seedCurrentDiver();
+      final tank = await seedTank(diver.id);
+      await makeHydroOverdue(tank.id);
+      final trip = await upcomingTrip(diver.id);
+      final now = DateTime.now();
+      await TripCylinderRepository().createCylinder(
+        TripCylinder(
+          id: '',
+          tripId: trip.id,
+          equipmentId: tank.id,
+          label: 'Truck 1',
+          sortOrder: 0,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      expect((await alertedIds(container, trip.id)).toSet(), {tank.id});
+    });
+
+    test('a part installed in packed gear warns with it', () async {
+      final diver = await seedCurrentDiver();
+      final rig = await equipmentRepo.createEquipment(
+        EquipmentItem(
+          id: '',
+          name: 'Sidemount rig',
+          type: EquipmentType.harness,
+          diverId: diver.id,
+        ),
+      );
+      final tank = await equipmentRepo.createEquipment(
+        EquipmentItem(
+          id: '',
+          name: 'Left AL80',
+          type: EquipmentType.tank,
+          diverId: diver.id,
+          parentEquipmentId: rig.id,
+        ),
+      );
+      await makeHydroOverdue(tank.id);
+      final trip = await upcomingTrip(diver.id);
+      await TripEquipmentRepository().pack(trip.id, [rig.id]);
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      expect(await alertedIds(container, trip.id), contains(tank.id));
+    });
+
+    test('packing an overdue tank brings its alert to an open trip', () async {
+      final diver = await seedCurrentDiver();
+      final tank = await seedTank(diver.id);
+      await makeHydroOverdue(tank.id);
+      final trip = await upcomingTrip(diver.id);
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(
+        tripServiceAlertsProvider(trip.id),
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      expect(await alertedIds(container, trip.id), isEmpty);
+
+      // A pack writes trip_equipment alone: no equipment or ledger change.
+      await TripEquipmentRepository().pack(trip.id, [tank.id]);
+      await pumpEventQueue();
+      expect(await alertedIds(container, trip.id), contains(tank.id));
+    });
   });
 }

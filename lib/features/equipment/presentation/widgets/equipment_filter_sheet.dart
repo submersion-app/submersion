@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/shared/widgets/sheet_messenger_scope.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart' show QueryNode;
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/domain/models/service_due_filter_display.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_choice_attribute_filter.dart';
+import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_sheet_section.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -52,22 +57,28 @@ String _severityKey(ServiceDueFilter severity) => switch (severity) {
 class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   // Local draft, mirroring EquipmentFilterState.
   EquipmentStatus? _status;
+  bool _allStatuses = false;
   ServiceDueFilter? _serviceDue;
   EquipmentType? _type;
   List<EquipmentAttrCondition> _attrConditions = const [];
   Set<String> _tagIds = const {};
   EquipmentOwnerFilter _owner = EquipmentOwnerFilter.all;
 
+  /// The advanced part (#2365): typed, built or applied from a saved query.
+  QueryNode? _query;
+
   @override
   void initState() {
     super.initState();
     final filter = widget.ref.read(equipmentFilterProvider);
     _status = filter.status;
+    _allStatuses = filter.allStatuses;
     _serviceDue = filter.serviceDue;
     _type = filter.type;
     _attrConditions = filter.attrConditions;
     _tagIds = filter.tagIds;
     _owner = filter.owner;
+    _query = filter.query;
   }
 
   /// Conditions belong to a category, so picking another one drops them.
@@ -124,16 +135,25 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                 ),
                 const Divider(),
                 Expanded(
-                  child: ListView(
-                    controller: scrollController,
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      _buildStatusSection(),
-                      const SizedBox(height: 24),
-                      _buildOwnerSection(),
-                      _buildCategorySection(),
-                      _buildTagSection(),
-                    ],
+                  child: SheetMessengerScope(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        QuerySheetSection(
+                          subject: QuerySubject.equipment,
+                          root: equipmentQueryEntity,
+                          value: _query,
+                          onChanged: (node) => setState(() => _query = node),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildStatusSection(),
+                        const SizedBox(height: 24),
+                        _buildOwnerSection(),
+                        _buildCategorySection(),
+                        _buildTagSection(),
+                      ],
+                    ),
                   ),
                 ),
                 // Outside the ListView: as lazy children the actions were
@@ -192,12 +212,25 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
           spacing: 8,
           runSpacing: 8,
           children: [
+            // The default view: everything but retired and sold gear (#636).
+            ChoiceChip(
+              key: const ValueKey('equipment_filter_status_current'),
+              label: Text(context.l10n.equipment_list_filterCurrent),
+              selected: !_allStatuses && _status == null && _serviceDue == null,
+              onSelected: (_) => setState(() {
+                _status = null;
+                _allStatuses = false;
+                _serviceDue = null;
+              }),
+            ),
+            // Every status, retired and sold included (#2590).
             ChoiceChip(
               key: const ValueKey('equipment_filter_status_all'),
               label: Text(context.l10n.equipment_list_filterAll),
-              selected: _status == null && _serviceDue == null,
+              selected: _allStatuses,
               onSelected: (_) => setState(() {
                 _status = null;
+                _allStatuses = true;
                 _serviceDue = null;
               }),
             ),
@@ -212,7 +245,10 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                 selected: _serviceDue == severity,
                 onSelected: (selected) => setState(() {
                   _serviceDue = selected ? severity : null;
-                  if (selected) _status = null;
+                  if (selected) {
+                    _status = null;
+                    _allStatuses = false;
+                  }
                 }),
               ),
             // needsService is excluded: the computed Service Due choice above
@@ -226,7 +262,10 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                 selected: _status == status,
                 onSelected: (selected) => setState(() {
                   _status = selected ? status : null;
-                  if (selected) _serviceDue = null;
+                  if (selected) {
+                    _serviceDue = null;
+                    _allStatuses = false;
+                  }
                 }),
               ),
           ],
@@ -331,11 +370,13 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   void _clearAll() {
     setState(() {
       _status = null;
+      _allStatuses = false;
       _serviceDue = null;
       _type = null;
       _attrConditions = const [];
       _tagIds = const {};
       _owner = EquipmentOwnerFilter.all;
+      _query = null;
     });
   }
 
@@ -344,11 +385,13 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
         .read(equipmentFilterProvider.notifier)
         .state = EquipmentFilterState(
       status: _status,
+      allStatuses: _allStatuses,
       serviceDue: _serviceDue,
       type: _type,
       attrConditions: _attrConditions,
       tagIds: _tagIds,
       owner: _owner,
+      query: _query,
     );
     Navigator.of(context).pop();
   }

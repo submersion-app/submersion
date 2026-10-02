@@ -1,0 +1,507 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
+import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_gas_record_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_record_view.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../../helpers/mock_providers.dart';
+
+void main() {
+  final at = DateTime.utc(2026, 3, 9, 9, 5);
+  final slot = TripCylinder(
+    id: 'a',
+    tripId: 't1',
+    label: 'Truck 1',
+    workingPressure: 207,
+    createdAt: at,
+    updatedAt: at,
+  );
+  final fill = TripCylinderEvent(
+    id: 'f1',
+    tripCylinderId: 'a',
+    kind: TripCylinderEventKind.fill,
+    occurredAt: at,
+    bottleLabel: '14',
+    pressure: 200,
+    o2Percent: 32,
+    analyzedO2: 31.8,
+    diveCenterId: 'c1',
+    createdAt: at,
+    updatedAt: at,
+  );
+
+  TripGasRecordRow row(
+    String tankId, {
+    String? diver,
+    double? litres,
+    TripCylinderEvent? fillEvent,
+  }) => TripGasRecordRow(
+    tank: TripGasRecordTank(
+      tankId: tankId,
+      diveId: 'd-$tankId',
+      entryTime: at,
+      diverId: diver,
+      diverName: diver == null ? null : 'Diver $diver',
+      siteName: 'Salt Pier',
+      startPressure: 200,
+      endPressure: 60,
+      volume: 11.1,
+      gasMix: const GasMix(o2: 32),
+      tripCylinderId: 'a',
+    ),
+    cylinder: slot,
+    bottleLabel: '14',
+    fill: fillEvent ?? fill,
+    fillPressure: 200,
+    litres: litres,
+  );
+
+  TripGasRecord recordOf({
+    List<TripGasRecordRow>? rows,
+    List<TripGasRecordSlotTotal>? slots,
+    List<TripUnlinkedTank> unlinked = const [],
+    bool multipleDivers = false,
+  }) => TripGasRecord(
+    rows: rows ?? [row('t1', litres: 1554)],
+    slots:
+        slots ??
+        [
+          TripGasRecordSlotTotal(
+            cylinder: slot,
+            dives: 2,
+            litres: 1554,
+            leftOut: 1,
+          ),
+        ],
+    fillsLogged: 3,
+    costs: const [MapEntry('USD', 22.0)],
+    packageFills: 1,
+    unlinked: unlinked,
+    multipleDivers: multipleDivers,
+  );
+
+  Future<void> pump(
+    WidgetTester tester,
+    TripGasRecord record, {
+    Map<String, List<DiveDataSource>> sourcesByDive = const {},
+    Locale locale = const Locale('en'),
+    TripGasRecord Function()? current,
+  }) async {
+    tester.view.physicalSize = const Size(900, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => const Scaffold(
+            body: TripCylinderRecordView(
+              tripId: 't1',
+              centerNames: {'c1': 'Dive Friends'},
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/dives/:diveId/edit',
+          builder: (_, _) => const Scaffold(body: Text('EDIT DIVE')),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          tripGasRecordProvider(
+            't1',
+          ).overrideWith((ref) async => current?.call() ?? record),
+          diveDataSourcesProvider.overrideWith(
+            (ref, diveId) async => sourcesByDive[diveId] ?? const [],
+          ),
+        ],
+        child: MaterialApp.router(
+          locale: locale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('totals: fills, per slot litres and left out, cost', (
+    tester,
+  ) async {
+    await pump(tester, recordOf());
+    final totals = find.byKey(const Key('record-totals'));
+    expect(
+      find.descendant(of: totals, matching: find.text('3 fills logged')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: totals,
+        matching: find.textContaining('1 dive left out'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: totals, matching: find.textContaining(r'$22.00')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: totals,
+        matching: find.textContaining('1 package fill'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a slot with no figure reads "--", one with no dives no volume', (
+    tester,
+  ) async {
+    final empty = TripCylinder(
+      id: 'b',
+      tripId: 't1',
+      label: 'Truck 2',
+      createdAt: at,
+      updatedAt: at,
+    );
+    await pump(
+      tester,
+      recordOf(
+        rows: [row('t1'), row('t2')],
+        slots: [
+          TripGasRecordSlotTotal(cylinder: slot, dives: 2, leftOut: 2),
+          TripGasRecordSlotTotal(cylinder: empty, dives: 0, leftOut: 0),
+        ],
+      ),
+    );
+    final totals = find.byKey(const Key('record-totals'));
+    expect(
+      find.descendant(
+        of: totals,
+        matching: find.text('Truck 1 · 2 dives · -- · 2 dives left out'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: totals, matching: find.text('Truck 2 · 0 dives')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a row names its bottle, analysis, fill and station', (
+    tester,
+  ) async {
+    await pump(tester, recordOf());
+    final r = find.byKey(const Key('record-row-t1'));
+    expect(
+      find.descendant(
+        of: r,
+        matching: find.textContaining('Truck 1 · Bottle 14'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: r, matching: find.textContaining('Analyzed 31.8%')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: r, matching: find.textContaining('Dive Friends')),
+      findsOneWidget,
+    );
+  });
+
+  group('the analyzed mix follows the locale (issue #2666)', () {
+    setUp(() {
+      // Number separators resolve against Intl.defaultLocale, which the app
+      // sets from the diver's language; put it back for the next file.
+      final previous = Intl.defaultLocale;
+      Intl.defaultLocale = 'de';
+      addTearDown(() => Intl.defaultLocale = previous);
+    });
+
+    TripGasRecordRow analyzed(double o2, {double? he}) => row(
+      't1',
+      litres: 1554,
+      fillEvent: fill.copyWith(analyzedO2: o2, analyzedHe: he),
+    );
+
+    testWidgets('a nitrox analysis takes the decimal comma', (tester) async {
+      await pump(
+        tester,
+        recordOf(rows: [analyzed(31.8)]),
+        locale: const Locale('de'),
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('record-row-t1')),
+          matching: find.textContaining('Analysiert 31,8%'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a trimix analysis localises both gases', (tester) async {
+      await pump(
+        tester,
+        recordOf(rows: [analyzed(18.5, he: 44.6)]),
+        locale: const Locale('de'),
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('record-row-t1')),
+          matching: find.textContaining('Analysiert 18,5/44,6%'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a whole reading stays whole', (tester) async {
+      await pump(
+        tester,
+        recordOf(rows: [analyzed(21, he: 35)]),
+        locale: const Locale('de'),
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('record-row-t1')),
+          matching: find.textContaining('Analysiert 21/35%'),
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
+  testWidgets('a single-diver trip names no diver', (tester) async {
+    await pump(tester, recordOf(rows: [row('t1', diver: 'x', litres: 1)]));
+    expect(find.textContaining('Diver x'), findsNothing);
+  });
+
+  testWidgets('names show only with more than one diver', (tester) async {
+    await pump(
+      tester,
+      recordOf(rows: [row('t1', diver: 'x', litres: 1)], multipleDivers: true),
+    );
+    expect(find.textContaining('Diver x'), findsOneWidget);
+  });
+
+  testWidgets('a row with no figure shows "--" for litres', (tester) async {
+    await pump(tester, recordOf(rows: [row('t1')]));
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('record-row-t1')),
+        matching: find.textContaining('--'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the gaps line lists unlinked tanks and opens the editor', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      recordOf(
+        unlinked: [
+          TripUnlinkedTank(
+            tankId: 'n1',
+            diveId: 'd7',
+            entryTime: at,
+            siteName: 'Klein Bonaire',
+            tankOrder: 1,
+          ),
+        ],
+      ),
+    );
+    await tester.tap(find.byKey(const Key('record-gaps')));
+    await tester.pumpAndSettle();
+    expect(find.text('Not linked to a cylinder'), findsOneWidget);
+    await tester.tap(find.textContaining('Klein Bonaire'));
+    await tester.pumpAndSettle();
+    expect(find.text('EDIT DIVE'), findsOneWidget);
+  });
+
+  testWidgets('on a two-computer dive each gap names its computer', (
+    tester,
+  ) async {
+    // Issue #2661: both computers' rows for one cylinder are gaps until
+    // linked; without the computer they read as two identical tanks.
+    DiveDataSource source(String id, String name, {required bool primary}) =>
+        DiveDataSource(
+          id: 'src-$id',
+          diveId: 'd7',
+          computerId: id,
+          isPrimary: primary,
+          computerName: name,
+          importedAt: at,
+          createdAt: at,
+        );
+    TripUnlinkedTank gap(String id, int order, {String? computerId}) =>
+        TripUnlinkedTank(
+          tankId: id,
+          diveId: 'd7',
+          entryTime: at,
+          siteName: 'Klein Bonaire',
+          tankOrder: order,
+          computerId: computerId,
+        );
+    await pump(
+      tester,
+      recordOf(
+        unlinked: [
+          gap('n1', 0),
+          gap('n2', 1, computerId: 'perdix'),
+        ],
+      ),
+      sourcesByDive: {
+        'd7': [
+          source('teric', 'Teric', primary: true),
+          source('perdix', 'Perdix', primary: false),
+        ],
+      },
+    );
+    await tester.tap(find.byKey(const Key('record-gaps')));
+    await tester.pumpAndSettle();
+    expect(find.text('Tank 1 · Teric'), findsOneWidget);
+    expect(find.text('Tank 2 · Perdix'), findsOneWidget);
+  });
+
+  testWidgets('sources naming no computer are named by their file', (
+    tester,
+  ) async {
+    // Issue #2716: two file imports with no computer both read as an
+    // imported file; the file tells their rows apart.
+    DiveDataSource file(String id, String name, {required bool primary}) =>
+        DiveDataSource(
+          id: id,
+          diveId: 'd7',
+          isPrimary: primary,
+          sourceFileName: name,
+          importedAt: at,
+          createdAt: at,
+        );
+    await pump(
+      tester,
+      recordOf(
+        unlinked: [
+          TripUnlinkedTank(
+            tankId: 'n1',
+            diveId: 'd7',
+            entryTime: at,
+            siteName: 'Klein Bonaire',
+            sourceId: 'src-a',
+          ),
+          TripUnlinkedTank(
+            tankId: 'n2',
+            diveId: 'd7',
+            entryTime: at,
+            siteName: 'Klein Bonaire',
+            tankOrder: 1,
+            sourceId: 'src-b',
+          ),
+        ],
+      ),
+      sourcesByDive: {
+        'd7': [
+          file('src-a', 'morning.csv', primary: true),
+          file('src-b', 'buddy.csv', primary: false),
+        ],
+      },
+    );
+    await tester.tap(find.byKey(const Key('record-gaps')));
+    await tester.pumpAndSettle();
+    expect(find.text('Tank 1 · morning.csv'), findsOneWidget);
+    expect(find.text('Tank 2 · buddy.csv'), findsOneWidget);
+  });
+
+  testWidgets('a single-computer dive\'s gap names no computer', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      recordOf(
+        unlinked: [
+          TripUnlinkedTank(
+            tankId: 'n1',
+            diveId: 'd7',
+            entryTime: at,
+            siteName: 'Klein Bonaire',
+          ),
+        ],
+      ),
+      sourcesByDive: {
+        'd7': [
+          DiveDataSource(
+            id: 'src-1',
+            diveId: 'd7',
+            computerId: 'teric',
+            isPrimary: true,
+            computerName: 'Teric',
+            importedAt: at,
+            createdAt: at,
+          ),
+        ],
+      },
+    );
+    await tester.tap(find.byKey(const Key('record-gaps')));
+    await tester.pumpAndSettle();
+    expect(find.text('Tank 1'), findsOneWidget);
+  });
+
+  testWidgets('the open gaps sheet follows the record', (tester) async {
+    // A diver renamed while the sheet is open shows the new name there too
+    // (issue #2666): the sheet reads the record, not a copy of it.
+    TripUnlinkedTank gap(String diverName) => TripUnlinkedTank(
+      tankId: 'n1',
+      diveId: 'd7',
+      entryTime: at,
+      diverId: 'x',
+      diverName: diverName,
+      siteName: 'Klein Bonaire',
+      tankOrder: 1,
+    );
+    var record = recordOf(unlinked: [gap('Ana')], multipleDivers: true);
+    await pump(tester, record, current: () => record);
+    await tester.tap(find.byKey(const Key('record-gaps')));
+    await tester.pumpAndSettle();
+    final sheet = find.byType(BottomSheet);
+    expect(
+      find.descendant(
+        of: sheet,
+        matching: find.text('Mar 9, 2026 at 9:05 AM · Klein Bonaire · Ana'),
+      ),
+      findsOneWidget,
+    );
+
+    record = recordOf(unlinked: [gap('Ana Silva')], multipleDivers: true);
+    ProviderScope.containerOf(
+      tester.element(find.byType(TripCylinderRecordView)),
+    ).invalidate(tripGasRecordProvider('t1'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(of: sheet, matching: find.textContaining('Ana Silva')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('no gaps, no gaps line; no rows, the empty text', (tester) async {
+    await pump(tester, recordOf(rows: const []));
+    expect(find.byKey(const Key('record-gaps')), findsNothing);
+    expect(find.byKey(const Key('record-empty')), findsOneWidget);
+  });
+}

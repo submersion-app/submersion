@@ -1067,4 +1067,39 @@ void main() {
       );
     });
   });
+
+  test('stamps each dive with whether its own file had trips (#2618)', () {
+    // A file with trips leaves dives out of them on purpose; a file with
+    // none says nothing. The merged batch holds both, so the importer needs
+    // each dive's own file to tell which.
+    final withTrips = ImportPayload(
+      entities: {
+        ImportEntityType.trips: [
+          {'uddfId': 'trip_1', 'name': 'Bonaire'},
+        ],
+        ImportEntityType.dives: [
+          {'dateTime': DateTime(2026, 3, 10, 9)},
+        ],
+      },
+    );
+    final withoutTrips = payloadWith(
+      dives: [
+        {'dateTime': DateTime(2026, 3, 11, 9)},
+      ],
+    );
+
+    final dives = merger
+        .merge([
+          FilePayload(fileId: 'f0', fileName: 'a.ssrf', payload: withTrips),
+          FilePayload(
+            fileId: 'f1',
+            fileName: 'b.sqlite',
+            payload: withoutTrips,
+          ),
+        ])
+        .entitiesOf(ImportEntityType.dives);
+
+    expect(dives[0][PayloadMerger.sourceHasTripsKey], isTrue);
+    expect(dives[1][PayloadMerger.sourceHasTripsKey], isFalse);
+  });
 }

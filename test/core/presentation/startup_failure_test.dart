@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
@@ -226,9 +228,156 @@ void main() {
     });
   });
 
+  // Issue #2178. macOS and iOS used to answer an unreachable folder by
+  // resetting the storage location without a word. Now the failure screen
+  // says what happened, which needs a class of its own.
+  group('classifyStartupFailure - unreachable custom folder', () {
+    test('an unreachable folder outranks what the open threw', () {
+      final errors = <Object>[
+        const FileSystemException(
+          'Cannot open file',
+          '/Users/diver/iCloud/submersion.db',
+          OSError('Operation not permitted', 1),
+        ),
+        _sqliteError(14, 'unable to open database file'),
+        Exception('database disk image is malformed'),
+      ];
+      for (final error in errors) {
+        for (final phase in [StartupPhase.preflight, StartupPhase.opening]) {
+          expect(
+            classifyStartupFailure(error, phase, locationUnreachable: true),
+            StartupFailureKind.locationUnreachable,
+            reason: '$error during $phase',
+          );
+        }
+      }
+    });
+
+    // Copilot on PR 2497: the probe only proves the folder is unreachable
+    // NOW. Once the ladder has run it may have written to the file before
+    // the folder went away, so "nothing changed" would be a false promise
+    // and the safety-copy routes must stay on offer.
+    test('a failure during the upgrade stays a failed migration', () {
+      expect(
+        classifyStartupFailure(
+          const FileSystemException(
+            'Cannot open file',
+            '/Volumes/DiveDrive/submersion.db',
+            OSError('Input/output error', 5),
+          ),
+          StartupPhase.upgrading,
+          locationUnreachable: true,
+        ),
+        StartupFailureKind.migrationFailed,
+      );
+    });
+
+    // Copilot on PR 2497: `opening` also covers every service started after
+    // the database opened. Once a connection exists the file was reached, and
+    // anything after that may have written to it.
+    test(
+      'a failure after the database opened is never blamed on the folder',
+      () {
+        for (final phase in StartupPhase.values) {
+          final kind = classifyStartupFailure(
+            Exception('notifications blew up'),
+            phase,
+            locationUnreachable: true,
+            fileReached: true,
+          );
+          expect(
+            kind,
+            isNot(StartupFailureKind.locationUnreachable),
+            reason: '$phase',
+          );
+          expect(kind.dataIsAtRisk, isTrue, reason: '$phase');
+        }
+      },
+    );
+
+    // The same rule decides whether the folder is worth probing at all, so a
+    // probe that can hang on a dead network mount is never run for nothing.
+    test(
+      'the folder can explain a failure only before the file was reached',
+      () {
+        final fileError = Exception('Cannot open file');
+        expect(
+          canBlameUnreachableFolder(
+            fileError,
+            StartupPhase.preflight,
+            fileReached: false,
+          ),
+          isTrue,
+        );
+        expect(
+          canBlameUnreachableFolder(
+            fileError,
+            StartupPhase.opening,
+            fileReached: false,
+          ),
+          isTrue,
+        );
+        expect(
+          canBlameUnreachableFolder(
+            fileError,
+            StartupPhase.opening,
+            fileReached: true,
+          ),
+          isFalse,
+        );
+        expect(
+          canBlameUnreachableFolder(
+            fileError,
+            StartupPhase.upgrading,
+            fileReached: false,
+          ),
+          isFalse,
+        );
+        expect(
+          canBlameUnreachableFolder(
+            const DatabaseEngineUnavailableException('missing library'),
+            StartupPhase.preflight,
+            fileReached: false,
+          ),
+          isFalse,
+        );
+      },
+    );
+
+    test('an engine failure still outranks an unreachable folder', () {
+      // The database was never opened, so the folder is not why startup
+      // stopped, and pointing the diver at it would hide the packaging fault.
+      expect(
+        classifyStartupFailure(
+          const DatabaseEngineUnavailableException('missing library'),
+          StartupPhase.preflight,
+          locationUnreachable: true,
+        ),
+        StartupFailureKind.engineUnavailable,
+      );
+    });
+
+    test('a reachable folder leaves the classification alone', () {
+      expect(
+        classifyStartupFailure(
+          Exception('database disk image is malformed'),
+          StartupPhase.opening,
+        ),
+        StartupFailureKind.dataUnreadable,
+      );
+    });
+  });
+
   group('StartupFailureKind.dataIsAtRisk', () {
     test('an engine failure never puts data at risk', () {
       expect(StartupFailureKind.engineUnavailable.dataIsAtRisk, isFalse);
+    });
+
+    test('an unreachable folder never puts data at risk', () {
+      // Nothing could be opened, so nothing could be written. It also keeps
+      // the restore card and start-fresh off the screen: both write into the
+      // very folder that cannot be reached.
+      expect(StartupFailureKind.locationUnreachable.dataIsAtRisk, isFalse);
     });
 
     test('the classes that touched the file do', () {

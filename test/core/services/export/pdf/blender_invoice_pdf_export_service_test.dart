@@ -5,10 +5,16 @@ import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
 import 'package:submersion/core/services/export/pdf/blender_invoice_pdf_export_service.dart';
 
+import '../../../../helpers/pdf_roboto.dart';
 import '../../../../helpers/pdf_text.dart';
 
 void main() {
   late BlenderInvoicePdfExportService service;
+
+  // The Unicode font test uses the production theme, which loads Roboto.
+  // Loading it from the Flutter SDK keeps that test off the network.
+  setUpAll(loadPdfRoboto);
+  tearDownAll(unloadPdfRoboto);
 
   // Helvetica keeps the text readable by pdfVisibleText; production embeds
   // Roboto (asserted by the Unicode font test below).

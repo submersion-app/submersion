@@ -41,7 +41,31 @@ const frozenFieldTableV1 = <(String, ProfileFieldKind)>[
   ('o2_sensor_mv6', ProfileFieldKind.deltaInt),
 ];
 
+/// The v2 field table, frozen the same way: v1 in full, then the two
+/// computer-reported tissue fields.
+const frozenFieldTableV2 = <(String, ProfileFieldKind)>[
+  ...frozenFieldTableV1,
+  ('gf99', ProfileFieldKind.deltaInt),
+  ('n2_load', ProfileFieldKind.deltaInt),
+];
+
 void main() {
+  test('codec v2 is the version new blobs are written with', () {
+    expect(ProfileSeriesCodec.version, 2);
+    expect(const ProfileSeriesCodec().fieldTables.keys, {1, 2});
+  });
+
+  test('codec v2 carries exactly the frozen field table, in order', () {
+    expect(
+      [for (final f in ProfileSeriesCodec.fieldTableV2) (f.name, f.kind)],
+      frozenFieldTableV2,
+      reason:
+          'fieldTableV2 changed. Every v2 blob already written decodes '
+          'against this exact order. Append the new field under a NEW '
+          'version in ProfileSeriesCodec; never edit fieldTableV2.',
+    );
+  });
+
   test('codec v1 carries exactly the frozen field table, in order', () {
     expect(
       [for (final f in ProfileSeriesCodec.fieldTableV1) (f.name, f.kind)],
@@ -54,12 +78,12 @@ void main() {
     );
   });
 
-  test('the field table covers every ProfileSample field', () {
+  test('the newest field table covers every ProfileSample field', () {
     // Anchored on the live type, not a second copy of the list above: a
     // sample field added without a matching field-table entry would be
     // silently dropped on encode, and this is what says so.
     expect(
-      kProfileFieldTableV1.length,
+      kProfileFieldTableV2.length,
       const ProfileSample(timestamp: 0, depth: 0.0).props.length,
     );
   });

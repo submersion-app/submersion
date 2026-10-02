@@ -3,6 +3,7 @@ import 'package:meta/meta.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_value.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
+import 'package:submersion/core/utils/per_minute.dart';
 
 /// The diver's unit choices the parser and printer need. Built from
 /// AppSettings by the provider layer so this file stays free of settings.
@@ -50,6 +51,7 @@ FieldDimension dimensionOfUnit(QueryUnit unit) => switch (unit) {
   QueryUnit.bar || QueryUnit.psi => FieldDimension.pressure,
   QueryUnit.kg || QueryUnit.lb => FieldDimension.weight,
   QueryUnit.l || QueryUnit.cuft => FieldDimension.volume,
+  QueryUnit.barMin || QueryUnit.psiMin => FieldDimension.pressureRate,
   QueryUnit.min => FieldDimension.minutes,
 };
 
@@ -66,6 +68,10 @@ QueryUnit? unitForDimension(FieldDimension dimension, UnitPrefs prefs) {
           : QueryUnit.c;
     case FieldDimension.pressure:
       return prefs.pressure == PressureUnit.psi ? QueryUnit.psi : QueryUnit.bar;
+    case FieldDimension.pressureRate:
+      return prefs.pressure == PressureUnit.psi
+          ? QueryUnit.psiMin
+          : QueryUnit.barMin;
     case FieldDimension.weight:
       return prefs.weight == WeightUnit.pounds ? QueryUnit.lb : QueryUnit.kg;
     case FieldDimension.volume:
@@ -110,6 +116,14 @@ double groundToStorage(
       final from = switch (unit) {
         QueryUnit.bar => PressureUnit.bar,
         QueryUnit.psi => PressureUnit.psi,
+        _ => prefs.pressure,
+      };
+      return from.convert(v, PressureUnit.bar);
+    case FieldDimension.pressureRate:
+      // Per minute on both sides, so a rate converts by the pressure factor.
+      final from = switch (unit) {
+        QueryUnit.barMin => PressureUnit.bar,
+        QueryUnit.psiMin => PressureUnit.psi,
         _ => prefs.pressure,
       };
       return from.convert(v, PressureUnit.bar);
@@ -165,6 +179,13 @@ double groundToStorage(
         _ => prefs.pressure,
       };
       return (PressureUnit.bar.convert(storage, to), typedUnit);
+    case FieldDimension.pressureRate:
+      final to = switch (typedUnit) {
+        QueryUnit.barMin => PressureUnit.bar,
+        QueryUnit.psiMin => PressureUnit.psi,
+        _ => prefs.pressure,
+      };
+      return (PressureUnit.bar.convert(storage, to), typedUnit);
     case FieldDimension.weight:
       final to = switch (typedUnit) {
         QueryUnit.kg => WeightUnit.kilograms,
@@ -185,4 +206,17 @@ double groundToStorage(
     case FieldDimension.none:
       return (storage, null);
   }
+}
+
+/// What a number field shows after its value: "%" for a percent, the
+/// spelled rate ("bar/min", "psi/min") for a pressure rate, otherwise the
+/// unit's own suffix. Null for a unitless field.
+String? displaySuffix(FieldDimension dimension, UnitPrefs prefs) {
+  if (dimension == FieldDimension.percent) return '%';
+  final unit = unitForDimension(dimension, prefs);
+  return switch (unit) {
+    QueryUnit.barMin => perMinute(QueryUnit.bar.suffix),
+    QueryUnit.psiMin => perMinute(QueryUnit.psi.suffix),
+    _ => unit?.suffix,
+  };
 }

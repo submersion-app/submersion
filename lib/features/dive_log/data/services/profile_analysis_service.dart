@@ -330,6 +330,19 @@ class ProfileAnalysis {
   /// [DecoStatus] pair and show no provenance.
   final GradientFactorSource? gfSource;
 
+  /// True when this is a rebreather dive whose loop could not be modelled (no
+  /// setpoint, no measured loop ppO2), so tissue loading and everything built
+  /// on it (NDL, ceiling, TTS, GF, inert-gas overlays) were deliberately not
+  /// computed. Loading the tissues from a cylinder's open-circuit mix instead
+  /// would be wrong by an order of magnitude (issue #2593).
+  final bool tissueLoadingWithheld;
+
+  /// The `AnalysisSettings.fingerprint` of the diver settings this analysis
+  /// ran on, stamped by the analysis pipeline. A result persisted from it
+  /// stores this so a later change to those settings can be detected
+  /// (issue #2592). Null for an analysis built outside the pipeline.
+  final String? inputsFingerprint;
+
   const ProfileAnalysis({
     required this.ascentRates,
     required this.ascentRateStats,
@@ -363,6 +376,8 @@ class ProfileAnalysis {
     required this.maxDepthTimestamp,
     required this.durationSeconds,
     this.gfSource,
+    this.tissueLoadingWithheld = false,
+    this.inputsFingerprint,
   });
 
   /// Whether diver went into decompression obligation
@@ -461,6 +476,8 @@ class ProfileAnalysis {
     int? maxDepthTimestamp,
     int? durationSeconds,
     GradientFactorSource? gfSource,
+    bool? tissueLoadingWithheld,
+    String? inputsFingerprint,
   }) {
     return ProfileAnalysis(
       ascentRates: ascentRates ?? this.ascentRates,
@@ -496,6 +513,9 @@ class ProfileAnalysis {
       maxDepthTimestamp: maxDepthTimestamp ?? this.maxDepthTimestamp,
       durationSeconds: durationSeconds ?? this.durationSeconds,
       gfSource: gfSource ?? this.gfSource,
+      tissueLoadingWithheld:
+          tissueLoadingWithheld ?? this.tissueLoadingWithheld,
+      inputsFingerprint: inputsFingerprint ?? this.inputsFingerprint,
     );
   }
 
@@ -730,7 +750,15 @@ class ProfileAnalysisService {
     // CNS/OTU come from the resolved loop ppO2 curve instead.
     final useGasSegmentsForDeco = gasSegments != null;
     final useOcGasSegments = diveMode == DiveMode.oc && gasSegments != null;
-    final decoStatuses = useGasSegmentsForDeco
+    // A rebreather's inspired inert pressure depends on the loop ppO2. With no
+    // loop schedule there is nothing to load the tissues from: the first
+    // cylinder's open-circuit mix is the O2 supply or a bailout as often as
+    // not, and its numbers would be fiction (issue #2593). Withhold them.
+    final isRebreather = diveMode == DiveMode.ccr || diveMode == DiveMode.scr;
+    final tissueLoadingWithheld = isRebreather && gasSegments == null;
+    final decoStatuses = tissueLoadingWithheld
+        ? const <DecoStatus>[]
+        : useGasSegmentsForDeco
         ? _buhlmannAlgorithm.processProfileWithGasSegments(
             depths: depths,
             timestamps: timestamps,
@@ -931,7 +959,7 @@ class ProfileAnalysisService {
     // displayed ppO2 curve so the ppN2/density overlays agree with it. With
     // no setpoint segments the loop cannot be modeled and the legacy
     // first-tank fractions stand.
-    final ccrLoopFractions = diveMode == DiveMode.ccr && gasSegments != null
+    final ccrLoopFractions = isRebreather && gasSegments != null
         ? _calculateCcrLoopFractions(
             depths: depths,
             timestamps: timestamps,
@@ -955,10 +983,14 @@ class ProfileAnalysisService {
         List.filled(depths.length, o2Fraction);
 
     // Calculate additional gas/deco curves
-    final ppN2Curve = pointN2Fractions != null
+    final ppN2Curve = tissueLoadingWithheld
+        ? null
+        : pointN2Fractions != null
         ? _calculatePpCurve(depths, pointN2Fractions)
         : _calculatePpCurve(depths, List.filled(depths.length, n2Fraction));
-    final ppHeCurve = pointHeFractions != null
+    final ppHeCurve = tissueLoadingWithheld
+        ? null
+        : pointHeFractions != null
         ? (pointHeFractions.any((f) => f > 0.001)
               ? _calculatePpCurve(depths, pointHeFractions)
               : null)
@@ -966,12 +998,17 @@ class ProfileAnalysisService {
         ? _calculatePpCurve(depths, List.filled(depths.length, heFraction))
         : null;
     final modCurve = _calculateModCurve(modO2Fractions);
-    final densityCurve = _calculateDensityCurve(
-      depths: depths,
-      o2Fractions: pointO2Fractions ?? List.filled(depths.length, o2Fraction),
-      n2Fractions: pointN2Fractions ?? List.filled(depths.length, n2Fraction),
-      heFractions: pointHeFractions ?? List.filled(depths.length, heFraction),
-    );
+    final densityCurve = tissueLoadingWithheld
+        ? null
+        : _calculateDensityCurve(
+            depths: depths,
+            o2Fractions:
+                pointO2Fractions ?? List.filled(depths.length, o2Fraction),
+            n2Fractions:
+                pointN2Fractions ?? List.filled(depths.length, n2Fraction),
+            heFractions:
+                pointHeFractions ?? List.filled(depths.length, heFraction),
+          );
     final gfCurve = _calculateGfCurve(decoStatuses);
     final surfaceGfCurve = _calculateSurfaceGfCurve(decoStatuses);
     final meanDepthCurve = _calculateMeanDepthCurve(depths);
@@ -985,7 +1022,7 @@ class ProfileAnalysisService {
             timestamps: timestamps,
             pressures: pressures,
             reserveBar: gtrReserveBar,
-            ceilings: ceilingCurve,
+            ceilings: tissueLoadingWithheld ? null : ceilingCurve,
           )
         : null;
     final cnsCurve =
@@ -1029,6 +1066,7 @@ class ProfileAnalysisService {
       maxDepthTimestamp: maxDepthTimestamp,
       durationSeconds: durationSeconds,
       gfSource: _gfSource,
+      tissueLoadingWithheld: tissueLoadingWithheld,
     );
   }
 

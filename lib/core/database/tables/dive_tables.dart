@@ -89,6 +89,9 @@ class Dives extends Table {
       text().nullable()(); // "buhlmann", "vpm", "rgbm", "dciem"
   IntColumn get decoConservatism =>
       integer().nullable()(); // Personal adjustment (0=neutral)
+  // Tissue state the dive computer itself reported (v256): the JSON of
+  // ComputerTissueSnapshot.toJson, or null when the source carried none.
+  TextColumn get computerTissueJson => text().nullable()();
   // Dive computer that logged this dive (for display/export, separate from computerId relation)
   TextColumn get diveComputerModel => text().nullable()();
   TextColumn get diveComputerSerial => text().nullable()();
@@ -245,6 +248,13 @@ class DiveTanks extends Table {
   TextColumn get tankRole => text().withDefault(
     const Constant('backGas'),
   )(); // backGas, stage, deco, bailout, etc.
+
+  /// v254: where [tankRole] came from when no person chose it, a
+  /// `TankRoleSource` name (issue #2595). 'transmitterName' marks a role
+  /// the computer read off the transmitter's name, which the transmitter
+  /// registry may replace on existing dives. Null once the diver or the
+  /// registry sets the role, and on every row from before v254.
+  TextColumn get roleSource => text().nullable()();
   TextColumn get tankMaterial =>
       text().nullable()(); // aluminum, steel, carbonFiber
   TextColumn get tankName =>
@@ -286,6 +296,18 @@ class DiveTanks extends Table {
   // set null.
   TextColumn get computerId => text().nullable().references(
     DiveComputers,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// v251: the data source this tank row came from (issue #2716). Two
+  /// consolidated sources that name no computer both leave a null
+  /// [computerId], so without this their copies of one cylinder cannot be
+  /// told apart. Written by the import, download and source-moving paths,
+  /// never by an edit; null (a hand-added tank, or one whose source could
+  /// not be determined) is the dive's primary source.
+  TextColumn get sourceId => text().nullable().references(
+    DiveDataSources,
     #id,
     onDelete: KeyAction.setNull,
   )();

@@ -12,7 +12,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
 
-/// A fully populated sample: every one of the 28 fields present.
+/// A fully populated sample: every one of the 30 fields present.
 ProfileSample fullSample(int i) => ProfileSample(
   timestamp: i * 10,
   depth: 10.0 + i * 0.5,
@@ -42,6 +42,8 @@ ProfileSample fullSample(int i) => ProfileSample(
   o2SensorMv4: 50,
   o2SensorMv5: 54,
   o2SensorMv6: 52,
+  gf99: 30 + i,
+  n2Load: 60 + i * 2,
 );
 
 /// Depth and timestamp only, like a manually entered profile.
@@ -55,8 +57,83 @@ void main() {
     test('every field present', () {
       final samples = [for (var i = 0; i < 12; i++) fullSample(i)];
       final encoded = codec.encode(samples);
-      expect(encoded.codecVersion, 1);
+      expect(encoded.codecVersion, ProfileSeriesCodec.version);
       expect(codec.decode(encoded.bytes), samples);
+    });
+
+    test('v2 carries gf99 and n2Load', () {
+      final samples = [
+        for (var i = 0; i < 6; i++)
+          ProfileSample(
+            timestamp: i * 10,
+            depth: 10.0,
+            gf99: i.isEven ? 40 + i : null,
+            n2Load: 70 - i,
+          ),
+      ];
+      final encoded = codec.encode(samples);
+      expect(encoded.codecVersion, 2);
+      final decoded = codec.decode(encoded.bytes);
+      expect(decoded, samples);
+      expect(decoded[0].gf99, 40);
+      expect(decoded[1].gf99, isNull);
+      expect(decoded[5].n2Load, 65);
+    });
+
+    test('a series with no gf99 or n2Load is written as v1, which older '
+        'builds read', () {
+      final samples = [for (var i = 0; i < 6; i++) minimalSample(i)];
+      final encoded = codec.encode(samples);
+      expect(encoded.codecVersion, 1);
+      expect(
+        encoded.bytes,
+        codec.encode(samples, version: 1).bytes,
+        reason: 'only a dive that uses the v2 fields needs the v2 codec',
+      );
+      expect(codec.decode(encoded.bytes), samples);
+    });
+
+    test('one sample with either v2 field makes the series v2', () {
+      for (final tissue in [
+        (gf99: 12, n2Load: null),
+        (gf99: null, n2Load: 34),
+      ]) {
+        final samples = [
+          for (var i = 0; i < 6; i++)
+            i == 3
+                ? minimalSample(
+                    i,
+                  ).withTissue(gf99: tissue.gf99, n2Load: tissue.n2Load)
+                : minimalSample(i),
+        ];
+        final encoded = codec.encode(samples);
+        expect(encoded.codecVersion, 2, reason: '$tissue');
+        expect(codec.decode(encoded.bytes), samples);
+      }
+    });
+
+    test('a v1 blob decodes with gf99 and n2Load null', () {
+      final samples = [for (var i = 0; i < 6; i++) fullSample(i)];
+      final encoded = codec.encode(samples, version: 1);
+      expect(encoded.codecVersion, 1);
+      final decoded = codec.decode(encoded.bytes);
+      for (var i = 0; i < 6; i++) {
+        expect(decoded[i].gf99, isNull);
+        expect(decoded[i].n2Load, isNull);
+        expect(decoded[i], samples[i].withTissue());
+      }
+    });
+
+    test('v1 bytes are the same whether or not the new fields are set', () {
+      final bare = [for (var i = 0; i < 6; i++) minimalSample(i)];
+      final withTissue = [
+        for (final s in bare) s.withTissue(gf99: 50, n2Load: 80),
+      ];
+      expect(
+        codec.encode(withTissue, version: 1).bytes,
+        codec.encode(bare, version: 1).bytes,
+        reason: 'the v1 table has no column for them, so they cannot leak',
+      );
     });
 
     test('every optional field null', () {
@@ -218,7 +295,7 @@ void main() {
           isA<ArgumentError>().having(
             (e) => e.message,
             'message',
-            contains('cns is float64 in v1'),
+            contains('cns is frozen as float64'),
           ),
         ),
       );
@@ -799,7 +876,8 @@ void main() {
       ];
       final bad = ProfileSeriesCodec(fieldTables: {1: duplicated});
       expect(() => bad.encode([fullSample(0)]), throwsArgumentError);
-      final bytes = codec.encode([fullSample(0)]).bytes;
+      // Written as v1 so the failure is the duplicate, not the version.
+      final bytes = codec.encode([fullSample(0)], version: 1).bytes;
       expect(() => bad.decode(bytes), throwsArgumentError);
     });
   });

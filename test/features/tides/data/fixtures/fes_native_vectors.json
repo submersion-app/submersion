@@ -1,0 +1,3322 @@
+{
+ "source": "FES2022b native 1/30 degree, complex bilinear interpolation",
+ "sites": [
+  {
+   "name": "Bonaire",
+   "lat": 12.1,
+   "lon": -68.29,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.043136,
+     "phase": 155.9082
+    },
+    "S2": {
+     "amplitude": 0.002633,
+     "phase": 78.2605
+    },
+    "N2": {
+     "amplitude": 0.013504,
+     "phase": 132.5728
+    },
+    "K2": {
+     "amplitude": 0.001144,
+     "phase": 68.3989
+    },
+    "2N2": {
+     "amplitude": 0.002347,
+     "phase": 123.4683
+    },
+    "Mu2": {
+     "amplitude": 0.001284,
+     "phase": 132.7247
+    },
+    "Nu2": {
+     "amplitude": 0.002908,
+     "phase": 138.748
+    },
+    "L2": {
+     "amplitude": 0.000536,
+     "phase": 199.0301
+    },
+    "T2": {
+     "amplitude": 0.000398,
+     "phase": 116.5363
+    },
+    "Eps2": {
+     "amplitude": 0.00098,
+     "phase": 108.5676
+    },
+    "La2": {
+     "amplitude": 0.000179,
+     "phase": 185.513
+    },
+    "R2": {
+     "amplitude": 4e-05,
+     "phase": 127.2065
+    },
+    "K1": {
+     "amplitude": 0.096954,
+     "phase": 237.0158
+    },
+    "O1": {
+     "amplitude": 0.066139,
+     "phase": 231.78
+    },
+    "P1": {
+     "amplitude": 0.031149,
+     "phase": 240.6579
+    },
+    "Q1": {
+     "amplitude": 0.011898,
+     "phase": 219.8825
+    },
+    "J1": {
+     "amplitude": 0.006005,
+     "phase": 231.6907
+    },
+    "Mf": {
+     "amplitude": 0.016866,
+     "phase": 356.2712
+    },
+    "Mm": {
+     "amplitude": 0.007841,
+     "phase": 353.2293
+    },
+    "Ssa": {
+     "amplitude": 0.006221,
+     "phase": 358.0516
+    },
+    "Sa": {
+     "amplitude": 0.000312,
+     "phase": 155.0982
+    },
+    "Msqm": {
+     "amplitude": 0.000285,
+     "phase": 6.6581
+    },
+    "Mtm": {
+     "amplitude": 0.003404,
+     "phase": 0.6325
+    },
+    "M4": {
+     "amplitude": 0.004079,
+     "phase": 287.2667
+    },
+    "MS4": {
+     "amplitude": 0.002783,
+     "phase": 296.8299
+    }
+   }
+  },
+  {
+   "name": "Cozumel",
+   "lat": 20.35,
+   "lon": -87.03,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.068282,
+     "phase": 72.9016
+    },
+    "S2": {
+     "amplitude": 0.02797,
+     "phase": 34.6404
+    },
+    "N2": {
+     "amplitude": 0.022013,
+     "phase": 64.7873
+    },
+    "K2": {
+     "amplitude": 0.007415,
+     "phase": 17.6116
+    },
+    "2N2": {
+     "amplitude": 0.00386,
+     "phase": 48.1362
+    },
+    "Mu2": {
+     "amplitude": 0.002945,
+     "phase": 334.2541
+    },
+    "Nu2": {
+     "amplitude": 0.004191,
+     "phase": 56.7655
+    },
+    "L2": {
+     "amplitude": 0.001769,
+     "phase": 150.1946
+    },
+    "T2": {
+     "amplitude": 0.001832,
+     "phase": 38.685
+    },
+    "Eps2": {
+     "amplitude": 0.001182,
+     "phase": 36.8459
+    },
+    "La2": {
+     "amplitude": 3.3e-05,
+     "phase": 147.3108
+    },
+    "R2": {
+     "amplitude": 0.000269,
+     "phase": 37.4979
+    },
+    "K1": {
+     "amplitude": 0.01004,
+     "phase": 309.6151
+    },
+    "O1": {
+     "amplitude": 0.02585,
+     "phase": 2.5417
+    },
+    "P1": {
+     "amplitude": 0.004203,
+     "phase": 311.2307
+    },
+    "Q1": {
+     "amplitude": 0.008538,
+     "phase": 355.3583
+    },
+    "J1": {
+     "amplitude": 0.000755,
+     "phase": 249.5361
+    },
+    "Mf": {
+     "amplitude": 0.013704,
+     "phase": 356.2124
+    },
+    "Mm": {
+     "amplitude": 0.00623,
+     "phase": 350.7306
+    },
+    "Ssa": {
+     "amplitude": 0.004576,
+     "phase": 356.7726
+    },
+    "Sa": {
+     "amplitude": 0.000311,
+     "phase": 155.4132
+    },
+    "Msqm": {
+     "amplitude": 0.000233,
+     "phase": 8.6696
+    },
+    "Mtm": {
+     "amplitude": 0.002749,
+     "phase": 1.3747
+    },
+    "M4": {
+     "amplitude": 0.000772,
+     "phase": 24.9836
+    },
+    "MS4": {
+     "amplitude": 0.000414,
+     "phase": 280.777
+    }
+   }
+  },
+  {
+   "name": "Escambron",
+   "lat": 18.47,
+   "lon": -66.09,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.150167,
+     "phase": 11.4916
+    },
+    "S2": {
+     "amplitude": 0.023135,
+     "phase": 42.9421
+    },
+    "N2": {
+     "amplitude": 0.038837,
+     "phase": 349.2448
+    },
+    "K2": {
+     "amplitude": 0.005738,
+     "phase": 45.5746
+    },
+    "2N2": {
+     "amplitude": 0.005312,
+     "phase": 329.6621
+    },
+    "Mu2": {
+     "amplitude": 0.003695,
+     "phase": 15.4385
+    },
+    "Nu2": {
+     "amplitude": 0.007775,
+     "phase": 350.5694
+    },
+    "L2": {
+     "amplitude": 0.005012,
+     "phase": 30.4454
+    },
+    "T2": {
+     "amplitude": 0.001668,
+     "phase": 17.1065
+    },
+    "Eps2": {
+     "amplitude": 0.001625,
+     "phase": 315.3362
+    },
+    "La2": {
+     "amplitude": 0.001582,
+     "phase": 43.3045
+    },
+    "R2": {
+     "amplitude": 0.00023,
+     "phase": 20.4455
+    },
+    "K1": {
+     "amplitude": 0.081078,
+     "phase": 217.9519
+    },
+    "O1": {
+     "amplitude": 0.06586,
+     "phase": 215.7287
+    },
+    "P1": {
+     "amplitude": 0.02623,
+     "phase": 221.4121
+    },
+    "Q1": {
+     "amplitude": 0.013137,
+     "phase": 203.825
+    },
+    "J1": {
+     "amplitude": 0.004904,
+     "phase": 212.1084
+    },
+    "Mf": {
+     "amplitude": 0.014003,
+     "phase": 354.0712
+    },
+    "Mm": {
+     "amplitude": 0.006413,
+     "phase": 351.2597
+    },
+    "Ssa": {
+     "amplitude": 0.005008,
+     "phase": 357.7565
+    },
+    "Sa": {
+     "amplitude": 0.000313,
+     "phase": 155.0634
+    },
+    "Msqm": {
+     "amplitude": 0.000242,
+     "phase": 4.5598
+    },
+    "Mtm": {
+     "amplitude": 0.002841,
+     "phase": 357.4266
+    },
+    "M4": {
+     "amplitude": 0.00069,
+     "phase": 119.3572
+    },
+    "MS4": {
+     "amplitude": 0.000435,
+     "phase": 189.5555
+    }
+   }
+  },
+  {
+   "name": "Vieques",
+   "lat": 18.1,
+   "lon": -65.47,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.018848,
+     "phase": 33.7015
+    },
+    "S2": {
+     "amplitude": 0.008351,
+     "phase": 14.0574
+    },
+    "N2": {
+     "amplitude": 0.003571,
+     "phase": 46.1343
+    },
+    "K2": {
+     "amplitude": 0.002447,
+     "phase": 2.4825
+    },
+    "2N2": {
+     "amplitude": 0.000601,
+     "phase": 68.6228
+    },
+    "Mu2": {
+     "amplitude": 0.00071,
+     "phase": 124.7312
+    },
+    "Nu2": {
+     "amplitude": 0.000658,
+     "phase": 45.1152
+    },
+    "L2": {
+     "amplitude": 0.001074,
+     "phase": 16.3092
+    },
+    "T2": {
+     "amplitude": 0.000495,
+     "phase": 357.6308
+    },
+    "Eps2": {
+     "amplitude": 0.000375,
+     "phase": 80.9159
+    },
+    "La2": {
+     "amplitude": 0.000231,
+     "phase": 51.9676
+    },
+    "R2": {
+     "amplitude": 7e-05,
+     "phase": 344.9403
+    },
+    "K1": {
+     "amplitude": 0.082178,
+     "phase": 231.5477
+    },
+    "O1": {
+     "amplitude": 0.061175,
+     "phase": 226.9153
+    },
+    "P1": {
+     "amplitude": 0.026661,
+     "phase": 235.2523
+    },
+    "Q1": {
+     "amplitude": 0.011496,
+     "phase": 213.8336
+    },
+    "J1": {
+     "amplitude": 0.005081,
+     "phase": 225.1056
+    },
+    "Mf": {
+     "amplitude": 0.014488,
+     "phase": 354.6498
+    },
+    "Mm": {
+     "amplitude": 0.006558,
+     "phase": 351.4513
+    },
+    "Ssa": {
+     "amplitude": 0.005131,
+     "phase": 357.8918
+    },
+    "Sa": {
+     "amplitude": 0.000313,
+     "phase": 155.0429
+    },
+    "Msqm": {
+     "amplitude": 0.000248,
+     "phase": 6.3878
+    },
+    "Mtm": {
+     "amplitude": 0.002947,
+     "phase": 359.3222
+    },
+    "M4": {
+     "amplitude": 0.002028,
+     "phase": 294.3103
+    },
+    "MS4": {
+     "amplitude": 0.001996,
+     "phase": 294.1268
+    }
+   }
+  },
+  {
+   "name": "Koh Tao",
+   "lat": 10.1,
+   "lon": 99.84,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.113264,
+     "phase": 110.9571
+    },
+    "S2": {
+     "amplitude": 0.07372,
+     "phase": 184.9909
+    },
+    "N2": {
+     "amplitude": 0.012149,
+     "phase": 76.1043
+    },
+    "K2": {
+     "amplitude": 0.022982,
+     "phase": 177.095
+    },
+    "2N2": {
+     "amplitude": 0.001068,
+     "phase": 86.0302
+    },
+    "Mu2": {
+     "amplitude": 0.004617,
+     "phase": 100.7338
+    },
+    "Nu2": {
+     "amplitude": 0.003716,
+     "phase": 56.923
+    },
+    "L2": {
+     "amplitude": 0.004184,
+     "phase": 92.3745
+    },
+    "T2": {
+     "amplitude": 0.002223,
+     "phase": 245.3768
+    },
+    "Eps2": {
+     "amplitude": 0.000684,
+     "phase": 97.7504
+    },
+    "La2": {
+     "amplitude": 0.00191,
+     "phase": 107.2405
+    },
+    "R2": {
+     "amplitude": 0.000491,
+     "phase": 243.8092
+    },
+    "K1": {
+     "amplitude": 0.414444,
+     "phase": 64.5137
+    },
+    "O1": {
+     "amplitude": 0.286578,
+     "phase": 23.6698
+    },
+    "P1": {
+     "amplitude": 0.131697,
+     "phase": 63.5224
+    },
+    "Q1": {
+     "amplitude": 0.058124,
+     "phase": 3.5455
+    },
+    "J1": {
+     "amplitude": 0.018484,
+     "phase": 113.0197
+    },
+    "Mf": {
+     "amplitude": 0.003131,
+     "phase": 227.8947
+    },
+    "Mm": {
+     "amplitude": 0.010766,
+     "phase": 13.7806
+    },
+    "Ssa": {
+     "amplitude": 0.002093,
+     "phase": 1.6244
+    },
+    "Sa": {
+     "amplitude": 0.000281,
+     "phase": 170.4856
+    },
+    "Msqm": {
+     "amplitude": 0.001293,
+     "phase": 10.6627
+    },
+    "Mtm": {
+     "amplitude": 0.002704,
+     "phase": 265.9085
+    },
+    "M4": {
+     "amplitude": 0.003329,
+     "phase": 112.4225
+    },
+    "MS4": {
+     "amplitude": 0.00209,
+     "phase": 34.6617
+    }
+   }
+  },
+  {
+   "name": "Tulamben",
+   "lat": -8.27,
+   "lon": 115.59,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.299465,
+     "phase": 95.6891
+    },
+    "S2": {
+     "amplitude": 0.131745,
+     "phase": 107.8336
+    },
+    "N2": {
+     "amplitude": 0.066368,
+     "phase": 78.0371
+    },
+    "K2": {
+     "amplitude": 0.034105,
+     "phase": 107.2693
+    },
+    "2N2": {
+     "amplitude": 0.009905,
+     "phase": 60.5837
+    },
+    "Mu2": {
+     "amplitude": 0.006931,
+     "phase": 26.8605
+    },
+    "Nu2": {
+     "amplitude": 0.013792,
+     "phase": 89.8906
+    },
+    "L2": {
+     "amplitude": 0.008221,
+     "phase": 122.3482
+    },
+    "T2": {
+     "amplitude": 0.007828,
+     "phase": 96.6848
+    },
+    "Eps2": {
+     "amplitude": 0.002574,
+     "phase": 47.6311
+    },
+    "La2": {
+     "amplitude": 0.002752,
+     "phase": 153.2205
+    },
+    "R2": {
+     "amplitude": 0.001421,
+     "phase": 92.1535
+    },
+    "K1": {
+     "amplitude": 0.312692,
+     "phase": 181.1026
+    },
+    "O1": {
+     "amplitude": 0.202846,
+     "phase": 162.1423
+    },
+    "P1": {
+     "amplitude": 0.095018,
+     "phase": 179.5913
+    },
+    "Q1": {
+     "amplitude": 0.044337,
+     "phase": 154.0129
+    },
+    "J1": {
+     "amplitude": 0.017582,
+     "phase": 206.1596
+    },
+    "Mf": {
+     "amplitude": 0.013184,
+     "phase": 12.4925
+    },
+    "Mm": {
+     "amplitude": 0.007455,
+     "phase": 7.452
+    },
+    "Ssa": {
+     "amplitude": 0.006802,
+     "phase": 1.6867
+    },
+    "Sa": {
+     "amplitude": 0.000315,
+     "phase": 158.813
+    },
+    "Msqm": {
+     "amplitude": 0.000253,
+     "phase": 17.8341
+    },
+    "Mtm": {
+     "amplitude": 0.002345,
+     "phase": 16.8039
+    },
+    "M4": {
+     "amplitude": 0.001477,
+     "phase": 206.8943
+    },
+    "MS4": {
+     "amplitude": 0.00454,
+     "phase": 98.7579
+    }
+   }
+  },
+  {
+   "name": "Komodo",
+   "lat": -8.55,
+   "lon": 119.55,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.455263,
+     "phase": 94.9446
+    },
+    "S2": {
+     "amplitude": 0.188254,
+     "phase": 130.4632
+    },
+    "N2": {
+     "amplitude": 0.089926,
+     "phase": 74.3805
+    },
+    "K2": {
+     "amplitude": 0.051143,
+     "phase": 127.393
+    },
+    "2N2": {
+     "amplitude": 0.011625,
+     "phase": 52.7736
+    },
+    "Mu2": {
+     "amplitude": 0.008204,
+     "phase": 52.8364
+    },
+    "Nu2": {
+     "amplitude": 0.018305,
+     "phase": 80.406
+    },
+    "L2": {
+     "amplitude": 0.012812,
+     "phase": 114.2206
+    },
+    "T2": {
+     "amplitude": 0.01043,
+     "phase": 120.9577
+    },
+    "Eps2": {
+     "amplitude": 0.002838,
+     "phase": 47.6742
+    },
+    "La2": {
+     "amplitude": 0.003838,
+     "phase": 115.6148
+    },
+    "R2": {
+     "amplitude": 0.001486,
+     "phase": 119.2179
+    },
+    "K1": {
+     "amplitude": 0.287372,
+     "phase": 177.2968
+    },
+    "O1": {
+     "amplitude": 0.185712,
+     "phase": 163.058
+    },
+    "P1": {
+     "amplitude": 0.086474,
+     "phase": 176.2158
+    },
+    "Q1": {
+     "amplitude": 0.042254,
+     "phase": 155.5943
+    },
+    "J1": {
+     "amplitude": 0.016828,
+     "phase": 201.5833
+    },
+    "Mf": {
+     "amplitude": 0.012732,
+     "phase": 327.3724
+    },
+    "Mm": {
+     "amplitude": 0.006773,
+     "phase": 245.4511
+    },
+    "Ssa": {
+     "amplitude": 0.003284,
+     "phase": 357.5557
+    },
+    "Sa": {
+     "amplitude": 0.00096,
+     "phase": 126.8584
+    },
+    "Msqm": {
+     "amplitude": 0.000989,
+     "phase": 114.3072
+    },
+    "Mtm": {
+     "amplitude": 0.002703,
+     "phase": 331.6722
+    },
+    "M4": {
+     "amplitude": 0.049146,
+     "phase": 16.417
+    },
+    "MS4": {
+     "amplitude": 0.043989,
+     "phase": 70.9953
+    }
+   }
+  },
+  {
+   "name": "Gili",
+   "lat": -8.35,
+   "lon": 116.04,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.298777,
+     "phase": 90.95
+    },
+    "S2": {
+     "amplitude": 0.141191,
+     "phase": 105.2277
+    },
+    "N2": {
+     "amplitude": 0.064725,
+     "phase": 73.9196
+    },
+    "K2": {
+     "amplitude": 0.036422,
+     "phase": 104.2002
+    },
+    "2N2": {
+     "amplitude": 0.009441,
+     "phase": 57.9602
+    },
+    "Mu2": {
+     "amplitude": 0.007155,
+     "phase": 24.9247
+    },
+    "Nu2": {
+     "amplitude": 0.013334,
+     "phase": 85.9264
+    },
+    "L2": {
+     "amplitude": 0.008117,
+     "phase": 116.631
+    },
+    "T2": {
+     "amplitude": 0.008348,
+     "phase": 93.5855
+    },
+    "Eps2": {
+     "amplitude": 0.002519,
+     "phase": 46.4488
+    },
+    "La2": {
+     "amplitude": 0.002543,
+     "phase": 149.2596
+    },
+    "R2": {
+     "amplitude": 0.001482,
+     "phase": 90.7776
+    },
+    "K1": {
+     "amplitude": 0.307797,
+     "phase": 181.3423
+    },
+    "O1": {
+     "amplitude": 0.201281,
+     "phase": 162.879
+    },
+    "P1": {
+     "amplitude": 0.093343,
+     "phase": 179.9658
+    },
+    "Q1": {
+     "amplitude": 0.044064,
+     "phase": 154.6574
+    },
+    "J1": {
+     "amplitude": 0.017182,
+     "phase": 205.8646
+    },
+    "Mf": {
+     "amplitude": 0.012894,
+     "phase": 11.0488
+    },
+    "Mm": {
+     "amplitude": 0.007125,
+     "phase": 6.4958
+    },
+    "Ssa": {
+     "amplitude": 0.006674,
+     "phase": 1.7616
+    },
+    "Sa": {
+     "amplitude": 0.000331,
+     "phase": 155.5155
+    },
+    "Msqm": {
+     "amplitude": 0.000233,
+     "phase": 23.7111
+    },
+    "Mtm": {
+     "amplitude": 0.002309,
+     "phase": 14.5839
+    },
+    "M4": {
+     "amplitude": 0.001039,
+     "phase": 304.5251
+    },
+    "MS4": {
+     "amplitude": 0.005421,
+     "phase": 93.7161
+    }
+   }
+  },
+  {
+   "name": "Raja Ampat",
+   "lat": -0.55,
+   "lon": 130.55,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.330382,
+     "phase": 268.6773
+    },
+    "S2": {
+     "amplitude": 0.174085,
+     "phase": 300.7735
+    },
+    "N2": {
+     "amplitude": 0.052804,
+     "phase": 250.7346
+    },
+    "K2": {
+     "amplitude": 0.049722,
+     "phase": 296.7172
+    },
+    "2N2": {
+     "amplitude": 0.005183,
+     "phase": 234.3567
+    },
+    "Mu2": {
+     "amplitude": 0.004824,
+     "phase": 271.9906
+    },
+    "Nu2": {
+     "amplitude": 0.01101,
+     "phase": 254.627
+    },
+    "L2": {
+     "amplitude": 0.010577,
+     "phase": 281.5237
+    },
+    "T2": {
+     "amplitude": 0.010399,
+     "phase": 292.9786
+    },
+    "Eps2": {
+     "amplitude": 0.001933,
+     "phase": 253.6365
+    },
+    "La2": {
+     "amplitude": 0.002883,
+     "phase": 282.5639
+    },
+    "R2": {
+     "amplitude": 0.001644,
+     "phase": 292.1095
+    },
+    "K1": {
+     "amplitude": 0.140815,
+     "phase": 113.3172
+    },
+    "O1": {
+     "amplitude": 0.097179,
+     "phase": 100.5453
+    },
+    "P1": {
+     "amplitude": 0.047263,
+     "phase": 108.6684
+    },
+    "Q1": {
+     "amplitude": 0.020319,
+     "phase": 99.1827
+    },
+    "J1": {
+     "amplitude": 0.006661,
+     "phase": 130.9901
+    },
+    "Mf": {
+     "amplitude": 0.018467,
+     "phase": 13.7576
+    },
+    "Mm": {
+     "amplitude": 0.003866,
+     "phase": 1.0259
+    },
+    "Ssa": {
+     "amplitude": 0.00996,
+     "phase": 2.7858
+    },
+    "Sa": {
+     "amplitude": 0.000318,
+     "phase": 131.7583
+    },
+    "Msqm": {
+     "amplitude": 0.000448,
+     "phase": 271.7788
+    },
+    "Mtm": {
+     "amplitude": 0.003425,
+     "phase": 18.8981
+    },
+    "M4": {
+     "amplitude": 0.009103,
+     "phase": 216.8378
+    },
+    "MS4": {
+     "amplitude": 0.003805,
+     "phase": 293.3452
+    }
+   }
+  },
+  {
+   "name": "Cornwall",
+   "lat": 50.07,
+   "lon": -5.7,
+   "constituents": {
+    "M2": {
+     "amplitude": 1.843245,
+     "phase": 131.0911
+    },
+    "S2": {
+     "amplitude": 0.627475,
+     "phase": 173.8961
+    },
+    "N2": {
+     "amplitude": 0.358869,
+     "phase": 111.1045
+    },
+    "K2": {
+     "amplitude": 0.180163,
+     "phase": 171.2508
+    },
+    "2N2": {
+     "amplitude": 0.047501,
+     "phase": 91.2409
+    },
+    "Mu2": {
+     "amplitude": 0.044666,
+     "phase": 158.9371
+    },
+    "Nu2": {
+     "amplitude": 0.077221,
+     "phase": 106.4225
+    },
+    "L2": {
+     "amplitude": 0.075761,
+     "phase": 137.4295
+    },
+    "T2": {
+     "amplitude": 0.040208,
+     "phase": 162.4395
+    },
+    "Eps2": {
+     "amplitude": 0.009936,
+     "phase": 93.2325
+    },
+    "La2": {
+     "amplitude": 0.02646,
+     "phase": 124.6628
+    },
+    "R2": {
+     "amplitude": 0.005797,
+     "phase": 168.6485
+    },
+    "K1": {
+     "amplitude": 0.055836,
+     "phase": 109.3113
+    },
+    "O1": {
+     "amplitude": 0.053823,
+     "phase": 342.2648
+    },
+    "P1": {
+     "amplitude": 0.019003,
+     "phase": 101.0377
+    },
+    "Q1": {
+     "amplitude": 0.015409,
+     "phase": 283.3169
+    },
+    "J1": {
+     "amplitude": 0.001493,
+     "phase": 176.4625
+    },
+    "Mf": {
+     "amplitude": 0.014192,
+     "phase": 198.3152
+    },
+    "Mm": {
+     "amplitude": 0.013714,
+     "phase": 196.8552
+    },
+    "Ssa": {
+     "amplitude": 0.008026,
+     "phase": 185.146
+    },
+    "Sa": {
+     "amplitude": 0.000602,
+     "phase": 128.7186
+    },
+    "Msqm": {
+     "amplitude": 8.9e-05,
+     "phase": 131.5823
+    },
+    "Mtm": {
+     "amplitude": 0.002751,
+     "phase": 193.4837
+    },
+    "M4": {
+     "amplitude": 0.101284,
+     "phase": 193.421
+    },
+    "MS4": {
+     "amplitude": 0.059578,
+     "phase": 225.5037
+    }
+   }
+  },
+  {
+   "name": "Nanaimo",
+   "lat": 49.17,
+   "lon": -123.94,
+   "constituents": {
+    "M2": {
+     "amplitude": 1.004061,
+     "phase": 45.5179
+    },
+    "S2": {
+     "amplitude": 0.247284,
+     "phase": 74.7453
+    },
+    "N2": {
+     "amplitude": 0.212051,
+     "phase": 16.0128
+    },
+    "K2": {
+     "amplitude": 0.069346,
+     "phase": 66.537
+    },
+    "2N2": {
+     "amplitude": 0.026276,
+     "phase": 348.8826
+    },
+    "Mu2": {
+     "amplitude": 0.024459,
+     "phase": 351.6038
+    },
+    "Nu2": {
+     "amplitude": 0.041029,
+     "phase": 19.9936
+    },
+    "L2": {
+     "amplitude": 0.019662,
+     "phase": 63.1627
+    },
+    "T2": {
+     "amplitude": 0.012914,
+     "phase": 59.6126
+    },
+    "Eps2": {
+     "amplitude": 0.009126,
+     "phase": 321.394
+    },
+    "La2": {
+     "amplitude": 0.005613,
+     "phase": 57.479
+    },
+    "R2": {
+     "amplitude": 0.002091,
+     "phase": 60.2048
+    },
+    "K1": {
+     "amplitude": 1.03922,
+     "phase": 281.1065
+    },
+    "O1": {
+     "amplitude": 0.560031,
+     "phase": 258.4962
+    },
+    "P1": {
+     "amplitude": 0.322161,
+     "phase": 279.848
+    },
+    "Q1": {
+     "amplitude": 0.09455,
+     "phase": 248.2586
+    },
+    "J1": {
+     "amplitude": 0.067235,
+     "phase": 298.8748
+    },
+    "Mf": {
+     "amplitude": 0.031259,
+     "phase": 113.7636
+    },
+    "Mm": {
+     "amplitude": 0.006703,
+     "phase": 152.8117
+    },
+    "Ssa": {
+     "amplitude": 0.006466,
+     "phase": 215.0486
+    },
+    "Sa": {
+     "amplitude": 0.000547,
+     "phase": 138.9202
+    },
+    "Msqm": {
+     "amplitude": 0.006459,
+     "phase": 263.1573
+    },
+    "Mtm": {
+     "amplitude": 0.007755,
+     "phase": 150.9659
+    },
+    "M4": {
+     "amplitude": 0.003417,
+     "phase": 231.3318
+    },
+    "MS4": {
+     "amplitude": 0.004998,
+     "phase": 313.3538
+    }
+   }
+  },
+  {
+   "name": "Monterey",
+   "lat": 36.62,
+   "lon": -121.9,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.499593,
+     "phase": 180.0462
+    },
+    "S2": {
+     "amplitude": 0.134081,
+     "phase": 180.218
+    },
+    "N2": {
+     "amplitude": 0.113538,
+     "phase": 154.9007
+    },
+    "K2": {
+     "amplitude": 0.037755,
+     "phase": 171.9072
+    },
+    "2N2": {
+     "amplitude": 0.013679,
+     "phase": 126.0066
+    },
+    "Mu2": {
+     "amplitude": 0.013308,
+     "phase": 115.7508
+    },
+    "Nu2": {
+     "amplitude": 0.022215,
+     "phase": 160.7077
+    },
+    "L2": {
+     "amplitude": 0.008737,
+     "phase": 193.0179
+    },
+    "T2": {
+     "amplitude": 0.008247,
+     "phase": 172.6201
+    },
+    "Eps2": {
+     "amplitude": 0.00587,
+     "phase": 115.6278
+    },
+    "La2": {
+     "amplitude": 0.002328,
+     "phase": 189.4138
+    },
+    "R2": {
+     "amplitude": 0.001325,
+     "phase": 174.3659
+    },
+    "K1": {
+     "amplitude": 0.354321,
+     "phase": 218.7715
+    },
+    "O1": {
+     "amplitude": 0.222886,
+     "phase": 203.8319
+    },
+    "P1": {
+     "amplitude": 0.111863,
+     "phase": 215.98
+    },
+    "Q1": {
+     "amplitude": 0.039805,
+     "phase": 196.5218
+    },
+    "J1": {
+     "amplitude": 0.020984,
+     "phase": 228.5174
+    },
+    "Mf": {
+     "amplitude": 0.006905,
+     "phase": 140.3021
+    },
+    "Mm": {
+     "amplitude": 0.0024,
+     "phase": 138.1402
+    },
+    "Ssa": {
+     "amplitude": 0.000823,
+     "phase": 160.0181
+    },
+    "Sa": {
+     "amplitude": 0.000311,
+     "phase": 154.6497
+    },
+    "Msqm": {
+     "amplitude": 0.000106,
+     "phase": 151.8511
+    },
+    "Mtm": {
+     "amplitude": 0.001697,
+     "phase": 149.4443
+    },
+    "M4": {
+     "amplitude": 0.00075,
+     "phase": 319.6262
+    },
+    "MS4": {
+     "amplitude": 0.001824,
+     "phase": 253.9833
+    }
+   }
+  },
+  {
+   "name": "Cairns",
+   "lat": -16.75,
+   "lon": 145.98,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.543493,
+     "phase": 343.8171
+    },
+    "S2": {
+     "amplitude": 0.310686,
+     "phase": 304.1135
+    },
+    "N2": {
+     "amplitude": 0.176358,
+     "phase": 327.4531
+    },
+    "K2": {
+     "amplitude": 0.085587,
+     "phase": 299.5159
+    },
+    "2N2": {
+     "amplitude": 0.024467,
+     "phase": 317.8213
+    },
+    "Mu2": {
+     "amplitude": 0.035469,
+     "phase": 306.5396
+    },
+    "Nu2": {
+     "amplitude": 0.031349,
+     "phase": 332.6677
+    },
+    "L2": {
+     "amplitude": 0.004731,
+     "phase": 265.7182
+    },
+    "T2": {
+     "amplitude": 0.020744,
+     "phase": 317.862
+    },
+    "Eps2": {
+     "amplitude": 0.013156,
+     "phase": 308.0643
+    },
+    "La2": {
+     "amplitude": 0.001049,
+     "phase": 179.9564
+    },
+    "R2": {
+     "amplitude": 0.00249,
+     "phase": 324.8641
+    },
+    "K1": {
+     "amplitude": 0.311727,
+     "phase": 38.0347
+    },
+    "O1": {
+     "amplitude": 0.148802,
+     "phase": 11.7465
+    },
+    "P1": {
+     "amplitude": 0.091387,
+     "phase": 33.4414
+    },
+    "Q1": {
+     "amplitude": 0.026552,
+     "phase": 352.221
+    },
+    "J1": {
+     "amplitude": 0.020132,
+     "phase": 49.5379
+    },
+    "Mf": {
+     "amplitude": 0.009535,
+     "phase": 11.1607
+    },
+    "Mm": {
+     "amplitude": 0.005542,
+     "phase": 10.0652
+    },
+    "Ssa": {
+     "amplitude": 0.005227,
+     "phase": 2.3616
+    },
+    "Sa": {
+     "amplitude": 0.000312,
+     "phase": 153.4616
+    },
+    "Msqm": {
+     "amplitude": 3.3e-05,
+     "phase": 83.9105
+    },
+    "Mtm": {
+     "amplitude": 0.001649,
+     "phase": 14.1768
+    },
+    "M4": {
+     "amplitude": 0.002533,
+     "phase": 186.7785
+    },
+    "MS4": {
+     "amplitude": 0.003366,
+     "phase": 123.9142
+    }
+   }
+  },
+  {
+   "name": "Sharm el Sheikh",
+   "lat": 27.85,
+   "lon": 34.32,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.231247,
+     "phase": 115.5226
+    },
+    "S2": {
+     "amplitude": 0.07128,
+     "phase": 142.892
+    },
+    "N2": {
+     "amplitude": 0.064687,
+     "phase": 95.6835
+    },
+    "K2": {
+     "amplitude": 0.022493,
+     "phase": 145.3447
+    },
+    "2N2": {
+     "amplitude": 0.009988,
+     "phase": 44.7686
+    },
+    "Mu2": {
+     "amplitude": 0.009336,
+     "phase": 31.2072
+    },
+    "Nu2": {
+     "amplitude": 0.010551,
+     "phase": 118.1782
+    },
+    "L2": {
+     "amplitude": 0.00464,
+     "phase": 145.2573
+    },
+    "T2": {
+     "amplitude": 0.003159,
+     "phase": 156.6482
+    },
+    "Eps2": {
+     "amplitude": 0.002342,
+     "phase": 15.4559
+    },
+    "La2": {
+     "amplitude": 0.001374,
+     "phase": 115.4242
+    },
+    "R2": {
+     "amplitude": 0.000427,
+     "phase": 159.1301
+    },
+    "K1": {
+     "amplitude": 0.025863,
+     "phase": 169.5532
+    },
+    "O1": {
+     "amplitude": 0.014107,
+     "phase": 170.6211
+    },
+    "P1": {
+     "amplitude": 0.007784,
+     "phase": 168.1318
+    },
+    "Q1": {
+     "amplitude": 0.003115,
+     "phase": 169.6659
+    },
+    "J1": {
+     "amplitude": 0.002254,
+     "phase": 182.4352
+    },
+    "Mf": {
+     "amplitude": 0.005907,
+     "phase": 13.0321
+    },
+    "Mm": {
+     "amplitude": 0.00296,
+     "phase": 33.5691
+    },
+    "Ssa": {
+     "amplitude": 0.001969,
+     "phase": 4.0487
+    },
+    "Sa": {
+     "amplitude": 0.000347,
+     "phase": 126.9751
+    },
+    "Msqm": {
+     "amplitude": 0.001386,
+     "phase": 129.557
+    },
+    "Mtm": {
+     "amplitude": 0.001733,
+     "phase": 28.8705
+    },
+    "M4": {
+     "amplitude": 0.000183,
+     "phase": 289.2028
+    },
+    "MS4": {
+     "amplitude": 0.000791,
+     "phase": 307.307
+    }
+   }
+  },
+  {
+   "name": "Malta",
+   "lat": 36.05,
+   "lon": 14.19,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.059403,
+     "phase": 56.0416
+    },
+    "S2": {
+     "amplitude": 0.040091,
+     "phase": 61.1532
+    },
+    "N2": {
+     "amplitude": 0.010669,
+     "phase": 67.9917
+    },
+    "K2": {
+     "amplitude": 0.013367,
+     "phase": 56.9727
+    },
+    "2N2": {
+     "amplitude": 0.001466,
+     "phase": 78.3301
+    },
+    "Mu2": {
+     "amplitude": 0.001189,
+     "phase": 87.4521
+    },
+    "Nu2": {
+     "amplitude": 0.002295,
+     "phase": 64.2063
+    },
+    "L2": {
+     "amplitude": 0.002544,
+     "phase": 60.0438
+    },
+    "T2": {
+     "amplitude": 0.002405,
+     "phase": 75.5846
+    },
+    "Eps2": {
+     "amplitude": 0.000446,
+     "phase": 81.826
+    },
+    "La2": {
+     "amplitude": 0.000508,
+     "phase": 72.8671
+    },
+    "R2": {
+     "amplitude": 0.000332,
+     "phase": 76.9031
+    },
+    "K1": {
+     "amplitude": 0.010837,
+     "phase": 63.5737
+    },
+    "O1": {
+     "amplitude": 0.009295,
+     "phase": 70.0483
+    },
+    "P1": {
+     "amplitude": 0.00362,
+     "phase": 71.5226
+    },
+    "Q1": {
+     "amplitude": 0.002161,
+     "phase": 68.0394
+    },
+    "J1": {
+     "amplitude": 0.00051,
+     "phase": 74.6818
+    },
+    "Mf": {
+     "amplitude": 0.000627,
+     "phase": 70.5241
+    },
+    "Mm": {
+     "amplitude": 0.001133,
+     "phase": 254.6235
+    },
+    "Ssa": {
+     "amplitude": 0.000595,
+     "phase": 200.718
+    },
+    "Sa": {
+     "amplitude": 0.000385,
+     "phase": 156.8174
+    },
+    "Msqm": {
+     "amplitude": 3.5e-05,
+     "phase": 40.7756
+    },
+    "Mtm": {
+     "amplitude": 0.000163,
+     "phase": 149.6961
+    },
+    "M4": {
+     "amplitude": 0.000918,
+     "phase": 247.2409
+    },
+    "MS4": {
+     "amplitude": 0.003239,
+     "phase": 58.1661
+    }
+   }
+  },
+  {
+   "name": "Roatan",
+   "lat": 16.33,
+   "lon": -86.53,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.070549,
+     "phase": 89.3468
+    },
+    "S2": {
+     "amplitude": 0.025458,
+     "phase": 36.681
+    },
+    "N2": {
+     "amplitude": 0.024703,
+     "phase": 73.8633
+    },
+    "K2": {
+     "amplitude": 0.007776,
+     "phase": 21.1556
+    },
+    "2N2": {
+     "amplitude": 0.004321,
+     "phase": 56.5819
+    },
+    "Mu2": {
+     "amplitude": 0.002658,
+     "phase": 332.9528
+    },
+    "Nu2": {
+     "amplitude": 0.00415,
+     "phase": 71.5661
+    },
+    "L2": {
+     "amplitude": 0.00153,
+     "phase": 153.1671
+    },
+    "T2": {
+     "amplitude": 0.001804,
+     "phase": 41.9106
+    },
+    "Eps2": {
+     "amplitude": 0.001247,
+     "phase": 47.1041
+    },
+    "La2": {
+     "amplitude": 5.1e-05,
+     "phase": 135.7567
+    },
+    "R2": {
+     "amplitude": 0.000265,
+     "phase": 41.0167
+    },
+    "K1": {
+     "amplitude": 0.024915,
+     "phase": 271.3795
+    },
+    "O1": {
+     "amplitude": 0.023882,
+     "phase": 331.0918
+    },
+    "P1": {
+     "amplitude": 0.008901,
+     "phase": 278.7857
+    },
+    "Q1": {
+     "amplitude": 0.00766,
+     "phase": 338.2283
+    },
+    "J1": {
+     "amplitude": 0.001748,
+     "phase": 251.2381
+    },
+    "Mf": {
+     "amplitude": 0.015561,
+     "phase": 356.0138
+    },
+    "Mm": {
+     "amplitude": 0.007131,
+     "phase": 352.2459
+    },
+    "Ssa": {
+     "amplitude": 0.005546,
+     "phase": 357.6444
+    },
+    "Sa": {
+     "amplitude": 0.000313,
+     "phase": 154.9694
+    },
+    "Msqm": {
+     "amplitude": 0.000264,
+     "phase": 7.6734
+    },
+    "Mtm": {
+     "amplitude": 0.003149,
+     "phase": 0.9248
+    },
+    "M4": {
+     "amplitude": 0.001,
+     "phase": 357.6059
+    },
+    "MS4": {
+     "amplitude": 0.000421,
+     "phase": 285.8002
+    }
+   }
+  },
+  {
+   "name": "Grand Cayman",
+   "lat": 19.35,
+   "lon": -81.38,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.09873,
+     "phase": 77.0685
+    },
+    "S2": {
+     "amplitude": 0.032603,
+     "phase": 50.5309
+    },
+    "N2": {
+     "amplitude": 0.029106,
+     "phase": 64.9407
+    },
+    "K2": {
+     "amplitude": 0.008368,
+     "phase": 29.5662
+    },
+    "2N2": {
+     "amplitude": 0.004663,
+     "phase": 51.2462
+    },
+    "Mu2": {
+     "amplitude": 0.002273,
+     "phase": 344.1682
+    },
+    "Nu2": {
+     "amplitude": 0.005165,
+     "phase": 65.5703
+    },
+    "L2": {
+     "amplitude": 0.002402,
+     "phase": 137.8416
+    },
+    "T2": {
+     "amplitude": 0.002377,
+     "phase": 47.7244
+    },
+    "Eps2": {
+     "amplitude": 0.001392,
+     "phase": 44.6393
+    },
+    "La2": {
+     "amplitude": 0.000184,
+     "phase": 115.5474
+    },
+    "R2": {
+     "amplitude": 0.000343,
+     "phase": 46.2839
+    },
+    "K1": {
+     "amplitude": 0.033493,
+     "phase": 267.4896
+    },
+    "O1": {
+     "amplitude": 0.02481,
+     "phase": 310.2839
+    },
+    "P1": {
+     "amplitude": 0.011083,
+     "phase": 272.4281
+    },
+    "Q1": {
+     "amplitude": 0.006614,
+     "phase": 322.321
+    },
+    "J1": {
+     "amplitude": 0.002263,
+     "phase": 247.8181
+    },
+    "Mf": {
+     "amplitude": 0.014253,
+     "phase": 354.3929
+    },
+    "Mm": {
+     "amplitude": 0.006397,
+     "phase": 350.8528
+    },
+    "Ssa": {
+     "amplitude": 0.004879,
+     "phase": 357.3099
+    },
+    "Sa": {
+     "amplitude": 0.000312,
+     "phase": 155.1059
+    },
+    "Msqm": {
+     "amplitude": 0.000245,
+     "phase": 7.9507
+    },
+    "Mtm": {
+     "amplitude": 0.00293,
+     "phase": 359.8599
+    },
+    "M4": {
+     "amplitude": 0.000372,
+     "phase": 77.0416
+    },
+    "MS4": {
+     "amplitude": 0.000168,
+     "phase": 282.2846
+    }
+   }
+  },
+  {
+   "name": "Tenerife",
+   "lat": 28.05,
+   "lon": -16.73,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.630131,
+     "phase": 22.593
+    },
+    "S2": {
+     "amplitude": 0.247335,
+     "phase": 45.9166
+    },
+    "N2": {
+     "amplitude": 0.128406,
+     "phase": 9.3688
+    },
+    "K2": {
+     "amplitude": 0.069967,
+     "phase": 41.7505
+    },
+    "2N2": {
+     "amplitude": 0.018161,
+     "phase": 356.4811
+    },
+    "Mu2": {
+     "amplitude": 0.02516,
+     "phase": 346.436
+    },
+    "Nu2": {
+     "amplitude": 0.023365,
+     "phase": 13.2551
+    },
+    "L2": {
+     "amplitude": 0.014153,
+     "phase": 30.7219
+    },
+    "T2": {
+     "amplitude": 0.015131,
+     "phase": 39.3106
+    },
+    "Eps2": {
+     "amplitude": 0.005315,
+     "phase": 344.0802
+    },
+    "La2": {
+     "amplitude": 0.003261,
+     "phase": 12.8808
+    },
+    "R2": {
+     "amplitude": 0.0022,
+     "phase": 39.9489
+    },
+    "K1": {
+     "amplitude": 0.060595,
+     "phase": 34.9264
+    },
+    "O1": {
+     "amplitude": 0.045783,
+     "phase": 290.4434
+    },
+    "P1": {
+     "amplitude": 0.01736,
+     "phase": 27.4074
+    },
+    "Q1": {
+     "amplitude": 0.014911,
+     "phase": 237.2468
+    },
+    "J1": {
+     "amplitude": 0.002502,
+     "phase": 61.3698
+    },
+    "Mf": {
+     "amplitude": 0.007363,
+     "phase": 359.4908
+    },
+    "Mm": {
+     "amplitude": 0.002977,
+     "phase": 348.6336
+    },
+    "Ssa": {
+     "amplitude": 0.002087,
+     "phase": 356.3779
+    },
+    "Sa": {
+     "amplitude": 0.000314,
+     "phase": 155.1595
+    },
+    "Msqm": {
+     "amplitude": 0.00014,
+     "phase": 27.0415
+    },
+    "Mtm": {
+     "amplitude": 0.001563,
+     "phase": 12.9784
+    },
+    "M4": {
+     "amplitude": 0.005104,
+     "phase": 83.9782
+    },
+    "MS4": {
+     "amplitude": 0.002395,
+     "phase": 121.534
+    }
+   }
+  },
+  {
+   "name": "Sipadan",
+   "lat": 4.11,
+   "lon": 118.63,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.628255,
+     "phase": 287.0139
+    },
+    "S2": {
+     "amplitude": 0.373569,
+     "phase": 327.226
+    },
+    "N2": {
+     "amplitude": 0.105753,
+     "phase": 273.9214
+    },
+    "K2": {
+     "amplitude": 0.110231,
+     "phase": 325.4298
+    },
+    "2N2": {
+     "amplitude": 0.011531,
+     "phase": 260.2901
+    },
+    "Mu2": {
+     "amplitude": 0.01355,
+     "phase": 293.8248
+    },
+    "Nu2": {
+     "amplitude": 0.021636,
+     "phase": 272.9356
+    },
+    "L2": {
+     "amplitude": 0.024608,
+     "phase": 299.041
+    },
+    "T2": {
+     "amplitude": 0.023907,
+     "phase": 322.2665
+    },
+    "Eps2": {
+     "amplitude": 0.003988,
+     "phase": 271.133
+    },
+    "La2": {
+     "amplitude": 0.006679,
+     "phase": 294.1967
+    },
+    "R2": {
+     "amplitude": 0.003602,
+     "phase": 326.0411
+    },
+    "K1": {
+     "amplitude": 0.184328,
+     "phase": 144.2446
+    },
+    "O1": {
+     "amplitude": 0.14225,
+     "phase": 122.3412
+    },
+    "P1": {
+     "amplitude": 0.058689,
+     "phase": 138.9613
+    },
+    "Q1": {
+     "amplitude": 0.0295,
+     "phase": 115.5803
+    },
+    "J1": {
+     "amplitude": 0.008548,
+     "phase": 160.7199
+    },
+    "Mf": {
+     "amplitude": 0.012574,
+     "phase": 13.917
+    },
+    "Mm": {
+     "amplitude": 0.007415,
+     "phase": 10.5043
+    },
+    "Ssa": {
+     "amplitude": 0.007312,
+     "phase": 1.8309
+    },
+    "Sa": {
+     "amplitude": 0.00032,
+     "phase": 154.9129
+    },
+    "Msqm": {
+     "amplitude": 0.000198,
+     "phase": 8.3432
+    },
+    "Mtm": {
+     "amplitude": 0.002154,
+     "phase": 12.9453
+    },
+    "M4": {
+     "amplitude": 0.003971,
+     "phase": 311.8292
+    },
+    "MS4": {
+     "amplitude": 0.000445,
+     "phase": 44.3387
+    }
+   }
+  },
+  {
+   "name": "Galapagos",
+   "lat": -0.75,
+   "lon": -90.3,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.640652,
+     "phase": 245.8564
+    },
+    "S2": {
+     "amplitude": 0.189424,
+     "phase": 287.894
+    },
+    "N2": {
+     "amplitude": 0.139174,
+     "phase": 217.6041
+    },
+    "K2": {
+     "amplitude": 0.050093,
+     "phase": 280.8771
+    },
+    "2N2": {
+     "amplitude": 0.017225,
+     "phase": 188.4248
+    },
+    "Mu2": {
+     "amplitude": 0.021923,
+     "phase": 194.604
+    },
+    "Nu2": {
+     "amplitude": 0.026158,
+     "phase": 221.3421
+    },
+    "L2": {
+     "amplitude": 0.013648,
+     "phase": 270.1832
+    },
+    "T2": {
+     "amplitude": 0.011476,
+     "phase": 282.2306
+    },
+    "Eps2": {
+     "amplitude": 0.006028,
+     "phase": 176.5893
+    },
+    "La2": {
+     "amplitude": 0.003659,
+     "phase": 259.4484
+    },
+    "R2": {
+     "amplitude": 0.001611,
+     "phase": 277.6993
+    },
+    "K1": {
+     "amplitude": 0.090309,
+     "phase": 42.6719
+    },
+    "O1": {
+     "amplitude": 0.016329,
+     "phase": 25.1167
+    },
+    "P1": {
+     "amplitude": 0.028632,
+     "phase": 41.4271
+    },
+    "Q1": {
+     "amplitude": 0.00201,
+     "phase": 179.5628
+    },
+    "J1": {
+     "amplitude": 0.00708,
+     "phase": 66.1759
+    },
+    "Mf": {
+     "amplitude": 0.013077,
+     "phase": 19.6865
+    },
+    "Mm": {
+     "amplitude": 0.007475,
+     "phase": 11.5193
+    },
+    "Ssa": {
+     "amplitude": 0.007502,
+     "phase": 2.2485
+    },
+    "Sa": {
+     "amplitude": 0.000319,
+     "phase": 154.201
+    },
+    "Msqm": {
+     "amplitude": 0.000213,
+     "phase": 11.8375
+    },
+    "Mtm": {
+     "amplitude": 0.002202,
+     "phase": 20.7653
+    },
+    "M4": {
+     "amplitude": 0.0004,
+     "phase": 100.7865
+    },
+    "MS4": {
+     "amplitude": 0.001098,
+     "phase": 35.2334
+    }
+   }
+  },
+  {
+   "name": "Blue Hole",
+   "lat": 17.32,
+   "lon": -87.53,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.065873,
+     "phase": 86.9675
+    },
+    "S2": {
+     "amplitude": 0.024558,
+     "phase": 32.0006
+    },
+    "N2": {
+     "amplitude": 0.023643,
+     "phase": 73.7271
+    },
+    "K2": {
+     "amplitude": 0.007858,
+     "phase": 17.4037
+    },
+    "2N2": {
+     "amplitude": 0.00414,
+     "phase": 55.137
+    },
+    "Mu2": {
+     "amplitude": 0.003005,
+     "phase": 333.5504
+    },
+    "Nu2": {
+     "amplitude": 0.003988,
+     "phase": 67.0156
+    },
+    "L2": {
+     "amplitude": 0.001404,
+     "phase": 156.9977
+    },
+    "T2": {
+     "amplitude": 0.001727,
+     "phase": 38.1479
+    },
+    "Eps2": {
+     "amplitude": 0.001212,
+     "phase": 43.2589
+    },
+    "La2": {
+     "amplitude": 2.3e-05,
+     "phase": 187.7591
+    },
+    "R2": {
+     "amplitude": 0.000254,
+     "phase": 37.315
+    },
+    "K1": {
+     "amplitude": 0.021237,
+     "phase": 271.1677
+    },
+    "O1": {
+     "amplitude": 0.022637,
+     "phase": 337.0685
+    },
+    "P1": {
+     "amplitude": 0.007664,
+     "phase": 279.1914
+    },
+    "Q1": {
+     "amplitude": 0.007603,
+     "phase": 341.717
+    },
+    "J1": {
+     "amplitude": 0.001562,
+     "phase": 248.5851
+    },
+    "Mf": {
+     "amplitude": 0.015114,
+     "phase": 355.9182
+    },
+    "Mm": {
+     "amplitude": 0.006904,
+     "phase": 351.9947
+    },
+    "Ssa": {
+     "amplitude": 0.005334,
+     "phase": 357.5156
+    },
+    "Sa": {
+     "amplitude": 0.000312,
+     "phase": 154.9877
+    },
+    "Msqm": {
+     "amplitude": 0.000257,
+     "phase": 7.8441
+    },
+    "Mtm": {
+     "amplitude": 0.003061,
+     "phase": 0.9225
+    },
+    "M4": {
+     "amplitude": 0.001076,
+     "phase": 3.3734
+    },
+    "MS4": {
+     "amplitude": 0.00042,
+     "phase": 284.523
+    }
+   }
+  },
+  {
+   "name": "Maldives",
+   "lat": 4.18,
+   "lon": 73.52,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.234389,
+     "phase": 226.0048
+    },
+    "S2": {
+     "amplitude": 0.139573,
+     "phase": 272.0866
+    },
+    "N2": {
+     "amplitude": 0.034128,
+     "phase": 213.3772
+    },
+    "K2": {
+     "amplitude": 0.039741,
+     "phase": 271.4373
+    },
+    "2N2": {
+     "amplitude": 0.002719,
+     "phase": 224.736
+    },
+    "Mu2": {
+     "amplitude": 0.003024,
+     "phase": 257.3348
+    },
+    "Nu2": {
+     "amplitude": 0.007135,
+     "phase": 221.5243
+    },
+    "L2": {
+     "amplitude": 0.008595,
+     "phase": 252.0618
+    },
+    "T2": {
+     "amplitude": 0.007884,
+     "phase": 266.7449
+    },
+    "Eps2": {
+     "amplitude": 0.000771,
+     "phase": 246.7924
+    },
+    "La2": {
+     "amplitude": 0.002423,
+     "phase": 256.5943
+    },
+    "R2": {
+     "amplitude": 0.001153,
+     "phase": 268.9897
+    },
+    "K1": {
+     "amplitude": 0.116082,
+     "phase": 344.5748
+    },
+    "O1": {
+     "amplitude": 0.060344,
+     "phase": 358.1565
+    },
+    "P1": {
+     "amplitude": 0.034866,
+     "phase": 343.1895
+    },
+    "Q1": {
+     "amplitude": 0.015794,
+     "phase": 7.2375
+    },
+    "J1": {
+     "amplitude": 0.007694,
+     "phase": 356.3394
+    },
+    "Mf": {
+     "amplitude": 0.016926,
+     "phase": 6.4801
+    },
+    "Mm": {
+     "amplitude": 0.008017,
+     "phase": 3.5832
+    },
+    "Ssa": {
+     "amplitude": 0.007594,
+     "phase": 0.7126
+    },
+    "Sa": {
+     "amplitude": 0.000326,
+     "phase": 147.1952
+    },
+    "Msqm": {
+     "amplitude": 0.000168,
+     "phase": 32.3643
+    },
+    "Mtm": {
+     "amplitude": 0.003389,
+     "phase": 15.4094
+    },
+    "M4": {
+     "amplitude": 0.001545,
+     "phase": 169.8081
+    },
+    "MS4": {
+     "amplitude": 0.000832,
+     "phase": 199.3889
+    }
+   }
+  },
+  {
+   "name": "Fiji Beqa",
+   "lat": -18.4,
+   "lon": 178.1,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.537945,
+     "phase": 201.8013
+    },
+    "S2": {
+     "amplitude": 0.088993,
+     "phase": 219.1361
+    },
+    "N2": {
+     "amplitude": 0.123238,
+     "phase": 176.2789
+    },
+    "K2": {
+     "amplitude": 0.028295,
+     "phase": 209.8217
+    },
+    "2N2": {
+     "amplitude": 0.015895,
+     "phase": 156.159
+    },
+    "Mu2": {
+     "amplitude": 0.015878,
+     "phase": 155.0685
+    },
+    "Nu2": {
+     "amplitude": 0.023818,
+     "phase": 180.0639
+    },
+    "L2": {
+     "amplitude": 0.011534,
+     "phase": 223.1778
+    },
+    "T2": {
+     "amplitude": 0.007228,
+     "phase": 202.3937
+    },
+    "Eps2": {
+     "amplitude": 0.005823,
+     "phase": 139.7148
+    },
+    "La2": {
+     "amplitude": 0.003033,
+     "phase": 225.4715
+    },
+    "R2": {
+     "amplitude": 0.001198,
+     "phase": 207.9791
+    },
+    "K1": {
+     "amplitude": 0.101991,
+     "phase": 54.2863
+    },
+    "O1": {
+     "amplitude": 0.049259,
+     "phase": 41.4383
+    },
+    "P1": {
+     "amplitude": 0.029599,
+     "phase": 51.4238
+    },
+    "Q1": {
+     "amplitude": 0.00778,
+     "phase": 27.0808
+    },
+    "J1": {
+     "amplitude": 0.006313,
+     "phase": 58.257
+    },
+    "Mf": {
+     "amplitude": 0.007663,
+     "phase": 23.6944
+    },
+    "Mm": {
+     "amplitude": 0.004997,
+     "phase": 15.8149
+    },
+    "Ssa": {
+     "amplitude": 0.005195,
+     "phase": 3.2084
+    },
+    "Sa": {
+     "amplitude": 0.000311,
+     "phase": 155.3907
+    },
+    "Msqm": {
+     "amplitude": 7e-05,
+     "phase": 351.5157
+    },
+    "Mtm": {
+     "amplitude": 0.001182,
+     "phase": 20.145
+    },
+    "M4": {
+     "amplitude": 0.000455,
+     "phase": 211.7631
+    },
+    "MS4": {
+     "amplitude": 0.004316,
+     "phase": 278.2574
+    }
+   }
+  },
+  {
+   "name": "Lembeh",
+   "lat": 1.45,
+   "lon": 125.23,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.37056,
+     "phase": 275.8352
+    },
+    "S2": {
+     "amplitude": 0.23887,
+     "phase": 312.0094
+    },
+    "N2": {
+     "amplitude": 0.055833,
+     "phase": 262.7066
+    },
+    "K2": {
+     "amplitude": 0.070205,
+     "phase": 308.812
+    },
+    "2N2": {
+     "amplitude": 0.005607,
+     "phase": 257.9817
+    },
+    "Mu2": {
+     "amplitude": 0.007663,
+     "phase": 293.3914
+    },
+    "Nu2": {
+     "amplitude": 0.012531,
+     "phase": 264.8451
+    },
+    "L2": {
+     "amplitude": 0.015289,
+     "phase": 290.0088
+    },
+    "T2": {
+     "amplitude": 0.014962,
+     "phase": 307.9246
+    },
+    "Eps2": {
+     "amplitude": 0.002448,
+     "phase": 270.1746
+    },
+    "La2": {
+     "amplitude": 0.0042,
+     "phase": 289.7336
+    },
+    "R2": {
+     "amplitude": 0.002316,
+     "phase": 311.179
+    },
+    "K1": {
+     "amplitude": 0.178972,
+     "phase": 133.4023
+    },
+    "O1": {
+     "amplitude": 0.12756,
+     "phase": 116.4689
+    },
+    "P1": {
+     "amplitude": 0.057406,
+     "phase": 128.6855
+    },
+    "Q1": {
+     "amplitude": 0.027453,
+     "phase": 112.9467
+    },
+    "J1": {
+     "amplitude": 0.008536,
+     "phase": 153.7247
+    },
+    "Mf": {
+     "amplitude": 0.012814,
+     "phase": 12.2459
+    },
+    "Mm": {
+     "amplitude": 0.006935,
+     "phase": 9.1642
+    },
+    "Ssa": {
+     "amplitude": 0.007433,
+     "phase": 1.8428
+    },
+    "Sa": {
+     "amplitude": 0.000336,
+     "phase": 150.6297
+    },
+    "Msqm": {
+     "amplitude": 0.000215,
+     "phase": 358.3354
+    },
+    "Mtm": {
+     "amplitude": 0.002235,
+     "phase": 11.2326
+    },
+    "M4": {
+     "amplitude": 0.001727,
+     "phase": 285.1709
+    },
+    "MS4": {
+     "amplitude": 0.000966,
+     "phase": 286.5801
+    }
+   }
+  },
+  {
+   "name": "Anilao",
+   "lat": 13.76,
+   "lon": 120.92,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.229926,
+     "phase": 73.4001
+    },
+    "S2": {
+     "amplitude": 0.093515,
+     "phase": 111.6647
+    },
+    "N2": {
+     "amplitude": 0.043915,
+     "phase": 57.4243
+    },
+    "K2": {
+     "amplitude": 0.027223,
+     "phase": 112.1996
+    },
+    "2N2": {
+     "amplitude": 0.005763,
+     "phase": 41.266
+    },
+    "Mu2": {
+     "amplitude": 0.004661,
+     "phase": 45.9647
+    },
+    "Nu2": {
+     "amplitude": 0.009344,
+     "phase": 60.8515
+    },
+    "L2": {
+     "amplitude": 0.007335,
+     "phase": 94.1818
+    },
+    "T2": {
+     "amplitude": 0.005413,
+     "phase": 110.2115
+    },
+    "Eps2": {
+     "amplitude": 0.001612,
+     "phase": 45.6865
+    },
+    "La2": {
+     "amplitude": 0.002015,
+     "phase": 94.2821
+    },
+    "R2": {
+     "amplitude": 0.000827,
+     "phase": 112.4739
+    },
+    "K1": {
+     "amplitude": 0.298723,
+     "phase": 197.4967
+    },
+    "O1": {
+     "amplitude": 0.258515,
+     "phase": 156.6124
+    },
+    "P1": {
+     "amplitude": 0.096067,
+     "phase": 191.9789
+    },
+    "Q1": {
+     "amplitude": 0.050119,
+     "phase": 143.6319
+    },
+    "J1": {
+     "amplitude": 0.013118,
+     "phase": 210.7617
+    },
+    "Mf": {
+     "amplitude": 0.006627,
+     "phase": 16.0209
+    },
+    "Mm": {
+     "amplitude": 0.006615,
+     "phase": 13.2206
+    },
+    "Ssa": {
+     "amplitude": 0.005211,
+     "phase": 2.1888
+    },
+    "Sa": {
+     "amplitude": 0.000308,
+     "phase": 156.6465
+    },
+    "Msqm": {
+     "amplitude": 0.000352,
+     "phase": 5.6192
+    },
+    "Mtm": {
+     "amplitude": 0.001018,
+     "phase": 353.456
+    },
+    "M4": {
+     "amplitude": 0.000445,
+     "phase": 165.6687
+    },
+    "MS4": {
+     "amplitude": 0.000498,
+     "phase": 345.0163
+    }
+   }
+  },
+  {
+   "name": "Chuuk",
+   "lat": 7.42,
+   "lon": 151.78,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.08362,
+     "phase": 127.6426
+    },
+    "S2": {
+     "amplitude": 0.10847,
+     "phase": 145.9043
+    },
+    "N2": {
+     "amplitude": 0.018553,
+     "phase": 171.1682
+    },
+    "K2": {
+     "amplitude": 0.03059,
+     "phase": 139.2993
+    },
+    "2N2": {
+     "amplitude": 0.004081,
+     "phase": 173.7778
+    },
+    "Mu2": {
+     "amplitude": 0.004545,
+     "phase": 157.8986
+    },
+    "Nu2": {
+     "amplitude": 0.002808,
+     "phase": 172.5899
+    },
+    "L2": {
+     "amplitude": 0.005066,
+     "phase": 118.2598
+    },
+    "T2": {
+     "amplitude": 0.005907,
+     "phase": 138.4989
+    },
+    "Eps2": {
+     "amplitude": 0.001421,
+     "phase": 165.8635
+    },
+    "La2": {
+     "amplitude": 0.001583,
+     "phase": 135.8907
+    },
+    "R2": {
+     "amplitude": 0.000928,
+     "phase": 138.5481
+    },
+    "K1": {
+     "amplitude": 0.179819,
+     "phase": 62.168
+    },
+    "O1": {
+     "amplitude": 0.113516,
+     "phase": 42.2615
+    },
+    "P1": {
+     "amplitude": 0.057059,
+     "phase": 60.6044
+    },
+    "Q1": {
+     "amplitude": 0.022152,
+     "phase": 33.4928
+    },
+    "J1": {
+     "amplitude": 0.010205,
+     "phase": 77.0134
+    },
+    "Mf": {
+     "amplitude": 0.011679,
+     "phase": 16.478
+    },
+    "Mm": {
+     "amplitude": 0.007175,
+     "phase": 12.0182
+    },
+    "Ssa": {
+     "amplitude": 0.00726,
+     "phase": 2.565
+    },
+    "Sa": {
+     "amplitude": 0.000311,
+     "phase": 154.5472
+    },
+    "Msqm": {
+     "amplitude": 0.000169,
+     "phase": 354.4888
+    },
+    "Mtm": {
+     "amplitude": 0.00194,
+     "phase": 13.6263
+    },
+    "M4": {
+     "amplitude": 0.001622,
+     "phase": 105.2944
+    },
+    "MS4": {
+     "amplitude": 0.000335,
+     "phase": 109.529
+    }
+   }
+  },
+  {
+   "name": "Scapa Flow",
+   "lat": 58.9,
+   "lon": -3.2,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.687519,
+     "phase": 281.8234
+    },
+    "S2": {
+     "amplitude": 0.292062,
+     "phase": 311.2282
+    },
+    "N2": {
+     "amplitude": 0.162978,
+     "phase": 254.5208
+    },
+    "K2": {
+     "amplitude": 0.076989,
+     "phase": 309.1886
+    },
+    "2N2": {
+     "amplitude": 0.023081,
+     "phase": 232.4804
+    },
+    "Mu2": {
+     "amplitude": 0.030543,
+     "phase": 236.7217
+    },
+    "Nu2": {
+     "amplitude": 0.026416,
+     "phase": 260.1073
+    },
+    "L2": {
+     "amplitude": 0.014643,
+     "phase": 294.7067
+    },
+    "T2": {
+     "amplitude": 0.017769,
+     "phase": 302.6051
+    },
+    "Eps2": {
+     "amplitude": 0.007905,
+     "phase": 210.6575
+    },
+    "La2": {
+     "amplitude": 0.003216,
+     "phase": 264.2038
+    },
+    "R2": {
+     "amplitude": 0.002605,
+     "phase": 302.1082
+    },
+    "K1": {
+     "amplitude": 0.109764,
+     "phase": 161.4672
+    },
+    "O1": {
+     "amplitude": 0.096973,
+     "phase": 14.2797
+    },
+    "P1": {
+     "amplitude": 0.032394,
+     "phase": 151.383
+    },
+    "Q1": {
+     "amplitude": 0.033945,
+     "phase": 321.6652
+    },
+    "J1": {
+     "amplitude": 0.005126,
+     "phase": 223.6651
+    },
+    "Mf": {
+     "amplitude": 0.018229,
+     "phase": 190.7485
+    },
+    "Mm": {
+     "amplitude": 0.012998,
+     "phase": 192.4844
+    },
+    "Ssa": {
+     "amplitude": 0.010281,
+     "phase": 182.7319
+    },
+    "Sa": {
+     "amplitude": 0.000344,
+     "phase": 137.2061
+    },
+    "Msqm": {
+     "amplitude": 0.000262,
+     "phase": 107.6155
+    },
+    "Mtm": {
+     "amplitude": 0.003261,
+     "phase": 182.7546
+    },
+    "M4": {
+     "amplitude": 0.034925,
+     "phase": 271.3902
+    },
+    "MS4": {
+     "amplitude": 0.04782,
+     "phase": 351.9668
+    }
+   }
+  },
+  {
+   "name": "Poor Knights",
+   "lat": -35.47,
+   "lon": 174.73,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.795346,
+     "phase": 217.1419
+    },
+    "S2": {
+     "amplitude": 0.126415,
+     "phase": 271.9307
+    },
+    "N2": {
+     "amplitude": 0.161242,
+     "phase": 189.9133
+    },
+    "K2": {
+     "amplitude": 0.031334,
+     "phase": 261.9129
+    },
+    "2N2": {
+     "amplitude": 0.020789,
+     "phase": 172.1379
+    },
+    "Mu2": {
+     "amplitude": 0.020947,
+     "phase": 175.1874
+    },
+    "Nu2": {
+     "amplitude": 0.03088,
+     "phase": 191.9091
+    },
+    "L2": {
+     "amplitude": 0.018274,
+     "phase": 244.4729
+    },
+    "T2": {
+     "amplitude": 0.005861,
+     "phase": 235.2146
+    },
+    "Eps2": {
+     "amplitude": 0.006989,
+     "phase": 150.8918
+    },
+    "La2": {
+     "amplitude": 0.005559,
+     "phase": 242.4846
+    },
+    "R2": {
+     "amplitude": 0.001345,
+     "phase": 230.1337
+    },
+    "K1": {
+     "amplitude": 0.072789,
+     "phase": 359.2677
+    },
+    "O1": {
+     "amplitude": 0.019242,
+     "phase": 332.3515
+    },
+    "P1": {
+     "amplitude": 0.020772,
+     "phase": 356.2161
+    },
+    "Q1": {
+     "amplitude": 0.002525,
+     "phase": 289.6268
+    },
+    "J1": {
+     "amplitude": 0.005212,
+     "phase": 11.8512
+    },
+    "Mf": {
+     "amplitude": 0.003431,
+     "phase": 197.0688
+    },
+    "Mm": {
+     "amplitude": 0.001386,
+     "phase": 174.3753
+    },
+    "Ssa": {
+     "amplitude": 0.000663,
+     "phase": 170.277
+    },
+    "Sa": {
+     "amplitude": 0.000314,
+     "phase": 154.5415
+    },
+    "Msqm": {
+     "amplitude": 7.3e-05,
+     "phase": 223.7941
+    },
+    "Mtm": {
+     "amplitude": 0.000713,
+     "phase": 218.6933
+    },
+    "M4": {
+     "amplitude": 0.001139,
+     "phase": 1.5952
+    },
+    "MS4": {
+     "amplitude": 0.001298,
+     "phase": 113.0368
+    }
+   }
+  },
+  {
+   "name": "Ningaloo",
+   "lat": -22.0,
+   "lon": 113.9,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.323614,
+     "phase": 50.617
+    },
+    "S2": {
+     "amplitude": 0.162607,
+     "phase": 111.431
+    },
+    "N2": {
+     "amplitude": 0.06158,
+     "phase": 24.4573
+    },
+    "K2": {
+     "amplitude": 0.045705,
+     "phase": 108.6312
+    },
+    "2N2": {
+     "amplitude": 0.007098,
+     "phase": 351.5169
+    },
+    "Mu2": {
+     "amplitude": 0.009919,
+     "phase": 23.121
+    },
+    "Nu2": {
+     "amplitude": 0.013336,
+     "phase": 27.4606
+    },
+    "L2": {
+     "amplitude": 0.010664,
+     "phase": 77.7262
+    },
+    "T2": {
+     "amplitude": 0.009787,
+     "phase": 106.1961
+    },
+    "Eps2": {
+     "amplitude": 0.001625,
+     "phase": 11.3349
+    },
+    "La2": {
+     "amplitude": 0.002628,
+     "phase": 81.816
+    },
+    "R2": {
+     "amplitude": 0.001339,
+     "phase": 112.2424
+    },
+    "K1": {
+     "amplitude": 0.188525,
+     "phase": 167.9991
+    },
+    "O1": {
+     "amplitude": 0.122949,
+     "phase": 160.0763
+    },
+    "P1": {
+     "amplitude": 0.057872,
+     "phase": 165.729
+    },
+    "Q1": {
+     "amplitude": 0.028708,
+     "phase": 152.0898
+    },
+    "J1": {
+     "amplitude": 0.011441,
+     "phase": 181.1468
+    },
+    "Mf": {
+     "amplitude": 0.008172,
+     "phase": 10.2665
+    },
+    "Mm": {
+     "amplitude": 0.003877,
+     "phase": 8.5086
+    },
+    "Ssa": {
+     "amplitude": 0.003975,
+     "phase": 3.4322
+    },
+    "Sa": {
+     "amplitude": 0.00031,
+     "phase": 155.194
+    },
+    "Msqm": {
+     "amplitude": 0.000202,
+     "phase": 63.7103
+    },
+    "Mtm": {
+     "amplitude": 0.001737,
+     "phase": 26.2904
+    },
+    "M4": {
+     "amplitude": 0.001806,
+     "phase": 90.4129
+    },
+    "MS4": {
+     "amplitude": 0.003025,
+     "phase": 114.3445
+    }
+   }
+  },
+  {
+   "name": "Palau",
+   "lat": 7.13,
+   "lon": 134.22,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.512861,
+     "phase": 291.4795
+    },
+    "S2": {
+     "amplitude": 0.206952,
+     "phase": 320.8893
+    },
+    "N2": {
+     "amplitude": 0.099475,
+     "phase": 275.2151
+    },
+    "K2": {
+     "amplitude": 0.058292,
+     "phase": 314.9268
+    },
+    "2N2": {
+     "amplitude": 0.012295,
+     "phase": 258.8805
+    },
+    "Mu2": {
+     "amplitude": 0.010556,
+     "phase": 282.8065
+    },
+    "Nu2": {
+     "amplitude": 0.020125,
+     "phase": 279.4007
+    },
+    "L2": {
+     "amplitude": 0.014331,
+     "phase": 306.2726
+    },
+    "T2": {
+     "amplitude": 0.011484,
+     "phase": 315.537
+    },
+    "Eps2": {
+     "amplitude": 0.003677,
+     "phase": 254.448
+    },
+    "La2": {
+     "amplitude": 0.004,
+     "phase": 300.8577
+    },
+    "R2": {
+     "amplitude": 0.001716,
+     "phase": 313.8199
+    },
+    "K1": {
+     "amplitude": 0.192894,
+     "phase": 76.0616
+    },
+    "O1": {
+     "amplitude": 0.132302,
+     "phase": 62.7804
+    },
+    "P1": {
+     "amplitude": 0.062458,
+     "phase": 75.3571
+    },
+    "Q1": {
+     "amplitude": 0.026149,
+     "phase": 56.3873
+    },
+    "J1": {
+     "amplitude": 0.010698,
+     "phase": 89.7427
+    },
+    "Mf": {
+     "amplitude": 0.011944,
+     "phase": 15.7478
+    },
+    "Mm": {
+     "amplitude": 0.007232,
+     "phase": 11.527
+    },
+    "Ssa": {
+     "amplitude": 0.007204,
+     "phase": 2.4232
+    },
+    "Sa": {
+     "amplitude": 0.000314,
+     "phase": 154.7373
+    },
+    "Msqm": {
+     "amplitude": 0.000196,
+     "phase": 353.2449
+    },
+    "Mtm": {
+     "amplitude": 0.001964,
+     "phase": 14.4572
+    },
+    "M4": {
+     "amplitude": 0.000155,
+     "phase": 25.1813
+    },
+    "MS4": {
+     "amplitude": 0.000569,
+     "phase": 140.2468
+    }
+   }
+  },
+  {
+   "name": "Hurghada",
+   "lat": 27.25,
+   "lon": 33.83,
+   "constituents": {
+    "M2": {
+     "amplitude": 0.230262,
+     "phase": 114.1128
+    },
+    "S2": {
+     "amplitude": 0.068844,
+     "phase": 141.2066
+    },
+    "N2": {
+     "amplitude": 0.064769,
+     "phase": 93.0786
+    },
+    "K2": {
+     "amplitude": 0.021879,
+     "phase": 143.7311
+    },
+    "2N2": {
+     "amplitude": 0.010013,
+     "phase": 42.4681
+    },
+    "Mu2": {
+     "amplitude": 0.008933,
+     "phase": 29.5578
+    },
+    "Nu2": {
+     "amplitude": 0.010419,
+     "phase": 116.2355
+    },
+    "L2": {
+     "amplitude": 0.004527,
+     "phase": 143.4141
+    },
+    "T2": {
+     "amplitude": 0.00306,
+     "phase": 156.0507
+    },
+    "Eps2": {
+     "amplitude": 0.002347,
+     "phase": 14.7036
+    },
+    "La2": {
+     "amplitude": 0.001347,
+     "phase": 113.8154
+    },
+    "R2": {
+     "amplitude": 0.000413,
+     "phase": 158.7395
+    },
+    "K1": {
+     "amplitude": 0.026511,
+     "phase": 168.4982
+    },
+    "O1": {
+     "amplitude": 0.014478,
+     "phase": 168.545
+    },
+    "P1": {
+     "amplitude": 0.007977,
+     "phase": 166.5754
+    },
+    "Q1": {
+     "amplitude": 0.003202,
+     "phase": 167.6014
+    },
+    "J1": {
+     "amplitude": 0.002274,
+     "phase": 181.5756
+    },
+    "Mf": {
+     "amplitude": 0.006275,
+     "phase": 12.4967
+    },
+    "Mm": {
+     "amplitude": 0.003199,
+     "phase": 31.41
+    },
+    "Ssa": {
+     "amplitude": 0.002149,
+     "phase": 3.7716
+    },
+    "Sa": {
+     "amplitude": 0.000346,
+     "phase": 127.0762
+    },
+    "Msqm": {
+     "amplitude": 0.001379,
+     "phase": 129.5952
+    },
+    "Mtm": {
+     "amplitude": 0.001803,
+     "phase": 28.0533
+    },
+    "M4": {
+     "amplitude": 0.000234,
+     "phase": 289.3001
+    },
+    "MS4": {
+     "amplitude": 0.000794,
+     "phase": 308.277
+    }
+   }
+  }
+ ]
+}

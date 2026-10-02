@@ -33,6 +33,24 @@ void main() {
       expect(readings[1]!.lastAfterSurfacing, 4.0);
     });
 
+    test('passes over a signal dropout at the surfacing sample', () {
+      // Issue #2441: the transmitter logged ~0 bar exactly as the diver
+      // surfaced, then recovered. The dropout says nothing about what the
+      // cylinder held, so the last real reading before it stands.
+      final points = [
+        point(0, 20.0, {0: 200.0}),
+        point(600, 20.0, {0: 150.0}),
+        point(900, 1.0, {0: 0.8}),
+        point(960, 0.0, {0: 147.0}),
+        point(1020, 0.0, {0: 146.0}),
+      ];
+
+      final readings = surfacingTankReadings(points);
+
+      expect(readings[0]!.atSurfacing, 150.0);
+      expect(readings[0]!.lastAfterSurfacing, 146.0);
+    });
+
     test('reads every cylinder independently', () {
       final points = [
         point(0, 5.0, {0: 200.0, 1: 180.0}),

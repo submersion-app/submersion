@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -97,6 +98,10 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
       // The originals are gone and the merged dive is new: the condition
       // engine reads its sensor summary, so build it now.
       scheduleSensorSummaryRefresh([
+        ...widget.diveIds,
+        outcome.mergedDive.id,
+      ], force: true);
+      scheduleDerivedMetricsRefresh([
         ...widget.diveIds,
         outcome.mergedDive.id,
       ], force: true);

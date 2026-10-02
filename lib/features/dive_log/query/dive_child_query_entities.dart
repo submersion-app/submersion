@@ -3,6 +3,8 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
 
 /// The dive's child tables, reachable only through a dive relation
 /// (`tanks.o2 > 32`, `weights[amount >= 2]`, `customFields[key = k]`).
@@ -128,6 +130,30 @@ final mediaQueryEntity = QueryEntity(
       sql: '{r}.is_favorite',
       emptySql: '0',
       labelKey: 'query_media_favorite',
+    ),
+  ],
+);
+
+/// A finding the diver still sees: not dismissed, and from the current
+/// review engine (an older one is replaced when the dive is next reviewed).
+/// The `findings` relation's target filter, written against `{to}`.
+const kLiveFindingSql =
+    '{to}.dismissed_at IS NULL '
+    'AND {to}.engine_version >= ${SafetyReviewService.engineVersion}';
+
+/// A dive's safety review findings, reached through the dive relation
+/// `findings`, whose target filter hides every finding that is not live.
+final findingQueryEntity = QueryEntity(
+  subject: QuerySubject.findings,
+  table: 'dive_safety_findings',
+  fields: [
+    QueryField(
+      key: 'rule',
+      type: FieldType.enumName,
+      sql: '{r}.rule_id',
+      emptySql: '{r}.rule_id IS NULL',
+      labelKey: 'query_findings_rule',
+      enumValues: [for (final r in SafetyRuleId.values) r.dbValue],
     ),
   ],
 );

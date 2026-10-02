@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
+import '../../../helpers/mock_channels.dart';
 import '../../../helpers/test_database.dart';
 
 /// The streamed base exists so a large library never materialises whole
@@ -30,6 +31,7 @@ void main() {
               call.method == 'getTemporaryDirectory' ? fakeAppTemp.path : null,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (fakeAppTemp.existsSync()) await fakeAppTemp.delete(recursive: true);

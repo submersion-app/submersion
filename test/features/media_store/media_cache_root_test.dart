@@ -6,6 +6,8 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
+import '../../helpers/fake_path_provider.dart';
+
 /// Counts platform lookups so the memoization can be asserted rather than
 /// asserted-in-a-comment, and can be made to fail on demand.
 class _CountingPathProvider extends PathProviderPlatform
@@ -31,7 +33,7 @@ void main() {
   setUp(() async {
     support = await Directory.systemTemp.createTemp('media_cache_root_test');
     platform = _CountingPathProvider(support.path);
-    PathProviderPlatform.instance = platform;
+    useFakePathProvider(platform);
     resetMediaCacheRootForTesting();
   });
 

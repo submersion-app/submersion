@@ -33,6 +33,7 @@ void main() {
     bool showFigure = true,
     Future<ComponentsIndex>? components,
     AsyncValue<ComponentsIndex>? componentsState,
+    double textScale = 1,
   }) async {
     tester.view.physicalSize = Size(width, height);
     tester.view.devicePixelRatio = 1.0;
@@ -64,11 +65,17 @@ void main() {
             ),
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         ],
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: EquipmentSetDetailPage(setId: 's1'),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(textScale)),
+            child: child!,
+          ),
+          home: const EquipmentSetDetailPage(setId: 's1'),
         ),
       ),
     );
@@ -80,6 +87,62 @@ void main() {
     gear('b', 'Hollis SMS75', EquipmentType.bcd),
     gear('f', 'Jet Fins', EquipmentType.fins),
   ];
+
+  // A backup light hung off the BCD: a child item, so it has a row but no
+  // number of its own.
+  final withChild = [
+    ...three,
+    const EquipmentItem(
+      id: 'l',
+      name: 'Backup light',
+      type: EquipmentType.light,
+      parentEquipmentId: 'b',
+    ),
+  ];
+
+  /// Where [name] starts in its list row (the wide figure also names items,
+  /// but not inside a ListTile).
+  double nameX(WidgetTester tester, String name) => tester
+      .getTopLeft(
+        find.descendant(of: find.byType(ListTile), matching: find.text(name)),
+      )
+      .dx;
+
+  testWidgets('with the figure on, numbered and child names line up', (
+    tester,
+  ) async {
+    // Numbered rows lead with a badge; a child row keeps the badge's room so
+    // its name does not sit further left.
+    await pump(tester, withChild);
+    expect(find.byType(FigureNumberBadge), findsNWidgets(6));
+    expect(nameX(tester, 'Backup light'), nameX(tester, 'Hollis SMS75'));
+  });
+
+  testWidgets('with large text, numbered and child names still line up', (
+    tester,
+  ) async {
+    // The badge grows with the diver's text size, so the room a child row
+    // keeps must grow with it.
+    await pump(tester, withChild, textScale: 3);
+    expect(nameX(tester, 'Backup light'), nameX(tester, 'Hollis SMS75'));
+  });
+
+  testWidgets('with the figure off, a name sits right after its icon', (
+    tester,
+  ) async {
+    // No figure, no numbers, and no empty room kept for them either.
+    await pump(tester, withChild, showFigure: false);
+    for (final name in ['Backup light', 'Hollis SMS75']) {
+      final row = find.ancestor(
+        of: find.text(name),
+        matching: find.byType(ListTile),
+      );
+      final icon = tester.getTopRight(
+        find.descendant(of: row, matching: find.byType(CircleAvatar)),
+      );
+      expect(nameX(tester, name) - icon.dx, 16, reason: name);
+    }
+  });
 
   testWidgets('the figure appears with one label and one row badge per item', (
     tester,

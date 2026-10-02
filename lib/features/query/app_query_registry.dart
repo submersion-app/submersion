@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_computer/query/dive_computer_query_enti
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
+import 'package:submersion/features/dive_sites/query/site_type_query_entity.dart';
 import 'package:submersion/features/dive_types/query/dive_type_query_entity.dart';
 import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
 import 'package:submersion/features/marine_life/query/species_query_entity.dart';
@@ -22,7 +23,9 @@ final QueryRegistry appQueryRegistry = QueryRegistry([
   customFieldQueryEntity,
   sightingQueryEntity,
   mediaQueryEntity,
+  findingQueryEntity,
   siteQueryEntity,
+  siteTypeQueryEntity,
   equipmentQueryEntity,
   equipmentAttributeQueryEntity,
   buddyQueryEntity,

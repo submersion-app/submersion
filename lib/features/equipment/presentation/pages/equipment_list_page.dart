@@ -8,8 +8,10 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -28,6 +30,8 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_edit_
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_list_count_provider.dart';
+import 'package:submersion/shared/widgets/title_with_subtitle.dart';
 
 class EquipmentListPage extends ConsumerStatefulWidget {
   const EquipmentListPage({super.key});
@@ -37,7 +41,7 @@ class EquipmentListPage extends ConsumerStatefulWidget {
 }
 
 class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, TableSelectionOwner {
   late TabController _tabController;
   bool _switchingTabProgrammatically = false;
 
@@ -85,6 +89,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
 
   @override
   Widget build(BuildContext context) {
+    resetTableSelectionOffTable(equipmentListViewModeProvider);
+
     // Table mode: intercept before the tab scaffold and use TableModeLayout
     // for the Equipment tab (equipment items only, not equipment sets).
     final viewMode = ref.watch(equipmentListViewModeProvider);
@@ -99,7 +105,11 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         child: TableModeLayout(
           sectionKey: 'equipment',
           appBarTitle: context.l10n.nav_equipment,
-          tableContent: const EquipmentListContent(showAppBar: false),
+          appBarSubtitle: equipmentListCountLabel(context, ref),
+          tableContent: EquipmentListContent(
+            showAppBar: false,
+            selectionController: tableSelection,
+          ),
           detailBuilder: (context, id) => EquipmentDetailPage(
             equipmentId: id,
             embedded: true,
@@ -133,11 +143,12 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             ),
           ),
           // Table mode has no app bar of its own inside the content, so the
-          // filter panel is reachable only from here. The table stays flat,
-          // so its sort sheet leaves the grouping out.
+          // filter panel and "Select items" are reachable only from here. The
+          // table stays flat, so its sort sheet leaves the grouping out.
           appBarActions: _buildListActions(
             context,
             showGrouping: false,
+            selection: tableSelection,
             iconSize: 20,
           ),
           floatingActionButton: fab,
@@ -177,7 +188,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
                 showGrouping: EquipmentListContent.showsGrouping(
                   ref.watch(equipmentListViewModeProvider),
                 ),
-                onSelect: _phoneSelection.enterExplicit,
+                selection: _phoneSelection,
               )
             : const <Widget>[];
         final titleStyle = _phoneTitleStyle(context);
@@ -192,9 +203,14 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             // the switcher's own 8px label padding puts the text at the 16px
             // every other app bar title sits at.
             titleSpacing: _phoneTitleSpacing,
-            title: DefaultTextStyle.merge(
-              style: titleStyle,
-              child: _buildSectionToggle(context),
+            title: TitleWithSubtitle(
+              title: DefaultTextStyle.merge(
+                style: titleStyle,
+                child: _buildSectionToggle(context),
+              ),
+              subtitle: _isEquipmentTab && !selection.isActive
+                  ? equipmentListCountLabel(context, ref)
+                  : null,
             ),
             // One row whenever the switcher and the actions both fit; a
             // second row under the switcher otherwise, for the longer
@@ -270,12 +286,13 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
 
   /// Search, filter, sort and the overflow menu, for an app bar.
   ///
-  /// [onSelect] adds "Select items" to the overflow menu. The phone puts it
-  /// there so the header fits one row; table mode has its own select control.
+  /// [selection] adds "Select items" to the overflow menu, entering selection
+  /// on that controller. The phone list and the table both take it from here:
+  /// the page's header carries the menu, and the rows live in the list.
   List<Widget> _buildListActions(
     BuildContext context, {
     required bool showGrouping,
-    VoidCallback? onSelect,
+    SelectionController? selection,
     double? iconSize,
   }) {
     return [
@@ -309,8 +326,6 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         onSelected: (value) {
           if (value == scanTagMenuValue) {
             unawaited(scanAndOpenCylinderTag(context, ref));
-          } else if (value == _selectMenuValue) {
-            onSelect?.call();
           } else if (value.startsWith('view_')) {
             final mode = ListViewMode.fromName(value.replaceFirst('view_', ''));
             ref.read(equipmentListViewModeProvider.notifier).state = mode;
@@ -320,20 +335,13 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
           final currentMode = ref.read(equipmentListViewModeProvider);
           return [
             ...scanTagMenuEntries(context),
-            if (onSelect != null) ...[
-              PopupMenuItem<String>(
-                value: _selectMenuValue,
-                // Laid out like the view-mode items below it.
-                child: Row(
-                  children: [
-                    const Icon(Icons.checklist, size: 20),
-                    const SizedBox(width: 12),
-                    Text(context.l10n.common_selection_enterTooltip),
-                  ],
-                ),
+            // Read as the menu opens: while selecting, the entry would do
+            // nothing.
+            if (selection != null && !selection.value.isActive)
+              ...selectItemsMenuEntries(
+                context,
+                onSelect: selection.enterExplicit,
               ),
-              const PopupMenuDivider(),
-            ],
             ...ListViewModeToggle.menuItems(
               context,
               currentMode: currentMode,
@@ -348,8 +356,6 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
       ),
     ];
   }
-
-  static const String _selectMenuValue = 'select_items';
 
   Widget _buildMasterDetailLayout(BuildContext context) {
     return _isEquipmentTab

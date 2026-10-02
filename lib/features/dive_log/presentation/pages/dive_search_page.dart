@@ -4,7 +4,6 @@ import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart' show QueryNode;
 import 'package:submersion/core/query/domain/query_subject.dart';
-import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -22,8 +21,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/presentation/dive_query_editor.dart';
-import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
-import 'package:submersion/features/query/presentation/widgets/save_query_dialog.dart';
+import 'package:submersion/features/query/presentation/widgets/save_query_flow.dart';
 import 'package:submersion/features/query/presentation/widgets/saved_query_chip_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
@@ -1028,45 +1026,12 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
   Future<void> _saveQuery() async {
     final node = _query;
     if (node == null) return;
-    try {
-      // Queries are saved per diver: say so up front rather than asking
-      // for a name and then doing nothing.
-      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-      if (!mounted) return;
-      if (diverId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.query_saveNeedsDiver)),
-        );
-        return;
-      }
-      final name = await showSaveQueryDialog(context);
-      if (name == null || !mounted) return;
-      await ref
-          .read(savedQueryRepositoryProvider)
-          .create(
-            subject: QuerySubject.dives,
-            name: name,
-            node: node,
-            diverId: diverId,
-          );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.query_saved_snackbar(name))),
-        );
-      }
-    } catch (e, st) {
-      LoggerService.forClass(
-        DiveSearchPage,
-      ).error('Failed to save query', error: e, stackTrace: st);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.common_error_tryAgain),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    }
+    await saveQueryFromEditor(
+      context,
+      ref,
+      subject: QuerySubject.dives,
+      node: node,
+    );
   }
 
   void _clearAll() {

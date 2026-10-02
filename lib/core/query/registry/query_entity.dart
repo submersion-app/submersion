@@ -11,8 +11,15 @@ class QueryEntity {
   final String idColumn;
 
   /// The per-diver column, or null for a table shared across divers. The
-  /// CALLER applies the scope, never the compiler.
+  /// CALLER scopes the root; the compiler scopes only a hop into an entity
+  /// with [scopesHopsToDiver], and only when the caller names a diver.
   final String? diverScopeColumn;
+
+  /// Whether rows of this entity reached through a relation belong to the
+  /// active diver alone: a shared site or trip holds several divers' dives,
+  /// and "sites I dived" means mine. Off for an entity another diver's row
+  /// may rightly point at (a dive's shared site is the partner's).
+  final bool scopesHopsToDiver;
   final List<QueryField> fields;
   final List<QueryRelation> relations;
 
@@ -28,6 +35,7 @@ class QueryEntity {
     required this.table,
     this.idColumn = 'id',
     this.diverScopeColumn,
+    this.scopesHopsToDiver = false,
     this.fields = const [],
     this.relations = const [],
     this.textSearchSql = const [],

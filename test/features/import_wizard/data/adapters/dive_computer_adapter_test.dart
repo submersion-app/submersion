@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
@@ -762,6 +763,68 @@ void main() {
         verify(mockImportService.resetUnmatchedTransmitterSerials()).called(1);
       },
     );
+
+    test('a role read off an unassigned transmitter name adds its own '
+        'notice (#2595)', () async {
+      // Dive 0: the oxygen role came from the transmitter name "O2" and the
+      // serial is unassigned. Dive 1: an unassigned serial, role not from a
+      // name. Dive 2: a name-derived role on a serial the registry claimed,
+      // so the registry's role replaced it.
+      const nameDerived = DownloadedTank(
+        index: 0,
+        o2Percent: 100,
+        role: 'oxygenSupply',
+        roleSource: TankRoleSource.transmitterName,
+        transmitterSerial: '999',
+      );
+      const plain = DownloadedTank(
+        index: 0,
+        o2Percent: 21,
+        transmitterSerial: '888',
+      );
+      const claimed = DownloadedTank(
+        index: 0,
+        o2Percent: 100,
+        role: 'oxygenSupply',
+        roleSource: TankRoleSource.transmitterName,
+        transmitterSerial: '777',
+      );
+      final dives = [
+        makeDownloadedDive(fingerprint: 'fp-0', tanks: const [nameDerived]),
+        makeDownloadedDive(
+          fingerprint: 'fp-1',
+          startTime: DateTime(2026, 3, 16, 10, 32),
+          tanks: const [plain],
+        ),
+        makeDownloadedDive(
+          fingerprint: 'fp-2',
+          startTime: DateTime(2026, 3, 17, 10, 32),
+          tanks: const [claimed],
+        ),
+      ];
+      adapter.setDownloadedDives(dives);
+      final bundle = await adapter.buildBundle();
+      when(
+        mockImportService.unmatchedTransmitterSerials,
+      ).thenReturn(['888', '999']);
+      for (final (i, dive) in dives.indexed) {
+        when(
+          mockImportService.importSingleDiveAsNew(
+            dive,
+            computerId: computer.id,
+            diverId: diverId,
+          ),
+        ).thenAnswer((_) async => 'new-dive-$i');
+      }
+
+      final result = await adapter.performImport(bundle, {
+        ImportEntityType.dives: {0, 1, 2},
+      }, const {});
+
+      final byKind = {for (final n in result.notices) n.kind: n.count};
+      expect(byKind[ImportNoticeKind.unknownTransmitter], 2);
+      expect(byKind[ImportNoticeKind.transmitterNameRoles], 1);
+    });
 
     test('handles DuplicateAction.importAsNew', () async {
       final dive = makeDownloadedDive();

@@ -7,7 +7,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/query/data/query_name_index.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/query/domain/entities/saved_query.dart';
 import 'package:submersion/features/query/domain/saved_query_load.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
@@ -65,7 +65,7 @@ void main() {
           ...await getBaseOverrides(),
           diveFilterProvider.overrideWith((ref) => seed),
           queryNameIndexProvider.overrideWith(
-            (ref) async => const QueryNameIndex({
+            (ref) async => NameIndex.fromRefs(const {
               QuerySubject.sites: [RefValue('s1', 'Salt Pier')],
             }),
           ),

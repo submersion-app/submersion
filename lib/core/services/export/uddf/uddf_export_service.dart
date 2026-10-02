@@ -7,6 +7,7 @@ import 'package:xml/xml.dart';
 
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 
 /// Handles simple UDDF export of dives with optional site data.
 class UddfExportService {
@@ -30,7 +32,7 @@ class UddfExportService {
   Future<String> generateDivesUddfContent(
     List<Dive> dives, {
     List<DiveSite>? sites,
-    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
@@ -413,6 +415,11 @@ class UddfExportService {
                               final startMix = UddfExportBuilders.startMixId(
                                 dive,
                               );
+                              // One curve per cylinder, the one the app
+                              // draws; every source's series rides in the
+                              // <tankpressureseries> block (issue #2492).
+                              final divePressures =
+                                  pressuresByDive[dive.id]?.displayedByTank;
                               for (final (index, point)
                                   in dive.profile.indexed) {
                                 builder.element(
@@ -443,8 +450,6 @@ class UddfExportService {
                                     }
                                     // Tank pressure from tank_pressure_series,
                                     // naming the <tankdata> declared below.
-                                    final divePressures =
-                                        pressuresByDive[dive.id];
                                     if (divePressures != null) {
                                       for (final entry
                                           in divePressures.entries) {
@@ -464,6 +469,15 @@ class UddfExportService {
                                           );
                                         }
                                       }
+                                    }
+                                    // Computer-reported GF99, as Shearwater
+                                    // Cloud writes it, so a round trip keeps
+                                    // the recorded value.
+                                    if (point.gf99 != null) {
+                                      builder.element(
+                                        'gradientfactor',
+                                        nest: point.gf99.toString(),
+                                      );
                                     }
                                   },
                                 );
@@ -618,21 +632,7 @@ class UddfExportService {
                                 diveBuddies[dive.id] ?? const [],
                               );
                             }
-                            if (dive.customFields.isNotEmpty) {
-                              builder.element(
-                                'applicationdata',
-                                nest: () {
-                                  builder.element('name', nest: 'Submersion');
-                                  for (final field in dive.customFields) {
-                                    builder.element(
-                                      'customfield',
-                                      attributes: {'key': field.key},
-                                      nest: field.value,
-                                    );
-                                  }
-                                },
-                              );
-                            }
+                            UddfDiveCustomFields.write(builder, dive);
                           },
                         );
                       },
@@ -655,10 +655,13 @@ class UddfExportService {
           omitPurchaseDetails: true,
           components: components,
           gearLinkDives: gearLinkDives,
+          computerTissueDives: dives,
           diveBuddies: diveBuddies,
           customDiveRoles: customRoles,
           dataSources: sources,
           dataSourceDumps: encodedById,
+          attributedDives: dives,
+          diveTankPressures: pressuresByDive,
           // The definitions the sites' type and tag references need.
           tags: extras.siteTags,
           customSiteTypes: extras.customSiteTypes,
@@ -687,7 +690,7 @@ class UddfExportService {
   Future<String> exportDivesToUddf(
     List<Dive> dives, {
     List<DiveSite>? sites,
-    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
@@ -709,7 +712,7 @@ class UddfExportService {
   Future<String?> saveDivesToUddfFile(
     List<Dive> dives, {
     List<DiveSite>? sites,
-    Map<String, Map<String, List<TankPressurePoint>>>? diveTankPressures,
+    Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),

@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -14,12 +13,16 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
+import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// Whether changing a route's site should also move its anchor to the new
 /// site's pin (item 5).
@@ -129,41 +132,13 @@ class NavTrackDetailPage extends ConsumerWidget {
     NavTrack route,
   ) async {
     final dives = await ref.read(divesProvider.future);
-    final sorted = [...dives]
-      ..sort(
-        (a, b) =>
-            (a.effectiveEntryTime.millisecondsSinceEpoch - route.startTime)
-                .abs()
-                .compareTo(
-                  (b.effectiveEntryTime.millisecondsSinceEpoch -
-                          route.startTime)
-                      .abs(),
-                ),
-      );
-    if (!context.mounted) return;
-    final l10n = context.l10n;
-    final chosen = await showModalBottomSheet<Dive>(
-      context: context,
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        children: [
-          for (final dive in sorted.take(20))
-            ListTile(
-              title: Text(
-                l10n.navTrack_common_diveNumber(
-                  (dive.diveNumber ?? dive.id).toString(),
-                ),
-              ),
-              subtitle: Text(
-                UnitFormatter(
-                  ref.read(settingsProvider),
-                ).formatDateTime(dive.effectiveEntryTime),
-              ),
-              onTap: () => Navigator.of(context).pop(dive),
-            ),
-        ],
-      ),
+    final nearest = NavTrackMatcher.nearestByStart(
+      routeStartSeconds: route.startTime ~/ 1000,
+      dives: dives,
     );
+    if (!context.mounted) return;
+    // Only an unlinked route offers "Choose dive", so nothing is marked.
+    final chosen = await showNavTrackDiveChoiceSheet(context, dives: nearest);
     if (chosen == null) return;
     await ref
         .read(navTrackRepositoryProvider)
@@ -450,31 +425,20 @@ class _LinkCard extends ConsumerWidget {
     final l10n = context.l10n;
     final diveId = route.diveId;
     if (diveId == null) {
-      return Card(
-        child: ListTile(
-          key: const ValueKey('nav-track-no-dive'),
-          leading: const Icon(Icons.link_off),
-          title: Text(l10n.navTrack_detail_noDiveLinked),
-          trailing: TextButton(
-            onPressed: onChooseDive,
-            child: Text(l10n.navTrack_detail_chooseDive),
-          ),
-        ),
+      return _ActionCard(
+        key: const ValueKey('nav-track-no-dive'),
+        icon: Icons.link_off,
+        label: l10n.navTrack_detail_noDiveLinked,
+        actionLabel: l10n.navTrack_detail_chooseDive,
+        onAction: onChooseDive,
       );
     }
-    final diveAsync = ref.watch(diveProvider(diveId));
+    final dive = ref.watch(diveProvider(diveId)).value;
     return Card(
       child: ListTile(
         key: const ValueKey('nav-track-linked-dive'),
         leading: const Icon(Icons.link),
-        title: Text(
-          diveAsync.value != null
-              ? l10n.navTrack_common_diveNumber(
-                  (diveAsync.value!.diveNumber ?? diveAsync.value!.id)
-                      .toString(),
-                )
-              : l10n.navTrack_common_diveById(diveId),
-        ),
+        title: Text(navTrackDiveLabel(l10n, diveId, dive)),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/dives/$diveId'),
       ),
@@ -482,11 +446,11 @@ class _LinkCard extends ConsumerWidget {
   }
 }
 
-/// The route's dive site row, styled identically to [_LinkCard]'s
-/// "no dive linked" row (icon, label, right-aligned tappable action text):
-/// a site name or a "no site" placeholder on the left, and "Change site" /
-/// "Choose site" on the right, opening the same site-picker flow the
-/// overflow menu's "Change site" item used to trigger (item 4).
+/// The route's dive site row, built from the same [_ActionCard] as
+/// [_LinkCard]'s "no dive linked" row: a site name or a "no site"
+/// placeholder, with "Change site" / "Choose site" below it, opening the
+/// same site-picker flow the overflow menu's "Change site" item used to
+/// trigger (item 4).
 class _SiteCard extends ConsumerWidget {
   const _SiteCard({required this.route, required this.onChangeSite});
 
@@ -500,19 +464,51 @@ class _SiteCard extends ConsumerWidget {
     final siteName = siteId == null
         ? null
         : ref.watch(siteProvider(siteId)).value?.name;
+    return _ActionCard(
+      key: const ValueKey('nav-track-site-row'),
+      icon: Icons.place_outlined,
+      label: siteName ?? l10n.navTrack_detail_noSite,
+      actionKey: const ValueKey('nav-track-change-site'),
+      actionLabel: siteId == null
+          ? l10n.navTrack_detail_chooseSite
+          : l10n.navTrack_detail_menuChangeSite,
+      onAction: onChangeSite,
+    );
+  }
+}
+
+/// A card row with an icon, a label, and a text action on its own line
+/// below the label. The action sits in the subtitle rather than in
+/// trailing: a ListTile measures its trailing widget against the full tile
+/// width and gives the title column whatever is left, so a translated
+/// action there ("Tauchgang wählen") starves the label down to one fragment
+/// per line on a phone (issue #2692, same hazard as #935).
+class _ActionCard extends StatelessWidget {
+  const _ActionCard({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.actionLabel,
+    required this.onAction,
+    this.actionKey,
+  });
+
+  final IconData icon;
+  final String label;
+  final String actionLabel;
+  final VoidCallback onAction;
+  final Key? actionKey;
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        key: const ValueKey('nav-track-site-row'),
-        leading: const Icon(Icons.place_outlined),
-        title: Text(siteName ?? l10n.navTrack_detail_noSite),
-        trailing: TextButton(
-          key: const ValueKey('nav-track-change-site'),
-          onPressed: onChangeSite,
-          child: Text(
-            siteId == null
-                ? l10n.navTrack_detail_chooseSite
-                : l10n.navTrack_detail_menuChangeSite,
-          ),
+        leading: Icon(icon),
+        title: Text(label),
+        subtitle: TileSubtitleAction(
+          actionKey: actionKey,
+          onPressed: onAction,
+          label: actionLabel,
         ),
       ),
     );

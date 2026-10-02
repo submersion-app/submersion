@@ -214,4 +214,93 @@ void main() {
     expect(await repo.recentStationNames(), ['Reef Air', 'Blue Water']);
     expect(await repo.recentAnalyzers(), ['Analox', 'Divesoft']);
   });
+
+  test('wasDeleted is true only after a delete', () async {
+    final at = DateTime(2026, 9, 28);
+    final created = await repo.create(fill('f-1', at));
+    expect(await repo.wasDeleted('f-1'), isFalse);
+    expect(await repo.wasDeleted('nope'), isFalse);
+    await repo.delete(created.id);
+    expect(await repo.wasDeleted('f-1'), isTrue);
+  });
+
+  test('knownIds names the ids stored here or deleted here, in one '
+      'pass', () async {
+    final at = DateTime(2026, 9, 28);
+    await repo.create(fill('live', at));
+    await repo.delete((await repo.create(fill('gone', at))).id);
+    expect(await repo.knownIds(['live', 'gone', 'new']), {'live', 'gone'});
+    expect(await repo.knownIds(const []), isEmpty);
+  });
+
+  test('knownIds finds ids past the first slice of a long list', () async {
+    final at = DateTime(2026, 9, 28);
+    await repo.create(fill('early', at));
+    await repo.create(fill('late', at));
+    final ids = ['early', for (var i = 0; i < 1100; i++) 'absent-$i', 'late'];
+    expect(await repo.knownIds(ids), {'early', 'late'});
+  });
+
+  test('getAllVisibleTo reads the diver\'s own, shared and unlinked fills, '
+      'newest first', () async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'd2',
+            name: 'd2',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'eq-2',
+            name: 'eq-2',
+            type: 'tank',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value('d2'),
+          ),
+        );
+    // d2 shares eq-2 with d1, so eq-2's fills are d1's to see.
+    await db
+        .into(db.equipmentShares)
+        .insert(
+          EquipmentSharesCompanion.insert(
+            id: 'share-1',
+            equipmentId: 'eq-2',
+            diverId: 'd1',
+            createdAt: t,
+          ),
+        );
+    await repo.create(fill('own', t0)); // eq-1, d1
+    await repo.create(
+      fill('unlinked', t0.add(const Duration(hours: 1)), equipmentId: null),
+    );
+    await repo.create(
+      fill(
+        'shared',
+        t0.add(const Duration(hours: 2)),
+        equipmentId: 'eq-2',
+      ).copyWith(diverId: 'd2'),
+    );
+    await repo.create(
+      fill(
+        'other-unlinked',
+        t0.add(const Duration(hours: 3)),
+        equipmentId: null,
+      ).copyWith(diverId: 'd2'),
+    );
+
+    final visible = await repo.getAllVisibleTo('d1');
+    expect(visible.map((f) => f.id), ['shared', 'unlinked', 'own']);
+    expect((await repo.getAllVisibleTo('d2')).map((f) => f.id), [
+      'other-unlinked',
+      'shared',
+    ]);
+  });
 }

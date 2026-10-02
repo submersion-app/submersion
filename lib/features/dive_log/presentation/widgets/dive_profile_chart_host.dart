@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/source_name_labels.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -29,17 +30,6 @@ import 'package:submersion/features/equipment/presentation/providers/dive_sensor
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
-
-/// Localized source-name fallbacks, for [resolveSourceName].
-SourceNameLabels sourceNameLabelsFor(BuildContext context) {
-  return SourceNameLabels(
-    unknownComputer: context.l10n.diveLog_sources_unknownComputer,
-    manualEntry: context.l10n.diveLog_sources_manualEntry,
-    importedFile: context.l10n.diveLog_sources_importedFile,
-    editedSuffix: context.l10n.diveLog_sources_editedSuffix,
-  );
-}
 
 /// Resolves computerId -> display name for a dive's data sources via the
 /// shared [resolveSourceName] fallback chain. Sources without a computerId

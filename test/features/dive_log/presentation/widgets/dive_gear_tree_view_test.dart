@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/presentation/providers/assembly_snapshot_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -81,6 +82,7 @@ void main() {
     ComponentsIndex template = ComponentsIndex.empty,
     Set<String> activeParts = const {},
     List<EquipmentSet>? sets,
+    String? selectedItemId,
     List<Diver> divers = const [],
     String? ownerReferenceDiverId,
   }) => ProviderScope(
@@ -105,12 +107,33 @@ void main() {
             onRemoveSet: onRemoveSet,
             rowTrailing: rowTrailing,
             onUpdateAssembly: onUpdateAssembly,
+            selectedItemId: selectedItemId,
             ownerReferenceDiverId: ownerReferenceDiverId,
           ),
         ),
       ),
     ),
   );
+
+  // The dive figure names every item itself, so the rows carry no number
+  // (issue #2774).
+  testWidgets('rows never lead with a figure number badge', (tester) async {
+    await tester.pumpWidget(build(arrangement: flat));
+    await tester.pumpAndSettle();
+    expect(find.byType(FigureNumberBadge), findsNothing);
+  });
+
+  testWidgets('the item selected on the figure highlights its row', (
+    tester,
+  ) async {
+    await tester.pumpWidget(build(arrangement: flat, selectedItemId: 'fins'));
+    await tester.pumpAndSettle();
+    ListTile row(String id) =>
+        tester.widget<ListTile>(find.byKey(ValueKey('gear-row-$id')));
+    expect(row('fins').tileColor, isNotNull);
+    expect(row('mask').tileColor, isNull);
+    expect(row('reg').tileColor, isNull);
+  });
 
   group('owner chip (issue #2046)', () {
     final t = DateTime(2026);

@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
@@ -137,6 +138,61 @@ void main() {
 
           expect(warnings.single.code, ImportWarningCode.profileUnreadable);
         });
+
+        test(
+          'a successful decode aligns gf99 onto the parsed samples',
+          () async {
+            final parsed = pigeon.ParsedDive(
+              fingerprint: 'fp',
+              dateTimeYear: 2025,
+              dateTimeMonth: 6,
+              dateTimeDay: 15,
+              dateTimeHour: 10,
+              dateTimeMinute: 30,
+              dateTimeSecond: 0,
+              maxDepthMeters: 30,
+              avgDepthMeters: 18,
+              durationSeconds: 20,
+              samples: [
+                pigeon.ProfileSample(timeSeconds: 0, depthMeters: 1.0),
+                pigeon.ProfileSample(timeSeconds: 10, depthMeters: 20.0),
+                pigeon.ProfileSample(timeSeconds: 20, depthMeters: 5.0),
+              ],
+              tanks: [],
+              gasMixes: [],
+              events: [],
+            );
+            final messenger = TestDefaultBinaryMessengerBinding
+                .instance
+                .defaultBinaryMessenger;
+            messenger.setMockMessageHandler(channel, (_) async {
+              return pigeon.DiveComputerHostApi.pigeonChannelCodec
+                  .encodeMessage(<Object?>[parsed]);
+            });
+            addTearDown(() => messenger.setMockMessageHandler(channel, null));
+
+            final rawDive = ShearwaterRawDive(
+              diveId: 'teric-1',
+              fileName: 'Teric[AABB1234]#10 2025-06-15 10-30-00.swlogzp',
+              decompressedLogData: Uint8List.fromList(List.filled(100, 0)),
+              gf99Samples: const [
+                ShearwaterGf99Sample(timeSeconds: 0, gf99: 4),
+                ShearwaterGf99Sample(timeSeconds: 10, gf99: 31),
+                ShearwaterGf99Sample(timeSeconds: 20, gf99: 62),
+              ],
+            );
+            final warnings = <ImportWarning>[];
+            final result = await ShearwaterDiveMapper.mapDive(
+              rawDive,
+              warnings: warnings,
+            );
+
+            expect(warnings, isEmpty);
+            final profile = result['profile'] as List<Map<String, dynamic>>;
+            expect(profile.map((p) => p['gf99']), [4, 31, 62]);
+            expect(profile.map((p) => p['depth']), [1.0, 20.0, 5.0]);
+          },
+        );
       });
     });
 
@@ -497,6 +553,20 @@ void main() {
               decoTime: 180,
               decoDepth: 6.0,
             ),
+            pigeon.ProfileSample(
+              timeSeconds: 20,
+              depthMeters: 21.0,
+              decoType: 3,
+              decoTime: 60,
+              decoDepth: 15.0,
+            ),
+            pigeon.ProfileSample(
+              timeSeconds: 30,
+              depthMeters: 5.0,
+              decoType: 1,
+              decoTime: 180,
+              decoDepth: 5.0,
+            ),
           ],
           tanks: [],
           gasMixes: [],
@@ -511,6 +581,15 @@ void main() {
         expect(s1['decoType'], 2);
         expect(s1['ceiling'], 6.0);
         expect(s1.containsKey('ndl'), isFalse);
+        // A deep stop is a stop the computer asks for, so it is a ceiling.
+        final deep = profile[1] as Map<String, dynamic>;
+        expect(deep['decoType'], 3);
+        expect(deep['ceiling'], 15.0);
+        // A safety stop is not an obligation, so it is no ceiling (#2550).
+        final safety = profile[2] as Map<String, dynamic>;
+        expect(safety['decoType'], 1);
+        expect(safety.containsKey('ceiling'), isFalse);
+        expect(safety.containsKey('ndl'), isFalse);
       });
 
       test('extracts water temp from samples when not in metadata', () {
@@ -678,6 +757,63 @@ void main() {
         final s5 = profile[4] as Map<String, dynamic>;
         expect(s5.containsKey('allTankPressures'), isFalse);
         expect(s5.containsKey('pressure'), isFalse);
+      });
+
+      test('emits the gas switches of a deco dive', () {
+        // No transmitter was on, so the metadata lists no tanks at all.
+        final baseMap = <String, dynamic>{
+          'tanks': const <Map<String, dynamic>>[],
+          'profile': <Map<String, dynamic>>[],
+        };
+        final parsed = pigeon.ParsedDive(
+          fingerprint: '',
+          dateTimeYear: 2025,
+          dateTimeMonth: 1,
+          dateTimeDay: 1,
+          dateTimeHour: 0,
+          dateTimeMinute: 0,
+          dateTimeSecond: 0,
+          maxDepthMeters: 45,
+          avgDepthMeters: 25,
+          durationSeconds: 3000,
+          samples: [
+            pigeon.ProfileSample(
+              timeSeconds: 0,
+              depthMeters: 0.0,
+              gasMixIndex: 0,
+            ),
+            pigeon.ProfileSample(
+              timeSeconds: 1500,
+              depthMeters: 21.0,
+              gasMixIndex: 1,
+            ),
+            pigeon.ProfileSample(
+              timeSeconds: 3000,
+              depthMeters: 0.0,
+              gasMixIndex: 1,
+            ),
+          ],
+          tanks: [],
+          gasMixes: [
+            pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0),
+            pigeon.GasMix(index: 1, o2Percent: 50.0, hePercent: 0.0),
+          ],
+          events: [],
+        );
+
+        final result = ShearwaterDiveMapper.mergeWithParsedDive(
+          baseMap,
+          parsed,
+        );
+
+        final tanks = result['tanks'] as List<Map<String, dynamic>>;
+        expect(tanks.map((t) => t['gasMix']), const [
+          GasMix(o2: 18.0, he: 45.0),
+          GasMix(o2: 50.0),
+        ]);
+        expect(result['gasSwitches'], [
+          {'timestamp': 1500, 'depth': 21.0, 'tankIndex': 1},
+        ]);
       });
 
       test('defaults tankIndex to 0 when FFI sample has null tankIndex', () {

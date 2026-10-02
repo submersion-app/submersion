@@ -233,11 +233,11 @@ void main() {
     group('explicit source set methods', () {
       // The ceiling line has no source toggle (issue #755); it always uses the
       // calculated curve, so there is no ceilingSource field or setter to test.
-      test('setNdlSource sets to computer', () {
+      test('setNdlSource sets to calculated', () {
         const state = ProfileLegendState();
-        expect(state.ndlSource, MetricDataSource.calculated);
-        final updated = state.copyWith(ndlSource: MetricDataSource.computer);
-        expect(updated.ndlSource, MetricDataSource.computer);
+        expect(state.ndlSource, MetricDataSource.computer);
+        final updated = state.copyWith(ndlSource: MetricDataSource.calculated);
+        expect(updated.ndlSource, MetricDataSource.calculated);
       });
     });
 
@@ -756,6 +756,42 @@ void main() {
       expect(container.read(profileLegendProvider).showTankPressure, {
         'tank-1': false,
       });
+    });
+  });
+  group('ProfileLegend.reset', () {
+    // A reset returns to the diver's own settings, not the constructor
+    // defaults: a diver who stored Calculated must not be moved to the
+    // computer default (#1859) by resetting the chart.
+    test('re-seeds every toggle and source from the diver settings', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(
+              const AppSettings(
+                defaultShowSac: true,
+                defaultNdlSource: MetricDataSource.calculated,
+                defaultDecoStopSource: MetricDataSource.calculated,
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(profileLegendProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      final notifier = container.read(profileLegendProvider.notifier)
+        ..toggleSac()
+        ..setNdlSource(MetricDataSource.computer)
+        ..setDecoStopSource(MetricDataSource.computer);
+      expect(container.read(profileLegendProvider).showSac, isFalse);
+
+      notifier.reset();
+
+      final state = container.read(profileLegendProvider);
+      expect(state.showSac, isTrue);
+      expect(state.ndlSource, MetricDataSource.calculated);
+      expect(state.decoStopSource, MetricDataSource.calculated);
     });
   });
 }

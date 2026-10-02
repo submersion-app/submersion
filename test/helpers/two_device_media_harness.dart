@@ -22,7 +22,6 @@ import 'package:submersion/features/media/data/resolvers/local_file_resolver.dar
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
 import 'package:submersion/features/media/data/resolvers/platform_gallery_resolver.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
-import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/data/services/gallery_cloud_id_backfill.dart';
 import 'package:submersion/features/media/data/services/gallery_origin_backfill.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
@@ -229,7 +228,6 @@ class HarnessDevice {
       MediaSourceType.localFile: LocalFileResolver(
         bookmarkStorage: _NullBookmarkStorage(),
         platform: LocalMediaPlatform(),
-        exifExtractor: ExifExtractor(),
         localDeviceId: () async => d.deviceId,
       ),
     });

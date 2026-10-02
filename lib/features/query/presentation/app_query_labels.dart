@@ -6,10 +6,17 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/presentation/query_labels.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
+import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_text.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/query/presentation/query_label_lookup.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -78,6 +85,32 @@ class AppQueryLabels implements QueryLabels {
         return byName(EquipmentType.values)?.localizedName(_l10n) ?? value;
       case 'query_equipment_status':
         return byName(EquipmentStatus.values)?.localizedName(_l10n) ?? value;
+      case 'query_trips_tripType':
+        return switch (byName(TripType.values)) {
+          TripType.shore => _l10n.trips_type_shore,
+          TripType.liveaboard => _l10n.trips_type_liveaboard,
+          TripType.resort => _l10n.trips_type_resort,
+          TripType.dayTrip => _l10n.trips_type_dayTrip,
+          null => value,
+        };
+      case 'query_dives_sacTrend':
+      case 'query_dives_finalStop':
+        return queryLabelForKey(_l10n, '${field.labelKey}_$value');
+      case 'query_findings_rule':
+        final rule = SafetyRuleId.fromDbValue(value);
+        return rule == null ? value : safetyRuleLabel(rule, _l10n);
+      case 'query_equipment_serviceDue':
+        return queryLabelForKey(_l10n, 'query_equipment_serviceDue_$value');
+      case 'query_sites_difficulty':
+        return byName(SiteDifficulty.values)?.localizedName(_l10n) ?? value;
+      case 'query_certifications_agency':
+      case 'query_courses_agency':
+        return byName(CertificationAgency.values)?.localizedName(_l10n) ??
+            value;
+      case 'query_species_category':
+        return byName(SpeciesCategory.values)?.localizedName(_l10n) ?? value;
+      case 'query_certifications_level':
+        return byName(CertificationLevel.values)?.localizedName(_l10n) ?? value;
       default:
         return value;
     }

@@ -15,6 +15,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 class _FakeLocationService implements LocationService {
   _FakeLocationService(this.place);
@@ -57,6 +58,12 @@ const _weggis = PlaceLookup(
 const _lookupButton = 'Look up from coordinates';
 
 void main() {
+  // The code under test calls Open-Meteo; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('api.open-meteo.com');
+  });
+
   late SharedPreferences prefs;
   late SiteRepository repo;
 

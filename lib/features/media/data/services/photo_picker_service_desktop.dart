@@ -9,6 +9,7 @@ import 'package:submersion/features/media/data/services/image_dimensions_reader.
 import 'package:submersion/features/media/data/services/local_media_metadata.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
+import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
 
 /// Photo picker implementation for Windows and Linux using image_picker.
 ///
@@ -203,6 +204,9 @@ AssetInfo? _assetInfoForPath(String path) {
     longitude: meta.fix?.longitude,
     filename: p.basename(path),
     filePath: path,
+    takenAtSource: capturedUtc == null
+        ? TakenAtSource.fileModifiedTime
+        : TakenAtSource.containerMetadata,
   );
 }
 

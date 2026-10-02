@@ -4,9 +4,10 @@ import 'package:submersion/features/media/domain/value_objects/taken_at_source.d
 
 /// Metadata extracted from a media source at link time.
 ///
-/// Populated by `MediaSourceResolver.extractMetadata()` and stored on the
-/// `MediaItem` row by the calling repository. All fields except [mimeType]
-/// are nullable to accommodate sources that don't expose them.
+/// Read before the `MediaItem` row exists, by the flow that adds the item:
+/// `ExifExtractor` for local files, the photo picker for gallery assets.
+/// All fields except [mimeType] are nullable to accommodate sources that
+/// don't expose them.
 class MediaSourceMetadata extends Equatable {
   final DateTime? takenAt;
 

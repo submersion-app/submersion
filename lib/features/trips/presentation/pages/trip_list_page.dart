@@ -6,9 +6,13 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/trips/query/trip_query_entity.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -20,12 +24,19 @@ import 'package:submersion/features/trips/presentation/widgets/trip_summary_widg
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
 
-class TripListPage extends ConsumerWidget {
+class TripListPage extends ConsumerStatefulWidget {
   const TripListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TripListPage> createState() => _TripListPageState();
+}
+
+class _TripListPageState extends ConsumerState<TripListPage>
+    with TableSelectionOwner {
+  @override
+  Widget build(BuildContext context) {
     final fab = FloatingActionButton.extended(
       onPressed: () {
         final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
@@ -43,6 +54,8 @@ class TripListPage extends ConsumerWidget {
       tooltip: context.l10n.trips_list_tooltip_addTrip,
     );
 
+    resetTableSelectionOffTable(tripListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane.
     final viewMode = ref.watch(tripListViewModeProvider);
@@ -51,7 +64,11 @@ class TripListPage extends ConsumerWidget {
         child: TableModeLayout(
           sectionKey: 'trips',
           appBarTitle: context.l10n.nav_trips,
-          tableContent: const TripListContent(showAppBar: false),
+          appBarSubtitle: tripListCountLabel(context, ref),
+          tableContent: TripListContent(
+            showAppBar: false,
+            selectionController: tableSelection,
+          ),
           detailBuilder: (context, tripId) => TripDetailPage(
             tripId: tripId,
             embedded: true,
@@ -119,6 +136,19 @@ class TripListPage extends ConsumerWidget {
                 );
               },
             ),
+            Consumer(
+              builder: (context, ref, _) => QueryFilterButton(
+                active: ref.watch(tripFilterProvider).query != null,
+                compact: true,
+                onPressed: () => showQueryFilterSheet(
+                  context,
+                  subject: QuerySubject.trips,
+                  root: tripQueryEntity,
+                  initial: ref.read(tripFilterProvider).query,
+                  onApply: setTripQuery,
+                ),
+              ),
+            ),
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, size: 20),
               onSelected: (value) {
@@ -132,6 +162,7 @@ class TripListPage extends ConsumerWidget {
               itemBuilder: (context) {
                 final currentMode = ref.read(tripListViewModeProvider);
                 return [
+                  ...tableSelectItemsEntries(context),
                   ...ListViewModeToggle.menuItems(
                     context,
                     currentMode: currentMode,

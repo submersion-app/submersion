@@ -2,6 +2,7 @@ import 'package:submersion/core/buoyancy/gear_feature.dart';
 import 'package:submersion/core/buoyancy/weight_observation.dart';
 import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -10,6 +11,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/services/gear_feature_mapper.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/weight_planner/data/repositories/weight_history_repository.dart';
+
+const _log = LoggerService('WeightPlannerProviders');
 
 /// Converts an equipment item to an engine feature.
 ///
@@ -83,9 +86,12 @@ final weightCalibrationProvider = FutureProvider<FittedWeightModel>((
 
 /// Live prediction for the plan being edited (Gear & Weights section).
 ///
-/// Null while the calibration inputs are still loading. Water type is not
-/// part of the plan editing state, so plan predictions use the salt-water
-/// baseline; the standalone Weight Planner tool has an explicit control.
+/// Null while the calibration inputs are still loading, and when the
+/// prediction itself fails: the Gear & Weights card hides a null prediction,
+/// where a throw would replace the whole card with an error box (issue
+/// #2060). Water type is not part of the plan editing state, so plan
+/// predictions use the salt-water baseline; the standalone Weight Planner
+/// tool has an explicit control.
 final planWeightPredictionProvider = Provider<WeightPrediction?>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
   final model = ref.watch(weightCalibrationProvider).valueOrNull;
@@ -108,12 +114,17 @@ final planWeightPredictionProvider = Provider<WeightPrediction?>((ref) {
       ),
   ];
 
-  return model.predict(
-    RigSpec(
-      gear: gear,
-      tanks: tanks,
-      waterType: null,
-      bodyWeightKg: latestWeight?.weightKg,
-    ),
-  );
+  try {
+    return model.predict(
+      RigSpec(
+        gear: gear,
+        tanks: tanks,
+        waterType: null,
+        bodyWeightKg: latestWeight?.weightKg,
+      ),
+    );
+  } catch (e, st) {
+    _log.error('Plan weight prediction failed', error: e, stackTrace: st);
+    return null;
+  }
 });

@@ -13,6 +13,7 @@ import 'package:submersion/features/tides/presentation/widgets/current_tide_indi
 import 'package:submersion/features/tides/presentation/widgets/tide_chart.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_source_badge.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_times_table.dart';
+import 'package:submersion/features/tides/domain/services/site_wall_clock.dart';
 
 /// A complete tide information section for a dive site.
 ///
@@ -168,7 +169,15 @@ class _TideSectionContent extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final statusAsync = ref.watch(currentTideStatusProvider(location));
     final predictionsAsync = ref.watch(tidePredictionsProvider(location));
-    final extremesAsync = ref.watch(tideExtremesProvider(location));
+    final chartExtremesAsync = ref.watch(tideExtremesProvider(location));
+    final extremesAsync = ref.watch(tideExtremesAtSiteProvider(location));
+    // The chart plots real instants and prints its labels in the site's
+    // clock, so a DST change cannot fold its axis. The times table and the
+    // window label work in the site's clock directly. CurrentTideIndicator
+    // keeps the real status because it only shows durations from now.
+    final now = DateTime.now();
+    final toSiteClock = siteClockConverter(location);
+    final siteNow = toSiteClock(now);
 
     return Card(
       child: Padding(
@@ -241,6 +250,7 @@ class _TideSectionContent extends ConsumerWidget {
                     data: (extremes) => _buildChartTimeRange(
                       context,
                       extremes,
+                      siteNow,
                       settings.timeFormat,
                       settings.dateFormat,
                     ),
@@ -255,9 +265,11 @@ class _TideSectionContent extends ConsumerWidget {
                   if (predictions.isEmpty) {
                     return const SizedBox.shrink();
                   }
-                  return extremesAsync.when(
+                  return chartExtremesAsync.when(
                     data: (extremes) => TideChart(
                       predictions: predictions,
+                      now: now,
+                      displayTime: toSiteClock,
                       extremes: extremes,
                       height: 180,
                       timeFormat: settings.timeFormat,
@@ -266,6 +278,8 @@ class _TideSectionContent extends ConsumerWidget {
                     ),
                     loading: () => TideChart(
                       predictions: predictions,
+                      now: now,
+                      displayTime: toSiteClock,
                       height: 180,
                       timeFormat: settings.timeFormat,
                       depthUnit: settings.depthUnit,
@@ -273,6 +287,8 @@ class _TideSectionContent extends ConsumerWidget {
                     ),
                     error: (_, _) => TideChart(
                       predictions: predictions,
+                      now: now,
+                      displayTime: toSiteClock,
                       height: 180,
                       timeFormat: settings.timeFormat,
                       depthUnit: settings.depthUnit,
@@ -321,6 +337,7 @@ class _TideSectionContent extends ConsumerWidget {
                   }
                   return TideTimesTable(
                     extremes: extremes,
+                    now: siteNow,
                     maxItems: 4,
                     showPast: false,
                     compact: true,
@@ -346,12 +363,11 @@ class _TideSectionContent extends ConsumerWidget {
   Widget _buildChartTimeRange(
     BuildContext context,
     List<TideExtreme> extremes,
+    DateTime now,
     TimeFormat timeFormat,
     DateFormatPreference dateFormat,
   ) {
     if (extremes.isEmpty) return const SizedBox.shrink();
-
-    final now = DateTime.now();
 
     // Replicate TideChart's window calculation from extremes
     final pastExtremes = extremes.where((e) => e.time.isBefore(now)).toList()
@@ -377,8 +393,8 @@ class _TideSectionContent extends ConsumerWidget {
       windowEnd = now.add(const Duration(hours: 12));
     }
 
-    // Window bounds are stored wall-clock instants, not device-local times:
-    // format them verbatim without any timezone conversion.
+    // Extremes and now arrive in the site's wall clock (wall-clock-as-UTC),
+    // so format them verbatim.
     final dateStr = DateFormat(
       UnitFormatter.weekdayMonthDayPattern(dateFormat),
     ).format(windowStart);

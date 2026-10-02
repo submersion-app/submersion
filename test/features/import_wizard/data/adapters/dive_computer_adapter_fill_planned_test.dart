@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 
 import 'dive_computer_adapter_test.mocks.dart';
 
@@ -225,6 +226,45 @@ void main() {
       },
     );
 
+    test('a fill that kept a role read off a transmitter name adds the '
+        'notice (#2595)', () async {
+      fillService.nameDerivedRoleTanks = 1;
+
+      final result = await adapter.performImport(
+        bundleWithPlannedRow(),
+        {
+          ImportEntityType.dives: {0},
+        },
+        {
+          ImportEntityType.dives: {0: DuplicateAction.fillPlanned},
+        },
+      );
+
+      final notice = result.notices.singleWhere(
+        (n) => n.kind == ImportNoticeKind.transmitterNameRoles,
+      );
+      expect(notice.count, 1);
+    });
+
+    test('a fill with no such role adds no notice', () async {
+      final result = await adapter.performImport(
+        bundleWithPlannedRow(),
+        {
+          ImportEntityType.dives: {0},
+        },
+        {
+          ImportEntityType.dives: {0: DuplicateAction.fillPlanned},
+        },
+      );
+
+      expect(
+        result.notices.where(
+          (n) => n.kind == ImportNoticeKind.transmitterNameRoles,
+        ),
+        isEmpty,
+      );
+    });
+
     test('a failed fill imports the download as new instead', () async {
       fillService.fail = true;
       when(
@@ -276,6 +316,7 @@ void main() {
 class _FakeFillService implements PlannedDiveFillService {
   final calls = <String>[];
   bool fail = false;
+  int nameDerivedRoleTanks = 0;
 
   @override
   Future<PlannedDiveFillOutcome> fill({
@@ -309,6 +350,7 @@ class _FakeFillService implements PlannedDiveFillService {
         mediaDiveIds: {},
       ),
       assignedDiveNumber: 7,
+      nameDerivedRoleTanks: nameDerivedRoleTanks,
     );
   }
 

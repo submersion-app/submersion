@@ -348,17 +348,18 @@ class _UnifiedImportWizardBodyState
     }
   }
 
-  /// Waits for [SettingsNotifier]'s first load before the review step reads
-  /// the diver's saved auto-tag preference (issue #998).
+  /// Waits for [SettingsNotifier]'s current load before the review step reads
+  /// the diver's saved auto-tag preference (issues #998, #2564).
   ///
   /// Until that load lands, [settingsProvider] holds the defaults, where
   /// auto-tagging is on, so a wizard opened right after launch would ignore
-  /// a saved "off". A failed load is already logged where it started, in
-  /// the notifier's constructor, and leaves those defaults in place: they
-  /// are the documented fallback, so the failure is not re-raised here.
+  /// a saved "off"; right after a diver switch it holds the previous diver's
+  /// preference instead. A failed load is already logged where it started,
+  /// in the notifier, and leaves those settings in place: they are the
+  /// documented fallback, so the failure is not re-raised here.
   Future<void> _awaitSettingsLoad() async {
     try {
-      await ref.read(settingsProvider.notifier).initialLoad;
+      await ref.read(settingsProvider.notifier).settingsLoaded;
     } catch (_) {
       // See the doc comment: already logged, defaults are the fallback.
     }

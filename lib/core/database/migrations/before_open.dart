@@ -7,8 +7,18 @@ part of 'app_database_migrations.dart';
 /// asserted again here.
 extension BeforeOpenBackstops on AppDatabase {
   Future<void> _beforeOpen(OpeningDetails details) async {
+    // v252 backstop: nav_tracks.diver_id. Column only; the backfill stays
+    // in the rung.
+    await _assertNavTrackDiverIdColumn();
+
+    // v249 backstop: the trip fill forecast's columns.
+    await _assertTripFillForecastColumns();
+
     // v240 backstop: the events-by-dive index.
     await _assertProfileEventsDiveIdIndex();
+
+    // v237 backstop: the dive figure switch.
+    await _assertShowDiveFigureColumn();
 
     // v229 backstop: the per-set diver figure switch.
     await _assertEquipmentSetShowFigureColumn();
@@ -158,10 +168,29 @@ extension BeforeOpenBackstops on AppDatabase {
     // idempotent).
     await _assertEquipmentSharingSchema();
 
+    // v235 backstop: connection_maps and idx_sightings_dive_id
+    // (parallel-branch version-collision self-heal; idempotent).
+    await _assertConnectionMapsSchema();
+
     // v238 backstop: re-assert the saved_queries table. A database that
     // arrives by restore or sync-adopt never runs onUpgrade, and one
     // already at 239 or later skips the v238 rung.
     await _assertSavedQueriesSchema();
+
+    // v242 backstop: the equipment service cache (local, idempotent).
+    await _assertEquipmentServiceStatusTable();
+
+    // v245 backstop: the certifications buddy index (idempotent).
+    await _assertCertificationsBuddyIndex();
+    // v247 backstop: the Explore derived metrics (local, idempotent).
+    await _assertDerivedMetricsTable();
+
+    // v248 backstop: trip_equipment and its item index (idempotent).
+    await _assertTripEquipmentSchema();
+
+    // v250 backstop: trip_hides and site_hides (idempotent).
+    await _assertTripHidesSchema();
+    await _assertSiteHidesSchema();
 
     // v122 backstop: re-assert service ledger schema + built-in kinds.
     // The legacy backfill is NOT here (onUpgrade only) -- re-running it
@@ -171,6 +200,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // v123 backstop: re-assert safety review tables + settings columns
     // (parallel-branch collision self-heal).
     await _assertSafetyReviewSchema();
+    // v253 backstop: the review's inputs fingerprint, after the table above.
+    await _assertSafetyReviewInputsHashColumn();
 
     // v124 backstop: re-assert the equipment_attributes table (schema
     // only -- the legacy-column copy must NOT run here, it would
@@ -414,6 +445,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // arrives by restore or sync-adopt without them would throw on the
     // first read.
     await _assertBuddyProfileDiveLinkColumns();
+    // v256 backstop: re-assert dives.computer_tissue_json. Every dive
+    // read selects the whole row, so a database that arrives by restore
+    // or sync-adopt without it would throw on the first read.
+    await _assertComputerTissueColumn();
     // v182 backstop: re-assert the packed profile series tables, then
     // pack any dive that still has legacy rows and no series row. A
     // schema-version collision with a parallel branch skips the rung on
@@ -496,6 +531,19 @@ extension BeforeOpenBackstops on AppDatabase {
       );
     }
 
+    // v241 backstop: re-assert tank_pressure_series.source_id
+    // (parallel-branch version-collision self-heal). Column only; the
+    // backfill stays in the rung. After the v182 backstop above, whose raw
+    // DDL predates the column: a series table it creates on this open
+    // gets the column on this open too.
+    await _assertTankSeriesSourceIdColumn();
+
+    // v251 backstop: re-assert dive_tanks.source_id (#2716; same
+    // parallel-branch version-collision self-heal). Column only; the
+    // backfill stays in the rung, and a tank with no source resolves to the
+    // dive's primary source, as before the column.
+    await _assertDiveTankSourceIdColumn();
+
     // v186 backstop: re-assert pre_dive_checklist_template_items.
     // equipment_id (same parallel-branch version-collision self-heal).
     // Safe to re-run on every open: the helper is column-only with no
@@ -548,6 +596,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // or sync-adopt without the rung would throw on the first read.
     // Column only, no backfill, so it cannot touch diver data.
     await _assertTankTransmitterSerialColumn();
+
+    // v254 backstop: re-assert dive_tanks.role_source, for the same reason
+    // as transmitter_serial above. Column only, no backfill.
+    await _assertTankRoleSourceColumn();
 
     // v145 backstop: re-assert the gps_tracks provenance and trim columns.
     await _assertGpsTrackColumns();
@@ -613,6 +665,10 @@ extension BeforeOpenBackstops on AppDatabase {
     await Migrator(this).createTable(divePlans);
     await Migrator(this).createTable(divePlanTanks);
     await Migrator(this).createTable(divePlanSegments);
+
+    // v244 backstop: re-assert the DPV mission tables. A database that
+    // arrives by restore or sync-adopt never runs onUpgrade.
+    await _assertDivePlanMissionSchema();
 
     // v103 backstop: dive_roles table + built-in seed + dives.diver_role
     // column (same collision disease; all DDL idempotent). The seed is

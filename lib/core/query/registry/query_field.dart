@@ -20,6 +20,9 @@ enum FieldDimension {
   depth,
   temperature,
   pressure,
+
+  /// Pressure per minute (SAC). Stored in bar per minute at the surface.
+  pressureRate,
   weight,
   volume,
   minutes,
@@ -61,6 +64,10 @@ const Set<QueryOp> kBoolOps = {QueryOp.eq, QueryOp.neq};
 ///
 /// [sql] and [emptySql] are written against the placeholder `{r}`, the alias
 /// of the entity's row at whatever nesting depth the compiler reaches it.
+/// A field that reads dives through its own subquery marks where the active
+/// diver narrows them with `{diver:<alias>}` (`kDiverToken`): the
+/// compiler binds ` AND <alias>.diver_id = ?` there when the caller names a
+/// diver, and nothing otherwise.
 @immutable
 class QueryField {
   final String key;

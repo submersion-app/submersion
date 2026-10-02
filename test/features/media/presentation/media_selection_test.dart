@@ -13,7 +13,6 @@ import 'package:submersion/features/media/domain/entities/media_library_filter.d
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -71,8 +70,6 @@ class _UnavailableResolver implements MediaSourceResolver {
     MediaItem item, {
     required Size target,
   }) => resolve(item);
-  @override
-  Future<MediaSourceMetadata?> extractMetadata(MediaItem item) async => null;
   @override
   Future<VerifyResult> verify(MediaItem item) async => VerifyResult.available;
 }
@@ -500,7 +497,16 @@ void main() {
     late Directory tempDir;
     late PathProviderPlatform originalPathProvider;
 
-    setUpAll(() => SharePlatform.instance = platform);
+    // The harness pins a forwarder that looks the platform up on every share
+    // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+    // again when this group is done.
+    late SharePlatform originalSharePlatform;
+
+    setUpAll(() {
+      originalSharePlatform = SharePlatform.instance;
+      SharePlatform.instance = platform;
+    });
+    tearDownAll(() => SharePlatform.instance = originalSharePlatform);
 
     setUp(() async {
       platform.calls.clear();

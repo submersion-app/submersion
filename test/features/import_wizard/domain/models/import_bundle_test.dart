@@ -20,8 +20,9 @@ void main() {
   });
 
   group('ImportEntityType', () {
-    test('has all 12 expected values', () {
-      expect(ImportEntityType.values, hasLength(12));
+    test('has all 13 expected values', () {
+      expect(ImportEntityType.values, hasLength(13));
+      expect(ImportEntityType.values, contains(ImportEntityType.fills));
       expect(ImportEntityType.values, contains(ImportEntityType.dives));
       expect(ImportEntityType.values, contains(ImportEntityType.sites));
       expect(ImportEntityType.values, contains(ImportEntityType.buddies));

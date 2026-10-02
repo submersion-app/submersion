@@ -323,6 +323,7 @@ class FormatDetector {
           SubmersionCsvKind.dives => ImportFormat.submersionDivesCsv,
           SubmersionCsvKind.sites => ImportFormat.submersionSitesCsv,
           SubmersionCsvKind.equipment => ImportFormat.submersionEquipmentCsv,
+          SubmersionCsvKind.fills => ImportFormat.submersionFillsCsv,
         },
         sourceApp: SourceApp.submersion,
         confidence: 1.0,

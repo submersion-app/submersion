@@ -103,6 +103,7 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
 ])
 import '../../../../helpers/test_database.dart';
 import 'universal_adapter_test.mocks.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 typedef Override = riverpod.Override;
 
@@ -371,6 +372,12 @@ List<Override> _fullOverrides({
 // ---------------------------------------------------------------------------
 
 void main() {
+  // The code under test calls Open-Meteo; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('api.open-meteo.com');
+  });
+
   // -------------------------------------------------------------------------
   // Adapter metadata
   // -------------------------------------------------------------------------
@@ -460,6 +467,8 @@ void main() {
         overrides: _buildBundleOverrides(),
         callback: (adapter) async {
           for (final type in wizard.ImportEntityType.values) {
+            // Fills offer skip alone; see the next test.
+            if (type == wizard.ImportEntityType.fills) continue;
             expect(
               adapter.duplicateActionsFor(type),
               containsAll([
@@ -470,6 +479,21 @@ void main() {
               reason: '$type lost a base action',
             );
           }
+        },
+      );
+    });
+
+    testWidgets('a fill already here can only be skipped (cylinder passports '
+        'phase 5)', (tester) async {
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(),
+        callback: (adapter) async {
+          // The fill id is the identity and the importer never stores a fill
+          // twice, so import-as-new or consolidate would be dropped silently.
+          expect(adapter.duplicateActionsFor(wizard.ImportEntityType.fills), {
+            DuplicateAction.skip,
+          });
         },
       );
     });

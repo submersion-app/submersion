@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/backup/presentation/providers/unrecognized_backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_usage_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// Points at backup files the history has lost track of, from the backups
 /// group of the Storage usage page.
@@ -44,11 +45,18 @@ class UnrecognizedBackupsNotice extends ConsumerWidget {
       title: Text(
         context.l10n.settings_storageUsage_unrecognized_title(entries.length),
       ),
-      subtitle: Text(formatBytes(bytes)),
-      trailing: TextButton(
-        onPressed: () => _review(context, ref),
-        child: Text(context.l10n.settings_storageUsage_unrecognized_action),
+      subtitle: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(formatBytes(bytes)),
+          TileSubtitleAction(
+            onPressed: () => _review(context, ref),
+            label: context.l10n.settings_storageUsage_unrecognized_action,
+          ),
+        ],
       ),
+      isThreeLine: true,
       onTap: () => _review(context, ref),
     );
   }

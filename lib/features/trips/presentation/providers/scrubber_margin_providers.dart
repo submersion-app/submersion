@@ -17,6 +17,9 @@ import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/services/scrubber_margin_service.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
+import 'package:submersion/features/trips/domain/services/trip_gear_scope.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_gear_ids_providers.dart';
 
 /// The built-in service kind whose clock marks the last repack: its baseline
 /// date, else its newest record.
@@ -29,12 +32,15 @@ final tripHistoryRepositoryProvider = Provider<TripHistoryRepository>(
   (ref) => TripHistoryRepository(),
 );
 
-/// One margin per active rebreather of the trip's diver, computed as of
-/// the trip start: loop minutes since the last repack (the repack clock's
-/// anchor as of the start), the diver's own overrides on the trip, and the
-/// medians of recent history (see [computeScrubberMargin]). Empty for an
-/// unknown trip or a diver with no active rebreather. A provider, never a
-/// stored finding.
+/// One margin per active rebreather of the trip's diver that is on the
+/// trip (packed, or installed in packed gear; issue #2727) and has an
+/// active scrubber-repack clock, computed as of the trip start: loop
+/// minutes since the last repack (the repack clock's anchor as of the
+/// start), the diver's own overrides on the trip, and the medians of recent
+/// history (see [computeScrubberMargin]). The margin is that clock
+/// projected onto the trip, so a unit whose clock was removed or paused has
+/// none, whatever its rated duration (#2606). Empty for an unknown trip or
+/// one with no such rebreather on it. A provider, never a stored finding.
 final tripScrubberMarginsProvider =
     FutureProvider.family<List<ScrubberMargin>, String>((ref, tripId) async {
       final equipment = ref.watch(equipmentRepositoryProvider);
@@ -61,10 +67,13 @@ final tripScrubberMarginsProvider =
 
       final trip = await ref.watch(tripByIdProvider(tripId).future);
       if (trip == null) return const [];
+      final onTrip = await ref.watch(tripGearIdsProvider(tripId).future);
+      if (onTrip.isEmpty) return const [];
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-      final rebreathers = (await equipment.getActiveEquipment(
-        diverId: diverId,
-      )).where((e) => e.type == EquipmentType.rebreather).toList();
+      final rebreathers = gearOnTrip(
+        await equipment.getActiveEquipment(diverId: diverId),
+        onTrip,
+      ).where((e) => e.type == EquipmentType.rebreather).toList();
       if (rebreathers.isEmpty) return const [];
 
       final start = trip.startDate;
@@ -75,7 +84,11 @@ final tripScrubberMarginsProvider =
           .where((k) => k.id == scrubberRepackKindId)
           .firstOrNull;
       final days = await itinerary.getByTripId(trip.id);
-      final diveDays = days.where((d) => d.dayType == DayType.diveDay).length;
+      final diveDays = tripDiveDayCount(
+        start: trip.startDate,
+        end: trip.endDate,
+        itinerary: days,
+      );
       final history = ref.watch(tripHistoryRepositoryProvider);
       final divesPerDay = await history.divesPerDiveDay(
         diverId: diverId,
@@ -89,7 +102,9 @@ final tripScrubberMarginsProvider =
 
       final margins = <ScrubberMargin>[];
       for (final item in rebreathers) {
-        final rated = await _ratedMinutes(item, repackKind, schedules);
+        final clock = await _repackClock(item, schedules);
+        if (clock == null) continue;
+        final rated = _ratedMinutes(item, repackKind, clock);
         final itemRecords = await records.getRecordsForEquipment(item.id);
         // Inclusive, by calendar day: a repack logged on the day the trip
         // starts is one as of that start, even when it was saved with the
@@ -107,15 +122,14 @@ final tripScrubberMarginsProvider =
         // does a baseline set after the trip but dated before it (the
         // diver's correction of history wins, as it does on the clock).
         // Deliberate; do not filter by anchorSetAt or created_at here.
-        final clock = await _repackClock(item, schedules);
-        final clockBaseline = clock?.anchorDate;
+        final clockBaseline = clock.anchorDate;
         final baseline = clockAnchorFromServices(
           serviceKindId: scrubberRepackKindId,
           baseline:
               clockBaseline != null && _onOrBeforeDay(clockBaseline, start)
               ? clockBaseline
               : null,
-          baselineSetAt: clock?.anchorSetAt,
+          baselineSetAt: clock.anchorSetAt,
           records: repacks,
         );
         final inputs = await ref.watch(
@@ -168,9 +182,10 @@ final tripScrubberMarginsProvider =
               consumedMinutes: consumed,
               consumedSince: baseline,
               expectedDivesOverride: trip.expectedDives,
-              // Only a missing itinerary falls back to the calendar: one
-              // with no dive days (a crossing, a port stay) expects none.
-              itineraryDiveDays: days.isEmpty ? trip.durationDays : diveDays,
+              // Day by day: a day the itinerary types otherwise expects no
+              // dives, and a day it does not cover is a dive day, so a trip
+              // with no itinerary counts the calendar.
+              itineraryDiveDays: diveDays,
               divesPerDiveDayHistory: divesPerDay,
               runtimeMinutesOverride: trip.expectedRuntimeMinutes,
               scrubberMinutesHistory: [
@@ -195,7 +210,8 @@ bool _onOrBeforeDay(DateTime date, DateTime start) => !DateTime(
   date.day,
 ).isAfter(DateTime(start.year, start.month, start.day));
 
-/// The active scrubber-repack clock on [item], or null.
+/// The active scrubber-repack clock on [item], or null when the diver
+/// removed or paused it (or the unit predates auto-attached clocks).
 Future<ServiceSchedule?> _repackClock(
   EquipmentItem item,
   ServiceScheduleRepository schedules,
@@ -209,23 +225,16 @@ Future<ServiceSchedule?> _repackClock(
   return null;
 }
 
-/// `scrubber_duration_h` times 60, else the repack schedule's hours
+/// `scrubber_duration_h` times 60, else the active repack [clock]'s hours
 /// interval times 60, else null.
-Future<double?> _ratedMinutes(
+double? _ratedMinutes(
   EquipmentItem item,
   ServiceKind? repackKind,
-  ServiceScheduleRepository schedules,
-) async {
+  ServiceSchedule clock,
+) {
   final hours = item.attrNum(scrubberDurationHoursKey);
   if (hours != null && hours > 0) return hours * 60;
   if (repackKind == null) return null;
-  final list = await schedules.getSchedulesForEquipment(item.id);
-  for (final schedule in list) {
-    if (schedule.serviceKindId != scrubberRepackKindId) continue;
-    // A paused clock is off for the clocks engine; it rates nothing here.
-    if (!schedule.enabled) continue;
-    final interval = schedule.intervalFor(ExposureUnit.hours, repackKind);
-    if (interval != null && interval > 0) return interval * 60;
-  }
-  return null;
+  final interval = clock.intervalFor(ExposureUnit.hours, repackKind);
+  return interval != null && interval > 0 ? interval * 60 : null;
 }

@@ -9,6 +9,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -21,6 +22,12 @@ import 'package:submersion/features/dive_centers/presentation/widgets/dive_cente
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
+import 'package:submersion/features/dive_centers/query/dive_center_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_search_delegate.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_list_count_provider.dart';
 
 class DiveCenterListPage extends ConsumerStatefulWidget {
   const DiveCenterListPage({super.key});
@@ -29,7 +36,8 @@ class DiveCenterListPage extends ConsumerStatefulWidget {
   ConsumerState<DiveCenterListPage> createState() => _DiveCenterListPageState();
 }
 
-class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
+class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
+    with TableSelectionOwner {
   bool get _isMapView {
     final state = GoRouterState.of(context);
     return state.uri.queryParameters['view'] == 'map';
@@ -77,6 +85,8 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
       label: Text(context.l10n.diveCenters_title_add),
     );
 
+    resetTableSelectionOffTable(diveCenterListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane and map.
     final viewMode = ref.watch(diveCenterListViewModeProvider);
@@ -84,7 +94,11 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
       return TableModeLayout(
         sectionKey: 'diveCenters',
         appBarTitle: context.l10n.nav_diveCenters,
-        tableContent: const DiveCenterListContent(showAppBar: false),
+        appBarSubtitle: diveCenterListCountLabel(context, ref),
+        tableContent: DiveCenterListContent(
+          showAppBar: false,
+          selectionController: tableSelection,
+        ),
         detailBuilder: (context, centerId) => DiveCenterDetailPage(
           centerId: centerId,
           embedded: true,
@@ -139,6 +153,12 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
               );
             },
           ),
+          QueryFilterAction(
+            provider: diveCenterQueryProvider,
+            subject: QuerySubject.centers,
+            root: diveCenterQueryEntity,
+            compact: true,
+          ),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
             tooltip: context.l10n.diveCenters_tooltip_sort,
@@ -175,6 +195,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
             itemBuilder: (context) {
               final currentMode = ref.read(diveCenterListViewModeProvider);
               return [
+                ...tableSelectItemsEntries(context),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,

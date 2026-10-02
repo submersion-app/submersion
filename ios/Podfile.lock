@@ -82,6 +82,8 @@ PODS:
     - FlutterMacOS
   - native_exif (0.8.0):
     - Flutter
+  - nfc_manager (0.0.1):
+    - Flutter
   - ObjectBox (4.4.1)
   - objectbox_flutter_libs (0.0.1):
     - Flutter
@@ -147,6 +149,7 @@ DEPENDENCIES:
   - local_auth_darwin (from `.symlinks/plugins/local_auth_darwin/darwin`)
   - mobile_scanner (from `.symlinks/plugins/mobile_scanner/darwin`)
   - native_exif (from `.symlinks/plugins/native_exif/ios`)
+  - nfc_manager (from `.symlinks/plugins/nfc_manager/ios`)
   - objectbox_flutter_libs (from `.symlinks/plugins/objectbox_flutter_libs/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - pdfium_flutter (from `.symlinks/plugins/pdfium_flutter/darwin`)
@@ -218,6 +221,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/mobile_scanner/darwin"
   native_exif:
     :path: ".symlinks/plugins/native_exif/ios"
+  nfc_manager:
+    :path: ".symlinks/plugins/nfc_manager/ios"
   objectbox_flutter_libs:
     :path: ".symlinks/plugins/objectbox_flutter_libs/ios"
   package_info_plus:
@@ -279,6 +284,7 @@ SPEC CHECKSUMS:
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
   native_exif: fe0a79e4115f2d7cd084ba206e4933d8a5ed7bde
+  nfc_manager: 8439e997f8ed801c15d5a79045fb18c562bf6efc
   ObjectBox: 7da4aceb5013d041bfafdbc6d744a26918b09757
   objectbox_flutter_libs: 09b1dec1b4cd27bf1a5f9bae7ccaa7e43588bf31
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499

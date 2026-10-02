@@ -129,13 +129,16 @@ class EquipmentSetListContent extends ConsumerWidget {
           final itemCountText = set.itemCount == 1
               ? context.l10n.equipment_sets_itemCountSingular(set.itemCount)
               : context.l10n.equipment_sets_itemCountPlural(set.itemCount);
+          // The count leads the description on one line rather than sitting
+          // in a trailing chip: a ListTile lays trailing out at its natural
+          // width first, and a chip there starves the set name (issue #2717).
+          final subtitleText = set.description.isEmpty
+              ? itemCountText
+              : set.itemCount > 0
+              ? '$itemCountText · ${set.description}'
+              : set.description;
           return Semantics(
-            label: listItemLabel(
-              title: set.name,
-              subtitle: set.description.isNotEmpty
-                  ? set.description
-                  : itemCountText,
-            ),
+            label: listItemLabel(title: set.name, subtitle: subtitleText),
             child: Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               color: isSelected
@@ -186,22 +189,10 @@ class EquipmentSetListContent extends ConsumerWidget {
                   ],
                 ),
                 subtitle: Text(
-                  set.description.isNotEmpty ? set.description : itemCountText,
+                  subtitleText,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                trailing: set.itemCount > 0
-                    ? Semantics(
-                        label: context.l10n
-                            .equipment_sets_itemCountSemanticLabel(
-                              '${set.itemCount}',
-                            ),
-                        child: Chip(
-                          label: Text('${set.itemCount}'),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      )
-                    : null,
               ),
             ),
           );

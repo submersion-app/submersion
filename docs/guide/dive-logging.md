@@ -146,7 +146,8 @@ Use the search bar to find dives by:
 
 ### Bulk Operations
 
-Select multiple dives to:
+Open the list's overflow menu (the three dots) and choose **Select items**,
+then check multiple dives to:
 
 - Delete in bulk
 - Export selected dives

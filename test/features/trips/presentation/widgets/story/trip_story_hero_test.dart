@@ -24,6 +24,14 @@ class _FakeItineraryRepo extends ItineraryDayRepository {
   }
 }
 
+/// A saveAll that fails the way a locked database does.
+class _FailingItineraryRepo extends ItineraryDayRepository {
+  @override
+  Future<void> saveAll(List<ItineraryDay> days) async {
+    throw StateError('database is locked');
+  }
+}
+
 DateTime _dayOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 
 /// [days] calendar days from [day], which is not the same as adding a
@@ -70,11 +78,12 @@ TripStory _story(
   Trip trip, {
   List<TripChecklistItem> checklist = const [],
   DateTime? today,
+  List<ItineraryDay> itinerary = const [],
 }) {
   return buildTripStory(
     trip: trip,
     dives: [],
-    itineraryDays: [],
+    itineraryDays: itinerary,
     mediaByDiveId: {},
     sightingsByDiveId: {},
     checklistItems: checklist,
@@ -193,5 +202,70 @@ void main() {
     // One generated day per calendar day of the 4-day trip.
     expect(fakeRepo.saved, isNotNull);
     expect(fakeRepo.saved!.length, 4);
+  });
+
+  testWidgets('a failed Generate itinerary says so without the exception', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final today = _dayOnly(now);
+    final trip = _trip(
+      start: _daysFrom(today, 40),
+      end: _daysFrom(today, 43),
+      tripType: TripType.liveaboard,
+    );
+    await pumpHero(
+      tester,
+      _story(trip, today: now),
+      extra: [
+        itineraryDayRepositoryProvider.overrideWithValue(
+          _FailingItineraryRepo(),
+        ),
+      ],
+    );
+
+    await tester.tap(find.text('Generate itinerary'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text("Couldn't generate the itinerary. Try again."),
+      findsOneWidget,
+    );
+    expect(find.textContaining('database is locked'), findsNothing);
+  });
+
+  testWidgets('a partial itinerary still offers Generate, which adds only '
+      'the missing days', (tester) async {
+    final now = DateTime.now();
+    final today = _dayOnly(now);
+    final trip = _trip(
+      start: _daysFrom(today, 40),
+      end: _daysFrom(today, 43),
+      tripType: TripType.liveaboard,
+    );
+    final planned = ItineraryDay(
+      id: 'planned',
+      tripId: trip.id,
+      dayNumber: 2,
+      date: _daysFrom(today, 41),
+      dayType: DayType.diveDay,
+      plannedDives: 3,
+      createdAt: now,
+      updatedAt: now,
+    );
+    final story = _story(trip, today: now, itinerary: [planned]);
+    final fakeRepo = _FakeItineraryRepo();
+    await pumpHero(
+      tester,
+      story,
+      extra: [itineraryDayRepositoryProvider.overrideWithValue(fakeRepo)],
+    );
+
+    await tester.tap(find.text('Generate itinerary'));
+    await tester.pump();
+    expect(fakeRepo.saved, hasLength(3));
+    expect(
+      fakeRepo.saved!.map((d) => d.date),
+      isNot(contains(_daysFrom(today, 41))),
+    );
   });
 }

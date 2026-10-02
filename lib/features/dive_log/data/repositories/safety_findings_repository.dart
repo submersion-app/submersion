@@ -40,6 +40,7 @@ class SafetyFindingsRepository {
       diveId: diveId,
       engineVersion: marker.engineVersion,
       reviewedAt: DateTime.fromMillisecondsSinceEpoch(marker.reviewedAt),
+      inputsHash: marker.inputsHash,
       // Skip rows whose rule_id does not round-trip to a known SafetyRuleId:
       // an unknown value can only come from a newer app/sync payload, and
       // coercing it to a default rule would surface misleading UI text
@@ -274,6 +275,7 @@ class SafetyFindingsRepository {
               diveId: review.diveId,
               engineVersion: review.engineVersion,
               reviewedAt: reviewedAtMs,
+              inputsHash: Value(review.inputsHash),
             ),
           );
       // A profile change tombstones the marker (clearReviewForDive); the
@@ -297,6 +299,7 @@ class SafetyFindingsRepository {
       diveId: review.diveId,
       engineVersion: review.engineVersion,
       reviewedAt: review.reviewedAt,
+      inputsHash: review.inputsHash,
       findings: persisted,
     );
   }
@@ -397,6 +400,8 @@ class SafetyFindingsRepository {
           await (_db.update(_db.diveSafetyFindings)..where(pending)).write(
             DiveSafetyFindingsCompanion(
               dismissedAt: Value(dismissed ? nowMs : null),
+              // Its own clock, beside the marks below (#2644).
+              hlc: Value(await _syncRepository.issueRowClock()),
             ),
           );
           for (final row in rows) {

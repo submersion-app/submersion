@@ -18,6 +18,7 @@ import '../../../../helpers/test_database.dart';
 /// active source's computer only; a single-source dive keeps the plain read.
 class _FakeTankPressureRepository implements TankPressureRepository {
   final List<String?> scopedCalls = [];
+  final List<String?> scopedSourceIds = [];
   int unscopedCalls = 0;
 
   static const _scoped = <String, List<TankPressurePoint>>{
@@ -41,9 +42,11 @@ class _FakeTankPressureRepository implements TankPressureRepository {
   @override
   Future<Map<String, List<TankPressurePoint>>> getTankPressuresForComputer(
     String diveId,
-    String? computerId,
-  ) async {
+    String? computerId, {
+    String? sourceId,
+  }) async {
     scopedCalls.add(computerId);
+    scopedSourceIds.add(sourceId);
     return _scoped;
   }
 
@@ -140,6 +143,9 @@ void main() {
     // exactly as activeSourceProfileProvider sends callers to dive.profile;
     // what matters is the state the chart settles on.
     expect(repo.scopedCalls, ['dc-black']);
+    // The source goes along too, so two file imports with no computer can
+    // still be told apart (#2440).
+    expect(repo.scopedSourceIds, ['src-black']);
     expect(pressures['tank-a']!.map((p) => p.timestamp), [3]);
   });
 

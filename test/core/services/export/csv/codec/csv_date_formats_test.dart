@@ -85,6 +85,39 @@ void main() {
       );
     });
 
+    test('a two-digit year under the header format is not the year 91', () {
+      // intl does not hold `yyyy` to four digits, so the header's own pattern
+      // read 12/05/91 as the year 91 and the dive landed before 1950 (#2617).
+      final cells = {
+        DateFormatPreference.mmddyyyy: '12/05/91',
+        DateFormatPreference.ddmmyyyy: '05/12/91',
+        DateFormatPreference.ddmmyyyyDots: '05.12.91',
+        DateFormatPreference.mmmDYYYY: 'Dec 5, 91',
+        DateFormatPreference.dMMMYYYY: '5 Dec 91',
+      };
+      for (final MapEntry(key: format, value: cell) in cells.entries) {
+        expect(
+          parseCsvDate(cell, format),
+          DateTime.utc(1991, 12, 5),
+          reason: '${format.name}: $cell',
+        );
+      }
+    });
+
+    test('a two-digit year can still be a near-future date', () {
+      // Equipment service due dates share this parser, so a two-digit year
+      // keeps intl's window rather than refusing every future year.
+      expect(
+        parseCsvDate('05/12/27', DateFormatPreference.ddmmyyyy),
+        DateTime.utc(2027, 12, 5),
+      );
+    });
+
+    test('the header still decides the day and month of a two-digit year', () {
+      expect(parseCsvDate('29/08/91', DateFormatPreference.mmddyyyy), isNull);
+      expect(parseCsvDate('08/29/91', DateFormatPreference.ddmmyyyy), isNull);
+    });
+
     test('no fallback reads a day as a month', () {
       // The day and month of a numeric date can only be told apart by the
       // header, so a cell that contradicts it stays unreadable rather than

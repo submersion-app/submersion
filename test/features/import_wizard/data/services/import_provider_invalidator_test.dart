@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/import_wizard/data/services/import_provider_invalidator.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -132,6 +133,13 @@ void main() {
       expect(recorded, contains(mediaForDiveProvider));
       expect(recorded, contains(mediaCountForDiveProvider));
       expect(recorded, contains(mediaListNotifierProvider));
+    });
+
+    test('fills invalidate the passport fill providers', () {
+      // A passport page may be showing the cylinder the fills landed on.
+      final recorded = _record({ImportEntityType.fills});
+      expect(recorded, contains(fillsForEquipmentProvider));
+      expect(recorded, contains(newestFillProvider));
     });
 
     test('multiple entity types each trigger their own providers', () {

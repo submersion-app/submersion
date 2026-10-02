@@ -86,13 +86,23 @@ void main() {
   });
 
   test('a stressed diver breathes the stressed SAC on the exit bottom', () {
-    final result = run();
-    // 25 min at 3 bar: 1125 L at 15 L/min, 2812.5 L at 37.5 L/min; the
-    // ascent is charged alike, so b is more than twice a.
-    expect(
-      result.exitLitersByMember['b']!,
-      greaterThan(result.exitLitersByMember['a']! * 2),
+    // The plan's stressed-to-bottom ratio is 37.5 / 15 = 2.5, so a diver on
+    // 15 L/min breathes 37.5 L/min stressed. That rate holds until the first
+    // stop, where everyone breathes the deco SAC, so b must use exactly what
+    // an unstressed diver on 37.5 L/min uses over the same exit.
+    expect(ExitPathEvaluator.stressedSacFor(_plan(), 15), 37.5);
+    final result = run(
+      divers: const [
+        ExitDiver(id: 'a', sacBottom: 15),
+        ExitDiver(id: 'b', sacBottom: 15, stressed: true),
+        ExitDiver(id: 'heavy', sacBottom: 37.5),
+      ],
     );
+    final liters = result.exitLitersByMember;
+    expect(liters['b']!, closeTo(liters['heavy']!, 1e-6));
+    // And b pays for it: the 25 min bottom alone costs 22.5 L/min more at
+    // 20 m (3.0138 bar in EN 13319 water), 1695.3 L, before any ascent.
+    expect(liters['b']! - liters['a']!, greaterThan(1695.2));
     expect(result.gasShortfallMemberIds, isEmpty);
   });
 

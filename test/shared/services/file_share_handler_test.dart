@@ -7,7 +7,10 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
+import 'package:submersion/shared/services/shared_file_unreadable_exception.dart';
 
 void main() {
   group('FileShareHandler', () {
@@ -90,23 +93,174 @@ void main() {
         expect(callbackCalled, isFalse);
       });
 
-      test('returns early when file does not exist', () async {
-        var callbackCalled = false;
+      test(
+        'reports a shared file it cannot read and imports nothing',
+        () async {
+          var callbackCalled = false;
+          Object? error;
+          final handler = FileShareHandler(
+            onFileReceived: (bytes, name) async {
+              callbackCalled = true;
+            },
+            onError: (e) => error = e,
+          );
+          final missing = p.join(
+            Directory.systemTemp.path,
+            'submersion_share_missing',
+            'route.csv',
+          );
+
+          await handler.handleMediaFiles([
+            SharedMediaFile(path: missing, type: SharedMediaType.file),
+          ]);
+
+          // A file left in the sending app's private storage used to vanish
+          // without a message or a log line (#2689).
+          expect(callbackCalled, isFalse);
+          expect(
+            error,
+            isA<SharedFileUnreadableException>()
+                .having((e) => e.unreadablePaths, 'unreadablePaths', [missing])
+                .having((e) => e.sharedCount, 'sharedCount', 1)
+                .having((e) => e.nothingReadable, 'nothingReadable', isTrue),
+          );
+        },
+      );
+
+      test('ignores a text or link share, which carries no file', () async {
+        var received = false;
+        Object? error;
         final handler = FileShareHandler(
-          onFileReceived: (bytes, name) async {
-            callbackCalled = true;
-          },
+          onFileReceived: (bytes, name) async => received = true,
+          onFilesReceived: (paths) async => received = true,
+          onError: (e) => error = e,
         );
 
-        final sharedFile = SharedMediaFile(
-          path: '/nonexistent/path/file.uddf',
-          type: SharedMediaType.file,
-        );
+        // With no file attached, the plugin puts the shared text itself in
+        // `path`. It is not a file that failed to read, and the text may be
+        // private, so it must not reach the snackbar or the log.
+        await handler.handleMediaFiles([
+          SharedMediaFile(
+            path: 'https://example.com/dive-report',
+            type: SharedMediaType.url,
+          ),
+          SharedMediaFile(path: 'meet at the dock', type: SharedMediaType.text),
+        ]);
 
-        await handler.handleMediaFiles([sharedFile]);
-
-        expect(callbackCalled, isFalse);
+        expect(received, isFalse);
+        expect(error, isNull);
       });
+
+      test('logs a skipped text share by type, never by content', () async {
+        final captured = <LogEntry>[];
+        final sub = LoggerService.logStream.listen(captured.add);
+        addTearDown(sub.cancel);
+        final handler = FileShareHandler(
+          onFileReceived: (bytes, name) async {},
+        );
+
+        await handler.handleMediaFiles([
+          SharedMediaFile(
+            path: 'meet at the dock',
+            type: SharedMediaType.text,
+            mimeType: 'text/plain',
+          ),
+        ]);
+        await pumpEventQueue();
+
+        // A file whose URI the plugin could not resolve also arrives as text,
+        // so the skip leaves a trace, without the possibly private text.
+        final lines = captured.map((e) => e.message).toList();
+        expect(lines.where((m) => m.contains('text/plain')), isNotEmpty);
+        expect(lines.where((m) => m.contains('meet at the dock')), isEmpty);
+      });
+
+      test('ignores a link share even when it looks like a path', () async {
+        Object? error;
+        final handler = FileShareHandler(
+          onFileReceived: (bytes, name) async {},
+          onError: (e) => error = e,
+        );
+
+        await handler.handleMediaFiles([
+          SharedMediaFile(path: '/r/scuba', type: SharedMediaType.url),
+        ]);
+
+        expect(error, isNull);
+      });
+
+      test(
+        'imports a text-typed file, as Android types a shared CSV',
+        () async {
+          // The plugin derives the type from the mime type, so a text/csv
+          // route export (#2689) arrives as text with a real file path.
+          final tempDir = await Directory.systemTemp.createTemp('test_share_');
+          addTearDown(() => tempDir.delete(recursive: true));
+          final route = File(p.join(tempDir.path, 'route.csv'))
+            ..writeAsStringSync('lat,lon');
+          final received = <String>[];
+          final handler = FileShareHandler(
+            onFileReceived: (bytes, name) async => received.add(name),
+          );
+
+          await handler.handleMediaFiles([
+            SharedMediaFile(
+              path: route.path,
+              type: SharedMediaType.text,
+              mimeType: 'text/csv',
+            ),
+          ]);
+
+          expect(received, ['route.csv']);
+        },
+      );
+
+      test('counts only the files of a share that also carries text', () async {
+        Object? error;
+        final handler = FileShareHandler(
+          onFileReceived: (bytes, name) async {},
+          onError: (e) => error = e,
+        );
+        final missing = p.join(
+          Directory.systemTemp.path,
+          'submersion_share_missing',
+          'route.csv',
+        );
+
+        await handler.handleMediaFiles([
+          SharedMediaFile(path: 'route export', type: SharedMediaType.text),
+          SharedMediaFile(path: missing, type: SharedMediaType.file),
+        ]);
+
+        expect(
+          error,
+          isA<SharedFileUnreadableException>()
+              .having((e) => e.unreadablePaths, 'unreadablePaths', [missing])
+              .having((e) => e.sharedCount, 'sharedCount', 1)
+              .having((e) => e.nothingReadable, 'nothingReadable', isTrue),
+        );
+      });
+
+      test(
+        'does not throw for an unreadable file when onError is null',
+        () async {
+          final handler = FileShareHandler(
+            onFileReceived: (bytes, name) async {},
+          );
+          final missing = p.join(
+            Directory.systemTemp.path,
+            'submersion_share_missing',
+            'route.csv',
+          );
+
+          await expectLater(
+            handler.handleMediaFiles([
+              SharedMediaFile(path: missing, type: SharedMediaType.file),
+            ]),
+            completes,
+          );
+        },
+      );
 
       test(
         'calls onFileReceived with bytes and filename for valid file',
@@ -208,41 +362,80 @@ void main() {
           expect(single, isEmpty);
         });
 
-        test('leaves out shared files that no longer exist', () async {
+        test('imports the readable files and reports the ones it cannot '
+            'read', () async {
           List<String>? multi;
+          Object? error;
           final handler = FileShareHandler(
             onFileReceived: (bytes, name) async {},
             onFilesReceived: (paths) async => multi = paths,
+            onError: (e) => error = e,
           );
           final first = await writeFile('a.fit');
+          final missing = p.join(tempDir.path, 'missing.fit');
           final third = await writeFile('c.fit');
 
           await handler.handleMediaFiles([
             shared(first),
-            shared(p.join(tempDir.path, 'missing.fit')),
+            shared(missing),
             shared(third),
           ]);
 
           expect(multi, [first, third]);
+          expect(
+            error,
+            isA<SharedFileUnreadableException>()
+                .having((e) => e.unreadablePaths, 'unreadablePaths', [missing])
+                .having((e) => e.sharedCount, 'sharedCount', 3)
+                .having((e) => e.nothingReadable, 'nothingReadable', isFalse),
+          );
         });
 
         test('uses the single-file path when only one shared file is '
-            'readable', () async {
+            'readable, and reports the other', () async {
           final single = <String>[];
           var multiCalled = false;
+          Object? error;
           final handler = FileShareHandler(
             onFileReceived: (bytes, name) async => single.add(name),
             onFilesReceived: (paths) async => multiCalled = true,
+            onError: (e) => error = e,
           );
+          final missing = p.join(tempDir.path, 'missing.fit');
           final second = await writeFile('b.fit');
 
-          await handler.handleMediaFiles([
-            shared(p.join(tempDir.path, 'missing.fit')),
-            shared(second),
-          ]);
+          await handler.handleMediaFiles([shared(missing), shared(second)]);
 
           expect(single, ['b.fit']);
           expect(multiCalled, isFalse);
+          expect(
+            error,
+            isA<SharedFileUnreadableException>()
+                .having((e) => e.unreadablePaths, 'unreadablePaths', [missing])
+                .having((e) => e.sharedCount, 'sharedCount', 2),
+          );
+        });
+
+        test('reports every file when none of several can be read', () async {
+          var received = false;
+          Object? error;
+          final handler = FileShareHandler(
+            onFileReceived: (bytes, name) async => received = true,
+            onFilesReceived: (paths) async => received = true,
+            onError: (e) => error = e,
+          );
+          final a = p.join(tempDir.path, 'a.csv');
+          final b = p.join(tempDir.path, 'b.csv');
+
+          await handler.handleMediaFiles([shared(a), shared(b)]);
+
+          expect(received, isFalse);
+          expect(
+            error,
+            isA<SharedFileUnreadableException>()
+                .having((e) => e.unreadablePaths, 'unreadablePaths', [a, b])
+                .having((e) => e.nothingReadable, 'nothingReadable', isTrue),
+          );
         });
 
         test('reports a failing multi-file callback through onError', () async {

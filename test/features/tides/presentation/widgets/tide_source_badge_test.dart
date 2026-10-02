@@ -76,4 +76,53 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(Text), findsNothing);
   });
+
+  testWidgets('the sheet says times are in site time, on both tiers', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      await _host(
+        const TideDataSource.noaaStation(
+          stationId: '9414290',
+          stationName: 'San Francisco',
+          distanceKm: 5.2,
+          mllwDatum: true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('NOAA station'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text("Times are shown in the dive site's local time."),
+      findsOneWidget,
+    );
+    expect(find.textContaining('ocean-model grid'), findsNothing);
+  });
+
+  testWidgets('the model tier sheet shows the grid resolution', (tester) async {
+    await tester.pumpWidget(
+      await _host(const TideDataSource.fesModel(resolutionKm: 11.1)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ocean-model estimate'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text("Times are shown in the dive site's local time."),
+      findsOneWidget,
+    );
+    // Default settings are metric: formatGeoDistance renders kilometres.
+    expect(find.textContaining('ocean-model grid'), findsOneWidget);
+    expect(find.textContaining('km'), findsWidgets);
+  });
+
+  testWidgets('a model source without a resolution omits the grid line', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await _host(const TideDataSource.fesModel()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ocean-model estimate'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('ocean-model grid'), findsNothing);
+  });
 }

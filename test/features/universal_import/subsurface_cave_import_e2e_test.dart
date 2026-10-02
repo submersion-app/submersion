@@ -15,11 +15,19 @@ import 'package:submersion/features/universal_import/data/parsers/subsurface_xml
 import '../../core/services/export/uddf/uddf_raw_data_round_trip_test.dart'
     show buildRepositories, createTestDiver;
 import '../../helpers/test_database.dart';
+import '../../helpers/fake_hosts.dart';
 
 /// A cave logbook from Subsurface, parsed and imported the way the wizard
 /// does it, asserted where the diver sees it: on the stored dive and site
 /// (issue #2202).
 void main() {
+  // The code under test calls Open-Meteo and Nominatim; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('api.open-meteo.com');
+    serveFakeHost('nominatim.openstreetmap.org');
+  });
+
   const fixturePath =
       'test/features/universal_import/data/parsers/fixtures/cave-tags.ssrf';
 

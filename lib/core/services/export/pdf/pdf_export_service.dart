@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
@@ -197,8 +198,11 @@ class PdfExportService {
     }
 
     final bytes = await pdf.save();
-    final fileName = 'trip_${trip.name.replaceAll(RegExp(r'[^\w]'), '_')}.pdf';
-    return saveAndShareFileBytes(bytes, fileName, 'application/pdf');
+    return saveAndShareFileBytes(
+      bytes,
+      tripPdfFileName(trip.name),
+      'application/pdf',
+    );
   }
 
   // ==================== Dive Logbook PDF ====================
@@ -359,3 +363,7 @@ class PdfExportService {
     return savedFileLocation(saveResult);
   }
 }
+
+/// `trip_<trip>.pdf`, the trip name as a [fileNameSegment].
+String tripPdfFileName(String tripName) =>
+    exportFileName(['trip', fileNameSegment(tripName)], 'pdf');

@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -7,7 +8,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// reaches Flutter through `tag.dart`).
 extension ProfileSampleToPoint on ProfileSample {
   /// The domain point. Drops [ProfileSample.pressure], which
-  /// [DiveProfilePoint] does not carry.
+  /// [DiveProfilePoint] does not carry, and a safety stop's ceiling: a
+  /// series stored before #2550, or synced from a peer that has not
+  /// updated, can still hold one, and a safety stop is no obligation.
   DiveProfilePoint toPoint() {
     return DiveProfilePoint(
       timestamp: timestamp,
@@ -32,11 +35,13 @@ extension ProfileSampleToPoint on ProfileSample {
       heartRateSource: heartRateSource,
       cns: cns,
       ndl: ndl,
-      ceiling: ceiling,
+      ceiling: decoType == kDecoTypeSafetyStop ? null : ceiling,
       ascentRate: ascentRate,
       rbt: rbt,
       decoType: decoType,
       tts: tts,
+      gf99: gf99,
+      n2Load: n2Load,
     );
   }
 }
@@ -76,5 +81,7 @@ ProfileSample profileSampleFromPoint(
     o2SensorMv4: point.o2SensorMv4,
     o2SensorMv5: point.o2SensorMv5,
     o2SensorMv6: point.o2SensorMv6,
+    gf99: point.gf99,
+    n2Load: point.n2Load,
   );
 }

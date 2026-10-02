@@ -90,6 +90,10 @@ class NavTrackRepository {
   /// dive (the review page's link proposal) and anchored to a site (the
   /// review page's site picker, or inherited from that dive).
   ///
+  /// [diverId] is the importing (active) diver and owns an unlinked route.
+  /// A pre-linked route belongs to its dive's diver instead, the same owner
+  /// [link] gives a route linked afterward.
+  ///
   /// When [siteId] resolves to a site with a location, that location is
   /// written straight into `anchorLatitude`/`anchorLongitude` (design spec
   /// 2026-09-10-underwater-nav-track-design.md, "Georeferencing": "The
@@ -108,6 +112,7 @@ class NavTrackRepository {
     String? diveId,
     String? siteId,
     String? equipmentId,
+    String? diverId,
   }) async {
     try {
       if (points.length < 2) {
@@ -132,12 +137,14 @@ class NavTrackRepository {
       // paths (pre-link at import vs. link after the fact) the diver used.
       // A site the diver did choose wins even without coordinates: the
       // route stays unanchored rather than sitting at a different point.
-      if (anchor == null && siteId == null && diveId != null) {
-        final diveRow = await (_db.select(
-          _db.dives,
-        )..where((t) => t.id.equals(diveId))).getSingleOrNull();
-        final entryLat = diveRow?.entryLatitude;
-        final entryLon = diveRow?.entryLongitude;
+      final diveRow = diveId == null
+          ? null
+          : await (_db.select(
+              _db.dives,
+            )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+      if (anchor == null && siteId == null && diveRow != null) {
+        final entryLat = diveRow.entryLatitude;
+        final entryLon = diveRow.entryLongitude;
         if (entryLat != null && entryLon != null) {
           anchor = GeoPoint(entryLat, entryLon);
         }
@@ -148,6 +155,7 @@ class NavTrackRepository {
             NavTracksCompanion.insert(
               id: id,
               diveId: Value(diveId),
+              diverId: Value(diveId == null ? diverId : diveRow?.diverId),
               linkMode: Value(
                 diveId == null
                     ? null
@@ -242,29 +250,55 @@ class NavTrackRepository {
   /// Every route with no dive link, most recently recorded first -- the
   /// routes area's own candidates for the match sweep and the manual link
   /// picker.
+  ///
+  /// [diverId] limits it to that diver's routes and the ownerless ones
+  /// (shared with every diver); null reads every route.
   Future<List<domain.NavTrack>> getUnlinked({
     bool includePoints = false,
+    String? diverId,
   }) async {
     final rows = includePoints
         ? await (_db.select(_db.navTracks)
-                ..where((t) => t.diveId.isNull())
+                ..where(
+                  (t) =>
+                      t.diveId.isNull() &
+                      (diverId == null
+                          ? const Constant(true)
+                          : _visibleTo(t, diverId)),
+                )
                 ..orderBy([(t) => OrderingTerm.desc(t.startTime)]))
               .get()
         : await _selectWithoutPoints(
-            where: 'dive_id IS NULL',
+            where: diverId == null
+                ? 'dive_id IS NULL'
+                : 'dive_id IS NULL AND $_visibleToSql',
+            variables: [if (diverId != null) Variable.withString(diverId)],
             orderBy: 'start_time DESC',
           );
     return [for (final r in rows) _toDomain(r, includePoints: includePoints)];
   }
 
   /// Every route for the routes area's own list, unlinked first and then
-  /// most recently recorded within each group.
-  Future<List<domain.NavTrack>> getAll({bool includePoints = false}) async {
+  /// most recently recorded within each group. [diverId] scopes it as in
+  /// [getUnlinked].
+  Future<List<domain.NavTrack>> getAll({
+    bool includePoints = false,
+    String? diverId,
+  }) async {
     final rows = includePoints
-        ? await (_db.select(
-            _db.navTracks,
-          )..orderBy([(t) => OrderingTerm.desc(t.startTime)])).get()
-        : await _selectWithoutPoints(orderBy: 'start_time DESC');
+        ? await (_db.select(_db.navTracks)
+                ..where(
+                  (t) => diverId == null
+                      ? const Constant(true)
+                      : _visibleTo(t, diverId),
+                )
+                ..orderBy([(t) => OrderingTerm.desc(t.startTime)]))
+              .get()
+        : await _selectWithoutPoints(
+            where: diverId == null ? null : _visibleToSql,
+            variables: [if (diverId != null) Variable.withString(diverId)],
+            orderBy: 'start_time DESC',
+          );
     final tracks = [
       for (final r in rows) _toDomain(r, includePoints: includePoints),
     ];
@@ -277,6 +311,13 @@ class NavTrackRepository {
     });
     return tracks;
   }
+
+  /// A route [diverId] may see: their own, or an ownerless one.
+  static Expression<bool> _visibleTo($NavTracksTable t, String diverId) =>
+      t.diverId.equals(diverId) | t.diverId.isNull();
+
+  /// [_visibleTo] for a raw read; binds one variable, the diver id.
+  static const _visibleToSql = '(diver_id = ? OR diver_id IS NULL)';
 
   /// Links [routeId] to [diveId]. The route becomes primary for that dive
   /// unless another route is already linked to it and primary -- "the
@@ -316,12 +357,21 @@ class NavTrackRepository {
       final inherited = route == null
           ? null
           : await _siteAndAnchorToInherit(route, diveId);
+      // The route belongs to whoever logged the dive, so a buddy's route
+      // linked to my dive becomes mine and an ownerless one gains an owner.
+      final diveOwner =
+          await (_db.selectOnly(_db.dives)
+                ..addColumns([_db.dives.diverId])
+                ..where(_db.dives.id.equals(diveId)))
+              .map((row) => row.read(_db.dives.diverId))
+              .getSingleOrNull();
       final rowsAffected =
           await (_db.update(
             _db.navTracks,
           )..where((t) => t.id.equals(routeId) & t.diveId.isNull())).write(
             NavTracksCompanion(
               diveId: Value(diveId),
+              diverId: Value(diveOwner),
               linkMode: Value(linkMode.wireValue),
               isPrimary: Value(isPrimary),
               siteId: inherited == null

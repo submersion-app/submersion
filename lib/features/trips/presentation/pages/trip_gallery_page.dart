@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
@@ -16,6 +17,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+
+const _log = LoggerService('tripGalleryPage');
 
 /// Full gallery page showing all photos for a trip, organized by dive.
 class TripGalleryPage extends ConsumerWidget {
@@ -51,9 +54,9 @@ class TripGalleryPage extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Text(context.l10n.trips_gallery_error_loading('$error')),
-        ),
+        // The repository logs the failure; the diver gets a plain line.
+        error: (_, _) =>
+            Center(child: Text(context.l10n.trips_gallery_error_loading)),
       ),
     );
   }
@@ -126,13 +129,16 @@ class TripGalleryPage extends ConsumerWidget {
 
       // Import selected photos
       await _importPhotos(context, ref, dialogResult.selectedPhotos);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to scan for trip photos',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.trips_gallery_errorScanning('$e')),
-          ),
+          SnackBar(content: Text(context.l10n.trips_gallery_errorScanning)),
         );
       }
     }
@@ -191,13 +197,16 @@ class TripGalleryPage extends ConsumerWidget {
           content: Text(context.l10n.trips_gallery_linkedPhotos(totalImported)),
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to link trip photos',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.trips_gallery_errorLinking('$e')),
-          ),
+          SnackBar(content: Text(context.l10n.trips_gallery_errorLinking)),
         );
       }
     }

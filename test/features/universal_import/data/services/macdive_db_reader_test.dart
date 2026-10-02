@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
@@ -12,13 +13,14 @@ void main() {
   late Uint8List bytes;
 
   setUpAll(() async {
-    final path =
-        '${Directory.systemTemp.path}/macdive_syn_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-    final file = buildSyntheticMacDiveDb(path);
-    bytes = Uint8List.fromList(await file.readAsBytes());
+    final dir = Directory.systemTemp.createTempSync('macdive_syn_');
     addTearDown(() {
-      if (file.existsSync()) file.deleteSync();
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
     });
+    final file = buildSyntheticMacDiveDb(
+      p.join(dir.path, 'macdive_syn.sqlite'),
+    );
+    bytes = Uint8List.fromList(await file.readAsBytes());
   });
 
   group('MacDiveDbReader.isMacDiveDb', () {
@@ -27,13 +29,11 @@ void main() {
     });
 
     test('returns false for a non-MacDive SQLite', () async {
-      final tmp = File(
-        '${Directory.systemTemp.path}/not_macdive_${DateTime.now().microsecondsSinceEpoch}.sqlite',
-      );
-      if (tmp.existsSync()) tmp.deleteSync();
+      final dir = Directory.systemTemp.createTempSync('not_macdive_');
       addTearDown(() {
-        if (tmp.existsSync()) tmp.deleteSync();
+        if (dir.existsSync()) dir.deleteSync(recursive: true);
       });
+      final tmp = File(p.join(dir.path, 'not_macdive.sqlite'));
 
       final db = sqlite3.sqlite3.open(tmp.path);
       db.execute('CREATE TABLE foo (id INTEGER PRIMARY KEY);');
@@ -170,11 +170,16 @@ void main() {
     late Uint8List diverBytes;
 
     setUpAll(() async {
-      final path =
-          '${Directory.systemTemp.path}/mdr_divers_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-      final file = buildSyntheticMacDiveDb(path, includeDivers: true);
-      diverBytes = Uint8List.fromList(await file.readAsBytes());
-      file.deleteSync();
+      final dir = Directory.systemTemp.createTempSync('mdr_divers_');
+      try {
+        final file = buildSyntheticMacDiveDb(
+          p.join(dir.path, 'mdr_divers.sqlite'),
+          includeDivers: true,
+        );
+        diverBytes = Uint8List.fromList(await file.readAsBytes());
+      } finally {
+        dir.deleteSync(recursive: true);
+      }
     });
 
     test('reads the diver profile columns', () async {
@@ -196,6 +201,29 @@ void main() {
       expect(byPk[2]!.diverFk, 1);
       expect(byPk[3]!.diverFk, isNull);
       expect(logbook.certifications.single.diverFk, 2);
+    });
+  });
+
+  // Each call copies the bytes to a temp file of its own. A temp name built
+  // from the clock could be shared by calls started in the same microsecond,
+  // and then one call deleted or overwrote the file another was reading.
+  group('MacDiveDbReader concurrent calls', () {
+    const calls = 50;
+
+    test('every concurrent format check recognises the database', () async {
+      final results = await Future.wait([
+        for (var i = 0; i < calls; i++) MacDiveDbReader.isMacDiveDb(bytes),
+      ]);
+
+      expect(results, everyElement(isTrue));
+    });
+
+    test('every concurrent read returns all three dives', () async {
+      final results = await Future.wait([
+        for (var i = 0; i < calls; i++) MacDiveDbReader.readAll(bytes),
+      ]);
+
+      expect(results.map((l) => l.dives.length), everyElement(3));
     });
   });
 }
