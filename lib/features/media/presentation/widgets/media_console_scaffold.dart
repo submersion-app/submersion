@@ -117,9 +117,12 @@ class _MediaConsoleScaffoldState extends State<MediaConsoleScaffold>
       unselectedLabelColor: colors.unselected,
       indicatorColor: colors.selected,
       overlayColor: colors.overlay,
-      // Inline, the bar's own edge already separates it from the content; a
-      // divider would underline the tabs alone, stopping short of the title.
-      dividerColor: inline ? Colors.transparent : null,
+      // Inline, a divider would underline the tabs alone, stopping short of
+      // the title. Stacked, it is only needed where the bar is the page's
+      // colour; on a coloured bar it draws a stray rule along the bar's edge.
+      dividerColor: inline || !colors.barMatchesPage
+          ? Colors.transparent
+          : null,
       onTap: (i) => widget.onSelect(MediaConsoleSection.values[i]),
       tabs: [
         for (final (i, section) in MediaConsoleSection.values.indexed)

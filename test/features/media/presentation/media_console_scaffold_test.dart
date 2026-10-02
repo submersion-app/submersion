@@ -362,13 +362,14 @@ void main() {
     Future<ThemeData> pumpPreset(
       WidgetTester tester,
       String id,
-      Brightness brightness,
-    ) async {
+      Brightness brightness, {
+      double width = 1100,
+    }) async {
       final theme = AppThemeRegistry.resolveTheme(
         AppThemeRegistry.findById(id),
         brightness,
       );
-      setWidth(tester, 1100);
+      setWidth(tester, width);
       await tester.pumpWidget(
         host(
           selected: MediaConsoleSection.library,
@@ -398,6 +399,23 @@ void main() {
         reason: 'precondition: the bar is primary',
       );
       expect(labelColor(tester, 'Library'), labelColor(tester, 'Media'));
+    });
+
+    testWidgets('stacked tabs drop the divider on a coloured bar only', (
+      tester,
+    ) async {
+      Color? divider() =>
+          tester.widget<TabBar>(find.byType(TabBar)).dividerColor;
+
+      // Tropical's teal bar already contrasts with the page: no extra rule.
+      await pumpPreset(tester, 'tropical', Brightness.light, width: 360);
+      expect(appBar(tester).bottom, isA<TabBar>());
+      expect(divider(), Colors.transparent);
+
+      // Submersion's bar is the page colour: keep the stock divider.
+      await pumpPreset(tester, 'submersion', Brightness.light, width: 360);
+      expect(appBar(tester).bottom, isA<TabBar>());
+      expect(divider(), isNull);
     });
 
     for (final preset in AppThemeRegistry.presets) {

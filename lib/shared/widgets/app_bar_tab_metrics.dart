@@ -43,9 +43,9 @@ bool appBarTabsFitInline(
     return width;
   }
 
-  final titleStyle = theme.textTheme.titleLarge?.merge(
-    appBarTheme.titleTextStyle,
-  );
+  // AppBar's own precedence: a theme's titleTextStyle replaces titleLarge
+  // outright rather than merging into it.
+  final titleStyle = appBarTheme.titleTextStyle ?? theme.textTheme.titleLarge;
   final tabsWidth = labels.fold<double>(
     0,
     (sum, label) =>
@@ -79,7 +79,11 @@ bool appBarTabsFitInline(
 /// translucent bar (Minimalist) is read over the scaffold beneath it.
 @immutable
 class AppBarTabColors {
-  const AppBarTabColors({required this.selected, required this.unselected});
+  const AppBarTabColors({
+    required this.selected,
+    required this.unselected,
+    required this.barMatchesPage,
+  });
 
   factory AppBarTabColors.of(ThemeData theme) {
     final appBarTheme = theme.appBarTheme;
@@ -91,6 +95,7 @@ class AppBarTabColors {
     );
     final primary = theme.colorScheme.primary;
     return AppBarTabColors(
+      barMatchesPage: background == theme.scaffoldBackgroundColor,
       selected: _contrast(primary, background) >= _aaContrast
           ? primary
           : foreground,
@@ -117,6 +122,11 @@ class AppBarTabColors {
 
   final Color selected;
   final Color unselected;
+
+  /// Whether the bar shows the same colour as the page beneath it. Only then
+  /// does a tab strip on the bar's bottom edge need a divider to separate it
+  /// from the content; a coloured bar's own edge already does.
+  final bool barMatchesPage;
 
   /// Hover, focus and press ink in the foreground's hue, for the same reason
   /// the labels avoid `primary`.
