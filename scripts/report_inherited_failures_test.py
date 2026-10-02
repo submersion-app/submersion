@@ -7,6 +7,7 @@ import io
 import os
 import tempfile
 import unittest
+from unittest import mock
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _spec = importlib.util.spec_from_file_location(
@@ -135,6 +136,43 @@ class EscapeTest(unittest.TestCase):
 
     def test_escapes_workflow_command_properties(self):
         self.assertEqual(report.escape_property("a:b,c%"), "a%3Ab%2Cc%25")
+
+
+class ApiGetTest(unittest.TestCase):
+    """api_get builds the request; urlopen is stubbed, nothing leaves the host."""
+
+    def call(self, env):
+        seen = {}
+
+        def fake_urlopen(request, timeout):
+            seen["request"] = request
+            seen["timeout"] = timeout
+            return io.BytesIO(b'{"ok": true}')
+
+        with mock.patch.object(report.urllib.request, "urlopen", fake_urlopen):
+            body = report.api_get("/repos/o/r/actions/runs/1/jobs", env)
+        return body, seen["request"], seen["timeout"]
+
+    def test_sends_the_token_and_decodes_the_body(self):
+        body, request, timeout = self.call({"GH_TOKEN": "t0k"})
+        self.assertEqual(body, {"ok": True})
+        self.assertEqual(
+            request.full_url, "https://api.github.com/repos/o/r/actions/runs/1/jobs"
+        )
+        self.assertEqual(request.get_header("Authorization"), "Bearer t0k")
+        self.assertEqual(request.get_header("Accept"), "application/vnd.github+json")
+        self.assertGreater(timeout, 0)
+
+    def test_falls_back_to_github_token_and_honors_the_api_url(self):
+        _, request, _ = self.call(
+            {"GITHUB_TOKEN": "gh", "GITHUB_API_URL": "https://ghe.example/api/v3"}
+        )
+        self.assertTrue(request.full_url.startswith("https://ghe.example/api/v3/"))
+        self.assertEqual(request.get_header("Authorization"), "Bearer gh")
+
+    def test_omits_authorization_without_a_token(self):
+        _, request, _ = self.call({})
+        self.assertIsNone(request.get_header("Authorization"))
 
 
 class FakeApi:
