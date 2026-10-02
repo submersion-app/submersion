@@ -11,6 +11,7 @@ import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
@@ -369,5 +370,12 @@ void main() {
     await tester.pump();
     expect(find.byKey(const ValueKey('dive-jump-d1')), findsNothing);
     await tester.pump(kDiveSearchDebounce);
+  });
+
+  testWidgets('the Refine button opens the Refine panel', (tester) async {
+    await pumpHeader(tester, filter: const DiveFilterState(minDepth: 30));
+    await tester.tap(find.byKey(kDiveSearchRefineKey));
+    await tester.pumpAndSettle();
+    expect(find.byType(RefinePanel), findsOneWidget);
   });
 }

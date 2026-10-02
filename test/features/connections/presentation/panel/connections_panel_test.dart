@@ -11,7 +11,7 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_panel.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -99,7 +99,7 @@ void main() {
 
     await tester.tap(find.text('All filters'));
     await tester.pumpAndSettle();
-    expect(find.byType(DiveFilterSheet), findsOneWidget);
+    expect(find.byType(RefinePanel), findsOneWidget);
   });
 
   testWidgets('a selection opens Details and clearing it goes back', (

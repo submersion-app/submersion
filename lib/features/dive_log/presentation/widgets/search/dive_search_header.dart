@@ -12,7 +12,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/show_refine_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/close_dive_search.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_jump_list.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_scope_toggle.dart';
@@ -172,10 +172,9 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   label: Text('$panelAxes'),
                   child: const Icon(Icons.tune),
                 ),
-                onPressed: () => showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (_) => DiveFilterSheet(ref: ref),
+                onPressed: () => showRefinePanel(
+                  context,
+                  filterProvider: diveFilterProvider,
                 ),
               ),
               IconButton(

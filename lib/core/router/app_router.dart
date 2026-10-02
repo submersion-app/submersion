@@ -51,7 +51,7 @@ import 'package:submersion/features/ocr_import/presentation/pages/ocr_scan_page.
 import 'package:submersion/features/dive_3d/presentation/pages/compare_dives_3d_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/explore/presentation/pages/explore_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/profile_editor_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
@@ -395,18 +395,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'search',
                 name: 'diveSearch',
-                // Sections with their own filter (Insights) push this page
-                // with their filter provider as `extra` so the form edits and
-                // applies to that filter (#1079). Every other entry point,
-                // such as a deep link or the keyboard shortcut, gets the dive
-                // list's filter.
-                builder: (context, state) => DiveSearchPage(
-                  filterProvider: state.extra is StateProvider<DiveFilterState>
-                      ? state.extra as StateProvider<DiveFilterState>
-                      : null,
-                  // `?section=query` opens the query editor (#2365).
-                  initialSection: state.uri.queryParameters['section'],
-                ),
+                // Advanced Search became the Refine panel (#2773): an old
+                // link or bookmark lands on the dive list with its search
+                // row open.
+                redirect: (context, state) {
+                  ProviderScope.containerOf(
+                    context,
+                    listen: false,
+                  ).read(diveSearchBarOpenProvider.notifier).state = true;
+                  return '/dives';
+                },
               ),
               GoRoute(
                 path: 'match-sites',

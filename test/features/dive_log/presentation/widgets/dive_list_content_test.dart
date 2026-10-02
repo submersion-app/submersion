@@ -1620,10 +1620,10 @@ void main() {
 
     for (final showAppBar in const [true, false]) {
       final bar = showAppBar ? 'app bar' : 'compact bar';
-      testWidgets('$bar advanced search pushes the search page', (
+      testWidgets('$bar overflow no longer offers Advanced Search', (
         tester,
       ) async {
-        final router = await pumpList(
+        await pumpList(
           tester,
           overrides: await detailedOverrides(),
           showAppBar: showAppBar,
@@ -1631,11 +1631,8 @@ void main() {
 
         await tester.tap(find.byIcon(Icons.more_vert).first);
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Advanced Search').last);
-        await tester.pumpAndSettle();
-
-        expect(find.text('search page'), findsOneWidget);
-        expect(router.routerDelegate.canPop(), isTrue);
+        // The Refine panel replaced it (#2773).
+        expect(find.text('Advanced Search'), findsNothing);
       });
     }
 

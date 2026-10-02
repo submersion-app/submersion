@@ -8,7 +8,7 @@ import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
@@ -16,7 +16,6 @@ import 'package:submersion/features/safety/presentation/pages/incident_edit_page
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
-import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
@@ -1199,56 +1198,37 @@ void main() {
     });
   });
 
-  group('diveSearch route carries the calling section filter (#1079)', () {
-    // Insights keeps its own filter, so the advanced search form has to be
-    // told which filter it is editing. The section pushes its provider as the
-    // route `extra`; anything else (deep link, keyboard shortcut) falls back
-    // to the dive list's filter.
-    late BuildContext context;
-
-    DiveSearchPage buildWith(Object? extra) {
-      final route = _findRouteByName(router.configuration.routes, 'diveSearch');
-      expect(route, isNotNull);
-      final widget = route!.builder!(
-        context,
-        GoRouterState(
-          router.configuration,
-          uri: Uri.parse('/dives/search'),
-          matchedLocation: '/dives/search',
-          fullPath: '/dives/search',
-          pathParameters: const {},
-          pageKey: const ValueKey('/dives/search'),
-          extra: extra,
-        ),
-      );
-      expect(widget, isA<DiveSearchPage>());
-      return widget as DiveSearchPage;
+  // #2773: Advanced Search became the Refine panel; an old link or a
+  // bookmark lands on the dive list with its search row open.
+  group('diveSearch route redirects to the dive list', () {
+    for (final uri in ['/dives/search', '/dives/search?section=query']) {
+      testWidgets('$uri opens the search row', (tester) async {
+        await tester.pumpWidget(
+          const ProviderScope(child: MaterialApp(home: SizedBox())),
+        );
+        final context = tester.element(find.byType(SizedBox));
+        final route = _findRouteByName(
+          router.configuration.routes,
+          'diveSearch',
+        )!;
+        final target = route.redirect!(
+          context,
+          GoRouterState(
+            router.configuration,
+            uri: Uri.parse(uri),
+            matchedLocation: '/dives/search',
+            fullPath: '/dives/search',
+            pathParameters: const {},
+            pageKey: const ValueKey('/dives/search'),
+          ),
+        );
+        expect(await target, '/dives');
+        expect(
+          ProviderScope.containerOf(context).read(diveSearchBarOpenProvider),
+          isTrue,
+        );
+      });
     }
-
-    testWidgets('a pushed filter provider reaches the page', (tester) async {
-      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
-      context = tester.element(find.byType(SizedBox));
-
-      expect(
-        buildWith(insightsFilterProvider).filterProvider,
-        same(insightsFilterProvider),
-      );
-    });
-
-    testWidgets('no extra falls back to the dive list filter', (tester) async {
-      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
-      context = tester.element(find.byType(SizedBox));
-
-      expect(buildWith(null).filterProvider, isNull);
-    });
-
-    testWidgets('an extra of another type falls back too', (tester) async {
-      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
-      context = tester.element(find.byType(SizedBox));
-
-      // A stale deep link or an unrelated caller must not crash the route.
-      expect(buildWith('not a provider').filterProvider, isNull);
-    });
   });
   group('species routes', () {
     test('the Species page is registered at /species', () {
