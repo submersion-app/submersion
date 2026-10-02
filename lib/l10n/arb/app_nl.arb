@@ -7436,6 +7436,8 @@
   "trips_gear_add": "Uitrusting toevoegen",
   "trips_gear_remove": "Eruit halen",
   "trips_gear_failed": "Kan de uitrusting niet wijzigen. Probeer het opnieuw.",
+  "trips_gear_useSet": "Set gebruiken",
+  "trips_gear_packedFromSet": "{count, plural, =0{Alles uit {name} is al ingepakt} one{{count} item uit {name} ingepakt} other{{count} items uit {name} ingepakt}}",
   "trips_cylinders_forecast_todayShort": "Vandaag zijn er {needed} nodig, je hebt er {full} vol.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

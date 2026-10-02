@@ -26336,6 +26336,21 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de modifier le matériel. Réessayez.';
 
   @override
+  String get trips_gear_useSet => 'Utiliser un ensemble';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments de $name ajoutés',
+      one: '$count élément de $name ajouté',
+      zero: 'Tout le contenu de $name est déjà prévu',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Aujourd\'hui il en faut $needed, vous en avez $full pleins.';
   }

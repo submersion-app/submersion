@@ -25825,6 +25825,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_gear_failed => 'Could not change the gear. Try again.';
 
   @override
+  String get trips_gear_useSet => 'Use set';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Packed $count items from $name',
+      one: 'Packed $count item from $name',
+      zero: 'Everything in $name is already packed',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Today needs $needed, you have $full full.';
   }

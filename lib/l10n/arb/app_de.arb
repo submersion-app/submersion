@@ -7539,6 +7539,8 @@
   "trips_gear_add": "Ausrüstung hinzufügen",
   "trips_gear_remove": "Entfernen",
   "trips_gear_failed": "Die Ausrüstung konnte nicht geändert werden. Versuche es erneut.",
+  "trips_gear_useSet": "Set verwenden",
+  "trips_gear_packedFromSet": "{count, plural, =0{Alles aus {name} ist bereits gepackt} one{{count} Teil aus {name} gepackt} other{{count} Teile aus {name} gepackt}}",
   "trips_cylinders_forecast_todayShort": "Heute werden {needed} gebraucht, du hast {full} volle.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

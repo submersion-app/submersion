@@ -26047,6 +26047,21 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan de uitrusting niet wijzigen. Probeer het opnieuw.';
 
   @override
+  String get trips_gear_useSet => 'Set gebruiken';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items uit $name ingepakt',
+      one: '$count item uit $name ingepakt',
+      zero: 'Alles uit $name is al ingepakt',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Vandaag zijn er $needed nodig, je hebt er $full vol.';
   }

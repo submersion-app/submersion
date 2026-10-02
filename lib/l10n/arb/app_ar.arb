@@ -7436,6 +7436,8 @@
   "trips_gear_add": "إضافة معدات",
   "trips_gear_remove": "إزالة",
   "trips_gear_failed": "تعذر تغيير المعدات. حاول مرة أخرى.",
+  "trips_gear_useSet": "استخدام مجموعة",
+  "trips_gear_packedFromSet": "{count, plural, =0{كل ما في {name} مُجهز بالفعل} one{تم تجهيز عنصر واحد من {name}} two{تم تجهيز عنصرين من {name}} few{تم تجهيز {count} عناصر من {name}} many{تم تجهيز {count} عنصرًا من {name}} other{تم تجهيز {count} عنصر من {name}}}",
   "trips_cylinders_forecast_todayShort": "اليوم يحتاج إلى {needed}، ولديك {full} ممتلئة.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

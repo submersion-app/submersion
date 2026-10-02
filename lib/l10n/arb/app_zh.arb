@@ -7616,6 +7616,8 @@
   "trips_gear_add": "添加装备",
   "trips_gear_remove": "移除",
   "trips_gear_failed": "无法更改装备，请重试。",
+  "trips_gear_useSet": "使用套装",
+  "trips_gear_packedFromSet": "{count, plural, =0{{name} 中的装备已全部打包} other{已从 {name} 打包 {count} 件装备}}",
   "trips_cylinders_forecast_todayShort": "今天需要 {needed} 个，你有 {full} 个满瓶。",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

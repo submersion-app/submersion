@@ -41772,6 +41772,18 @@ abstract class AppLocalizations {
   /// **'Could not change the gear. Try again.'**
   String get trips_gear_failed;
 
+  /// No description provided for @trips_gear_useSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Use set'**
+  String get trips_gear_useSet;
+
+  /// No description provided for @trips_gear_packedFromSet.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Everything in {name} is already packed} one{Packed {count} item from {name}} other{Packed {count} items from {name}}}'**
+  String trips_gear_packedFromSet(int count, String name);
+
   /// No description provided for @trips_cylinders_forecast_todayShort.
   ///
   /// In en, this message translates to:

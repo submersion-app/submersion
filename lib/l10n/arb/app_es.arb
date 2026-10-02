@@ -7436,6 +7436,8 @@
   "trips_gear_add": "Añadir equipo",
   "trips_gear_remove": "Quitar",
   "trips_gear_failed": "No se pudo cambiar el equipo. Inténtalo de nuevo.",
+  "trips_gear_useSet": "Usar conjunto",
+  "trips_gear_packedFromSet": "{count, plural, =0{Todo lo de {name} ya está preparado} one{{count} elemento de {name} preparado} other{{count} elementos de {name} preparados}}",
   "trips_cylinders_forecast_todayShort": "Hoy se necesitan {needed}, tienes {full} llenas.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

@@ -24909,6 +24909,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_gear_failed => '无法更改装备，请重试。';
 
   @override
+  String get trips_gear_useSet => '使用套装';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已从 $name 打包 $count 件装备',
+      zero: '$name 中的装备已全部打包',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return '今天需要 $needed 个，你有 $full 个满瓶。';
   }

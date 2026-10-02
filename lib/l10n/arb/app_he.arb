@@ -7436,6 +7436,8 @@
   "trips_gear_add": "הוספת ציוד",
   "trips_gear_remove": "הסרה",
   "trips_gear_failed": "לא ניתן לשנות את הציוד. נסו שוב.",
+  "trips_gear_useSet": "שימוש בסט",
+  "trips_gear_packedFromSet": "{count, plural, =0{כל הציוד מתוך {name} כבר ארוז} one{נארז פריט אחד מתוך {name}} two{נארזו {count} פריטים מתוך {name}} many{נארזו {count} פריטים מתוך {name}} other{נארזו {count} פריטים מתוך {name}}}",
   "trips_cylinders_forecast_todayShort": "היום צריך {needed}, יש לך {full} מלאים.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

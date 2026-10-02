@@ -7334,6 +7334,8 @@
   "trips_gear_add": "Felszerelés hozzáadása",
   "trips_gear_remove": "Kivétel",
   "trips_gear_failed": "Nem sikerült módosítani a felszerelést. Próbáld újra.",
+  "trips_gear_useSet": "Készlet használata",
+  "trips_gear_packedFromSet": "{count, plural, =0{A(z) {name} minden eleme már be van pakolva} one{{count} elem bepakolva innen: {name}} other{{count} elem bepakolva innen: {name}}}",
   "trips_cylinders_forecast_todayShort": "Ma {needed} kell, {full} teli van.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

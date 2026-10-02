@@ -25612,6 +25612,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_gear_failed => 'לא ניתן לשנות את הציוד. נסו שוב.';
 
   @override
+  String get trips_gear_useSet => 'שימוש בסט';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נארזו $count פריטים מתוך $name',
+      many: 'נארזו $count פריטים מתוך $name',
+      two: 'נארזו $count פריטים מתוך $name',
+      one: 'נארז פריט אחד מתוך $name',
+      zero: 'כל הציוד מתוך $name כבר ארוז',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'היום צריך $needed, יש לך $full מלאים.';
   }

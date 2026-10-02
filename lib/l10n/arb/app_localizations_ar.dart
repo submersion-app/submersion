@@ -25914,6 +25914,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_gear_failed => 'تعذر تغيير المعدات. حاول مرة أخرى.';
 
   @override
+  String get trips_gear_useSet => 'استخدام مجموعة';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تجهيز $count عنصر من $name',
+      many: 'تم تجهيز $count عنصرًا من $name',
+      few: 'تم تجهيز $count عناصر من $name',
+      two: 'تم تجهيز عنصرين من $name',
+      one: 'تم تجهيز عنصر واحد من $name',
+      zero: 'كل ما في $name مُجهز بالفعل',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'اليوم يحتاج إلى $needed، ولديك $full ممتلئة.';
   }

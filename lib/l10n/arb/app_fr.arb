@@ -7334,6 +7334,8 @@
   "trips_gear_add": "Ajouter du matériel",
   "trips_gear_remove": "Retirer",
   "trips_gear_failed": "Impossible de modifier le matériel. Réessayez.",
+  "trips_gear_useSet": "Utiliser un ensemble",
+  "trips_gear_packedFromSet": "{count, plural, =0{Tout le contenu de {name} est déjà prévu} one{{count} élément de {name} ajouté} other{{count} éléments de {name} ajoutés}}",
   "trips_cylinders_forecast_todayShort": "Aujourd'hui il en faut {needed}, vous en avez {full} pleins.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

@@ -7330,6 +7330,8 @@
   "trips_gear_add": "Aggiungi attrezzatura",
   "trips_gear_remove": "Togli",
   "trips_gear_failed": "Impossibile modificare l'attrezzatura. Riprova.",
+  "trips_gear_useSet": "Usa set",
+  "trips_gear_packedFromSet": "{count, plural, =0{Tutto il contenuto di {name} è già preparato} one{{count} elemento di {name} preparato} other{{count} elementi di {name} preparati}}",
   "trips_cylinders_forecast_todayShort": "Oggi ne servono {needed}, ne hai {full} piene.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
