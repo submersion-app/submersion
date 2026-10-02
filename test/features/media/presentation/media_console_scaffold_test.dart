@@ -158,6 +158,45 @@ void main() {
       expect(appBar(tester).bottom, isA<TabBar>());
     });
 
+    testWidgets('a back button narrows the bar and stacks the tabs', (
+      tester,
+    ) async {
+      // A pushed route gets a leading back button, which takes title-slot
+      // width. 720px fits the tabs inline at the root of the stack but not
+      // beside a 56px back button (the test font draws glyphs an em wide).
+      setWidth(tester, 720);
+      final navigator = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigator,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MediaConsoleScaffold(
+            title: 'Media',
+            selected: MediaConsoleSection.library,
+            onSelect: (_) {},
+            child: const SizedBox.expand(),
+          ),
+        ),
+      );
+      expect(tabsInline(tester), isTrue);
+
+      navigator.currentState!.push(
+        MaterialPageRoute<void>(
+          builder: (_) => MediaConsoleScaffold(
+            title: 'Media',
+            selected: MediaConsoleSection.library,
+            onSelect: (_) {},
+            child: const SizedBox.expand(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(BackButton), findsOneWidget);
+      expect(appBar(tester).bottom, isA<TabBar>());
+    });
+
     testWidgets('notch insets narrow the bar and stack the tabs', (
       tester,
     ) async {
@@ -232,6 +271,48 @@ void main() {
         MediaConsoleSection.transfers.index,
       );
     });
+  });
+
+  testWidgets('a font change re-runs the inline measurement', (tester) async {
+    // Nunito (Tropical, Console) arrives asynchronously; the fit measured
+    // with the fallback font must be redone when it lands.
+    setWidth(tester, 1100);
+    await tester.pumpWidget(
+      host(selected: MediaConsoleSection.library, onSelect: (_) {}),
+    );
+    final element = tester.element(find.byType(MediaConsoleScaffold));
+    expect(element.dirty, isFalse);
+
+    await tester.binding.handleSystemMessage(<String, dynamic>{
+      'type': 'fontsChange',
+    });
+    expect(element.dirty, isTrue);
+    await tester.pump();
+  });
+
+  testWidgets('inline tabs stay out of the title header semantics', (
+    tester,
+  ) async {
+    // The app bar wraps its title slot in a route-naming header; inline tabs
+    // share that slot but must stay separate, non-header nodes.
+    // Disposed in the body: flutter_test checks for live handles before any
+    // addTearDown callback runs.
+    final semantics = tester.ensureSemantics();
+    setWidth(tester, 1100);
+    await tester.pumpWidget(
+      host(selected: MediaConsoleSection.library, onSelect: (_) {}),
+    );
+    expect(tabsInline(tester), isTrue);
+
+    final title = tester.getSemantics(find.text('Media')).getSemanticsData();
+    expect(title.label, 'Media');
+    expect(title.flagsCollection.isHeader, isTrue);
+
+    final tab = tester.getSemantics(find.text('Library')).getSemanticsData();
+    expect(tab.label, startsWith('Library'));
+    expect(tab.flagsCollection.isHeader, isFalse);
+    expect(tab.flagsCollection.namesRoute, isFalse);
+    semantics.dispose();
   });
 
   testWidgets('badge count renders when nonzero', (tester) async {

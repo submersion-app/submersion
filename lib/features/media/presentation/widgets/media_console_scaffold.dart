@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/features/media/presentation/widgets/app_bar_tab_metrics.dart';
+import 'package:submersion/shared/widgets/app_bar_tab_metrics.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -58,6 +58,20 @@ class _MediaConsoleScaffoldState extends State<MediaConsoleScaffold>
   );
 
   @override
+  void initState() {
+    super.initState();
+    // The inline decision measures text, so it is only as good as the fonts
+    // loaded at the time. Tropical and Console load Nunito asynchronously;
+    // re-measure when it lands, since a LayoutBuilder re-runs only on new
+    // constraints, not when its text relayouts.
+    PaintingBinding.instance.systemFonts.addListener(_remeasure);
+  }
+
+  void _remeasure() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   void didUpdateWidget(MediaConsoleScaffold oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.selected.index != _controller.index) {
@@ -67,6 +81,7 @@ class _MediaConsoleScaffoldState extends State<MediaConsoleScaffold>
 
   @override
   void dispose() {
+    PaintingBinding.instance.systemFonts.removeListener(_remeasure);
     _controller.dispose();
     super.dispose();
   }
