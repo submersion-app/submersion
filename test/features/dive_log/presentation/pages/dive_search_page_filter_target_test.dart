@@ -24,15 +24,15 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<List<Override>> buildOverrides() async {
+  Future<List<Override>> buildOverrides({
+    DiveFilterState diveSeed = const DiveFilterState(minRating: 2),
+  }) async {
     final overrides = await getBaseOverrides();
     return [
       ...overrides,
       // Two distinct seeds so an assertion can tell which provider the page
       // read from and which one it wrote back to.
-      diveFilterProvider.overrideWith(
-        (ref) => const DiveFilterState(minRating: 2),
-      ),
+      diveFilterProvider.overrideWith((ref) => diveSeed),
       insightsFilterProvider.overrideWith(
         (ref) => const DiveFilterState(minRating: 4),
       ),
@@ -156,6 +156,28 @@ void main() {
     expect(container.read(diveFilterProvider).minRating, 5);
     expect(container.read(insightsFilterProvider).minRating, 4);
     expect(find.text('dive list'), findsOneWidget);
+  });
+
+  // #2773: a filter applied here is meant to take effect, so it leaves the
+  // search row's "All dives" scope, as the Filter sheet's Apply does.
+  testWidgets('applying leaves All dives so the filter takes effect', (
+    tester,
+  ) async {
+    final overrides = await buildOverrides(
+      diveSeed: const DiveFilterState(minRating: 2, axesSuspended: true),
+    );
+    final router = buildRouter(initialLocation: '/dives');
+    await pumpApp(tester, router: router, overrides: overrides);
+
+    router.push('/dives/search');
+    await tester.pumpAndSettle();
+    await tapFiveStars(tester);
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    final applied = containerOf(tester).read(diveFilterProvider);
+    expect(applied.minRating, 5);
+    expect(applied.axesSuspended, isFalse);
   });
 
   testWidgets('a section-targeted page with nothing to pop falls back to the '
