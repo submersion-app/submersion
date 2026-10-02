@@ -23,14 +23,16 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 
 import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/select_items_menu.dart';
 
-/// The Equipment/Sets toggle scopes the search / filter / sort / select
+/// The Equipment/Sets toggle scopes the search / filter / sort / overflow
 /// actions beside it, so it has to come first: on its own row above them, or
 /// to their left when the two share a row. Issue #2256 is that the wide pane
 /// rendered it after them.
@@ -223,11 +225,17 @@ void main() {
   });
 
   group('Equipment header content (issue #2256)', () {
-    testWidgets('the wide pane keeps the bulk-select action visible', (
+    // Issue #2775: "Select items" moved from its own icon into the overflow
+    // menu, so the header carries one action fewer.
+    testWidgets('the wide pane offers bulk select in its overflow menu', (
       tester,
     ) async {
       await _pump(tester, window: const Size(1400, 900), paneWidth: 440);
-      expect(find.byIcon(Icons.checklist), findsOneWidget);
+      expect(find.byIcon(Icons.checklist), findsNothing);
+
+      await tester.tap(overflowMenuButton);
+      await tester.pumpAndSettle();
+      expect(find.byKey(selectItemsMenuKey), findsOneWidget);
     });
 
     testWidgets('the wide pane keeps the toggle while selecting', (
@@ -236,8 +244,7 @@ void main() {
       await _pump(tester, window: const Size(1400, 900), paneWidth: 440);
       expect(_switcher, findsOneWidget);
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
 
       // The master pane has no app bar above it, so if the header goes away
       // with the actions there is no way back to Sets without leaving
@@ -685,6 +692,32 @@ void main() {
         tester.getSize(ink.first).height - inset.vertical,
         EquipmentSectionToggle.pillHeight,
       );
+    });
+
+    // The phone page listens to the selection it hands the list, so the list
+    // leaving the tree mid-selection (Sets swiped in) must not notify that
+    // listener while the tree is locked.
+    testWidgets('switching to Sets while selecting leaves cleanly', (
+      tester,
+    ) async {
+      await _pump(tester, window: const Size(390, 844));
+      final l10n = await en();
+      await enterSelectionViaMenu(
+        tester,
+        menu: inAppBar(find.byIcon(Icons.more_vert)),
+      );
+      expect(find.byType(SelectionAppBar), findsOneWidget);
+
+      await tester.tap(
+        find.descendant(
+          of: _switcher,
+          matching: find.text(l10n.equipment_tab_sets),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(EquipmentSetListContent), findsOneWidget);
     });
 
     for (final (label, window, locale) in <(String, Size, Locale)>[

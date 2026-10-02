@@ -25,10 +25,10 @@ import 'package:submersion/features/equipment/presentation/widgets/service_statu
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
-import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
@@ -86,9 +86,9 @@ class EquipmentListContent extends ConsumerStatefulWidget {
 
   /// Drives bulk selection from outside the list when set.
   ///
-  /// On phone the page's app bar carries the actions, "Select items" among
-  /// them, so the page has to reach the same controller the rows use. Left
-  /// null, the list owns its own.
+  /// On phone, and in table mode, the page's header carries the overflow
+  /// menu, "Select items" among it, so the page has to reach the same
+  /// controller the rows use. Left null, the list owns its own.
   final SelectionController? selectionController;
 
   /// Whether the list draws its own header bar.
@@ -440,14 +440,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                       tooltip: context.l10n.equipment_list_sortTooltip,
                       onPressed: () => _showSortSheet(context),
                     ),
-                    // The only way into bulk actions: entry by long-press was removed,
-                    // so nothing but this control opens selection mode on touch.
-                    IconButton(
-                      key: const ValueKey('enter_selection'),
-                      icon: const Icon(Icons.checklist),
-                      tooltip: context.l10n.common_selection_enterTooltip,
-                      onPressed: _selection.enterExplicit,
-                    ),
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert),
                       onSelected: (value) {
@@ -471,6 +463,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                         );
                         return [
                           ...scanTagMenuEntries(context),
+                          ...selectItemsMenuEntries(
+                            context,
+                            onSelect: _selection.enterExplicit,
+                          ),
                           ...ListViewModeToggle.menuItems(
                             context,
                             currentMode: currentMode,
@@ -731,17 +727,14 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 // Kept while selecting, as every list's table mode does.
                 subtitle: equipmentListCountLabel(context, ref),
               ),
-            // Table mode has no app bar of its own, so both bars live here:
-            // the contextual one while selecting, and the Select affordance
-            // while not. They share a slot and a height, so the table does
-            // not shift as the mode opens.
+            // Table mode has no app bar of its own: "Select items" sits in the
+            // page header's overflow menu, and the contextual bar opens above
+            // the table while selecting.
             if (selection.isActive)
               _buildSelectionBar(
                 equipmentAsync.value ?? const <EquipmentItem>[],
                 SelectionBarShell.pane,
-              )
-            else
-              SelectionEntryBar(controller: _selection),
+              ),
             if (filter.hasActiveFilters)
               _buildActiveFiltersBar(context, filter),
             Expanded(
@@ -859,15 +852,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         dense: dense,
         onPressed: () => _showSortSheet(context),
       ),
-      // The only way into bulk actions: entry by long-press was removed,
-      // so nothing but this control opens selection mode on touch.
-      equipmentHeaderIconButton(
-        key: const ValueKey('enter_selection'),
-        icon: const Icon(Icons.checklist, size: 20),
-        tooltip: context.l10n.common_selection_enterTooltip,
-        dense: dense,
-        onPressed: _selection.enterExplicit,
-      ),
       equipmentHeaderMenuSlot(
         dense: dense,
         child: PopupMenuButton<String>(
@@ -889,6 +873,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             final currentMode = ref.read(equipmentListViewModeProvider);
             return [
               ...scanTagMenuEntries(context),
+              ...selectItemsMenuEntries(
+                context,
+                onSelect: _selection.enterExplicit,
+              ),
               ...ListViewModeToggle.menuItems(
                 context,
                 currentMode: currentMode,

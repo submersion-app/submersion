@@ -46,6 +46,7 @@ import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.d
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
@@ -71,7 +72,8 @@ class DiveListPage extends ConsumerStatefulWidget {
   ConsumerState<DiveListPage> createState() => _DiveListPageState();
 }
 
-class _DiveListPageState extends ConsumerState<DiveListPage> {
+class _DiveListPageState extends ConsumerState<DiveListPage>
+    with TableSelectionOwner {
   /// Tracks the selected dive ID for mobile map view info card
   String? _mobileMapSelectedDiveId;
 
@@ -165,6 +167,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       label: Text(context.l10n.diveLog_listPage_fab_logDive),
     );
 
+    resetTableSelectionOffTable(diveListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane, map, and profile panel.
     final viewMode = ref.watch(diveListViewModeProvider);
@@ -178,7 +182,10 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           context,
           ref.watch(diveTableCountProvider),
         ),
-        tableContent: const DiveListContent(showAppBar: false),
+        tableContent: DiveListContent(
+          showAppBar: false,
+          selectionController: tableSelection,
+        ),
         detailBuilder: (context, id) {
           final state = GoRouterState.of(context);
           final rawSiteId = state.uri.queryParameters['site'];
@@ -298,6 +305,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
             itemBuilder: (context) {
               final currentMode = ref.read(diveListViewModeProvider);
               return [
+                ...tableSelectItemsEntries(context),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,

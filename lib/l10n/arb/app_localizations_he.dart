@@ -10964,9 +10964,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_list_menu_import => 'ייבא';
 
   @override
-  String get diveSites_list_menu_select => 'בחירת אתרים';
-
-  @override
   String get diveSites_list_menu_fillLocationDetails =>
       'השלמת פרטי מיקום חסרים';
 
@@ -14902,6 +14899,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String equipment_figure_itemLabel(int number, String type, String name) {
     return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_itemLabelUnnumbered(String type, String name) {
+    return '$type, $name';
   }
 
   @override
@@ -20723,6 +20725,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_data_header_backupSync => 'גיבוי וסנכרון';
+
+  @override
+  String get settings_data_header_import => 'ייבוא';
 
   @override
   String get settings_data_header_storage => 'אחסון';

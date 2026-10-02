@@ -82,9 +82,7 @@ void main() {
     ComponentsIndex template = ComponentsIndex.empty,
     Set<String> activeParts = const {},
     List<EquipmentSet>? sets,
-    Map<String, int> figureNumbers = const {},
     String? selectedItemId,
-    void Function(String)? onNumberTap,
     List<Diver> divers = const [],
     String? ownerReferenceDiverId,
   }) => ProviderScope(
@@ -109,9 +107,7 @@ void main() {
             onRemoveSet: onRemoveSet,
             rowTrailing: rowTrailing,
             onUpdateAssembly: onUpdateAssembly,
-            figureNumbers: figureNumbers,
             selectedItemId: selectedItemId,
-            onNumberTap: onNumberTap,
             ownerReferenceDiverId: ownerReferenceDiverId,
           ),
         ),
@@ -119,50 +115,24 @@ void main() {
     ),
   );
 
-  testWidgets('without figure numbers there are no badges', (tester) async {
+  // The dive figure names every item itself, so the rows carry no number
+  // (issue #2774).
+  testWidgets('rows never lead with a figure number badge', (tester) async {
     await tester.pumpWidget(build(arrangement: flat));
     await tester.pumpAndSettle();
     expect(find.byType(FigureNumberBadge), findsNothing);
   });
 
-  testWidgets('top-level rows carry their figure number; parts do not', (
+  testWidgets('the item selected on the figure highlights its row', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      build(
-        arrangement: flat,
-        figureNumbers: const {'mask': 1, 'reg': 2, 'fins': 3, 'hose': 9},
-      ),
-    );
+    await tester.pumpWidget(build(arrangement: flat, selectedItemId: 'fins'));
     await tester.pumpAndSettle();
-    final numbers = tester
-        .widgetList<FigureNumberBadge>(find.byType(FigureNumberBadge))
-        .map((b) => b.number)
-        .toSet();
-    expect(numbers, {1, 2, 3});
-  });
-
-  testWidgets('a badge tap reports its item, and the selected badge shows', (
-    tester,
-  ) async {
-    String? tapped;
-    await tester.pumpWidget(
-      build(
-        arrangement: flat,
-        figureNumbers: const {'mask': 1, 'reg': 2, 'fins': 3},
-        selectedItemId: 'fins',
-        onNumberTap: (id) => tapped = id,
-      ),
-    );
-    await tester.pumpAndSettle();
-    final badges = tester.widgetList<FigureNumberBadge>(
-      find.byType(FigureNumberBadge),
-    );
-    expect(badges.singleWhere((b) => b.selected).number, 3);
-    await tester.tap(
-      find.byWidgetPredicate((w) => w is FigureNumberBadge && w.number == 1),
-    );
-    expect(tapped, 'mask');
+    ListTile row(String id) =>
+        tester.widget<ListTile>(find.byKey(ValueKey('gear-row-$id')));
+    expect(row('fins').tileColor, isNotNull);
+    expect(row('mask').tileColor, isNull);
+    expect(row('reg').tileColor, isNull);
   });
 
   group('owner chip (issue #2046)', () {

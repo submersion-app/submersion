@@ -11016,9 +11016,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_list_menu_import => 'استيراد';
 
   @override
-  String get diveSites_list_menu_select => 'تحديد المواقع';
-
-  @override
   String get diveSites_list_menu_fillLocationDetails =>
       'إكمال تفاصيل الموقع الناقصة';
 
@@ -15005,6 +15002,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String equipment_figure_itemLabel(int number, String type, String name) {
     return '$number، $type، $name';
+  }
+
+  @override
+  String equipment_figure_itemLabelUnnumbered(String type, String name) {
+    return '$type، $name';
   }
 
   @override
@@ -20888,6 +20890,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_data_header_backupSync => 'النسخ الاحتياطي والمزامنة';
+
+  @override
+  String get settings_data_header_import => 'الاستيراد';
 
   @override
   String get settings_data_header_storage => 'التخزين';

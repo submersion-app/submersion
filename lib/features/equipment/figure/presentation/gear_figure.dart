@@ -7,8 +7,9 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// [DiverFigure] with the app's strings: the summary named by [title], each
-/// label read as "3, BCD, Hollis SMS75", the switch counts, and the tray
-/// heading. The set page, the set edit page, and the dive card all use it.
+/// label read as "3, BCD, Hollis SMS75" ("BCD, Hollis SMS75" without
+/// [showNumbers]), the switch counts, and the tray heading. The set page,
+/// the set edit page, and the dive card all use it.
 class GearFigure extends StatelessWidget {
   const GearFigure({
     super.key,
@@ -17,6 +18,7 @@ class GearFigure extends StatelessWidget {
     this.selectedItemId,
     this.selectionSerial = 0,
     this.onItemTap,
+    this.showNumbers = true,
   });
 
   final FigureModel model;
@@ -26,6 +28,9 @@ class GearFigure extends StatelessWidget {
   final String? selectedItemId;
   final int selectionSerial;
   final ValueChanged<PlacedItem>? onItemTap;
+
+  /// See [DiverFigure.showNumbers].
+  final bool showNumbers;
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +45,18 @@ class GearFigure extends StatelessWidget {
       selectedItemId: selectedItemId,
       selectionSerial: selectionSerial,
       onItemTap: onItemTap,
-      itemSemantics: (placed) => l10n.equipment_figure_itemLabel(
-        placed.number,
-        placed.item.type.localizedName(l10n),
-        placed.item.name,
-      ),
+      itemSemantics: (placed) => showNumbers
+          ? l10n.equipment_figure_itemLabel(
+              placed.number,
+              placed.item.type.localizedName(l10n),
+              placed.item.name,
+            )
+          : l10n.equipment_figure_itemLabelUnnumbered(
+              placed.item.type.localizedName(l10n),
+              placed.item.name,
+            ),
       trayTitle: l10n.equipment_figure_trayTitle,
+      showNumbers: showNumbers,
     );
   }
 }

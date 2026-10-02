@@ -35,6 +35,7 @@ void main() {
     String Function(PlacedItem)? labelText,
     double textScale = 1,
     int selectionSerial = 0,
+    bool showNumbers = true,
   }) async {
     tester.view.physicalSize = Size(width, 1600);
     tester.view.devicePixelRatio = 1.0;
@@ -61,6 +62,7 @@ void main() {
               selectionSerial: selectionSerial,
               onItemTap: onItemTap,
               trayTitle: 'Also carried',
+              showNumbers: showNumbers,
             ),
           ),
         ),
@@ -438,6 +440,96 @@ void main() {
     );
     expect(name.maxLines, 1);
     expect(name.overflow, TextOverflow.ellipsis);
+  });
+
+  group('unnumbered (issue #2774)', () {
+    final withTray = composeFigure([
+      item('mask', EquipmentType.mask),
+      item('bcd', EquipmentType.bcd),
+      item('tool', EquipmentType.tool),
+    ]);
+
+    testWidgets('phone labels carry names and no badges', (tester) async {
+      await pump(tester, withTray, width: 360, showNumbers: false);
+      expect(label('mask'), findsOneWidget);
+      expect(find.text('Item mask'), findsOneWidget);
+      expect(find.text('Item tool'), findsOneWidget);
+      expect(find.byType(FigureNumberBadge), findsNothing);
+      for (final l in tester.widgetList<FigureNameLabel>(
+        find.byType(FigureNameLabel),
+      )) {
+        expect(l.number, isNull);
+      }
+    });
+
+    testWidgets('wide pills and tray tiles carry names and no badges', (
+      tester,
+    ) async {
+      await pump(tester, withTray, width: 900, showNumbers: false);
+      expect(find.text('Item mask'), findsOneWidget);
+      expect(find.text('Item bcd'), findsOneWidget);
+      expect(find.text('Item tool'), findsOneWidget);
+      expect(find.byType(FigureNumberBadge), findsNothing);
+    });
+
+    testWidgets('the selected label is still marked selected', (tester) async {
+      await pump(
+        tester,
+        withTray,
+        width: 900,
+        selectedItemId: 'bcd',
+        showNumbers: false,
+      );
+      final selected = tester
+          .widgetList<FigureNameLabel>(find.byType(FigureNameLabel))
+          .where((l) => l.selected);
+      expect(selected.single.key, const ValueKey('figure-label-bcd'));
+    });
+
+    testWidgets('a pill is sized for its name alone', (tester) async {
+      const style = TextStyle(fontSize: 12);
+      final numbered = FigureNameLabel.preferredWidth(
+        'Item bcd',
+        style,
+        TextDirection.ltr,
+        number: 1,
+      );
+      final unnumbered = FigureNameLabel.preferredWidth(
+        'Item bcd',
+        style,
+        TextDirection.ltr,
+        number: null,
+      );
+      final badge = FigureNumberBadge.widthFor(1, FigureNameLabel.badgeSize);
+      expect(numbered - unnumbered, greaterThanOrEqualTo(badge));
+    });
+
+    testWidgets('a box too narrow for names still lays out', (tester) async {
+      await pump(tester, withTray, width: 100, showNumbers: false);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(FigureNumberBadge), findsNothing);
+    });
+
+    testWidgets('a label too narrow to draw still names its item', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 10,
+                height: 40,
+                child: FigureNameLabel(number: null, text: 'Item mask'),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.text('Item mask'), findsNothing);
+      expect(find.bySemanticsLabel('Item mask'), findsOneWidget);
+    });
   });
 
   testWidgets('a rebuild with the same figure keeps its label layout', (

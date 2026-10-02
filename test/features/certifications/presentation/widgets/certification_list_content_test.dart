@@ -15,6 +15,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
@@ -24,6 +26,7 @@ import 'package:submersion/shared/widgets/feature_accent.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/bulk_delete_contract.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/selection_contract.dart';
 
 // ---------------------------------------------------------------------------
@@ -209,7 +212,8 @@ void main() {
       await verifyBulkDelete(
         tester,
         build: () => widget,
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         expectedDeletedCount: 2,
       );
 
@@ -225,7 +229,8 @@ void main() {
       await verifyBulkDeleteCancels(
         tester,
         build: () => widget,
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
       );
 
       expect(notifier.deleted, isEmpty);
@@ -265,7 +270,8 @@ void main() {
           locale: const Locale('en'),
           child: const CertificationListContent(showAppBar: true),
         ),
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         rowRoot: find.ancestor(
           of: find.text('Aaa Cert'),
           matching: find.byType(CertificationListTile),
@@ -276,6 +282,59 @@ void main() {
         },
         visibleAfterFilter: 1,
       );
+    });
+  });
+
+  // The desktop pane's own header (showAppBar: false) carries a second
+  // overflow menu, with the same "Select items" entry at its top.
+  group('compact bar "Select items"', () {
+    testWidgets('is first in the menu and enters selection', (tester) async {
+      final all = <Certification>[
+        _makeCert(id: 'x1', name: 'Aaa Cert'),
+        _makeCert(id: 'x2', name: 'Bbb Cert'),
+        _makeCert(id: 'x3', name: 'Ccc Cert'),
+      ];
+      final notifier = _MockCertListNotifier(all);
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final overrides = <Override>[
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        certificationListNotifierProvider.overrideWith((ref) => notifier),
+        certificationListViewModeProvider.overrideWith(
+          (ref) => ListViewMode.detailed,
+        ),
+        certificationTableConfigProvider.overrideWith(
+          (ref) => _TestCertTableConfigNotifier(_testConfig),
+        ),
+      ];
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const CertificationListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.checklist), findsNothing);
+
+      await tester.tap(overflowMenuButton);
+      await tester.pumpAndSettle();
+      expect(
+        tester.getTopLeft(find.byKey(selectItemsMenuKey)).dy,
+        lessThan(tester.getTopLeft(find.text('Detailed')).dy),
+      );
+
+      await tester.tap(find.byKey(selectItemsMenuKey));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
     });
   });
 
@@ -371,6 +430,42 @@ void main() {
       await tester.pump();
 
       expect(find.text('Nitrox Diver'), findsOneWidget);
+    });
+
+    // Table mode owns no app bar (TableModeLayout does), so "Select items"
+    // sits in the page header's overflow and reaches the rows through the
+    // controller the page passes in (issue #2775). The list draws no Select
+    // strip of its own, and the contextual bar opens above the table.
+    testWidgets('draws no Select strip and opens the contextual bar when the '
+        "page's controller enters selection", (tester) async {
+      final controller = SelectionController();
+      addTearDown(controller.dispose);
+      final overrides = await _buildOverrides(
+        certs: [_makeCert(id: 'c1', name: 'Nitrox Diver')],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: CertificationListContent(
+            showAppBar: false,
+            selectionController: controller,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final exitButton = find.byKey(const ValueKey('selection_exit'));
+      expect(find.byKey(selectItemsMenuKey), findsNothing);
+      expect(find.byIcon(Icons.checklist), findsNothing);
+      expect(exitButton, findsNothing);
+
+      controller.enterExplicit();
+      await tester.pumpAndSettle();
+
+      expect(exitButton, findsOneWidget);
+      expect(find.text('0 selected'), findsOneWidget);
     });
 
     testWidgets('table renders certification data in cells', (tester) async {
@@ -584,12 +679,13 @@ void main() {
   // The canonical action order across every entity list, taken from the
   // Dives/Sites baseline:
   //
-  //   [view switches: map, wallet] search  filter  sort  select  overflow
+  //   [view switches: map, wallet] search  filter  sort  overflow
   //
   // Certifications is the strictest case in the app: it is the only bar
-  // carrying a view switch (wallet) alongside search, sort, select and
-  // overflow, so it pins every neighbour pair in the sequence. It used to
-  // render sort before search.
+  // carrying a view switch (wallet) alongside search, sort and overflow, so
+  // it pins every neighbour pair in the sequence. It used to render sort
+  // before search. "Select items" lives in the overflow (issue #2775), so
+  // the bar carries no Select icon of its own.
   group('compact bar action order', () {
     testWidgets('follows the canonical order', (tester) async {
       final overrides = await _buildPhoneOverrides(
@@ -608,9 +704,10 @@ void main() {
         Icons.wallet,
         Icons.search,
         Icons.sort,
-        Icons.checklist,
         Icons.more_vert,
       ];
+
+      expect(find.byIcon(Icons.checklist), findsNothing);
 
       final xs = [
         for (final icon in expected)

@@ -39,6 +39,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 
 import '../../../../helpers/dive_participants.dart';
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
 
 Dive _dive(String id, {DiveSite? site}) {
@@ -326,8 +327,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
+    await enterSelectionViaMenu(tester);
     await tester.tap(_tile('d1'));
     await tester.pumpAndSettle();
     await tester.tap(_tile('d2'));
@@ -672,8 +672,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
+    await enterSelectionViaMenu(tester);
     await tester.tap(_tile('d1'));
     await tester.pumpAndSettle();
     await tester.tap(_tile('d2'));

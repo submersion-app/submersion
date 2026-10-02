@@ -15,8 +15,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The dive detail equipment card's content: the gear tree, and above it
 /// the diver figure when [showFigure] is on (spec section 11). The figure
-/// is drawn from the tree's top-level rows in the tree's order, so its
-/// numbers run down the rows, and a tap on either side flashes the other.
+/// is drawn from the tree's top-level rows in the tree's order. It names
+/// every item, so neither it nor the rows carry numbers (issue #2774); a
+/// tap on an item on the figure flashes its row and scrolls to it.
 class DiveGearWithFigure extends ConsumerStatefulWidget {
   const DiveGearWithFigure({
     super.key,
@@ -74,13 +75,9 @@ class _DiveGearWithFigureState extends ConsumerState<DiveGearWithFigure>
       // Gear another profile owns is marked against this dive's diver
       // (issue #2046).
       ownerReferenceDiverId: dive.diverId,
-      figureNumbers: model == null
-          ? const {}
-          : {for (final p in model.numbered) p.item.id: p.number},
-      selectedItemId: selectedFigureItemId,
-      onNumberTap: model == null
-          ? null
-          : (id) => selectFigureItem(id, revealFigure: true),
+      // A flash still running when the diver turns the figure off must not
+      // leave a row highlighted with no figure to match.
+      selectedItemId: model == null ? null : selectedFigureItemId,
       rowKey: model == null ? null : figureRowKey,
     );
     if (model == null) return tree;
@@ -95,6 +92,7 @@ class _DiveGearWithFigureState extends ConsumerState<DiveGearWithFigure>
             selectedItemId: selectedFigureItemId,
             selectionSerial: figureSelectionSerial,
             onItemTap: (placed) => selectFigureItem(placed.item.id),
+            showNumbers: false,
           ),
         ),
         const SizedBox(height: 16),

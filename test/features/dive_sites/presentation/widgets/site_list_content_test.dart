@@ -24,9 +24,12 @@ import 'package:submersion/features/site_types/presentation/providers/site_type_
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
@@ -232,8 +235,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(find.text('Alpha Site'));
       await tester.pumpAndSettle();
       expect(find.text('1 selected'), findsOneWidget);
@@ -378,7 +380,7 @@ void main() {
     );
   });
 
-  group('overflow menu "Select sites"', () {
+  group('overflow menu "Select items"', () {
     testWidgets('enters selection mode from the compact app bar', (
       tester,
     ) async {
@@ -401,9 +403,23 @@ void main() {
       // No selection UI before opening the menu.
       expect(find.byIcon(Icons.select_all), findsNothing);
 
+      // The header shows no Select icon of its own (issue #2775).
+      expect(find.byIcon(Icons.checklist), findsNothing);
+
       await tester.tap(find.byIcon(Icons.more_vert));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Select sites'));
+      // Listed once, under the shared label.
+      expect(find.text('Select items'), findsOneWidget);
+      expect(find.text('Select sites'), findsNothing);
+      // Every entry carries its icon, as in the full app bar's menu.
+      expect(
+        find.ancestor(
+          of: find.byIcon(Icons.download),
+          matching: find.byType(PopupMenuItem<String>),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Select items'));
       await tester.pumpAndSettle();
 
       // Selection app bar is now shown (select-all affordance present).
@@ -433,9 +449,15 @@ void main() {
 
       expect(find.byIcon(Icons.select_all), findsNothing);
 
+      // The header shows no Select icon of its own (issue #2775).
+      expect(find.byIcon(Icons.checklist), findsNothing);
+
       await tester.tap(find.byIcon(Icons.more_vert));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Select sites'));
+      // Listed once, under the shared label.
+      expect(find.text('Select items'), findsOneWidget);
+      expect(find.text('Select sites'), findsNothing);
+      await tester.tap(find.text('Select items'));
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.select_all), findsOneWidget);
@@ -857,7 +879,8 @@ void main() {
           locale: const Locale('en'),
           child: const SiteListContent(showAppBar: true),
         ),
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         rowRoot: find.byType(SiteListTile).first,
         firstRow: find.text('Aaa Site'),
         applyFilter: (tester) async {
@@ -876,6 +899,10 @@ void main() {
       testWidgets('keeps the checks that stay on screen (${mode.name})', (
         tester,
       ) async {
+        // Table mode has no menu inside the list (issue #2775), so both
+        // modes enter through the controller a page would pass in.
+        final controller = SelectionController();
+        addTearDown(controller.dispose);
         final all = <SiteWithDiveCount>[
           _makeSite(id: 's1', name: 'Aaa Site'),
           _makeSite(id: 's2', name: 'Bbb Site'),
@@ -907,11 +934,14 @@ void main() {
               ),
             ],
             locale: const Locale('en'),
-            child: const SiteListContent(showAppBar: true),
+            child: SiteListContent(
+              showAppBar: true,
+              selectionController: controller,
+            ),
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        controller.enterExplicit();
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('selection_select_all')));
         await tester.pumpAndSettle();
@@ -937,6 +967,10 @@ void main() {
       testWidgets('keeps the checks that stay on screen (${mode.name})', (
         tester,
       ) async {
+        // Table mode has no menu inside the list (issue #2775), so both
+        // modes enter through the controller a page would pass in.
+        final controller = SelectionController();
+        addTearDown(controller.dispose);
         final all = <SiteWithDiveCount>[
           _makeSite(id: 's1', name: 'Aaa Site'),
           _makeSite(id: 's2', name: 'Bbb Site'),
@@ -976,11 +1010,14 @@ void main() {
               highlightedSiteIdProvider.overrideWith((ref) => null),
             ],
             locale: const Locale('en'),
-            child: const SiteListContent(showAppBar: true),
+            child: SiteListContent(
+              showAppBar: true,
+              selectionController: controller,
+            ),
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        controller.enterExplicit();
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('selection_select_all')));
         await tester.pumpAndSettle();
@@ -1027,8 +1064,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('enter_selection')));
-        await tester.pumpAndSettle();
+        await enterSelectionViaMenu(tester);
         await tester.tap(find.text('First Site'));
         await tester.pumpAndSettle();
         expect(find.text('1 selected'), findsOneWidget);
@@ -1085,7 +1121,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('1 selected'), findsNothing);
-      expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
+      expect(find.byKey(const ValueKey('selection_exit')), findsNothing);
       expect(opened, ['s1']);
     });
 
@@ -1111,8 +1147,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(find.text('Toggle Site'));
       await tester.pumpAndSettle();
       expect(find.text('1 selected'), findsOneWidget);

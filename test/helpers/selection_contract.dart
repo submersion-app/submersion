@@ -10,6 +10,8 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// [build] returns a fully wired widget for the surface under test.
 /// [selectButton] finds the surface's Select affordance.
+/// [selectMenu], when set, finds the overflow menu that holds [selectButton];
+/// it is opened before each tap on [selectButton] (issue #2775).
 /// [firstRow] finds the first selectable row.
 /// [applyFilter] narrows the surface so pruning can be observed, leaving
 /// [visibleAfterFilter] rows on screen.
@@ -28,6 +30,7 @@ Future<void> verifySelectionContract(
   WidgetTester tester, {
   required Widget Function() build,
   required Finder selectButton,
+  Finder? selectMenu,
   required Finder firstRow,
   required Future<void> Function(WidgetTester tester) applyFilter,
   required int visibleAfterFilter,
@@ -48,9 +51,23 @@ Future<void> verifySelectionContract(
           'live inside',
     );
   }
-  // The Select affordance is visible without any hidden gesture.
+  // Opens the overflow menu holding Select, on surfaces that keep it there.
+  Future<void> openSelectMenu() async {
+    if (selectMenu == null) return;
+    expect(
+      selectMenu,
+      findsOneWidget,
+      reason: 'surface must expose the menu that holds Select',
+    );
+    await tester.tap(selectMenu);
+    await tester.pumpAndSettle();
+  }
+
+  // The Select affordance is reachable without any hidden gesture: on screen,
+  // or one tap away in the overflow menu.
   await tester.pumpWidget(build());
   await tester.pumpAndSettle();
+  await openSelectMenu();
   expect(
     selectButton,
     findsOneWidget,
@@ -124,6 +141,7 @@ Future<void> verifySelectionContract(
   );
 
   // Filtering prunes the selection to what remains visible.
+  await openSelectMenu();
   await tester.tap(selectButton);
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(const ValueKey('selection_select_all')));
