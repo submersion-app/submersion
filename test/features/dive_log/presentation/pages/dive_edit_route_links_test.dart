@@ -15,6 +15,16 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/nav_track_fixtures.dart';
 import '../../../../helpers/test_database.dart';
 
+/// Links fail on Save; everything else is the real database.
+class _FailingLinkRepository extends NavTrackRepository {
+  @override
+  Future<bool> link(
+    String routeId,
+    String diveId, {
+    required NavTrackLinkMode linkMode,
+  }) async => throw StateError('disk full');
+}
+
 /// The Dive Edit page stages underwater route links and writes them only on
 /// Save (spec 2026-10-02-underwater-route-entry-points-design.md, section
 /// 1). Driven against a real database so the assertions are on stored rows.
@@ -71,6 +81,7 @@ void main() {
     String? diveId,
     List<String>? bulkDiveIds,
     VoidCallback? onCancel,
+    void Function(String)? onSaved,
     List<Override> extraOverrides = const [],
   }) async {
     tester.platformDispatcher.localesTestValue = const [
@@ -103,6 +114,7 @@ void main() {
               bulkDiveIds: bulkDiveIds,
               embedded: true,
               onCancel: onCancel,
+              onSaved: onSaved,
             ),
           ),
         ),
@@ -191,6 +203,50 @@ void main() {
     // The discard guard asks first instead of cancelling straight away.
     expect(find.byType(AlertDialog), findsOneWidget);
     expect(cancelled, 0);
+  });
+
+  testWidgets('discarding the edit after linking writes no link', (
+    tester,
+  ) async {
+    final dive = await insertDive();
+    final routeId = await insertRoute();
+    var cancelled = 0;
+    await pumpEditor(tester, diveId: dive.id, onCancel: () => cancelled++);
+
+    await linkWreckTour(tester);
+    await tester.tap(find.text('Cancel'));
+    await pumpSteps(tester);
+    await tester.tap(find.text('Discard'));
+    await pumpSteps(tester);
+
+    expect(cancelled, 1);
+    expect(await routes.getForDive(dive.id), isEmpty);
+    final route = await routes.getById(routeId, includePoints: false);
+    expect(route!.diveId, isNull);
+  });
+
+  testWidgets('a link that fails on Save is reported, and the dive still '
+      'saves', (tester) async {
+    final dive = await insertDive();
+    await insertRoute();
+    String? savedId;
+    await pumpEditor(
+      tester,
+      diveId: dive.id,
+      onSaved: (id) => savedId = id,
+      extraOverrides: [
+        navTrackRepositoryProvider.overrideWithValue(_FailingLinkRepository()),
+      ],
+    );
+
+    await linkWreckTour(tester);
+    await save(tester);
+
+    expect(savedId, dive.id);
+    expect(
+      find.textContaining("Could not update this dive's underwater routes"),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a dive whose routes fail to load says so on the row', (

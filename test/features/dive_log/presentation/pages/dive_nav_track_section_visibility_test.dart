@@ -31,6 +31,9 @@ Future<void> _pump(
   addTearDown(tester.view.reset);
   final overrides = await getBaseOverrides();
   final originalOnError = FlutterError.onError;
+  // Restored by teardown, so a pump that throws cannot leak the filter into
+  // the next test file sharing this isolate.
+  addTearDown(() => FlutterError.onError = originalOnError);
   FlutterError.onError = (d) {
     if (d.toString().contains('overflowed')) return;
     originalOnError?.call(d);
@@ -53,7 +56,6 @@ Future<void> _pump(
   );
   await tester.pump();
   await tester.pump(const Duration(seconds: 1));
-  FlutterError.onError = originalOnError;
 }
 
 void main() {
