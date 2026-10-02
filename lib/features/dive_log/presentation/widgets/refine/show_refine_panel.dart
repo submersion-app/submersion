@@ -17,9 +17,16 @@ Future<void> showRefinePanel(
   VoidCallback? onApplied,
   @visibleForTesting Widget Function()? builder,
 }) {
-  Widget panel() =>
-      builder?.call() ??
-      RefinePanel(filterProvider: filterProvider, onApplied: onApplied);
+  // Shrinks above the soft keyboard so the pinned Show button stays usable
+  // while a field has focus (bottom sheets do not pad for it themselves).
+  Widget panel() => Builder(
+    builder: (context) => Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child:
+          builder?.call() ??
+          RefinePanel(filterProvider: filterProvider, onApplied: onApplied),
+    ),
+  );
   if (!ResponsiveBreakpoints.isMasterDetail(context)) {
     return showModalBottomSheet<void>(
       context: context,

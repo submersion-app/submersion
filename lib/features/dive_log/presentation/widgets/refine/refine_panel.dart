@@ -184,28 +184,33 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
           ),
         ),
         const Divider(height: 1),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          child: Row(
-            children: [
-              TextButton(
-                key: kRefineCancelKey,
-                onPressed: _close,
-                child: Text(l10n.diveLog_search_cancel),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: FilledButton(
-                  key: kRefineApplyKey,
-                  onPressed: _apply,
-                  child: Text(
-                    shown == null
-                        ? l10n.diveLog_refine_showDivesNoCount
-                        : l10n.diveLog_refine_showDives(shown),
+        // Clear of the home indicator: the sheet's own safe area leaves the
+        // bottom to its content.
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: Row(
+              children: [
+                TextButton(
+                  key: kRefineCancelKey,
+                  onPressed: _close,
+                  child: Text(l10n.diveLog_search_cancel),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton(
+                    key: kRefineApplyKey,
+                    onPressed: _apply,
+                    child: Text(
+                      shown == null
+                          ? l10n.diveLog_refine_showDivesNoCount
+                          : l10n.diveLog_refine_showDives(shown),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
