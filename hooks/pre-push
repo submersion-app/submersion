@@ -24,6 +24,13 @@
 #   4. tests importing TWO OR MORE changed lib files, wherever they live. This
 #      signal is orthogonal to proximity and rescues cross-feature dependents
 #      that tier 3 would drop.
+#   5. every test under test/architecture/, whenever a lib or test Dart file
+#      changes. These guards scan the whole of lib/ (and some of test/) from
+#      disk rather than importing it, so no import tier can see that a new
+#      file breaks one; left to CI, they turned main red after green pushes
+#      (issue #2611). Measured on an 18-core Mac at -j 16: 21 files, 38s warm
+#      on their own. Bundled into one isolate they took longer (1m56s, run
+#      serially), so they run as separate files.
 # Distant single-hit importers are left to CI. Measured against the last 25
 # merged PRs this cuts nothing off already-cheap pushes (0-29% on selections
 # under 60 files) and 74-100% off the expensive ones.
@@ -482,10 +489,13 @@ near_dirs=$(mktemp)        # feature areas touched by changed lib code
 # A changed lib file at the top level (lib/main.dart) has no feature area to
 # compare against, so proximity cannot discriminate: keep every importer.
 near_everything=0
+# Set by any lib/ or test/ Dart change; selects the repo-wide guards (tier 5).
+guards_needed=0
 
 while IFS= read -r f; do
     [ -n "$f" ] || continue
     case "$f" in *.dart) dart_changed=1 ;; esac
+    case "$f" in lib/*.dart|test/*.dart) guards_needed=1 ;; esac
     case "$f" in
         test/*_test.dart)
             # A changed test: run it directly.
@@ -543,6 +553,14 @@ if [ -s "$helper_pattern" ]; then
         matched="${matched}
 ${t}"
     done < <(grep -rlF -f "$helper_pattern" --include='*_test.dart' test 2>/dev/null || true)
+fi
+
+# Repo-wide architecture guards, run in full: see tier 5 in the header.
+if [ "$guards_needed" = "1" ] && [ -d test/architecture ]; then
+    while IFS= read -r t; do
+        matched="${matched}
+${t}"
+    done < <(find test/architecture -name '*_test.dart' 2>/dev/null || true)
 fi
 
 # Importers of changed lib code, ranked. `grep -rc` reports "path:count" per
@@ -645,8 +663,9 @@ if [ "${#test_files[@]}" -gt 0 ]; then
     fi
     echo "✅ Affected tests passed"
     echo "   Ranked selection: changed and mirrored tests, same-area importers,"
-    echo "   and tests hitting 2+ changed files. Distant single-hit importers and"
-    echo "   most generated-l10n importers are left to CI's full suite."
+    echo "   tests hitting 2+ changed files, and the test/architecture/ guards."
+    echo "   Distant single-hit importers and most generated-l10n importers are"
+    echo "   left to CI's full suite."
     echo "   (RUN_ALL_AFFECTED=1 runs every importer.)"
     echo ""
 elif [ "$dart_changed" = "1" ]; then

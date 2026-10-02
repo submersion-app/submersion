@@ -556,6 +556,30 @@ The comment `// test-bundle: run-alone <reason>`, on a line of its own, does the
 same for any file. It is there to unblock main while a conflict is fixed, not
 to leave one in place.
 
+## Pre-push Hook and Inherited Failures
+
+The pre-push hook (`hooks/pre-push`) runs a ranked selection of the tests your
+push affects, chosen by what imports the changed files. The guards in
+`test/architecture/` read the whole of `lib/` from disk instead of importing
+it, so no import can show that a new file breaks one. The hook therefore runs
+all of them whenever a push changes a Dart file under `lib/` or `test/`
+(issue #2611). CI still runs the full suite on every pull request.
+
+A pull request's CI tests the merge of the branch into `main`, so a failure on
+`main` turns every open pull request red too. When a required job fails on a
+pull request, `CI Success` compares each failed job with the same job in
+`main`'s CI/CD run (`scripts/report_inherited_failures.py`) and annotates it:
+
+| Annotation | Meaning |
+|---|---|
+| Also failing on main (warning) | `main` fails the same job. The failure is probably inherited; the annotation links `main`'s run |
+| Not failing on main (notice) | `main` passes that job, so the failure is new on this pull request |
+
+The pull request stays red either way. A job covers a whole test shard, so a
+shard `main` is failing can still hide a second failure your branch added:
+read the log before assuming the failure is not yours. Re-running the old job
+does not pick up a fix on `main`; push a commit or merge `main` instead.
+
 ## Best Practices
 
 1. **Isolation** - Each test is independent and doesn't rely on other tests

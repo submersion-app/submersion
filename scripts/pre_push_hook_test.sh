@@ -300,6 +300,12 @@ make_proximity_fixture() {
         printf "import 'package:submersion/features/alpha/domain/alpha_entity.dart';\n"
     } > test/features/beta/presentation/pages/beta_multi_hit_test.dart
 
+    # A repo-wide architecture guard. It imports nothing the branch changes and
+    # lives in no feature area, so only the guard tier can select it.
+    mkdir -p test/architecture
+    printf '// scans every file under lib/\n' \
+        > test/architecture/sample_guard_test.dart
+
     # 60 importers of the generated l10n file, so a 40-file sample is a strict
     # subset and "sampled" is distinguishable from "all".
     for i in $(seq 1 60); do
@@ -347,6 +353,16 @@ assert_selected has 'test/features/beta/presentation/pages/beta_multi_hit_test.d
     'keeps a distant test that imports two or more changed files'
 assert_selected lacks 'test/features/beta/presentation/pages/beta_only_far_test.dart' \
     'drops a distant test that imports only one changed file'
+
+# --- Test 3b: repo-wide architecture guards run for any lib change ----------
+#
+# test/architecture/ scans every file under lib/ (and some of test/), so a new
+# file anywhere can break a guard that imports none of it. Neither the import
+# tiers nor proximity can see that dependency, which let a push go green
+# locally and turn main red (issue #2611).
+
+assert_selected has 'test/architecture/sample_guard_test.dart' \
+    'runs the architecture guards when a lib file changes'
 
 # --- Test 4: the format check is scoped to the changed files ----------------
 #
@@ -426,6 +442,19 @@ run_hook "$tmp"
 
 assert_selected has 'test/features/delta/main_importer_test.dart' \
     'keeps importers of a changed top-level lib file'
+
+rm -rf "$tmp"
+
+# --- Test 7b: a push with no Dart change skips the architecture guards ------
+#
+# The guards cost a few seconds of isolate startup, so a docs-only push must
+# not pay for them.
+
+tmp="$(make_proximity_fixture 'NOTES.md')"
+run_hook "$tmp"
+
+assert_selected lacks 'test/architecture/sample_guard_test.dart' \
+    'skips the architecture guards for a push with no Dart change'
 
 rm -rf "$tmp"
 
