@@ -138,7 +138,7 @@ void main() {
       );
       // 30% O2 at 60 m on the plan's default salt water (1025 kg/m3, not
       // the flat 1 bar/10 m assumption) is ~7.029 bar ambient, so ~2.109
-      // bar -- over the 1.6 bar default Dil MOD.
+      // bar, over the 1.6 bar default Dil MOD.
       final issue = outcome.issues.firstWhere(
         (i) => i.type == PlanIssueType.diluentModExceeded,
       );

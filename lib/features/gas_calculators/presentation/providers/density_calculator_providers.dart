@@ -26,9 +26,11 @@ final densityCcrProvider = StateProvider<bool>((ref) => false);
 /// CCR setpoint in bar. Kept while OC is selected so switching back to CCR
 /// restores it. Seeded from the diver's own CCR setpoint high, not a fixed
 /// literal, since that is the setpoint actually used for the working/bottom
-/// phase this calculator defaults to.
+/// phase this calculator defaults to. Watched rather than read, so the seed
+/// follows settings hydration, a diver switch, or a Settings edit instead of
+/// latching whatever was loaded the first time the calculator opened.
 final densitySetpointProvider = StateProvider<double>(
-  (ref) => ref.read(ccrSetpointHighProvider),
+  (ref) => ref.watch(ccrSetpointHighProvider),
 );
 
 /// Gas temperature. Defaults to the colder, conservative option.

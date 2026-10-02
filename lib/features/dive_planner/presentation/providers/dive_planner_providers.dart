@@ -726,7 +726,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   ///
   /// Entering CCR seeds each setpoint still null (a fresh plan, one that has
   /// never been in CCR mode, or one with only a hand-set half) from the
-  /// diver's own CCR ppO2 limits, independently per field -- a setpoint the
+  /// diver's own CCR ppO2 limits, independently per field. A setpoint the
   /// diver already set (low or high, on its own) is never overwritten. The
   /// alternative, leaving a missing half null, would fall through to
   /// [domain.DivePlan]'s spec defaults (0.7 / 1.3) instead of the diver's
@@ -735,14 +735,14 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// Unlike [adoptGradientFactorsIfPristine], there is no later "adopt if
   /// pristine" for these settings: switching mode is itself a diver edit and
   /// already sets `isDirty`, so a plan can never be both in CCR mode and
-  /// pristine -- there is nothing left for a later settings change to adopt
-  /// into.
+  /// pristine, and there is nothing left for a later settings change to
+  /// adopt into.
   ///
   /// Known limitation: a setpoint is seeded only once, the first time its
   /// field is still null while entering CCR, so cycling CCR -> OC -> CCR
   /// keeps that first seed even if the diver's Settings changed in between.
   /// Clearing on exit would fix that but would also wipe a hand-tuned
-  /// setpoint on every OC/SCR/pSCR step of the mode-cycle button -- a worse
+  /// setpoint on every OC/SCR/pSCR step of the mode-cycle button, a worse
   /// regression for a rarer case.
   void updateMode(domain.PlanMode mode) {
     final defaults =
@@ -752,8 +752,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
         : null;
     state = state.copyWith(
       mode: mode,
-      setpointLow: state.setpointLow == null ? defaults?.low : null,
-      setpointHigh: state.setpointHigh == null ? defaults?.high : null,
+      setpointLow: state.setpointLow ?? defaults?.low,
+      setpointHigh: state.setpointHigh ?? defaults?.high,
       isDirty: true,
       updatedAt: DateTime.now(),
     );

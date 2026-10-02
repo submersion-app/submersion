@@ -31,8 +31,8 @@ class PlanEngineConfig extends Equatable {
 
   /// Diluent MOD limit: the ppO2 a CCR plan's diluent may reach on a flush,
   /// from the diver's "ppO2 limits CCR" Settings. Unlike [ppO2Working] and
-  /// [ppO2Deco] -- physiological toxicity limits that apply to whatever is
-  /// actually being breathed -- this only governs the diluent gas itself.
+  /// [ppO2Deco] (physiological toxicity limits that apply to whatever is
+  /// actually being breathed), this only governs the diluent gas itself.
   final double ccrDiluentModPpO2;
 
   final int cnsWarningThreshold;
@@ -1030,7 +1030,7 @@ class PlanEngine {
       // The diluent's own open-circuit ppO2, independent of the setpoint:
       // how deep it could still be used for a loop flush or a manual
       // diluent breath. Checked against the diver's Dil MOD, not the OC
-      // toxicity limits -- those govern what the loop delivers, not the
+      // toxicity limits: those govern what the loop delivers, not the
       // diluent itself.
       if (_modeFor(plan, segment) == domain.PlanMode.ccr) {
         final diluentPpO2 = environment.pressureAtDepth(deeperEnd) * fO2;
