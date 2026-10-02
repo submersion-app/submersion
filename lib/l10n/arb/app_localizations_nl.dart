@@ -20660,6 +20660,20 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'Een apparaat op het stabiele kanaal waarvoor nog geen update wordt aangeboden, loopt bij met de volgende stabiele versie, of kan overschakelen naar het bèta-updatekanaal.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList gebruikt een oudere versie van Submersion die de nieuwste wijzigingen van dit apparaat niet kan lezen, en ontvangt ze dus pas na een update.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList gebruiken een oudere versie van Submersion die de nieuwste wijzigingen van dit apparaat niet kan lezen, en ontvangen ze dus pas na een update.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList heeft nog een oudere of onbekende bibliotheekversie, dus de wijzigingen zijn niet samengevoegd. Open Submersion daar om de huidige bibliotheek over te nemen.';
   }
@@ -20707,8 +20721,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Werk dit apparaat bij om ze te ontvangen.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'Ze komen binnen zodra dit apparaat een minstens even nieuwe versie gebruikt. Als het andere apparaat op het bètakanaal zit, bestaat er mogelijk nog geen stabiele update: zet dit apparaat ook op het bèta-updatekanaal, of wacht op de volgende stabiele versie.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'Ze worden automatisch toegepast zodra de appstore-update voor dit apparaat beschikbaar is; de update is mogelijk nog in beoordeling.';
+      'Ze worden automatisch toegepast zodra de appstore-update voor dit apparaat die versie bereikt. De update is mogelijk nog in beoordeling of, als het andere apparaat een bèta gebruikt (TestFlight of Google Play-test), nog niet uitgebracht: neem op dit apparaat deel aan dezelfde bèta, of wacht op de volgende versie.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Verbonden';
@@ -22575,8 +22593,16 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'Je blijft op deze bèta totdat de volgende stabiele versie nieuwer is.';
+  String get settings_updates_stableDialogBody =>
+      'Dit apparaat houdt zijn huidige build totdat een stabiele versie nieuwer is, dus de app wordt nooit teruggezet en je duiklogboek blijft behouden. Tot die tijd ontvangen apparaten op het stabiele kanaal die met dit apparaat synchroniseren mogelijk niet de nieuwste wijzigingen. Installeer geen oudere stabiele build over deze heen: die kan geen duiklogboek openen dat een nieuwere build heeft geüpgraded.';
+
+  @override
+  String get settings_updates_stableDialogConfirm =>
+      'Overschakelen naar stabiel';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      'Terug naar stabiele updates?';
 
   @override
   String get settings_updates_upToDate => 'Up-to-date';

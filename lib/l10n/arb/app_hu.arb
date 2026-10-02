@@ -5832,6 +5832,9 @@
   "settings_cloudSync_header_syncBehavior": "Szinkronizálási viselkedés",
   "settings_cloudSync_lastSynced": "Utolsó szinkronizálás: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 függő változtatás} other{{count} függő változtatás}}",
+  "settings_cloudSync_peerBehind_action": "A stabil csatornán lévő eszköz, amelynek még nem érhető el frissítés, a következő stabil kiadással felzárkózik, vagy átválthat a béta frissítési csatornára.",
+  "settings_cloudSync_peerBehind_banner": "{deviceList} a Submersion egy régebbi verzióját futtatja, amely nem tudja olvasni ennek az eszköznek a legújabb változtatásait, ezért csak frissítés után kapja meg őket.",
+  "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} a Submersion egy régebbi verzióját futtatják, amely nem tudja olvasni ennek az eszköznek a legújabb változtatásait, ezért csak frissítés után kapják meg őket.",
   "settings_cloudSync_peerNeedsAdopt_banner": "{deviceList} még régebbi vagy ismeretlen könyvtárverziót használ, ezért a változásai nem lettek egyesítve. Nyissa meg rajta a Submersiont az aktuális könyvtár átvételéhez.",
   "settings_cloudSync_peerNeedsAdopt_bannerPlural": "{deviceList} még régebbi vagy ismeretlen könyvtárverziót használnak, ezért a változásaik nem lettek egyesítve. Nyissa meg rajtuk a Submersiont az aktuális könyvtár átvételéhez.",
   "settings_cloudSync_peerNeedsAdopt_unnamedDevice": "{shortId} eszköz",
@@ -5842,7 +5845,8 @@
   "settings_cloudSync_peerRequiresUpdate_bannerNamed": "{deviceList} a Submersion újabb verziójából szinkronizál, ezért a legújabb változtatásai egyelőre visszatartva maradnak.",
   "settings_cloudSync_peerRequiresUpdate_bannerNamedPlural": "{deviceList} a Submersion újabb verziójából szinkronizálnak, ezért a legújabb változtatásaik egyelőre visszatartva maradnak.",
   "settings_cloudSync_peerRequiresUpdate_updateAction": "Frissítsd ezt az eszközt, hogy megkapd őket.",
-  "settings_cloudSync_peerRequiresUpdate_storeAction": "Automatikusan érvénybe lépnek, amint megérkezik az eszköz alkalmazásbolti frissítése; a frissítés még ellenőrzés alatt állhat.",
+  "settings_cloudSync_peerRequiresUpdate_stableAction": "Akkor érkeznek meg, amikor ez az eszköz legalább ugyanilyen új verziót futtat. Ha a másik eszköz a béta csatornán van, lehet, hogy még nincs stabil frissítés: állítsd ezt az eszközt is a béta frissítési csatornára, vagy várd meg a következő stabil kiadást.",
+  "settings_cloudSync_peerRequiresUpdate_storeAction": "Automatikusan érvénybe lépnek, amint az eszköz alkalmazásbolti frissítése eléri azt a verziót. A frissítés még ellenőrzés alatt állhat, vagy ha a másik eszköz bétát használ (TestFlight vagy Google Play tesztelés), még nem jelent meg: csatlakozz ezen az eszközön is ugyanahhoz a bétához, vagy várd meg a következő kiadást.",
   "settings_cloudSync_provider_connected": "Csatlakoztatva",
   "settings_cloudSync_provider_connectedTo": "Csatlakoztatva: {providerName}",
   "settings_cloudSync_provider_connectionFailed": "{providerName} csatlakozás sikertelen: {error}",
@@ -6405,7 +6409,9 @@
       }
     }
   },
-  "settings_updates_stableSwitchNotice": "Ezen a bétán maradsz, amíg a következő stabil kiadás nem lesz nála újabb.",
+  "settings_updates_stableDialogBody": "Ez az eszköz megtartja a jelenlegi buildjét, amíg egy stabil kiadás újabb nem lesz nála, így az alkalmazás sosem áll vissza korábbi verzióra, és a merülési naplód megmarad. Addig a stabil csatornán lévő, ezzel szinkronizáló eszközök nem biztos, hogy megkapják a legújabb változtatásait. Ne telepíts erre egy régebbi stabil buildet: az nem tud megnyitni olyan merülési naplót, amelyet egy újabb build frissített.",
+  "settings_updates_stableDialogConfirm": "Váltás stabilra",
+  "settings_updates_stableDialogTitle": "Visszatérsz a stabil frissítésekhez?",
   "settings_updates_upToDate": "Naprakész",
   "settings_updates_versionAvailable": "A(z) {version} verzió elérhető",
   "@settings_updates_versionAvailable": {

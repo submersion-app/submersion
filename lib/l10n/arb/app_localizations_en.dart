@@ -20484,6 +20484,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'A device on the stable channel with no update offered yet catches up with the next stable release, or can switch to the beta update channel.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList runs an older version of Submersion that cannot read this device\'s latest changes, so it will not receive them until it updates.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList run an older version of Submersion that cannot read this device\'s latest changes, so they will not receive them until they update.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList still has an older or unknown library version, so its changes were not merged. Open Submersion on it to adopt the current library.';
   }
@@ -20531,8 +20545,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Update this device to receive them.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'They arrive once this device runs a version at least as new. If that device is on the beta channel, a stable update may not exist yet: switch this device to the beta update channel too, or wait for the next stable release.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'They will apply automatically once this device\'s app store update arrives; the update may still be in review.';
+      'They apply automatically once this device\'s app store update reaches that version. It may still be in review, or, if that device runs a beta (TestFlight or Google Play testing), not be released yet: join the same beta on this device, or wait for the next release.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Connected';
@@ -22388,8 +22406,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'You will stay on this beta until the next stable release is newer than it.';
+  String get settings_updates_stableDialogBody =>
+      'This device keeps its current build until a stable release is newer than it, so the app is never downgraded and your dive log is kept. Until then, devices on the stable channel that sync with this one may not receive its latest changes. Do not install an older stable build over this one: it cannot open a dive log that a newer build has upgraded.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'Switch to Stable';
+
+  @override
+  String get settings_updates_stableDialogTitle => 'Return to stable updates?';
 
   @override
   String get settings_updates_upToDate => 'Up to date';

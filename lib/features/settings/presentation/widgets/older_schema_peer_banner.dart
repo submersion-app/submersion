@@ -3,19 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/settings/presentation/widgets/peer_device_list.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Names the devices whose changeset read failed on the last pull.
+/// Names the devices too old to read what this device publishes: their own
+/// schema is below this build's compatibility floor, so they hold every
+/// payload from here until they update (issue #2619).
 ///
-/// A read failure is transient by design: the peer's cursor stays put and the
-/// next sync retries, so this is informational rather than a call to action.
-/// Without it a run in which a peer's data silently stopped merging would
-/// look identical to a fully converged one (issue #1417). Mirrors
-/// SkippedPeerBanner: zero-noise resting state, appears only when a peer
-/// actually failed.
-class ReadFailedPeerBanner extends StatelessWidget {
-  const ReadFailedPeerBanner({super.key, required this.peers});
+/// The reverse of NewerSchemaPeerBanner. Without it the newer device, the
+/// beta one in a beta and stable pair, reports a clean sync while its peer
+/// receives nothing. Mirrors the sibling banners: zero-noise resting state,
+/// appears only when a peer is actually behind.
+class OlderSchemaPeerBanner extends StatelessWidget {
+  const OlderSchemaPeerBanner({super.key, required this.peers});
 
-  /// A null name means the peer's manifest named no device (or the failure
-  /// came before the manifest could be parsed at all).
+  /// A null name means the peer published none.
   final List<({String? name, String shortId})> peers;
 
   @override
@@ -25,9 +24,9 @@ class ReadFailedPeerBanner extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
 
     final list = peerDeviceList(l10n, peers);
-    final text = peers.length == 1
-        ? l10n.settings_cloudSync_peerReadFailed_banner(list)
-        : l10n.settings_cloudSync_peerReadFailed_bannerPlural(list);
+    final headline = peers.length == 1
+        ? l10n.settings_cloudSync_peerBehind_banner(list)
+        : l10n.settings_cloudSync_peerBehind_bannerPlural(list);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -41,7 +40,7 @@ class ReadFailedPeerBanner extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  text,
+                  '$headline ${l10n.settings_cloudSync_peerBehind_action}',
                   // Card is secondaryContainer, and Material does not
                   // re-derive text colour from its background, so bodyMedium
                   // would keep onSurface. Pair it with the container

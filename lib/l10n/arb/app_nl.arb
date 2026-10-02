@@ -5934,6 +5934,9 @@
   "settings_cloudSync_header_syncBehavior": "Synchronisatiegedrag",
   "settings_cloudSync_lastSynced": "Laatst gesynchroniseerd: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 wachtende wijziging} other{{count} wachtende wijzigingen}}",
+  "settings_cloudSync_peerBehind_action": "Een apparaat op het stabiele kanaal waarvoor nog geen update wordt aangeboden, loopt bij met de volgende stabiele versie, of kan overschakelen naar het bèta-updatekanaal.",
+  "settings_cloudSync_peerBehind_banner": "{deviceList} gebruikt een oudere versie van Submersion die de nieuwste wijzigingen van dit apparaat niet kan lezen, en ontvangt ze dus pas na een update.",
+  "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} gebruiken een oudere versie van Submersion die de nieuwste wijzigingen van dit apparaat niet kan lezen, en ontvangen ze dus pas na een update.",
   "settings_cloudSync_peerNeedsAdopt_banner": "{deviceList} heeft nog een oudere of onbekende bibliotheekversie, dus de wijzigingen zijn niet samengevoegd. Open Submersion daar om de huidige bibliotheek over te nemen.",
   "settings_cloudSync_peerNeedsAdopt_bannerPlural": "{deviceList} hebben nog een oudere of onbekende bibliotheekversie, dus hun wijzigingen zijn niet samengevoegd. Open Submersion daar om de huidige bibliotheek over te nemen.",
   "settings_cloudSync_peerNeedsAdopt_unnamedDevice": "apparaat {shortId}",
@@ -5944,7 +5947,8 @@
   "settings_cloudSync_peerRequiresUpdate_bannerNamed": "{deviceList} synchroniseert vanaf een nieuwere versie van Submersion, dus de nieuwste wijzigingen worden voorlopig vastgehouden.",
   "settings_cloudSync_peerRequiresUpdate_bannerNamedPlural": "{deviceList} synchroniseren vanaf een nieuwere versie van Submersion, dus hun nieuwste wijzigingen worden voorlopig vastgehouden.",
   "settings_cloudSync_peerRequiresUpdate_updateAction": "Werk dit apparaat bij om ze te ontvangen.",
-  "settings_cloudSync_peerRequiresUpdate_storeAction": "Ze worden automatisch toegepast zodra de appstore-update voor dit apparaat beschikbaar is; de update is mogelijk nog in beoordeling.",
+  "settings_cloudSync_peerRequiresUpdate_stableAction": "Ze komen binnen zodra dit apparaat een minstens even nieuwe versie gebruikt. Als het andere apparaat op het bètakanaal zit, bestaat er mogelijk nog geen stabiele update: zet dit apparaat ook op het bèta-updatekanaal, of wacht op de volgende stabiele versie.",
+  "settings_cloudSync_peerRequiresUpdate_storeAction": "Ze worden automatisch toegepast zodra de appstore-update voor dit apparaat die versie bereikt. De update is mogelijk nog in beoordeling of, als het andere apparaat een bèta gebruikt (TestFlight of Google Play-test), nog niet uitgebracht: neem op dit apparaat deel aan dezelfde bèta, of wacht op de volgende versie.",
   "settings_cloudSync_provider_connected": "Verbonden",
   "settings_cloudSync_provider_connectedTo": "Verbonden met {providerName}",
   "settings_cloudSync_provider_connectionFailed": "Verbinding met {providerName} mislukt: {error}",
@@ -6507,7 +6511,9 @@
       }
     }
   },
-  "settings_updates_stableSwitchNotice": "Je blijft op deze bèta totdat de volgende stabiele versie nieuwer is.",
+  "settings_updates_stableDialogBody": "Dit apparaat houdt zijn huidige build totdat een stabiele versie nieuwer is, dus de app wordt nooit teruggezet en je duiklogboek blijft behouden. Tot die tijd ontvangen apparaten op het stabiele kanaal die met dit apparaat synchroniseren mogelijk niet de nieuwste wijzigingen. Installeer geen oudere stabiele build over deze heen: die kan geen duiklogboek openen dat een nieuwere build heeft geüpgraded.",
+  "settings_updates_stableDialogConfirm": "Overschakelen naar stabiel",
+  "settings_updates_stableDialogTitle": "Terug naar stabiele updates?",
   "settings_updates_upToDate": "Up-to-date",
   "settings_updates_versionAvailable": "Versie {version} beschikbaar",
   "@settings_updates_versionAvailable": {

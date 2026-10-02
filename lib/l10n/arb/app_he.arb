@@ -5938,6 +5938,9 @@
   "settings_cloudSync_header_syncBehavior": "התנהגות סנכרון",
   "settings_cloudSync_lastSynced": "סנכרון אחרון: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{שינוי ממתין אחד} other{{count} שינויים ממתינים}}",
+  "settings_cloudSync_peerBehind_action": "מכשיר בערוץ היציב שעדיין לא מוצע לו עדכון יתעדכן עם הגרסה היציבה הבאה, או יכול לעבור לערוץ עדכוני הבטא.",
+  "settings_cloudSync_peerBehind_banner": "{deviceList} מריץ גרסה ישנה יותר של Submersion שאינה יכולה לקרוא את השינויים האחרונים של מכשיר זה, ולכן לא יקבל אותם עד שיתעדכן.",
+  "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} מריצים גרסה ישנה יותר של Submersion שאינה יכולה לקרוא את השינויים האחרונים של מכשיר זה, ולכן לא יקבלו אותם עד שיתעדכנו.",
   "settings_cloudSync_peerNeedsAdopt_banner": "ל{deviceList} עדיין יש גרסת ספרייה ישנה או לא מוכרת, ולכן השינויים שלו לא מוזגו. פתח את Submersion במכשיר כדי לאמץ את הספרייה הנוכחית.",
   "settings_cloudSync_peerNeedsAdopt_bannerPlural": "ל{deviceList} עדיין יש גרסת ספרייה ישנה או לא מוכרת, ולכן השינויים שלהם לא מוזגו. פתח את Submersion במכשירים כדי לאמץ את הספרייה הנוכחית.",
   "settings_cloudSync_peerNeedsAdopt_unnamedDevice": "מכשיר {shortId}",
@@ -5948,7 +5951,8 @@
   "settings_cloudSync_peerRequiresUpdate_bannerNamed": "{deviceList} מסתנכרן מגרסה חדשה יותר של Submersion, ולכן השינויים האחרונים שלו מוחזקים בינתיים.",
   "settings_cloudSync_peerRequiresUpdate_bannerNamedPlural": "{deviceList} מסתנכרנים מגרסה חדשה יותר של Submersion, ולכן השינויים האחרונים שלהם מוחזקים בינתיים.",
   "settings_cloudSync_peerRequiresUpdate_updateAction": "עדכן מכשיר זה כדי לקבל אותם.",
-  "settings_cloudSync_peerRequiresUpdate_storeAction": "הם יוחלו אוטומטית ברגע שעדכון חנות האפליקציות של מכשיר זה יגיע; ייתכן שהעדכון עדיין בבדיקה.",
+  "settings_cloudSync_peerRequiresUpdate_stableAction": "הם יגיעו ברגע שמכשיר זה יריץ גרסה חדשה לפחות באותה מידה. אם המכשיר האחר נמצא בערוץ הבטא, ייתכן שעדיין אין עדכון יציב: העבר גם את מכשיר זה לערוץ עדכוני הבטא, או המתן לגרסה היציבה הבאה.",
+  "settings_cloudSync_peerRequiresUpdate_storeAction": "הם יוחלו אוטומטית ברגע שעדכון חנות האפליקציות של מכשיר זה יגיע לגרסה הזו. ייתכן שהעדכון עדיין בבדיקה, או, אם המכשיר האחר מריץ גרסת בטא (TestFlight או בדיקת Google Play), שהוא עדיין לא פורסם: הצטרף לאותה בטא במכשיר זה, או המתן לגרסה הבאה.",
   "settings_cloudSync_provider_connected": "מחובר",
   "settings_cloudSync_provider_connectedTo": "מחובר אל {providerName}",
   "settings_cloudSync_provider_connectionFailed": "החיבור אל {providerName} נכשל: {error}",
@@ -6507,7 +6511,9 @@
       }
     }
   },
-  "settings_updates_stableSwitchNotice": "תישאר בגרסת הבטא הזו עד שהגרסה היציבה הבאה תהיה חדשה ממנה.",
+  "settings_updates_stableDialogBody": "מכשיר זה שומר על הגרסה הנוכחית שלו עד שגרסה יציבה תהיה חדשה ממנה, כך שהאפליקציה לעולם לא חוזרת לגרסה קודמת ויומן הצלילה שלך נשמר. עד אז, מכשירים בערוץ היציב שמסתנכרנים עם מכשיר זה עשויים שלא לקבל את השינויים האחרונים שלו. אל תתקין גרסה יציבה ישנה יותר מעל גרסה זו: היא לא יכולה לפתוח יומן צלילה שגרסה חדשה יותר שדרגה.",
+  "settings_updates_stableDialogConfirm": "מעבר ליציב",
+  "settings_updates_stableDialogTitle": "לחזור לעדכונים יציבים?",
   "settings_updates_upToDate": "מעודכן",
   "settings_updates_versionAvailable": "גרסה {version} זמינה",
   "@settings_updates_versionAvailable": {

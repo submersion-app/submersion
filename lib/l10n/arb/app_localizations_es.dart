@@ -20802,6 +20802,20 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'Un dispositivo en el canal estable que aún no tenga una actualización disponible se pondrá al día con la próxima versión estable, o puede cambiar al canal de actualizaciones beta.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList usa una versión anterior de Submersion que no puede leer los últimos cambios de este dispositivo, por lo que no los recibirá hasta que se actualice.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList usan una versión anterior de Submersion que no puede leer los últimos cambios de este dispositivo, por lo que no los recibirán hasta que se actualicen.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList todavía tiene una versión de biblioteca antigua o desconocida, por lo que sus cambios no se combinaron. Abre Submersion en él para adoptar la biblioteca actual.';
   }
@@ -20849,8 +20863,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'Actualiza este dispositivo para recibirlos.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'Llegarán cuando este dispositivo use una versión al menos igual de reciente. Si ese dispositivo está en el canal beta, puede que aún no exista una actualización estable: cambia también este dispositivo al canal de actualizaciones beta, o espera a la próxima versión estable.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'Se aplicarán automáticamente cuando llegue la actualización de la tienda de aplicaciones de este dispositivo; puede que aún esté en revisión.';
+      'Se aplicarán automáticamente cuando la actualización de la tienda de aplicaciones de este dispositivo alcance esa versión. Puede que aún esté en revisión o, si ese dispositivo usa una beta (TestFlight o pruebas de Google Play), que aún no se haya publicado: únete a la misma beta en este dispositivo, o espera a la próxima versión.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Conectado';
@@ -22748,8 +22766,15 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'Permanecerás en esta beta hasta que la próxima versión estable sea más reciente que ella.';
+  String get settings_updates_stableDialogBody =>
+      'Este dispositivo conserva su versión actual hasta que una versión estable sea más reciente, por lo que la app nunca vuelve a una versión anterior y tu registro de buceo se conserva. Hasta entonces, puede que los dispositivos del canal estable que se sincronizan con este no reciban sus últimos cambios. No instales una versión estable anterior encima de esta: no puede abrir un registro de buceo que una versión más reciente ha actualizado.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'Cambiar a Estable';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      '¿Volver a las actualizaciones estables?';
 
   @override
   String get settings_updates_upToDate => 'Actualizado';

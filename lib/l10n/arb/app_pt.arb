@@ -5934,6 +5934,9 @@
   "settings_cloudSync_header_syncBehavior": "Comportamento de Sincronização",
   "settings_cloudSync_lastSynced": "Última sincronização: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{{count} alteração pendente} other{{count} alterações pendentes}}",
+  "settings_cloudSync_peerBehind_action": "Um dispositivo no canal estável que ainda não tenha uma atualização disponível será atualizado com a próxima versão estável, ou pode mudar para o canal de atualização beta.",
+  "settings_cloudSync_peerBehind_banner": "{deviceList} usa uma versão mais antiga do Submersion que não consegue ler as alterações mais recentes deste dispositivo, por isso só as receberá depois de ser atualizado.",
+  "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} usam uma versão mais antiga do Submersion que não consegue ler as alterações mais recentes deste dispositivo, por isso só as receberão depois de serem atualizados.",
   "settings_cloudSync_peerNeedsAdopt_banner": "{deviceList} ainda tem uma versão de biblioteca antiga ou desconhecida, portanto as suas alterações não foram combinadas. Abra o Submersion nele para adotar a biblioteca atual.",
   "settings_cloudSync_peerNeedsAdopt_bannerPlural": "{deviceList} ainda têm uma versão de biblioteca antiga ou desconhecida, portanto as suas alterações não foram combinadas. Abra o Submersion neles para adotar a biblioteca atual.",
   "settings_cloudSync_peerNeedsAdopt_unnamedDevice": "dispositivo {shortId}",
@@ -5944,7 +5947,8 @@
   "settings_cloudSync_peerRequiresUpdate_bannerNamed": "{deviceList} sincroniza a partir de uma versão mais recente do Submersion, por isso as suas alterações mais recentes ficam retidas por agora.",
   "settings_cloudSync_peerRequiresUpdate_bannerNamedPlural": "{deviceList} sincronizam a partir de uma versão mais recente do Submersion, por isso as suas alterações mais recentes ficam retidas por agora.",
   "settings_cloudSync_peerRequiresUpdate_updateAction": "Atualize este dispositivo para as receber.",
-  "settings_cloudSync_peerRequiresUpdate_storeAction": "Serão aplicadas automaticamente quando a atualização da loja de aplicações deste dispositivo chegar; a atualização pode ainda estar em revisão.",
+  "settings_cloudSync_peerRequiresUpdate_stableAction": "Chegarão quando este dispositivo usar uma versão pelo menos tão recente. Se o outro dispositivo estiver no canal beta, talvez ainda não exista uma atualização estável: mude também este dispositivo para o canal de atualização beta, ou aguarde a próxima versão estável.",
+  "settings_cloudSync_peerRequiresUpdate_storeAction": "Serão aplicadas automaticamente quando a atualização da loja de aplicações deste dispositivo alcançar essa versão. Ela pode ainda estar em revisão ou, se o outro dispositivo usar uma beta (TestFlight ou teste do Google Play), ainda não ter sido lançada: entre na mesma beta neste dispositivo, ou aguarde a próxima versão.",
   "settings_cloudSync_provider_connected": "Conectado",
   "settings_cloudSync_provider_connectedTo": "Conectado a {providerName}",
   "settings_cloudSync_provider_connectionFailed": "Falha na conexão com {providerName}: {error}",
@@ -6507,7 +6511,9 @@
       }
     }
   },
-  "settings_updates_stableSwitchNotice": "Você permanecerá nesta beta até que a próxima versão estável seja mais recente que ela.",
+  "settings_updates_stableDialogBody": "Este dispositivo mantém a versão atual até que uma versão estável seja mais recente, por isso o app nunca faz downgrade e o seu registro de mergulhos é mantido. Até lá, os dispositivos no canal estável que sincronizam com este podem não receber as suas alterações mais recentes. Não instale uma versão estável mais antiga por cima desta: ela não consegue abrir um registro de mergulhos que uma versão mais recente atualizou.",
+  "settings_updates_stableDialogConfirm": "Mudar para Estável",
+  "settings_updates_stableDialogTitle": "Voltar às atualizações estáveis?",
   "settings_updates_upToDate": "Atualizado",
   "settings_updates_versionAvailable": "Versão {version} disponível",
   "@settings_updates_versionAvailable": {

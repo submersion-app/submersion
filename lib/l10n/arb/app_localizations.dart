@@ -33390,6 +33390,24 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 pending change} other{{count} pending changes}}'**
   String settings_cloudSync_pendingChanges(int count);
 
+  /// No description provided for @settings_cloudSync_peerBehind_action.
+  ///
+  /// In en, this message translates to:
+  /// **'A device on the stable channel with no update offered yet catches up with the next stable release, or can switch to the beta update channel.'**
+  String get settings_cloudSync_peerBehind_action;
+
+  /// No description provided for @settings_cloudSync_peerBehind_banner.
+  ///
+  /// In en, this message translates to:
+  /// **'{deviceList} runs an older version of Submersion that cannot read this device\'s latest changes, so it will not receive them until it updates.'**
+  String settings_cloudSync_peerBehind_banner(Object deviceList);
+
+  /// No description provided for @settings_cloudSync_peerBehind_bannerPlural.
+  ///
+  /// In en, this message translates to:
+  /// **'{deviceList} run an older version of Submersion that cannot read this device\'s latest changes, so they will not receive them until they update.'**
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList);
+
   /// No description provided for @settings_cloudSync_peerNeedsAdopt_banner.
   ///
   /// In en, this message translates to:
@@ -33452,10 +33470,16 @@ abstract class AppLocalizations {
   /// **'Update this device to receive them.'**
   String get settings_cloudSync_peerRequiresUpdate_updateAction;
 
+  /// No description provided for @settings_cloudSync_peerRequiresUpdate_stableAction.
+  ///
+  /// In en, this message translates to:
+  /// **'They arrive once this device runs a version at least as new. If that device is on the beta channel, a stable update may not exist yet: switch this device to the beta update channel too, or wait for the next stable release.'**
+  String get settings_cloudSync_peerRequiresUpdate_stableAction;
+
   /// No description provided for @settings_cloudSync_peerRequiresUpdate_storeAction.
   ///
   /// In en, this message translates to:
-  /// **'They will apply automatically once this device\'s app store update arrives; the update may still be in review.'**
+  /// **'They apply automatically once this device\'s app store update reaches that version. It may still be in review, or, if that device runs a beta (TestFlight or Google Play testing), not be released yet: join the same beta on this device, or wait for the next release.'**
   String get settings_cloudSync_peerRequiresUpdate_storeAction;
 
   /// No description provided for @settings_cloudSync_provider_connected.
@@ -36653,11 +36677,23 @@ abstract class AppLocalizations {
   /// **'Version {version} ready to install'**
   String settings_updates_readyToInstall(String version);
 
-  /// No description provided for @settings_updates_stableSwitchNotice.
+  /// No description provided for @settings_updates_stableDialogBody.
   ///
   /// In en, this message translates to:
-  /// **'You will stay on this beta until the next stable release is newer than it.'**
-  String get settings_updates_stableSwitchNotice;
+  /// **'This device keeps its current build until a stable release is newer than it, so the app is never downgraded and your dive log is kept. Until then, devices on the stable channel that sync with this one may not receive its latest changes. Do not install an older stable build over this one: it cannot open a dive log that a newer build has upgraded.'**
+  String get settings_updates_stableDialogBody;
+
+  /// No description provided for @settings_updates_stableDialogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Stable'**
+  String get settings_updates_stableDialogConfirm;
+
+  /// No description provided for @settings_updates_stableDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to stable updates?'**
+  String get settings_updates_stableDialogTitle;
 
   /// No description provided for @settings_updates_upToDate.
   ///

@@ -20324,6 +20324,20 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'מכשיר בערוץ היציב שעדיין לא מוצע לו עדכון יתעדכן עם הגרסה היציבה הבאה, או יכול לעבור לערוץ עדכוני הבטא.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList מריץ גרסה ישנה יותר של Submersion שאינה יכולה לקרוא את השינויים האחרונים של מכשיר זה, ולכן לא יקבל אותם עד שיתעדכן.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList מריצים גרסה ישנה יותר של Submersion שאינה יכולה לקרוא את השינויים האחרונים של מכשיר זה, ולכן לא יקבלו אותם עד שיתעדכנו.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return 'ל$deviceList עדיין יש גרסת ספרייה ישנה או לא מוכרת, ולכן השינויים שלו לא מוזגו. פתח את Submersion במכשיר כדי לאמץ את הספרייה הנוכחית.';
   }
@@ -20371,8 +20385,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'עדכן מכשיר זה כדי לקבל אותם.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'הם יגיעו ברגע שמכשיר זה יריץ גרסה חדשה לפחות באותה מידה. אם המכשיר האחר נמצא בערוץ הבטא, ייתכן שעדיין אין עדכון יציב: העבר גם את מכשיר זה לערוץ עדכוני הבטא, או המתן לגרסה היציבה הבאה.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'הם יוחלו אוטומטית ברגע שעדכון חנות האפליקציות של מכשיר זה יגיע; ייתכן שהעדכון עדיין בבדיקה.';
+      'הם יוחלו אוטומטית ברגע שעדכון חנות האפליקציות של מכשיר זה יגיע לגרסה הזו. ייתכן שהעדכון עדיין בבדיקה, או, אם המכשיר האחר מריץ גרסת בטא (TestFlight או בדיקת Google Play), שהוא עדיין לא פורסם: הצטרף לאותה בטא במכשיר זה, או המתן לגרסה הבאה.';
 
   @override
   String get settings_cloudSync_provider_connected => 'מחובר';
@@ -22213,8 +22231,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'תישאר בגרסת הבטא הזו עד שהגרסה היציבה הבאה תהיה חדשה ממנה.';
+  String get settings_updates_stableDialogBody =>
+      'מכשיר זה שומר על הגרסה הנוכחית שלו עד שגרסה יציבה תהיה חדשה ממנה, כך שהאפליקציה לעולם לא חוזרת לגרסה קודמת ויומן הצלילה שלך נשמר. עד אז, מכשירים בערוץ היציב שמסתנכרנים עם מכשיר זה עשויים שלא לקבל את השינויים האחרונים שלו. אל תתקין גרסה יציבה ישנה יותר מעל גרסה זו: היא לא יכולה לפתוח יומן צלילה שגרסה חדשה יותר שדרגה.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'מעבר ליציב';
+
+  @override
+  String get settings_updates_stableDialogTitle => 'לחזור לעדכונים יציבים?';
 
   @override
   String get settings_updates_upToDate => 'מעודכן';

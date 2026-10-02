@@ -20739,6 +20739,20 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'A stabil csatornán lévő eszköz, amelynek még nem érhető el frissítés, a következő stabil kiadással felzárkózik, vagy átválthat a béta frissítési csatornára.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList a Submersion egy régebbi verzióját futtatja, amely nem tudja olvasni ennek az eszköznek a legújabb változtatásait, ezért csak frissítés után kapja meg őket.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList a Submersion egy régebbi verzióját futtatják, amely nem tudja olvasni ennek az eszköznek a legújabb változtatásait, ezért csak frissítés után kapják meg őket.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList még régebbi vagy ismeretlen könyvtárverziót használ, ezért a változásai nem lettek egyesítve. Nyissa meg rajta a Submersiont az aktuális könyvtár átvételéhez.';
   }
@@ -20786,8 +20800,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Frissítsd ezt az eszközt, hogy megkapd őket.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'Akkor érkeznek meg, amikor ez az eszköz legalább ugyanilyen új verziót futtat. Ha a másik eszköz a béta csatornán van, lehet, hogy még nincs stabil frissítés: állítsd ezt az eszközt is a béta frissítési csatornára, vagy várd meg a következő stabil kiadást.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'Automatikusan érvénybe lépnek, amint megérkezik az eszköz alkalmazásbolti frissítése; a frissítés még ellenőrzés alatt állhat.';
+      'Automatikusan érvénybe lépnek, amint az eszköz alkalmazásbolti frissítése eléri azt a verziót. A frissítés még ellenőrzés alatt állhat, vagy ha a másik eszköz bétát használ (TestFlight vagy Google Play tesztelés), még nem jelent meg: csatlakozz ezen az eszközön is ugyanahhoz a bétához, vagy várd meg a következő kiadást.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Csatlakoztatva';
@@ -22678,8 +22696,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'Ezen a bétán maradsz, amíg a következő stabil kiadás nem lesz nála újabb.';
+  String get settings_updates_stableDialogBody =>
+      'Ez az eszköz megtartja a jelenlegi buildjét, amíg egy stabil kiadás újabb nem lesz nála, így az alkalmazás sosem áll vissza korábbi verzióra, és a merülési naplód megmarad. Addig a stabil csatornán lévő, ezzel szinkronizáló eszközök nem biztos, hogy megkapják a legújabb változtatásait. Ne telepíts erre egy régebbi stabil buildet: az nem tud megnyitni olyan merülési naplót, amelyet egy újabb build frissített.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'Váltás stabilra';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      'Visszatérsz a stabil frissítésekhez?';
 
   @override
   String get settings_updates_upToDate => 'Naprakész';

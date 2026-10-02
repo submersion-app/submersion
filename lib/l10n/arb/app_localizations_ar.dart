@@ -20486,6 +20486,20 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'الجهاز على القناة المستقرة الذي لم يُعرض عليه تحديث بعد سيلحق بالإصدار المستقر التالي، أو يمكنه التبديل إلى قناة تحديثات البيتا.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList يشغّل إصدارًا أقدم من Submersion لا يستطيع قراءة أحدث تغييرات هذا الجهاز، لذا لن يستلمها حتى يتم تحديثه.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList تشغّل إصدارًا أقدم من Submersion لا يستطيع قراءة أحدث تغييرات هذا الجهاز، لذا لن تستلمها حتى يتم تحديثها.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList لا يزال يستخدم إصدار مكتبة أقدم أو غير معروف، لذلك لم تُدمج تغييراته. افتح Submersion عليه لاعتماد المكتبة الحالية.';
   }
@@ -20533,8 +20547,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'حدّث هذا الجهاز لاستلامها.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'ستصل عندما يشغّل هذا الجهاز إصدارًا لا يقل حداثة. إذا كان الجهاز الآخر على قناة البيتا، فقد لا يتوفر تحديث مستقر بعد: بدّل هذا الجهاز أيضًا إلى قناة تحديثات البيتا، أو انتظر الإصدار المستقر التالي.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'سيتم تطبيقها تلقائيًا فور وصول تحديث متجر التطبيقات لهذا الجهاز؛ وقد يكون التحديث لا يزال قيد المراجعة.';
+      'سيتم تطبيقها تلقائيًا عندما يصل تحديث متجر التطبيقات لهذا الجهاز إلى ذلك الإصدار. قد يكون التحديث لا يزال قيد المراجعة، أو لم يُطرح بعد إذا كان الجهاز الآخر يشغّل إصدار بيتا (TestFlight أو اختبار Google Play): انضم إلى البيتا نفسها على هذا الجهاز، أو انتظر الإصدار التالي.';
 
   @override
   String get settings_cloudSync_provider_connected => 'متصل';
@@ -22396,8 +22414,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'ستبقى على إصدار البيتا هذا حتى يصبح الإصدار المستقر التالي أحدث منه.';
+  String get settings_updates_stableDialogBody =>
+      'يحتفظ هذا الجهاز بإصداره الحالي حتى يصبح إصدار مستقر أحدث منه، لذا لا يعود التطبيق أبدًا إلى إصدار أقدم ويُحفظ سجل الغوص الخاص بك. حتى ذلك الحين، قد لا تستلم الأجهزة على القناة المستقرة التي تتزامن مع هذا الجهاز أحدث تغييراته. لا تثبّت إصدارًا مستقرًا أقدم فوق هذا الإصدار: فهو لا يستطيع فتح سجل غوص قام إصدار أحدث بترقيته.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'التبديل إلى المستقر';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      'هل تريد العودة إلى التحديثات المستقرة؟';
 
   @override
   String get settings_updates_upToDate => 'محدّث';

@@ -6037,6 +6037,9 @@
   "settings_cloudSync_header_syncBehavior": "Synchronisierungsverhalten",
   "settings_cloudSync_lastSynced": "Zuletzt synchronisiert: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 ausstehende Änderung} other{{count} ausstehende Änderungen}}",
+  "settings_cloudSync_peerBehind_action": "Ein Gerät im stabilen Kanal, dem noch kein Update angeboten wird, holt mit der nächsten stabilen Version auf oder kann auf den Beta-Update-Kanal wechseln.",
+  "settings_cloudSync_peerBehind_banner": "{deviceList} verwendet eine ältere Version von Submersion, die die neuesten Änderungen dieses Geräts nicht lesen kann, und erhält sie daher erst nach einem Update.",
+  "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} verwenden eine ältere Version von Submersion, die die neuesten Änderungen dieses Geräts nicht lesen kann, und erhalten sie daher erst nach einem Update.",
   "settings_cloudSync_peerNeedsAdopt_banner": "{deviceList} hat noch eine ältere oder unbekannte Bibliotheksversion, daher wurden die Änderungen nicht zusammengeführt. Öffnen Sie Submersion dort, um die aktuelle Bibliothek zu übernehmen.",
   "settings_cloudSync_peerNeedsAdopt_bannerPlural": "{deviceList} haben noch eine ältere oder unbekannte Bibliotheksversion, daher wurden ihre Änderungen nicht zusammengeführt. Öffnen Sie Submersion dort, um die aktuelle Bibliothek zu übernehmen.",
   "settings_cloudSync_peerNeedsAdopt_unnamedDevice": "Gerät {shortId}",
@@ -6047,7 +6050,8 @@
   "settings_cloudSync_peerRequiresUpdate_bannerNamed": "{deviceList} synchronisiert von einer neueren Version von Submersion, daher werden die neuesten Änderungen vorerst zurückgehalten.",
   "settings_cloudSync_peerRequiresUpdate_bannerNamedPlural": "{deviceList} synchronisieren von einer neueren Version von Submersion, daher werden ihre neuesten Änderungen vorerst zurückgehalten.",
   "settings_cloudSync_peerRequiresUpdate_updateAction": "Aktualisieren Sie dieses Gerät, um sie zu erhalten.",
-  "settings_cloudSync_peerRequiresUpdate_storeAction": "Sie werden automatisch übernommen, sobald das App-Store-Update für dieses Gerät verfügbar ist; das Update befindet sich möglicherweise noch in der Prüfung.",
+  "settings_cloudSync_peerRequiresUpdate_stableAction": "Sie kommen an, sobald dieses Gerät eine mindestens ebenso neue Version verwendet. Wenn jenes Gerät den Beta-Kanal nutzt, gibt es möglicherweise noch kein stabiles Update: Stellen Sie dieses Gerät ebenfalls auf den Beta-Update-Kanal um, oder warten Sie auf die nächste stabile Version.",
+  "settings_cloudSync_peerRequiresUpdate_storeAction": "Sie werden automatisch übernommen, sobald das App-Store-Update dieses Geräts diese Version erreicht. Das Update befindet sich möglicherweise noch in der Prüfung oder ist, falls jenes Gerät eine Beta verwendet (TestFlight oder Google Play-Test), noch nicht veröffentlicht: Treten Sie auf diesem Gerät derselben Beta bei, oder warten Sie auf die nächste Version.",
   "settings_cloudSync_provider_connected": "Verbunden",
   "settings_cloudSync_provider_connectedTo": "Verbunden mit {providerName}",
   "settings_cloudSync_provider_connectionFailed": "Verbindung zu {providerName} fehlgeschlagen: {error}",
@@ -6610,7 +6614,9 @@
       }
     }
   },
-  "settings_updates_stableSwitchNotice": "Sie bleiben auf dieser Beta, bis die nächste stabile Version neuer ist als diese.",
+  "settings_updates_stableDialogBody": "Dieses Gerät behält seinen aktuellen Build, bis eine stabile Version neuer ist; die App wird nie herabgestuft und Ihr Tauchlogbuch bleibt erhalten. Bis dahin erhalten Geräte im stabilen Kanal, die mit diesem synchronisieren, möglicherweise nicht seine neuesten Änderungen. Installieren Sie keinen älteren stabilen Build über diesen: Er kann kein Tauchlogbuch öffnen, das ein neuerer Build aktualisiert hat.",
+  "settings_updates_stableDialogConfirm": "Zu Stabil wechseln",
+  "settings_updates_stableDialogTitle": "Zu stabilen Updates zurückkehren?",
   "settings_updates_upToDate": "Auf dem neuesten Stand",
   "settings_updates_versionAvailable": "Version {version} verfügbar",
   "@settings_updates_versionAvailable": {

@@ -19782,6 +19782,20 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      '处于稳定版渠道且尚未收到更新的设备，会在下一个稳定版发布后跟上，也可以切换到 Beta 更新渠道。';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList 运行的是较旧版本的 Submersion，无法读取此设备的最新更改，因此在其更新之前不会收到这些更改。';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList 运行的是较旧版本的 Submersion，无法读取此设备的最新更改，因此在它们更新之前不会收到这些更改。';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList 仍使用较旧或未知的库版本，因此其更改未被合并。请在该设备上打开 Submersion 以采用当前的库。';
   }
@@ -19829,8 +19843,12 @@ class AppLocalizationsZh extends AppLocalizations {
       '更新此设备即可接收这些更改。';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      '此设备运行至少同样新的版本后，这些更改就会到达。如果该设备使用 Beta 渠道，可能还没有稳定版更新：请将此设备也切换到 Beta 更新渠道，或等待下一个稳定版。';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      '此设备的应用商店更新到达后，这些更改将自动应用；该更新可能仍在审核中。';
+      '此设备的应用商店更新达到该版本后，这些更改将自动应用。该更新可能仍在审核中；如果该设备运行的是 Beta 版（TestFlight 或 Google Play 测试），也可能尚未发布：请在此设备上加入同一 Beta，或等待下一个版本。';
 
   @override
   String get settings_cloudSync_provider_connected => '已连接';
@@ -21608,8 +21626,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      '在下一个稳定版比当前 Beta 版更新之前，将保持在此 Beta 版上。';
+  String get settings_updates_stableDialogBody =>
+      '在稳定版比当前版本更新之前，此设备会保留当前版本，因此应用永远不会降级，您的潜水日志也会保留。在此之前，与此设备同步的稳定版渠道设备可能无法收到它的最新更改。请勿在此版本上安装较旧的稳定版：它无法打开已被较新版本升级的潜水日志。';
+
+  @override
+  String get settings_updates_stableDialogConfirm => '切换到稳定版';
+
+  @override
+  String get settings_updates_stableDialogTitle => '返回稳定版更新？';
 
   @override
   String get settings_updates_upToDate => '已是最新版本';
