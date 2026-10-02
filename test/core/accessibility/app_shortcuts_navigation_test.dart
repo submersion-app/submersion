@@ -25,9 +25,12 @@ void main() {
     },
   );
 
-  Future<GoRouter> pumpShortcutHost(WidgetTester tester) async {
+  Future<GoRouter> pumpShortcutHost(
+    WidgetTester tester, {
+    String initialLocation = '/dives',
+  }) async {
     final router = GoRouter(
-      initialLocation: '/dives',
+      initialLocation: initialLocation,
       routes: [
         GoRoute(
           path: '/dives',
@@ -84,6 +87,20 @@ void main() {
 
       expect(locationOf(router), '/dives');
       expect(container.read(diveSearchBarOpenProvider), isTrue);
+      expect(container.read(diveSearchFocusPendingProvider), isTrue);
+    });
+
+    // Code review: the phone map view is /dives?view=map and has no search
+    // row, so the shortcut returns to the list instead of doing nothing.
+    testWidgets('from the phone map view the search shortcut shows the list', (
+      tester,
+    ) async {
+      final router = await pumpShortcutHost(
+        tester,
+        initialLocation: '/dives?view=map',
+      );
+      await pressControl(tester, LogicalKeyboardKey.keyF);
+      expect(locationOf(router), '/dives');
       expect(container.read(diveSearchFocusPendingProvider), isTrue);
     });
 
