@@ -1703,6 +1703,8 @@ void main() {
         expect(tanks, hasLength(2));
         final added = tanks.singleWhere((t) => t.id != 'tank-reassigned');
         expect(added.sourceTankIndex, 1);
+        // Shown after the stored row, whose order is already 1.
+        expect(added.tankOrder, 2);
         expect(added.tankRole, 'sidemountRight');
         expect(added.startPressure, 210.0);
         expect(await seriesCountByTank('dive-sidemount'), {

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -1794,52 +1796,56 @@ class DiveComputerRepository {
       // pressures may still need deriving from their own series.
       final insertedTankIndices = <int>{};
 
-      // Batch insert for performance.
-      Future<void> insertTanks(List<TankData> toInsert) => _db.batch((batch) {
-        for (final tank in toInsert) {
-          final tankId = _uuid.v4();
-          tankIdsByIndex[tank.index] = tankId;
-          tankIdByGas.putIfAbsent((
-            tank.o2Percent,
-            tank.hePercent,
-          ), () => tankId);
-          insertedTankIndices.add(tank.index);
+      // Batch insert for performance. A row is shown at its parsed index
+      // unless [firstOrder] gives the order to number the batch from.
+      Future<void> insertTanks(List<TankData> toInsert, {int? firstOrder}) =>
+          _db.batch((batch) {
+            for (final (i, tank) in toInsert.indexed) {
+              final tankId = _uuid.v4();
+              tankIdsByIndex[tank.index] = tankId;
+              tankIdByGas.putIfAbsent((
+                tank.o2Percent,
+                tank.hePercent,
+              ), () => tankId);
+              insertedTankIndices.add(tank.index);
 
-          batch.insert(
-            _db.diveTanks,
-            DiveTanksCompanion(
-              id: Value(tankId),
-              diveId: Value(diveId),
-              computerId: Value(computerId),
-              // The reading the tank came from (v251, issue #2716), as
-              // for the samples above.
-              sourceId: Value(ownerSourceId),
-              volume: Value(tank.volumeLiters),
-              workingPressure: Value.absentIfNull(tank.workingPressure),
-              tankMaterial: Value.absentIfNull(tank.material),
-              presetName: Value.absentIfNull(tank.presetName),
-              startPressure: Value(tank.startPressure),
-              endPressure: Value(tank.endPressure),
-              o2Percent: Value(tank.o2Percent),
-              hePercent: Value(tank.hePercent),
-              tankOrder: Value(tank.index),
-              tankRole: Value(tank.role ?? 'backGas'),
-              roleSource: Value(tank.roleSource),
-              transmitterSerial: Value(tank.transmitterSerial),
-              equipmentId: Value.absentIfNull(tank.equipmentId),
-              tankName: Value.absentIfNull(tank.tankName),
-              // The parsed index this row's computer data comes from
-              // (issue #1314); re-parse keys on it.
-              sourceTankIndex: Value(tank.index),
-            ),
-          );
-          _log.info(
-            'Created tank ${tank.index}: '
-            'O2=${tank.o2Percent}%, start=${tank.startPressure} bar, '
-            'end=${tank.endPressure} bar',
-          );
-        }
-      });
+              batch.insert(
+                _db.diveTanks,
+                DiveTanksCompanion(
+                  id: Value(tankId),
+                  diveId: Value(diveId),
+                  computerId: Value(computerId),
+                  // The reading the tank came from (v251, issue #2716), as
+                  // for the samples above.
+                  sourceId: Value(ownerSourceId),
+                  volume: Value(tank.volumeLiters),
+                  workingPressure: Value.absentIfNull(tank.workingPressure),
+                  tankMaterial: Value.absentIfNull(tank.material),
+                  presetName: Value.absentIfNull(tank.presetName),
+                  startPressure: Value(tank.startPressure),
+                  endPressure: Value(tank.endPressure),
+                  o2Percent: Value(tank.o2Percent),
+                  hePercent: Value(tank.hePercent),
+                  tankOrder: Value(
+                    firstOrder == null ? tank.index : firstOrder + i,
+                  ),
+                  tankRole: Value(tank.role ?? 'backGas'),
+                  roleSource: Value(tank.roleSource),
+                  transmitterSerial: Value(tank.transmitterSerial),
+                  equipmentId: Value.absentIfNull(tank.equipmentId),
+                  tankName: Value.absentIfNull(tank.tankName),
+                  // The parsed index this row's computer data comes from
+                  // (issue #1314); re-parse keys on it.
+                  sourceTankIndex: Value(tank.index),
+                ),
+              );
+              _log.info(
+                'Created tank ${tank.index}: '
+                'O2=${tank.o2Percent}%, start=${tank.startPressure} bar, '
+                'end=${tank.endPressure} bar',
+              );
+            }
+          });
 
       if (isNewDive && tanks != null && tanks.isNotEmpty) {
         _log.info('Importing ${tanks.length} tanks for dive $diveId');
@@ -1873,7 +1879,13 @@ class DiveComputerRepository {
           ];
           if (missing.isNotEmpty) {
             _log.info('Adding ${missing.length} new tanks to dive $diveId');
-            await insertTanks(missing);
+            // Shown after every stored row: the parsed index can already be
+            // a stored row's order once the diver has reassigned cylinders,
+            // and sourceTankIndex keeps the routing either way.
+            final lastOrder = existingTanks
+                .map((t) => t.tankOrder)
+                .fold(-1, math.max);
+            await insertTanks(missing, firstOrder: lastOrder + 1);
           }
         } else {
           for (final tank in existingTanks) {
