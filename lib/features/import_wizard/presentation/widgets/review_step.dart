@@ -208,21 +208,33 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
     if (loc == null) return;
     final tabIdx = widget.types.indexOf(loc.type);
     if (tabIdx < 0) return;
-    DefaultTabController.maybeOf(tabContext)?.animateTo(tabIdx);
-    // The target tab's list may only attach during the tab animation. A
-    // post-frame callback does not request a frame itself, and when the
-    // pending tab is already open nothing else may (a screen reader's tap
-    // draws no splash), so ask for one explicitly.
-    WidgetsBinding.instance.ensureVisualUpdate();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller = _scrollControllers[loc.type];
-      if (controller == null || !controller.hasClients) return;
-      controller.animateTo(
-        0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    });
+    final tabs = DefaultTabController.maybeOf(tabContext);
+    if (tabs == null || tabs.index == tabIdx) {
+      _scrollToTop(loc.type);
+      return;
+    }
+    // Another tab's list attaches only as the tab animation brings it in,
+    // so scroll once the change has settled, and only if the diver has not
+    // picked a different tab meanwhile.
+    void onTabSettled() {
+      if (tabs.indexIsChanging) return;
+      tabs.removeListener(onTabSettled);
+      if (tabs.index == tabIdx) _scrollToTop(loc.type);
+    }
+
+    tabs.addListener(onTabSettled);
+    tabs.animateTo(tabIdx);
+  }
+
+  void _scrollToTop(ImportEntityType type) {
+    if (!mounted) return;
+    final controller = _scrollControllers[type];
+    if (controller == null || !controller.hasClients) return;
+    controller.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   void _showImportOptions(BuildContext context) {
