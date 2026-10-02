@@ -11,11 +11,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
-/// Providers that read "today" or "this year" from the clock rebuild when the
-/// local date changes, not only when the data does. Without that an app left
-/// open across New Year kept showing last year's "Dives This Year" (#2600)
-/// and year-in-review, and "on this day" kept yesterday's date.
-
 class _NoDiverNotifier extends StateNotifier<String?>
     implements CurrentDiverIdNotifier {
   _NoDiverNotifier() : super(null);
@@ -81,6 +76,10 @@ class _FakeDiveRepository implements DiveRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Providers that read "today" or "this year" from the clock rebuild when the
+/// local date changes, not only when the data does. Without that an app left
+/// open across New Year kept showing last year's "Dives This Year" (#2600)
+/// and year-in-review, and "on this day" kept yesterday's date.
 void main() {
   late _FakeInsightsRepository insights;
   late _FakeDiveRepository dives;
