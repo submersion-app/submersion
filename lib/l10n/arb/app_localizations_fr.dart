@@ -46536,6 +46536,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_editRow_none => 'Aucun';
 
   @override
+  String get navTrack_editRow_loadFailed => 'Impossible de charger les trajets';
+
+  @override
   String navTrack_editRow_more(int count, String name) {
     return '$name +$count';
   }

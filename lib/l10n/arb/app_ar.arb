@@ -13789,6 +13789,7 @@
   "navTrack_section_menuOpen3d": "فتح المشهد ثلاثي الأبعاد",
   "navTrack_section_menuMakePrimary": "تعيين كأساسي",
   "navTrack_editRow_none": "لا يوجد",
+  "navTrack_editRow_loadFailed": "تعذر تحميل المسارات",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTooltip": "إزالة المسار",
   "navTrack_editRow_saveFailed": "تعذر تحديث مسارات هذه الغوصة تحت الماء: {error}",

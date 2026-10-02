@@ -13789,6 +13789,7 @@
   "navTrack_section_menuOpen3d": "Apri paesaggio 3D",
   "navTrack_section_menuMakePrimary": "Imposta come primario",
   "navTrack_editRow_none": "Nessuno",
+  "navTrack_editRow_loadFailed": "Impossibile caricare i percorsi",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTooltip": "Rimuovi percorso",
   "navTrack_editRow_saveFailed": "Impossibile aggiornare i percorsi subacquei di questa immersione: {error}",

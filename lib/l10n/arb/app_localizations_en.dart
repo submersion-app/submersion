@@ -45744,6 +45744,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_editRow_none => 'None';
 
   @override
+  String get navTrack_editRow_loadFailed => 'Could not load routes';
+
+  @override
   String navTrack_editRow_more(int count, String name) {
     return '$name +$count';
   }

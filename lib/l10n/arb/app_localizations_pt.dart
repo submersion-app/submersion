@@ -46444,6 +46444,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navTrack_editRow_none => 'Nenhuma';
 
   @override
+  String get navTrack_editRow_loadFailed =>
+      'Não foi possível carregar as rotas';
+
+  @override
   String navTrack_editRow_more(int count, String name) {
     return '$name +$count';
   }

@@ -13789,6 +13789,7 @@
   "navTrack_section_menuOpen3d": "3D-landschap openen",
   "navTrack_section_menuMakePrimary": "Als primair instellen",
   "navTrack_editRow_none": "Geen",
+  "navTrack_editRow_loadFailed": "Kan routes niet laden",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTooltip": "Route verwijderen",
   "navTrack_editRow_saveFailed": "Kan de onderwaterroutes van deze duik niet bijwerken: {error}",

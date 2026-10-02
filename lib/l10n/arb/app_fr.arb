@@ -13789,6 +13789,7 @@
   "navTrack_section_menuOpen3d": "Ouvrir le paysage 3D",
   "navTrack_section_menuMakePrimary": "Définir comme principal",
   "navTrack_editRow_none": "Aucun",
+  "navTrack_editRow_loadFailed": "Impossible de charger les trajets",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTooltip": "Retirer le trajet",
   "navTrack_editRow_saveFailed": "Impossible de mettre à jour les trajets sous-marins de cette plongée : {error}",

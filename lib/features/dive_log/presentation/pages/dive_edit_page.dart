@@ -326,6 +326,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// an existing dive's current links have loaded, so the row stays inert
   /// and a Save can never read "not loaded" as "every route removed".
   DiveRouteLinkDraft? _routeDraft;
+
+  /// The dive's current links could not be read, so the route row says so
+  /// and stays inert instead of claiming the dive has none.
+  bool _routeLinksFailed = false;
   Set<String> _originalBuddyIds = {};
   String? _diverRoleId;
 
@@ -1050,9 +1054,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Future<void> _loadRouteLinks() async {
     final diveId = widget.diveId;
     if (diveId == null) return;
-    final linked = await ref.read(navTracksForDiveProvider(diveId).future);
-    if (mounted) {
-      setState(() => _routeDraft = DiveRouteLinkDraft.initial(linked));
+    try {
+      final linked = await ref.read(navTracksForDiveProvider(diveId).future);
+      if (mounted) {
+        setState(() => _routeDraft = DiveRouteLinkDraft.initial(linked));
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load route links for dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) setState(() => _routeLinksFailed = true);
     }
   }
 
@@ -2437,7 +2450,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // A planned dive has no recording to link (spec 2026-10-02, section 1).
       routeRow: _isPlanned
           ? null
-          : RouteRow(draft: _routeDraft, onTap: _openRouteSheet),
+          : RouteRow(
+              draft: _routeDraft,
+              loadFailed: _routeLinksFailed,
+              onTap: _openRouteSheet,
+            ),
       maxDepthSuggestion: hasProfile
           ? _depthSuggestion(
               units,

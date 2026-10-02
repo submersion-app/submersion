@@ -46242,6 +46242,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_editRow_none => 'Nincs';
 
   @override
+  String get navTrack_editRow_loadFailed =>
+      'Nem sikerült betölteni az útvonalakat';
+
+  @override
   String navTrack_editRow_more(int count, String name) {
     return '$name +$count';
   }

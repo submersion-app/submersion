@@ -43737,6 +43737,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_editRow_none => '无';
 
   @override
+  String get navTrack_editRow_loadFailed => '无法加载路线';
+
+  @override
   String navTrack_editRow_more(int count, String name) {
     return '$name +$count';
   }

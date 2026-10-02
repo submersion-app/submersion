@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -70,6 +71,7 @@ void main() {
     String? diveId,
     List<String>? bulkDiveIds,
     VoidCallback? onCancel,
+    List<Override> extraOverrides = const [],
   }) async {
     tester.platformDispatcher.localesTestValue = const [
       Locale('fr'),
@@ -89,6 +91,7 @@ void main() {
             (ref) => DiveListNotifier(dives, ref),
           ),
           customTankPresetsProvider.overrideWith((ref) async => []),
+          ...extraOverrides,
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -188,6 +191,24 @@ void main() {
     // The discard guard asks first instead of cancelling straight away.
     expect(find.byType(AlertDialog), findsOneWidget);
     expect(cancelled, 0);
+  });
+
+  testWidgets('a dive whose routes fail to load says so on the row', (
+    tester,
+  ) async {
+    final dive = await insertDive();
+    await pumpEditor(
+      tester,
+      diveId: dive.id,
+      extraOverrides: [
+        navTracksForDiveProvider(
+          dive.id,
+        ).overrideWith((ref) async => throw StateError('db closed')),
+      ],
+    );
+    await pumpSteps(tester);
+
+    expect(find.text('Could not load routes'), findsOneWidget);
   });
 
   testWidgets('a planned dive has no route row', (tester) async {

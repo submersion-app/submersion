@@ -46051,6 +46051,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_editRow_none => 'لا يوجد';
 
   @override
+  String get navTrack_editRow_loadFailed => 'تعذر تحميل المسارات';
+
+  @override
   String navTrack_editRow_more(int count, String name) {
     return '$name +$count';
   }

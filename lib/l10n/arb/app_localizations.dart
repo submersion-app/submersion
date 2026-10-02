@@ -73727,6 +73727,12 @@ abstract class AppLocalizations {
   /// **'None'**
   String get navTrack_editRow_none;
 
+  /// No description provided for @navTrack_editRow_loadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load routes'**
+  String get navTrack_editRow_loadFailed;
+
   /// Dive Edit route row value when several routes are linked: the first route's name and how many more there are
   ///
   /// In en, this message translates to:

@@ -13789,6 +13789,7 @@
   "navTrack_section_menuOpen3d": "Abrir paisaje 3D",
   "navTrack_section_menuMakePrimary": "Marcar como principal",
   "navTrack_editRow_none": "Ninguna",
+  "navTrack_editRow_loadFailed": "No se pudieron cargar las rutas",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTooltip": "Quitar ruta",
   "navTrack_editRow_saveFailed": "No se pudieron actualizar las rutas submarinas de esta inmersión: {error}",

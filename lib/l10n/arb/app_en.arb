@@ -28670,6 +28670,7 @@
   "navTrack_section_menuOpen3d": "Open 3D seascape",
   "navTrack_section_menuMakePrimary": "Make primary",
   "navTrack_editRow_none": "None",
+  "navTrack_editRow_loadFailed": "Could not load routes",
   "navTrack_editRow_more": "{name} +{count}",
   "@navTrack_editRow_more": {
     "description": "Dive Edit route row value when several routes are linked: the first route's name and how many more there are",
@@ -29361,8 +29362,8 @@
   "settings_manage_savedQueries": "Saved Queries",
   "@settings_manage_savedQueries": {"description": "Settings > Manage entry"},
   "settings_manage_savedQueries_subtitle": "Rename, reorder and delete saved queries",
-  "settings_manage_navRoutes_subtitle": "Import, align and link recorded routes",
   "@settings_manage_savedQueries_subtitle": {"description": "Settings > Manage entry subtitle"},
+  "settings_manage_navRoutes_subtitle": "Import, align and link recorded routes",
   "query_error_unterminatedQuote": "unterminated quote",
   "@query_error_unterminatedQuote": {"description": "Query error message."},
   "query_error_unexpectedCharacter": "unexpected character \"{text}\"",

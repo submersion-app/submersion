@@ -8,8 +8,9 @@ import '../../../../../helpers/nav_track_fixtures.dart';
 
 Future<int Function()> _pump(
   WidgetTester tester,
-  DiveRouteLinkDraft? draft,
-) async {
+  DiveRouteLinkDraft? draft, {
+  bool loadFailed = false,
+}) async {
   tester.platformDispatcher.localesTestValue = const [
     Locale('de'),
     Locale('en'),
@@ -22,7 +23,11 @@ Future<int Function()> _pump(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
-        body: RouteRow(draft: draft, onTap: () => taps++),
+        body: RouteRow(
+          draft: draft,
+          loadFailed: loadFailed,
+          onTap: () => taps++,
+        ),
       ),
     ),
   );
@@ -66,6 +71,16 @@ void main() {
     tester,
   ) async {
     final taps = await _pump(tester, null);
+    await tester.tap(find.byKey(const ValueKey('dive-edit-route-row')));
+    expect(taps(), 0);
+  });
+
+  testWidgets('says the routes could not be loaded instead of None', (
+    tester,
+  ) async {
+    final taps = await _pump(tester, null, loadFailed: true);
+    expect(find.text('Could not load routes'), findsOneWidget);
+    expect(find.text('None'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('dive-edit-route-row')));
     expect(taps(), 0);
   });

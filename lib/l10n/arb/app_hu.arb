@@ -13789,6 +13789,7 @@
   "navTrack_section_menuOpen3d": "3D tengeri táj megnyitása",
   "navTrack_section_menuMakePrimary": "Beállítás elsődlegesként",
   "navTrack_editRow_none": "Nincs",
+  "navTrack_editRow_loadFailed": "Nem sikerült betölteni az útvonalakat",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTooltip": "Útvonal eltávolítása",
   "navTrack_editRow_saveFailed": "Nem sikerült frissíteni a merülés vízalatti útvonalait: {error}",

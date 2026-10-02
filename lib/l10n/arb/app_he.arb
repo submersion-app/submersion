@@ -13789,6 +13789,7 @@
   "navTrack_section_menuOpen3d": "פתיחת נוף תלת-ממד",
   "navTrack_section_menuMakePrimary": "הגדרה כראשי",
   "navTrack_editRow_none": "אין",
+  "navTrack_editRow_loadFailed": "לא ניתן לטעון את המסלולים",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTooltip": "הסרת מסלול",
   "navTrack_editRow_saveFailed": "לא ניתן לעדכן את המסלולים התת-ימיים של צלילה זו: {error}",

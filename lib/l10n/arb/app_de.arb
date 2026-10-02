@@ -13901,6 +13901,7 @@
   "navTrack_section_menuOpen3d": "3D-Unterwasserwelt öffnen",
   "navTrack_section_menuMakePrimary": "Als primär festlegen",
   "navTrack_editRow_none": "Keine",
+  "navTrack_editRow_loadFailed": "Routen konnten nicht geladen werden",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTooltip": "Route entfernen",
   "navTrack_editRow_saveFailed": "Unterwasser-Routen dieses Tauchgangs konnten nicht aktualisiert werden: {error}",

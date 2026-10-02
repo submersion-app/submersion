@@ -45496,6 +45496,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_editRow_none => 'אין';
 
   @override
+  String get navTrack_editRow_loadFailed => 'לא ניתן לטעון את המסלולים';
+
+  @override
   String navTrack_editRow_more(int count, String name) {
     return '$name +$count';
   }

@@ -8,14 +8,21 @@ import 'package:submersion/shared/widgets/forms/form_row.dart';
 /// 2026-10-02-underwater-route-entry-points-design.md, section 1). Shows
 /// the routes the dive will have once saved; tapping opens the route sheet.
 ///
-/// A null [draft] means the dive's current links are still loading. Taps
-/// are ignored until then, so a Save can never treat "not loaded yet" as
-/// "every route removed".
+/// A null [draft] means the dive's current links are still loading, or
+/// failed to load ([loadFailed], which the row says instead of "None"). Taps
+/// are ignored either way, so a Save can never treat "not loaded" as "every
+/// route removed".
 class RouteRow extends StatelessWidget {
-  const RouteRow({super.key, required this.draft, required this.onTap});
+  const RouteRow({
+    super.key,
+    required this.draft,
+    required this.onTap,
+    this.loadFailed = false,
+  });
 
   final DiveRouteLinkDraft? draft;
   final VoidCallback onTap;
+  final bool loadFailed;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +40,9 @@ class RouteRow extends StatelessWidget {
       key: const ValueKey('dive-edit-route-row'),
       label: l10n.navTrack_section_title,
       value: value,
-      placeholder: l10n.navTrack_editRow_none,
+      placeholder: loadFailed && draft == null
+          ? l10n.navTrack_editRow_loadFailed
+          : l10n.navTrack_editRow_none,
       onTap: () {
         if (draft != null) onTap();
       },
