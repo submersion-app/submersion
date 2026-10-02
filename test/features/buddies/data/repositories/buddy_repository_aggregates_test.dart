@@ -8,11 +8,14 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 
 import '../../../../helpers/test_database.dart';
 
+/// Inserts a dive whose `dive_date_time` is [at], a wall clock flagged UTC,
+/// the way the app persists it.
 Future<void> _insertDive(
   db.AppDatabase database, {
   required String id,
   required DateTime at,
 }) async {
+  assert(at.isUtc, 'dive_date_time is stored as a wall clock flagged UTC');
   final ms = at.millisecondsSinceEpoch;
   await database
       .into(database.dives)
@@ -60,9 +63,11 @@ void main() {
     await repository.createBuddy(
       Buddy(id: 'ken', name: 'Ken', createdAt: now, updatedAt: now),
     );
-    await _insertDive(database, id: 'd1', at: DateTime(2024, 1, 10));
-    await _insertDive(database, id: 'd2', at: DateTime(2024, 3, 5));
-    await _insertDive(database, id: 'd3', at: DateTime(2024, 2, 1));
+    await _insertDive(database, id: 'd1', at: DateTime.utc(2024, 1, 10));
+    // Late in the evening, so reading it back with the device's UTC offset
+    // applied would move it to another day for most of the world.
+    await _insertDive(database, id: 'd2', at: DateTime.utc(2024, 3, 5, 23, 30));
+    await _insertDive(database, id: 'd3', at: DateTime.utc(2024, 2, 1, 0, 30));
   });
 
   tearDown(() async {
@@ -82,8 +87,40 @@ void main() {
     final jane = await load('jane');
 
     expect(jane.diveCount, 3);
-    expect(jane.lastDiveAt, DateTime(2024, 3, 5));
+    expect(jane.lastDiveAt, DateTime.utc(2024, 3, 5, 23, 30));
   });
+
+  // Issue #2805: dive_date_time is a wall clock flagged UTC. Decoding it as a
+  // local DateTime shifts the displayed date by the device's UTC offset, which
+  // CI (running in UTC) cannot see, so these assert the flag as well as the
+  // wall-clock fields.
+  test('lastDiveAt keeps the dive wall clock, flagged UTC (#2805)', () async {
+    await _link(database, diveId: 'd2', buddyId: 'jane');
+
+    final lastDiveAt = (await load('jane')).lastDiveAt!;
+
+    expect(lastDiveAt.isUtc, isTrue);
+    expect(
+      [lastDiveAt.year, lastDiveAt.month, lastDiveAt.day, lastDiveAt.hour],
+      [2024, 3, 5, 23],
+    );
+  });
+
+  test(
+    'getBuddyStats first and last dive keep the wall clock (#2805)',
+    () async {
+      await _link(database, diveId: 'd1', buddyId: 'jane');
+      await _link(database, diveId: 'd2', buddyId: 'jane');
+      await _link(database, diveId: 'd3', buddyId: 'jane');
+
+      final stats = await repository.getBuddyStats('jane');
+
+      expect(stats.firstDive, DateTime.utc(2024, 1, 10));
+      expect(stats.lastDive, DateTime.utc(2024, 3, 5, 23, 30));
+      expect(stats.firstDive!.isUtc, isTrue);
+      expect(stats.lastDive!.isUtc, isTrue);
+    },
+  );
 
   test('a buddy with no dives has null aggregates and zero count', () async {
     final ken = await load('ken');

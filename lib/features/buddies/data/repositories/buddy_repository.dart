@@ -949,9 +949,7 @@ class BuddyRepository {
         return BuddyWithDiveCount(
           buddy: buddy,
           diveCount: row.data['dive_count'] as int,
-          lastDiveAt: lastDive == null
-              ? null
-              : DateTime.fromMillisecondsSinceEpoch(lastDive),
+          lastDiveAt: lastDive == null ? null : _diveWallClock(lastDive),
           usualRoleId: usualRoleFor(roleCountsByBuddy[buddy.id] ?? const {}),
         );
       }).toList();
@@ -1123,10 +1121,10 @@ class BuddyRepository {
       final firstDiveTs = datesResult.data['first_dive'] as int?;
       final lastDiveTs = datesResult.data['last_dive'] as int?;
       if (firstDiveTs != null) {
-        firstDive = DateTime.fromMillisecondsSinceEpoch(firstDiveTs);
+        firstDive = _diveWallClock(firstDiveTs);
       }
       if (lastDiveTs != null) {
-        lastDive = DateTime.fromMillisecondsSinceEpoch(lastDiveTs);
+        lastDive = _diveWallClock(lastDiveTs);
       }
     }
 
@@ -1267,6 +1265,13 @@ class BuddyRepository {
 }
 
 /// Statistics about a buddy's dive history
+/// Decodes a `dives.dive_date_time` value. The column holds the dive's wall
+/// clock flagged UTC (the convention `DiveRepositoryImpl` hydrates with), so
+/// reading it as a local `DateTime` would shift the date by the device's UTC
+/// offset (issue #2805).
+DateTime _diveWallClock(int millis) =>
+    DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true);
+
 class BuddyStats {
   final int totalDives;
   final DateTime? firstDive;
