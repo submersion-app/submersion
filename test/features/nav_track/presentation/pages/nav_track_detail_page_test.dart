@@ -454,6 +454,64 @@ void main() {
         expect(repository.setSiteAnchor, const GeoPoint(47.5, 8.6));
       },
     );
+
+    testWidgets(
+      'creating a new site seeds the form with the route anchor and keeps a '
+      'hand-placed anchor',
+      (tester) async {
+        final route = _route(anchorLatitude: 47.3, anchorLongitude: 8.5);
+        const newSite = DiveSite(
+          id: 'site-new',
+          name: 'Brand New Site',
+          location: GeoPoint(47.3, 8.5),
+        );
+        Object? seededLocation;
+        final router = GoRouter(
+          initialLocation: '/nav-routes/${route.id}',
+          routes: [
+            GoRoute(
+              path: '/nav-routes/:id',
+              builder: (context, state) =>
+                  NavTrackDetailPage(trackId: state.pathParameters['id']!),
+            ),
+            GoRoute(
+              path: '/sites/new',
+              builder: (context, state) {
+                seededLocation = state.extra;
+                return Scaffold(
+                  body: TextButton(
+                    onPressed: () => context.pop(newSite.id),
+                    child: const Text('save new site'),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+        final repository = await _pump(
+          tester,
+          route: route,
+          router: router,
+          site: newSite,
+          allSites: const [],
+        );
+
+        await tester.tap(find.byKey(const ValueKey('nav-track-change-site')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('New Dive Site'));
+        await tester.pumpAndSettle();
+
+        expect(seededLocation, const GeoPoint(47.3, 8.5));
+        await tester.tap(find.text('save new site'));
+        await tester.pumpAndSettle();
+
+        // The anchor was placed by hand (no old site), so the site change
+        // must not rewrite it.
+        expect(repository.setSiteId, 'site-new');
+        expect(repository.setSiteAnchor, isNull);
+        expect(repository.setSiteClearAnchor, isFalse);
+      },
+    );
   });
 
   testWidgets('shows a loading indicator while the route resolves', (

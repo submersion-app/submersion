@@ -58,9 +58,8 @@ bool navTrackAnchorShouldFollowSiteChange(
 
 /// Returned by the site picker's "New Dive Site" button in place of a
 /// [DiveSite], so the caller can tell "create a new one" apart from "picked
-/// this existing one" without widening every other picker consumer's return
-/// type to a sum type. Mirrors `_createNewSiteSentinel` in
-/// `dive_edit_page.dart`.
+/// this existing one" (the sheet resolves to null when merely dismissed).
+/// Mirrors `_createNewSiteSentinel` in `dive_edit_page.dart`.
 const _createNewSiteSentinel = '__create_new__';
 
 /// One route: stats, an inline map when anchored, its dive link, correction
@@ -153,7 +152,8 @@ class NavTrackDetailPage extends ConsumerWidget {
   }
 
   /// Opens the same site picker the import review page uses and, on a
-  /// choice, persists the new site.
+  /// choice, persists the new site. "New Dive Site" opens the site form
+  /// seeded with the route's anchor and assigns the site once it is saved.
   ///
   /// The anchor follows the new site's pin only when the diver never moved
   /// the start point away from the old site's pin: the current anchor is
