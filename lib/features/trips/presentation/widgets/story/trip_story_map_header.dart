@@ -92,8 +92,12 @@ class TripStoryMap extends ConsumerWidget {
           options: MapOptions(
             initialCenter: bounds.center,
             initialZoom: zoom,
+            // Pans and zooms like the other embedded detail maps. A drag that
+            // starts on the map moves the map, not the page; the camera still
+            // eases back to the active day whenever that day changes.
+            // Rotation stays off so the overview keeps north up.
             interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.none,
+              flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
             ),
           ),
           children: [

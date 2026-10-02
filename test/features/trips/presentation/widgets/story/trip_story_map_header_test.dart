@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,7 +67,8 @@ Trip _trip() => Trip(
   updatedAt: DateTime(2026, 1, 1),
 );
 
-Future<void> pumpHeader(
+/// Pumps the map inside a scrolling page and returns its controller.
+Future<MapController> pumpHeader(
   WidgetTester tester,
   TripStoryMapGeometry geometry,
 ) async {
@@ -103,7 +105,29 @@ Future<void> pumpHeader(
   );
   await tester.pump();
   await tester.pump(const Duration(seconds: 1));
+  return controller;
 }
+
+const _twoPoints = TripStoryMapGeometry(
+  points: [
+    TripStoryMapPoint(
+      latitude: 12.1,
+      longitude: -68.2,
+      dayIndex: 0,
+      label: 'A',
+    ),
+    TripStoryMapPoint(
+      latitude: 12.2,
+      longitude: -68.3,
+      dayIndex: 1,
+      label: 'B',
+    ),
+  ],
+);
+
+/// A spot on the map well clear of the day pins and the attribution.
+Offset _openMapSpot(WidgetTester tester) =>
+    tester.getTopLeft(find.byType(FlutterMap)) + const Offset(40, 40);
 
 Future<void> pumpStrip(
   WidgetTester tester,
@@ -174,6 +198,54 @@ void main() {
     await pumpHeader(tester, geometry);
 
     expect(find.byType(FlutterMap), findsNothing);
+  });
+
+  testWidgets('dragging the map pans it instead of scrolling the page '
+      '(issue #2777)', (tester) async {
+    final controller = await pumpHeader(tester, _twoPoints);
+    final scroll = tester.state<ScrollableState>(find.byType(Scrollable).first);
+    final before = controller.camera.center;
+
+    // Vertical: the drag an enclosing scroll view would otherwise claim.
+    await tester.dragFrom(_openMapSpot(tester), const Offset(0, 120));
+    await tester.pumpAndSettle();
+    final afterVertical = controller.camera.center;
+    expect(afterVertical.latitude, isNot(closeTo(before.latitude, 1e-9)));
+    expect(scroll.position.pixels, 0);
+
+    await tester.dragFrom(_openMapSpot(tester), const Offset(-120, 0));
+    await tester.pumpAndSettle();
+    expect(
+      controller.camera.center.longitude,
+      isNot(closeTo(afterVertical.longitude, 1e-9)),
+    );
+    expect(scroll.position.pixels, 0);
+  });
+
+  testWidgets('a double-tap zooms the map in', (tester) async {
+    final controller = await pumpHeader(tester, _twoPoints);
+    final before = controller.camera.zoom;
+
+    await tester.tapAt(_openMapSpot(tester));
+    await tester.pump(kDoubleTapMinTime);
+    await tester.tapAt(_openMapSpot(tester));
+    await tester.pumpAndSettle();
+
+    expect(controller.camera.zoom, greaterThan(before));
+  });
+
+  testWidgets('the map never rotates', (tester) async {
+    await pumpHeader(tester, _twoPoints);
+
+    // A north-up overview: rotation is the one gesture the embedded detail
+    // maps leave out.
+    final flags = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .options
+        .interactionOptions
+        .flags;
+    expect(flags & InteractiveFlag.rotate, 0);
+    expect(flags & InteractiveFlag.drag, isNot(0));
   });
 
   testWidgets('stat strip shows the dive count', (tester) async {
