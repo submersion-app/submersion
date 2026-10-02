@@ -370,4 +370,27 @@ void main() {
     expect(find.byKey(const ValueKey('dive-jump-d1')), findsNothing);
     await tester.pump(kDiveSearchDebounce);
   });
+
+  // Code review: jumping to a dive closes the jump list.
+  testWidgets('jumping to a dive closes the jump list', (tester) async {
+    await pumpHeader(tester, jump: jumpRows, onOpenDive: (_) {});
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump(kDiveSearchDebounce);
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('dive-jump-d1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('dive-jump-d1')), findsNothing);
+  });
+
+  // Code review: on a phone, Open in Insights is an icon so the chips keep
+  // the row.
+  testWidgets('a narrow row shows Open in Insights as an icon', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.reset);
+    await pumpHeader(tester, filter: const DiveFilterState(minDepth: 30));
+    final insights = find.byKey(kDiveSearchInsightsKey);
+    expect(tester.widget(insights), isA<IconButton>());
+    expect(find.byTooltip('Open in Insights'), findsOneWidget);
+  });
 }

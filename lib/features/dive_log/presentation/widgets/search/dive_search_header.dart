@@ -141,6 +141,13 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
       now: DateTime.now,
     );
     final panelAxes = filter.panelAxisCount;
+    final compact = MediaQuery.sizeOf(context).width < 600;
+    void openInsights() {
+      // What applies, not what is set: Insights has no "All dives" toggle
+      // to show a suspension with.
+      ref.read(insightsFilterProvider.notifier).state = filter.effective;
+      context.go('/insights');
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -188,7 +195,14 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
           ),
         ),
         if (_focus.hasFocus && _jumpQuery != null)
-          DiveJumpList(query: _jumpQuery!, onOpen: widget.onOpenDive),
+          DiveJumpList(
+            query: _jumpQuery!,
+            onOpen: (dive) {
+              // The jump is done: close the rows it came from.
+              _focus.unfocus();
+              widget.onOpenDive(dive);
+            },
+          ),
         if (panelAxes > 0) const DiveSearchScopeToggle(),
         if (filter.hasActiveFilters)
           Padding(
@@ -207,20 +221,23 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                     ),
                   ),
                 ),
+                // An icon on narrow layouts, so the chips keep the row.
+                if (compact)
+                  IconButton(
+                    key: kDiveSearchInsightsKey,
+                    tooltip: l10n.diveLog_search_openInsights,
+                    icon: const Icon(Icons.insights),
+                    onPressed: openInsights,
+                  )
+                else
+                  TextButton(
+                    key: kDiveSearchInsightsKey,
+                    onPressed: openInsights,
+                    child: Text(l10n.diveLog_search_openInsights),
+                  ),
                 TextButton(
-                  key: kDiveSearchInsightsKey,
-                  onPressed: () {
-                    // What applies, not what is set: Insights has no
-                    // "All dives" toggle to show a suspension with.
-                    ref.read(insightsFilterProvider.notifier).state =
-                        filter.effective;
-                    context.go('/insights');
-                  },
-                  child: Text(l10n.diveLog_search_openInsights),
-                ),
-                TextButton(
-                  onPressed: () => ref.read(diveFilterProvider.notifier).state =
-                      const DiveFilterState(),
+                  onPressed: () =>
+                      closeDiveSearch(context, ref, collapse: false),
                   child: Text(l10n.diveLog_filterChip_clearAll),
                 ),
               ],

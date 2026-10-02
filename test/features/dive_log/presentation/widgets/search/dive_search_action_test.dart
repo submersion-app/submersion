@@ -28,7 +28,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  const action = ValueKey('dive-search-action');
+  const action = kDiveSearchActionKey;
 
   testWidgets('opens the row and asks for focus', (tester) async {
     await pump(tester, const DiveFilterState());
