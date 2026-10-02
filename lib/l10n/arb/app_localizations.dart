@@ -30524,6 +30524,18 @@ abstract class AppLocalizations {
   /// **'Expand menu'**
   String get nav_tooltip_expandMenu;
 
+  /// No description provided for @nav_tracks.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracks'**
+  String get nav_tracks;
+
+  /// No description provided for @nav_tracksSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS and underwater tracks'**
+  String get nav_tracksSubtitle;
+
   /// Navigation label for data transfer section
   ///
   /// In en, this message translates to:
@@ -39837,6 +39849,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tides'**
   String get tides_title;
+
+  /// No description provided for @tracks_empty_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a GPS track on your phone during a dive day, or import GPX, KML, CSV or FIT files and Seacraft ENC navigation logs. Tracks are matched to your dives automatically.'**
+  String get tracks_empty_body;
+
+  /// No description provided for @tracks_empty_clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get tracks_empty_clearFilters;
+
+  /// No description provided for @tracks_empty_filtered.
+  ///
+  /// In en, this message translates to:
+  /// **'No tracks match these filters'**
+  String get tracks_empty_filtered;
+
+  /// No description provided for @tracks_empty_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No tracks yet'**
+  String get tracks_empty_title;
+
+  /// No description provided for @tracks_kind_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get tracks_kind_all;
+
+  /// No description provided for @tracks_kind_gps.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS'**
+  String get tracks_kind_gps;
+
+  /// No description provided for @tracks_kind_underwater.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater'**
+  String get tracks_kind_underwater;
+
+  /// No description provided for @tracks_map_noMappable.
+  ///
+  /// In en, this message translates to:
+  /// **'None of these tracks has a position on the map yet.'**
+  String get tracks_map_noMappable;
+
+  /// No description provided for @tracks_match_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Match tracks to dives'**
+  String get tracks_match_button;
+
+  /// No description provided for @tracks_match_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No new matches'**
+  String get tracks_match_none;
+
+  /// No description provided for @tracks_match_partialError.
+  ///
+  /// In en, this message translates to:
+  /// **'Some tracks could not be matched. Try again.'**
+  String get tracks_match_partialError;
+
+  /// No description provided for @tracks_match_result.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives positioned: {positioned} · Underwater tracks linked: {linked}'**
+  String tracks_match_result(int linked, int positioned);
 
   /// No description provided for @transfer_appBar_title.
   ///

@@ -18971,6 +18971,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'Expandir menú';
 
   @override
+  String get nav_tracks => 'Tracks';
+
+  @override
+  String get nav_tracksSubtitle => 'Tracks GPS y submarinos';
+
+  @override
   String get nav_transfer => 'Transferencia';
 
   @override
@@ -25067,6 +25073,47 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tides_title => 'Mareas';
+
+  @override
+  String get tracks_empty_body =>
+      'Graba un track GPS con tu teléfono durante un día de buceo o importa archivos GPX, KML, CSV o FIT y registros de navegación de Seacraft ENC. Los tracks se asocian automáticamente a tus inmersiones.';
+
+  @override
+  String get tracks_empty_clearFilters => 'Borrar filtros';
+
+  @override
+  String get tracks_empty_filtered => 'Ningún track coincide con estos filtros';
+
+  @override
+  String get tracks_empty_title => 'Aún no hay tracks';
+
+  @override
+  String get tracks_kind_all => 'Todos';
+
+  @override
+  String get tracks_kind_gps => 'GPS';
+
+  @override
+  String get tracks_kind_underwater => 'Submarinos';
+
+  @override
+  String get tracks_map_noMappable =>
+      'Ninguno de estos tracks tiene todavía una posición en el mapa.';
+
+  @override
+  String get tracks_match_button => 'Asociar tracks a inmersiones';
+
+  @override
+  String get tracks_match_none => 'No hay nuevas coincidencias';
+
+  @override
+  String get tracks_match_partialError =>
+      'No se pudieron asociar algunos tracks. Inténtalo de nuevo.';
+
+  @override
+  String tracks_match_result(int linked, int positioned) {
+    return 'Inmersiones posicionadas: $positioned · Tracks submarinos vinculados: $linked';
+  }
 
   @override
   String get transfer_appBar_title => 'Transferir';

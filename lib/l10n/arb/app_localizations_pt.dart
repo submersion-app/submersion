@@ -18983,6 +18983,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'Expandir menu';
 
   @override
+  String get nav_tracks => 'Trilhas';
+
+  @override
+  String get nav_tracksSubtitle => 'Trilhas GPS e subaquáticas';
+
+  @override
   String get nav_transfer => 'Transferir';
 
   @override
@@ -25057,6 +25063,48 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get tides_title => 'Marés';
+
+  @override
+  String get tracks_empty_body =>
+      'Grave uma trilha GPS com seu celular durante um dia de mergulho ou importe arquivos GPX, KML, CSV ou FIT e registros de navegação Seacraft ENC. As trilhas são associadas automaticamente aos seus mergulhos.';
+
+  @override
+  String get tracks_empty_clearFilters => 'Limpar filtros';
+
+  @override
+  String get tracks_empty_filtered =>
+      'Nenhuma trilha corresponde a estes filtros';
+
+  @override
+  String get tracks_empty_title => 'Ainda não há trilhas';
+
+  @override
+  String get tracks_kind_all => 'Todas';
+
+  @override
+  String get tracks_kind_gps => 'GPS';
+
+  @override
+  String get tracks_kind_underwater => 'Subaquáticas';
+
+  @override
+  String get tracks_map_noMappable =>
+      'Nenhuma destas trilhas tem ainda uma posição no mapa.';
+
+  @override
+  String get tracks_match_button => 'Associar trilhas a mergulhos';
+
+  @override
+  String get tracks_match_none => 'Nenhuma nova correspondência';
+
+  @override
+  String get tracks_match_partialError =>
+      'Não foi possível associar algumas trilhas. Tente novamente.';
+
+  @override
+  String tracks_match_result(int linked, int positioned) {
+    return 'Mergulhos posicionados: $positioned · Trilhas subaquáticas vinculadas: $linked';
+  }
 
   @override
   String get transfer_appBar_title => 'Transferência';

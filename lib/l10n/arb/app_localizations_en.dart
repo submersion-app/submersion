@@ -18694,6 +18694,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'Expand menu';
 
   @override
+  String get nav_tracks => 'Tracks';
+
+  @override
+  String get nav_tracksSubtitle => 'GPS and underwater tracks';
+
+  @override
   String get nav_transfer => 'Transfer';
 
   @override
@@ -24657,6 +24663,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tides_title => 'Tides';
+
+  @override
+  String get tracks_empty_body =>
+      'Record a GPS track on your phone during a dive day, or import GPX, KML, CSV or FIT files and Seacraft ENC navigation logs. Tracks are matched to your dives automatically.';
+
+  @override
+  String get tracks_empty_clearFilters => 'Clear filters';
+
+  @override
+  String get tracks_empty_filtered => 'No tracks match these filters';
+
+  @override
+  String get tracks_empty_title => 'No tracks yet';
+
+  @override
+  String get tracks_kind_all => 'All';
+
+  @override
+  String get tracks_kind_gps => 'GPS';
+
+  @override
+  String get tracks_kind_underwater => 'Underwater';
+
+  @override
+  String get tracks_map_noMappable =>
+      'None of these tracks has a position on the map yet.';
+
+  @override
+  String get tracks_match_button => 'Match tracks to dives';
+
+  @override
+  String get tracks_match_none => 'No new matches';
+
+  @override
+  String get tracks_match_partialError =>
+      'Some tracks could not be matched. Try again.';
+
+  @override
+  String tracks_match_result(int linked, int positioned) {
+    return 'Dives positioned: $positioned · Underwater tracks linked: $linked';
+  }
 
   @override
   String get transfer_appBar_title => 'Transfer';

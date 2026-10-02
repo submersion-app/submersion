@@ -18097,6 +18097,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_tooltip_expandMenu => '展开菜单';
 
   @override
+  String get nav_tracks => '轨迹';
+
+  @override
+  String get nav_tracksSubtitle => 'GPS 与水下轨迹';
+
+  @override
   String get nav_transfer => '传输';
 
   @override
@@ -23785,6 +23791,45 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tides_title => '潮汐';
+
+  @override
+  String get tracks_empty_body =>
+      '在潜水日用手机记录 GPS 轨迹，或导入 GPX、KML、CSV、FIT 文件以及 Seacraft ENC 导航日志。轨迹会自动匹配到你的潜水。';
+
+  @override
+  String get tracks_empty_clearFilters => '清除筛选';
+
+  @override
+  String get tracks_empty_filtered => '没有符合这些筛选条件的轨迹';
+
+  @override
+  String get tracks_empty_title => '暂无轨迹';
+
+  @override
+  String get tracks_kind_all => '全部';
+
+  @override
+  String get tracks_kind_gps => 'GPS';
+
+  @override
+  String get tracks_kind_underwater => '水下';
+
+  @override
+  String get tracks_map_noMappable => '这些轨迹在地图上都还没有位置。';
+
+  @override
+  String get tracks_match_button => '将轨迹匹配到潜水';
+
+  @override
+  String get tracks_match_none => '没有新的匹配';
+
+  @override
+  String get tracks_match_partialError => '部分轨迹无法匹配，请重试。';
+
+  @override
+  String tracks_match_result(int linked, int positioned) {
+    return '已定位潜水：$positioned · 已关联水下轨迹：$linked';
+  }
 
   @override
   String get transfer_appBar_title => '传输';

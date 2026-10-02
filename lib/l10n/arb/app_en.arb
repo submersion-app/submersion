@@ -11769,6 +11769,8 @@
   "nav_tooltip_closeMenu": "Close menu",
   "nav_tooltip_collapseMenu": "Collapse menu",
   "nav_tooltip_expandMenu": "Expand menu",
+  "nav_tracks": "Tracks",
+  "nav_tracksSubtitle": "GPS and underwater tracks",
   "nav_transfer": "Transfer",
   "nav_trips": "Trips",
   "@nav_buddies": {
@@ -15462,6 +15464,28 @@
     }
   },
   "tides_title": "Tides",
+  "tracks_empty_body": "Record a GPS track on your phone during a dive day, or import GPX, KML, CSV or FIT files and Seacraft ENC navigation logs. Tracks are matched to your dives automatically.",
+  "tracks_empty_clearFilters": "Clear filters",
+  "tracks_empty_filtered": "No tracks match these filters",
+  "tracks_empty_title": "No tracks yet",
+  "tracks_kind_all": "All",
+  "tracks_kind_gps": "GPS",
+  "tracks_kind_underwater": "Underwater",
+  "tracks_map_noMappable": "None of these tracks has a position on the map yet.",
+  "tracks_match_button": "Match tracks to dives",
+  "tracks_match_none": "No new matches",
+  "tracks_match_partialError": "Some tracks could not be matched. Try again.",
+  "tracks_match_result": "Dives positioned: {positioned} · Underwater tracks linked: {linked}",
+  "@tracks_match_result": {
+    "placeholders": {
+      "linked": {
+        "type": "int"
+      },
+      "positioned": {
+        "type": "int"
+      }
+    }
+  },
   "transfer_appBar_title": "Transfer",
   "transfer_computers_aboutContent": "Connect your dive computer via Bluetooth to download dive logs directly to the app. Supported computers include Suunto, Shearwater, Garmin, Mares, and many other popular brands.  Apple Watch Ultra users can import dive data directly from the Health app, including depth, duration, and heart rate.",
   "transfer_computers_aboutTitle": "About Dive Computers",

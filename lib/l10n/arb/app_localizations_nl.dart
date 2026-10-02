@@ -18852,6 +18852,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'Menu uitklappen';
 
   @override
+  String get nav_tracks => 'Tracks';
+
+  @override
+  String get nav_tracksSubtitle => 'GPS- en onderwatertracks';
+
+  @override
   String get nav_transfer => 'Overdracht';
 
   @override
@@ -24864,6 +24870,47 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tides_title => 'Getijden';
+
+  @override
+  String get tracks_empty_body =>
+      'Neem tijdens een duikdag een GPS-track op met je telefoon, of importeer GPX-, KML-, CSV- of FIT-bestanden en Seacraft ENC-navigatielogs. Tracks worden automatisch aan je duiken gekoppeld.';
+
+  @override
+  String get tracks_empty_clearFilters => 'Filters wissen';
+
+  @override
+  String get tracks_empty_filtered => 'Geen tracks voldoen aan deze filters';
+
+  @override
+  String get tracks_empty_title => 'Nog geen tracks';
+
+  @override
+  String get tracks_kind_all => 'Alle';
+
+  @override
+  String get tracks_kind_gps => 'GPS';
+
+  @override
+  String get tracks_kind_underwater => 'Onderwater';
+
+  @override
+  String get tracks_map_noMappable =>
+      'Geen van deze tracks heeft al een positie op de kaart.';
+
+  @override
+  String get tracks_match_button => 'Tracks aan duiken koppelen';
+
+  @override
+  String get tracks_match_none => 'Geen nieuwe koppelingen';
+
+  @override
+  String get tracks_match_partialError =>
+      'Sommige tracks konden niet worden gekoppeld. Probeer het opnieuw.';
+
+  @override
+  String tracks_match_result(int linked, int positioned) {
+    return 'Gepositioneerde duiken: $positioned · Gekoppelde onderwatertracks: $linked';
+  }
 
   @override
   String get transfer_appBar_title => 'Overdracht';

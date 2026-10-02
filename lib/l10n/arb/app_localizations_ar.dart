@@ -18695,6 +18695,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'توسيع القائمة';
 
   @override
+  String get nav_tracks => 'المسارات';
+
+  @override
+  String get nav_tracksSubtitle => 'مسارات GPS والمسارات تحت الماء';
+
+  @override
   String get nav_transfer => 'نقل البيانات';
 
   @override
@@ -24737,6 +24743,47 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tides_title => 'المد والجزر';
+
+  @override
+  String get tracks_empty_body =>
+      'سجّل مسار GPS على هاتفك خلال يوم الغطس، أو استورد ملفات GPX أو KML أو CSV أو FIT وسجلات الملاحة من Seacraft ENC. تتم مطابقة المسارات مع غطساتك تلقائيًا.';
+
+  @override
+  String get tracks_empty_clearFilters => 'مسح عوامل التصفية';
+
+  @override
+  String get tracks_empty_filtered => 'لا توجد مسارات تطابق عوامل التصفية هذه';
+
+  @override
+  String get tracks_empty_title => 'لا توجد مسارات بعد';
+
+  @override
+  String get tracks_kind_all => 'الكل';
+
+  @override
+  String get tracks_kind_gps => 'GPS';
+
+  @override
+  String get tracks_kind_underwater => 'تحت الماء';
+
+  @override
+  String get tracks_map_noMappable =>
+      'لا يملك أي من هذه المسارات موقعًا على الخريطة بعد.';
+
+  @override
+  String get tracks_match_button => 'مطابقة المسارات مع الغطسات';
+
+  @override
+  String get tracks_match_none => 'لا توجد مطابقات جديدة';
+
+  @override
+  String get tracks_match_partialError =>
+      'تعذّرت مطابقة بعض المسارات. يُرجى المحاولة مرة أخرى.';
+
+  @override
+  String tracks_match_result(int linked, int positioned) {
+    return 'الغطسات المحددة مواقعها: $positioned · المسارات تحت الماء المرتبطة: $linked';
+  }
 
   @override
   String get transfer_appBar_title => 'النقل';

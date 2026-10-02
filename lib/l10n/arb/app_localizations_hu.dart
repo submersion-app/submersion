@@ -18924,6 +18924,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'Menü kinyitása';
 
   @override
+  String get nav_tracks => 'Útvonalak';
+
+  @override
+  String get nav_tracksSubtitle => 'GPS- és víz alatti útvonalak';
+
+  @override
   String get nav_transfer => 'Átvitel';
 
   @override
@@ -24978,6 +24984,48 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tides_title => 'Árapály';
+
+  @override
+  String get tracks_empty_body =>
+      'Rögzíts GPS-útvonalat a telefonoddal egy merülőnapon, vagy importálj GPX, KML, CSV vagy FIT fájlokat és Seacraft ENC navigációs naplókat. Az útvonalak automatikusan párosulnak a merüléseiddel.';
+
+  @override
+  String get tracks_empty_clearFilters => 'Szűrők törlése';
+
+  @override
+  String get tracks_empty_filtered =>
+      'Egy útvonal sem felel meg ezeknek a szűrőknek';
+
+  @override
+  String get tracks_empty_title => 'Még nincsenek útvonalak';
+
+  @override
+  String get tracks_kind_all => 'Mind';
+
+  @override
+  String get tracks_kind_gps => 'GPS';
+
+  @override
+  String get tracks_kind_underwater => 'Víz alatti';
+
+  @override
+  String get tracks_map_noMappable =>
+      'Ezen útvonalak egyikének sincs még helye a térképen.';
+
+  @override
+  String get tracks_match_button => 'Útvonalak párosítása merülésekkel';
+
+  @override
+  String get tracks_match_none => 'Nincs új egyezés';
+
+  @override
+  String get tracks_match_partialError =>
+      'Néhány útvonalat nem sikerült párosítani. Kérjük, próbáld újra.';
+
+  @override
+  String tracks_match_result(int linked, int positioned) {
+    return 'Pozicionált merülések: $positioned · Összekapcsolt víz alatti útvonalak: $linked';
+  }
 
   @override
   String get transfer_appBar_title => 'Átvitel';

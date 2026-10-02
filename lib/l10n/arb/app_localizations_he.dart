@@ -18554,6 +18554,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'הרחבת תפריט';
 
   @override
+  String get nav_tracks => 'מסלולים';
+
+  @override
+  String get nav_tracksSubtitle => 'מסלולי GPS ומסלולים תת-ימיים';
+
+  @override
   String get nav_transfer => 'העברה';
 
   @override
@@ -24451,6 +24457,47 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tides_title => 'גאות';
+
+  @override
+  String get tracks_empty_body =>
+      'הקלט מסלול GPS בטלפון במהלך יום צלילה, או ייבא קובצי GPX, KML, CSV או FIT ויומני ניווט של Seacraft ENC. המסלולים מותאמים לצלילות שלך באופן אוטומטי.';
+
+  @override
+  String get tracks_empty_clearFilters => 'ניקוי מסננים';
+
+  @override
+  String get tracks_empty_filtered => 'אין מסלולים שתואמים למסננים האלה';
+
+  @override
+  String get tracks_empty_title => 'אין עדיין מסלולים';
+
+  @override
+  String get tracks_kind_all => 'הכול';
+
+  @override
+  String get tracks_kind_gps => 'GPS';
+
+  @override
+  String get tracks_kind_underwater => 'תת-ימיים';
+
+  @override
+  String get tracks_map_noMappable =>
+      'לאף אחד מהמסלולים האלה אין עדיין מיקום על המפה.';
+
+  @override
+  String get tracks_match_button => 'התאמת מסלולים לצלילות';
+
+  @override
+  String get tracks_match_none => 'אין התאמות חדשות';
+
+  @override
+  String get tracks_match_partialError =>
+      'לא ניתן היה להתאים חלק מהמסלולים. יש לנסות שוב.';
+
+  @override
+  String tracks_match_result(int linked, int positioned) {
+    return 'צלילות שמוקמו: $positioned · מסלולים תת-ימיים שקושרו: $linked';
+  }
 
   @override
   String get transfer_appBar_title => 'העברה';

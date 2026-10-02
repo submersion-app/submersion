@@ -18966,6 +18966,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'Menü ausklappen';
 
   @override
+  String get nav_tracks => 'Tracks';
+
+  @override
+  String get nav_tracksSubtitle => 'GPS- und Unterwasser-Tracks';
+
+  @override
   String get nav_transfer => 'Übertragung';
 
   @override
@@ -25005,6 +25011,47 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tides_title => 'Gezeiten';
+
+  @override
+  String get tracks_empty_body =>
+      'Zeichne an einem Tauchtag einen GPS-Track mit deinem Telefon auf oder importiere GPX-, KML-, CSV- oder FIT-Dateien und Seacraft-ENC-Navigationsprotokolle. Tracks werden deinen Tauchgängen automatisch zugeordnet.';
+
+  @override
+  String get tracks_empty_clearFilters => 'Filter zurücksetzen';
+
+  @override
+  String get tracks_empty_filtered => 'Keine Tracks entsprechen diesen Filtern';
+
+  @override
+  String get tracks_empty_title => 'Noch keine Tracks';
+
+  @override
+  String get tracks_kind_all => 'Alle';
+
+  @override
+  String get tracks_kind_gps => 'GPS';
+
+  @override
+  String get tracks_kind_underwater => 'Unterwasser';
+
+  @override
+  String get tracks_map_noMappable =>
+      'Keiner dieser Tracks hat bisher eine Position auf der Karte.';
+
+  @override
+  String get tracks_match_button => 'Tracks mit Tauchgängen abgleichen';
+
+  @override
+  String get tracks_match_none => 'Keine neuen Zuordnungen';
+
+  @override
+  String get tracks_match_partialError =>
+      'Einige Tracks konnten nicht zugeordnet werden. Bitte erneut versuchen.';
+
+  @override
+  String tracks_match_result(int linked, int positioned) {
+    return 'Positionierte Tauchgänge: $positioned · Verknüpfte Unterwasser-Tracks: $linked';
+  }
 
   @override
   String get transfer_appBar_title => 'Übertragung';
