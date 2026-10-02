@@ -11,7 +11,6 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
-import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
@@ -143,14 +142,20 @@ class NavTrackDetailPage extends ConsumerWidget {
       routeStartSeconds: route.startTime ~/ 1000,
       dives: dives,
     );
-    // Pre-selects the one dive NavTrackMatchService would have suggested
-    // (#2394: a sole time-overlapping dive used to be linked silently
-    // instead of offered as a choice), so confirming it is a single tap
-    // rather than hunting it down in the proximity-sorted list below.
-    final suggestions = await ref
-        .read(navTrackMatchServiceProvider)
-        .sweep(limitToRouteIds: [route.id]);
-    final suggestedDiveId = suggestions.firstOrNull?.suggestedDiveId;
+    // Pre-selects the one dive a sweep would suggest (#2394: a sole
+    // time-overlapping dive used to be linked silently instead of offered as
+    // a choice), so confirming it is a single tap rather than hunting it
+    // down in the proximity-sorted list below. Computed from the [dives]
+    // already fetched above rather than through another sweep() call, which
+    // would re-fetch the same dive list a second time.
+    final candidates = NavTrackMatcher.candidatesFor(
+      routeStartSeconds: route.startTime ~/ 1000,
+      routeEndSeconds: route.endTime ~/ 1000,
+      dives: dives,
+    );
+    final suggestedDiveId = candidates.length == 1
+        ? candidates.single.id
+        : null;
     if (!context.mounted) return;
     final chosen = await showNavTrackDiveChoiceSheet(
       context,

@@ -15,13 +15,9 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
-import 'package:submersion/features/nav_track/data/services/nav_track_match_service.dart';
-import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
-import 'package:submersion/features/nav_track/domain/nav_track_match_suggestion.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -85,25 +81,6 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   }
 }
 
-/// Stubs `sweep()` with a canned suggestion instead of touching a real
-/// database (`_chooseDive`'s pre-selection, #2394).
-class _FakeNavTrackMatchService extends NavTrackMatchService {
-  _FakeNavTrackMatchService({
-    this.suggestions = const <NavTrackMatchSuggestion>[],
-  }) : super(
-         routeRepository: NavTrackRepository(),
-         diveRepository: DiveRepository(),
-       );
-
-  final List<NavTrackMatchSuggestion> suggestions;
-
-  @override
-  Future<List<NavTrackMatchSuggestion>> sweep({
-    List<String>? limitToRouteIds,
-    List<String>? limitToDiveIds,
-  }) async => suggestions;
-}
-
 NavTrack _route({
   String? diveId,
   String? equipmentId,
@@ -140,7 +117,6 @@ Future<_RecordingNavTrackRepository> _pump(
   List<DiveSite>? allSites,
   Locale? locale,
   _RecordingNavTrackRepository? repository,
-  List<NavTrackMatchSuggestion> matchSuggestions = const [],
 }) async {
   final overrides = await getBaseOverrides();
   final effectiveRepository = repository ?? _RecordingNavTrackRepository();
@@ -148,9 +124,6 @@ Future<_RecordingNavTrackRepository> _pump(
     ...overrides,
     navTrackByIdProvider(route.id).overrideWith((ref) async => route),
     navTrackRepositoryProvider.overrideWithValue(effectiveRepository),
-    navTrackMatchServiceProvider.overrideWithValue(
-      _FakeNavTrackMatchService(suggestions: matchSuggestions),
-    ),
     if (linkedDive != null)
       diveProvider(linkedDive.id).overrideWith((ref) async => linkedDive),
     if (equipment != null)
@@ -307,18 +280,17 @@ void main() {
     '"Choose dive" pre-selects the sole dive NavTrackMatchService suggests '
     '(#2394)',
     (tester) async {
+      // Entry time equals the route's own startTime (1755856800000ms), so
+      // this is the sole dive NavTrackMatcher.candidatesFor overlaps --
+      // no fake match service needed, the pre-selection is computed
+      // directly from the dives already fetched for the sheet.
       final candidate = Dive(
         id: 'dive-9',
         diveNumber: 9,
-        dateTime: DateTime(2026, 8, 22, 9),
-        entryTime: DateTime(2026, 8, 22, 9),
+        dateTime: DateTime.fromMillisecondsSinceEpoch(1755856800000),
+        entryTime: DateTime.fromMillisecondsSinceEpoch(1755856800000),
       );
-      await _pump(
-        tester,
-        route: _route(),
-        allDives: [candidate],
-        matchSuggestions: const [(routeId: 'r1', suggestedDiveId: 'dive-9')],
-      );
+      await _pump(tester, route: _route(), allDives: [candidate]);
 
       await tester.tap(find.text('Choose dive'));
       await tester.pumpAndSettle();

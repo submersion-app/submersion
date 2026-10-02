@@ -133,8 +133,8 @@ class _NavTrackListPageState extends ConsumerState<NavTrackListPage> {
     try {
       await ref.read(navTrackMatchServiceProvider).sweep();
       // The sweep itself never writes anything any more (#2394); this just
-      // refreshes the "N routes need your choice" hint on demand, the same
-      // way a route or dive change already does.
+      // refreshes the "N routes need your choice" hint, the same way a
+      // route or dive change already does.
       ref.invalidate(navTrackPendingChoiceCountProvider);
     } catch (e, stackTrace) {
       _log.error(
@@ -209,15 +209,25 @@ class _NavTrackListPageState extends ConsumerState<NavTrackListPage> {
     final units = UnitFormatter(ref.watch(settingsProvider));
     final l10n = context.l10n;
 
-    if (!ResponsiveBreakpoints.isMasterDetail(context)) {
-      return routesAsync.when(
-        loading: () => _buildLoading(context, l10n),
-        error: (e, st) => _buildError(context, l10n, e),
-        data: (routes) => _buildColumn(context, routes, units),
-      );
+    // Checked manually rather than through AsyncValue.when's loading/error
+    // branches: allNavTracksProvider re-enters AsyncLoading on every route
+    // change (invalidateSelfWhen(repository.watchChanges())), and .when's
+    // own loading/error branches fire again on every one of those too,
+    // flashing the whole page (banner, scroll position, map) back to a bare
+    // spinner each time a route is added, linked or deleted. Falling back to
+    // the last good value here instead -- the same effect skipLoadingOnReload
+    // would have -- only shows the spinner/error view on the very first
+    // load, in both layouts alike.
+    if (!routesAsync.hasValue) {
+      return routesAsync.hasError
+          ? _buildError(context, routesAsync.error!)
+          : _buildLoading(context);
     }
+    final routes = routesAsync.value!;
 
-    final routes = routesAsync.value ?? const <NavTrack>[];
+    if (!ResponsiveBreakpoints.isMasterDetail(context)) {
+      return _buildColumn(context, routes, units);
+    }
 
     final selection = ref.watch(mapListSelectionProvider(kNavTrackSectionKey));
     final anchoredRoutes = routes.where((r) => r.anchor != null).toList();
@@ -239,15 +249,22 @@ class _NavTrackListPageState extends ConsumerState<NavTrackListPage> {
       sectionKey: kNavTrackSectionKey,
       title: l10n.navTrack_list_title,
       actions: [_matchAction(), _importAction()],
-      listPane: _NavTrackListPane(
-        routes: routes,
-        selectedId: selection.selectedId,
-        units: units,
-        onSelect: (id) => ref
-            .read(mapListSelectionProvider(kNavTrackSectionKey).notifier)
-            .select(id),
-        onOpen: _openRoute,
-        onDelete: _deleteRoute,
+      listPane: Column(
+        children: [
+          const _PendingChoiceBanner(),
+          Expanded(
+            child: _NavTrackListPane(
+              routes: routes,
+              selectedId: selection.selectedId,
+              units: units,
+              onSelect: (id) => ref
+                  .read(mapListSelectionProvider(kNavTrackSectionKey).notifier)
+                  .select(id),
+              onOpen: _openRoute,
+              onDelete: _deleteRoute,
+            ),
+          ),
+        ],
       ),
       mapPane: cameraFit == null
           ? Center(child: Text(l10n.navTrack_list_noMapRoutes))
@@ -282,14 +299,13 @@ class _NavTrackListPageState extends ConsumerState<NavTrackListPage> {
     body: body,
   );
 
-  Widget _buildLoading(BuildContext context, AppLocalizations l10n) =>
+  Widget _buildLoading(BuildContext context) =>
       _scaffoldShell(context, const Center(child: CircularProgressIndicator()));
 
-  Widget _buildError(BuildContext context, AppLocalizations l10n, Object e) =>
-      _scaffoldShell(
-        context,
-        Center(child: Text(l10n.navTrack_list_loadError(e.toString()))),
-      );
+  Widget _buildError(BuildContext context, Object e) => _scaffoldShell(
+    context,
+    Center(child: Text(context.l10n.navTrack_list_loadError(e.toString()))),
+  );
 
   Widget _buildColumn(
     BuildContext context,
