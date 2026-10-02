@@ -97,6 +97,63 @@ void main() {
       },
     );
 
+    // A dive logged with no runtime and no profile has no length, so it is an
+    // instant. A re-import of it starting at that instant must still fold
+    // into it, or the re-import cannot repair it (#1809).
+    group('a dive of unknown length', () {
+      final instant = Dive(
+        id: 'a',
+        diverId: 'diver1',
+        dateTime: t,
+        entryTime: t,
+      );
+
+      test('overlaps a dive starting at the same instant', () {
+        final result = builder.classify([
+          instant,
+          makeDive('b', entry: t, runtimeMin: 45),
+        ], primaryDiveId: 'a');
+        expect(result, isA<ConsolidationReady>());
+      });
+
+      test('overlaps another of unknown length at the same instant', () {
+        final other = Dive(
+          id: 'b',
+          diverId: 'diver1',
+          dateTime: t,
+          entryTime: t,
+        );
+        expect(builder.classify([instant, other]), isA<ConsolidationReady>());
+      });
+
+      test('overlaps a dive that is under way at that instant', () {
+        final result = builder.classify([
+          instant,
+          makeDive(
+            'b',
+            entry: t.subtract(const Duration(minutes: 5)),
+            runtimeMin: 45,
+          ),
+        ]);
+        expect(result, isA<ConsolidationReady>());
+      });
+
+      test('does not overlap a dive that ended before it', () {
+        final result = builder.classify([
+          instant,
+          makeDive(
+            'b',
+            entry: t.subtract(const Duration(hours: 1)),
+            runtimeMin: 45,
+          ),
+        ]);
+        expect(
+          (result as ConsolidationInvalid).reason,
+          ConsolidationInvalidReason.notOverlapping,
+        );
+      });
+    });
+
     test('overlapping dives honor an explicit primaryDiveId', () {
       final a = makeDive('a', entry: t, runtimeMin: 40);
       final b = makeDive(
