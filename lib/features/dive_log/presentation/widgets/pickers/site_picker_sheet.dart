@@ -28,6 +28,9 @@ const _createNewSiteSentinel = '__create_new__';
 ///
 /// Returns the picked or newly created [DiveSite], or null if the sheet was
 /// dismissed or the new-site form was cancelled.
+///
+/// With [allowCreate] false the sheet offers no "New Dive Site" button, for
+/// callers that cannot open the new-site form mid-flow.
 Future<DiveSite?> pickOrCreateSite(
   BuildContext context,
   WidgetRef ref, {
@@ -35,6 +38,7 @@ Future<DiveSite?> pickOrCreateSite(
   LocationResult? currentLocation,
   GeoPoint? diveLocation,
   GeoPoint? newSiteSeedLocation,
+  bool allowCreate = true,
 }) async {
   final chosen = await showModalBottomSheet<Object>(
     context: context,
@@ -50,8 +54,9 @@ Future<DiveSite?> pickOrCreateSite(
         currentLocation: currentLocation,
         diveLocation: diveLocation,
         onSiteSelected: (site) => Navigator.of(sheetContext).pop(site),
-        onCreateNewSite: () =>
-            Navigator.of(sheetContext).pop(_createNewSiteSentinel),
+        onCreateNewSite: allowCreate
+            ? () => Navigator.of(sheetContext).pop(_createNewSiteSentinel)
+            : null,
       ),
     ),
   );

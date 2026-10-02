@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -9,6 +11,21 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 const _existingSite = DiveSite(id: 'existing', name: 'House Reef');
 const _newSite = DiveSite(id: 'new-site', name: 'Brand New Site');
+
+/// Device GPS that never has a fix. None of these tests pass a dive or
+/// device location, so the sheet asks for one; without this it would reach
+/// the real Geolocator platform channel.
+class _NoFixLocationService implements LocationService {
+  @override
+  Future<LocationResult?> getCurrentLocation({
+    bool includeGeocoding = true,
+    Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
+  }) async => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   testWidgets('returns the picked site without touching the new-site form', (
@@ -34,6 +51,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          locationServiceProvider.overrideWithValue(_NoFixLocationService()),
           sitesProvider.overrideWith((ref) async => [_existingSite]),
         ],
         child: MaterialApp.router(
@@ -71,6 +89,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          locationServiceProvider.overrideWithValue(_NoFixLocationService()),
           sitesProvider.overrideWith((ref) async => [_existingSite]),
         ],
         child: MaterialApp.router(
@@ -127,8 +146,13 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            locationServiceProvider.overrideWithValue(_NoFixLocationService()),
             sitesProvider.overrideWith((ref) async => const []),
-            siteProvider.overrideWith((ref, id) async => _newSite),
+            // Resolves only the id the form saved, so a helper that
+            // loaded any other id would come back null.
+            siteProvider.overrideWith(
+              (ref, id) async => id == _newSite.id ? _newSite : null,
+            ),
           ],
           child: MaterialApp.router(
             routerConfig: router,
@@ -177,7 +201,10 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [sitesProvider.overrideWith((ref) async => const [])],
+        overrides: [
+          locationServiceProvider.overrideWithValue(_NoFixLocationService()),
+          sitesProvider.overrideWith((ref) async => const []),
+        ],
         child: MaterialApp.router(
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
