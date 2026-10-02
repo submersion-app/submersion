@@ -226,6 +226,63 @@ void main() {
     });
   });
 
+  // The desktop pane's own header (showAppBar: false) carries a second
+  // overflow menu, with the same "Select items" entry at its top.
+  group('compact bar "Select items"', () {
+    testWidgets('is first in the menu and enters selection', (tester) async {
+      final all = <BuddyWithDiveCount>[
+        _makeBuddy(id: 'b1', name: 'Aaa Buddy'),
+        _makeBuddy(id: 'b2', name: 'Bbb Buddy'),
+        _makeBuddy(id: 'b3', name: 'Ccc Buddy'),
+      ];
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final overrides = <Override>[
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        _visibleBuddiesProvider.overrideWith((ref) => all),
+        allBuddiesWithDiveCountProvider.overrideWith(
+          (ref) => ref.watch(_visibleBuddiesProvider),
+        ),
+        buddyListNotifierProvider.overrideWith(
+          (ref) => _MockBuddyListNotifier(),
+        ),
+        buddyListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
+        buddyTableConfigProvider.overrideWith(
+          (ref) => _TestBuddyTableConfigNotifier(_testConfig),
+        ),
+        highlightedBuddyIdProvider.overrideWith((ref) => null),
+      ];
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const BuddyListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.checklist), findsNothing);
+
+      await tester.tap(overflowMenuButton);
+      await tester.pumpAndSettle();
+      expect(
+        tester.getTopLeft(find.byKey(selectItemsMenuKey)).dy,
+        lessThan(tester.getTopLeft(find.text('Detailed')).dy),
+      );
+
+      await tester.tap(find.byKey(selectItemsMenuKey));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+    });
+  });
+
   group('BuddyListContent in table mode', () {
     testWidgets('renders table with column headers', (tester) async {
       final buddies = [

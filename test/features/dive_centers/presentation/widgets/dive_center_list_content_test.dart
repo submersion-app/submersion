@@ -288,6 +288,61 @@ void main() {
     });
   });
 
+  // The desktop pane's own header (showAppBar: false) carries a second
+  // overflow menu, with the same "Select items" entry at its top.
+  group('compact bar "Select items"', () {
+    testWidgets('is first in the menu and enters selection', (tester) async {
+      final all = <DiveCenter>[
+        _makeCenter(id: 'd1', name: 'Aaa Center'),
+        _makeCenter(id: 'd2', name: 'Bbb Center'),
+        _makeCenter(id: 'd3', name: 'Ccc Center'),
+      ];
+      final notifier = _MockDCListNotifier(all);
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final overrides = <Override>[
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        diveCenterListNotifierProvider.overrideWith((ref) => notifier),
+        diveCenterListViewModeProvider.overrideWith(
+          (ref) => ListViewMode.detailed,
+        ),
+        diveCenterTableConfigProvider.overrideWith(
+          (ref) => _TestDCTableConfigNotifier(_testConfig),
+        ),
+        diveCenterDiveCountProvider.overrideWith((ref, centerId) => 0),
+        highlightedDiveCenterIdProvider.overrideWith((ref) => null),
+      ];
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const DiveCenterListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.checklist), findsNothing);
+
+      await tester.tap(overflowMenuButton);
+      await tester.pumpAndSettle();
+      expect(
+        tester.getTopLeft(find.byKey(selectItemsMenuKey)).dy,
+        lessThan(tester.getTopLeft(find.text('Detailed')).dy),
+      );
+
+      await tester.tap(find.byKey(selectItemsMenuKey));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+    });
+  });
+
   group('DiveCenterListContent in table mode', () {
     testWidgets('renders table with column headers', (tester) async {
       final centers = [

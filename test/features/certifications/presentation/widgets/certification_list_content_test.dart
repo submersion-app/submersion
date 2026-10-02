@@ -285,6 +285,59 @@ void main() {
     });
   });
 
+  // The desktop pane's own header (showAppBar: false) carries a second
+  // overflow menu, with the same "Select items" entry at its top.
+  group('compact bar "Select items"', () {
+    testWidgets('is first in the menu and enters selection', (tester) async {
+      final all = <Certification>[
+        _makeCert(id: 'x1', name: 'Aaa Cert'),
+        _makeCert(id: 'x2', name: 'Bbb Cert'),
+        _makeCert(id: 'x3', name: 'Ccc Cert'),
+      ];
+      final notifier = _MockCertListNotifier(all);
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final overrides = <Override>[
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        certificationListNotifierProvider.overrideWith((ref) => notifier),
+        certificationListViewModeProvider.overrideWith(
+          (ref) => ListViewMode.detailed,
+        ),
+        certificationTableConfigProvider.overrideWith(
+          (ref) => _TestCertTableConfigNotifier(_testConfig),
+        ),
+      ];
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const CertificationListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.checklist), findsNothing);
+
+      await tester.tap(overflowMenuButton);
+      await tester.pumpAndSettle();
+      expect(
+        tester.getTopLeft(find.byKey(selectItemsMenuKey)).dy,
+        lessThan(tester.getTopLeft(find.text('Detailed')).dy),
+      );
+
+      await tester.tap(find.byKey(selectItemsMenuKey));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+    });
+  });
+
   group('CertificationListContent in table mode', () {
     testWidgets('renders table with column headers', (tester) async {
       final certs = [
