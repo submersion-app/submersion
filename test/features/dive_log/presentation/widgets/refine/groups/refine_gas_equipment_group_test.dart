@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -173,5 +174,47 @@ void main() {
       'equipmentAttrConditions',
       'computerId',
     });
+  });
+
+  // #1091 (ported from the Filter sheet): suit thickness keeps decimals, and
+  // a comma means what the diver's locale says it means.
+  testWidgets('suit thickness keeps decimals and reads a decimal comma', (
+    tester,
+  ) async {
+    final h = await pump(
+      tester,
+      initial: DiveFilterState(
+        equipmentAttrConditions: [
+          EquipmentAttrCondition.suitThickness(min: 2.5),
+        ],
+      ),
+    );
+    expect(find.widgetWithText(TextField, '2.5'), findsOneWidget);
+    final previousLocale = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    Intl.defaultLocale = 'fr';
+    await tester.enterText(
+      find.byKey(const ValueKey('refine-suit-max')),
+      '7,5',
+    );
+    await tester.pump();
+    expect(h.draft.equipmentAttrConditions, [
+      EquipmentAttrCondition.suitThickness(min: 2.5, max: 7.5),
+    ]);
+  });
+
+  testWidgets('a comma is thousands under a dot-decimal locale', (
+    tester,
+  ) async {
+    final previousLocale = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    Intl.defaultLocale = 'en_US';
+    final h = await pump(tester);
+    await tester.enterText(
+      find.byKey(const ValueKey('refine-suit-max')),
+      '1,250',
+    );
+    await tester.pump();
+    expect(h.draft.equipmentAttrConditions.single.max, 1250);
   });
 }
