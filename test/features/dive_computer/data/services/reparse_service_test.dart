@@ -1100,7 +1100,9 @@ void main() {
       final src = await getSource('src-1');
       final end = start.add(const Duration(seconds: 3000));
       expect(dive.diveDateTime, start.millisecondsSinceEpoch);
-      expect(dive.entryTime, start.millisecondsSinceEpoch);
+      // Never set, so left unset: the dive keeps reading its start from
+      // diveDateTime.
+      expect(dive.entryTime, isNull);
       expect(dive.exitTime, end.millisecondsSinceEpoch);
       expect(dive.runtime, 3000);
       expect(
@@ -1108,6 +1110,50 @@ void main() {
         start.millisecondsSinceEpoch,
       );
       expect(src.exitTime!.millisecondsSinceEpoch, end.millisecondsSinceEpoch);
+    });
+
+    test('a re-parse with no date leaves an entry time that differs from the '
+        'dive date untouched (#1640)', () async {
+      final diveDate = DateTime.utc(2026, 1, 15, 10, 0);
+      final entry = DateTime.utc(2026, 1, 15, 10, 7);
+      await insertDive('dive-1', diveDateTime: diveDate.millisecondsSinceEpoch);
+      await (db.update(db.dives)..where((t) => t.id.equals('dive-1'))).write(
+        DivesCompanion(entryTime: Value(entry.millisecondsSinceEpoch)),
+      );
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+        duration: 2400,
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: makeParsedDive(
+          year: 0,
+          month: 0,
+          day: 0,
+          hour: 0,
+          minute: 0,
+          second: 0,
+          durationSeconds: 3000,
+        ),
+        descriptorVendor: 'Suunto',
+        descriptorProduct: 'Solution',
+        descriptorModel: 0,
+        libdivecomputerVersion: '0.9.0',
+      );
+
+      final dive = await getDive('dive-1');
+      expect(dive.diveDateTime, diveDate.millisecondsSinceEpoch);
+      expect(dive.entryTime, entry.millisecondsSinceEpoch);
+      expect(
+        dive.exitTime,
+        entry.add(const Duration(seconds: 3000)).millisecondsSinceEpoch,
+      );
     });
 
     test('records the raw parsed window on an offset-bearing source, not the '

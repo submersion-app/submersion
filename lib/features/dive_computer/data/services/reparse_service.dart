@@ -625,12 +625,21 @@ class ReparseService {
     required DateTime now,
     required String? vendor,
   }) async {
-    final diveDateTimeMs =
-        _parsedEntryTime(parsed)?.millisecondsSinceEpoch ??
-        (await (db.select(
-          db.dives,
-        )..where((t) => t.id.equals(diveId))).getSingle()).diveDateTime;
-    final exitTimeMs = diveDateTimeMs + (parsed.durationSeconds * 1000);
+    // A parse with no date leaves both start columns as stored, and the exit
+    // follows the dive's effective start (entry time when set, as
+    // Dive.effectiveEntryTime reads it), so the re-parse cannot move the dive
+    // (#1640).
+    final parsedStartMs = _parsedEntryTime(parsed)?.millisecondsSinceEpoch;
+    final int startMs;
+    if (parsedStartMs != null) {
+      startMs = parsedStartMs;
+    } else {
+      final stored = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      startMs = stored.entryTime ?? stored.diveDateTime;
+    }
+    final exitTimeMs = startMs + (parsed.durationSeconds * 1000);
     final bottomTimeSeconds = _calculateBottomTimeFromSamples(
       parsed.samples,
       totalDurationSeconds: parsed.durationSeconds,
@@ -658,8 +667,12 @@ class ReparseService {
           parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
         ),
         runtime: Value(parsed.durationSeconds),
-        diveDateTime: Value(diveDateTimeMs),
-        entryTime: Value(diveDateTimeMs),
+        diveDateTime: parsedStartMs != null
+            ? Value(parsedStartMs)
+            : const Value.absent(),
+        entryTime: parsedStartMs != null
+            ? Value(parsedStartMs)
+            : const Value.absent(),
         exitTime: Value(exitTimeMs),
         bottomTime: Value(bottomTimeSeconds ?? parsed.durationSeconds),
         // Only overwrite the dive's water temp when this parse produced one,
