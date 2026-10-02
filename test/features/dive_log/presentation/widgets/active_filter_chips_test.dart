@@ -208,4 +208,44 @@ void main() {
     expect(find.text('weights:none'), findsOneWidget);
     expect(container.read(diveFilterProvider).hasActiveFilters, isFalse);
   });
+
+  testWidgets('suspended axis chips are dimmed and locked (#2773)', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    final suspended = StateProvider<DiveFilterState>(
+      (ref) => DiveFilterState(
+        favoritesOnly: true,
+        query: TextNode(['manta']),
+        axesSuspended: true,
+      ),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) => Wrap(
+                children: activeDiveFilterChips(context, ref, suspended),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final axisChip = find.widgetWithText(Chip, 'Favorites');
+    expect(axisChip, findsOneWidget);
+    expect(tester.widget<Chip>(axisChip).onDeleted, isNull);
+    expect(
+      find.ancestor(of: axisChip, matching: find.byType(Opacity)),
+      findsOneWidget,
+    );
+    final queryChip = find.widgetWithText(Chip, 'manta');
+    expect(queryChip, findsOneWidget);
+    expect(tester.widget<Chip>(queryChip).onDeleted, isNotNull);
+  });
 }
