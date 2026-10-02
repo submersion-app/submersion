@@ -314,7 +314,7 @@ void _insertFixtureRows(
 
   // ---- dives ----
   // Core Data NSDate = seconds since 2001-01-01 UTC.
-  // 2024-06-01 09:00:00 UTC = 738936000 seconds.
+  // 2024-06-01 12:00:00 UTC = 738936000 seconds.
   const baseNsDate = 738936000.0;
   db.execute(
     '''

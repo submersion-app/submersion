@@ -141,7 +141,7 @@ void main() {
       final logbook = await MacDiveDbReader.readAll(bytes);
       final dive1 = logbook.dives.firstWhere((d) => d.pk == 1);
       expect(dive1.rawDate, isNotNull);
-      // Synthetic fixture used 738936000 = 2024-06-01 09:00:00 UTC.
+      // Synthetic fixture used 738936000 = 2024-06-01 12:00:00 UTC.
       expect(dive1.rawDate!.year, 2024);
       expect(dive1.rawDate!.month, 6);
       expect(dive1.rawDate!.day, 1);
