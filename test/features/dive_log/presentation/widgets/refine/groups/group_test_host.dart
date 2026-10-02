@@ -10,6 +10,7 @@ import '../../../../../../helpers/mock_providers.dart';
 /// drive the group's controls and read the draft back.
 class GroupHarness {
   DiveFilterState draft;
+  late ProviderContainer container;
   GroupHarness(this.draft);
 }
 
@@ -42,10 +43,13 @@ Future<GroupHarness> pumpGroup(
         home: Scaffold(
           body: SingleChildScrollView(
             child: StatefulBuilder(
-              builder: (context, setState) => build(
-                harness.draft,
-                (next) => setState(() => harness.draft = next),
-              ),
+              builder: (context, setState) {
+                harness.container = ProviderScope.containerOf(context);
+                return build(
+                  harness.draft,
+                  (next) => setState(() => harness.draft = next),
+                );
+              },
             ),
           ),
         ),
