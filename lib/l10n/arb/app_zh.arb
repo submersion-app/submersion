@@ -6221,6 +6221,7 @@
   "settings_data_export_failed": "导出失败：{error}",
   "settings_data_header_backupSync": "备份与同步",
   "settings_data_header_storage": "存储",
+  "settings_data_header_import": "导入",
   "settings_data_import_completed": "操作完成",
   "settings_data_import_failed": "操作失败：{error}",
   "settings_data_offlineMaps": "离线地图",

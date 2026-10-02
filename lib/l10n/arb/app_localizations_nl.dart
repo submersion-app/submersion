@@ -21071,6 +21071,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_data_header_storage => 'Opslag';
 
   @override
+  String get settings_data_header_import => 'Importeren';
+
+  @override
   String get settings_data_import_completed => 'Bewerking voltooid';
 
   @override

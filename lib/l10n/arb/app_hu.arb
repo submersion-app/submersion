@@ -5942,6 +5942,7 @@
   "settings_data_export_failed": "Exportálás sikertelen: {error}",
   "settings_data_header_backupSync": "Biztonsági mentés és szinkronizálás",
   "settings_data_header_storage": "Tárolás",
+  "settings_data_header_import": "Importálás",
   "settings_data_import_completed": "Művelet befejezve",
   "settings_data_import_failed": "Művelet sikertelen: {error}",
   "settings_data_offlineMaps": "Offline térképek",

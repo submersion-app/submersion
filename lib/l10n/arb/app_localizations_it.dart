@@ -21222,6 +21222,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_data_header_storage => 'Archiviazione';
 
   @override
+  String get settings_data_header_import => 'Importazione';
+
+  @override
   String get settings_data_import_completed => 'Operazione completata';
 
   @override

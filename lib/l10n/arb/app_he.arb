@@ -6048,6 +6048,7 @@
   "settings_data_export_failed": "הייצוא נכשל: {error}",
   "settings_data_header_backupSync": "גיבוי וסנכרון",
   "settings_data_header_storage": "אחסון",
+  "settings_data_header_import": "ייבוא",
   "settings_data_import_completed": "הפעולה הושלמה",
   "settings_data_import_failed": "הפעולה נכשלה: {error}",
   "settings_data_offlineMaps": "מפות לא מקוונות",

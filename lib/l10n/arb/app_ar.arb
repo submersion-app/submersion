@@ -6044,6 +6044,7 @@
   "settings_data_export_failed": "فشل التصدير: {error}",
   "settings_data_header_backupSync": "النسخ الاحتياطي والمزامنة",
   "settings_data_header_storage": "التخزين",
+  "settings_data_header_import": "الاستيراد",
   "settings_data_import_completed": "اكتملت العملية",
   "settings_data_import_failed": "فشلت العملية: {error}",
   "settings_data_offlineMaps": "الخرائط غير المتصلة",

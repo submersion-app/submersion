@@ -21221,6 +21221,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_data_header_storage => 'Armazenamento';
 
   @override
+  String get settings_data_header_import => 'Importação';
+
+  @override
   String get settings_data_import_completed => 'Operação concluída';
 
   @override

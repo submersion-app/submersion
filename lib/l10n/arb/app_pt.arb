@@ -6044,6 +6044,7 @@
   "settings_data_export_failed": "Falha na exportação: {error}",
   "settings_data_header_backupSync": "Backup e Sincronização",
   "settings_data_header_storage": "Armazenamento",
+  "settings_data_header_import": "Importação",
   "settings_data_import_completed": "Operação concluída",
   "settings_data_import_failed": "Falha na operação: {error}",
   "settings_data_offlineMaps": "Mapas Offline",

@@ -5942,6 +5942,7 @@
   "settings_data_export_failed": "Échec de l'export : {error}",
   "settings_data_header_backupSync": "Sauvegarde et synchronisation",
   "settings_data_header_storage": "Stockage",
+  "settings_data_header_import": "Importation",
   "settings_data_import_completed": "Opération terminée",
   "settings_data_import_failed": "Échec de l'opération : {error}",
   "settings_data_offlineMaps": "Cartes hors ligne",

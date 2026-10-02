@@ -6044,6 +6044,7 @@
   "settings_data_export_failed": "Export mislukt: {error}",
   "settings_data_header_backupSync": "Back-up & synchronisatie",
   "settings_data_header_storage": "Opslag",
+  "settings_data_header_import": "Importeren",
   "settings_data_import_completed": "Bewerking voltooid",
   "settings_data_import_failed": "Bewerking mislukt: {error}",
   "settings_data_offlineMaps": "Offline kaarten",

@@ -5942,6 +5942,7 @@
   "settings_data_export_failed": "Esportazione non riuscita: {error}",
   "settings_data_header_backupSync": "Backup e sincronizzazione",
   "settings_data_header_storage": "Archiviazione",
+  "settings_data_header_import": "Importazione",
   "settings_data_import_completed": "Operazione completata",
   "settings_data_import_failed": "Operazione non riuscita: {error}",
   "settings_data_offlineMaps": "Mappe offline",

@@ -6147,6 +6147,7 @@
   "settings_data_export_failed": "Export fehlgeschlagen: {error}",
   "settings_data_header_backupSync": "Sicherung & Synchronisierung",
   "settings_data_header_storage": "Speicher",
+  "settings_data_header_import": "Import",
   "settings_data_import_completed": "Vorgang abgeschlossen",
   "settings_data_import_failed": "Vorgang fehlgeschlagen: {error}",
   "settings_data_offlineMaps": "Offline-Karten",

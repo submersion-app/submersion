@@ -2875,6 +2875,7 @@ class _DataSectionContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
     final storageState = ref.watch(storageConfigNotifierProvider);
     final isCustomFolder =
         storageState.config.mode == StorageLocationMode.customFolder;
@@ -2884,53 +2885,6 @@ class _DataSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.add_location_alt_outlined),
-              title: Text(context.l10n.settings_siteMatch_title),
-              subtitle: Text(context.l10n.settings_siteMatch_subtitle),
-              trailing: DropdownButton<SiteMatchSensitivity>(
-                value: ref.watch(settingsProvider).siteMatchSensitivity,
-                underline: const SizedBox.shrink(),
-                onChanged: (value) {
-                  if (value != null) {
-                    ref
-                        .read(settingsProvider.notifier)
-                        .setSiteMatchSensitivity(value);
-                  }
-                },
-                items: [
-                  DropdownMenuItem(
-                    value: SiteMatchSensitivity.strict,
-                    child: Text(context.l10n.settings_siteMatch_strict),
-                  ),
-                  DropdownMenuItem(
-                    value: SiteMatchSensitivity.balanced,
-                    child: Text(context.l10n.settings_siteMatch_balanced),
-                  ),
-                  DropdownMenuItem(
-                    value: SiteMatchSensitivity.relaxed,
-                    child: Text(context.l10n.settings_siteMatch_relaxed),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: SwitchListTile(
-              secondary: const Icon(Icons.compress),
-              title: Text(context.l10n.settings_tankPressureAtSurfacing_title),
-              subtitle: Text(
-                context.l10n.settings_tankPressureAtSurfacing_subtitle,
-              ),
-              value: ref.watch(settingsProvider).trimTankPressureAtSurfacing,
-              onChanged: (value) => ref
-                  .read(settingsProvider.notifier)
-                  .setTrimTankPressureAtSurfacing(value),
-            ),
-          ),
-          const SizedBox(height: 16),
           _buildSectionHeader(
             context,
             context.l10n.settings_data_header_backupSync,
@@ -2999,6 +2953,65 @@ class _DataSectionContent extends ConsumerWidget {
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/offline-maps'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Preferences for how incoming dives are interpreted: site
+          // matching on downloads, and the end-pressure trim on downloads,
+          // file imports and reparses.
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_data_header_import,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.add_location_alt_outlined),
+                  title: Text(context.l10n.settings_siteMatch_title),
+                  subtitle: Text(context.l10n.settings_siteMatch_subtitle),
+                  trailing: DropdownButton<SiteMatchSensitivity>(
+                    value: settings.siteMatchSensitivity,
+                    underline: const SizedBox.shrink(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        ref
+                            .read(settingsProvider.notifier)
+                            .setSiteMatchSensitivity(value);
+                      }
+                    },
+                    items: [
+                      DropdownMenuItem(
+                        value: SiteMatchSensitivity.strict,
+                        child: Text(context.l10n.settings_siteMatch_strict),
+                      ),
+                      DropdownMenuItem(
+                        value: SiteMatchSensitivity.balanced,
+                        child: Text(context.l10n.settings_siteMatch_balanced),
+                      ),
+                      DropdownMenuItem(
+                        value: SiteMatchSensitivity.relaxed,
+                        child: Text(context.l10n.settings_siteMatch_relaxed),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.compress),
+                  title: Text(
+                    context.l10n.settings_tankPressureAtSurfacing_title,
+                  ),
+                  subtitle: Text(
+                    context.l10n.settings_tankPressureAtSurfacing_subtitle,
+                  ),
+                  value: settings.trimTankPressureAtSurfacing,
+                  onChanged: (value) => ref
+                      .read(settingsProvider.notifier)
+                      .setTrimTankPressureAtSurfacing(value),
                 ),
               ],
             ),

@@ -20181,6 +20181,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_header_storage => '存储';
 
   @override
+  String get settings_data_header_import => '导入';
+
+  @override
   String get settings_data_import_completed => '操作完成';
 
   @override
