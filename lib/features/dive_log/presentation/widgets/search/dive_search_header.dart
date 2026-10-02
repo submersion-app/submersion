@@ -13,6 +13,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/close_dive_search.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_jump_list.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_scope_toggle.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/presentation/app_query_labels.dart';
@@ -168,6 +170,9 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
             ],
           ),
         ),
+        if (_focus.hasFocus && _local != null)
+          DiveJumpList(query: _local!, onOpen: widget.onOpenDive),
+        if (panelAxes > 0) const DiveSearchScopeToggle(),
       ],
     );
   }

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -136,5 +138,85 @@ void main() {
       find.descendant(of: badge, matching: find.text('1')),
       findsOneWidget,
     );
+  });
+
+  final jumpRows = <DiveSummary>[
+    DiveSummary(
+      id: 'd1',
+      dateTime: DateTime(2026, 3, 1),
+      sortTimestamp: 0,
+      siteName: 'Manta Point',
+    ),
+  ];
+
+  testWidgets('the jump list shows only while focused with a query', (
+    tester,
+  ) async {
+    await pumpHeader(tester, jump: jumpRows);
+    expect(find.byKey(const ValueKey('dive-jump-d1')), findsNothing);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump();
+    // The jump results provider resolves on the next frame.
+    await tester.pump();
+    expect(find.byKey(const ValueKey('dive-jump-d1')), findsOneWidget);
+    expect(find.text('Jump to dive'), findsOneWidget);
+  });
+
+  testWidgets('tapping a jump row opens that dive', (tester) async {
+    DiveSummary? opened;
+    await pumpHeader(tester, jump: jumpRows, onOpenDive: (d) => opened = d);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump();
+    // The jump results provider resolves on the next frame.
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('dive-jump-d1')));
+    await tester.pump();
+    expect(opened?.id, 'd1');
+  });
+
+  // Review Focus 2: a mouse press outside a desktop field unfocuses it.
+  testWidgets('a desktop mouse click on a jump row still opens it', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    DiveSummary? opened;
+    await pumpHeader(tester, jump: jumpRows, onOpenDive: (d) => opened = d);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump();
+    // The jump results provider resolves on the next frame.
+    await tester.pump();
+    // A real click spans frames: the press could unfocus the field and
+    // rebuild without the rows before the release lands.
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(const ValueKey('dive-jump-d1'))),
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pump();
+    await gesture.up();
+    await tester.pump();
+    expect(opened?.id, 'd1');
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('the scope toggle shows only with panel axes', (tester) async {
+    await pumpHeader(tester, filter: DiveFilterState(query: TextNode(['a'])));
+    expect(find.byKey(const ValueKey('dive-search-scope')), findsNothing);
+  });
+
+  testWidgets('All dives suspends the axes; Within filters restores them', (
+    tester,
+  ) async {
+    await pumpHeader(
+      tester,
+      filter: DiveFilterState(minDepth: 30, query: TextNode(['manta'])),
+    );
+    await tester.tap(find.text('All dives'));
+    await tester.pumpAndSettle();
+    expect(filterOf().axesSuspended, isTrue);
+    expect(filterOf().minDepth, 30);
+    await tester.tap(find.text('Within filters'));
+    await tester.pumpAndSettle();
+    expect(filterOf().axesSuspended, isFalse);
   });
 }
