@@ -128,6 +128,20 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('hiding the figure mid-flash leaves no row highlighted', (
+    tester,
+  ) async {
+    await pump(tester, showFigure: true);
+    await tester.tap(find.byKey(const ValueKey('figure-label-mask')));
+    await tester.pump();
+    expect(row(tester, 'mask').tileColor, isNotNull);
+    // The diver turns the figure off before the flash times out.
+    await pump(tester, showFigure: false);
+    expect(row(tester, 'mask').tileColor, isNull);
+    await tester.pump(const Duration(milliseconds: 1300));
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('on, a dive with no gear shows no figure and does not throw', (
     tester,
   ) async {

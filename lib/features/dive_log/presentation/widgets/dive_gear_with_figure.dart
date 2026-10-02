@@ -75,7 +75,9 @@ class _DiveGearWithFigureState extends ConsumerState<DiveGearWithFigure>
       // Gear another profile owns is marked against this dive's diver
       // (issue #2046).
       ownerReferenceDiverId: dive.diverId,
-      selectedItemId: selectedFigureItemId,
+      // A flash still running when the diver turns the figure off must not
+      // leave a row highlighted with no figure to match.
+      selectedItemId: model == null ? null : selectedFigureItemId,
       rowKey: model == null ? null : figureRowKey,
     );
     if (model == null) return tree;
