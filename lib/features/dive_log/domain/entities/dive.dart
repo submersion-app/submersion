@@ -1173,6 +1173,13 @@ class DiveTank extends Equatable {
   /// it cannot wipe what the registry recorded.
   final String? equipmentId;
 
+  /// How long this cylinder was breathed, as the source log recorded it
+  /// (v259, issue #1496). MacDive logs one per tank with no gas-switch
+  /// times, so it says how long but not when. Per-cylinder SAC uses it as
+  /// the breathing time when the dive has no gas switches. Import-owned,
+  /// like [transmitterSerial]: edit flows never write it.
+  final Duration? usageDuration;
+
   /// Deco gas-switch depth override in meters (planning only); null = auto
   /// (MOD at the deco pO2). Subsurface per-cylinder "Deco switch at", v120.
   /// Unused for logged-dive tanks.
@@ -1206,6 +1213,7 @@ class DiveTank extends Equatable {
     this.regulatorEquipmentId,
     this.tripCylinderId,
     this.equipmentId,
+    this.usageDuration,
     this.decoSwitchDepth,
     this.isTravelGas = false,
   });
@@ -1241,6 +1249,8 @@ class DiveTank extends Equatable {
     bool clearSourceTankIndex = false,
     String? regulatorEquipmentId,
     String? equipmentId,
+    Duration? usageDuration,
+    bool clearUsageDuration = false,
     bool clearRegulatorEquipmentId = false,
     bool clearMaterial = false,
     String? tripCylinderId,
@@ -1277,6 +1287,9 @@ class DiveTank extends Equatable {
           ? null
           : (tripCylinderId ?? this.tripCylinderId),
       equipmentId: equipmentId ?? this.equipmentId,
+      usageDuration: clearUsageDuration
+          ? null
+          : (usageDuration ?? this.usageDuration),
       decoSwitchDepth: clearDecoSwitchDepth
           ? null
           : (decoSwitchDepth ?? this.decoSwitchDepth),
@@ -1305,6 +1318,7 @@ class DiveTank extends Equatable {
     regulatorEquipmentId,
     equipmentId,
     tripCylinderId,
+    usageDuration,
     decoSwitchDepth,
     isTravelGas,
   ];

@@ -175,5 +175,12 @@ extension RungsFromV231 on AppDatabase {
       await _backfillProfileSeriesHistoryRows();
     }
     if (from < 257) await reportProgress();
+    // v259: dive_tanks.usage_duration (issue #1496). Column only, no
+    // backfill: only a re-import can supply what the source recorded.
+    // Re-asserted in beforeOpen. 258 is held by an open branch (#2828).
+    if (from < 259) {
+      await _assertTankUsageDurationColumn();
+    }
+    if (from < 259) await reportProgress();
   }
 }

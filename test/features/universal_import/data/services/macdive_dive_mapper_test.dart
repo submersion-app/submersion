@@ -357,6 +357,20 @@ void main() {
       final gasMix = tank['gasMix'] as GasMix;
       expect(gasMix.o2, closeTo(32.0, 0.01));
       expect(gasMix.he, closeTo(0.0, 0.01));
+      // #1496: ZTANKANDGAS.ZDURATION is how long the tank was breathed, under
+      // the key _buildTanks reads. `runtime` is the dive's key, not a tank's.
+      expect(tank['usageDuration'], const Duration(seconds: 2400));
+      expect(tank.containsKey('runtime'), isFalse);
+    });
+
+    test('a tank with no ZDURATION carries no usage duration', () async {
+      final logbook = await MacDiveDbReader.readAll(bytes);
+      final payload = await MacDiveDiveMapper.toPayload(logbook);
+      final dive2 = payload
+          .entitiesOf(ImportEntityType.dives)
+          .firstWhere((d) => d['sourceUuid'] == 'dive-uuid-2');
+      final tank = (dive2['tanks'] as List).single as Map<String, dynamic>;
+      expect(tank.containsKey('usageDuration'), isFalse);
     });
 
     test('sites: saltwater/freshwater mapped to enum names', () async {

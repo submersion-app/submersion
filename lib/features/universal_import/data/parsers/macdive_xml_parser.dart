@@ -373,7 +373,9 @@ class MacDiveXmlParser implements ImportParser {
       }
       if (g.tankName != null) tank['name'] = g.tankName;
       if (g.supplyType != null) tank['supplyType'] = g.supplyType;
-      if (g.duration != null) tank['runtime'] = g.duration;
+      // How long the tank was breathed, under the key _buildTanks reads
+      // (issue #1496). `runtime` is the dive's key, not a tank's.
+      if (g.duration != null) tank['usageDuration'] = g.duration;
       tank['gasMix'] = GasMix(
         o2: g.oxygenPercent ?? 21.0,
         he: g.heliumPercent ?? 0.0,
