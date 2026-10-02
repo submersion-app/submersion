@@ -8907,6 +8907,46 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Tauchgänge suchen';
 
   @override
+  String get diveLog_refine_title => 'Verfeinern';
+
+  @override
+  String get diveLog_refine_groupRules => 'Regeln';
+
+  @override
+  String get diveLog_refine_groupPeople => 'Personen & Lebewesen';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'Benutzerdefinierte Felder';
+
+  @override
+  String get diveLog_refine_summaryAny => 'Alle';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gesetzt',
+      one: '$count gesetzt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge anzeigen',
+      one: '$count Tauchgang anzeigen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'Tauchgänge anzeigen';
+
+  @override
   String get diveLog_search_fieldHint =>
       'Wörter, \"genaue Phrase\" oder depth > 30m';
 

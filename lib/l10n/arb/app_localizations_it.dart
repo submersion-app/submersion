@@ -8911,6 +8911,46 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Cerca immersioni';
 
   @override
+  String get diveLog_refine_title => 'Affina';
+
+  @override
+  String get diveLog_refine_groupRules => 'Regole';
+
+  @override
+  String get diveLog_refine_groupPeople => 'Persone e vita marina';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'Campi personalizzati';
+
+  @override
+  String get diveLog_refine_summaryAny => 'Qualsiasi';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attivi',
+      one: '$count attivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mostra $count immersioni',
+      one: 'Mostra $count immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'Mostra immersioni';
+
+  @override
   String get diveLog_search_fieldHint =>
       'Parole, \"frase esatta\" o depth > 30m';
 

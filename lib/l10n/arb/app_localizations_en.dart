@@ -8759,6 +8759,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Search dives';
 
   @override
+  String get diveLog_refine_title => 'Refine';
+
+  @override
+  String get diveLog_refine_groupRules => 'Rules';
+
+  @override
+  String get diveLog_refine_groupPeople => 'People & life';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'Custom fields';
+
+  @override
+  String get diveLog_refine_summaryAny => 'Any';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count set',
+      one: '$count set',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count dives',
+      one: 'Show $count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'Show dives';
+
+  @override
   String get diveLog_search_fieldHint =>
       'Words, \"exact phrase\" or depth > 30m';
 

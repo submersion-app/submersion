@@ -14217,6 +14217,54 @@ abstract class AppLocalizations {
   /// **'Search dives'**
   String get diveLog_listPage_tooltip_searchDives;
 
+  /// No description provided for @diveLog_refine_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Refine'**
+  String get diveLog_refine_title;
+
+  /// No description provided for @diveLog_refine_groupRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get diveLog_refine_groupRules;
+
+  /// No description provided for @diveLog_refine_groupPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'People & life'**
+  String get diveLog_refine_groupPeople;
+
+  /// No description provided for @diveLog_refine_groupCustomFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom fields'**
+  String get diveLog_refine_groupCustomFields;
+
+  /// No description provided for @diveLog_refine_summaryAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get diveLog_refine_summaryAny;
+
+  /// No description provided for @diveLog_refine_summaryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} set} other{{count} set}}'**
+  String diveLog_refine_summaryCount(int count);
+
+  /// No description provided for @diveLog_refine_showDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show {count} dive} other{Show {count} dives}}'**
+  String diveLog_refine_showDives(int count);
+
+  /// No description provided for @diveLog_refine_showDivesNoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Show dives'**
+  String get diveLog_refine_showDivesNoCount;
+
   /// No description provided for @diveLog_search_fieldHint.
   ///
   /// In en, this message translates to:

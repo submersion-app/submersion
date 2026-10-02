@@ -8888,6 +8888,46 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Merülések keresése';
 
   @override
+  String get diveLog_refine_title => 'Szűkítés';
+
+  @override
+  String get diveLog_refine_groupRules => 'Szabályok';
+
+  @override
+  String get diveLog_refine_groupPeople => 'Személyek és élővilág';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'Egyéni mezők';
+
+  @override
+  String get diveLog_refine_summaryAny => 'Bármely';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count beállítva',
+      one: '$count beállítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés megjelenítése',
+      one: '$count merülés megjelenítése',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'Merülések megjelenítése';
+
+  @override
   String get diveLog_search_fieldHint =>
       'Szavak, \"pontos kifejezés\" vagy depth > 30m';
 

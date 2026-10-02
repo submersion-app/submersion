@@ -8695,6 +8695,46 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'חיפוש צלילות';
 
   @override
+  String get diveLog_refine_title => 'צמצום';
+
+  @override
+  String get diveLog_refine_groupRules => 'כללים';
+
+  @override
+  String get diveLog_refine_groupPeople => 'אנשים וחיים ימיים';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'שדות מותאמים';
+
+  @override
+  String get diveLog_refine_summaryAny => 'הכול';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מסננים',
+      one: 'מסנן אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצגת $count צלילות',
+      one: 'הצגת צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'הצגת צלילות';
+
+  @override
   String get diveLog_search_fieldHint =>
       'מילים, \"ביטוי מדויק\" או depth > 30m';
 

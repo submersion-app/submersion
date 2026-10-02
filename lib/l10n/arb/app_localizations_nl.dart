@@ -8842,6 +8842,46 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'Duiken zoeken';
 
   @override
+  String get diveLog_refine_title => 'Verfijnen';
+
+  @override
+  String get diveLog_refine_groupRules => 'Regels';
+
+  @override
+  String get diveLog_refine_groupPeople => 'Personen & leven';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'Aangepaste velden';
+
+  @override
+  String get diveLog_refine_summaryAny => 'Alle';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ingesteld',
+      one: '$count ingesteld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken tonen',
+      one: '$count duik tonen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'Duiken tonen';
+
+  @override
   String get diveLog_search_fieldHint =>
       'Woorden, \"exacte zin\" of depth > 30m';
 

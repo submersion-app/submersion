@@ -8473,6 +8473,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => '搜索潜水';
 
   @override
+  String get diveLog_refine_title => '细化';
+
+  @override
+  String get diveLog_refine_groupRules => '规则';
+
+  @override
+  String get diveLog_refine_groupPeople => '人员与生物';
+
+  @override
+  String get diveLog_refine_groupCustomFields => '自定义字段';
+
+  @override
+  String get diveLog_refine_summaryAny => '任意';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已设 $count 项',
+      one: '已设 $count 项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '显示 $count 次潜水',
+      one: '显示 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => '显示潜水';
+
+  @override
   String get diveLog_search_fieldHint => '词语、\"精确短语\"或 depth > 30m';
 
   @override

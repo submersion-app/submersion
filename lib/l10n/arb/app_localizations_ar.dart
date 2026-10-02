@@ -8733,6 +8733,46 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_listPage_tooltip_searchDives => 'البحث في الغوصات';
 
   @override
+  String get diveLog_refine_title => 'تحسين البحث';
+
+  @override
+  String get diveLog_refine_groupRules => 'القواعد';
+
+  @override
+  String get diveLog_refine_groupPeople => 'الأشخاص والكائنات';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'الحقول المخصصة';
+
+  @override
+  String get diveLog_refine_summaryAny => 'أي';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عوامل',
+      one: 'عامل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عرض $count غوصات',
+      one: 'عرض غوصة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'عرض الغوصات';
+
+  @override
   String get diveLog_search_fieldHint =>
       'كلمات أو \"عبارة دقيقة\" أو depth > 30m';
 
