@@ -135,4 +135,19 @@ void main() {
     );
     expect(bar.thumbVisibility, isTrue);
   });
+
+  // Code review: axes with no panel control (set by the buddy page,
+  // Connections and Explore) survive Show.
+  testWidgets('handoff axes survive Show', (tester) async {
+    const handoff = DiveFilterState(
+      siteIds: ['s1', 's2'],
+      buddyId: 'b1',
+      diveIds: ['d1'],
+    );
+    final t = StateProvider<DiveFilterState>((ref) => handoff);
+    final c = await openRefinePanel(tester, target: t);
+    await tester.tap(find.byKey(kRefineApplyKey));
+    await tester.pumpAndSettle();
+    expect(c.read(t), handoff);
+  });
 }
