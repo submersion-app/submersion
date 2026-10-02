@@ -5454,6 +5454,7 @@
   "plannerCanvas_issue_gasDensityHigh": "Gázsűrűség {value} g/L az ajánlott határ felett",
   "plannerCanvas_issue_hypoxic": "Hipoxiás gáz {depth} mélységben (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "A palack a rock-bottom minimum ({pressure}) alatt végez",
+  "plannerCanvas_issue_diluentModExceeded": "A hígítógáz meghaladja a Dil-MOD-ot {depth} mélységben (ppO₂ {value} bar)",
   "plannerCanvas_issue_noBailout": "A CCR dekompressziós terv nem tartalmaz bailout gázt",
   "plannerCanvas_issue_noDecoGas": "Dekompresszió szükséges, de nincs dekó gáz",
   "plannerCanvas_range_base": "Alap",

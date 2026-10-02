@@ -1033,7 +1033,7 @@ class PlanEngine {
       // toxicity limits -- those govern what the loop delivers, not the
       // diluent itself.
       if (_modeFor(plan, segment) == domain.PlanMode.ccr) {
-        final diluentPpO2 = O2ToxicityCalculator.calculatePpO2(deeperEnd, fO2);
+        final diluentPpO2 = environment.pressureAtDepth(deeperEnd) * fO2;
         if (diluentPpO2 > config.ccrDiluentModPpO2) {
           issues.add(
             PlanIssue(

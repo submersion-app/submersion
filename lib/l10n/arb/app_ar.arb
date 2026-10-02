@@ -5556,6 +5556,7 @@
   "plannerCanvas_issue_gasDensityHigh": "كثافة الغاز {value} g/L تتجاوز الحد الموصى به",
   "plannerCanvas_issue_hypoxic": "غاز ناقص الأكسجين عند {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "تنتهي الأسطوانة تحت الحد الأدنى الآمن {pressure}",
+  "plannerCanvas_issue_diluentModExceeded": "يتجاوز غاز التخفيف حد MOD الخاص به عند {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_noBailout": "خطة تخفيف الضغط CCR لا تتضمن غاز إنقاذ (bailout)",
   "plannerCanvas_issue_noDecoGas": "يلزم تخفيف الضغط ولكن لا يوجد غاز تخفيف",
   "plannerCanvas_range_base": "أساسي",

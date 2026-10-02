@@ -5454,6 +5454,7 @@
   "plannerCanvas_issue_gasDensityHigh": "Densité du gaz {value} g/L au-dessus de la limite recommandée",
   "plannerCanvas_issue_hypoxic": "Gaz hypoxique à {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "Le bloc finit sous le minimum rock bottom de {pressure}",
+  "plannerCanvas_issue_diluentModExceeded": "Le diluant dépasse sa MOD Dil à {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_noBailout": "Le plan de décompression CCR n'emporte aucun gaz de bailout",
   "plannerCanvas_issue_noDecoGas": "Décompression requise mais aucun gaz de déco emporté",
   "plannerCanvas_range_base": "Base",

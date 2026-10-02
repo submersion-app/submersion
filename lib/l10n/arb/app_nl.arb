@@ -5556,6 +5556,7 @@
   "plannerCanvas_issue_gasDensityHigh": "Gasdichtheid {value} g/L boven aanbevolen limiet",
   "plannerCanvas_issue_hypoxic": "Hypoxisch gas op {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "Fles eindigt onder het rock-bottom-minimum van {pressure}",
+  "plannerCanvas_issue_diluentModExceeded": "Diluent overschrijdt de Dil-MOD op {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_noBailout": "CCR-decompressieplan heeft geen bailoutgas aan boord",
   "plannerCanvas_issue_noDecoGas": "Decompressie vereist maar geen decogas meegenomen",
   "plannerCanvas_range_base": "Basis",

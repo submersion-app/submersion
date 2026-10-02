@@ -268,6 +268,31 @@ void main() {
       expect(state.setpointHigh, 1.4);
     });
 
+    test('switching to CCR seeds only the half the diver never set', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(
+              ccrSetpointLow: 0.6,
+              ccrSetpointHigh: 1.2,
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      // Only the low setpoint was ever hand-set (e.g. editing just that
+      // field); the high half must still pick up the diver's Settings
+      // instead of staying null forever.
+      notifier.updateSetpoints(low: 0.9);
+      notifier.updateMode(domain.PlanMode.ccr);
+
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.setpointLow, 0.9);
+      expect(state.setpointHigh, 1.2);
+    });
+
     test('a CCR plan ignores later CCR setpoint settings; switching mode '
         'already dirtied it, so unlike GF/water there is nothing pristine '
         'left to adopt into', () {

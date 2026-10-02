@@ -18718,7 +18718,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
-    return 'Diluent exceeds its Dil MOD at $depth (ppO₂ $value bar)';
+    return 'המדלל חורג מ-MOD מדלל ב-$depth (ppO₂ $value bar)';
   }
 
   @override

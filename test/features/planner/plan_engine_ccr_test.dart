@@ -124,7 +124,7 @@ void main() {
 
     test('a lean diluent within Dil MOD raises no issue', () {
       final outcome = engine.compute(_plan());
-      // _diluent is 18% O2: 1.26 bar at 60 m, under the 1.6 bar default.
+      // _diluent is 18% O2: ~1.27 bar at 60 m, under the 1.6 bar default.
       expect(
         outcome.issues.map((i) => i.type),
         isNot(contains(PlanIssueType.diluentModExceeded)),
@@ -136,11 +136,13 @@ void main() {
       final outcome = engine.compute(
         _plan(segments: _segments(gasMix: richDiluent)),
       );
-      // 30% O2 at 60 m (7 bar) = 2.1 bar, over the 1.6 bar default Dil MOD.
+      // 30% O2 at 60 m on the plan's default salt water (1025 kg/m3, not
+      // the flat 1 bar/10 m assumption) is ~7.029 bar ambient, so ~2.109
+      // bar -- over the 1.6 bar default Dil MOD.
       final issue = outcome.issues.firstWhere(
         (i) => i.type == PlanIssueType.diluentModExceeded,
       );
-      expect(issue.value, closeTo(2.1, 1e-9));
+      expect(issue.value, closeTo(2.109, 0.001));
       expect(issue.threshold, closeTo(1.6, 1e-9));
     });
 

@@ -724,10 +724,13 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   /// Switch between open circuit and CCR.
   ///
-  /// Entering CCR with no setpoints set yet (a fresh plan, or one that has
-  /// never been in CCR mode) seeds the diver's own CCR ppO2 limits rather
-  /// than leaving them null to fall through to [domain.DivePlan]'s spec
-  /// defaults (0.7 / 1.3), which the diver may not actually dive.
+  /// Entering CCR seeds each setpoint still null (a fresh plan, one that has
+  /// never been in CCR mode, or one with only a hand-set half) from the
+  /// diver's own CCR ppO2 limits, independently per field -- a setpoint the
+  /// diver already set (low or high, on its own) is never overwritten. The
+  /// alternative, leaving a missing half null, would fall through to
+  /// [domain.DivePlan]'s spec defaults (0.7 / 1.3) instead of the diver's
+  /// Settings.
   ///
   /// Unlike [adoptGradientFactorsIfPristine], there is no later "adopt if
   /// pristine" for these settings: switching mode is itself a diver edit and
@@ -735,21 +738,22 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// pristine -- there is nothing left for a later settings change to adopt
   /// into.
   ///
-  /// Known limitation: the seed only fires while both setpoints are still
-  /// null, so cycling CCR -> OC -> CCR keeps the first seed even if the
-  /// diver's Settings changed in between. Clearing on exit would fix that
-  /// but would also wipe a hand-tuned setpoint on every OC/SCR/pSCR step of
-  /// the mode-cycle button -- a worse regression for a rarer case.
+  /// Known limitation: a setpoint is seeded only once, the first time its
+  /// field is still null while entering CCR, so cycling CCR -> OC -> CCR
+  /// keeps that first seed even if the diver's Settings changed in between.
+  /// Clearing on exit would fix that but would also wipe a hand-tuned
+  /// setpoint on every OC/SCR/pSCR step of the mode-cycle button -- a worse
+  /// regression for a rarer case.
   void updateMode(domain.PlanMode mode) {
-    final seedSetpoints =
+    final defaults =
         mode == domain.PlanMode.ccr &&
-        state.setpointLow == null &&
-        state.setpointHigh == null;
-    final setpoints = seedSetpoints ? _getDefaultCcrSetpoints() : null;
+            (state.setpointLow == null || state.setpointHigh == null)
+        ? _getDefaultCcrSetpoints()
+        : null;
     state = state.copyWith(
       mode: mode,
-      setpointLow: setpoints?.low,
-      setpointHigh: setpoints?.high,
+      setpointLow: state.setpointLow == null ? defaults?.low : null,
+      setpointHigh: state.setpointHigh == null ? defaults?.high : null,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
