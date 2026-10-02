@@ -363,7 +363,9 @@ class _NavTrackImportReviewPageState
             name: name.isEmpty ? null : name,
             deviceName: _equipmentName,
             equipmentId: _equipmentId,
-            replacingRouteId: _replaceDuplicate
+            // In return mode the caller replaces the duplicate on its own
+            // Save (after linking this route), so a cancelled edit keeps it.
+            replacingRouteId: _replaceDuplicate && !widget.returnResult
                 ? preview.duplicateOfRouteId
                 : null,
           );

@@ -65,6 +65,10 @@ class _RouteLinkSheetState extends ConsumerState<_RouteLinkSheet> {
   static final _log = LoggerService.forClass(_RouteLinkSheet);
   late DiveRouteLinkDraft _draft = widget.draft;
 
+  /// Why the last import failed, shown inside the sheet: a snackbar would
+  /// render on the page behind this modal sheet, out of sight.
+  String? _error;
+
   void _update(DiveRouteLinkDraft next) {
     setState(() => _draft = next);
     widget.onChanged(next);
@@ -102,8 +106,8 @@ class _RouteLinkSheetState extends ConsumerState<_RouteLinkSheet> {
   }
 
   Future<void> _import() async {
-    final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+    setState(() => _error = null);
 
     final file = await FilePicker.pickFile(
       type: FileType.custom,
@@ -120,15 +124,13 @@ class _RouteLinkSheetState extends ConsumerState<_RouteLinkSheet> {
           .prepare(bytes, fileName: file.name);
     } on NavTrackParseException catch (e) {
       _log.warning('Route import rejected: ${e.message}');
-      messenger.showSnackBar(
-        SnackBar(content: Text(navTrackParseErrorText(l10n, e))),
-      );
+      if (mounted) setState(() => _error = navTrackParseErrorText(l10n, e));
       return;
     } catch (e, stackTrace) {
       _log.error('Route import failed', error: e, stackTrace: stackTrace);
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.navTrack_list_importFailed(e.toString()))),
-      );
+      if (mounted) {
+        setState(() => _error = l10n.navTrack_list_importFailed(e.toString()));
+      }
       return;
     }
     if (!mounted) return;
@@ -195,6 +197,13 @@ class _RouteLinkSheetState extends ConsumerState<_RouteLinkSheet> {
                   onPressed: () => _update(_draft.remove(route.id)),
                 ),
               ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,

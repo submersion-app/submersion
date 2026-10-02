@@ -4,16 +4,16 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 /// 2026-10-02-underwater-route-entry-points-design.md, section 1): the
 /// routes linked when the form opened, and the ones the diver has linked or
 /// removed since. Nothing is written until the dive is saved, when
-/// [toUnlink] and [toLink] are applied. Immutable: every change returns a
-/// new draft.
+/// [toUnlink], [toLink] and [replacements] are applied. Immutable: every
+/// change returns a new draft.
 class DiveRouteLinkDraft {
-  const DiveRouteLinkDraft._(this.original, this.current);
+  const DiveRouteLinkDraft._(this.original, this.current, this.replacements);
 
   /// A draft for a dive whose routes are [linked] right now (empty for a
   /// new dive).
   factory DiveRouteLinkDraft.initial(List<NavTrack> linked) {
     final copy = List<NavTrack>.unmodifiable(linked);
-    return DiveRouteLinkDraft._(copy, copy);
+    return DiveRouteLinkDraft._(copy, copy, const {});
   }
 
   /// The routes linked when the form opened.
@@ -21,6 +21,12 @@ class DiveRouteLinkDraft {
 
   /// The routes the dive will have once saved, in the order shown.
   final List<NavTrack> current;
+
+  /// Re-imports staged to supersede an older route on Save, keyed by the
+  /// old route's id, valued by the re-import's id. The old row is replaced
+  /// (and deleted) only on Save, after the re-import is linked, so it can
+  /// hand over the primary role and a cancelled edit loses nothing.
+  final Map<String, String> replacements;
 
   Set<String> get _originalIds => {for (final r in original) r.id};
   Set<String> get _currentIds => {for (final r in current) r.id};
@@ -34,7 +40,7 @@ class DiveRouteLinkDraft {
   /// them again alongside the unlinked routes.
   List<NavTrack> get removed => List.unmodifiable([
     for (final r in original)
-      if (!_currentIds.contains(r.id)) r,
+      if (!_currentIds.contains(r.id) && !replacements.containsKey(r.id)) r,
   ]);
 
   List<String> get toLink => List.unmodifiable([
@@ -45,29 +51,41 @@ class DiveRouteLinkDraft {
   List<String> get toUnlink =>
       List.unmodifiable([for (final r in removed) r.id]);
 
-  bool get hasChanges => toLink.isNotEmpty || toUnlink.isNotEmpty;
+  bool get hasChanges =>
+      toLink.isNotEmpty || toUnlink.isNotEmpty || replacements.isNotEmpty;
 
   DiveRouteLinkDraft add(NavTrack route) => contains(route.id)
       ? this
-      : DiveRouteLinkDraft._(original, List.unmodifiable([...current, route]));
+      : DiveRouteLinkDraft._(
+          original,
+          List.unmodifiable([...current, route]),
+          replacements,
+        );
 
+  /// Takes [routeId] off the dive. A re-import removed this way also drops
+  /// its staged replacement, so the route it would have superseded stays.
   DiveRouteLinkDraft remove(String routeId) => DiveRouteLinkDraft._(
     original,
     List.unmodifiable(current.where((r) => r.id != routeId)),
+    Map.unmodifiable({
+      for (final entry in replacements.entries)
+        if (entry.value != routeId) entry.key: entry.value,
+    }),
   );
 
-  /// [replacement] took the place of [replacedRouteId], a duplicate the
-  /// import review page has already deleted. The deleted route leaves the
-  /// draft entirely (there is no row left to unlink) and [replacement] is
-  /// added.
+  /// [replacement] is a re-import the diver chose to supersede
+  /// [replacedRouteId] with. The old route leaves the dive's list and the
+  /// swap is staged in [replacements]; nothing is unlinked or deleted until
+  /// Save.
   DiveRouteLinkDraft replaced(String replacedRouteId, NavTrack replacement) =>
       DiveRouteLinkDraft._(
-        List.unmodifiable(original.where((r) => r.id != replacedRouteId)),
+        original,
         List.unmodifiable([
           ...current.where(
             (r) => r.id != replacedRouteId && r.id != replacement.id,
           ),
           replacement,
         ]),
+        Map.unmodifiable({...replacements, replacedRouteId: replacement.id}),
       );
 }

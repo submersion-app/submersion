@@ -33,23 +33,28 @@ class _FakeRouteRepository extends NavTrackRepository {
 
 /// A fixed preview, and a commit that "saves" as `new-route`.
 class _FakeImportService implements NavTrackImportService {
-  _FakeImportService({this.duplicateOfRouteId});
+  _FakeImportService({this.duplicateOfRouteId, this.prepareError});
 
   final String? duplicateOfRouteId;
+
+  /// Thrown by `prepare` instead of returning a preview, when set.
+  final Object? prepareError;
 
   @override
   Future<NavTrackImportPreview> prepare(
     Uint8List bytes, {
     String? fileName,
-  }) async => NavTrackImportPreview(
-    parsed: const ParsedNavTrack(points: kTestNavTrackPoints),
-    stats: NavTrackStats.of(kTestNavTrackPoints),
-    segmentation: NavTrackSegmenter.classify(kTestNavTrackPoints),
-    candidateDives: const [],
-    nearbyDives: const [],
-    duplicateOfRouteId: duplicateOfRouteId,
-    sourceRef: fileName ?? '',
-  );
+  }) async => prepareError != null
+      ? throw prepareError!
+      : NavTrackImportPreview(
+          parsed: const ParsedNavTrack(points: kTestNavTrackPoints),
+          stats: NavTrackStats.of(kTestNavTrackPoints),
+          segmentation: NavTrackSegmenter.classify(kTestNavTrackPoints),
+          candidateDives: const [],
+          nearbyDives: const [],
+          duplicateOfRouteId: duplicateOfRouteId,
+          sourceRef: fileName ?? '',
+        );
 
   @override
   Future<String> commit({
@@ -286,5 +291,29 @@ void main() {
     expect(changes.last.current.map((r) => r.id), ['new-route']);
     expect(changes.last.toUnlink, isEmpty);
     expect(changes.last.toLink, ['new-route']);
+    expect(changes.last.replacements, {'old': 'new-route'});
+  });
+
+  testWidgets('a file that cannot be imported says so inside the sheet', (
+    tester,
+  ) async {
+    _mockPickedFile();
+    await _openSheet(
+      tester,
+      draft: DiveRouteLinkDraft.initial(const []),
+      service: _FakeImportService(prepareError: StateError('boom')),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('route-sheet-import-button')));
+    await tester.pumpAndSettle();
+
+    // A snackbar would render behind the modal sheet, out of sight.
+    expect(
+      find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.textContaining('Import failed'),
+      ),
+      findsOneWidget,
+    );
   });
 }

@@ -42,19 +42,30 @@ void main() {
     expect(draft.hasChanges, isFalse);
   });
 
-  test('replaced drops a deleted original without unlinking it', () {
-    // The review page already deleted "a" in favour of its re-import "c".
+  test('replaced stages the swap for Save without unlinking the old route', () {
+    // "c" re-imports "a"; the old row is only replaced once the dive saves.
     final draft = DiveRouteLinkDraft.initial([a]).replaced('a', c);
     expect(draft.current.map((r) => r.id), ['c']);
     expect(draft.toLink, ['c']);
     expect(draft.toUnlink, isEmpty);
     expect(draft.removed, isEmpty);
+    expect(draft.replacements, {'a': 'c'});
+    expect(draft.hasChanges, isTrue);
   });
 
-  test('replaced drops a deleted just-added route as well', () {
+  test('replaced stages the swap for a just-added route as well', () {
     final draft = DiveRouteLinkDraft.initial(const []).add(b).replaced('b', c);
     expect(draft.current.map((r) => r.id), ['c']);
     expect(draft.toLink, ['c']);
+    expect(draft.replacements, {'b': 'c'});
+  });
+
+  test('removing the re-import drops its pending replacement', () {
+    final draft = DiveRouteLinkDraft.initial([a]).replaced('a', c).remove('c');
+    expect(draft.replacements, isEmpty);
+    expect(draft.current, isEmpty);
+    // The original is still a real row, so taking it off the dive unlinks it.
+    expect(draft.toUnlink, ['a']);
   });
 
   test('wasLinkedOnOpen tells original routes from added ones', () {

@@ -1222,6 +1222,9 @@ void main() {
       expect(results, [
         (routeId: 'new-route-id', replacedRouteId: 'existing-route'),
       ]);
+      // The caller replaces it on its own Save, so the duplicate survives a
+      // cancelled edit.
+      expect(service.lastReplacingRouteId, isNull);
     });
 
     testWidgets('pre-fills the site the edit form already chose', (
