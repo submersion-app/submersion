@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/raw_dive_data_providers.dart';
-import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
@@ -59,11 +58,9 @@ Future<void> confirmAndDiscardRawDiveData(
     );
     outcome = l10n.diveComputer_rawData_discardFailed;
   }
+  // No invalidation needed: the counts, the usage tile and the dive page's
+  // re-parse entry all refresh themselves when a data source row changes.
   messenger.showSnackBar(SnackBar(content: Text(outcome)));
-  if (!context.mounted) return;
-  ref.invalidate(rawDataCountProvider);
-  ref.invalidate(diveHasRawDataProvider);
-  ref.invalidate(rawDiveDataUsageProvider);
 }
 
 /// How much raw dive computer data the library keeps across every computer,
