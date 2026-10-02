@@ -71,4 +71,57 @@ void main() {
     await tester.pumpAndSettle();
     expect(container.read(diveFilterProvider), const DiveFilterState());
   });
+
+  // Review Focus 4: Undo works after the header itself is gone (the diver
+  // left the list), because it holds the container, not the widget's ref.
+  testWidgets('Undo restores the search after the header is unmounted', (
+    tester,
+  ) async {
+    final active = DiveFilterState(query: TextNode(['manta']));
+    final base = await getBaseOverrides();
+    var showHeader = true;
+    late StateSetter setOuter;
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          ...base,
+          diveFilterProvider.overrideWith((ref) => active),
+          diveSearchBarOpenProvider.overrideWith((ref) => true),
+          queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+          diveJumpResultsProvider.overrideWith((ref, q) async => const []),
+        ],
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            setOuter = setState;
+            container = ProviderScope.containerOf(context);
+            return showHeader
+                ? DiveSearchHeader(onOpenDive: (_) {})
+                : const Text('elsewhere');
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(kDiveSearchCloseKey));
+    await tester.pump();
+    setOuter(() => showHeader = false);
+    await tester.pumpAndSettle();
+    expect(find.byType(DiveSearchHeader), findsNothing);
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(container.read(diveFilterProvider), active);
+  });
+
+  // Code review: Clear all in the chip row offers Undo too.
+  testWidgets('Clear all offers Undo', (tester) async {
+    final active = DiveFilterState(minDepth: 30, query: TextNode(['manta']));
+    await pump(tester, active);
+    await tester.tap(find.text('Clear all'));
+    await tester.pumpAndSettle();
+    expect(container.read(diveFilterProvider), const DiveFilterState());
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(container.read(diveFilterProvider), active);
+  });
 }

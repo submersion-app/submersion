@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
@@ -91,7 +92,7 @@ void main() {
   ];
 
   Future<void> searchInSelectionMode(WidgetTester tester) async {
-    await tester.tap(find.byKey(const ValueKey('dive-search-action')));
+    await tester.tap(find.byKey(kDiveSearchActionKey));
     await tester.pumpAndSettle();
     // "Select items" lives in the overflow menu (#2783).
     await tester.tap(find.byIcon(Icons.more_vert));

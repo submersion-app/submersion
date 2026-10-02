@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -419,7 +420,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const ValueKey('dive-search-action')));
+      await tester.tap(find.byKey(kDiveSearchActionKey));
       await tester.pumpAndSettle();
 
       // The one search row (#2773) opens under the app bar.
@@ -693,7 +694,7 @@ void main() {
       // The search action carries the old filter icon's Badge (#2773). (The
       // data-quality review button also wears a Badge, so scope the check to
       // the search action.)
-      final action = find.byKey(const ValueKey('dive-search-action'));
+      final action = find.byKey(kDiveSearchActionKey);
       expect(action, findsOneWidget);
       expect(
         find.descendant(of: action, matching: find.byType(Badge)),
