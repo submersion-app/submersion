@@ -562,8 +562,8 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           // Expanded, and no Spacer: the title must be the row's only flexible
           // child, or Spacer takes half the free space and the leftover half
           // lands after the last icon (see trip_list_content for the detail).
-          // This bar is the most crowded of the five: map, search, sort,
-          // select and overflow, which is why the gap was small enough here to
+          // This bar is the most crowded of the five: map, search, sort, query
+          // filter and overflow, which is why the gap was small enough here to
           // look right-aligned while still being wrong.
           Expanded(
             child: FeatureAppBarTitle(

@@ -461,14 +461,14 @@ void main() {
       testWidgets('selection does not outlive leaving table mode', (
         tester,
       ) async {
-        // Suppress RenderFlex overflow when rebuilding to non-table mode
+        // A row of the outgoing table layout overflows for the frame it is
+        // torn down in, as the file's view-mode test below also allows.
         final originalOnError = FlutterError.onError;
         FlutterError.onError = (details) {
           if (details.toString().contains('overflowed')) return;
           originalOnError?.call(details);
         };
         addTearDown(() => FlutterError.onError = originalOnError);
-
         await pumpTablePage(tester);
         await enterSelectionViaMenu(tester);
         expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
