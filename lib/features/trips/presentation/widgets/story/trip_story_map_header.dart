@@ -10,6 +10,7 @@ import 'package:submersion/features/maps/domain/map_utils.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -44,6 +45,10 @@ class MapCameraAnimator {
 
   MapCameraAnimator({required this.vsync, required this.controller});
 
+  /// Whether a move is in flight and listening for the diver's gestures.
+  @visibleForTesting
+  bool get isWatchingGestures => _gestureWatch != null;
+
   void animateTo({required LatLng center, required double zoom}) {
     _stop();
     final camera = controller.camera;
@@ -75,6 +80,12 @@ class MapCameraAnimator {
           event.source == MapEventSource.mapController &&
           event.id != _moveId;
       if (movedByOther || _userGestureSources.contains(event.source)) _stop();
+    });
+    // Nothing left to interrupt once the move lands.
+    animation.addStatusListener((status) {
+      if (status != AnimationStatus.completed) return;
+      _gestureWatch?.cancel();
+      _gestureWatch = null;
     });
     animation.forward();
     _animation = animation;
@@ -139,6 +150,9 @@ class TripStoryMap extends ConsumerWidget {
             initialZoom: zoom,
             minZoom: _minZoom,
             maxZoom: maxZoom,
+            // Stops at the poles and wraps east and west, like the app's
+            // other maps that pan.
+            cameraConstraint: worldMapCameraConstraint,
             // Pans and zooms like the other embedded detail maps. A drag that
             // starts on the map moves the map, not the page; the camera still
             // eases back to the active day whenever that day changes.

@@ -257,6 +257,19 @@ void main() {
     expect(controller.camera.zoom, lessThanOrEqualTo(tileMaxZoom));
   });
 
+  testWidgets('dragging stops at the poles', (tester) async {
+    final controller = await pumpHeader(tester, _twoPoints);
+    controller.move(controller.camera.center, 2);
+    await tester.pump();
+
+    // Far more than the distance to the north pole at zoom 2.
+    await tester.dragFrom(_openMapSpot(tester), const Offset(0, 2000));
+    await tester.pumpAndSettle();
+
+    // In world pixels, the top of the world is y = 0; past it is empty grey.
+    expect(controller.camera.pixelBounds.top, greaterThanOrEqualTo(-0.5));
+  });
+
   testWidgets('the map never rotates', (tester) async {
     await pumpHeader(tester, _twoPoints);
 
@@ -406,6 +419,24 @@ void main() {
 
     // Left running, the animation would land exactly on zoom 6.
     expect(controller.camera.zoom, 8);
+  });
+
+  testWidgets('a finished camera move stops watching for gestures', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: _AnimatorHarness()));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1)); // attach the map camera
+
+    await tester.tap(find.text('animate'));
+    await tester.pump();
+    final animator = tester
+        .state<_AnimatorHarnessState>(find.byType(_AnimatorHarness))
+        ._animator!;
+    expect(animator.isWatchingGestures, isTrue);
+
+    await tester.pump(const Duration(seconds: 1));
+    expect(animator.isWatchingGestures, isFalse);
   });
 
   testWidgets('MapCameraAnimator eases the camera then disposes cleanly', (
