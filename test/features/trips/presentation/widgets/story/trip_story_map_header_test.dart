@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
@@ -234,6 +235,28 @@ void main() {
     expect(controller.camera.zoom, greaterThan(before));
   });
 
+  testWidgets('zooming in stops at the map style\'s deepest tiles', (
+    tester,
+  ) async {
+    final controller = await pumpHeader(tester, _twoPoints);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(FlutterMap)),
+    );
+    final tileMaxZoom = container.read(mapTileMaxZoomProvider);
+
+    // Each double-tap zooms one level; enough of them would run far past the
+    // last zoom the tile server draws and blank the map.
+    for (var i = 0; i < 14; i++) {
+      await tester.tapAt(_openMapSpot(tester));
+      await tester.pump(kDoubleTapMinTime);
+      await tester.tapAt(_openMapSpot(tester));
+      await tester.pumpAndSettle();
+      await tester.pump(kDoubleTapTimeout);
+    }
+
+    expect(controller.camera.zoom, lessThanOrEqualTo(tileMaxZoom));
+  });
+
   testWidgets('the map never rotates', (tester) async {
     await pumpHeader(tester, _twoPoints);
 
@@ -332,6 +355,34 @@ void main() {
     );
     expect(size.width, greaterThanOrEqualTo(48));
     expect(size.height, greaterThanOrEqualTo(48));
+  });
+
+  testWidgets('a drag on the map stops a camera move in flight', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: _AnimatorHarness()));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1)); // attach the map camera
+
+    await tester.tap(find.text('animate'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // dragFrom sends its moves without pumping frames, so the eased move only
+    // ticks again after the drag has ended.
+    await tester.dragFrom(
+      tester.getCenter(find.byType(FlutterMap)),
+      const Offset(-150, 0),
+    );
+    await tester.pump(const Duration(seconds: 1));
+
+    final center = tester
+        .state<_AnimatorHarnessState>(find.byType(_AnimatorHarness))
+        ._controller
+        .camera
+        .center;
+    // Left running, the animation would land exactly on its target.
+    expect(center.longitude, isNot(closeTo(20, 1e-6)));
   });
 
   testWidgets('MapCameraAnimator eases the camera then disposes cleanly', (

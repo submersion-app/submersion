@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,15 +15,31 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Eases the flutter_map camera between positions (flutter_map has no
 /// built-in animated move).
+///
+/// A gesture on the map stops a move in flight, so the diver's drag or zoom is
+/// not pulled back toward the target for the rest of the animation.
 class MapCameraAnimator {
   final TickerProvider vsync;
   final MapController controller;
   AnimationController? _animation;
+  StreamSubscription<MapEvent>? _gestureWatch;
+
+  /// The sources a diver's own gesture starts with. Camera moves the animator
+  /// makes itself report [MapEventSource.mapController], and the band's
+  /// resize reports [MapEventSource.nonRotatedSizeChange]; neither stops it.
+  static const Set<MapEventSource> _userGestureSources = {
+    MapEventSource.dragStart,
+    MapEventSource.multiFingerGestureStart,
+    MapEventSource.doubleTap,
+    MapEventSource.doubleTapHold,
+    MapEventSource.scrollWheel,
+    MapEventSource.keyboard,
+  };
 
   MapCameraAnimator({required this.vsync, required this.controller});
 
   void animateTo({required LatLng center, required double zoom}) {
-    _animation?.dispose();
+    _stop();
     final camera = controller.camera;
     final latTween = Tween<double>(
       begin: camera.center.latitude,
@@ -44,14 +62,21 @@ class MapCameraAnimator {
         zoomTween.evaluate(curved),
       );
     });
+    _gestureWatch = controller.mapEventStream.listen((event) {
+      if (_userGestureSources.contains(event.source)) _stop();
+    });
     animation.forward();
     _animation = animation;
   }
 
-  void dispose() {
+  void _stop() {
+    _gestureWatch?.cancel();
+    _gestureWatch = null;
     _animation?.dispose();
     _animation = null;
   }
+
+  void dispose() => _stop();
 }
 
 /// The story map: the trip's route and its day pins.
@@ -63,6 +88,10 @@ class TripStoryMap extends ConsumerWidget {
   final int activeDayIndex;
   final MapController mapController;
   final ValueChanged<int> onDaySelected;
+
+  /// Zoomed out further, the world shrinks to a strip inside the band. Matches
+  /// the other embedded detail maps.
+  static const double _minZoom = 2.0;
 
   const TripStoryMap({
     super.key,
@@ -82,16 +111,23 @@ class TripStoryMap extends ConsumerWidget {
         .toList();
     final bounds = LatLngBounds.fromPoints(points);
     final zoom = calculateZoomForBounds(points, bounds);
+    // Past the style's deepest tiles the tile layer draws nothing, so zoom
+    // stops there rather than blanking the band.
+    final maxZoom = ref.watch(mapTileMaxZoomProvider);
 
     return Semantics(
       label: context.l10n.trips_story_map_semantics,
       child: TrackpadZoomMap(
         controller: mapController,
+        minZoom: _minZoom,
+        maxZoom: maxZoom,
         child: FlutterMap(
           mapController: mapController,
           options: MapOptions(
             initialCenter: bounds.center,
             initialZoom: zoom,
+            minZoom: _minZoom,
+            maxZoom: maxZoom,
             // Pans and zooms like the other embedded detail maps. A drag that
             // starts on the map moves the map, not the page; the camera still
             // eases back to the active day whenever that day changes.
@@ -104,7 +140,7 @@ class TripStoryMap extends ConsumerWidget {
             TileLayer(
               urlTemplate: ref.watch(mapTileUrlProvider),
               userAgentPackageName: 'app.submersion',
-              maxZoom: ref.watch(mapTileMaxZoomProvider),
+              maxZoom: maxZoom,
               tileProvider: TileCacheService.instance.tileProviderFor(
                 urlTemplate: ref.watch(mapTileUrlProvider),
               ),
