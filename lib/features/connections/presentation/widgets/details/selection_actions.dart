@@ -72,13 +72,17 @@ class SelectionActions extends ConsumerWidget {
         ),
         if (secondary.isNotEmpty) ...[
           const SizedBox(height: 8),
-          Row(
-            children: [
-              for (final (i, button) in secondary.indexed) ...[
-                if (i > 0) const SizedBox(width: 8),
-                Expanded(child: button),
+          // Stretched, so a label that wraps keeps both buttons one height.
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final (i, button) in secondary.indexed) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  Expanded(child: button),
+                ],
               ],
-            ],
+            ),
           ),
         ],
       ],

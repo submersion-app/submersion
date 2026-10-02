@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
+import 'package:submersion/features/connections/presentation/widgets/kind_dot.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -64,14 +65,7 @@ class ConnectionsLegend extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: colors.colorFor(k),
-                    shape: BoxShape.circle,
-                  ),
-                ),
+                KindDot(color: colors.colorFor(k), size: 12),
                 const SizedBox(width: 6),
                 Text(
                   kindLabel(context.l10n, k),

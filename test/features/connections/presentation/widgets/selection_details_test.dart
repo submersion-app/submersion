@@ -51,6 +51,14 @@ final _graph = ConnectionGraph(
       firstDiveAt: DateTime.utc(2024, 2, 1),
       lastDiveAt: DateTime.utc(2024, 2, 1),
     ),
+    // Ties Reef on weight but dived more recently, so it ranks first.
+    ConnectionEdge(
+      source: _b('jane'),
+      target: _night,
+      weight: 1,
+      firstDiveAt: DateTime.utc(2024, 6, 1),
+      lastDiveAt: DateTime.utc(2024, 6, 1),
+    ),
   ],
 );
 
@@ -136,7 +144,7 @@ void main() {
       findsOneWidget,
     );
     expect(_stat(tester, 'dives'), '3|Dives');
-    expect(_stat(tester, 'connections'), '2|Connections');
+    expect(_stat(tester, 'connections'), '3|Connections');
   });
 
   testWidgets('top connections list kind, count and a bar per row', (
@@ -160,8 +168,24 @@ void main() {
         .value!;
     expect(bar(ken), 1.0);
     expect(bar(reef), 0.5);
-    // Strongest first.
-    expect(tester.getTopLeft(ken).dy, lessThan(tester.getTopLeft(reef).dy));
+    // Strongest first; a tie goes to the more recent, as in the summary.
+    final night = find.byKey(ValueKey('connections-top-${_night.wire}'));
+    expect(tester.getTopLeft(ken).dy, lessThan(tester.getTopLeft(night).dy));
+    expect(tester.getTopLeft(night).dy, lessThan(tester.getTopLeft(reef).dy));
+  });
+
+  testWidgets('a stat tile reads as one item to a screen reader', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await _pump(tester, NodeSelection(_b('jane')));
+    expect(
+      tester
+          .getSemantics(find.byKey(const ValueKey('connections-stat-dives')))
+          .label,
+      '3\nDives',
+    );
+    handle.dispose();
   });
 
   testWidgets('tapping a top connection selects the line between the two', (
@@ -195,6 +219,23 @@ void main() {
     expect(open.width, closeTo(centre.width, 0.5));
     expect(show.left, open.left);
     expect(show.right, centre.right);
+  });
+
+  testWidgets('Open and Centre here share a height when a label wraps', (
+    tester,
+  ) async {
+    // The panel's content width, where the test font wraps Centre here.
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(308, 900);
+    addTearDown(tester.view.reset);
+    await _pump(tester, NodeSelection(_b('jane')));
+    final open = tester.getRect(
+      find.byKey(const ValueKey('connections-action-open')),
+    );
+    final centre = tester.getRect(
+      find.byKey(const ValueKey('connections-action-centre')),
+    );
+    expect(centre.height, open.height);
   });
 
   testWidgets('a node without a detail page offers Centre here at full width', (

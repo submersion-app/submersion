@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
-import 'package:submersion/features/connections/presentation/widgets/details/kind_tag.dart';
+import 'package:submersion/features/connections/presentation/widgets/kind_dot.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One of a node's strongest connections: who or what, its kind, the dives
@@ -30,6 +30,7 @@ class TopConnectionRow extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final kindName = kindNameOne(l10n, kind);
+    final color = ConnectionKindColors.of(context).colorFor(kind);
     return Semantics(
       button: true,
       excludeSemantics: true,
@@ -44,7 +45,7 @@ class TopConnectionRow extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  KindDot(kind: kind),
+                  KindDot(color: color),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -81,7 +82,7 @@ class TopConnectionRow extends StatelessWidget {
                   value: fraction,
                   minHeight: 4,
                   borderRadius: BorderRadius.circular(2),
-                  color: ConnectionKindColors.of(context).colorFor(kind),
+                  color: color,
                   backgroundColor: theme.colorScheme.surfaceContainerHighest,
                 ),
               ),

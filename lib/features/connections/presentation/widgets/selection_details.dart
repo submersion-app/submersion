@@ -2,10 +2,12 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/views/graph_summary.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/details/detail_stat_tiles.dart';
@@ -76,8 +78,7 @@ class _NodeDetails extends ConsumerWidget {
       ),
       RoleSubtitle(:final roleId) => roles?[roleId]?.name,
     };
-    final edges = graph.edgesOf(node)
-      ..sort((a, b) => b.weight.compareTo(a.weight));
+    final edges = graph.edgesOf(node)..sort(GraphSummary.strongestFirst);
     final top = edges.take(5).toList();
     final strongest = top.isEmpty ? 0 : top.first.weight;
 
@@ -126,22 +127,22 @@ class _NodeDetails extends ConsumerWidget {
             style: theme.textTheme.titleSmall,
           ),
           const SizedBox(height: 4),
-          for (final e in top)
-            () {
-              final other = e.otherEnd(node)!;
-              return TopConnectionRow(
-                key: ValueKey('connections-top-${other.wire}'),
-                kind: other.kind,
-                label: graph.nodeFor(other)?.label ?? other.id,
-                weight: e.weight,
-                fraction: strongest == 0 ? 0 : e.weight / strongest,
-                onTap: () =>
-                    ref.read(connectionsSelectionProvider.notifier).state =
-                        EdgeSelection(e.source, e.target),
-              );
-            }(),
+          for (final e in top) _topRow(ref, e, strongest),
         ],
       ],
+    );
+  }
+
+  Widget _topRow(WidgetRef ref, ConnectionEdge e, int strongest) {
+    final other = e.otherEnd(node)!;
+    return TopConnectionRow(
+      key: ValueKey('connections-top-${other.wire}'),
+      kind: other.kind,
+      label: graph.nodeFor(other)?.label ?? other.id,
+      weight: e.weight,
+      fraction: strongest == 0 ? 0 : e.weight / strongest,
+      onTap: () => ref.read(connectionsSelectionProvider.notifier).state =
+          EdgeSelection(e.source, e.target),
     );
   }
 }

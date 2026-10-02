@@ -66,10 +66,19 @@ class GraphSummary {
     );
   }
 
-  static bool _stronger(ConnectionEdge a, ConnectionEdge b) {
-    if (a.weight != b.weight) return a.weight > b.weight;
-    if (a.lastDiveAt != b.lastDiveAt) return a.lastDiveAt.isAfter(b.lastDiveAt);
-    return a.source.wire.compareTo(b.source.wire) < 0;
+  static bool _stronger(ConnectionEdge a, ConnectionEdge b) =>
+      strongestFirst(a, b) < 0;
+
+  /// Orders edges strongest first: more dives, then the more recent last
+  /// dive, then by wire ids so ties are stable. Every ranking of edges uses
+  /// it, so the panel's lists agree with this summary.
+  static int strongestFirst(ConnectionEdge a, ConnectionEdge b) {
+    if (a.weight != b.weight) return b.weight.compareTo(a.weight);
+    if (a.lastDiveAt != b.lastDiveAt) {
+      return b.lastDiveAt.compareTo(a.lastDiveAt);
+    }
+    final bySource = a.source.wire.compareTo(b.source.wire);
+    return bySource != 0 ? bySource : a.target.wire.compareTo(b.target.wire);
   }
 
   final Map<ConnectionKind, int> countsByKind;
