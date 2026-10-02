@@ -16,17 +16,23 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Eases the flutter_map camera between positions (flutter_map has no
 /// built-in animated move).
 ///
-/// A gesture on the map stops a move in flight, so the diver's drag or zoom is
-/// not pulled back toward the target for the rest of the animation.
+/// A gesture on the map, or any camera move the animator did not make (the
+/// trackpad zoom moves the camera through the controller), stops a move in
+/// flight, so the diver's drag or zoom is not pulled back toward the target
+/// for the rest of the animation.
 class MapCameraAnimator {
   final TickerProvider vsync;
   final MapController controller;
   AnimationController? _animation;
   StreamSubscription<MapEvent>? _gestureWatch;
 
-  /// The sources a diver's own gesture starts with. Camera moves the animator
-  /// makes itself report [MapEventSource.mapController], and the band's
-  /// resize reports [MapEventSource.nonRotatedSizeChange]; neither stops it.
+  /// Tags the animator's own camera moves, which report
+  /// [MapEventSource.mapController] like any other controller move.
+  static const String _moveId = 'MapCameraAnimator';
+
+  /// The sources a diver's own flutter_map gesture starts with. The band's
+  /// resize reports [MapEventSource.nonRotatedSizeChange] and does not stop
+  /// the animator.
   static const Set<MapEventSource> _userGestureSources = {
     MapEventSource.dragStart,
     MapEventSource.multiFingerGestureStart,
@@ -60,10 +66,15 @@ class MapCameraAnimator {
       controller.move(
         LatLng(latTween.evaluate(curved), lngTween.evaluate(curved)),
         zoomTween.evaluate(curved),
+        id: _moveId,
       );
     });
     _gestureWatch = controller.mapEventStream.listen((event) {
-      if (_userGestureSources.contains(event.source)) _stop();
+      final movedByOther =
+          event is MapEventMove &&
+          event.source == MapEventSource.mapController &&
+          event.id != _moveId;
+      if (movedByOther || _userGestureSources.contains(event.source)) _stop();
     });
     animation.forward();
     _animation = animation;

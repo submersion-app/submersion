@@ -385,6 +385,29 @@ void main() {
     expect(center.longitude, isNot(closeTo(20, 1e-6)));
   });
 
+  testWidgets('another camera move stops a camera move in flight', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: _AnimatorHarness()));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1)); // attach the map camera
+
+    await tester.tap(find.text('animate'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // The trackpad zoom moves the camera through the controller, as the
+    // animator does, rather than through a flutter_map gesture.
+    final controller = tester
+        .state<_AnimatorHarnessState>(find.byType(_AnimatorHarness))
+        ._controller;
+    controller.move(controller.camera.center, 8);
+    await tester.pump(const Duration(seconds: 1));
+
+    // Left running, the animation would land exactly on zoom 6.
+    expect(controller.camera.zoom, 8);
+  });
+
   testWidgets('MapCameraAnimator eases the camera then disposes cleanly', (
     tester,
   ) async {
