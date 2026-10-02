@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_no_direct_download_view.dart';
@@ -20,6 +21,7 @@ void main() {
   testWidgets('a Garmin computer gets the FIT-file guidance', (tester) async {
     await tester.pumpWidget(
       localizedMaterialApp(
+        locale: const Locale('en'),
         home: DcNoDirectDownloadView(
           computer: _computer(' garmin ', 'Descent G2'),
           onImportFromFile: () {},
@@ -39,6 +41,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       localizedMaterialApp(
+        locale: const Locale('en'),
         home: DcNoDirectDownloadView(
           computer: _computer('Shearwater', 'Perdix'),
           onImportFromFile: () {},
@@ -60,6 +63,7 @@ void main() {
     var dones = 0;
     await tester.pumpWidget(
       localizedMaterialApp(
+        locale: const Locale('en'),
         home: DcNoDirectDownloadView(
           computer: _computer(null, 'Unknown'),
           onImportFromFile: () => imports++,
