@@ -124,4 +124,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(container.read(diveFilterProvider), active);
   });
+
+  // Copilot review on #2807: closing inside the 300 ms debounce must not let
+  // the pending query land afterwards and reopen the row.
+  testWidgets('closing inside the debounce drops the pending query', (
+    tester,
+  ) async {
+    await pump(tester, const DiveFilterState());
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.byKey(kDiveSearchCloseKey));
+    await tester.pump(kDiveSearchDebounce);
+    await tester.pumpAndSettle();
+    expect(container.read(diveFilterProvider).query, isNull);
+    expect(find.byKey(kDiveSearchFieldKey), findsNothing);
+  });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -186,6 +187,37 @@ List<Widget> activeDiveFilterChips(
       axisChip(extra.label, () {
         ref.read(filterProvider.notifier).state = extra.clear(filter);
       }),
+    );
+  }
+
+  // Handoffs with no Refine control (a buddy's "View all" sets both) still
+  // get a removable chip each, so they are never stuck behind Clear all.
+  if (filter.buddyId != null) {
+    final name = ref
+        .watch(allBuddiesProvider)
+        .value
+        ?.where((b) => b.id == filter.buddyId)
+        .firstOrNull
+        ?.name;
+    chips.add(
+      axisChip(name ?? context.l10n.diveLog_filter_sectionBuddy, () {
+        ref.read(filterProvider.notifier).state = filter.copyWith(
+          clearBuddyId: true,
+        );
+      }),
+    );
+  }
+
+  if (filter.diveIds.isNotEmpty) {
+    chips.add(
+      axisChip(
+        context.l10n.connections_selection_dives(filter.diveIds.length),
+        () {
+          ref.read(filterProvider.notifier).state = filter.copyWith(
+            clearDiveIds: true,
+          );
+        },
+      ),
     );
   }
 

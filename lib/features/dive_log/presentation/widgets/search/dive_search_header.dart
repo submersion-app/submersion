@@ -95,6 +95,14 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     });
   }
 
+  /// Closes the row, dropping a query still waiting on the debounce so it
+  /// cannot land afterwards and reopen the row.
+  void _close() {
+    _debounce?.cancel();
+    setState(() => _local = _jumpQuery = null);
+    closeDiveSearch(context, ref);
+  }
+
   void _onQueryChanged(QueryNode? node) {
     // An emptied field hides the jump rows now, not after the debounce.
     setState(() {
@@ -167,8 +175,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   describeError: (e) => describeQueryError(l10n, e),
                   fieldKey: kDiveSearchFieldKey,
                   focusNode: _focus,
-                  onEscape:
-                      widget.onEscape ?? () => closeDiveSearch(context, ref),
+                  onEscape: widget.onEscape ?? _close,
                 ),
               ),
               IconButton(
@@ -189,7 +196,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                 key: kDiveSearchCloseKey,
                 tooltip: l10n.diveLog_search_closeTooltip,
                 icon: const Icon(Icons.close),
-                onPressed: () => closeDiveSearch(context, ref),
+                onPressed: _close,
               ),
             ],
           ),
