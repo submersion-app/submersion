@@ -8888,20 +8888,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'Die ersten $limit Treffer werden angezeigt. Verfeinern Sie die Suche, um die Ergebnisse einzugrenzen.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'Keine Tauchgänge gefunden für \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Nach Tauchplatz, Tauchpartner oder Notizen suchen';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Zurück';
 
   @override
@@ -8910,9 +8896,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Suche löschen';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Tauchgänge filtern';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'Listenansicht';

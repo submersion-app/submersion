@@ -8677,20 +8677,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'מוצגות $limit ההתאמות הראשונות. חדדו את החיפוש כדי לצמצם את התוצאות.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'לא נמצאו צלילות עבור \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'חיפוש לפי אתר, שותף או הערות';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'חזרה';
 
   @override
@@ -8698,9 +8684,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'ניקוי חיפוש';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'סינון צלילות';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'תצוגת רשימה';

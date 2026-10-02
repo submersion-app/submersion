@@ -8741,20 +8741,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'Showing the first $limit matches. Refine your search to narrow results.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'No dives found for \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Search by site, buddy, or notes';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Back';
 
   @override
@@ -8762,9 +8748,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Clear search';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Filter dives';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'List View';

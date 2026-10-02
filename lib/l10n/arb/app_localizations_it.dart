@@ -8892,20 +8892,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'Vengono mostrate le prime $limit corrispondenze. Affina la ricerca per restringere i risultati.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'Nessuna immersione trovata per \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Cerca per sito, compagno o note';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Indietro';
 
   @override
@@ -8914,9 +8900,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Cancella ricerca';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Filtra immersioni';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'Vista elenco';

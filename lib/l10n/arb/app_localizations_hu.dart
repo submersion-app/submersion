@@ -8869,20 +8869,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'Az első $limit találat látható. Pontosítsa a keresést az eredmények szűkítéséhez.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'Nem található merülés: \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Keresés merülőhely, búvártárs vagy jegyzetek alapján';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Vissza';
 
   @override
@@ -8891,9 +8877,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Keresés törlése';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Merülések szűrése';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'Lista nézet';

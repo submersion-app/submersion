@@ -8455,19 +8455,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return '仅显示前 $limit 条匹配结果。请细化搜索以缩小范围。';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return '未找到与「$query」匹配的潜水';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion => '按潜水点、潜伴或备注搜索';
-
-  @override
   String get diveLog_listPage_tooltip_back => '返回';
 
   @override
@@ -8475,9 +8462,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => '清除搜索';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => '筛选潜水';
 
   @override
   String get diveLog_listPage_tooltip_listView => '列表视图';

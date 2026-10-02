@@ -14181,24 +14181,6 @@ abstract class AppLocalizations {
   /// **'Open trip {tripName}'**
   String diveLog_listPage_tripGroupOpenTrip(String tripName);
 
-  /// No description provided for @diveLog_listPage_searchLimitNotice.
-  ///
-  /// In en, this message translates to:
-  /// **'Showing the first {limit} matches. Refine your search to narrow results.'**
-  String diveLog_listPage_searchLimitNotice(int limit);
-
-  /// No description provided for @diveLog_listPage_searchNoResults.
-  ///
-  /// In en, this message translates to:
-  /// **'No dives found for \"{query}\"'**
-  String diveLog_listPage_searchNoResults(Object query);
-
-  /// No description provided for @diveLog_listPage_searchSuggestion.
-  ///
-  /// In en, this message translates to:
-  /// **'Search by site, buddy, or notes'**
-  String get diveLog_listPage_searchSuggestion;
-
   /// No description provided for @diveLog_listPage_tooltip_back.
   ///
   /// In en, this message translates to:
@@ -14216,12 +14198,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear search'**
   String get diveLog_listPage_tooltip_clearSearch;
-
-  /// No description provided for @diveLog_listPage_tooltip_filterDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Filter dives'**
-  String get diveLog_listPage_tooltip_filterDives;
 
   /// No description provided for @diveLog_listPage_tooltip_listView.
   ///

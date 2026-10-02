@@ -8714,20 +8714,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'عرض أول $limit نتيجة مطابقة. حسّن البحث لتضييق النتائج.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'لم يتم العثور على غوصات لـ \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'البحث حسب الموقع أو زميل الغوص أو الملاحظات';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'رجوع';
 
   @override
@@ -8736,9 +8722,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'مسح البحث';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'تصفية الغوصات';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'عرض القائمة';

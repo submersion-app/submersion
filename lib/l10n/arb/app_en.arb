@@ -4987,13 +4987,9 @@
   "diveLog_listPage_tripGroupExpand": "Show dives on {tripName}",
   "diveLog_listPage_tripGroupCollapse": "Hide dives on {tripName}",
   "diveLog_listPage_tripGroupOpenTrip": "Open trip {tripName}",
-  "diveLog_listPage_searchLimitNotice": "Showing the first {limit} matches. Refine your search to narrow results.",
-  "diveLog_listPage_searchNoResults": "No dives found for \"{query}\"",
-  "diveLog_listPage_searchSuggestion": "Search by site, buddy, or notes",
   "diveLog_listPage_tooltip_back": "Back",
   "diveLog_listPage_tooltip_backToDiveList": "Back to dive list",
   "diveLog_listPage_tooltip_clearSearch": "Clear search",
-  "diveLog_listPage_tooltip_filterDives": "Filter dives",
   "diveLog_listPage_tooltip_listView": "List View",
   "diveLog_listPage_tooltip_mapView": "Map View",
   "diveLog_listPage_tooltip_searchDives": "Search dives",
@@ -5748,20 +5744,6 @@
     "placeholders": {
       "tripName": {
         "type": "String"
-      }
-    }
-  },
-  "@diveLog_listPage_searchLimitNotice": {
-    "placeholders": {
-      "limit": {
-        "type": "int"
-      }
-    }
-  },
-  "@diveLog_listPage_searchNoResults": {
-    "placeholders": {
-      "query": {
-        "type": "Object"
       }
     }
   },
