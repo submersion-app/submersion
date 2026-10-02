@@ -21,6 +21,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_database.dart';
 
 /// A site delete keeps the dives logged and plans set at the site, with the
@@ -199,8 +200,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
+    await enterSelectionViaMenu(tester);
     await tester.tap(find.text('Used Site'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('selection_overflow')));
@@ -245,8 +245,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
+    await enterSelectionViaMenu(tester);
     await tester.tap(find.text('Used Site'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('selection_overflow')));

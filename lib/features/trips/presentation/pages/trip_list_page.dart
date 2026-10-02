@@ -12,6 +12,8 @@ import 'package:submersion/features/trips/query/trip_query_entity.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -25,11 +27,26 @@ import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
 
-class TripListPage extends ConsumerWidget {
+class TripListPage extends ConsumerStatefulWidget {
   const TripListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TripListPage> createState() => _TripListPageState();
+}
+
+class _TripListPageState extends ConsumerState<TripListPage> {
+  /// Selection for table mode, whose header (and its overflow menu) belongs
+  /// to this page rather than to the list.
+  final SelectionController _tableSelection = SelectionController();
+
+  @override
+  void dispose() {
+    _tableSelection.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final fab = FloatingActionButton.extended(
       onPressed: () {
         final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
@@ -56,7 +73,10 @@ class TripListPage extends ConsumerWidget {
           sectionKey: 'trips',
           appBarTitle: context.l10n.nav_trips,
           appBarSubtitle: tripListCountLabel(context, ref),
-          tableContent: const TripListContent(showAppBar: false),
+          tableContent: TripListContent(
+            showAppBar: false,
+            selectionController: _tableSelection,
+          ),
           detailBuilder: (context, tripId) => TripDetailPage(
             tripId: tripId,
             embedded: true,
@@ -150,6 +170,13 @@ class TripListPage extends ConsumerWidget {
               itemBuilder: (context) {
                 final currentMode = ref.read(tripListViewModeProvider);
                 return [
+                  // Read as the menu opens: while selecting, the entry would
+                  // do nothing.
+                  if (!_tableSelection.value.isActive)
+                    ...selectItemsMenuEntries(
+                      context,
+                      onSelect: _tableSelection.enterExplicit,
+                    ),
                   ...ListViewModeToggle.menuItems(
                     context,
                     currentMode: currentMode,

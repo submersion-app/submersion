@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/query/presentation/widgets/query_chips_frame
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -211,7 +213,8 @@ void main() {
       await verifyBulkDelete(
         tester,
         build: () => widget,
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         expectedDeletedCount: 2,
       );
 
@@ -227,7 +230,8 @@ void main() {
       await verifyBulkDeleteCancels(
         tester,
         build: () => widget,
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
       );
 
       expect(notifier.deleted, isEmpty);
@@ -269,7 +273,8 @@ void main() {
           locale: const Locale('en'),
           child: const DiveCenterListContent(showAppBar: true),
         ),
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         rowRoot: find.ancestor(
           of: find.text('Aaa Center'),
           matching: find.byType(DiveCenterListTile),

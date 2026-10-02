@@ -11207,9 +11207,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_list_menu_import => 'Importálás';
 
   @override
-  String get diveSites_list_menu_select => 'Merülőhelyek kiválasztása';
-
-  @override
   String get diveSites_list_menu_fillLocationDetails =>
       'Hiányzó helyadatok kitöltése';
 

@@ -9,6 +9,8 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -26,11 +28,27 @@ import 'package:submersion/features/query/presentation/widgets/query_filter_shee
 import 'package:submersion/features/certifications/presentation/widgets/certification_search_delegate.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_list_count_provider.dart';
 
-class CertificationListPage extends ConsumerWidget {
+class CertificationListPage extends ConsumerStatefulWidget {
   const CertificationListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CertificationListPage> createState() =>
+      _CertificationListPageState();
+}
+
+class _CertificationListPageState extends ConsumerState<CertificationListPage> {
+  /// Selection for table mode, whose header (and its overflow menu) belongs
+  /// to this page rather than to the list.
+  final SelectionController _tableSelection = SelectionController();
+
+  @override
+  void dispose() {
+    _tableSelection.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final fab = FloatingActionButton.extended(
       onPressed: () {
         final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
@@ -57,7 +75,10 @@ class CertificationListPage extends ConsumerWidget {
           sectionKey: 'certifications',
           appBarTitle: context.l10n.nav_certifications,
           appBarSubtitle: certificationListCountLabel(context, ref),
-          tableContent: const CertificationListContent(showAppBar: false),
+          tableContent: CertificationListContent(
+            showAppBar: false,
+            selectionController: _tableSelection,
+          ),
           detailBuilder: (context, certificationId) => CertificationDetailPage(
             certificationId: certificationId,
             embedded: true,
@@ -149,6 +170,13 @@ class CertificationListPage extends ConsumerWidget {
               itemBuilder: (context) {
                 final currentMode = ref.read(certificationListViewModeProvider);
                 return [
+                  // Read as the menu opens: while selecting, the entry would
+                  // do nothing.
+                  if (!_tableSelection.value.isActive)
+                    ...selectItemsMenuEntries(
+                      context,
+                      onSelect: _tableSelection.enterExplicit,
+                    ),
                   ...ListViewModeToggle.menuItems(
                     context,
                     currentMode: currentMode,

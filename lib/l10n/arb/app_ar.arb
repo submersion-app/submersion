@@ -53,7 +53,6 @@
   "diveLog_tank_saveAsPreset_saved": "تم حفظ الإعداد المسبق \"{name}\"",
   "settings_units_defaultCurrency": "العملة الافتراضية",
   "settings_units_dialog_defaultCurrency": "العملة الافتراضية",
-  "diveSites_list_menu_select": "تحديد المواقع",
   "diveSites_list_menu_fillLocationDetails": "إكمال تفاصيل الموقع الناقصة",
   "diveSites_backfill_confirm_title": "إكمال تفاصيل الموقع الناقصة؟",
   "diveSites_backfill_confirm_body": "{count, plural, =1{موقع غوص واحد له إحداثيات ينقصه البلد أو المنطقة أو البلدة أو المسطح المائي.} other{{count} مواقع غوص لها إحداثيات ينقصها البلد أو المنطقة أو البلدة أو المسطح المائي.}} سيبحث Submersion عن كل منها في OpenStreetMap ويملأ الحقول الفارغة فقط. يستغرق ذلك نحو {minutes, plural, =1{دقيقة واحدة} =2{دقيقتين} other{{minutes} دقائق}}.",

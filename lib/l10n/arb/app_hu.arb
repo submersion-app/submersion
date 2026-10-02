@@ -53,7 +53,6 @@
   "diveLog_tank_saveAsPreset_saved": "\"{name}\" előre beállítás mentve",
   "settings_units_defaultCurrency": "Alapértelmezett pénznem",
   "settings_units_dialog_defaultCurrency": "Alapértelmezett pénznem",
-  "diveSites_list_menu_select": "Merülőhelyek kiválasztása",
   "diveSites_list_menu_fillLocationDetails": "Hiányzó helyadatok kitöltése",
   "diveSites_backfill_confirm_title": "Kitölti a hiányzó helyadatokat?",
   "diveSites_backfill_confirm_body": "{count, plural, =1{1 koordinátával rendelkező merülőhelynek üres az országa, régiója, települése vagy víztestje.} other{{count} koordinátával rendelkező merülőhelynek üres az országa, régiója, települése vagy víztestje.}} A Submersion mindegyiket lekérdezi az OpenStreetMapról, és csak az üres mezőket tölti ki. Ez körülbelül {minutes} percet vesz igénybe.",

@@ -24,9 +24,12 @@ import 'package:submersion/features/trips/presentation/widgets/dense_trip_list_t
 import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/selection_contract.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -295,7 +298,8 @@ void main() {
       await verifyBulkDelete(
         tester,
         build: () => widget,
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         expectedDeletedCount: 2,
       );
 
@@ -311,7 +315,8 @@ void main() {
       await verifyBulkDeleteCancels(
         tester,
         build: () => widget,
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
       );
 
       expect(notifier.deleted, isEmpty);
@@ -373,8 +378,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(find.byKey(const ValueKey('selection_select_all')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('selection_overflow')));
@@ -502,8 +506,7 @@ void main() {
       );
 
       // A second remove, of the shared trip alone, fails too.
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(find.text('Bbb Trip'));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('selection_overflow')));
@@ -679,7 +682,8 @@ void main() {
           locale: const Locale('en'),
           child: const TripListContent(showAppBar: true),
         ),
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         rowRoot: find.ancestor(
           of: find.text('Aaa Trip'),
           matching: find.byType(TripListTile),
@@ -701,6 +705,10 @@ void main() {
       testWidgets('keeps the checks that stay on screen (${mode.name})', (
         tester,
       ) async {
+        // Table mode has no menu inside the list (issue #2775), so both
+        // modes enter through the controller a page would pass in.
+        final controller = SelectionController();
+        addTearDown(controller.dispose);
         final all = <TripWithStats>[
           _makeTrip(id: 't1', name: 'Aaa Trip'),
           _makeTrip(id: 't2', name: 'Bbb Trip'),
@@ -734,11 +742,14 @@ void main() {
               ),
             ],
             locale: const Locale('en'),
-            child: const TripListContent(showAppBar: true),
+            child: TripListContent(
+              showAppBar: true,
+              selectionController: controller,
+            ),
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        controller.enterExplicit();
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('selection_select_all')));
         await tester.pumpAndSettle();
@@ -866,6 +877,42 @@ void main() {
         3,
         reason: 'rows must repaint as checked, not just the count in the bar',
       );
+    });
+
+    // Table mode owns no app bar (TableModeLayout does), so "Select items"
+    // sits in the page header's overflow and reaches the rows through the
+    // controller the page passes in (issue #2775). The list draws no Select
+    // strip of its own, and the contextual bar opens above the table.
+    testWidgets('draws no Select strip and opens the contextual bar when the '
+        "page's controller enters selection", (tester) async {
+      final controller = SelectionController();
+      addTearDown(controller.dispose);
+      final overrides = await _buildOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Maldives Trip')],
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: TripListContent(
+            showAppBar: true,
+            selectionController: controller,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final exitButton = find.byKey(const ValueKey('selection_exit'));
+
+      expect(find.byKey(selectItemsMenuKey), findsNothing);
+      expect(find.byIcon(Icons.checklist), findsNothing);
+      expect(exitButton, findsNothing);
+
+      controller.enterExplicit();
+      await tester.pumpAndSettle();
+
+      expect(exitButton, findsOneWidget);
+      expect(find.text('0 selected'), findsOneWidget);
     });
 
     testWidgets('shows empty state when no trips', (tester) async {
@@ -1366,6 +1413,44 @@ void main() {
       expect(find.byIcon(Icons.sort), findsOneWidget);
       expect(find.byIcon(Icons.more_vert), findsOneWidget);
     });
+  });
+
+  // The header shows no Select icon of its own: "Select items" is the first
+  // overflow entry (issue #2775).
+  group('overflow menu "Select items"', () {
+    for (final showAppBar in [true, false]) {
+      testWidgets('is first in the ${showAppBar ? 'app bar' : 'compact bar'} '
+          'menu and enters selection', (tester) async {
+        final overrides = await _buildPhoneOverrides(
+          trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
+          viewMode: ListViewMode.detailed,
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            locale: const Locale('en'),
+            child: TripListContent(showAppBar: showAppBar),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.checklist), findsNothing);
+
+        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.pumpAndSettle();
+        expect(find.text('Select items'), findsOneWidget);
+        expect(
+          tester.getTopLeft(find.byKey(selectItemsMenuKey)).dy,
+          lessThan(tester.getTopLeft(find.text('Detailed')).dy),
+        );
+
+        await tester.tap(find.byKey(selectItemsMenuKey));
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+        expect(find.text('0 selected'), findsOneWidget);
+      });
+    }
   });
 
   // ---------------------------------------------------------------------------

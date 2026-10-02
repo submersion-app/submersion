@@ -6443,7 +6443,6 @@
   "diveSites_list_error_loadingSites": "Error loading sites: {error}",
   "diveSites_list_error_retry": "Retry",
   "diveSites_list_menu_import": "Import",
-  "diveSites_list_menu_select": "Select sites",
   "diveSites_list_menu_fillLocationDetails": "Fill in missing location details",
   "diveSites_backfill_confirm_title": "Fill in missing location details?",
   "diveSites_backfill_confirm_body": "{count, plural, =1{1 site with coordinates has an empty country, region, town or body of water.} other{{count} sites with coordinates have an empty country, region, town or body of water.}} Submersion will look each one up on OpenStreetMap and fill only the empty fields. This takes about {minutes, plural, =1{1 minute} other{{minutes} minutes}}.",

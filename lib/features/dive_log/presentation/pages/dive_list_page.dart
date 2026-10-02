@@ -44,6 +44,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
@@ -75,6 +77,10 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
   /// Tracks the selected dive ID for mobile map view info card
   String? _mobileMapSelectedDiveId;
 
+  /// Selection for table mode, whose header (and its overflow menu) belongs
+  /// to this page rather than to the list.
+  final SelectionController _tableSelection = SelectionController();
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +90,12 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) ref.read(lightroomAutoPollProvider);
     });
+  }
+
+  @override
+  void dispose() {
+    _tableSelection.dispose();
+    super.dispose();
   }
 
   bool get _isMapView {
@@ -178,7 +190,10 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           context,
           ref.watch(diveTableCountProvider),
         ),
-        tableContent: const DiveListContent(showAppBar: false),
+        tableContent: DiveListContent(
+          showAppBar: false,
+          selectionController: _tableSelection,
+        ),
         detailBuilder: (context, id) {
           final state = GoRouterState.of(context);
           final rawSiteId = state.uri.queryParameters['site'];
@@ -298,6 +313,13 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
             itemBuilder: (context) {
               final currentMode = ref.read(diveListViewModeProvider);
               return [
+                // Read as the menu opens: while selecting, the entry would
+                // do nothing.
+                if (!_tableSelection.value.isActive)
+                  ...selectItemsMenuEntries(
+                    context,
+                    onSelect: _tableSelection.enterExplicit,
+                  ),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,

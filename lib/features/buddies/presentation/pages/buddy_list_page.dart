@@ -9,6 +9,8 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -27,11 +29,26 @@ import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
 
-class BuddyListPage extends ConsumerWidget {
+class BuddyListPage extends ConsumerStatefulWidget {
   const BuddyListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BuddyListPage> createState() => _BuddyListPageState();
+}
+
+class _BuddyListPageState extends ConsumerState<BuddyListPage> {
+  /// Selection for table mode, whose header (and its overflow menu) belongs
+  /// to this page rather than to the list.
+  final SelectionController _tableSelection = SelectionController();
+
+  @override
+  void dispose() {
+    _tableSelection.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final fab = FloatingActionButton.extended(
       onPressed: () {
         final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
@@ -58,7 +75,10 @@ class BuddyListPage extends ConsumerWidget {
           sectionKey: 'buddies',
           appBarTitle: context.l10n.nav_buddies,
           appBarSubtitle: buddyListCountLabel(context, ref),
-          tableContent: const BuddyListContent(showAppBar: false),
+          tableContent: BuddyListContent(
+            showAppBar: false,
+            selectionController: _tableSelection,
+          ),
           detailBuilder: (context, buddyId) => BuddyDetailPage(
             buddyId: buddyId,
             embedded: true,
@@ -145,6 +165,13 @@ class BuddyListPage extends ConsumerWidget {
               itemBuilder: (context) {
                 final currentMode = ref.read(buddyListViewModeProvider);
                 return [
+                  // Read as the menu opens: while selecting, the entry would
+                  // do nothing.
+                  if (!_tableSelection.value.isActive)
+                    ...selectItemsMenuEntries(
+                      context,
+                      onSelect: _tableSelection.enterExplicit,
+                    ),
                   ...ListViewModeToggle.menuItems(
                     context,
                     currentMode: currentMode,

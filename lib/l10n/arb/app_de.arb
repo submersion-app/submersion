@@ -53,7 +53,6 @@
   "diveLog_tank_saveAsPreset_saved": "Vorlage \"{name}\" gespeichert",
   "settings_units_defaultCurrency": "Standardwährung",
   "settings_units_dialog_defaultCurrency": "Standardwährung",
-  "diveSites_list_menu_select": "Tauchplätze auswählen",
   "diveSites_list_menu_fillLocationDetails": "Fehlende Ortsangaben ergänzen",
   "diveSites_backfill_confirm_title": "Fehlende Ortsangaben ergänzen?",
   "diveSites_backfill_confirm_body": "{count, plural, =1{1 Tauchplatz mit Koordinaten hat kein Land, keine Region, keinen Ort oder kein Gewässer.} other{{count} Tauchplätze mit Koordinaten haben kein Land, keine Region, keinen Ort oder kein Gewässer.}} Submersion sucht jeden auf OpenStreetMap und füllt nur die leeren Felder aus. Das dauert etwa {minutes, plural, =1{1 Minute} other{{minutes} Minuten}}.",

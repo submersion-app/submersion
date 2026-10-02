@@ -11016,9 +11016,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_list_menu_import => 'استيراد';
 
   @override
-  String get diveSites_list_menu_select => 'تحديد المواقع';
-
-  @override
   String get diveSites_list_menu_fillLocationDetails =>
       'إكمال تفاصيل الموقع الناقصة';
 

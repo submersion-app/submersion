@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
@@ -47,6 +48,10 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   /// app bar carries "Select items", and the rows it selects live in the list.
   final SelectionController _phoneSelection = SelectionController();
 
+  /// Selection for table mode, whose header (and its overflow menu) belongs
+  /// to this page rather than to the list.
+  final SelectionController _tableSelection = SelectionController();
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +64,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _phoneSelection.dispose();
+    _tableSelection.dispose();
     super.dispose();
   }
 
@@ -102,7 +108,10 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
           sectionKey: 'equipment',
           appBarTitle: context.l10n.nav_equipment,
           appBarSubtitle: equipmentListCountLabel(context, ref),
-          tableContent: const EquipmentListContent(showAppBar: false),
+          tableContent: EquipmentListContent(
+            showAppBar: false,
+            selectionController: _tableSelection,
+          ),
           detailBuilder: (context, id) => EquipmentDetailPage(
             equipmentId: id,
             embedded: true,
@@ -136,11 +145,12 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             ),
           ),
           // Table mode has no app bar of its own inside the content, so the
-          // filter panel is reachable only from here. The table stays flat,
-          // so its sort sheet leaves the grouping out.
+          // filter panel and "Select items" are reachable only from here. The
+          // table stays flat, so its sort sheet leaves the grouping out.
           appBarActions: _buildListActions(
             context,
             showGrouping: false,
+            selection: _tableSelection,
             iconSize: 20,
           ),
           floatingActionButton: fab,
@@ -180,7 +190,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
                 showGrouping: EquipmentListContent.showsGrouping(
                   ref.watch(equipmentListViewModeProvider),
                 ),
-                onSelect: _phoneSelection.enterExplicit,
+                selection: _phoneSelection,
               )
             : const <Widget>[];
         final titleStyle = _phoneTitleStyle(context);
@@ -278,12 +288,13 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
 
   /// Search, filter, sort and the overflow menu, for an app bar.
   ///
-  /// [onSelect] adds "Select items" to the overflow menu. The phone puts it
-  /// there so the header fits one row; table mode has its own select control.
+  /// [selection] adds "Select items" to the overflow menu, entering selection
+  /// on that controller. The phone list and the table both take it from here:
+  /// the page's header carries the menu, and the rows live in the list.
   List<Widget> _buildListActions(
     BuildContext context, {
     required bool showGrouping,
-    VoidCallback? onSelect,
+    SelectionController? selection,
     double? iconSize,
   }) {
     return [
@@ -317,8 +328,6 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         onSelected: (value) {
           if (value == scanTagMenuValue) {
             unawaited(scanAndOpenCylinderTag(context, ref));
-          } else if (value == _selectMenuValue) {
-            onSelect?.call();
           } else if (value.startsWith('view_')) {
             final mode = ListViewMode.fromName(value.replaceFirst('view_', ''));
             ref.read(equipmentListViewModeProvider.notifier).state = mode;
@@ -328,20 +337,13 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
           final currentMode = ref.read(equipmentListViewModeProvider);
           return [
             ...scanTagMenuEntries(context),
-            if (onSelect != null) ...[
-              PopupMenuItem<String>(
-                value: _selectMenuValue,
-                // Laid out like the view-mode items below it.
-                child: Row(
-                  children: [
-                    const Icon(Icons.checklist, size: 20),
-                    const SizedBox(width: 12),
-                    Text(context.l10n.common_selection_enterTooltip),
-                  ],
-                ),
+            // Read as the menu opens: while selecting, the entry would do
+            // nothing.
+            if (selection != null && !selection.value.isActive)
+              ...selectItemsMenuEntries(
+                context,
+                onSelect: selection.enterExplicit,
               ),
-              const PopupMenuDivider(),
-            ],
             ...ListViewModeToggle.menuItems(
               context,
               currentMode: currentMode,
@@ -356,8 +358,6 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
       ),
     ];
   }
-
-  static const String _selectMenuValue = 'select_items';
 
   Widget _buildMasterDetailLayout(BuildContext context) {
     return _isEquipmentTab

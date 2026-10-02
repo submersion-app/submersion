@@ -53,7 +53,6 @@
   "diveLog_tank_saveAsPreset_saved": "Preajuste \"{name}\" guardado",
   "settings_units_defaultCurrency": "Moneda predeterminada",
   "settings_units_dialog_defaultCurrency": "Moneda predeterminada",
-  "diveSites_list_menu_select": "Seleccionar puntos",
   "diveSites_list_menu_fillLocationDetails": "Completar datos de ubicación que faltan",
   "diveSites_backfill_confirm_title": "¿Completar los datos de ubicación que faltan?",
   "diveSites_backfill_confirm_body": "{count, plural, =1{1 punto de buceo con coordenadas no tiene país, región, localidad o masa de agua.} other{{count} puntos de buceo con coordenadas no tienen país, región, localidad o masa de agua.}} Submersion consultará cada uno en OpenStreetMap y rellenará solo los campos vacíos. Tarda {minutes, plural, =1{alrededor de 1 minuto} other{unos {minutes} minutos}}.",

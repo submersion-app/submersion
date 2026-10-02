@@ -10700,9 +10700,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_list_menu_import => '导入';
 
   @override
-  String get diveSites_list_menu_select => '选择潜水点';
-
-  @override
   String get diveSites_list_menu_fillLocationDetails => '补全缺失的地点信息';
 
   @override

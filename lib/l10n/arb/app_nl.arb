@@ -53,7 +53,6 @@
   "diveLog_tank_saveAsPreset_saved": "Voorinstelling \"{name}\" opgeslagen",
   "settings_units_defaultCurrency": "Standaardvaluta",
   "settings_units_dialog_defaultCurrency": "Standaardvaluta",
-  "diveSites_list_menu_select": "Duikstekken selecteren",
   "diveSites_list_menu_fillLocationDetails": "Ontbrekende locatiegegevens aanvullen",
   "diveSites_backfill_confirm_title": "Ontbrekende locatiegegevens aanvullen?",
   "diveSites_backfill_confirm_body": "{count, plural, =1{1 duikstek met coördinaten heeft geen land, regio, plaats of water.} other{{count} duikstekken met coördinaten hebben geen land, regio, plaats of water.}} Submersion zoekt elke stek op via OpenStreetMap en vult alleen lege velden in. Dit duurt ongeveer {minutes, plural, =1{1 minuut} other{{minutes} minuten}}.",

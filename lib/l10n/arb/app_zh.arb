@@ -53,7 +53,6 @@
   "diveLog_tank_saveAsPreset_saved": "已保存预设 \"{name}\"",
   "settings_units_defaultCurrency": "默认货币",
   "settings_units_dialog_defaultCurrency": "默认货币",
-  "diveSites_list_menu_select": "选择潜水点",
   "diveSites_list_menu_fillLocationDetails": "补全缺失的地点信息",
   "diveSites_backfill_confirm_title": "补全缺失的地点信息？",
   "diveSites_backfill_confirm_body": "{count, plural, =1{1 个有坐标的潜点缺少国家、地区、城镇或水域。} other{{count} 个有坐标的潜点缺少国家、地区、城镇或水域。}} Submersion 将在 OpenStreetMap 上逐个查找，并仅填写空白字段。大约需要 {minutes} 分钟。",

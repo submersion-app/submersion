@@ -10964,9 +10964,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_list_menu_import => 'ייבא';
 
   @override
-  String get diveSites_list_menu_select => 'בחירת אתרים';
-
-  @override
   String get diveSites_list_menu_fillLocationDetails =>
       'השלמת פרטי מיקום חסרים';
 

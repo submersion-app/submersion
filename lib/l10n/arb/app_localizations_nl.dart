@@ -11140,9 +11140,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_list_menu_import => 'Importeren';
 
   @override
-  String get diveSites_list_menu_select => 'Duikstekken selecteren';
-
-  @override
   String get diveSites_list_menu_fillLocationDetails =>
       'Ontbrekende locatiegegevens aanvullen';
 

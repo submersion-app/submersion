@@ -11228,9 +11228,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_list_menu_import => 'Importa';
 
   @override
-  String get diveSites_list_menu_select => 'Seleziona siti';
-
-  @override
   String get diveSites_list_menu_fillLocationDetails =>
       'Completa i dettagli di località mancanti';
 

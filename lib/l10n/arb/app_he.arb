@@ -53,7 +53,6 @@
   "diveLog_tank_saveAsPreset_saved": "התבנית \"{name}\" נשמרה",
   "settings_units_defaultCurrency": "מטבע ברירת מחדל",
   "settings_units_dialog_defaultCurrency": "מטבע ברירת מחדל",
-  "diveSites_list_menu_select": "בחירת אתרים",
   "diveSites_list_menu_fillLocationDetails": "השלמת פרטי מיקום חסרים",
   "diveSites_backfill_confirm_title": "להשלים פרטי מיקום חסרים?",
   "diveSites_backfill_confirm_body": "{count, plural, =1{לאתר אחד עם קואורדינטות חסרים מדינה, אזור, עיר או גוף מים.} other{ל-{count} אתרים עם קואורדינטות חסרים מדינה, אזור, עיר או גוף מים.}} Submersion יחפש כל אחד מהם ב-OpenStreetMap וימלא רק שדות ריקים. זה נמשך {minutes, plural, =1{כדקה} other{כ-{minutes} דקות}}.",
