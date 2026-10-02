@@ -23,6 +23,8 @@ void main() {
   const allowed = <String, String>{
     // The one place a rate unit is built.
     'lib/core/utils/unit_formatter.dart': 'defines UnitFormatter.perMinute',
+    'lib/core/utils/per_minute.dart':
+        'the settings-free speller UnitFormatter.perMinute delegates to',
     // Column headers in other apps' CSV files, matched as they are written.
     'lib/core/services/export/csv/codec/csv_attribute_codec.dart':
         'parses m/min and ft/min CSV headers',

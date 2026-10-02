@@ -399,6 +399,18 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'ON dive_plan_segments(plan_id)',
   ),
   (
+    name: 'idx_dive_plan_mission_legs_plan_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_plan_mission_legs_plan_id '
+        'ON dive_plan_mission_legs(plan_id)',
+  ),
+  (
+    name: 'idx_dive_plan_mission_members_plan_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_plan_mission_members_plan_id '
+        'ON dive_plan_mission_members(plan_id)',
+  ),
+  (
     name: 'idx_gps_track_points_local_track_id',
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_gps_track_points_local_track_id '
@@ -431,6 +443,41 @@ const List<PerformanceIndex> kPerformanceIndexes = [
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
         'ON cylinder_fills(equipment_id)',
+  ),
+  // Saved Connections maps and the sightings dive join (v235, issue #2322).
+  (
+    name: 'idx_connection_maps_diver',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_connection_maps_diver '
+        'ON connection_maps(diver_id, sort_order)',
+  ),
+  (
+    name: 'idx_sightings_dive_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_sightings_dive_id '
+        'ON sightings(dive_id)',
+  ),
+  // Saved queries (v238, issue #2365): one diver's queries for one subject,
+  // in display order.
+  (
+    name: 'idx_saved_queries_diver',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_saved_queries_diver '
+        'ON saved_queries(diver_id, subject, sort_order)',
+  ),
+  // A passport's trips: packed links by item (v248, issue #2338).
+  (
+    name: 'idx_trip_equipment_equipment',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_trip_equipment_equipment '
+        'ON trip_equipment(equipment_id)',
+  ),
+  // A passport's trips: trip gas slots by item (issue #2338).
+  (
+    name: 'idx_trip_cylinders_equipment',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_trip_cylinders_equipment '
+        'ON trip_cylinders(equipment_id)',
   ),
 ];
 

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/utils/usable_set_items.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -66,6 +67,9 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_tank_link.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
@@ -86,6 +90,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/rare_sections.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/dive_tank_config_adapter.dart';
+import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_confirm_dialog.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/statistics_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/tank_row.dart';
@@ -142,6 +147,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
+import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
 
 const _createNewSiteSentinel = '__create_new__';
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
@@ -227,6 +233,14 @@ class DiveEditPage extends ConsumerStatefulWidget {
   /// Ignored when editing an existing dive or in bulk mode.
   final DivePrefill? prefill;
 
+  /// Create mode only: the trip to put the new dive on (the board's Log
+  /// dive shortcut). Ignored when editing.
+  final String? tripId;
+
+  /// Create mode only, with [tripId]: the slot the first tank breathes
+  /// from. Without it, the first tank gets the usual suggestion.
+  final String? tripCylinderId;
+
   const DiveEditPage({
     super.key,
     this.diveId,
@@ -235,6 +249,8 @@ class DiveEditPage extends ConsumerStatefulWidget {
     this.onSaved,
     this.onCancel,
     this.prefill,
+    this.tripId,
+    this.tripCylinderId,
   }) : assert(
          diveId == null || bulkDiveIds == null,
          'diveId and bulkDiveIds are mutually exclusive',
@@ -349,6 +365,23 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   TankPresetEntity? _defaultPreset;
   bool _tanksDirty = false;
 
+  /// Part of every tank row's key, bumped when a configuration rewrites
+  /// cylinders in place. A tank editor reads its text fields once, so an
+  /// editor left open would keep the old size and write it back on the next
+  /// keystroke; a new key gives it fresh fields (issue #2563).
+  int _tankRowGeneration = 0;
+
+  /// Tanks the dive had when it was loaded, or that a prefill (a scan, a
+  /// cylinder tag) filled: never suggested a slot, since a suggestion would
+  /// replace their values with the slot's, and None would not restore them.
+  Set<String> _loadedTankIds = const {};
+
+  /// Tanks whose slot link is a suggestion the diver has not confirmed.
+  Set<String> _suggestedTankIds = const {};
+
+  /// Tanks the diver set to None after a suggestion: never re-suggested.
+  Set<String> _declinedTankIds = const {};
+
   // Tags
   List<Tag> _selectedTags = [];
 
@@ -427,6 +460,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// trip the discard guard.
   bool _suppressDirty = true;
 
+  /// The form's entry date and time as an instant, the wall clock stamped
+  /// UTC as every dive time is. The save, the flight-window check and the
+  /// trip cylinders' state at the dive all read it here.
+  DateTime _currentEntryTime() => DateTime.utc(
+    _entryDate.year,
+    _entryDate.month,
+    _entryDate.day,
+    _entryTime.hour,
+    _entryTime.minute,
+  );
+
   /// In-edit dive end time, wall-clock-as-UTC: exit fields when both are
   /// set, otherwise entry + runtime. Null when neither is derivable. Feeds
   /// the flight-window warning banner; mirrors the save-path derivation.
@@ -440,13 +484,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         _exitTime!.minute,
       );
     }
-    final entry = DateTime.utc(
-      _entryDate.year,
-      _entryDate.month,
-      _entryDate.day,
-      _entryTime.hour,
-      _entryTime.minute,
-    );
+    final entry = _currentEntryTime();
     final runtimeMinutes = switch (readNumber(
       _runtimeController.text,
       integer: true,
@@ -530,6 +568,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         _suggestNextDiveNumber();
       }
       _applyPrefill();
+      if (widget.tripId case final tripId?) {
+        logFailure(
+          _applyTripLink(tripId, widget.tripCylinderId),
+          _DiveEditPageState,
+          'apply trip link',
+        );
+      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _suppressDirty = false;
       });
@@ -694,6 +739,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           t.material != null) {
         _tanksDirty = true;
       }
+      _loadedTankIds = {..._loadedTankIds, _tanks.first.id};
     } else if (p.startPressureBar != null ||
         p.endPressureBar != null ||
         p.o2Percent != null ||
@@ -716,13 +762,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
         ..._tanks.skip(1),
       ];
+      _loadedTankIds = {..._loadedTankIds, _tanks.first.id};
     }
   }
 
   Future<void> _suggestNextDiveNumber() async {
     try {
       final repository = ref.read(diveRepositoryProvider);
-      final nextNumber = await repository.getNextDiveNumber();
+      // The diver the dive will be saved under (see the save path), so the
+      // number continues that diver's own log rather than the highest number
+      // across every diver (#2508).
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      final nextNumber = await repository.getNextDiveNumber(diverId: diverId);
       if (mounted && _diveNumberController.text.isEmpty) {
         _silently(() {
           setState(() {
@@ -829,6 +880,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _selectedCourse = loadedCourse;
 
           // Load all tanks from the dive
+          _loadedTankIds = {for (final t in dive.tanks) t.id};
           if (dive.tanks.isNotEmpty) {
             _tanks = List.from(dive.tanks);
             _markDirty();
@@ -1224,7 +1276,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   onTap: _showTripPicker,
                   onClear: _selectedTrip == null
                       ? null
-                      : () => setState(() => _selectedTrip = null),
+                      : () => _setTrip(null, markDirty: false),
                 ),
               ),
               _gatedRow(
@@ -1483,7 +1535,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       children: [
         for (var i = 0; i < _tanks.length; i++)
           TankRow(
-            key: ValueKey(_tanks[i].id),
+            key: ValueKey((_tanks[i].id, _tankRowGeneration)),
             tank: _tanks[i],
             tankNumber: i + 1,
             units: units,
@@ -2208,6 +2260,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // Queue a data-quality rescan of the edited dives (fire-and-forget).
       scheduleQualityScan(ids);
       scheduleSensorSummaryRefresh(ids);
+      scheduleDerivedMetricsRefresh(ids);
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       if (widget.embedded) {
@@ -2369,7 +2422,32 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           : null,
       surfaceIntervalRow: _surfaceIntervalRow(),
       siteExtras: _siteExtras(),
+      diveTypesRow: _diveTypesRow(),
       profileChild: _profileChild(),
+    );
+  }
+
+  /// The dive type picker, shown in the always-open "The Dive" group. It used
+  /// to sit in the collapsed Conditions group, where divers could not find it
+  /// to correct an imported dive's type (issue #2596).
+  Widget _diveTypesRow() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      child: DiveTypeMultiSelectField(
+        selectedTypeIds: _selectedDiveTypeIds,
+        onChanged: (ids) {
+          setState(() {
+            _selectedDiveTypeIds = ids;
+            _siteAddedDiveTypeIds = siteAddedAfterManualEdit(
+              siteAddedIds: _siteAddedDiveTypeIds,
+              selectedTypeIds: ids,
+            );
+          });
+          // The picker is a bottom sheet, not a FormField, so Form.onChanged
+          // never sees it; without this, leaving drops the new type unasked.
+          _markDirty();
+        },
+      ),
     );
   }
 
@@ -2640,10 +2718,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             )
           : null,
       onPickTrip: _showTripPicker,
-      onClearTrip: () {
-        _markDirty();
-        setState(() => _selectedTrip = null);
-      },
+      onClearTrip: () => _setTrip(null),
       tripSuggestion: _selectedTrip == null
           ? _buildTripSuggestion(diveDateTime)
           : null,
@@ -2682,10 +2757,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             button: true,
             label: 'Use suggested trip ${suggestedTrip.name}',
             child: InkWell(
-              onTap: () {
-                _markDirty();
-                setState(() => _selectedTrip = suggestedTrip);
-              },
+              onTap: () => _setTrip(suggestedTrip),
               child: Row(
                 children: [
                   Icon(
@@ -2705,8 +2777,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () =>
-                        setState(() => _selectedTrip = suggestedTrip),
+                    onPressed: () => _setTrip(suggestedTrip),
                     child: Text(context.l10n.diveLog_edit_tripUse),
                   ),
                 ],
@@ -2718,6 +2789,108 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
     );
+  }
+
+  /// Every change of the dive's trip goes through here. Tank links point
+  /// into one trip's cylinders, so a different trip (or none) drops them
+  /// all at once, with their suggestion marks, and new tanks get a
+  /// suggestion from the new trip.
+  void _setTrip(Trip? trip, {bool markDirty = true}) {
+    if (markDirty) _markDirty();
+    final changed = trip?.id != _selectedTrip?.id;
+    setState(() {
+      _selectedTrip = trip;
+      if (changed && _tanks.any((t) => t.tripCylinderId != null)) {
+        _tanks = [
+          for (final t in _tanks)
+            t.tripCylinderId == null
+                ? t
+                : t.copyWith(clearTripCylinderId: true),
+        ];
+        _tanksDirty = true;
+      }
+      if (changed) {
+        _suggestedTankIds = const {};
+        _declinedTankIds = const {};
+      }
+    });
+    if (changed) {
+      logFailure(
+        _suggestTripCylinders(),
+        _DiveEditPageState,
+        'suggest trip cylinders',
+      );
+    }
+  }
+
+  /// The trip's cylinders as they stood when this dive starts, never
+  /// counting this dive's own use (decided 2026-09-29).
+  ({String tripId, int atMillis, String? excludeDiveId}) _tripCylinderKeyFor(
+    String tripId,
+  ) => (
+    tripId: tripId,
+    atMillis: _currentEntryTime().millisecondsSinceEpoch,
+    excludeDiveId: widget.diveId,
+  );
+
+  /// The trip's slots at this dive's start, read once. The provider is
+  /// auto-disposed, so a listener holds it while the read is in flight.
+  Future<List<TripCylinderState>> _readTripCylinderStates(String tripId) async {
+    final provider = tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId));
+    final hold = ref.listenManual(provider, (_, _) {});
+    try {
+      return await ref.read(provider.future);
+    } finally {
+      hold.close();
+    }
+  }
+
+  /// Suggests a full trip cylinder for each tank added in this editing
+  /// session that has none and whose suggestion the diver has not turned
+  /// down. Runs when the trip is set and when a tank is added.
+  Future<void> _suggestTripCylinders() async {
+    final tripId = _selectedTrip?.id;
+    if (tripId == null || widget.isBulk) return;
+    final states = await _readTripCylinderStates(tripId);
+    if (!mounted || _selectedTrip?.id != tripId) return;
+    final result = suggestTripCylindersForTanks(
+      tanks: _tanks,
+      states: states,
+      eligibleTankIds: {
+        for (final t in _tanks)
+          if (!_loadedTankIds.contains(t.id) &&
+              !_declinedTankIds.contains(t.id))
+            t.id,
+      },
+    );
+    if (result.suggested.isEmpty) return;
+    setState(() {
+      _tanks = result.tanks;
+      _suggestedTankIds = {..._suggestedTankIds, ...result.suggested};
+      // Keeps _loadDefaultPreset from rebuilding the first tank over it.
+      _tanksDirty = true;
+    });
+  }
+
+  /// The board's Log dive shortcut: the new dive goes on [tripId], and its
+  /// first tank breathes from [cylinderId], filled from that slot. The
+  /// diver chose the slot, so it is not marked as a suggestion; any other
+  /// new tank, or a slot that no longer exists, gets the usual suggestion.
+  Future<void> _applyTripLink(String tripId, String? cylinderId) async {
+    final trip = await ref.read(tripRepositoryProvider).getTripById(tripId);
+    // A trip the diver picked while this loaded stands.
+    if (trip == null || !mounted || _selectedTrip != null) return;
+    final states = await _readTripCylinderStates(tripId);
+    if (!mounted || _selectedTrip != null) return;
+    final slot = states.where((s) => s.cylinder.id == cylinderId).firstOrNull;
+    setState(() {
+      _selectedTrip = trip;
+      if (slot != null && _tanks.isNotEmpty) {
+        _tanks = [tankFromTripCylinder(_tanks.first, slot), ..._tanks.skip(1)];
+        _tanksDirty = true;
+      }
+    });
+    await _suggestTripCylinders();
   }
 
   Future<void> _showTripPicker() async {
@@ -2734,8 +2907,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           selectedTrip: _selectedTrip,
           onTripSelected: (trip) {
             Navigator.of(sheetContext).pop();
-            _markDirty();
-            setState(() => _selectedTrip = trip);
+            _setTrip(trip);
           },
           onCreateNewTrip: () {
             Navigator.of(sheetContext).pop(_createNewTripSentinel);
@@ -2748,10 +2920,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final tripId = await context.push<String>('/trips/new');
       if (tripId != null && mounted) {
         final trip = await ref.read(tripRepositoryProvider).getTripById(tripId);
-        if (trip != null && mounted) {
-          _markDirty();
-          setState(() => _selectedTrip = trip);
-        }
+        if (trip != null && mounted) _setTrip(trip);
       }
     }
   }
@@ -3071,6 +3240,28 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   Widget _buildGasGearSection(UnitFormatter units) {
     final defaultExpanded = !widget.isEditing;
+    // `value`, not `valueOrNull`: the list survives a reload, so a linked
+    // tank never flickers to None while the provider refetches. Null until
+    // the first load: no picker yet, rather than a list that looks empty.
+    final tripId = _selectedTrip?.id;
+    final List<TripCylinderState>? slotStates = tripId == null
+        ? null
+        : ref
+              .watch(tripCylinderStatesAtProvider(_tripCylinderKeyFor(tripId)))
+              .value;
+    // The dive's primary source, which a tank with no computer and no
+    // other source of its own belongs to (issue #2716). Read for every
+    // saved dive, so it is loaded before the diver links a first tank: a
+    // read that started only then would leave the first picks without it.
+    final diveId = widget.diveId;
+    final primarySourceId = diveId == null
+        ? null
+        : ref
+              .watch(diveDataSourcesProvider(diveId))
+              .value
+              ?.where((s) => s.isPrimary)
+              .firstOrNull
+              ?.id;
     return GasGearSection(
       expanded: _isExpanded('gasGear', defaultValue: defaultExpanded),
       onToggle: () => _toggleSection('gasGear', defaultValue: defaultExpanded),
@@ -3104,15 +3295,35 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       tanks: [
         for (var i = 0; i < _tanks.length; i++)
           TankRow(
-            key: ValueKey(_tanks[i].id),
+            key: ValueKey((_tanks[i].id, _tankRowGeneration)),
             tank: _tanks[i],
             tankNumber: i + 1,
             units: units,
+            tripCylinderStates: slotStates,
+            takenTripCylinderIds: tripCylinderIdsTakenFor(
+              _tanks[i],
+              _tanks,
+              primaryComputerId: _existingDive?.computerId,
+              primarySourceId: primarySourceId,
+            ),
+            suggested: _suggestedTankIds.contains(_tanks[i].id),
             onChanged: (updatedTank) {
+              final before = _tanks[i];
               setState(() {
                 _markDirty();
                 _tanksDirty = true;
                 _tanks[i] = updatedTank;
+                if (updatedTank.tripCylinderId != before.tripCylinderId) {
+                  // The diver chose: the link is no longer a suggestion,
+                  // and a None is not overruled by the next suggestion.
+                  _suggestedTankIds = {
+                    for (final id in _suggestedTankIds)
+                      if (id != updatedTank.id) id,
+                  };
+                  if (updatedTank.tripCylinderId == null) {
+                    _declinedTankIds = {..._declinedTankIds, updatedTank.id};
+                  }
+                }
               });
             },
             onRemove: _tanks.length > 1 ? () => _removeTank(i) : null,
@@ -3406,16 +3617,36 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// state until the diver taps Save, so writing through would bypass dirty
   /// tracking and persist changes even if they then cancelled. All merge
   /// rules live in CylinderConfigApplier via DiveTankConfigAdapter, which
-  /// never overwrites a gas mix already on the dive.
-  void _applyCylinderConfig(CylinderConfig config) {
+  /// never overwrites a gas mix already on the dive. A different size,
+  /// pressure, material or label on a matched cylinder is replaced only once
+  /// the diver confirms it (issue #2563).
+  Future<void> _applyCylinderConfig(CylinderConfig config) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+    const adapter = DiveTankConfigAdapter();
 
-    final result = const DiveTankConfigAdapter().apply(
+    var result = adapter.apply(
       tanks: _tanks,
       items: config.items,
       newId: (_) => _uuid.v4(),
     );
+
+    if (result.overwrites.isNotEmpty) {
+      final confirmed = await confirmCylinderOverwrites(
+        context,
+        configName: config.name,
+        overwrites: result.overwrites,
+        tanks: _tanks,
+        units: UnitFormatter(ref.read(settingsProvider)),
+      );
+      if (!confirmed || !mounted) return;
+      result = adapter.apply(
+        tanks: _tanks,
+        items: config.items,
+        newId: (_) => _uuid.v4(),
+        overwrite: true,
+      );
+    }
 
     // A repeat apply matches every role and so reports a non-zero kept while
     // doing no work. Rebuilding then would mark the form dirty and raise an
@@ -3430,6 +3661,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     setState(() {
       _markDirty();
       _tanksDirty = true;
+      _tankRowGeneration++;
       _tanks
         ..clear()
         ..addAll(result.tanks);
@@ -3438,8 +3670,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          '${l10n.cylinderConfigs_applyAdded(result.added)}, '
-          '${l10n.cylinderConfigs_applyKept(result.kept)}',
+          [
+            l10n.cylinderConfigs_applyAdded(result.added),
+            l10n.cylinderConfigs_applyKept(result.kept),
+            if (result.updated > 0)
+              l10n.cylinderConfigs_applyUpdated(result.updated),
+          ].join(', '),
         ),
       ),
     );
@@ -3465,6 +3701,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
       );
     });
+    logFailure(
+      _suggestTripCylinders(),
+      _DiveEditPageState,
+      'suggest trip cylinders',
+    );
   }
 
   void _removeTank(int index) {
@@ -4340,19 +4581,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final l10n = context.l10n;
     final altitudeWarning = _getAltitudeWarning(units);
     return [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-        child: DiveTypeMultiSelectField(
-          selectedTypeIds: _selectedDiveTypeIds,
-          onChanged: (ids) => setState(() {
-            _selectedDiveTypeIds = ids;
-            _siteAddedDiveTypeIds = siteAddedAfterManualEdit(
-              siteAddedIds: _siteAddedDiveTypeIds,
-              selectedTypeIds: ids,
-            );
-          }),
-        ),
-      ),
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -5390,13 +5618,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
     try {
       // Build entry DateTime from date and time
-      final entryDateTime = DateTime.utc(
-        _entryDate.year,
-        _entryDate.month,
-        _entryDate.day,
-        _entryTime.hour,
-        _entryTime.minute,
-      );
+      final entryDateTime = _currentEntryTime();
 
       // Build exit DateTime if set
       DateTime? exitDateTime;
@@ -5562,6 +5784,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         decoConservatism: _existingDive?.decoConservatism,
         gradientFactorLow: _existingDive?.gradientFactorLow,
         gradientFactorHigh: _existingDive?.gradientFactorHigh,
+        computerTissue: _existingDive?.computerTissue,
         weatherCode: _existingDive?.weatherCode,
         importId: _existingDive?.importId,
         surfaceInterval: _existingDive?.surfaceInterval,
@@ -5725,24 +5948,25 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ref.invalidate(courseForDiveProvider(savedDiveId));
       }
 
-      // Record tide conditions if site has coordinates (skip freshwater
-      // sites: tides are meaningless there and a nearby ocean station
-      // must not leak in).
+      // Record tide conditions if the site has coordinates. The recorder
+      // skips freshwater dives, judged by the dive's own water type first.
       if (savedDiveId != null &&
           _selectedSite != null &&
-          _selectedSite!.hasCoordinates &&
-          _selectedSite!.waterType != WaterType.fresh) {
+          _selectedSite!.hasCoordinates) {
         try {
           final resolved = await ref.read(
             resolvedTideDataProvider(_selectedSite!.location!).future,
           );
           if (resolved != null) {
-            // Record tide status at dive entry time
-            final status = resolved.calculator.getStatus(entryDateTime);
-            final tideRepository = ref.read(tideRecordRepositoryProvider);
-            await tideRepository.createFromStatus(
+            // entryDateTime is the dive's wall clock (DateTime.utc of the
+            // picked digits); the recorder evaluates the real instant.
+            await recordDiveTide(
+              repository: ref.read(tideRecordRepositoryProvider),
+              calculator: resolved.calculator,
               diveId: savedDiveId,
-              status: status,
+              entryWallClock: entryDateTime,
+              location: _selectedSite!.location!,
+              waterType: _waterType ?? _selectedSite!.waterType,
             );
           }
         } catch (e) {
@@ -5755,6 +5979,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (savedDiveId != null) {
         scheduleQualityScan([savedDiveId]);
         scheduleSensorSummaryRefresh([savedDiveId]);
+        scheduleDerivedMetricsRefresh([savedDiveId]);
       }
 
       // Offer to log the dive for linked buddies (issue #2002). Runs before

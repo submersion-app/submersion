@@ -18,6 +18,7 @@ import 'package:submersion/features/import_wizard/presentation/widgets/undo_fill
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The summary step shown after the import completes.
 ///
@@ -273,11 +274,15 @@ class _SuccessView extends StatelessWidget {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.rule),
                     title: Text(l10n.dataQuality_summary_flagged(count)),
-                    trailing: TextButton(
+                    // The action sits on its own line under the label rather
+                    // than in trailing: a ListTile measures trailing before
+                    // the title, so a text button there squeezes the label
+                    // in a longer translation (issue #2717).
+                    subtitle: TileSubtitleAction(
                       onPressed: () => context.push(
                         '/dives/quality?dive=${importedDiveIds.join(',')}',
                       ),
-                      child: Text(l10n.dataQuality_summary_review),
+                      label: l10n.dataQuality_summary_review,
                     ),
                   );
                 },
@@ -393,6 +398,8 @@ class _SuccessView extends StatelessWidget {
         return Icons.school;
       case ImportEntityType.media:
         return Icons.photo_library;
+      case ImportEntityType.fills:
+        return Icons.propane_tank_outlined;
     }
   }
 
@@ -422,6 +429,8 @@ class _SuccessView extends StatelessWidget {
         return l10n.diveImport_uddf_tabCourses;
       case ImportEntityType.media:
         return l10n.diveImport_uddf_media;
+      case ImportEntityType.fills:
+        return l10n.diveImport_uddf_fills;
     }
   }
 }
@@ -512,6 +521,14 @@ _FileNoticeWording? _fileNoticeWording(
     ImportNoticeKind.unknownTransmitter => (
       title: l10n.universalImport_summary_noticeUnknownTransmitterTitle,
       body: l10n.universalImport_summary_noticeUnknownTransmitterBody,
+      action: (
+        label: l10n.universalImport_summary_noticeAssignTransmitters,
+        route: '/transmitters',
+      ),
+    ),
+    ImportNoticeKind.transmitterNameRoles => (
+      title: l10n.universalImport_summary_noticeTransmitterNameRolesTitle,
+      body: l10n.universalImport_summary_noticeTransmitterNameRolesBody,
       action: (
         label: l10n.universalImport_summary_noticeAssignTransmitters,
         route: '/transmitters',

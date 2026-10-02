@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/dive_planner/presentation/widgets/segment_li
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
+import 'package:submersion/features/planner/data/services/plan_file_names.dart';
 import 'package:submersion/features/planner/data/services/plan_slate_pdf_service.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -562,13 +564,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   Future<void> _sharePlanFile(Rect? shareAnchor) async {
     final state = ref.read(divePlanNotifierProvider);
     final json = planToSubplanJson(divePlanFromState(state));
-    final safeName = state.name
-        .replaceAll(RegExp(r'[^\w\s-]'), '')
-        .trim()
-        .replaceAll(RegExp(r'\s+'), '_');
     await saveAndShareFile(
       json,
-      '${safeName.isEmpty ? 'dive_plan' : safeName}.$subplanExtension',
+      subplanFileName(state.name),
       'application/json',
       sharePositionOrigin: shareAnchor,
     );
@@ -591,11 +589,16 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       turnAt: l10n.plannerCanvas_slate_turn,
       minGas: l10n.plannerCanvas_slate_minGas,
       base: l10n.plannerCanvas_range_base,
+      minutes: l10n.pdf_minutes,
+      maxPrefix: l10n.pdf_slateMax,
     );
 
     final bytes = await const PlanSlatePdfService().buildSlate(
       plan: divePlanFromState(state),
       outcome: ref.read(planOutcomeProvider),
+      localization: PdfLocalization.forLanguageCode(
+        Localizations.localeOf(context).languageCode,
+      ),
       deviations: ref.read(planDeviationsProvider),
       lostGas: ref.read(planLostGasProvider),
       rangeTable: ref.read(planRangeTableProvider),
@@ -604,13 +607,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       labels: labels,
     );
 
-    final safeName = state.name
-        .replaceAll(RegExp(r'[^\w\s-]'), '')
-        .trim()
-        .replaceAll(RegExp(r'\s+'), '_');
     await sharePdfBytes(
       bytes,
-      '${safeName.isEmpty ? 'dive_plan' : safeName}_slate.pdf',
+      planSlateFileName(state.name),
       sharePositionOrigin: shareAnchor,
     );
   }

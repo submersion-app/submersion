@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import '../../../../core/services/export/uddf/uddf_raw_data_round_trip_test.dart'
     show buildRepositories, createTestDiver;
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 /// The commit-time half of the shared location contract (#2232).
 ///
@@ -19,6 +20,12 @@ import '../../../../helpers/test_database.dart';
 /// `country` and `region` are set on every site with coordinates so the
 /// importer's best-effort reverse geocode is skipped.
 void main() {
+  // The code under test calls Open-Meteo; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('api.open-meteo.com');
+  });
+
   setUp(() async => setUpTestDatabase());
   tearDown(() async => tearDownTestDatabase());
 

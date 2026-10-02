@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/foreign_passport_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/fill_summary.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -38,6 +42,25 @@ Future<void> openScannedTag(
     if (!context.mounted) return;
     switch (resolution) {
       case OwnCylinder(:final equipmentId, :final tag):
+        // The fill the tag carries joins the history once (spec section 11).
+        final added = await importTagFill(
+          ref,
+          tag: tag,
+          equipmentId: equipmentId,
+        );
+        if (!context.mounted) return;
+        if (added != null) {
+          final units = UnitFormatter(ref.read(settingsProvider));
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                l10n.passport_fill_addedFromTag(
+                  fillSummary(added.gasMix, added.pressureBar, units),
+                ),
+              ),
+            ),
+          );
+        }
         router.push('/equipment/$equipmentId/passport', extra: tag);
       case ForeignCylinder(:final tag):
         router.push(foreignPassportLocation(tag));

@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
+import '../../../../helpers/fake_hosts.dart';
 import '../../../../helpers/test_database.dart';
 
 /// The historical ISO rendering these tests were written against; the diver's
@@ -22,6 +23,13 @@ final isoDates = PdfDateFormatter(
 const testUnits = UnitFormatter(AppSettings());
 
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   late PdfExportService service;
 
   setUp(() async {

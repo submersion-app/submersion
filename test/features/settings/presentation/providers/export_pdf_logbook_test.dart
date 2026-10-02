@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show Locale;
 
 import 'package:clock/clock.dart';
 import 'package:flutter/services.dart';
@@ -22,11 +23,14 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, DivesCompanion, MediaCompanion;
 
+import '../../../../helpers/fake_hosts.dart';
+import '../../../../helpers/mock_channels.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_database.dart';
@@ -167,6 +171,13 @@ String _fileNameDate(String fileName) =>
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   late Directory workDir;
   late _RecordingPicker picker;
   late FilePickerPlatform originalPicker;
@@ -187,6 +198,7 @@ void main() {
           (call) async => null,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (await workDir.exists()) await workDir.delete(recursive: true);
@@ -499,6 +511,25 @@ void main() {
             'the legacy single-layout builder emitted per-dive cards; saving '
             'must use the selected simple template instead (#644)',
       );
+    });
+
+    test('prints in the language picked in the export sheet (#2252)', () async {
+      final target = p.join(workDir.path, 'saved_french.pdf');
+      picker.saveFileResult = Uri.file(target);
+      final fr = lookupAppLocalizations(const Locale('fr'));
+
+      final container = makeContainer();
+      await notifierOf(container).savePdfToFile(
+        const PdfExportOptions(
+          template: PdfTemplate.simple,
+          languageCode: 'fr',
+        ),
+      );
+
+      final text = await textAt(target);
+      expect(text, contains(fr.settings_export_pdfDocumentTitle));
+      expect(text, contains(fr.pdf_headerDiveCount(2)));
+      expect(text, isNot(contains('2 dives')));
     });
 
     test('the detailed template saves a different document', () async {

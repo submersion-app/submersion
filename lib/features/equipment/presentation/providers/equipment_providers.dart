@@ -31,6 +31,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/trips/domain/services/trip_gear_scope.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_gear_ids_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -1108,10 +1110,14 @@ final equipmentServiceUrgencyProvider =
 
 /// Clocks that block an upcoming trip: date trigger before the trip ends, or
 /// already due/overdue now. Usage triggers are never forecast into the trip.
+/// Only gear on the trip counts (packed, on its cylinder board, or installed
+/// in gear that is): gear left at home never warns on it (issue #2727).
 final tripServiceAlertsProvider = FutureProvider.family<List<DueClock>, String>(
   (ref, tripId) async {
     final trip = await ref.watch(tripByIdProvider(tripId).future);
     if (trip == null) return const [];
+    final onTrip = await ref.watch(tripGearIdsProvider(tripId).future);
+    if (onTrip.isEmpty) return const [];
 
     final repository = ref.watch(equipmentRepositoryProvider);
     final validatedDiverId = await ref.watch(
@@ -1129,7 +1135,8 @@ final tripServiceAlertsProvider = FutureProvider.family<List<DueClock>, String>(
     );
     final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
     final alerts = <DueClock>[];
-    for (final item in items) {
+    // Siblings stay the whole list: exposure reads them, trip or not.
+    for (final item in gearOnTrip(items, onTrip)) {
       final statuses = await _evaluateClocksFor(
         ref,
         item,

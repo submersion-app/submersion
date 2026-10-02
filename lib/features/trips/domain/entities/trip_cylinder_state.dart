@@ -31,6 +31,10 @@ class TripCylinderTankUse extends Equatable {
   final double? endPressure;
   final GasMix gasMix;
 
+  /// The dive's site name, for the board's "Dived at ..." line; null when
+  /// the dive has no site.
+  final String? siteName;
+
   const TripCylinderTankUse({
     required this.tankId,
     required this.diveId,
@@ -38,6 +42,7 @@ class TripCylinderTankUse extends Equatable {
     this.startPressure,
     this.endPressure,
     this.gasMix = const GasMix(),
+    this.siteName,
   });
 
   @override
@@ -48,6 +53,7 @@ class TripCylinderTankUse extends Equatable {
     startPressure,
     endPressure,
     gasMix,
+    siteName,
   ];
 }
 
@@ -73,6 +79,13 @@ class TripCylinderState extends Equatable {
   /// Distinct dives that breathed from the slot.
   final int linkedDiveCount;
 
+  /// The last timeline item when it was a fill or an adjustment.
+  final TripCylinderEvent? lastEvent;
+
+  /// The last timeline item when it was a dive. Exactly one of [lastEvent]
+  /// and [lastUse] is set when the slot has any history.
+  final TripCylinderTankUse? lastUse;
+
   const TripCylinderState({
     required this.cylinder,
     this.pressure,
@@ -82,6 +95,8 @@ class TripCylinderState extends Equatable {
     this.lastFill,
     this.lastEventAt,
     this.linkedDiveCount = 0,
+    this.lastEvent,
+    this.lastUse,
   });
 
   @override
@@ -94,5 +109,7 @@ class TripCylinderState extends Equatable {
     lastFill,
     lastEventAt,
     linkedDiveCount,
+    lastEvent,
+    lastUse,
   ];
 }

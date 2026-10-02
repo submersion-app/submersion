@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/imported_dive_converter.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 
 void main() {
   const converter = ImportedDiveConverter();
@@ -305,6 +306,72 @@ void main() {
           expect(dive.importId, 'abc123');
         },
       );
+    });
+  });
+
+  group('ImportedDiveConverter computer tissue', () {
+    test('threads the tissue snapshot onto the Dive', () {
+      const snapshot = ComputerTissueSnapshot(
+        algorithm: 'Suunto Fused2 RGBM',
+        start: ComputerTissueState(n2Bar: [0.79, 0.79]),
+        end: ComputerTissueState(
+          n2Bar: [0.89665, 0.97105],
+          cnsPercent: 13.2,
+          otu: 35.57,
+        ),
+      );
+      final importedDive = ImportedDive(
+        sourceId: 'suunto-tissue',
+        source: ImportSource.suunto,
+        startTime: DateTime(2024, 6, 15, 10, 0),
+        endTime: DateTime(2024, 6, 15, 10, 40),
+        maxDepth: 30.0,
+        profile: const [],
+        computerTissue: snapshot,
+      );
+
+      final dive = converter.convert(importedDive);
+
+      expect(dive.computerTissue, snapshot);
+    });
+
+    test('leaves computerTissue null when the import had none', () {
+      final importedDive = ImportedDive(
+        sourceId: 'no-tissue',
+        source: ImportSource.garmin,
+        startTime: DateTime(2024, 6, 15, 10, 0),
+        endTime: DateTime(2024, 6, 15, 10, 40),
+        maxDepth: 30.0,
+        profile: const [],
+      );
+
+      expect(converter.convert(importedDive).computerTissue, isNull);
+    });
+
+    test('threads gf99 and n2Load onto the profile points', () {
+      final importedDive = ImportedDive(
+        sourceId: 'garmin-tissue',
+        source: ImportSource.garmin,
+        startTime: DateTime(2024, 6, 15, 10, 0),
+        endTime: DateTime(2024, 6, 15, 10, 40),
+        maxDepth: 30.0,
+        profile: const [
+          ImportedProfileSample(
+            timeSeconds: 0,
+            depth: 5.0,
+            gf99: 12,
+            n2Load: 40,
+          ),
+          ImportedProfileSample(timeSeconds: 60, depth: 10.0),
+        ],
+      );
+
+      final dive = converter.convert(importedDive);
+
+      expect(dive.profile[0].gf99, 12);
+      expect(dive.profile[0].n2Load, 40);
+      expect(dive.profile[1].gf99, isNull);
+      expect(dive.profile[1].n2Load, isNull);
     });
   });
 }

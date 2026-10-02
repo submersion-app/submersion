@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 
+import '../../../../helpers/mock_channels.dart';
 import '../../../../support/fake_cloud_storage_provider.dart';
 import '../../../../support/fake_keychain_storage.dart';
 
@@ -78,6 +80,7 @@ void main() {
           },
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   late BackupPreferences preferences;
   late SyncPreferences syncPreferences;
@@ -177,7 +180,7 @@ void main() {
     await service.performBackup();
     final uploaded = await singleCloudBackup();
     // Write the encrypted artifact to disk as a picked file:
-    final picked = File('${Directory.systemTemp.path}/picked_$keyId.sbe');
+    final picked = File(p.join(_isolatedTempDir.path, 'picked_$keyId.sbe'));
     await picked.writeAsBytes(uploaded.bytes);
     addTearDown(() async {
       if (await picked.exists()) await picked.delete();
@@ -198,7 +201,7 @@ void main() {
     final service = buildService();
     await service.performBackup();
     final uploaded = await singleCloudBackup();
-    final picked = File('${Directory.systemTemp.path}/picked_enc.sbe');
+    final picked = File(p.join(_isolatedTempDir.path, 'picked_enc.sbe'));
     await picked.writeAsBytes(uploaded.bytes);
     addTearDown(() async {
       if (await picked.exists()) await picked.delete();
@@ -218,7 +221,7 @@ void main() {
     final service = buildService();
     await service.performBackup();
     final uploaded = await singleCloudBackup();
-    final picked = File('${Directory.systemTemp.path}/valid_enc.sbe');
+    final picked = File(p.join(_isolatedTempDir.path, 'valid_enc.sbe'));
     await picked.writeAsBytes(uploaded.bytes);
     addTearDown(() async {
       if (await picked.exists()) await picked.delete();
@@ -230,7 +233,7 @@ void main() {
 
   test('validateBackupFile rejects a .sbe file that lacks the magic', () async {
     final service = buildService();
-    final bogus = File('${Directory.systemTemp.path}/bogus.sbe');
+    final bogus = File(p.join(_isolatedTempDir.path, 'bogus.sbe'));
     await bogus.writeAsString('not an encrypted backup at all');
     addTearDown(() async {
       if (await bogus.exists()) await bogus.delete();

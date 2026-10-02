@@ -25,19 +25,25 @@ class TripItineraryTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final daysAsync = ref.watch(itineraryDaysProvider(tripId));
+    final daysAsync = ref.watch(numberedItineraryDaysProvider(tripId));
     final divesAsync = ref.watch(divesForTripProvider(tripId));
 
+    // Keep the list on a reload: the numbered itinerary rebuilds whenever
+    // the itinerary, the trip or its dives change (an edit-sheet save among
+    // them), and `when` shows its loading branch on a reload by default,
+    // which would swap the list for a spinner and lose the scroll position.
     return daysAsync.when(
+      skipLoadingOnReload: true,
       data: (days) => divesAsync.when(
         data: (dives) => _buildTimeline(context, ref, days, dives),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) =>
-            Center(child: Text('${context.l10n.common_label_error}: $e')),
+        // The repositories log the failure; the diver gets a plain line.
+        error: (_, _) =>
+            Center(child: Text(context.l10n.trips_itinerary_error_loading)),
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) =>
-          Center(child: Text('${context.l10n.common_label_error}: $e')),
+      error: (_, _) =>
+          Center(child: Text(context.l10n.trips_itinerary_error_loading)),
     );
   }
 

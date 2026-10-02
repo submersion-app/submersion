@@ -2,6 +2,19 @@
 String substituteRow(String template, String alias) =>
     template.replaceAll('{r}', alias);
 
+/// Where a field's own dive subquery takes the active diver:
+/// `{diver:ad}` over the subquery's alias `ad`. Only field SQL carries it.
+final kDiverToken = RegExp(r'\{diver:(\w+)\}');
+
+/// [template]'s diver tokens as ` AND <alias>.diver_id <match>` (`= ?`, one
+/// bind each, or `IS r0.diver_id`; see [kDiverToken]), or as nothing when
+/// [match] is null.
+String substituteDiver(String template, {required String? match}) =>
+    template.replaceAllMapped(
+      kDiverToken,
+      (m) => match == null ? '' : ' AND ${m[1]}.diver_id $match',
+    );
+
 /// `{from}` is the row we are on, `{to}` the related row.
 String substituteJoin(String template, String from, String to) =>
     template.replaceAll('{from}', from).replaceAll('{to}', to);

@@ -15,6 +15,8 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// [build] returns a fully wired widget for the surface.
 /// [selectButton] finds the surface's Select affordance.
+/// [selectMenu], when set, finds the overflow menu that holds [selectButton];
+/// it is opened first (issue #2775).
 /// [expectedDeletedCount] is how many rows select-all should check.
 /// [confirmLabel] is the confirm button's text, defaulting to the shared
 /// bulk-delete wording.
@@ -22,6 +24,7 @@ Future<void> verifyBulkDelete(
   WidgetTester tester, {
   required Widget Function() build,
   required Finder selectButton,
+  Finder? selectMenu,
   required int expectedDeletedCount,
   String confirmLabel = 'Delete',
   bool settle = true,
@@ -38,6 +41,10 @@ Future<void> verifyBulkDelete(
   await tester.pumpWidget(build());
   await advance();
 
+  if (selectMenu != null) {
+    await tester.tap(selectMenu);
+    await advance();
+  }
   await tester.tap(selectButton);
   await advance();
 
@@ -88,6 +95,7 @@ Future<void> verifyBulkDeleteCancels(
   WidgetTester tester, {
   required Widget Function() build,
   required Finder selectButton,
+  Finder? selectMenu,
   bool settle = true,
 }) async {
   Future<void> advance() async {
@@ -102,6 +110,10 @@ Future<void> verifyBulkDeleteCancels(
   await tester.pumpWidget(build());
   await advance();
 
+  if (selectMenu != null) {
+    await tester.tap(selectMenu);
+    await advance();
+  }
   await tester.tap(selectButton);
   await advance();
   await tester.tap(find.byKey(const ValueKey('selection_select_all')));

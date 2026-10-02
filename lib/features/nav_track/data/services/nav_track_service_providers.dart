@@ -1,5 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_match_service.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 
@@ -17,5 +18,6 @@ final navTrackMatchServiceProvider = Provider<NavTrackMatchService>(
   (ref) => NavTrackMatchService(
     routeRepository: ref.watch(navTrackRepositoryProvider),
     diveRepository: ref.watch(diveRepositoryProvider),
+    currentDiverId: () => ref.read(validatedCurrentDiverIdProvider.future),
   ),
 );

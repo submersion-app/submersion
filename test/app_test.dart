@@ -1,10 +1,23 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
+import 'package:submersion/features/universal_import/data/models/detection_result.dart';
+import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/shared/services/incoming_share.dart';
+import 'package:submersion/shared/services/navigation_ready_gate.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/app.dart';
 import 'package:submersion/core/router/app_router.dart';
@@ -17,9 +30,12 @@ import 'package:submersion/core/services/sync/sync_service.dart'
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
+import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
+import 'helpers/fake_nfc.dart';
 import 'helpers/mock_providers.dart';
 
 /// A [SyncNotifier] stand-in whose state can be driven directly from a test,
@@ -129,6 +145,66 @@ class _PushableLinks implements IncomingLinkSource {
   Stream<String> get links => controller.stream;
 }
 
+/// A route import whose parse never finishes, so the review page it opens
+/// stays on its loading state.
+class _PendingNavTrackImport implements NavTrackImportService {
+  @override
+  Future<NavTrackImportPreview> prepare(Uint8List bytes, {String? fileName}) =>
+      Completer<NavTrackImportPreview>().future;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// The share sheet exists only on Android and iOS; the handler ignores it
+/// anywhere else, so the share tests pin a mobile platform.
+final _shareSheetPlatform = TargetPlatformVariant.only(TargetPlatform.android);
+
+/// An import that cannot read any file it is handed.
+class _UnreadableImport extends UniversalImportNotifier {
+  _UnreadableImport(super.ref);
+
+  var loads = 0;
+
+  @override
+  Future<DetectionResult> loadFileFromBytes(Uint8List bytes, String fileName) {
+    loads++;
+    return Future.error(const FormatException('unreadable'));
+  }
+}
+
+/// An import that holds each file until [release] completes, standing in
+/// for a slow parse a soft restart can interrupt.
+class _SlowImport extends UniversalImportNotifier {
+  _SlowImport(super.ref, this.release);
+
+  final Future<void> release;
+  var started = false;
+
+  @override
+  Future<DetectionResult> loadFileFromBytes(
+    Uint8List bytes,
+    String fileName,
+  ) async {
+    started = true;
+    await release;
+    return super.loadFileFromBytes(bytes, fileName);
+  }
+}
+
+/// An import that takes any batch of files at once, so a share that
+/// reaches it too early shows up without waiting on real parsing.
+class _InstantBatchImport extends UniversalImportNotifier {
+  _InstantBatchImport(super.ref);
+
+  final loadedBatches = <List<String>>[];
+
+  @override
+  Future<void> loadFilesFromPaths(List<String> paths) async {
+    loadedBatches.add(paths);
+  }
+}
+
 /// Minimal router wired to the real [rootNavigatorKey] so the app-root adopt
 /// dialog (which reads `rootNavigatorKey.currentContext`) can surface.
 GoRouter _testRouter() => GoRouter(
@@ -149,6 +225,10 @@ LibraryEpochMarker _marker() => const LibraryEpochMarker(
 );
 
 void main() {
+  /// Builds of the service-due cache writer; stubbed so the app tests never
+  /// evaluate real service clocks.
+  var serviceCacheBuilds = 0;
+
   /// Pumps [SubmersionApp] with the providers its build/launch path reads
   /// stubbed out, leaving [sync] as the driver for the app-root listener.
   Future<void> pumpApp(
@@ -158,10 +238,16 @@ void main() {
     List<Override> extraOverrides = const [],
     IncomingLinkSource? links,
     GoRouter? router,
+    FakeNfcTagService? nfc,
+    Key? scopeKey,
   }) async {
-    final base = await getBaseOverrides(incomingLinks: links);
+    final base = await getBaseOverrides(
+      incomingLinks: links,
+      nfcTagService: nfc,
+    );
     await tester.pumpWidget(
       ProviderScope(
+        key: scopeKey,
         overrides: [
           ...base,
           appRouterProvider.overrideWithValue(router ?? _testRouter()),
@@ -172,6 +258,9 @@ void main() {
             (ref) async => DeviceIdentityStatus.unchanged,
           ),
           restoreLastProviderProvider.overrideWith((ref) async {}),
+          equipmentServiceStatusCacheProvider.overrideWith((ref) async {
+            serviceCacheBuilds++;
+          }),
           ...extraOverrides,
         ],
         child: const SubmersionApp(),
@@ -179,6 +268,21 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('runs the service-due cache writer only on demand (#2365)', (
+    tester,
+  ) async {
+    // The app root keeps the keeper alive, and the keeper starts the
+    // writer only while a filter names serviceDue: with none, launching
+    // the app evaluates no service clocks.
+    serviceCacheBuilds = 0;
+    await pumpApp(tester, _DrivableSyncNotifier(const SyncState()));
+    expect(serviceCacheBuilds, 0);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SubmersionApp)),
+    );
+    expect(container.exists(serviceStatusKeeperProvider), isTrue);
+  });
 
   testWidgets('shows the post-restore syncing notice when sync begins', (
     tester,
@@ -428,5 +532,382 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
     expect(find.text('That is not a cylinder tag'), findsOneWidget);
+  });
+
+  group('a file shared through the share sheet', () {
+    /// Hands [files] (name to contents) to the app as the share intent that
+    /// launched it, through the share plugin's own test hook.
+    void shareOnLaunch(Map<String, List<int>> files) {
+      final original = ReceiveSharingIntent.instance;
+      addTearDown(() => ReceiveSharingIntent.instance = original);
+      final dir = Directory.systemTemp.createTempSync('share_intent_');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final shared = [
+        for (final MapEntry(key: name, value: bytes) in files.entries)
+          SharedMediaFile(
+            path: (File(p.join(dir.path, name))..writeAsBytesSync(bytes)).path,
+            type: SharedMediaType.file,
+          ),
+      ];
+      // Broadcast, like the plugin's event channel: every app root that
+      // mounts listens to it.
+      final stream = StreamController<List<SharedMediaFile>>.broadcast();
+      addTearDown(stream.close);
+      ReceiveSharingIntent.setMockValues(
+        initialMedia: shared,
+        mediaStream: stream.stream,
+      );
+    }
+
+    /// Lets the share handler's file reads finish. They are real I/O, which
+    /// completes outside the fake clock, and each continuation then needs a
+    /// frame to run in. With [until], keeps going (within a bound) until it
+    /// finds something, so a slow runner does not fail the expectation;
+    /// without it, gives the share a fixed spell to do something it must not.
+    Future<void> settleShare(WidgetTester tester, {Finder? until}) async {
+      for (var i = 0; i < (until == null ? 8 : 100); i++) {
+        if (until != null && until.evaluate().isNotEmpty) return;
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+    }
+
+    final encBytes = File(
+      p.join('test', 'fixtures', 'nav_tracks', 'seacraft_enc3_short.csv'),
+    ).readAsBytesSync();
+    final uddfBytes =
+        '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits;
+    final review = find.byType(NavTrackImportReviewPage);
+    final wizard = find.text('import wizard');
+
+    List<Override> withDiver() => [
+      diverCountProvider.overrideWith((ref) async => 1),
+      validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      // The review page parses on open; a parse that never finishes keeps
+      // it on its loading state, away from the database.
+      navTrackImportServiceProvider.overrideWithValue(_PendingNavTrackImport()),
+    ];
+
+    /// A router whose async top-level redirect waits on [gate], like the
+    /// app's own: go_router builds no Navigator until it resolves, which is
+    /// where a cold start from the share sheet lands.
+    GoRouter coldStartRouter(Completer<void> gate) => GoRouter(
+      navigatorKey: rootNavigatorKey,
+      redirect: (context, state) async {
+        await gate.future;
+        return null;
+      },
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: SizedBox.shrink()),
+        ),
+      ],
+    );
+
+    /// A router that starts on first-run setup, with the import wizard to
+    /// go to once setup is left.
+    GoRouter setupRouter() => GoRouter(
+      navigatorKey: rootNavigatorKey,
+      initialLocation: '/welcome',
+      routes: [
+        GoRoute(
+          path: '/welcome',
+          builder: (context, state) => const Scaffold(body: Text('setup')),
+        ),
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: SizedBox.shrink()),
+        ),
+        GoRoute(
+          path: '/transfer/import-wizard',
+          builder: (context, state) =>
+              const Scaffold(body: Text('import wizard')),
+        ),
+      ],
+    );
+
+    testWidgets('a Seacraft route opens its review in the running app', (
+      tester,
+    ) async {
+      shareOnLaunch({'005.DAT.csv': encBytes});
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        extraOverrides: withDiver(),
+      );
+      await settleShare(tester, until: review);
+
+      expect(review, findsOneWidget);
+    }, variant: _shareSheetPlatform);
+
+    testWidgets('a soft restart does not open the launch share again', (
+      tester,
+    ) async {
+      shareOnLaunch({'005.DAT.csv': encBytes});
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        extraOverrides: withDiver(),
+      );
+      await settleShare(tester, until: review);
+      expect(review, findsOneWidget);
+
+      // restartApp() swaps the ProviderScope key after a restore, which
+      // mounts a fresh app root that asks the plugin for the launch share.
+      // Unmounted first here, so the old root navigator (a global key) is
+      // not carried over with the review still on it.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        extraOverrides: withDiver(),
+        scopeKey: UniqueKey(),
+      );
+      await settleShare(tester);
+
+      expect(review, findsNothing);
+    }, variant: _shareSheetPlatform);
+
+    testWidgets(
+      'a Seacraft route shared before the navigator is built opens its '
+      'review once it is (#2690)',
+      (tester) async {
+        shareOnLaunch({'005.DAT.csv': encBytes});
+        final gate = Completer<void>();
+        await pumpApp(
+          tester,
+          _DrivableSyncNotifier(const SyncState()),
+          router: coldStartRouter(gate),
+          extraOverrides: withDiver(),
+        );
+        await settleShare(tester);
+        expect(rootNavigatorKey.currentContext, isNull);
+
+        gate.complete();
+        await settleShare(tester, until: review);
+
+        expect(review, findsOneWidget);
+      },
+      variant: _shareSheetPlatform,
+    );
+
+    testWidgets(
+      'a shared file that fails once the navigator is built still says so',
+      (tester) async {
+        shareOnLaunch({'dive.uddf': uddfBytes});
+        final gate = Completer<void>();
+        _UnreadableImport? unreadable;
+        await pumpApp(
+          tester,
+          _DrivableSyncNotifier(const SyncState()),
+          router: coldStartRouter(gate),
+          extraOverrides: [
+            ...withDiver(),
+            universalImportNotifierProvider.overrideWith(
+              (ref) => unreadable = _UnreadableImport(ref),
+            ),
+          ],
+        );
+        await settleShare(tester);
+        // Held: nothing has tried to read it while there is no navigator.
+        expect(unreadable?.loads ?? 0, 0);
+
+        gate.complete();
+        final message = find.text('Could not read file');
+        await settleShare(tester, until: message);
+
+        expect(message, findsOneWidget);
+      },
+      variant: _shareSheetPlatform,
+    );
+
+    testWidgets('a dive log shared during setup opens the import wizard once '
+        'setup is left', (tester) async {
+      shareOnLaunch({'dive.uddf': uddfBytes});
+      final router = setupRouter();
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        router: router,
+        extraOverrides: [
+          // Setup has just written the diver row but is still on screen.
+          diverCountProvider.overrideWith((ref) async => 1),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+      );
+      await settleShare(tester);
+      expect(wizard, findsNothing);
+
+      router.go('/');
+      await settleShare(tester, until: wizard);
+
+      expect(wizard, findsOneWidget);
+    }, variant: _shareSheetPlatform);
+
+    testWidgets('several dive logs shared during setup open the import '
+        'wizard once setup is left', (tester) async {
+      shareOnLaunch({'first.uddf': uddfBytes, 'second.uddf': uddfBytes});
+      final router = setupRouter();
+      late _InstantBatchImport batchImport;
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        router: router,
+        extraOverrides: [
+          diverCountProvider.overrideWith((ref) async => 1),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          universalImportNotifierProvider.overrideWith(
+            (ref) => batchImport = _InstantBatchImport(ref),
+          ),
+        ],
+      );
+      await settleShare(tester);
+      expect(wizard, findsNothing);
+
+      router.go('/');
+      await settleShare(tester, until: wizard);
+
+      expect(wizard, findsOneWidget);
+      expect(batchImport.loadedBatches.single.map(p.basename), [
+        'first.uddf',
+        'second.uddf',
+      ]);
+    }, variant: _shareSheetPlatform);
+
+    testWidgets('a file being opened when a soft restart replaces the app '
+        'root is opened by the new root', (tester) async {
+      shareOnLaunch({'dive.uddf': uddfBytes});
+      final shares = NavigationReadyGate<IncomingShare>();
+      final release = Completer<void>();
+      _SlowImport? slow;
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        router: setupRouter()..go('/'),
+        extraOverrides: [
+          diverCountProvider.overrideWith((ref) async => 1),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          incomingShareGateProvider.overrideWithValue(shares),
+          universalImportNotifierProvider.overrideWith(
+            (ref) => slow = _SlowImport(ref, release.future),
+          ),
+        ],
+      );
+      await settleShare(tester);
+      expect(slow?.started, isTrue);
+
+      // restartApp() while the first root is still reading the file.
+      await tester.pumpWidget(const SizedBox.shrink());
+      release.complete();
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        router: setupRouter()..go('/'),
+        scopeKey: UniqueKey(),
+        extraOverrides: [
+          diverCountProvider.overrideWith((ref) async => 1),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          incomingShareGateProvider.overrideWithValue(shares),
+        ],
+      );
+      await settleShare(tester, until: wizard);
+
+      expect(wizard, findsOneWidget);
+    }, variant: _shareSheetPlatform);
+
+    testWidgets('a file held during setup is opened by the app root that a '
+        'soft restart puts in its place', (tester) async {
+      shareOnLaunch({'dive.uddf': uddfBytes});
+      // One gate for the process, as SubmersionRestart provides it.
+      final shares = NavigationReadyGate<IncomingShare>();
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        router: setupRouter(),
+        extraOverrides: [
+          diverCountProvider.overrideWith((ref) async => 1),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          incomingShareGateProvider.overrideWithValue(shares),
+        ],
+      );
+      await settleShare(tester);
+      expect(wizard, findsNothing);
+
+      // A restore from the setup wizard ends in restartApp(), which mounts
+      // a fresh app root; the restored library has a diver, so it leaves
+      // setup at once.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await pumpApp(
+        tester,
+        _DrivableSyncNotifier(const SyncState()),
+        router: setupRouter()..go('/'),
+        scopeKey: UniqueKey(),
+        extraOverrides: [
+          diverCountProvider.overrideWith((ref) async => 1),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          incomingShareGateProvider.overrideWithValue(shares),
+        ],
+      );
+      await settleShare(tester, until: wizard);
+
+      expect(wizard, findsOneWidget);
+    }, variant: _shareSheetPlatform);
+  });
+
+  testWidgets('NFC turned on in the system settings is noticed on return', (
+    tester,
+  ) async {
+    final nfc = FakeNfcTagService(supportValue: NfcSupport.disabled);
+    await pumpApp(tester, _DrivableSyncNotifier(const SyncState()), nfc: nfc);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SubmersionApp)),
+    );
+    final sub = container.listen(nfcSupportProvider, (_, _) {});
+    addTearDown(sub.close);
+    expect(
+      await container.read(nfcSupportProvider.future),
+      NfcSupport.disabled,
+    );
+
+    // The diver follows "Turn it on in the system settings" and comes back.
+    nfc.supportValue = NfcSupport.enabled;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(await container.read(nfcSupportProvider.future), NfcSupport.enabled);
+  });
+
+  testWidgets('the iOS NFC sheet coming and going is not a return to the app', (
+    tester,
+  ) async {
+    // The sheet makes the app inactive, then resumed. Taken as leaving and
+    // coming back, App Lock set to Immediately would lock after every tag
+    // and every tag would start a sync.
+    final nfc = FakeNfcTagService(supportValue: NfcSupport.disabled);
+    await pumpApp(tester, _DrivableSyncNotifier(const SyncState()), nfc: nfc);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SubmersionApp)),
+    );
+    final sub = container.listen(nfcSupportProvider, (_, _) {});
+    addTearDown(sub.close);
+    expect(
+      await container.read(nfcSupportProvider.future),
+      NfcSupport.disabled,
+    );
+
+    nfc.supportValue = NfcSupport.enabled;
+    nfc.sessionActive = true;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    nfc.sessionActive = false;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    // No resume work ran, so NFC was not checked again.
+    expect(
+      await container.read(nfcSupportProvider.future),
+      NfcSupport.disabled,
+    );
   });
 }

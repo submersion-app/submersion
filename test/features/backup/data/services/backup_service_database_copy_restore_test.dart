@@ -14,6 +14,8 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
+import '../../../../helpers/mock_channels.dart';
+
 /// The live-database key an encrypted install would hold in memory.
 const _liveKeyHex =
     '4a5f1c9d3e8b0726114d90ab63fe2d58c7093a41bb5e6f28d0c1a7935e4b8206';
@@ -77,7 +79,19 @@ class _SpySyncRepository extends SyncRepository {
   }) async {}
 }
 
+/// Per-file root for the mocked path_provider. Test processes run in parallel
+/// against one real $TMPDIR, so returning it directly would put every backup
+/// suite's fixed `Submersion/Backups` subtree in the same place.
+final _isolatedTempDir = Directory.systemTemp.createTempSync(
+  'db_copy_restore_pp_',
+);
+
 void main() {
+  tearDownAll(() {
+    if (_isolatedTempDir.existsSync()) {
+      _isolatedTempDir.deleteSync(recursive: true);
+    }
+  });
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory tempDir;
@@ -88,9 +102,10 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (MethodCall methodCall) async => Directory.systemTemp.path,
+          (MethodCall methodCall) async => _isolatedTempDir.path,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});

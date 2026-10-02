@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 
 /// One printable cylinder label (spec section 8, Tag card).
 class PassportLabelData {
@@ -29,10 +30,11 @@ class PassportLabelPdfExportService {
   /// [loadTheme] picks the fonts. The default is the shared Roboto loader;
   /// tests pass a Helvetica theme because text drawn in an embedded TrueType
   /// font cannot be read back out of the PDF (see pdf_export_set_names_test).
-  PassportLabelPdfExportService({Future<pw.ThemeData> Function()? loadTheme})
-    : _loadTheme = loadTheme ?? _sharedTheme;
+  PassportLabelPdfExportService({
+    Future<pw.ThemeData> Function(PdfLocalization localization)? loadTheme,
+  }) : _loadTheme = loadTheme ?? _sharedTheme;
 
-  final Future<pw.ThemeData> Function() _loadTheme;
+  final Future<pw.ThemeData> Function(PdfLocalization localization) _loadTheme;
 
   static final _fileNameDate = DateFormat('yyyy-MM-dd');
   static const double _labelW = 62 * PdfPageFormat.mm;
@@ -40,12 +42,20 @@ class PassportLabelPdfExportService {
   static const double _qr = 26 * PdfPageFormat.mm;
 
   /// Builds the PDF bytes without touching the filesystem.
-  Future<List<int>> generateBytes(List<PassportLabelData> labels) async {
-    final theme = await _loadTheme();
+  ///
+  /// The label text arrives already localized; [localization] picks the
+  /// fonts and text direction for that language (#2252). Null is English.
+  Future<List<int>> generateBytes(
+    List<PassportLabelData> labels, {
+    PdfLocalization? localization,
+  }) async {
+    final loc = localization ?? PdfLocalization.english();
+    final theme = await _loadTheme(loc);
     final pdf = pw.Document(theme: theme);
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
+        textDirection: loc.textDirection,
         // 8 mm, not 10: three 62 mm labels and two 3 mm gaps need 192 mm,
         // and a 10 mm margin leaves only 190.
         margin: const pw.EdgeInsets.all(8 * PdfPageFormat.mm),
@@ -121,9 +131,9 @@ class PassportLabelPdfExportService {
 
   /// Roboto through the shared loader (names outside Latin-1 need it), which
   /// falls back to Helvetica when the font cannot be fetched.
-  static Future<pw.ThemeData> _sharedTheme() async {
+  static Future<pw.ThemeData> _sharedTheme(PdfLocalization localization) async {
     await PdfFonts.instance.initialize();
-    return PdfFonts.instance.theme;
+    return PdfFonts.instance.themeFor(localization);
   }
 
   /// Writes the PDF to the documents directory and opens the system share
@@ -131,8 +141,9 @@ class PassportLabelPdfExportService {
   Future<String> exportToPdf(
     List<PassportLabelData> labels, {
     Rect? sharePositionOrigin,
+    PdfLocalization? localization,
   }) async {
-    final bytes = await generateBytes(labels);
+    final bytes = await generateBytes(labels, localization: localization);
     return saveAndShareFileBytes(
       bytes,
       'submersion_cylinder_labels_${_fileNameDate.format(DateTime.now())}.pdf',

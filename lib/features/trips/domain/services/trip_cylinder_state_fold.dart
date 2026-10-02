@@ -9,12 +9,17 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 /// A constant, not a setting.
 const double kTripCylinderEmptyBar = 50;
 
-/// An adjustment at or above this share of the working pressure is a full
-/// bottle: a gauge reading of 190 on a 207 bar cylinder is not a partial.
+/// A fill or adjustment at or above this share of the working pressure is a
+/// full bottle: a gauge reading of 190 on a 207 bar cylinder is not a
+/// partial, and a short fill below it is not full.
 const double kTripCylinderFullFraction = 0.9;
 
-/// Order on one instant: the fill before the dive it was for, a correction
-/// after the dive it corrects.
+/// Order within the minute a dive starts in: the fills before the dive they
+/// were for, the corrections after the dive they correct, seconds breaking
+/// ties within each. A fill saved with the default "now" carries seconds and
+/// a dive typed into the editor has none, so the minute, not the
+/// millisecond, is the dive's instant. Any other minute runs in time order,
+/// a fill before a correction on one instant.
 const int _rankFill = 0;
 const int _rankDive = 1;
 const int _rankAdjustment = 2;
@@ -25,16 +30,21 @@ class _Item {
   final TripCylinderEvent? event;
   final TripCylinderTankUse? use;
 
-  const _Item({required this.at, required this.rank, this.event, this.use});
+  /// The minute [at] falls in, the fold's first sort key.
+  final int minute;
 
-  /// Breaks a tie on instant and rank, so every replica folds the same rows
-  /// in the same order whatever order the query returned them in.
+  _Item({required this.at, required this.rank, this.event, this.use})
+    : minute = _minuteOf(at);
+
+  /// Breaks a tie on minute, rank and instant, so every replica folds the
+  /// same rows in the same order whatever order the query returned them in.
   String get tieKey => event?.id ?? use!.tankId;
 }
 
 /// Pure. Walks the slot's fills, adjustments and linked dive tanks in time
-/// order and reports where that leaves it. Nothing is stored; a corrected
-/// fill time or a late import re-sorts on the next read.
+/// order (in a dive's own minute: its fills, the dive, then corrections)
+/// and reports where that leaves it. Nothing is stored; a corrected fill
+/// time or a late import re-sorts on the next read.
 ///
 /// Rules, applied in order down the timeline:
 /// - A fill sets the pressure (its own, else the working pressure), the mix
@@ -44,6 +54,8 @@ class _Item {
 ///   it carries one.
 /// - A dive tank sets the pressure to its end pressure; unknown makes the
 ///   pressure unknown but the slot used. It never changes the slot's mix.
+/// - Of a dive's tanks on the slot (computers' copies of one cylinder), one
+///   with no end pressure is passed over when another has one.
 ///
 /// Status comes from the last item: a fill is full; an adjustment at or
 /// above [kTripCylinderFullFraction] of the working pressure is full;
@@ -54,6 +66,9 @@ TripCylinderState foldCylinderState({
   required List<TripCylinderEvent> events,
   required List<TripCylinderTankUse> uses,
 }) {
+  final diveMinutes = {
+    for (final u in uses) _minuteOf(u.entryTime.millisecondsSinceEpoch),
+  };
   final items =
       <_Item>[
         for (final e in events)
@@ -64,17 +79,23 @@ TripCylinderState foldCylinderState({
                 : _rankAdjustment,
             event: e,
           ),
-        for (final u in uses)
+        for (final u in _readingsFirst(uses))
           _Item(
             at: u.entryTime.millisecondsSinceEpoch,
             rank: _rankDive,
             use: u,
           ),
       ]..sort((a, b) {
+        final byMinute = a.minute.compareTo(b.minute);
+        if (byMinute != 0) return byMinute;
         final byTime = a.at.compareTo(b.at);
-        if (byTime != 0) return byTime;
         final byRank = a.rank.compareTo(b.rank);
-        return byRank != 0 ? byRank : a.tieKey.compareTo(b.tieKey);
+        // One scheme per minute, so the order stays total.
+        final (first, second) = diveMinutes.contains(a.minute)
+            ? (byRank, byTime)
+            : (byTime, byRank);
+        if (first != 0) return first;
+        return second != 0 ? second : a.tieKey.compareTo(b.tieKey);
       });
 
   double? pressure;
@@ -115,7 +136,25 @@ TripCylinderState foldCylinderState({
         ? null
         : DateTime.fromMillisecondsSinceEpoch(last.at, isUtc: true),
     linkedDiveCount: uses.map((u) => u.diveId).toSet().length,
+    lastEvent: last?.event,
+    lastUse: last?.use,
   );
+}
+
+/// [uses] less any tank with no end pressure on a dive where another tank
+/// of the slot has one. Two tanks on one dive holding one slot are two
+/// computers' copies of one cylinder (issue #2661), and the copy that
+/// logged no reading must not make the slot's pressure unknown. Between
+/// copies that both have one, the tank-id tie-break still decides.
+List<TripCylinderTankUse> _readingsFirst(List<TripCylinderTankUse> uses) {
+  final read = {
+    for (final u in uses)
+      if (u.endPressure != null) u.diveId,
+  };
+  return [
+    for (final u in uses)
+      if (u.endPressure != null || !read.contains(u.diveId)) u,
+  ];
 }
 
 TripCylinderStatus _statusOf(
@@ -125,19 +164,23 @@ TripCylinderStatus _statusOf(
 ) {
   if (last == null) return TripCylinderStatus.unknown;
   final event = last.event;
-  if (event != null && event.kind == TripCylinderEventKind.fill) {
-    return TripCylinderStatus.full;
+  final isFill = event != null && event.kind == TripCylinderEventKind.fill;
+  // A fill logged without a pressure is taken at its word.
+  if (pressure == null) {
+    return isFill ? TripCylinderStatus.full : TripCylinderStatus.partial;
   }
+  // Fills and readings share one set of thresholds, so a short fill reads
+  // partial (or empty) rather than full. A dive's end pressure never makes
+  // a slot full.
   final working = cylinder.workingPressure;
   if (event != null &&
-      event.kind == TripCylinderEventKind.adjustment &&
-      pressure != null &&
       working != null &&
       pressure >= kTripCylinderFullFraction * working) {
     return TripCylinderStatus.full;
   }
-  if (pressure == null) return TripCylinderStatus.partial;
   if (pressure <= kTripCylinderEmptyBar) return TripCylinderStatus.empty;
+  // With no working pressure to measure against, a fill stays full.
+  if (isFill && working == null) return TripCylinderStatus.full;
   return TripCylinderStatus.partial;
 }
 
@@ -186,3 +229,71 @@ TripCylinder? suggestTripCylinder({
 
 /// Sorts a slot with no fill after every filled one.
 const int _neverFilled = 1 << 62;
+
+/// Pure. Every slot as it stood at [atMillis]: its fills and adjustments
+/// up to that instant (see [tripCylinderEventsUpTo]), and the dives before
+/// it, leaving out [excludeDiveId], the dive being edited, whose own use
+/// must not count.
+/// For a dive logged now this is the board's current state (decided
+/// 2026-09-29: a past dive picks and fills from the slots as they were).
+List<TripCylinderState> foldCylinderStatesAt({
+  required List<TripCylinder> cylinders,
+  required Map<String, List<TripCylinderEvent>> eventsBySlot,
+  required Map<String, List<TripCylinderTankUse>> usesBySlot,
+  required int atMillis,
+  String? excludeDiveId,
+}) => [
+  for (final c in cylinders)
+    foldCylinderState(
+      cylinder: c,
+      events: tripCylinderEventsUpTo(
+        eventsBySlot[c.id] ?? const <TripCylinderEvent>[],
+        atMillis,
+      ),
+      uses: [
+        for (final u in usesBySlot[c.id] ?? const <TripCylinderTankUse>[])
+          if (u.entryTime.millisecondsSinceEpoch < atMillis &&
+              u.diveId != excludeDiveId)
+            u,
+      ],
+    ),
+];
+
+/// Pure. The [events] in the slot by [atMillis], a dive's start. A fill
+/// counts to the minute: one in the dive's own minute was for that dive,
+/// whatever its seconds. A correction counts only up to the instant itself,
+/// since in the dive's minute the fold puts corrections after the dive.
+/// Every reader of a slot at a dive's start (the editor's picker, the dive
+/// detail's bottle line, the gas record) takes its events here.
+List<TripCylinderEvent> tripCylinderEventsUpTo(
+  List<TripCylinderEvent> events,
+  int atMillis,
+) {
+  final minute = _minuteOf(atMillis);
+  return [
+    for (final e in events)
+      if (e.kind == TripCylinderEventKind.fill
+          ? _minuteOf(e.occurredAt.millisecondsSinceEpoch) <= minute
+          : e.occurredAt.millisecondsSinceEpoch <= atMillis)
+        e,
+  ];
+}
+
+/// The start of the minute [millis] falls in; floors before 1970 too.
+int _minuteOf(int millis) => millis - millis % Duration.millisecondsPerMinute;
+
+/// The fill station the trip used last: the newest of the slots' latest
+/// fills that names a dive center. The fill sheet's default (the Bonaire
+/// ritual is the same drive-through every morning) and the fill forecast's
+/// station for the deadline.
+String? lastTripFillCenter(List<TripCylinderState> slots) {
+  TripCylinderEvent? latest;
+  for (final s in slots) {
+    final fill = s.lastFill;
+    if (fill == null || fill.diveCenterId == null) continue;
+    if (latest == null || fill.occurredAt.isAfter(latest.occurredAt)) {
+      latest = fill;
+    }
+  }
+  return latest?.diveCenterId;
+}

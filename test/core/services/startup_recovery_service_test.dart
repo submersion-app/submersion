@@ -311,6 +311,59 @@ void main() {
     });
   });
 
+  // Issue #2178. Startup used to do this by itself, on macOS and iOS only
+  // and without a word on screen. It is the same reset, now something only
+  // the diver can ask for.
+  group('useDefaultLocation', () {
+    test('clears the storage config, bookmark included', () async {
+      final live = makeTempDir('startup-recovery-live');
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final locationService = DatabaseLocationService(prefs);
+      await locationService.saveStorageConfig(
+        StorageConfig(
+          mode: StorageLocationMode.customFolder,
+          customFolderPath: live.path,
+        ),
+      );
+      await locationService.createAndStoreBookmark(live.path);
+      expect(locationService.hasStoredBookmark(), isTrue);
+      final service = StartupRecoveryService(locationService);
+
+      await service.useDefaultLocation();
+
+      final config = await locationService.getStorageConfig();
+      expect(config.mode, StorageLocationMode.appDefault);
+      expect(config.customFolderPath, isNull);
+      // A bookmark left behind would be resolved on the next launch and hold
+      // open a folder the app no longer uses.
+      expect(locationService.hasStoredBookmark(), isFalse);
+      expect(bookmarkCalls, contains('stopAccessingSecurityScopedResource'));
+    });
+
+    // The whole point of asking first: the dive log in the folder is very
+    // often the diver's only copy, and it must still be there to go back to.
+    test('moves and deletes nothing in the folder it leaves', () async {
+      final live = makeTempDir('startup-recovery-live');
+      final livePath = p.join(
+        live.path,
+        DatabaseLocationService.databaseFilename,
+      );
+      File(livePath).writeAsStringSync('the only copy');
+      File('$livePath-wal').writeAsStringSync('wal');
+      final service = await serviceFor(live);
+
+      await service.useDefaultLocation();
+
+      expect(File(livePath).readAsStringSync(), 'the only copy');
+      expect(File('$livePath-wal').readAsStringSync(), 'wal');
+      expect(live.listSync().map((entry) => p.basename(entry.path)).toSet(), {
+        DatabaseLocationService.databaseFilename,
+        'submersion.db-wal',
+      });
+    });
+  });
+
   group('classifyBackupFile', () {
     late SharedPreferences prefs;
 

@@ -17,11 +17,15 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class SiteMediaImportHelper {
   /// Opens the photo picker and imports the selection for [siteId].
   ///
+  /// [initialFilePaths] are files already in hand (a desktop drop), opened
+  /// in the picker's Files tab for review.
+  ///
   /// Returns true if anything was imported.
   static Future<bool> importPhotosForSite({
     required BuildContext context,
     required WidgetRef ref,
     required String siteId,
+    List<String>? initialFilePaths,
   }) async {
     // As this device knows them: a row linked on another device carries that
     // device's asset id (#885).
@@ -51,6 +55,7 @@ class SiteMediaImportHelper {
       buffer: Duration.zero,
       alreadyLinkedIds: alreadyLinkedIds,
       target: SiteAttachTarget(siteId),
+      initialFilePaths: initialFilePaths,
     );
     // coverage:ignore-end
     if (!context.mounted) return false;

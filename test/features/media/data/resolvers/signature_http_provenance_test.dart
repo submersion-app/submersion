@@ -8,8 +8,6 @@ import 'package:submersion/features/media/data/resolvers/http_url_media_resolver
 import 'package:submersion/features/media/data/resolvers/signature_resolver.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
-import 'package:submersion/features/media/data/services/url_metadata_extractor.dart';
-import 'package:submersion/features/media/domain/entities/extracted_metadata.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
@@ -29,10 +27,6 @@ HttpUrlMediaResolver _httpResolver(MediaSourceType sourceType) {
   return HttpUrlMediaResolver(
     sourceType: sourceType,
     networkUrlResolver: resolver,
-    urlMetadataExtractor: UrlMetadataExtractor(
-      resolver: resolver,
-      exifExtract: (_) async => const ExtractedMetadata(),
-    ),
   );
 }
 

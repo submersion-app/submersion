@@ -22,8 +22,15 @@ Future<void> clearTripCylinderLinks(
     db.diveTanks,
   )..where((t) => t.tripCylinderId.isIn(ids))).get();
   if (tanks.isEmpty) return;
-  await (db.update(db.diveTanks)..where((t) => t.tripCylinderId.isIn(ids)))
-      .write(const DiveTanksCompanion(tripCylinderId: Value(null)));
+  await (db.update(
+    db.diveTanks,
+  )..where((t) => t.tripCylinderId.isIn(ids))).write(
+    DiveTanksCompanion(
+      tripCylinderId: const Value(null),
+      // Its own clock, beside the marks below (#2644).
+      hlc: Value(await syncRepository.issueRowClock()),
+    ),
+  );
   for (final tank in tanks) {
     await syncRepository.markRecordPending(
       entityType: 'diveTanks',
@@ -60,7 +67,11 @@ Future<void> clearForeignTripCylinderLinks(
   if (rows.isEmpty) return;
   final ids = rows.map((r) => r.read<String>('id')).toList();
   await (db.update(db.diveTanks)..where((t) => t.id.isIn(ids))).write(
-    const DiveTanksCompanion(tripCylinderId: Value(null)),
+    DiveTanksCompanion(
+      tripCylinderId: const Value(null),
+      // Its own clock, beside the marks below (#2644).
+      hlc: Value(await syncRepository.issueRowClock()),
+    ),
   );
   for (final id in ids) {
     await syncRepository.markRecordPending(

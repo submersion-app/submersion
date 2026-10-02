@@ -89,6 +89,59 @@ void main() {
       expect(find.text('Red Sea Safari'), findsWidgets);
     });
 
+    testWidgets('Open in Connections centres the map on the trip', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final router = GoRouter(
+        initialLocation: '/trips/${testTrip.id}',
+        routes: [
+          GoRoute(
+            path: '/trips/:id',
+            builder: (_, s) => TripDetailPage(tripId: s.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/insights/connections',
+            builder: (context, state) =>
+                Scaffold(body: Text('CONNECTIONS ${state.uri.query}')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripWithStatsProvider(testTrip.id).overrideWith((ref) {
+              return Future.value(testTripWithStats);
+            }),
+            diveIdsForTripProvider(testTrip.id).overrideWith((ref) {
+              return Future.value(<String>[]);
+            }),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            settingsProvider.overrideWith((ref) {
+              return _MockSettingsNotifier();
+            }),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('More options'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open in Connections'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('CONNECTIONS mode=around&focus=trip:test-id'),
+        findsOneWidget,
+      );
+    });
+
     // The overview tab renders the interactive trip story. Its content is
     // covered in depth by trip_overview_tab_test.dart and the story widget
     // tests; here we only verify the page wires the story in.
@@ -280,6 +333,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // No active profile, as before sharing: every action is the owner's.
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
             tripWithStatsProvider(testTrip.id).overrideWith((ref) {
               return Future.value(testTripWithStats);
             }),
@@ -430,6 +485,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
+              // No active profile, as before sharing: every action is the owner's.
+              validatedCurrentDiverIdProvider.overrideWith((_) async => null),
               tripWithStatsProvider(sharedTrip.id).overrideWith((ref) {
                 return Future.value(sharedTripWithStats);
               }),
@@ -559,6 +616,7 @@ void main() {
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
           ],
           child: MaterialApp(
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: TripDetailPage(tripId: loadingTrip.id),
@@ -566,8 +624,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('Error'), findsWidgets);
-      expect(find.textContaining('boom'), findsOneWidget);
+      expect(find.text("Couldn't load the trip."), findsOneWidget);
+      expect(find.textContaining('boom'), findsNothing);
     });
 
     testWidgets('shows embedded error text on error when embedded', (
@@ -589,6 +647,7 @@ void main() {
             settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
           ],
           child: MaterialApp(
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
@@ -598,7 +657,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('embedded-boom'), findsOneWidget);
+      expect(find.text("Couldn't load the trip."), findsOneWidget);
+      expect(find.textContaining('embedded-boom'), findsNothing);
     });
   });
 
@@ -810,6 +870,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // No active profile, as before sharing: every action is the owner's.
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
             tripWithStatsProvider(
               embeddedTrip.id,
             ).overrideWith((ref) async => embeddedStats),
@@ -1318,7 +1380,16 @@ class _MockTripListNotifier
   Future<void> updateTrip(Trip trip) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id) async => true;
+
+  @override
+  Future<bool> hideTrip(String id) async => true;
+
+  @override
+  Future<int> hideTrips(List<String> ids) async => ids.length;
+
+  @override
+  Future<void> unhideTrip(String id) async {}
 
   @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}

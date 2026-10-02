@@ -1,0 +1,208 @@
+{
+ "station": "9755371",
+ "name": "San Juan, La Puntilla, San Juan Bay",
+ "latitude": 18.458944,
+ "longitude": -66.11642,
+ "source": "NOAA CO-OPS harcon, datums and hilo predictions, time_zone=lst_ldt",
+ "z0MetersAboveMllw": 0.234,
+ "constituents": {
+  "M2": {
+   "amplitude": 0.154,
+   "phase": 20.3
+  },
+  "S2": {
+   "amplitude": 0.02,
+   "phase": 49.4
+  },
+  "N2": {
+   "amplitude": 0.037,
+   "phase": 358.3
+  },
+  "K1": {
+   "amplitude": 0.087,
+   "phase": 227.7
+  },
+  "M4": {
+   "amplitude": 0.002,
+   "phase": 250.9
+  },
+  "O1": {
+   "amplitude": 0.076,
+   "phase": 226.4
+  },
+  "M6": {
+   "amplitude": 0.001,
+   "phase": 358.8
+  },
+  "MK3": {
+   "amplitude": 0.002,
+   "phase": 35.4
+  },
+  "S4": {
+   "amplitude": 0.001,
+   "phase": 189.1
+  },
+  "MN4": {
+   "amplitude": 0.001,
+   "phase": 191.0
+  },
+  "Nu2": {
+   "amplitude": 0.007,
+   "phase": 1.5
+  },
+  "Mu2": {
+   "amplitude": 0.005,
+   "phase": 18.8
+  },
+  "2N2": {
+   "amplitude": 0.005,
+   "phase": 337.3
+  },
+  "OO1": {
+   "amplitude": 0.004,
+   "phase": 252.2
+  },
+  "La2": {
+   "amplitude": 0.002,
+   "phase": 41.8
+  },
+  "S1": {
+   "amplitude": 0.005,
+   "phase": 153.0
+  },
+  "M1": {
+   "amplitude": 0.004,
+   "phase": 266.1
+  },
+  "J1": {
+   "amplitude": 0.005,
+   "phase": 214.0
+  },
+  "Mm": {
+   "amplitude": 0.006,
+   "phase": 354.5
+  },
+  "Ssa": {
+   "amplitude": 0.015,
+   "phase": 38.3
+  },
+  "Sa": {
+   "amplitude": 0.055,
+   "phase": 181.4
+  },
+  "Mf": {
+   "amplitude": 0.001,
+   "phase": 350.1
+  },
+  "Rho1": {
+   "amplitude": 0.003,
+   "phase": 214.9
+  },
+  "Q1": {
+   "amplitude": 0.015,
+   "phase": 211.2
+  },
+  "T2": {
+   "amplitude": 0.003,
+   "phase": 24.9
+  },
+  "2Q1": {
+   "amplitude": 0.002,
+   "phase": 218.6
+  },
+  "P1": {
+   "amplitude": 0.028,
+   "phase": 228.9
+  },
+  "2SM2": {
+   "amplitude": 0.001,
+   "phase": 20.1
+  },
+  "M3": {
+   "amplitude": 0.001,
+   "phase": 46.2
+  },
+  "L2": {
+   "amplitude": 0.003,
+   "phase": 21.3
+  },
+  "2MK3": {
+   "amplitude": 0.002,
+   "phase": 24.5
+  },
+  "K2": {
+   "amplitude": 0.007,
+   "phase": 49.6
+  },
+  "M8": {
+   "amplitude": 0.001,
+   "phase": 172.6
+  },
+  "MS4": {
+   "amplitude": 0.001,
+   "phase": 348.5
+  }
+ },
+ "expectedLocalExtremes": [
+  {
+   "localTime": "2026-07-14 03:31",
+   "type": "L",
+   "height": 0.16
+  },
+  {
+   "localTime": "2026-07-14 07:48",
+   "type": "H",
+   "height": 0.297
+  },
+  {
+   "localTime": "2026-07-14 14:12",
+   "type": "L",
+   "height": -0.115
+  },
+  {
+   "localTime": "2026-07-14 21:43",
+   "type": "H",
+   "height": 0.603
+  },
+  {
+   "localTime": "2026-07-15 04:18",
+   "type": "L",
+   "height": 0.145
+  },
+  {
+   "localTime": "2026-07-15 08:54",
+   "type": "H",
+   "height": 0.317
+  },
+  {
+   "localTime": "2026-07-15 15:11",
+   "type": "L",
+   "height": -0.091
+  },
+  {
+   "localTime": "2026-07-15 22:32",
+   "type": "H",
+   "height": 0.578
+  },
+  {
+   "localTime": "2026-07-16 05:03",
+   "type": "L",
+   "height": 0.126
+  },
+  {
+   "localTime": "2026-07-16 10:00",
+   "type": "H",
+   "height": 0.338
+  },
+  {
+   "localTime": "2026-07-16 16:11",
+   "type": "L",
+   "height": -0.051
+  },
+  {
+   "localTime": "2026-07-16 23:17",
+   "type": "H",
+   "height": 0.541
+  }
+ ]
+}

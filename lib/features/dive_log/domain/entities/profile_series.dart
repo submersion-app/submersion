@@ -96,6 +96,7 @@ class TankPressureSeries extends Equatable {
     required this.diveId,
     required this.tankId,
     this.computerId,
+    this.sourceId,
     required this.summary,
     required this.samples,
     required this.codecVersion,
@@ -108,6 +109,10 @@ class TankPressureSeries extends Equatable {
   final String diveId;
   final String tankId;
   final String? computerId;
+
+  /// The data source whose recording this is (issue #2440), or null when
+  /// it could not be determined.
+  final String? sourceId;
   final TankPressureSeriesSummary summary;
   final List<TankPressureSample> samples;
   final int codecVersion;
@@ -121,6 +126,8 @@ class TankPressureSeries extends Equatable {
     String? tankId,
     String? computerId,
     bool clearComputerId = false,
+    String? sourceId,
+    bool clearSourceId = false,
     TankPressureSeriesSummary? summary,
     List<TankPressureSample>? samples,
     int? codecVersion,
@@ -134,6 +141,7 @@ class TankPressureSeries extends Equatable {
       diveId: diveId ?? this.diveId,
       tankId: tankId ?? this.tankId,
       computerId: clearComputerId ? null : (computerId ?? this.computerId),
+      sourceId: clearSourceId ? null : (sourceId ?? this.sourceId),
       summary: summary ?? this.summary,
       samples: samples ?? this.samples,
       codecVersion: codecVersion ?? this.codecVersion,
@@ -149,6 +157,7 @@ class TankPressureSeries extends Equatable {
     diveId,
     tankId,
     computerId,
+    sourceId,
     summary,
     samples,
     codecVersion,

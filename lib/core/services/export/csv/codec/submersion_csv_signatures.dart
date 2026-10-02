@@ -1,7 +1,7 @@
 import 'package:submersion/core/services/export/csv/codec/csv_header.dart';
 
 /// Which of Submersion's own CSV exports a file is.
-enum SubmersionCsvKind { dives, sites, equipment }
+enum SubmersionCsvKind { dives, sites, equipment, fills }
 
 /// Recognises Submersion's CSV exports by their full set of column base
 /// names (unit and format suffixes stripped, case ignored), so a file
@@ -77,6 +77,27 @@ abstract final class SubmersionCsvSignatures {
     'notes',
   };
 
+  /// Cylinder fills (cylinder passports phase 5). Shares `date`, `time`,
+  /// `o2 %`, `serial number` and `notes` with the dives sheet, but the dives
+  /// sheet has no `fill id` or `passport id`, and this sheet has no `dive
+  /// number`, so neither can match the other.
+  static const _fills = {
+    'fill id',
+    'passport id',
+    'cylinder',
+    'serial number',
+    'date',
+    'time',
+    'o2 %',
+    'he %',
+    'pressure',
+    'temperature',
+    'filled by',
+    'analyzer',
+    'source',
+    'notes',
+  };
+
   /// The export [headers] came from, or null.
   static SubmersionCsvKind? match(List<String> headers) {
     final bases = {
@@ -85,6 +106,7 @@ abstract final class SubmersionCsvSignatures {
           CsvHeader.parse(h).key,
     };
     if (bases.containsAll(_dives)) return SubmersionCsvKind.dives;
+    if (bases.containsAll(_fills)) return SubmersionCsvKind.fills;
     if (bases.containsAll(_equipment)) return SubmersionCsvKind.equipment;
     if (bases.containsAll(_sites)) return SubmersionCsvKind.sites;
     return null;

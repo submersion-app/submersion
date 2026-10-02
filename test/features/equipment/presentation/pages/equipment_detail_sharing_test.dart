@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -99,6 +100,12 @@ void main() {
           builder: (context, state) =>
               const EquipmentDetailPage(equipmentId: id),
         ),
+        GoRoute(
+          path: kConnectionsLocation,
+          builder: (context, state) => Scaffold(
+            body: Text('CONNECTIONS ${state.uri.queryParameters['focus']}'),
+          ),
+        ),
       ],
     );
     await tester.pumpWidget(
@@ -170,11 +177,21 @@ void main() {
     expect(find.byKey(overflow), findsOneWidget);
   });
 
-  testWidgets('a sharee sees Owned by and no page menu', (tester) async {
+  testWidgets('a sharee sees Owned by and a menu without Delete', (
+    tester,
+  ) async {
     await pump(tester, activeDiverId: 'wife');
     expect(find.text('Owned by'), findsOneWidget);
     expect(find.text('Bill'), findsOneWidget);
-    expect(find.byKey(overflow), findsNothing);
+    // Shared gear is on the sharee's own dives, so Connections is open to
+    // them; deleting it stays with the owner (issue #2046).
+    await tester.tap(find.byKey(overflow));
+    await tester.pumpAndSettle();
+    expect(find.text('Open in Connections'), findsOneWidget);
+    expect(find.text('Delete'), findsNothing);
+    await tester.tap(find.text('Open in Connections'));
+    await tester.pumpAndSettle();
+    expect(find.text('CONNECTIONS equipment:$id'), findsOneWidget);
   });
 
   testWidgets('the History card shows with two or more profiles', (
@@ -217,12 +234,15 @@ void main() {
   testWidgets('nothing about ownership shows while the diver loads', (
     tester,
   ) async {
-    // Neither "Owned by <you>" nor the delete menu may flash for the wrong
+    // Neither "Owned by <you>" nor Delete may flash for the wrong
     // profile before the active diver is known.
     await pump(tester, activeDiverId: 'wife', diverLoading: true);
     expect(find.text('Owned by'), findsNothing);
     expect(find.text('Shared with'), findsNothing);
-    expect(find.byKey(overflow), findsNothing);
+    await tester.tap(find.byKey(overflow));
+    await tester.pumpAndSettle();
+    expect(find.text('Open in Connections'), findsOneWidget);
+    expect(find.text('Delete'), findsNothing);
   });
 
   testWidgets('the owner cannot edit shares before they load', (tester) async {

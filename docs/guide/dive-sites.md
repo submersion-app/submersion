@@ -104,6 +104,12 @@ Markers are color-coded by difficulty:
 - **Double-tap** - Zoom in
 - **Tap marker** - View site details
 
+The map scrolls east and west without end, so a region that straddles the
+180th meridian, such as Fiji or the wider Pacific, stays in one piece instead
+of splitting across the map's edges. With nothing selected, the map opens
+framed on all of your sites, taking the short way across the Pacific when
+that frames them more tightly. The **fit all** button returns to that view.
+
 ## Weather Integration
 
 If you've configured the OpenWeatherMap API key:

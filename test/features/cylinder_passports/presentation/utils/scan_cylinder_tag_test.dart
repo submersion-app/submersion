@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/services/tag_fill_importer.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -69,7 +71,11 @@ void main() {
           path: '/equipment/:id/passport',
           builder: (context, state) {
             passportExtra = state.extra;
-            return Text('passport ${state.pathParameters['id']}');
+            // A Scaffold, as the real passport page has, so a snack bar shown
+            // on the way there is visible.
+            return Scaffold(
+              body: Text('passport ${state.pathParameters['id']}'),
+            );
           },
         ),
       ],
@@ -257,6 +263,79 @@ void main() {
     expect(find.textContaining('passport '), findsNothing);
     expect(find.text(l10n.passport_scan_openFailed), findsNothing);
   });
+  group('a tag carrying a fill', () {
+    const withFill =
+        '$tag&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11'
+        '&ft=2026-09-28T09%3A30%3A00Z&fo=32&fp=232&fb=Blue+Hole';
+
+    testWidgets('an own cylinder stores the fill and says so', (tester) async {
+      await tester.runAsync(
+        () => CylinderPassportRepository().assignPassportId(
+          equipmentId: 'eq-1',
+          passportId: id,
+        ),
+      );
+      final l10n = await pump(tester, text: withFill);
+      expect(find.text('passport eq-1'), findsOneWidget);
+      final fills = await tester.runAsync(
+        () => db.select(db.cylinderFills).get(),
+      );
+      expect(fills!.map((f) => f.id), ['3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11']);
+      expect(
+        find.text(l10n.passport_fill_addedFromTag('EAN32 · 232 bar')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a fill that fails to import still opens the passport', (
+      tester,
+    ) async {
+      await tester.runAsync(
+        () => CylinderPassportRepository().assignPassportId(
+          equipmentId: 'eq-1',
+          passportId: id,
+        ),
+      );
+      final l10n = await pump(
+        tester,
+        text: withFill,
+        extraOverrides: [
+          tagFillImporterProvider.overrideWithValue(_BrokenImporter()),
+        ],
+      );
+      expect(find.text('passport eq-1'), findsOneWidget);
+      expect(find.text(l10n.passport_scan_openFailed), findsNothing);
+    });
+
+    testWidgets('a fill with no pressure says only its mix', (tester) async {
+      await tester.runAsync(
+        () => CylinderPassportRepository().assignPassportId(
+          equipmentId: 'eq-1',
+          passportId: id,
+        ),
+      );
+      final l10n = await pump(
+        tester,
+        text:
+            '$tag&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11'
+            '&ft=2026-09-28T09%3A30%3A00Z&fo=32',
+      );
+      expect(
+        find.text(l10n.passport_fill_addedFromTag('EAN32')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('--'), findsNothing);
+    });
+
+    testWidgets("someone else's cylinder stores nothing", (tester) async {
+      await pump(tester, text: withFill);
+      expect(find.text('foreign page'), findsOneWidget);
+      final fills = await tester.runAsync(
+        () => db.select(db.cylinderFills).get(),
+      );
+      expect(fills, isEmpty);
+    });
+  });
 }
 
 class _BrokenRepo extends CylinderPassportRepository {
@@ -264,6 +343,15 @@ class _BrokenRepo extends CylinderPassportRepository {
   Future<String?> findEquipmentIdByPassportId(
     String passportId, {
     String? diverId,
+  }) async => throw StateError('database is locked');
+}
+
+class _BrokenImporter extends TagFillImporter {
+  @override
+  Future<CylinderFill?> importIfNew({
+    required CylinderPassportPayload tag,
+    required String equipmentId,
+    required String? diverId,
   }) async => throw StateError('database is locked');
 }
 

@@ -7,6 +7,8 @@ import 'package:submersion/features/dive_computer/presentation/providers/clock_s
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/services/incoming_share.dart';
+import 'package:submersion/shared/services/navigation_ready_gate.dart';
 
 /// The provider overrides the app's root [ProviderScope] installs.
 ///
@@ -21,11 +23,19 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// makes `test/helpers/test_app.dart` take `List<dynamic>`. Call sites pass the
 /// result to `overrides:` with `.cast()`, which infers the real element type
 /// from context.
+///
+/// [incomingShares] is the app's one share gate, made once per process so a
+/// share held when `restartApp` rebuilds the scope is still opened after it.
+/// The safety sweep's throwaway container never opens a share and passes
+/// none, leaving it the default per-container gate.
 List<dynamic> rootProviderOverrides({
   required SharedPreferences prefs,
   required LogFileService logFileService,
+  NavigationReadyGate<IncomingShare>? incomingShares,
 }) {
   return [
+    if (incomingShares != null)
+      incomingShareGateProvider.overrideWithValue(incomingShares),
     sharedPreferencesProvider.overrideWithValue(prefs),
     logFileServiceProvider.overrideWithValue(logFileService),
     // The default is a fixed "enabled" with nothing behind it, because the

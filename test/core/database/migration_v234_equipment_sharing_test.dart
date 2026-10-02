@@ -87,8 +87,8 @@ void main() {
   }
 
   test('v234 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v239 (#2275) and v240 (#1926) landed on top; the
-    // newest rung owns the exact assertion.
+    // Relaxed once v237 (#2326), v239 (#2275) and v240 (#1926) landed on
+    // top; the newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(234));
     expect(AppDatabase.migrationVersions, contains(234));
     expect(AppDatabase.migrationStepCount(233), greaterThanOrEqualTo(1));

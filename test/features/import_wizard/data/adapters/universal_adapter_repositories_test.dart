@@ -35,5 +35,9 @@ void main() {
     expect(repos!.siteClassificationRepository, isNotNull);
     // Without it every site feature in the file is dropped (#2200).
     expect(repos!.siteFeatureRepository, isNotNull);
+    // Without these every fill in a fills CSV is skipped (cylinder
+    // passports phase 5).
+    expect(repos!.cylinderFillRepository, isNotNull);
+    expect(repos!.cylinderPassportRepository, isNotNull);
   });
 }

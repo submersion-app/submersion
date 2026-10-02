@@ -5,11 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
+import 'package:submersion/core/services/export/csv/csv_fills_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_sites_writer.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_dives_csv_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_equipment_csv_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_fills_csv_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_sites_csv_parser.dart';
 
 import '../../../../../core/services/export/csv/csv_test_fixtures.dart';
@@ -29,6 +31,27 @@ void main() {
     expect(const SubmersionEquipmentCsvParser().supportedFormats, [
       ImportFormat.submersionEquipmentCsv,
     ]);
+    expect(const SubmersionFillsCsvParser().supportedFormats, [
+      ImportFormat.submersionFillsCsv,
+    ]);
+  });
+
+  test('a unit a column cannot hold is reported once, for fills', () async {
+    final csv = CsvFillsWriter(
+      CsvExportUnits.metric,
+    ).write(goldenFills()).replaceFirst('Pressure (bar)', 'Pressure (m)');
+    final payload = await const SubmersionFillsCsvParser().parse(_bytes(csv));
+    final unitWarnings = payload.warnings.where(
+      (w) => w.message.contains('Pressure (m)') && w.itemIndex == null,
+    );
+    expect(unitWarnings, hasLength(1));
+    expect(
+      payload
+          .entitiesOf(ImportEntityType.fills)
+          .first
+          .containsKey('pressureBar'),
+      isFalse,
+    );
   });
 
   test('a unit a column cannot hold is reported once, for dives', () async {

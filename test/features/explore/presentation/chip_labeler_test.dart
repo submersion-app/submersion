@@ -1,0 +1,350 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/registry/query_field.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/explore/domain/explore_compilation.dart';
+import 'package:submersion/features/explore/domain/explore_fields.dart';
+import 'package:submersion/features/explore/domain/explore_subject_fields.dart';
+import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/features/explore/domain/query_model.dart';
+import 'package:submersion/features/explore/presentation/chip_labeler.dart';
+import 'package:submersion/features/explore/presentation/explore_label_lookup.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations_de.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
+
+void main() {
+  // The app loads date symbols through its localization delegates.
+  setUpAll(initializeDateFormatting);
+
+  final l10n = AppLocalizationsEn();
+  final metric = ChipLabeler(l10n, const UnitFormatter(AppSettings()));
+  final imperial = ChipLabeler(
+    l10n,
+    const UnitFormatter(
+      AppSettings(
+        depthUnit: DepthUnit.feet,
+        temperatureUnit: TemperatureUnit.fahrenheit,
+        pressureUnit: PressureUnit.psi,
+      ),
+    ),
+  );
+
+  test('numeric clauses show the value in the diver unit', () {
+    final chip = ClauseChip(
+      field: exploreField('depth')!,
+      op: ClauseOp.gt,
+      value: 20.0,
+      dimension: FieldDimension.depth,
+    );
+    expect(metric.label(chip), 'Depth over 20m');
+    expect(imperial.label(chip), 'Depth over 66ft');
+  });
+
+  ClauseChip chip(
+    ExploreField f,
+    Object v, {
+    FieldDimension d = FieldDimension.none,
+    ClauseOp op = ClauseOp.gte,
+  }) => ClauseChip(field: f, op: op, value: v, dimension: d);
+
+  test('every catalog field\'s label keys resolve to a string', () {
+    // A key with no string would come back as itself; a new field cannot
+    // leave its label out, as labelKey is required (#2641).
+    for (final f in kExploreFields) {
+      for (final key in [f.labelKey, ?f.offLabelKey]) {
+        expect(exploreLabelForKey(l10n, key), isNot(key), reason: f.name);
+      }
+      expect(metric.fieldName(f), exploreLabelForKey(l10n, f.labelKey));
+    }
+  });
+
+  test('each dimension formats its own way', () {
+    expect(
+      metric.label(
+        chip(exploreField('bottomTime')!, 45.0, d: FieldDimension.minutes),
+      ),
+      'Bottom time at least 45 min',
+    );
+    expect(
+      metric.label(chip(exploreField('o2')!, 32.0, d: FieldDimension.percent)),
+      'Oxygen at least 32%',
+    );
+    expect(
+      metric.label(
+        chip(exploreField('diveNumber')!, 7.0, d: FieldDimension.count),
+      ),
+      'Dive number at least 7',
+    );
+    // A non-integer count keeps its fraction rather than rounding silently.
+    expect(
+      metric.label(chip(exploreField('rating')!, 3.5, d: FieldDimension.count)),
+      'Rating at least 3.5',
+    );
+  });
+
+  test('each operator has its own word', () {
+    for (final entry in {
+      ClauseOp.gt: 'over',
+      ClauseOp.gte: 'at least',
+      ClauseOp.lt: 'under',
+      ClauseOp.lte: 'at most',
+      ClauseOp.eq: 'of',
+    }.entries) {
+      expect(
+        metric.label(
+          chip(
+            exploreField('diveNumber')!,
+            3.0,
+            d: FieldDimension.count,
+            op: entry.key,
+          ),
+        ),
+        'Dive number ${entry.value} 3',
+        reason: entry.key.name,
+      );
+    }
+  });
+
+  test('the no-buddy flag and a single enum value', () {
+    expect(
+      metric.label(chip(exploreField('noBuddy')!, true, op: ClauseOp.eq)),
+      'No buddy',
+    );
+    expect(
+      metric.label(chip(exploreField('diveMode')!, 'ccr', op: ClauseOp.eq)),
+      'Dive mode: Closed Circuit Rebreather',
+    );
+  });
+
+  test('between, enum, not, flags and time', () {
+    expect(
+      metric.label(
+        ClauseChip(
+          field: exploreField('waterTemp')!,
+          op: ClauseOp.between,
+          value: [10.0, 15.0],
+          dimension: FieldDimension.temperature,
+        ),
+      ),
+      'Water temperature 10°C to 15°C',
+    );
+    expect(
+      metric.label(
+        ClauseChip(
+          field: exploreField('waterType')!,
+          op: ClauseOp.inList,
+          value: ['salt', 'fresh'],
+          dimension: FieldDimension.none,
+        ),
+      ),
+      'Water type: Salt Water, Fresh Water',
+    );
+    expect(
+      metric.label(
+        ClauseChip(
+          field: exploreField('waterType')!,
+          op: ClauseOp.not,
+          value: ['salt'],
+          dimension: FieldDimension.none,
+        ),
+      ),
+      'Water type not Salt Water',
+    );
+    expect(
+      metric.label(
+        ClauseChip(
+          field: exploreField('favorite')!,
+          op: ClauseOp.eq,
+          value: true,
+          dimension: FieldDimension.none,
+        ),
+      ),
+      'Favourite',
+    );
+    expect(
+      metric.label(
+        ClauseChip(
+          field: exploreField('deco')!,
+          op: ClauseOp.eq,
+          value: false,
+          dimension: FieldDimension.none,
+        ),
+      ),
+      'No decompression',
+    );
+    expect(
+      metric.label(
+        const MentionChip(
+          kind: MentionKind.place,
+          entry: NameEntry(
+            subject: QuerySubject.sites,
+            label: 'Bonaire',
+            ids: ['s1'],
+            target: NameTarget.sitePlace,
+          ),
+        ),
+      ),
+      'Bonaire',
+    );
+    expect(
+      metric.label(TimeChip(start: DateTime(2025, 1, 1))),
+      startsWith('Since '),
+    );
+    // The end is the last included day, so the label names the day after.
+    expect(
+      metric.label(TimeChip(end: DateTime(2021, 12, 31))),
+      'Before ${const UnitFormatter(AppSettings()).formatDate(DateTime(2022, 1, 1))}',
+    );
+    expect(
+      metric.label(
+        TimeChip(start: DateTime(2025, 1, 1), end: DateTime(2025, 12, 31)),
+      ),
+      contains(' to '),
+    );
+  });
+
+  test('enum values are shown in the app language', () {
+    final german = ChipLabeler(
+      AppLocalizationsDe(),
+      const UnitFormatter(AppSettings()),
+    );
+    final water = chip(exploreField('waterType')!, ['salt'], op: ClauseOp.eq);
+    final days = chip(exploreField('weekday')!, [
+      'mon',
+      'sun',
+    ], op: ClauseOp.inList);
+    expect(
+      german.label(water),
+      contains(AppLocalizationsDe().enum_waterType_salt),
+    );
+    expect(german.label(water), isNot(contains('salt')));
+    expect(metric.label(days), 'Weekday: Mon, Sun');
+    expect(german.label(days), 'Wochentag: Mo, So');
+    expect(
+      metric.label(
+        chip(exploreField('entryMethod')!, ['giantStride'], op: ClauseOp.eq),
+      ),
+      contains('Giant Stride'),
+    );
+    expect(
+      metric.label(
+        chip(exploreField('currentStrength')!, ['strong'], op: ClauseOp.not),
+      ),
+      contains('Strong'),
+    );
+    // A dive type is the diver's own name.
+    expect(
+      metric.label(chip(exploreField('diveType')!, 'Night', op: ClauseOp.eq)),
+      contains('Night'),
+    );
+  });
+
+  test('every catalog enum value has a label', () {
+    // The catalog reads its values from the query registry; the labeler
+    // maps them through the Dart enums. Every value must make that trip:
+    // a value with no arm would come back as its raw name (#2641).
+    for (final field in kExploreFields) {
+      if (field.kind != ExploreValueKind.enumName) continue;
+      final values = field.enumValues;
+      expect(values, isNotEmpty, reason: field.name);
+      for (final v in values!) {
+        expect(
+          metric.enumValue(field, v),
+          isNot(v),
+          reason: '${field.name} $v',
+        );
+      }
+    }
+  });
+
+  test('a minutes value uses the translated unit', () {
+    final german = ChipLabeler(
+      AppLocalizationsDe(),
+      const UnitFormatter(AppSettings()),
+    );
+    final bottom = ClauseChip(
+      field: exploreField('bottomTime')!,
+      op: ClauseOp.gte,
+      value: 45.0,
+      dimension: FieldDimension.minutes,
+    );
+    expect(german.label(bottom), contains('45 Min.'));
+    expect(metric.label(bottom), contains('45 min'));
+  });
+
+  test('SAC reads in the diver pressure unit, findings by rule name', () {
+    final sac = ClauseChip(
+      field: exploreField('sac')!,
+      op: ClauseOp.gte,
+      value: 1.5,
+      dimension: FieldDimension.pressureRate,
+    );
+    expect(metric.label(sac), contains('bar/min'));
+    expect(imperial.label(sac), contains('psi/min'));
+    expect(
+      metric.label(
+        chip(exploreField('finding')!, ['rapidAscent'], op: ClauseOp.inList),
+      ),
+      contains(l10n.safetySettings_rule_rapidAscent),
+    );
+    expect(
+      metric.label(
+        chip(exploreField('finalStop')!, ['unstable'], op: ClauseOp.inList),
+      ),
+      contains(l10n.query_dives_finalStop_unstable),
+    );
+  });
+
+  group('phase 3 subjects', () {
+    test('every subject field has a registry label', () {
+      for (final f in kExploreSubjectFields.values.expand((l) => l)) {
+        final name = metric.fieldName(f);
+        expect(name, isNot(f.field!.labelKey), reason: f.name);
+        expect(name, isNot(f.name), reason: f.name);
+      }
+    });
+
+    test('a date field reads as a period', () {
+      final f = exploreFieldFor(ParsedSubject.sites, 'lastDived')!.field;
+      final label = metric.label(
+        ClauseChip(
+          field: f,
+          op: ClauseOp.lt,
+          value: (start: DateTime(2022), end: DateTime(2022, 12, 31)),
+          dimension: FieldDimension.none,
+        ),
+      );
+      expect(label, startsWith('${metric.fieldName(f)}: '));
+      expect(label, contains('2022'));
+    });
+
+    test('a due window reads in days', () {
+      final f = exploreFieldFor(
+        ParsedSubject.equipment,
+        'serviceDueWithin',
+      )!.field;
+      final label = metric.label(
+        ClauseChip(
+          field: f,
+          op: ClauseOp.lte,
+          value: 30,
+          dimension: FieldDimension.none,
+        ),
+      );
+      expect(label, contains('30 days'));
+    });
+
+    test('a chip about the dives says so', () {
+      final chip = QueryChip(
+        ref: ChipRef.time,
+        index: 0,
+        payload: TimeChip(start: DateTime(2026)),
+        viaDives: true,
+      );
+      expect(metric.chipLabel(chip), startsWith('Dives: '));
+    });
+  });
+}

@@ -6,7 +6,13 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
@@ -72,6 +78,12 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   final PlannerWaterType Function() _getDefaultPlannerWaterType;
   final DivePlanRepository? _repository;
 
+  /// Loads the diver's equipment, for refreshing a mission's scooters from
+  /// the items they were picked from when a plan is opened.
+  final Future<List<EquipmentItem>> Function() _loadEquipment;
+
+  static final _log = LoggerService.forClass(DivePlanNotifier);
+
   /// The persisted aggregate this state was loaded from (or last saved as);
   /// preserves fields the legacy state does not carry across a save cycle.
   domain.DivePlan? _loaded;
@@ -98,6 +110,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     PlanGradientFactors Function()? getDefaultGradientFactors,
     PlannerWaterType Function()? getDefaultPlannerWaterType,
     DivePlanRepository? repository,
+    Future<List<EquipmentItem>> Function()? loadEquipment,
   }) {
     return DivePlanNotifier._(
       calculator,
@@ -108,6 +121,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       getDefaultPlannerWaterType:
           getDefaultPlannerWaterType ?? (() => PlannerWaterType.salt),
       repository: repository,
+      loadEquipment: loadEquipment ?? (() async => const <EquipmentItem>[]),
     );
   }
 
@@ -117,10 +131,12 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     required PlanGradientFactors Function() getDefaultGradientFactors,
     required PlannerWaterType Function() getDefaultPlannerWaterType,
     DivePlanRepository? repository,
+    required Future<List<EquipmentItem>> Function() loadEquipment,
   }) : _getDefaultReservePressure = getDefaultReservePressure,
        _getDefaultGradientFactors = getDefaultGradientFactors,
        _getDefaultPlannerWaterType = getDefaultPlannerWaterType,
        _repository = repository,
+       _loadEquipment = loadEquipment,
        super(
          _createInitialState(
            reservePressure: getDefaultReservePressure(),
@@ -243,6 +259,19 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     if (plan == null || !mounted) return false;
     _loaded = plan;
     state = stateFromDivePlan(plan);
+    final mission = plan.mission;
+    if (mission != null) {
+      // A scooter picked from equipment follows the live item; a manual or
+      // deleted one keeps the numbers stored with the plan.
+      final live = MissionEdits.withLiveScooters(
+        mission,
+        await _liveEquipment(plan.id),
+      );
+      if (!mounted) return false;
+      // Regenerated once, so the profile always matches the mission it was
+      // saved with; an edit made while the equipment loaded wins.
+      if (state.mission == mission) _setMission(live, markDirty: false);
+    }
     return true;
   }
 
@@ -374,8 +403,11 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       ),
     ];
 
+    // A quick plan replaces the whole profile, so it also ends a DPV mission
+    // that was generating the old one.
     state = state.copyWith(
       segments: segments,
+      clearMission: true,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
@@ -388,10 +420,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// Add a new tank to the plan.
   void addTank(DiveTank tank) {
     final tanks = [...state.tanks, tank];
-    state = state.copyWith(
-      tanks: tanks,
-      isDirty: true,
-      updatedAt: DateTime.now(),
+    state = _withMissionSegments(
+      state.copyWith(tanks: tanks, isDirty: true, updatedAt: DateTime.now()),
     );
   }
 
@@ -462,11 +492,13 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       return s;
     }).toList();
 
-    state = state.copyWith(
-      tanks: tanks,
-      segments: segments,
-      isDirty: true,
-      updatedAt: DateTime.now(),
+    state = _withMissionSegments(
+      state.copyWith(
+        tanks: tanks,
+        segments: segments,
+        isDirty: true,
+        updatedAt: DateTime.now(),
+      ),
     );
   }
 
@@ -486,11 +518,13 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       return s;
     }).toList();
 
-    state = state.copyWith(
-      tanks: tanks,
-      segments: segments,
-      isDirty: true,
-      updatedAt: DateTime.now(),
+    state = _withMissionSegments(
+      state.copyWith(
+        tanks: tanks,
+        segments: segments,
+        isDirty: true,
+        updatedAt: DateTime.now(),
+      ),
     );
   }
 
@@ -528,14 +562,16 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     double? finalStretch,
     double? descent,
   }) {
-    state = state.copyWith(
-      ascentRate: ascent,
-      intermediateAscentRate: intermediate,
-      shallowAscentRate: shallow,
-      finalAscentRate: finalStretch,
-      descentRate: descent,
-      isDirty: true,
-      updatedAt: DateTime.now(),
+    state = _withMissionSegments(
+      state.copyWith(
+        ascentRate: ascent,
+        intermediateAscentRate: intermediate,
+        shallowAscentRate: shallow,
+        finalAscentRate: finalStretch,
+        descentRate: descent,
+        isDirty: true,
+        updatedAt: DateTime.now(),
+      ),
     );
   }
 
@@ -709,6 +745,79 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       isDirty: true,
       updatedAt: DateTime.now(),
     );
+  }
+
+  // --------------------------------------------------------------------------
+  // DPV mission (issue #2086)
+  // --------------------------------------------------------------------------
+
+  /// Turns the plan into a DPV mission, starting from [starter].
+  void enableMission(DpvMission starter) => _setMission(starter);
+
+  /// Replaces the mission and regenerates the plan's segments from it.
+  void updateMission(DpvMission mission) => _setMission(mission);
+
+  /// Applies [edit] to the mission as it is now, not as a widget last saw
+  /// it: a value committed between a build and a callback survives. Does
+  /// nothing when no mission is on.
+  void editMission(DpvMission Function(DpvMission current) edit) {
+    final current = state.mission;
+    if (current == null) return;
+    final next = edit(current);
+    // An edit that changes nothing (0 typed over no current) is not a change
+    // to save.
+    if (next == current) return;
+    _setMission(next);
+  }
+
+  /// Turns the mission off. The segments it last generated stay as ordinary
+  /// segments the diver can edit.
+  void disableMission() {
+    state = state.copyWith(
+      clearMission: true,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  void _setMission(DpvMission mission, {bool markDirty = true}) {
+    state = _withMissionSegments(
+      state.copyWith(
+        mission: mission,
+        isDirty: markDirty ? true : state.isDirty,
+        updatedAt: markDirty ? DateTime.now() : state.updatedAt,
+      ),
+    );
+  }
+
+  /// [s] with its segments regenerated from its mission, when it has one.
+  /// The generated profile also reads the plan's tanks and rates, so every
+  /// edit to those passes through here too.
+  static DivePlanState _withMissionSegments(DivePlanState s) {
+    final mission = s.mission;
+    if (mission == null) return s;
+    return s.copyWith(
+      segments: const MissionEngine().roundTripSegments(
+        plan: divePlanFromState(s),
+        mission: mission,
+      ),
+    );
+  }
+
+  /// The diver's equipment, or none when it cannot be read: a mission's
+  /// stored scooters are complete, so the plan still opens.
+  Future<List<EquipmentItem>> _liveEquipment(String planId) async {
+    try {
+      return await _loadEquipment();
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not load equipment to refresh the scooters of plan $planId; '
+        'using the stored ones',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const [];
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -908,6 +1017,7 @@ final divePlanNotifierProvider =
         getDefaultPlannerWaterType: () =>
             read(settingsProvider).defaultPlannerWaterType,
         repository: read(divePlanRepositoryProvider),
+        loadEquipment: () => read(allEquipmentProvider.future),
       );
 
       // `listen`, never `watch`: this reacts to settings without rebuilding,

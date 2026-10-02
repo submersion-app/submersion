@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
+import 'package:submersion/features/planner/presentation/mission/mission_leg_list.dart';
+import 'package:submersion/features/planner/presentation/mission/mission_toggle_row.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
@@ -48,13 +51,18 @@ class _PlanEditorPaneState extends ConsumerState<PlanEditorPane> {
       });
     });
 
+    final missionOn = ref.watch(
+      divePlanNotifierProvider.select((s) => s.mission != null),
+    );
+
     return ListView(
       controller: _scrollController,
       padding: const EdgeInsets.all(12),
       children: [
         const PlanTankList(),
         const SizedBox(height: 12),
-        const SegmentList(),
+        const MissionToggleRow(),
+        if (missionOn) const MissionLegList() else const SegmentList(),
         const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),

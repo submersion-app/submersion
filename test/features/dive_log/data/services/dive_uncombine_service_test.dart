@@ -592,6 +592,22 @@ void main() {
       expect(await tankSeries.getSeriesForDive(mergedId), hasLength(1));
     });
 
+    test('an unattributed series takes the only source of its segment '
+        '(#2440)', () async {
+      final mergedId = await mergeTwoImports();
+      // A legacy combined dive whose series never got a source.
+      await (db.update(db.tankPressureSeries)
+            ..where((t) => t.diveId.equals(mergedId)))
+          .write(const TankPressureSeriesCompanion(sourceId: Value(null)));
+
+      final restoredId = (await service.separate(diveId: mergedId)).single;
+
+      final restoredSources = await diveRepo.getDataSources(restoredId);
+      expect(restoredSources, hasLength(1));
+      final restoredPressures = await tankSeries.getSeriesForDive(restoredId);
+      expect(restoredPressures.single.sourceId, restoredSources.single.id);
+    });
+
     test('gives each dive its own pressures on a cylinder both breathed '
         '(#2036)', () async {
       // One cylinder across a surface interval: combine carries it as one

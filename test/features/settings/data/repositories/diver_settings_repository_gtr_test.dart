@@ -33,13 +33,13 @@ void main() {
     });
 
     test(
-      'new settings default to hidden, calculated, 50 bar reserve',
+      'new settings default to hidden, the computer, 50 bar reserve',
       () async {
         await repository.createSettingsForDiver('d1');
         final loaded = await repository.getSettingsForDiver('d1');
         expect(loaded, isNotNull);
         expect(loaded!.defaultShowGtr, isFalse);
-        expect(loaded.defaultGtrSource, MetricDataSource.calculated);
+        expect(loaded.defaultGtrSource, MetricDataSource.computer);
         expect(loaded.gtrReservePressure, 50.0);
       },
     );

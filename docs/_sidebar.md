@@ -25,6 +25,7 @@
   * [Multi-Gas Diving](features/multi-gas.md)
   * [Buddies & Certs](features/buddies.md)
   * [Species](features/marine-life.md)
+  * [Photo and Video Matching](features/media-matching.md)
   * [Trips](features/trips.md)
   * [Tags](features/tags.md)
 

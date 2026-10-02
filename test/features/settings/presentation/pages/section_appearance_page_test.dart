@@ -18,10 +18,13 @@ Widget _buildTestWidget(
   bool embedded = false,
   VoidCallback? onColumnConfigTap,
   List<dynamic>? overrides,
+  MockSettingsNotifier? notifier,
 }) {
   return ProviderScope(
     overrides: [
-      settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      settingsProvider.overrideWith(
+        (ref) => notifier ?? MockSettingsNotifier(),
+      ),
       ...?overrides?.cast(),
     ],
     child: MaterialApp(
@@ -59,6 +62,28 @@ void main() {
       expect(find.text('Show Profile Panel in Table View'), findsOneWidget);
       expect(find.text('Show data source badges'), findsOneWidget);
     });
+
+    testWidgets(
+      'the dive figure switch is under Dive Details, off, and saves',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(400, 4000));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        final notifier = MockSettingsNotifier();
+
+        await tester.pumpWidget(_buildTestWidget('dives', notifier: notifier));
+        await tester.pumpAndSettle();
+
+        final tile = find.widgetWithText(
+          SwitchListTile,
+          'Show diver figure on dives',
+        );
+        expect(tile, findsOneWidget);
+        expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+        await tester.tap(tile);
+        await tester.pumpAndSettle();
+        expect(notifier.state.showDiveFigure, isTrue);
+      },
+    );
   });
 
   group('SectionAppearancePage - Sites section', () {

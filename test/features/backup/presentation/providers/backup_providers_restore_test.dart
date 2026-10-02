@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/database_service.dart';
@@ -177,6 +178,17 @@ class _FakePostRestoreSafetyReview implements PostRestoreSafetyReview {
   }
 }
 
+/// A backup file path inside a fresh temp dir that is removed after the
+/// current test. Test processes run in parallel against one real $TMPDIR, so
+/// a name built from the clock alone is not unique across them.
+File _scratchBackupFile(String prefix) {
+  final dir = Directory.systemTemp.createTempSync(prefix);
+  addTearDown(() {
+    if (dir.existsSync()) dir.deleteSync(recursive: true);
+  });
+  return File(p.join(dir.path, '${prefix}backup.db'));
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -218,27 +230,15 @@ void main() {
 
   /// A throwaway backup file for the restoreFromFilePath entry point.
   Future<String> tempBackupPath(String tag) async {
-    final tmp = File(
-      '${Directory.systemTemp.path}/notifier_restore_${tag}_'
-      '${DateTime.now().microsecondsSinceEpoch}.db',
-    );
+    final tmp = _scratchBackupFile('notifier_restore_${tag}_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
     return tmp.path;
   }
 
   test('restoreFromFilePath threads the mode and completes', () async {
     final container = makeContainer();
-    final tmp = File(
-      '${Directory.systemTemp.path}/notifier_restore_'
-      '${DateTime.now().microsecondsSinceEpoch}.db',
-    );
+    final tmp = _scratchBackupFile('notifier_restore_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
 
     await container
         .read(backupOperationProvider.notifier)
@@ -263,14 +263,8 @@ void main() {
       backupOperationProvider,
       (_, next) => messages.add(next.message),
     );
-    final tmp = File(
-      '${Directory.systemTemp.path}/notifier_restore_migration_'
-      '${DateTime.now().microsecondsSinceEpoch}.db',
-    );
+    final tmp = _scratchBackupFile('notifier_restore_migration_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
 
     await container
         .read(backupOperationProvider.notifier)
@@ -364,14 +358,8 @@ void main() {
       'to idle so the page can prompt', () async {
     service.requireSecret = true;
     final container = makeContainer();
-    final tmp = File(
-      '${Directory.systemTemp.path}/notifier_enc_'
-      '${DateTime.now().microsecondsSinceEpoch}.db',
-    );
+    final tmp = _scratchBackupFile('notifier_enc_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
 
     await expectLater(
       container
@@ -401,14 +389,8 @@ void main() {
       ..requireSecret = true
       ..correctSecret = 'right';
     final container = makeContainer();
-    final tmp = File(
-      '${Directory.systemTemp.path}/notifier_wrongpw_'
-      '${DateTime.now().microsecondsSinceEpoch}.db',
-    );
+    final tmp = _scratchBackupFile('notifier_wrongpw_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
 
     // A wrong secret must propagate (not become an error state), so the
     // dialog stays open with its inline error instead of closing on success.

@@ -1,16 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/theme/full_themes/console_theme.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -20,8 +24,12 @@ import 'package:submersion/features/trips/presentation/widgets/dense_trip_list_t
 import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/selection_contract.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -49,8 +57,40 @@ class _MockTripListNotifier
   /// Ids bulk delete actually asked to remove.
   final deleted = <String>[];
 
+  /// What the repository answers: false refuses every delete and hide.
+  bool allowed = true;
+
+  /// A trip whose delete throws, as a failed profile read inside the
+  /// notifier would (issue #2682).
+  String? throwsOn;
+
   @override
-  Future<void> deleteTrip(String id) async => deleted.add(id);
+  Future<bool> deleteTrip(String id) async {
+    if (id == throwsOn) throw StateError('no profile');
+    deleted.add(id);
+    return allowed;
+  }
+
+  /// Ids bulk delete hid instead (issue #2594), in one batch.
+  final hidden = <String>[];
+
+  /// A hide throws, as a database error does (issue #2677).
+  bool failHides = false;
+
+  /// Whether the batch hide throws (issue #2682).
+  bool hideThrows = false;
+
+  /// Holds a hide open until the test completes it.
+  Completer<int>? hideGate;
+
+  @override
+  Future<int> hideTrips(List<String> ids) async {
+    if (hideGate case final gate?) return gate.future;
+    if (failHides) throw StateError('database unavailable');
+    if (hideThrows) throw StateError('no profile');
+    hidden.addAll(ids);
+    return allowed ? ids.length : 0;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -78,11 +118,13 @@ TripWithStats _makeTrip({
   int diveCount = 0,
   double? maxDepth,
   bool isShared = false,
+  String? diverId,
 }) {
   return TripWithStats(
     trip: Trip(
       id: id,
       name: name,
+      diverId: diverId,
       startDate: startDate ?? DateTime(2024, 6, 1),
       endDate: endDate ?? DateTime(2024, 6, 7),
       location: location,
@@ -133,6 +175,8 @@ Future<List<Override>> _buildPhoneOverrides({
   ListViewMode viewMode = ListViewMode.detailed,
   String? highlightedTripId,
   List<Diver>? divers,
+  List<TripWithStats>? allTrips,
+  TripFilterState? filter,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -142,7 +186,7 @@ Future<List<Override>> _buildPhoneOverrides({
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     tripListNotifierProvider.overrideWith(
-      (ref) => _MockTripListNotifier(trips),
+      (ref) => _MockTripListNotifier(allTrips ?? trips),
     ),
     tripListViewModeProvider.overrideWith((ref) => viewMode),
     tripTableConfigProvider.overrideWith(
@@ -151,10 +195,64 @@ Future<List<Override>> _buildPhoneOverrides({
     sortedFilteredTripsProvider.overrideWith((ref) => AsyncValue.data(trips)),
     highlightedTripIdProvider.overrideWith((ref) => highlightedTripId),
     if (divers != null) allDiversProvider.overrideWith((ref) async => divers),
+    if (filter != null) tripFilterProvider.overrideWith((ref) => filter),
   ];
 }
 
 void main() {
+  // The title's subtitle counts the list (#2669), in both the phone app bar
+  // and the desktop pane header.
+  group('entry count subtitle', () {
+    testWidgets('a filter counts against every trip', (tester) async {
+      final all = [
+        _makeTrip(id: 't1', name: 'Bonaire'),
+        _makeTrip(id: 't2', name: 'Palau'),
+        _makeTrip(id: 't3', name: 'Truk'),
+      ];
+      final overrides = await _buildPhoneOverrides(
+        trips: all.take(1).toList(),
+        allTrips: all,
+        filter: const TripFilterState(equipmentId: 'reg'),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 of 3 trips'), findsOneWidget);
+    });
+
+    for (final showAppBar in const [true, false]) {
+      testWidgets('${showAppBar ? 'app bar' : 'compact bar'} counts the list', (
+        tester,
+      ) async {
+        final overrides = await _buildPhoneOverrides(
+          trips: [
+            _makeTrip(id: 't1', name: 'Bonaire'),
+            _makeTrip(id: 't2', name: 'Palau'),
+          ],
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: TripListContent(showAppBar: showAppBar),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(
+            of: find.byType(FeatureAppBarTitle),
+            matching: find.text('2 trips'),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+  });
   group('bulk delete', () {
     late _MockTripListNotifier notifier;
 
@@ -170,6 +268,10 @@ void main() {
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
+          // No profile yet: every trip is the diver's to delete. The
+          // delete reads these before its dialog (issue #2682).
+          validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+          allDiversProvider.overrideWith((_) async => const []),
           tripListNotifierProvider.overrideWith((ref) => notifier),
           tripListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
           tripTableConfigProvider.overrideWith(
@@ -196,7 +298,8 @@ void main() {
       await verifyBulkDelete(
         tester,
         build: () => widget,
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         expectedDeletedCount: 2,
       );
 
@@ -212,10 +315,333 @@ void main() {
       await verifyBulkDeleteCancels(
         tester,
         build: () => widget,
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
       );
 
       expect(notifier.deleted, isEmpty);
+    });
+  });
+
+  group('bulk delete of shared trips (issue #2594)', () {
+    late _MockTripListNotifier notifier;
+    // False takes the list out of the tree, as leaving the page does.
+    final showList = ValueNotifier(true);
+    setUp(() => showList.value = true);
+    tearDownAll(showList.dispose);
+
+    Future<void> openDelete(
+      WidgetTester tester,
+      List<TripWithStats> trips, {
+      bool profileUnreadable = false,
+      bool profilesUncountable = false,
+    }) async {
+      notifier = _MockTripListNotifier(trips);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (_) async =>
+                  profileUnreadable ? throw StateError('no profile') : 'd2',
+            ),
+            allDiversProvider.overrideWith(
+              (_) async => profilesUncountable
+                  ? throw StateError('no divers')
+                  : [_makeDiver('d1'), _makeDiver('d2')],
+            ),
+            tripListNotifierProvider.overrideWith((ref) => notifier),
+            tripListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            tripTableConfigProvider.overrideWith(
+              (ref) => _TestTripTableConfigNotifier(_testConfig),
+            ),
+            sortedFilteredTripsProvider.overrideWith(
+              (ref) => AsyncValue.data(trips),
+            ),
+            highlightedTripIdProvider.overrideWith((ref) => null),
+          ],
+          child: ValueListenableBuilder(
+            valueListenable: showList,
+            builder: (_, show, _) => show
+                ? const TripListContent(showAppBar: true)
+                : const SizedBox(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_delete')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('deletes the profile\'s own and hides another\'s shared', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2', isShared: true),
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      // The title counts only what is deleted; the hidden one is only
+      // removed from this profile (issue #2594 review).
+      expect(find.text('Delete 1 item?'), findsOneWidget);
+      expect(find.textContaining('1 trip will be deleted.'), findsOneWidget);
+      expect(
+        find.textContaining(
+          '1 of them is shared with other profiles and will be deleted for '
+          'everyone.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(
+          '1 shared trip will be removed from your profile only.',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Delete').hitTestable().last);
+      await tester.pumpAndSettle();
+      expect(notifier.deleted, ['mine']);
+      expect(notifier.hidden, ['theirs']);
+    });
+
+    testWidgets('a bulk action the repository refuses shows no snackbar', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      notifier.allowed = false;
+      await tester.tap(find.text('Remove').hitTestable().last);
+      await tester.pumpAndSettle();
+      expect(notifier.hidden, ['theirs']);
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('a failed hide keeps the delete count and says to try again '
+        '(issue #2677)', (tester) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2', isShared: true),
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      notifier.failHides = true;
+      await tester.tap(find.text('Delete').hitTestable().last);
+      await tester.pumpAndSettle();
+      expect(notifier.deleted, ['mine']);
+      expect(
+        find.text('1 deleted · Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a failed hide says so after the list has closed '
+        '(issue #2677)', (tester) async {
+      await openDelete(tester, [
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      final gate = Completer<int>();
+      notifier.hideGate = gate;
+      await tester.tap(find.text('Remove').hitTestable().last);
+      await tester.pump();
+      showList.value = false;
+      await tester.pump();
+      gate.completeError(StateError('database unavailable'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TripListContent), findsNothing);
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a second bulk action replaces the first one\'s message '
+        '(issue #2677)', (tester) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2', isShared: true),
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      notifier.failHides = true;
+      await tester.tap(find.text('Delete').hitTestable().last);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('1 deleted · Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+
+      // A second remove, of the shared trip alone, fails too.
+      await enterSelectionViaMenu(tester);
+      await tester.tap(find.text('Bbb Trip'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_delete')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove').hitTestable().last);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a failed hide alone says only to try again (issue #2677)', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      notifier.failHides = true;
+      await tester.tap(find.text('Remove').hitTestable().last);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('only another profile\'s shared trips: a remove, no delete', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      expect(find.text('Remove 1 item from your profile?'), findsOneWidget);
+      await tester.tap(find.text('Remove').hitTestable().last);
+      await tester.pumpAndSettle();
+      expect(notifier.deleted, isEmpty);
+      expect(notifier.hidden, ['theirs']);
+    });
+    // Read as "no profile", the split offered to delete another profile's
+    // shared trip too, and each delete then threw on the same read
+    // (issue #2682).
+    testWidgets('an unreadable profile opens no dialog and deletes nothing', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2', isShared: true),
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ], profileUnreadable: true);
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+      expect(notifier.deleted, isEmpty);
+      expect(notifier.hidden, isEmpty);
+      // The selection stays, so the diver can try again.
+      expect(find.byKey(const ValueKey('selection_overflow')), findsOneWidget);
+    });
+
+    // Without the count the dialog would drop the "deleted for everyone"
+    // line for the profile's own shared trip (issue #2682).
+    testWidgets('uncountable profiles open no dialog and delete nothing', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2', isShared: true),
+      ], profilesUncountable: true);
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+      expect(notifier.deleted, isEmpty);
+    });
+
+    // A read that fails after the dialog stopped the loop part way with no
+    // message (issue #2682).
+    testWidgets('a delete that fails partway reports what was done and the '
+        'failure', (tester) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'a', name: 'Aaa Trip', diverId: 'd2'),
+        _makeTrip(id: 'b', name: 'Bbb Trip', diverId: 'd2'),
+      ]);
+      notifier.throwsOn = 'b';
+      await tester.tap(find.text('Delete').hitTestable().last);
+      await tester.pumpAndSettle();
+
+      expect(notifier.deleted, ['a']);
+      expect(
+        find.text('1 deleted · Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a hide that fails after the deletes reports both', (
+      tester,
+    ) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2'),
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ]);
+      notifier.hideThrows = true;
+      await tester.tap(find.text('Delete').hitTestable().last);
+      await tester.pumpAndSettle();
+
+      expect(notifier.deleted, ['mine']);
+      expect(
+        find.text('1 deleted · Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
     });
   });
 
@@ -256,7 +682,8 @@ void main() {
           locale: const Locale('en'),
           child: const TripListContent(showAppBar: true),
         ),
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         rowRoot: find.ancestor(
           of: find.text('Aaa Trip'),
           matching: find.byType(TripListTile),
@@ -271,6 +698,75 @@ void main() {
         visibleAfterFilter: 1,
       );
     });
+  });
+
+  group('a new filter', () {
+    for (final mode in [ListViewMode.detailed, ListViewMode.table]) {
+      testWidgets('keeps the checks that stay on screen (${mode.name})', (
+        tester,
+      ) async {
+        // Table mode has no menu inside the list (issue #2775), so both
+        // modes enter through the controller a page would pass in.
+        final controller = SelectionController();
+        addTearDown(controller.dispose);
+        final all = <TripWithStats>[
+          _makeTrip(id: 't1', name: 'Aaa Trip'),
+          _makeTrip(id: 't2', name: 'Bbb Trip'),
+        ];
+
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) => MockCurrentDiverIdNotifier(),
+              ),
+              tripListNotifierProvider.overrideWith(
+                (ref) => _MockTripListNotifier(all),
+              ),
+              tripListViewModeProvider.overrideWith((ref) => mode),
+              tripTableConfigProvider.overrideWith(
+                (ref) => _TestTripTableConfigNotifier(_testConfig),
+              ),
+              highlightedTripIdProvider.overrideWith((ref) => null),
+              // A real id set takes a query's time, so the list has a loading
+              // frame.
+              queryFilteredTripIdsProvider.overrideWith(
+                (ref, filter) => Future.delayed(
+                  const Duration(milliseconds: 50),
+                  () => const {'t1', 't2'},
+                ),
+              ),
+            ],
+            locale: const Locale('en'),
+            child: TripListContent(
+              showAppBar: true,
+              selectionController: controller,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        controller.enterExplicit();
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+        await tester.pumpAndSettle();
+        expect(find.text('2 selected'), findsOneWidget);
+
+        // The new filter's id set loads first; the selection must survive that.
+        ProviderScope.containerOf(
+          tester.element(find.byType(TripListContent)),
+        ).read(tripFilterProvider.notifier).state = const TripFilterState(
+          equipmentId: 'e1',
+        );
+        // One frame at once, as the app draws it, before the query answers.
+        await tester.pump();
+        await tester.pumpAndSettle();
+        expect(find.text('2 selected'), findsOneWidget);
+      });
+    }
   });
 
   group('TripListContent in table mode', () {
@@ -381,6 +877,42 @@ void main() {
         3,
         reason: 'rows must repaint as checked, not just the count in the bar',
       );
+    });
+
+    // Table mode owns no app bar (TableModeLayout does), so "Select items"
+    // sits in the page header's overflow and reaches the rows through the
+    // controller the page passes in (issue #2775). The list draws no Select
+    // strip of its own, and the contextual bar opens above the table.
+    testWidgets('draws no Select strip and opens the contextual bar when the '
+        "page's controller enters selection", (tester) async {
+      final controller = SelectionController();
+      addTearDown(controller.dispose);
+      final overrides = await _buildOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Maldives Trip')],
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: TripListContent(
+            showAppBar: true,
+            selectionController: controller,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final exitButton = find.byKey(const ValueKey('selection_exit'));
+
+      expect(find.byKey(selectItemsMenuKey), findsNothing);
+      expect(find.byIcon(Icons.checklist), findsNothing);
+      expect(exitButton, findsNothing);
+
+      controller.enterExplicit();
+      await tester.pumpAndSettle();
+
+      expect(exitButton, findsOneWidget);
+      expect(find.text('0 selected'), findsOneWidget);
     });
 
     testWidgets('shows empty state when no trips', (tester) async {
@@ -883,6 +1415,44 @@ void main() {
     });
   });
 
+  // The header shows no Select icon of its own: "Select items" is the first
+  // overflow entry (issue #2775).
+  group('overflow menu "Select items"', () {
+    for (final showAppBar in [true, false]) {
+      testWidgets('is first in the ${showAppBar ? 'app bar' : 'compact bar'} '
+          'menu and enters selection', (tester) async {
+        final overrides = await _buildPhoneOverrides(
+          trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
+          viewMode: ListViewMode.detailed,
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            locale: const Locale('en'),
+            child: TripListContent(showAppBar: showAppBar),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.checklist), findsNothing);
+
+        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.pumpAndSettle();
+        expect(find.text('Select items'), findsOneWidget);
+        expect(
+          tester.getTopLeft(find.byKey(selectItemsMenuKey)).dy,
+          lessThan(tester.getTopLeft(find.text('Detailed')).dy),
+        );
+
+        await tester.tap(find.byKey(selectItemsMenuKey));
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+        expect(find.text('0 selected'), findsOneWidget);
+      });
+    }
+  });
+
   // ---------------------------------------------------------------------------
   // Empty state (detailed view, no filters)
   // ---------------------------------------------------------------------------
@@ -934,12 +1504,14 @@ void main() {
                   AsyncValue.error(Exception('load-boom'), StackTrace.current),
             ),
           ],
+          locale: const Locale('en'),
           child: const TripListContent(showAppBar: true),
         ),
       );
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
-      expect(find.textContaining('load-boom'), findsOneWidget);
+      expect(find.text("Couldn't load your trips."), findsOneWidget);
+      expect(find.textContaining('load-boom'), findsNothing);
       expect(find.text('Retry'), findsOneWidget);
     });
   });
@@ -1136,6 +1708,37 @@ void main() {
       expect(subtitle.color, theme.colorScheme.onSurfaceVariant);
     });
 
+    testWidgets('a failed search says so without the exception', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Alpha Trip')],
+        viewMode: ListViewMode.detailed,
+      );
+      overrides.add(
+        tripSearchProvider.overrideWith(
+          (ref, query) async => throw StateError('database is locked'),
+        ),
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Mal');
+      await tester.pumpAndSettle();
+
+      expect(find.text("Couldn't search your trips."), findsOneWidget);
+      expect(find.textContaining('database is locked'), findsNothing);
+    });
+
     testWidgets('title keeps the title font family under the console theme', (
       tester,
     ) async {
@@ -1145,17 +1748,16 @@ void main() {
       // literally different typeface from the dive and site titles.
       //
       // Touching consoleLight lazily initializes it, which calls
-      // GoogleFonts.jetBrainsMonoTextTheme(). Disabling runtime fetching keeps
-      // that from reaching the network; the family name is carried on the
-      // TextStyle regardless of whether the font bytes ever load, which is all
-      // this test reads.
+      // GoogleFonts.jetBrainsMonoTextTheme(). The test harness turns off
+      // runtime fetching, so that never reaches the network; the family name
+      // is carried on the TextStyle regardless of whether the font bytes ever
+      // load, which is all this test reads.
       //
       // The app_theme_registry_test hardening (await GoogleFonts.pendingFonts()
       // plus a debugPrint override) does NOT transfer here, because that file
       // uses plain test(). Inside testWidgets, awaiting pendingFonts() from a
       // tear-down never completes, and reassigning debugPrint trips
       // debugAssertAllFoundationVarsUnset, which runs before tear-downs.
-      GoogleFonts.config.allowRuntimeFetching = false;
 
       final titleFamily = consoleLight.textTheme.titleMedium!.fontFamily;
       final bodyFamily = consoleLight.textTheme.bodyLarge!.fontFamily;
@@ -1184,6 +1786,102 @@ void main() {
           .style!;
 
       expect(effective.fontFamily, titleFamily);
+    });
+  });
+
+  group('query filter (#2365, Explore phase 3)', () {
+    final liveaboard = ConditionNode(
+      FieldPath(const ['tripType']),
+      QueryOp.inList,
+      ListValue(const [EnumValue('liveaboard')]),
+    );
+
+    testWidgets('an active query shows its chips above the trips', (
+      tester,
+    ) async {
+      final overrides = [
+        ...await _buildOverrides(
+          trips: [_makeTrip(id: 't1', name: 'Bali Dive Trip')],
+        ),
+        tripFilterProvider.overrideWith(
+          (ref) => TripFilterState(query: liveaboard),
+        ),
+      ];
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+      final frame = tester.widget<QueryChipsFrame>(
+        find.byType(QueryChipsFrame),
+      );
+      expect(frame.query, liveaboard);
+    });
+
+    testWidgets('a query that keeps nothing blames the query', (tester) async {
+      final overrides = [
+        ...await _buildOverrides(trips: []),
+        tripFilterProvider.overrideWith(
+          (ref) => TripFilterState(query: liveaboard),
+        ),
+      ];
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(QueryNoMatchState), findsOneWidget);
+    });
+
+    testWidgets('the phone app bar offers the query filter', (tester) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [_makeTrip(id: 't1', name: 'Bali Dive Trip')],
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(QueryFilterButton), findsOneWidget);
+
+      await tester.tap(find.byType(QueryFilterButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(QueryFilterSheet), findsOneWidget);
+    });
+
+    testWidgets('clearing a query that keeps nothing clears only it', (
+      tester,
+    ) async {
+      final overrides = [
+        ...await _buildOverrides(trips: []),
+        tripFilterProvider.overrideWith(
+          (ref) => TripFilterState(query: liveaboard),
+        ),
+      ];
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(QueryNoMatchState),
+          matching: find.byType(OutlinedButton),
+        ),
+      );
+      await tester.pump();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripListContent)),
+      );
+      expect(container.read(tripFilterProvider).query, isNull);
     });
   });
 }

@@ -177,4 +177,61 @@ void main() {
       expect(controller.camera.zoom, closeTo(12, 1e-6));
     },
   );
+
+  testWidgets('animateTo crosses the date line the short way', (tester) async {
+    final controller = await _pumpMap(tester);
+    controller.move(const LatLng(-17, 170), 5);
+    final animator = MapCameraAnimator(
+      controller: controller,
+      vsync: const TestVSync(),
+    );
+    addTearDown(animator.dispose);
+
+    final done = animator.animateTo(const LatLng(-17, -170));
+    // Sample every frame: a straight lerp from 170 to -170 would sweep back
+    // through Africa and the Americas on its way.
+    final seen = <double>[];
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      seen.add(controller.camera.center.longitude);
+    }
+    await tester.pumpAndSettle();
+    await done;
+
+    expect(seen.every((lng) => lng.abs() >= 169.9), isTrue, reason: '$seen');
+    expect(controller.camera.center.longitude, closeTo(-170, 1e-6));
+  });
+
+  testWidgets('fitAll frames points across the date line', (tester) async {
+    final controller = await _pumpMap(tester);
+    final animator = MapCameraAnimator(
+      controller: controller,
+      vsync: const TestVSync(),
+    );
+    addTearDown(animator.dispose);
+
+    animator.fitAll(const [LatLng(-17, 175), LatLng(-17, -175)]);
+    await tester.pump();
+
+    // Centred on the date line, not on the Greenwich meridian.
+    expect(controller.camera.center.longitude.abs(), greaterThan(179));
+    expect(controller.camera.zoom, greaterThan(4));
+  });
+
+  testWidgets('fitAll never zooms past fitAllMaxZoom for nearby points', (
+    tester,
+  ) async {
+    final controller = await _pumpMap(tester);
+    final animator = MapCameraAnimator(
+      controller: controller,
+      vsync: const TestVSync(),
+    );
+    addTearDown(animator.dispose);
+
+    // Two sites about 100 m apart would otherwise fit near zoom 18.
+    animator.fitAll(const [LatLng(-8.0, 115.0), LatLng(-8.0009, 115.0009)]);
+    await tester.pump();
+
+    expect(controller.camera.zoom, MapCameraAnimator.fitAllMaxZoom);
+  });
 }

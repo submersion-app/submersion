@@ -3,10 +3,10 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 void main() {
-  test('deco stop settings default to visible and calculated', () {
+  test('deco stop settings default to visible and the computer', () {
     const settings = AppSettings();
     expect(settings.showDecoStopsOnProfile, isTrue);
-    expect(settings.defaultDecoStopSource, MetricDataSource.calculated);
+    expect(settings.defaultDecoStopSource, MetricDataSource.computer);
   });
 
   test('copyWith updates the deco stop settings independently', () {
@@ -14,14 +14,14 @@ void main() {
 
     final hidden = settings.copyWith(showDecoStopsOnProfile: false);
     expect(hidden.showDecoStopsOnProfile, isFalse);
-    expect(hidden.defaultDecoStopSource, MetricDataSource.calculated);
+    expect(hidden.defaultDecoStopSource, MetricDataSource.computer);
     expect(hidden.showCeilingOnProfile, settings.showCeilingOnProfile);
 
-    final computer = settings.copyWith(
-      defaultDecoStopSource: MetricDataSource.computer,
+    final calculated = settings.copyWith(
+      defaultDecoStopSource: MetricDataSource.calculated,
     );
-    expect(computer.defaultDecoStopSource, MetricDataSource.computer);
-    expect(computer.defaultCeilingSource, settings.defaultCeilingSource);
-    expect(computer.showDecoStopsOnProfile, isTrue);
+    expect(calculated.defaultDecoStopSource, MetricDataSource.calculated);
+    expect(calculated.defaultCeilingSource, settings.defaultCeilingSource);
+    expect(calculated.showDecoStopsOnProfile, isTrue);
   });
 }

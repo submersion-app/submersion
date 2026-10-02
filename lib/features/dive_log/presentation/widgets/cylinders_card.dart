@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
@@ -16,12 +17,16 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_series_reassign_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_labels.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -67,6 +72,21 @@ class CylindersCard extends ConsumerWidget {
     final knownSerials = Transmitter.knownSerials(
       ref.watch(transmittersProvider).value ?? const <Transmitter>[],
     );
+    // Linked tanks name their trip cylinder and the bottle it held when the
+    // dive started (decided 2026-09-28). Only read when a tank is linked.
+    final tripId = dive.tripId ?? dive.trip?.id;
+    final slotLabels =
+        tripId == null || !dive.tanks.any((t) => t.tripCylinderId != null)
+        ? const <String, TripCylinderTankLabel>{}
+        : ref
+                  .watch(
+                    tripCylinderLabelsAtProvider((
+                      tripId: tripId,
+                      atMillis: dive.effectiveEntryTime.millisecondsSinceEpoch,
+                    )),
+                  )
+                  .value ??
+              const <String, TripCylinderTankLabel>{};
 
     return Card(
       child: Padding(
@@ -90,6 +110,7 @@ class CylindersCard extends ConsumerWidget {
                     ? computerNames[entry.value.computerId]
                     : null,
                 knownSerials: knownSerials,
+                slotLabel: slotLabels[entry.value.tripCylinderId],
               ),
             ),
             if (_canReassign(dive, tankPressures))
@@ -135,10 +156,12 @@ class CylindersCard extends ConsumerWidget {
     required Map<String, List<TankPressurePoint>>? tankPressures,
     required String? sourceName,
     required Set<String> knownSerials,
+    required TripCylinderTankLabel? slotLabel,
   }) {
     final theme = Theme.of(context);
     final serial = normalizeTransmitterSerial(tank.transmitterSerial);
     final serialKnown = serial != null && knownSerials.contains(serial);
+    final nameDerivedRole = tank.roleSource == TankRoleSource.transmitterName;
 
     final pressures = _resolveTankPressures(
       tank: tank,
@@ -230,6 +253,15 @@ class CylindersCard extends ConsumerWidget {
               color: theme.colorScheme.tertiary,
             ),
           ),
+          if (slotLabel != null)
+            Text(
+              tripCylinderTankLine(context.l10n, slotLabel),
+              key: Key('tank-trip-cylinder-${tank.id}'),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          if (nameDerivedRole) _roleFromTransmitterNameLine(context, tank),
           if (serial != null)
             Row(
               children: [
@@ -258,8 +290,37 @@ class CylindersCard extends ConsumerWidget {
       ),
       // Either extra subtitle row makes the tile tall, and M3 centres the
       // leading icon on a tall two-line tile, away from the name.
-      isThreeLine: serial != null || consumptionRow != null,
+      isThreeLine:
+          serial != null ||
+          consumptionRow != null ||
+          slotLabel != null ||
+          nameDerivedRole,
       trailing: _checkInButton(tank),
+    );
+  }
+
+  /// The cylinder's role, marked as the computer's reading of the
+  /// transmitter's name (issue #2595). On a rebreather a bailout named "OC"
+  /// becomes the oxygen supply that way, and every ppO2 figure downstream
+  /// follows the role, so the diver is shown it is unconfirmed. Assigning
+  /// the transmitter (the chip on the serial row) settles it.
+  Widget _roleFromTransmitterNameLine(BuildContext context, DiveTank tank) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.error;
+    return Row(
+      key: Key('tank-role-from-transmitter-name-${tank.id}'),
+      children: [
+        Icon(Icons.help_outline, size: 14, color: color),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            context.l10n.diveLog_tank_roleFromTransmitterName(
+              tank.role.localizedName(context.l10n),
+            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: color),
+          ),
+        ),
+      ],
     );
   }
 

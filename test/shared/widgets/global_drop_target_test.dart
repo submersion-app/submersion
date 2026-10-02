@@ -7,24 +7,64 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/providers/table_details_pane_provider.dart';
+import 'package:submersion/features/media/presentation/helpers/media_drop_destination.dart';
+import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
 
 /// Platform variant that runs tests as macOS (desktop).
 const _macOS = TargetPlatformVariant({TargetPlatform.macOS});
 
+/// One call the drop target made to its media importer.
+typedef _MediaDrop = ({MediaDropDestination destination, List<String> paths});
+
 /// Build a test app that places [GlobalDropTarget] inside a GoRouter.
-Widget _buildTestApp({String initialLocation = '/home'}) {
+///
+/// Media drops are recorded into [mediaDrops] instead of opening the photo
+/// picker, which flutter_test cannot drive. The routes that take media carry
+/// the production route names, which is what the drop target keys on.
+Widget _buildTestApp({
+  String initialLocation = '/home',
+  List<_MediaDrop>? mediaDrops,
+  ProviderContainer? container,
+}) {
   final router = GoRouter(
     initialLocation: initialLocation,
     routes: [
       ShellRoute(
-        builder: (context, state, child) =>
-            Scaffold(body: GlobalDropTarget(child: child)),
+        builder: (context, state, child) => Scaffold(
+          body: GlobalDropTarget(
+            onMediaDrop: (context, ref, destination, paths) async {
+              mediaDrops?.add((destination: destination, paths: paths));
+            },
+            child: child,
+          ),
+        ),
         routes: [
           GoRoute(
             path: '/home',
             builder: (context, state) => const Text('Home Content'),
+          ),
+          GoRoute(
+            path: '/media',
+            name: 'media',
+            builder: (context, state) => const Text('Media Content'),
+          ),
+          GoRoute(
+            path: '/dives',
+            name: 'dives',
+            builder: (context, state) => const Text('Dive List'),
+          ),
+          GoRoute(
+            path: '/dives/:diveId',
+            name: 'diveDetail',
+            builder: (context, state) => const Text('Dive Content'),
           ),
           GoRoute(
             path: '/transfer/import-wizard',
@@ -35,13 +75,16 @@ Widget _buildTestApp({String initialLocation = '/home'}) {
     ],
   );
 
-  return ProviderScope(
-    child: MaterialApp.router(
-      routerConfig: router,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-    ),
+  final app = MaterialApp.router(
+    routerConfig: router,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    // The tests match English snackbar text.
+    locale: const Locale('en'),
   );
+  return container == null
+      ? ProviderScope(child: app)
+      : UncontrolledProviderScope(container: container, child: app);
 }
 
 /// Trigger [onDragDone] and wait for the full async [_handleDrop] chain to
@@ -253,6 +296,36 @@ void main() {
       },
     );
 
+    testWidgets('logs the read failure, naming the file', variant: _macOS, (
+      tester,
+    ) async {
+      final captured = <LogEntry>[];
+      final sub = LoggerService.logStream.listen(captured.add);
+      addTearDown(sub.cancel);
+      await tester.pumpWidget(_buildTestApp());
+      await tester.pumpAndSettle();
+      final missing = p.join(_tempDir.path, 'gone.uddf');
+
+      await _triggerDrop(
+        tester,
+        DropDoneDetails(
+          files: [DropItemFile(missing)],
+          localPosition: Offset.zero,
+          globalPosition: Offset.zero,
+        ),
+      );
+
+      // The snackbar alone left a bug report with no trace of the cause
+      // (#2715).
+      expect(find.text('Could not read file'), findsOneWidget);
+      expect(
+        captured.where(
+          (e) => e.level == LogLevel.warning && e.message.contains(missing),
+        ),
+        isNotEmpty,
+      );
+    });
+
     testWidgets(
       'shows error snackbar when file cannot be read',
       variant: _macOS,
@@ -289,7 +362,7 @@ void main() {
         await _triggerDrop(
           tester,
           DropDoneDetails(
-            files: [_dropItemFromBytes(_pngBytes, 'photo.png')],
+            files: [_dropItemFromBytes(_pngBytes, 'notes.bin')],
             localPosition: Offset.zero,
             globalPosition: Offset.zero,
           ),
@@ -378,5 +451,258 @@ void main() {
       // First file is UDDF -> navigates to wizard.
       expect(find.text('Import Wizard'), findsOneWidget);
     });
+  });
+
+  // Issue #2488: a photo dropped on the Media screen was read as a dive log
+  // and rejected as "Unsupported file type".
+  group('GlobalDropTarget photos and videos', () {
+    setUp(() {
+      _tempDir = Directory.systemTemp.createTempSync('global_drop_media_test');
+    });
+
+    tearDown(() {
+      if (_tempDir.existsSync()) {
+        _tempDir.deleteSync(recursive: true);
+      }
+    });
+
+    DropDoneDetails drop(List<DropItem> files) => DropDoneDetails(
+      files: files,
+      localPosition: Offset.zero,
+      globalPosition: Offset.zero,
+    );
+
+    testWidgets(
+      'a photo dropped on Media opens the library importer',
+      variant: _macOS,
+      (tester) async {
+        final drops = <_MediaDrop>[];
+        await tester.pumpWidget(
+          _buildTestApp(initialLocation: '/media', mediaDrops: drops),
+        );
+        await tester.pumpAndSettle();
+
+        final photo = _dropItemFromBytes(_pngBytes, 'P4204060.jpg');
+        await _triggerDrop(tester, drop([photo]));
+
+        expect(drops, hasLength(1));
+        expect(drops.single.destination, const MediaDropDestination());
+        expect(drops.single.paths, [photo.path]);
+        expect(find.text('Unsupported file type'), findsNothing);
+        expect(find.text('Import Wizard'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'photos and videos dropped on a dive attach to that dive',
+      variant: _macOS,
+      (tester) async {
+        final drops = <_MediaDrop>[];
+        await tester.pumpWidget(
+          _buildTestApp(initialLocation: '/dives/dive-1', mediaDrops: drops),
+        );
+        await tester.pumpAndSettle();
+
+        final photo = _dropItemFromBytes(_pngBytes, 'P4204060.JPG');
+        final video = _dropItemFromBytes(_pngBytes, 'GX010100.MP4');
+        await _triggerDrop(tester, drop([photo, video]));
+
+        expect(drops, hasLength(1));
+        expect(
+          drops.single.destination,
+          const MediaDropDestination(target: DiveAttachTarget('dive-1')),
+        );
+        expect(drops.single.paths, [photo.path, video.path]);
+      },
+    );
+
+    testWidgets(
+      'a mixed drop sends photos to media and the dive log to the wizard',
+      variant: _macOS,
+      (tester) async {
+        final drops = <_MediaDrop>[];
+        await tester.pumpWidget(
+          _buildTestApp(initialLocation: '/media', mediaDrops: drops),
+        );
+        await tester.pumpAndSettle();
+
+        final photo = _dropItemFromBytes(_pngBytes, 'P4204060.jpg');
+        await _triggerDrop(
+          tester,
+          drop([photo, _dropItemFromBytes(_uddfBytes, 'dive.uddf')]),
+        );
+
+        expect(drops.single.paths, [photo.path]);
+        expect(find.text('Import Wizard'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a folder dropped on Media opens the photos inside it',
+      variant: _macOS,
+      (tester) async {
+        final drops = <_MediaDrop>[];
+        await tester.pumpWidget(
+          _buildTestApp(initialLocation: '/media', mediaDrops: drops),
+        );
+        await tester.pumpAndSettle();
+
+        final photo = _dropItemFromBytes(_pngBytes, 'P4204060.jpg');
+        await _triggerDrop(
+          tester,
+          drop([DropItemDirectory(_tempDir.path, [])]),
+        );
+
+        expect(drops.single.paths, [photo.path]);
+        expect(find.text('Import Wizard'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a photo dropped where media cannot go says where to drop it',
+      variant: _macOS,
+      (tester) async {
+        final drops = <_MediaDrop>[];
+        await tester.pumpWidget(_buildTestApp(mediaDrops: drops));
+        await tester.pumpAndSettle();
+
+        await _triggerDrop(
+          tester,
+          drop([_dropItemFromBytes(_pngBytes, 'photo.png')]),
+        );
+
+        expect(drops, isEmpty);
+        expect(
+          find.text(
+            'To link photos and videos, drop them on Media, a dive or a '
+            'dive site',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Unsupported file type'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a folder of photos dropped where media cannot go says where to drop it',
+      variant: _macOS,
+      (tester) async {
+        final drops = <_MediaDrop>[];
+        await tester.pumpWidget(_buildTestApp(mediaDrops: drops));
+        await tester.pumpAndSettle();
+
+        _dropItemFromBytes(_pngBytes, 'P4204060.jpg');
+        await _triggerDrop(
+          tester,
+          drop([DropItemDirectory(_tempDir.path, [])]),
+        );
+
+        expect(drops, isEmpty);
+        expect(
+          find.text(
+            'To link photos and videos, drop them on Media, a dive or a '
+            'dive site',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    // The dive list shows its `?selected=` dive beside it only in a wide
+    // window, and in table mode only with the details pane toggled on.
+    Future<List<_MediaDrop>> dropOnDiveList(
+      WidgetTester tester, {
+      required double width,
+      ListViewMode mode = ListViewMode.detailed,
+      bool tableDetailsPane = true,
+    }) async {
+      tester.view.physicalSize = Size(width, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final container = ProviderContainer(
+        overrides: [
+          diveListViewModeProvider.overrideWith((ref) => mode),
+          tableDetailsPaneProvider.overrideWith((ref, _) => tableDetailsPane),
+        ],
+      );
+      addTearDown(container.dispose);
+      final drops = <_MediaDrop>[];
+      await tester.pumpWidget(
+        _buildTestApp(
+          initialLocation: '/dives?selected=dive-1',
+          mediaDrops: drops,
+          container: container,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await _triggerDrop(
+        tester,
+        drop([_dropItemFromBytes(_pngBytes, 'P4204060.jpg')]),
+      );
+      return drops;
+    }
+
+    testWidgets(
+      'a wide dive list attaches to its selected dive',
+      variant: _macOS,
+      (tester) async {
+        final drops = await dropOnDiveList(tester, width: 1400);
+
+        expect(
+          drops.single.destination,
+          const MediaDropDestination(target: DiveAttachTarget('dive-1')),
+        );
+      },
+    );
+
+    testWidgets(
+      'a dive table with its details pane off does not',
+      variant: _macOS,
+      (tester) async {
+        final drops = await dropOnDiveList(
+          tester,
+          width: 1400,
+          mode: ListViewMode.table,
+          tableDetailsPane: false,
+        );
+
+        expect(drops, isEmpty);
+      },
+    );
+
+    testWidgets('a narrow dive list does not', variant: _macOS, (tester) async {
+      final drops = await dropOnDiveList(tester, width: 900);
+
+      expect(drops, isEmpty);
+    });
+
+    testWidgets(
+      'a drop while a photo picker is open is turned away',
+      variant: _macOS,
+      (tester) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        final sessions = container.read(openPhotoPickerSessionsProvider);
+        sessions.value = 1;
+        final drops = <_MediaDrop>[];
+        await tester.pumpWidget(
+          _buildTestApp(
+            initialLocation: '/media',
+            mediaDrops: drops,
+            container: container,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await _triggerDrop(
+          tester,
+          drop([_dropItemFromBytes(_pngBytes, 'P4204060.jpg')]),
+        );
+
+        expect(drops, isEmpty);
+        expect(find.text('Finish current import first'), findsOneWidget);
+      },
+    );
   });
 }

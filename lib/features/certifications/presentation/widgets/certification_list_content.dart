@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
-import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -26,6 +27,15 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_search_delegate.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
+import 'package:submersion/features/certifications/query/certification_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_list_count_provider.dart';
 
 /// Content widget for the certification list, used in master-detail layout.
 class CertificationListContent extends ConsumerStatefulWidget {
@@ -34,12 +44,20 @@ class CertificationListContent extends ConsumerStatefulWidget {
   final bool showAppBar;
   final Widget? floatingActionButton;
 
+  /// Drives bulk selection from outside the list when set.
+  ///
+  /// In table mode the page's header carries the overflow menu, "Select
+  /// items" among it, so the page has to reach the same controller the rows
+  /// use. Left null, the list owns its own.
+  final SelectionController? selectionController;
+
   const CertificationListContent({
     super.key,
     this.onItemSelected,
     this.selectedId,
     this.showAppBar = true,
     this.floatingActionButton,
+    this.selectionController,
   });
 
   @override
@@ -49,8 +67,19 @@ class CertificationListContent extends ConsumerStatefulWidget {
 
 class _CertificationListContentState
     extends ConsumerState<CertificationListContent> {
-  /// Owns the bulk-selection state machine for this list.
-  final SelectionController _selection = SelectionController();
+  /// The bulk-selection state machine for this list: the page's when it
+  /// passes one, otherwise this list's own.
+  late final SelectionController _selection = _adoptSelection();
+
+  /// Only a controller this list created is this list's to dispose. Set in
+  /// the same step that picks the controller, so the two cannot disagree.
+  bool _ownsSelection = false;
+
+  SelectionController _adoptSelection() {
+    final external = widget.selectionController;
+    _ownsSelection = external == null;
+    return external ?? SelectionController();
+  }
 
   /// Convenience mirrors of the controller, so the widget tree reads clearly.
   bool get _isSelectionMode => _selection.value.isActive;
@@ -73,7 +102,7 @@ class _CertificationListContentState
   @override
   void dispose() {
     _scrollController.dispose();
-    _selection.dispose();
+    if (_ownsSelection) _selection.dispose();
     super.dispose();
   }
 
@@ -95,7 +124,7 @@ class _CertificationListContentState
   void _scrollToSelectedItem() {
     if (widget.selectedId == null) return;
 
-    final certsAsync = ref.read(certificationListNotifierProvider);
+    final certsAsync = ref.read(filteredCertificationsProvider);
     certsAsync.whenData((certs) {
       final index = certs.indexWhere((c) => c.id == widget.selectedId);
       if (index >= 0 && _scrollController.hasClients) {
@@ -130,10 +159,21 @@ class _CertificationListContentState
     }
   }
 
+  void _setQuery(QueryNode? query) =>
+      ref.read(certificationQueryProvider.notifier).state = query;
+
+  /// The list body with the query's chips above it (#2365).
+  Widget _withQueryChips(Widget child) => QueryChipsFrame(
+    root: certificationQueryEntity,
+    query: ref.watch(certificationQueryProvider),
+    onChanged: _setQuery,
+    child: child,
+  );
+
   @override
   Widget build(BuildContext context) {
     final viewMode = ref.watch(certificationListViewModeProvider);
-    final certificationsAsync = ref.watch(certificationListNotifierProvider);
+    final certificationsAsync = ref.watch(filteredCertificationsProvider);
 
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
@@ -149,21 +189,25 @@ class _CertificationListContentState
     final visibleIds = visibleCerts.map((c) => c.id).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && certificationsAsync.hasSettled) {
+        _selection.pruneTo(visibleIds);
+      }
     });
 
     // Built inside the selection listener below so rows re-render as checks
     // change; computing it here would leave the list frozen mid-selection.
     Widget buildContent() {
-      return certificationsAsync.when(
-        data: (certifications) {
-          final sorted = applyCertificationSorting(certifications, sort);
-          return sorted.isEmpty
-              ? _buildEmptyState(context)
-              : _buildCertificationList(context, ref, sorted);
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildErrorState(context, error),
+      return _withQueryChips(
+        certificationsAsync.when(
+          data: (certifications) {
+            final sorted = applyCertificationSorting(certifications, sort);
+            return sorted.isEmpty
+                ? _buildEmptyState(context)
+                : _buildCertificationList(context, ref, sorted);
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => _buildErrorState(context, error),
+        ),
       );
     }
 
@@ -197,6 +241,7 @@ class _CertificationListContentState
                   title: FeatureAppBarTitle(
                     featureId: 'certifications',
                     title: context.l10n.certifications_appBar_title,
+                    subtitle: certificationListCountLabel(context, ref),
                   ),
                   actions: [
                     IconButton(
@@ -211,7 +256,7 @@ class _CertificationListContentState
                       onPressed: () {
                         showSearch(
                           context: context,
-                          delegate: CertificationSearchDelegate(ref),
+                          delegate: CertificationSearchDelegate(),
                         );
                       },
                     ),
@@ -220,13 +265,10 @@ class _CertificationListContentState
                       tooltip: context.l10n.certifications_list_tooltip_sort,
                       onPressed: () => _showSortSheet(context),
                     ),
-                    // The only way into bulk actions: entry by long-press was removed,
-                    // so nothing but this control opens selection mode on touch.
-                    IconButton(
-                      key: const ValueKey('enter_selection'),
-                      icon: const Icon(Icons.checklist),
-                      tooltip: context.l10n.common_selection_enterTooltip,
-                      onPressed: _selection.enterExplicit,
+                    QueryFilterAction(
+                      provider: certificationQueryProvider,
+                      subject: QuerySubject.certifications,
+                      root: certificationQueryEntity,
                     ),
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert),
@@ -248,6 +290,10 @@ class _CertificationListContentState
                           certificationListViewModeProvider,
                         );
                         return [
+                          ...selectItemsMenuEntries(
+                            context,
+                            onSelect: _selection.enterExplicit,
+                          ),
                           ...ListViewModeToggle.menuItems(
                             context,
                             currentMode: currentMode,
@@ -356,7 +402,9 @@ class _CertificationListContentState
     // Same pruning the list path does: drop checked certifications that fell
     // out of the visible list, so the count matches what is on screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && certificationsAsync.hasSettled) {
+        _selection.pruneTo(visibleIds);
+      }
     });
 
     // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
@@ -370,17 +418,18 @@ class _CertificationListContentState
         builder: (context, selection, _) {
           final certifications =
               certificationsAsync.value ?? const <Certification>[];
-          // Table mode has no app bar of its own, so both bars live here: the
-          // contextual one while selecting, and the Select affordance while
-          // not. They share a slot and a height, so the table does not shift
-          // as the mode opens.
+          // Table mode has no app bar of its own: "Select items" sits in the
+          // page header's overflow menu, and the contextual bar opens above
+          // the table while selecting.
           return Column(
             children: [
               if (selection.isActive)
-                _buildSelectionBar(certifications, SelectionBarShell.pane)
-              else
-                SelectionEntryBar(controller: _selection),
-              Expanded(child: _buildTableView(context, certificationsAsync)),
+                _buildSelectionBar(certifications, SelectionBarShell.pane),
+              Expanded(
+                child: _withQueryChips(
+                  _buildTableView(context, certificationsAsync),
+                ),
+              ),
             ],
           );
         },
@@ -454,6 +503,7 @@ class _CertificationListContentState
             child: FeatureAppBarTitle(
               featureId: 'certifications',
               title: context.l10n.certifications_appBar_title,
+              subtitle: certificationListCountLabel(context, ref),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -470,7 +520,7 @@ class _CertificationListContentState
             onPressed: () {
               showSearch(
                 context: context,
-                delegate: CertificationSearchDelegate(ref),
+                delegate: CertificationSearchDelegate(),
               );
             },
           ),
@@ -479,13 +529,11 @@ class _CertificationListContentState
             tooltip: context.l10n.certifications_list_tooltip_sort,
             onPressed: () => _showSortSheet(context),
           ),
-          // The only way into bulk actions: entry by long-press was removed,
-          // so nothing but this control opens selection mode on touch.
-          IconButton(
-            key: const ValueKey('enter_selection'),
-            icon: const Icon(Icons.checklist, size: 20),
-            tooltip: context.l10n.common_selection_enterTooltip,
-            onPressed: _selection.enterExplicit,
+          QueryFilterAction(
+            provider: certificationQueryProvider,
+            subject: QuerySubject.certifications,
+            root: certificationQueryEntity,
+            compact: true,
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
@@ -501,6 +549,10 @@ class _CertificationListContentState
             itemBuilder: (context) {
               final currentMode = ref.read(certificationListViewModeProvider);
               return [
+                ...selectItemsMenuEntries(
+                  context,
+                  onSelect: _selection.enterExplicit,
+                ),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
@@ -652,6 +704,10 @@ class _CertificationListContentState
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    // A query that hid every row is not "nothing here yet".
+    if (ref.watch(certificationQueryProvider) != null) {
+      return QueryNoMatchState(onClear: () => _setQuery(null));
+    }
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -704,8 +760,11 @@ class _CertificationListContentState
           ),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: () =>
-                ref.read(certificationListNotifierProvider.notifier).refresh(),
+            onPressed: () {
+              // An id-set error shows here too: run the query again as well.
+              ref.invalidate(entityQueryIdsProvider);
+              ref.read(certificationListNotifierProvider.notifier).refresh();
+            },
             child: Text(context.l10n.certifications_list_button_retry),
           ),
         ],
@@ -855,117 +914,5 @@ class CertificationListTile extends ConsumerWidget {
       );
     }
     return const Icon(Icons.chevron_right);
-  }
-}
-
-/// Search delegate for certifications
-class CertificationSearchDelegate extends SearchDelegate<Certification?> {
-  final WidgetRef ref;
-
-  CertificationSearchDelegate(this.ref);
-
-  @override
-  String get searchFieldLabel => 'Search certifications...'; // TODO: l10n - searchFieldLabel getter has no context
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          tooltip: context.l10n.certifications_search_tooltip_clear,
-          onPressed: () => query = '',
-        ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      tooltip: context.l10n.certifications_search_tooltip_back,
-      onPressed: () => close(context, null),
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    return _buildSearchResults(context);
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    if (query.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search,
-              size: 64,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.certifications_search_empty_hint,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return _buildSearchResults(context);
-  }
-
-  Widget _buildSearchResults(BuildContext context) {
-    final searchAsync = ref.watch(certificationSearchProvider(query));
-
-    return searchAsync.when(
-      data: (certifications) {
-        if (certifications.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.search_off,
-                  size: 64,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  context.l10n.certifications_search_noResults(query),
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          itemCount: certifications.length,
-          itemBuilder: (context, index) {
-            final cert = certifications[index];
-            return CertificationListTile(
-              certification: cert,
-              onTap: () {
-                close(context, cert);
-                context.push('/certifications/${cert.id}');
-              },
-            );
-          },
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
-    );
   }
 }

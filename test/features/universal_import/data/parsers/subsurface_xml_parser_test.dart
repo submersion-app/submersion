@@ -81,6 +81,24 @@ void main() {
       expect(dives[0]['dateTime'], DateTime.utc(2025, 11, 13, 7, 23, 58));
       expect(dives[0]['diveNumber'], 5);
     });
+
+    test('a two-digit year is not the year 91 (#2617)', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='5' date='91-11-13' time='07:23:58' duration='10:00 min'>
+  <divecomputer model='Test'>
+  <depth max='8.0 m' mean='4.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives[0]['dateTime'], DateTime.utc(1991, 11, 13, 7, 23, 58));
+    });
   });
 
   group('dive metadata', () {
@@ -348,6 +366,62 @@ void main() {
       final dives = result.entitiesOf(ImportEntityType.dives);
       expect(dives[0]['diveMode'], DiveMode.ccr);
       expect(dives[1]['diveMode'], DiveMode.scr);
+    });
+
+    test('maps Subsurface PSCR to semi-closed (issue #2593)', () async {
+      // Subsurface writes OC, CCR, PSCR or Freedive; PSCR used to fall
+      // through to open circuit.
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test PSCR' dctype='PSCR'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['diveMode'], DiveMode.scr);
+    });
+
+    test('a loop logged by a second computer makes the dive a loop dive '
+        '(issue #2593)', () async {
+      // A CCR diver's backup computer often runs in open-circuit mode beside
+      // the controller and may be listed first. The diver was still on the
+      // loop, so the dive must not import as open circuit.
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Backup'>
+  <depth max='82.0 m' mean='40.0 m' />
+  </divecomputer>
+  <divecomputer model='Controller' dctype='CCR'>
+  <depth max='82.0 m' mean='40.0 m' />
+  </divecomputer>
+</dive>
+<dive number='2' date='2025-01-16' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Backup' dctype='OC'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+  <divecomputer model='Second OC'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives[0]['diveMode'], DiveMode.ccr);
+      expect(dives[1]['diveMode'], DiveMode.oc);
     });
 
     test('parses dive-level cns and preserves fractional otu', () async {

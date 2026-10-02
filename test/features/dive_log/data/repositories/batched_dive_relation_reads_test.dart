@@ -39,9 +39,18 @@ void main() {
   group('TankPressureRepository.getTankPressuresForDives', () {
     batchedReadTests(
       seed: seedDives,
-      batched: (ids) => TankPressureRepository().getTankPressuresForDives(ids),
+      // The export read keeps every series; drawn, it is the single read.
+      batched: (ids) async => {
+        for (final entry
+            in (await TankPressureRepository().getTankPressuresForDives(
+              ids,
+            )).entries)
+          entry.key: entry.value.displayedByTank,
+      },
       single: (id) => TankPressureRepository().getTankPressuresForDive(id),
       holdsNothing: (byTank) => byTank.isEmpty,
+      // Then the primary source of each dive that had series (#2492).
+      extraStatements: 1,
     );
   });
 }

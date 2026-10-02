@@ -17,6 +17,7 @@ import 'package:submersion/core/database/database.dart'
         DiveProfileEvent;
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/matching/match_scorer.dart';
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
@@ -25,7 +26,10 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
@@ -411,6 +415,15 @@ class DiveComputerRepository {
       // the change.
       await _profileSeries.clearComputer(id);
       await _tankSeries.clearComputer(id);
+      // The tanks too: dive_tanks.computer_id is ON DELETE SET NULL as well,
+      // and the caches' source stamp only sees a tank change through the
+      // clock staging it stamps.
+      await clearTankComputerLinks(
+        _db,
+        _syncRepository,
+        (t) => t.computerId.equals(id),
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
 
       // Clear FK references that would block the delete. dives.computer_id
       // has no ON DELETE action, so leaving it set fails the delete with
@@ -419,10 +432,28 @@ class DiveComputerRepository {
         'UPDATE dives SET computer_id = NULL WHERE computer_id = ?',
         [id],
       );
+      // Restamped with the clear and staged, like the tanks above: the
+      // export only carries a child that is marked or whose dive is, and
+      // without the mark peers kept the deleted computer (#2644).
+      final detachedSourceIds =
+          await (_db.selectOnly(_db.diveDataSources)
+                ..addColumns([_db.diveDataSources.id])
+                ..where(_db.diveDataSources.computerId.equals(id)))
+              .map((r) => r.read(_db.diveDataSources.id)!)
+              .get();
       await _db.customStatement(
-        'UPDATE dive_data_sources SET computer_id = NULL WHERE computer_id = ?',
-        [id],
+        'UPDATE dive_data_sources SET computer_id = NULL, hlc = ? '
+        'WHERE computer_id = ?',
+        [await _syncRepository.issueRowClock(), id],
       );
+      final detachedAt = DateTime.now().millisecondsSinceEpoch;
+      for (final sourceId in detachedSourceIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'diveDataSources',
+          recordId: sourceId,
+          localUpdatedAt: detachedAt,
+        );
+      }
       // The v183 rung drops dive_profiles only once its rows have actually
       // moved into the series table, so a device whose pack threw still
       // carries it, and its computer_id FK has no ON DELETE action either.
@@ -542,9 +573,23 @@ class DiveComputerRepository {
       final sourceIds = matched.map((r) => r.read<String>('id')).toList();
       final sourcePh = List.filled(sourceIds.length, '?').join(', ');
       await _db.customStatement(
-        'UPDATE dive_data_sources SET computer_id = ? WHERE id IN ($sourcePh)',
-        [computerId, ...sourceIds],
+        'UPDATE dive_data_sources SET computer_id = ?, hlc = ? '
+        'WHERE id IN ($sourcePh)',
+        [computerId, await _syncRepository.issueRowClock(), ...sourceIds],
       );
+      // Each source is published on its own, which also gives it a fresh
+      // clock (#2644): its dive is staged below only when the source is the
+      // primary, so a secondary source would otherwise never leave this
+      // device, and a peer's newer copy, still orphaned, would clear the
+      // link again.
+      final relinkedAt = DateTime.now().millisecondsSinceEpoch;
+      for (final id in sourceIds) {
+        await _syncRepository.markRecordPending(
+          entityType: 'diveDataSources',
+          recordId: id,
+          localUpdatedAt: relinkedAt,
+        );
+      }
 
       // Restore the dive's primary-computer link where the matched source is
       // the dive's primary and no live computer claims the dive.
@@ -1284,6 +1329,14 @@ class DiveComputerRepository {
       for (final source in doomed) {
         await _profileSeries.clearSource(source.id);
       }
+      // The tanks' twin of that (v251, issue #2716): the tank rows stay,
+      // and the replacing reading claims them again.
+      await clearTankSourceLinks(
+        _db,
+        _syncRepository,
+        (t) => t.sourceId.isIn([for (final s in doomed) s.id]),
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
       // Delete the data source row for this computer+dive
       await _db.customStatement(
         'DELETE FROM dive_data_sources WHERE dive_id = ? AND computer_id = ?',
@@ -1323,6 +1376,9 @@ class DiveComputerRepository {
     // same way every other field in that branch is left untouched.
     double? diluentO2,
     double? diluentHe,
+    // Tissue state the computer reported for the dive as a whole; stored
+    // verbatim. Null on an update leaves any stored snapshot in place.
+    ComputerTissueSnapshot? computerTissue,
     List<EventData>? events,
     List<GasSwitchData>? gasSwitches,
     int? diveNumber,
@@ -1460,6 +1516,7 @@ class DiveComputerRepository {
                 gradientFactorHigh: Value(gfHigh),
                 decoAlgorithm: Value(decoAlgorithm),
                 decoConservatism: Value(decoConservatism),
+                computerTissueJson: Value(computerTissue?.encode()),
                 diveMode: Value(diveMode.code),
                 // Only set when the caller resolved a Diluent cylinder,
                 // never a fabricated default -- an OC dive or a CCR dive
@@ -1625,7 +1682,14 @@ class DiveComputerRepository {
           await (_db.update(_db.diveDataSources)..where(
                 (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
               ))
-              .write(const DiveDataSourcesCompanion(isPrimary: Value(false)));
+              .write(
+                DiveDataSourcesCompanion(
+                  isPrimary: const Value(false),
+                  // A fresh clock, so a peer's older copy cannot make it the
+                  // primary again (#2644).
+                  hlc: Value(await _syncRepository.issueRowClock()),
+                ),
+              );
         }
         final existingSampleTemps = points
             .map((p) => p.temperature)
@@ -1731,6 +1795,9 @@ class DiveComputerRepository {
                 id: Value(tankId),
                 diveId: Value(diveId),
                 computerId: Value(computerId),
+                // The reading the tank came from (v251, issue #2716), as
+                // for the samples above.
+                sourceId: Value(ownerSourceId),
                 volume: Value(tank.volumeLiters),
                 workingPressure: Value.absentIfNull(tank.workingPressure),
                 tankMaterial: Value.absentIfNull(tank.material),
@@ -1741,6 +1808,7 @@ class DiveComputerRepository {
                 hePercent: Value(tank.hePercent),
                 tankOrder: Value(tank.index),
                 tankRole: Value(tank.role ?? 'backGas'),
+                roleSource: Value(tank.roleSource),
                 transmitterSerial: Value(tank.transmitterSerial),
                 equipmentId: Value.absentIfNull(tank.equipmentId),
                 tankName: Value.absentIfNull(tank.tankName),
@@ -1767,6 +1835,14 @@ class DiveComputerRepository {
           tankIdsByIndex[tank.tankOrder] = tank.id;
           tankIdByGas[(tank.o2Percent, tank.hePercent)] = tank.id;
         }
+        // A replaced source gave up its tanks (clearSourceAndProfiles); the
+        // fresh reading claims those it unambiguously owns (v251, #2716).
+        await attributeTankSources(
+          _db,
+          _syncRepository,
+          diveId,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
       }
 
       // Insert per-tank pressure time-series data: one series insert per
@@ -1801,6 +1877,7 @@ class DiveComputerRepository {
               diveId: diveId,
               tankId: tankIdsByIndex[entry.key]!,
               computerId: computerId,
+              sourceId: ownerSourceId,
               samples: [
                 for (final point in entry.value)
                   TankPressureSample(
@@ -1828,25 +1905,34 @@ class DiveComputerRepository {
 
             final tank = tanks.firstWhere((t) => t.index == tankIndex);
             if (tank.startPressure == null || tank.endPressure == null) {
+              // Signal dropouts at either end of the series must not become
+              // the recorded pressure (#2441).
+              final endpoints = cleanSeriesEndpoints([
+                for (final p in pressurePoints)
+                  (t: p.timestamp, bar: p.pressure),
+              ]);
+              if (endpoints == null) continue;
               final tankId = tankIdsByIndex[tankIndex]!;
-              final sorted = [...pressurePoints]
-                ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
               await (_db.update(
                 _db.diveTanks,
               )..where((t) => t.id.equals(tankId))).write(
                 DiveTanksCompanion(
                   startPressure: tank.startPressure == null
-                      ? Value(sorted.first.pressure)
+                      ? Value(endpoints.start)
                       : const Value.absent(),
                   endPressure: tank.endPressure == null
-                      ? Value(sorted.last.pressure)
+                      ? Value(endpoints.end)
                       : const Value.absent(),
+                  // The tank was inserted with no clock; without one, any
+                  // peer's stamped copy is newer and could clear these
+                  // pressures (#2644).
+                  hlc: Value(await _syncRepository.issueRowClock()),
                 ),
               );
               _log.info(
                 'Derived tank $tankIndex pressures from profile: '
-                'start=${sorted.first.pressure.toStringAsFixed(1)} bar, '
-                'end=${sorted.last.pressure.toStringAsFixed(1)} bar',
+                'start=${endpoints.start.toStringAsFixed(1)} bar, '
+                'end=${endpoints.end.toStringAsFixed(1)} bar',
               );
             }
           }
@@ -1938,6 +2024,9 @@ class DiveComputerRepository {
             gradientFactorHigh: Value(gfHigh),
             decoAlgorithm: Value(decoAlgorithm),
             decoConservatism: Value(decoConservatism),
+            computerTissueJson: computerTissue == null
+                ? const Value.absent()
+                : Value(computerTissue.encode()),
           ),
         );
         await _syncRepository.markRecordPending(
@@ -2385,6 +2474,8 @@ class DiveComputerRepository {
         o2SensorMv4: p.o2SensorMv4,
         o2SensorMv5: p.o2SensorMv5,
         o2SensorMv6: p.o2SensorMv6,
+        gf99: p.gf99,
+        n2Load: p.n2Load,
       );
 
   /// Calculate bottom time (seconds) from profile points.
@@ -2587,6 +2678,13 @@ class ProfilePointData {
   final int? o2SensorMv5;
   final int? o2SensorMv6;
 
+  /// Computer-reported GF99, whole percent. libdivecomputer never reports
+  /// it; file importers may.
+  final int? gf99;
+
+  /// Computer-reported aggregate N2 tissue loading, whole percent.
+  final int? n2Load;
+
   const ProfilePointData({
     required this.timestamp,
     required this.depth,
@@ -2619,6 +2717,8 @@ class ProfilePointData {
     this.o2SensorMv4,
     this.o2SensorMv5,
     this.o2SensorMv6,
+    this.gf99,
+    this.n2Load,
   });
 }
 
@@ -2666,6 +2766,10 @@ class TankData {
   /// Inferred cylinder role (a [TankRole] name), or null for the default.
   final String? role;
 
+  /// Where [role] came from (a [TankRoleSource] name), or null when it is
+  /// the computer's own data, the app's heuristic or the registry's choice.
+  final String? roleSource;
+
   /// Serial of the air-integration transmitter the computer read this tank
   /// from, or null when it reported none.
   final String? transmitterSerial;
@@ -2687,6 +2791,7 @@ class TankData {
     this.material,
     this.presetName,
     this.role,
+    this.roleSource,
     this.transmitterSerial,
     this.equipmentId,
     this.tankName,
@@ -2703,6 +2808,8 @@ class TankData {
     String? material,
     String? presetName,
     String? role,
+    String? roleSource,
+    bool clearRoleSource = false,
     String? transmitterSerial,
     String? equipmentId,
     String? tankName,
@@ -2717,6 +2824,7 @@ class TankData {
     material: material ?? this.material,
     presetName: presetName ?? this.presetName,
     role: role ?? this.role,
+    roleSource: clearRoleSource ? null : (roleSource ?? this.roleSource),
     transmitterSerial: transmitterSerial ?? this.transmitterSerial,
     equipmentId: equipmentId ?? this.equipmentId,
     tankName: tankName ?? this.tankName,

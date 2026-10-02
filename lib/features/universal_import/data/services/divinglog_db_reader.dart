@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:sqlite3/sqlite3.dart';
@@ -8,6 +7,7 @@ import 'package:submersion/features/universal_import/data/services/divinglog_pro
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_reference_reader.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_row_values.dart';
+import 'package:submersion/features/universal_import/data/services/sqlite_temp_copy.dart';
 
 /// Reads a Diving Log 5.0 / DiveLogDT SQLite logbook.
 ///
@@ -53,7 +53,11 @@ class DivingLogDbReader {
 
   /// Opens [bytes] and reports which tables and columns exist.
   static Future<DivingLogCapabilities> readCapabilities(Uint8List bytes) async {
-    return _withDb(bytes, probeCapabilities);
+    return withTempSqliteCopy(
+      bytes,
+      prefix: _tempPrefix,
+      body: probeCapabilities,
+    );
   }
 
   /// Probes an already-open [db]. Split out so reads that already hold a
@@ -78,31 +82,7 @@ class DivingLogDbReader {
     return DivingLogCapabilities(tables: tables, columns: columns);
   }
 
-  /// Writes [bytes] into a private temp directory, opens it read-only, runs
-  /// [body], and always removes the directory.
-  ///
-  /// The directory comes from `createTempSync`, which the OS guarantees to
-  /// be unique. A timestamp-derived name does not: two calls landing in the
-  /// same microsecond would share a path, and each would delete the file the
-  /// other was still reading.
-  static Future<T> _withDb<T>(
-    Uint8List bytes,
-    T Function(Database db) body,
-  ) async {
-    final tmpDir = Directory.systemTemp.createTempSync('divinglog_import_');
-    try {
-      final tmpFile = File('${tmpDir.path}/logbook.sqlite');
-      await tmpFile.writeAsBytes(bytes);
-      final db = sqlite3.open(tmpFile.path, mode: OpenMode.readOnly);
-      try {
-        return body(db);
-      } finally {
-        db.close();
-      }
-    } finally {
-      _deleteTempDir(tmpDir);
-    }
-  }
+  static const _tempPrefix = 'divinglog_import_';
 
   /// Every `Logbook` column phase 1 wants. Any the file lacks is dropped
   /// from the SELECT and read as null.
@@ -167,143 +147,147 @@ class DivingLogDbReader {
   /// Throws [FormatException] when there is no `Logbook` table, which the
   /// parser turns into a fatal import warning. Everything else degrades.
   static Future<DivingLogLogbook> readAll(Uint8List bytes) async {
-    return _withDb(bytes, (db) {
-      final caps = probeCapabilities(db);
-      if (!caps.hasTable('Logbook')) {
-        throw const FormatException('No Logbook table');
-      }
-
-      final notes = <String>[];
-      final missing = caps.missingColumns('Logbook', _logbookColumns);
-      if (missing.isNotEmpty) {
-        notes.add('Logbook is missing: ${missing.join(', ')}');
-      }
-      // An absent optional table is not harmless: without Tank a
-      // multi-cylinder dive silently keeps only the Logbook cylinder, and
-      // without DeletedRecords tombstoned dives come back. Say so.
-      if (!caps.hasTable('Tank')) {
-        notes.add(
-          'No Tank table, so dives with several cylinders kept only the one '
-          'recorded on the dive row.',
-        );
-      } else if (!caps.hasColumn('Tank', 'LogID')) {
-        // Without the join key the table cannot be attached to any dive, so
-        // it is read as if absent. Saying only "no Tank table" would be
-        // wrong, and saying nothing loses every extra cylinder silently.
-        notes.add(
-          'The Tank table has no LogID column, so its cylinders could not be '
-          'matched to dives and only the cylinder on each dive row was kept.',
-        );
-      } else {
-        final missingTank = caps.missingColumns('Tank', _tankColumns);
-        if (missingTank.isNotEmpty) {
-          notes.add('Tank is missing: ${missingTank.join(', ')}');
+    return withTempSqliteCopy(
+      bytes,
+      prefix: _tempPrefix,
+      body: (db) {
+        final caps = probeCapabilities(db);
+        if (!caps.hasTable('Logbook')) {
+          throw const FormatException('No Logbook table');
         }
-      }
-      // Both halves matter: the table can be present but keyless, and
-      // treating that as "nothing was deleted" quietly reimports dives the
-      // diver had removed.
-      if (!caps.hasTable('DeletedRecords')) {
-        notes.add(
-          'No DeletedRecords table, so dives the logbook had marked deleted '
-          'could not be excluded.',
+
+        final notes = <String>[];
+        final missing = caps.missingColumns('Logbook', _logbookColumns);
+        if (missing.isNotEmpty) {
+          notes.add('Logbook is missing: ${missing.join(', ')}');
+        }
+        // An absent optional table is not harmless: without Tank a
+        // multi-cylinder dive silently keeps only the Logbook cylinder, and
+        // without DeletedRecords tombstoned dives come back. Say so.
+        if (!caps.hasTable('Tank')) {
+          notes.add(
+            'No Tank table, so dives with several cylinders kept only the one '
+            'recorded on the dive row.',
+          );
+        } else if (!caps.hasColumn('Tank', 'LogID')) {
+          // Without the join key the table cannot be attached to any dive, so
+          // it is read as if absent. Saying only "no Tank table" would be
+          // wrong, and saying nothing loses every extra cylinder silently.
+          notes.add(
+            'The Tank table has no LogID column, so its cylinders could not be '
+            'matched to dives and only the cylinder on each dive row was kept.',
+          );
+        } else {
+          final missingTank = caps.missingColumns('Tank', _tankColumns);
+          if (missingTank.isNotEmpty) {
+            notes.add('Tank is missing: ${missingTank.join(', ')}');
+          }
+        }
+        // Both halves matter: the table can be present but keyless, and
+        // treating that as "nothing was deleted" quietly reimports dives the
+        // diver had removed.
+        if (!caps.hasTable('DeletedRecords')) {
+          notes.add(
+            'No DeletedRecords table, so dives the logbook had marked deleted '
+            'could not be excluded.',
+          );
+        } else if (!caps.hasColumn('DeletedRecords', 'UUID')) {
+          notes.add(
+            'The DeletedRecords table has no UUID column, so dives the logbook '
+            'had marked deleted could not be excluded.',
+          );
+        }
+
+        final tombstones = _readTombstones(db, caps);
+        final tanksByLogId = _readTanks(db, caps);
+
+        notes.addAll(DivingLogReferenceReader.schemaNotes(caps));
+        final references = DivingLogReferenceReader.read(db, caps);
+
+        final selectList = caps.selectList('Logbook', _logbookColumns);
+        if (selectList.isEmpty) {
+          // Another product's table can share the name. Saying so beats
+          // emitting `SELECT  FROM Logbook` and surfacing a SQL syntax error
+          // to a diver who only wanted to import their dives.
+          throw const FormatException(
+            'Logbook table has none of the expected columns',
+          );
+        }
+        final table = caps.actualTable('Logbook')!;
+        final rows = db.select(
+          'SELECT $selectList FROM ${quoteSqlIdentifier(table)}',
         );
-      } else if (!caps.hasColumn('DeletedRecords', 'UUID')) {
-        notes.add(
-          'The DeletedRecords table has no UUID column, so dives the logbook '
-          'had marked deleted could not be excluded.',
-        );
-      }
 
-      final tombstones = _readTombstones(db, caps);
-      final tanksByLogId = _readTanks(db, caps);
+        final dives = <DivingLogRawDive>[];
+        for (final row in rows) {
+          final uuid = rowString(row, 'UUID');
+          if (uuid != null && tombstones.contains(uuid)) continue;
+          final id = rowInt(row, 'ID');
+          if (id == null) continue;
 
-      notes.addAll(DivingLogReferenceReader.schemaNotes(caps));
-      final references = DivingLogReferenceReader.read(db, caps);
-
-      final selectList = caps.selectList('Logbook', _logbookColumns);
-      if (selectList.isEmpty) {
-        // Another product's table can share the name. Saying so beats
-        // emitting `SELECT  FROM Logbook` and surfacing a SQL syntax error
-        // to a diver who only wanted to import their dives.
-        throw const FormatException(
-          'Logbook table has none of the expected columns',
-        );
-      }
-      final table = caps.actualTable('Logbook')!;
-      final rows = db.select(
-        'SELECT $selectList FROM ${quoteSqlIdentifier(table)}',
-      );
-
-      final dives = <DivingLogRawDive>[];
-      for (final row in rows) {
-        final uuid = rowString(row, 'UUID');
-        if (uuid != null && tombstones.contains(uuid)) continue;
-        final id = rowInt(row, 'ID');
-        if (id == null) continue;
-
-        final inline = _inlineTank(row);
-        dives.add(
-          DivingLogRawDive(
-            id: id,
-            uuid: uuid,
-            number: rowInt(row, 'Number'),
-            diveDate: rowString(row, 'Divedate'),
-            entryTime: rowString(row, 'Entrytime'),
-            country: rowString(row, 'Country'),
-            city: rowString(row, 'City'),
-            place: rowString(row, 'Place'),
-            buddy: rowString(row, 'Buddy'),
-            divemaster: rowString(row, 'Divemaster'),
-            comments: rowString(row, 'Comments'),
-            depthMeters: rowDouble(row, 'Depth'),
-            diveTimeMinutes: rowDouble(row, 'Divetime'),
-            airTempCelsius: rowDouble(row, 'Airtemp'),
-            waterTempCelsius: rowDouble(row, 'Watertemp'),
-            weightKg: rowDouble(row, 'Weight'),
-            divesuit: rowString(row, 'Divesuit'),
-            computer: rowString(row, 'Computer'),
-            visibilityCode: rowInt(row, 'Visibility'),
-            supplyType: rowString(row, 'SupplyType'),
-            buddyIds: parseDivingLogIdList(rowString(row, 'BuddyIDs')),
-            equipmentIds: parseDivingLogIdList(rowString(row, 'UsedEquip')),
-            diveTypeIds: parseDivingLogIdList(rowString(row, 'Divetype')),
-            placeId: rowInt(row, 'PlaceID'),
-            cityId: rowInt(row, 'CityID'),
-            countryId: rowInt(row, 'CountryID'),
-            shopId: rowInt(row, 'ShopID'),
-            tripId: rowInt(row, 'TripID'),
-            tanks: tanksByLogId[id] ?? (inline == null ? const [] : [inline]),
-            samples: DivingLogProfileCodec.decode(
-              intervalSeconds: rowInt(row, 'ProfileInt') ?? 0,
-              profile: rowString(row, 'Profile'),
-              profile2: rowString(row, 'Profile2'),
-              profile3: rowString(row, 'Profile3'),
-              profile4: rowString(row, 'Profile4'),
-              profile5: rowString(row, 'Profile5'),
+          final inline = _inlineTank(row);
+          dives.add(
+            DivingLogRawDive(
+              id: id,
+              uuid: uuid,
+              number: rowInt(row, 'Number'),
+              diveDate: rowString(row, 'Divedate'),
+              entryTime: rowString(row, 'Entrytime'),
+              country: rowString(row, 'Country'),
+              city: rowString(row, 'City'),
+              place: rowString(row, 'Place'),
+              buddy: rowString(row, 'Buddy'),
+              divemaster: rowString(row, 'Divemaster'),
+              comments: rowString(row, 'Comments'),
+              depthMeters: rowDouble(row, 'Depth'),
+              diveTimeMinutes: rowDouble(row, 'Divetime'),
+              airTempCelsius: rowDouble(row, 'Airtemp'),
+              waterTempCelsius: rowDouble(row, 'Watertemp'),
+              weightKg: rowDouble(row, 'Weight'),
+              divesuit: rowString(row, 'Divesuit'),
+              computer: rowString(row, 'Computer'),
+              visibilityCode: rowInt(row, 'Visibility'),
+              supplyType: rowString(row, 'SupplyType'),
+              buddyIds: parseDivingLogIdList(rowString(row, 'BuddyIDs')),
+              equipmentIds: parseDivingLogIdList(rowString(row, 'UsedEquip')),
+              diveTypeIds: parseDivingLogIdList(rowString(row, 'Divetype')),
+              placeId: rowInt(row, 'PlaceID'),
+              cityId: rowInt(row, 'CityID'),
+              countryId: rowInt(row, 'CountryID'),
+              shopId: rowInt(row, 'ShopID'),
+              tripId: rowInt(row, 'TripID'),
+              tanks: tanksByLogId[id] ?? (inline == null ? const [] : [inline]),
+              samples: DivingLogProfileCodec.decode(
+                intervalSeconds: rowInt(row, 'ProfileInt') ?? 0,
+                profile: rowString(row, 'Profile'),
+                profile2: rowString(row, 'Profile2'),
+                profile3: rowString(row, 'Profile3'),
+                profile4: rowString(row, 'Profile4'),
+                profile5: rowString(row, 'Profile5'),
+              ),
             ),
-          ),
-        );
-      }
+          );
+        }
 
-      return DivingLogLogbook(
-        dives: dives,
-        capabilities: caps,
-        schemaNotes: notes,
-        buddiesById: references.buddies,
-        placesById: references.places,
-        cityNamesById: references.cityNames,
-        countryNamesById: references.countryNames,
-        equipmentById: references.equipment,
-        tripsById: references.trips,
-        shopsById: references.shops,
-        diveTypesById: references.diveTypes,
-        certifications: references.certifications,
-        speciesById: references.species,
-        speciesIdsByLogId: references.speciesIdsByLogId,
-        picturesByLogId: references.picturesByLogId,
-      );
-    });
+        return DivingLogLogbook(
+          dives: dives,
+          capabilities: caps,
+          schemaNotes: notes,
+          buddiesById: references.buddies,
+          placesById: references.places,
+          cityNamesById: references.cityNames,
+          countryNamesById: references.countryNames,
+          equipmentById: references.equipment,
+          tripsById: references.trips,
+          shopsById: references.shops,
+          diveTypesById: references.diveTypes,
+          certifications: references.certifications,
+          speciesById: references.species,
+          speciesIdsByLogId: references.speciesIdsByLogId,
+          picturesByLogId: references.picturesByLogId,
+        );
+      },
+    );
   }
 
   static Set<String> _readTombstones(Database db, DivingLogCapabilities caps) {
@@ -383,16 +367,5 @@ class DivingLogDbReader {
       hePercent: rowDouble(row, 'He'),
       isDouble: (rowInt(row, 'DblTank') ?? 0) > 0,
     );
-  }
-
-  /// Reads a column that the SELECT may not have included at all, so a
-  /// missing column and a null value are the same thing to callers.
-
-  static void _deleteTempDir(Directory d) {
-    try {
-      if (d.existsSync()) d.deleteSync(recursive: true);
-    } catch (_) {
-      // Best-effort cleanup.
-    }
   }
 }

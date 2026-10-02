@@ -64,10 +64,24 @@ class DiveTankConfigAdapter {
   ///
   /// [newId] mints an id for each inserted tank; the caller supplies it so
   /// this stays pure and testable (no Uuid, no DateTime.now()).
-  ({List<DiveTank> tanks, int added, int kept, bool changed}) apply({
+  ///
+  /// [overwrites] lists claimed tanks whose specs differ from the
+  /// configuration. They are applied only when [overwrite] is true, which a
+  /// caller passes once the diver has confirmed them (issue #2563); [updated]
+  /// counts them, and [kept] then excludes them.
+  ({
+    List<DiveTank> tanks,
+    int added,
+    int kept,
+    int updated,
+    bool changed,
+    List<OverwriteTank> overwrites,
+  })
+  apply({
     required List<DiveTank> tanks,
     required List<CylinderConfigItem> items,
     required String Function(int insertIndex) newId,
+    bool overwrite = false,
   }) {
     final plan = applier.plan(
       existing: tanks.map(_toExisting).toList(),
@@ -76,8 +90,11 @@ class DiveTankConfigAdapter {
 
     final byId = {for (final tank in tanks) tank.id: tank};
     var insertIndex = 0;
+    final applied = overwrite ? plan.overwrites : const <OverwriteTank>[];
 
-    for (final op in plan.ops) {
+    // A fill and an overwrite of one tank touch disjoint columns (null versus
+    // different), so applying both in sequence cannot clobber either.
+    for (final op in [...plan.ops, ...applied]) {
       switch (op) {
         case FillTank():
           final current = byId[op.tankId];
@@ -93,6 +110,16 @@ class DiveTankConfigAdapter {
           final id = newId(insertIndex);
           byId[id] = _fromItem(op.item, op.tankOrder, id);
           insertIndex++;
+        case OverwriteTank():
+          final current = byId[op.tankId];
+          if (current == null) continue;
+          byId[op.tankId] = current.copyWith(
+            volume: op.volumeL?.to,
+            workingPressure: op.workingPressureBar?.to,
+            material: op.tankMaterial?.to,
+            name: op.tankName?.to,
+            clearPresetName: op.changesCylinder,
+          );
       }
     }
 
@@ -102,8 +129,10 @@ class DiveTankConfigAdapter {
     return (
       tanks: merged,
       added: plan.insertedCount,
-      kept: plan.keptCount,
-      changed: plan.ops.isNotEmpty,
+      kept: plan.keptCount - applied.length,
+      updated: applied.length,
+      changed: plan.ops.isNotEmpty || applied.isNotEmpty,
+      overwrites: plan.overwrites,
     );
   }
 }

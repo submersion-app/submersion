@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/tag_fill.dart';
 
 /// Why a scanned or pasted string is not a cylinder tag.
 enum PassportRejectReason { notATag, missingId, malformedId }
@@ -47,6 +48,15 @@ abstract final class PassportPayloadCodec {
     'h',
     'vi',
     'oc',
+    // The newest fill (spec section 6.2), NFC tags only.
+    'fi',
+    'ft',
+    'fo',
+    'fh',
+    'fp',
+    'fc',
+    'fb',
+    'fa',
   ];
 
   static const double minVolumeL = 0.5;
@@ -109,6 +119,7 @@ abstract final class PassportPayloadCodec {
   /// The bare query string, keys in [keyOrder], values percent-encoded.
   static String encode(CylinderPassportPayload p) {
     final name = p.name;
+    final f = p.fill;
     final values = <String, String?>{
       'f': p.formatVersion.toString(),
       'p': p.passportId,
@@ -126,12 +137,85 @@ abstract final class PassportPayloadCodec {
       'h': p.lastHydro == null ? null : formatDate(p.lastHydro!),
       'vi': p.lastVip == null ? null : formatDate(p.lastVip!),
       'oc': p.o2Clean ? '1' : null,
+      'fi': f?.id,
+      'ft': f == null ? null : _rfc3339(f.filledAt),
+      'fo': f == null ? null : _number(f.o2Percent),
+      'fh': f == null ? null : _number(f.hePercent),
+      'fp': f?.pressureBar == null ? null : _number(f!.pressureBar!),
+      'fc': f?.temperatureC == null ? null : _number(f!.temperatureC!),
+      'fb': f?.filledBy,
+      'fa': f?.analyzer,
     };
     return [
       for (final key in keyOrder)
         if (values[key] case final value? when value.isNotEmpty)
           '$key=${Uri.encodeQueryComponent(value)}',
     ].join('&');
+  }
+
+  /// Up to one decimal, no trailing zero: 32.1, 0, 232.
+  static String _number(double v) {
+    final rounded = (v * 10).round() / 10;
+    return rounded == rounded.roundToDouble()
+        ? rounded.toInt().toString()
+        : rounded.toStringAsFixed(1);
+  }
+
+  /// RFC 3339 in UTC, to the second.
+  static String _rfc3339(DateTime t) {
+    final u = t.toUtc();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${formatDate(u)}T${two(u.hour)}:${two(u.minute)}:${two(u.second)}Z';
+  }
+
+  /// An RFC 3339 date-time with its zone, as [_rfc3339] writes one: `T`
+  /// between date and time, seconds, an optional fraction, then `Z` or an
+  /// offset (spec section 6.2).
+  static final RegExp _rfc3339Time = RegExp(
+    r'^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(?:\.\d+)?'
+    r'(?:Z|[+-]\d\d:\d\d)$',
+  );
+
+  /// [text] as an instant, or null unless it is RFC 3339 and a real date and
+  /// time. DateTime.tryParse alone takes other forms and rolls an impossible
+  /// date over (2026-02-30 becomes March 2), which would misdate the fill.
+  static DateTime? _fillTime(String? text) {
+    final m = text == null ? null : _rfc3339Time.firstMatch(text);
+    if (m == null) return null;
+    final [y, mo, d, h, mi, sec] = [
+      for (var i = 1; i <= 6; i++) int.parse(m.group(i)!),
+    ];
+    final day = DateTime.utc(y, mo, d);
+    if (day.month != mo || day.day != d) return null;
+    if (h > 23 || mi > 59 || sec > 59) return null;
+    return DateTime.tryParse(text!);
+  }
+
+  /// The fill keys, or null when `fi`, `ft` or `fo` is missing or invalid:
+  /// a bad fill is dropped, never the tag (spec section 6.2).
+  static TagFill? _fill(Map<String, String> pairs) {
+    final id = pairs['fi']?.toLowerCase();
+    final o2 = double.tryParse(pairs['fo'] ?? '');
+    final he = double.tryParse(pairs['fh'] ?? '') ?? 0;
+    if (id == null || !_uuid.hasMatch(id)) return null;
+    final filledAt = _fillTime(pairs['ft']);
+    if (filledAt == null || o2 == null) return null;
+    // NaN parses as a number and fails no comparison, so it is refused by
+    // name.
+    if (o2.isNaN || he.isNaN) return null;
+    if (o2 <= 0 || he < 0 || o2 + he > 100) return null;
+    final p = double.tryParse(pairs['fp'] ?? '');
+    final c = double.tryParse(pairs['fc'] ?? '');
+    return TagFill(
+      id: id,
+      filledAt: filledAt.toUtc(),
+      o2Percent: o2,
+      hePercent: he,
+      pressureBar: p != null && p > 0 && p <= maxPressureBar ? p : null,
+      temperatureC: c != null && c >= -40 && c <= 80 ? c : null,
+      filledBy: TagFill.capText(pairs['fb']),
+      analyzer: TagFill.capText(pairs['fa']),
+    );
   }
 
   static String httpsUrl(CylinderPassportPayload p) =>
@@ -238,6 +322,7 @@ abstract final class PassportPayloadCodec {
       lastHydro: parseDate(pairs['h']),
       lastVip: parseDate(pairs['vi']),
       o2Clean: pairs['oc'] == '1',
+      fill: _fill(pairs),
     );
     return PassportDecoded(
       payload,

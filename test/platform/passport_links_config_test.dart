@@ -73,6 +73,26 @@ void main() {
         contains('applinks:submersion.app'),
       );
     });
+
+    test('explains NFC use', () {
+      expect(
+        plistValue(info, 'NFCReaderUsageDescription')?.innerText,
+        contains('cylinder'),
+      );
+    });
+
+    test('may read and write tags through a tag session, and only that', () {
+      // nfc_manager 4 uses NFCTagReaderSession, which needs TAG. NDEF must
+      // not be listed: App Store Connect rejects an upload whose entitlement
+      // still names it (ITMS-90778, "NDEF is disallowed").
+      final formats = plistValue(
+        entitlements,
+        'com.apple.developer.nfc.readersession.formats',
+      );
+      expect(formats?.findElements('string').map((e) => e.innerText.trim()), [
+        'TAG',
+      ]);
+    });
   });
 
   group('macOS', () {
@@ -125,6 +145,15 @@ void main() {
 
     Iterable<XmlElement> viewFiltersWithScheme(String scheme) => activity
         .findElements('intent-filter')
+        .where(
+          (f) => f
+              .findElements('action')
+              .any(
+                (a) =>
+                    a.getAttribute('name', namespaceUri: android) ==
+                    'android.intent.action.VIEW',
+              ),
+        )
         .where(
           (f) => f
               .findElements('data')
@@ -187,6 +216,49 @@ void main() {
           reason: name,
         );
       }
+    });
+    test('uses NFC without requiring it', () {
+      expect(
+        manifest
+            .findElements('uses-permission')
+            .map((e) => e.getAttribute('name', namespaceUri: android)),
+        contains('android.permission.NFC'),
+      );
+      final feature = manifest
+          .findElements('uses-feature')
+          .firstWhere(
+            (e) =>
+                e.getAttribute('name', namespaceUri: android) ==
+                'android.hardware.nfc',
+          );
+      expect(feature.getAttribute('required', namespaceUri: android), 'false');
+    });
+
+    test('a tapped passport tag launches the app', () {
+      final filter = activity
+          .findElements('intent-filter')
+          .singleWhere(
+            (f) => f
+                .findElements('action')
+                .any(
+                  (a) =>
+                      a.getAttribute('name', namespaceUri: android) ==
+                      'android.nfc.action.NDEF_DISCOVERED',
+                ),
+          );
+      expect(
+        filter
+            .findElements('category')
+            .map((c) => c.getAttribute('name', namespaceUri: android)),
+        contains('android.intent.category.DEFAULT'),
+      );
+      final data = filter.findElements('data').single;
+      expect(data.getAttribute('scheme', namespaceUri: android), 'https');
+      expect(
+        data.getAttribute('host', namespaceUri: android),
+        'submersion.app',
+      );
+      expect(data.getAttribute('path', namespaceUri: android), '/c');
     });
   });
 }

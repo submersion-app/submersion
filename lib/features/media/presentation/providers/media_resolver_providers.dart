@@ -118,7 +118,6 @@ final localFileResolverProvider = Provider<LocalFileResolver>((ref) {
   final resolver = LocalFileResolver(
     bookmarkStorage: ref.watch(localBookmarkStorageProvider),
     platform: ref.watch(localMediaPlatformProvider),
-    exifExtractor: ref.watch(exifExtractorProvider),
     videoThumbnails: ref.watch(videoThumbnailServiceProvider),
     // Fetched lazily, only when a read fails on a row that names an origin,
     // and memoized by the resolver; the provider itself never touches the
@@ -144,17 +143,15 @@ final localFileResolverProvider = Provider<LocalFileResolver>((ref) {
 /// items (Phase 3b).
 ///
 /// Manifest-entry items are HTTP(S) URLs that arrived via a feed, so the
-/// resolver delegates byte fetch and metadata extraction to the Phase 3a
-/// HTTP stack ([NetworkUrlResolver] + [UrlMetadataExtractor]). The
-/// providers for those services are co-located with the URL tab in
-/// `url_tab_providers.dart`. The same [HttpUrlMediaResolver] class also
-/// powers [networkUrlMediaResolverProvider] — see that provider for the
-/// rationale.
+/// resolver delegates byte fetch to the Phase 3a HTTP stack
+/// ([NetworkUrlResolver]). The provider for that service is co-located
+/// with the URL tab in `url_tab_providers.dart`. The same
+/// [HttpUrlMediaResolver] class also powers
+/// [networkUrlMediaResolverProvider]; see that provider for the rationale.
 final manifestEntryResolverProvider = Provider<HttpUrlMediaResolver>(
   (ref) => HttpUrlMediaResolver(
     sourceType: MediaSourceType.manifestEntry,
     networkUrlResolver: ref.watch(networkUrlResolverProvider),
-    urlMetadataExtractor: ref.watch(urlMetadataExtractorProvider),
   ),
 );
 
@@ -163,8 +160,7 @@ final manifestEntryResolverProvider = Provider<HttpUrlMediaResolver>(
 ///
 /// `networkUrl` items and `manifestEntry` items are functionally
 /// identical to the resolver: both are HTTP(S) URLs, both fetch via
-/// [NetworkUrlResolver], both extract metadata via
-/// [UrlMetadataExtractor], and both return [NetworkData] for
+/// [NetworkUrlResolver], and both return [NetworkData] for
 /// `cached_network_image` to handle the actual byte transport. The only
 /// difference is provenance (which the eager fetch pipeline reads
 /// directly off the [MediaItem]). Registering a separate provider per
@@ -174,7 +170,6 @@ final networkUrlMediaResolverProvider = Provider<HttpUrlMediaResolver>(
   (ref) => HttpUrlMediaResolver(
     sourceType: MediaSourceType.networkUrl,
     networkUrlResolver: ref.watch(networkUrlResolverProvider),
-    urlMetadataExtractor: ref.watch(urlMetadataExtractorProvider),
   ),
 );
 

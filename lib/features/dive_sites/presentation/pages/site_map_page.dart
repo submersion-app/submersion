@@ -25,10 +25,12 @@ import 'package:submersion/features/maps/presentation/providers/heat_map_provide
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_camera_animator.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_list_scaffold.dart';
@@ -53,6 +55,10 @@ class SiteMapPage extends ConsumerStatefulWidget {
 class _SiteMapPageState extends ConsumerState<SiteMapPage>
     with TickerProviderStateMixin {
   final MapController _mapController = MapController();
+  late final MapCameraAnimator _camera = MapCameraAnimator(
+    controller: _mapController,
+    vsync: this,
+  );
 
   SiteScapeMode _scapeMode = SiteScapeMode.map2d;
   bool _seedZoomPending = false;
@@ -79,6 +85,12 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
   // Default to a nice ocean view (Pacific)
   static const _defaultCenter = LatLng(20.0, -157.0);
   static const _defaultZoom = 3.0;
+
+  @override
+  void dispose() {
+    _camera.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +130,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
       if (seeded?.hasCoordinates == true) {
         final loc = seeded!.location!;
         WidgetsBinding.instance.addPostFrameCallback(
-          (_) => _animateToLocation(loc.latitude, loc.longitude),
+          (_) => _camera.animateTo(LatLng(loc.latitude, loc.longitude)),
         );
       }
     }
@@ -133,9 +145,8 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
         selectedId: selectionState.selectedId,
         onItemTapForMap: (site) {
           if (site.hasCoordinates) {
-            _animateToLocation(
-              site.location!.latitude,
-              site.location!.longitude,
+            _camera.animateTo(
+              LatLng(site.location!.latitude, site.location!.longitude),
             );
           }
         },
@@ -202,8 +213,9 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
         IconButton(
           icon: const Icon(Icons.my_location),
           tooltip: context.l10n.diveSites_map_tooltip_fitAllSites,
-          onPressed: () =>
-              _fitAllSites(sitesAsync.value?.map((s) => s.site).toList() ?? []),
+          onPressed: () => _camera.fitAll(
+            _sitePoints(sitesAsync.value?.map((s) => s.site) ?? const []),
+          ),
         ),
       ],
     );
@@ -249,37 +261,6 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     );
   }
 
-  Future<void> _animateToLocation(double lat, double lng) async {
-    final target = LatLng(lat, lng);
-    final startCamera = _mapController.camera;
-    final targetZoom = startCamera.zoom < 10 ? 12.0 : startCamera.zoom;
-
-    final animationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-
-    final animation = CurvedAnimation(
-      parent: animationController,
-      curve: Curves.easeInOut,
-    );
-
-    animation.addListener(() {
-      final t = animation.value;
-      final animLat =
-          startCamera.center.latitude +
-          (target.latitude - startCamera.center.latitude) * t;
-      final animLng =
-          startCamera.center.longitude +
-          (target.longitude - startCamera.center.longitude) * t;
-      final zoom = startCamera.zoom + (targetZoom - startCamera.zoom) * t;
-      _mapController.move(LatLng(animLat, animLng), zoom);
-    });
-
-    await animationController.forward();
-    animationController.dispose();
-  }
-
   Widget _buildMap(
     BuildContext context,
     List<SiteWithDiveCount> sitesWithCounts,
@@ -299,21 +280,12 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     }).toList();
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Calculate initial bounds if we have sites
-    LatLng center = _defaultCenter;
-    double zoom = _defaultZoom;
-
-    if (sitesWithLocation.isNotEmpty) {
-      final bounds = _calculateBounds(
-        sitesWithLocation.map((s) => s.site).toList(),
-      );
-      center = LatLng(
-        (bounds.north + bounds.south) / 2,
-        (bounds.east + bounds.west) / 2,
-      );
-      // Start at a reasonable zoom
-      zoom = 4.0;
-    }
+    // Open framed on every site the way the fit-all button frames them,
+    // across the date line when that is tighter (#2516). With no site to
+    // frame the fit is null and the map falls back to the default view.
+    final initialFit = MapCameraAnimator.fitAllCameraFit(
+      _sitePoints(sitesWithLocation.map((s) => s.site)),
+    );
 
     final settings = ref.watch(heatMapSettingsProvider);
 
@@ -324,8 +296,9 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
           child: FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: center,
-              initialZoom: zoom,
+              initialCenter: _defaultCenter,
+              initialZoom: _defaultZoom,
+              initialCameraFit: initialFit,
               minZoom: 2.0,
               maxZoom: 18.0,
               interactionOptions: rotatableMapInteraction,
@@ -333,12 +306,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                 ref.read(mapListSelectionProvider('sites').notifier).deselect();
                 setState(() => _selectedBuiltInId = null);
               },
-              cameraConstraint: CameraConstraint.contain(
-                bounds: LatLngBounds(
-                  const LatLng(-90, -180),
-                  const LatLng(90, 180),
-                ),
-              ),
+              cameraConstraint: worldMapCameraConstraint,
             ),
             children: [
               TileLayer(
@@ -370,7 +338,9 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                             .read(mapListSelectionProvider('sites').notifier)
                             .deselect();
                         setState(() => _selectedBuiltInId = site.externalId);
-                        _animateToLocation(site.latitude!, site.longitude!);
+                        _camera.animateTo(
+                          LatLng(site.latitude!, site.longitude!),
+                        );
                       },
                     ),
                     orElse: () => const SizedBox.shrink(),
@@ -378,7 +348,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                 },
               ),
               // Markers layer - always shown
-              MarkerClusterLayerWidget(
+              WorldWrappedMarkerClusterLayer(
                 options: MarkerClusterLayerOptions(
                   maxClusterRadius: 80,
                   size: const Size(50, 50),
@@ -415,7 +385,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                   zoomToBoundsOnClick: false,
                   onClusterTap: (node) {
                     // Animate to cluster bounds with generous padding
-                    _animateToCluster(node.bounds);
+                    _camera.animateToBounds(node.bounds);
                   },
                 ),
               ),
@@ -599,7 +569,9 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     } else {
       ref.read(mapListSelectionProvider('sites').notifier).select(site.id);
       // Smooth animate to the tapped marker location
-      _animateToLocation(site.location!.latitude, site.location!.longitude);
+      _camera.animateTo(
+        LatLng(site.location!.latitude, site.location!.longitude),
+      );
     }
   }
 
@@ -643,100 +615,10 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     );
   }
 
-  Future<void> _animateToCluster(LatLngBounds bounds) async {
-    // Calculate target camera position
-    final targetCamera = CameraFit.bounds(
-      bounds: bounds,
-      padding: const EdgeInsets.all(120),
-      maxZoom: 14.0,
-    ).fit(_mapController.camera);
-
-    final startCamera = _mapController.camera;
-    final animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    final animation = CurvedAnimation(
-      parent: animationController,
-      curve: Curves.easeInOut,
-    );
-
-    animation.addListener(() {
-      final t = animation.value;
-      final lat =
-          startCamera.center.latitude +
-          (targetCamera.center.latitude - startCamera.center.latitude) * t;
-      final lng =
-          startCamera.center.longitude +
-          (targetCamera.center.longitude - startCamera.center.longitude) * t;
-      final zoom =
-          startCamera.zoom + (targetCamera.zoom - startCamera.zoom) * t;
-
-      _mapController.move(LatLng(lat, lng), zoom);
-    });
-
-    await animationController.forward();
-    animationController.dispose();
-  }
-
-  void _fitAllSites(List<DiveSite> sites) {
-    // Filter sites with valid coordinates
-    final sitesWithLocation = sites.where((s) {
-      if (!s.hasCoordinates) return false;
-      final lat = s.location!.latitude;
-      final lng = s.location!.longitude;
-      return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-    }).toList();
-
-    if (sitesWithLocation.isEmpty) return;
-
-    if (sitesWithLocation.length == 1) {
-      final site = sitesWithLocation.first;
-      _mapController.move(
+  /// Where [sites] sit on the map, skipping any without coordinates.
+  static List<LatLng> _sitePoints(Iterable<DiveSite> sites) => [
+    for (final site in sites)
+      if (site.hasCoordinates)
         LatLng(site.location!.latitude, site.location!.longitude),
-        12.0,
-      );
-      return;
-    }
-
-    final bounds = _calculateBounds(sitesWithLocation);
-    _mapController.fitCamera(
-      CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)),
-    );
-  }
-
-  LatLngBounds _calculateBounds(List<DiveSite> sites) {
-    double minLat = 90, maxLat = -90;
-    double minLng = 180, maxLng = -180;
-
-    for (final site in sites) {
-      if (site.location != null) {
-        final lat = site.location!.latitude;
-        final lng = site.location!.longitude;
-
-        // Skip invalid coordinates
-        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-          continue;
-        }
-
-        if (lat < minLat) minLat = lat;
-        if (lat > maxLat) maxLat = lat;
-        if (lng < minLng) minLng = lng;
-        if (lng > maxLng) maxLng = lng;
-      }
-    }
-
-    // Add some padding
-    final latPadding = (maxLat - minLat) * 0.1;
-    final lngPadding = (maxLng - minLng) * 0.1;
-
-    // Clamp bounds to valid coordinate ranges
-    final south = (minLat - latPadding).clamp(-90.0, 90.0);
-    final north = (maxLat + latPadding).clamp(-90.0, 90.0);
-    final west = (minLng - lngPadding).clamp(-180.0, 180.0);
-    final east = (maxLng + lngPadding).clamp(-180.0, 180.0);
-
-    return LatLngBounds(LatLng(south, west), LatLng(north, east));
-  }
+  ];
 }

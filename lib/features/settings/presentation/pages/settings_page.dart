@@ -43,7 +43,7 @@ import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.d
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
@@ -52,6 +52,7 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/widgets/import_preferences_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_summary_widget.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -2564,6 +2565,16 @@ class _ManageSectionContent extends StatelessWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/tags'),
                 ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.bookmarks_outlined),
+                  title: Text(context.l10n.settings_manage_savedQueries),
+                  subtitle: Text(
+                    context.l10n.settings_manage_savedQueries_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/saved-queries'),
+                ),
               ],
             ),
           ),
@@ -2765,6 +2776,8 @@ class SharedDataSectionContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final shareByDefaultAsync = ref.watch(shareByDefaultProvider);
+    // A profile's hidden shared trips and sites (issue #2594).
+    final hidden = ref.watch(hiddenItemsProvider).value ?? const [];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -2831,6 +2844,20 @@ class SharedDataSectionContent extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _confirmAndBulkShareEquipment(context, ref),
                 ),
+                if (hidden.isNotEmpty) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    title: Text(context.l10n.settings_hiddenItems_title),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('${hidden.length}'),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
+                    onTap: () => context.push('/settings/hidden-items'),
+                  ),
+                ],
               ],
             ),
           ),
@@ -2857,53 +2884,6 @@ class _DataSectionContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.add_location_alt_outlined),
-              title: Text(context.l10n.settings_siteMatch_title),
-              subtitle: Text(context.l10n.settings_siteMatch_subtitle),
-              trailing: DropdownButton<SiteMatchSensitivity>(
-                value: ref.watch(settingsProvider).siteMatchSensitivity,
-                underline: const SizedBox.shrink(),
-                onChanged: (value) {
-                  if (value != null) {
-                    ref
-                        .read(settingsProvider.notifier)
-                        .setSiteMatchSensitivity(value);
-                  }
-                },
-                items: [
-                  DropdownMenuItem(
-                    value: SiteMatchSensitivity.strict,
-                    child: Text(context.l10n.settings_siteMatch_strict),
-                  ),
-                  DropdownMenuItem(
-                    value: SiteMatchSensitivity.balanced,
-                    child: Text(context.l10n.settings_siteMatch_balanced),
-                  ),
-                  DropdownMenuItem(
-                    value: SiteMatchSensitivity.relaxed,
-                    child: Text(context.l10n.settings_siteMatch_relaxed),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: SwitchListTile(
-              secondary: const Icon(Icons.compress),
-              title: Text(context.l10n.settings_tankPressureAtSurfacing_title),
-              subtitle: Text(
-                context.l10n.settings_tankPressureAtSurfacing_subtitle,
-              ),
-              value: ref.watch(settingsProvider).trimTankPressureAtSurfacing,
-              onChanged: (value) => ref
-                  .read(settingsProvider.notifier)
-                  .setTrimTankPressureAtSurfacing(value),
-            ),
-          ),
-          const SizedBox(height: 16),
           _buildSectionHeader(
             context,
             context.l10n.settings_data_header_backupSync,
@@ -2976,6 +2956,13 @@ class _DataSectionContent extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_data_header_import,
+          ),
+          const SizedBox(height: 8),
+          const ImportPreferencesCard(),
           const SizedBox(height: 16),
           _buildSectionHeader(
             context,

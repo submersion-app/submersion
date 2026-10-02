@@ -50,6 +50,8 @@ const Set<String> kUnmirroredDiveFields = {
   'gradientFactorHigh',
   'decoAlgorithm',
   'decoConservatism',
+  // The tissue state the diver's own computer reported (issue #1977).
+  'computerTissue',
   'diveComputerModel',
   'diveComputerSerial',
   'diveComputerFirmware',

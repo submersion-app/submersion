@@ -27,6 +27,13 @@ class RoutePoint extends Equatable {
     return (degrees + 360.0) % 360.0;
   }
 
+  RoutePoint copyWith({double? eastM, double? northM}) {
+    return RoutePoint(
+      eastM: eastM ?? this.eastM,
+      northM: northM ?? this.northM,
+    );
+  }
+
   @override
   List<Object?> get props => [eastM, northM];
 }

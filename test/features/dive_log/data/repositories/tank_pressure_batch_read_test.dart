@@ -64,11 +64,15 @@ void main() {
 
   test('reads each dive\'s pressures by tank, leaving out dives with '
       'none', () async {
-    final byDive = await TankPressureRepository().getTankPressuresForDives([
-      'dive-1',
-      'dive-2',
-      'dive-3',
-    ]);
+    final byDive = {
+      for (final entry
+          in (await TankPressureRepository().getTankPressuresForDives([
+            'dive-1',
+            'dive-2',
+            'dive-3',
+          ])).entries)
+        entry.key: entry.value.displayedByTank,
+    };
 
     expect(byDive.keys.toSet(), {'dive-1', 'dive-2'});
     expect(byDive['dive-1']!.keys.toSet(), {'tank-a', 'tank-b'});
@@ -82,6 +86,42 @@ void main() {
     expect(byDive['dive-2']!['tank-c']!.map((p) => (p.timestamp, p.pressure)), [
       (30, 150.0),
     ]);
+  });
+
+  test('keeps every source\'s series, each with its source, and names '
+      'the primary (issue #2492)', () async {
+    // A backup must restore each recording under its own source, so the
+    // export read neither drops nor merges a source's series.
+    for (final (id, primary) in [('src-a', true), ('src-b', false)]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: id,
+              diveId: 'dive-3',
+              isPrimary: Value(primary),
+              importedAt: DateTime.fromMillisecondsSinceEpoch(now),
+              createdAt: DateTime.fromMillisecondsSinceEpoch(now),
+            ),
+          );
+    }
+    final series = TankPressureSeriesRepository();
+    for (final (source, offset) in [('src-a', 0), ('src-b', 1)]) {
+      await series.insertSeries(
+        diveId: 'dive-3',
+        tankId: 'tank-d',
+        sourceId: source,
+        samples: [TankPressureSample(timestamp: offset, pressure: 200.0)],
+        now: now,
+      );
+    }
+
+    final export = (await TankPressureRepository().getTankPressuresForDives([
+      'dive-3',
+    ]))['dive-3']!;
+
+    expect(export.primarySourceId, 'src-a');
+    expect({for (final s in export.series) s.sourceId}, {'src-a', 'src-b'});
   });
 
   test('an empty id list reads nothing', () async {

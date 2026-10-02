@@ -201,12 +201,25 @@ void main() {
       find.text(l10n.passport_fill_station('Blue Water Fills')),
       findsOneWidget,
     );
-    expect(find.text(l10n.passport_fill_unsigned), findsWidgets);
+    // A fill the diver logged carries no badge and no tag note.
+    expect(find.text(l10n.passport_fill_fromTag), findsNothing);
+    expect(find.text(l10n.passport_fill_analyseBeforeDiving), findsNothing);
     // The gas temperature at the analysis is shown in the diver's units.
     expect(find.textContaining('21.5°C'), findsOneWidget);
     // EAN32: 33.75 m at 1.4, 40.0 m at 1.6.
     expect(find.text(l10n.passport_fill_mod('33.8m', '1.4')), findsOneWidget);
     expect(find.text(l10n.passport_fill_mod('40.0m', '1.6')), findsOneWidget);
+  });
+
+  testWidgets('a fill read from a tag says so, and to analyse it', (
+    tester,
+  ) async {
+    final l10n = await pump(
+      tester,
+      fills: [fill(32).copyWith(source: FillSource.nfc)],
+    );
+    expect(find.text(l10n.passport_fill_fromTag), findsWidgets);
+    expect(find.text(l10n.passport_fill_analyseBeforeDiving), findsOneWidget);
   });
 
   testWidgets('warns when a rich fill meets an untracked O2 clean clock', (

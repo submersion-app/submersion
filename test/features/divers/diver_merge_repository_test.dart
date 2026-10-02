@@ -306,9 +306,22 @@ void main() {
   });
 
   group('undoMerge', () {
+    Future<String?> clockOf(String table, String id) async =>
+        (await db
+                .customSelect(
+                  'SELECT hlc FROM "$table" WHERE id = ?',
+                  variables: [Variable.withString(id)],
+                )
+                .getSingleOrNull())
+            ?.read<String?>('hlc');
+
     /// Returns a snapshot of the entire DB state relevant to the merge:
     /// every row in every diver_id table, plus the divers themselves. Used
-    /// to assert merge -> undo produces a true restore.
+    /// to assert merge -> undo produces a true restore of the data.
+    ///
+    /// Leaves out `hlc` and `updated_at`: an undo is a new edit (#2670), so
+    /// the rows it restores carry a fresh clock, and the ones it re-inserts a
+    /// fresh update time, for a peer that already synced the merge.
     Future<Map<String, List<Map<String, dynamic>>>> dbSnapshot() async {
       final snap = <String, List<Map<String, dynamic>>>{};
       final tables =
@@ -326,7 +339,13 @@ void main() {
         final rows = await db
             .customSelect('SELECT * FROM "$t" ORDER BY id')
             .get();
-        snap[t] = rows.map((r) => Map<String, dynamic>.from(r.data)).toList();
+        snap[t] = [
+          for (final r in rows)
+            {
+              for (final e in r.data.entries)
+                if (e.key != 'hlc' && e.key != 'updated_at') e.key: e.value,
+            },
+        ];
       }
       return snap;
     }
@@ -414,8 +433,8 @@ void main() {
       expect(remaining.read<int>('c'), 0);
     });
 
-    test('undo is a true inverse of sync state: no tombstones or pending '
-        'residue remain', () async {
+    test('undo publishes itself: tombstones cleared, restored rows pending '
+        'under fresh clocks', () async {
       // Additive row owned by the duplicate (repointed -> marked pending).
       await db
           .into(db.dives)
@@ -456,6 +475,14 @@ void main() {
               .read<int>('c');
       expect(tombstonesAfterMerge, greaterThan(0));
 
+      final clocksAfterMerge = {
+        for (final (table, id) in [
+          ('dives', 'dive-resid'),
+          ('divers', dup),
+          ('view_configs', 'vc-$dup'),
+        ])
+          '$table/$id': await clockOf(table, id),
+      };
       await repo.undoMerge(snapshot);
 
       final tombstones =
@@ -463,21 +490,32 @@ void main() {
                   .customSelect('SELECT COUNT(*) AS c FROM deletion_log')
                   .getSingle())
               .read<int>('c');
-      final pending =
-          (await db
-                  .customSelect('SELECT COUNT(*) AS c FROM sync_records')
-                  .getSingle())
-              .read<int>('c');
       expect(
         tombstones,
         0,
         reason: 'undo must clear every tombstone the merge logged',
       );
+      final pending = {
+        for (final r in await db.select(db.syncRecords).get())
+          if (r.syncStatus == 'pending') '${r.entityType}/${r.recordId}',
+      };
       expect(
         pending,
-        0,
-        reason: 'undo must clear the pending residue the merge created',
+        containsAll(['dives/dive-resid', 'divers/$dup', 'viewConfigs/vc-$dup']),
+        reason: 'an undo is a new edit, so every row it restores is published',
       );
+      for (final e in clocksAfterMerge.entries) {
+        final [table, id] = e.key.split('/');
+        final clock = await clockOf(table, id);
+        expect(clock, isNotNull, reason: '${e.key} restored without a clock');
+        if (e.value != null) {
+          expect(
+            clock!.compareTo(e.value!),
+            greaterThan(0),
+            reason: '${e.key} must be newer than the merge left it',
+          );
+        }
+      }
     });
   });
 

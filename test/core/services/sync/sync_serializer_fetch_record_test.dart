@@ -135,6 +135,9 @@ void main() {
       'csvPresets',
       'viewConfigs',
       'fieldPresets',
+      'tripEquipment',
+      'tripHides',
+      'siteHides',
     ];
 
     for (final type in simpleTypes) {
@@ -181,6 +184,29 @@ void main() {
 
       expect(record, isNotNull);
       expect(record, isNot(contains('bluetoothAddress')));
+    });
+
+    test('fetchRecords batches the same row fetchRecord returns', () async {
+      // These types read one query per id until #2553 made fetchRecords the
+      // serializer's lookup for an older peer's partial rows.
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+      final targets = <String, String>{
+        'emergencyChambers': db.emergencyChambers.actualTableName,
+        'incidents': db.incidents.actualTableName,
+        'equipmentObservations': db.equipmentObservations.actualTableName,
+        'equipmentFindings': db.equipmentFindings.actualTableName,
+        'siteFeatures': db.siteFeatures.actualTableName,
+        'gpsTracks': db.gpsTracks.actualTableName,
+        'navTracks': db.navTracks.actualTableName,
+      };
+      for (final MapEntry(key: type, value: table) in targets.entries) {
+        await seedMinimalRow(table, '$type-1');
+        final single = await serializer.fetchRecord(type, '$type-1');
+        expect(single, isNotNull, reason: type);
+        expect(await serializer.fetchRecords(type, ['$type-1', 'absent']), {
+          '$type-1': single,
+        }, reason: type);
+      }
     });
 
     test('fetches a seeded row for each single-PK entity type', () async {

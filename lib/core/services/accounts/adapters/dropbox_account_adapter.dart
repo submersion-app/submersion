@@ -1,3 +1,4 @@
+import 'package:http/http.dart' as http;
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
@@ -18,10 +19,16 @@ class DropboxAccountAdapter extends AccountProviderAdapter
     implements SyncCapable, MediaStoreCapable {
   DropboxAccountAdapter({
     DropboxAuthStore Function(String storageKey)? authStoreFactory,
+    http.Client? httpClient,
   }) : _authStoreFactory =
-           authStoreFactory ?? ((key) => DropboxAuthStore(storageKey: key));
+           authStoreFactory ?? ((key) => DropboxAuthStore(storageKey: key)),
+       _httpClient = httpClient;
 
   final DropboxAuthStore Function(String storageKey) _authStoreFactory;
+
+  /// The client each account's auth manager talks to Dropbox with; null
+  /// means the manager's own default.
+  final http.Client? _httpClient;
 
   /// Single-flight token refresh requires one manager per account for the
   /// process lifetime, so instances are cached by account id.
@@ -36,7 +43,10 @@ class DropboxAccountAdapter extends AccountProviderAdapter
   DropboxAuthManager authManagerFor(domain.ConnectedAccount account) =>
       _managers.putIfAbsent(
         account.id,
-        () => DropboxAuthManager(store: _storeFor(account)),
+        () => DropboxAuthManager(
+          store: _storeFor(account),
+          httpClient: _httpClient,
+        ),
       );
 
   @override

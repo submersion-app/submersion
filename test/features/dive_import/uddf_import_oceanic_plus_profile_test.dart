@@ -32,6 +32,7 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
 import '../../helpers/test_database.dart';
+import '../../helpers/fake_hosts.dart';
 
 const _fixturePath = 'test/dives/issue_279_oceanic_plus_export.uddf';
 
@@ -96,6 +97,13 @@ void _expectFullCadence(List<int> timestamps, {required String reason}) {
 }
 
 void main() {
+  // The code under test calls Open-Meteo and Nominatim; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('api.open-meteo.com');
+    serveFakeHost('nominatim.openstreetmap.org');
+  });
+
   late AppDatabase db;
   final importer = UddfEntityImporter();
   final exportService = ExportService();

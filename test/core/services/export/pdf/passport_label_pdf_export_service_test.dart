@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/services/export/pdf/passport_label_pdf_export_service.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 
 import '../../../../helpers/pdf_text.dart';
 
@@ -8,7 +9,7 @@ void main() {
   // Helvetica keeps the text readable by pdfVisibleText; production uses the
   // shared Roboto loader.
   PassportLabelPdfExportService service() => PassportLabelPdfExportService(
-    loadTheme: () async => pw.ThemeData.withFont(
+    loadTheme: (_) async => pw.ThemeData.withFont(
       base: pw.Font.helvetica(),
       bold: pw.Font.helveticaBold(),
     ),
@@ -57,5 +58,21 @@ void main() {
   test('an empty list still produces a document', () async {
     final bytes = await service().generateBytes(const []);
     expect(pdfPageCount(bytes), 1);
+  });
+
+  test('loads the fonts for the app language (#2252)', () async {
+    String? requested;
+    final service = PassportLabelPdfExportService(
+      loadTheme: (localization) async {
+        requested = localization.languageCode;
+        return pw.ThemeData.withFont(base: pw.Font.helvetica());
+      },
+    );
+
+    await service.generateBytes(const [
+      PassportLabelData(title: 'EAN32', url: url),
+    ], localization: PdfLocalization.forLanguageCode('zh'));
+
+    expect(requested, 'zh');
   });
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -43,23 +46,30 @@ class SpeciesDetailPage extends ConsumerWidget {
             tooltip: context.l10n.marineLife_speciesDetail_editTooltip,
             onPressed: () => context.push('/species/$speciesId/edit'),
           ),
-          // Only a custom species can be suggested: built-ins already are
-          // the catalog.
-          if (speciesAsync.value case final species? when !species.isBuiltIn)
+          if (speciesAsync.value case final species?)
             PopupMenuButton<String>(
               key: const ValueKey('species_detail_menu'),
               onSelected: (value) {
-                if (value == 'suggest') {
+                if (value == kOpenInConnectionsAction) {
+                  openInConnections(
+                    context,
+                    NodeRef(ConnectionKind.species, species.id),
+                  );
+                } else if (value == 'suggest') {
                   _suggestForCatalog(context, ref, species);
                 }
               },
               itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'suggest',
-                  child: Text(
-                    context.l10n.marineLife_speciesDetail_suggestForCatalog,
+                openInConnectionsMenuItem(context),
+                // Only a custom species can be suggested: built-ins
+                // already are the catalog.
+                if (!species.isBuiltIn)
+                  PopupMenuItem(
+                    value: 'suggest',
+                    child: Text(
+                      context.l10n.marineLife_speciesDetail_suggestForCatalog,
+                    ),
                   ),
-                ),
               ],
             ),
         ],

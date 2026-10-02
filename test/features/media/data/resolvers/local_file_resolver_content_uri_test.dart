@@ -1,7 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/resolvers/local_file_resolver.dart';
-import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -51,7 +50,6 @@ void main() {
       LocalFileResolver(
         bookmarkStorage: _NullBookmarkStorage(),
         platform: _FailingUriPlatform(code),
-        exifExtractor: ExifExtractor(),
         readsContentUris: () => true,
         localDeviceId: () async => 'me',
         findInLibrary: (item) async {
@@ -102,7 +100,6 @@ void main() {
       final data = await LocalFileResolver(
         bookmarkStorage: _NullBookmarkStorage(),
         platform: _FailingUriPlatform('PERMISSION_DENIED'),
-        exifExtractor: ExifExtractor(),
         readsContentUris: () => true,
         localDeviceId: () async => 'me',
         findInLibrary: (item) async => throw StateError('channel'),

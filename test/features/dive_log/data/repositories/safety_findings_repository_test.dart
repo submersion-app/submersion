@@ -61,6 +61,32 @@ void main() {
     expect(await repo.getReview('dive-1'), isNull);
   });
 
+  test('saveReview then getReview round-trips the inputs fingerprint '
+      '(#2592)', () async {
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        inputsHash: 'a1;gf=50/85',
+        findings: [finding('f1')],
+      ),
+    );
+    expect((await repo.getReview('dive-1'))!.inputsHash, 'a1;gf=50/85');
+
+    // A recompute on other settings replaces it.
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        inputsHash: 'a1;gf=30/70',
+        findings: [finding('f1')],
+      ),
+    );
+    expect((await repo.getReview('dive-1'))!.inputsHash, 'a1;gf=30/70');
+  });
+
   test('saveReview then getReview round-trips findings', () async {
     await repo.saveReview(
       SafetyReview(

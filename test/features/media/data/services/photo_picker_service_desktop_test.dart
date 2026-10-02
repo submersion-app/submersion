@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service_desktop.dart';
+import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
 
 /// Writes a 4x4 JPEG carrying [dateTimeOriginal] in its EXIF IFD.
 File _jpegWithExifDate(Directory dir, String name, String dateTimeOriginal) {
@@ -108,6 +110,27 @@ void main() {
       expect(
         service.assetInfoForFile(file)?.createDateTime,
         DateTime(2025, 11, 2, 9, 15),
+      );
+    });
+
+    test('records that an embedded capture time dated the asset', () {
+      final file = _jpegWithExifDate(tempDir, 'a.jpg', '2025:07:14 17:22:31');
+
+      expect(
+        service.assetInfoForFile(file)?.takenAtSource,
+        TakenAtSource.containerMetadata,
+      );
+    });
+
+    test('records that the file mtime dated the asset', () {
+      // An AVI carries no date the readers understand, so the review page
+      // has to be able to say the time is only the file's.
+      final file = File(p.join(tempDir.path, 'clip.avi'))
+        ..writeAsBytesSync([1, 2, 3, 4]);
+
+      expect(
+        service.assetInfoForFile(file)?.takenAtSource,
+        TakenAtSource.fileModifiedTime,
       );
     });
 

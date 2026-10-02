@@ -3,8 +3,8 @@ import 'package:equatable/equatable.dart';
 /// Metadata extracted from raw media bytes (EXIF for images, container
 /// headers for video) by [UrlMetadataExtractor] / [ExifExtractor].
 ///
-/// Distinct from [MediaSourceMetadata] which is the resolver-facing value
-/// object stored on `MediaItem`. [ExtractedMetadata] is the narrower
+/// Distinct from [MediaSourceMetadata], the link-time value object read
+/// before the `MediaItem` row exists. [ExtractedMetadata] is the narrower
 /// "what we got out of the bytes" payload — fields are nullable when the
 /// source did not include them. Wall-clock-UTC convention applies to
 /// [takenAt] (see `ExifExtractor` for the parsing side).

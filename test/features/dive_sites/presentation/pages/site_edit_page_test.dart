@@ -17,6 +17,7 @@ import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 /// The v2 chrome renders row labels outside the text field, so
 /// widgetWithText(TextFormField, label) no longer matches; resolve the
@@ -103,6 +104,12 @@ Widget _buildMergeHarness({
 }
 
 void main() {
+  // The code under test calls Open-Meteo; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('api.open-meteo.com');
+  });
+
   late SharedPreferences prefs;
 
   setUp(() async {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:submersion/core/models/log_entry.dart';
@@ -84,6 +85,12 @@ class DiscoveryState {
   final List<DiscoveredDevice> discoveredDevices;
   final bool isScanning;
   final String? errorMessage;
+
+  /// Whether [errorMessage] is there because the Bluetooth radio is off or
+  /// missing, which the scan step words in the user's language instead of
+  /// showing the platform's error text. Cleared with [errorMessage], and
+  /// dropped by any new [errorMessage] that does not set it.
+  final bool bluetoothUnavailable;
   final String? customDeviceName;
 
   const DiscoveryState({
@@ -92,6 +99,7 @@ class DiscoveryState {
     this.discoveredDevices = const [],
     this.isScanning = false,
     this.errorMessage,
+    this.bluetoothUnavailable = false,
     this.customDeviceName,
   });
 
@@ -101,6 +109,7 @@ class DiscoveryState {
     List<DiscoveredDevice>? discoveredDevices,
     bool? isScanning,
     String? errorMessage,
+    bool? bluetoothUnavailable,
     String? customDeviceName,
     bool clearError = false,
     bool clearDevice = false,
@@ -113,6 +122,12 @@ class DiscoveryState {
       discoveredDevices: discoveredDevices ?? this.discoveredDevices,
       isScanning: isScanning ?? this.isScanning,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      // A new error message without its own flag replaces the reason too,
+      // so the banner never words a different error as Bluetooth being off.
+      bluetoothUnavailable: clearError
+          ? false
+          : (bluetoothUnavailable ??
+                (errorMessage != null ? false : this.bluetoothUnavailable)),
       customDeviceName: customDeviceName ?? this.customDeviceName,
     );
   }
@@ -219,6 +234,9 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
       state = state.copyWith(
         isScanning: false,
         errorMessage: 'Failed to start scanning: $e',
+        bluetoothUnavailable:
+            e is PlatformException &&
+            e.code == pigeon.bluetoothUnavailableErrorCode,
       );
     }
   }

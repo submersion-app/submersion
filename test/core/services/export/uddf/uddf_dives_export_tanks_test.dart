@@ -6,6 +6,8 @@ import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:xml/xml.dart';
 
+import '../../../../helpers/tank_pressure_export_fixtures.dart';
+
 /// Issue #1874: the dives-only UDDF export (dive detail, dive list bulk,
 /// buddy detail) declared no `<tankdata>`, so a dive's cylinders never reached
 /// the file, and the `<tankpressure>` it wrote named no cylinder.
@@ -41,8 +43,8 @@ void main() {
     ],
   );
 
-  const pressures = {
-    'dive-a': {
+  final pressures = {
+    'dive-a': testPressureExport(const {
       'tank-a': [
         TankPressurePoint(tankId: 'tank-a', timestamp: 10, pressure: 200.0),
         TankPressurePoint(tankId: 'tank-a', timestamp: 60, pressure: 180.0),
@@ -51,7 +53,7 @@ void main() {
         TankPressurePoint(tankId: 'tank-b', timestamp: 10, pressure: 210.0),
         TankPressurePoint(tankId: 'tank-b', timestamp: 60, pressure: 205.0),
       ],
-    },
+    }),
   };
 
   XmlElement onlyDive(String xml) =>
@@ -145,7 +147,7 @@ void main() {
     final written = onlyDive(
       await UddfExportService().generateDivesUddfContent([
         dive,
-      ], extras: const UddfDivesExtras(diveTankPressures: pressures)),
+      ], extras: UddfDivesExtras(diveTankPressures: pressures)),
     );
 
     expect(pressuresIn(written), hasLength(4));

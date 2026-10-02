@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -11,7 +9,6 @@ import 'package:submersion/features/equipment/domain/entities/service_schedule.d
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
-import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_details.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -24,20 +21,6 @@ const ccr = EquipmentItem(
   name: 'My CCR',
   type: EquipmentType.rebreather,
 );
-
-Trip trip({bool past = false}) {
-  final start = past
-      ? DateTime(2025, 3, 1)
-      : DateTime.now().add(const Duration(days: 10));
-  return Trip(
-    id: 't1',
-    name: 'Trip',
-    startDate: start,
-    endDate: start.add(const Duration(days: 4)),
-    createdAt: DateTime(2025),
-    updatedAt: DateTime(2025),
-  );
-}
 
 ScrubberMargin margin({
   double? rated = 300,
@@ -69,7 +52,6 @@ ScrubberMargin margin({
 
 Widget host(
   List<ScrubberMargin> margins, {
-  bool past = false,
   Map<String, RollupClock> clocks = const {},
 }) => ProviderScope(
   overrides: [
@@ -81,26 +63,11 @@ Widget host(
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
-    home: Scaffold(
-      body: TripScrubberMarginDetails(margins: margins, isPast: past),
-    ),
+    home: Scaffold(body: TripScrubberMarginDetails(margins: margins)),
   ),
 );
 
 void main() {
-  // formatDate resolves DateFormat against Intl.defaultLocale, a process
-  // global the app assigns from the diver's locale and a widget test never
-  // sets. Left alone, the "as of Mar 1, 2025" assertion below would rest on
-  // whatever the machine's default happens to be.
-  late String? previousLocale;
-  setUp(() {
-    previousLocale = Intl.defaultLocale;
-    Intl.defaultLocale = 'en_US';
-  });
-  tearDown(() {
-    Intl.defaultLocale = previousLocale;
-  });
-
   testWidgets('states the four figures with their n and the caution', (
     tester,
   ) async {
@@ -222,9 +189,7 @@ void main() {
     );
   }
 
-  testWidgets('an upcoming trip flags a rebreather that is overdue', (
-    tester,
-  ) async {
+  testWidgets('flags a rebreather that is overdue', (tester) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
       host([margin()], clocks: {ccr.id: overdueScrubber()}),
@@ -233,23 +198,6 @@ void main() {
     expect(
       find.bySemanticsLabel(RegExp('Scrubber repack overdue')),
       findsOneWidget,
-    );
-    semantics.dispose();
-  });
-
-  testWidgets('a past trip does not show today\'s service state', (
-    tester,
-  ) async {
-    // The card reads as of the trip's start, so a live overdue mark beside
-    // those figures would claim the unit was overdue on that trip (#2260).
-    final semantics = tester.ensureSemantics();
-    await tester.pumpWidget(
-      host([margin()], past: true, clocks: {ccr.id: overdueScrubber()}),
-    );
-    await tester.pumpAndSettle();
-    expect(
-      find.bySemanticsLabel(RegExp('Scrubber repack overdue')),
-      findsNothing,
     );
     semantics.dispose();
   });
@@ -310,18 +258,5 @@ void main() {
       margin(rated: null, marginAfter: null, caution: false),
     ]);
     expect(summary, '2 rebreathers, lowest 40 min scrubber margin');
-  });
-
-  test('a past trip heads the breakdown as of its start', () {
-    final l10n = AppLocalizationsEn();
-    const units = UnitFormatter(AppSettings());
-    expect(
-      tripScrubberMarginTitle(l10n, units, trip(past: true), isPast: true),
-      'Scrubber margin (as of Mar 1, 2025)',
-    );
-    expect(
-      tripScrubberMarginTitle(l10n, units, trip(), isPast: false),
-      'Scrubber margin',
-    );
   });
 }

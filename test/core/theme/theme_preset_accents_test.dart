@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 
+import '../../helpers/google_fonts_settle.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  GoogleFonts.config.allowRuntimeFetching = false;
 
   // Force-initialize the theme finals inside a guarded zone so the expected
   // google_fonts load errors (fonts are not bundled in test assets) do not
@@ -21,11 +21,8 @@ void main() {
         () async {
           // ignore: unnecessary_statements
           AppThemeRegistry.presets;
-          try {
-            await GoogleFonts.pendingFonts();
-          } catch (_) {
-            // Expected: fonts are not bundled in test assets.
-          }
+          // Bounded: a font load another file left pending never finishes.
+          await settleGoogleFonts();
         },
         (error, stack) {
           // Silently absorb google_fonts errors in the test environment.

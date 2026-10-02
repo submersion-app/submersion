@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
@@ -17,6 +16,7 @@ import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_gear_alerts_panel.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_header_cards.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -143,18 +143,6 @@ Color? headerFill(WidgetTester tester) {
 }
 
 void main() {
-  // formatDate resolves against Intl.defaultLocale, a process global a
-  // widget test never sets; pin it so the "as of" date reads the same on
-  // every machine.
-  late String? previousLocale;
-  setUp(() {
-    previousLocale = Intl.defaultLocale;
-    Intl.defaultLocale = 'en_US';
-  });
-  tearDown(() {
-    Intl.defaultLocale = previousLocale;
-  });
-
   testWidgets('nothing to say renders nothing', (tester) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
@@ -348,26 +336,51 @@ void main() {
     expect(find.text('My CCR'), findsNothing);
   });
 
-  testWidgets('a past trip drops service alerts and reads as of its start', (
+  testWidgets('a past trip renders nothing, scrubber margin included (#2485)', (
     tester,
   ) async {
-    // Today's service state says nothing about a trip already dived.
+    // A trip already dived has nothing left to plan: today's service state
+    // says nothing about it, and a margin forecast from today's rebreathers
+    // would warn about a repack that can no longer happen.
     await tester.pumpWidget(
       host(margins: [margin()], alerts: [dueClock()], past: true),
     );
     await tester.pumpAndSettle();
-    expect(find.text('-140 min scrubber margin'), findsOneWidget);
-    await toggle(tester);
-    expect(find.text('AL80'), findsNothing);
-    expect(find.textContaining('as of Mar 1, 2025'), findsOneWidget);
+    expect(find.byType(Card), findsNothing);
+    expect(find.text('-140 min scrubber margin'), findsNothing);
   });
 
-  testWidgets('a past trip with only service alerts renders nothing', (
+  testWidgets('a trip under way still shows its scrubber margin', (
     tester,
   ) async {
-    await tester.pumpWidget(host(alerts: [dueClock()], past: true));
+    final started = _now.subtract(const Duration(days: 1));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          tripScrubberMarginsProvider(
+            't1',
+          ).overrideWith((ref) async => [margin()]),
+          tripServiceAlertsProvider('t1').overrideWith((ref) async => const []),
+          equipmentRollupClockProvider.overrideWith((ref) async => const {}),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: TripGearAlertsPanel(
+              trip: trip().copyWith(
+                startDate: started,
+                endDate: started.add(const Duration(days: 4)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
-    expect(find.byType(Card), findsNothing);
+    expect(find.text('-140 min scrubber margin'), findsOneWidget);
   });
 
   testWidgets('tapping a listed item opens it', (tester) async {
@@ -400,7 +413,8 @@ void main() {
     tester,
   ) async {
     // Once open the panel still sits above the page's scrolling content,
-    // so several units scroll inside it instead of overflowing the page.
+    // so several units scroll with the header cards instead of
+    // overflowing the page.
     tester.view.physicalSize = const Size(400, 600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -410,7 +424,7 @@ void main() {
         alerts: [dueClock()],
         wrap: (panel) => Column(
           children: [
-            panel,
+            TripHeaderCards(children: [panel]),
             const Expanded(child: SizedBox(key: ValueKey('page-body'))),
           ],
         ),
@@ -420,12 +434,61 @@ void main() {
     await toggle(tester);
     expect(tester.takeException(), isNull);
     expect(
-      tester.getSize(find.byType(TripGearAlertsPanel)).height,
-      lessThanOrEqualTo(600 * TripGearAlertsPanel.maxHeightFraction + 1),
+      tester.getSize(find.byType(TripHeaderCards)).height,
+      lessThanOrEqualTo(600 * TripHeaderCards.maxHeightFraction + 1),
     );
     expect(
       tester.getSize(find.byKey(const ValueKey('page-body'))).height,
       greaterThan(0),
+    );
+  });
+
+  testWidgets('a drag on the open panel goes on to the next card (#2653)', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      host(
+        margins: [for (var i = 0; i < 6; i++) margin()],
+        alerts: [dueClock()],
+        wrap: (panel) => Column(
+          children: [
+            TripHeaderCards(
+              children: [
+                panel,
+                const SizedBox(key: ValueKey('next-card'), height: 200),
+              ],
+            ),
+            const Expanded(child: SizedBox.expand()),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await toggle(tester);
+    expect(
+      find.descendant(
+        of: find.byType(TripHeaderCards),
+        matching: find.byType(Scrollable),
+      ),
+      findsOneWidget,
+    );
+
+    final header = tester.getRect(find.byType(TripHeaderCards));
+    for (var i = 0; i < 30; i++) {
+      final visible = tester
+          .getRect(find.byType(TripGearAlertsPanel))
+          .intersect(header);
+      if (visible.height < 40) break;
+      await tester.dragFrom(visible.center, const Offset(0, -150));
+      await tester.pumpAndSettle();
+    }
+    // The next card is last, so the end of the drag shows all of it.
+    expect(
+      tester.getBottomLeft(find.byKey(const ValueKey('next-card'))).dy,
+      lessThanOrEqualTo(header.bottom),
     );
   });
 }

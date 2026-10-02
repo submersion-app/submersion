@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
+import 'package:submersion/core/utils/gas_percent.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_rules.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
-import 'package:submersion/features/cylinder_passports/presentation/utils/gas_percent.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';

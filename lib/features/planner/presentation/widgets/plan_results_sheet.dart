@@ -10,6 +10,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/schedule_lines.dart';
+import 'package:submersion/features/planner/presentation/mission/mission_results_section.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
@@ -151,6 +152,13 @@ class PlanResultsSheet extends ConsumerWidget {
         PlanSectionHeader(context.l10n.divePlanner_label_gasConsumption),
         for (final usage in outcome.tankUsages)
           _GasRow(usage: usage, label: tankLabel(usage.tankId), units: units),
+        if (ref.watch(
+          divePlanNotifierProvider.select((s) => s.mission != null),
+        )) ...[
+          const SizedBox(height: 20),
+          PlanSectionHeader(context.l10n.plannerMission_results_title),
+          const MissionResultsSection(),
+        ],
         if (bailout != null) ...[
           const SizedBox(height: 20),
           PlanSectionHeader(context.l10n.plannerCanvas_bailout_title),

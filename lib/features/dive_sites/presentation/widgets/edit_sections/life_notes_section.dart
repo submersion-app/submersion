@@ -28,6 +28,8 @@ class LifeNotesSection extends StatelessWidget {
     required this.showShareToggle,
     required this.isShared,
     required this.onShareChanged,
+    this.shareLocked = false,
+    this.shareLockedReason,
   });
 
   final bool expanded;
@@ -38,6 +40,13 @@ class LifeNotesSection extends StatelessWidget {
   final VoidCallback onAddSpecies;
   final ValueChanged<Species> onRemoveSpecies;
   final TextEditingController notesController;
+
+  /// Whether the share switch is locked: another profile owns the site
+  /// (issue #2594), or the active profile is not known yet (issue #2682).
+  final bool shareLocked;
+
+  /// Why the share switch is locked, shown under it; null for no line.
+  final String? shareLockedReason;
   final MergeFieldExtras? Function(String key)? mergeExtras;
   final bool showShareToggle;
   final bool isShared;
@@ -110,6 +119,8 @@ class LifeNotesSection extends StatelessWidget {
             label: l10n.common_label_shareWithAllProfiles,
             value: isShared,
             onChanged: onShareChanged,
+            enabled: !shareLocked,
+            helpText: shareLockedReason,
           ),
       ],
     );

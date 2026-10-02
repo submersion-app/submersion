@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -18,8 +22,13 @@ import 'package:submersion/features/trips/presentation/widgets/trip_gear_alerts_
 import 'package:submersion/features/trips/presentation/widgets/trip_itinerary_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_cylinders_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_gear_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_header_cards.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 
 class TripDetailPage extends ConsumerStatefulWidget {
   final String tripId;
@@ -74,14 +83,15 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
               ),
               body: const Center(child: CircularProgressIndicator()),
             ),
-      error: (error, stack) => widget.embedded
-          ? Center(child: Text('${context.l10n.common_label_error}: $error'))
+      // The repository logs the failure; the diver gets a plain line.
+      error: (_, _) => widget.embedded
+          ? Center(child: Text(context.l10n.trips_detail_error_loading))
           : Scaffold(
               appBar: AppBar(
                 title: Text(context.l10n.trips_detail_appBar_title),
               ),
               body: Center(
-                child: Text('${context.l10n.common_label_error}: $error'),
+                child: Text(context.l10n.trips_detail_error_loading),
               ),
             ),
     );
@@ -118,7 +128,7 @@ class _TripDetailContent extends ConsumerWidget {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
-          TripGearAlertsPanel(trip: trip),
+          _headerCards(trip),
           Expanded(child: body),
         ],
       );
@@ -131,7 +141,7 @@ class _TripDetailContent extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          TripGearAlertsPanel(trip: trip),
+          _headerCards(trip),
           Expanded(child: body),
         ],
       ),
@@ -198,7 +208,7 @@ class _TripDetailContent extends ConsumerWidget {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
-          TripGearAlertsPanel(trip: trip),
+          _headerCards(trip),
           Expanded(child: tabbedBody),
         ],
       );
@@ -211,7 +221,7 @@ class _TripDetailContent extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          TripGearAlertsPanel(trip: trip),
+          _headerCards(trip),
           Expanded(child: tabbedBody),
         ],
       ),
@@ -360,6 +370,27 @@ class _TripDetailContent extends ConsumerWidget {
     );
   }
 
+  /// The cards above the trip's story, the same in every layout, under
+  /// "Shared by" when another profile owns the trip (issue #2594).
+  Widget _headerCards(Trip trip) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      SharedByBanner(
+        kind: SharedItemKind.trip,
+        itemId: trip.id,
+        ownerId: trip.diverId,
+        isShared: trip.isShared,
+      ),
+      TripHeaderCards(
+        children: [
+          TripGearAlertsPanel(trip: trip),
+          TripCylindersCard(trip: trip),
+          TripGearCard(trip: trip),
+        ],
+      ),
+    ],
+  );
+
   Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref, Trip trip) {
     final colorScheme = Theme.of(context).colorScheme;
     final units = UnitFormatter(ref.watch(settingsProvider));
@@ -439,15 +470,38 @@ class _TripDetailContent extends ConsumerWidget {
     // Lightroom scan hidden pending Adobe review (lightroomUiEnabled).
     final hasLightroomAccount =
         lightroomUiEnabled && ref.watch(lightroomAccountProvider).value != null;
+    final canDestroy = canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
+      ownerId: trip.diverId,
+    );
+    // A trip this profile already removed offers Unhide (issue #2679).
+    final hidden = watchHiddenHere(
+      ref,
+      SharedItemKind.trip,
+      trip.id,
+      canDestroy: canDestroy != false,
+    );
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
-        if (value == 'delete') {
+        if (value == kOpenInConnectionsAction) {
+          openInConnections(context, NodeRef(ConnectionKind.trip, trip.id));
+        } else if (value == 'delete') {
           final confirmed = await _showDeleteConfirmation(context, ref, trip);
           if (confirmed && context.mounted) {
-            await ref
+            final deleted = await ref
                 .read(tripListNotifierProvider.notifier)
                 .deleteTrip(trip.id);
+            if (!deleted) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(context.l10n.sharedItems_notOwner_trip),
+                  ),
+                );
+              }
+              return;
+            }
             if (context.mounted) {
               if (embedded) {
                 onDeleted?.call();
@@ -461,6 +515,16 @@ class _TripDetailContent extends ConsumerWidget {
               );
             }
           }
+        } else if (value == 'remove') {
+          await _removeFromProfile(context, ref, trip);
+        } else if (value == 'unhide') {
+          // A failed unhide says so (issue #2677).
+          await runHideChange(
+            ScaffoldMessenger.of(context),
+            context.l10n,
+            () =>
+                ref.read(tripListNotifierProvider.notifier).unhideTrip(trip.id),
+          );
         } else if (value == 'export') {
           _showExportOptions(context, ref);
         } else if (value == 'scan-dives') {
@@ -472,6 +536,7 @@ class _TripDetailContent extends ConsumerWidget {
         }
       },
       itemBuilder: (context) => [
+        openInConnectionsMenuItem(context),
         PopupMenuItem(
           value: 'scan-dives',
           child: Row(
@@ -513,19 +578,45 @@ class _TripDetailContent extends ConsumerWidget {
             ],
           ),
         ),
-        PopupMenuItem(
-          value: 'delete',
-          child: Row(
-            children: [
-              Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-              const SizedBox(width: 8),
-              Text(
-                context.l10n.trips_detail_action_delete,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ],
+        // Delete for the owner; another profile only removes the shared
+        // trip from itself (issue #2594); neither while the profile is
+        // unknown (issue #2682).
+        if (canDestroy == true)
+          PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                const SizedBox(width: 8),
+                Text(
+                  context.l10n.trips_detail_action_delete,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+            ),
+          )
+        else if (hidden)
+          PopupMenuItem(
+            value: 'unhide',
+            child: Row(
+              children: [
+                const Icon(Icons.visibility_outlined),
+                const SizedBox(width: 8),
+                Flexible(child: Text(context.l10n.sharedItems_unhideAction)),
+              ],
+            ),
+          )
+        else if (canDestroy == false)
+          PopupMenuItem(
+            value: 'remove',
+            child: Row(
+              children: [
+                const Icon(Icons.visibility_off_outlined),
+                const SizedBox(width: 8),
+                Flexible(child: Text(context.l10n.sharedItems_removeAction)),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }
@@ -536,9 +627,13 @@ class _TripDetailContent extends ConsumerWidget {
     Trip trip,
   ) async {
     final divers = await ref.read(allDiversProvider.future);
-    if (!context.mounted) return false;
     final diverCount = divers.length;
     final isSharedDelete = trip.isShared && diverCount >= 2;
+    // The other profiles' dives that lose the trip (issue #2594).
+    final others = isSharedDelete
+        ? (await readDiveLinkCounts(ref, SharedItemKind.trip, trip.id)).others
+        : 0;
+    if (!context.mounted) return false;
 
     return await showDialog<bool>(
           context: context,
@@ -550,7 +645,14 @@ class _TripDetailContent extends ConsumerWidget {
             ),
             content: Text(
               isSharedDelete
-                  ? ctx.l10n.trips_deleteShared_body(trip.name)
+                  ? [
+                      ctx.l10n.trips_deleteShared_body(trip.name),
+                      ?otherProfilesDivesLine(
+                        ctx.l10n,
+                        SharedItemKind.trip,
+                        others,
+                      ),
+                    ].join('\n\n')
                   : ctx.l10n.trips_detail_dialog_deleteContent(trip.name),
             ),
             actions: [
@@ -569,6 +671,27 @@ class _TripDetailContent extends ConsumerWidget {
           ),
         ) ??
         false;
+  }
+
+  /// Hides another profile's shared trip from the active profile only
+  /// (issue #2594), with Undo.
+  Future<void> _removeFromProfile(
+    BuildContext context,
+    WidgetRef ref,
+    Trip trip,
+  ) {
+    final notifier = ref.read(tripListNotifierProvider.notifier);
+    return removeSharedItemFromProfile(
+      context,
+      ref,
+      kind: SharedItemKind.trip,
+      id: trip.id,
+      name: trip.name,
+      ownerId: trip.diverId,
+      hide: () => notifier.hideTrip(trip.id),
+      unhide: () => notifier.unhideTrip(trip.id),
+      onRemoved: () => embedded ? onDeleted?.call() : context.pop(),
+    );
   }
 
   void _showExportOptions(BuildContext context, WidgetRef ref) {

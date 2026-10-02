@@ -124,16 +124,28 @@ class SafetyReview extends Equatable {
   final DateTime reviewedAt;
   final List<SafetyFinding> findings;
 
+  /// The fingerprint of the diver settings the review's analysis ran on
+  /// (issue #2592). A review is current only while this matches the active
+  /// settings; null means it was stored before inputs were recorded.
+  final String? inputsHash;
+
   const SafetyReview({
     required this.diveId,
     required this.engineVersion,
     required this.reviewedAt,
     required this.findings,
+    this.inputsHash,
   });
 
   List<SafetyFinding> get activeFindings =>
       findings.where((f) => !f.isDismissed).toList();
 
   @override
-  List<Object?> get props => [diveId, engineVersion, reviewedAt, findings];
+  List<Object?> get props => [
+    diveId,
+    engineVersion,
+    reviewedAt,
+    findings,
+    inputsHash,
+  ];
 }

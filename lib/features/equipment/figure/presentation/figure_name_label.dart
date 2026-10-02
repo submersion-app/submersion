@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 
-/// A number badge and an item's name, the whole slot tappable.
+/// A number badge and an item's name, the whole slot tappable. A null
+/// [number] shows the name alone, for a figure drawn without numbers.
 ///
 /// [pill] draws a rounded background on one line (the wide layout); without
 /// it the label is plain text in a column (the phone layout), which may wrap
@@ -30,7 +31,7 @@ class FigureNameLabel extends StatelessWidget {
   /// the selection flash to show around the text.
   static const double _columnPadding = 4;
 
-  final int number;
+  final int? number;
   final String text;
   final bool alignEnd;
   final bool pill;
@@ -48,21 +49,24 @@ class FigureNameLabel extends StatelessWidget {
   }
 
   /// The width a pill needs to show [text] in full on one line, at the
-  /// diver's text size.
+  /// diver's text size. A null [number] leaves out the badge and its gap.
   static double preferredWidth(
     String text,
     TextStyle style,
     TextDirection direction, {
+    required int? number,
     TextScaler textScaler = TextScaler.noScaling,
-    int number = 1,
   }) {
     final width = _measure(text, style, direction, textScaler);
-    final badge = FigureNumberBadge.widthFor(
-      number,
-      badgeSize,
-      textScaler: textScaler,
-    );
-    return badge + _gap + width + _pillPadding * 2 + 2;
+    final badge = number == null
+        ? 0.0
+        : FigureNumberBadge.widthFor(
+                number,
+                badgeSize,
+                textScaler: textScaler,
+              ) +
+              _gap;
+    return badge + width + _pillPadding * 2 + 2;
   }
 
   /// The row height a label needs for its lines at the diver's text size,
@@ -122,25 +126,34 @@ class FigureNameLabel extends StatelessWidget {
         onTap: onTap,
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final badge = FigureNumberBadge(
-              number: number,
-              size: badgeSize,
-              selected: selected,
-            );
+            final number = this.number;
+            final badgeWidth = number == null ? 0.0 : badgeSize + _gap;
             // Too narrow for any of the name (a phone column in a very
             // narrow pane): show the number alone, scaled down if even the
-            // badge does not fit, rather than overflow the row.
-            if (constraints.maxWidth < badgeSize + _gap + padding * 2 + 12) {
+            // badge does not fit, rather than overflow the row. With no
+            // number there is nothing to show, so the slot keeps only the
+            // name for a screen reader.
+            if (constraints.maxWidth < badgeWidth + padding * 2 + 12) {
+              if (number == null) {
+                return Semantics(label: text, child: const SizedBox.shrink());
+              }
               return Align(
                 alignment: alignEnd
                     ? Alignment.centerRight
                     : Alignment.centerLeft,
-                child: FittedBox(fit: BoxFit.scaleDown, child: badge),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: FigureNumberBadge(
+                    number: number,
+                    size: badgeSize,
+                    selected: selected,
+                  ),
+                ),
               );
             }
             final lineWidth = math.max(
               0.0,
-              constraints.maxWidth - badgeSize - _gap - padding * 2,
+              constraints.maxWidth - badgeWidth - padding * 2,
             );
             final lines = _linesFor(context, lineWidth, style);
             return Align(
@@ -163,11 +176,11 @@ class FigureNameLabel extends StatelessWidget {
   }
 }
 
-/// The visible part of a figure label: the number badge, an optional
-/// leading icon, and the name, on a pill fill in the wide layout and plain in
-/// a phone column, with the contrast-derived highlight when selected. Shared
-/// by the labels on the figure and the tiles in the tray, so both stay in
-/// step.
+/// The visible part of a figure label: the number badge (none when [number]
+/// is null), an optional leading icon, and the name, on a pill fill in the
+/// wide layout and plain in a phone column, with the contrast-derived
+/// highlight when selected. Shared by the labels on the figure and the tiles
+/// in the tray, so both stay in step.
 class FigureLabelBody extends StatelessWidget {
   const FigureLabelBody({
     super.key,
@@ -181,7 +194,7 @@ class FigureLabelBody extends StatelessWidget {
     this.minHeight = 0,
   });
 
-  final int number;
+  final int? number;
   final String text;
   final bool pill;
   final bool selected;
@@ -205,15 +218,18 @@ class FigureLabelBody extends StatelessWidget {
     final padding = pill
         ? FigureNameLabel._pillPadding
         : FigureNameLabel._columnPadding;
+    final number = this.number;
     Widget row = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        FigureNumberBadge(
-          number: number,
-          size: FigureNameLabel.badgeSize,
-          selected: selected,
-        ),
-        const SizedBox(width: FigureNameLabel._gap),
+        if (number != null) ...[
+          FigureNumberBadge(
+            number: number,
+            size: FigureNameLabel.badgeSize,
+            selected: selected,
+          ),
+          const SizedBox(width: FigureNameLabel._gap),
+        ],
         if (leading != null) ...[
           IconTheme.merge(
             data: IconThemeData(size: 18, color: highlight?.onFill),

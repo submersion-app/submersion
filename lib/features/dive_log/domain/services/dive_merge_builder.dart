@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
@@ -106,6 +107,24 @@ class DiveMergeBuilder {
       if (v != null) return v;
     }
     return null;
+  }
+
+  /// A snapshot is a start/end pair, so the combined dive starts in the
+  /// earliest segment's start state and ends in the latest segment's end
+  /// state. Another segment's state would sit in the middle of the combined
+  /// dive, so it is never used for either end; a side the end segment did
+  /// not report stays null.
+  ComputerTissueSnapshot? _mergedComputerTissue(List<Dive> sorted) {
+    final first = sorted.first.computerTissue;
+    final last = sorted.last.computerTissue;
+    final start = first?.start;
+    final end = last?.end;
+    if (start == null && end == null) return null;
+    return ComputerTissueSnapshot(
+      algorithm: (end != null ? last?.algorithm : null) ?? first?.algorithm,
+      start: start,
+      end: end,
+    );
   }
 
   String _mergedNotes(List<Dive> sorted) =>
@@ -352,6 +371,7 @@ class DiveMergeBuilder {
       gradientFactorHigh: _firstNonNull(sorted, (d) => d.gradientFactorHigh),
       decoAlgorithm: _firstNonNull(sorted, (d) => d.decoAlgorithm),
       decoConservatism: _firstNonNull(sorted, (d) => d.decoConservatism),
+      computerTissue: _mergedComputerTissue(sorted),
       diveComputerModel: _firstNonNull(sorted, (d) => d.diveComputerModel),
       diveComputerSerial: _firstNonNull(sorted, (d) => d.diveComputerSerial),
       diveComputerFirmware: _firstNonNull(

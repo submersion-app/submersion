@@ -15,6 +15,7 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 
 import '../../../helpers/mock_providers.dart';
+import '../../../helpers/fake_hosts.dart';
 
 NavTrack _route({
   required List<NavTrackPoint> points,
@@ -84,6 +85,12 @@ Future<ProviderContainer> makeContainer({
 }
 
 void main() {
+  // The code under test calls the OSM tile server; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('tile.openstreetmap.org');
+  });
+
   group('spatialBuildRunsInBackground', () {
     SpatialBuildInput inputWith({required int points, BathymetryGrid? grid}) =>
         (

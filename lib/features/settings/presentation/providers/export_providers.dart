@@ -1,6 +1,8 @@
 import 'package:clock/clock.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/excel/observations_excel_export_service.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
@@ -21,6 +23,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_factory.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -613,6 +616,9 @@ class ExportNotifier extends StateNotifier<ExportState> {
     );
     final factory = PdfTemplateFactory();
     final builder = factory.getBuilder(exportOptions.template);
+    final localization = PdfLocalization.forLanguageCode(
+      exportOptions.languageCode ?? _l10n.localeName,
+    );
 
     // The logbook is a document the diver prints or shares, so its dates and
     // times follow the diver's preferences (#964); the file name stays ISO.
@@ -639,9 +645,13 @@ class ExportNotifier extends StateNotifier<ExportState> {
       dates: PdfDateFormatter(
         dateFormat: settings.dateFormat,
         timeFormat: settings.timeFormat,
-      ),
+      ).inLanguage(localization.languageCode),
       units: UnitFormatter(settings),
-      title: _l10n.settings_export_pdfDocumentTitle,
+      // The language picked in the export sheet, or the app language when
+      // the caller offered no choice (#2252). The title follows it too, so
+      // a French logbook is not headed in English.
+      localization: localization,
+      title: localization.l10n.settings_export_pdfDocumentTitle,
       diveSignatures: diveSignatures.isNotEmpty ? diveSignatures : null,
       certifications: certifications,
       diver: diver,
@@ -1277,6 +1287,111 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         status: ExportStatus.success,
         message: _l10n.settings_export_saved_equipmentCsv,
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: _l10n.settings_export_saveFailed('$e'),
+      );
+    }
+  }
+
+  // ==================== CYLINDER FILLS CSV ====================
+
+  /// The active diver's fills and the cylinders they link to, for the
+  /// fills CSV (cylinder passports phase 5). Scoped through the validated
+  /// diver id like the check-ins: a shared cylinder's fills come along and
+  /// another diver's unlinked fills do not (spec section 10.8).
+  Future<({List<CylinderFill> fills, Map<String, EquipmentItem> equipmentById})>
+  _fillRows() async {
+    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    if (diverId == null) {
+      return (
+        fills: const <CylinderFill>[],
+        equipmentById: const <String, EquipmentItem>{},
+      );
+    }
+    final fills = await _ref
+        .read(cylinderFillRepositoryProvider)
+        .getAllVisibleTo(diverId);
+    final equipment = await _ref.read(allEquipmentProvider.future);
+    return (fills: fills, equipmentById: {for (final e in equipment) e.id: e});
+  }
+
+  Future<void> exportFillsToCsv({
+    CsvUnitMode unitMode = CsvUnitMode.metric,
+  }) async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: _l10n.settings_export_progress_fillsCsv,
+    );
+    try {
+      final rows = await _fillRows();
+      if (rows.fills.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: _l10n.settings_export_empty_fills,
+        );
+        return;
+      }
+      final path = await _exportService.exportFillsToCsv(
+        rows.fills,
+        equipmentById: rows.equipmentById,
+        units: _csvUnits(unitMode),
+      );
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: _l10n.settings_export_success_fills,
+        filePath: path,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: ExportStatus.error,
+        message: _l10n.settings_data_export_failed('$e'),
+      );
+    }
+  }
+
+  /// Save cylinder fills CSV to a user-selected location.
+  Future<void> saveFillsCsvToFile({
+    CsvUnitMode unitMode = CsvUnitMode.metric,
+  }) async {
+    state = state.copyWith(
+      status: ExportStatus.exporting,
+      message: _l10n.settings_export_progress_preparingFillsCsv,
+    );
+    try {
+      final rows = await _fillRows();
+      if (rows.fills.isEmpty) {
+        state = state.copyWith(
+          status: ExportStatus.error,
+          message: _l10n.settings_export_empty_fills,
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        message: _l10n.settings_export_progress_chooseLocation,
+      );
+      final path = await _exportService.saveFillsCsvToFile(
+        rows.fills,
+        equipmentById: rows.equipmentById,
+        dialogTitle: _l10n.settings_export_saveFillsCsvDialogTitle,
+        units: _csvUnits(unitMode),
+      );
+
+      if (path == null) {
+        state = state.copyWith(
+          status: ExportStatus.idle,
+          message: _l10n.settings_export_cancelled_save,
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        status: ExportStatus.success,
+        message: _l10n.settings_export_saved_fillsCsv,
         filePath: path,
       );
     } catch (e) {

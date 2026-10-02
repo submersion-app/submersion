@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -77,4 +78,37 @@ void main() {
       expect(text, isNot(contains('14:30')));
     });
   }
+
+  group('inLanguage (#2252)', () {
+    setUpAll(() async {
+      await initializeDateFormatting('fr');
+      await initializeDateFormatting('de');
+    });
+
+    final formatter = PdfDateFormatter(
+      dateFormat: DateFormatPreference.dMMMYYYY,
+      timeFormat: TimeFormat.twelveHour,
+    );
+
+    test('names the month in the language the PDF prints in', () {
+      final french = formatter.inLanguage('fr');
+
+      expect(french.date(DateTime(2026, 8, 17)), contains('août'));
+      expect(french.date(DateTime(2026, 8, 17)), isNot(contains('Aug')));
+    });
+
+    test('keeps the diver\'s pattern', () {
+      expect(
+        formatter.inLanguage('de').date(DateTime(2026, 3, 5)),
+        '5 März 2026',
+      );
+    });
+
+    test('a language without date symbols keeps the current formatter', () {
+      expect(
+        formatter.inLanguage('xx').date(DateTime(2026, 8, 17)),
+        formatter.date(DateTime(2026, 8, 17)),
+      );
+    });
+  });
 }

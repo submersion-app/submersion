@@ -8,6 +8,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/title_with_subtitle.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// A shared layout widget that manages the table mode state machine for all
 /// entity sections (Dives, Sites, Buddies, etc.).
@@ -33,6 +35,9 @@ class TableModeLayout extends ConsumerWidget {
 
   /// Title shown in the app bar.
   final String appBarTitle;
+
+  /// Optional muted line under [appBarTitle], such as the entry count.
+  final SubtitleText? appBarSubtitle;
 
   /// The table content widget (EntityTableView or similar).
   final Widget tableContent;
@@ -117,6 +122,7 @@ class TableModeLayout extends ConsumerWidget {
     super.key,
     required this.sectionKey,
     required this.appBarTitle,
+    this.appBarSubtitle,
     required this.tableContent,
     required this.detailBuilder,
     required this.summaryBuilder,
@@ -185,6 +191,7 @@ class TableModeLayout extends ConsumerWidget {
       masterBuilder: (context, onItemSelected, mdsSelectedId) {
         return _TableModeMaster(
           appBarTitle: appBarTitle,
+          appBarSubtitle: appBarSubtitle,
           tableContent: tableContent,
           mapContent: showMap ? mapContent : null,
           profilePanelContent: showProfile ? profilePanelContent : null,
@@ -215,7 +222,13 @@ class TableModeLayout extends ConsumerWidget {
     return Scaffold(
       appBar: isSelectionMode && selectionAppBar != null
           ? selectionAppBar
-          : AppBar(title: Text(appBarTitle), actions: toggleActions),
+          : AppBar(
+              title: TitleWithSubtitle(
+                title: Text(appBarTitle),
+                subtitle: appBarSubtitle,
+              ),
+              actions: toggleActions,
+            ),
       body: body,
       floatingActionButton: floatingActionButton,
     );
@@ -380,6 +393,7 @@ class TableModeLayout extends ConsumerWidget {
 /// [router.go], preventing the pushed page from being clobbered.
 class _TableModeMaster extends StatefulWidget {
   final String appBarTitle;
+  final SubtitleText? appBarSubtitle;
   final Widget tableContent;
   final Widget? mapContent;
   final Widget? profilePanelContent;
@@ -391,6 +405,7 @@ class _TableModeMaster extends StatefulWidget {
 
   const _TableModeMaster({
     required this.appBarTitle,
+    this.appBarSubtitle,
     required this.tableContent,
     required this.toggleActions,
     this.mapContent,
@@ -439,7 +454,10 @@ class _TableModeMasterState extends State<_TableModeMaster> {
           widget.selectionAppBar!
         else
           AppBar(
-            title: Text(widget.appBarTitle),
+            title: TitleWithSubtitle(
+              title: Text(widget.appBarTitle),
+              subtitle: widget.appBarSubtitle,
+            ),
             actions: widget.toggleActions,
           ),
         if (widget.profilePanelContent != null) widget.profilePanelContent!,

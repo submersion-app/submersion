@@ -82,3 +82,6 @@ venv/
 scripts/sample_data/
 # Swift Package Manager workspace state — project uses CocoaPods (SPM disabled)
 **/xcshareddata/swiftpm/
+
+# Test bundles, generated per run by scripts/bundle_tests.py (issue #2500)
+test/.bundles/

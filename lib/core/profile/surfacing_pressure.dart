@@ -1,3 +1,5 @@
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
+
 /// Depth below which a diver counts as being on the surface, in meters.
 ///
 /// Matches Subsurface's long-standing `SURFACE_THRESHOLD` of 750 mm, so a
@@ -85,9 +87,13 @@ int? lastTimeBelowSurfaceThreshold(Iterable<({int t, double depth})> points) {
 /// nothing to correct a reported end pressure with. Returns an empty map when
 /// the profile never went below the threshold or carries no pressure at all.
 /// Sample order in [points] does not matter.
+///
+/// A caller that already holds [tankReadingsOf] for [points] passes it as
+/// [tankReadings], so each cylinder is grouped and scanned for glitches once.
 Map<int, SurfacingTankReading> surfacingTankReadings(
-  List<SurfacingProfilePoint> points,
-) {
+  List<SurfacingProfilePoint> points, {
+  Map<int, TankReadings>? tankReadings,
+}) {
   final surfacingTime = lastTimeBelowSurfaceThreshold(
     points.map((p) => (t: p.timeSeconds, depth: p.depthMeters)),
   );
@@ -95,15 +101,18 @@ Map<int, SurfacingTankReading> surfacingTankReadings(
     return const {};
   }
 
+  final glitches = _glitchReadings(tankReadings ?? tankReadingsOf(points));
   final atSurfacing = <int, double>{};
   final atSurfacingTime = <int, int>{};
   final afterSurfacing = <int, double>{};
   final afterSurfacingTime = <int, int>{};
-  for (final p in points) {
+  for (var pointIndex = 0; pointIndex < points.length; pointIndex++) {
+    final p = points[pointIndex];
     final surfaced = p.timeSeconds > surfacingTime;
     final values = surfaced ? afterSurfacing : atSurfacing;
     final times = surfaced ? afterSurfacingTime : atSurfacingTime;
     for (final entry in p.tankPressuresBar.entries) {
+      if (glitches.contains((pointIndex, entry.key))) continue;
       final seen = times[entry.key];
       if (seen == null || p.timeSeconds >= seen) {
         values[entry.key] = entry.value;
@@ -120,6 +129,67 @@ Map<int, SurfacingTankReading> surfacingTankReadings(
       ),
   };
 }
+
+/// One cylinder's readings of a profile in time order, the profile point
+/// each came from, and what [scanPressureGlitches] finds in them.
+class TankReadings {
+  const TankReadings({
+    required this.readings,
+    required this.pointIndices,
+    required this.scan,
+  });
+
+  /// The cylinder's readings, sorted by time.
+  final List<PressureReading> readings;
+
+  /// For each of [readings], its index into the profile points.
+  final List<int> pointIndices;
+
+  /// The glitches of [readings]; its indices are into [readings].
+  final PressureGlitchScan scan;
+}
+
+/// One cylinder's `(point index, reading)` pairs as [TankReadings], in time
+/// order with readings sharing a second kept in point order.
+TankReadings _tankReadings(List<(int, PressureReading)> indexed) {
+  // Sort by time, tie-broken by point order: List.sort is not stable.
+  final sorted = [...indexed]
+    ..sort((a, b) {
+      final byTime = a.$2.t.compareTo(b.$2.t);
+      return byTime != 0 ? byTime : a.$1.compareTo(b.$1);
+    });
+  final readings = [for (final r in sorted) r.$2];
+  return TankReadings(
+    readings: readings,
+    pointIndices: [for (final r in sorted) r.$1],
+    scan: scanPressureGlitches(readings),
+  );
+}
+
+/// Each cylinder's [TankReadings] from [points], keyed by cylinder index.
+Map<int, TankReadings> tankReadingsOf(List<SurfacingProfilePoint> points) {
+  final byTank = <int, List<(int, PressureReading)>>{};
+  for (var i = 0; i < points.length; i++) {
+    final p = points[i];
+    for (final entry in p.tankPressuresBar.entries) {
+      (byTank[entry.key] ??= []).add((i, (t: p.timeSeconds, bar: entry.value)));
+    }
+  }
+  return {
+    for (final entry in byTank.entries) entry.key: _tankReadings(entry.value),
+  };
+}
+
+/// Every `(point index, cylinder index)` reading that [scanPressureGlitches]
+/// finds to be a dropout or misread (issue #2441).
+///
+/// A dropout that happens to sit at the surfacing sample would otherwise
+/// become the cylinder's pressure at surfacing.
+Set<(int, int)> _glitchReadings(Map<int, TankReadings> tankReadings) => {
+  for (final entry in tankReadings.entries)
+    for (final i in entry.value.scan.glitchIndices)
+      (entry.value.pointIndices[i], entry.key),
+};
 
 /// The end pressure to record for a cylinder, given what the source reported
 /// and what the profile read around surfacing.

@@ -21,6 +21,7 @@ import 'package:submersion/features/data_quality/presentation/providers/data_qua
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
@@ -29,6 +30,7 @@ import 'package:submersion/features/dive_log/presentation/providers/highlight_pr
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
@@ -44,6 +46,7 @@ import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.d
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
@@ -69,7 +72,8 @@ class DiveListPage extends ConsumerStatefulWidget {
   ConsumerState<DiveListPage> createState() => _DiveListPageState();
 }
 
-class _DiveListPageState extends ConsumerState<DiveListPage> {
+class _DiveListPageState extends ConsumerState<DiveListPage>
+    with TableSelectionOwner {
   /// Tracks the selected dive ID for mobile map view info card
   String? _mobileMapSelectedDiveId;
 
@@ -163,6 +167,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       label: Text(context.l10n.diveLog_listPage_fab_logDive),
     );
 
+    resetTableSelectionOffTable(diveListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane, map, and profile panel.
     final viewMode = ref.watch(diveListViewModeProvider);
@@ -172,7 +178,14 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       return TableModeLayout(
         sectionKey: 'dives',
         appBarTitle: context.l10n.nav_dives,
-        tableContent: const DiveListContent(showAppBar: false),
+        appBarSubtitle: diveCountSubtitle(
+          context,
+          ref.watch(diveTableCountProvider),
+        ),
+        tableContent: DiveListContent(
+          showAppBar: false,
+          selectionController: tableSelection,
+        ),
         detailBuilder: (context, id) {
           final state = GoRouterState.of(context);
           final rawSiteId = state.uri.queryParameters['site'];
@@ -237,6 +250,13 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           onPressed: () => showTableColumnPicker(context),
         ),
         appBarActions: [
+          // Only where an on-device model exists for the active locale.
+          if (ref.watch(exploreEnabledProvider))
+            IconButton(
+              icon: const Icon(Icons.auto_awesome, size: 20),
+              tooltip: context.l10n.diveLog_listPage_tooltip_explore,
+              onPressed: () => context.push('/dives/explore'),
+            ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
@@ -285,6 +305,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
             itemBuilder: (context) {
               final currentMode = ref.read(diveListViewModeProvider);
               return [
+                ...tableSelectItemsEntries(context),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,

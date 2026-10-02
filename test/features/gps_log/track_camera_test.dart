@@ -23,17 +23,6 @@ void main() {
     });
   });
 
-  group('normalizeLongitude', () {
-    test('wraps an unwrapped longitude back into range', () {
-      expect(normalizeLongitude(180.1), closeTo(-179.9, 1e-9));
-    });
-
-    test('leaves a legal longitude alone', () {
-      expect(normalizeLongitude(-87.25), closeTo(-87.25, 1e-9));
-      expect(normalizeLongitude(179.9), closeTo(179.9, 1e-9));
-    });
-  });
-
   group('TrackCamera', () {
     test('uses a bounds fit for an ordinary track', () {
       final camera = TrackCamera.forPoints(_cozumel)!;

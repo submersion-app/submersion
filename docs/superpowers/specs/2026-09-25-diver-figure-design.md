@@ -433,14 +433,16 @@ semantics read "3, BCD, Hollis SMS75".
   `beforeOpen` backstop. Off, the dive page is exactly as it was.
 - On, the figure sits inside the collapsible equipment card, above the gear
   tree, composed from the tree's top-level rows in the tree's order (the
-  diver's arrangement), so the sort button renumbers both. An assembly's parts
-  sit inside its row and are not drawn.
+  diver's arrangement). An assembly's parts sit inside its row and are not
+  drawn.
 - A dive tank linked to a tank gear item (`dive_tanks.equipment_id`) passes
   its role, so sidemount, stage, and back-gas tanks sit where the dive used
   them. Dive tanks with no gear link are not drawn.
-- The tree's top-level rows get the matching number badge. Tapping a name on
-  the figure scrolls to and flashes its row; tapping a row's badge brings the
-  figure into view.
+- Unlike the set pages, the dive figure carries no numbers: its labels and
+  tray tiles show the name alone, each read as "BCD, Hollis SMS75", and the
+  tree's rows carry no badge (issue #2774). The figure already names every
+  item beside its gear, so a number on the gear list told the diver nothing
+  new. Tapping a name on the figure scrolls to and flashes its row.
 
 ## 12. Localization
 
@@ -478,7 +480,7 @@ needs it):
   follows the per-set switch, the edit page figure redraws on tick and follows
   the form's switch, the colour swatch sheet sets and clears the colour, the
   dive figure follows the diver-wide switch, dive tank roles place linked
-  tanks, and the dive tree's badges match the figure after a sort. Page
+  tanks, and neither the dive figure nor the dive tree shows a number. Page
   tests use the same provider overrides as the existing set detail tests.
 - **Rendering:** goldens are macOS-only here and skipped in CI. Visual review
   during development uses the throwaway-golden screenshot method.

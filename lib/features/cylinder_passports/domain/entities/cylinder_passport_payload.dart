@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/tag_fill.dart';
 
 /// Valve fitting, as the tag spells it.
 enum PassportValve {
@@ -46,6 +47,10 @@ class CylinderPassportPayload extends Equatable {
   final DateTime? lastVip;
   final bool o2Clean;
 
+  /// The cylinder's newest fill, on an NFC tag only; a printed label never
+  /// carries one (spec section 6.2).
+  final TagFill? fill;
+
   const CylinderPassportPayload({
     this.formatVersion = currentFormatVersion,
     required this.passportId,
@@ -59,6 +64,7 @@ class CylinderPassportPayload extends Equatable {
     this.lastHydro,
     this.lastVip,
     this.o2Clean = false,
+    this.fill,
   });
 
   CylinderPassportPayload copyWith({
@@ -83,6 +89,8 @@ class CylinderPassportPayload extends Equatable {
     DateTime? lastVip,
     bool clearLastVip = false,
     bool? o2Clean,
+    TagFill? fill,
+    bool clearFill = false,
   }) => CylinderPassportPayload(
     formatVersion: formatVersion ?? this.formatVersion,
     passportId: passportId ?? this.passportId,
@@ -98,6 +106,7 @@ class CylinderPassportPayload extends Equatable {
     lastHydro: clearLastHydro ? null : (lastHydro ?? this.lastHydro),
     lastVip: clearLastVip ? null : (lastVip ?? this.lastVip),
     o2Clean: o2Clean ?? this.o2Clean,
+    fill: clearFill ? null : (fill ?? this.fill),
   );
 
   @override
@@ -114,5 +123,6 @@ class CylinderPassportPayload extends Equatable {
     lastHydro,
     lastVip,
     o2Clean,
+    fill,
   ];
 }

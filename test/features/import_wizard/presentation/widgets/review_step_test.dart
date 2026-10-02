@@ -76,6 +76,7 @@ class _FakeAdapter implements ImportSourceAdapter {
 ImportBundle _buildBundle({
   List<EntityItem>? diveItems,
   List<EntityItem>? siteItems,
+  List<EntityItem>? fillItems,
   Set<int>? diveDuplicateIndices,
   Map<int, DiveMatchResult>? diveMatchResults,
 }) {
@@ -90,6 +91,12 @@ ImportBundle _buildBundle({
   if (siteItems != null) {
     groups[ImportEntityType.sites] = EntityGroup(
       items: siteItems,
+      duplicateIndices: const {},
+    );
+  }
+  if (fillItems != null) {
+    groups[ImportEntityType.fills] = EntityGroup(
+      items: fillItems,
       duplicateIndices: const {},
     );
   }
@@ -294,6 +301,22 @@ void main() {
       // Dives tab: "Dives (2)", Sites tab: "Sites (1)"
       expect(find.text('Dives (2)'), findsOneWidget);
       expect(find.text('Sites (1)'), findsOneWidget);
+    });
+
+    testWidgets('a fills CSV gets its own Fills tab (cylinder passports '
+        'phase 5)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final bundle = _buildBundle(
+        siteItems: [_item('Blue Hole')],
+        fillItems: [_item('EAN32'), _item('Air'), _item('EAN36')],
+      );
+
+      await tester.pumpWidget(_buildReviewStep(bundle: bundle));
+      await tester.pump();
+
+      expect(find.text('Fills (3)'), findsOneWidget);
     });
 
     testWidgets('bottom bar is shown in multi-type layout', (tester) async {

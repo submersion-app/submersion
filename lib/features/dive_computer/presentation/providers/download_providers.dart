@@ -322,6 +322,8 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         final downloaded = parsedDiveToDownloaded(
           dive,
           trimAtSurfacing: _trimTankPressureAtSurfacing?.call() ?? true,
+          // The same vendor the native download was started with.
+          vendor: _device?.recognizedModel?.manufacturer,
         );
         state = state.copyWith(
           downloadedDives: [...state.downloadedDives, downloaded],

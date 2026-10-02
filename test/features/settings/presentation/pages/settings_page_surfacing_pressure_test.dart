@@ -1,6 +1,6 @@
 // Issue #1092: the diver-facing control for reading cylinder end pressure at
-// the moment of surfacing. It lives in Settings > Data, next to the other
-// import-interpretation preference.
+// the moment of surfacing. It lives in the Import group of Settings > Data,
+// next to the other import-interpretation preference (issue #2779).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -100,9 +100,9 @@ class EquipmentConditionRefresher {
       parent: parent,
       summaryStamps: {
         for (final e in stamps.entries)
-          // computedAt too: a forced rebuild (a repair that rewrote the
-          // profile or pressures without touching the dive) keeps the
-          // source stamp but can change what the rules read.
+          // computedAt too: a forced rebuild over unchanged rows (a
+          // repair, or a new summary algorithm at the same version) keeps
+          // the source stamp but can change what the rules read.
           e.key:
               '${e.value.engineVersion}/${e.value.sourceUpdatedAt}/'
               '${e.value.computedAt}',

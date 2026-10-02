@@ -1,4 +1,4 @@
-import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 
 /// Tanks whose pressure series fall in more than one segment of a combined
@@ -29,21 +29,14 @@ Set<String> tanksSharedAcrossSegments(
   };
 }
 
-/// The earliest and latest reading across [series], in bar, or null when
-/// they hold no samples. A shared tank's start and end pressure are the
+/// The earliest and latest clean reading across [series], in bar, or null
+/// when they hold no samples. A shared tank's start and end pressure are the
 /// combined dive's, so a separated half takes its own from what its
-/// transmitter logged.
+/// transmitter logged, passing over a signal dropout at either end the way
+/// every other derived endpoint does (#2441).
 ({double start, double end})? pressureSpanOf(
   Iterable<TankPressureSeries> series,
-) {
-  TankPressureSample? first;
-  TankPressureSample? last;
-  for (final s in series) {
-    for (final p in s.samples) {
-      if (first == null || p.timestamp < first.timestamp) first = p;
-      if (last == null || p.timestamp > last.timestamp) last = p;
-    }
-  }
-  if (first == null || last == null) return null;
-  return (start: first.pressure, end: last.pressure);
-}
+) => cleanSeriesEndpoints([
+  for (final s in series)
+    for (final p in s.samples) (t: p.timestamp, bar: p.pressure),
+]);

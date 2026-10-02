@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_locations
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fake_hosts.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/temp_dir.dart';
 
@@ -157,6 +158,15 @@ Future<({double excess, double bottom})> _bottomEdgeExcess(
 }
 
 void main() {
+  // Frame capture runs real async work, so flutter_map requests the header
+  // map's tiles from the OSM tile server. The host answers 404, so each tile
+  // fails at once, as it would on a device without a network. Not the
+  // default 503: flutter_map's RetryClient retries a 503 on a timer, which
+  // would still be pending when the test ends.
+  setUp(() {
+    serveFakeHost('tile.openstreetmap.org', const FakeResponse(404));
+  });
+
   testWidgets(
     'header map never shows through the card bottom edge during an '
     'overscroll bounce',

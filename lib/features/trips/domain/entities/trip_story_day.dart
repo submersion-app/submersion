@@ -109,6 +109,20 @@ class TripStoryDay extends Equatable {
   /// "Surface day" in place of a day type; only its card body is empty.
   bool get isSurface => !hasContent && kind != TripStoryDayKind.future;
 
+  /// A dive-day itinerary row planned at 0 dives, with none logged: a rest
+  /// day the diver planned, most often on the board's day strip, which writes
+  /// a dive-day row for a day the itinerary lacks (#2658). Its stored type
+  /// says "Dive Day" but the plan says otherwise, so the story labels it a
+  /// surface day. Other day types keep their own label, and a dive logged
+  /// anyway makes it a dive day after all.
+  bool get isPlannedRest {
+    final row = itineraryDay;
+    return row != null &&
+        row.dayType == DayType.diveDay &&
+        row.plannedDives == 0 &&
+        dives.isEmpty;
+  }
+
   @override
   List<Object?> get props => [
     date,

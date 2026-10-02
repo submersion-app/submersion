@@ -409,4 +409,25 @@ void main() {
       expect(a == b, isFalse);
     });
   });
+
+  test('a trip shares its cylinders among one diver by default', () {
+    final trip = Trip(
+      id: 't1',
+      name: 'Bonaire',
+      startDate: DateTime(2026, 3, 8),
+      endDate: DateTime(2026, 3, 14),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    expect(trip.diversSharingCylinders, 1);
+    expect(trip.divesPerDayTarget, isNull);
+    final planned = trip.copyWith(
+      diversSharingCylinders: 3,
+      divesPerDayTarget: 2,
+    );
+    expect(planned.divesPerDayTarget, 2);
+    expect(planned.copyWith(divesPerDayTarget: null).divesPerDayTarget, isNull);
+    expect(planned.copyWith(name: 'x').diversSharingCylinders, 3);
+    expect(planned, isNot(trip));
+  });
 }

@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -26,13 +27,12 @@ class DuplicateDiverGroup {
 }
 
 /// Snapshot captured by [DiverMergeRepository.mergeDivers] sufficient to
-/// reverse the merge locally via [DiverMergeRepository.undoMerge].
+/// reverse the merge via [DiverMergeRepository.undoMerge].
 ///
-/// Note on sync semantics: undo is local-only and safest to call before the
-/// next sync runs after the merge. If sync has already propagated the merge
-/// to other devices, undoing locally on this device will look like a *new*
-/// merge-reversal event from the others' perspective on the next sync; the
-/// remote deletion tombstone for the duplicate has already been delivered.
+/// Note on sync semantics: an undo is a new edit (#2670). Every row it puts
+/// back is marked pending under a fresh clock, so a device that already
+/// synced the merge takes the undo on the next sync, and one that never saw
+/// the merge just receives rows equal to its own.
 class DiverMergeSnapshot {
   final String keeperId;
   final String duplicateId;
@@ -41,35 +41,34 @@ class DiverMergeSnapshot {
   /// it can be reinserted on undo.
   final Map<String, dynamic> duplicateDiver;
 
-  /// Rows whose `diver_id` was changed from the duplicate to the keeper, with
-  /// the `hlc` value they had before the merge re-stamped them. Undo flips the
-  /// diver_id back and restores the prior hlc so the merge is a true inverse.
-  /// [hasHlc] is false for tables without an hlc column (which undo must not
-  /// reference).
-  final List<({String table, String rowId, String? priorHlc, bool hasHlc})>
-  repointedRows;
+  /// Rows whose `diver_id` was changed from the duplicate to the keeper.
+  /// Undo flips the diver_id back.
+  final List<({String table, String rowId})> repointedRows;
 
   /// Full row data for rows in singleton-config tables that were deleted as
   /// part of the merge (keeper-wins policy). Each captures `(table, row)`.
   final List<({String table, Map<String, dynamic> row})> deletedSingletonRows;
 
-  /// Buddies whose `linked_diver_id` named the duplicate (issue #2002). The
-  /// generic repoint keys on `diver_id`, so these are handled separately:
-  /// each was moved to the keeper, or cleared when the same owner list
-  /// already linked the keeper. Undo restores the prior link and hlc.
-  final List<({String rowId, String? priorHlc})> repointedLinkedBuddies;
+  /// Ids of the buddies whose `linked_diver_id` named the duplicate (issue
+  /// #2002). The generic repoint keys on `diver_id`, so these are handled
+  /// separately: each was moved to the keeper, or cleared when the same owner
+  /// list already linked the keeper. Undo links each to the duplicate again.
+  final List<String> repointedLinkedBuddies;
 
-  /// `equipment_shares` rows the merge deleted because repointing them would
-  /// duplicate a pair or share an item with its own owner (issue #2046).
+  /// `equipment_shares` rows the merge deleted: those whose move would
+  /// duplicate a pair or share an item with its own owner (issue #2046), and
+  /// the duplicate's other shares, which it re-created for the keeper.
   /// Undo reinserts them and clears their tombstones.
   final List<Map<String, dynamic>> deletedShareRows;
+
+  /// Ids of the keeper's shares the merge created in place of the
+  /// duplicate's. Undo deletes and tombstones them.
+  final List<String> createdShareIds;
 
   /// `equipment_ownership_events` whose `from_diver_id` or `to_diver_id`
   /// named the duplicate (neither is a `diver_id` column, so the generic
   /// repoint skips them), with their prior values for undo.
-  final List<
-    ({String rowId, String? priorFrom, String? priorTo, String? priorHlc})
-  >
+  final List<({String rowId, String? priorFrom, String? priorTo})>
   repointedOwnershipEvents;
 
   const DiverMergeSnapshot({
@@ -80,6 +79,7 @@ class DiverMergeSnapshot {
     required this.deletedSingletonRows,
     this.repointedLinkedBuddies = const [],
     this.deletedShareRows = const [],
+    this.createdShareIds = const [],
     this.repointedOwnershipEvents = const [],
   });
 }
@@ -115,6 +115,11 @@ class DiverMergeRepository {
   /// repointed onto the keeper instead.
   static const _singletonConfigTables = {'diver_settings', 'view_configs'};
 
+  /// Moved by [_recreateDuplicateShares] instead of the generic repoint.
+  static const _sharesTable = 'equipment_shares';
+
+  final _uuid = const Uuid();
+
   /// Repoint all references from [duplicateId] to [keeperId], then delete the
   /// duplicate diver. Returns a [DiverMergeSnapshot] that captures every row
   /// touched so the merge can be reversed via [undoMerge].
@@ -129,15 +134,13 @@ class DiverMergeRepository {
 
     final tables = await _tablesWithDiverId();
     final now = DateTime.now().millisecondsSinceEpoch;
-    final repointed =
-        <({String table, String rowId, String? priorHlc, bool hasHlc})>[];
+    final repointed = <({String table, String rowId})>[];
     final deletedSingleton = <({String table, Map<String, dynamic> row})>[];
-    final repointedLinks = <({String rowId, String? priorHlc})>[];
+    final repointedLinks = <String>[];
     final deletedShares = <Map<String, dynamic>>[];
+    final createdShares = <String>[];
     final repointedEvents =
-        <
-          ({String rowId, String? priorFrom, String? priorTo, String? priorHlc})
-        >[];
+        <({String rowId, String? priorFrom, String? priorTo})>[];
 
     // Capture the duplicate's row BEFORE the transaction so we can restore
     // it on undo. The select runs outside the txn because we only need a
@@ -152,17 +155,27 @@ class DiverMergeRepository {
       // rows whose FK targets are validated at commit, not per-statement.
       await _db.customStatement('PRAGMA defer_foreign_keys = ON');
 
-      // Before the generic repoint, which would otherwise hit the share
-      // pair index or create a self-share (issue #2046).
+      // Shares never go through the generic repoint below: the ones whose
+      // move would hit the pair index or create a self-share are dropped
+      // (issue #2046), and the rest are re-created for the keeper (#2670).
       deletedShares.addAll(
         await _dropCollidingShares(
           keeperId: keeperId,
           duplicateId: duplicateId,
         ),
       );
+      final recreated = await _recreateDuplicateShares(
+        keeperId: keeperId,
+        duplicateId: duplicateId,
+        now: now,
+      );
+      deletedShares.addAll(recreated.deleted);
+      createdShares.addAll(recreated.created);
 
       for (final table in tables) {
-        if (_singletonConfigTables.contains(table)) {
+        if (table == _sharesTable) {
+          continue;
+        } else if (_singletonConfigTables.contains(table)) {
           // Keeper's config wins; drop the duplicate's. Capture each row
           // before deletion so undo can reinsert them.
           final rows = await _rowsByDiverId(table, duplicateId);
@@ -174,21 +187,12 @@ class DiverMergeRepository {
             duplicateId,
           ]);
         } else {
-          // Additive data: capture each row's id + prior hlc, repoint onto the
-          // keeper, THEN mark pending so the sync queue reflects the final
-          // (repointed) state -- matches the buddy-merge precedent. Capturing
-          // before the repoint lets undo restore the exact pre-merge state.
-          final rows = await _rowsByDiverId(table, duplicateId);
-          final ids = <String>[];
-          for (final row in rows) {
-            final id = row['id'] as String;
-            ids.add(id);
-            repointed.add((
-              table: table,
-              rowId: id,
-              priorHlc: row['hlc'] as String?,
-              hasHlc: row.containsKey('hlc'),
-            ));
+          // Additive data: capture each row's id, repoint onto the keeper,
+          // THEN mark pending so the sync queue reflects the final
+          // (repointed) state, as the buddy merge does.
+          final ids = await _rowIds(table, duplicateId);
+          for (final id in ids) {
+            repointed.add((table: table, rowId: id));
           }
           await _db.customStatement(
             'UPDATE "$table" SET diver_id = ? WHERE diver_id = ?',
@@ -259,6 +263,7 @@ class DiverMergeRepository {
       deletedSingletonRows: deletedSingleton,
       repointedLinkedBuddies: repointedLinks,
       deletedShareRows: deletedShares,
+      createdShareIds: createdShares,
       repointedOwnershipEvents: repointedEvents,
     );
   }
@@ -266,9 +271,9 @@ class DiverMergeRepository {
   /// `buddies.linked_diver_id` is not a `diver_id` column, so the generic
   /// repoint skips it. Move each link to the keeper unless the same owner
   /// list already links the keeper, in which case clear it (one link per
-  /// owner list, see BuddyProfileLinkRepository). Returns what was touched,
-  /// with the pre-merge hlc, for undo.
-  Future<List<({String rowId, String? priorHlc})>> _repointLinkedBuddies({
+  /// owner list, see BuddyProfileLinkRepository). Returns the ids touched,
+  /// for undo.
+  Future<List<String>> _repointLinkedBuddies({
     required String keeperId,
     required String duplicateId,
     required int now,
@@ -276,7 +281,7 @@ class DiverMergeRepository {
     final rows = await (_db.select(
       _db.buddies,
     )..where((t) => t.linkedDiverId.equals(duplicateId))).get();
-    final touched = <({String rowId, String? priorHlc})>[];
+    final touched = <String>[];
     for (final row in rows) {
       final owner = row.diverId;
       // A buddy in the keeper's own list would end up linking the profile
@@ -292,7 +297,7 @@ class DiverMergeRepository {
                         : t.diverId.equals(owner)),
               ))
               .get();
-      touched.add((rowId: row.id, priorHlc: row.hlc));
+      touched.add(row.id);
       await (_db.update(_db.buddies)..where((t) => t.id.equals(row.id))).write(
         BuddiesCompanion(
           linkedDiverId: Value(
@@ -339,24 +344,58 @@ class DiverMergeRepository {
         .get();
     final dropped = [for (final r in rows) r.data];
     for (final row in dropped) {
-      final id = row['id'] as String;
-      await _db.customStatement('DELETE FROM equipment_shares WHERE id = ?', [
-        id,
-      ]);
-      await _syncRepository.logDeletion(
-        entityType: 'equipmentShares',
-        recordId: id,
-      );
+      await _deleteShare(row['id'] as String);
     }
     return dropped;
+  }
+
+  /// Deletes one share and tombstones it.
+  Future<void> _deleteShare(String id) async {
+    await _db.customStatement('DELETE FROM equipment_shares WHERE id = ?', [
+      id,
+    ]);
+    await _syncRepository.logDeletion(
+      entityType: 'equipmentShares',
+      recordId: id,
+    );
+  }
+
+  /// The duplicate's remaining shares (after [_dropCollidingShares]), each
+  /// deleted and tombstoned, and re-created for the keeper under a new id.
+  /// A share is an (item, diver) pair that peers apply insert-only, so a
+  /// share whose diver changed in place never reaches a peer that holds it
+  /// (#2670). Returns the deleted rows whole and the new ids, for undo.
+  Future<({List<Map<String, dynamic>> deleted, List<String> created})>
+  _recreateDuplicateShares({
+    required String keeperId,
+    required String duplicateId,
+    required int now,
+  }) async {
+    final deleted = await _rowsByDiverId(_sharesTable, duplicateId);
+    final created = <String>[];
+    for (final row in deleted) {
+      await _deleteShare(row['id'] as String);
+      final newId = _uuid.v4();
+      await _insertRowMap(_sharesTable, {
+        ...row,
+        'id': newId,
+        'diver_id': keeperId,
+        'hlc': null,
+      });
+      await _syncRepository.markRecordPending(
+        entityType: 'equipmentShares',
+        recordId: newId,
+        localUpdatedAt: now,
+      );
+      created.add(newId);
+    }
+    return (deleted: deleted, created: created);
   }
 
   /// Moves event diver references from the duplicate to the keeper. The log
   /// is otherwise append-only; a merge is the one rewrite, because both
   /// profiles are the same person.
-  Future<
-    List<({String rowId, String? priorFrom, String? priorTo, String? priorHlc})>
-  >
+  Future<List<({String rowId, String? priorFrom, String? priorTo})>>
   _repointOwnershipEvents({
     required String keeperId,
     required String duplicateId,
@@ -369,16 +408,12 @@ class DiverMergeRepository {
                   t.toDiverId.equals(duplicateId),
             ))
             .get();
-    final touched =
-        <
-          ({String rowId, String? priorFrom, String? priorTo, String? priorHlc})
-        >[];
+    final touched = <({String rowId, String? priorFrom, String? priorTo})>[];
     for (final row in rows) {
       touched.add((
         rowId: row.id,
         priorFrom: row.fromDiverId,
         priorTo: row.toDiverId,
-        priorHlc: row.hlc,
       ));
       await (_db.update(
         _db.equipmentOwnershipEvents,
@@ -402,107 +437,112 @@ class DiverMergeRepository {
   }
 
   /// Reverse a merge previously executed by [mergeDivers], using the snapshot
-  /// it returned. Local-only: see the note on [DiverMergeSnapshot] for sync
-  /// semantics if the merge has already propagated.
+  /// it returned.
+  ///
+  /// An undo is a new edit (#2670), not a rewind of the sync state: every row
+  /// it puts back is marked pending, which stamps a fresh clock. A device that
+  /// already synced the merge holds the merge's copies under newer clocks
+  /// than the pre-merge ones, so restoring those older clocks (and dropping
+  /// the merge's pending marks, as this once did) left the undo with nothing
+  /// to publish and nothing that could win on that device.
   Future<void> undoMerge(DiverMergeSnapshot snapshot) async {
     _log.info(
       'Undoing merge: restoring diver ${snapshot.duplicateId} '
       '(was merged into ${snapshot.keeperId})',
     );
+    final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
       await _db.customStatement('PRAGMA defer_foreign_keys = ON');
 
       // Restore the duplicate diver row first so subsequent FK repoints land
       // on a valid target.
-      await _insertRowMap('divers', snapshot.duplicateDiver);
+      await _restoreDeletedRow('divers', snapshot.duplicateDiver, now: now);
 
-      // Repoint each previously-repointed row back to the duplicate and
-      // restore its pre-merge hlc (the merge re-stamped it). Tables without an
-      // hlc column only get their diver_id restored.
+      // Repoint each previously-repointed row back to the duplicate.
       for (final entry in snapshot.repointedRows) {
-        if (entry.hasHlc) {
-          await _db.customStatement(
-            'UPDATE "${entry.table}" SET diver_id = ?, hlc = ? WHERE id = ?',
-            [snapshot.duplicateId, entry.priorHlc, entry.rowId],
-          );
-        } else {
-          await _db.customStatement(
-            'UPDATE "${entry.table}" SET diver_id = ? WHERE id = ?',
-            [snapshot.duplicateId, entry.rowId],
-          );
-        }
+        await _db.customStatement(
+          'UPDATE "${entry.table}" SET diver_id = ? WHERE id = ?',
+          [snapshot.duplicateId, entry.rowId],
+        );
+        await _syncRepository.markRecordPending(
+          entityType: _entityTypeFor(entry.table),
+          recordId: entry.rowId,
+          localUpdatedAt: now,
+        );
       }
 
-      // Re-insert any singleton-config rows that the merge deleted, and clear
-      // the tombstones the merge logged for them -- otherwise the next sync
-      // would re-propagate those deletions and wipe the restored rows again.
+      // Singleton-config rows the merge deleted.
       for (final entry in snapshot.deletedSingletonRows) {
-        await _insertRowMap(entry.table, entry.row);
-        final id = entry.row['id'];
-        if (id != null) {
-          await _db.customStatement(
-            'DELETE FROM deletion_log WHERE entity_type = ? AND record_id = ?',
-            [_entityTypeFor(entry.table), id],
-          );
-        }
+        await _restoreDeletedRow(entry.table, entry.row, now: now);
       }
 
-      // Clear the pending sync-queue entries the merge created for repointed
-      // rows, so undo is a true inverse of the local sync state too.
-      for (final entry in snapshot.repointedRows) {
-        await _db.customStatement(
-          'DELETE FROM sync_records WHERE entity_type = ? AND record_id = ?',
-          [_entityTypeFor(entry.table), entry.rowId],
+      // Buddies that linked the duplicate link it again.
+      for (final id in snapshot.repointedLinkedBuddies) {
+        await (_db.update(_db.buddies)..where((t) => t.id.equals(id))).write(
+          BuddiesCompanion(
+            linkedDiverId: Value(snapshot.duplicateId),
+            updatedAt: Value(now),
+          ),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'buddies',
+          recordId: id,
+          localUpdatedAt: now,
         );
       }
 
-      // Buddies that linked the duplicate get their link and hlc back, and
-      // their pending marks cleared, like the diver_id rows above.
-      for (final entry in snapshot.repointedLinkedBuddies) {
-        await _db.customStatement(
-          'UPDATE buddies SET linked_diver_id = ?, hlc = ? WHERE id = ?',
-          [snapshot.duplicateId, entry.priorHlc, entry.rowId],
-        );
-        await _db.customStatement(
-          'DELETE FROM sync_records WHERE entity_type = ? AND record_id = ?',
-          ['buddies', entry.rowId],
-        );
-      }
-
-      // Event diver references go back, with their clocks and pending marks.
+      // Event diver references go back.
       for (final entry in snapshot.repointedOwnershipEvents) {
-        await _db.customStatement(
-          'UPDATE equipment_ownership_events '
-          'SET from_diver_id = ?, to_diver_id = ?, hlc = ? WHERE id = ?',
-          [entry.priorFrom, entry.priorTo, entry.priorHlc, entry.rowId],
+        await (_db.update(
+          _db.equipmentOwnershipEvents,
+        )..where((t) => t.id.equals(entry.rowId))).write(
+          EquipmentOwnershipEventsCompanion(
+            fromDiverId: Value(entry.priorFrom),
+            toDiverId: Value(entry.priorTo),
+          ),
         );
-        await _db.customStatement(
-          'DELETE FROM sync_records WHERE entity_type = ? AND record_id = ?',
-          ['equipmentOwnershipEvents', entry.rowId],
+        await _syncRepository.markRecordPending(
+          entityType: 'equipmentOwnershipEvents',
+          recordId: entry.rowId,
+          localUpdatedAt: now,
         );
       }
 
-      // Shares the merge dropped come back, their tombstones cleared so the
-      // next sync does not delete them again.
+      // Shares the merge created go, and the ones it deleted come back.
+      for (final id in snapshot.createdShareIds) {
+        await _deleteShare(id);
+      }
       for (final row in snapshot.deletedShareRows) {
-        await _insertRowMap('equipment_shares', row);
-        await _db.customStatement(
-          'DELETE FROM deletion_log WHERE entity_type = ? AND record_id = ?',
-          ['equipmentShares', row['id']],
-        );
+        await _restoreDeletedRow(_sharesTable, row, now: now);
       }
-
-      // Clear the diver's deletion-log tombstone so a subsequent sync won't
-      // re-delete the restored diver on other devices.
-      await _db.customStatement(
-        "DELETE FROM deletion_log WHERE entity_type = 'divers' "
-        "AND record_id = ?",
-        [snapshot.duplicateId],
-      );
     });
 
     SyncEventBus.notifyLocalChange();
     _log.info('Undo complete: ${snapshot.duplicateId} restored');
+  }
+
+  /// Re-inserts [row], which the merge deleted from [table], as a new edit:
+  /// its tombstone removed, so the next sync does not delete it again, and
+  /// marked pending under a fresh clock. A table with an `updated_at` gets
+  /// [now] there too: a peer holding the merge's tombstone revives a row
+  /// without its own clock only for a copy edited after the delete.
+  Future<void> _restoreDeletedRow(
+    String table,
+    Map<String, dynamic> row, {
+    required int now,
+  }) async {
+    await _insertRowMap(table, {
+      ...row,
+      if (row.containsKey('updated_at')) 'updated_at': now,
+    });
+    final id = row['id'] as String;
+    final entityType = _entityTypeFor(table);
+    await _syncRepository.removeDeletion(entityType: entityType, recordId: id);
+    await _syncRepository.markRecordPending(
+      entityType: entityType,
+      recordId: id,
+      localUpdatedAt: now,
+    );
   }
 
   /// All tables (except `divers`) that have a `diver_id` column.

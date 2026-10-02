@@ -13,9 +13,14 @@ abstract final class NdefFit {
   static const int ntag215Bytes = 504;
   static const int ntag216Bytes = 888;
 
-  /// Optional keys, dropped first to last until the record fits. `f`, `p`
-  /// and `w` are never dropped.
+  /// Optional keys, dropped first to last until the record fits: the
+  /// newest fill's details, then the whole fill, then the cylinder's own
+  /// keys. `f`, `p` and `w` are never dropped.
   static const List<String> dropOrder = [
+    'fa',
+    'fb',
+    'fc',
+    'fill',
     'n',
     'sn',
     'vi',
@@ -42,6 +47,19 @@ abstract final class NdefFit {
 
   static CylinderPassportPayload drop(CylinderPassportPayload p, String key) =>
       switch (key) {
+        'fa' =>
+          p.fill == null
+              ? p
+              : p.copyWith(fill: p.fill!.copyWith(clearAnalyzer: true)),
+        'fb' =>
+          p.fill == null
+              ? p
+              : p.copyWith(fill: p.fill!.copyWith(clearFilledBy: true)),
+        'fc' =>
+          p.fill == null
+              ? p
+              : p.copyWith(fill: p.fill!.copyWith(clearTemperatureC: true)),
+        'fill' => p.copyWith(clearFill: true),
         'n' => p.copyWith(clearName: true),
         'sn' => p.copyWith(clearSerial: true),
         'vi' => p.copyWith(clearLastVip: true),

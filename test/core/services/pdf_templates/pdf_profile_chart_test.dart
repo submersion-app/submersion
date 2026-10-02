@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_chart.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -14,6 +15,8 @@ import '../../../helpers/pdf_text.dart';
 /// BuildContext, and `toImage()` hangs under flutter test, which would make
 /// this untestable.
 void main() {
+  final l10n = PdfLocalization.english().l10n;
+
   const metric = UnitFormatter(AppSettings());
   const imperial = UnitFormatter(
     AppSettings(depthUnit: DepthUnit.feet, altitudeUnit: AltitudeUnit.feet),
@@ -37,14 +40,22 @@ void main() {
 
   test('returns null for an empty series', () {
     expect(
-      PdfProfileChart.build(series: const PdfProfileSeries([]), units: metric),
+      PdfProfileChart.build(
+        series: const PdfProfileSeries([]),
+        units: metric,
+        l10n: l10n,
+      ),
       isNull,
       reason: 'callers omit the region entirely rather than print an empty box',
     );
   });
 
   test('renders a depth axis that spans the dive', () async {
-    final chart = PdfProfileChart.build(series: squareProfile, units: metric);
+    final chart = PdfProfileChart.build(
+      series: squareProfile,
+      units: metric,
+      l10n: l10n,
+    );
     expect(chart, isNotNull);
 
     final text = await render(chart!);
@@ -55,12 +66,16 @@ void main() {
 
   test('labels the depth axis in the diver units', () async {
     final metricText = await render(
-      PdfProfileChart.build(series: squareProfile, units: metric)!,
+      PdfProfileChart.build(series: squareProfile, units: metric, l10n: l10n)!,
     );
     expect(metricText, contains('m'));
 
     final imperialText = await render(
-      PdfProfileChart.build(series: squareProfile, units: imperial)!,
+      PdfProfileChart.build(
+        series: squareProfile,
+        units: imperial,
+        l10n: l10n,
+      )!,
     );
     expect(imperialText, contains('ft'));
     expect(
@@ -78,7 +93,7 @@ void main() {
     // of the dive disappears. The deepest label must read deeper than the
     // dive itself.
     final text = await render(
-      PdfProfileChart.build(series: squareProfile, units: metric)!,
+      PdfProfileChart.build(series: squareProfile, units: metric, l10n: l10n)!,
     );
     final labels = text.split(' ').map(int.tryParse).whereType<int>().toList();
 
@@ -91,14 +106,22 @@ void main() {
 
   test('handles a single-sample profile without throwing', () async {
     final series = PdfProfileSeries.downsampled([p(0, 5.0)]);
-    final chart = PdfProfileChart.build(series: series, units: metric);
+    final chart = PdfProfileChart.build(
+      series: series,
+      units: metric,
+      l10n: l10n,
+    );
     expect(chart, isNotNull);
     await render(chart!);
   });
 
   test('handles an all-zero-depth profile without throwing', () async {
     final series = PdfProfileSeries.downsampled([p(0, 0), p(60, 0)]);
-    final chart = PdfProfileChart.build(series: series, units: metric);
+    final chart = PdfProfileChart.build(
+      series: series,
+      units: metric,
+      l10n: l10n,
+    );
     expect(chart, isNotNull);
     await render(chart!);
   });
@@ -108,6 +131,7 @@ void main() {
     final chart = PdfProfileChart.build(
       series: PdfProfileSeries.downsampled(raw),
       units: metric,
+      l10n: l10n,
     );
     expect(chart, isNotNull);
     await render(chart!);

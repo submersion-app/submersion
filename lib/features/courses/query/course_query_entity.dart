@@ -1,42 +1,80 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
+import 'package:submersion/core/query/registry/query_relation.dart';
 
-/// Minimal in PR 1; PR 4 of #2365 adds the list entry point.
-const courseQueryEntity = QueryEntity(
+QueryField _text(String key, String column) => QueryField(
+  key: key,
+  type: FieldType.text,
+  sql: '{r}.$column',
+  emptySql: "({r}.$column IS NULL OR TRIM({r}.$column) = '')",
+  labelKey: 'query_courses_$key',
+);
+
+QueryField _date(String key, String column) => QueryField(
+  key: key,
+  type: FieldType.date,
+  dateFrame: DateFrame.localInstant,
+  sql: '{r}.$column',
+  emptySql: '{r}.$column IS NULL',
+  labelKey: 'query_courses_$key',
+);
+
+/// Every field and relation a course query can name (#2365). The course
+/// list's query (and its status chips, as `completionDate:none`/`:any`)
+/// roots here; dives reach it through `course`.
+final courseQueryEntity = QueryEntity(
   subject: QuerySubject.courses,
   table: 'courses',
   diverScopeColumn: 'diver_id',
+  textSearchSql: const [
+    "{r}.name LIKE ? ESCAPE '\\'",
+    "{r}.location LIKE ? ESCAPE '\\'",
+  ],
   fields: [
-    QueryField(
-      key: 'name',
-      type: FieldType.text,
-      sql: '{r}.name',
-      emptySql: "({r}.name IS NULL OR TRIM({r}.name) = '')",
-      labelKey: 'query_courses_name',
-    ),
+    _text('name', 'name'),
     QueryField(
       key: 'agency',
-      type: FieldType.text,
+      type: FieldType.enumName,
       sql: '{r}.agency',
       emptySql: "({r}.agency IS NULL OR TRIM({r}.agency) = '')",
       labelKey: 'query_courses_agency',
+      enumValues: [for (final a in CertificationAgency.values) a.name],
     ),
-    QueryField(
-      key: 'startDate',
-      type: FieldType.date,
-      dateFrame: DateFrame.localInstant,
-      sql: '{r}.start_date',
-      emptySql: '{r}.start_date IS NULL',
-      labelKey: 'query_courses_startDate',
+    _date('startDate', 'start_date'),
+    _date('completionDate', 'completion_date'),
+    _text('location', 'location'),
+    _text('instructorName', 'instructor_name'),
+    _text('notes', 'notes'),
+  ],
+  relations: const [
+    QueryRelation(
+      key: 'instructor',
+      target: QuerySubject.buddies,
+      shape: RelationShape.fk,
+      joinSql: '{to}.id = {from}.instructor_id',
+      isMany: false,
+      labelKey: 'query_courses_instructor',
     ),
-    QueryField(
-      key: 'completionDate',
-      type: FieldType.date,
-      dateFrame: DateFrame.localInstant,
-      sql: '{r}.completion_date',
-      emptySql: '{r}.completion_date IS NULL',
-      labelKey: 'query_courses_completionDate',
+    // The link is stored on either side (courses.certification_id or
+    // certifications.course_id); the course detail reads both.
+    QueryRelation(
+      key: 'certification',
+      target: QuerySubject.certifications,
+      shape: RelationShape.custom,
+      joinSql:
+          '({to}.id = {from}.certification_id OR {to}.course_id = {from}.id)',
+      isMany: true,
+      labelKey: 'query_courses_certification',
+    ),
+    QueryRelation(
+      key: 'dives',
+      target: QuerySubject.dives,
+      shape: RelationShape.child,
+      joinSql: '{to}.course_id = {from}.id',
+      isMany: true,
+      labelKey: 'query_courses_dives',
     ),
   ],
 );

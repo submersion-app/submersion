@@ -170,4 +170,142 @@ void main() {
       TripCylinderStatus.partial,
     );
   });
+
+  test('the ledger lists every event on the trip, newest first', () async {
+    final a = await slot('A');
+    final b = await slot('B', sortOrder: 1);
+    await repository.createEvent(
+      TripCylinderEvent(
+        id: 'e-old',
+        tripCylinderId: a.id,
+        kind: TripCylinderEventKind.fill,
+        occurredAt: at,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    await repository.createEvent(
+      TripCylinderEvent(
+        id: 'e-new',
+        tripCylinderId: b.id,
+        kind: TripCylinderEventKind.adjustment,
+        occurredAt: at.add(const Duration(hours: 3)),
+        pressure: 0,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+
+    final ledger = await container.read(
+      tripCylinderLedgerProvider(tripId).future,
+    );
+    expect(ledger.map((e) => e.id), ['e-new', 'e-old']);
+  });
+
+  test('ledger entries at the same minute list the later one first', () async {
+    final a = await slot('A');
+    Future<void> at8(String id) => repository.createEvent(
+      TripCylinderEvent(
+        id: id,
+        tripCylinderId: a.id,
+        kind: TripCylinderEventKind.fill,
+        occurredAt: at,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    // Ids sort the other way round, so only the creation time can win.
+    await at8('z-first');
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    await at8('a-second');
+
+    final ledger = await container.read(
+      tripCylinderLedgerProvider(tripId).future,
+    );
+    expect(ledger.map((e) => e.id), ['a-second', 'z-first']);
+  });
+
+  test('fills saved together list in board order', () async {
+    final a = await slot('A');
+    final b = await slot('B', sortOrder: 1);
+    final c = await slot('C', sortOrder: 2);
+    TripCylinderEvent fillOn(String id) => TripCylinderEvent(
+      id: '',
+      tripCylinderId: id,
+      kind: TripCylinderEventKind.fill,
+      occurredAt: at,
+      createdAt: at,
+      updatedAt: at,
+    );
+    await repository.createEvents([fillOn(c.id), fillOn(a.id), fillOn(b.id)]);
+
+    final ledger = await container.read(
+      tripCylinderLedgerProvider(tripId).future,
+    );
+    expect(ledger.map((e) => e.tripCylinderId), [a.id, b.id, c.id]);
+  });
+
+  test('labels at a dive name the bottle the slot held then', () async {
+    final a = await slot('A');
+    Future<void> fillWith(String bottle, int hours) => repository.createEvent(
+      TripCylinderEvent(
+        id: '',
+        tripCylinderId: a.id,
+        kind: TripCylinderEventKind.fill,
+        occurredAt: at.add(Duration(hours: hours)),
+        bottleLabel: bottle,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    await fillWith('14', 0);
+    await fillWith('22', 6);
+
+    final labels = await container.read(
+      tripCylinderLabelsAtProvider((
+        tripId: tripId,
+        atMillis: at.add(const Duration(hours: 2)).millisecondsSinceEpoch,
+      )).future,
+    );
+    expect(labels[a.id], (label: 'A', bottle: '14'));
+  });
+
+  test('states at a dive leave out that dive and later fills', () async {
+    final a = await slot('A');
+    await fill(a.id);
+    await diveOn(a.id, minutesAfter: 60, end: 90);
+
+    Future<List<TripCylinderState>> statesAt(int minutes, String? exclude) =>
+        container.read(
+          tripCylinderStatesAtProvider((
+            tripId: tripId,
+            atMillis: at.add(Duration(minutes: minutes)).millisecondsSinceEpoch,
+            excludeDiveId: exclude,
+          )).future,
+        );
+    // Another dive at minute 120 sees the minute-60 dive's end pressure.
+    expect((await statesAt(120, null)).single.pressure, 90);
+    // Editing the minute-60 dive itself: its own use does not count.
+    expect((await statesAt(120, 'd60')).single.pressure, 200);
+  });
+
+  test('a dive-time provider is dropped once nothing watches it', () async {
+    // Keyed by an instant, so every dive opened and every time tried is a
+    // new key: a kept one would watch the tables for the whole session.
+    await slot('A');
+    final ms = at.millisecondsSinceEpoch;
+    final states = tripCylinderStatesAtProvider((
+      tripId: tripId,
+      atMillis: ms,
+      excludeDiveId: null,
+    ));
+    final labels = tripCylinderLabelsAtProvider((tripId: tripId, atMillis: ms));
+    for (final p in [states, labels]) {
+      final sub = container.listen(p, (_, _) {});
+      await container.read(p.future);
+      sub.close();
+      await container.pump();
+      expect(container.exists(p), isFalse);
+    }
+  });
 }

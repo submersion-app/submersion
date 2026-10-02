@@ -86,6 +86,11 @@ change when it touches `lib/**/presentation/`, `lib/shared/widgets/`,
   space through `Directory.systemTemp` rather than a literal `/tmp`. CI runs the
   suite on Linux only, so a path joined with a literal `/` passes every check and
   then fails for anyone developing on Windows (issue #2279).
+- A test that replaces process-wide state puts it back. CI runs many test files
+  in one isolate (issue #2500), so a platform singleton, a harness default or a
+  channel mock left behind breaks a different file from the one that set it.
+  `test/architecture/test_global_state_restored_test.dart` fails on the
+  assignment, and `docs/developer/testing.md` lists the helper for each case.
 
 ## Code Conventions
 

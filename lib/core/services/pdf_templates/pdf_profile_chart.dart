@@ -5,6 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Depth profile drawn as native PDF vector graphics.
 ///
@@ -23,6 +24,7 @@ class PdfProfileChart {
   static pw.Widget? build({
     required PdfProfileSeries series,
     required UnitFormatter units,
+    required AppLocalizations l10n,
     double height = 150,
     PdfColor color = PdfColors.blue700,
   }) {
@@ -34,7 +36,7 @@ class PdfProfileChart {
         // The axis labels are bare numbers to keep them narrow, so the units
         // are stated once in the heading.
         pw.Text(
-          'Depth Profile (${units.depthSymbol} vs min)',
+          l10n.pdf_depthProfileHeading(units.depthSymbol),
           style: const pw.TextStyle(
             fontSize: 9,
             fontWeight: pw.FontWeight.bold,

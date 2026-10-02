@@ -79,11 +79,16 @@ class _OneStepAdapter implements ImportSourceAdapter {
 
 /// Holds the defaults until [finishLoad], the way [SettingsNotifier] does
 /// until the diver's row has been read.
+///
+/// Only [SettingsNotifier.settingsLoaded] is held: [initialLoad] stays
+/// complete, as it is after a diver switch, when the previous diver's settings
+/// are still in [state] (issue #2564). Waiting on [initialLoad] alone would
+/// read them.
 class _LateLoadingSettingsNotifier extends MockSettingsNotifier {
   final _load = Completer<void>();
 
   @override
-  Future<void> get initialLoad => _load.future;
+  Future<void> get settingsLoaded => _load.future;
 
   void finishLoad(AppSettings stored) {
     state = stored;

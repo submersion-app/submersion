@@ -145,6 +145,8 @@
 	<string>Submersion uses Bluetooth to connect to dive computers and import dive data.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Submersion uses Bluetooth to connect to dive computers and import dive data.</string>
+	<key>NFCReaderUsageDescription</key>
+	<string>Submersion reads and writes the NFC tags on your cylinders.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Submersion uses the camera to take photos of dive sites and marine life, and to scan cylinder labels.</string>
 	<key>NSFaceIDUsageDescription</key>

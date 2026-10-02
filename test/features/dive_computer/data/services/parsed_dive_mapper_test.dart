@@ -93,6 +93,27 @@ void main() {
       ],
     );
 
+    test('the vendor decides whether a tank role came from the transmitter '
+        'name (#2595)', () {
+      final parsed = makeParsedDive(
+        diveMode: 'ccr',
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: 4294967295,
+            usage: 1,
+            transmitterSerial: 180777,
+          ),
+        ],
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0)],
+      );
+
+      final shearwater = parsedDiveToDownloaded(parsed, vendor: 'Shearwater');
+      expect(shearwater.tanks.first.roleSource, TankRoleSource.transmitterName);
+      final unknown = parsedDiveToDownloaded(parsed);
+      expect(unknown.tanks.first.roleSource, isNull);
+    });
+
     test('trims tank end pressure to the surfacing reading by default', () {
       final downloaded = parsedDiveToDownloaded(bleedingOxygenDive());
       expect(downloaded.tanks.single.endPressure, 41.0);
@@ -733,7 +754,9 @@ void main() {
       expect(sample.ndl, isNull);
     });
 
-    test('derives ceiling from decoDepth when decoType is safety stop (1)', () {
+    // A safety stop is not a decompression obligation (#2550): its depth
+    // must not become a ceiling, or the chart draws a deco stop band.
+    test('does not derive ceiling for a safety stop (decoType 1)', () {
       final parsed = makeParsedDive(
         fingerprint: 'ceiling-safety',
         maxDepthMeters: 30.0,
@@ -753,8 +776,10 @@ void main() {
       final downloaded = parsedDiveToDownloaded(parsed);
       final sample = downloaded.profile[0];
 
-      expect(sample.ceiling, 5.0);
+      expect(sample.ceiling, isNull);
       expect(sample.ndl, isNull);
+      expect(sample.decoType, 1);
+      expect(sample.decoDepth, 5.0);
     });
 
     test('derives ceiling from decoDepth when decoType is deep stop (3)', () {

@@ -10,6 +10,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
@@ -27,6 +28,8 @@ import 'package:submersion/features/media_store/data/media_deletion_coordinator.
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 
 /// Result returned by [DiverRepository.deleteDiverWithReassignment].
 ///
@@ -550,6 +553,20 @@ class DiverRepository {
               localUpdatedAt: now,
             );
           }
+
+          // The heir now owns these; its own hides of them would leave it
+          // owning items it cannot see (issue #2594).
+          final hides = ProfileHidesRepository();
+          await hides.deleteHides(
+            SharedItemKind.trip,
+            sharedTripIds,
+            diverId: targetId,
+          );
+          await hides.deleteHides(
+            SharedItemKind.site,
+            sharedSiteIds,
+            diverId: targetId,
+          );
         }
 
         // Step 0b: Plan the media cascade (issue #1954). Here, after the
@@ -566,7 +583,7 @@ class DiverRepository {
         // a change a peer has to see: without a fresh updated_at and a
         // pending mark the peer keeps the old computerId and its next
         // last-writer-wins update carries that dangling reference back. The
-        // series calls below already stamp and mark for themselves.
+        // series and tank calls below stamp and mark for themselves.
         final clearedAt = DateTime.now().millisecondsSinceEpoch;
         final foreignDiveIds = await _idsOf(
           'SELECT id FROM dives '
@@ -587,9 +604,29 @@ class DiverRepository {
         );
         await TankPressureSeriesRepository()
             .clearComputersOfDiverForForeignDives(id);
-        // dive_data_sources carries no updated_at and no hlc: it is a
-        // clockless child that syncs with its parent dive, so the parent is
-        // what gets marked (the rule TankPressureRepository follows too).
+        // Tanks of those dives attributed to this diver's computers: the
+        // computers' delete would clear them by ON DELETE SET NULL, with no
+        // clock and so unseen by peers and by the caches' source stamp.
+        await clearTankComputerLinks(
+          _db,
+          _syncRepository,
+          (t) =>
+              t.computerId.isInQuery(
+                _db.selectOnly(_db.diveComputers)
+                  ..addColumns([_db.diveComputers.id])
+                  ..where(_db.diveComputers.diverId.equals(id)),
+              ) &
+              t.diveId.isNotInQuery(
+                _db.selectOnly(_db.dives)
+                  ..addColumns([_db.dives.id])
+                  ..where(_db.dives.diverId.equals(id)),
+              ),
+          now: clearedAt,
+        );
+        // dive_data_sources carries no updated_at: it is a child that syncs
+        // with its parent dive, so the parent is what gets marked (the rule
+        // TankPressureRepository follows too). Its own clock is restamped
+        // with the clear, so the null is newer than any peer's copy (#2644).
         final sourceParentIds = await _idsOf(
           'SELECT DISTINCT dive_id FROM dive_data_sources '
           'WHERE computer_id IN '
@@ -599,12 +636,12 @@ class DiverRepository {
           column: 'dive_id',
         );
         await _db.customStatement(
-          'UPDATE dive_data_sources SET computer_id = NULL '
+          'UPDATE dive_data_sources SET computer_id = NULL, hlc = ? '
           'WHERE computer_id IN '
           '(SELECT id FROM dive_computers WHERE diver_id = ?) '
           // stats-scope-exempt: reassignment cascade, not a statistic.
           'AND dive_id NOT IN (SELECT id FROM dives WHERE diver_id = ?)',
-          [id, id],
+          [await _syncRepository.issueRowClock(), id, id],
         );
         for (final diveId in {...foreignDiveIds, ...sourceParentIds}) {
           await _syncRepository.markRecordPending(

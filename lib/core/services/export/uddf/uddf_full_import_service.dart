@@ -5,10 +5,14 @@ import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
+import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/dive_type_mapper.dart';
@@ -555,6 +559,19 @@ class UddfFullImportService {
           }
         }
 
+        // The tissue state each dive's computer reported (issue #2557),
+        // matched the same way.
+        final computerTissueSection = submersionElement
+            .findElements(UddfComputerTissue.sectionName)
+            .firstOrNull;
+        if (computerTissueSection != null) {
+          final byDive = UddfComputerTissue.parse(computerTissueSection);
+          for (final dive in dives) {
+            final data = byDive[dive['sourceUuid']];
+            if (data != null) UddfComputerTissue.apply(dive, data);
+          }
+        }
+
         // Parse courses
         final coursesSection = submersionElement
             .findElements('courses')
@@ -615,6 +632,28 @@ class UddfFullImportService {
         dive['sourceUuid'] as String?,
       );
       if (entries.isNotEmpty) dive['dataSources'] = entries;
+    }
+
+    // Which source recorded each tank and each tank pressure series (issue
+    // #2492), on the dive's own map for the same reason.
+    for (final (key, byDiveRef) in [
+      (
+        UddfSourceAttribution.tanksKey,
+        UddfSourceAttribution.parseTanks(uddfElement),
+      ),
+      (
+        UddfSourceAttribution.seriesKey,
+        UddfSourceAttribution.parseSeries(uddfElement),
+      ),
+    ]) {
+      if (byDiveRef.isEmpty) continue;
+      for (final dive in dives) {
+        final rows = UddfImportResult.sourcesForDive(
+          byDiveRef,
+          dive['sourceUuid'] as String?,
+        );
+        if (rows.isNotEmpty) dive[key] = rows;
+      }
     }
 
     _harvestCustomDiveTypes(dives, customDiveTypes);
@@ -1358,6 +1397,12 @@ class UddfFullImportService {
           waterType,
           enums.WaterType.values,
         );
+      }
+
+      // User-defined key:value fields, as both Submersion writers put them.
+      final customFields = UddfDiveCustomFields.parse(afterElement);
+      if (customFields.isNotEmpty) {
+        diveData[UddfDiveCustomFields.mapKey] = customFields;
       }
 
       final currentDir = UddfImportParsers.getElementText(
@@ -2551,6 +2596,16 @@ class UddfFullImportService {
           point['ndl'] = UddfImportParsers.parseUddfInt(ndlText);
         }
 
+        // Shearwater Cloud and Subsurface write the computer's GF99 on each
+        // waypoint. Only set when present, so a sample without one carries
+        // no key rather than a null.
+        final gf99 = parseUddfGradientFactorPercent(
+          UddfImportParsers.getElementText(waypoint, 'gradientfactor'),
+        );
+        if (gf99 != null) {
+          point['gf99'] = gf99;
+        }
+
         final decoStop = waypoint.findElements('decostop').firstOrNull;
         if (decoStop != null) {
           final kind = decoStop.getAttribute('kind')?.trim().toLowerCase();
@@ -2569,18 +2624,20 @@ class UddfFullImportService {
               'mapping to decoType=2 because the sample still indicates a deco stop.',
             );
           }
-          point['decoType'] = safetyKinds.contains(kind) ? 1 : 2;
+          final isSafetyStop = safetyKinds.contains(kind);
+          point['decoType'] = isSafetyStop ? 1 : 2;
 
           // Map the computer's stop depth to the sample ceiling. UDDF is SI, so
           // `decodepth` is metres and needs no conversion. Unlike Subsurface's
           // delta-encoded stopdepth, `<decostop>` is present on every in-stop
           // waypoint, so there is nothing to carry forward: a waypoint with no
           // decostop is simply no obligation (null ceiling). A non-positive
-          // depth is treated as no stop.
+          // depth is treated as no stop. A safety stop is not an obligation
+          // either, so its depth is no ceiling (#2550).
           final decoDepth = double.tryParse(
             decoStop.getAttribute('decodepth') ?? '',
           );
-          if (decoDepth != null && decoDepth > 0) {
+          if (!isSafetyStop && decoDepth != null && decoDepth > 0) {
             point['ceiling'] = decoDepth;
           }
         }
