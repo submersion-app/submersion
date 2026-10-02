@@ -6692,6 +6692,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      '你使用的装备，用于统计其潜水次数和保养记录。列在这里的气瓶不提供气体数据；请同时在气瓶中添加它。';
+
+  @override
   String get diveLog_edit_equipmentHint => '点击「使用套装」或「添加」选择装备';
 
   @override
@@ -7097,6 +7101,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_tankCard_volume => '容积';
+
+  @override
+  String get diveLog_edit_tanksCaption => '你呼吸所用的气瓶。气体图表、耗气量和统计数据都来自这些气瓶。';
 
   @override
   String get diveLog_edit_tooltip_calculateFromProfile => '从潜水轮廓计算';
@@ -9241,6 +9248,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => '移除气瓶';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => '从我的气瓶填入';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed => '无法复制该气瓶的数据。请重试。';
+
+  @override
+  String get diveLog_tank_ownCylinderHint => '复制所选气瓶的规格和最近一次充气，并将其加入本次潜水的装备。';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => '我的气瓶';
 
   @override
   String get diveLog_tank_regulatorLabel => '调节器';

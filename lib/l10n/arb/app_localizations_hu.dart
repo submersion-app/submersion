@@ -7011,6 +7011,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'A használt felszerelés, a merülésszámához és a szervizelési előzményeihez. Az itt felsorolt palack nem ad gázadatot; vegye fel a Palackok közé is.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Koppintson a \"Készlet használata\" vagy \"Hozzáadás\" gombra a felszerelés kiválasztásához';
 
@@ -7437,6 +7441,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_edit_tankCard_volume => 'Térfogat';
+
+  @override
+  String get diveLog_edit_tanksCaption =>
+      'Amiből lélegzett. A gázgrafikonok, a gázfogyasztás és a statisztikák ezekből a palackokból származnak.';
 
   @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
@@ -9690,6 +9698,20 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Palack eltávolítása';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Kitöltés a saját palackjaimból';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'A palack adatait nem sikerült átvenni. Próbálja újra.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Átveszi a kiválasztott palack méretét és legutóbbi töltését, és felveszi a merülés felszerelései közé.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Saját palackjaim';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Reduktor';

@@ -3994,6 +3994,7 @@
   "diveLog_edit_customFieldValue": "Value",
   "diveLog_edit_customFieldValueHint": "e.g., f/8 ISO400",
   "diveLog_edit_durationMinutes": "Duration: {minutes} min",
+  "diveLog_edit_equipmentCaption": "Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Tanks too.",
   "diveLog_edit_equipmentHint": "Tap \"Use Set\" or \"Add\" to select equipment",
   "diveLog_edit_errorLoadingDiveTypes": "Error loading dive types: {error}",
   "diveLog_edit_gettingLocation": "Getting location...",
@@ -4248,6 +4249,7 @@
   "@diveLog_edit_tankCard_volume": {
     "description": "Hero label on tank card: tank volume"
   },
+  "diveLog_edit_tanksCaption": "What you breathed from. Gas graphs, gas consumption and statistics come from these tanks.",
   "diveLog_edit_tooltip_calculateFromProfile": "Calculate from dive profile",
   "diveLog_edit_tooltip_clearDiveCenter": "Clear dive center",
   "diveLog_edit_tooltip_clearSite": "Clear site",
@@ -5231,6 +5233,10 @@
   },
   "diveLog_tank_title": "Tank {number}",
   "diveLog_tank_tooltip_remove": "Remove tank",
+  "diveLog_tank_fromOwnCylinder": "Fill from my cylinders",
+  "diveLog_tank_ownCylinderFailed": "Could not fill the tank from that cylinder. Try again.",
+  "diveLog_tank_ownCylinderHint": "Copies the cylinder's size and latest fill into this tank and adds the cylinder to this dive's equipment.",
+  "diveLog_tank_ownCylinderTitle": "My cylinders",
   "diveLog_tank_regulatorLabel": "Regulator",
   "diveLog_tank_regulatorNone": "None",
   "diveLog_tank_tripCylinderLabel": "Trip cylinder",

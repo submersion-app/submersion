@@ -6870,6 +6870,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'הציוד שבו השתמשת, לספירת הצלילות ולהיסטוריית השירות שלו. מיכל שמופיע כאן אינו מוסיף נתוני גז; הוסיפו אותו גם תחת מיכלים.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'הקש \"שימוש בסט\" או \"הוספה\" לבחירת ציוד';
 
@@ -7289,6 +7293,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_tankCard_volume => 'נפח';
+
+  @override
+  String get diveLog_edit_tanksCaption =>
+      'ממה נשמת. גרפי הגז, צריכת הגז והסטטיסטיקות מגיעים מהמיכלים האלה.';
 
   @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
@@ -9476,6 +9484,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'הסר בלון';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'מילוי מהמיכלים שלי';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'לא ניתן היה להעתיק את נתוני המיכל. נסו שוב.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'מעתיק את הגודל ואת המילוי האחרון של המיכל שנבחר ומוסיף אותו לציוד של הצלילה הזו.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'המיכלים שלי';
 
   @override
   String get diveLog_tank_regulatorLabel => 'וסת';

@@ -7026,6 +7026,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'O equipamento que você usou, para a contagem de mergulhos e o histórico de manutenção. Um cilindro listado aqui não fornece dados de gás; adicione-o também em Cilindros.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Toque em \"Usar Conjunto\" ou \"Adicionar\" para selecionar equipamentos';
 
@@ -7455,6 +7459,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_edit_tankCard_volume => 'Volume';
+
+  @override
+  String get diveLog_edit_tanksCaption =>
+      'De onde você respirou. Os gráficos de gás, o consumo de gás e as estatísticas vêm destes cilindros.';
 
   @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
@@ -9707,6 +9715,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Remover cilindro';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder =>
+      'Preencher a partir dos meus cilindros';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'Não foi possível copiar os dados desse cilindro. Tente novamente.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Aplica o tamanho e o último enchimento do cilindro escolhido e o adiciona aos equipamentos deste mergulho.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Meus cilindros';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Regulador';

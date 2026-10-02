@@ -6982,6 +6982,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'Uitrusting die je gebruikte, voor het aantal duiken en de onderhoudsgeschiedenis. Een fles die hier staat levert geen gasgegevens; voeg hem ook toe onder Flessen.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Tik op \"Set gebruiken\" of \"Toevoegen\" om uitrusting te selecteren';
 
@@ -7406,6 +7410,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_tankCard_volume => 'Volume';
+
+  @override
+  String get diveLog_edit_tanksCaption =>
+      'Waaruit je ademde. Gasgrafieken, gasverbruik en statistieken komen uit deze flessen.';
 
   @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
@@ -9638,6 +9646,20 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Fles verwijderen';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Invullen vanuit mijn flessen';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'De gegevens van die fles konden niet worden overgenomen. Probeer het opnieuw.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Neemt de grootte en de laatste vulling van de gekozen fles over en voegt hem toe aan de uitrusting van deze duik.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Mijn flessen';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Ademautomaat';

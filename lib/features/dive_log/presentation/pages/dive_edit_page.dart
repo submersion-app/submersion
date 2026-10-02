@@ -133,6 +133,7 @@ import 'package:submersion/shared/widgets/forms/add_section_row.dart';
 import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
 import 'package:submersion/shared/widgets/forms/enum_picker_row.dart';
 import 'package:submersion/shared/widgets/forms/form_append_row.dart';
+import 'package:submersion/shared/widgets/forms/form_caption.dart';
 import 'package:submersion/shared/widgets/forms/form_empty_row.dart';
 import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
@@ -3400,7 +3401,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             canRemove: _tanks.length > 1,
             // A scanned own cylinder joins this dive's gear; the tank row
             // itself never links to it (issue #2335).
-            onCylinderScanned: (item) => _addGear([item]),
+            onOwnCylinderUsed: (item) => _addGear([item]),
             onScanPending: _trackTankScan,
           ),
       ],
@@ -3893,6 +3894,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             ),
           ],
         ),
+        // A Tank item here counts toward its dives and service but feeds no
+        // gas data; the tank rows above do that (issue #2599).
+        FormCaption(context.l10n.diveLog_edit_equipmentCaption),
         if (_geofenceSuggestion != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),

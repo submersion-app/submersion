@@ -11151,6 +11151,12 @@ abstract class AppLocalizations {
   /// **'Duration: {minutes} min'**
   String diveLog_edit_durationMinutes(Object minutes);
 
+  /// No description provided for @diveLog_edit_equipmentCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Tanks too.'**
+  String get diveLog_edit_equipmentCaption;
+
   /// No description provided for @diveLog_edit_equipmentHint.
   ///
   /// In en, this message translates to:
@@ -11828,6 +11834,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Volume'**
   String get diveLog_edit_tankCard_volume;
+
+  /// No description provided for @diveLog_edit_tanksCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'What you breathed from. Gas graphs, gas consumption and statistics come from these tanks.'**
+  String get diveLog_edit_tanksCaption;
 
   /// No description provided for @diveLog_edit_tooltip_calculateFromProfile.
   ///
@@ -15608,6 +15620,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove tank'**
   String get diveLog_tank_tooltip_remove;
+
+  /// No description provided for @diveLog_tank_fromOwnCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill from my cylinders'**
+  String get diveLog_tank_fromOwnCylinder;
+
+  /// No description provided for @diveLog_tank_ownCylinderFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not fill the tank from that cylinder. Try again.'**
+  String get diveLog_tank_ownCylinderFailed;
+
+  /// No description provided for @diveLog_tank_ownCylinderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Copies the cylinder\'s size and latest fill into this tank and adds the cylinder to this dive\'s equipment.'**
+  String get diveLog_tank_ownCylinderHint;
+
+  /// No description provided for @diveLog_tank_ownCylinderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My cylinders'**
+  String get diveLog_tank_ownCylinderTitle;
 
   /// No description provided for @diveLog_tank_regulatorLabel.
   ///

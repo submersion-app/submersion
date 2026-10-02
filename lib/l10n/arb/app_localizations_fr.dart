@@ -7047,6 +7047,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'Le matériel utilisé, pour son nombre de plongées et son historique d\'entretien. Un bloc listé ici n\'apporte aucune donnée de gaz ; ajoutez-le aussi dans Blocs.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Appuie sur \"Utiliser un ensemble\" ou \"Ajouter\" pour sélectionner l\'équipement';
 
@@ -7475,6 +7479,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_edit_tankCard_volume => 'Volume';
+
+  @override
+  String get diveLog_edit_tanksCaption =>
+      'Ce dans quoi vous avez respiré. Les graphiques de gaz, la consommation et les statistiques proviennent de ces blocs.';
 
   @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
@@ -9748,6 +9756,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Retirer le bloc';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Remplir depuis mes blocs';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'Impossible de reprendre les données de ce bloc. Réessayez.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Reprend la taille et le dernier gonflage du bloc choisi et l\'ajoute à l\'équipement de cette plongée.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Mes blocs';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Détendeur';

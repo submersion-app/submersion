@@ -7027,6 +7027,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'El equipo que usaste, para su número de inmersiones y su historial de mantenimiento. Una botella listada aquí no aporta datos de gas; añádela también en Botellas.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Toca \"Usar conjunto\" o \"Agregar\" para seleccionar equipo';
 
@@ -7452,6 +7456,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_edit_tankCard_volume => 'Volumen';
+
+  @override
+  String get diveLog_edit_tanksCaption =>
+      'De dónde respiraste. Los gráficos de gas, el consumo de gas y las estadísticas provienen de estas botellas.';
 
   @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
@@ -9706,6 +9714,20 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Eliminar tanque';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Completar desde mis botellas';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'No se pudieron copiar los datos de esa botella. Inténtalo de nuevo.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Copia el tamaño y la última carga de la botella elegida y la añade al equipo de esta inmersión.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Mis botellas';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Regulador';

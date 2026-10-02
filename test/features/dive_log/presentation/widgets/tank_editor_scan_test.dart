@@ -113,7 +113,7 @@ void main() {
     WidgetTester tester, {
     required String? scanned,
     required void Function(DiveTank) onChanged,
-    Future<void> Function(EquipmentItem)? onCylinderScanned,
+    Future<void> Function(EquipmentItem)? onOwnCylinderUsed,
     MockSettingsNotifier? settings,
     DiveTank tank = const DiveTank(id: 'tank-1'),
     List<dynamic> extra = const [],
@@ -151,7 +151,7 @@ void main() {
                 tank: tank,
                 tankNumber: 1,
                 onChanged: onChanged,
-                onCylinderScanned: onCylinderScanned,
+                onOwnCylinderUsed: onOwnCylinderUsed,
               ),
             ),
           ),
@@ -179,7 +179,7 @@ void main() {
       tester,
       scanned: 'https://submersion.app/c#f=1&p=$own',
       onChanged: (t) => changed = t,
-      onCylinderScanned: (item) async => scannedItem = item,
+      onOwnCylinderUsed: (item) async => scannedItem = item,
     );
     await scan(tester);
     expect(changed!.volume, 12);
@@ -197,7 +197,7 @@ void main() {
       tester,
       scanned: 'https://submersion.app/c#f=1&p=$stranger&v=10&wp=300&m=al',
       onChanged: (t) => changed = t,
-      onCylinderScanned: (item) async => scannedItem = item,
+      onOwnCylinderUsed: (item) async => scannedItem = item,
     );
     await scan(tester);
     expect(changed!.volume, 10);
@@ -304,7 +304,7 @@ void main() {
       tester,
       scanned: 'https://submersion.app/c#f=1&p=$own',
       onChanged: (_) {},
-      onCylinderScanned: (item) async => throw StateError('gear add failed'),
+      onOwnCylinderUsed: (item) async => throw StateError('gear add failed'),
     );
     await scan(tester);
     expect(find.text(l10n.passport_scan_openFailed), findsOneWidget);

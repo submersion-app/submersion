@@ -7027,6 +7027,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'L\'attrezzatura usata, per il conteggio delle immersioni e lo storico della manutenzione. Una bombola elencata qui non fornisce dati sul gas; aggiungila anche in Bombole.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Tocca \"Usa set\" o \"Aggiungi\" per selezionare l\'attrezzatura';
 
@@ -7454,6 +7458,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_tankCard_volume => 'Volume';
+
+  @override
+  String get diveLog_edit_tanksCaption =>
+      'Da cosa hai respirato. I grafici del gas, il consumo di gas e le statistiche provengono da queste bombole.';
 
   @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
@@ -9711,6 +9719,20 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Rimuovi bombola';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Compila dalle mie bombole';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'Impossibile copiare i dati di quella bombola. Riprova.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Copia dimensioni e ultima ricarica della bombola scelta e la aggiunge all\'attrezzatura di questa immersione.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Le mie bombole';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Erogatore';

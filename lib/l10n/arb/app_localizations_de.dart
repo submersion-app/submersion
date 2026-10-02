@@ -7031,6 +7031,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'Benutzte Ausrüstung, für Tauchgangsanzahl und Wartungshistorie. Eine hier aufgeführte Flasche liefert keine Gasdaten; sie gehört zusätzlich unter Flaschen.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Tippen Sie auf \"Set verwenden\" oder \"Hinzufügen\" um Ausrüstung auszuwählen';
 
@@ -7457,6 +7461,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_edit_tankCard_volume => 'Volumen';
+
+  @override
+  String get diveLog_edit_tanksCaption =>
+      'Woraus geatmet wurde. Gasgrafiken, Gasverbrauch und Statistiken stammen aus diesen Flaschen.';
 
   @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
@@ -9703,6 +9711,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Flasche entfernen';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Aus meinen Flaschen übernehmen';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'Die Daten der Flasche konnten nicht übernommen werden. Bitte erneut versuchen.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Übernimmt Größe und letzte Füllung der gewählten Flasche und fügt sie der Ausrüstung dieses Tauchgangs hinzu.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Meine Flaschen';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Atemregler';

@@ -6915,6 +6915,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Tanks too.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Tap \"Use Set\" or \"Add\" to select equipment';
 
@@ -7337,6 +7341,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_edit_tankCard_volume => 'Volume';
+
+  @override
+  String get diveLog_edit_tanksCaption =>
+      'What you breathed from. Gas graphs, gas consumption and statistics come from these tanks.';
 
   @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
@@ -9546,6 +9554,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Remove tank';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Fill from my cylinders';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'Could not fill the tank from that cylinder. Try again.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Copies the cylinder\'s size and latest fill into this tank and adds the cylinder to this dive\'s equipment.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'My cylinders';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Regulator';
