@@ -89,16 +89,26 @@ class _Harness {
       diverId: 'diver-1',
       knownComputer: computer,
     );
+    // The step sits on top of a parent page, as the real download route
+    // does, so Done has somewhere to pop back to.
     final router = GoRouter(
+      initialLocation: '/computer/download',
       routes: [
         GoRoute(
-          path: '/',
-          builder: (context, state) => Scaffold(
-            body: DcAdapterDownloadStep(
-              adapter: adapter,
-              knownComputer: computer,
+          path: '/computer',
+          builder: (context, state) =>
+              const Scaffold(body: Text('computer detail route')),
+          routes: [
+            GoRoute(
+              path: 'download',
+              builder: (context, state) => Scaffold(
+                body: DcAdapterDownloadStep(
+                  adapter: adapter,
+                  knownComputer: computer,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
         GoRoute(
           path: '/transfer/import-wizard',
@@ -202,5 +212,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('import wizard route'), findsOneWidget);
+  });
+
+  testWidgets('Done leaves the download for the page it came from', (
+    tester,
+  ) async {
+    final harness = _Harness();
+    await tester.pumpWidget(
+      harness.build(
+        _computer(
+          manufacturer: 'Garmin',
+          model: 'Descent G2',
+          connectionType: 'usb',
+        ),
+      ),
+    );
+    await _settle(tester);
+
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DcNoDirectDownloadView), findsNothing);
+    expect(find.text('computer detail route'), findsOneWidget);
   });
 }
