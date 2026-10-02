@@ -631,6 +631,26 @@ void main() {
       expect(find.text('1 day'), findsOneWidget);
     });
 
+    testWidgets('a Day Trip locks its end date to the start date', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+
+      final endRow = find.widgetWithText(ListTile, 'End Date');
+      expect(tester.widget<ListTile>(endRow).enabled, isFalse);
+      await tester.tap(find.text('End Date'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DatePickerDialog), findsNothing);
+      expect(find.text('1 day'), findsOneWidget);
+
+      // Another type hands the end date back to the diver.
+      await tester.tap(find.text('Resort'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<ListTile>(endRow).enabled, isTrue);
+    });
+
     testWidgets('leaving Day Trip keeps the collapsed dates', (tester) async {
       await pumpNewTrip(tester);
       await tester.tap(find.text('Day Trip'));

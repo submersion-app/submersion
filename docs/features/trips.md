@@ -63,8 +63,9 @@ For live-aboard trips:
 
 For single-day excursions, including a single local dive:
 
-- Choosing **Day Trip** sets the end date to the start date, and moving
-  the start date moves the end date with it
+- Choosing **Day Trip** sets the end date to the start date and locks it:
+  moving the start date moves the end date with it, and choosing another
+  type makes the end date editable again
 - Location = departure point
 - Quick organization
 
