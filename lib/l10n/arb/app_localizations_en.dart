@@ -40820,10 +40820,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'Unknown';
 
   @override
-  String get insights_summary_divesPerMonth => 'Dives / Month';
+  String get insights_summary_divesPerMonth => 'Avg Dives / Month';
 
   @override
-  String get insights_summary_divesPerYear => 'Dives / Year';
+  String get insights_summary_divesPerYear => 'Avg Dives / Year';
+
+  @override
+  String get insights_summary_divesThisYear => 'Dives This Year';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {

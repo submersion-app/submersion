@@ -256,6 +256,14 @@ class _AggregateGrid extends StatelessWidget {
           value: stats.divesPerYear!.toStringAsFixed(1),
           color: Colors.green.shade700,
         ),
+      // This year's actual count beside the lifetime average, which was read
+      // as this year's total when it stood alone (issue #2600).
+      _StatCard(
+        icon: Icons.event_available,
+        label: context.l10n.insights_summary_divesThisYear,
+        value: '${stats.divesThisYear}',
+        color: Colors.lightGreen.shade800,
+      ),
       _StatCard(
         icon: Icons.location_on,
         label: context.l10n.insights_summary_sitesVisited,

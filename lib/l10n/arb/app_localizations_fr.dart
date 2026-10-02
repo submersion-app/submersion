@@ -41490,10 +41490,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'Inconnu';
 
   @override
-  String get insights_summary_divesPerMonth => 'Plongées / mois';
+  String get insights_summary_divesPerMonth => 'Moy. plongées / mois';
 
   @override
-  String get insights_summary_divesPerYear => 'Plongées / an';
+  String get insights_summary_divesPerYear => 'Moy. plongées / an';
+
+  @override
+  String get insights_summary_divesThisYear => 'Plongées cette année';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {

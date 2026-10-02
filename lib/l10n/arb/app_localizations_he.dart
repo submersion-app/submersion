@@ -40550,10 +40550,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'לא ידוע';
 
   @override
-  String get insights_summary_divesPerMonth => 'צלילות / חודש';
+  String get insights_summary_divesPerMonth => 'ממוצע צלילות / חודש';
 
   @override
-  String get insights_summary_divesPerYear => 'צלילות / שנה';
+  String get insights_summary_divesPerYear => 'ממוצע צלילות / שנה';
+
+  @override
+  String get insights_summary_divesThisYear => 'צלילות השנה';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {

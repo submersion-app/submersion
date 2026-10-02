@@ -41115,10 +41115,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'Onbekend';
 
   @override
-  String get insights_summary_divesPerMonth => 'Duiken / maand';
+  String get insights_summary_divesPerMonth => 'Gem. duiken / maand';
 
   @override
-  String get insights_summary_divesPerYear => 'Duiken / jaar';
+  String get insights_summary_divesPerYear => 'Gem. duiken / jaar';
+
+  @override
+  String get insights_summary_divesThisYear => 'Duiken dit jaar';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {

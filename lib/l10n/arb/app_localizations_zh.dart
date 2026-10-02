@@ -39082,10 +39082,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => '未知';
 
   @override
-  String get insights_summary_divesPerMonth => '每月潜水次数';
+  String get insights_summary_divesPerMonth => '平均每月潜水次数';
 
   @override
-  String get insights_summary_divesPerYear => '每年潜水次数';
+  String get insights_summary_divesPerYear => '平均每年潜水次数';
+
+  @override
+  String get insights_summary_divesThisYear => '今年潜水次数';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {

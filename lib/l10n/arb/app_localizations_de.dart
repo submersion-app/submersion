@@ -41322,10 +41322,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'Unbekannt';
 
   @override
-  String get insights_summary_divesPerMonth => 'Tauchgänge / Monat';
+  String get insights_summary_divesPerMonth => 'Ø Tauchgänge / Monat';
 
   @override
-  String get insights_summary_divesPerYear => 'Tauchgänge / Jahr';
+  String get insights_summary_divesPerYear => 'Ø Tauchgänge / Jahr';
+
+  @override
+  String get insights_summary_divesThisYear => 'Tauchgänge dieses Jahr';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {

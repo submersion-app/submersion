@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -3237,10 +3238,25 @@ class DiveRepository {
           : '$whereClause $fBare';
       vars.addAll(filterVars);
 
+      // This calendar year as a half-open [Jan 1, next Jan 1) range, built in
+      // UTC because dive_date_time stores wall clock encoded as UTC; the same
+      // bounds getYearStats uses, so this count matches the year-in-review
+      // card. Its placeholders precede the WHERE clause's, so they go first.
+      final year = clock.now().year;
+      final yearVars = <Variable<Object>>[
+        Variable<int>(DateTime.utc(year).millisecondsSinceEpoch),
+        Variable<int>(DateTime.utc(year + 1).millisecondsSinceEpoch),
+      ];
+
       // Basic stats
-      final stats = await _db.customSelect('''
+      final stats = await _db
+          .customSelect(
+            '''
       SELECT
         COUNT(*) as total_dives,
+        COALESCE(SUM(
+          CASE WHEN dive_date_time >= ? AND dive_date_time < ? THEN 1 ELSE 0 END
+        ), 0) as dives_this_year,
         SUM(COALESCE(runtime, bottom_time)) as total_time,
         MAX(max_depth) as max_depth,
         AVG(max_depth) as avg_max_depth,
@@ -3249,7 +3265,10 @@ class DiveRepository {
         MIN(dive_date_time) as first_dive_date
       FROM dives
       $basicWhere
-    ''', variables: vars).getSingle();
+    ''',
+            variables: [...yearVars, ...vars],
+          )
+          .getSingle();
 
       // Dives by month (last 12 months)
       final monthlyWhereClause = diverId != null
@@ -3383,6 +3402,7 @@ class DiveRepository {
         avgTemperature: stats.data['avg_temp'] as double?,
         totalSites: stats.data['total_sites'] as int? ?? 0,
         firstDiveDate: firstDiveDate,
+        divesThisYear: stats.data['dives_this_year'] as int? ?? 0,
         divesByMonth: divesByMonth,
         depthDistribution: depthDistribution,
         topSites: topSites,
@@ -8105,6 +8125,10 @@ class DiveStatistics {
   final double? avgTemperature;
   final int totalSites;
   final DateTime? firstDiveDate;
+
+  /// Dives dated in the current calendar year, so the lifetime per-year
+  /// average is never the only per-year figure on screen (issue #2600).
+  final int divesThisYear;
   final List<MonthlyDiveCount> divesByMonth;
   final List<DepthRangeStat> depthDistribution;
   final List<TopSiteStat> topSites;
@@ -8117,6 +8141,7 @@ class DiveStatistics {
     this.avgTemperature,
     required this.totalSites,
     this.firstDiveDate,
+    this.divesThisYear = 0,
     this.divesByMonth = const [],
     this.depthDistribution = const [],
     this.topSites = const [],

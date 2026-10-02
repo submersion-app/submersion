@@ -41225,10 +41225,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'Ismeretlen';
 
   @override
-  String get insights_summary_divesPerMonth => 'Merülés / hónap';
+  String get insights_summary_divesPerMonth => 'Átl. merülés / hónap';
 
   @override
-  String get insights_summary_divesPerYear => 'Merülés / év';
+  String get insights_summary_divesPerYear => 'Átl. merülés / év';
+
+  @override
+  String get insights_summary_divesThisYear => 'Merülések idén';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {

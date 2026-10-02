@@ -40984,10 +40984,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'غير معروف';
 
   @override
-  String get insights_summary_divesPerMonth => 'الغوصات / الشهر';
+  String get insights_summary_divesPerMonth => 'متوسط الغوصات / الشهر';
 
   @override
-  String get insights_summary_divesPerYear => 'الغوصات / السنة';
+  String get insights_summary_divesPerYear => 'متوسط الغوصات / السنة';
+
+  @override
+  String get insights_summary_divesThisYear => 'غوصات هذا العام';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {

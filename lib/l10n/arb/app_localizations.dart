@@ -66284,14 +66284,20 @@ abstract class AppLocalizations {
   /// No description provided for @insights_summary_divesPerMonth.
   ///
   /// In en, this message translates to:
-  /// **'Dives / Month'**
+  /// **'Avg Dives / Month'**
   String get insights_summary_divesPerMonth;
 
   /// No description provided for @insights_summary_divesPerYear.
   ///
   /// In en, this message translates to:
-  /// **'Dives / Year'**
+  /// **'Avg Dives / Year'**
   String get insights_summary_divesPerYear;
+
+  /// No description provided for @insights_summary_divesThisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives This Year'**
+  String get insights_summary_divesThisYear;
 
   /// Screen-reader summary of the dives-by-day-of-week bar chart
   ///
