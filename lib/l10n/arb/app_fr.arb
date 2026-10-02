@@ -6644,6 +6644,7 @@
   "insights_ranking_itemCount": "{count} {label}",
   "insights_ranking_moreItems": "et {count} de plus",
   "insights_ranking_semanticLabel": "{name}, rang {rank}, {count} {label}",
+  "insights_ranking_semanticLabelWithSubtitle": "{name}, {subtitle}, rang {rank}, {count} {label}",
   "insights_records_appBar_title": "Records de plongée",
   "insights_records_coldestDive": "Plongée la plus froide",
   "insights_records_deepestDive": "Plongée la plus profonde",

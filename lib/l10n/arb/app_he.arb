@@ -6746,6 +6746,7 @@
   "insights_ranking_itemCount": "{count} {label}",
   "insights_ranking_moreItems": "ועוד {count}",
   "insights_ranking_semanticLabel": "{name}, דירוג {rank}, {count} {label}",
+  "insights_ranking_semanticLabelWithSubtitle": "{name}, {subtitle}, דירוג {rank}, {count} {label}",
   "insights_records_appBar_title": "שיאי צלילה",
   "insights_records_coldestDive": "הצלילה הקרה ביותר",
   "insights_records_deepestDive": "הצלילה העמוקה ביותר",

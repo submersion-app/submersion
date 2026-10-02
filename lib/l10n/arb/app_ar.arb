@@ -6746,6 +6746,7 @@
   "insights_ranking_itemCount": "{count} {label}",
   "insights_ranking_moreItems": "و {count} أخرى",
   "insights_ranking_semanticLabel": "{name}، المرتبة {rank}، {count} {label}",
+  "insights_ranking_semanticLabelWithSubtitle": "{name}، {subtitle}، المرتبة {rank}، {count} {label}",
   "insights_records_appBar_title": "أرقام الغوص القياسية",
   "insights_records_coldestDive": "أبرد غوصة",
   "insights_records_deepestDive": "أعمق غوصة",

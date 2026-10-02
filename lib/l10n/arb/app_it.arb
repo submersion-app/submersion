@@ -6640,6 +6640,7 @@
   "insights_ranking_itemCount": "{count} {label}",
   "insights_ranking_moreItems": "e {count} altri",
   "insights_ranking_semanticLabel": "{name}, posizione {rank}, {count} {label}",
+  "insights_ranking_semanticLabelWithSubtitle": "{name}, {subtitle}, posizione {rank}, {count} {label}",
   "insights_records_appBar_title": "Record immersioni",
   "insights_records_coldestDive": "Immersione più fredda",
   "insights_records_deepestDive": "Immersione più profonda",

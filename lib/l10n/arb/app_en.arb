@@ -14183,6 +14183,7 @@
   "insights_ranking_itemCount": "{count} {label}",
   "insights_ranking_moreItems": "and {count} more",
   "insights_ranking_semanticLabel": "{name}, rank {rank}, {count} {label}",
+  "insights_ranking_semanticLabelWithSubtitle": "{name}, {subtitle}, rank {rank}, {count} {label}",
   "insights_records_appBar_title": "Dive Records",
   "insights_records_coldestDive": "Coldest Dive",
   "insights_records_deepestDive": "Deepest Dive",
@@ -14447,6 +14448,25 @@
   "@insights_ranking_semanticLabel": {
     "placeholders": {
       "name": {
+        "type": "Object"
+      },
+      "rank": {
+        "type": "Object"
+      },
+      "count": {
+        "type": "Object"
+      },
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
+  "@insights_ranking_semanticLabelWithSubtitle": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      },
+      "subtitle": {
         "type": "Object"
       },
       "rank": {

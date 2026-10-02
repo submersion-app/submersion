@@ -23565,6 +23565,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name, $subtitle, Rang $rank, $count $label';
+  }
+
+  @override
   String get insights_records_appBar_title => 'Tauchrekorde';
 
   @override

@@ -38073,6 +38073,18 @@ abstract class AppLocalizations {
     Object label,
   );
 
+  /// No description provided for @insights_ranking_semanticLabelWithSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {subtitle}, rank {rank}, {count} {label}'**
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  );
+
   /// No description provided for @insights_records_appBar_title.
   ///
   /// In en, this message translates to:

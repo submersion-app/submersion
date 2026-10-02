@@ -6849,6 +6849,7 @@
   "insights_ranking_itemCount": "{count} {label}",
   "insights_ranking_moreItems": "und {count} weitere",
   "insights_ranking_semanticLabel": "{name}, Rang {rank}, {count} {label}",
+  "insights_ranking_semanticLabelWithSubtitle": "{name}, {subtitle}, Rang {rank}, {count} {label}",
   "insights_records_appBar_title": "Tauchrekorde",
   "insights_records_coldestDive": "Kältester Tauchgang",
   "insights_records_deepestDive": "Tiefster Tauchgang",

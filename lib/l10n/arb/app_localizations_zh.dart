@@ -22397,6 +22397,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name，$subtitle，排名第 $rank，$count $label';
+  }
+
+  @override
   String get insights_records_appBar_title => '潜水记录';
 
   @override

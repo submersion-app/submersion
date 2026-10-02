@@ -6644,6 +6644,7 @@
   "insights_ranking_itemCount": "{count} {label}",
   "insights_ranking_moreItems": "és {count} további",
   "insights_ranking_semanticLabel": "{name}, {rank}. helyezés, {count} {label}",
+  "insights_ranking_semanticLabelWithSubtitle": "{name}, {subtitle}, {rank}. helyezés, {count} {label}",
   "insights_records_appBar_title": "Merülési rekordok",
   "insights_records_coldestDive": "Leghidegebb merülés",
   "insights_records_deepestDive": "Legmélyebb merülés",

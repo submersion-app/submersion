@@ -6746,6 +6746,7 @@
   "insights_ranking_itemCount": "{count} {label}",
   "insights_ranking_moreItems": "en {count} meer",
   "insights_ranking_semanticLabel": "{name}, rang {rank}, {count} {label}",
+  "insights_ranking_semanticLabelWithSubtitle": "{name}, {subtitle}, rang {rank}, {count} {label}",
   "insights_records_appBar_title": "Duikrecords",
   "insights_records_coldestDive": "Koudste duik",
   "insights_records_deepestDive": "Diepste duik",

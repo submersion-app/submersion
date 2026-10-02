@@ -6746,6 +6746,7 @@
   "insights_ranking_itemCount": "{count} {label}",
   "insights_ranking_moreItems": "y {count} más",
   "insights_ranking_semanticLabel": "{name}, posición {rank}, {count} {label}",
+  "insights_ranking_semanticLabelWithSubtitle": "{name}, {subtitle}, posición {rank}, {count} {label}",
   "insights_records_appBar_title": "Récords de buceo",
   "insights_records_coldestDive": "Inmersión más fría",
   "insights_records_deepestDive": "Inmersión más profunda",

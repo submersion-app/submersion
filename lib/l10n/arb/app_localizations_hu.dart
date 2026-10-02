@@ -23535,6 +23535,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name, $subtitle, $rank. helyezés, $count $label';
+  }
+
+  @override
   String get insights_records_appBar_title => 'Merülési rekordok';
 
   @override

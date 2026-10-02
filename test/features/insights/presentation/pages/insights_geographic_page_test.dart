@@ -190,6 +190,23 @@ void main() {
       expect(filter.query, site('country', 'Bonaire'));
     });
 
+    testWidgets('a region row names its country to screen readers', (
+      tester,
+    ) async {
+      await pumpRouted(tester);
+
+      // Two regions can share a name, so the button label carries the
+      // country that tells them apart (and that the tap filters on).
+      expect(
+        findSemanticsLabelled('Yucatan, Mexico, rank 1, 4 dives'),
+        findsOneWidget,
+      );
+      expect(
+        findSemanticsLabelled('Bonaire, rank 1, 12 dives'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a region opens its dives in its own country', (tester) async {
       final container = await pumpRouted(tester);
 

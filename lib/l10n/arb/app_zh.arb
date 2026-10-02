@@ -6932,6 +6932,7 @@
   "insights_ranking_itemCount": "{count} {label}",
   "insights_ranking_moreItems": "还有 {count} 项",
   "insights_ranking_semanticLabel": "{name}，排名第 {rank}，{count} {label}",
+  "insights_ranking_semanticLabelWithSubtitle": "{name}，{subtitle}，排名第 {rank}，{count} {label}",
   "insights_records_appBar_title": "潜水记录",
   "insights_records_coldestDive": "最冷潜水",
   "insights_records_deepestDive": "最深潜水",
