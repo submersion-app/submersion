@@ -6,7 +6,6 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/services/assembly_snapshot.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
-import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/presentation/providers/assembly_snapshot_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
@@ -60,16 +59,10 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
   /// shows that owner's chip (issue #2046). Null shows no chips.
   final String? ownerReferenceDiverId;
 
-  /// The diver figure's number for each item on it (issue #2326). A
-  /// top-level row whose item has one leads with its badge; parts never
-  /// do. Empty, the default, when the figure is not shown.
-  final Map<String, int> figureNumbers;
-
-  /// The item flashing on the figure, highlighted here too.
+  /// The item flashing on the figure, highlighted here too. Only a
+  /// top-level row highlights: the figure draws no parts. The rows carry
+  /// no figure numbers, since the figure names every item (issue #2774).
   final String? selectedItemId;
-
-  /// A badge tap, which brings the figure into view.
-  final void Function(String itemId)? onNumberTap;
 
   /// A key for a top-level row, so a tap on the figure can scroll to it.
   final Key? Function(String itemId)? rowKey;
@@ -85,9 +78,7 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
     this.onUpdateAssembly,
     this.showServiceStatus = false,
     this.ownerReferenceDiverId,
-    this.figureNumbers = const {},
     this.selectedItemId,
-    this.onNumberTap,
     this.rowKey,
   });
 
@@ -207,17 +198,8 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
     final remove = hasParts || depth == 0
         ? widget.onRemoveSubtree
         : widget.onRemovePart;
-    final number = depth == 0 ? widget.figureNumbers[item.id] : null;
-    final flashing = number != null && item.id == widget.selectedItemId;
+    final flashing = depth == 0 && item.id == widget.selectedItemId;
     final highlight = flashing ? figureHighlightFor(theme.colorScheme) : null;
-    final avatar = CircleAvatar(
-      backgroundColor: theme.colorScheme.tertiaryContainer,
-      child: Icon(
-        equipmentTypeIcon(item.type),
-        color: theme.colorScheme.onTertiaryContainer,
-        size: 20,
-      ),
-    );
 
     return [
       Padding(
@@ -229,22 +211,14 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
           tileColor: highlight?.fill,
           textColor: highlight?.onFill,
           iconColor: highlight?.onFill,
-          leading: number == null
-              ? avatar
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    FigureNumberBadge(
-                      number: number,
-                      selected: flashing,
-                      onTap: widget.onNumberTap == null
-                          ? null
-                          : () => widget.onNumberTap!(item.id),
-                    ),
-                    const SizedBox(width: 8),
-                    avatar,
-                  ],
-                ),
+          leading: CircleAvatar(
+            backgroundColor: theme.colorScheme.tertiaryContainer,
+            child: Icon(
+              equipmentTypeIcon(item.type),
+              color: theme.colorScheme.onTertiaryContainer,
+              size: 20,
+            ),
+          ),
           title: Text(item.name),
           subtitle: subtitleParts.isEmpty
               ? null

@@ -4736,6 +4736,7 @@
   "equipment_sets_itemCountSemanticLabel": "{count} في المجموعة",
   "equipment_sets_itemCountSingular": "{count} عنصر",
   "equipment_figure_itemLabel": "{number}، {type}، {name}",
+  "equipment_figure_itemLabelUnnumbered": "{type}، {name}",
   "equipment_figure_summary": "{name}، {count, plural, =1{عنصر واحد} other{{count} عناصر}}",
   "equipment_figure_trayTitle": "يُحمل أيضًا",
   "equipment_figure_frontCount": "الأمام · {count}",

@@ -4736,6 +4736,7 @@
   "equipment_sets_itemCountSemanticLabel": "{count} en el conjunto",
   "equipment_sets_itemCountSingular": "{count} artículo",
   "equipment_figure_itemLabel": "{number}, {type}, {name}",
+  "equipment_figure_itemLabelUnnumbered": "{type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} artículo} other{{count} artículos}}",
   "equipment_figure_trayTitle": "También se lleva",
   "equipment_figure_frontCount": "Delante · {count}",

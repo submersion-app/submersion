@@ -4634,6 +4634,7 @@
   "equipment_sets_itemCountSemanticLabel": "{count} nel set",
   "equipment_sets_itemCountSingular": "{count} articolo",
   "equipment_figure_itemLabel": "{number}, {type}, {name}",
+  "equipment_figure_itemLabelUnnumbered": "{type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} elemento} other{{count} elementi}}",
   "equipment_figure_trayTitle": "Portato anche",
   "equipment_figure_frontCount": "Davanti · {count}",

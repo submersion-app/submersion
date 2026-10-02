@@ -8929,6 +8929,14 @@
       "name": {"type": "String"}
     }
   },
+  "equipment_figure_itemLabelUnnumbered": "{type}, {name}",
+  "@equipment_figure_itemLabelUnnumbered": {
+    "description": "Screen-reader label of an item on a diver figure drawn without numbers: the item's type, then its name.",
+    "placeholders": {
+      "type": {"type": "String"},
+      "name": {"type": "String"}
+    }
+  },
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} item} other{{count} items}}",
   "@equipment_figure_summary": {
     "placeholders": {

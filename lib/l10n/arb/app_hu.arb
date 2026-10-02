@@ -4634,6 +4634,7 @@
   "equipment_sets_itemCountSemanticLabel": "{count} a csoportban",
   "equipment_sets_itemCountSingular": "{count} elem",
   "equipment_figure_itemLabel": "{number}, {type}, {name}",
+  "equipment_figure_itemLabelUnnumbered": "{type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} tétel} other{{count} tétel}}",
   "equipment_figure_trayTitle": "Egyéb felszerelés",
   "equipment_figure_frontCount": "Elöl · {count}",

@@ -24740,6 +24740,12 @@ abstract class AppLocalizations {
   /// **'{number}, {type}, {name}'**
   String equipment_figure_itemLabel(int number, String type, String name);
 
+  /// Screen-reader label of an item on a diver figure drawn without numbers: the item's type, then its name.
+  ///
+  /// In en, this message translates to:
+  /// **'{type}, {name}'**
+  String equipment_figure_itemLabelUnnumbered(String type, String name);
+
   /// No description provided for @equipment_figure_summary.
   ///
   /// In en, this message translates to:

@@ -4875,6 +4875,7 @@
   "equipment_sets_itemCountSemanticLabel": "{count} 在设置",
   "equipment_sets_itemCountSingular": "{count} 项目",
   "equipment_figure_itemLabel": "{number}, {type}, {name}",
+  "equipment_figure_itemLabelUnnumbered": "{type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} 件} other{{count} 件}}",
   "equipment_figure_trayTitle": "另外携带",
   "equipment_figure_frontCount": "正面 · {count}",
