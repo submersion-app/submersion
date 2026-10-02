@@ -1,17 +1,12 @@
 import 'dart:async';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/csv_track_parser.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/parsed_track.dart';
@@ -24,14 +19,13 @@ import 'package:submersion/features/gps_log/presentation/providers/gps_log_provi
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_log_empty_state.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_log_list_pane.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/gps_record_card.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_log_summary_strip.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_date_filter_action.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_empty_map.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_info_card.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_list_tile.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_overview_map.dart';
-import 'package:submersion/features/gps_log/presentation/widgets/track_row_labels.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/providers/map_list_selection_provider.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
@@ -55,12 +49,6 @@ class GpsLoggerPage extends ConsumerStatefulWidget {
 class _GpsLoggerPageState extends ConsumerState<GpsLoggerPage> {
   final _log = LoggerService.forClass(GpsLoggerPage);
   final MapController _mapController = MapController();
-
-  /// Recording only makes sense on the device that goes on the boat.
-  /// defaultTargetPlatform (not dart:io) so widget tests can override it.
-  bool get _canRecord =>
-      defaultTargetPlatform == TargetPlatform.android ||
-      defaultTargetPlatform == TargetPlatform.iOS;
 
   @override
   void initState() {
@@ -89,34 +77,6 @@ class _GpsLoggerPageState extends ConsumerState<GpsLoggerPage> {
         );
       }
     });
-  }
-
-  Future<void> _startLogging() async {
-    final l10n = context.l10n;
-    final messenger = ScaffoldMessenger.of(context);
-    if (!await Geolocator.isLocationServiceEnabled()) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.gpsLogger_locationOff)),
-      );
-      return;
-    }
-    var permission = await LocationService.instance.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await LocationService.instance.requestPermission();
-    }
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.gpsLogger_permissionDenied)),
-      );
-      return;
-    }
-    await ref
-        .read(gpsTrackRecorderProvider)
-        .start(
-          notificationTitle: l10n.gpsLogger_androidNotificationTitle,
-          notificationText: l10n.gpsLogger_androidNotificationText,
-        );
   }
 
   Future<void> _matchNow() async {
@@ -263,12 +223,6 @@ class _GpsLoggerPageState extends ConsumerState<GpsLoggerPage> {
 
   void _openTrack(String id) => context.push('/gps-log/$id');
 
-  String _formatAge(DateTime lastFixAt) {
-    final age = DateTime.now().toUtc().difference(lastFixAt);
-    if (age.inMinutes < 1) return '<1min';
-    return formatCompactDuration(age);
-  }
-
   Widget _importAction(BuildContext context) => IconButton(
     key: const ValueKey('gps-track-import'),
     icon: const Icon(Icons.file_open_outlined),
@@ -296,8 +250,6 @@ class _GpsLoggerPageState extends ConsumerState<GpsLoggerPage> {
     final selected = tracks
         .where((t) => t.id == selection.selectedId)
         .firstOrNull;
-    final recorder = ref.watch(gpsTrackRecorderProvider);
-    final state = ref.watch(gpsRecorderStateProvider).value ?? recorder.state;
 
     return MapListScaffold(
       sectionKey: kGpsTrackSectionKey,
@@ -310,14 +262,7 @@ class _GpsLoggerPageState extends ConsumerState<GpsLoggerPage> {
       listPane: GpsLogListPane(
         tracks: tracks,
         selectedId: selection.selectedId,
-        leading: _canRecord
-            ? _RecordCard(
-                state: state,
-                formatAge: _formatAge,
-                onStart: _startLogging,
-                onStop: () => ref.read(gpsTrackRecorderProvider).stop(),
-              )
-            : null,
+        leading: canRecordGpsTracks ? const GpsRecordCard() : null,
         truncatedNotice: truncated
             ? l10n.gpsTrack_map_truncated(kOverviewTrackLimit)
             : null,
@@ -360,8 +305,6 @@ class _GpsLoggerPageState extends ConsumerState<GpsLoggerPage> {
   Widget _buildColumn(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final recorder = ref.watch(gpsTrackRecorderProvider);
-    final state = ref.watch(gpsRecorderStateProvider).value ?? recorder.state;
     final tracks = ref.watch(gpsTracksProvider).value ?? const <GpsTrack>[];
 
     return Scaffold(
@@ -388,13 +331,8 @@ class _GpsLoggerPageState extends ConsumerState<GpsLoggerPage> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             sliver: SliverList.list(
               children: [
-                if (_canRecord) ...[
-                  _RecordCard(
-                    state: state,
-                    formatAge: _formatAge,
-                    onStart: _startLogging,
-                    onStop: () => ref.read(gpsTrackRecorderProvider).stop(),
-                  ),
+                if (canRecordGpsTracks) ...[
+                  const GpsRecordCard(),
                   const SizedBox(height: 16),
                 ],
                 const GpsLogSummaryStrip(),
@@ -430,69 +368,6 @@ class _GpsLoggerPageState extends ConsumerState<GpsLoggerPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _RecordCard extends ConsumerWidget {
-  final GpsRecorderState state;
-  final String Function(DateTime) formatAge;
-  final VoidCallback onStart;
-  final VoidCallback onStop;
-
-  const _RecordCard({
-    required this.state,
-    required this.formatAge,
-    required this.onStart,
-    required this.onStop,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final recording = state.status == GpsRecorderStatus.recording;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (recording) ...[
-              Text(
-                l10n.gpsLogger_recordingStatus(state.pointCount),
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                state.lastFixAt != null
-                    ? l10n.gpsLogger_lastFix(
-                        formatAge(state.lastFixAt!),
-                        units.formatDistance(state.lastFixAccuracy ?? 0),
-                      )
-                    : l10n.gpsLogger_noFixYet,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 12),
-              FilledButton.tonalIcon(
-                icon: const Icon(Icons.stop),
-                label: Text(l10n.gpsLogger_stopButton),
-                onPressed: onStop,
-              ),
-            ] else
-              FilledButton.icon(
-                icon: const Icon(Icons.gps_fixed),
-                label: Text(l10n.gpsLogger_startButton),
-                onPressed: onStart,
-              ),
-          ],
-        ),
       ),
     );
   }
