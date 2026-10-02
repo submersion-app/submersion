@@ -133,6 +133,12 @@ void main() {
     }, reason: 'site name is a search column');
     expect(await ids('notes ~ "100%"'), {'d3'});
     expect(await ids('notes:none'), {'d2', 'd4', 'd5'});
+    // Quotes are an exact phrase (#2773); bare words each match anywhere.
+    expect(await ids('"night dive"'), {'d3'});
+    expect(await ids('"dive night"'), isEmpty);
+    expect(await ids('dive night'), {'d3'});
+    expect(await ids('"manta ray"'), {'d1'});
+    expect(await ids('"ray manta"'), isEmpty);
   });
 
   test('NOT never drops a dive for a NULL column (review fix)', () async {
