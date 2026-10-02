@@ -335,3 +335,27 @@ the Advanced Search overflow item still exist beside the new bar.
 - Charts for typed searches.
 - Migrating the pre-dive link picker off `searchDiveSummaries`.
 - Changing the query language beyond the quoted-phrase rule.
+
+## 11. Amendments recorded while planning PR 1
+
+1. **The field is a second row, not a title replacement** (maintainer's
+   choice, 2026-10-02). Replacing the title left room for one icon, and
+   since the bar stays open while a filter is active, Select (bulk actions
+   on a filtered list), Sort and the overflow menu would have been hidden.
+   The app bar keeps every icon; the search row sits directly under it, in
+   the list body, above the chips. One `DiveSearchHeader` therefore serves
+   the phone, desktop master pane and table layouts, and survives the
+   loading and empty states (it sits outside them).
+2. **Closing the bar** is the close button at the end of the search row,
+   or Esc in the field (there is no back arrow in a second row). With an
+   active search it clears everything with an Undo snackbar, as decided.
+3. **The shared app-bar builder covers the search controls only.** The
+   three overflow menus differ on purpose (table mode has Fetch
+   conditions, the list modes have trip grouping), so each layout keeps its
+   own overflow; all three use one `DiveSearchAction` for the search icon.
+4. **The jump-to-dive list is inline under the field, at most 5 rows**,
+   shown only while the field has focus and holds a valid query. An
+   overlay would race the field's tap-outside unfocus on desktop.
+5. **Applying the (legacy) Filter sheet clears `axesSuspended`,** so a
+   filter added while "All dives" is selected takes effect instead of
+   arriving dimmed. PR 2's Refine panel keeps the rule.
