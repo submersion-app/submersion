@@ -249,6 +249,30 @@ void main() {
     );
   });
 
+  testWidgets('a route something else linked before Save is left where it '
+      'is, and the dive still saves without an error', (tester) async {
+    final dive = await insertDive();
+    final other = await dives.createDive(
+      Dive(id: 'dive-other', dateTime: DateTime.utc(2025, 8, 21, 10)),
+    );
+    final routeId = await insertRoute();
+    String? savedId;
+    await pumpEditor(tester, diveId: dive.id, onSaved: (id) => savedId = id);
+
+    await linkWreckTour(tester);
+    // Sync (or the new-dive auto-link) links it elsewhere first.
+    await routes.link(routeId, other.id, linkMode: NavTrackLinkMode.manual);
+    await save(tester);
+
+    expect(savedId, dive.id);
+    expect(
+      find.textContaining("Could not update this dive's underwater routes"),
+      findsNothing,
+    );
+    final route = await routes.getById(routeId, includePoints: false);
+    expect(route!.diveId, other.id);
+  });
+
   testWidgets('a dive whose routes fail to load says so on the row', (
     tester,
   ) async {

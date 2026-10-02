@@ -320,6 +320,35 @@ void main() {
     expect(service.lastSiteId, isNull);
   });
 
+  testWidgets('a file that is not a usable route says why inside the sheet', (
+    tester,
+  ) async {
+    _mockPickedFile();
+    await _openSheet(
+      tester,
+      draft: DiveRouteLinkDraft.initial(const []),
+      service: _FakeImportService(
+        prepareError: const NavTrackParseException(
+          'only one sample',
+          reason: NavTrackParseReason.tooShort,
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('route-sheet-import-button')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text(
+          'This recording has too few samples to be a usable route.',
+        ),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('a file that cannot be imported says so inside the sheet', (
     tester,
   ) async {
