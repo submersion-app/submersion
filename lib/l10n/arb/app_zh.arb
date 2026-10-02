@@ -13799,7 +13799,6 @@
   "navTrack_importError_tooLarge": "此记录的样本数超过了路线可存储的上限。",
   "diveDetailSection_navTrack_name": "水下路线",
   "diveDetailSection_navTrack_description": "通过导航控制台测量的水下路线",
-  "dashboard_quickActions_navRoutes": "水下路线",
   "navTrack_list_durationHours": "{hours}小时{minutes}分钟",
   "navTrack_list_durationMinutes": "{minutes}分钟"
 ,

@@ -46282,9 +46282,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Navigációs konzolról mért vízalatti útvonal';
 
   @override
-  String get dashboard_quickActions_navRoutes => 'Vízalatti útvonalak';
-
-  @override
   String navTrack_list_durationHours(int hours, int minutes) {
     return '$hoursó ${minutes}p';
   }

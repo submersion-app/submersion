@@ -45536,9 +45536,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'מסלול תת-ימי שנמדד ממסוף ניווט';
 
   @override
-  String get dashboard_quickActions_navRoutes => 'מסלולים תת-ימיים';
-
-  @override
   String navTrack_list_durationHours(int hours, int minutes) {
     return '${hours}h ${minutes}min';
   }

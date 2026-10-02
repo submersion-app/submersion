@@ -46461,9 +46461,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Percorso subacqueo misurato da una consolle di navigazione';
 
   @override
-  String get dashboard_quickActions_navRoutes => 'Percorsi subacquei';
-
-  @override
   String navTrack_list_durationHours(int hours, int minutes) {
     return '${hours}h ${minutes}min';
   }

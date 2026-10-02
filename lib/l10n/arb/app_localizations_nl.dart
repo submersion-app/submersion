@@ -46167,9 +46167,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gemeten onderwaterroute vanaf een navigatieconsole';
 
   @override
-  String get dashboard_quickActions_navRoutes => 'Onderwaterroutes';
-
-  @override
   String navTrack_list_durationHours(int hours, int minutes) {
     return '${hours}u ${minutes}min';
   }

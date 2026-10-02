@@ -13799,7 +13799,6 @@
   "navTrack_importError_tooLarge": "يحتوي هذا التسجيل على عينات أكثر مما يمكن لمسار تخزينه.",
   "diveDetailSection_navTrack_name": "مسار تحت الماء",
   "diveDetailSection_navTrack_description": "مسار تحت الماء تم قياسه من وحدة تحكم ملاحية",
-  "dashboard_quickActions_navRoutes": "المسارات تحت الماء",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
   "navTrack_list_durationMinutes": "{minutes}min"
 ,

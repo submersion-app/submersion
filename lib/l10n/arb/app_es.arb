@@ -13799,7 +13799,6 @@
   "navTrack_importError_tooLarge": "Esta grabación tiene más muestras de las que una ruta puede almacenar.",
   "diveDetailSection_navTrack_name": "Ruta submarina",
   "diveDetailSection_navTrack_description": "Ruta submarina medida desde una consola de navegación",
-  "dashboard_quickActions_navRoutes": "Rutas submarinas",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
   "navTrack_list_durationMinutes": "{minutes}min"
 ,

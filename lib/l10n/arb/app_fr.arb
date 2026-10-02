@@ -13799,7 +13799,6 @@
   "navTrack_importError_tooLarge": "Cet enregistrement contient plus d'échantillons qu'un trajet ne peut en stocker.",
   "diveDetailSection_navTrack_name": "Trajet sous-marin",
   "diveDetailSection_navTrack_description": "Trajet sous-marin mesuré depuis une console de navigation",
-  "dashboard_quickActions_navRoutes": "Trajets sous-marins",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
   "navTrack_list_durationMinutes": "{minutes}min"
 ,

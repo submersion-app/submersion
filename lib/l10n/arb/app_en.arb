@@ -28698,7 +28698,6 @@
   "navTrack_importError_tooLarge": "This recording has more samples than a route can store.",
   "diveDetailSection_navTrack_name": "Underwater Route",
   "diveDetailSection_navTrack_description": "Measured underwater route from a navigation console",
-  "dashboard_quickActions_navRoutes": "Underwater Routes",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
   "@navTrack_list_durationHours": {
     "placeholders": {

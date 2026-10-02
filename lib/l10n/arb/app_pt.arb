@@ -13799,7 +13799,6 @@
   "navTrack_importError_tooLarge": "Esta gravação tem mais amostras do que uma rota pode armazenar.",
   "diveDetailSection_navTrack_name": "Rota subaquática",
   "diveDetailSection_navTrack_description": "Rota subaquática medida a partir de um console de navegação",
-  "dashboard_quickActions_navRoutes": "Rotas subaquáticas",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
   "navTrack_list_durationMinutes": "{minutes}min"
 ,

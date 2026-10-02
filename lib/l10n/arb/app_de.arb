@@ -13911,7 +13911,6 @@
   "navTrack_importError_tooLarge": "Diese Aufzeichnung hat mehr Messpunkte, als eine Route speichern kann.",
   "diveDetailSection_navTrack_name": "Unterwasser-Route",
   "diveDetailSection_navTrack_description": "Gemessene Unterwasser-Route aus einer Navigationskonsole",
-  "dashboard_quickActions_navRoutes": "Unterwasser-Routen",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
   "navTrack_list_durationMinutes": "{minutes}min"
 ,

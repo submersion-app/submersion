@@ -43772,9 +43772,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_navTrack_description => '通过导航控制台测量的水下路线';
 
   @override
-  String get dashboard_quickActions_navRoutes => '水下路线';
-
-  @override
   String navTrack_list_durationHours(int hours, int minutes) {
     return '$hours小时$minutes分钟';
   }

@@ -46576,9 +46576,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Trajet sous-marin mesuré depuis une console de navigation';
 
   @override
-  String get dashboard_quickActions_navRoutes => 'Trajets sous-marins';
-
-  @override
   String navTrack_list_durationHours(int hours, int minutes) {
     return '${hours}h ${minutes}min';
   }

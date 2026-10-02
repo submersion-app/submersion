@@ -46505,9 +46505,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ruta submarina medida desde una consola de navegación';
 
   @override
-  String get dashboard_quickActions_navRoutes => 'Rutas submarinas';
-
-  @override
   String navTrack_list_durationHours(int hours, int minutes) {
     return '${hours}h ${minutes}min';
   }

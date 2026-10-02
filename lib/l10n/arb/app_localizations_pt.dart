@@ -46484,9 +46484,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Rota subaquática medida a partir de um console de navegação';
 
   @override
-  String get dashboard_quickActions_navRoutes => 'Rotas subaquáticas';
-
-  @override
   String navTrack_list_durationHours(int hours, int minutes) {
     return '${hours}h ${minutes}min';
   }

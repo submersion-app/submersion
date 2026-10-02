@@ -13799,7 +13799,6 @@
   "navTrack_importError_tooLarge": "Ez a felvétel több mintát tartalmaz, mint amennyit egy útvonal tárolni tud.",
   "diveDetailSection_navTrack_name": "Vízalatti útvonal",
   "diveDetailSection_navTrack_description": "Navigációs konzolról mért vízalatti útvonal",
-  "dashboard_quickActions_navRoutes": "Vízalatti útvonalak",
   "navTrack_list_durationHours": "{hours}ó {minutes}p",
   "navTrack_list_durationMinutes": "{minutes}p"
 ,

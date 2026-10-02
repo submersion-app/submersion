@@ -13799,7 +13799,6 @@
   "navTrack_importError_tooLarge": "Deze opname heeft meer metingen dan een route kan opslaan.",
   "diveDetailSection_navTrack_name": "Onderwaterroute",
   "diveDetailSection_navTrack_description": "Gemeten onderwaterroute vanaf een navigatieconsole",
-  "dashboard_quickActions_navRoutes": "Onderwaterroutes",
   "navTrack_list_durationHours": "{hours}u {minutes}min",
   "navTrack_list_durationMinutes": "{minutes}min"
 ,

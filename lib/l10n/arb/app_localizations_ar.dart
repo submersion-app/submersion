@@ -46091,9 +46091,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'مسار تحت الماء تم قياسه من وحدة تحكم ملاحية';
 
   @override
-  String get dashboard_quickActions_navRoutes => 'المسارات تحت الماء';
-
-  @override
   String navTrack_list_durationHours(int hours, int minutes) {
     return '${hours}h ${minutes}min';
   }

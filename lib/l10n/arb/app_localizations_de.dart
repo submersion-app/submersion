@@ -46391,9 +46391,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gemessene Unterwasser-Route aus einer Navigationskonsole';
 
   @override
-  String get dashboard_quickActions_navRoutes => 'Unterwasser-Routen';
-
-  @override
   String navTrack_list_durationHours(int hours, int minutes) {
     return '${hours}h ${minutes}min';
   }

@@ -73787,12 +73787,6 @@ abstract class AppLocalizations {
   /// **'Measured underwater route from a navigation console'**
   String get diveDetailSection_navTrack_description;
 
-  /// No description provided for @dashboard_quickActions_navRoutes.
-  ///
-  /// In en, this message translates to:
-  /// **'Underwater Routes'**
-  String get dashboard_quickActions_navRoutes;
-
   /// No description provided for @navTrack_list_durationHours.
   ///
   /// In en, this message translates to:

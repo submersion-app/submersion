@@ -13799,7 +13799,6 @@
   "navTrack_importError_tooLarge": "Questa registrazione ha più campioni di quanti un percorso possa memorizzare.",
   "diveDetailSection_navTrack_name": "Percorso subacqueo",
   "diveDetailSection_navTrack_description": "Percorso subacqueo misurato da una consolle di navigazione",
-  "dashboard_quickActions_navRoutes": "Percorsi subacquei",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
   "navTrack_list_durationMinutes": "{minutes}min"
 ,

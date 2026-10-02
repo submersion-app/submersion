@@ -13799,7 +13799,6 @@
   "navTrack_importError_tooLarge": "בהקלטה זו יש יותר דגימות ממה שמסלול יכול לאחסן.",
   "diveDetailSection_navTrack_name": "מסלול תת-ימי",
   "diveDetailSection_navTrack_description": "מסלול תת-ימי שנמדד ממסוף ניווט",
-  "dashboard_quickActions_navRoutes": "מסלולים תת-ימיים",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
   "navTrack_list_durationMinutes": "{minutes}min"
 ,
