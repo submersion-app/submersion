@@ -563,7 +563,9 @@ push affects, chosen by what imports the changed files. The guards in
 `test/architecture/` read the whole of `lib/` from disk instead of importing
 it, so no import can show that a new file breaks one. The hook therefore runs
 all of them whenever a push changes a Dart file under `lib/` or `test/`
-(issue #2611). CI still runs the full suite on every pull request.
+(issue #2611). CI still runs the full suite on every pull request that
+changes code; a docs-only or CI-only change skips it unless `[full-ci]` is in
+the title or a commit message.
 
 A pull request's CI tests the merge of the branch into `main`, so a failure on
 `main` turns every open pull request red too. When a required job fails on a
@@ -574,6 +576,7 @@ pull request, `CI Success` compares each failed job with the same job in
 |---|---|
 | Also failing on main (warning) | `main` fails the same job. The failure is probably inherited; the annotation links `main`'s run |
 | Not failing on main (notice) | `main` passes that job, so the failure is new on this pull request |
+| No result on main (notice) | `main` skipped, cancelled or never ran that job, so there is nothing to compare |
 
 The pull request stays red either way. Test shards are compared as one job,
 since a branch that changes the test files moves them between shards. A

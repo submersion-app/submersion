@@ -10,7 +10,10 @@ emits:
 
   - a warning annotation, "Also failing on main", when main's job failed too:
     the failure is probably inherited, and the run on main is linked;
-  - a notice, "Not failing on main", when it did not: the failure is new.
+  - a notice, "Not failing on main", when main's job passed: the failure is
+    new;
+  - a notice, "No result on main", when main skipped, cancelled or never ran
+    the job, so there is nothing to compare with.
 
 The pull request stays red either way. Test shards are compared as one job,
 because a branch that changes the test files moves them between shards. So a
@@ -18,7 +21,8 @@ failing shard can still hide a second failure the branch added on top of
 main's; the annotation says "likely" for that reason.
 
 The baseline is main's finished run at the pull request's base commit, the one
-this merge was built on, or failing that the newest finished run on main.
+this merge was built on, looked up by sha; failing that, the newest finished
+run on main.
 Cancelled runs are skipped: concurrency cancels superseded runs on main, and
 their jobs say nothing about whether main is healthy.
 
@@ -96,13 +100,30 @@ def job_family(name):
 
 
 def classify(pr_failed, main_jobs):
-    """Split failed job names into (inherited, new) against main's jobs."""
-    main_failed = {
-        job_family(j["name"]) for j in main_jobs if j.get("conclusion") in FAILED
-    }
-    inherited = [name for name in pr_failed if job_family(name) in main_failed]
-    new = [name for name in pr_failed if job_family(name) not in main_failed]
-    return inherited, new
+    """Split failed job names into (inherited, new, unknown) against main.
+
+    new needs main to have PASSED the job. A job main skipped (a docs-only
+    commit skips codegen and everything after it), cancelled or never ran is
+    unknown: there is no verdict on main to compare with.
+    """
+    main_failed = set()
+    main_passed = set()
+    for j in main_jobs:
+        family = job_family(j["name"])
+        if j.get("conclusion") in FAILED:
+            main_failed.add(family)
+        elif j.get("conclusion") == "success":
+            main_passed.add(family)
+    inherited, new, unknown = [], [], []
+    for name in pr_failed:
+        family = job_family(name)
+        if family in main_failed:
+            inherited.append(name)
+        elif family in main_passed:
+            new.append(name)
+        else:
+            unknown.append(name)
+    return inherited, new, unknown
 
 
 def api_get(path, env=os.environ):
@@ -154,11 +175,17 @@ def report(env, fetch):
     if not pr_failed:
         return
 
-    runs = fetch(
-        f"/repos/{repo}/actions/workflows/{workflow_file(env)}/runs"
-        "?branch=main&event=push&status=completed&per_page=30"
-    ).get("workflow_runs", [])
-    baseline = pick_baseline(runs, base_sha)
+    # The base commit first, by sha: a long-lived branch's base can be older
+    # than any page of recent runs. Then main's newest finished run.
+    runs_path = f"/repos/{repo}/actions/workflows/{workflow_file(env)}/runs"
+    filters = "branch=main&event=push&status=completed"
+    baseline = None
+    if base_sha:
+        at_base = fetch(f"{runs_path}?head_sha={base_sha}&{filters}&per_page=10")
+        baseline = pick_baseline(at_base.get("workflow_runs", []), base_sha)
+    if baseline is None:
+        recent = fetch(f"{runs_path}?{filters}&per_page=30")
+        baseline = pick_baseline(recent.get("workflow_runs", []), base_sha)
     if baseline is None:
         notice(
             "No finished CI/CD run on main to compare against, so inherited "
@@ -166,7 +193,9 @@ def report(env, fetch):
         )
         return
 
-    inherited, new = classify(pr_failed, list_jobs(fetch, repo, baseline["id"]))
+    inherited, new, unknown = classify(
+        pr_failed, list_jobs(fetch, repo, baseline["id"])
+    )
     sha = baseline.get("head_sha", "")[:9]
     url = baseline.get("html_url", "")
     at_base = baseline.get("head_sha") == base_sha
@@ -188,8 +217,18 @@ def report(env, fetch):
         print(
             f"::notice title={title}::"
             + escape_data(
-                f"{name} did not fail on main {where} ({sha}), so this "
-                "failure is new on this pull request."
+                f"{name} passed on main {where} ({sha}), so this failure is "
+                "new on this pull request."
+            )
+        )
+    for name in unknown:
+        title = escape_property("No result on main")
+        print(
+            f"::notice title={title}::"
+            + escape_data(
+                f"{name} has no result on main {where} ({sha}): it was "
+                "skipped, cancelled or not run there, so this failure cannot "
+                "be compared."
             )
         )
 
@@ -204,7 +243,8 @@ def report(env, fetch):
             "| --- | --- |",
         ]
         lines += [f"| {name} | also failing: likely inherited |" for name in inherited]
-        lines += [f"| {name} | not failing: new here |" for name in new]
+        lines += [f"| {name} | passing: new here |" for name in new]
+        lines += [f"| {name} | no result on main: cannot compare |" for name in unknown]
         with open(summary_path, "a", encoding="utf-8") as handle:
             handle.write("\n".join(lines) + "\n")
 

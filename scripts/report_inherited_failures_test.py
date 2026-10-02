@@ -89,31 +89,44 @@ class ClassifyTest(unittest.TestCase):
             job("Test (shard 3)", "timed_out"),
             job("Analyze & Format", "success"),
         ]
-        inherited, new = report.classify(
+        inherited, new, unknown = report.classify(
             ["Analyze & Format", "Code Generation", "Test (shard 3)"], main_jobs
         )
         self.assertEqual(inherited, ["Code Generation", "Test (shard 3)"])
         self.assertEqual(new, ["Analyze & Format"])
+        self.assertEqual(unknown, [])
 
     def test_test_shards_compare_as_one_job(self):
         # Shards are load-balanced over test weights, so a pull request that
         # adds or resizes a test file can move main's broken file from shard 4
         # to shard 1. The shard number says nothing about which test failed.
         main_jobs = [job("Test (shard 4)", "failure"), job("Test (shard 1)", "success")]
-        inherited, new = report.classify(["Test (shard 1)"], main_jobs)
+        inherited, new, unknown = report.classify(["Test (shard 1)"], main_jobs)
         self.assertEqual(inherited, ["Test (shard 1)"])
         self.assertEqual(new, [])
+        self.assertEqual(unknown, [])
 
     def test_other_jobs_still_compare_by_exact_name(self):
-        main_jobs = [job("Build iOS", "failure")]
-        inherited, new = report.classify(["Build macOS"], main_jobs)
+        main_jobs = [job("Build iOS", "failure"), job("Build macOS", "success")]
+        inherited, new, unknown = report.classify(["Build macOS"], main_jobs)
         self.assertEqual(inherited, [])
         self.assertEqual(new, ["Build macOS"])
+        self.assertEqual(unknown, [])
 
-    def test_a_job_main_never_ran_is_new(self):
-        inherited, new = report.classify(["Build Windows"], [])
-        self.assertEqual(inherited, [])
-        self.assertEqual(new, ["Build Windows"])
+    def test_a_job_main_never_ran_is_unknown(self):
+        inherited, new, unknown = report.classify(["Build Windows"], [])
+        self.assertEqual((inherited, new), ([], []))
+        self.assertEqual(unknown, ["Build Windows"])
+
+    def test_a_job_main_skipped_is_unknown(self):
+        # A docs-only commit on main skips codegen and everything after it,
+        # which says nothing about whether main would pass those jobs.
+        main_jobs = [job("Code Generation", "skipped"), job("Test (shard 0)", "skipped")]
+        inherited, new, unknown = report.classify(
+            ["Code Generation", "Test (shard 2)"], main_jobs
+        )
+        self.assertEqual((inherited, new), ([], []))
+        self.assertEqual(unknown, ["Code Generation", "Test (shard 2)"])
 
 
 class EscapeTest(unittest.TestCase):
@@ -210,6 +223,46 @@ class MainTest(unittest.TestCase):
         runs_query = next(p for p in api.paths if "/workflows/" in p)
         for part in ("branch=main", "event=push", "status=completed"):
             self.assertIn(part, runs_query)
+
+    def test_reports_a_job_main_skipped_as_unknown(self):
+        api = self.standard_api(
+            pr_jobs=[job("Code Generation", "failure")],
+            main_jobs=[job("Code Generation", "skipped")],
+        )
+        status, out, summary = self.run_main(api)
+        self.assertEqual(status, 0)
+        self.assertNotIn("Not failing on main", out)
+        self.assertIn("::notice title=No result on main::Code Generation", out)
+        self.assertIn("no result on main", summary)
+
+    def test_looks_up_the_base_commit_directly(self):
+        # A long-lived branch's base can be older than any recent-runs page.
+        api = self.standard_api(
+            pr_jobs=[job("Code Generation", "failure")],
+            main_jobs=[job("Code Generation", "failure")],
+        )
+        self.run_main(api)
+        runs_query = next(p for p in api.paths if "/workflows/" in p)
+        self.assertIn(f"head_sha={BASE_SHA}", runs_query)
+
+    def test_falls_back_to_recent_runs_without_one_at_the_base(self):
+        api = FakeApi({
+            "/repos/o/r/actions/runs/99/jobs": {
+                "total_count": 1, "jobs": [job("Code Generation", "failure")],
+            },
+            f"/repos/o/r/actions/workflows/ci.yaml/runs?head_sha={BASE_SHA}": {
+                "workflow_runs": [],
+            },
+            "/repos/o/r/actions/workflows/ci.yaml/runs": {
+                "workflow_runs": [run(6, OLDER_SHA)],
+            },
+            "/repos/o/r/actions/runs/6/jobs": {
+                "total_count": 1, "jobs": [job("Code Generation", "failure")],
+            },
+        })
+        _, out, _ = self.run_main(api)
+        self.assertIn("::warning title=Also failing on main::Code Generation", out)
+        self.assertIn("newest finished run", out)
 
     def test_reads_the_latest_attempt_of_each_job(self):
         api = self.standard_api(
