@@ -10,7 +10,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../../../helpers/test_database.dart';
 
+// Dive dates are stored as a wall clock flagged UTC (issue #2808).
 Future<void> _insertDive({required String id, required DateTime at}) async {
+  assert(at.isUtc, 'dive_date_time is stored as a wall clock flagged UTC');
   final db = DatabaseService.instance.database;
   final now = DateTime.now().millisecondsSinceEpoch;
   await db
@@ -99,7 +101,7 @@ void main() {
       addTearDown(sub.close);
       expect(await container.read(seenSpeciesProvider.future), isEmpty);
 
-      await _insertDive(id: 'd1', at: DateTime(2024, 1, 10));
+      await _insertDive(id: 'd1', at: DateTime.utc(2024, 1, 10));
       await _insertSpecies(id: 'c1', name: 'Grouper');
       await _insertSighting(id: 'sg1', diveId: 'd1', speciesId: 'c1');
 
@@ -108,11 +110,11 @@ void main() {
         (v) => v.isNotEmpty,
       );
       expect(entries.single.species.id, 'c1');
-      expect(entries.single.lastSeen, DateTime(2024, 1, 10));
+      expect(entries.single.lastSeen, DateTime.utc(2024, 1, 10));
     });
 
     test('refreshes when the dive date changes (dives tick)', () async {
-      await _insertDive(id: 'd1', at: DateTime(2024, 1, 10));
+      await _insertDive(id: 'd1', at: DateTime.utc(2024, 1, 10));
       await _insertSpecies(id: 'c1', name: 'Grouper');
       await _insertSighting(id: 'sg1', diveId: 'd1', speciesId: 'c1');
       final container = makeContainer();
@@ -120,25 +122,25 @@ void main() {
       addTearDown(sub.close);
       expect(
         (await container.read(seenSpeciesProvider.future)).single.lastSeen,
-        DateTime(2024, 1, 10),
+        DateTime.utc(2024, 1, 10),
       );
 
       final db = DatabaseService.instance.database;
       await (db.update(db.dives)..where((d) => d.id.equals('d1'))).write(
         DivesCompanion(
-          diveDateTime: Value(DateTime(2024, 6, 1).millisecondsSinceEpoch),
+          diveDateTime: Value(DateTime.utc(2024, 6, 1).millisecondsSinceEpoch),
         ),
       );
 
       final entries = await _eventually(
         () => container.read(seenSpeciesProvider.future),
-        (v) => v.single.lastSeen == DateTime(2024, 6, 1),
+        (v) => v.single.lastSeen == DateTime.utc(2024, 6, 1),
       );
-      expect(entries.single.lastSeen, DateTime(2024, 6, 1));
+      expect(entries.single.lastSeen, DateTime.utc(2024, 6, 1));
     });
 
     test('drops a species when its only dive is deleted', () async {
-      await _insertDive(id: 'd1', at: DateTime(2024, 1, 10));
+      await _insertDive(id: 'd1', at: DateTime.utc(2024, 1, 10));
       await _insertSpecies(id: 'c1', name: 'Grouper');
       await _insertSighting(id: 'sg1', diveId: 'd1', speciesId: 'c1');
       final container = makeContainer();
@@ -157,7 +159,7 @@ void main() {
     });
 
     test('picks up a renamed species (species tick)', () async {
-      await _insertDive(id: 'd1', at: DateTime(2024, 1, 10));
+      await _insertDive(id: 'd1', at: DateTime.utc(2024, 1, 10));
       await _insertSpecies(id: 'c1', name: 'Grouper');
       await _insertSighting(id: 'sg1', diveId: 'd1', speciesId: 'c1');
       final container = makeContainer();
@@ -187,8 +189,8 @@ void main() {
     test(
       'lists sightings for the species and refreshes on a new one',
       () async {
-        await _insertDive(id: 'd1', at: DateTime(2024, 1, 10));
-        await _insertDive(id: 'd2', at: DateTime(2024, 2, 10));
+        await _insertDive(id: 'd1', at: DateTime.utc(2024, 1, 10));
+        await _insertDive(id: 'd2', at: DateTime.utc(2024, 2, 10));
         await _insertSpecies(id: 'c1', name: 'Grouper');
         await _insertSighting(id: 'sg1', diveId: 'd1', speciesId: 'c1');
         final container = makeContainer();

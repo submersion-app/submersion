@@ -12,6 +12,7 @@ import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_children.dart';
@@ -1254,10 +1255,10 @@ class SiteRepository {
           )
           .get();
 
-      // Local, not UTC: this matches how lastDivedAt has always been read
-      // back here, so the two dates on one aggregate agree with each other.
+      // dive_date_time is a wall clock flagged UTC; a local decode would
+      // shift both dates by the device's UTC offset (issue #2808).
       DateTime? readDate(Object? ms) =>
-          ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms as int);
+          ms == null ? null : wallClockUtcFromMillis(ms as int);
 
       return {
         for (final row in result)

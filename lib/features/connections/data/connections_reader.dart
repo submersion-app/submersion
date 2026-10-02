@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/connections/data/connections_edge_sql.dart';
 import 'package:submersion/features/connections/data/connections_node_sql.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
@@ -51,8 +52,8 @@ class ConnectionsReader {
           source: NodeRef(kindA, r.read<String>('source')),
           target: NodeRef(kindB, r.read<String>('target')),
           weight: r.read<int>('weight'),
-          firstDiveAt: _ms(r.read<int>('first_ms')),
-          lastDiveAt: _ms(r.read<int>('last_ms')),
+          firstDiveAt: wallClockUtcFromMillis(r.read<int>('first_ms')),
+          lastDiveAt: wallClockUtcFromMillis(r.read<int>('last_ms')),
         ),
     ];
   }
@@ -193,9 +194,12 @@ NodeSubtitle? _subtitle(ConnectionKind kind, QueryRow r) {
       final parts = [text('region'), text('country')].nonNulls.toList();
       return parts.isEmpty ? null : TextSubtitle(parts.join(', '));
     case ConnectionKind.trip:
+      // Trip dates are local instants, as the trip editor's date picker
+      // saves them and TripRepository reads them back; a UTC decode put the
+      // range a day early for divers east of UTC (issue #2808).
       return DateRangeSubtitle(
-        _ms(r.read<int>('start_date')),
-        _ms(r.read<int>('end_date')),
+        DateTime.fromMillisecondsSinceEpoch(r.read<int>('start_date')),
+        DateTime.fromMillisecondsSinceEpoch(r.read<int>('end_date')),
       );
     case ConnectionKind.diveCenter:
       final c = text('country');
@@ -216,5 +220,3 @@ NodeSubtitle? _subtitle(ConnectionKind kind, QueryRow r) {
       return null;
   }
 }
-
-DateTime _ms(int ms) => DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true);
