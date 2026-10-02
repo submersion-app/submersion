@@ -9,8 +9,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/selection/select_items_menu_entries.dart';
-import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -37,17 +36,8 @@ class DiveCenterListPage extends ConsumerStatefulWidget {
   ConsumerState<DiveCenterListPage> createState() => _DiveCenterListPageState();
 }
 
-class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
-  /// Selection for table mode, whose header (and its overflow menu) belongs
-  /// to this page rather than to the list.
-  final SelectionController _tableSelection = SelectionController();
-
-  @override
-  void dispose() {
-    _tableSelection.dispose();
-    super.dispose();
-  }
-
+class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
+    with TableSelectionOwner {
   bool get _isMapView {
     final state = GoRouterState.of(context);
     return state.uri.queryParameters['view'] == 'map';
@@ -95,6 +85,8 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
       label: Text(context.l10n.diveCenters_title_add),
     );
 
+    resetTableSelectionOffTable(diveCenterListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane and map.
     final viewMode = ref.watch(diveCenterListViewModeProvider);
@@ -105,7 +97,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
         appBarSubtitle: diveCenterListCountLabel(context, ref),
         tableContent: DiveCenterListContent(
           showAppBar: false,
-          selectionController: _tableSelection,
+          selectionController: tableSelection,
         ),
         detailBuilder: (context, centerId) => DiveCenterDetailPage(
           centerId: centerId,
@@ -203,13 +195,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage> {
             itemBuilder: (context) {
               final currentMode = ref.read(diveCenterListViewModeProvider);
               return [
-                // Read as the menu opens: while selecting, the entry would
-                // do nothing.
-                if (!_tableSelection.value.isActive)
-                  ...selectItemsMenuEntries(
-                    context,
-                    onSelect: _tableSelection.enterExplicit,
-                  ),
+                ...tableSelectItemsEntries(context),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,

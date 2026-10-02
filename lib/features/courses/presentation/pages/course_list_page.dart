@@ -9,8 +9,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/courses/domain/constants/course_field.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/selection/select_items_menu_entries.dart';
-import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -34,17 +33,8 @@ class CourseListPage extends ConsumerStatefulWidget {
   ConsumerState<CourseListPage> createState() => _CourseListPageState();
 }
 
-class _CourseListPageState extends ConsumerState<CourseListPage> {
-  /// Selection for table mode, whose header (and its overflow menu) belongs
-  /// to this page rather than to the list.
-  final SelectionController _tableSelection = SelectionController();
-
-  @override
-  void dispose() {
-    _tableSelection.dispose();
-    super.dispose();
-  }
-
+class _CourseListPageState extends ConsumerState<CourseListPage>
+    with TableSelectionOwner {
   @override
   Widget build(BuildContext context) {
     final fab = FloatingActionButton.extended(
@@ -64,6 +54,8 @@ class _CourseListPageState extends ConsumerState<CourseListPage> {
       label: Text(context.l10n.courses_action_add),
     );
 
+    resetTableSelectionOffTable(courseListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane.
     final viewMode = ref.watch(courseListViewModeProvider);
@@ -75,7 +67,7 @@ class _CourseListPageState extends ConsumerState<CourseListPage> {
           appBarSubtitle: courseListCountLabel(context, ref),
           tableContent: CourseListContent(
             showAppBar: false,
-            selectionController: _tableSelection,
+            selectionController: tableSelection,
           ),
           detailBuilder: (context, courseId) => CourseDetailPage(
             courseId: courseId,
@@ -160,13 +152,7 @@ class _CourseListPageState extends ConsumerState<CourseListPage> {
               itemBuilder: (context) {
                 final currentMode = ref.read(courseListViewModeProvider);
                 return [
-                  // Read as the menu opens: while selecting, the entry would
-                  // do nothing.
-                  if (!_tableSelection.value.isActive)
-                    ...selectItemsMenuEntries(
-                      context,
-                      onSelect: _tableSelection.enterExplicit,
-                    ),
+                  ...tableSelectItemsEntries(context),
                   ...ListViewModeToggle.menuItems(
                     context,
                     currentMode: currentMode,

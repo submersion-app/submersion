@@ -44,10 +44,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/selection/select_items_menu_entries.dart';
-import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
@@ -73,13 +72,10 @@ class DiveListPage extends ConsumerStatefulWidget {
   ConsumerState<DiveListPage> createState() => _DiveListPageState();
 }
 
-class _DiveListPageState extends ConsumerState<DiveListPage> {
+class _DiveListPageState extends ConsumerState<DiveListPage>
+    with TableSelectionOwner {
   /// Tracks the selected dive ID for mobile map view info card
   String? _mobileMapSelectedDiveId;
-
-  /// Selection for table mode, whose header (and its overflow menu) belongs
-  /// to this page rather than to the list.
-  final SelectionController _tableSelection = SelectionController();
 
   @override
   void initState() {
@@ -90,12 +86,6 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) ref.read(lightroomAutoPollProvider);
     });
-  }
-
-  @override
-  void dispose() {
-    _tableSelection.dispose();
-    super.dispose();
   }
 
   bool get _isMapView {
@@ -177,6 +167,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       label: Text(context.l10n.diveLog_listPage_fab_logDive),
     );
 
+    resetTableSelectionOffTable(diveListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane, map, and profile panel.
     final viewMode = ref.watch(diveListViewModeProvider);
@@ -192,7 +184,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
         ),
         tableContent: DiveListContent(
           showAppBar: false,
-          selectionController: _tableSelection,
+          selectionController: tableSelection,
         ),
         detailBuilder: (context, id) {
           final state = GoRouterState.of(context);
@@ -313,13 +305,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
             itemBuilder: (context) {
               final currentMode = ref.read(diveListViewModeProvider);
               return [
-                // Read as the menu opens: while selecting, the entry would
-                // do nothing.
-                if (!_tableSelection.value.isActive)
-                  ...selectItemsMenuEntries(
-                    context,
-                    onSelect: _tableSelection.enterExplicit,
-                  ),
+                ...tableSelectItemsEntries(context),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,

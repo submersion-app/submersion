@@ -14,9 +14,10 @@ const selectItemsMenuKey = ValueKey('enter_selection');
 /// "Select items" and the divider under it, first in a list's overflow menu.
 ///
 /// The way into bulk actions on every entity list except Media, whose grid
-/// keeps a visible control. Long-press no longer enters selection mode, so on
-/// touch this entry is the only route in (issue #2775). One definition, so
-/// every menu shows the same entry.
+/// keeps a visible control. It replaced a checklist icon in each list header
+/// (issue #2775). Long-press no longer enters selection mode, so on touch this
+/// entry is the only route in. One definition, so every menu shows the same
+/// entry.
 List<PopupMenuEntry<String>> selectItemsMenuEntries(
   BuildContext context, {
   required VoidCallback onSelect,

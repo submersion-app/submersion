@@ -232,13 +232,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
-    if (_ownsSelection) {
-      _selection.dispose();
-    } else {
-      // Selection does not survive leaving the surface; the page's
-      // controller outlives this list, so drop the mode here.
-      _selection.exit();
-    }
+    if (_ownsSelection) _selection.dispose();
     super.dispose();
   }
 

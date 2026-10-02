@@ -14,8 +14,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_filter_
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/selection/select_items_menu_entries.dart';
-import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -37,17 +36,8 @@ class SiteListPage extends ConsumerStatefulWidget {
   ConsumerState<SiteListPage> createState() => _SiteListPageState();
 }
 
-class _SiteListPageState extends ConsumerState<SiteListPage> {
-  /// Selection for table mode, whose header (and its overflow menu) belongs
-  /// to this page rather than to the list.
-  final SelectionController _tableSelection = SelectionController();
-
-  @override
-  void dispose() {
-    _tableSelection.dispose();
-    super.dispose();
-  }
-
+class _SiteListPageState extends ConsumerState<SiteListPage>
+    with TableSelectionOwner {
   bool get _isMapView {
     final state = GoRouterState.of(context);
     return state.uri.queryParameters['view'] == 'map';
@@ -103,6 +93,8 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
       label: Text(context.l10n.diveSites_fab_label),
     );
 
+    resetTableSelectionOffTable(siteListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane and map.
     final viewMode = ref.watch(siteListViewModeProvider);
@@ -113,7 +105,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
         appBarSubtitle: siteListCountLabel(context, ref),
         tableContent: SiteListContent(
           showAppBar: false,
-          selectionController: _tableSelection,
+          selectionController: tableSelection,
         ),
         detailBuilder: (context, id) => SiteDetailPage(
           siteId: id,
@@ -226,13 +218,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
             itemBuilder: (context) {
               final currentMode = ref.read(siteListViewModeProvider);
               return [
-                // Read as the menu opens: while selecting, the entry would
-                // do nothing.
-                if (!_tableSelection.value.isActive)
-                  ...selectItemsMenuEntries(
-                    context,
-                    onSelect: _tableSelection.enterExplicit,
-                  ),
+                ...tableSelectItemsEntries(context),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,

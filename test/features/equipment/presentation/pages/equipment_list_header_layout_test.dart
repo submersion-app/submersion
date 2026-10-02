@@ -512,6 +512,32 @@ void main() {
       expect(inAppBar(find.byIcon(Icons.search)), findsNothing);
     });
 
+    // The phone page listens to the selection it hands the list, so the list
+    // leaving the tree mid-selection (Sets swiped in) must not notify that
+    // listener while the tree is locked.
+    testWidgets('switching to Sets while selecting leaves cleanly', (
+      tester,
+    ) async {
+      await _pump(tester, window: const Size(390, 844));
+      final l10n = await en();
+      await enterSelectionViaMenu(
+        tester,
+        menu: inAppBar(find.byIcon(Icons.more_vert)),
+      );
+      expect(find.byType(SelectionAppBar), findsOneWidget);
+
+      await tester.tap(
+        find.descendant(
+          of: _switcher,
+          matching: find.text(l10n.equipment_tab_sets),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(EquipmentSetListContent), findsOneWidget);
+    });
+
     for (final (label, window, locale) in <(String, Size, Locale)>[
       ('French on a 390px phone', const Size(390, 844), const Locale('fr')),
       ('English on a 320px phone', const Size(320, 700), const Locale('en')),

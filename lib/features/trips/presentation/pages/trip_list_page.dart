@@ -12,8 +12,7 @@ import 'package:submersion/features/trips/query/trip_query_entity.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/selection/select_items_menu_entries.dart';
-import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -34,17 +33,8 @@ class TripListPage extends ConsumerStatefulWidget {
   ConsumerState<TripListPage> createState() => _TripListPageState();
 }
 
-class _TripListPageState extends ConsumerState<TripListPage> {
-  /// Selection for table mode, whose header (and its overflow menu) belongs
-  /// to this page rather than to the list.
-  final SelectionController _tableSelection = SelectionController();
-
-  @override
-  void dispose() {
-    _tableSelection.dispose();
-    super.dispose();
-  }
-
+class _TripListPageState extends ConsumerState<TripListPage>
+    with TableSelectionOwner {
   @override
   Widget build(BuildContext context) {
     final fab = FloatingActionButton.extended(
@@ -64,6 +54,8 @@ class _TripListPageState extends ConsumerState<TripListPage> {
       tooltip: context.l10n.trips_list_tooltip_addTrip,
     );
 
+    resetTableSelectionOffTable(tripListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane.
     final viewMode = ref.watch(tripListViewModeProvider);
@@ -75,7 +67,7 @@ class _TripListPageState extends ConsumerState<TripListPage> {
           appBarSubtitle: tripListCountLabel(context, ref),
           tableContent: TripListContent(
             showAppBar: false,
-            selectionController: _tableSelection,
+            selectionController: tableSelection,
           ),
           detailBuilder: (context, tripId) => TripDetailPage(
             tripId: tripId,
@@ -170,13 +162,7 @@ class _TripListPageState extends ConsumerState<TripListPage> {
               itemBuilder: (context) {
                 final currentMode = ref.read(tripListViewModeProvider);
                 return [
-                  // Read as the menu opens: while selecting, the entry would
-                  // do nothing.
-                  if (!_tableSelection.value.isActive)
-                    ...selectItemsMenuEntries(
-                      context,
-                      onSelect: _tableSelection.enterExplicit,
-                    ),
+                  ...tableSelectItemsEntries(context),
                   ...ListViewModeToggle.menuItems(
                     context,
                     currentMode: currentMode,

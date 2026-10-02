@@ -11,6 +11,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -40,17 +41,13 @@ class EquipmentListPage extends ConsumerStatefulWidget {
 }
 
 class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, TableSelectionOwner {
   late TabController _tabController;
   bool _switchingTabProgrammatically = false;
 
   /// Bulk selection for the phone list. The page owns it because the phone's
   /// app bar carries "Select items", and the rows it selects live in the list.
   final SelectionController _phoneSelection = SelectionController();
-
-  /// Selection for table mode, whose header (and its overflow menu) belongs
-  /// to this page rather than to the list.
-  final SelectionController _tableSelection = SelectionController();
 
   @override
   void initState() {
@@ -64,7 +61,6 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _phoneSelection.dispose();
-    _tableSelection.dispose();
     super.dispose();
   }
 
@@ -93,6 +89,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
 
   @override
   Widget build(BuildContext context) {
+    resetTableSelectionOffTable(equipmentListViewModeProvider);
+
     // Table mode: intercept before the tab scaffold and use TableModeLayout
     // for the Equipment tab (equipment items only, not equipment sets).
     final viewMode = ref.watch(equipmentListViewModeProvider);
@@ -110,7 +108,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
           appBarSubtitle: equipmentListCountLabel(context, ref),
           tableContent: EquipmentListContent(
             showAppBar: false,
-            selectionController: _tableSelection,
+            selectionController: tableSelection,
           ),
           detailBuilder: (context, id) => EquipmentDetailPage(
             equipmentId: id,
@@ -150,7 +148,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
           appBarActions: _buildListActions(
             context,
             showGrouping: false,
-            selection: _tableSelection,
+            selection: tableSelection,
             iconSize: 20,
           ),
           floatingActionButton: fab,

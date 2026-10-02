@@ -9,8 +9,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/selection/select_items_menu_entries.dart';
-import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -36,17 +35,8 @@ class CertificationListPage extends ConsumerStatefulWidget {
       _CertificationListPageState();
 }
 
-class _CertificationListPageState extends ConsumerState<CertificationListPage> {
-  /// Selection for table mode, whose header (and its overflow menu) belongs
-  /// to this page rather than to the list.
-  final SelectionController _tableSelection = SelectionController();
-
-  @override
-  void dispose() {
-    _tableSelection.dispose();
-    super.dispose();
-  }
-
+class _CertificationListPageState extends ConsumerState<CertificationListPage>
+    with TableSelectionOwner {
   @override
   Widget build(BuildContext context) {
     final fab = FloatingActionButton.extended(
@@ -66,6 +56,8 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage> {
       label: Text(context.l10n.certifications_list_fab_addCertification),
     );
 
+    resetTableSelectionOffTable(certificationListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane.
     final viewMode = ref.watch(certificationListViewModeProvider);
@@ -77,7 +69,7 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage> {
           appBarSubtitle: certificationListCountLabel(context, ref),
           tableContent: CertificationListContent(
             showAppBar: false,
-            selectionController: _tableSelection,
+            selectionController: tableSelection,
           ),
           detailBuilder: (context, certificationId) => CertificationDetailPage(
             certificationId: certificationId,
@@ -170,13 +162,7 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage> {
               itemBuilder: (context) {
                 final currentMode = ref.read(certificationListViewModeProvider);
                 return [
-                  // Read as the menu opens: while selecting, the entry would
-                  // do nothing.
-                  if (!_tableSelection.value.isActive)
-                    ...selectItemsMenuEntries(
-                      context,
-                      onSelect: _tableSelection.enterExplicit,
-                    ),
+                  ...tableSelectItemsEntries(context),
                   ...ListViewModeToggle.menuItems(
                     context,
                     currentMode: currentMode,
