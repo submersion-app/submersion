@@ -42,6 +42,11 @@ class ProfileEvent extends Equatable {
   /// user-authored / computed without per-computer attribution).
   final String? computerId;
 
+  /// Manufacturer of [computerId]'s computer, resolved when events are read
+  /// for display (`withComputerManufacturers`); never persisted. It is what
+  /// says whether [value] holds that vendor's own event code (#1523).
+  final String? computerManufacturer;
+
   /// When this event was created
   final DateTime createdAt;
 
@@ -64,6 +69,7 @@ class ProfileEvent extends Equatable {
     // event type — prefer factories over direct construction.
     this.source = EventSource.imported,
     this.computerId,
+    this.computerManufacturer,
     required this.createdAt,
   });
 
@@ -352,6 +358,7 @@ class ProfileEvent extends Equatable {
     String? tankId,
     EventSource? source,
     String? computerId,
+    String? computerManufacturer,
     DateTime? createdAt,
   }) {
     return ProfileEvent(
@@ -366,6 +373,7 @@ class ProfileEvent extends Equatable {
       tankId: tankId ?? this.tankId,
       source: source ?? this.source,
       computerId: computerId ?? this.computerId,
+      computerManufacturer: computerManufacturer ?? this.computerManufacturer,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -383,6 +391,7 @@ class ProfileEvent extends Equatable {
     tankId,
     source,
     computerId,
+    computerManufacturer,
     createdAt,
   ];
 }

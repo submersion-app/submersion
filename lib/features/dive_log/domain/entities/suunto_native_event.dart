@@ -56,8 +56,7 @@ enum SuuntoNativeEvent {
   final int code;
 
   /// The [ProfileEventType]s an import stores this event as. A stored code is
-  /// only trusted when the event's type is one of these, so another
-  /// computer's `value` that happens to equal a code is not misread.
+  /// only trusted when the event's type is one of these.
   final Set<ProfileEventType> eventTypes;
 
   /// The event with [code], or null for a code with no entry.
@@ -69,10 +68,17 @@ enum SuuntoNativeEvent {
   }
 
   /// The Suunto event [event] records, or null when it is not one: a
-  /// computed or user event, a missing or non-integral value, an unknown
-  /// code, or a code that does not fit the event's type.
+  /// computed or user event, an event whose computer is not a Suunto (or is
+  /// unknown), a missing or non-integral value, an unknown code, or a code
+  /// that does not fit the event's type.
+  ///
+  /// Every computer's events are stored as imported, and another vendor's
+  /// `value` can be any number, so the manufacturer is the gate.
   static SuuntoNativeEvent? of(ProfileEvent event) {
     if (event.source != EventSource.imported) return null;
+    if (event.computerManufacturer?.trim().toLowerCase() != 'suunto') {
+      return null;
+    }
     final value = event.value;
     if (value == null || !value.isFinite || value != value.roundToDouble()) {
       return null;

@@ -51,7 +51,12 @@ final diveComputerEventsProvider =
         ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
       );
       final dbEvents = await repository.getEventsForDive(diveId);
-      return dbEvents.map(mapDiveProfileEventToProfileEvent).toList();
+      // The manufacturer tells the marker label whether an event's value is
+      // a Suunto native code (#1523).
+      return withComputerManufacturers(
+        dbEvents.map(mapDiveProfileEventToProfileEvent).toList(),
+        (id) async => (await repository.getComputerById(id))?.manufacturer,
+      );
     });
 
 /// Combines pressure data from one or more tanks into a single pressure series.

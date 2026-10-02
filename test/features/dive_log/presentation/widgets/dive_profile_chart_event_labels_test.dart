@@ -52,6 +52,7 @@ ProfileEvent _event(
   ProfileEventType type, {
   EventSeverity severity = EventSeverity.info,
   double? value,
+  String? computerManufacturer,
 }) => ProfileEvent(
   id: 'e$timestamp',
   diveId: 'd1',
@@ -59,6 +60,8 @@ ProfileEvent _event(
   eventType: type,
   severity: severity,
   value: value,
+  computerId: computerManufacturer == null ? null : 'c1',
+  computerManufacturer: computerManufacturer,
   createdAt: DateTime(2026),
 );
 
@@ -68,6 +71,8 @@ Widget _buildChart(List<ProfileEvent> events) {
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
     child: MaterialApp(
+      // The new label test asserts English strings.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -218,6 +223,7 @@ void main() {
           ProfileEventType.lowGas,
           severity: EventSeverity.warning,
           value: ((0x18 << 8) | 3).toDouble(),
+          computerManufacturer: 'Suunto',
         ),
         _event(600, ProfileEventType.lowGas, severity: EventSeverity.warning),
       ]),

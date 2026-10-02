@@ -96,3 +96,28 @@ List<ProfileEvent> mergeEvents(
   merged.sort((a, b) => a.timestamp.compareTo(b.timestamp));
   return merged;
 }
+
+/// [events] with [ProfileEvent.computerManufacturer] filled in from each
+/// event's computer, looked up once per computer through [manufacturerOf].
+/// An event with no computer, or one the lookup does not know, is returned
+/// unchanged.
+Future<List<ProfileEvent>> withComputerManufacturers(
+  List<ProfileEvent> events,
+  Future<String?> Function(String computerId) manufacturerOf,
+) async {
+  final ids = {
+    for (final event in events)
+      if (event.computerId != null) event.computerId!,
+  };
+  if (ids.isEmpty) return events;
+  final manufacturers = {for (final id in ids) id: await manufacturerOf(id)};
+  return [
+    for (final event in events)
+      switch (manufacturers[event.computerId]) {
+        final String manufacturer => event.copyWith(
+          computerManufacturer: manufacturer,
+        ),
+        null => event,
+      },
+  ];
+}

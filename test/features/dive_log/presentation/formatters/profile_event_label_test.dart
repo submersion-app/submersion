@@ -45,6 +45,8 @@ void main() {
       eventType: type,
       value: value,
       source: source,
+      computerId: 'c1',
+      computerManufacturer: 'Suunto',
       createdAt: DateTime.utc(2026),
     );
 

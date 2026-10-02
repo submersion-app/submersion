@@ -11,6 +11,7 @@ void main() {
     ProfileEventType type, {
     double? value,
     EventSource source = EventSource.imported,
+    String? manufacturer = 'Suunto',
   }) => ProfileEvent(
     id: 'e',
     diveId: 'd',
@@ -18,6 +19,8 @@ void main() {
     eventType: type,
     value: value,
     source: source,
+    computerId: 'c1',
+    computerManufacturer: manufacturer,
     createdAt: DateTime.utc(2026),
   );
 
@@ -103,6 +106,38 @@ void main() {
           ),
         ),
         isNull,
+      );
+    });
+
+    test('ignores an event from another or an unknown computer', () {
+      // Every computer's events are stored as imported, so only the
+      // computer's manufacturer says the value is a Suunto code.
+      final code = ((0x18 << 8) | 5).toDouble();
+      for (final manufacturer in ['Shearwater', null]) {
+        expect(
+          SuuntoNativeEvent.of(
+            event(
+              ProfileEventType.ascentRateWarning,
+              value: code,
+              manufacturer: manufacturer,
+            ),
+          ),
+          isNull,
+          reason: '$manufacturer',
+        );
+      }
+    });
+
+    test('matches the manufacturer regardless of case', () {
+      expect(
+        SuuntoNativeEvent.of(
+          event(
+            ProfileEventType.ascentRateWarning,
+            value: ((0x18 << 8) | 5).toDouble(),
+            manufacturer: ' SUUNTO ',
+          ),
+        ),
+        SuuntoNativeEvent.ascentRateAlarm,
       );
     });
 
