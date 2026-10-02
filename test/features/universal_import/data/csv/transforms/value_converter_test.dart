@@ -227,6 +227,19 @@ void main() {
     test('returns null for null', () {
       expect(converter.parseFlexibleDuration(null), isNull);
     });
+
+    // A cell too large for an int or a double must read as unreadable, not
+    // throw: nothing above the transformer catches, so a throw would end the
+    // whole import.
+    test('returns null for numbers too large to hold', () {
+      final huge = '9' * 400;
+      expect(
+        converter.parseFlexibleDuration('99999999999999999999:00'),
+        isNull,
+      );
+      expect(converter.parseFlexibleDuration(huge), isNull);
+      expect(converter.parseFlexibleDuration('0:$huge'), isNull);
+    });
   });
 
   // ---------------------------------------------------------------------------

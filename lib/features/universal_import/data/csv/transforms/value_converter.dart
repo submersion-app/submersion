@@ -106,8 +106,15 @@ class ValueConverter {
     final seconds = s.contains(':')
         ? _clockDurationSeconds(s)
         : _unitDurationSeconds(s);
-    return seconds == null ? null : Duration(seconds: seconds.round());
+    // A cell too large to hold is unreadable: round() throws on infinity,
+    // and nothing above the transformer catches.
+    if (seconds == null || !seconds.isFinite) return null;
+    if (seconds > _maxDurationSeconds) return null;
+    return Duration(seconds: seconds.round());
   }
+
+  /// Larger than any real dive by far, and well inside an int.
+  static const _maxDurationSeconds = 1e9;
 
   static final _wholeNumber = RegExp(r'^\d+$');
   static final _decimalNumber = RegExp(r'^\d+(?:[.,]\d+)?$');
@@ -119,7 +126,11 @@ class ValueConverter {
     final leading = parts.sublist(0, parts.length - 1);
     if (!leading.every(_wholeNumber.hasMatch)) return null;
     if (!_decimalNumber.hasMatch(parts.last)) return null;
-    final minutes = leading.fold(0, (sum, part) => sum * 60 + int.parse(part));
+    // Doubles, not ints: int.parse throws past 64 bits.
+    final minutes = leading.fold(
+      0.0,
+      (sum, part) => sum * 60 + double.parse(part),
+    );
     return minutes * 60 + double.parse(parts.last.replaceAll(',', '.'));
   }
 
