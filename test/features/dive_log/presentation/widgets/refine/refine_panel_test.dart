@@ -120,4 +120,19 @@ void main() {
     expect(c.read(t).axesSuspended, isFalse);
     expect(find.byType(RefinePanel), findsNothing);
   });
+
+  // Code review (#989): desktop draws no scroll thumb until a scroll starts,
+  // so the panel keeps one visible to show more groups follow.
+  testWidgets('the group list shows its scrollbar', (tester) async {
+    await openRefinePanel(tester, target: target());
+    final bar = tester.widget<Scrollbar>(
+      find
+          .descendant(
+            of: find.byType(RefinePanel),
+            matching: find.byType(Scrollbar),
+          )
+          .first,
+    );
+    expect(bar.thumbVisibility, isTrue);
+  });
 }

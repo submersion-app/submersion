@@ -47,6 +47,14 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
   /// The last count a draft answered, shown while the next one loads.
   int? _lastCount;
 
+  final _scroll = ScrollController();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -174,13 +182,20 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
           ),
         ),
         Expanded(
-          child: ListView(
-            children: [
-              KeyedSubtree(
-                key: ValueKey(_generation),
-                child: Column(children: _groups()),
-              ),
-            ],
+          // A visible thumb: desktop draws none until a scroll starts, and
+          // the groups run below the fold (#989).
+          child: Scrollbar(
+            controller: _scroll,
+            thumbVisibility: true,
+            child: ListView(
+              controller: _scroll,
+              children: [
+                KeyedSubtree(
+                  key: ValueKey(_generation),
+                  child: Column(children: _groups()),
+                ),
+              ],
+            ),
           ),
         ),
         const Divider(height: 1),
