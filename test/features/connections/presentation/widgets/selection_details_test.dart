@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
@@ -118,6 +119,7 @@ Future<ProviderContainer> _pump(
         ),
       ],
       child: MaterialApp.router(
+        locale: const Locale('en'),
         routerConfig: router,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
@@ -131,6 +133,15 @@ Future<ProviderContainer> _pump(
 }
 
 void main() {
+  // The line's dates go through DateFormat, which reads the process-global
+  // Intl.defaultLocale; pin it and put it back for the next file.
+  late String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   testWidgets('a node shows its kind, label, role subtitle and stat tiles', (
     tester,
   ) async {
