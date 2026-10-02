@@ -25252,10 +25252,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transfer_appBar_title => 'Transfert';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'Connectez votre ordinateur de plongée via Bluetooth pour télécharger les carnets de plongée directement dans l\'application. Les ordinateurs compatibles incluent Suunto, Shearwater, Garmin, Mares et de nombreuses autres marques populaires.\n\nLes utilisateurs d\'Apple Watch Ultra peuvent importer les données de plongée directement depuis l\'app Santé, y compris la profondeur, la durée et la fréquence cardiaque.';
-
-  @override
   String get transfer_computers_aboutTitle =>
       'À propos des ordinateurs de plongée';
 
@@ -28542,7 +28538,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, et plus de 50 autres modèles.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi, et plus de 50 autres modèles.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Marques compatibles';
@@ -28555,6 +28551,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Compris';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Les montres Garmin ne se téléchargent pas ici. Importez leurs plongées depuis $importPath ou $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>

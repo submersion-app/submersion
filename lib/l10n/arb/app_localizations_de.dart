@@ -25114,10 +25114,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transfer_appBar_title => 'Übertragung';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'Verbinden Sie Ihren Tauchcomputer über Bluetooth, um Tauchprotokolle direkt in die App herunterzuladen. Unterstützte Computer sind Suunto, Shearwater, Garmin, Mares und viele andere beliebte Marken.\n\nApple Watch Ultra-Benutzer können Tauchdaten direkt aus der Health-App importieren, einschließlich Tiefe, Dauer und Herzfrequenz.';
-
-  @override
   String get transfer_computers_aboutTitle => 'Über Tauchcomputer';
 
   @override
@@ -28409,7 +28405,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi und über 50 weitere Modelle.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi und über 50 weitere Modelle.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Unterstützte Marken';
@@ -28423,6 +28419,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Verstanden';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Garmin-Uhren werden hier nicht heruntergeladen. Importieren Sie ihre Tauchgänge über $importPath oder $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>

@@ -24973,10 +24973,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get transfer_appBar_title => 'Overdracht';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'Verbind je duikcomputer via Bluetooth om duiklogs rechtstreeks naar de app te downloaden. Ondersteunde computers zijn onder andere Suunto, Shearwater, Garmin, Mares en vele andere populaire merken.\n\nApple Watch Ultra-gebruikers kunnen duikgegevens rechtstreeks uit de Gezondheid-app importeren, inclusief diepte, duur en hartslag.';
-
-  @override
   String get transfer_computers_aboutTitle => 'Over duikcomputers';
 
   @override
@@ -28240,7 +28236,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi en 50+ andere modellen.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi en 50+ andere modellen.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Ondersteunde merken';
@@ -28254,6 +28250,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Begrepen';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Garmin-horloges worden hier niet gedownload. Importeer hun duiken via $importPath of $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>

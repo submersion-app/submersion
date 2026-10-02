@@ -25166,10 +25166,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get transfer_appBar_title => 'Transferência';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'Conecte seu computador de mergulho via Bluetooth para baixar registros de mergulho diretamente no aplicativo. Computadores compatíveis incluem Suunto, Shearwater, Garmin, Mares e muitas outras marcas populares.\n\nUsuários do Apple Watch Ultra podem importar dados de mergulho diretamente do app Saúde, incluindo profundidade, duração e frequência cardíaca.';
-
-  @override
   String get transfer_computers_aboutTitle => 'Sobre Computadores de Mergulho';
 
   @override
@@ -28448,7 +28444,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi e mais de 50 modelos.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi e mais de 50 modelos.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Marcas Suportadas';
@@ -28462,6 +28458,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Entendi';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Relógios Garmin não são baixados aqui. Importe os mergulhos deles em $importPath ou $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>

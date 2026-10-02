@@ -25159,10 +25159,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get transfer_appBar_title => 'Trasferimento';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'Collega il tuo dive computer via Bluetooth per scaricare i registri immersione direttamente nell\'app. I computer supportati includono Suunto, Shearwater, Garmin, Mares e molte altre marche popolari.\n\nGli utenti di Apple Watch Ultra possono importare i dati delle immersioni direttamente dall\'app Salute, inclusi profondità, durata e frequenza cardiaca.';
-
-  @override
   String get transfer_computers_aboutTitle => 'Informazioni sui dive computer';
 
   @override
@@ -28442,7 +28438,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi e oltre 50 modelli.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi e oltre 50 modelli.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Marchi supportati';
@@ -28455,6 +28451,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Capito';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Gli orologi Garmin non si scaricano qui. Importa le loro immersioni da $importPath o $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>

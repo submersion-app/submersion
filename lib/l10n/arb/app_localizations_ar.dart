@@ -24845,10 +24845,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_appBar_title => 'النقل';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'قم بتوصيل حاسوب الغوص عبر البلوتوث لتنزيل سجلات الغوص مباشرة إلى التطبيق. تشمل الحواسيب المدعومة Suunto و Shearwater و Garmin و Mares والعديد من العلامات التجارية الشهيرة الأخرى.\n\nيمكن لمستخدمي Apple Watch Ultra استيراد بيانات الغوص مباشرة من تطبيق الصحة، بما في ذلك العمق والمدة ومعدل ضربات القلب.';
-
-  @override
   String get transfer_computers_aboutTitle => 'حول حواسيب الغوص';
 
   @override
@@ -28096,7 +28092,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater، Suunto، Garmin، Mares، Scubapro، Oceanic، Aqualung، Cressi، وأكثر من 50 موديلًا آخر.';
+      'Shearwater، Suunto، Mares، Scubapro، Oceanic، Aqualung، Cressi، وأكثر من 50 موديلًا آخر.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'العلامات التجارية المدعومة';
@@ -28109,6 +28105,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'حسنًا';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'لا يتم تنزيل ساعات Garmin من هنا. استورد غطساتها من $importPath أو $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 => 'تأكد أن الكمبيوتر في وضع النقل •';

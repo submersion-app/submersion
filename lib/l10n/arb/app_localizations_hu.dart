@@ -25087,10 +25087,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get transfer_appBar_title => 'Átvitel';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'Csatlakoztassa merülési számítógépét Bluetooth-on keresztül, és töltse le a merülési naplókat közvetlenül az alkalmazásba. Támogatott számítógépek: Suunto, Shearwater, Garmin, Mares és sok más népszerű márka.\n\nAz Apple Watch Ultra felhasználók közvetlenül importálhatják a merülési adatokat a Health alkalmazásból, beleértve a mélység, időtartam és szívfrekvencia adatokat.';
-
-  @override
   String get transfer_computers_aboutTitle => 'Merülési számítógépek';
 
   @override
@@ -28357,7 +28353,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi és 50+ további modell.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi és 50+ további modell.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Támogatott márkák';
@@ -28370,6 +28366,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Rendben';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'A Garmin órák merüléseit nem itt kell letölteni. Importálja őket innen: $importPath vagy $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>

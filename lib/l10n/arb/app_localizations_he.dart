@@ -24558,10 +24558,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_appBar_title => 'העברה';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'חבר את מחשב הצלילה שלך באמצעות Bluetooth כדי להוריד יומני צלילה ישירות לאפליקציה. מחשבים נתמכים כוללים Suunto, Shearwater, Garmin, Mares ועוד מותגים פופולריים רבים.\n\nמשתמשי Apple Watch Ultra יכולים לייבא נתוני צלילה ישירות מאפליקציית הבריאות, כולל עומק, משך וקצב לב.';
-
-  @override
   String get transfer_computers_aboutTitle => 'אודות מחשבי צלילה';
 
   @override
@@ -27773,7 +27769,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, ועוד 50+ דגמים.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi, ועוד 50+ דגמים.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'מותגים נתמכים';
@@ -27786,6 +27782,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'הבנתי';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'שעוני Garmin אינם מורדים כאן. ייבא את הצלילות שלהם דרך $importPath או $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 => '• ודא שהמחשב במצב העברה';

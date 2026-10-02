@@ -40024,12 +40024,6 @@ abstract class AppLocalizations {
   /// **'Transfer'**
   String get transfer_appBar_title;
 
-  /// No description provided for @transfer_computers_aboutContent.
-  ///
-  /// In en, this message translates to:
-  /// **'Connect your dive computer via Bluetooth to download dive logs directly to the app. Supported computers include Suunto, Shearwater, Garmin, Mares, and many other popular brands.  Apple Watch Ultra users can import dive data directly from the Health app, including depth, duration, and heart rate.'**
-  String get transfer_computers_aboutContent;
-
   /// No description provided for @transfer_computers_aboutTitle.
   ///
   /// In en, this message translates to:
@@ -45073,7 +45067,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveComputer_list_helpBrandsList.
   ///
   /// In en, this message translates to:
-  /// **'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.'**
+  /// **'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.'**
   String get diveComputer_list_helpBrandsList;
 
   /// No description provided for @diveComputer_list_helpBrandsTitle.
@@ -45099,6 +45093,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Got it'**
   String get diveComputer_list_helpDismiss;
+
+  /// Help dialog line telling Garmin owners their dives are imported, not downloaded over Bluetooth or USB; the placeholders are menu paths built from the Transfer, File Import and Cloud labels
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin watches are not downloaded here. Import their dives from {importPath} or {cloudPath}.'**
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath);
 
   /// No description provided for @diveComputer_list_helpTip1.
   ///

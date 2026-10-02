@@ -15502,7 +15502,6 @@
   },
   "tides_title": "Tides",
   "transfer_appBar_title": "Transfer",
-  "transfer_computers_aboutContent": "Connect your dive computer via Bluetooth to download dive logs directly to the app. Supported computers include Suunto, Shearwater, Garmin, Mares, and many other popular brands.  Apple Watch Ultra users can import dive data directly from the Health app, including depth, duration, and heart rate.",
   "transfer_computers_aboutTitle": "About Dive Computers",
   "transfer_computers_appleWatchHeader": "Apple Watch",
   "transfer_computers_appleWatchSubtitle": "Import dives via Apple HealthKit",
@@ -18300,11 +18299,25 @@
   "diveComputer_list_findComputers": "Find Computers",
   "diveComputer_list_helpBluetooth": "• Bluetooth LE (most modern computers)",
   "diveComputer_list_helpBluetoothClassic": "• Bluetooth Classic (older models)",
-  "diveComputer_list_helpBrandsList": "Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.",
+  "diveComputer_list_helpBrandsList": "Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.",
   "diveComputer_list_helpBrandsTitle": "Supported Brands",
   "diveComputer_list_helpConnectionsTitle": "Supported Connections",
   "diveComputer_list_helpDialogTitle": "Dive Computer Help",
   "diveComputer_list_helpDismiss": "Got it",
+  "diveComputer_list_helpGarminNote": "Garmin watches are not downloaded here. Import their dives from {importPath} or {cloudPath}.",
+  "@diveComputer_list_helpGarminNote": {
+    "description": "Help dialog line telling Garmin owners their dives are imported, not downloaded over Bluetooth or USB; the placeholders are menu paths built from the Transfer, File Import and Cloud labels",
+    "placeholders": {
+      "importPath": {
+        "type": "String",
+        "example": "Transfer > File Import"
+      },
+      "cloudPath": {
+        "type": "String",
+        "example": "Transfer > Cloud"
+      }
+    }
+  },
   "diveComputer_list_helpTip1": "• Ensure your computer is in transfer mode",
   "diveComputer_list_helpTip2": "• Keep devices close during download",
   "diveComputer_list_helpTip3": "• Make sure Bluetooth is enabled",

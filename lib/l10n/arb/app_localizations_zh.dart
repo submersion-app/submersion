@@ -23887,10 +23887,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_appBar_title => '传输';
 
   @override
-  String get transfer_computers_aboutContent =>
-      '通过蓝牙连接您的潜水电脑以直接下载潜水日志到应用。支持的潜水电脑包括 Suunto、Shearwater、Garmin、Mares 以及许多其他热门品牌。Apple Watch Ultra 用户可以直接从健康应用导入潜水数据，包括深度、持续时间和心率。';
-
-  @override
   String get transfer_computers_aboutTitle => '关于潜水电脑';
 
   @override
@@ -26963,7 +26959,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater、Suunto、Garmin、Mares、Scubapro、Oceanic、Aqualung、Cressi 及 50 多种其他型号。';
+      'Shearwater、Suunto、Mares、Scubapro、Oceanic、Aqualung、Cressi 及 50 多种其他型号。';
 
   @override
   String get diveComputer_list_helpBrandsTitle => '支持的品牌';
@@ -26976,6 +26972,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => '知道了';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Garmin 手表不在此处下载。请通过 $importPath 或 $cloudPath 导入其潜水记录。';
+  }
 
   @override
   String get diveComputer_list_helpTip1 => '• 确保您的电脑处于传输模式';
