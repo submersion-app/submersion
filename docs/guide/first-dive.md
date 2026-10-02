@@ -101,7 +101,7 @@ Scroll to the **Notes** section to add any observations:
 Trips group dives so they can share stats, photos, and gear lists. A trip
 does not have to mean travel: a single local dive belongs in a **Day Trip**.
 
-1. Tap **Trip** in the dive form
+1. In the dive form, tap **Add trip or dive center**, then tap **Trip**
 2. Tap **New Trip** (or **Create Trip** if you have none yet)
 3. Choose **Day Trip**; its end date follows the start date, so set the
    **Start Date** to the day of your dive
