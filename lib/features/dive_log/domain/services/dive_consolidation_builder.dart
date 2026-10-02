@@ -75,15 +75,20 @@ class DiveConsolidationBuilder {
     return extent;
   }
 
-  /// Whether [a] and [b] were in the water at the same time. Two dives that
-  /// start at the same instant always overlap: a dive with no runtime and no
-  /// profile has no length, and its re-import must still fold into it
-  /// (#1809).
+  /// Whether [a] and [b] were in the water at the same time.
+  ///
+  /// A dive with no runtime and no profile has no length of its own, so it
+  /// is given the other dive's: its re-import, which DiveMatcher pairs with
+  /// it when the two start up to minutes apart, must still fold into it
+  /// (#1809). Two dives starting at the same instant always overlap, which
+  /// covers a pair that both lack a length.
   bool _overlaps(Dive a, Dive b) {
+    final aExtent = _extent(a);
+    final bExtent = _extent(b);
     final aStart = a.effectiveEntryTime;
-    final aEnd = aStart.add(_extent(a));
+    final aEnd = aStart.add(aExtent == Duration.zero ? bExtent : aExtent);
     final bStart = b.effectiveEntryTime;
-    final bEnd = bStart.add(_extent(b));
+    final bEnd = bStart.add(bExtent == Duration.zero ? aExtent : bExtent);
     if (aStart.isAtSameMomentAs(bStart)) return true;
     return aStart.isBefore(bEnd) && bStart.isBefore(aEnd);
   }

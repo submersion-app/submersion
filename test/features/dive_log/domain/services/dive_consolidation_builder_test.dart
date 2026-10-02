@@ -138,6 +138,35 @@ void main() {
         expect(result, isA<ConsolidationReady>());
       });
 
+      // DiveMatcher scores starts up to 5 minutes apart as the same dive, so
+      // a matched re-import can start a little after the instant.
+      test('overlaps a dive starting a few minutes after it', () {
+        final result = builder.classify([
+          instant,
+          makeDive(
+            'b',
+            entry: t.add(const Duration(minutes: 3)),
+            runtimeMin: 45,
+          ),
+        ], primaryDiveId: 'a');
+        expect(result, isA<ConsolidationReady>());
+      });
+
+      test('does not overlap a dive starting after that length', () {
+        final result = builder.classify([
+          instant,
+          makeDive(
+            'b',
+            entry: t.add(const Duration(minutes: 50)),
+            runtimeMin: 45,
+          ),
+        ]);
+        expect(
+          (result as ConsolidationInvalid).reason,
+          ConsolidationInvalidReason.notOverlapping,
+        );
+      });
+
       test('does not overlap a dive that ended before it', () {
         final result = builder.classify([
           instant,
