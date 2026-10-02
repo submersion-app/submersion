@@ -88,7 +88,6 @@ Future<void> _pump(
   NavTrackImportService? service,
   List<EquipmentItem>? equipment,
   MockSettingsNotifier? settingsNotifier,
-  Dive? preselectedDive,
 }) async {
   // A host locale the app actually translates into, so the English finders
   // below pass only because the MaterialApp pins `en`. Drop the pin and
@@ -119,7 +118,6 @@ Future<void> _pump(
           bytes: Uint8List(0),
           fileName: '005.DAT.csv',
           preview: preview,
-          preselectedDive: preselectedDive,
         ),
       ),
     ),
@@ -780,40 +778,6 @@ void main() {
         find.byKey(const ValueKey('nav-track-link-choose-another')),
         findsNothing,
       );
-    });
-
-    testWidgets('keeps a pre-selected dive selected even outside the overlap '
-        'window, and shows it inline', (tester) async {
-      final dives = nearby();
-      await _pump(
-        tester,
-        preview: _preview(nearbyDives: dives),
-        preselectedDive: dives.last,
-      );
-
-      expect(find.byKey(const ValueKey('nav-track-link-n7')), findsOneWidget);
-      expect(group(tester).groupValue, 'n7');
-      await reveal(tester, find.byKey(const ValueKey('nav-track-site-picker')));
-      expect(find.text('Blue Hole'), findsOneWidget);
-    });
-
-    testWidgets('keeps a pre-selected dive selected even when a different dive '
-        'overlaps', (tester) async {
-      final overlapping = _dive('d1', routeStart);
-      final dives = nearby();
-      await _pump(
-        tester,
-        preview: _preview(candidateDives: [overlapping]),
-        preselectedDive: dives.first,
-      );
-
-      expect(find.byKey(const ValueKey('nav-track-link-d1')), findsOneWidget);
-      expect(find.byKey(const ValueKey('nav-track-link-n1')), findsOneWidget);
-      expect(group(tester).groupValue, 'n1');
-      // The overlap candidate is a real match, so the fallback hint and
-      // sheet stay out of the way.
-      expect(find.textContaining('No dive overlaps'), findsNothing);
-      expect(find.text('2h 0min before the recording'), findsOneWidget);
     });
   });
 

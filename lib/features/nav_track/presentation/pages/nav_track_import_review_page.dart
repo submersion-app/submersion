@@ -25,26 +25,20 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Pushes the route review page for [bytes] freshly picked/dropped as
 /// [fileName] and returns once the diver leaves it (whether or not they
-/// saved). Every entry point that recognises a Seacraft ENC file --
-/// the universal import wizard's hand-off card, the GPS logger's "Import
-/// track" and the routes area's own import button) calls this, and the
-/// Dive Edit page's route sheet calls [navigateToNavTrackReviewForResult],
-/// rather than building the page itself, so a route path or a button label
-/// never needs to be duplicated.
-///
-/// [preselectedDive] is a hint only, used to pre-select that dive in the
-/// link proposal once the preview loads (when the caller already knows the
-/// dive); it does not skip the parse or the review step.
+/// saved). The entry points that recognise a Seacraft ENC file (the
+/// universal import wizard's hand-off card, the GPS logger's "Import track"
+/// and the routes area's own import button) call this, and the Dive Edit
+/// page's route sheet calls [navigateToNavTrackReviewForResult]. None of
+/// them builds the page itself, so a route path or a button label never
+/// needs to be duplicated.
 ///
 /// [preview] is passed by a caller that already parsed the file itself to
 /// report a failed parse in place (the routes area and the Dive Edit route
-/// sheet);
-/// see [NavTrackImportReviewPage.preview].
+/// sheet); see [NavTrackImportReviewPage.preview].
 Future<void> navigateToNavTrackReview(
   BuildContext context,
   Uint8List bytes, {
   required String fileName,
-  Dive? preselectedDive,
   NavTrackImportPreview? preview,
 }) {
   return Navigator.of(context).push<void>(
@@ -52,7 +46,6 @@ Future<void> navigateToNavTrackReview(
       builder: (_) => NavTrackImportReviewPage(
         bytes: bytes,
         fileName: fileName,
-        preselectedDive: preselectedDive,
         preview: preview,
       ),
     ),
@@ -90,30 +83,23 @@ Future<NavTrackImportResult?> navigateToNavTrackReviewForResult(
 /// proposal, the dive site, warnings, and the save action (spec
 /// 2026-09-10-underwater-nav-track-design.md, "Review page").
 ///
-/// Parsing happens once, in [initState] (against the service's [prepare],
-/// or reused from [preview] when a caller already parsed the file --
-/// the routes area's import button and the Dive Edit route sheet do this,
-/// through the navigate helpers above, to show their own error handling
-/// around a
-/// failed parse before ever pushing this page); nothing is written until
+/// Parsing happens once, in [initState]: against the service's [prepare],
+/// or reused from [preview] when a caller already parsed the file. The
+/// routes area's import button and the Dive Edit route sheet do that,
+/// through the navigate helpers above, so they can report a failed parse
+/// themselves before ever pushing this page. Nothing is written until
 /// [_save] calls its `commit`.
 class NavTrackImportReviewPage extends ConsumerStatefulWidget {
   const NavTrackImportReviewPage({
     super.key,
     required this.bytes,
     required this.fileName,
-    this.preselectedDive,
     this.preview,
     this.returnResult = false,
   });
 
   final Uint8List bytes;
   final String fileName;
-
-  /// The dive the caller already knows this route belongs to. Pre-selected
-  /// even when the recording's clock puts it outside every overlap window:
-  /// the diver has already said which dive this is.
-  final Dive? preselectedDive;
 
   /// Already-parsed preview, when a caller (e.g. the routes area's import
   /// button) ran `NavTrackImportService.prepare` itself. Null re-parses
@@ -166,27 +152,16 @@ class _NavTrackImportReviewPageState
     super.dispose();
   }
 
-  /// The link proposal defaults to the unique overlap match, or to
-  /// [widget.preselectedDive] when the caller already knows the dive;
-  /// several candidates or none leave the route unlinked until the diver
-  /// chooses, and a nearest-by-time fallback dive is never proposed on its
-  /// own. Runs once, the first time the preview is available.
+  /// The link proposal defaults to the unique overlap match; several
+  /// candidates or none leave the route unlinked until the diver chooses,
+  /// and a nearest-by-time fallback dive is never proposed on its own. Runs
+  /// once, the first time the preview is available.
   void _initializeDiveChoice(NavTrackImportPreview preview) {
     if (_diveChoiceInitialized) return;
     _diveChoiceInitialized = true;
     // The caller links the route itself, so nothing is pre-selected here.
     if (widget.returnResult) return;
-    final preselected = widget.preselectedDive;
-    if (preselected != null) {
-      // The preview's own copy when it has one, freshly read with the rest.
-      _selectedDive =
-          [
-            ...preview.candidateDives,
-            ...preview.nearbyDives,
-          ].where((d) => d.id == preselected.id).firstOrNull ??
-          preselected;
-    }
-    _selectedDive ??= preview.candidateDives.length == 1
+    _selectedDive = preview.candidateDives.length == 1
         ? preview.candidateDives.single
         : null;
     _applySiteFromSelectedDive();
