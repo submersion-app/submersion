@@ -1,0 +1,347 @@
+#!/usr/bin/env python3
+"""Unit tests for beta_failure_alert.py."""
+
+import contextlib
+import importlib.util
+import io
+import json
+import os
+import subprocess
+import unittest
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _load(name):
+    spec = importlib.util.spec_from_file_location(
+        name, os.path.join(_HERE, f"{name}.py")
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+alert = _load("beta_failure_alert")
+gate = _load("check_ci_success_gate")
+
+BETA_WORKFLOW = os.path.join(_HERE, "..", ".github", "workflows", "beta.yml")
+
+
+def needs(**results):
+    """Build the `toJSON(needs)` shape: {job: {result, outputs}}."""
+    return {job.replace("_", "-"): {"result": r, "outputs": {}} for job, r in results.items()}
+
+
+ALL_GREEN = needs(
+    precheck="success",
+    build="success",
+    publish_beta="success",
+    upload_testflight_ios="success",
+    upload_testflight_macos="success",
+    upload_play="success",
+)
+
+PLAY_RED = dict(ALL_GREEN, **needs(upload_play="failure"))
+
+# A failed build skips every lane downstream of it. The lanes report
+# `skipped`, never `failure`, which is why the alert job needs the build too.
+BUILD_RED = needs(
+    precheck="success",
+    build="failure",
+    publish_beta="skipped",
+    upload_testflight_ios="skipped",
+    upload_testflight_macos="skipped",
+    upload_play="skipped",
+)
+
+# Nothing shippable changed since the last beta: precheck succeeds and gates
+# everything else off. Not a failure, and not a publish either.
+NOTHING_TO_SHIP = needs(
+    precheck="success",
+    build="skipped",
+    publish_beta="skipped",
+    upload_testflight_ios="skipped",
+    upload_testflight_macos="skipped",
+    upload_play="skipped",
+)
+
+RUN_JOBS = {
+    "jobs": [
+        {
+            "name": "Compute version and gate",
+            "conclusion": "success",
+            "steps": [{"name": "Compute beta version", "conclusion": "success"}],
+        },
+        {
+            "name": "Upload Android beta to Play open testing",
+            "conclusion": "failure",
+            "steps": [
+                {"name": "Checkout repository", "conclusion": "success"},
+                {"name": "Upload to Play open testing", "conclusion": "failure"},
+                {"name": "Copy the beta to Play closed testing", "conclusion": "skipped"},
+            ],
+        },
+        {"name": "Alert on failure", "conclusion": None, "steps": []},
+    ]
+}
+
+CONTEXT = {
+    "repo": "submersion-app/submersion",
+    "run_id": "36460341104",
+    "run_attempt": "1",
+    "run_url": "https://github.com/submersion-app/submersion/actions/runs/36460341104",
+    "tag": "v1.8.1.8510",
+    "sha": "0123456789abcdef0123456789abcdef01234567",
+    "assignee": "maintainer",
+}
+
+
+class FakeGh:
+    """Records every gh invocation and answers from a scripted table.
+
+    `responses` maps a command prefix (tuple of leading args) to either the
+    stdout string or an exception instance to raise.
+    """
+
+    def __init__(self, responses=None, open_issues=()):
+        self.calls = []
+        self.responses = dict(responses or {})
+        self.responses.setdefault(("issue", "list"), json.dumps(list(open_issues)))
+        self.responses.setdefault(("api",), json.dumps([RUN_JOBS]))
+        self.responses.setdefault(
+            ("issue", "create"),
+            "https://github.com/submersion-app/submersion/issues/2700\n",
+        )
+
+    def __call__(self, args):
+        self.calls.append(list(args))
+        for prefix in sorted(self.responses, key=len, reverse=True):
+            if tuple(args[: len(prefix)]) == prefix:
+                answer = self.responses[prefix]
+                if isinstance(answer, Exception):
+                    raise answer
+                return answer
+        return ""
+
+    def commands(self, *prefix):
+        return [c for c in self.calls if tuple(c[: len(prefix)]) == prefix]
+
+
+def _value(cmd, flag):
+    return cmd[cmd.index(flag) + 1]
+
+
+def _quiet(fn, *args, **kwargs):
+    with contextlib.redirect_stdout(io.StringIO()) as out:
+        result = fn(*args, **kwargs)
+    return result, out.getvalue()
+
+
+OPEN_ALERT = {"number": 2650, "body": f"{alert.MARKER}\nBeta is failing."}
+UNRELATED = {"number": 2611, "body": "CI: a green pre-push hook can still redden main"}
+
+
+class DecideTest(unittest.TestCase):
+    def test_a_failed_lane_raises_the_alert(self):
+        self.assertEqual(alert.decide(PLAY_RED), ("alert", ["upload-play"]))
+
+    def test_a_failed_build_raises_the_alert_though_every_lane_is_skipped(self):
+        self.assertEqual(alert.decide(BUILD_RED), ("alert", ["build"]))
+
+    def test_failed_jobs_are_listed_in_order(self):
+        both = dict(PLAY_RED, **needs(publish_beta="failure"))
+        self.assertEqual(alert.decide(both), ("alert", ["publish-beta", "upload-play"]))
+
+    def test_a_run_that_published_everywhere_resolves(self):
+        self.assertEqual(alert.decide(ALL_GREEN), ("resolve", []))
+
+    def test_a_gated_off_run_does_nothing(self):
+        self.assertEqual(alert.decide(NOTHING_TO_SHIP), ("none", []))
+
+    def test_a_cancelled_lane_neither_alerts_nor_resolves(self):
+        cancelled = dict(ALL_GREEN, **needs(upload_testflight_macos="cancelled"))
+        self.assertEqual(alert.decide(cancelled), ("none", []))
+
+    def test_no_needs_does_nothing(self):
+        self.assertEqual(alert.decide({}), ("none", []))
+
+
+class FailedStepsTest(unittest.TestCase):
+    def test_lists_each_failed_job_with_its_failed_steps(self):
+        self.assertEqual(
+            alert.failed_steps(RUN_JOBS["jobs"]),
+            [("Upload Android beta to Play open testing", ["Upload to Play open testing"])],
+        )
+
+    def test_a_job_that_failed_outside_any_step_is_still_listed(self):
+        jobs = [{"name": "Build / Build iOS", "conclusion": "failure", "steps": []}]
+        self.assertEqual(alert.failed_steps(jobs), [("Build / Build iOS", [])])
+
+
+class AlertTest(unittest.TestCase):
+    def test_opens_an_issue_when_none_is_open(self):
+        gh = FakeGh(open_issues=[UNRELATED])
+        code, _ = _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        self.assertEqual(code, 0)
+        (create,) = gh.commands("issue", "create")
+        body = _value(create, "--body")
+        self.assertIn(alert.MARKER, body)
+        self.assertIn("@maintainer", body)
+        self.assertIn("Upload to Play open testing", body)
+        self.assertIn(CONTEXT["run_url"], body)
+        self.assertIn(CONTEXT["tag"], body)
+        self.assertEqual(_value(create, "--label"), alert.LABEL)
+        self.assertEqual(_value(create, "--repo"), CONTEXT["repo"])
+        self.assertEqual(gh.commands("issue", "comment"), [])
+
+    def test_assigns_the_new_issue(self):
+        gh = FakeGh()
+        _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        (edit,) = gh.commands("issue", "edit")
+        self.assertEqual(edit[2], "2700")
+        self.assertEqual(_value(edit, "--add-assignee"), "maintainer")
+
+    def test_comments_on_the_open_alert_instead_of_opening_another(self):
+        gh = FakeGh(open_issues=[UNRELATED, OPEN_ALERT])
+        code, _ = _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        self.assertEqual(code, 0)
+        self.assertEqual(gh.commands("issue", "create"), [])
+        (comment,) = gh.commands("issue", "comment")
+        self.assertEqual(comment[2], "2650")
+        body = _value(comment, "--body")
+        self.assertIn("@maintainer", body)
+        self.assertIn("Upload to Play open testing", body)
+        self.assertNotIn(alert.MARKER, body)
+
+    def test_reads_only_open_ci_issues(self):
+        gh = FakeGh()
+        _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        (listing,) = gh.commands("issue", "list")
+        self.assertEqual(_value(listing, "--state"), "open")
+        self.assertEqual(_value(listing, "--label"), alert.LABEL)
+
+    def test_reads_the_jobs_of_this_attempt_only(self):
+        gh = FakeGh()
+        _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        (api,) = gh.commands("api")
+        self.assertIn(
+            "repos/submersion-app/submersion/actions/runs/36460341104/attempts/1/jobs",
+            api,
+        )
+
+    def test_a_failed_assignment_still_delivers_the_alert(self):
+        error = subprocess.CalledProcessError(1, ["gh"], stderr="not a collaborator")
+        gh = FakeGh(responses={("issue", "edit"): error})
+        code, out = _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        self.assertEqual(code, 0)
+        self.assertEqual(len(gh.commands("issue", "create")), 1)
+        self.assertIn("::warning::", out)
+
+    def test_falls_back_to_job_ids_when_the_run_cannot_be_read(self):
+        error = subprocess.CalledProcessError(1, ["gh"], stderr="HTTP 403")
+        gh = FakeGh(responses={("api",): error})
+        code, out = _quiet(alert.run, BUILD_RED, CONTEXT, gh)
+        self.assertEqual(code, 0)
+        body = _value(gh.commands("issue", "create")[0], "--body")
+        self.assertIn("`build`", body)
+        self.assertIn("::warning::", out)
+
+    def test_a_failed_issue_write_fails_the_job(self):
+        # The opposite of #2609: an alert that cannot be delivered must not
+        # report success.
+        error = subprocess.CalledProcessError(1, ["gh"], stderr="HTTP 403")
+        gh = FakeGh(responses={("issue", "create"): error})
+        with self.assertRaises(subprocess.CalledProcessError):
+            _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+
+    def test_a_missing_version_is_reported_as_such(self):
+        precheck_red = needs(
+            precheck="failure",
+            build="skipped",
+            publish_beta="skipped",
+            upload_testflight_ios="skipped",
+            upload_testflight_macos="skipped",
+            upload_play="skipped",
+        )
+        gh = FakeGh()
+        _quiet(alert.run, precheck_red, dict(CONTEXT, tag=""), gh)
+        body = _value(gh.commands("issue", "create")[0], "--body")
+        self.assertIn("not computed", body)
+
+    def test_an_empty_assignee_falls_back_to_the_default(self):
+        gh = FakeGh()
+        _quiet(alert.run, PLAY_RED, dict(CONTEXT, assignee=""), gh)
+        (edit,) = gh.commands("issue", "edit")
+        self.assertEqual(_value(edit, "--add-assignee"), alert.DEFAULT_ASSIGNEE)
+
+
+class ResolveTest(unittest.TestCase):
+    def test_closes_the_open_alert_once_every_lane_publishes(self):
+        gh = FakeGh(open_issues=[OPEN_ALERT])
+        code, _ = _quiet(alert.run, ALL_GREEN, CONTEXT, gh)
+        self.assertEqual(code, 0)
+        (close,) = gh.commands("issue", "close")
+        self.assertEqual(close[2], "2650")
+        self.assertIn(CONTEXT["tag"], _value(close, "--comment"))
+
+    def test_does_nothing_when_no_alert_is_open(self):
+        gh = FakeGh(open_issues=[UNRELATED])
+        _quiet(alert.run, ALL_GREEN, CONTEXT, gh)
+        self.assertEqual(gh.commands("issue", "close"), [])
+        self.assertEqual(gh.commands("issue", "create"), [])
+
+    def test_a_gated_off_run_touches_nothing(self):
+        gh = FakeGh(open_issues=[OPEN_ALERT])
+        _quiet(alert.run, NOTHING_TO_SHIP, CONTEXT, gh)
+        self.assertEqual(gh.calls, [])
+
+
+class MainTest(unittest.TestCase):
+    def test_reads_its_inputs_from_the_environment(self):
+        env = {
+            "NEEDS_JSON": json.dumps(PLAY_RED),
+            "GITHUB_REPOSITORY": CONTEXT["repo"],
+            "GITHUB_RUN_ID": CONTEXT["run_id"],
+            "GITHUB_RUN_ATTEMPT": CONTEXT["run_attempt"],
+            "GITHUB_SERVER_URL": "https://github.com",
+            "BETA_TAG": CONTEXT["tag"],
+            "BETA_SHA": CONTEXT["sha"],
+            "BETA_ALERT_ASSIGNEE": "maintainer",
+        }
+        gh = FakeGh()
+        code, _ = _quiet(alert.main, env, gh)
+        self.assertEqual(code, 0)
+        body = _value(gh.commands("issue", "create")[0], "--body")
+        self.assertIn(CONTEXT["run_url"], body)
+
+
+class WorkflowWiringTest(unittest.TestCase):
+    """The alert only sees jobs named in its needs, so every job must be."""
+
+    @classmethod
+    def setUpClass(cls):
+        with open(BETA_WORKFLOW, encoding="utf-8") as fh:
+            cls.text = fh.read()
+
+    def test_the_alert_job_needs_every_other_job(self):
+        jobs = gate.job_ids(self.text)
+        self.assertIn(alert.ALERT_JOB, jobs)
+        listed = gate.gate_needs(self.text, alert.ALERT_JOB)
+        self.assertIsNotNone(listed, f"{alert.ALERT_JOB} declares no needs")
+        missing = [j for j in jobs if j != alert.ALERT_JOB and j not in listed]
+        self.assertEqual(
+            missing,
+            [],
+            f"{alert.ALERT_JOB}.needs omits {missing}: a failure there would "
+            "never raise the beta alert",
+        )
+
+    def test_the_alert_job_runs_this_script(self):
+        body = dict(gate._job_lines(self.text))[alert.ALERT_JOB]
+        self.assertTrue(
+            any("beta_failure_alert.py" in cmd for cmd in gate._run_commands(body))
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
