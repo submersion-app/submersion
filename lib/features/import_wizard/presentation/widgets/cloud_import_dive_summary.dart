@@ -8,10 +8,12 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
   DownloadedDive dive,
   AppSettings settings,
 ) {
-  final localStart = dive.startTime.toLocal();
+  // The dive's wall clock flagged UTC, like every stored dive time: format it
+  // as is. Converting it to the device's zone would shift the listed time,
+  // and near midnight the date, by the device's UTC offset.
+  final start = dive.startTime;
   final units = UnitFormatter(settings);
-  final title =
-      '${units.formatDate(localStart)} — ${units.formatTime(localStart)}';
+  final title = '${units.formatDate(start)} — ${units.formatTime(start)}';
 
   final durationMin = dive.duration.inMinutes;
   final tempStr = dive.minTemperature != null
