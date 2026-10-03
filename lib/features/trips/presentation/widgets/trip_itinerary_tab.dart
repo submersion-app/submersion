@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary/trip_itinerary_generate_button.dart';
@@ -278,8 +280,11 @@ class _ItineraryDayCard extends ConsumerWidget {
                   ),
                 ],
 
-                // A day ahead with a plan: the count the forecast uses.
-                if (dives.isEmpty && (day.plannedDives ?? 0) > 0) ...[
+                // A day ahead with a plan: the count the forecast uses. A past
+                // day's plan is history, not a promise.
+                if (dives.isEmpty &&
+                    (day.plannedDives ?? 0) > 0 &&
+                    !tripDay(day.date).isBefore(tripDay(clock.now()))) ...[
                   const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.only(left: 48),

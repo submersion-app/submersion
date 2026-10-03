@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -252,7 +253,9 @@ void main() {
       DateTime(2026, 3, 9),
       4,
     ).copyWith(plannedDives: 3);
-    await _pumpTab(tester, trip: _resortTrip(), days: [planned]);
+    await withClock(Clock.fixed(DateTime(2026, 3, 6, 10)), () async {
+      await _pumpTab(tester, trip: _resortTrip(), days: [planned]);
+    });
     expect(find.text('3 dives planned'), findsOneWidget);
   });
 
@@ -409,5 +412,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(repo.updated.single.dayType, DayType.diveDay);
     expect(repo.updated.single.plannedDives, isNull);
+  });
+
+  testWidgets('a past day does not claim its plan is still to come', (
+    tester,
+  ) async {
+    final past = _row('p', DateTime(2026, 3, 7), 2).copyWith(plannedDives: 3);
+    final ahead = _row('a', DateTime(2026, 3, 9), 4).copyWith(plannedDives: 2);
+    await withClock(Clock.fixed(DateTime(2026, 3, 8, 10)), () async {
+      await _pumpTab(tester, trip: _resortTrip(), days: [past, ahead]);
+    });
+    expect(find.text('3 dives planned'), findsNothing);
+    expect(find.text('2 dives planned'), findsOneWidget);
   });
 }
