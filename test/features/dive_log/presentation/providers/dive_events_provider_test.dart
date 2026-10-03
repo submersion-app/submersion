@@ -327,7 +327,8 @@ void main() {
       expect(result.length, 2);
     });
 
-    test('deduplicates by (timestamp, eventType), keeping auto-detected', () {
+    test('deduplicates by (timestamp, eventType), keeping the computer\'s '
+        'event (#1523)', () {
       final autoEvents = [
         ProfileEvent(
           id: 'auto-1',
@@ -351,8 +352,10 @@ void main() {
 
       final result = mergeEvents(autoEvents, dbEvents);
       expect(result.length, 1);
-      // Auto-detected event is kept (first one wins)
-      expect(result.first.id, 'auto-1');
+      // The computer's own event wins: it carries the exact label, and the
+      // chart hides computed events by default on a dive that has the
+      // computer's events, so keeping the computed one would drop the marker.
+      expect(result.first.id, 'db-1');
     });
 
     test('keeps both when same timestamp but different eventType', () {

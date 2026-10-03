@@ -65,8 +65,11 @@ EventSource _parseSource(String source) {
 /// Merges auto-detected events with DB-loaded events, deduplicating by
 /// (timestamp, eventType).
 ///
-/// When duplicates exist, the auto-detected event (from [autoEvents]) is
-/// kept. The result is sorted by timestamp ascending.
+/// When duplicates exist, the DB event (from [dbEvents]) is kept: it is the
+/// computer's own record and can carry its exact label (#1523), and the chart
+/// hides computed events by default on a dive that has the computer's, so
+/// keeping the computed one would drop the marker entirely. The result is
+/// sorted by timestamp ascending.
 List<ProfileEvent> mergeEvents(
   List<ProfileEvent> autoEvents,
   List<ProfileEvent> dbEvents,
@@ -78,18 +81,16 @@ List<ProfileEvent> mergeEvents(
     return sorted;
   }
 
-  // Build a set of keys from auto-detected events for deduplication
-  final autoKeys = <(int, ProfileEventType)>{};
-  for (final event in autoEvents) {
-    autoKeys.add((event.timestamp, event.eventType));
-  }
+  // Build a set of keys from DB events for deduplication
+  final dbKeys = <(int, ProfileEventType)>{
+    for (final event in dbEvents) (event.timestamp, event.eventType),
+  };
 
-  // Start with all auto-detected events, add non-duplicate DB events
-  final merged = List<ProfileEvent>.of(autoEvents);
-  for (final dbEvent in dbEvents) {
-    final key = (dbEvent.timestamp, dbEvent.eventType);
-    if (!autoKeys.contains(key)) {
-      merged.add(dbEvent);
+  // Start with all DB events, add non-duplicate auto-detected events
+  final merged = List<ProfileEvent>.of(dbEvents);
+  for (final autoEvent in autoEvents) {
+    if (!dbKeys.contains((autoEvent.timestamp, autoEvent.eventType))) {
+      merged.add(autoEvent);
     }
   }
 
