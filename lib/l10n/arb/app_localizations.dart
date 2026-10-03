@@ -42066,6 +42066,72 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{Everything in {name} is already packed} one{Packed {count} item from {name}} other{Packed {count} items from {name}}}'**
   String trips_gear_packedFromSet(int count, String name);
 
+  /// No description provided for @trips_gear_add_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get trips_gear_add_action;
+
+  /// No description provided for @trips_gear_add_fromEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'From my equipment'**
+  String get trips_gear_add_fromEquipment;
+
+  /// No description provided for @trips_gear_add_fromSet.
+  ///
+  /// In en, this message translates to:
+  /// **'An equipment set'**
+  String get trips_gear_add_fromSet;
+
+  /// No description provided for @trips_gear_add_rental.
+  ///
+  /// In en, this message translates to:
+  /// **'Rental cylinders'**
+  String get trips_gear_add_rental;
+
+  /// No description provided for @trips_gear_section_packed.
+  ///
+  /// In en, this message translates to:
+  /// **'Packed'**
+  String get trips_gear_section_packed;
+
+  /// No description provided for @trips_gear_section_cylinders.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders'**
+  String get trips_gear_section_cylinders;
+
+  /// No description provided for @trips_gear_empty_upcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing packed yet. Add the gear you\'ll bring and the cylinders you\'ll dive from.'**
+  String get trips_gear_empty_upcoming;
+
+  /// No description provided for @trips_gear_empty_past.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was packed for this trip.'**
+  String get trips_gear_empty_past;
+
+  /// No description provided for @trips_gear_slot_rental.
+  ///
+  /// In en, this message translates to:
+  /// **'Rental'**
+  String get trips_gear_slot_rental;
+
+  /// No description provided for @trips_gear_slot_own.
+  ///
+  /// In en, this message translates to:
+  /// **'My equipment'**
+  String get trips_gear_slot_own;
+
+  /// No description provided for @trips_gear_openBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Open board'**
+  String get trips_gear_openBoard;
+
   /// No description provided for @trips_cylinders_forecast_todayShort.
   ///
   /// In en, this message translates to:

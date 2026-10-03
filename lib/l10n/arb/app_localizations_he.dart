@@ -25791,6 +25791,40 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_add_action => 'הוספה';
+
+  @override
+  String get trips_gear_add_fromEquipment => 'מהציוד שלי';
+
+  @override
+  String get trips_gear_add_fromSet => 'ערכת ציוד';
+
+  @override
+  String get trips_gear_add_rental => 'מכלים מושכרים';
+
+  @override
+  String get trips_gear_section_packed => 'ארוז';
+
+  @override
+  String get trips_gear_section_cylinders => 'מכלים';
+
+  @override
+  String get trips_gear_empty_upcoming =>
+      'עדיין לא נארז דבר. הוסיפו את הציוד שתביאו ואת המכלים שתצללו איתם.';
+
+  @override
+  String get trips_gear_empty_past => 'לא נארז דבר לטיול הזה.';
+
+  @override
+  String get trips_gear_slot_rental => 'השכרה';
+
+  @override
+  String get trips_gear_slot_own => 'הציוד שלי';
+
+  @override
+  String get trips_gear_openBoard => 'פתיחת הלוח';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'היום צריך $needed, יש לך $full מלאים.';
   }
@@ -26243,8 +26277,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count מיכלים',
-      one: 'מיכל אחד',
+      other: '$count מכלים',
+      one: 'מכל אחד',
     );
     return '$_temp0';
   }
@@ -26298,8 +26332,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count צוללים חולקים מיכלים',
-      one: 'צולל אחד חולק מיכלים',
+      other: '$count צוללים חולקים מכלים',
+      one: 'צולל אחד חולק מכלים',
     );
     return '$_temp0';
   }

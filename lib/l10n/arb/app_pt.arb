@@ -7387,7 +7387,7 @@
       }
     }
   },
-  "trips_overview_gear_cylinders": "{count, plural, =1{{count} garrafa} other{{count} garrafas}}",
+  "trips_overview_gear_cylinders": "{count, plural, =1{{count} cilindro} other{{count} cilindros}}",
   "@trips_overview_gear_cylinders": {
     "placeholders": {
       "count": {
@@ -7429,7 +7429,7 @@
       }
     }
   },
-  "trips_overview_plan_sharing": "{count, plural, =1{{count} mergulhador partilha garrafas} other{{count} mergulhadores partilham garrafas}}",
+  "trips_overview_plan_sharing": "{count, plural, =1{{count} mergulhador partilha cilindros} other{{count} mergulhadores partilham cilindros}}",
   "@trips_overview_plan_sharing": {
     "placeholders": {
       "count": {
@@ -7585,6 +7585,17 @@
   "trips_gear_failed": "Não foi possível alterar o equipamento. Tente novamente.",
   "trips_gear_useSet": "Usar conjunto",
   "trips_gear_packedFromSet": "{count, plural, =0{Tudo de {name} já está preparado} one{{count} item de {name} preparado} other{{count} itens de {name} preparados}}",
+  "trips_gear_add_action": "Adicionar",
+  "trips_gear_add_fromEquipment": "Do meu equipamento",
+  "trips_gear_add_fromSet": "Um conjunto de equipamento",
+  "trips_gear_add_rental": "Cilindros alugados",
+  "trips_gear_section_packed": "Preparado",
+  "trips_gear_section_cylinders": "Cilindros",
+  "trips_gear_empty_upcoming": "Ainda nada preparado. Adicione o equipamento que vai levar e os cilindros com que vai mergulhar.",
+  "trips_gear_empty_past": "Nada foi preparado para esta viagem.",
+  "trips_gear_slot_rental": "Aluguer",
+  "trips_gear_slot_own": "O meu equipamento",
+  "trips_gear_openBoard": "Abrir quadro",
   "trips_cylinders_forecast_todayShort": "Hoje são precisos {needed}, tem {full} cheios.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

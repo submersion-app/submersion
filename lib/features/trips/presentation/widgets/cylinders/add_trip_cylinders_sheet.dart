@@ -1,5 +1,3 @@
-import 'dart:math' show max;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +8,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
+import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -17,17 +16,24 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 /// Opens the sheet that adds cylinder slots to a trip: a number of rental
 /// slots of one preset, or cylinders from the diver's own equipment that
 /// are not on the trip yet. [existing] is the trip's current slots, so new
-/// rental labels and board positions continue after them.
+/// rental labels and board positions continue after them. [rentalOnly]
+/// hides the rental/owned switch: the Gear tab's Add picks owned cylinders
+/// through the equipment picker instead (#2845).
 Future<void> showAddTripCylindersSheet(
   BuildContext context, {
   required String tripId,
   required List<TripCylinder> existing,
+  bool rentalOnly = false,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) => _AddTripCylindersSheet(tripId: tripId, existing: existing),
+    builder: (_) => _AddTripCylindersSheet(
+      tripId: tripId,
+      existing: existing,
+      rentalOnly: rentalOnly,
+    ),
   );
 }
 
@@ -65,8 +71,13 @@ List<String> tripRentalLabels(
 class _AddTripCylindersSheet extends ConsumerStatefulWidget {
   final String tripId;
   final List<TripCylinder> existing;
+  final bool rentalOnly;
 
-  const _AddTripCylindersSheet({required this.tripId, required this.existing});
+  const _AddTripCylindersSheet({
+    required this.tripId,
+    required this.existing,
+    this.rentalOnly = false,
+  });
 
   @override
   ConsumerState<_AddTripCylindersSheet> createState() =>
@@ -115,11 +126,7 @@ class _AddTripCylindersSheetState
   Future<void> _save() async {
     if (_saving) return;
     final l10n = context.l10n;
-    // After the last slot on the board: deletions leave gaps, so the count
-    // of slots could land a new one above an existing one.
-    final start = widget.existing.isEmpty
-        ? 0
-        : widget.existing.map((c) => c.sortOrder).reduce(max) + 1;
+    final start = nextTripCylinderSortOrder(widget.existing);
     final now = DateTime.now().toUtc();
     final drafts = <TripCylinder>[];
     if (_mode == _AddMode.rental) {
@@ -162,20 +169,12 @@ class _AddTripCylindersSheetState
         return;
       }
       for (var i = 0; i < picks.length; i++) {
-        final e = picks[i];
-        final mark = e.identifier?.trim() ?? '';
         drafts.add(
-          TripCylinder(
-            id: '',
+          tripCylinderDraftFromEquipment(
+            picks[i],
             tripId: widget.tripId,
-            equipmentId: e.id,
-            label: mark.isEmpty ? e.name : mark,
-            volume: e.volumeL,
-            workingPressure: e.workingPressureBar,
-            material: e.tankMaterial,
             sortOrder: start + i,
-            createdAt: now,
-            updatedAt: now,
+            now: now,
           ),
         );
       }
@@ -232,24 +231,26 @@ class _AddTripCylindersSheetState
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
-            SegmentedButton<_AddMode>(
-              segments: [
-                ButtonSegment(
-                  value: _AddMode.rental,
-                  label: Text(l10n.trips_cylinders_add_tabRental),
-                ),
-                ButtonSegment(
-                  value: _AddMode.owned,
-                  label: Text(l10n.trips_cylinders_add_tabOwned),
-                ),
-              ],
-              selected: {_mode},
-              onSelectionChanged: (s) => setState(() {
-                _mode = s.first;
-                _error = null;
-              }),
-            ),
-            const SizedBox(height: 12),
+            if (!widget.rentalOnly) ...[
+              SegmentedButton<_AddMode>(
+                segments: [
+                  ButtonSegment(
+                    value: _AddMode.rental,
+                    label: Text(l10n.trips_cylinders_add_tabRental),
+                  ),
+                  ButtonSegment(
+                    value: _AddMode.owned,
+                    label: Text(l10n.trips_cylinders_add_tabOwned),
+                  ),
+                ],
+                selected: {_mode},
+                onSelectionChanged: (s) => setState(() {
+                  _mode = s.first;
+                  _error = null;
+                }),
+              ),
+              const SizedBox(height: 12),
+            ],
             if (_mode == _AddMode.rental) ...[
               TextField(
                 controller: _count,

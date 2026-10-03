@@ -26443,6 +26443,40 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_add_action => 'Añadir';
+
+  @override
+  String get trips_gear_add_fromEquipment => 'De mi equipo';
+
+  @override
+  String get trips_gear_add_fromSet => 'Un conjunto de equipo';
+
+  @override
+  String get trips_gear_add_rental => 'Botellas de alquiler';
+
+  @override
+  String get trips_gear_section_packed => 'Preparado';
+
+  @override
+  String get trips_gear_section_cylinders => 'Botellas';
+
+  @override
+  String get trips_gear_empty_upcoming =>
+      'Aún no hay nada preparado. Añade el equipo que llevarás y las botellas con las que bucearás.';
+
+  @override
+  String get trips_gear_empty_past => 'No se preparó nada para este viaje.';
+
+  @override
+  String get trips_gear_slot_rental => 'Alquiler';
+
+  @override
+  String get trips_gear_slot_own => 'Mi equipo';
+
+  @override
+  String get trips_gear_openBoard => 'Abrir tablero';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Hoy se necesitan $needed, tienes $full llenas.';
   }

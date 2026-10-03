@@ -26096,6 +26096,40 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_add_action => 'إضافة';
+
+  @override
+  String get trips_gear_add_fromEquipment => 'من معداتي';
+
+  @override
+  String get trips_gear_add_fromSet => 'مجموعة معدات';
+
+  @override
+  String get trips_gear_add_rental => 'أسطوانات مستأجرة';
+
+  @override
+  String get trips_gear_section_packed => 'مُجهز';
+
+  @override
+  String get trips_gear_section_cylinders => 'الأسطوانات';
+
+  @override
+  String get trips_gear_empty_upcoming =>
+      'لم يُجهز شيء بعد. أضف المعدات التي ستحضرها والأسطوانات التي ستغوص بها.';
+
+  @override
+  String get trips_gear_empty_past => 'لم يُجهز شيء لهذه الرحلة.';
+
+  @override
+  String get trips_gear_slot_rental => 'مستأجرة';
+
+  @override
+  String get trips_gear_slot_own => 'معداتي';
+
+  @override
+  String get trips_gear_openBoard => 'فتح اللوحة';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'اليوم يحتاج إلى $needed، ولديك $full ممتلئة.';
   }

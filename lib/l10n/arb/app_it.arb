@@ -7479,6 +7479,17 @@
   "trips_gear_failed": "Impossibile modificare l'attrezzatura. Riprova.",
   "trips_gear_useSet": "Usa set",
   "trips_gear_packedFromSet": "{count, plural, =0{Tutto il contenuto di {name} è già preparato} one{{count} elemento di {name} preparato} other{{count} elementi di {name} preparati}}",
+  "trips_gear_add_action": "Aggiungi",
+  "trips_gear_add_fromEquipment": "Dalla mia attrezzatura",
+  "trips_gear_add_fromSet": "Un set di attrezzatura",
+  "trips_gear_add_rental": "Bombole a noleggio",
+  "trips_gear_section_packed": "In valigia",
+  "trips_gear_section_cylinders": "Bombole",
+  "trips_gear_empty_upcoming": "Niente in valigia per ora. Aggiungi l'attrezzatura che porterai e le bombole con cui immergerti.",
+  "trips_gear_empty_past": "Per questo viaggio non è stato preparato niente.",
+  "trips_gear_slot_rental": "Noleggio",
+  "trips_gear_slot_own": "La mia attrezzatura",
+  "trips_gear_openBoard": "Apri il quadro",
   "trips_cylinders_forecast_todayShort": "Oggi ne servono {needed}, ne hai {full} piene.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

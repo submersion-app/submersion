@@ -7585,6 +7585,17 @@
   "trips_gear_failed": "No se pudo cambiar el equipo. Inténtalo de nuevo.",
   "trips_gear_useSet": "Usar conjunto",
   "trips_gear_packedFromSet": "{count, plural, =0{Todo lo de {name} ya está preparado} one{{count} elemento de {name} preparado} other{{count} elementos de {name} preparados}}",
+  "trips_gear_add_action": "Añadir",
+  "trips_gear_add_fromEquipment": "De mi equipo",
+  "trips_gear_add_fromSet": "Un conjunto de equipo",
+  "trips_gear_add_rental": "Botellas de alquiler",
+  "trips_gear_section_packed": "Preparado",
+  "trips_gear_section_cylinders": "Botellas",
+  "trips_gear_empty_upcoming": "Aún no hay nada preparado. Añade el equipo que llevarás y las botellas con las que bucearás.",
+  "trips_gear_empty_past": "No se preparó nada para este viaje.",
+  "trips_gear_slot_rental": "Alquiler",
+  "trips_gear_slot_own": "Mi equipo",
+  "trips_gear_openBoard": "Abrir tablero",
   "trips_cylinders_forecast_todayShort": "Hoy se necesitan {needed}, tienes {full} llenas.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

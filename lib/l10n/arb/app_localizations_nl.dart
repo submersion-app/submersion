@@ -26228,6 +26228,40 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_add_action => 'Toevoegen';
+
+  @override
+  String get trips_gear_add_fromEquipment => 'Uit mijn uitrusting';
+
+  @override
+  String get trips_gear_add_fromSet => 'Een uitrustingsset';
+
+  @override
+  String get trips_gear_add_rental => 'Huurflessen';
+
+  @override
+  String get trips_gear_section_packed => 'Ingepakt';
+
+  @override
+  String get trips_gear_section_cylinders => 'Flessen';
+
+  @override
+  String get trips_gear_empty_upcoming =>
+      'Nog niets ingepakt. Voeg de uitrusting toe die je meeneemt en de flessen waarmee je duikt.';
+
+  @override
+  String get trips_gear_empty_past => 'Voor deze reis is niets ingepakt.';
+
+  @override
+  String get trips_gear_slot_rental => 'Huur';
+
+  @override
+  String get trips_gear_slot_own => 'Mijn uitrusting';
+
+  @override
+  String get trips_gear_openBoard => 'Overzicht openen';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Vandaag zijn er $needed nodig, je hebt er $full vol.';
   }

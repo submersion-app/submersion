@@ -47,30 +47,35 @@ class TripServiceAlertList extends ConsumerWidget {
                 color: serviceSeverityDotColor(context, alert.status.severity),
               ),
               title: Text(alert.item.name),
-              subtitle: Text(_alertSubtitle(context, units, alert.status)),
+              subtitle: Text(
+                tripServiceAlertSubtitle(context, units, alert.status),
+              ),
               onTap: () => context.push('/equipment/${alert.item.id}'),
             ),
           ),
       ],
     );
   }
+}
 
-  String _alertSubtitle(
-    BuildContext context,
-    UnitFormatter units,
-    ServiceClockStatus status,
-  ) {
-    // Key off severity, not now-vs-dueDate: a clock overdue on dives/hours can
-    // still have a future (or null) date trigger, and must read as "overdue".
-    // Non-overdue alerts only reach the list with a concrete future dueDate
-    // (see tripServiceAlertsProvider), so "due before {date}" is always safe.
-    final dueDate = status.dueDate;
-    if (status.severity == ServiceClockSeverity.overdue || dueDate == null) {
-      return context.l10n.equipment_service_overdue(status.kind.name);
-    }
-    return context.l10n.trips_serviceAlert_dueBefore(
-      status.kind.name,
-      units.formatDate(dueDate),
-    );
+/// The one line under a gear row or alert row that says when a clock falls
+/// due: the shared overdue sentence, or "due before {date}" for a clock
+/// still ahead. Composed here and nowhere else (the wording guard).
+String tripServiceAlertSubtitle(
+  BuildContext context,
+  UnitFormatter units,
+  ServiceClockStatus status,
+) {
+  // Key off severity, not now-vs-dueDate: a clock overdue on dives/hours can
+  // still have a future (or null) date trigger, and must read as "overdue".
+  // Non-overdue alerts only reach the list with a concrete future dueDate
+  // (see tripServiceAlertsProvider), so "due before {date}" is always safe.
+  final dueDate = status.dueDate;
+  if (status.severity == ServiceClockSeverity.overdue || dueDate == null) {
+    return context.l10n.equipment_service_overdue(status.kind.name);
   }
+  return context.l10n.trips_serviceAlert_dueBefore(
+    status.kind.name,
+    units.formatDate(dueDate),
+  );
 }

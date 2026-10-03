@@ -7585,6 +7585,17 @@
   "trips_gear_failed": "تعذر تغيير المعدات. حاول مرة أخرى.",
   "trips_gear_useSet": "استخدام مجموعة",
   "trips_gear_packedFromSet": "{count, plural, =0{كل ما في {name} مُجهز بالفعل} one{تم تجهيز عنصر واحد من {name}} two{تم تجهيز عنصرين من {name}} few{تم تجهيز {count} عناصر من {name}} many{تم تجهيز {count} عنصرًا من {name}} other{تم تجهيز {count} عنصر من {name}}}",
+  "trips_gear_add_action": "إضافة",
+  "trips_gear_add_fromEquipment": "من معداتي",
+  "trips_gear_add_fromSet": "مجموعة معدات",
+  "trips_gear_add_rental": "أسطوانات مستأجرة",
+  "trips_gear_section_packed": "مُجهز",
+  "trips_gear_section_cylinders": "الأسطوانات",
+  "trips_gear_empty_upcoming": "لم يُجهز شيء بعد. أضف المعدات التي ستحضرها والأسطوانات التي ستغوص بها.",
+  "trips_gear_empty_past": "لم يُجهز شيء لهذه الرحلة.",
+  "trips_gear_slot_rental": "مستأجرة",
+  "trips_gear_slot_own": "معداتي",
+  "trips_gear_openBoard": "فتح اللوحة",
   "trips_cylinders_forecast_todayShort": "اليوم يحتاج إلى {needed}، ولديك {full} ممتلئة.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

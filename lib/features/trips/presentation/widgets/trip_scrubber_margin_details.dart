@@ -8,7 +8,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Minutes for display. A shortfall rounds away from zero so a margin
 /// below zero is never shown as "0 min", which would read as breaking
 /// even; every other figure here is non-negative and rounds normally.
-String _minutes(double value) =>
+String tripScrubberMarginMinutes(double value) =>
     (value < 0 ? value.floor() : value.round()).toString();
 
 /// The banner's one-line summary: the lowest margin, or the count when
@@ -22,7 +22,7 @@ String? tripScrubberMarginSummary(
   final rated = margins.where((m) => m.marginAfter != null).toList();
   if (rated.isEmpty) return null;
   rated.sort((a, b) => a.marginAfter!.compareTo(b.marginAfter!));
-  final lowest = _minutes(rated.first.marginAfter!);
+  final lowest = tripScrubberMarginMinutes(rated.first.marginAfter!);
   return margins.length == 1
       ? l10n.trips_scrubber_bannerMargin(lowest)
       : l10n.trips_scrubber_bannerCount(margins.length, lowest);
@@ -100,9 +100,9 @@ class _MarginBlock extends StatelessWidget {
             (m.consumedSince == null
                 ? l10n.trips_scrubber_remainingNoRepack
                 : l10n.trips_scrubber_remaining)(
-              _minutes(m.remainingBefore),
-              _minutes(m.ratedMinutes!),
-              _minutes(m.consumedMinutes),
+              tripScrubberMarginMinutes(m.remainingBefore),
+              tripScrubberMarginMinutes(m.ratedMinutes!),
+              tripScrubberMarginMinutes(m.consumedMinutes),
             ),
             style: body,
           ),
@@ -111,17 +111,19 @@ class _MarginBlock extends StatelessWidget {
           style: body,
         ),
         Text(
-          '${l10n.trips_scrubber_perDive(_minutes(m.minutesPerDive))}'
+          '${l10n.trips_scrubber_perDive(tripScrubberMarginMinutes(m.minutesPerDive))}'
           '$perDiveSource',
           style: body,
         ),
         Text(
-          l10n.trips_scrubber_expectedUse(_minutes(m.expectedUse)),
+          l10n.trips_scrubber_expectedUse(
+            tripScrubberMarginMinutes(m.expectedUse),
+          ),
           style: body,
         ),
         if (m.marginAfter case final after?)
           Text(
-            l10n.trips_scrubber_margin(_minutes(after)),
+            l10n.trips_scrubber_margin(tripScrubberMarginMinutes(after)),
             style: body?.copyWith(
               fontWeight: FontWeight.bold,
               color: m.caution ? theme.colorScheme.error : null,

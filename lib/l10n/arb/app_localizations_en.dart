@@ -26003,6 +26003,40 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_add_action => 'Add';
+
+  @override
+  String get trips_gear_add_fromEquipment => 'From my equipment';
+
+  @override
+  String get trips_gear_add_fromSet => 'An equipment set';
+
+  @override
+  String get trips_gear_add_rental => 'Rental cylinders';
+
+  @override
+  String get trips_gear_section_packed => 'Packed';
+
+  @override
+  String get trips_gear_section_cylinders => 'Cylinders';
+
+  @override
+  String get trips_gear_empty_upcoming =>
+      'Nothing packed yet. Add the gear you\'ll bring and the cylinders you\'ll dive from.';
+
+  @override
+  String get trips_gear_empty_past => 'Nothing was packed for this trip.';
+
+  @override
+  String get trips_gear_slot_rental => 'Rental';
+
+  @override
+  String get trips_gear_slot_own => 'My equipment';
+
+  @override
+  String get trips_gear_openBoard => 'Open board';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Today needs $needed, you have $full full.';
   }

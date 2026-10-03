@@ -26428,6 +26428,40 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_add_action => 'Adicionar';
+
+  @override
+  String get trips_gear_add_fromEquipment => 'Do meu equipamento';
+
+  @override
+  String get trips_gear_add_fromSet => 'Um conjunto de equipamento';
+
+  @override
+  String get trips_gear_add_rental => 'Cilindros alugados';
+
+  @override
+  String get trips_gear_section_packed => 'Preparado';
+
+  @override
+  String get trips_gear_section_cylinders => 'Cilindros';
+
+  @override
+  String get trips_gear_empty_upcoming =>
+      'Ainda nada preparado. Adicione o equipamento que vai levar e os cilindros com que vai mergulhar.';
+
+  @override
+  String get trips_gear_empty_past => 'Nada foi preparado para esta viagem.';
+
+  @override
+  String get trips_gear_slot_rental => 'Aluguer';
+
+  @override
+  String get trips_gear_slot_own => 'O meu equipamento';
+
+  @override
+  String get trips_gear_openBoard => 'Abrir quadro';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Hoje são precisos $needed, tem $full cheios.';
   }
@@ -26887,8 +26921,8 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count garrafas',
-      one: '$count garrafa',
+      other: '$count cilindros',
+      one: '$count cilindro',
     );
     return '$_temp0';
   }
@@ -26942,8 +26976,8 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count mergulhadores partilham garrafas',
-      one: '$count mergulhador partilha garrafas',
+      other: '$count mergulhadores partilham cilindros',
+      one: '$count mergulhador partilha cilindros',
     );
     return '$_temp0';
   }

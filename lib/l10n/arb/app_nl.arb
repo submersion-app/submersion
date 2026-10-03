@@ -7585,6 +7585,17 @@
   "trips_gear_failed": "Kan de uitrusting niet wijzigen. Probeer het opnieuw.",
   "trips_gear_useSet": "Set gebruiken",
   "trips_gear_packedFromSet": "{count, plural, =0{Alles uit {name} is al ingepakt} one{{count} item uit {name} ingepakt} other{{count} items uit {name} ingepakt}}",
+  "trips_gear_add_action": "Toevoegen",
+  "trips_gear_add_fromEquipment": "Uit mijn uitrusting",
+  "trips_gear_add_fromSet": "Een uitrustingsset",
+  "trips_gear_add_rental": "Huurflessen",
+  "trips_gear_section_packed": "Ingepakt",
+  "trips_gear_section_cylinders": "Flessen",
+  "trips_gear_empty_upcoming": "Nog niets ingepakt. Voeg de uitrusting toe die je meeneemt en de flessen waarmee je duikt.",
+  "trips_gear_empty_past": "Voor deze reis is niets ingepakt.",
+  "trips_gear_slot_rental": "Huur",
+  "trips_gear_slot_own": "Mijn uitrusting",
+  "trips_gear_openBoard": "Overzicht openen",
   "trips_cylinders_forecast_todayShort": "Vandaag zijn er {needed} nodig, je hebt er {full} vol.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

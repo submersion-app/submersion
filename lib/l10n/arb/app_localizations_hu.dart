@@ -26342,6 +26342,41 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_add_action => 'Hozzáadás';
+
+  @override
+  String get trips_gear_add_fromEquipment => 'A felszerelésemből';
+
+  @override
+  String get trips_gear_add_fromSet => 'Egy felszerelés-készlet';
+
+  @override
+  String get trips_gear_add_rental => 'Bérelt palackok';
+
+  @override
+  String get trips_gear_section_packed => 'Bepakolva';
+
+  @override
+  String get trips_gear_section_cylinders => 'Palackok';
+
+  @override
+  String get trips_gear_empty_upcoming =>
+      'Még semmi sincs bepakolva. Add hozzá a felszerelést, amit viszel, és a palackokat, amelyekből merülsz.';
+
+  @override
+  String get trips_gear_empty_past =>
+      'Ehhez az utazáshoz semmit sem pakoltak be.';
+
+  @override
+  String get trips_gear_slot_rental => 'Bérelt';
+
+  @override
+  String get trips_gear_slot_own => 'Saját felszerelés';
+
+  @override
+  String get trips_gear_openBoard => 'Áttekintés megnyitása';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Ma $needed kell, $full teli van.';
   }

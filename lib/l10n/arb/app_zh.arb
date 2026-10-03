@@ -7765,6 +7765,17 @@
   "trips_gear_failed": "无法更改装备，请重试。",
   "trips_gear_useSet": "使用套装",
   "trips_gear_packedFromSet": "{count, plural, =0{{name} 中的装备已全部打包} other{已从 {name} 打包 {count} 件装备}}",
+  "trips_gear_add_action": "添加",
+  "trips_gear_add_fromEquipment": "从我的装备中选择",
+  "trips_gear_add_fromSet": "一套装备",
+  "trips_gear_add_rental": "租用气瓶",
+  "trips_gear_section_packed": "已打包",
+  "trips_gear_section_cylinders": "气瓶",
+  "trips_gear_empty_upcoming": "还没有打包任何东西。添加你要带的装备和要使用的气瓶。",
+  "trips_gear_empty_past": "这次旅行没有打包任何东西。",
+  "trips_gear_slot_rental": "租用",
+  "trips_gear_slot_own": "我的装备",
+  "trips_gear_openBoard": "打开看板",
   "trips_cylinders_forecast_todayShort": "今天需要 {needed} 个，你有 {full} 个满瓶。",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {

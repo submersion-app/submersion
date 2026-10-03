@@ -25081,6 +25081,39 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get trips_gear_add_action => '添加';
+
+  @override
+  String get trips_gear_add_fromEquipment => '从我的装备中选择';
+
+  @override
+  String get trips_gear_add_fromSet => '一套装备';
+
+  @override
+  String get trips_gear_add_rental => '租用气瓶';
+
+  @override
+  String get trips_gear_section_packed => '已打包';
+
+  @override
+  String get trips_gear_section_cylinders => '气瓶';
+
+  @override
+  String get trips_gear_empty_upcoming => '还没有打包任何东西。添加你要带的装备和要使用的气瓶。';
+
+  @override
+  String get trips_gear_empty_past => '这次旅行没有打包任何东西。';
+
+  @override
+  String get trips_gear_slot_rental => '租用';
+
+  @override
+  String get trips_gear_slot_own => '我的装备';
+
+  @override
+  String get trips_gear_openBoard => '打开看板';
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return '今天需要 $needed 个，你有 $full 个满瓶。';
   }

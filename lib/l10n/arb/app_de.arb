@@ -7688,6 +7688,17 @@
   "trips_gear_failed": "Die Ausrüstung konnte nicht geändert werden. Versuche es erneut.",
   "trips_gear_useSet": "Set verwenden",
   "trips_gear_packedFromSet": "{count, plural, =0{Alles aus {name} ist bereits gepackt} one{{count} Teil aus {name} gepackt} other{{count} Teile aus {name} gepackt}}",
+  "trips_gear_add_action": "Hinzufügen",
+  "trips_gear_add_fromEquipment": "Aus meiner Ausrüstung",
+  "trips_gear_add_fromSet": "Ein Ausrüstungsset",
+  "trips_gear_add_rental": "Leihflaschen",
+  "trips_gear_section_packed": "Gepackt",
+  "trips_gear_section_cylinders": "Flaschen",
+  "trips_gear_empty_upcoming": "Noch nichts gepackt. Füge die Ausrüstung hinzu, die du mitnimmst, und die Flaschen, aus denen du tauchst.",
+  "trips_gear_empty_past": "Für diese Reise wurde nichts gepackt.",
+  "trips_gear_slot_rental": "Leihflasche",
+  "trips_gear_slot_own": "Meine Ausrüstung",
+  "trips_gear_openBoard": "Übersicht öffnen",
   "trips_cylinders_forecast_todayShort": "Heute werden {needed} gebraucht, du hast {full} volle.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
