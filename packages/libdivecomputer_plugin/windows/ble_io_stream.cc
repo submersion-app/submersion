@@ -1094,11 +1094,17 @@ int BleIoStream::PerformWrite(const void* data, size_t size,
         // Mirrors ReadPollPolicy.writeOutcome on Android and darwin.
         if (read_poller_ &&
             result.Status() == GattCommunicationStatus::ProtocolError) {
+            auto att_error = result.ProtocolError();
+            std::string code =
+                att_error ? ", ATT error " +
+                                std::to_string(static_cast<unsigned>(
+                                    att_error.Value()))
+                          : "";
             NativeLogger::Warn(
                 kBleCategory,
                 "write: the computer rejected a " + std::to_string(size) +
                     "-byte command (" + DescribeGattStatus(result.Status()) +
-                    "); treating it as sent and reading the reply");
+                    code + "); treating it as sent and reading the reply");
             *actual = size;
             return LIBDC_STATUS_SUCCESS;
         }

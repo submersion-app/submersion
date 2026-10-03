@@ -278,7 +278,7 @@ class BleIoStream(
                 writeCharacteristic = service.characteristics[selection.writeIndex]
                 readCharacteristic = char
                 responsePathReady = true
-                NativeLogger.i(TAG, "BLE",
+                NativeLogger.d(TAG, "BLE",
                     "read-poll tier selected: service=${service.uuid} characteristic=${char.uuid}" +
                         " props=0x${char.properties.toString(16)}")
                 connectSemaphore.release()
@@ -1193,16 +1193,13 @@ class BleIoStream(
         // completion said, so a rejection on a live link is reported as sent
         // and the read decides (issue #1454, ReadPollPolicy.writeOutcome).
         // `connected` is cleared before the disconnect path wakes this wait.
-        if (readCharacteristic != null) {
-            when (ReadPollPolicy.writeOutcome(accepted, connected)) {
-                ReadPollPolicy.WriteOutcome.SENT -> return data.size
-                ReadPollPolicy.WriteOutcome.SENT_DESPITE_REJECTION -> {
-                    NativeLogger.w(TAG, "BLE",
-                        GattDiagnostics.describeRejectedReadPollWrite(status, data.size))
-                    return data.size
-                }
-                ReadPollPolicy.WriteOutcome.FAILED -> Unit
-            }
+        if (readCharacteristic != null &&
+            ReadPollPolicy.writeOutcome(accepted, connected) ==
+            ReadPollPolicy.WriteOutcome.SENT_DESPITE_REJECTION
+        ) {
+            NativeLogger.w(TAG, "BLE",
+                GattDiagnostics.describeRejectedReadPollWrite(status, data.size))
+            return data.size
         }
 
         // A write the peripheral rejected must be reported as a failure.

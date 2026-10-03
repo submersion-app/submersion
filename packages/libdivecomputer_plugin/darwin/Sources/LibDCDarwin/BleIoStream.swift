@@ -1084,7 +1084,7 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             writeCharacteristic = writeChar
             readCharacteristic = responseChar
             writeWithoutResponsePreferred = initialWriteWithoutResponsePreference(for: writeChar)
-            NativeLogger.i("BleIoStream", category: "BLE",
+            NativeLogger.d("BleIoStream", category: "BLE",
                 "read-poll tier selected: service=\(entry.service.uuid.uuidString)"
                     + " characteristic=\(responseChar.uuid.uuidString)"
                     + " (\(Self.propertySummary(responseChar.properties)))")
