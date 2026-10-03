@@ -343,6 +343,72 @@ void main() {
     },
   );
 
+  group('tapping a route card', () {
+    Future<void> pumpRouted(WidgetTester tester) async {
+      final overrides = await getBaseOverrides();
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, _) => const NavTrackListPage()),
+          GoRoute(
+            path: '/nav-routes/:id',
+            builder: (_, state) =>
+                Text('route page ${state.pathParameters['id']}'),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            allNavTracksProvider.overrideWith(
+              (ref) async => [_route(id: 'r1', name: 'Wreck')],
+            ),
+          ],
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('opens the route on a phone', (tester) async {
+      await pumpRouted(tester);
+
+      await tester.tap(find.text('Wreck'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('route page r1'), findsOneWidget);
+    });
+
+    testWidgets('selects and opens the route in the master-detail layout', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1400, 900);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      await pumpRouted(tester);
+      final listCard = find.ancestor(
+        of: find.text('Wreck', skipOffstage: false),
+        matching: find.byType(Card, skipOffstage: false),
+      );
+      expect(tester.widget<Card>(listCard).color, isNull);
+
+      await tester.tap(find.text('Wreck'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('route page r1'), findsOneWidget);
+      // The list below the opened route marks the card it was opened from.
+      expect(tester.widget<Card>(listCard).color, isNotNull);
+    });
+  });
+
   testWidgets('tapping a linked row\'s dive badge opens the linked dive', (
     tester,
   ) async {
