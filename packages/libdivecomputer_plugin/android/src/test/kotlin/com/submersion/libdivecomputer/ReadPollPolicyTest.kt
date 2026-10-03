@@ -1,6 +1,7 @@
 package com.submersion.libdivecomputer
 
 import com.submersion.libdivecomputer.ReadPollPolicy.Action
+import com.submersion.libdivecomputer.ReadPollPolicy.WriteOutcome
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -115,5 +116,31 @@ class ReadPollPolicyTest {
     fun negativeClockStillIssuesImmediately() {
         val policy = ReadPollPolicy()
         assertEquals(Action.ISSUE_READ, policy.next(-5_000_000L))
+    }
+
+    // The Seac Tablet answers its 7-byte command writes with ATT 0x0D while
+    // the link stays up (issue #1454); the write counts as sent so the reply
+    // read decides, as it does in Subsurface.
+    @Test
+    fun aWriteRejectedOnALiveLinkCountsAsSent() {
+        assertEquals(
+            WriteOutcome.SENT_DESPITE_REJECTION,
+            ReadPollPolicy.writeOutcome(accepted = false, linkUp = true)
+        )
+    }
+
+    // A write lost to a dropped link can never be answered, so it still fails.
+    @Test
+    fun aWriteRejectedOnADroppedLinkFails() {
+        assertEquals(
+            WriteOutcome.FAILED,
+            ReadPollPolicy.writeOutcome(accepted = false, linkUp = false)
+        )
+    }
+
+    @Test
+    fun anAcceptedWriteIsSent() {
+        assertEquals(WriteOutcome.SENT, ReadPollPolicy.writeOutcome(accepted = true, linkUp = true))
+        assertEquals(WriteOutcome.SENT, ReadPollPolicy.writeOutcome(accepted = true, linkUp = false))
     }
 }

@@ -278,7 +278,7 @@ class BleIoStream(
                 writeCharacteristic = service.characteristics[selection.writeIndex]
                 readCharacteristic = char
                 responsePathReady = true
-                NativeLogger.d(TAG, "BLE",
+                NativeLogger.i(TAG, "BLE",
                     "read-poll tier selected: service=${service.uuid} characteristic=${char.uuid}" +
                         " props=0x${char.properties.toString(16)}")
                 connectSemaphore.release()
@@ -1186,12 +1186,32 @@ class BleIoStream(
         // the previous one is still in flight.
         if (!writeSemaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS)) return -1
 
+        val status = lastWriteStatus
+        val accepted = status == BluetoothGatt.GATT_SUCCESS
+
+        // A read-poll computer's reply is fetched by a read whatever the write
+        // completion said, so a rejection on a live link is reported as sent
+        // and the read decides (issue #1454, ReadPollPolicy.writeOutcome).
+        // `connected` is cleared before the disconnect path wakes this wait.
+        if (readCharacteristic != null) {
+            when (ReadPollPolicy.writeOutcome(accepted, connected)) {
+                ReadPollPolicy.WriteOutcome.SENT -> return data.size
+                ReadPollPolicy.WriteOutcome.SENT_DESPITE_REJECTION -> {
+                    NativeLogger.w(TAG, "BLE",
+                        GattDiagnostics.describeRejectedReadPollWrite(status, data.size))
+                    return data.size
+                }
+                ReadPollPolicy.WriteOutcome.FAILED -> Unit
+            }
+        }
+
         // A write the peripheral rejected must be reported as a failure.
         // Returning data.size regardless would tell libdivecomputer the
         // command went out, leaving it waiting for a reply that can never
         // come. darwin already fails the write on lastWriteError.
-        if (lastWriteStatus != BluetoothGatt.GATT_SUCCESS) {
-            NativeLogger.e(TAG, "BLE", "write: failed status=$lastWriteStatus")
+        if (!accepted) {
+            NativeLogger.e(TAG, "BLE",
+                "write: failed status=$status (${GattDiagnostics.describeAttStatus(status)})")
             return -1
         }
 

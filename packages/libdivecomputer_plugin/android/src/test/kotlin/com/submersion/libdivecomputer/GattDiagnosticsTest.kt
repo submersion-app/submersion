@@ -347,4 +347,16 @@ class GattDiagnosticsTest {
                 )
         )
     }
+
+    // The line a read-poll stream logs when it keeps going past a rejected
+    // write (issue #1454) names the status, its meaning and the payload size,
+    // so one default-level log says which write the computer refused.
+    @Test
+    fun rejectedReadPollWriteNamesStatusAndSize() {
+        val message = GattDiagnostics.describeRejectedReadPollWrite(
+            GattDiagnostics.ATT_INVALID_ATTRIBUTE_LENGTH, 7)
+        assertTrue(message.contains("status=13"))
+        assertTrue(message.contains("attribute length"))
+        assertTrue(message.contains("7-byte"))
+    }
 }

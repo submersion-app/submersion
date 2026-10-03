@@ -34,11 +34,37 @@ class ReadPollPolicy {
         CLOSED
     }
 
+    // How a command write on a read-poll characteristic is reported to
+    // libdivecomputer once its completion is in.
+    enum class WriteOutcome {
+        // The computer accepted it.
+        SENT,
+        // The computer answered with an error on a live link; report it sent.
+        SENT_DESPITE_REJECTION,
+        // The link dropped under it; fail it.
+        FAILED
+    }
+
     companion object {
         // Delay before re-reading after an empty value or a failed read.
         const val RETRY_DELAY_MS = 100L
         // Longest a waiting reader sleeps before asking the policy again.
         const val WAIT_SLICE_MS = 100L
+
+        // A rejected write counts as sent while the link is up. The Seac
+        // Tablet accepts its 1-byte wake-up write but answers every 7-byte
+        // command with ATT 0x0D (invalid attribute value length), and
+        // Subsurface, the only client known to download it over BLE, never
+        // looks at a write's status (qt-ble.cpp BLEObject::write). Failing the
+        // write ends the download before the reply is read; reporting it sent
+        // lets the read decide, and a command that really was dropped times
+        // out there and is retried by libdivecomputer. A write lost to a
+        // dropped link can never be answered, so it still fails.
+        fun writeOutcome(accepted: Boolean, linkUp: Boolean): WriteOutcome = when {
+            accepted -> WriteOutcome.SENT
+            linkUp -> WriteOutcome.SENT_DESPITE_REJECTION
+            else -> WriteOutcome.FAILED
+        }
     }
 
     var readInFlight = false

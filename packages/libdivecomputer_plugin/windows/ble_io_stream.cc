@@ -1085,6 +1085,24 @@ int BleIoStream::PerformWrite(const void* data, size_t size,
                 .WriteValueWithResultAsync(writer.DetachBuffer(),
                                            write_option)
                 .get();
+        // A read-poll computer's reply is fetched by a read whatever the
+        // write completion said, so a rejection is reported as sent and the
+        // read decides (issue #1454). ProtocolError is the computer answering
+        // with an ATT error, so the link is up; the Seac Tablet answers its
+        // 7-byte commands with ATT 0x0D, and Subsurface, the only client
+        // known to download it over BLE, never looks at a write's status.
+        // Mirrors ReadPollPolicy.writeOutcome on Android and darwin.
+        if (read_poller_ &&
+            result.Status() == GattCommunicationStatus::ProtocolError) {
+            NativeLogger::Warn(
+                kBleCategory,
+                "write: the computer rejected a " + std::to_string(size) +
+                    "-byte command (" + DescribeGattStatus(result.Status()) +
+                    "); treating it as sent and reading the reply");
+            *actual = size;
+            return LIBDC_STATUS_SUCCESS;
+        }
+
         if (result.Status() != GattCommunicationStatus::Success) {
             *actual = 0;
             return LIBDC_STATUS_IO;

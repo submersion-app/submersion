@@ -109,6 +109,21 @@ do {
     expect(issued == 60, "no-spin: one read per 100 ms over 6000 ms, got \(issued)")
 }
 
+// 10. The Seac Tablet answers its 7-byte command writes with ATT 0x0D while
+// the link stays up (issue #1454): the write counts as sent so the reply read
+// decides, as it does in Subsurface. A write lost to a dropped link still
+// fails, and an accepted write is sent either way.
+do {
+    expect(ReadPollPolicy.writeOutcome(accepted: false, linkUp: true) == .sentDespiteRejection,
+           "write: rejected on a live link counts as sent")
+    expect(ReadPollPolicy.writeOutcome(accepted: false, linkUp: false) == .failed,
+           "write: rejected on a dropped link fails")
+    expect(ReadPollPolicy.writeOutcome(accepted: true, linkUp: true) == .sent,
+           "write: accepted on a live link is sent")
+    expect(ReadPollPolicy.writeOutcome(accepted: true, linkUp: false) == .sent,
+           "write: accepted before the link dropped is sent")
+}
+
 if failures == 0 {
     print("All ReadPollPolicy tests passed.")
     exit(0)

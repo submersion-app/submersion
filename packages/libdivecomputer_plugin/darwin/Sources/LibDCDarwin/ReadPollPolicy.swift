@@ -38,6 +38,31 @@ struct ReadPollPolicy {
     /// Longest a waiting reader sleeps before asking the policy again.
     static let waitSliceMs: UInt64 = 100
 
+    /// How a command write on a read-poll characteristic is reported to
+    /// libdivecomputer once its completion is in.
+    enum WriteOutcome: Equatable {
+        /// The computer accepted it.
+        case sent
+        /// The computer answered with an error on a live link; report it sent.
+        case sentDespiteRejection
+        /// The link dropped under it; fail it.
+        case failed
+    }
+
+    /// A rejected write counts as sent while the link is up. The Seac Tablet
+    /// accepts its 1-byte wake-up write but answers every 7-byte command with
+    /// ATT 0x0D (invalid attribute value length), and Subsurface, the only
+    /// client known to download it over BLE, never looks at a write's status
+    /// (qt-ble.cpp BLEObject::write). Failing the write ends the download
+    /// before the reply is read; reporting it sent lets the read decide, and a
+    /// command that really was dropped times out there and is retried by
+    /// libdivecomputer. A write lost to a dropped link can never be answered,
+    /// so it still fails. Mirrored by ReadPollPolicy.writeOutcome in Kotlin.
+    static func writeOutcome(accepted: Bool, linkUp: Bool) -> WriteOutcome {
+        if accepted { return .sent }
+        return linkUp ? .sentDespiteRejection : .failed
+    }
+
     private(set) var readInFlight = false
     private var discardInFlight = false
     private var retryNotBeforeMs: UInt64 = 0
