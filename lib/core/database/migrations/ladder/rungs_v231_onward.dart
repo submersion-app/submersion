@@ -190,5 +190,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankUsageDurationColumn();
     }
     if (from < 259) await reportProgress();
+    // v260: dive_tanks.shared_computer_ids (issue #2560), then infer the
+    // shared cylinders of dives consolidated before the fold recorded them.
+    // beforeOpen repeats both on every open for dives that arrive later.
+    if (from < 260) {
+      await _assertTankSharedComputerIds();
+    }
+    if (from < 260) await reportProgress();
   }
 }

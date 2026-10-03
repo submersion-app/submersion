@@ -278,6 +278,11 @@ class DiveTanks extends Table {
   // takes no parsed tank, which is what a reassignment leaves behind.
   IntColumn get sourceTankIndex => integer().nullable()();
 
+  /// v260: the other computers on a consolidated dive that logged this same
+  /// cylinder, as a JSON array of computer ids (tank_shared_computers.dart).
+  /// Computer-owned like [computerId]: the fold writes it, edits never do.
+  TextColumn get sharedComputerIds => text().nullable()();
+
   /// v202: the regulator breathed from this cylinder, so high-O2 exposure
   /// reaches the regulator's service clocks. User-authored; downloads and
   /// re-parses never write it.

@@ -20,6 +20,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
@@ -1059,8 +1060,19 @@ ProfileAnalysisService _analysisServiceFor(AnalysisSettings inputs) =>
 /// data source's own samples. [computerId] scopes tank data to the owning
 /// computer: null keeps the legacy behavior (all tanks, used for
 /// single-source dives); non-null restricts gas mix and tank pressures to
-/// that computer's tanks plus unattributed (manually added) tanks, which
-/// belong to the dive rather than to either computer.
+/// the tanks that computer breathed ([DiveTank.isUsedBy]): its own, the
+/// cylinders it shares with another computer, and unattributed (manually
+/// added) tanks, which belong to the dive rather than to either computer.
+///
+/// [sourceId] is the data source [profile] belongs to; with [computerId] it
+/// picks that source's own pressure series on each tank.
+///
+/// [decoSource] is the non-primary data source whose samples [profile] is:
+/// its own recorded gradient factors and deco algorithm drive the
+/// recompute. The dive row carries only the primary computer's (or the
+/// diver's edit of them), so a consolidated secondary analysed with those
+/// shows another computer's ceiling, deco status and tissue loading. Null
+/// reads them from [dive].
 ///
 /// [perSource] marks the analysis of one data source's samples rather than
 /// the whole dive. It scopes which computer's events displace computed ones
@@ -1073,6 +1085,8 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
   Dive dive,
   List<DiveProfilePoint> profile, {
   String? computerId,
+  String? sourceId,
+  DiveDataSource? decoSource,
   bool perSource = false,
 }) async {
   {
@@ -1113,23 +1127,34 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
               ),
             );
     }
+    // A computer breathed the tanks it owns, the ones it shares with another
+    // computer (a consolidated cylinder both logged), and unattributed ones.
     final tanks = computerId == null
         ? dive.tanks
-        : dive.tanks
-              .where((t) => t.computerId == null || t.computerId == computerId)
-              .toList();
+        : dive.tanks.where((t) => t.isUsedBy(computerId)).toList();
     final tankIds = {for (final t in tanks) t.id};
     final repository = ref.watch(diveRepositoryProvider);
     // Resolve GF values: use dive-specific if provided, else user settings.
     // Resolved here rather than inside the isolate because only this side
     // knows the dive; the source is stamped onto the returned analysis below
     // so a display can name the origin of every deco number it prints (#1047).
+    final (
+      recordedGfLow,
+      recordedGfHigh,
+      recordedAlgorithm,
+    ) = decoSource != null
+        ? (
+            decoSource.gradientFactorLow,
+            decoSource.gradientFactorHigh,
+            decoSource.decoAlgorithm,
+          )
+        : (dive.gradientFactorLow, dive.gradientFactorHigh, dive.decoAlgorithm);
     final gfSource = GradientFactorSource.resolve(
-      diveGfLow: dive.gradientFactorLow,
-      diveGfHigh: dive.gradientFactorHigh,
+      diveGfLow: recordedGfLow,
+      diveGfHigh: recordedGfHigh,
       settingsGfLow: inputs.gfLow,
       settingsGfHigh: inputs.gfHigh,
-      recordedAlgorithm: dive.decoAlgorithm,
+      recordedAlgorithm: recordedAlgorithm,
     );
     if (gfSource.origin == GfOrigin.computer) {
       _log.debug(
@@ -1147,15 +1172,20 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     if (tanks.isNotEmpty) {
       // Load per-tank pressure data from the tank_pressure_series table
       final tankPressureRepo = ref.watch(tankPressureRepositoryProvider);
-      final allTankPressures = await tankPressureRepo.getTankPressuresForDive(
-        diveId,
-      );
-      // Scope pressure curves to the requested computer's tanks; null keeps
-      // every tank (primary-source / legacy behavior).
+      // Scope pressure curves to the requested computer: its own series on
+      // each tank it breathed. A cylinder two computers share carries both
+      // computers' series, and the dive-wide read prefers the primary's, so
+      // a secondary would otherwise analyse another computer's curve
+      // (#2560). Null keeps every tank (primary-source / legacy behavior).
       final tankPressures = computerId == null
-          ? allTankPressures
+          ? await tankPressureRepo.getTankPressuresForDive(diveId)
           : <String, List<TankPressurePoint>>{
-              for (final entry in allTankPressures.entries)
+              for (final entry
+                  in (await tankPressureRepo.getTankPressuresForComputer(
+                    diveId,
+                    computerId,
+                    sourceId: sourceId,
+                  )).entries)
                 if (tankIds.contains(entry.key)) entry.key: entry.value,
             };
 
@@ -1222,16 +1252,21 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     final gasSegments = switch (dive.diveMode) {
       DiveMode.oc => buildProfileGasSegments(
         dive,
-        // Scope switches to this computer's own tanks: on a multi-source
+        // Scope switches to this computer's own gas plan: on a multi-source
         // dive, getGasSwitchesForDive returns every computer's switches on
         // its own clock, and mixing another computer's timestamps into this
         // source's schedule can produce a non-monotonic list that
         // BuhlmannAlgorithm rejects outright (#garmin-cloud-merge-analysis-
-        // blank), silently blanking every decompression/gas overlay.
+        // blank), silently blanking every decompression/gas overlay. A
+        // switch must go to a tank this computer breathed, and be its own
+        // or unattributed: a cylinder two computers share carries both
+        // computers' switches (#2560).
         (await repository.getGasSwitchesForDive(diveId))
             .where(
               (gs) =>
-                  computerId == null || tankIds.contains(gs.gasSwitch.tankId),
+                  computerId == null ||
+                  (tankIds.contains(gs.gasSwitch.tankId) &&
+                      gs.gasSwitch.appliesTo(computerId)),
             )
             .toList(),
         tanks: tanks,
@@ -1426,11 +1461,15 @@ final sourceProfileAnalysisProvider =
         if (sourceProfile.points.isEmpty) {
           return null;
         }
+        final source = sources.firstWhere((s) => s.id == effectiveSourceId);
         return await computeAnalysisForProfile(
           ref,
           dive,
           sourceProfile.points,
           computerId: sourceProfile.computerId,
+          sourceId: sourceProfile.sourceId,
+          // A secondary computer's own GFs; the dive row holds the primary's.
+          decoSource: source.isPrimary ? null : source,
           perSource: true,
         );
       } catch (e, stackTrace) {

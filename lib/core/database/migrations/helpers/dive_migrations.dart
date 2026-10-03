@@ -2,6 +2,28 @@ part of '../app_database_migrations.dart';
 
 /// Dives, dive tanks and the values derived from a dive.
 extension DiveMigrations on AppDatabase {
+  /// v260: dive_tanks.shared_computer_ids (issue #2560), the other computers
+  /// on a consolidated dive that logged the same cylinder, then the
+  /// inference for every consolidated dive nothing has recorded yet. Runs
+  /// from both onUpgrade and beforeOpen, so a dive that arrives later (folded
+  /// on an older peer, or synced into a fresh install) is inferred on the
+  /// next open. Idempotent, and a no-op when the table does not exist yet.
+  Future<void> _assertTankSharedComputerIds() async {
+    await _addColumnIfMissing('dive_tanks', 'shared_computer_ids', 'TEXT');
+    // A row the inference cannot read must not fail every open: the pass
+    // runs again on the next one, and the column above is what reads need.
+    try {
+      await backfillTankSharedComputers(this);
+    } catch (e, stackTrace) {
+      developer.log(
+        'Inferring consolidated cylinders\' sharing failed; continuing',
+        name: 'AppDatabase',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
   /// v256: dives.computer_tissue_json. Idempotent, so it is safe to call
   /// from both onUpgrade and the beforeOpen backstop, and a no-op when the
   /// table does not exist yet.

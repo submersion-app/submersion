@@ -22,6 +22,9 @@ extension BeforeOpenBackstops on AppDatabase {
 
     // v240 backstop: the events-by-dive index.
     await _assertProfileEventsDiveIdIndex();
+    // v260: dive_tanks.shared_computer_ids (#2560), and the inference for a
+    // consolidated dive that arrived since with nothing recorded.
+    await _assertTankSharedComputerIds();
 
     // v237 backstop: the dive figure switch.
     await _assertShowDiveFigureColumn();
