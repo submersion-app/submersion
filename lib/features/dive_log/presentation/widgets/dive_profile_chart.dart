@@ -6786,11 +6786,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         .toList();
     if (visibleEvents.isEmpty) return [];
 
-    // Group events by timestamp, keeping only the most severe at each time
+    // Group events by timestamp, keeping only the most severe at each time.
+    // On equal severity the computer's own event beats a computed one: it
+    // can carry the computer's exact label (#1523).
     final byTimestamp = <int, ProfileEvent>{};
     for (final event in visibleEvents) {
       final existing = byTimestamp[event.timestamp];
-      if (existing == null || event.severity.index > existing.severity.index) {
+      if (existing == null ||
+          event.severity.index > existing.severity.index ||
+          (event.severity == existing.severity &&
+              existing.source == EventSource.computed &&
+              event.source != EventSource.computed)) {
         byTimestamp[event.timestamp] = event;
       }
     }

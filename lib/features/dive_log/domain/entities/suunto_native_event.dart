@@ -59,13 +59,13 @@ enum SuuntoNativeEvent {
   /// only trusted when the event's type is one of these.
   final Set<ProfileEventType> eventTypes;
 
-  /// The event with [code], or null for a code with no entry.
-  static SuuntoNativeEvent? fromCode(int code) {
-    for (final event in values) {
-      if (event.code == code) return event;
-    }
-    return null;
-  }
+  static final Map<int, SuuntoNativeEvent> _byCode = {
+    for (final event in values) event.code: event,
+  };
+
+  /// The event with [code], or null for a code with no entry. Runs for every
+  /// marker on each chart layout and paint, hence the map.
+  static SuuntoNativeEvent? fromCode(int code) => _byCode[code];
 
   /// The Suunto event [event] records, or null when it is not one: a
   /// computed or user event, an event whose computer is not a Suunto (or is
