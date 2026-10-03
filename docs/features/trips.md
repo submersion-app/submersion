@@ -209,23 +209,40 @@ Generate trip summary:
 
 ## Planning Future Trips
 
-### Placeholder Trips
+Every trip, whatever its type, has the same six tabs: Overview, Itinerary,
+Gear, Checklist, Dives and Photos.
 
-Create trips before traveling:
+### Before departure
 
-1. Add trip with future dates
-2. Link dives as you log them
-3. Easy organization
+Until the first day the Overview is a preparation page: the countdown, then
+one card with a row for each thing to get ready (to-dos, gear, itinerary,
+plan), each opening its tab, and your notes.
 
-### Pre-Trip Info
+### Itinerary
 
-Use notes for:
+Generate fills the trip's dates with a travel day at each end and dive days
+between (embark and disembark on a liveaboard). Tap a day to set its type
+(Travel, Dive day, Rest; plus Embark, Disembark, Sea day and Port day on a
+boat), its location, notes and the number of dives you plan that day, which
+the cylinder forecast uses. A day planned at no dives is a rest day.
 
-- Flight information
-- Accommodation details
-- Emergency contacts
-- Rental gear notes
-- Visa requirements
+### Gear
+
+One list of what you'll dive with: the gear you pack from your equipment
+(service clocks falling due before the trip show on the item) and the
+cylinders you'll hold, rental or your own. Add offers all three ways in. Once
+the trip starts, the cylinders show their fill state and open the board.
+
+### Checklist
+
+Your to-dos for the trip, with templates, and the pre-dive checklist runs.
+
+### During and after the trip
+
+From the first day the Overview tells the story: a card per day with its own
+map of that day's dives (tap a pin to find the dive, or open the map
+fullscreen), the day's dives, photos and sightings. While the trip is under
+way a cylinders line sits under the heading.
 
 ## Trip Best Practices
 
