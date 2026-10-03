@@ -253,6 +253,35 @@ void main() {
       expect(harness.hostApi.calls, isNot(contains('startDownload')));
     }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
+    testWidgets(
+      'synced to iOS: Import from File opens the file import wizard',
+      (tester) async {
+        final harness = _Harness();
+        await tester.pumpWidget(harness.build(_usbComputer()));
+        await _settle(tester);
+
+        await tester.tap(find.text('Import from File'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('import wizard route'), findsOneWidget);
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+
+    testWidgets('synced to iOS: Done leaves for the page it came from', (
+      tester,
+    ) async {
+      final harness = _Harness();
+      await tester.pumpWidget(harness.build(_usbComputer()));
+      await _settle(tester);
+
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DcNoDirectDownloadView), findsNothing);
+      expect(find.text('computer detail route'), findsOneWidget);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
     testWidgets('with a stored port on iOS explains instead of downloading', (
       tester,
     ) async {
