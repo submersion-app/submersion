@@ -54,9 +54,14 @@ void main() {
     await container.read(mediaSmartAlbumsProvider.future);
 
     await repo.create(name: 'Groupers', filter: MediaLibraryFilter.none);
-    await Future<void>.delayed(const Duration(milliseconds: 100));
 
-    final albums = await container.read(mediaSmartAlbumsProvider.future);
+    // Bounded poll for the Drift tick: a fixed delay flakes on a busy runner.
+    var albums = const <MediaSmartAlbum>[];
+    for (var i = 0; i < 50; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      albums = await container.read(mediaSmartAlbumsProvider.future);
+      if (albums.isNotEmpty) break;
+    }
     expect(albums.map((a) => a.name), ['Groupers']);
     expect(repo.reads, 2);
   });
