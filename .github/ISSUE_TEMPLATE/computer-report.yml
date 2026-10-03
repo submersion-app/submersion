@@ -1,0 +1,67 @@
+name: Dive computer report
+description: Tell us how Submersion worked with your dive computer. Reports feed the support matrix at submersion.app/computers.
+title: "Computer report: "
+labels: ["computer-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Your report is public on GitHub and feeds the [support matrix](https://submersion.app/computers/), so please leave out personal details such as your name, email address or dive locations.
+  - type: input
+    id: model
+    attributes:
+      label: Dive computer
+      description: The model as the support matrix lists it. It is filled in when you start from the matrix.
+      placeholder: shearwater-perdix-3 (Shearwater Perdix 3)
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: Where you ran Submersion.
+      options:
+        - iOS
+        - Android
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Connection
+      options:
+        - Bluetooth
+        - USB
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: What happened
+      options:
+        - Downloaded dives
+        - Downloaded with problems
+        - Did not work
+    validations:
+      required: true
+  - type: input
+    id: app_version
+    attributes:
+      label: Submersion version
+      description: For example 1.8.1.
+      placeholder: 1.8.1
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Phone or computer
+      description: Optional. The device and its operating system version, for example "Pixel 8, Android 15".
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Optional. Anything that helps, such as error messages, workarounds, or how many dives came across.
