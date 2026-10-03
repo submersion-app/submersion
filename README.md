@@ -51,7 +51,7 @@ Download straight from your computer.
 
 > **Will it work with my computer?** The [support matrix](https://submersion.app/computers/)
 > lists every model, the connections each platform can use, and what divers have
-> reported. Tried one that is not verified yet? [Tell us how it went](https://github.com/submersion-app/submersion/issues).
+> reported. Tried one that is not verified yet? [Tell us how it went](https://github.com/submersion-app/submersion/issues/new?template=computer-report.yml&labels=computer-report).
 
 <img align="right" width="50%" src="docs/assets/screenshots/readme/04-sites-maps.jpg" alt="Dive site list beside an interactive map with clustered markers and a dive heat map">
 
