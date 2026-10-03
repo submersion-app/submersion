@@ -12,8 +12,8 @@ replies and forum answers have one stable URL to point divers at. It answers
 still need a report.
 
 The matrix is sourced from every place reports live: the ScubaBoard tester
-thread, GitHub issues, PRs and discussions, the app's release notes, Reddit
-r/submersion, and App Store reviews. It stays current through a
+thread, GitHub issues, PRs and discussions, the app's release notes, and App
+Store reviews. It stays current through a
 monthly re-sweep that opens a PR for review.
 
 Divers can also report their own result for any model from the page: a
@@ -164,7 +164,6 @@ capability.
   "watermarks": {
     "scubaboard": { "lastPostId": 10735581, "sweptAt": "2026-10-02" },
     "github": { "since": "2026-10-02T00:00:00Z" },
-    "reddit": { "lastCreatedUtc": 1790000000 },
     "appStore": { "lastReviewId": "...", "sweptAt": "2026-10-02" }
   },
   "reports": [
@@ -371,9 +370,8 @@ Python 3.9 or later so it works in the cloud routine as well as locally.
 | Report form (`computer-report` label) | every labelled issue | updated since `github.since` | gh REST; parsed field by field, not interpreted |
 | GitHub issues | `device sync` label (81) plus full-text vendor-name search over all 1,181, comments included | updated since `github.since` | gh REST dumps grepped locally (search rate-limits) |
 | GitHub PRs | merged device fixes | merged since `github.since` | gh REST; `fixedIn` via `git tag --contains` |
-| GitHub discussions | all 36 | updated since `github.since` | GraphQL |
+| GitHub discussions | all 36 | updated since `github.since` | gh REST (GraphQL is not available in the cloud routine) |
 | Release notes (corroborate `fixedIn` only) | `docs/releases/` | new files | repo read |
-| Reddit r/submersion | all posts and comments | newer than `lastCreatedUtc` | public `/r/submersion/new.json` and per-post comment JSON |
 | App Store | public customer-reviews RSS, every storefront | reviews newer than `lastReviewId` | no credentials; about the 500 most recent per storefront |
 
 Google Play is not swept. Its reviews are readable only through the Play
@@ -382,11 +380,16 @@ routine secret, and the Play Developer API's `reviews.list` returns only the
 last 7 days. The maintainer chose to leave Play out rather than run that
 account.
 
+Reddit r/submersion is not swept either. It rate-limited the initial sweep's
+per-post fetches, and the first cloud run got HTTP 429 on its very first
+request, so it would fail every month. The `reddit` source value stays valid
+for a report added by hand.
+
 ### Initial sweep (one time)
 
 A parallel agent fan-out: about 8 agents over the ScubaBoard pages (about 9
-pages each), and one agent each for issues, PRs, discussions, release notes,
-Reddit and the App Store.
+pages each), and one agent each for issues, PRs, discussions, release notes
+and the App Store.
 Each agent returns candidate records with permalinks. A merge pass then:
 
 - maps family names ("Suunto D-series") to catalog ids, and puts anything it
