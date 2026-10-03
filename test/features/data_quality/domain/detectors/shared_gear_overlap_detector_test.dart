@@ -103,6 +103,7 @@ void main() {
       'diverName': 'Bill',
       'entryMs': ten.millisecondsSinceEpoch,
       'linkKinds': ['gearList', 'tankCylinder'],
+      'removable': false,
     });
     expect((dives['a1']! as Map)['linkKinds'], ['gearList']);
   });
@@ -129,5 +130,45 @@ void main() {
         .single;
     expect(fromAnna.id, fromBill.id);
     expect(jsonEncode(fromAnna.params), jsonEncode(fromBill.params));
+  });
+
+  test(
+    'the scanned dive ends at its recorded exit, as the other side does',
+    () {
+      // Runtime says 40 minutes but the recorded exit is at 10:30; Anna starts
+      // at 10:26, so the real overlap is 4 minutes.
+      final findings = detector.detect(
+        makeContext(
+          dive: makeTestDive(
+            id: 'b1',
+            diverId: 'bill',
+            entry: ten,
+            runtime: const Duration(minutes: 40),
+          ).copyWith(exitTime: at(30)),
+          sharedGearOverlaps: [
+            SharedGearOverlap(
+              otherDiveId: 'a1',
+              otherDiverId: 'anna',
+              otherDiverName: 'Anna',
+              thisDiverName: 'Bill',
+              otherEntry: at(26),
+              otherExit: at(66),
+              items: [item('light')],
+            ),
+          ],
+        ),
+      );
+      expect(findings, isEmpty);
+    },
+  );
+
+  test('a side is removable only when every folded item is gear-list only', () {
+    final f = detectFromBill([
+      item('reg'),
+      item('hose', hosts: {'reg'}, mine: {'gearList', 'tankRegulator'}),
+    ]).single;
+    final dives = f.params['dives'] as Map<String, Object?>;
+    expect((dives['b1']! as Map)['removable'], isFalse);
+    expect((dives['a1']! as Map)['removable'], isTrue);
   });
 }

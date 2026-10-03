@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/shared_gear_overlap_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
@@ -57,6 +58,9 @@ void main() {
             (ref) => DiveListNotifier(repository, ref),
           ),
           customTankPresetsProvider.overrideWith((ref) async => []),
+          // An active profile, which an existing dive without one must not
+          // borrow.
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'bill'),
           sharedGearOverlapProvider.overrideWith((ref, query) async {
             queries.add(query);
             return {
@@ -86,5 +90,8 @@ void main() {
     expect(queries, isNotEmpty);
     expect(queries.last.diveId, 'dive-1');
     expect(queries.last.entry, DateTime.utc(2026, 3, 28, 10));
+    // The seeded dive has no profile, so the editor pairs it with nobody,
+    // as the scan never would (the active profile is for new dives only).
+    expect(queries.last.diverId, isNull);
   });
 }

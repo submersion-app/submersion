@@ -48,6 +48,10 @@ class QualityContextBuilder {
   /// with fewer than two, no dive can share gear with another profile's.
   int? _profileCount;
 
+  /// Profile names by id, read once per [buildAll] batch for the shared
+  /// gear overlaps.
+  Map<String, String>? _diverNames;
+
   Future<List<DiveQualityContext>> buildAll(
     List<String> diveIds, {
     DateTime? now,
@@ -56,6 +60,7 @@ class QualityContextBuilder {
     _ppO2MaxByDiver.clear();
     _knownSerialsByDiver.clear();
     _profileCount = null;
+    _diverNames = null;
     final dives = await _diveRepo.getDivesByIds(diveIds);
     final out = <DiveQualityContext>[];
     for (final dive in dives) {
@@ -222,6 +227,10 @@ class QualityContextBuilder {
     final sharedIds = {for (final m in theirs.values) ...m.keys}.toList()
       ..sort();
     final names = <String, String>{};
+    // Assembly links of a gear row belong to its dive: a pair folds by the
+    // rows of its own two dives only, or a third dive nearby could make the
+    // two sides of the pair fold differently.
+    final viaByDive = <String, Map<String, Set<String>>>{};
     final hosts = <String, Set<String>>{
       for (final id in sharedIds) id: <String>{},
     };
@@ -244,7 +253,12 @@ class QualityContextBuilder {
                     t.diveId.isIn([dive.id, ...theirs.keys]),
               ))
               .get()) {
-        if (g.viaEquipmentId case final via?) hosts[g.equipmentId]!.add(via);
+        if (g.viaEquipmentId case final via?) {
+          viaByDive
+              .putIfAbsent(g.diveId, () => {})
+              .putIfAbsent(g.equipmentId, () => {})
+              .add(via);
+        }
       }
     }
     final installed = <String, List<String>>{};
@@ -258,7 +272,7 @@ class QualityContextBuilder {
         installed.putIfAbsent(r.parentEquipmentId!, () => []).add(r.id);
       }
     }
-    final diverNames = {
+    final diverNames = _diverNames ??= {
       for (final r in await _db.select(_db.divers).get()) r.id: r.name,
     };
 
@@ -292,7 +306,11 @@ class QualityContextBuilder {
                 name: names[id] ?? '',
                 thisLinkKinds: mine[id]!,
                 otherLinkKinds: items[id]!,
-                hostIds: hosts[id] ?? const {},
+                hostIds: {
+                  ...?hosts[id],
+                  ...?viaByDive[dive.id]?[id],
+                  ...?viaByDive[otherId]?[id],
+                },
                 installedPartIds: (installed[id] ?? const <String>[]).toList()
                   ..sort(),
               ),

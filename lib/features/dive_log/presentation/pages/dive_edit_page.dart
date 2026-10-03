@@ -517,7 +517,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// edits before the save.
   SharedGearOverlapQuery _sharedGearQuery(String? activeDiverId) => (
     diveId: widget.diveId,
-    diverId: _existingDive?.diverId ?? activeDiverId,
+    // A new dive is saved under the active profile; an existing dive keeps
+    // its own, and one without a profile is paired with nobody, as the
+    // scan would.
+    diverId: widget.diveId == null ? activeDiverId : _existingDive?.diverId,
     entry: _currentEntryTime(),
     exit: _currentDiveEndTime(),
   );

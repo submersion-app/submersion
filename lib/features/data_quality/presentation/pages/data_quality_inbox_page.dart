@@ -348,13 +348,13 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
       case RemoveGearFromDiveRepair(
         :final diveId,
         :final otherDiveId,
-        :final equipmentId,
+        :final equipmentIds,
       ):
         await withUndo(
           () => executor.removeGearFromDive(
             diveId: diveId,
             otherDiveId: otherDiveId,
-            equipmentId: equipmentId,
+            equipmentIds: equipmentIds,
             findingId: f.id,
           ),
         );

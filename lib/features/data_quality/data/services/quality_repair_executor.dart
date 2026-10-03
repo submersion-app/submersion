@@ -365,14 +365,14 @@ class QualityRepairExecutor {
     });
   }
 
-  /// Removes [equipmentId], and everything attached through it, from one
-  /// dive of a shared gear pair (issue #2853). The removal writes a gear
+  /// Removes each of [equipmentIds] on the dive, and everything attached
+  /// through it, from one dive of a shared gear pair (issue #2853). The removal writes a gear
   /// diff and a dive bump, so it runs in one transaction; undo writes the
   /// dive's previous gear rows back. Rescans both dives of the pair.
   Future<RepairResult> removeGearFromDive({
     required String diveId,
     required String otherDiveId,
-    required String equipmentId,
+    required List<String> equipmentIds,
     required String findingId,
   }) async {
     final snapshot = [
@@ -385,11 +385,14 @@ class QualityRepairExecutor {
           viaSetId: r.viaSetId,
         ),
     ];
-    if (!snapshot.any((g) => g.equipmentId == equipmentId)) {
-      return const RepairResult.noChange();
-    }
+    final onDive = {for (final g in snapshot) g.equipmentId};
+    final present = [
+      for (final id in equipmentIds)
+        if (onDive.contains(id)) id,
+    ];
+    if (present.isEmpty) return const RepairResult.noChange();
     await _db.transaction(
-      () => _diveRepo.bulkRemoveEquipment([diveId], [equipmentId]),
+      () => _diveRepo.bulkRemoveEquipment([diveId], present),
     );
     SyncEventBus.notifyLocalChange();
     await _finish(findingId, [diveId, otherDiveId]);

@@ -38,22 +38,25 @@ class DeleteDuplicateRepair extends QualityRepairAction {
   final String deleteDiveId;
 }
 
-/// Remove a shared item from one profile's dive (issue #2853). Offered only
-/// where the dive's gear list is the item's only link: removing that row
-/// while a tank slot still links the item would leave the overlap, and the
+/// Remove a shared setup from one profile's dive (issue #2853): the top item
+/// and the parts folded into it. Offered only where the detector marked
+/// that side removable, every matched item being on the dive by its gear
+/// list alone: a tank link left behind would keep the overlap, and the
 /// rescan would reopen the finding.
 class RemoveGearFromDiveRepair extends QualityRepairAction {
   const RemoveGearFromDiveRepair({
     required this.diveId,
     required this.otherDiveId,
-    required this.equipmentId,
+    required this.equipmentIds,
     required this.diverName,
   });
   final String diveId;
 
   /// The other dive of the pair, rescanned with this one.
   final String otherDiveId;
-  final String equipmentId;
+
+  /// The top item first, then its folded and installed parts.
+  final List<String> equipmentIds;
 
   /// The profile whose dive loses the item, for the button label; empty
   /// when unknown.
@@ -414,20 +417,21 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
       if (equipmentId == null || dives is! Map || related == null) {
         return [GoToDiveRepair(diveId)];
       }
-      bool onlyGearList(Object? side) {
-        final kinds = side is Map ? side['linkKinds'] : null;
-        return kinds is List && kinds.length == 1 && kinds.single == 'gearList';
-      }
+      bool removable(Object? side) => side is Map && side['removable'] == true;
+      final ids = [
+        equipmentId,
+        for (final id in (p['partIds'] as List?) ?? const []) id as String,
+      ];
 
       String diverName(Object? side) =>
           side is Map ? (side['diverName'] as String? ?? '') : '';
       return [
         for (final (id, other) in [(diveId, related), (related, diveId)])
-          if (onlyGearList(dives[id]))
+          if (removable(dives[id]))
             RemoveGearFromDiveRepair(
               diveId: id,
               otherDiveId: other,
-              equipmentId: equipmentId,
+              equipmentIds: ids,
               diverName: diverName(dives[id]),
             ),
         GoToDiveRepair(diveId),

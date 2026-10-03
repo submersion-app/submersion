@@ -25,10 +25,14 @@ class SharedGearOverlapDetector extends QualityDetector {
 
   @override
   List<QualityFinding> detect(DiveQualityContext ctx) {
-    final runtime = ctx.dive.effectiveRuntime;
-    if (runtime == null) return const [];
     final entry = ctx.dive.effectiveEntryTime;
-    final exit = entry.add(runtime);
+    final exit = sharedGearExit(
+      entry: entry,
+      exit: ctx.dive.exitTime,
+      runtime: ctx.dive.runtime,
+      bottomTime: ctx.dive.bottomTime,
+    );
+    if (exit == null) return const [];
     final out = <QualityFinding>[];
     for (final o in ctx.sharedGearOverlaps) {
       final otherExit = o.otherExit;
@@ -50,18 +54,26 @@ class SharedGearOverlapDetector extends QualityDetector {
         final item = byId[top]!;
         final parts = {...folded[top]!, ...item.installedPartIds}.toList()
           ..sort();
+        // A side can lose this setup only when every matched item of it is
+        // on that dive by its gear list alone: a tank link left behind
+        // would keep the overlap, and the rescan would reopen it.
+        final setup = [item, for (final id in folded[top]!) byId[id]!];
+        bool gearListOnly(Set<String> kinds) =>
+            kinds.length == 1 && kinds.single == 'gearList';
         final sides = {
           ctx.dive.id: {
             'diverId': ctx.dive.diverId,
             'diverName': o.thisDiverName,
             'entryMs': entry.millisecondsSinceEpoch,
             'linkKinds': item.thisLinkKinds.toList()..sort(),
+            'removable': setup.every((i) => gearListOnly(i.thisLinkKinds)),
           },
           o.otherDiveId: {
             'diverId': o.otherDiverId,
             'diverName': o.otherDiverName,
             'entryMs': o.otherEntry.millisecondsSinceEpoch,
             'linkKinds': item.otherLinkKinds.toList()..sort(),
+            'removable': setup.every((i) => gearListOnly(i.otherLinkKinds)),
           },
         };
         final diveIds = sides.keys.toList()..sort();

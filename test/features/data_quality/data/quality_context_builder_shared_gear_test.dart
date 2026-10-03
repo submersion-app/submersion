@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/data_quality/data/services/quality_context_builder.dart';
+import 'package:submersion/features/data_quality/domain/detectors/shared_gear_overlap_detector.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
+import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -149,4 +153,47 @@ void main() {
     await (db.delete(db.divers)..where((d) => d.id.equals('anna'))).go();
     expect((await contextFor('b1')).sharedGearOverlaps, isEmpty);
   });
+
+  // A third dive's assembly links must not change how this pair folds:
+  // each side of the pair has to write the same findings (Review Focus 3).
+  test(
+    'both sides of a pair fold the same way whatever else is near',
+    () async {
+      await addItem('bcd');
+      // Anna's later dive c1 carries the light through the BCD; on the pair
+      // a1/b1 the light and the BCD are separate rows.
+      await addDive('c1', 'anna', ten + 120 * minute);
+      await addDive('d1', 'bill', ten + 120 * minute);
+      for (final dive in ['a1', 'b1', 'c1', 'd1']) {
+        await wear(dive, 'bcd');
+      }
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(
+              diveId: 'c1',
+              equipmentId: 'light',
+              viaEquipmentId: const Value('bcd'),
+            ),
+          );
+      await wear('d1', 'light');
+
+      List<QualityFinding> pairFindings(DiveQualityContext ctx) => [
+        for (final f in const SharedGearOverlapDetector().detect(ctx))
+          if ({f.diveId, f.relatedDiveId}.containsAll({'a1', 'b1'})) f,
+      ];
+      String key(List<QualityFinding> fs) =>
+          (fs.map((f) => '${f.id} ${jsonEncode(f.params)}').toList()..sort())
+              .join('\n');
+
+      final fromA = pairFindings(await contextFor('a1'));
+      final fromB = pairFindings(await contextFor('b1'));
+      expect(
+        fromA,
+        hasLength(2),
+        reason: 'light and BCD are separate on a1/b1',
+      );
+      expect(key(fromA), key(fromB));
+    },
+  );
 }

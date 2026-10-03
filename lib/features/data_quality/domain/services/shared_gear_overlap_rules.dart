@@ -14,6 +14,22 @@ bool gearUseOverlaps({
   return end.difference(start) > QualityThresholds.sharedGearOverlapTolerance;
 }
 
+/// A dive's end for the shared gear check (issue #2853), the same rule for
+/// both dives of a pair whichever side is scanned: the recorded exit, else
+/// entry plus runtime, else entry plus bottom time; null with none of them.
+/// Deliberately not `Dive.effectiveRuntime`, which also derives a runtime
+/// from the profile the other side never reads.
+DateTime? sharedGearExit({
+  required DateTime entry,
+  DateTime? exit,
+  Duration? runtime,
+  Duration? bottomTime,
+}) {
+  if (exit != null) return exit;
+  final duration = runtime ?? bottomTime;
+  return duration == null ? null : entry.add(duration);
+}
+
 /// Folds matched items into their topmost matched host or assembly parent,
 /// so one physical setup gives one finding. [hostsOf] maps each matched
 /// item to its host and assembly-parent ids; ids outside its keys are not

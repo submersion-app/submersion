@@ -955,7 +955,7 @@ void main() {
         final result = await executor.removeGearFromDive(
           diveId: 'd1',
           otherDiveId: 'd2',
-          equipmentId: 'reg',
+          equipmentIds: ['reg'],
           findingId: finding.id,
         );
         expect(result.changed, isTrue);
@@ -972,13 +972,26 @@ void main() {
       },
     );
 
+    test('removes every listed item that is on the dive', () async {
+      await seedDiveWithGear('d1');
+      final finding = await seedFindingForDive('d1');
+      final result = await executor.removeGearFromDive(
+        diveId: 'd1',
+        otherDiveId: 'd2',
+        equipmentIds: ['light', 'hose', 'gone'],
+        findingId: finding.id,
+      );
+      expect(result.changed, isTrue);
+      expect(await gearOf('d1'), {('reg', null)});
+    });
+
     test('an item already gone changes nothing', () async {
       await seedDiveWithGear('d1');
       final finding = await seedFindingForDive('d1');
       final result = await executor.removeGearFromDive(
         diveId: 'd1',
         otherDiveId: 'd2',
-        equipmentId: 'mask',
+        equipmentIds: ['mask'],
         findingId: finding.id,
       );
       expect(result.changed, isFalse);

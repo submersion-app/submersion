@@ -538,25 +538,31 @@ void main() {
   });
 
   group('shared gear overlap (issue #2853)', () {
+    bool gearListOnly(List<String> kinds) =>
+        kinds.length == 1 && kinds.single == 'gearList';
+
     Map<String, Object?> sharedParams(
       List<String> d1Kinds,
-      List<String> d2Kinds,
-    ) => {
+      List<String> d2Kinds, {
+      bool? d2Removable,
+    }) => {
       'equipmentId': 'light',
       'itemName': 'Primary light',
-      'partIds': const <String>[],
+      'partIds': const <String>['battery'],
       'dives': {
         'd1': {
           'diverId': 'anna',
           'diverName': 'Anna',
           'entryMs': 0,
           'linkKinds': d1Kinds,
+          'removable': gearListOnly(d1Kinds),
         },
         'd2': {
           'diverId': 'bill',
           'diverName': 'Bill',
           'entryMs': 0,
           'linkKinds': d2Kinds,
+          'removable': d2Removable ?? gearListOnly(d2Kinds),
         },
       },
     };
@@ -576,7 +582,10 @@ void main() {
           ('d1', 'd2', 'Anna'),
           ('d2', 'd1', 'Bill'),
         ]);
-        expect(removes.every((r) => r.equipmentId == 'light'), isTrue);
+        expect(
+          removes.every((r) => r.equipmentIds.join(',') == 'light,battery'),
+          isTrue,
+        );
         expect(actions.whereType<GoToDiveRepair>().map((g) => g.diveId), {
           'd1',
           'd2',
@@ -593,6 +602,19 @@ void main() {
         ),
       );
       expect(actions.whereType<RemoveGearFromDiveRepair>(), isEmpty);
+    });
+    test('removal follows the side removable flag and takes the folded '
+        'parts', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'shared_gear_overlap',
+          relatedDiveId: 'd2',
+          params: sharedParams(['gearList'], ['gearList'], d2Removable: false),
+        ),
+      );
+      final remove = actions.whereType<RemoveGearFromDiveRepair>().single;
+      expect(remove.diveId, 'd1');
+      expect(remove.equipmentIds, ['light', 'battery']);
     });
   });
 }

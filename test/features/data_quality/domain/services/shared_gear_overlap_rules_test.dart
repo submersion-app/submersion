@@ -99,4 +99,30 @@ void main() {
       );
     });
   });
+
+  group('sharedGearExit', () {
+    test('the recorded exit wins', () {
+      expect(
+        sharedGearExit(
+          entry: m(0),
+          exit: m(30),
+          runtime: const Duration(minutes: 40),
+        ),
+        m(30),
+      );
+    });
+    test('then entry plus runtime, then plus bottom time', () {
+      expect(
+        sharedGearExit(entry: m(0), runtime: const Duration(minutes: 40)),
+        m(40),
+      );
+      expect(
+        sharedGearExit(entry: m(0), bottomTime: const Duration(minutes: 35)),
+        m(35),
+      );
+    });
+    test('no duration gives no exit', () {
+      expect(sharedGearExit(entry: m(0)), isNull);
+    });
+  });
 }
