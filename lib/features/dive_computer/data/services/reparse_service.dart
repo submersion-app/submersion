@@ -367,24 +367,20 @@ class ReparseService {
   Future<({int withRawData, int withoutRawData})> getRawDataCounts(
     String computerId,
   ) async {
-    final withData = await db
+    // One scan for both counts: this runs on every data source write while
+    // the computer's page is open (rawDataCountProvider).
+    final row = await db
         .customSelect(
-          'SELECT COUNT(*) AS cnt FROM dive_data_sources '
-          'WHERE computer_id = ? AND raw_data IS NOT NULL',
-          variables: [Variable(computerId)],
-        )
-        .getSingle();
-    final withoutData = await db
-        .customSelect(
-          'SELECT COUNT(*) AS cnt FROM dive_data_sources '
-          'WHERE computer_id = ? AND raw_data IS NULL',
+          'SELECT COALESCE(SUM(raw_data IS NOT NULL), 0) AS with_data, '
+          'COALESCE(SUM(raw_data IS NULL), 0) AS without_data '
+          'FROM dive_data_sources WHERE computer_id = ?',
           variables: [Variable(computerId)],
         )
         .getSingle();
 
     return (
-      withRawData: withData.data['cnt'] as int,
-      withoutRawData: withoutData.data['cnt'] as int,
+      withRawData: row.read<int>('with_data'),
+      withoutRawData: row.read<int>('without_data'),
     );
   }
 

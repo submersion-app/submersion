@@ -56,21 +56,20 @@ class RawDiveDataService {
   /// copy of the bytes too and the cloud base shrinks; without the clock the
   /// null would tie with every peer's copy and never reach them (#2644).
   Future<int> discard({String? computerId}) async {
-    final rows = await db
-        .customSelect(
-          'SELECT id, dive_id FROM dive_data_sources '
-          'WHERE raw_data IS NOT NULL'
-          '${computerId != null ? ' AND computer_id = ?' : ''}',
-          variables: [if (computerId != null) Variable(computerId)],
-          readsFrom: {db.diveDataSources},
-        )
-        .get();
-    final ids = rows.map((r) => r.read<String>('id')).toList();
-    final diveCount = rows.map((r) => r.read<String>('dive_id')).toSet().length;
-    if (ids.isEmpty) return 0;
-
-    final stagedAt = DateTime.now().millisecondsSinceEpoch;
-    await db.transaction(() async {
+    // The read and the writes share one transaction, so a row a concurrent
+    // sync deletes cannot be staged or counted after it is gone.
+    final diveCount = await db.transaction(() async {
+      final rows = await db
+          .customSelect(
+            'SELECT id, dive_id FROM dive_data_sources '
+            'WHERE raw_data IS NOT NULL'
+            '${computerId != null ? ' AND computer_id = ?' : ''}',
+            variables: [if (computerId != null) Variable(computerId)],
+            readsFrom: {db.diveDataSources},
+          )
+          .get();
+      final ids = rows.map((r) => r.read<String>('id')).toList();
+      final stagedAt = DateTime.now().millisecondsSinceEpoch;
       // In chunks: a library can hold more sources than SQLite's ~999
       // variables in one statement. The write stamps each row's clock itself,
       // so the null is newer than any peer's copy of the bytes; the pending
@@ -95,7 +94,9 @@ class RawDiveDataService {
           );
         }
       }
+      return rows.map((r) => r.read<String>('dive_id')).toSet().length;
     });
+    if (diveCount == 0) return 0;
     SyncEventBus.notifyLocalChange();
     return diveCount;
   }

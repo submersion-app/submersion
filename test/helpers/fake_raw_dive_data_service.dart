@@ -12,10 +12,12 @@ class FakeRawDiveDataService implements RawDiveDataService {
 
   RawDiveDataUsage usage = (diveCount: 0, storedBytes: 0);
   final usageRequests = <String?>[];
+  Object? usageFailure;
 
   @override
   Future<RawDiveDataUsage> getUsage({String? computerId}) async {
     usageRequests.add(computerId);
+    if (usageFailure != null) throw usageFailure!;
     return usage;
   }
 

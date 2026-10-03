@@ -129,4 +129,19 @@ void main() {
     expect(service.calls, ['comp-1']);
     expect(find.text('Discarded raw data for 4 dives'), findsOneWidget);
   });
+
+  testWidgets('a failed count says so instead of opening the dialog', (
+    tester,
+  ) async {
+    service.usageFailure = StateError('database is locked');
+    await pump(tester, counts: (withRawData: 5, withoutRawData: 0));
+
+    await tester.ensureVisible(find.byKey(button));
+    await tester.tap(find.byKey(button));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(service.calls, isEmpty);
+    expect(find.text('Could not discard raw data'), findsOneWidget);
+  });
 }

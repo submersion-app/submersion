@@ -711,8 +711,6 @@ class DeviceDetailPage extends ConsumerWidget {
         ),
       );
     }
-
-    ref.invalidate(rawDataCountProvider(computerId));
   }
 
   void _handleMenuAction(

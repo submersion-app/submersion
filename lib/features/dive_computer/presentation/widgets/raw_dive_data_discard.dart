@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/byte_format.dart';
+import 'package:submersion/features/dive_computer/data/services/raw_dive_data_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/raw_dive_data_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -71,9 +72,22 @@ Future<void> confirmAndDiscardComputerRawDiveData(
   WidgetRef ref,
   DiveComputer computer,
 ) async {
-  final usage = await ref
-      .read(rawDiveDataServiceProvider)
-      .getUsage(computerId: computer.id);
+  final messenger = ScaffoldMessenger.of(context);
+  final failed = context.l10n.diveComputer_rawData_discardFailed;
+  final RawDiveDataUsage usage;
+  try {
+    usage = await ref
+        .read(rawDiveDataServiceProvider)
+        .getUsage(computerId: computer.id);
+  } catch (e, stackTrace) {
+    _log.error(
+      'Failed to count raw dive data for ${computer.id}',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    messenger.showSnackBar(SnackBar(content: Text(failed)));
+    return;
+  }
   if (usage.diveCount == 0 || !context.mounted) return;
   await confirmAndDiscardRawDiveData(
     context,
