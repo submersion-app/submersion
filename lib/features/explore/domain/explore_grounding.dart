@@ -1,3 +1,4 @@
+import 'package:submersion/core/query/syntax/date_grammar.dart';
 import 'package:submersion/core/text/fuzzy_match.dart' as fuzzy;
 import 'package:submersion/features/explore/domain/query_model.dart';
 
@@ -11,7 +12,9 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 /// - A clause's text is the words it came from, so in English a clause whose
 ///   words are not in the sentence is dropped. In any other [locale] the
 ///   model often quotes the clause in English ("deeper than 30" for "tiefer
-///   als 30m"), so its clauses are not checked.
+///   als 30m"), so its clauses are only checked for a year: a clause whose
+///   value names a year the sentence lacks ("not dived since 2022") is
+///   dropped in every language.
 /// - A time is one of the prompt's English shapes. In every language, a
 ///   year the sentence does not contain is dropped. In English, so is a
 ///   period whose unit the sentence never names: "this year" on "dives with
@@ -30,13 +33,14 @@ ParsedQuery groundedIn(
   final english = _isEnglish(locale);
   final clauses = [
     for (final c in parsed.clauses)
-      if (!english || _isIn(c.text, said)) c,
+      if (_yearsAreIn(_comparable(_valueText(c.value)), said) &&
+          (!english || _isIn(c.text, said)))
+        c,
   ];
   final time = parsed.time;
+  final t = time == null ? null : _comparable(time.text);
   final keepTime =
-      time == null ||
-      (_yearsAreIn(time.text, said) &&
-          (!english || _unitIsIn(time.text, said)));
+      t == null || (_yearsAreIn(t, said) && (!english || _unitIsIn(t, said)));
   if (clauses.length == parsed.clauses.length && keepTime) return parsed;
   return ParsedQuery(
     schemaVersion: parsed.schemaVersion,
@@ -75,10 +79,19 @@ bool _isIn(String text, String said) {
   return words.isNotEmpty && said.contains(words);
 }
 
+/// The words of a clause value: a time field's value is a period such as
+/// "2022", and an `in` list may hold several.
+String _valueText(Object value) => switch (value) {
+  final String s => s,
+  final List<Object?> l => l.whereType<String>().join(' '),
+  _ => '',
+};
+
 final _year = RegExp(r'\d{4}');
 
-bool _yearsAreIn(String time, String said) =>
-    _year.allMatches(_comparable(time)).every((m) => said.contains(m[0]!));
+/// Whether every year in [text] (already [_comparable]) is in [said].
+bool _yearsAreIn(String text, String said) =>
+    _year.allMatches(text).every((m) => said.contains(m[0]!));
 
 final _yearUnit = RegExp(r'\byears?\b');
 final _shortUnit = RegExp(r'\b(?:days?|weeks?|months?)\b');
@@ -89,35 +102,26 @@ final _shortUnitSaid = RegExp(
   r'\b(?:days?|weeks?|weekends?|fortnights?|months?|today|tonight|yesterday)\b',
 );
 
-const _months = [
-  'january',
-  'february',
-  'march',
-  'april',
-  'may',
-  'june',
-  'july',
-  'august',
-  'september',
-  'october',
-  'november',
-  'december',
-];
+/// The months [words] (already [_comparable]) name as words.
+Set<int> _monthsNamedIn(String words) => {
+  for (final w in words.split(' ')) ?monthOfWord(w),
+};
 
-/// Whether [said] names [month] in full or by its usual abbreviation.
-bool _monthIsIn(String month, String said) {
-  final short = month == 'september' ? 'sept?' : month.substring(0, 3);
-  return RegExp('\\b(?:$month|$short)\\b').hasMatch(said);
-}
+/// A year and month written as digits, "2023-05" or "2023-05-14", once
+/// [_comparable] has made the dashes spaces.
+final _digitMonth = RegExp(r'\b\d{4} (0[1-9]|1[0-2])\b');
 
-/// Whether [said] names the unit and any month of the English period
-/// [time].
+/// Whether [said] names the unit and every month of the English period
+/// [time] (both already [_comparable]).
 bool _unitIsIn(String time, String said) {
-  final t = _comparable(time);
-  if (_yearUnit.hasMatch(t) && !_yearUnit.hasMatch(said)) return false;
-  if (_shortUnit.hasMatch(t) && !_shortUnitSaid.hasMatch(said)) return false;
-  return t
-      .split(' ')
-      .where(_months.contains)
-      .every((month) => _monthIsIn(month, said));
+  if (_yearUnit.hasMatch(time) && !_yearUnit.hasMatch(said)) return false;
+  if (_shortUnit.hasMatch(time) && !_shortUnitSaid.hasMatch(said)) {
+    return false;
+  }
+  final months = _monthsNamedIn(time);
+  if (months.isEmpty) return true;
+  return {
+    ..._monthsNamedIn(said),
+    for (final m in _digitMonth.allMatches(said)) int.parse(m[1]!),
+  }.containsAll(months);
 }

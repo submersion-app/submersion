@@ -58,6 +58,34 @@ void main() {
     });
   });
 
+  group('a year in a clause value', () {
+    // Example 4's clause, which the model copied into a German sentence.
+    const lastDived = QueryClause(
+      field: 'lastDived',
+      op: ClauseOp.lt,
+      value: '2022',
+      text: 'not dived since 2022',
+    );
+
+    test('is dropped in any language when the sentence lacks it', () {
+      final g = groundedIn(
+        parse(clauses: [lastDived]),
+        'Tauchplätze in Bonaire',
+        locale: 'de',
+      );
+      expect(g.clauses, isEmpty);
+    });
+
+    test('is kept when the sentence names it', () {
+      final g = groundedIn(
+        parse(clauses: [lastDived]),
+        'Tauchplätze, die ich seit 2022 nicht betaucht habe',
+        locale: 'de',
+      );
+      expect(g.clauses, hasLength(1));
+    });
+  });
+
   group('other languages', () {
     // The model often quotes a non-English sentence's clause in English
     // ("deeper than 30" for "tiefer als 30m"), so only English is checked.
@@ -160,15 +188,19 @@ void main() {
     });
 
     test('in English, a month the sentence never names is dropped', () {
-      // What the model answered for "dives in March".
-      expect(
-        groundedIn(
-          parse(time: 'May 2023'),
-          'dives in March 2023',
-          locale: 'en',
-        ).time,
-        isNull,
-      );
+      // What the model answered for "dives in March", and the same in the
+      // abbreviated form the date grammar also reads as a month.
+      for (final time in ['May 2023', 'Sep 2023']) {
+        expect(
+          groundedIn(
+            parse(time: time),
+            'dives in March 2023',
+            locale: 'en',
+          ).time,
+          isNull,
+          reason: time,
+        );
+      }
     });
 
     test('in English, a month named in full or abbreviated is kept', () {
@@ -176,6 +208,8 @@ void main() {
         ('May 2023', 'dives in May 2023'),
         ('March 2023', 'dives in Mar 2023'),
         ('September 2023', 'dives in Sept 2023'),
+        ('Sep 2023', 'dives in September 2023'),
+        ('May 2023', 'dives in 2023-05'),
         ('2023-05-01 to 2023-05-14', 'dives from 1 to 14 May 2023'),
       ]) {
         expect(
