@@ -107,4 +107,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('the uncapped list shows no map-cap notice', (tester) async {
+    // Fifty tracks exceed the overview cap, but the list shows them all and
+    // the phone landing page has no map, so a cap notice here would be false.
+    await _pumpFifty(tester);
+    expect(find.byKey(const ValueKey('tracks-truncated-notice')), findsNothing);
+  });
 }

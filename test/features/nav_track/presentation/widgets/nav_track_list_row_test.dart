@@ -307,7 +307,7 @@ void main() {
       // offset), a `.fromMillisecondsSinceEpoch` WITHOUT `isUtc: true` rolls
       // this over to the next local calendar day, changing the digits
       // `yyyymmdd` renders below. On a host west of UTC it would instead
-      // roll BACK to 2026-03-27 -- either way, only isUtc: true keeps it at
+      // roll BACK to 2026-03-27; either way, only isUtc: true keeps it at
       // 2026-03-28.
       final startTime = DateTime.utc(
         2026,

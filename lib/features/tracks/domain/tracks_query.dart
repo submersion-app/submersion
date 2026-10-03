@@ -14,14 +14,26 @@ import 'package:submersion/features/tracks/domain/track_list_item.dart';
 const int kTracksOverviewLimit = 40;
 
 /// Whether [startMs] falls inside [range], inclusive of the end date's whole
-/// day. Track start times are wall-clock-as-UTC, so the range's values
-/// compare against them directly.
+/// day.
+///
+/// The range is read as calendar days: the date picker hands back local
+/// midnights, while track start times are wall-clock-as-UTC, so comparing
+/// the range's own instants would shift both bounds by the device's UTC
+/// offset. Each bound is rebuilt as a wall-clock-as-UTC day boundary, using
+/// day arithmetic rather than adding a Duration so no DST change can move it.
 bool startsWithin(int startMs, DateTimeRange range) {
-  final from = range.start.millisecondsSinceEpoch;
-  final to = range.end
-      .add(const Duration(days: 1))
-      .subtract(const Duration(milliseconds: 1))
-      .millisecondsSinceEpoch;
+  final from = DateTime.utc(
+    range.start.year,
+    range.start.month,
+    range.start.day,
+  ).millisecondsSinceEpoch;
+  final to =
+      DateTime.utc(
+        range.end.year,
+        range.end.month,
+        range.end.day + 1,
+      ).millisecondsSinceEpoch -
+      1;
   return startMs >= from && startMs <= to;
 }
 

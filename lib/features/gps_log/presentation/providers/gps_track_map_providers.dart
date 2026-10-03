@@ -116,10 +116,11 @@ final trackForDiveProvider = FutureProvider.family<GpsTrack?, String>((
   return ref.watch(gpsTrackDetailProvider(match.id).future);
 });
 
-/// Optional date bound on the overview map.
+/// Optional date bound on the Tracks list, map and summary.
 ///
-/// Null means unbounded. Track start times are wall-clock-as-UTC, so the
-/// range's DateTime values compare against them directly with no conversion.
+/// Null means unbounded. The picker returns local calendar dates; they are
+/// read as days (see `startsWithin` in the tracks feature), never compared
+/// as instants against the wall-clock-as-UTC track start times.
 final trackDateFilterProvider = StateProvider<DateTimeRange?>((ref) => null);
 
 /// Drops every cached and in-memory derivative of [id].

@@ -9,6 +9,8 @@ import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/tracks/domain/tracks_query.dart';
+import 'package:submersion/features/tracks/presentation/widgets/tracks_map_pane.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_map_page.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_overview_map.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -30,13 +32,26 @@ GpsTrack _track(String id, double base) => GpsTrack(
   points: [_p(0, base), _p(1, base), _p(2, base)],
 );
 
+/// More tracks than the overview cap, newest first, one day apart.
+List<GpsTrack> _overCap() => [
+  for (var i = 0; i < kTracksOverviewLimit + 5; i++)
+    GpsTrack(
+      id: 't$i',
+      startTime: 1700000000000 - i * 86400000,
+      endTime: 1700003600000 - i * 86400000,
+      pointCount: 3,
+      points: [_p(0, 20.0 + i), _p(1, 20.0 + i), _p(2, 20.0 + i)],
+    ),
+];
+
 Future<void> _pump(
   WidgetTester tester, {
   Size size = const Size(1400, 900),
   Future<List<GpsTrack>> Function()? tracks,
+  List<GpsTrack>? library,
 }) async {
   final base = await getBaseOverrides();
-  final data = [_track('t1', 20.0), _track('t2', 25.0)];
+  final data = library ?? [_track('t1', 20.0), _track('t2', 25.0)];
   await tester.binding.setSurfaceSize(size);
   addTearDown(() => tester.binding.setSurfaceSize(null));
   await tester.pumpWidget(
@@ -143,5 +158,49 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('No recorded tracks to show.'), findsNothing);
+  });
+
+  testWidgets('the cap notice sits on the map, the surface it limits', (
+    tester,
+  ) async {
+    await _pump(tester, library: _overCap());
+    expect(
+      find.descendant(
+        of: find.byType(TracksMapPane),
+        matching: find.byKey(const ValueKey('tracks-truncated-notice')),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a phone sees the cap notice on its map-only page', (
+    tester,
+  ) async {
+    await _pump(tester, size: const Size(390, 844), library: _overCap());
+    expect(
+      find.byKey(const ValueKey('tracks-truncated-notice')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a selected track beyond the cap is still drawn on top', (
+    tester,
+  ) async {
+    final library = _overCap();
+    final oldest = library.last.id;
+    await _pump(tester, library: library);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(TracksMapPage)),
+    );
+    container
+        .read(mapListSelectionProvider(kTracksSectionKey).notifier)
+        .select('gps:$oldest');
+    await tester.pumpAndSettle();
+
+    final layer = tester.widget<PolylineLayer<String>>(
+      find.byType(PolylineLayer<String>),
+    );
+    expect(layer.polylines.last.hitValue, 'gps:$oldest');
+    expect(layer.polylines.length, kTracksOverviewLimit + 1);
   });
 }

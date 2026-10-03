@@ -36,7 +36,6 @@ class TracksListPane extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync = ref.watch(tracksListProvider);
     final items = itemsAsync.value ?? const <TrackListItem>[];
-    final truncated = ref.watch(tracksOverviewTruncatedProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
     final delete = onDelete;
 
@@ -46,7 +45,6 @@ class TracksListPane extends ConsumerWidget {
         if (index == 0) {
           return TracksListHeader(
             showControls: showControls,
-            truncated: truncated,
             // Only once loaded: a cold open must not flash the empty state.
             isEmpty: itemsAsync.hasValue && items.isEmpty,
             onMatch: onMatch,

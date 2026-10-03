@@ -137,6 +137,38 @@ void main() {
     });
   });
 
+  group('startsWithin', () {
+    // The date picker hands back LOCAL midnights, while track start times are
+    // wall-clock-as-UTC: a range must be read as calendar days, or on any
+    // host off UTC the bounds shift by the host's offset. (On a UTC host the
+    // two readings coincide, so this guards the contract wherever the suite
+    // runs off UTC, as the maintainer's machine does.)
+    final july4 = DateTimeRange(
+      start: DateTime(2026, 7, 4),
+      end: DateTime(2026, 7, 4),
+    );
+
+    test('a track early on the picked day is inside it', () {
+      final early = DateTime.utc(2026, 7, 4, 0, 30).millisecondsSinceEpoch;
+      expect(startsWithin(early, july4), isTrue);
+    });
+
+    test('a track late on the picked day is inside it', () {
+      final late = DateTime.utc(2026, 7, 4, 23, 30).millisecondsSinceEpoch;
+      expect(startsWithin(late, july4), isTrue);
+    });
+
+    test('a track just after the picked day is outside it', () {
+      final next = DateTime.utc(2026, 7, 5, 0, 30).millisecondsSinceEpoch;
+      expect(startsWithin(next, july4), isFalse);
+    });
+
+    test('a track just before the picked day is outside it', () {
+      final prev = DateTime.utc(2026, 7, 3, 23, 30).millisecondsSinceEpoch;
+      expect(startsWithin(prev, july4), isFalse);
+    });
+  });
+
   group('capOverview', () {
     test('keeps the newest mappable items and drops unanchored ones', () {
       final items = mergeTracks(

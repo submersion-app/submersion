@@ -223,7 +223,10 @@ Providers (`tracks_providers.dart`):
   `?kind=`.
 - `tracksListProvider`: merges `gpsTracksProvider` and
   `allNavTracksProvider` (which stays point-free, so list rows never decode
-  blobs), applies the existing `trackDateFilterProvider` to both kinds and
+  blobs), applies the existing `trackDateFilterProvider` to both kinds (its
+  range is read as calendar days: the picker returns local midnights while
+  track times are wall-clock-as-UTC, so each bound is rebuilt with
+  `DateTime.utc(y, m, d)`) and
   the kind filter, sorts by `startTime` descending, breaking ties by
   `selectionKey` (`List.sort` is not stable).
 - `tracksOverviewProvider`: the newest `kTracksOverviewLimit` (40, in
@@ -259,7 +262,8 @@ with `sectionKey: kTracksSectionKey`.
   `GpsRecordCard` (record-capable devices only, every filter),
   `TracksSummaryStrip`, the kind filter (segmented All / GPS / Underwater),
   the date filter, the "Match tracks to dives" button (where GPS Log had
-  its match button), the truncation notice when it applies, then rows.
+  its match button), then rows. The list is never capped, so it carries no
+  cap notice.
 - **Rows:** a `switch` over `TrackListItem` renders `GpsTrackListTile` or
   `NavTrackListRow`, each with a `TrackKindBadge` ("GPS" / "Underwater") on
   the subtitle line, below the status text, so the title keeps the full row
@@ -267,7 +271,11 @@ with `sectionKey: kTracksSectionKey`.
 - **Map pane:** one `FlutterMap` drawing GPS polylines and anchored
   underwater polylines with their existing layers and distinct styling.
   Camera framing uses the union of both sets, with the framing-signature
-  latch both pages use today. Loading, error and empty keep the three-way
+  latch both pages use today. The map draws the capped overview plus the
+  selected track when the cap left it out (one extra blob at most), so a
+  row picked further down the list is still drawn and framed. When the cap
+  drops tracks, the "showing the newest 40" notice sits over the map, the
+  only surface it limits, on desktop and on the phone map page alike. Loading, error and empty keep the three-way
   split from `GpsLoggerPage`.
 - **Info card:** `GpsTrackInfoCard` for GPS, a `NavTrackInfoCard` (new, same
   shape: name and the row's detail line, Details, Close) for
