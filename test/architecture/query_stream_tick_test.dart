@@ -1,71 +1,16 @@
 import 'dart:io';
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
-/// Drift calls that turn a select into a QUERY stream. Each delivers the
-/// current result as soon as it is listened to.
-const _queryStreamCalls = {'watch', 'watchSingle', 'watchSingleOrNull'};
+import 'provider_tick_scanner.dart';
 
-/// Change ticks (`Stream<void> watchX()`) whose body builds a Drift query
-/// stream, as `name` entries.
-///
-/// Every caller feeds a tick to `Ref.invalidateSelfWhen`. A tick that emits
-/// on subscribe invalidates the provider that just subscribed, the rebuild
-/// subscribes again, and the provider spins for as long as anything watches
-/// it: #1175 (the media library) and #2835 (smart albums, a freeze each time
-/// the Filter media sheet closed). A tick must be built on `tableUpdates`.
-List<String> queryStreamTicks(String source) {
-  final unit = parseString(
-    content: source,
-    featureSet: FeatureSet.latestLanguageVersion(),
-    throwIfDiagnostics: false,
-  ).unit;
-  final finder = _QueryStreamTicks();
-  unit.accept(finder);
-  return finder.hits;
-}
-
-class _QueryStreamTicks extends RecursiveAstVisitor<void> {
-  final hits = <String>[];
-
-  @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    _check(node.returnType, node.name.lexeme, node.body);
-    super.visitMethodDeclaration(node);
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    _check(node.returnType, node.name.lexeme, node.functionExpression.body);
-    super.visitFunctionDeclaration(node);
-  }
-
-  void _check(TypeAnnotation? returnType, String name, FunctionBody body) {
-    if (returnType?.toSource() != 'Stream<void>') return;
-    if (!name.startsWith('watch')) return;
-    final calls = _Invocations();
-    body.accept(calls);
-    if (calls.names.any(_queryStreamCalls.contains)) hits.add(name);
-  }
-}
-
-class _Invocations extends RecursiveAstVisitor<void> {
-  final names = <String>{};
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    // `ref.watch(...)` is Riverpod, not Drift: a provider-side helper that
-    // reads a repository through ref is not a query stream.
-    if (node.target?.toSource() != 'ref') names.add(node.methodName.name);
-    super.visitMethodInvocation(node);
-  }
-}
-
+/// Guards the change-tick contract statically: no `Stream<void> watch*` tick
+/// in lib/ may be built on a Drift query stream, which emits on subscribe and
+/// loops any provider that feeds it to `Ref.invalidateSelfWhen` (#1175,
+/// #2835). Unlike the "silence before a write" group in
+/// `repository_tick_stream_test.dart`, this covers every tick without anyone
+/// having to enroll it.
 void main() {
   group('queryStreamTicks', () {
     test('flags a tick built on watchSingle', () {
@@ -91,6 +36,29 @@ class R {
       expect(queryStreamTicks(source), ['watchThingsChanges']);
     });
 
+    test('flags a tick that maps a same-file helper built on a query', () {
+      const source = '''
+class R {
+  Stream<void> watchChanges() => _albumCount().map((_) {});
+
+  Stream<int> _albumCount() =>
+      (_db.selectOnly(_db.t)..addColumns([count])).watchSingle().map((r) => 0);
+}
+''';
+      expect(queryStreamTicks(source), ['watchChanges']);
+    });
+
+    test('flags a tick that returns a field built on a query', () {
+      const source = '''
+class R {
+  late final Stream<void> _changes = _db.select(_db.t).watch().map((_) {});
+
+  Stream<void> watchChanges() => _changes;
+}
+''';
+      expect(queryStreamTicks(source), ['watchChanges']);
+    });
+
     test('passes a tick built on tableUpdates', () {
       const source = '''
 class R {
@@ -101,12 +69,16 @@ class R {
       expect(queryStreamTicks(source), isEmpty);
     });
 
-    test('ignores ref.watch, which is Riverpod rather than Drift', () {
+    test('ignores a Riverpod watch, whatever the ref is called', () {
       const source = '''
-Stream<void> watchScope(Ref ref) {
-  final repo = ref.watch(repoProvider);
-  return repo.watchChanges();
+class N {
+  Stream<void> watchScope() {
+    final repo = _ref.watch(repoProvider);
+    return repo.watchChanges();
+  }
 }
+
+Stream<void> watchOther(Ref ref) => ref.watch(repoProvider).watchChanges();
 ''';
       expect(queryStreamTicks(source), isEmpty);
     });
