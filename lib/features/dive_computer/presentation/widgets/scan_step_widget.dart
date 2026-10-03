@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
@@ -9,11 +10,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget for the scan/select step of the discovery wizard.
 ///
-/// Provides tabs for Bluetooth and USB device discovery.
+/// Provides tabs for Bluetooth and USB device discovery, or the Bluetooth scan
+/// alone where the platform has no USB host.
 class ScanStepWidget extends ConsumerStatefulWidget {
   final void Function(DiscoveredDevice device) onDeviceSelected;
 
   const ScanStepWidget({super.key, required this.onDeviceSelected});
+
+  /// Whether this platform can download over a USB cable. iOS has no USB
+  /// host, so every model in the USB tab would fail there (issue #2837).
+  static bool get offersUsb => defaultTargetPlatform != TargetPlatform.iOS;
 
   @override
   ConsumerState<ScanStepWidget> createState() => _ScanStepWidgetState();
@@ -21,12 +27,14 @@ class ScanStepWidget extends ConsumerStatefulWidget {
 
 class _ScanStepWidgetState extends ConsumerState<ScanStepWidget>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  TabController? _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    if (ScanStepWidget.offersUsb) {
+      _tabController = TabController(length: 2, vsync: this);
+    }
 
     // Start Bluetooth scanning when widget is shown
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -36,12 +44,17 @@ class _ScanStepWidgetState extends ConsumerState<ScanStepWidget>
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final tabController = _tabController;
+    if (tabController == null) {
+      return _BluetoothScanTab(onDeviceSelected: widget.onDeviceSelected);
+    }
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -55,7 +68,7 @@ class _ScanStepWidgetState extends ConsumerState<ScanStepWidget>
             borderRadius: BorderRadius.circular(12),
           ),
           child: TabBar(
-            controller: _tabController,
+            controller: tabController,
             indicator: BoxDecoration(
               color: colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(10),
@@ -92,7 +105,7 @@ class _ScanStepWidgetState extends ConsumerState<ScanStepWidget>
         // Tab content
         Expanded(
           child: TabBarView(
-            controller: _tabController,
+            controller: tabController,
             children: [
               _BluetoothScanTab(onDeviceSelected: widget.onDeviceSelected),
               _UsbDevicesTab(onDeviceSelected: widget.onDeviceSelected),

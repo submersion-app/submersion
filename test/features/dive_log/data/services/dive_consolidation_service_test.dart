@@ -187,6 +187,7 @@ void main() {
     required String diveId,
     required String tankId,
     required int timestamp,
+    String? computerId,
   }) async {
     await db
         .into(db.gasSwitches)
@@ -197,6 +198,7 @@ void main() {
             timestamp: timestamp,
             tankId: tankId,
             createdAt: 0,
+            computerId: Value(computerId),
           ),
         );
   }
@@ -398,6 +400,7 @@ void main() {
       diveId: 's',
       tankId: 'tank-s1',
       timestamp: 30,
+      computerId: 'comp-s',
     );
     await seedEvent('event-s2', diveId: 's', timestamp: 900, eventType: 'deco');
     await seedMedia('media-s', diveId: 's');
@@ -408,6 +411,13 @@ void main() {
       'scenario 1: re-parents everything and tombstones the secondary',
       () async {
         await seedConsolidatableFixture();
+        // A switch the diver entered: no computer.
+        await seedGasSwitch(
+          'switch-s-manual',
+          diveId: 's',
+          tankId: 'tank-s1',
+          timestamp: 600,
+        );
 
         final outcome = await service.apply(
           targetDiveId: 't',
@@ -442,6 +452,17 @@ void main() {
         final secondaryEvents = events.where((e) => e.computerId == 'comp-s');
         expect(secondaryEvents.map((e) => e.timestamp).toSet(), {90, 960});
         expect(secondaryEvents.every((e) => e.computerId == 'comp-s'), isTrue);
+
+        // Its gas switches keep their own attribution (#2582): the
+        // computer's stays the computer's, and the diver's stays
+        // unattributed so no Replace Source can delete it.
+        final switches = await (db.select(
+          db.gasSwitches,
+        )..where((t) => t.diveId.equals('t'))).get();
+        expect(
+          {for (final s in switches) s.timestamp: s.computerId},
+          {90: 'comp-s', 660: null},
+        );
 
         // Secondary's tank pressure series shifted by +60 and carry the
         // secondary's computerId.
@@ -629,6 +650,12 @@ void main() {
         computerId: 'comp-s',
         serial: 'SER-S',
       );
+      await seedGasSwitch(
+        'switch-t1',
+        diveId: 't',
+        tankId: 'tank-t1',
+        timestamp: 0,
+      );
 
       final before = await (db.select(
         db.diveTanks,
@@ -645,6 +672,12 @@ void main() {
       )..where((t) => t.id.equals('tank-t1'))).getSingle();
       expect(after.computerId, targetRow.computerId);
       expect(after.computerId, 'comp-t');
+      // A switch with no computer is one the diver entered, and stays
+      // unattributed so a Replace Source cannot delete it (#2582).
+      final targetSwitch = await (db.select(
+        db.gasSwitches,
+      )..where((t) => t.id.equals('switch-t1'))).getSingle();
+      expect(targetSwitch.computerId, isNull);
     });
 
     test('the tank computer backfill carries a fresh clock (#2644)', () async {
@@ -1267,6 +1300,105 @@ void main() {
         expect(target.exitLongitude, isNull);
       },
     );
+  });
+
+  // #1809: a dive logged without a site or a runtime, say by an earlier file
+  // import that dropped them, is repaired by re-importing the file and
+  // consolidating each dive into its duplicate. The fold adopts them onto the
+  // target the way it adopts GPS above: only when the target has none.
+  group('apply site and runtime (#1809)', () {
+    Future<void> setSiteAndRuntime(
+      String id, {
+      required String? siteId,
+      required int? runtimeSeconds,
+    }) => (db.update(db.dives)..where((t) => t.id.equals(id))).write(
+      DivesCompanion(siteId: Value(siteId), runtime: Value(runtimeSeconds)),
+    );
+
+    Future<Dive> targetRow() =>
+        (db.select(db.dives)..where((t) => t.id.equals('t'))).getSingle();
+
+    Future<void> seedPair() async {
+      await seedDive(
+        't',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        computerId: 'comp-t',
+        serial: 'SER-T',
+      );
+      await seedDive(
+        's',
+        entry: DateTime.utc(2026, 7, 1, 9, 1),
+        computerId: 'comp-s',
+        serial: 'SER-S',
+      );
+    }
+
+    test('a target lacking both adopts them from a secondary', () async {
+      await seedPair();
+      await setSiteAndRuntime('t', siteId: null, runtimeSeconds: null);
+      await setSiteAndRuntime('s', siteId: 'site-s', runtimeSeconds: 2700);
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await targetRow();
+      expect(target.siteId, 'site-s');
+      expect(target.runtime, 2700);
+    });
+
+    test('a target with no runtime and no profile is still repaired by a '
+        're-import starting at the same instant', () async {
+      final entry = DateTime.utc(2026, 7, 1, 9);
+      await seedDive('t', entry: entry, profile: const []);
+      await setSiteAndRuntime('t', siteId: null, runtimeSeconds: null);
+      await seedDive('s', entry: entry, runtimeMin: 45, profile: const []);
+      await setSiteAndRuntime('s', siteId: 'site-s', runtimeSeconds: 2700);
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await targetRow();
+      expect(target.siteId, 'site-s');
+      expect(target.runtime, 2700);
+    });
+
+    test('a target that has them keeps its own', () async {
+      await seedPair();
+      await setSiteAndRuntime('t', siteId: 'site-t', runtimeSeconds: 1800);
+      await setSiteAndRuntime('s', siteId: 'site-s', runtimeSeconds: 2700);
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await targetRow();
+      expect(target.siteId, 'site-t');
+      expect(target.runtime, 1800);
+    });
+
+    test('site and runtime fill independently', () async {
+      await seedPair();
+      await setSiteAndRuntime('t', siteId: 'site-t', runtimeSeconds: null);
+      await setSiteAndRuntime('s', siteId: 'site-s', runtimeSeconds: 2700);
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await targetRow();
+      expect(target.siteId, 'site-t');
+      expect(target.runtime, 2700);
+    });
+
+    test('undo restores the target to having neither', () async {
+      await seedPair();
+      await setSiteAndRuntime('t', siteId: null, runtimeSeconds: null);
+      await setSiteAndRuntime('s', siteId: 'site-s', runtimeSeconds: 2700);
+
+      final outcome = await service.apply(
+        targetDiveId: 't',
+        secondaryDiveIds: ['s'],
+      );
+      await service.undo(outcome.snapshot);
+
+      final target = await targetRow();
+      expect(target.siteId, isNull);
+      expect(target.runtime, isNull);
+    });
   });
 
   group('consolidate then re-parse (#1177)', () {

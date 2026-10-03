@@ -37,6 +37,14 @@ class EquipmentPickerSheet extends ConsumerWidget {
   final bool hideSpare;
   final void Function(EquipmentItem) onEquipmentSelected;
 
+  /// Replaces the default "Select Equipment" title, for a caller whose pick
+  /// means something more specific (filling a tank from a cylinder).
+  final String? title;
+
+  /// A line under the header saying what picking does, when that is not
+  /// simply "add it to the dive".
+  final String? hint;
+
   const EquipmentPickerSheet({
     super.key,
     required this.scrollController,
@@ -44,6 +52,8 @@ class EquipmentPickerSheet extends ConsumerWidget {
     this.typeFilter,
     this.hideSpare = false,
     required this.onEquipmentSelected,
+    this.title,
+    this.hint,
   });
 
   /// The caller's own constraints on what may be offered, before the
@@ -108,7 +118,7 @@ class EquipmentPickerSheet extends ConsumerWidget {
               // 362px in French, whose title is 23 characters.
               Flexible(
                 child: Text(
-                  context.l10n.diveLog_equipmentPicker_title,
+                  title ?? context.l10n.diveLog_equipmentPicker_title,
                   style: Theme.of(context).textTheme.titleLarge,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -145,6 +155,16 @@ class EquipmentPickerSheet extends ConsumerWidget {
             ],
           ),
         ),
+        if (hint case final hint?)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Text(
+              hint,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
         const Divider(height: 1),
         Expanded(
           child: equipmentAsync.when(

@@ -149,6 +149,26 @@ void main() {
         );
   }
 
+  Future<void> insertGasSwitch(
+    String id, {
+    required String diveId,
+    required String tankId,
+    String? computerId,
+  }) async {
+    await db
+        .into(db.gasSwitches)
+        .insert(
+          GasSwitchesCompanion(
+            id: Value(id),
+            diveId: Value(diveId),
+            tankId: Value(tankId),
+            timestamp: const Value(0),
+            computerId: Value(computerId),
+            createdAt: const Value(1000),
+          ),
+        );
+  }
+
   Future<void> insertQualityFinding(
     String id, {
     required String diveId,
@@ -383,6 +403,12 @@ void main() {
         await insertDataSource('ds1', diveId: 'd1', computerId: 'b');
         await insertTank('t1', diveId: 'd1', computerId: 'b');
         await insertProfileEvent('e1', diveId: 'd2', computerId: 'c');
+        await insertGasSwitch(
+          'g1',
+          diveId: 'd1',
+          tankId: 't1',
+          computerId: 'b',
+        );
         await insertQualityFinding('q1', diveId: 'd1', computerId: 'b');
         await insertProfileSeries('ps1', diveId: 'd1', computerId: 'b');
         await insertProfileSeries('ps2', diveId: 'd3', computerId: 'a');
@@ -406,6 +432,7 @@ void main() {
         expect(await computerIdsIn('dive_data_sources'), ['a']);
         expect(await computerIdsIn('dive_tanks'), ['a']);
         expect(await computerIdsIn('dive_profile_events'), ['a']);
+        expect(await computerIdsIn('gas_switches'), ['a']);
         expect(await computerIdsIn('quality_findings'), ['a']);
         expect(await computerIdsIn('dive_profile_series'), ['a', 'a']);
         expect(await computerIdsIn('tank_pressure_series'), ['a']);

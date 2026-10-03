@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -30,6 +31,12 @@ List<Widget> activeDiveFilterChips(
   final units = UnitFormatter(settings);
   final chips = <Widget>[];
 
+  // "All dives" (#2773): the axes stay visible but dimmed and locked, so
+  // the diver sees what will come back when the search returns to them.
+  final suspended = filter.axesSuspended;
+  Widget axisChip(String label, VoidCallback onRemove) =>
+      _chip(context, label, suspended ? null : onRemove, dimmed: suspended);
+
   if (filter.startDate != null || filter.endDate != null) {
     String dateText;
     if (filter.startDate != null && filter.endDate != null) {
@@ -47,7 +54,7 @@ List<Widget> activeDiveFilterChips(
       );
     }
     chips.add(
-      _chip(context, dateText, () {
+      axisChip(dateText, () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           clearStartDate: true,
           clearEndDate: true,
@@ -65,7 +72,7 @@ List<Widget> activeDiveFilterChips(
         builtInDiveTypeName(context.l10n, filter.diveTypeId!) ??
         filter.diveTypeId!;
     chips.add(
-      _chip(context, diveTypeName, () {
+      axisChip(diveTypeName, () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           clearDiveType: true,
         );
@@ -78,7 +85,7 @@ List<Widget> activeDiveFilterChips(
         ref.watch(siteProvider(filter.siteId!)).value?.name ??
         context.l10n.diveLog_edit_row_site;
     chips.add(
-      _chip(context, siteName, () {
+      axisChip(siteName, () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           clearSiteId: true,
         );
@@ -91,7 +98,7 @@ List<Widget> activeDiveFilterChips(
         ref.watch(tripByIdProvider(filter.tripId!)).value?.name ??
         context.l10n.diveLog_edit_row_trip;
     chips.add(
-      _chip(context, tripName, () {
+      axisChip(tripName, () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           clearTripId: true,
         );
@@ -104,7 +111,7 @@ List<Widget> activeDiveFilterChips(
         ref.watch(diveCenterByIdProvider(filter.diveCenterId!)).value?.name ??
         context.l10n.diveLog_search_label_diveCenter;
     chips.add(
-      _chip(context, centerName, () {
+      axisChip(centerName, () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           clearDiveCenterId: true,
         );
@@ -123,7 +130,7 @@ List<Widget> activeDiveFilterChips(
             filter.equipmentIds.length,
           );
     chips.add(
-      _chip(context, label, () {
+      axisChip(label, () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           equipmentIds: [],
         );
@@ -149,7 +156,7 @@ List<Widget> activeDiveFilterChips(
       depthText = '<${maxValue!}$unit';
     }
     chips.add(
-      _chip(context, depthText, () {
+      axisChip(depthText, () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           clearMinDepth: true,
           clearMaxDepth: true,
@@ -177,15 +184,46 @@ List<Widget> activeDiveFilterChips(
         ?.name,
   )) {
     chips.add(
-      _chip(context, extra.label, () {
+      axisChip(extra.label, () {
         ref.read(filterProvider.notifier).state = extra.clear(filter);
       }),
     );
   }
 
+  // Handoffs with no Refine control (a buddy's "View all" sets both) still
+  // get a removable chip each, so they are never stuck behind Clear all.
+  if (filter.buddyId != null) {
+    final name = ref
+        .watch(allBuddiesProvider)
+        .value
+        ?.where((b) => b.id == filter.buddyId)
+        .firstOrNull
+        ?.name;
+    chips.add(
+      axisChip(name ?? context.l10n.diveLog_filter_sectionBuddy, () {
+        ref.read(filterProvider.notifier).state = filter.copyWith(
+          clearBuddyId: true,
+        );
+      }),
+    );
+  }
+
+  if (filter.diveIds.isNotEmpty) {
+    chips.add(
+      axisChip(
+        context.l10n.connections_selection_dives(filter.diveIds.length),
+        () {
+          ref.read(filterProvider.notifier).state = filter.copyWith(
+            clearDiveIds: true,
+          );
+        },
+      ),
+    );
+  }
+
   if (filter.favoritesOnly == true) {
     chips.add(
-      _chip(context, context.l10n.diveLog_filterChip_favorites, () {
+      axisChip(context.l10n.diveLog_filterChip_favorites, () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           clearFavoritesOnly: true,
         );
@@ -195,7 +233,7 @@ List<Widget> activeDiveFilterChips(
 
   if (filter.noBuddyOnly == true) {
     chips.add(
-      _chip(context, context.l10n.diveLog_filterChip_noBuddy, () {
+      axisChip(context.l10n.diveLog_filterChip_noBuddy, () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           clearNoBuddyOnly: true,
         );
@@ -206,7 +244,7 @@ List<Widget> activeDiveFilterChips(
   if (filter.tagIds.isNotEmpty) {
     final tagCount = filter.tagIds.length;
     chips.add(
-      _chip(context, context.l10n.diveLog_detail_tagCount(tagCount), () {
+      axisChip(context.l10n.diveLog_detail_tagCount(tagCount), () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           clearTagIds: true,
         );
@@ -216,7 +254,7 @@ List<Widget> activeDiveFilterChips(
 
   if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
     chips.add(
-      _chip(context, filter.buddyNameFilter!, () {
+      axisChip(filter.buddyNameFilter!, () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           clearBuddyNameFilter: true,
         );
@@ -244,8 +282,13 @@ List<Widget> activeDiveFilterChips(
   return chips;
 }
 
-Widget _chip(BuildContext context, String label, VoidCallback onRemove) {
-  return Padding(
+Widget _chip(
+  BuildContext context,
+  String label,
+  VoidCallback? onRemove, {
+  bool dimmed = false,
+}) {
+  final chip = Padding(
     padding: const EdgeInsetsDirectional.only(end: 8),
     child: Chip(
       label: Text(label, style: const TextStyle(fontSize: 12)),
@@ -255,4 +298,5 @@ Widget _chip(BuildContext context, String label, VoidCallback onRemove) {
       visualDensity: VisualDensity.compact,
     ),
   );
+  return dimmed ? Opacity(opacity: 0.4, child: chip) : chip;
 }

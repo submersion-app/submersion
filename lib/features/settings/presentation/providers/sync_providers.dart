@@ -54,7 +54,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/media/presentation/providers/gallery_cloud_id_backfill_provider.dart';
 import 'package:submersion/features/media/presentation/providers/gallery_origin_backfill_provider.dart';
-import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
@@ -563,6 +562,13 @@ class SyncState {
   /// the peer published none, and the UI renders a short id instead.
   final List<({String? name, String shortId})> newerSchemaPeerLabels;
 
+  /// Peers whose own schema is below this build's compatibility floor during
+  /// the last pull, as (name, shortId) pairs: they hold this device's changes
+  /// until they update (issue #2619). Drives the older-device banner; cleared
+  /// when a fresh sync starts. Same null-name contract as
+  /// [newerSchemaPeerLabels].
+  final List<({String? name, String shortId})> olderSchemaPeerLabels;
+
   /// Peers held back by the library-epoch fence during the last pull, as
   /// (name, shortId) pairs. Drives the "needs to adopt" banner; cleared when a
   /// fresh sync starts. A null name means the peer published none, and the
@@ -617,6 +623,7 @@ class SyncState {
     this.pendingChanges = 0,
     this.conflicts = 0,
     this.newerSchemaPeerLabels = const [],
+    this.olderSchemaPeerLabels = const [],
     this.skippedPeerLabels = const [],
     this.readFailedPeerLabels = const [],
     this.isAuthenticated = false,
@@ -637,6 +644,7 @@ class SyncState {
     int? pendingChanges,
     int? conflicts,
     List<({String? name, String shortId})>? newerSchemaPeerLabels,
+    List<({String? name, String shortId})>? olderSchemaPeerLabels,
     List<({String? name, String shortId})>? skippedPeerLabels,
     List<({String? name, String shortId})>? readFailedPeerLabels,
     bool? isAuthenticated,
@@ -659,6 +667,8 @@ class SyncState {
       conflicts: conflicts ?? this.conflicts,
       newerSchemaPeerLabels:
           newerSchemaPeerLabels ?? this.newerSchemaPeerLabels,
+      olderSchemaPeerLabels:
+          olderSchemaPeerLabels ?? this.olderSchemaPeerLabels,
       skippedPeerLabels: skippedPeerLabels ?? this.skippedPeerLabels,
       readFailedPeerLabels: readFailedPeerLabels ?? this.readFailedPeerLabels,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
@@ -1033,8 +1043,8 @@ class SyncNotifier extends StateNotifier<SyncState> {
     SyncResult result,
   ) => heldPeerLabels(result.skippedPeerDeviceIds, result.skippedPeerNames);
 
-  /// (name, shortId) per held peer, shared by the epoch-fence and
-  /// newer-schema banners. Sorted so the banner text is stable across syncs
+  /// (name, shortId) per held peer, shared by the epoch-fence, newer-schema,
+  /// older-schema and read-failed banners. Sorted so the banner text is stable across syncs
   /// instead of reordering each pull.
   @visibleForTesting
   static List<({String? name, String shortId})> heldPeerLabels(
@@ -1305,6 +1315,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
         message: _l10n.settings_cloudSync_message_startingSync,
         progress: 0.0,
         newerSchemaPeerLabels: const [],
+        olderSchemaPeerLabels: const [],
         skippedPeerLabels: const [],
         readFailedPeerLabels: const [],
         firstSyncAwaitingConfirmation: false,
@@ -1392,6 +1403,10 @@ class SyncNotifier extends StateNotifier<SyncState> {
               result.newerSchemaPeerDeviceIds,
               result.newerSchemaPeerNames,
             ),
+            olderSchemaPeerLabels: heldPeerLabels(
+              result.olderSchemaPeerDeviceIds,
+              result.olderSchemaPeerNames,
+            ),
             skippedPeerLabels: skippedPeerLabels(result),
             readFailedPeerLabels: heldPeerLabels(
               result.readFailedPeerDeviceIds,
@@ -1439,19 +1454,10 @@ class SyncNotifier extends StateNotifier<SyncState> {
               stackTrace: stackTrace,
             );
           }
-          // An underwater route synced in from another device may cover a
-          // dive that already exists here (or vice versa): sweep unlinked
-          // routes against every dive now that the merge is complete.
-          // Best-effort, same reasoning as the GPS sweep above.
-          try {
-            await _ref.read(navTrackMatchServiceProvider).sweep();
-          } catch (e, stackTrace) {
-            _log.error(
-              'Post-sync nav track match sweep failed',
-              error: e,
-              stackTrace: stackTrace,
-            );
-          }
+          // No underwater-route sweep here: a sweep no longer links
+          // anything by itself (#2394: confirming a dive is always the
+          // diver's own choice), and the routes list's pending-choice hint
+          // already refreshes when synced routes land.
           // Gallery rows linked before links recorded an origin learn it
           // here (media sync program spec 6.1). After a sync, never at
           // launch: a stamp bumps the row clock, so this device's copies

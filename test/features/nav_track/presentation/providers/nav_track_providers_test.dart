@@ -101,6 +101,12 @@ void main() {
       expect(unlinked.map((r) => r.id), unorderedEquals([mine, ownerless]));
     });
 
+    test('navTrackPendingChoiceCountProvider counts the same diver-scoped '
+        'unlinked routes', () async {
+      final count = await asMe.read(navTrackPendingChoiceCountProvider.future);
+      expect(count, 2);
+    });
+
     test('the import service stamps the active diver on a new route', () async {
       final service = asMe.read(navTrackImportServiceProvider);
       final preview = await service.prepare(
@@ -118,19 +124,25 @@ void main() {
       expect(owner.read<String?>('diver_id'), 'me');
     });
 
-    test('the match service never links to another diver\'s dive', () async {
-      await db.customStatement(
-        "INSERT INTO dives (id, diver_id, dive_date_time, exit_time, "
-        "created_at, updated_at) VALUES ('buddy-dive', 'buddy', "
-        "1700000000000, 1700003600000, 1, 1)",
-      );
+    test(
+      'the match service never suggests or links to another diver\'s dive',
+      () async {
+        await db.customStatement(
+          "INSERT INTO dives (id, diver_id, dive_date_time, exit_time, "
+          "created_at, updated_at) VALUES ('buddy-dive', 'buddy', "
+          "1700000000000, 1700003600000, 1, 1)",
+        );
 
-      final result = await asMe.read(navTrackMatchServiceProvider).sweep();
+        final result = await asMe.read(navTrackMatchServiceProvider).sweep();
 
-      expect(result.linked, isEmpty);
-      expect((await repo.getById(mine))!.diveId, isNull);
-      expect((await repo.getById(ownerless))!.diveId, isNull);
-    });
+        expect(
+          result.map((s) => s.suggestedDiveId),
+          isNot(contains('buddy-dive')),
+        );
+        expect((await repo.getById(mine))!.diveId, isNull);
+        expect((await repo.getById(ownerless))!.diveId, isNull);
+      },
+    );
   });
 
   test('allNavTracksProvider lists unlinked routes first', () async {

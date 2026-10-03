@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_panel.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_page.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_list_content.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -12,7 +12,7 @@ import '../../../../helpers/test_database.dart';
 /// Coverage for the Insights category list/grid surfaces (issue #453): the
 /// mobile grid ([InsightsMobileContent]), the master-detail list
 /// ([InsightsListContent] with and without its own app bar), and the badged
-/// filter buttons that open the shared [DiveFilterSheet] scoped to the
+/// filter buttons that open the shared [RefinePanel] scoped to the
 /// Insights filter.
 void main() {
   setUp(() async {
@@ -45,7 +45,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.filter_list).first);
     await tester.pumpAndSettle();
-    expect(find.byType(DiveFilterSheet), findsOneWidget);
+    expect(find.byType(RefinePanel), findsOneWidget);
   });
 
   testWidgets('InsightsListContent with app bar opens the filter sheet', (
@@ -60,7 +60,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.filter_list).first);
     await tester.pumpAndSettle();
-    expect(find.byType(DiveFilterSheet), findsOneWidget);
+    expect(find.byType(RefinePanel), findsOneWidget);
   });
 
   testWidgets('InsightsListContent compact app bar (showAppBar:false) opens '
@@ -76,7 +76,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.filter_list).first);
     await tester.pumpAndSettle();
-    expect(find.byType(DiveFilterSheet), findsOneWidget);
+    expect(find.byType(RefinePanel), findsOneWidget);
   });
 
   testWidgets('selecting a category tile invokes onItemSelected', (

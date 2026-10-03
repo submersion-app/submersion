@@ -2246,6 +2246,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get backup_schedule_retention => 'Conservar copias';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count copias ocupan actualmente $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'Las copias más antiguas se eliminan automáticamente';
 
@@ -7027,6 +7032,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'El equipo que usaste, para su número de inmersiones y su historial de mantenimiento. Una botella listada aquí no aporta datos de gas; añádela también en Botellas.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Toca \"Usar conjunto\" o \"Agregar\" para seleccionar equipo';
 
@@ -7454,6 +7463,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_edit_tankCard_volume => 'Volumen';
 
   @override
+  String get diveLog_edit_tanksCaption =>
+      'De dónde respiraste. Los gráficos de gas, el consumo de gas y las estadísticas provienen de estas botellas.';
+
+  @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
       'Calcular desde el perfil de inmersión';
 
@@ -7758,16 +7771,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_filter_allTypes => 'Todos los tipos';
 
   @override
-  String get diveLog_filter_apply => 'Aplicar filtros';
-
-  @override
   String get diveLog_filter_buddyHint => 'Buscar por nombre del compañero';
 
   @override
   String get diveLog_filter_buddyName => 'Nombre del compañero';
-
-  @override
-  String get diveLog_filter_clearAll => 'Borrar todo';
 
   @override
   String get diveLog_filter_clearDates => 'Borrar fechas';
@@ -7851,14 +7858,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'Compañero';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'Rango de fechas';
-
-  @override
   String get diveLog_filter_sectionDepthRange =>
       'Rango de profundidad (metros)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'Punto de buceo';
 
   @override
   String get diveLog_filter_sectionDiveType => 'Tipo de inmersión';
@@ -7888,16 +7889,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'Fecha de inicio';
-
-  @override
-  String get diveLog_filter_title => 'Filtrar inmersiones';
-
-  @override
-  String get diveLog_filter_resizeGrip =>
-      'Cambiar el tamaño del panel de filtros';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'Cerrar filtro';
 
   @override
   String get diveLog_fullscreenProfile_close => 'Cerrar pantalla completa';
@@ -8116,9 +8107,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'Registrar inmersión';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'Búsqueda avanzada';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'Numeración de inmersiones';
@@ -8988,31 +8976,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'Mostrando las primeras $limit coincidencias. Refina la búsqueda para acotar los resultados.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'No se encontraron inmersiones para \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Buscar por punto, compañero o notas';
-
-  @override
-  String get diveLog_listPage_tooltip_back => 'Atrás';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'Volver a la lista de inmersiones';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Borrar búsqueda';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Filtrar inmersiones';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'Vista de lista';
@@ -9022,6 +8990,73 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_searchDives => 'Buscar inmersiones';
+
+  @override
+  String get diveLog_refine_title => 'Refinar';
+
+  @override
+  String get diveLog_refine_groupRules => 'Reglas';
+
+  @override
+  String get diveLog_refine_groupPeople => 'Personas y vida marina';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'Campos personalizados';
+
+  @override
+  String get diveLog_refine_summaryAny => 'Cualquiera';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count activos',
+      one: '$count activo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mostrar $count inmersiones',
+      one: 'Mostrar $count inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'Mostrar inmersiones';
+
+  @override
+  String get diveLog_search_fieldHint => 'Busca, p. ej. depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Refinar';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Cerrar búsqueda';
+
+  @override
+  String get diveLog_search_scopeWithin => 'Dentro de los filtros';
+
+  @override
+  String get diveLog_search_scopeAll => 'Todas las inmersiones';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Ir a la inmersión';
+
+  @override
+  String get diveLog_search_openInsights => 'Abrir en Análisis';
+
+  @override
+  String get diveLog_search_cleared => 'Búsqueda borrada';
+
+  @override
+  String get diveLog_search_undo => 'Deshacer';
 
   @override
   String get diveLog_listPage_tooltip_sort => 'Ordenar';
@@ -9364,13 +9399,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_search_allTrips => 'Todos los viajes';
 
   @override
-  String get diveLog_search_appBar => 'Búsqueda avanzada';
-
-  @override
   String get diveLog_search_cancel => 'Cancelar';
-
-  @override
-  String get diveLog_search_clearAll => 'Borrar todo';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9379,15 +9408,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'Fin';
-
-  @override
   String get diveLog_search_errorLoadingCenters =>
       'Error al cargar los centros de buceo';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes =>
-      'Error al cargar tipos de inmersión';
 
   @override
   String get diveLog_search_errorLoadingEquipment =>
@@ -9415,19 +9437,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'Punto de buceo';
 
   @override
-  String get diveLog_search_label_diveType => 'Tipo de inmersión';
-
-  @override
-  String get diveLog_search_label_durationRange => 'Rango de duración (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'Equipo';
 
   @override
   String get diveLog_search_label_trip => 'Viaje';
-
-  @override
-  String get diveLog_search_search => 'Buscar';
 
   @override
   String get diveLog_search_section_conditions => 'Condiciones';
@@ -9443,12 +9456,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'Organización';
-
-  @override
-  String get diveLog_search_section_social => 'Social';
-
-  @override
-  String get diveLog_search_start => 'Inicio';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -9706,6 +9713,20 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Eliminar tanque';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Completar desde mis botellas';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'No se pudieron copiar los datos de esa botella. Inténtalo de nuevo.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Copia el tamaño y la última carga de la botella elegida y la añade al equipo de esta inmersión.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Mis botellas';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Regulador';
@@ -20802,6 +20823,20 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'Cada uno se pondrá al día cuando use una versión al menos tan reciente como la de este. Si todavía no se le ofrece esa actualización, llegará con la próxima versión, o antes si se une a la beta.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList usa una versión anterior de Submersion que no puede leer los últimos cambios de este dispositivo, por lo que no los recibirá hasta que se actualice.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList usan una versión anterior de Submersion que no puede leer los últimos cambios de este dispositivo, por lo que no los recibirán hasta que se actualicen.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList todavía tiene una versión de biblioteca antigua o desconocida, por lo que sus cambios no se combinaron. Abre Submersion en él para adoptar la biblioteca actual.';
   }
@@ -20849,8 +20884,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'Actualiza este dispositivo para recibirlos.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'Llegarán cuando este dispositivo use una versión al menos igual de reciente. Si ese dispositivo está en el canal beta, puede que aún no exista una actualización estable: cambia también este dispositivo al canal de actualizaciones beta, o espera a la próxima versión estable.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'Se aplicarán automáticamente cuando llegue la actualización de la tienda de aplicaciones de este dispositivo; puede que aún esté en revisión.';
+      'Se aplicarán automáticamente cuando la actualización de la tienda de aplicaciones de este dispositivo alcance esa versión. Puede que aún esté en revisión o, si ese dispositivo usa una beta (TestFlight o pruebas de Google Play), que aún no se haya publicado: únete a la misma beta en este dispositivo, o espera a la próxima versión.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Conectado';
@@ -22748,8 +22787,15 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'Permanecerás en esta beta hasta que la próxima versión estable sea más reciente que ella.';
+  String get settings_updates_stableDialogBody =>
+      'Este dispositivo conserva su versión actual hasta que una versión estable sea más reciente, por lo que la app nunca vuelve a una versión anterior y tu registro de buceo se conserva. Hasta entonces, puede que los dispositivos del canal estable que se sincronizan con este no reciban sus últimos cambios. No instales una versión estable anterior encima de esta: no puede abrir un registro de buceo que una versión más reciente ha actualizado.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'Cambiar a Estable';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      '¿Volver a las actualizaciones estables?';
 
   @override
   String get settings_updates_upToDate => 'Actualizado';
@@ -23610,6 +23656,17 @@ class AppLocalizationsEs extends AppLocalizations {
     Object label,
   ) {
     return '$name, posición $rank, $count $label';
+  }
+
+  @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name, $subtitle, posición $rank, $count $label';
   }
 
   @override
@@ -25176,10 +25233,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transfer_appBar_title => 'Transferir';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'Conecta tu computadora de buceo por Bluetooth para descargar registros de buceo directamente a la aplicación. Las computadoras compatibles incluyen Suunto, Shearwater, Garmin, Mares y muchas otras marcas populares.\n\nLos usuarios de Apple Watch Ultra pueden importar datos de buceo directamente desde la app Salud, incluyendo profundidad, duración y frecuencia cardiaca.';
-
-  @override
   String get transfer_computers_aboutTitle =>
       'Acerca de las computadoras de buceo';
 
@@ -25856,8 +25909,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_edit_dialog_keepEditing => 'Seguir editando';
 
   @override
-  String trips_edit_durationDays(Object days) {
-    return '$days días';
+  String trips_edit_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days días',
+      one: '$days día',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -26199,6 +26258,22 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_type_dayTrip => 'Salida de un día';
+
+  @override
+  String get trips_type_description_dayTrip =>
+      'Un solo día, como una inmersión local';
+
+  @override
+  String get trips_type_description_liveaboard =>
+      'A bordo de un barco de buceo, con detalles del barco y del itinerario';
+
+  @override
+  String get trips_type_description_resort =>
+      'Una estancia en un resort de buceo';
+
+  @override
+  String get trips_type_description_shore =>
+      'Inmersiones desde la costa durante uno o varios días';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
@@ -28465,7 +28540,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi y más de 50 modelos.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi y más de 50 modelos.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Marcas compatibles';
@@ -28479,6 +28554,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Entendido';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Los relojes Garmin no se descargan aquí. Importa sus inmersiones desde $importPath o $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>
@@ -30583,6 +30663,48 @@ class AppLocalizationsEs extends AppLocalizations {
   ) {
     return '$count inmersiones con datos sin procesar ($without sin)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Descartar';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return '¿Eliminar los datos de descarga sin procesar guardados de $count inmersiones de todos los ordenadores de buceo ($size)? Esas inmersiones ya no podrán reanalizarse cuando mejore el analizador de inmersiones. Las inmersiones y tus cambios se mantienen, y tus otros dispositivos sincronizados también eliminan los datos.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton =>
+      'Descartar datos sin procesar';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return '¿Eliminar los datos de descarga sin procesar guardados de $count inmersiones de $computer? Esas inmersiones ya no podrán reanalizarse cuando mejore el analizador de inmersiones. Las inmersiones y tus cambios se mantienen, y tus otros dispositivos sincronizados también eliminan los datos.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'No se pudieron descartar los datos sin procesar';
+
+  @override
+  String get diveComputer_rawData_discardTitle =>
+      '¿Descartar datos sin procesar?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'Datos sin procesar descartados de $count inmersiones';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count inmersiones, $size. Se conservan para poder reanalizar estas inmersiones cuando mejore el analizador.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle =>
+      'Datos sin procesar de los ordenadores de buceo';
 
   @override
   String get diveLog_detail_menu_reparseRawData =>
@@ -41410,10 +41532,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'Desconocido';
 
   @override
-  String get insights_summary_divesPerMonth => 'Inmersiones / mes';
+  String get insights_summary_divesPerMonth => 'Prom. inmersiones / mes';
 
   @override
-  String get insights_summary_divesPerYear => 'Inmersiones / año';
+  String get insights_summary_divesPerYear => 'Prom. inmersiones / año';
+
+  @override
+  String get insights_summary_divesThisYear => 'Inmersiones este año';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {
@@ -43310,6 +43435,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String universalImport_counts_filling(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count a completar inmersiones planificadas',
+      one: '$count a completar una inmersión planificada',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_counts_skipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -43407,6 +43543,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Pasando a la revisión...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Importar desde archivo';
+
+  @override
   String get importWizard_dc_knownComputer => 'Ordenador conocido';
 
   @override
@@ -43415,12 +43554,30 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get importWizard_dc_noDirectDownload =>
+      'No se puede descargar directamente desde este ordenador';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Submersion no tiene ninguna conexión guardada para $name. Importe sus inmersiones desde un archivo o vuelva a añadirlo desde Ordenadores de buceo para descargar por Bluetooth o USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Los relojes Garmin guardan las inmersiones como archivos FIT en lugar de ofrecer una descarga directa. Conecte el reloj por USB, copie los archivos de su carpeta GARMIN/Activity y luego impórtelos.';
+
+  @override
   String get importWizard_dc_noNewDives =>
       'No hay inmersiones nuevas para descargar';
 
   @override
   String get importWizard_dc_noNewDivesBody =>
       'Todas las inmersiones de este ordenador ya se han importado.';
+
+  @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name se conecta con un cable USB, que Submersion no puede usar en iPhone ni iPad. Descargue sus inmersiones con Submersion en un ordenador Mac, Windows o Linux, o impórtelas desde un archivo.';
+  }
 
   @override
   String get universalImport_compare_noDiveData =>
@@ -46517,10 +46674,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'No se pudieron emparejar las rutas.';
+  String get navTrack_list_matchError =>
+      'No se pudo comprobar el emparejamiento de rutas.';
 
   @override
-  String get navTrack_list_matchSuccess => 'Rutas emparejadas con inmersiones.';
+  String get navTrack_list_matchSuccess =>
+      'Se comprobaron las rutas que esperan tu elección.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -46531,7 +46690,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navTrack_list_importTooltip => 'Importar archivo de ruta';
 
   @override
-  String get navTrack_list_matchTooltip => 'Emparejar ahora';
+  String get navTrack_list_matchTooltip => 'Comprobar ahora';
 
   @override
   String get navTrack_list_title => 'Rutas submarinas';
@@ -46542,6 +46701,25 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get navTrack_list_empty => 'Aún no hay rutas submarinas.';
+
+  @override
+  String get navTrack_review_saveConfirmation => 'Ruta guardada.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rutas esperan tu elección',
+      one: '$count ruta espera tu elección',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String navTrack_list_loadError(String error) {
+    return 'No se pudieron cargar las rutas: $error';
+  }
 
   @override
   String get navTrack_seascape_title => 'Paisaje submarino de la ruta';
@@ -47611,12 +47789,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'No';
-
-  @override
-  String get diveLog_filter_queryRow => 'Consulta';
-
-  @override
-  String get diveLog_search_section_query => 'Consulta';
 
   @override
   String get query_saveDialog_title => 'Guardar consulta';

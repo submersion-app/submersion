@@ -129,9 +129,11 @@ Group equipment into sets for quick selection:
 When logging a dive:
 
 1. Go to the Equipment section
-2. Tap **Apply Set**
+2. Tap **Use Set**
 3. Select a set
 4. All items are linked to the dive
+
+A Tank item in a set is linked as equipment only; it does not add a tank to the dive's **Tanks** list.
 
 ## Per-Dive Tracking
 
@@ -139,10 +141,16 @@ When logging a dive:
 
 For each dive, you can link the equipment you used:
 
-1. In the dive entry form, find **Equipment**
-2. Tap **Add Equipment**
+1. In the dive entry form, open **Gas & Gear** and find **Equipment**
+2. Tap **Add**
 3. Select items from your catalog
 4. Repeat for all gear used
+
+### Your Cylinders on a Dive
+
+A cylinder you own can appear twice on a dive. Under **Equipment** it counts toward the cylinder's dives and service history. Under **Tanks** it carries the dive's gas mix and pressures, which are what the gas graphs, consumption and statistics read. A cylinder listed only under Equipment adds no gas data.
+
+To log both at once, open a tank and tap **Fill from my cylinders**: the tank takes the cylinder's size and latest fill, and the cylinder joins the dive's equipment. See [Tanks or Equipment?](guide/dive-logging.md?id=tanks-or-equipment) in Dive Logging for the full explanation.
 
 ### Benefits
 

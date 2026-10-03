@@ -488,16 +488,11 @@ class CsvTransformer {
     return rawValue;
   }
 
-  /// Infer a Duration from a raw string value.
-  ///
-  /// If the value contains colons, parse as H:MM:SS / M:SS.
-  /// Otherwise, try as decimal minutes.
-  Duration? _inferDuration(String rawValue) {
-    if (rawValue.contains(':')) {
-      return _valueConverter.parseDuration(rawValue, DurationFormat.hms);
-    }
-    return _valueConverter.parseDuration(rawValue, DurationFormat.minutes);
-  }
+  /// Infer a Duration from a raw string value: H:MM:SS / M:SS when it has
+  /// colons, otherwise minutes, with or without a unit ("45", "45 min",
+  /// "1h 5m"). See [ValueConverter.parseFlexibleDuration].
+  Duration? _inferDuration(String rawValue) =>
+      _valueConverter.parseFlexibleDuration(rawValue);
 
   /// Coerce a default value string for a given target field.
   dynamic _coerceDefault(

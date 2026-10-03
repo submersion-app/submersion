@@ -52,6 +52,23 @@ class NavTrackMatcher {
     return [for (final s in scored) s.$1];
   }
 
+  /// The one dive to suggest for a route: the sole entry of [candidatesFor],
+  /// or null when no dive overlaps (genuinely unmatched) or several do
+  /// (ambiguous). Never a basis for linking on its own (#2394); callers only
+  /// pre-select or report it, so the diver still confirms the choice.
+  static Dive? soleCandidateFor({
+    required int routeStartSeconds,
+    required int routeEndSeconds,
+    required List<Dive> dives,
+  }) {
+    final candidates = candidatesFor(
+      routeStartSeconds: routeStartSeconds,
+      routeEndSeconds: routeEndSeconds,
+      dives: dives,
+    );
+    return candidates.length == 1 ? candidates.single : null;
+  }
+
   /// How many dives [nearestByStart] offers by default: enough to reach the
   /// right dive past a recording device's wrong clock, few enough to scan.
   static const int nearestLimit = 20;

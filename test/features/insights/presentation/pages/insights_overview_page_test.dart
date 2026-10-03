@@ -567,8 +567,58 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Total Dives'), findsOneWidget);
-      expect(find.text('Dives / Month'), findsNothing);
+      expect(find.text('Avg Dives / Month'), findsNothing);
+      expect(find.text('Avg Dives / Year'), findsNothing);
+      // This year's count has no tenure requirement.
+      expect(find.text('Dives This Year'), findsOneWidget);
+    });
+
+    // Issue #2600: the per-year card is a lifetime average, and a diver read
+    // "Dives / Year" as this year's total. The average says it is an average,
+    // and the actual count for the current year sits beside it.
+    testWidgets('labels the averages and shows this year\'s actual count', (
+      tester,
+    ) async {
+      final stats = DiveStatistics(
+        totalDives: 501,
+        totalTimeSeconds: 5400,
+        maxDepth: 18.0,
+        avgMaxDepth: 12.0,
+        totalSites: 1,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 1826)),
+        divesThisYear: 124,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: InsightsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Avg Dives / Month'), findsOneWidget);
+      expect(find.text('Avg Dives / Year'), findsOneWidget);
       expect(find.text('Dives / Year'), findsNothing);
+      expect(find.text('Dives This Year'), findsOneWidget);
+      expect(find.text('124'), findsOneWidget);
     });
   });
 

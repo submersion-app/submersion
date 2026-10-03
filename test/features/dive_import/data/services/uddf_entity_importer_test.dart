@@ -2774,6 +2774,41 @@ void main() {
       expect(switches[1].tankId, dive.tanks[1].id);
     });
 
+    test('carries each tank\'s recorded usage duration (#1496)', () async {
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      final data = UddfImportResult(
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 30.0,
+            'tanks': [
+              {'name': 'Left', 'usageDuration': const Duration(minutes: 30)},
+              {'name': 'Right', 'usageDuration': const Duration(minutes: 22)},
+              {'name': 'Spare'},
+            ],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final dive =
+          verify(mockDiveRepo.createDive(captureAny)).captured.first as Dive;
+      expect(dive.tanks.map((t) => t.usageDuration), [
+        const Duration(minutes: 30),
+        const Duration(minutes: 22),
+        null,
+      ]);
+    });
+
     test('maps gas switches by tank index to created tank ids', () async {
       // FIT imports have no UDDF refs; switches address tanks positionally.
       when(mockDiveRepo.createDive(any)).thenAnswer(

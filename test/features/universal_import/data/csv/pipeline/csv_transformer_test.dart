@@ -838,6 +838,33 @@ void main() {
       expect(duration.inSeconds, 2700);
     });
 
+    test('infers a duration written with its unit (#1809)', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Duration'],
+        rows: [
+          ['2024-06-15', '45 min'],
+          ['2024-06-16', '1h 5m'],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Duration', targetField: 'duration'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows[0]['duration'], const Duration(minutes: 45));
+      expect(result.rows[1]['duration'], const Duration(minutes: 65));
+    });
+
     test('_coerceDefault applies transform to default value', () {
       const csv = ParsedCsv(
         headers: ['Date', 'Depth'],

@@ -96,7 +96,22 @@ Scroll to the **Notes** section to add any observations:
 - Memorable moments
 - Things to remember for next time
 
-## Step 7: Save Your Dive
+## Step 7: Put It in a Trip (Optional)
+
+Trips group dives so they can share stats, photos, and gear lists. A trip
+does not have to mean travel: a single local dive belongs in a **Day Trip**.
+
+1. In the dive form, tap **Add trip or dive center**, then tap **Trip**
+2. Tap **New Trip** (or **Create Trip** if you have none yet)
+3. Choose **Day Trip**; its end date follows the start date, so set the
+   **Start Date** to the day of your dive
+4. Give it a name (e.g., "Saturday at the quarry") and tap **Save**
+
+<div class="tip">
+<strong>Tip:</strong> For a holiday or several days of diving, pick <strong>Shore</strong>, <strong>Resort</strong>, or <strong>Liveaboard</strong> instead. The trip form describes each type under the selector.
+</div>
+
+## Step 8: Save Your Dive
 
 Tap **Save** in the top right corner.
 

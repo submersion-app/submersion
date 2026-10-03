@@ -1,6 +1,7 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -546,6 +547,150 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(find.text('4 days'), findsOneWidget);
+    });
+  });
+
+  group('TripEditPage - day trip (#2625)', () {
+    Future<void> pumpNewTrip(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: const MaterialApp(
+            // Pin the locale: one test types a US-format date.
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    const dayTripHint = 'A single day out, such as one local dive';
+    const shoreHint = 'Shore dives over one or more days';
+
+    testWidgets('the type selector describes the selected type', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+      expect(find.text(shoreHint), findsOneWidget);
+      expect(find.text(dayTripHint), findsNothing);
+
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(dayTripHint), findsOneWidget);
+      expect(find.text(shoreHint), findsNothing);
+    });
+
+    testWidgets('choosing Day Trip collapses the dates to one day', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+      expect(find.text('8 days'), findsOneWidget);
+
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 day'), findsOneWidget);
+    });
+
+    testWidgets('a Day Trip keeps its end date on a moved start date', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+
+      // A start date in the past: moving the start later than the end is
+      // already synced for every type, so only an earlier start shows whether
+      // the end follows it.
+      await tester.tap(find.text('Start Date'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(DatePickerDialog),
+          matching: find.byType(TextField),
+        ),
+        '01/15/2023',
+      );
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 day'), findsOneWidget);
+    });
+
+    testWidgets('a Day Trip locks its end date to the start date', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+
+      final endRow = find.widgetWithText(ListTile, 'End Date');
+      expect(tester.widget<ListTile>(endRow).enabled, isFalse);
+      await tester.tap(find.text('End Date'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DatePickerDialog), findsNothing);
+      expect(find.text('1 day'), findsOneWidget);
+
+      // Another type hands the end date back to the diver.
+      await tester.tap(find.text('Resort'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<ListTile>(endRow).enabled, isTrue);
+    });
+
+    testWidgets('a stored multi-day Day Trip keeps its end date editable', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithMultiDayDayTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-id'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Locking a row that shows a three-day range would leave the diver no
+      // way to correct it; the lock applies once the trip is one day.
+      expect(find.text('3 days'), findsOneWidget);
+      final endRow = find.widgetWithText(ListTile, 'End Date');
+      expect(tester.widget<ListTile>(endRow).enabled, isTrue);
+    });
+
+    testWidgets('leaving Day Trip keeps the collapsed dates', (tester) async {
+      await pumpNewTrip(tester);
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Shore'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 day'), findsOneWidget);
+      expect(find.text(shoreHint), findsOneWidget);
     });
   });
 
@@ -2246,6 +2391,23 @@ class _MockTripRepositoryWithDstTrip extends _MockTripRepositoryWithTrip {
       endDate: DateTime(2027, 3, 15, 9),
       createdAt: DateTime(2027),
       updatedAt: DateTime(2027),
+    );
+  }
+}
+
+/// A Day Trip saved before the form kept day trips to one day (#2625).
+class _MockTripRepositoryWithMultiDayDayTrip
+    extends _MockTripRepositoryWithTrip {
+  @override
+  Future<Trip?> getTripById(String id) async {
+    return Trip(
+      id: 'test-id',
+      name: 'Long Day Trip',
+      startDate: DateTime(2026, 5, 1),
+      endDate: DateTime(2026, 5, 3),
+      tripType: TripType.dayTrip,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
     );
   }
 }

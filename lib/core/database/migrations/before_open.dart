@@ -455,6 +455,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // read selects the whole row, so a database that arrives by restore
     // or sync-adopt without it would throw on the first read.
     await _assertComputerTissueColumn();
+    // v258 backstop: gas_switches.computer_id (#2582), backfill included.
+    await _assertGasSwitchComputerIdColumn();
     // v182 backstop: re-assert the packed profile series tables, then
     // pack any dive that still has legacy rows and no series row. A
     // schema-version collision with a parallel branch skips the rung on
@@ -606,6 +608,10 @@ extension BeforeOpenBackstops on AppDatabase {
     // v254 backstop: re-assert dive_tanks.role_source, for the same reason
     // as transmitter_serial above. Column only, no backfill.
     await _assertTankRoleSourceColumn();
+
+    // v259 backstop: re-assert dive_tanks.usage_duration (issue #1496).
+    // Column only, no backfill.
+    await _assertTankUsageDurationColumn();
 
     // v145 backstop: re-assert the gps_tracks provenance and trim columns.
     await _assertGpsTrackColumns();

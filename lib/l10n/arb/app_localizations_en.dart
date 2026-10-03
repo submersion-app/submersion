@@ -2211,6 +2211,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_schedule_retention => 'Keep backups';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count backups currently use $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'Older backups are automatically removed';
 
@@ -6915,6 +6920,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Tanks too.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Tap \"Use Set\" or \"Add\" to select equipment';
 
@@ -7339,6 +7348,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_tankCard_volume => 'Volume';
 
   @override
+  String get diveLog_edit_tanksCaption =>
+      'What you breathed from. Gas graphs, gas consumption and statistics come from these tanks.';
+
+  @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
       'Calculate from dive profile';
 
@@ -7633,16 +7646,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_allTypes => 'All types';
 
   @override
-  String get diveLog_filter_apply => 'Apply Filters';
-
-  @override
   String get diveLog_filter_buddyHint => 'Search by buddy name';
 
   @override
   String get diveLog_filter_buddyName => 'Buddy Name';
-
-  @override
-  String get diveLog_filter_clearAll => 'Clear All';
 
   @override
   String get diveLog_filter_clearDates => 'Clear dates';
@@ -7723,13 +7730,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'Date Range';
-
-  @override
   String get diveLog_filter_sectionDepthRange => 'Depth Range (meters)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'Dive Site';
 
   @override
   String get diveLog_filter_sectionDiveType => 'Dive Type';
@@ -7758,15 +7759,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'Start Date';
-
-  @override
-  String get diveLog_filter_title => 'Filter Dives';
-
-  @override
-  String get diveLog_filter_resizeGrip => 'Resize filter panel';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'Close filter';
 
   @override
   String get diveLog_fullscreenProfile_close => 'Close fullscreen';
@@ -7981,9 +7973,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'Log Dive';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'Advanced Search';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'Dive Numbering';
@@ -8842,30 +8831,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'Showing the first $limit matches. Refine your search to narrow results.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'No dives found for \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Search by site, buddy, or notes';
-
-  @override
-  String get diveLog_listPage_tooltip_back => 'Back';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList => 'Back to dive list';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Clear search';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Filter dives';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'List View';
@@ -8875,6 +8844,73 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_searchDives => 'Search dives';
+
+  @override
+  String get diveLog_refine_title => 'Refine';
+
+  @override
+  String get diveLog_refine_groupRules => 'Rules';
+
+  @override
+  String get diveLog_refine_groupPeople => 'People & life';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'Custom fields';
+
+  @override
+  String get diveLog_refine_summaryAny => 'Any';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count set',
+      one: '$count set',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count dives',
+      one: 'Show $count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'Show dives';
+
+  @override
+  String get diveLog_search_fieldHint => 'Search, or try depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Refine';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Close search';
+
+  @override
+  String get diveLog_search_scopeWithin => 'Within filters';
+
+  @override
+  String get diveLog_search_scopeAll => 'All dives';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Jump to dive';
+
+  @override
+  String get diveLog_search_openInsights => 'Open in Insights';
+
+  @override
+  String get diveLog_search_cleared => 'Search cleared';
+
+  @override
+  String get diveLog_search_undo => 'Undo';
 
   @override
   String get diveLog_listPage_tooltip_sort => 'Sort';
@@ -9211,13 +9247,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_search_allTrips => 'All trips';
 
   @override
-  String get diveLog_search_appBar => 'Advanced Search';
-
-  @override
   String get diveLog_search_cancel => 'Cancel';
-
-  @override
-  String get diveLog_search_clearAll => 'Clear All';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9226,13 +9256,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'End';
-
-  @override
   String get diveLog_search_errorLoadingCenters => 'Error loading dive centers';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes => 'Error loading dive types';
 
   @override
   String get diveLog_search_errorLoadingEquipment => 'Error loading equipment';
@@ -9259,19 +9283,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'Dive Site';
 
   @override
-  String get diveLog_search_label_diveType => 'Dive Type';
-
-  @override
-  String get diveLog_search_label_durationRange => 'Duration Range (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'Equipment';
 
   @override
   String get diveLog_search_label_trip => 'Trip';
-
-  @override
-  String get diveLog_search_search => 'Search';
 
   @override
   String get diveLog_search_section_conditions => 'Conditions';
@@ -9287,12 +9302,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'Organization';
-
-  @override
-  String get diveLog_search_section_social => 'Social';
-
-  @override
-  String get diveLog_search_start => 'Start';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -9546,6 +9555,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Remove tank';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Fill from my cylinders';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'Could not fill the tank from that cylinder. Try again.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Copies the cylinder\'s size and latest fill into this tank and adds the cylinder to this dive\'s equipment.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'My cylinders';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Regulator';
@@ -20484,6 +20507,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'Each one catches up once it runs a version at least as new as this one. If no such update is offered to it yet, it arrives with the next release, or sooner by joining the beta.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList runs an older version of Submersion that cannot read this device\'s latest changes, so it will not receive them until it updates.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList run an older version of Submersion that cannot read this device\'s latest changes, so they will not receive them until they update.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList still has an older or unknown library version, so its changes were not merged. Open Submersion on it to adopt the current library.';
   }
@@ -20531,8 +20568,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Update this device to receive them.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'They arrive once this device runs a version at least as new. If that device is on the beta channel, a stable update may not exist yet: switch this device to the beta update channel too, or wait for the next stable release.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'They will apply automatically once this device\'s app store update arrives; the update may still be in review.';
+      'They apply automatically once this device\'s app store update reaches that version. It may still be in review, or, if that device runs a beta (TestFlight or Google Play testing), not be released yet: join the same beta on this device, or wait for the next release.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Connected';
@@ -22388,8 +22429,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'You will stay on this beta until the next stable release is newer than it.';
+  String get settings_updates_stableDialogBody =>
+      'This device keeps its current build until a stable release is newer than it, so the app is never downgraded and your dive log is kept. Until then, devices on the stable channel that sync with this one may not receive its latest changes. Do not install an older stable build over this one: it cannot open a dive log that a newer build has upgraded.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'Switch to Stable';
+
+  @override
+  String get settings_updates_stableDialogTitle => 'Return to stable updates?';
 
   @override
   String get settings_updates_upToDate => 'Up to date';
@@ -23222,6 +23269,17 @@ class AppLocalizationsEn extends AppLocalizations {
     Object label,
   ) {
     return '$name, rank $rank, $count $label';
+  }
+
+  @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name, $subtitle, rank $rank, $count $label';
   }
 
   @override
@@ -24765,10 +24823,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transfer_appBar_title => 'Transfer';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'Connect your dive computer via Bluetooth to download dive logs directly to the app. Supported computers include Suunto, Shearwater, Garmin, Mares, and many other popular brands.  Apple Watch Ultra users can import dive data directly from the Health app, including depth, duration, and heart rate.';
-
-  @override
   String get transfer_computers_aboutTitle => 'About Dive Computers';
 
   @override
@@ -25426,8 +25480,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_edit_dialog_keepEditing => 'Keep Editing';
 
   @override
-  String trips_edit_durationDays(Object days) {
-    return '$days days';
+  String trips_edit_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '$days day',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -25763,6 +25823,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_type_dayTrip => 'Day Trip';
+
+  @override
+  String get trips_type_description_dayTrip =>
+      'A single day out, such as one local dive';
+
+  @override
+  String get trips_type_description_liveaboard =>
+      'Living aboard a dive boat, with vessel and itinerary details';
+
+  @override
+  String get trips_type_description_resort => 'A stay at a dive resort';
+
+  @override
+  String get trips_type_description_shore =>
+      'Shore dives over one or more days';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
@@ -27997,7 +28072,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Supported Brands';
@@ -28010,6 +28085,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Got it';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Garmin watches are not downloaded here. Import their dives from $importPath or $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>
@@ -30082,6 +30162,44 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return '$count dives with raw data ($without without)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Discard';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'Remove the raw download data kept for $count dives from every dive computer ($size)? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'Discard raw data';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'Remove the raw download data kept for $count dives from $computer? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed => 'Could not discard raw data';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'Discard raw data?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'Discarded raw data for $count dives';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count dives, $size. Kept so these dives can be re-parsed when the parser improves.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle => 'Raw dive computer data';
 
   @override
   String get diveLog_detail_menu_reparseRawData => 'Re-parse raw data';
@@ -40820,10 +40938,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'Unknown';
 
   @override
-  String get insights_summary_divesPerMonth => 'Dives / Month';
+  String get insights_summary_divesPerMonth => 'Avg Dives / Month';
 
   @override
-  String get insights_summary_divesPerYear => 'Dives / Year';
+  String get insights_summary_divesPerYear => 'Avg Dives / Year';
+
+  @override
+  String get insights_summary_divesThisYear => 'Dives This Year';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {
@@ -42669,6 +42790,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String universalImport_counts_filling(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count filling planned dives',
+      one: '$count filling a planned dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_counts_skipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -42763,6 +42895,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Proceeding to review...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Import from File';
+
+  @override
   String get importWizard_dc_knownComputer => 'Known Computer';
 
   @override
@@ -42771,11 +42906,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get importWizard_dc_noDirectDownload =>
+      'Can\'t download this computer directly';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Submersion has no saved connection for $name. Import its dives from a file, or add it again from Dive Computers to download over Bluetooth or USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.';
+
+  @override
   String get importWizard_dc_noNewDives => 'No new dives to download';
 
   @override
   String get importWizard_dc_noNewDivesBody =>
       'All dives from this computer have already been imported.';
+
+  @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name connects with a USB cable, which Submersion cannot use on iPhone or iPad. Download its dives with Submersion on a Mac, Windows or Linux computer, or import them from a file.';
+  }
 
   @override
   String get universalImport_compare_noDiveData =>
@@ -45796,10 +45949,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'Could not match routes.';
+  String get navTrack_list_matchError => 'Could not check for route matches.';
 
   @override
-  String get navTrack_list_matchSuccess => 'Routes matched to dives.';
+  String get navTrack_list_matchSuccess =>
+      'Checked for routes needing your choice.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -45810,7 +45964,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_list_importTooltip => 'Import route file';
 
   @override
-  String get navTrack_list_matchTooltip => 'Match now';
+  String get navTrack_list_matchTooltip => 'Check now';
 
   @override
   String get navTrack_list_title => 'Underwater Routes';
@@ -45821,6 +45975,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navTrack_list_empty => 'No underwater routes yet.';
+
+  @override
+  String get navTrack_review_saveConfirmation => 'Route saved.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count routes need your choice',
+      one: '$count route needs your choice',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String navTrack_list_loadError(String error) {
+    return 'Could not load routes: $error';
+  }
 
   @override
   String get navTrack_seascape_title => 'Route seascape';
@@ -46886,12 +47059,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'No';
-
-  @override
-  String get diveLog_filter_queryRow => 'Query';
-
-  @override
-  String get diveLog_search_section_query => 'Query';
 
   @override
   String get query_saveDialog_title => 'Save query';

@@ -2229,6 +2229,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_schedule_retention => 'Back-ups bewaren';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count back-ups gebruiken momenteel $size';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'Oudere back-ups worden automatisch verwijderd';
 
@@ -6982,6 +6987,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'Uitrusting die je gebruikte, voor het aantal duiken en de onderhoudsgeschiedenis. Een fles die hier staat levert geen gasgegevens; voeg hem ook toe onder Flessen.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Tik op \"Set gebruiken\" of \"Toevoegen\" om uitrusting te selecteren';
 
@@ -7408,6 +7417,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_tankCard_volume => 'Volume';
 
   @override
+  String get diveLog_edit_tanksCaption =>
+      'Waaruit je ademde. Gasgrafieken, gasverbruik en statistieken komen uit deze flessen.';
+
+  @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
       'Berekenen uit duikprofiel';
 
@@ -7709,16 +7722,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_allTypes => 'Alle types';
 
   @override
-  String get diveLog_filter_apply => 'Filters toepassen';
-
-  @override
   String get diveLog_filter_buddyHint => 'Zoek op buddynaam';
 
   @override
   String get diveLog_filter_buddyName => 'Buddynaam';
-
-  @override
-  String get diveLog_filter_clearAll => 'Alles wissen';
 
   @override
   String get diveLog_filter_clearDates => 'Datums wissen';
@@ -7799,13 +7806,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'Datumbereik';
-
-  @override
   String get diveLog_filter_sectionDepthRange => 'Dieptebereik (meters)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'Duikstek';
 
   @override
   String get diveLog_filter_sectionDiveType => 'Duiktype';
@@ -7834,15 +7835,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'Startdatum';
-
-  @override
-  String get diveLog_filter_title => 'Duiken filteren';
-
-  @override
-  String get diveLog_filter_resizeGrip => 'Formaat van filterpaneel wijzigen';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'Filter sluiten';
 
   @override
   String get diveLog_fullscreenProfile_close => 'Volledig scherm sluiten';
@@ -8058,9 +8050,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'Duik loggen';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'Geavanceerd zoeken';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'Duiknummering';
@@ -8926,30 +8915,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'De eerste $limit resultaten worden getoond. Verfijn je zoekopdracht om de resultaten te beperken.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'Geen duiken gevonden voor \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Zoek op stek, buddy of notities';
-
-  @override
-  String get diveLog_listPage_tooltip_back => 'Terug';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList => 'Terug naar duiklijst';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Zoekopdracht wissen';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Duiken filteren';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'Lijstweergave';
@@ -8959,6 +8928,73 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_searchDives => 'Duiken zoeken';
+
+  @override
+  String get diveLog_refine_title => 'Verfijnen';
+
+  @override
+  String get diveLog_refine_groupRules => 'Regels';
+
+  @override
+  String get diveLog_refine_groupPeople => 'Personen & leven';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'Aangepaste velden';
+
+  @override
+  String get diveLog_refine_summaryAny => 'Alle';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ingesteld',
+      one: '$count ingesteld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken tonen',
+      one: '$count duik tonen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'Duiken tonen';
+
+  @override
+  String get diveLog_search_fieldHint => 'Zoek, bv. depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Verfijnen';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Zoeken sluiten';
+
+  @override
+  String get diveLog_search_scopeWithin => 'Binnen filters';
+
+  @override
+  String get diveLog_search_scopeAll => 'Alle duiken';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Naar duik springen';
+
+  @override
+  String get diveLog_search_openInsights => 'Openen in Inzichten';
+
+  @override
+  String get diveLog_search_cleared => 'Zoekopdracht gewist';
+
+  @override
+  String get diveLog_search_undo => 'Ongedaan maken';
 
   @override
   String get diveLog_listPage_tooltip_sort => 'Sorteren';
@@ -9299,13 +9335,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_allTrips => 'Alle reizen';
 
   @override
-  String get diveLog_search_appBar => 'Geavanceerd zoeken';
-
-  @override
   String get diveLog_search_cancel => 'Annuleren';
-
-  @override
-  String get diveLog_search_clearAll => 'Alles wissen';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9314,14 +9344,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'Einde';
-
-  @override
   String get diveLog_search_errorLoadingCenters =>
       'Fout bij laden van duikcentra';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes => 'Fout bij laden duiktypes';
 
   @override
   String get diveLog_search_errorLoadingEquipment =>
@@ -9349,19 +9373,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'Duikstek';
 
   @override
-  String get diveLog_search_label_diveType => 'Duiktype';
-
-  @override
-  String get diveLog_search_label_durationRange => 'Duurbereik (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'Uitrusting';
 
   @override
   String get diveLog_search_label_trip => 'Reis';
-
-  @override
-  String get diveLog_search_search => 'Zoeken';
 
   @override
   String get diveLog_search_section_conditions => 'Omstandigheden';
@@ -9377,12 +9392,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'Organisatie';
-
-  @override
-  String get diveLog_search_section_social => 'Sociaal';
-
-  @override
-  String get diveLog_search_start => 'Start';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -9638,6 +9647,20 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Fles verwijderen';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Invullen vanuit mijn flessen';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'De gegevens van die fles konden niet worden overgenomen. Probeer het opnieuw.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Neemt de grootte en de laatste vulling van de gekozen fles over en voegt hem toe aan de uitrusting van deze duik.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Mijn flessen';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Ademautomaat';
@@ -20660,6 +20683,20 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'Elk apparaat loopt bij zodra het een minstens even nieuwe versie gebruikt als dit apparaat. Wordt zo\'n update nog niet aangeboden, dan komt die met de volgende versie, of eerder door deel te nemen aan de bèta.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList gebruikt een oudere versie van Submersion die de nieuwste wijzigingen van dit apparaat niet kan lezen, en ontvangt ze dus pas na een update.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList gebruiken een oudere versie van Submersion die de nieuwste wijzigingen van dit apparaat niet kan lezen, en ontvangen ze dus pas na een update.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList heeft nog een oudere of onbekende bibliotheekversie, dus de wijzigingen zijn niet samengevoegd. Open Submersion daar om de huidige bibliotheek over te nemen.';
   }
@@ -20707,8 +20744,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Werk dit apparaat bij om ze te ontvangen.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'Ze komen binnen zodra dit apparaat een minstens even nieuwe versie gebruikt. Als het andere apparaat op het bètakanaal zit, bestaat er mogelijk nog geen stabiele update: zet dit apparaat ook op het bèta-updatekanaal, of wacht op de volgende stabiele versie.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'Ze worden automatisch toegepast zodra de appstore-update voor dit apparaat beschikbaar is; de update is mogelijk nog in beoordeling.';
+      'Ze worden automatisch toegepast zodra de appstore-update voor dit apparaat die versie bereikt. De update is mogelijk nog in beoordeling of, als het andere apparaat een bèta gebruikt (TestFlight of Google Play-test), nog niet uitgebracht: neem op dit apparaat deel aan dezelfde bèta, of wacht op de volgende versie.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Verbonden';
@@ -22575,8 +22616,16 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'Je blijft op deze bèta totdat de volgende stabiele versie nieuwer is.';
+  String get settings_updates_stableDialogBody =>
+      'Dit apparaat houdt zijn huidige build totdat een stabiele versie nieuwer is, dus de app wordt nooit teruggezet en je duiklogboek blijft behouden. Tot die tijd ontvangen apparaten op het stabiele kanaal die met dit apparaat synchroniseren mogelijk niet de nieuwste wijzigingen. Installeer geen oudere stabiele build over deze heen: die kan geen duiklogboek openen dat een nieuwere build heeft geüpgraded.';
+
+  @override
+  String get settings_updates_stableDialogConfirm =>
+      'Overschakelen naar stabiel';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      'Terug naar stabiele updates?';
 
   @override
   String get settings_updates_upToDate => 'Up-to-date';
@@ -23419,6 +23468,17 @@ class AppLocalizationsNl extends AppLocalizations {
     Object label,
   ) {
     return '$name, rang $rank, $count $label';
+  }
+
+  @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name, $subtitle, rang $rank, $count $label';
   }
 
   @override
@@ -24973,10 +25033,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get transfer_appBar_title => 'Overdracht';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'Verbind je duikcomputer via Bluetooth om duiklogs rechtstreeks naar de app te downloaden. Ondersteunde computers zijn onder andere Suunto, Shearwater, Garmin, Mares en vele andere populaire merken.\n\nApple Watch Ultra-gebruikers kunnen duikgegevens rechtstreeks uit de Gezondheid-app importeren, inclusief diepte, duur en hartslag.';
-
-  @override
   String get transfer_computers_aboutTitle => 'Over duikcomputers';
 
   @override
@@ -25644,8 +25700,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_edit_dialog_keepEditing => 'Verder bewerken';
 
   @override
-  String trips_edit_durationDays(Object days) {
-    return '$days dagen';
+  String trips_edit_durationDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days dagen',
+      one: '$days dag',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -25984,6 +26046,20 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_type_dayTrip => 'Dagtrip';
+
+  @override
+  String get trips_type_description_dayTrip =>
+      'Eén dag op pad, zoals één lokale duik';
+
+  @override
+  String get trips_type_description_liveaboard =>
+      'Aan boord van een duikschip, met details over schip en route';
+
+  @override
+  String get trips_type_description_resort => 'Een verblijf in een duikresort';
+
+  @override
+  String get trips_type_description_shore => 'Kantduiken op een of meer dagen';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
@@ -28240,7 +28316,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi en 50+ andere modellen.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi en 50+ andere modellen.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Ondersteunde merken';
@@ -28254,6 +28330,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Begrepen';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Garmin-horloges worden hier niet gedownload. Importeer hun duiken via $importPath of $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>
@@ -30343,6 +30424,45 @@ class AppLocalizationsNl extends AppLocalizations {
   ) {
     return '$count duiken met ruwe data ($without zonder)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Verwijderen';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'De bewaarde ruwe downloaddata van $count duiken van alle duikcomputers verwijderen ($size)? Deze duiken kunnen daarna niet meer opnieuw worden verwerkt wanneer de duikparser verbetert. De duiken en je wijzigingen blijven behouden, en je andere gesynchroniseerde apparaten verwijderen de data ook.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'Ruwe data verwijderen';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'De bewaarde ruwe downloaddata van $count duiken van $computer verwijderen? Deze duiken kunnen daarna niet meer opnieuw worden verwerkt wanneer de duikparser verbetert. De duiken en je wijzigingen blijven behouden, en je andere gesynchroniseerde apparaten verwijderen de data ook.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'Kan ruwe data niet verwijderen';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'Ruwe data verwijderen?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return 'Ruwe data van $count duiken verwijderd';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count duiken, $size. Bewaard zodat deze duiken opnieuw verwerkt kunnen worden wanneer de parser verbetert.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle => 'Ruwe duikcomputerdata';
 
   @override
   String get diveLog_detail_menu_reparseRawData =>
@@ -41115,10 +41235,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'Onbekend';
 
   @override
-  String get insights_summary_divesPerMonth => 'Duiken / maand';
+  String get insights_summary_divesPerMonth => 'Gem. duiken / maand';
 
   @override
-  String get insights_summary_divesPerYear => 'Duiken / jaar';
+  String get insights_summary_divesPerYear => 'Gem. duiken / jaar';
+
+  @override
+  String get insights_summary_divesThisYear => 'Duiken dit jaar';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {
@@ -43003,6 +43126,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String universalImport_counts_filling(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplande duiken invullen',
+      one: '$count geplande duik invullen',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_counts_skipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -43097,6 +43231,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Doorgaan naar controleren...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Importeren uit bestand';
+
+  @override
   String get importWizard_dc_knownComputer => 'Bekende computer';
 
   @override
@@ -43105,12 +43242,30 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get importWizard_dc_noDirectDownload =>
+      'Direct downloaden van deze computer is niet mogelijk';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Submersion heeft geen opgeslagen verbinding voor $name. Importeer de duiken uit een bestand, of voeg de computer opnieuw toe via Duikcomputers om via Bluetooth of USB te downloaden.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Garmin-horloges slaan duiken op als FIT-bestanden in plaats van een directe download te bieden. Sluit het horloge via USB aan, kopieer de bestanden uit de map GARMIN/Activity en importeer ze daarna.';
+
+  @override
   String get importWizard_dc_noNewDives =>
       'Geen nieuwe duiken om te downloaden';
 
   @override
   String get importWizard_dc_noNewDivesBody =>
       'Alle duiken van deze computer zijn al geïmporteerd.';
+
+  @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return '$name maakt verbinding via een USB-kabel, die Submersion op iPhone en iPad niet kan gebruiken. Download de duiken met Submersion op een Mac-, Windows- of Linux-computer, of importeer ze uit een bestand.';
+  }
 
   @override
   String get universalImport_compare_noDiveData =>
@@ -46180,10 +46335,12 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'Routes konden niet worden gekoppeld.';
+  String get navTrack_list_matchError =>
+      'Kon routekoppelingen niet controleren.';
 
   @override
-  String get navTrack_list_matchSuccess => 'Routes gekoppeld aan duiken.';
+  String get navTrack_list_matchSuccess =>
+      'Gecontroleerd op routes die op je keuze wachten.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -46194,7 +46351,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navTrack_list_importTooltip => 'Routebestand importeren';
 
   @override
-  String get navTrack_list_matchTooltip => 'Nu koppelen';
+  String get navTrack_list_matchTooltip => 'Nu controleren';
 
   @override
   String get navTrack_list_title => 'Onderwaterroutes';
@@ -46205,6 +46362,25 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get navTrack_list_empty => 'Nog geen onderwaterroutes.';
+
+  @override
+  String get navTrack_review_saveConfirmation => 'Route opgeslagen.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count routes wachten op je keuze',
+      one: '$count route wacht op je keuze',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String navTrack_list_loadError(String error) {
+    return 'Routes konden niet worden geladen: $error';
+  }
 
   @override
   String get navTrack_seascape_title => 'Onderwaterlandschap van de route';
@@ -47273,12 +47449,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'Nee';
-
-  @override
-  String get diveLog_filter_queryRow => 'Query';
-
-  @override
-  String get diveLog_search_section_query => 'Query';
 
   @override
   String get query_saveDialog_title => 'Query opslaan';

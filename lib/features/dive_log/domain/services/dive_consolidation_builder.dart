@@ -75,11 +75,29 @@ class DiveConsolidationBuilder {
     return extent;
   }
 
+  /// Whether [dive] records how long it lasted: a runtime (or anything
+  /// [Dive.effectiveRuntime] derives one from) or a profile sample after the
+  /// start. A dive logged with neither has an unknown length, not a zero one.
+  bool _hasLength(Dive dive) =>
+      dive.effectiveRuntime != null ||
+      dive.profile.any((point) => point.timestamp > 0);
+
+  /// Whether [a] and [b] were in the water at the same time.
+  ///
+  /// A dive with no runtime and no profile has no length of its own, so it
+  /// is given the other dive's: its re-import, which DiveMatcher pairs with
+  /// it when the two start up to minutes apart, must still fold into it
+  /// (#1809). A recorded zero runtime is a length and is kept. Two dives
+  /// starting at the same instant always overlap, which covers a pair that
+  /// both lack a length.
   bool _overlaps(Dive a, Dive b) {
+    final aExtent = _extent(a);
+    final bExtent = _extent(b);
     final aStart = a.effectiveEntryTime;
-    final aEnd = aStart.add(_extent(a));
+    final aEnd = aStart.add(_hasLength(a) ? aExtent : bExtent);
     final bStart = b.effectiveEntryTime;
-    final bEnd = bStart.add(_extent(b));
+    final bEnd = bStart.add(_hasLength(b) ? bExtent : aExtent);
+    if (aStart.isAtSameMomentAs(bStart)) return true;
     return aStart.isBefore(bEnd) && bStart.isBefore(aEnd);
   }
 

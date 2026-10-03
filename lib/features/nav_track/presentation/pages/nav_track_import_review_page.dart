@@ -8,7 +8,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
@@ -201,27 +200,17 @@ class _NavTrackImportReviewPageState
   }
 
   Future<void> _pickSite() async {
-    final result = await showModalBottomSheet<DiveSite>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (sheetContext, scrollController) => SitePickerSheet(
-          scrollController: scrollController,
-          selectedSiteId: _siteId,
-          onSiteSelected: (site) => Navigator.of(sheetContext).pop(site),
-          // Creating a brand-new site from mid-review is a separate flow
-          // this page does not open; the diver can still pick one already
-          // in their log, or leave the route unanchored and set a site
-          // later from the routes area.
-          onCreateNewSite: () => Navigator.of(sheetContext).pop(),
-        ),
-      ),
+    final result = await pickOrCreateSite(
+      context,
+      ref,
+      selectedSiteId: _siteId,
+      // Creating a brand-new site from mid-review is a separate flow this
+      // page does not open, so the sheet offers no "New Dive Site" button;
+      // the diver can still pick one already in their log, or leave the
+      // route unanchored and set a site later from the routes area.
+      allowCreate: false,
     );
-    if (result != null) {
+    if (result != null && mounted) {
       setState(() {
         _siteId = result.id;
         _siteName = result.name;
@@ -355,6 +344,17 @@ class _NavTrackImportReviewPageState
     }
     // Outside the try: the route is written by now, so nothing below may be
     // reported as a failed save (and invite a second, duplicate one).
+    //
+    // The messenger is captured before navigating away: ScaffoldMessenger
+    // is hoisted above the Navigator, so it keeps showing the snackbar on
+    // whatever page ends up on screen next, but `context` itself may no
+    // longer resolve to a live Scaffold once this page is popped (#2393:
+    // without this, saving gave no confirmation at all, with or without a
+    // site set, so it was unclear whether anything had happened).
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.navTrack_review_saveConfirmation)),
+    );
     //
     // Every entry point pushes this page imperatively (on the root
     // navigator from the drop target or share intent, on the shell's

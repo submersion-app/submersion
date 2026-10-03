@@ -2238,6 +2238,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get backup_schedule_retention => 'Mentések megőrzése';
 
   @override
+  String backup_schedule_retention_footprint(int count, String size) {
+    return '$count mentés jelenleg $size helyet foglal';
+  }
+
+  @override
   String get backup_schedule_retention_subtitle =>
       'A régebbi mentések automatikusan eltávolításra kerülnek';
 
@@ -7011,6 +7016,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_equipmentCaption =>
+      'A használt felszerelés, a merülésszámához és a szervizelési előzményeihez. Az itt felsorolt palack nem ad gázadatot; vegye fel a Palackok közé is.';
+
+  @override
   String get diveLog_edit_equipmentHint =>
       'Koppintson a \"Készlet használata\" vagy \"Hozzáadás\" gombra a felszerelés kiválasztásához';
 
@@ -7439,6 +7448,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_tankCard_volume => 'Térfogat';
 
   @override
+  String get diveLog_edit_tanksCaption =>
+      'Amiből lélegzett. A gázgrafikonok, a gázfogyasztás és a statisztikák ezekből a palackokból származnak.';
+
+  @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
       'Számítás a merülési profilból';
 
@@ -7743,16 +7756,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_allTypes => 'Összes típus';
 
   @override
-  String get diveLog_filter_apply => 'Szűrők alkalmazása';
-
-  @override
   String get diveLog_filter_buddyHint => 'Keresés búvártárs neve alapján';
 
   @override
   String get diveLog_filter_buddyName => 'Búvártárs neve';
-
-  @override
-  String get diveLog_filter_clearAll => 'Összes törlése';
 
   @override
   String get diveLog_filter_clearDates => 'Dátumok törlése';
@@ -7838,13 +7845,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'Búvártárs';
 
   @override
-  String get diveLog_filter_sectionDateRange => 'Dátumtartomány';
-
-  @override
   String get diveLog_filter_sectionDepthRange => 'Mélység tartomány (méter)';
-
-  @override
-  String get diveLog_filter_sectionDiveSite => 'Merülőhely';
 
   @override
   String get diveLog_filter_sectionDiveType => 'Merülés típusa';
@@ -7874,15 +7875,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_filter_startDate => 'Kezdés dátuma';
-
-  @override
-  String get diveLog_filter_title => 'Merülések szűrése';
-
-  @override
-  String get diveLog_filter_resizeGrip => 'Szűrőpanel átméretezése';
-
-  @override
-  String get diveLog_filter_tooltip_close => 'Szűrő bezárása';
 
   @override
   String get diveLog_fullscreenProfile_close => 'Teljes képernyő bezárása';
@@ -8100,9 +8092,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_listPage_fab_logDive => 'Merülés rögzítése';
-
-  @override
-  String get diveLog_listPage_menuAdvancedSearch => 'Speciális keresés';
 
   @override
   String get diveLog_listPage_menuDiveNumbering => 'Merülés számozás';
@@ -8971,31 +8960,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'Az első $limit találat látható. Pontosítsa a keresést az eredmények szűkítéséhez.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'Nem található merülés: \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Keresés merülőhely, búvártárs vagy jegyzetek alapján';
-
-  @override
-  String get diveLog_listPage_tooltip_back => 'Vissza';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'Vissza a merülések listájához';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Keresés törlése';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Merülések szűrése';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'Lista nézet';
@@ -9005,6 +8974,73 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_searchDives => 'Merülések keresése';
+
+  @override
+  String get diveLog_refine_title => 'Szűkítés';
+
+  @override
+  String get diveLog_refine_groupRules => 'Szabályok';
+
+  @override
+  String get diveLog_refine_groupPeople => 'Személyek és élővilág';
+
+  @override
+  String get diveLog_refine_groupCustomFields => 'Egyéni mezők';
+
+  @override
+  String get diveLog_refine_summaryAny => 'Bármely';
+
+  @override
+  String diveLog_refine_summaryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count beállítva',
+      one: '$count beállítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_refine_showDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés megjelenítése',
+      one: '$count merülés megjelenítése',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_refine_showDivesNoCount => 'Merülések megjelenítése';
+
+  @override
+  String get diveLog_search_fieldHint => 'Keresés, pl. depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Szűkítés';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Keresés bezárása';
+
+  @override
+  String get diveLog_search_scopeWithin => 'A szűrőkön belül';
+
+  @override
+  String get diveLog_search_scopeAll => 'Összes merülés';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Ugrás a merüléshez';
+
+  @override
+  String get diveLog_search_openInsights => 'Megnyitás az Elemzésekben';
+
+  @override
+  String get diveLog_search_cleared => 'Keresés törölve';
+
+  @override
+  String get diveLog_search_undo => 'Visszavonás';
 
   @override
   String get diveLog_listPage_tooltip_sort => 'Rendezés';
@@ -9346,13 +9382,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_search_allTrips => 'Összes utazás';
 
   @override
-  String get diveLog_search_appBar => 'Részletes keresés';
-
-  @override
   String get diveLog_search_cancel => 'Mégse';
-
-  @override
-  String get diveLog_search_clearAll => 'Összes törlése';
 
   @override
   String get diveLog_search_customFieldKey => 'Custom Field Key';
@@ -9361,15 +9391,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_search_customFieldValue => 'Value contains...';
 
   @override
-  String get diveLog_search_end => 'Vége';
-
-  @override
   String get diveLog_search_errorLoadingCenters =>
       'Hiba a merülőközpontok betöltésekor';
-
-  @override
-  String get diveLog_search_errorLoadingDiveTypes =>
-      'Hiba a merülés típusok betöltésekor';
 
   @override
   String get diveLog_search_errorLoadingEquipment =>
@@ -9398,19 +9421,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_search_label_diveSite => 'Merülőhely';
 
   @override
-  String get diveLog_search_label_diveType => 'Merülés típus';
-
-  @override
-  String get diveLog_search_label_durationRange => 'Időtartam tartomány (min)';
-
-  @override
   String get diveLog_search_label_equipment => 'Felszerelés';
 
   @override
   String get diveLog_search_label_trip => 'Utazás';
-
-  @override
-  String get diveLog_search_search => 'Keresés';
 
   @override
   String get diveLog_search_section_conditions => 'Körülmények';
@@ -9426,12 +9440,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_search_section_organization => 'Szervezet';
-
-  @override
-  String get diveLog_search_section_social => 'Közösségi';
-
-  @override
-  String get diveLog_search_start => 'Kezdés';
 
   @override
   String diveLog_selection_countSelected(Object count) {
@@ -9690,6 +9698,20 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tank_tooltip_remove => 'Palack eltávolítása';
+
+  @override
+  String get diveLog_tank_fromOwnCylinder => 'Kitöltés a saját palackjaimból';
+
+  @override
+  String get diveLog_tank_ownCylinderFailed =>
+      'A palack adatait nem sikerült átvenni. Próbálja újra.';
+
+  @override
+  String get diveLog_tank_ownCylinderHint =>
+      'Átveszi a kiválasztott palack méretét és legutóbbi töltését, és felveszi a merülés felszerelései közé.';
+
+  @override
+  String get diveLog_tank_ownCylinderTitle => 'Saját palackjaim';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Reduktor';
@@ -20739,6 +20761,20 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'Mindegyik felzárkózik, amint legalább ugyanilyen új verziót futtat, mint ez az eszköz. Ha még nem kap ilyen frissítést, az a következő kiadással érkezik, vagy korábban, ha csatlakozik a bétához.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList a Submersion egy régebbi verzióját futtatja, amely nem tudja olvasni ennek az eszköznek a legújabb változtatásait, ezért csak frissítés után kapja meg őket.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList a Submersion egy régebbi verzióját futtatják, amely nem tudja olvasni ennek az eszköznek a legújabb változtatásait, ezért csak frissítés után kapják meg őket.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList még régebbi vagy ismeretlen könyvtárverziót használ, ezért a változásai nem lettek egyesítve. Nyissa meg rajta a Submersiont az aktuális könyvtár átvételéhez.';
   }
@@ -20786,8 +20822,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Frissítsd ezt az eszközt, hogy megkapd őket.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'Akkor érkeznek meg, amikor ez az eszköz legalább ugyanilyen új verziót futtat. Ha a másik eszköz a béta csatornán van, lehet, hogy még nincs stabil frissítés: állítsd ezt az eszközt is a béta frissítési csatornára, vagy várd meg a következő stabil kiadást.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'Automatikusan érvénybe lépnek, amint megérkezik az eszköz alkalmazásbolti frissítése; a frissítés még ellenőrzés alatt állhat.';
+      'Automatikusan érvénybe lépnek, amint az eszköz alkalmazásbolti frissítése eléri azt a verziót. A frissítés még ellenőrzés alatt állhat, vagy ha a másik eszköz bétát használ (TestFlight vagy Google Play tesztelés), még nem jelent meg: csatlakozz ezen az eszközön is ugyanahhoz a bétához, vagy várd meg a következő kiadást.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Csatlakoztatva';
@@ -22678,8 +22718,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'Ezen a bétán maradsz, amíg a következő stabil kiadás nem lesz nála újabb.';
+  String get settings_updates_stableDialogBody =>
+      'Ez az eszköz megtartja a jelenlegi buildjét, amíg egy stabil kiadás újabb nem lesz nála, így az alkalmazás sosem áll vissza korábbi verzióra, és a merülési naplód megmarad. Addig a stabil csatornán lévő, ezzel szinkronizáló eszközök nem biztos, hogy megkapják a legújabb változtatásait. Ne telepíts erre egy régebbi stabil buildet: az nem tud megnyitni olyan merülési naplót, amelyet egy újabb build frissített.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'Váltás stabilra';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      'Visszatérsz a stabil frissítésekhez?';
 
   @override
   String get settings_updates_upToDate => 'Naprakész';
@@ -23532,6 +23579,17 @@ class AppLocalizationsHu extends AppLocalizations {
     Object label,
   ) {
     return '$name, $rank. helyezés, $count $label';
+  }
+
+  @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name, $subtitle, $rank. helyezés, $count $label';
   }
 
   @override
@@ -25087,10 +25145,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get transfer_appBar_title => 'Átvitel';
 
   @override
-  String get transfer_computers_aboutContent =>
-      'Csatlakoztassa merülési számítógépét Bluetooth-on keresztül, és töltse le a merülési naplókat közvetlenül az alkalmazásba. Támogatott számítógépek: Suunto, Shearwater, Garmin, Mares és sok más népszerű márka.\n\nAz Apple Watch Ultra felhasználók közvetlenül importálhatják a merülési adatokat a Health alkalmazásból, beleértve a mélység, időtartam és szívfrekvencia adatokat.';
-
-  @override
   String get transfer_computers_aboutTitle => 'Merülési számítógépek';
 
   @override
@@ -25758,7 +25812,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_edit_dialog_keepEditing => 'Szerkesztés folytatása';
 
   @override
-  String trips_edit_durationDays(Object days) {
+  String trips_edit_durationDays(int days) {
     return '$days nap';
   }
 
@@ -26100,6 +26154,21 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_type_dayTrip => 'Napi túra';
+
+  @override
+  String get trips_type_description_dayTrip =>
+      'Egyetlen nap, például egy helyi merülés';
+
+  @override
+  String get trips_type_description_liveaboard =>
+      'Merülőhajó fedélzetén, a hajó és az útvonal adataival';
+
+  @override
+  String get trips_type_description_resort => 'Tartózkodás egy búvárüdülőben';
+
+  @override
+  String get trips_type_description_shore =>
+      'Partról indított merülések egy vagy több napon';
 
   @override
   String get trips_edit_label_tripType => 'Trip Type';
@@ -28357,7 +28426,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi és 50+ további modell.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi és 50+ további modell.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Támogatott márkák';
@@ -28370,6 +28439,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Rendben';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'A Garmin órák merüléseit nem itt kell letölteni. Importálja őket innen: $importPath vagy $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>
@@ -30461,6 +30535,46 @@ class AppLocalizationsHu extends AppLocalizations {
   ) {
     return '$count merülés nyers adattal ($without anélkül)';
   }
+
+  @override
+  String get diveComputer_rawData_discardAction => 'Elvetés';
+
+  @override
+  String diveComputer_rawData_discardAllMessage(int count, String size) {
+    return 'Eltávolítod $count merülés tárolt nyers letöltési adatait az összes merülésszámítógépről ($size)? Ezek a merülések ezután nem elemezhetők újra, amikor a merüléselemző fejlődik. A merülések és a módosításaid változatlanok maradnak, és a többi szinkronizált eszközöd is eltávolítja az adatokat.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardButton => 'Nyers adatok elvetése';
+
+  @override
+  String diveComputer_rawData_discardComputerMessage(
+    String computer,
+    int count,
+  ) {
+    return 'Eltávolítod $count merülés tárolt nyers letöltési adatait a(z) $computer eszközről? Ezek a merülések ezután nem elemezhetők újra, amikor a merüléselemző fejlődik. A merülések és a módosításaid változatlanok maradnak, és a többi szinkronizált eszközöd is eltávolítja az adatokat.';
+  }
+
+  @override
+  String get diveComputer_rawData_discardFailed =>
+      'A nyers adatok nem vethetők el';
+
+  @override
+  String get diveComputer_rawData_discardTitle => 'Elveted a nyers adatokat?';
+
+  @override
+  String diveComputer_rawData_discarded(int count) {
+    return '$count merülés nyers adatai elvetve';
+  }
+
+  @override
+  String diveComputer_rawData_tileSubtitle(int count, String size) {
+    return '$count merülés, $size. Megőrizve, hogy ezek a merülések újraelemezhetők legyenek, amikor az elemző fejlődik.';
+  }
+
+  @override
+  String get diveComputer_rawData_tileTitle =>
+      'Merülésszámítógépek nyers adatai';
 
   @override
   String get diveLog_detail_menu_reparseRawData => 'Nyers adatok újraelemzése';
@@ -41225,10 +41339,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_summary_diveTypes_unknown => 'Ismeretlen';
 
   @override
-  String get insights_summary_divesPerMonth => 'Merülés / hónap';
+  String get insights_summary_divesPerMonth => 'Átl. merülés / hónap';
 
   @override
-  String get insights_summary_divesPerYear => 'Merülés / év';
+  String get insights_summary_divesPerYear => 'Átl. merülés / év';
+
+  @override
+  String get insights_summary_divesThisYear => 'Merülések idén';
 
   @override
   String insights_timePatterns_dayOfWeek_semanticLabel(String description) {
@@ -43101,6 +43218,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String universalImport_counts_filling(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tervezett merülés kitöltése',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_counts_skipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -43196,6 +43323,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Továbblépés az áttekintésre...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Importálás fájlból';
+
+  @override
   String get importWizard_dc_knownComputer => 'Ismert búvárszámítógép';
 
   @override
@@ -43204,11 +43334,29 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get importWizard_dc_noDirectDownload =>
+      'Erről a búvárszámítógépről nem lehet közvetlenül letölteni';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'A Submersion nem tárol mentett kapcsolatot ehhez: $name. Importálja a merüléseit fájlból, vagy adja hozzá újra a Merülésszámítógépek oldalon, hogy Bluetooth-on vagy USB-n keresztül tölthessen le.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'A Garmin órák FIT-fájlokként tárolják a merüléseket, és nem kínálnak közvetlen letöltést. Csatlakoztassa az órát USB-n, másolja ki a fájlokat a GARMIN/Activity mappájából, majd importálja őket.';
+
+  @override
   String get importWizard_dc_noNewDives => 'Nincs letöltendő új merülés';
 
   @override
   String get importWizard_dc_noNewDivesBody =>
       'Ennek a búvárszámítógépnek az összes merülése már importálva lett.';
+
+  @override
+  String importWizard_dc_noUsbOnThisPlatformBody(String name) {
+    return 'Ez a számítógép ($name) USB-kábellel csatlakozik, amelyet a Submersion iPhone-on és iPaden nem tud használni. Töltse le a merüléseit a Submersionnel egy Mac, Windows vagy Linux rendszerű számítógépen, vagy importálja őket fájlból.';
+  }
 
   @override
   String get universalImport_compare_noDiveData =>
@@ -46294,10 +46442,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_list_matchError =>
-      'Nem sikerült az útvonalakat párosítani.';
+      'Nem sikerült ellenőrizni az útvonalak párosítását.';
 
   @override
-  String get navTrack_list_matchSuccess => 'Útvonalak merülésekhez párosítva.';
+  String get navTrack_list_matchSuccess =>
+      'A választásodra váró útvonalak ellenőrizve.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -46308,7 +46457,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_list_importTooltip => 'Útvonalfájl importálása';
 
   @override
-  String get navTrack_list_matchTooltip => 'Párosítás most';
+  String get navTrack_list_matchTooltip => 'Ellenőrzés most';
 
   @override
   String get navTrack_list_title => 'Vízalatti útvonalak';
@@ -46319,6 +46468,25 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_list_empty => 'Még nincsenek vízalatti útvonalak.';
+
+  @override
+  String get navTrack_review_saveConfirmation => 'Útvonal mentve.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count útvonal vár a választásodra',
+      one: '$count útvonal vár a választásodra',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String navTrack_list_loadError(String error) {
+    return 'Nem sikerült betölteni az útvonalakat: $error';
+  }
 
   @override
   String get navTrack_seascape_title => 'Útvonal tengeri tája';
@@ -47391,12 +47559,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'Nem';
-
-  @override
-  String get diveLog_filter_queryRow => 'Lekérdezés';
-
-  @override
-  String get diveLog_search_section_query => 'Lekérdezés';
 
   @override
   String get query_saveDialog_title => 'Lekérdezés mentése';

@@ -133,6 +133,7 @@ import 'package:submersion/shared/widgets/forms/add_section_row.dart';
 import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
 import 'package:submersion/shared/widgets/forms/enum_picker_row.dart';
 import 'package:submersion/shared/widgets/forms/form_append_row.dart';
+import 'package:submersion/shared/widgets/forms/form_caption.dart';
 import 'package:submersion/shared/widgets/forms/form_empty_row.dart';
 import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
@@ -154,7 +155,6 @@ import 'package:submersion/features/weight_planner/presentation/widgets/weight_e
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
 
-const _createNewSiteSentinel = '__create_new__';
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
 
@@ -2716,43 +2716,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   Future<void> _showSitePicker() async {
     final anchor = _existingDive?.entryLocation ?? _existingDive?.exitLocation;
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (sheetContext, scrollController) => SitePickerSheet(
-          scrollController: scrollController,
-          selectedSiteId: _selectedSite?.id,
-          currentLocation: _currentLocation,
-          diveLocation: anchor,
-          onSiteSelected: (site) {
-            _markDirty();
-            setState(() => _assignSite(site));
-            _reevaluateGeofenceForSite();
-            Navigator.of(sheetContext).pop();
-          },
-          onCreateNewSite: () {
-            Navigator.of(sheetContext).pop(_createNewSiteSentinel);
-          },
-        ),
-      ),
+    final site = await pickOrCreateSite(
+      context,
+      ref,
+      selectedSiteId: _selectedSite?.id,
+      currentLocation: _currentLocation,
+      diveLocation: anchor,
+      newSiteSeedLocation: anchor,
     );
-
-    if (result == _createNewSiteSentinel && mounted) {
-      final siteId = await context.push<String>('/sites/new', extra: anchor);
-      if (siteId != null && mounted) {
-        final repo = ref.read(siteRepositoryProvider);
-        final site = await repo.getSiteById(siteId);
-        if (site != null && mounted) {
-          _markDirty();
-          setState(() => _assignSite(site));
-          _reevaluateGeofenceForSite();
-        }
-      }
+    if (site != null && mounted) {
+      _markDirty();
+      setState(() => _assignSite(site));
+      _reevaluateGeofenceForSite();
     }
   }
 
@@ -3398,9 +3373,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             },
             onRemove: _tanks.length > 1 ? () => _removeTank(i) : null,
             canRemove: _tanks.length > 1,
-            // A scanned own cylinder joins this dive's gear; the tank row
-            // itself never links to it (issue #2335).
-            onCylinderScanned: (item) => _addGear([item]),
+            // An own cylinder, scanned (issue #2335) or picked from My
+            // cylinders (issue #2599), joins this dive's gear; the tank row
+            // itself never links to it.
+            onOwnCylinderUsed: (item) => _addGear([item]),
             onScanPending: _trackTankScan,
           ),
       ],
@@ -3893,6 +3869,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             ),
           ],
         ),
+        // A Tank item here counts toward its dives and service but feeds no
+        // gas data; the tank rows above do that (issue #2599). A gauge dive
+        // shows no tank rows, so there is nothing to tell apart.
+        if (_diveMode != DiveMode.gauge)
+          FormCaption(context.l10n.diveLog_edit_equipmentCaption),
         if (_geofenceSuggestion != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
@@ -3998,8 +3979,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// a set) is not left out of the saved dive.
   Future<void>? _pendingGearAdd;
 
-  /// Tank tag scans still resolving. Save waits for them before the gear
-  /// adds, since a scan's gear add only starts once its lookup finishes.
+  /// Tank tag scans and My cylinders picks still resolving. Save waits for
+  /// them before the gear adds, since their gear add only starts once their
+  /// lookup finishes.
   final Set<Future<void>> _pendingTankScans = {};
 
   void _trackTankScan(Future<void> scan) {

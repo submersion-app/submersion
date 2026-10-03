@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 
 /// The shortcuts that open a sub-page must push rather than go, so the
 /// Android system back button can pop them instead of closing the app (#647).
@@ -12,25 +13,33 @@ import 'package:submersion/core/accessibility/app_shortcuts.dart';
 /// Tests default to TargetPlatform.android, so platformShortcut() builds
 /// Control-based activators here.
 void main() {
-  Future<GoRouter> pumpShortcutHost(WidgetTester tester) async {
+  late ProviderContainer container;
+
+  Widget host(String label) => Builder(
+    builder: (context) {
+      container = ProviderScope.containerOf(context);
+      return CallbackShortcuts(
+        bindings: AppShortcuts.globalBindings(context),
+        child: Focus(autofocus: true, child: Text(label)),
+      );
+    },
+  );
+
+  Future<GoRouter> pumpShortcutHost(
+    WidgetTester tester, {
+    String initialLocation = '/dives',
+  }) async {
     final router = GoRouter(
-      initialLocation: '/dives',
+      initialLocation: initialLocation,
       routes: [
         GoRoute(
           path: '/dives',
-          builder: (context, state) => CallbackShortcuts(
-            bindings: AppShortcuts.globalBindings(context),
-            child: const Focus(autofocus: true, child: Text('Dive list')),
-          ),
+          builder: (context, state) => host('Dive list'),
           routes: [
             GoRoute(path: 'new', builder: (_, _) => const Text('New dive')),
-            GoRoute(
-              path: 'search',
-              builder: (_, _) => const Text('Advanced search'),
-            ),
           ],
         ),
-        GoRoute(path: '/sites', builder: (_, _) => const Text('Sites')),
+        GoRoute(path: '/sites', builder: (_, _) => host('Sites')),
       ],
     );
     addTearDown(router.dispose);
@@ -67,13 +76,42 @@ void main() {
       expect(router.routerDelegate.canPop(), isTrue);
     });
 
-    testWidgets('search shortcut pushes a poppable sub-page', (tester) async {
+    testWidgets('search shortcut opens and focuses the dive search row', (
+      tester,
+    ) async {
       final router = await pumpShortcutHost(tester);
+      await pressControl(tester, LogicalKeyboardKey.digit2);
+      expect(locationOf(router), '/sites');
 
       await pressControl(tester, LogicalKeyboardKey.keyF);
 
-      expect(find.text('Advanced search'), findsOneWidget);
-      expect(router.routerDelegate.canPop(), isTrue);
+      expect(locationOf(router), '/dives');
+      expect(container.read(diveSearchBarOpenProvider), isTrue);
+      expect(container.read(diveSearchFocusPendingProvider), isTrue);
+    });
+
+    // Code review: the phone map view is /dives?view=map and has no search
+    // row, so the shortcut returns to the list instead of doing nothing.
+    testWidgets('from the phone map view the search shortcut shows the list', (
+      tester,
+    ) async {
+      final router = await pumpShortcutHost(
+        tester,
+        initialLocation: '/dives?view=map',
+      );
+      await pressControl(tester, LogicalKeyboardKey.keyF);
+      expect(locationOf(router), '/dives');
+      expect(container.read(diveSearchFocusPendingProvider), isTrue);
+    });
+
+    testWidgets('on the dive list the search shortcut does not navigate', (
+      tester,
+    ) async {
+      final router = await pumpShortcutHost(tester);
+      await pressControl(tester, LogicalKeyboardKey.keyF);
+      expect(locationOf(router), '/dives');
+      expect(router.routerDelegate.canPop(), isFalse);
+      expect(container.read(diveSearchBarOpenProvider), isTrue);
     });
 
     testWidgets('tab shortcuts still replace rather than stack', (

@@ -51,7 +51,7 @@ import 'package:submersion/features/ocr_import/presentation/pages/ocr_scan_page.
 import 'package:submersion/features/dive_3d/presentation/pages/compare_dives_3d_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/explore/presentation/pages/explore_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/profile_editor_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
@@ -395,18 +395,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'search',
                 name: 'diveSearch',
-                // Sections with their own filter (Insights) push this page
-                // with their filter provider as `extra` so the form edits and
-                // applies to that filter (#1079). Every other entry point,
-                // such as a deep link or the keyboard shortcut, gets the dive
-                // list's filter.
-                builder: (context, state) => DiveSearchPage(
-                  filterProvider: state.extra is StateProvider<DiveFilterState>
-                      ? state.extra as StateProvider<DiveFilterState>
-                      : null,
-                  // `?section=query` opens the query editor (#2365).
-                  initialSection: state.uri.queryParameters['section'],
-                ),
+                // Advanced Search became the Refine panel (#2773): an old
+                // link or bookmark lands on the dive list with its search
+                // row open.
+                redirect: redirectRetiredDiveSearch,
               ),
               GoRoute(
                 path: 'match-sites',
@@ -1979,3 +1971,16 @@ DiveEditPage newDivePage(GoRouterState state) => DiveEditPage(
   tripId: state.uri.queryParameters['tripId'],
   tripCylinderId: state.uri.queryParameters['tripCylinderId'],
 );
+
+/// `/dives/search` was Advanced Search; it is the Refine panel now (#2773),
+/// so an old link or a bookmark lands on the dive list with its search row
+/// open. The open flag is written after the frame: go_router evaluates a
+/// redirect while parsing the location, which on a cold start happens while
+/// the widget tree builds, where Riverpod refuses provider writes.
+String redirectRetiredDiveSearch(BuildContext context, GoRouterState state) {
+  final container = ProviderScope.containerOf(context, listen: false);
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    container.read(diveSearchBarOpenProvider.notifier).state = true;
+  });
+  return '/dives';
+}

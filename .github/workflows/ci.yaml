@@ -555,7 +555,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/export_support_matrix_catalog.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -580,6 +580,10 @@ jobs:
             scripts/bundle_tests_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/filter_trivial_coverage_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/beta_failure_alert_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/report_inherited_failures_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/export_support_matrix_catalog_test.py
           python3 -m coverage report -m --include="$guards"
@@ -679,6 +683,13 @@ jobs:
 
       - name: Run fastlane beta changelog test
         run: ruby scripts/release/fastlane_beta_changelog_test.rb
+
+      - name: Run fastlane Play error hint test
+        # Guards the hints the Play lanes print on rejections that no retry
+        # can clear (#2597): the unregistered-key error that failed five betas
+        # in a row without naming the key, and the version-code reuse that
+        # makes a re-run of a rejected build fail too.
+        run: ruby scripts/release/fastlane_play_error_hint_test.rb
 
       - name: Run fastlane submit guard test
         # Guards the App Review submission guard against the defect behind
@@ -1459,6 +1470,12 @@ jobs:
       - build-windows
       - submodule-pointer
     runs-on: ubuntu-latest
+    # actions: read lets the inherited-failure report list this run's jobs and
+    # main's. Job-level permissions replace the workflow's, so contents is
+    # restated for the checkout.
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v7
 
@@ -1471,6 +1488,31 @@ jobs:
         # closes that loop. Ordered before the results check so a de-gated
         # pipeline reports the cause rather than a downstream symptom.
         run: python3 scripts/check_ci_success_gate.py
+
+      - name: Mark failures that main shares
+        # When main is red, every pull request inherits the failure and a
+        # contributor cannot tell it from their own (issue #2611). This
+        # compares each failed job with the same job on main and annotates it
+        # "Also failing on main", "Not failing on main" or "No result on main".
+        # Reporting only: the script always exits 0, and the step below still
+        # fails the gate. A cancelled job is not reported, so a run with
+        # nothing but cancellations does not start it.
+        #
+        # The base is the merge commit's first parent: the main commit this
+        # run actually tested. The event's base.sha can name an older one. The
+        # checkout is shallow, but cat-file prints the raw commit, parents
+        # included. Steps run under `bash -eo pipefail`, so the lookup's own
+        # failure is caught, and continue-on-error keeps any failure here from
+        # skipping the verdict step below.
+        if: github.event_name == 'pull_request' && contains(needs.*.result, 'failure')
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          BASE_SHA="$(git cat-file -p HEAD | sed -n 's/^parent //p' | head -1)" || BASE_SHA=""
+          export BASE_SHA="${BASE_SHA:-$EVENT_BASE_SHA}"
+          python3 scripts/report_inherited_failures.py
 
       - name: Verify all required jobs succeeded
         run: |

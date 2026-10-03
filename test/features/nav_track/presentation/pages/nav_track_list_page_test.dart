@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -17,12 +18,14 @@ import 'package:submersion/features/nav_track/data/services/nav_track_service_pr
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_match_suggestion.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_list_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_card_stat_row.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_shape_thumbnail.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -40,8 +43,8 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   }
 }
 
-/// Stubs `sweep()` with a canned result, or an error, instead of running a
-/// real sweep against a database.
+/// Stubs `sweep()` with an empty result, or an error, and counts the calls,
+/// instead of running a real sweep against a database.
 class _FakeNavTrackMatchService extends NavTrackMatchService {
   _FakeNavTrackMatchService({this.error})
     : super(
@@ -53,13 +56,13 @@ class _FakeNavTrackMatchService extends NavTrackMatchService {
   int callCount = 0;
 
   @override
-  Future<({List<String> linked, List<String> needsChoice})> sweep({
+  Future<List<NavTrackMatchSuggestion>> sweep({
     List<String>? limitToRouteIds,
     List<String>? limitToDiveIds,
   }) async {
     callCount++;
     if (error != null) throw error!;
-    return (linked: const <String>[], needsChoice: const <String>[]);
+    return const [];
   }
 }
 
@@ -160,6 +163,7 @@ Future<_RecordingNavTrackRepository> _pump(
   required List<NavTrack> routes,
   Dive? linkedDive,
   Map<String, NavTrack>? hydrated,
+  Future<List<NavTrack>> Function()? unlinked,
   NavTrackMatchService? matchService,
   MockSettingsNotifier? settingsNotifier,
   List<Override> extraOverrides = const [],
@@ -175,6 +179,10 @@ Future<_RecordingNavTrackRepository> _pump(
         navTrackRepositoryProvider.overrideWithValue(repository),
         if (matchService != null)
           navTrackMatchServiceProvider.overrideWithValue(matchService),
+        // The pending-choice hint counts these; none unless a test says so.
+        unlinkedNavTracksProvider.overrideWith(
+          (ref) => unlinked?.call() ?? Future.value(const <NavTrack>[]),
+        ),
         if (linkedDive != null)
           diveProvider(linkedDive.id).overrideWith((ref) async => linkedDive),
         if (hydrated != null)
@@ -223,27 +231,58 @@ void main() {
     });
   });
 
-  testWidgets('renders route rows with distance, depth and an unlinked chip', (
-    tester,
-  ) async {
-    await _pump(
-      tester,
-      routes: [
-        _route(
-          id: 'r1',
-          name: 'Wreck dive',
-          deviceName: 'Seacraft ENC3',
-          distance: 1050,
-          maxDepth: 38,
-        ),
-      ],
-    );
+  testWidgets(
+    'renders route rows with name, device, date and depth/duration/distance '
+    'stats (#2813)',
+    (tester) async {
+      await _pump(
+        tester,
+        routes: [
+          _route(
+            id: 'r1',
+            name: 'Wreck dive',
+            deviceName: 'Seacraft ENC3',
+            distance: 1050,
+            maxDepth: 38,
+          ),
+        ],
+      );
 
-    expect(find.text('Wreck dive'), findsOneWidget);
-    expect(find.text('unlinked'), findsOneWidget);
-  });
+      expect(find.text('Wreck dive'), findsOneWidget);
+      expect(find.text('Seacraft ENC3'), findsOneWidget);
+      final statRow = tester.widget<NavTrackCardStatRow>(
+        find.byType(NavTrackCardStatRow),
+      );
+      expect(statRow.stats, hasLength(3));
+      expect(
+        statRow.stats.map((s) => s.icon),
+        containsAll([
+          Icons.arrow_downward,
+          Icons.timer_outlined,
+          Icons.straighten,
+        ]),
+      );
+    },
+  );
 
-  testWidgets('a linked route shows a Dive # chip instead of unlinked', (
+  testWidgets(
+    'an unlinked route shows only the route icon badge, no dive-number '
+    'badge (#2813)',
+    (tester) async {
+      await _pump(
+        tester,
+        routes: [_route(id: 'r1', name: 'Wreck dive')],
+      );
+
+      expect(
+        find.byKey(const ValueKey('nav-track-route-badge')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('nav-track-dive-badge')), findsNothing);
+    },
+  );
+
+  testWidgets('a linked route shows a dive-number badge with #<n> (#2813)', (
     tester,
   ) async {
     final dive = Dive(
@@ -257,18 +296,14 @@ void main() {
       linkedDive: dive,
     );
 
-    expect(find.text('unlinked'), findsNothing);
-    expect(find.textContaining('Dive'), findsOneWidget);
-    expect(find.textContaining('#412'), findsOneWidget);
+    expect(find.byKey(const ValueKey('nav-track-dive-badge')), findsOneWidget);
+    expect(find.text('#412'), findsOneWidget);
   });
 
   testWidgets(
-    'a linked row keeps its name and status line readable on a narrow '
-    'phone in German (#2692)',
+    'a linked row keeps its name readable on a narrow phone in German '
+    '(#2692, re-verified after the #2813 card redesign)',
     (tester) async {
-      // "Tauchgang #412" is far wider than "Dive #412". A ListTile measures
-      // its trailing widget against the full tile width first, so a link chip
-      // there starved the file name down to one fragment per line.
       await tester.binding.setSurfaceSize(const Size(360, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -295,28 +330,88 @@ void main() {
       );
 
       final title = tester.getRect(find.text(name));
-      final status = tester.getRect(find.textContaining(' · '));
-      final chip = tester.getRect(
-        find.byKey(const ValueKey('nav-track-link-chip')),
-      );
-
+      // Two badges, a thumbnail, a chevron and an overflow menu now share
+      // the row with the text column, so it is narrower than the old
+      // single-chip design (#2692) -- but the title wraps (maxLines: 2) and
+      // ellipsizes rather than collapsing to a sliver, so this only guards
+      // against that column disappearing entirely.
       expect(
         title.width,
-        greaterThan(150),
+        greaterThan(90),
         reason:
             'Name collapsed to ${title.width}px wide on a 360px screen; the '
-            'link chip is starving the ListTile text column.',
-      );
-      expect(status.width, greaterThan(150));
-      expect(
-        chip.top,
-        greaterThanOrEqualTo(status.bottom),
-        reason: 'The link chip belongs on its own line below the status line.',
+            'badges/thumbnail are starving the text column.',
       );
     },
   );
 
-  testWidgets('tapping a linked row\'s chip opens the linked dive', (
+  group('tapping a route card', () {
+    Future<void> pumpRouted(WidgetTester tester) async {
+      final overrides = await getBaseOverrides();
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, _) => const NavTrackListPage()),
+          GoRoute(
+            path: '/nav-routes/:id',
+            builder: (_, state) =>
+                Text('route page ${state.pathParameters['id']}'),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            allNavTracksProvider.overrideWith(
+              (ref) async => [_route(id: 'r1', name: 'Wreck')],
+            ),
+          ],
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('opens the route on a phone', (tester) async {
+      await pumpRouted(tester);
+
+      await tester.tap(find.text('Wreck'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('route page r1'), findsOneWidget);
+    });
+
+    testWidgets('selects and opens the route in the master-detail layout', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1400, 900);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      await pumpRouted(tester);
+      final listCard = find.ancestor(
+        of: find.text('Wreck', skipOffstage: false),
+        matching: find.byType(Card, skipOffstage: false),
+      );
+      expect(tester.widget<Card>(listCard).color, isNull);
+
+      await tester.tap(find.text('Wreck'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('route page r1'), findsOneWidget);
+      // The list below the opened route marks the card it was opened from.
+      expect(tester.widget<Card>(listCard).color, isNotNull);
+    });
+  });
+
+  testWidgets('tapping a linked row\'s dive badge opens the linked dive', (
     tester,
   ) async {
     final dive = Dive(
@@ -354,7 +449,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('nav-track-link-chip')));
+    await tester.tap(find.byKey(const ValueKey('nav-track-dive-badge')));
     await tester.pumpAndSettle();
 
     expect(find.text('dive page dive-1'), findsOneWidget);
@@ -365,6 +460,60 @@ void main() {
 
     expect(find.text('No underwater routes yet.'), findsOneWidget);
   });
+
+  testWidgets(
+    'shows a loading indicator instead of the empty message while routes '
+    'are still loading (#2398)',
+    (tester) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            allNavTracksProvider.overrideWith(
+              (ref) => Completer<List<NavTrack>>().future,
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: NavTrackListPage(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('No underwater routes yet.'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'shows an error message instead of the empty message when routes fail '
+    'to load (#2398)',
+    (tester) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            allNavTracksProvider.overrideWith((ref) async {
+              throw Exception('boom');
+            }),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: NavTrackListPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Exception: boom'), findsOneWidget);
+      expect(find.text('No underwater routes yet.'), findsNothing);
+    },
+  );
 
   testWidgets(
     'the list row\'s date uses the wall-clock-as-UTC convention, not the '
@@ -421,8 +570,28 @@ void main() {
   );
 
   testWidgets(
+    'an anchored route\'s shape thumbnail also renders now, not just an '
+    'icon (#2813: the thumbnail preview is shown for every route)',
+    (tester) async {
+      final listRow = _route(
+        id: 'r1',
+        name: 'Wreck dive',
+        anchorLatitude: 47.1,
+        anchorLongitude: 8.3,
+      );
+      final hydratedRoute = listRow.copyWith(points: _hydratedPoints());
+      await _pump(tester, routes: [listRow], hydrated: {'r1': hydratedRoute});
+
+      final thumbnail = tester.widget<NavTrackShapeThumbnail>(
+        find.byType(NavTrackShapeThumbnail),
+      );
+      expect(thumbnail.points, hydratedRoute.points);
+    },
+  );
+
+  testWidgets(
     'the list row shows the stored dive duration, not the raw recording '
-    'span, without loading the route\'s points',
+    'span',
     (tester) async {
       // Stored at import: 10 min up to the last dead-reckoned sample. The
       // raw file runs on for an hour after the GPS fix.
@@ -432,21 +601,16 @@ void main() {
         anchorLatitude: 47.1,
         anchorLongitude: 8.3,
       ).copyWith(startTime: 0, endTime: 4200 * 1000, durationSeconds: 600);
-      var hydrations = 0;
       await _pump(
         tester,
         routes: [listRow],
         extraOverrides: [
-          navTrackByIdProvider('r1').overrideWith((ref) async {
-            hydrations++;
-            return null;
-          }),
+          navTrackByIdProvider('r1').overrideWith((ref) async => null),
         ],
       );
 
       expect(find.textContaining('10min'), findsOneWidget);
       expect(find.textContaining('1h 10min'), findsNothing);
-      expect(hydrations, 0);
     },
   );
 
@@ -480,21 +644,28 @@ void main() {
   );
 
   group('delete', () {
-    testWidgets('cancelling the dialog does not delete', (tester) async {
-      final repository = await _pump(
-        tester,
-        routes: [_route(id: 'r1', name: 'Wreck dive')],
-      );
+    testWidgets(
+      'cancelling the dialog does not delete (#2813: delete now lives in '
+      'the row\'s overflow menu, since the thumbnail and chevron now '
+      'occupy the trailing side)',
+      (tester) async {
+        final repository = await _pump(
+          tester,
+          routes: [_route(id: 'r1', name: 'Wreck dive')],
+        );
 
-      await tester.tap(find.byIcon(Icons.delete_outline));
-      await tester.pumpAndSettle();
-      expect(find.text('Delete "Wreck dive"?'), findsOneWidget);
+        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Delete').last);
+        await tester.pumpAndSettle();
+        expect(find.text('Delete "Wreck dive"?'), findsOneWidget);
 
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
 
-      expect(repository.deletedId, isNull);
-    });
+        expect(repository.deletedId, isNull);
+      },
+    );
 
     testWidgets('confirming the dialog deletes through the repository', (
       tester,
@@ -504,7 +675,9 @@ void main() {
         routes: [_route(id: 'r1', name: 'Wreck dive')],
       );
 
-      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete').last);
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
       await tester.pumpAndSettle();
@@ -514,17 +687,33 @@ void main() {
   });
 
   group('match now', () {
-    testWidgets('shows a success snackbar when the sweep succeeds', (
+    testWidgets('refreshes the pending-choice hint and confirms it', (
       tester,
     ) async {
       final service = _FakeNavTrackMatchService();
-      await _pump(tester, routes: const [], matchService: service);
+      var unlinked = const <NavTrack>[];
+      await _pump(
+        tester,
+        routes: [_route(id: 'r1', name: 'Wreck dive')],
+        unlinked: () async => unlinked,
+        matchService: service,
+      );
+      expect(
+        find.byKey(const ValueKey('nav-track-pending-choice-banner')),
+        findsNothing,
+      );
 
+      unlinked = [_route(id: 'r1', name: 'Wreck dive')];
       await tester.tap(find.byKey(const ValueKey('nav-track-match')));
       await tester.pumpAndSettle();
 
+      // Only the tap sweeps now: the hint counts unlinked routes directly.
       expect(service.callCount, 1);
-      expect(find.text('Routes matched to dives.'), findsOneWidget);
+      expect(find.text('1 route needs your choice'), findsOneWidget);
+      expect(
+        find.text('Checked for routes needing your choice.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('shows an error snackbar when the sweep throws', (
@@ -536,7 +725,37 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('nav-track-match')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Could not match routes.'), findsOneWidget);
+      expect(find.text('Could not check for route matches.'), findsOneWidget);
+    });
+  });
+
+  group('pending-choice hint (#2394)', () {
+    testWidgets('shows no banner when nothing needs a choice', (tester) async {
+      await _pump(
+        tester,
+        routes: [_route(id: 'r1', name: 'Wreck dive')],
+      );
+
+      expect(
+        find.byKey(const ValueKey('nav-track-pending-choice-banner')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('shows a banner with the count when routes need a choice', (
+      tester,
+    ) async {
+      final routes = [
+        _route(id: 'r1', name: 'Wreck dive'),
+        _route(id: 'r2', name: 'Reef dive'),
+      ];
+      await _pump(tester, routes: routes, unlinked: () async => routes);
+
+      expect(
+        find.byKey(const ValueKey('nav-track-pending-choice-banner')),
+        findsOneWidget,
+      );
+      expect(find.text('2 routes need your choice'), findsOneWidget);
     });
   });
 

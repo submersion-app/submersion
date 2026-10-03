@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -9,6 +10,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
@@ -1722,6 +1724,8 @@ class DiveRepository {
                   validTripCylinderLink(tank.tripCylinderId, validSlots),
                 ),
                 sourceTankIndex: Value(tank.sourceTankIndex),
+                // What the source log recorded (issue #1496).
+                usageDuration: Value(tank.usageDuration?.inSeconds),
               ),
             );
           }
@@ -2031,7 +2035,8 @@ class DiveRepository {
                 // computerId and transmitterSerial are computer-owned identity
                 // and deliberately not written here: edit flows rebuild the
                 // tank field by field, and a rebuild that forgot them must not
-                // wipe what the download recorded.
+                // wipe what the download recorded. The recorded usage
+                // duration (#1496) is import-owned for the same reason.
                 // The regulator link is user-authored, unlike the two above,
                 // so an edit does write it.
                 regulatorEquipmentId: Value(tank.regulatorEquipmentId),
@@ -2077,6 +2082,7 @@ class DiveRepository {
                       validTripCylinderLink(tank.tripCylinderId, validSlots),
                     ),
                     sourceTankIndex: Value(tank.sourceTankIndex),
+                    usageDuration: Value(tank.usageDuration?.inSeconds),
                   ),
                 );
             await _syncRepository.markRecordPending(
@@ -3237,10 +3243,25 @@ class DiveRepository {
           : '$whereClause $fBare';
       vars.addAll(filterVars);
 
+      // This calendar year as a half-open [Jan 1, next Jan 1) range, built in
+      // UTC because dive_date_time stores wall clock encoded as UTC; the same
+      // bounds getYearStats uses, so this count matches the year-in-review
+      // card. Its placeholders precede the WHERE clause's, so they go first.
+      final year = clock.now().year;
+      final yearVars = <Variable<Object>>[
+        Variable<int>(DateTime.utc(year).millisecondsSinceEpoch),
+        Variable<int>(DateTime.utc(year + 1).millisecondsSinceEpoch),
+      ];
+
       // Basic stats
-      final stats = await _db.customSelect('''
+      final stats = await _db
+          .customSelect(
+            '''
       SELECT
         COUNT(*) as total_dives,
+        COALESCE(SUM(
+          CASE WHEN dive_date_time >= ? AND dive_date_time < ? THEN 1 ELSE 0 END
+        ), 0) as dives_this_year,
         SUM(COALESCE(runtime, bottom_time)) as total_time,
         MAX(max_depth) as max_depth,
         AVG(max_depth) as avg_max_depth,
@@ -3249,7 +3270,10 @@ class DiveRepository {
         MIN(dive_date_time) as first_dive_date
       FROM dives
       $basicWhere
-    ''', variables: vars).getSingle();
+    ''',
+            variables: [...yearVars, ...vars],
+          )
+          .getSingle();
 
       // Dives by month (last 12 months)
       final monthlyWhereClause = diverId != null
@@ -3383,6 +3407,7 @@ class DiveRepository {
         avgTemperature: stats.data['avg_temp'] as double?,
         totalSites: stats.data['total_sites'] as int? ?? 0,
         firstDiveDate: firstDiveDate,
+        divesThisYear: stats.data['dives_this_year'] as int? ?? 0,
         divesByMonth: divesByMonth,
         depthDistribution: depthDistribution,
         topSites: topSites,
@@ -3959,6 +3984,9 @@ class DiveRepository {
               tripCylinderId: t.tripCylinderId,
               equipmentId: t.equipmentId,
               sourceTankIndex: t.sourceTankIndex,
+              usageDuration: t.usageDuration != null
+                  ? Duration(seconds: t.usageDuration!)
+                  : null,
             ),
           )
           .toList(),
@@ -4395,6 +4423,9 @@ class DiveRepository {
           tripCylinderId: t.tripCylinderId,
           equipmentId: t.equipmentId,
           sourceTankIndex: t.sourceTankIndex,
+          usageDuration: t.usageDuration != null
+              ? Duration(seconds: t.usageDuration!)
+              : null,
         );
       }).toList(),
       profile: seriesProfile,
@@ -6726,6 +6757,11 @@ class DiveRepository {
     sourceId: withLink
         ? Value(validSources.contains(t.sourceId) ? t.sourceId : null)
         : const Value.absent(),
+    // How long the source log says this cylinder was breathed (#1496):
+    // true of one dive only, so a template never carries it.
+    usageDuration: withLink
+        ? Value(t.usageDuration?.inSeconds)
+        : const Value.absent(),
   );
 
   /// Append [tanks] to each dive (fresh ids, appended after existing tanks).
@@ -8105,6 +8141,10 @@ class DiveStatistics {
   final double? avgTemperature;
   final int totalSites;
   final DateTime? firstDiveDate;
+
+  /// Dives dated in the current calendar year, so the lifetime per-year
+  /// average is never the only per-year figure on screen (issue #2600).
+  final int divesThisYear;
   final List<MonthlyDiveCount> divesByMonth;
   final List<DepthRangeStat> depthDistribution;
   final List<TopSiteStat> topSites;
@@ -8117,6 +8157,7 @@ class DiveStatistics {
     this.avgTemperature,
     required this.totalSites,
     this.firstDiveDate,
+    this.divesThisYear = 0,
     this.divesByMonth = const [],
     this.depthDistribution = const [],
     this.topSites = const [],
@@ -8138,7 +8179,9 @@ class DiveStatistics {
   double? get monthsSinceFirstDive {
     final first = firstDiveDate;
     if (first == null) return null;
-    final now = DateTime.now();
+    // firstDiveDate is wall clock encoded as UTC, so "now" must be too, or
+    // the tenure is off by the device's UTC offset.
+    final now = asWallClockUtc(clock.now());
     if (first.isAfter(now)) return null;
     final months = now.difference(first).inDays / _daysPerMonth;
     return months < 1 ? null : months;
