@@ -27,42 +27,31 @@ class NavTrackCardStatRow extends StatelessWidget {
     final style = Theme.of(context).textTheme.bodySmall?.copyWith(
       color: Theme.of(context).colorScheme.onSurfaceVariant,
     );
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Wrap gives each child the parent's full available width as its own
-        // upper bound (it only wraps *between* children, it never shrinks
-        // one), so a single stat wider than a very narrow card would
-        // otherwise overflow instead of ellipsizing.
-        final maxStatWidth = constraints.maxWidth.isFinite
-            ? constraints.maxWidth
-            : double.infinity;
-        return Wrap(
-          spacing: _statSpacing,
-          runSpacing: 2,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            for (final stat in stats)
-              ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxStatWidth),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(stat.icon, size: _iconSize, color: style?.color),
-                    const SizedBox(width: _iconGap),
-                    Flexible(
-                      child: Text(
-                        stat.text,
-                        style: style,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+    // Wrap lays each child out with its own max width as the upper bound,
+    // so a single stat wider than a very narrow card ellipsizes through its
+    // Flexible text rather than overflowing.
+    return Wrap(
+      spacing: _statSpacing,
+      runSpacing: 2,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        for (final stat in stats)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(stat.icon, size: _iconSize, color: style?.color),
+              const SizedBox(width: _iconGap),
+              Flexible(
+                child: Text(
+                  stat.text,
+                  style: style,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-          ],
-        );
-      },
+            ],
+          ),
+      ],
     );
   }
 }

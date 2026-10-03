@@ -46294,10 +46294,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_list_matchError =>
-      'Nem sikerült az útvonalakat párosítani.';
+      'Nem sikerült ellenőrizni az útvonalak párosítását.';
 
   @override
-  String get navTrack_list_matchSuccess => 'Útvonalak merülésekhez párosítva.';
+  String get navTrack_list_matchSuccess =>
+      'A választásodra váró útvonalak ellenőrizve.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -46308,7 +46309,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_list_importTooltip => 'Útvonalfájl importálása';
 
   @override
-  String get navTrack_list_matchTooltip => 'Párosítás most';
+  String get navTrack_list_matchTooltip => 'Ellenőrzés most';
 
   @override
   String get navTrack_list_title => 'Vízalatti útvonalak';
@@ -46321,22 +46322,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_list_empty => 'Még nincsenek vízalatti útvonalak.';
 
   @override
-  String get navTrack_review_saveConfirmation => 'Route saved.';
+  String get navTrack_review_saveConfirmation => 'Útvonal mentve.';
 
   @override
   String navTrack_list_pendingChoice(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count routes need your choice',
-      one: '$count route needs your choice',
+      other: '$count útvonal vár a választásodra',
+      one: '$count útvonal vár a választásodra',
     );
     return '$_temp0';
   }
 
   @override
   String navTrack_list_loadError(String error) {
-    return 'Could not load routes: $error';
+    return 'Nem sikerült betölteni az útvonalakat: $error';
   }
 
   @override

@@ -146,16 +146,13 @@ class NavTrackDetailPage extends ConsumerWidget {
     // time-overlapping dive used to be linked silently instead of offered as
     // a choice), so confirming it is a single tap rather than hunting it
     // down in the proximity-sorted list below. Computed from the [dives]
-    // already fetched above rather than through another sweep() call, which
-    // would re-fetch the same dive list a second time.
-    final candidates = NavTrackMatcher.candidatesFor(
+    // already fetched above, through the same rule a sweep uses, rather than
+    // through another sweep() call that would re-fetch the same dive list.
+    final suggestedDiveId = NavTrackMatcher.soleCandidateFor(
       routeStartSeconds: route.startTime ~/ 1000,
       routeEndSeconds: route.endTime ~/ 1000,
       dives: dives,
-    );
-    final suggestedDiveId = candidates.length == 1
-        ? candidates.single.id
-        : null;
+    )?.id;
     if (!context.mounted) return;
     final chosen = await showNavTrackDiveChoiceSheet(
       context,

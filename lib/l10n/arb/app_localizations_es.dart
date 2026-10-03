@@ -46517,10 +46517,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'No se pudieron emparejar las rutas.';
+  String get navTrack_list_matchError =>
+      'No se pudo comprobar el emparejamiento de rutas.';
 
   @override
-  String get navTrack_list_matchSuccess => 'Rutas emparejadas con inmersiones.';
+  String get navTrack_list_matchSuccess =>
+      'Se comprobaron las rutas que esperan tu elección.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -46531,7 +46533,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navTrack_list_importTooltip => 'Importar archivo de ruta';
 
   @override
-  String get navTrack_list_matchTooltip => 'Emparejar ahora';
+  String get navTrack_list_matchTooltip => 'Comprobar ahora';
 
   @override
   String get navTrack_list_title => 'Rutas submarinas';
@@ -46544,22 +46546,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navTrack_list_empty => 'Aún no hay rutas submarinas.';
 
   @override
-  String get navTrack_review_saveConfirmation => 'Route saved.';
+  String get navTrack_review_saveConfirmation => 'Ruta guardada.';
 
   @override
   String navTrack_list_pendingChoice(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count routes need your choice',
-      one: '$count route needs your choice',
+      other: '$count rutas esperan tu elección',
+      one: '$count ruta espera tu elección',
     );
     return '$_temp0';
   }
 
   @override
   String navTrack_list_loadError(String error) {
-    return 'Could not load routes: $error';
+    return 'No se pudieron cargar las rutas: $error';
   }
 
   @override

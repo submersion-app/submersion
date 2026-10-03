@@ -46496,10 +46496,12 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'Não foi possível associar as rotas.';
+  String get navTrack_list_matchError =>
+      'Não foi possível verificar as associações de rotas.';
 
   @override
-  String get navTrack_list_matchSuccess => 'Rotas associadas aos mergulhos.';
+  String get navTrack_list_matchSuccess =>
+      'Verificadas as rotas que aguardam sua escolha.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -46510,7 +46512,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navTrack_list_importTooltip => 'Importar arquivo de rota';
 
   @override
-  String get navTrack_list_matchTooltip => 'Associar agora';
+  String get navTrack_list_matchTooltip => 'Verificar agora';
 
   @override
   String get navTrack_list_title => 'Rotas subaquáticas';
@@ -46523,22 +46525,22 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navTrack_list_empty => 'Nenhuma rota subaquática ainda.';
 
   @override
-  String get navTrack_review_saveConfirmation => 'Route saved.';
+  String get navTrack_review_saveConfirmation => 'Rota salva.';
 
   @override
   String navTrack_list_pendingChoice(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count routes need your choice',
-      one: '$count route needs your choice',
+      other: '$count rotas aguardam sua escolha',
+      one: '$count rota aguarda sua escolha',
     );
     return '$_temp0';
   }
 
   @override
   String navTrack_list_loadError(String error) {
-    return 'Could not load routes: $error';
+    return 'Não foi possível carregar as rotas: $error';
   }
 
   @override

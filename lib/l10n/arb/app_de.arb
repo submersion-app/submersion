@@ -13917,7 +13917,7 @@
   "navTrack_list_matchSuccess": "Prüfung auf wartende Routen abgeschlossen.",
   "navTrack_list_deleteMessage": "„{name}“ löschen?",
   "navTrack_list_importTooltip": "Routendatei importieren",
-  "navTrack_list_matchTooltip": "Jetzt zuordnen",
+  "navTrack_list_matchTooltip": "Jetzt prüfen",
   "navTrack_list_title": "Unterwasser-Routen",
   "navTrack_list_noMapRoutes": "Noch keine Routen auf der Karte platziert.",
   "navTrack_list_empty": "Noch keine Unterwasser-Routen.",

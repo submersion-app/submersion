@@ -1,5 +1,4 @@
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_match_suggestion.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
@@ -7,10 +6,10 @@ import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 /// Reports unlinked routes and, where exactly one dive overlaps, which one
 /// to suggest. It never links anything itself (#2394: a route used to be
 /// linked silently the instant exactly one dive overlapped it, with no way
-/// to decline before the fact). Single choke point for all four triggers
-/// (import-time, dive-computer download, post-sync, manual) so matching
-/// behaviour cannot diverge between them -- mirrors `GpsTrackMatchService`'s
-/// own role for surface tracks.
+/// to decline before the fact). The suggestion rule itself is
+/// `NavTrackMatcher.soleCandidateFor`, shared with the route detail page's
+/// "Choose dive" so the two can never suggest different dives. This mirrors
+/// `GpsTrackMatchService`'s own role for surface tracks.
 class NavTrackMatchService {
   final NavTrackRepository _routeRepository;
   final DiveRepository _diveRepository;
@@ -44,7 +43,7 @@ class NavTrackMatchService {
   /// [limitToRouteIds] scopes the sweep to specific routes (import-time:
   /// just the route that was imported); [limitToDiveIds] scopes it to
   /// specific dives (a dive-computer download: just the dives it brought
-  /// in). Neither is required for a full sweep (manual, post-sync).
+  /// in). Neither is required for a full sweep.
   Future<List<NavTrackMatchSuggestion>> sweep({
     List<String>? limitToRouteIds,
     List<String>? limitToDiveIds,
@@ -73,25 +72,12 @@ class NavTrackMatchService {
       for (final route in routes)
         (
           routeId: route.id,
-          suggestedDiveId: _soleCandidateId(
+          suggestedDiveId: NavTrackMatcher.soleCandidateFor(
             routeStartSeconds: route.startTime ~/ 1000,
             routeEndSeconds: route.endTime ~/ 1000,
             dives: dives,
-          ),
+          )?.id,
         ),
     ];
-  }
-
-  String? _soleCandidateId({
-    required int routeStartSeconds,
-    required int routeEndSeconds,
-    required List<Dive> dives,
-  }) {
-    final candidates = NavTrackMatcher.candidatesFor(
-      routeStartSeconds: routeStartSeconds,
-      routeEndSeconds: routeEndSeconds,
-      dives: dives,
-    );
-    return candidates.length == 1 ? candidates.single.id : null;
   }
 }

@@ -16,6 +16,7 @@ import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_t
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
+import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_parse_error_text.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
@@ -131,11 +132,13 @@ class _NavTrackListPageState extends ConsumerState<NavTrackListPage> {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     try {
+      // Called directly rather than through a provider so a failure reaches
+      // the catch below at once, not after Riverpod's automatic retries.
       await ref.read(navTrackMatchServiceProvider).sweep();
       // The sweep itself never writes anything any more (#2394); this just
-      // refreshes the "N routes need your choice" hint, the same way a
-      // route or dive change already does.
-      ref.invalidate(navTrackPendingChoiceCountProvider);
+      // refreshes the "N routes need your choice" hint from a fresh read of
+      // the unlinked routes, rather than re-running a second sweep.
+      ref.invalidate(unlinkedNavTracksProvider);
     } catch (e, stackTrace) {
       _log.error(
         'Manual route match sweep failed',
@@ -627,31 +630,42 @@ class _DiveNumberBadge extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final diveNumber = ref.watch(diveProvider(diveId)).value?.diveNumber;
-    return InkWell(
-      key: const ValueKey('nav-track-dive-badge'),
-      customBorder: const CircleBorder(),
-      onTap: () => context.push('/dives/$diveId'),
-      child: CircleAvatar(
-        radius: 18,
-        backgroundColor: colorScheme.primaryContainer,
-        child: diveNumber != null
-            ? FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: Text(
-                    '#$diveNumber',
-                    maxLines: 1,
-                    style: TextStyle(
-                      color: colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+    final dive = ref.watch(diveProvider(diveId)).value;
+    final diveNumber = dive?.diveNumber;
+    // The tooltip doubles as the badge's semantics label: "#12" alone, or a
+    // bare link icon while the dive resolves, would not tell a screen
+    // reader which dive this opens.
+    return Tooltip(
+      message: navTrackDiveLabel(context.l10n, diveId, dive),
+      child: InkWell(
+        key: const ValueKey('nav-track-dive-badge'),
+        customBorder: const CircleBorder(),
+        onTap: () => context.push('/dives/$diveId'),
+        child: CircleAvatar(
+          radius: 18,
+          backgroundColor: colorScheme.primaryContainer,
+          child: diveNumber != null
+              ? FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Text(
+                      '#$diveNumber',
+                      maxLines: 1,
+                      style: TextStyle(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
+                )
+              : Icon(
+                  Icons.link,
+                  size: 16,
+                  color: colorScheme.onPrimaryContainer,
                 ),
-              )
-            : Icon(Icons.link, size: 16, color: colorScheme.onPrimaryContainer),
+        ),
       ),
     );
   }

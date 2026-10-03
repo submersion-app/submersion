@@ -45811,7 +45811,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_list_importTooltip => 'Import route file';
 
   @override
-  String get navTrack_list_matchTooltip => 'Match now';
+  String get navTrack_list_matchTooltip => 'Check now';
 
   @override
   String get navTrack_list_title => 'Underwater Routes';

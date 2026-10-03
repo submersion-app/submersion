@@ -101,6 +101,12 @@ void main() {
       expect(unlinked.map((r) => r.id), unorderedEquals([mine, ownerless]));
     });
 
+    test('navTrackPendingChoiceCountProvider counts the same diver-scoped '
+        'unlinked routes', () async {
+      final count = await asMe.read(navTrackPendingChoiceCountProvider.future);
+      expect(count, 2);
+    });
+
     test('the import service stamps the active diver on a new route', () async {
       final service = asMe.read(navTrackImportServiceProvider);
       final preview = await service.prepare(

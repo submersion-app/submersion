@@ -46473,10 +46473,12 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'Impossibile abbinare i percorsi.';
+  String get navTrack_list_matchError =>
+      'Impossibile verificare gli abbinamenti dei percorsi.';
 
   @override
-  String get navTrack_list_matchSuccess => 'Percorsi abbinati alle immersioni.';
+  String get navTrack_list_matchSuccess =>
+      'Controllati i percorsi in attesa della tua scelta.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -46487,7 +46489,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navTrack_list_importTooltip => 'Importa file di percorso';
 
   @override
-  String get navTrack_list_matchTooltip => 'Abbina ora';
+  String get navTrack_list_matchTooltip => 'Controlla ora';
 
   @override
   String get navTrack_list_title => 'Percorsi subacquei';
@@ -46500,22 +46502,22 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navTrack_list_empty => 'Nessun percorso subacqueo ancora.';
 
   @override
-  String get navTrack_review_saveConfirmation => 'Route saved.';
+  String get navTrack_review_saveConfirmation => 'Percorso salvato.';
 
   @override
   String navTrack_list_pendingChoice(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count routes need your choice',
-      one: '$count route needs your choice',
+      other: '$count percorsi attendono la tua scelta',
+      one: '$count percorso attende la tua scelta',
     );
     return '$_temp0';
   }
 
   @override
   String navTrack_list_loadError(String error) {
-    return 'Could not load routes: $error';
+    return 'Impossibile caricare i percorsi: $error';
   }
 
   @override

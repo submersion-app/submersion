@@ -28702,7 +28702,7 @@
     }
   },
   "navTrack_list_importTooltip": "Import route file",
-  "navTrack_list_matchTooltip": "Match now",
+  "navTrack_list_matchTooltip": "Check now",
   "navTrack_list_title": "Underwater Routes",
   "navTrack_list_noMapRoutes": "No routes are placed on the map yet.",
   "navTrack_list_empty": "No underwater routes yet.",

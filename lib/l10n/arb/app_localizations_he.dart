@@ -45550,10 +45550,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => 'לא ניתן היה להתאים את המסלולים.';
+  String get navTrack_list_matchError => 'לא ניתן היה לבדוק התאמות של מסלולים.';
 
   @override
-  String get navTrack_list_matchSuccess => 'המסלולים הותאמו לצלילות.';
+  String get navTrack_list_matchSuccess => 'נבדקו המסלולים הממתינים לבחירתך.';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -45564,7 +45564,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_list_importTooltip => 'ייבוא קובץ מסלול';
 
   @override
-  String get navTrack_list_matchTooltip => 'התאם עכשיו';
+  String get navTrack_list_matchTooltip => 'בדוק עכשיו';
 
   @override
   String get navTrack_list_title => 'מסלולים תת-ימיים';
@@ -45576,22 +45576,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_list_empty => 'עדיין אין מסלולים תת-ימיים.';
 
   @override
-  String get navTrack_review_saveConfirmation => 'Route saved.';
+  String get navTrack_review_saveConfirmation => 'המסלול נשמר.';
 
   @override
   String navTrack_list_pendingChoice(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count routes need your choice',
-      one: '$count route needs your choice',
+      other: '$count מסלולים ממתינים לבחירתך',
+      two: 'שני מסלולים ממתינים לבחירתך',
+      one: 'מסלול אחד ממתין לבחירתך',
     );
     return '$_temp0';
   }
 
   @override
   String navTrack_list_loadError(String error) {
-    return 'Could not load routes: $error';
+    return 'לא ניתן היה לטעון את המסלולים: $error';
   }
 
   @override

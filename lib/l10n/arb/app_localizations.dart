@@ -73832,7 +73832,7 @@ abstract class AppLocalizations {
   /// No description provided for @navTrack_list_matchTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Match now'**
+  /// **'Check now'**
   String get navTrack_list_matchTooltip;
 
   /// No description provided for @navTrack_list_title.

@@ -43784,10 +43784,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get navTrack_list_matchError => '无法匹配路线。';
+  String get navTrack_list_matchError => '无法检查路线匹配。';
 
   @override
-  String get navTrack_list_matchSuccess => '路线已与潜水记录匹配。';
+  String get navTrack_list_matchSuccess => '已检查等待你选择的路线。';
 
   @override
   String navTrack_list_deleteMessage(String name) {
@@ -43798,7 +43798,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_list_importTooltip => '导入路线文件';
 
   @override
-  String get navTrack_list_matchTooltip => '立即匹配';
+  String get navTrack_list_matchTooltip => '立即检查';
 
   @override
   String get navTrack_list_title => '水下路线';
@@ -43810,22 +43810,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_list_empty => '尚无水下路线。';
 
   @override
-  String get navTrack_review_saveConfirmation => 'Route saved.';
+  String get navTrack_review_saveConfirmation => '路线已保存。';
 
   @override
   String navTrack_list_pendingChoice(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count routes need your choice',
-      one: '$count route needs your choice',
+      other: '$count 条路线等待你的选择',
     );
     return '$_temp0';
   }
 
   @override
   String navTrack_list_loadError(String error) {
-    return 'Could not load routes: $error';
+    return '无法加载路线：$error';
   }
 
   @override

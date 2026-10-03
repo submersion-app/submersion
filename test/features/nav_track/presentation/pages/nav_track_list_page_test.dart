@@ -43,19 +43,16 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   }
 }
 
-/// Stubs `sweep()` with a canned result, or an error, instead of running a
-/// real sweep against a database.
+/// Stubs `sweep()` with an empty result, or an error, and counts the calls,
+/// instead of running a real sweep against a database.
 class _FakeNavTrackMatchService extends NavTrackMatchService {
-  _FakeNavTrackMatchService({
-    this.error,
-    this.suggestions = const <NavTrackMatchSuggestion>[],
-  }) : super(
-         routeRepository: NavTrackRepository(),
-         diveRepository: DiveRepository(),
-       );
+  _FakeNavTrackMatchService({this.error})
+    : super(
+        routeRepository: NavTrackRepository(),
+        diveRepository: DiveRepository(),
+      );
 
   final Object? error;
-  final List<NavTrackMatchSuggestion> suggestions;
   int callCount = 0;
 
   @override
@@ -65,7 +62,7 @@ class _FakeNavTrackMatchService extends NavTrackMatchService {
   }) async {
     callCount++;
     if (error != null) throw error!;
-    return suggestions;
+    return const [];
   }
 }
 
@@ -166,6 +163,7 @@ Future<_RecordingNavTrackRepository> _pump(
   required List<NavTrack> routes,
   Dive? linkedDive,
   Map<String, NavTrack>? hydrated,
+  Future<List<NavTrack>> Function()? unlinked,
   NavTrackMatchService? matchService,
   MockSettingsNotifier? settingsNotifier,
   List<Override> extraOverrides = const [],
@@ -181,6 +179,10 @@ Future<_RecordingNavTrackRepository> _pump(
         navTrackRepositoryProvider.overrideWithValue(repository),
         if (matchService != null)
           navTrackMatchServiceProvider.overrideWithValue(matchService),
+        // The pending-choice hint counts these; none unless a test says so.
+        unlinkedNavTracksProvider.overrideWith(
+          (ref) => unlinked?.call() ?? Future.value(const <NavTrack>[]),
+        ),
         if (linkedDive != null)
           diveProvider(linkedDive.id).overrideWith((ref) async => linkedDive),
         if (hydrated != null)
@@ -685,18 +687,29 @@ void main() {
   });
 
   group('match now', () {
-    testWidgets('shows a success snackbar when the sweep succeeds', (
+    testWidgets('refreshes the pending-choice hint and confirms it', (
       tester,
     ) async {
       final service = _FakeNavTrackMatchService();
-      await _pump(tester, routes: const [], matchService: service);
+      var unlinked = const <NavTrack>[];
+      await _pump(
+        tester,
+        routes: [_route(id: 'r1', name: 'Wreck dive')],
+        unlinked: () async => unlinked,
+        matchService: service,
+      );
+      expect(
+        find.byKey(const ValueKey('nav-track-pending-choice-banner')),
+        findsNothing,
+      );
 
+      unlinked = [_route(id: 'r1', name: 'Wreck dive')];
       await tester.tap(find.byKey(const ValueKey('nav-track-match')));
       await tester.pumpAndSettle();
 
-      // The pending-choice banner (#2394) also calls sweep() on its own
-      // build, so this only confirms the tap triggered at least one.
-      expect(service.callCount, greaterThanOrEqualTo(1));
+      // Only the tap sweeps now: the hint counts unlinked routes directly.
+      expect(service.callCount, 1);
+      expect(find.text('1 route needs your choice'), findsOneWidget);
       expect(
         find.text('Checked for routes needing your choice.'),
         findsOneWidget,
@@ -718,11 +731,9 @@ void main() {
 
   group('pending-choice hint (#2394)', () {
     testWidgets('shows no banner when nothing needs a choice', (tester) async {
-      final service = _FakeNavTrackMatchService();
       await _pump(
         tester,
         routes: [_route(id: 'r1', name: 'Wreck dive')],
-        matchService: service,
       );
 
       expect(
@@ -734,20 +745,11 @@ void main() {
     testWidgets('shows a banner with the count when routes need a choice', (
       tester,
     ) async {
-      final service = _FakeNavTrackMatchService(
-        suggestions: const [
-          (routeId: 'r1', suggestedDiveId: 'dive-1'),
-          (routeId: 'r2', suggestedDiveId: null),
-        ],
-      );
-      await _pump(
-        tester,
-        routes: [
-          _route(id: 'r1', name: 'Wreck dive'),
-          _route(id: 'r2', name: 'Reef dive'),
-        ],
-        matchService: service,
-      );
+      final routes = [
+        _route(id: 'r1', name: 'Wreck dive'),
+        _route(id: 'r2', name: 'Reef dive'),
+      ];
+      await _pump(tester, routes: routes, unlinked: () async => routes);
 
       expect(
         find.byKey(const ValueKey('nav-track-pending-choice-banner')),
