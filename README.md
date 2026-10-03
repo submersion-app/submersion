@@ -49,9 +49,9 @@ Download straight from your computer.
 
 <br clear="all"><br>
 
-> **Confirmed working:** Shearwater Teric, Aqualung i300C, Aqualung i330R. Have a
-> different dive computer? [Help us expand this list](https://github.com/submersion-app/submersion/issues).
-> We are looking for testers.
+> **Will it work with my computer?** The [support matrix](https://submersion.app/computers/)
+> lists every model, the connections each platform can use, and what divers have
+> reported. Tried one that is not verified yet? [Tell us how it went](https://github.com/submersion-app/submersion/issues).
 
 <img align="right" width="50%" src="docs/assets/screenshots/readme/04-sites-maps.jpg" alt="Dive site list beside an interactive map with clustered markers and a dive heat map">
 
