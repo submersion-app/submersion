@@ -339,7 +339,33 @@ void main() {
   });
 
   // Review Focus 5.
+  // A sentence that does not parse writes nothing before the Ask, so Undo
+  // goes back to the query from before it.
   testAsk('Undo puts the sentence back and the old query', (tester) async {
+    await pumpHeader(
+      tester,
+      engine: _Engine()..replies['deep dives, please'] = _deep,
+      filter: DiveFilterState(query: TextNode(['reef'])),
+    );
+    await tester.enterText(
+      find.byKey(kDiveSearchFieldKey),
+      'deep dives, please',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(kDiveAskUndoKey));
+    await tester.pump();
+    expect(fieldOf(tester).controller!.text, 'deep dives, please');
+    expect(filterOf().query, TextNode(['reef']));
+    // Shown, not applied: still the old query once any debounce is over.
+    await tester.pump(kDiveSearchDebounce * 2);
+    expect(filterOf().query, TextNode(['reef']));
+  });
+
+  // A sentence that parses applies as typed text before the Ask, so Undo
+  // returns to its words: the field and the list agree.
+  testAsk('Undo after a parsed sentence returns to its words', (tester) async {
     await pumpHeader(
       tester,
       engine: _Engine()..replies['deep dives'] = _deep,
@@ -350,12 +376,15 @@ void main() {
     await tester.tap(find.byKey(kDiveAskRowKey));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(kDiveAskUndoKey));
-    await tester.pump();
-    expect(fieldOf(tester).controller!.text, 'deep dives');
-    expect(filterOf().query, TextNode(['reef']));
-    // Shown, not applied: still the old query once any debounce is over.
     await tester.pump(kDiveSearchDebounce * 2);
-    expect(filterOf().query, TextNode(['reef']));
+    expect(fieldOf(tester).controller!.text, 'deep dives');
+    expect(
+      filterOf().query,
+      AndNode([
+        TextNode(['deep']),
+        TextNode(['dives']),
+      ]),
+    );
   });
 
   testAsk('a sentence about sites opens the site list', (tester) async {
@@ -415,6 +444,23 @@ void main() {
     await tester.pump(kDiveSearchDebounce * 2);
     expect(find.byKey(kDiveAskNoticeKey), findsOneWidget);
     expect(filterOf().query, isNotNull);
+  });
+
+  // Code review: a model faster than the debounce answered nothing, then
+  // the typed words landed and took the notice away with them.
+  testAsk('a fast empty answer keeps its notice when the words land', (
+    tester,
+  ) async {
+    await pumpHeader(
+      tester,
+      engine: _Engine()..replies['fluffy clouds'] = _nothing,
+    );
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'fluffy clouds');
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pump();
+    await tester.pump(kDiveSearchDebounce * 2);
+    expect(find.byKey(kDiveAskNoticeKey), findsOneWidget);
   });
 
   testAsk('no Ask row and no Cmd/Ctrl+Enter where the model is off', (

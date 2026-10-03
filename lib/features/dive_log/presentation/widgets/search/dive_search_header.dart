@@ -174,9 +174,10 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
   Future<void> _ask() async {
     final sentence = _text.trim();
     if (sentence.isEmpty || !ref.read(exploreEnabledProvider)) return;
-    // The words typed so far stay on their debounce: if the model answers
-    // first, the answer's query write cancels it (the listener below); if
-    // the model fails, the words apply as typed text does.
+    // The words typed so far apply now, as typed text would: the filter is
+    // settled before the model is called, so no answer meets words still
+    // waiting on the debounce, and an answer's Undo goes back to them.
+    _flushPending();
     final route = await ref.read(diveAskProvider.notifier).ask(sentence);
     if (!mounted) return;
     final ask = ref.read(diveAskProvider);
@@ -234,13 +235,9 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
       final answer = next.answer;
       if (answer == null || identical(answer, previous?.answer)) return;
       final query = answer.compiled.query;
-      // Only an answer that replaces the dive query wins over the typed
-      // words; one kept in the notice (nothing placed, another subject)
-      // leaves them to apply as typed text does, as the field shows them.
       if (answer.compiled.subject != ParsedSubject.dives || query == null) {
         return;
       }
-      _debounce?.cancel();
       // Print the answer here too: one equal to the query already applied
       // writes nothing the filter listener sees, and the field would keep
       // the sentence while the answer filters the list. The override also
