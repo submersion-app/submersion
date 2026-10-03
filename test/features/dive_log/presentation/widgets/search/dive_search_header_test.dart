@@ -17,6 +17,15 @@ import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_suggestions.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/explore/data/recent_query_repository.dart';
+import 'package:submersion/features/explore/presentation/providers/recent_query_providers.dart';
+import 'package:submersion/features/query/domain/entities/saved_query.dart';
+import 'package:submersion/features/query/domain/saved_query_load.dart';
+import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
@@ -34,6 +43,8 @@ void main() {
     double? width,
     Future<List<DiveSummary>> Function(QueryNode query)? jumpFor,
     void Function(QueryNode node)? saveOverride,
+    List<SavedQueryLoad> savedLoads = const [],
+    RecentTypedRecorder? typedRecorder,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -46,6 +57,17 @@ void main() {
           queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
           diveJumpResultsProvider.overrideWith(
             (ref, q) => jumpFor != null ? jumpFor(q) : Future.value(jump),
+          ),
+          savedQueryLoadsProvider(
+            'dives',
+          ).overrideWith((ref) async => savedLoads),
+          recentQueriesProvider.overrideWith(
+            (ref) async => const <RecentQuery>[],
+          ),
+          allBuddiesProvider.overrideWith((ref) async => const <Buddy>[]),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'ana'),
+          recentTypedRecorderProvider.overrideWithValue(
+            typedRecorder ?? (text, node, locale, diverId) async {},
           ),
           if (saveOverride != null)
             diveSearchSaverProvider.overrideWithValue(
@@ -384,6 +406,102 @@ void main() {
       filter: const DiveFilterState(minDepth: 30, axesSuspended: true),
     );
     expect(find.byKey(kDiveSearchSaveKey), findsNothing);
+  });
+
+  testWidgets('an empty focused field shows suggestions; typing hides them', (
+    tester,
+  ) async {
+    await pumpHeader(tester);
+    await tester.tap(find.byKey(kDiveSearchFieldKey));
+    await tester.pump();
+    expect(find.byKey(kDiveSearchSuggestionsKey), findsOneWidget);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump();
+    expect(find.byKey(kDiveSearchSuggestionsKey), findsNothing);
+  });
+
+  // Review Focus 1.
+  testWidgets('a saved search loads as the whole search, axes cleared', (
+    tester,
+  ) async {
+    await pumpHeader(
+      tester,
+      filter: const DiveFilterState(minDepth: 30),
+      savedLoads: [
+        SavedQueryLoad(
+          SavedQuery(
+            id: 'q1',
+            subject: 'dives',
+            name: 'Mantas',
+            queryJson: '{}',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+          node: TextNode(['manta']),
+        ),
+      ],
+    );
+    await tester.tap(find.byKey(kDiveSearchFieldKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mantas'));
+    await tester.pumpAndSettle();
+    expect(filterOf(), DiveFilterState(query: TextNode(['manta'])));
+  });
+
+  testWidgets('Enter records a typed search', (tester) async {
+    final typed = <String>[];
+    await pumpHeader(
+      tester,
+      typedRecorder: (text, node, l, d) async => typed.add(text),
+    );
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+    expect(typed, ['manta']);
+  });
+
+  testWidgets('leaving the field after typing records the search', (
+    tester,
+  ) async {
+    final typed = <String>[];
+    await pumpHeader(
+      tester,
+      typedRecorder: (text, node, l, d) async => typed.add(text),
+    );
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    expect(typed, ['manta']);
+  });
+
+  testWidgets('a query from outside is not recorded as typed', (tester) async {
+    final typed = <String>[];
+    await pumpHeader(
+      tester,
+      typedRecorder: (text, node, l, d) async => typed.add(text),
+    );
+    // Typed, then replaced from outside (a chip, an answer): what the field
+    // ends up holding was not typed.
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump();
+    container.read(diveFilterProvider.notifier).state = DiveFilterState(
+      query: TextNode(['wreck']),
+    );
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    expect(typed, isEmpty);
+  });
+
+  testWidgets('a hint is typed in and applied', (tester) async {
+    await pumpHeader(tester);
+    await tester.tap(find.byKey(kDiveSearchFieldKey));
+    await tester.pump();
+    await tester.tap(find.text('manta'));
+    await tester.pump();
+    await tester.pump(kDiveSearchDebounce * 2);
+    expect(filterOf().query, TextNode(['manta']));
   });
 
   // Review finding: the jump list ran a full-log query per keystroke.

@@ -13519,6 +13519,42 @@ abstract class AppLocalizations {
   /// **'Asked: {sentence}'**
   String diveLog_ask_asked(String sentence);
 
+  /// No description provided for @diveLog_search_manageSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get diveLog_search_manageSaved;
+
+  /// No description provided for @diveLog_search_recentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get diveLog_search_recentTitle;
+
+  /// No description provided for @diveLog_search_recentTyped.
+  ///
+  /// In en, this message translates to:
+  /// **'Typed search'**
+  String get diveLog_search_recentTyped;
+
+  /// No description provided for @diveLog_search_recentAsked.
+  ///
+  /// In en, this message translates to:
+  /// **'Asked question'**
+  String get diveLog_search_recentAsked;
+
+  /// No description provided for @diveLog_search_hintsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try'**
+  String get diveLog_search_hintsTitle;
+
+  /// No description provided for @diveLog_search_hintAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'or ask a question'**
+  String get diveLog_search_hintAsk;
+
   /// No description provided for @diveLog_search_openInsights.
   ///
   /// In en, this message translates to:

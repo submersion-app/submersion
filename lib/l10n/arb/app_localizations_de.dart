@@ -8481,6 +8481,24 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_search_manageSaved => 'Verwalten';
+
+  @override
+  String get diveLog_search_recentTitle => 'Zuletzt';
+
+  @override
+  String get diveLog_search_recentTyped => 'Eingegebene Suche';
+
+  @override
+  String get diveLog_search_recentAsked => 'Gestellte Frage';
+
+  @override
+  String get diveLog_search_hintsTitle => 'Probieren Sie';
+
+  @override
+  String get diveLog_search_hintAsk => 'oder stellen Sie eine Frage';
+
+  @override
   String get diveLog_search_openInsights => 'In Einblicken öffnen';
 
   @override

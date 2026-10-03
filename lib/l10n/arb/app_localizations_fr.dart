@@ -8510,6 +8510,24 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_search_manageSaved => 'Gérer';
+
+  @override
+  String get diveLog_search_recentTitle => 'Récentes';
+
+  @override
+  String get diveLog_search_recentTyped => 'Recherche saisie';
+
+  @override
+  String get diveLog_search_recentAsked => 'Question posée';
+
+  @override
+  String get diveLog_search_hintsTitle => 'Essayez';
+
+  @override
+  String get diveLog_search_hintAsk => 'ou posez une question';
+
+  @override
   String get diveLog_search_openInsights => 'Ouvrir dans les analyses';
 
   @override
