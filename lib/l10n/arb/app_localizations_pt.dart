@@ -9044,6 +9044,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_search_jumpTitle => 'Ir para o mergulho';
 
   @override
+  String diveLog_ask_row(String text) {
+    return 'Perguntar: $text';
+  }
+
+  @override
+  String get diveLog_ask_running => 'Consultando o modelo no dispositivo';
+
+  @override
   String get diveLog_search_openInsights => 'Abrir em Análises';
 
   @override

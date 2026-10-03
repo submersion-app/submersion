@@ -2861,6 +2861,8 @@
   "diveLog_search_scopeWithin": "Binnen filters",
   "diveLog_search_scopeAll": "Alle duiken",
   "diveLog_search_jumpTitle": "Naar duik springen",
+  "diveLog_ask_row": "Vraag: {text}",
+  "diveLog_ask_running": "Het model op het apparaat wordt gevraagd",
   "diveLog_search_openInsights": "Openen in Inzichten",
   "diveLog_search_cleared": "Zoekopdracht gewist",
   "diveLog_search_undo": "Ongedaan maken",

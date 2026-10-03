@@ -2759,6 +2759,8 @@
   "diveLog_search_scopeWithin": "בתוך המסננים",
   "diveLog_search_scopeAll": "כל הצלילות",
   "diveLog_search_jumpTitle": "מעבר לצלילה",
+  "diveLog_ask_row": "שאל: {text}",
+  "diveLog_ask_running": "שואל את המודל במכשיר",
   "diveLog_search_openInsights": "פתיחה בתובנות",
   "diveLog_search_cleared": "החיפוש נוקה",
   "diveLog_search_undo": "ביטול",

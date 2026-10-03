@@ -2759,6 +2759,8 @@
   "diveLog_search_scopeWithin": "Dans les filtres",
   "diveLog_search_scopeAll": "Toutes les plongées",
   "diveLog_search_jumpTitle": "Aller à la plongée",
+  "diveLog_ask_row": "Demander : {text}",
+  "diveLog_ask_running": "Interrogation du modèle sur l'appareil",
   "diveLog_search_openInsights": "Ouvrir dans les analyses",
   "diveLog_search_cleared": "Recherche effacée",
   "diveLog_search_undo": "Annuler",

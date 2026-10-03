@@ -8604,6 +8604,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_search_jumpTitle => '跳转到潜水';
 
   @override
+  String diveLog_ask_row(String text) {
+    return '提问：$text';
+  }
+
+  @override
+  String get diveLog_ask_running => '正在询问设备端模型';
+
+  @override
   String get diveLog_search_openInsights => '在洞察中打开';
 
   @override

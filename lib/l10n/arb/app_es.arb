@@ -2861,6 +2861,8 @@
   "diveLog_search_scopeWithin": "Dentro de los filtros",
   "diveLog_search_scopeAll": "Todas las inmersiones",
   "diveLog_search_jumpTitle": "Ir a la inmersión",
+  "diveLog_ask_row": "Preguntar: {text}",
+  "diveLog_ask_running": "Consultando el modelo del dispositivo",
   "diveLog_search_openInsights": "Abrir en Análisis",
   "diveLog_search_cleared": "Búsqueda borrada",
   "diveLog_search_undo": "Deshacer",

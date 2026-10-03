@@ -14433,6 +14433,18 @@ abstract class AppLocalizations {
   /// **'Jump to dive'**
   String get diveLog_search_jumpTitle;
 
+  /// No description provided for @diveLog_ask_row.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask: {text}'**
+  String diveLog_ask_row(String text);
+
+  /// No description provided for @diveLog_ask_running.
+  ///
+  /// In en, this message translates to:
+  /// **'Asking the on-device model'**
+  String get diveLog_ask_running;
+
   /// No description provided for @diveLog_search_openInsights.
   ///
   /// In en, this message translates to:

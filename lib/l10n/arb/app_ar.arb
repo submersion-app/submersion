@@ -2861,6 +2861,8 @@
   "diveLog_search_scopeWithin": "ضمن عوامل التصفية",
   "diveLog_search_scopeAll": "كل الغوصات",
   "diveLog_search_jumpTitle": "الانتقال إلى غوصة",
+  "diveLog_ask_row": "اسأل: {text}",
+  "diveLog_ask_running": "جارٍ سؤال النموذج على الجهاز",
   "diveLog_search_openInsights": "فتح في الرؤى",
   "diveLog_search_cleared": "تم مسح البحث",
   "diveLog_search_undo": "تراجع",

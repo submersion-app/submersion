@@ -8870,6 +8870,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_search_jumpTitle => 'الانتقال إلى غوصة';
 
   @override
+  String diveLog_ask_row(String text) {
+    return 'اسأل: $text';
+  }
+
+  @override
+  String get diveLog_ask_running => 'جارٍ سؤال النموذج على الجهاز';
+
+  @override
   String get diveLog_search_openInsights => 'فتح في الرؤى';
 
   @override

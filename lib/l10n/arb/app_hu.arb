@@ -2759,6 +2759,8 @@
   "diveLog_search_scopeWithin": "A szűrőkön belül",
   "diveLog_search_scopeAll": "Összes merülés",
   "diveLog_search_jumpTitle": "Ugrás a merüléshez",
+  "diveLog_ask_row": "Kérdezd: {text}",
+  "diveLog_ask_running": "Az eszközön futó modell válaszol",
   "diveLog_search_openInsights": "Megnyitás az Elemzésekben",
   "diveLog_search_cleared": "Keresés törölve",
   "diveLog_search_undo": "Visszavonás",

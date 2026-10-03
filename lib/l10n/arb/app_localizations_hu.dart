@@ -9026,6 +9026,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_search_jumpTitle => 'Ugrás a merüléshez';
 
   @override
+  String diveLog_ask_row(String text) {
+    return 'Kérdezd: $text';
+  }
+
+  @override
+  String get diveLog_ask_running => 'Az eszközön futó modell válaszol';
+
+  @override
   String get diveLog_search_openInsights => 'Megnyitás az Elemzésekben';
 
   @override

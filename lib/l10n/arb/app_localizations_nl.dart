@@ -8980,6 +8980,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_jumpTitle => 'Naar duik springen';
 
   @override
+  String diveLog_ask_row(String text) {
+    return 'Vraag: $text';
+  }
+
+  @override
+  String get diveLog_ask_running => 'Het model op het apparaat wordt gevraagd';
+
+  @override
   String get diveLog_search_openInsights => 'Openen in Inzichten';
 
   @override
