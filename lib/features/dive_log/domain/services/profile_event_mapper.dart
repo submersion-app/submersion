@@ -101,6 +101,11 @@ List<ProfileEvent> mergeEvents(
 /// event's computer, looked up once per computer through [manufacturerOf].
 /// An event with no computer, or one the lookup does not know, is returned
 /// unchanged.
+///
+/// The manufacturer only refines a marker label, so a lookup that throws
+/// leaves that computer's events unstamped rather than failing the events
+/// (and the profile analysis that awaits them). The repository lookup logs
+/// its own failure.
 Future<List<ProfileEvent>> withComputerManufacturers(
   List<ProfileEvent> events,
   Future<String?> Function(String computerId) manufacturerOf,
@@ -108,9 +113,13 @@ Future<List<ProfileEvent>> withComputerManufacturers(
   final ids = {
     for (final event in events)
       if (event.computerId != null) event.computerId!,
-  };
+  }.toList();
   if (ids.isEmpty) return events;
-  final manufacturers = {for (final id in ids) id: await manufacturerOf(id)};
+  final found = await Future.wait([
+    for (final id in ids)
+      manufacturerOf(id).then<String?>((m) => m, onError: (Object _) => null),
+  ]);
+  final manufacturers = {for (var i = 0; i < ids.length; i++) ids[i]: found[i]};
   return [
     for (final event in events)
       switch (manufacturers[event.computerId]) {

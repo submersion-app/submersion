@@ -183,5 +183,15 @@ void main() {
         expect(result.map((e) => e.computerManufacturer), [null, null]);
       },
     );
+
+    test('a failed lookup leaves that computer\'s events unstamped instead '
+        'of failing the events', () async {
+      final result = await withComputerManufacturers(
+        [event('a', 'c1'), event('b', 'c2')],
+        (id) async =>
+            id == 'c1' ? throw StateError('db read failed') : 'Suunto',
+      );
+      expect(result.map((e) => e.computerManufacturer), [null, 'Suunto']);
+    });
   });
 }
