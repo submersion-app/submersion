@@ -164,6 +164,18 @@ void main() {
     expect(c.read(diveAskProvider).answer!.compiled.unresolved, isEmpty);
   });
 
+  testWidgets('a name with no match says so in the picker', (tester) async {
+    const atlantis =
+        '{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","mentions":'
+        '[{"kind":"site","text":"Atlantis"}],"unplaced":[]}';
+    final c = await pump(tester, _Engine(atlantis), names: NameIndex.empty);
+    await c.read(diveAskProvider.notifier).ask('dives at Atlantis');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(ActionChip, 'Atlantis'));
+    await tester.pumpAndSettle();
+    expect(find.text('No match in your logbook'), findsOneWidget);
+  });
+
   testWidgets('Undo and dismiss', (tester) async {
     var undone = 0;
     final c = await pump(tester, _Engine(_turtles), onUndo: () => undone++);

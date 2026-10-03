@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_ask_pro
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_ask_row.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../../helpers/test_app.dart';
 
@@ -132,5 +133,13 @@ void main() {
       find.text('The on-device model is busy. Try again in a moment.'),
       findsOneWidget,
     );
+  });
+
+  test('every model error reads as a sentence', () {
+    final l10n = AppLocalizationsEn();
+    final texts = {for (final e in NlError.values) e: nlErrorText(l10n, e)};
+    expect(texts.values, everyElement(isNotEmpty));
+    expect(texts[NlError.contextExceeded], contains('too long'));
+    expect(texts[NlError.unsupportedLocale], contains('language'));
   });
 }
