@@ -17598,10 +17598,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_tooltip_expandMenu => 'Menü kinyitása';
 
   @override
-  String get nav_tracks => 'Útvonalak';
+  String get nav_tracks => 'Nyomvonalak';
 
   @override
-  String get nav_tracksSubtitle => 'GPS- és víz alatti útvonalak';
+  String get nav_tracksSubtitle => 'GPS- és víz alatti nyomvonalak';
 
   @override
   String get nav_transfer => 'Átvitel';
@@ -23293,17 +23293,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tracks_empty_body =>
-      'Rögzíts GPS-útvonalat a telefonoddal egy merülőnapon, vagy importálj GPX, KML, CSV vagy FIT fájlokat és Seacraft ENC navigációs naplókat. A GPS-útvonalak automatikusan párosulnak a merüléseiddel; a víz alatti útvonalakhoz te választod ki a merülést.';
+      'Rögzíts GPS-nyomvonalat a telefonoddal egy merülőnapon, vagy importálj GPX, KML, CSV vagy FIT fájlokat és Seacraft ENC navigációs naplókat. A GPS-nyomvonalak automatikusan párosulnak a merüléseiddel; a víz alatti nyomvonalakhoz te választod ki a merülést.';
 
   @override
   String get tracks_empty_clearFilters => 'Szűrők törlése';
 
   @override
   String get tracks_empty_filtered =>
-      'Egy útvonal sem felel meg ezeknek a szűrőknek';
+      'Egy nyomvonal sem felel meg ezeknek a szűrőknek';
 
   @override
-  String get tracks_empty_title => 'Még nincsenek útvonalak';
+  String get tracks_empty_title => 'Még nincsenek nyomvonalak';
 
   @override
   String get tracks_kind_all => 'Mind';
@@ -23316,7 +23316,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tracks_map_noMappable =>
-      'Ezen útvonalak egyikének sincs még helye a térképen.';
+      'Ezen nyomvonalak egyikének sincs még helye a térképen.';
 
   @override
   String get transfer_appBar_title => 'Átvitel';
@@ -25335,7 +25335,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_summary_importAsUnderwaterTrack =>
-      'Importálás víz alatti útvonalként';
+      'Importálás víz alatti nyomvonalként';
 
   @override
   String get universalImport_summary_fileNeedsIndividualImport =>
@@ -26556,21 +26556,21 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gpsLogger_androidNotificationText =>
-      'Felszíni útvonal rögzítése folyamatban';
+      'Felszíni nyomvonal rögzítése folyamatban';
 
   @override
   String get gpsLogger_androidNotificationTitle => 'Submersion GPS-naplózó';
 
   @override
   String get gpsLogger_deleteTrackMessage =>
-      'Törli a rögzített GPS-útvonalat. A merülésekhez már hozzárendelt pozíciók megmaradnak.';
+      'Törli a rögzített GPS-nyomvonalat. A merülésekhez már hozzárendelt pozíciók megmaradnak.';
 
   @override
-  String get gpsLogger_deleteTrackTitle => 'Útvonal törlése?';
+  String get gpsLogger_deleteTrackTitle => 'Nyomvonal törlése?';
 
   @override
   String get gpsLogger_interruptedNotice =>
-      'Egy korábbi rögzítés megszakadt. Az útvonal mentésre került.';
+      'Egy korábbi rögzítés megszakadt. A nyomvonal mentésre került.';
 
   @override
   String gpsLogger_lastFix(String age, String accuracy) {
@@ -26590,14 +26590,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gpsLogger_matchResultNone =>
-      'Egyik merülés sem illeszkedik rögzített útvonalhoz';
+      'Egyik merülés sem illeszkedik rögzített nyomvonalhoz';
 
   @override
   String get gpsLogger_noFixYet => 'Várakozás GPS-jelre';
 
   @override
   String get gpsLogger_permissionDenied =>
-      'GPS-útvonal rögzítéséhez helymeghatározási engedély szükséges. Engedélyezd a rendszerbeállításokban.';
+      'GPS-nyomvonal rögzítéséhez helymeghatározási engedély szükséges. Engedélyezd a rendszerbeállításokban.';
 
   @override
   String gpsLogger_recordingStatus(num count) {
@@ -26627,11 +26627,11 @@ class AppLocalizationsHu extends AppLocalizations {
       other: '$count pont',
       one: '$count pont',
     );
-    return 'GPS-útvonal rögzítése · $_temp0';
+    return 'GPS-nyomvonal rögzítése · $_temp0';
   }
 
   @override
-  String get gpsLogger_summary_tracks => 'Útvonalak';
+  String get gpsLogger_summary_tracks => 'Nyomvonalak';
 
   @override
   String get gpsLogger_summary_recordedTime => 'Rögzített idő';
@@ -28783,7 +28783,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dive3d_seascape_showUnderwaterTrack =>
-      'Víz alatti útvonal megjelenítése';
+      'Víz alatti nyomvonal megjelenítése';
 
   @override
   String get dive3d_overlay_water => 'Vízfelszín';
@@ -29051,11 +29051,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dive3d_spatial_estimatedPath => 'Becsült útvonal (holtszámítás)';
 
   @override
-  String get dive3d_spatial_recordedTrack => 'Rögzített útvonal';
+  String get dive3d_spatial_recordedTrack => 'Rögzített nyomvonal';
 
   @override
   String dive3d_spatial_recordedTrackWithSource(String source) {
-    return 'Rögzített útvonal ($source)';
+    return 'Rögzített nyomvonal ($source)';
   }
 
   @override
@@ -43301,10 +43301,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_common_trackLoadError =>
-      'Ezt az útvonalat nem sikerült betölteni.';
+      'Ezt a nyomvonalat nem sikerült betölteni.';
 
   @override
-  String get navTrack_common_trackNotFound => 'Útvonal nem található.';
+  String get navTrack_common_trackNotFound => 'Nyomvonal nem található.';
 
   @override
   String get navTrack_common_cancel => 'Mégse';
@@ -43406,16 +43406,16 @@ class AppLocalizationsHu extends AppLocalizations {
       ' (durva batimetria: csak a szárazföldi ütközések ellenőrizve)';
 
   @override
-  String get navTrack_detail_renameTrackTitle => 'Útvonal átnevezése';
+  String get navTrack_detail_renameTrackTitle => 'Nyomvonal átnevezése';
 
   @override
-  String get navTrack_detail_deleteTrackTitle => 'Útvonal törlése?';
+  String get navTrack_detail_deleteTrackTitle => 'Nyomvonal törlése?';
 
   @override
   String get navTrack_detail_deleteMessage => 'Ez nem vonható vissza.';
 
   @override
-  String get navTrack_detail_defaultTrackTitle => 'Víz alatti útvonal';
+  String get navTrack_detail_defaultTrackTitle => 'Víz alatti nyomvonal';
 
   @override
   String get navTrack_detail_menuRename => 'Átnevezés';
@@ -43497,7 +43497,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_review_importTrackTitle =>
-      'Víz alatti útvonal importálása';
+      'Víz alatti nyomvonal importálása';
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
@@ -43515,7 +43515,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String navTrack_review_trackSaveError(String error) {
-    return 'Nem sikerült menteni ezt az útvonalat: $error';
+    return 'Nem sikerült menteni ezt a nyomvonalat: $error';
   }
 
   @override
@@ -43535,7 +43535,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_review_trackDuplicateWarning =>
-      'Ez egy már ugyanabból a fájlból importált útvonalnak tűnik.';
+      'Ez egy már ugyanabból a fájlból importált nyomvonalnak tűnik.';
 
   @override
   String get navTrack_review_replaceLabel => 'Csere';
@@ -43610,25 +43610,25 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_review_trackSavedConfirmation =>
-      'Víz alatti útvonal mentve.';
+      'Víz alatti nyomvonal mentve.';
 
   @override
   String navTrack_list_pendingTrackChoice(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count víz alatti útvonal vár a választásodra',
-      one: '$count víz alatti útvonal vár a választásodra',
+      other: '$count víz alatti nyomvonal vár a választásodra',
+      one: '$count víz alatti nyomvonal vár a választásodra',
     );
     return '$_temp0';
   }
 
   @override
-  String get navTrack_seascape_trackTitle => 'Útvonal tengeri tája';
+  String get navTrack_seascape_trackTitle => 'Nyomvonal tengeri tája';
 
   @override
   String get navTrack_seascape_trackNoScene =>
-      'Ehhez az útvonalhoz nincs használható tengeri táj.';
+      'Ehhez a nyomvonalhoz nincs használható tengeri táj.';
 
   @override
   String get navTrack_handoff_recognized =>
@@ -43636,31 +43636,31 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_handoff_trackDescription =>
-      'Ez egy víz alatti útvonal, nem merülésnapló. Saját helye van a Submersionben, elkülönítve a merülés-importálástól.';
+      'Ez egy víz alatti nyomvonal, nem merülésnapló. Saját helye van a Submersionben, elkülönítve a merülés-importálástól.';
 
   @override
   String get navTrack_handoff_reviewTrackButton =>
-      'Víz alatti útvonal áttekintése';
+      'Víz alatti nyomvonal áttekintése';
 
   @override
-  String get navTrack_section_trackTitle => 'Víz alatti útvonal';
+  String get navTrack_section_trackTitle => 'Víz alatti nyomvonal';
 
   @override
   String navTrack_section_trackCount(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count útvonal',
-      one: '$count útvonal',
+      other: '$count nyomvonal',
+      one: '$count nyomvonal',
     );
     return '$_temp0';
   }
 
   @override
-  String get navTrack_section_noTrackLinked => 'Nincs társított útvonal';
+  String get navTrack_section_noTrackLinked => 'Nincs társított nyomvonal';
 
   @override
-  String get navTrack_section_linkTrackButton => 'Útvonal társítása';
+  String get navTrack_section_linkTrackButton => 'Nyomvonal társítása';
 
   @override
   String get navTrack_section_importButton => 'Fájl importálása';
@@ -43669,7 +43669,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_section_primaryTag => 'elsődleges';
 
   @override
-  String get navTrack_section_menuOpenTrack => 'Útvonal megnyitása';
+  String get navTrack_section_menuOpenTrack => 'Nyomvonal megnyitása';
 
   @override
   String get navTrack_section_menuOpen3d => '3D tengeri táj megnyitása';
@@ -43682,7 +43682,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_editRow_tracksLoadFailed =>
-      'Nem sikerült betölteni a víz alatti útvonalakat';
+      'Nem sikerült betölteni a víz alatti nyomvonalakat';
 
   @override
   String navTrack_editRow_more(int count, String name) {
@@ -43690,11 +43690,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get navTrack_editSheet_removeTrackTooltip => 'Útvonal eltávolítása';
+  String get navTrack_editSheet_removeTrackTooltip => 'Nyomvonal eltávolítása';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
-    return 'Nem sikerült frissíteni a merülés víz alatti útvonalait: $error';
+    return 'Nem sikerült frissíteni a merülés víz alatti nyomvonalait: $error';
   }
 
   @override
@@ -43707,7 +43707,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_importError_trackTooShort =>
-      'Ez a felvétel túl kevés mintát tartalmaz ahhoz, hogy használható víz alatti útvonal legyen.';
+      'Ez a felvétel túl kevés mintát tartalmaz ahhoz, hogy használható víz alatti nyomvonal legyen.';
 
   @override
   String get navTrack_importError_badData =>
@@ -43715,14 +43715,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_importError_trackTooLarge =>
-      'Ez a felvétel több mintát tartalmaz, mint amennyit egy víz alatti útvonal tárolni tud.';
+      'Ez a felvétel több mintát tartalmaz, mint amennyit egy víz alatti nyomvonal tárolni tud.';
 
   @override
-  String get diveDetailSection_navTrack_trackName => 'Víz alatti útvonal';
+  String get diveDetailSection_navTrack_trackName => 'Víz alatti nyomvonal';
 
   @override
   String get diveDetailSection_navTrack_trackDescription =>
-      'Navigációs konzolról mért víz alatti útvonal';
+      'Navigációs konzolról mért víz alatti nyomvonal';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {

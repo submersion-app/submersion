@@ -29,8 +29,9 @@ const _exact = {
 };
 
 /// Each locale's word for "route", where it differs from its word for
-/// "track". Hungarian, Hebrew and Arabic use one word for both, so they
-/// have nothing to guard.
+/// "track". Hebrew and Arabic use one word for both, so they have nothing
+/// to guard. Hungarian says "nyomvonal" for a track and keeps "útvonal" for
+/// a route (the planner, a trip's voyage), with its case suffixes.
 ///
 /// Bounded by "not a letter" rather than `\b`: Dart's `\b` is ASCII-only,
 /// so it would find "Rota" inside Portuguese "Rotação".
@@ -48,6 +49,7 @@ final _routeWords = <String, RegExp>{
   'it': _word('percors[oi]'),
   'nl': _word('routes?'),
   'pt': _word('rotas?'),
+  'hu': _word('útvonal\\p{L}*'),
   'zh': RegExp('路线'),
 };
 
