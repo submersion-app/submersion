@@ -2,16 +2,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 void main() {
-  test('explore strings exist and contain no dashes used as punctuation', () {
+  test('ask and explore strings exist and contain no dashes used as '
+      'punctuation', () {
     final l10n = AppLocalizationsEn();
     final samples = [
-      l10n.explore_title,
-      l10n.explore_hint,
-      l10n.explore_count(0),
-      l10n.explore_count(1),
-      l10n.explore_count(12),
+      l10n.diveLog_ask_row('turtles below 20 m'),
+      l10n.diveLog_ask_running,
+      l10n.diveLog_ask_couldNotUse,
+      l10n.diveLog_ask_asked('turtles below 20 m'),
+      l10n.accessibility_shortcut_askQuestion,
       l10n.explore_chip_numeric('Depth', 'over', '20 m'),
-      l10n.explore_chart_entityCounts('site'),
       l10n.diveLog_filter_sectionWaterTempUnit('C'),
       l10n.explore_error_schemaMismatch,
     ];
@@ -20,7 +20,6 @@ void main() {
       expect(s, isNot(contains(String.fromCharCode(0x2014))));
       expect(s, isNot(contains(' - ')));
     }
-    expect(l10n.explore_count(0), 'No dives');
-    expect(l10n.explore_count(12), '12 dives');
+    expect(l10n.diveLog_ask_row('manta'), 'Ask: manta');
   });
 }

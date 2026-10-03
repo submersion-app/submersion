@@ -1975,10 +1975,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'Close / Cancel';
 
   @override
-  String get accessibility_shortcut_exploreWithSentence =>
-      'Explore with a sentence';
-
-  @override
   String get accessibility_shortcut_goBack => 'Go back';
 
   @override
@@ -2007,6 +2003,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_searchDives => 'Search dives';
+
+  @override
+  String get accessibility_shortcut_askQuestion => 'Ask about your dives';
 
   @override
   String accessibility_sort_selectedLabel(Object displayName) {
@@ -41174,18 +41173,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Search species';
 
   @override
-  String get diveLog_listPage_tooltip_explore => 'Explore with a sentence';
-
-  @override
   String get explore_chip_favorite => 'Favourite';
 
   @override
   String get explore_chip_deco => 'Decompression dive';
-
-  @override
-  String explore_chip_fieldPeriod(String field, String period) {
-    return '$field: $period';
-  }
 
   @override
   String get explore_chip_noDeco => 'No decompression';
@@ -41206,59 +41197,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String explore_chip_between(String field, String low, String high) {
     return '$field $low to $high';
-  }
-
-  @override
-  String explore_chip_enum(String field, String values) {
-    return '$field: $values';
-  }
-
-  @override
-  String explore_chip_enumNot(String field, String values) {
-    return '$field not $values';
-  }
-
-  @override
-  String explore_chip_timeRange(String start, String end) {
-    return '$start to $end';
-  }
-
-  @override
-  String explore_chip_timeSince(Object start) {
-    return 'Since $start';
-  }
-
-  @override
-  String explore_chip_timeBefore(Object end) {
-    return 'Before $end';
-  }
-
-  @override
-  String explore_chip_viaDives(String label) {
-    return 'Dives: $label';
-  }
-
-  @override
-  String explore_chip_withinDays(int days, String field) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: '$field within $days days',
-      one: '$field within $days day',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String explore_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count dives',
-      one: '1 dive',
-      zero: 'No dives',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -41347,29 +41285,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explore_field_weekday => 'Weekday';
 
   @override
-  String get explore_handoff_diveList => 'Open in dive list';
-
-  @override
-  String get explore_handoff_insights => 'Open in Insights';
-
-  @override
   String get explore_handoff_list => 'Open in list';
 
   @override
-  String get explore_hint =>
-      'Ask about your dives, for example turtles below 20 m in Bonaire';
-
-  @override
-  String get explore_needsAttention_title => 'Needs attention';
-
-  @override
-  String get explore_op_gt => 'over';
-
-  @override
   String get explore_op_gte => 'at least';
-
-  @override
-  String get explore_op_lt => 'under';
 
   @override
   String get explore_op_lte => 'at most';
@@ -41380,52 +41299,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get explore_op_eq => 'of';
-
-  @override
   String explore_pickCandidate_title(Object text) {
     return 'Which did you mean by \"$text\"?';
   }
-
-  @override
-  String get explore_recent_title => 'Recent';
-
-  @override
-  String explore_results_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count results',
-      one: '$count result',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get explore_results_subjectTitle => 'Matches';
-
-  @override
-  String explore_results_subjectTruncated(Object count) {
-    return 'Showing the first $count. Open in the list for all of them.';
-  }
-
-  @override
-  String get explore_results_title => 'Matching dives';
-
-  @override
-  String explore_results_truncated(Object count) {
-    return 'Showing the first $count. Open in the dive list for all of them.';
-  }
-
-  @override
-  String get explore_shortcut_unavailable =>
-      'Explore needs the on-device model, which is not ready on this device.';
-
-  @override
-  String get explore_title => 'Explore';
-
-  @override
-  String get explore_understood_title => 'Understood';
 
   @override
   String get explore_unplaced_reason_aggregateWithScope =>
@@ -41450,48 +41326,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explore_unresolved_noCandidates => 'No match in your logbook';
 
   @override
-  String get explore_chart_divesOverTime => 'Dives over time';
-
-  @override
-  String get explore_chart_depthTrend => 'Depth';
-
-  @override
-  String get explore_chart_waterTempTrend => 'Water temperature';
-
-  @override
-  String get explore_chart_bottomTimeTrend => 'Bottom time';
-
-  @override
-  String explore_chart_entityCounts(Object kind) {
-    return 'Dives per $kind';
-  }
-
-  @override
-  String get explore_kind_site => 'site';
-
-  @override
   String get explore_kind_place => 'place';
-
-  @override
-  String get explore_kind_species => 'species';
-
-  @override
-  String get explore_kind_gear => 'gear';
-
-  @override
-  String get explore_kind_buddy => 'buddy';
-
-  @override
-  String get explore_kind_tag => 'tag';
-
-  @override
-  String get explore_kind_center => 'dive center';
-
-  @override
-  String get explore_kind_trip => 'trip';
-
-  @override
-  String get explore_kind_computer => 'computer';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

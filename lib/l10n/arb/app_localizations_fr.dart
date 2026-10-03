@@ -2006,10 +2006,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'Fermer / Annuler';
 
   @override
-  String get accessibility_shortcut_exploreWithSentence =>
-      'Explorer avec une phrase';
-
-  @override
   String get accessibility_shortcut_goBack => 'Revenir en arrière';
 
   @override
@@ -2038,6 +2034,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_searchDives => 'Rechercher des plongées';
+
+  @override
+  String get accessibility_shortcut_askQuestion =>
+      'Poser une question sur vos plongées';
 
   @override
   String accessibility_sort_selectedLabel(Object displayName) {
@@ -41850,18 +41850,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Rechercher une espèce';
 
   @override
-  String get diveLog_listPage_tooltip_explore => 'Explorer avec une phrase';
-
-  @override
   String get explore_chip_favorite => 'Favori';
 
   @override
   String get explore_chip_deco => 'Plongée avec décompression';
-
-  @override
-  String explore_chip_fieldPeriod(String field, String period) {
-    return '$field : $period';
-  }
 
   @override
   String get explore_chip_noDeco => 'Sans décompression';
@@ -41882,59 +41874,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String explore_chip_between(String field, String low, String high) {
     return '$field $low à $high';
-  }
-
-  @override
-  String explore_chip_enum(String field, String values) {
-    return '$field : $values';
-  }
-
-  @override
-  String explore_chip_enumNot(String field, String values) {
-    return '$field sauf $values';
-  }
-
-  @override
-  String explore_chip_timeRange(String start, String end) {
-    return '$start à $end';
-  }
-
-  @override
-  String explore_chip_timeSince(Object start) {
-    return 'Depuis $start';
-  }
-
-  @override
-  String explore_chip_timeBefore(Object end) {
-    return 'Avant $end';
-  }
-
-  @override
-  String explore_chip_viaDives(String label) {
-    return 'Plongées : $label';
-  }
-
-  @override
-  String explore_chip_withinDays(int days, String field) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: '$field dans $days jours',
-      one: '$field dans $days jour',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String explore_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count plongées',
-      one: '$count plongée',
-      zero: 'Aucune plongée',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -42023,29 +41962,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get explore_field_weekday => 'Jour de la semaine';
 
   @override
-  String get explore_handoff_diveList => 'Ouvrir dans la liste des plongées';
-
-  @override
-  String get explore_handoff_insights => 'Ouvrir dans les analyses';
-
-  @override
   String get explore_handoff_list => 'Ouvrir dans la liste';
 
   @override
-  String get explore_hint =>
-      'Interrogez vos plongées, par exemple tortues au-delà de 20 m à Bonaire';
-
-  @override
-  String get explore_needsAttention_title => 'À vérifier';
-
-  @override
-  String get explore_op_gt => 'supérieur à';
-
-  @override
   String get explore_op_gte => 'au moins';
-
-  @override
-  String get explore_op_lt => 'inférieur à';
 
   @override
   String get explore_op_lte => 'au plus';
@@ -42056,52 +41976,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get explore_op_eq => 'de';
-
-  @override
   String explore_pickCandidate_title(Object text) {
     return 'Que vouliez-vous dire par \"$text\" ?';
   }
-
-  @override
-  String get explore_recent_title => 'Récents';
-
-  @override
-  String explore_results_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count résultats',
-      one: '$count résultat',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get explore_results_subjectTitle => 'Correspondances';
-
-  @override
-  String explore_results_subjectTruncated(Object count) {
-    return 'Affichage des $count premiers. Ouvrez la liste pour les voir tous.';
-  }
-
-  @override
-  String get explore_results_title => 'Plongées correspondantes';
-
-  @override
-  String explore_results_truncated(Object count) {
-    return 'Affichage des $count premiers. Ouvrez la liste des plongées pour les voir toutes.';
-  }
-
-  @override
-  String get explore_shortcut_unavailable =>
-      'Explorer nécessite le modèle sur l\'appareil, qui n\'est pas prêt sur cet appareil.';
-
-  @override
-  String get explore_title => 'Explorer';
-
-  @override
-  String get explore_understood_title => 'Compris';
 
   @override
   String get explore_unplaced_reason_aggregateWithScope =>
@@ -42129,48 +42006,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune correspondance dans votre carnet';
 
   @override
-  String get explore_chart_divesOverTime => 'Plongées dans le temps';
-
-  @override
-  String get explore_chart_depthTrend => 'Profondeur';
-
-  @override
-  String get explore_chart_waterTempTrend => 'Température de l\'eau';
-
-  @override
-  String get explore_chart_bottomTimeTrend => 'Temps au fond';
-
-  @override
-  String explore_chart_entityCounts(Object kind) {
-    return 'Plongées par $kind';
-  }
-
-  @override
-  String get explore_kind_site => 'site';
-
-  @override
   String get explore_kind_place => 'lieu';
-
-  @override
-  String get explore_kind_species => 'espèce';
-
-  @override
-  String get explore_kind_gear => 'équipement';
-
-  @override
-  String get explore_kind_buddy => 'binôme';
-
-  @override
-  String get explore_kind_tag => 'étiquette';
-
-  @override
-  String get explore_kind_center => 'centre de plongée';
-
-  @override
-  String get explore_kind_trip => 'voyage';
-
-  @override
-  String get explore_kind_computer => 'ordinateur';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

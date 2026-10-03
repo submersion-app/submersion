@@ -2001,10 +2001,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'Chiudi / Annulla';
 
   @override
-  String get accessibility_shortcut_exploreWithSentence =>
-      'Esplora con una frase';
-
-  @override
   String get accessibility_shortcut_goBack => 'Torna indietro';
 
   @override
@@ -2034,6 +2030,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_searchDives => 'Cerca immersioni';
+
+  @override
+  String get accessibility_shortcut_askQuestion =>
+      'Chiedi delle tue immersioni';
 
   @override
   String accessibility_sort_selectedLabel(Object displayName) {
@@ -41748,18 +41748,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Cerca specie';
 
   @override
-  String get diveLog_listPage_tooltip_explore => 'Esplora con una frase';
-
-  @override
   String get explore_chip_favorite => 'Preferito';
 
   @override
   String get explore_chip_deco => 'Immersione con decompressione';
-
-  @override
-  String explore_chip_fieldPeriod(String field, String period) {
-    return '$field: $period';
-  }
 
   @override
   String get explore_chip_noDeco => 'Senza decompressione';
@@ -41780,59 +41772,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String explore_chip_between(String field, String low, String high) {
     return '$field da $low a $high';
-  }
-
-  @override
-  String explore_chip_enum(String field, String values) {
-    return '$field: $values';
-  }
-
-  @override
-  String explore_chip_enumNot(String field, String values) {
-    return '$field non $values';
-  }
-
-  @override
-  String explore_chip_timeRange(String start, String end) {
-    return 'da $start a $end';
-  }
-
-  @override
-  String explore_chip_timeSince(Object start) {
-    return 'Da $start';
-  }
-
-  @override
-  String explore_chip_timeBefore(Object end) {
-    return 'Prima di $end';
-  }
-
-  @override
-  String explore_chip_viaDives(String label) {
-    return 'Immersioni: $label';
-  }
-
-  @override
-  String explore_chip_withinDays(int days, String field) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: '$field entro $days giorni',
-      one: '$field entro $days giorno',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String explore_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count immersioni',
-      one: '1 immersione',
-      zero: 'Nessuna immersione',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -41921,29 +41860,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get explore_field_weekday => 'Giorno della settimana';
 
   @override
-  String get explore_handoff_diveList => 'Apri nell\'elenco immersioni';
-
-  @override
-  String get explore_handoff_insights => 'Apri in Analisi';
-
-  @override
   String get explore_handoff_list => 'Apri nell\'elenco';
 
   @override
-  String get explore_hint =>
-      'Chiedi delle tue immersioni, ad esempio tartarughe oltre 20 m a Bonaire';
-
-  @override
-  String get explore_needsAttention_title => 'Da verificare';
-
-  @override
-  String get explore_op_gt => 'oltre';
-
-  @override
   String get explore_op_gte => 'almeno';
-
-  @override
-  String get explore_op_lt => 'sotto';
 
   @override
   String get explore_op_lte => 'al massimo';
@@ -41954,52 +41874,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get explore_op_eq => 'di';
-
-  @override
   String explore_pickCandidate_title(Object text) {
     return 'Cosa intendevi con \"$text\"?';
   }
-
-  @override
-  String get explore_recent_title => 'Recenti';
-
-  @override
-  String explore_results_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count risultati',
-      one: '$count risultato',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get explore_results_subjectTitle => 'Corrispondenze';
-
-  @override
-  String explore_results_subjectTruncated(Object count) {
-    return 'Mostrati i primi $count. Apri l\'elenco per vederli tutti.';
-  }
-
-  @override
-  String get explore_results_title => 'Immersioni corrispondenti';
-
-  @override
-  String explore_results_truncated(Object count) {
-    return 'Mostrate le prime $count. Apri l\'elenco immersioni per vederle tutte.';
-  }
-
-  @override
-  String get explore_shortcut_unavailable =>
-      'Esplora richiede il modello sul dispositivo, che non è pronto su questo dispositivo.';
-
-  @override
-  String get explore_title => 'Esplora';
-
-  @override
-  String get explore_understood_title => 'Compreso';
 
   @override
   String get explore_unplaced_reason_aggregateWithScope =>
@@ -42027,48 +41904,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessuna corrispondenza nel tuo logbook';
 
   @override
-  String get explore_chart_divesOverTime => 'Immersioni nel tempo';
-
-  @override
-  String get explore_chart_depthTrend => 'Profondità';
-
-  @override
-  String get explore_chart_waterTempTrend => 'Temperatura dell\'acqua';
-
-  @override
-  String get explore_chart_bottomTimeTrend => 'Tempo di fondo';
-
-  @override
-  String explore_chart_entityCounts(Object kind) {
-    return 'Immersioni per $kind';
-  }
-
-  @override
-  String get explore_kind_site => 'sito';
-
-  @override
   String get explore_kind_place => 'luogo';
-
-  @override
-  String get explore_kind_species => 'specie';
-
-  @override
-  String get explore_kind_gear => 'attrezzatura';
-
-  @override
-  String get explore_kind_buddy => 'compagno';
-
-  @override
-  String get explore_kind_tag => 'tag';
-
-  @override
-  String get explore_kind_center => 'diving center';
-
-  @override
-  String get explore_kind_trip => 'viaggio';
-
-  @override
-  String get explore_kind_computer => 'computer';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

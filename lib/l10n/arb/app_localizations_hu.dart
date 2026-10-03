@@ -1996,10 +1996,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'Bezárás / Mégse';
 
   @override
-  String get accessibility_shortcut_exploreWithSentence =>
-      'Felfedezés egy mondattal';
-
-  @override
   String get accessibility_shortcut_goBack => 'Vissza';
 
   @override
@@ -2028,6 +2024,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_searchDives => 'Merülések keresése';
+
+  @override
+  String get accessibility_shortcut_askQuestion => 'Kérdezz a merüléseidről';
 
   @override
   String accessibility_sort_selectedLabel(Object displayName) {
@@ -41574,18 +41573,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Fajok keresése';
 
   @override
-  String get diveLog_listPage_tooltip_explore => 'Felfedezés egy mondattal';
-
-  @override
   String get explore_chip_favorite => 'Kedvenc';
 
   @override
   String get explore_chip_deco => 'Dekompressziós merülés';
-
-  @override
-  String explore_chip_fieldPeriod(String field, String period) {
-    return '$field: $period';
-  }
 
   @override
   String get explore_chip_noDeco => 'Dekompresszió nélkül';
@@ -41606,59 +41597,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String explore_chip_between(String field, String low, String high) {
     return '$field $low és $high között';
-  }
-
-  @override
-  String explore_chip_enum(String field, String values) {
-    return '$field: $values';
-  }
-
-  @override
-  String explore_chip_enumNot(String field, String values) {
-    return '$field nem $values';
-  }
-
-  @override
-  String explore_chip_timeRange(String start, String end) {
-    return '$start és $end között';
-  }
-
-  @override
-  String explore_chip_timeSince(Object start) {
-    return '$start óta';
-  }
-
-  @override
-  String explore_chip_timeBefore(Object end) {
-    return '$end előtt';
-  }
-
-  @override
-  String explore_chip_viaDives(String label) {
-    return 'Merülések: $label';
-  }
-
-  @override
-  String explore_chip_withinDays(int days, String field) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: '$field $days napon belül',
-      one: '$field $days napon belül',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String explore_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count merülés',
-      one: '1 merülés',
-      zero: 'Nincs merülés',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -41747,29 +41685,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get explore_field_weekday => 'Hét napja';
 
   @override
-  String get explore_handoff_diveList => 'Megnyitás a merüléslistában';
-
-  @override
-  String get explore_handoff_insights => 'Megnyitás az Elemzésekben';
-
-  @override
   String get explore_handoff_list => 'Megnyitás a listában';
 
   @override
-  String get explore_hint =>
-      'Kérdezzen a merüléseiről, például teknősök 20 m alatt Bonaire-en';
-
-  @override
-  String get explore_needsAttention_title => 'Figyelmet igényel';
-
-  @override
-  String get explore_op_gt => 'felett';
-
-  @override
   String get explore_op_gte => 'legalább';
-
-  @override
-  String get explore_op_lt => 'alatt';
 
   @override
   String get explore_op_lte => 'legfeljebb';
@@ -41780,52 +41699,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get explore_op_eq => 'értéke';
-
-  @override
   String explore_pickCandidate_title(Object text) {
     return 'Mit értett ezen: \"$text\"?';
   }
-
-  @override
-  String get explore_recent_title => 'Legutóbbi';
-
-  @override
-  String explore_results_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count találat',
-      one: '$count találat',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get explore_results_subjectTitle => 'Találatok';
-
-  @override
-  String explore_results_subjectTruncated(Object count) {
-    return 'Az első $count látható. Az összeshez nyissa meg a listát.';
-  }
-
-  @override
-  String get explore_results_title => 'Egyező merülések';
-
-  @override
-  String explore_results_truncated(Object count) {
-    return 'Az első $count látható. Az összeshez nyissa meg a merüléslistát.';
-  }
-
-  @override
-  String get explore_shortcut_unavailable =>
-      'A felfedezéshez az eszközön futó modell szükséges, amely ezen az eszközön nem áll készen.';
-
-  @override
-  String get explore_title => 'Felfedezés';
-
-  @override
-  String get explore_understood_title => 'Értelmezve';
 
   @override
   String get explore_unplaced_reason_aggregateWithScope =>
@@ -41853,48 +41729,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get explore_unresolved_noCandidates => 'Nincs egyezés a naplójában';
 
   @override
-  String get explore_chart_divesOverTime => 'Merülések az idő során';
-
-  @override
-  String get explore_chart_depthTrend => 'Mélység';
-
-  @override
-  String get explore_chart_waterTempTrend => 'Vízhőmérséklet';
-
-  @override
-  String get explore_chart_bottomTimeTrend => 'Fenékidő';
-
-  @override
-  String explore_chart_entityCounts(Object kind) {
-    return 'Merülések $kind szerint';
-  }
-
-  @override
-  String get explore_kind_site => 'helyszín';
-
-  @override
   String get explore_kind_place => 'hely';
-
-  @override
-  String get explore_kind_species => 'faj';
-
-  @override
-  String get explore_kind_gear => 'felszerelés';
-
-  @override
-  String get explore_kind_buddy => 'társ';
-
-  @override
-  String get explore_kind_tag => 'címke';
-
-  @override
-  String get explore_kind_center => 'búvárközpont';
-
-  @override
-  String get explore_kind_trip => 'utazás';
-
-  @override
-  String get explore_kind_computer => 'computer';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
