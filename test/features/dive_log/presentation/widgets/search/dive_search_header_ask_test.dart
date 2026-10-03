@@ -77,6 +77,7 @@ void main() {
     Future<NameIndex> Function(Ref ref)? names,
     DiveFilterState filter = const DiveFilterState(),
     bool supported = true,
+    NlAvailability? availability,
   }) async {
     final base = await getBaseOverrides();
     final router = GoRouter(
@@ -113,9 +114,11 @@ void main() {
           nlEngineProvider.overrideWithValue(engine),
           explorePlatformSupportedProvider.overrideWithValue(supported),
           exploreAvailabilityProvider.overrideWith(
-            (ref) async => supported
-                ? NlAvailability.available
-                : NlAvailability.unsupportedPlatform,
+            (ref) async =>
+                availability ??
+                (supported
+                    ? NlAvailability.available
+                    : NlAvailability.unsupportedPlatform),
           ),
           localeProvider.overrideWithValue('en'),
           queryUnitPrefsProvider.overrideWithValue(
@@ -290,6 +293,28 @@ void main() {
     await tester.enterText(find.byKey(kDiveSearchFieldKey), 'turtles');
     await tester.pump();
     expect(engine.prepareCalls, 1);
+  });
+
+  // Code review: on a supported platform without a usable model, the
+  // one warm-up was spent on no model, and the names reloaded for nothing.
+  testAsk('no warm-up and no live names until the model is available', (
+    tester,
+  ) async {
+    final engine = _Engine();
+    var builds = 0;
+    await pumpHeader(
+      tester,
+      engine: engine,
+      availability: NlAvailability.downloadable,
+      names: (ref) async {
+        builds++;
+        return NameIndex.empty;
+      },
+    );
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'turtles');
+    await tester.pump();
+    expect(engine.prepareCalls, 0);
+    expect(builds, 0);
   });
 
   // Review Focus 1.

@@ -94,6 +94,7 @@ void main() {
       overrides: [
         nlEngineProvider.overrideWithValue(engine),
         explorePlatformSupportedProvider.overrideWithValue(true),
+        exploreEnabledProvider.overrideWithValue(true),
         localeProvider.overrideWithValue(locale),
         exploreDeviceLocaleProvider.overrideWithValue(() => device),
         queryUnitPrefsProvider.overrideWithValue(

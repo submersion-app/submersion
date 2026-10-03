@@ -212,10 +212,11 @@ class DiveAskNotifier extends StateNotifier<AskState> {
     state = const AskState();
   }
 
-  /// Warms the model up once, where it can run, so the first Ask is not
-  /// the cold start.
+  /// Warms the model up once it can answer, so the first Ask is not the
+  /// cold start. Not before: a warm-up spent on a model still to download
+  /// would never be repeated once it arrives.
   void prepare() {
-    if (_prepared || !_ref.read(explorePlatformSupportedProvider)) return;
+    if (_prepared || !_ref.read(exploreEnabledProvider)) return;
     _prepared = true;
     _ref.read(nlEngineProvider).prepare().catchError((Object _) {});
   }

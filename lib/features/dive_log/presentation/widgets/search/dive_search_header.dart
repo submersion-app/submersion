@@ -235,8 +235,9 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     }
     // Kept live while the row is up, as Explore's page kept it: unlistened,
     // the legacy buddy names pause, and a dive write would only mark them
-    // due, so the next Ask would resolve against stale names.
-    if (ref.watch(explorePlatformSupportedProvider)) {
+    // due, so the next Ask would resolve against stale names. Only where
+    // Ask can run: elsewhere nothing reads them.
+    if (ref.watch(exploreEnabledProvider)) {
       ref.listen(exploreNameIndexProvider, (_, _) {});
     }
     final filter = ref.watch(diveFilterProvider);

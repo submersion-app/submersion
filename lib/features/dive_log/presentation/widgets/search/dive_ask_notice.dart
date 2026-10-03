@@ -58,13 +58,7 @@ class DiveAskNotice extends ConsumerWidget {
                     onPressed: () => _pick(context, ref, u),
                   ),
                 for (final w in compiled.unplaced)
-                  Tooltip(
-                    message: _reason(l10n, w.reason) ?? '',
-                    child: Chip(
-                      label: Text(w.text),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
+                  _UnplacedChip(text: w.text, reason: _reason(l10n, w.reason)),
                 // Nothing applied and nothing listed as left over: the
                 // whole sentence went unused.
                 if (compiled.query == null &&
@@ -142,5 +136,21 @@ class DiveAskNotice extends ConsumerWidget {
     if (chosen != null) {
       ref.read(diveAskProvider.notifier).resolveWith(u.index, chosen);
     }
+  }
+}
+
+/// One word the compiler could not place, with its reason as a tooltip
+/// when it has one (the model's own leftovers have none).
+class _UnplacedChip extends StatelessWidget {
+  const _UnplacedChip({required this.text, this.reason});
+
+  final String text;
+  final String? reason;
+
+  @override
+  Widget build(BuildContext context) {
+    final chip = Chip(label: Text(text), visualDensity: VisualDensity.compact);
+    final message = reason;
+    return message == null ? chip : Tooltip(message: message, child: chip);
   }
 }

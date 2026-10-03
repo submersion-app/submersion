@@ -126,6 +126,11 @@ void main() {
     await tester.pump();
     expect(find.text("Couldn't use:"), findsOneWidget);
     expect(find.text('maybe'), findsOneWidget);
+    // The model's own leftovers carry no reason: no empty tooltip.
+    expect(
+      find.ancestor(of: find.text('maybe'), matching: find.byType(Tooltip)),
+      findsNothing,
+    );
   });
 
   // Review: nothing placed reads as unused, never as "Asked:".
