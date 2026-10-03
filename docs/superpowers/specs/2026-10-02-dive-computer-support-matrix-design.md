@@ -13,7 +13,7 @@ still need a report.
 
 The matrix is sourced from every place reports live: the ScubaBoard tester
 thread, GitHub issues, PRs and discussions, the app's release notes, Reddit
-r/submersion, and App Store and Google Play reviews. It stays current through a
+r/submersion, and App Store reviews. It stays current through a
 monthly re-sweep that opens a PR for review.
 
 Divers can also report their own result for any model from the page: a
@@ -165,8 +165,7 @@ capability.
     "scubaboard": { "lastPostId": 10735581, "sweptAt": "2026-10-02" },
     "github": { "since": "2026-10-02T00:00:00Z" },
     "reddit": { "lastCreatedUtc": 1790000000 },
-    "appStore": { "lastReviewId": "...", "sweptAt": "2026-10-02" },
-    "playStore": { "lastExportMonth": "2026-09" }
+    "appStore": { "lastReviewId": "...", "sweptAt": "2026-10-02" }
   },
   "reports": [
     {
@@ -376,16 +375,18 @@ Python 3.9 or later so it works in the cloud routine as well as locally.
 | Release notes (corroborate `fixedIn` only) | `docs/releases/` | new files | repo read |
 | Reddit r/submersion | all posts and comments | newer than `lastCreatedUtc` | public `/r/submersion/new.json` and per-post comment JSON |
 | App Store | public customer-reviews RSS, every storefront | reviews newer than `lastReviewId` | no credentials; about the 500 most recent per storefront |
-| Google Play | Play Console monthly review export CSVs | months after `lastExportMonth` | read-only service account on the `pubsite_prod_*` bucket, stored as a routine secret |
 
-The Play Developer API's `reviews.list` returns only the last 7 days and is not
-used.
+Google Play is not swept. Its reviews are readable only through the Play
+Console's monthly export bucket, which needs a service account kept as a
+routine secret, and the Play Developer API's `reviews.list` returns only the
+last 7 days. The maintainer chose to leave Play out rather than run that
+account.
 
 ### Initial sweep (one time)
 
 A parallel agent fan-out: about 8 agents over the ScubaBoard pages (about 9
 pages each), and one agent each for issues, PRs, discussions, release notes,
-Reddit and the App Store. The Play export joins once the service account exists.
+Reddit and the App Store.
 Each agent returns candidate records with permalinks. A merge pass then:
 
 - maps family names ("Suunto D-series") to catalog ids, and puts anything it
@@ -451,15 +452,11 @@ Failure handling in the routine:
 | 1 | app | generator, platform rules, tests, CI test-list entry, `computer-report` issue form (and the label, created on the repo with this PR) | `Refs #2616` |
 | 2 | website | page and its modules, report links, validator, tests, generated `catalog.json`, empty `reports.json`, homepage link | none required |
 | 3 | website | initial sweep results in `reports.json` | none required |
-| 4 | website | `SWEEP.md`; the scheduled routine is created after the maintainer sets up the Play service account | none required |
+| 4 | website | `SWEEP.md`; the scheduled routine follows it | none required |
 | 5 | app | `docs/guide/dive-computer.md` and `README.md` replace their tested lists and the Bluetooth Classic row with a link to the matrix | `Closes #2616` |
 
 PR 5 touches only `docs/` and `README.md`, outside the UI paths, so it needs no
 screenshots.
-
-Maintainer steps that cannot be automated: create the Play service account,
-grant it Storage Object Viewer on the `pubsite_prod_*` bucket, and add its key
-as a secret in the routine's environment. `SWEEP.md` documents these.
 
 ## Verification items
 
