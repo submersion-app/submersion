@@ -392,6 +392,31 @@ void main() {
     expect(find.text('Sites page'), findsOneWidget);
   });
 
+  // Code review: an answer that replaces nothing must not strand the typed
+  // words: the field shows them, so they apply as typed text does.
+  testAsk('an answer kept in the notice lets the typed words apply', (
+    tester,
+  ) async {
+    const cosySites =
+        '{"schemaVersion":$kQuerySchemaVersion,"subject":"sites","clauses":[{"field":"rating",'
+        '"op":"gte","value":4,"text":"rated 4"}],"mentions":[],"time":null,'
+        '"unplaced":["cosy"]}';
+    await pumpHeader(
+      tester,
+      engine: _Engine()..replies['cosy sites rated 4'] = cosySites,
+    );
+    await tester.enterText(
+      find.byKey(kDiveSearchFieldKey),
+      'cosy sites rated 4',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pump();
+    await tester.pump(kDiveSearchDebounce * 2);
+    expect(find.byKey(kDiveAskNoticeKey), findsOneWidget);
+    expect(filterOf().query, isNotNull);
+  });
+
   testAsk('no Ask row and no Cmd/Ctrl+Enter where the model is off', (
     tester,
   ) async {

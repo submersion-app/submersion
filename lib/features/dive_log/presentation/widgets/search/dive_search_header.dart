@@ -233,11 +233,14 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     ref.listen<AskState>(diveAskProvider, (previous, next) {
       final answer = next.answer;
       if (answer == null || identical(answer, previous?.answer)) return;
-      _debounce?.cancel();
       final query = answer.compiled.query;
+      // Only an answer that replaces the dive query wins over the typed
+      // words; one kept in the notice (nothing placed, another subject)
+      // leaves them to apply as typed text does, as the field shows them.
       if (answer.compiled.subject != ParsedSubject.dives || query == null) {
         return;
       }
+      _debounce?.cancel();
       // Print the answer here too: one equal to the query already applied
       // writes nothing the filter listener sees, and the field would keep
       // the sentence while the answer filters the list. The override also
