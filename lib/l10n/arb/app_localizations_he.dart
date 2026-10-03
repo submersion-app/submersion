@@ -2020,9 +2020,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'סגירה / ביטול';
 
   @override
-  String get accessibility_shortcut_exploreWithSentence => 'חקירה באמצעות משפט';
-
-  @override
   String get accessibility_shortcut_goBack => 'חזרה אחורה';
 
   @override
@@ -2051,6 +2048,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_searchDives => 'חיפוש צלילות';
+
+  @override
+  String get accessibility_shortcut_askQuestion => 'שאל על הצלילות שלך';
 
   @override
   String accessibility_sort_selectedLabel(Object displayName) {
@@ -8268,6 +8268,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_search_jumpTitle => 'מעבר לצלילה';
+
+  @override
+  String diveLog_ask_row(String text) {
+    return 'שאל: $text';
+  }
+
+  @override
+  String get diveLog_ask_running => 'שואל את המודל במכשיר';
+
+  @override
+  String get diveLog_ask_couldNotUse => 'לא ניתן להשתמש:';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return 'נשאל: $sentence';
+  }
 
   @override
   String get diveLog_search_openInsights => 'פתיחה בתובנות';
@@ -38439,18 +38455,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'חיפוש מינים';
 
   @override
-  String get diveLog_listPage_tooltip_explore => 'חקירה באמצעות משפט';
-
-  @override
   String get explore_chip_favorite => 'מועדף';
 
   @override
   String get explore_chip_deco => 'צלילת דקומפרסיה';
-
-  @override
-  String explore_chip_fieldPeriod(String field, String period) {
-    return '$field: $period';
-  }
 
   @override
   String get explore_chip_noDeco => 'ללא דקומפרסיה';
@@ -38471,59 +38479,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String explore_chip_between(String field, String low, String high) {
     return '$field $low עד $high';
-  }
-
-  @override
-  String explore_chip_enum(String field, String values) {
-    return '$field: $values';
-  }
-
-  @override
-  String explore_chip_enumNot(String field, String values) {
-    return '$field לא $values';
-  }
-
-  @override
-  String explore_chip_timeRange(String start, String end) {
-    return '$start עד $end';
-  }
-
-  @override
-  String explore_chip_timeSince(Object start) {
-    return 'מאז $start';
-  }
-
-  @override
-  String explore_chip_timeBefore(Object end) {
-    return 'לפני $end';
-  }
-
-  @override
-  String explore_chip_viaDives(String label) {
-    return 'צלילות: $label';
-  }
-
-  @override
-  String explore_chip_withinDays(int days, String field) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: '$field בתוך $days ימים',
-      one: '$field בתוך $days יום',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String explore_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count צלילות',
-      one: 'צלילה אחת',
-      zero: 'אין צלילות',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -38610,29 +38565,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get explore_field_weekday => 'יום בשבוע';
 
   @override
-  String get explore_handoff_diveList => 'פתיחה ברשימת הצלילות';
-
-  @override
-  String get explore_handoff_insights => 'פתיחה בתובנות';
-
-  @override
   String get explore_handoff_list => 'פתח ברשימה';
 
   @override
-  String get explore_hint =>
-      'שאלו על הצלילות שלכם, למשל צבים מתחת ל-20 מ\' בבונייר';
-
-  @override
-  String get explore_needsAttention_title => 'דורש תשומת לב';
-
-  @override
-  String get explore_op_gt => 'מעל';
-
-  @override
   String get explore_op_gte => 'לפחות';
-
-  @override
-  String get explore_op_lt => 'מתחת';
 
   @override
   String get explore_op_lte => 'לכל היותר';
@@ -38643,52 +38579,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get explore_op_eq => 'של';
-
-  @override
   String explore_pickCandidate_title(Object text) {
     return 'למה התכוונתם ב\"$text\"?';
   }
-
-  @override
-  String get explore_recent_title => 'אחרונים';
-
-  @override
-  String explore_results_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count תוצאות',
-      one: '$count תוצאה',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get explore_results_subjectTitle => 'התאמות';
-
-  @override
-  String explore_results_subjectTruncated(Object count) {
-    return 'מוצגים $count הראשונים. פתח ברשימה כדי לראות את כולם.';
-  }
-
-  @override
-  String get explore_results_title => 'צלילות מתאימות';
-
-  @override
-  String explore_results_truncated(Object count) {
-    return 'מוצגים $count הראשונים. פתחו את רשימת הצלילות לכולן.';
-  }
-
-  @override
-  String get explore_shortcut_unavailable =>
-      'חקירה דורשת את המודל במכשיר, שאינו מוכן במכשיר זה.';
-
-  @override
-  String get explore_title => 'חקירה';
-
-  @override
-  String get explore_understood_title => 'הובן';
 
   @override
   String get explore_unplaced_reason_aggregateWithScope =>
@@ -38711,47 +38604,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get explore_unresolved_noCandidates => 'אין התאמה ביומן שלכם';
-
-  @override
-  String get explore_chart_divesOverTime => 'צלילות לאורך זמן';
-
-  @override
-  String get explore_chart_depthTrend => 'עומק';
-
-  @override
-  String get explore_chart_waterTempTrend => 'טמפרטורת המים';
-
-  @override
-  String get explore_chart_bottomTimeTrend => 'זמן קרקעית';
-
-  @override
-  String explore_chart_entityCounts(Object kind) {
-    return 'צלילות לפי $kind';
-  }
-
-  @override
-  String get explore_kind_site => 'אתר';
-
-  @override
-  String get explore_kind_species => 'מין';
-
-  @override
-  String get explore_kind_gear => 'ציוד';
-
-  @override
-  String get explore_kind_buddy => 'שותף';
-
-  @override
-  String get explore_kind_tag => 'תגית';
-
-  @override
-  String get explore_kind_center => 'מרכז צלילה';
-
-  @override
-  String get explore_kind_trip => 'טיול';
-
-  @override
-  String get explore_kind_computer => 'מחשב';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

@@ -7,13 +7,9 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/accessibility/not_while_typing_activator.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
-import 'package:submersion/core/router/section_navigation.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
-import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// Creates a platform-appropriate shortcut activator.
@@ -40,15 +36,18 @@ class AppShortcuts {
 
   static bool _registered = false;
 
-  static const _log = LoggerService('AppShortcuts');
-
   /// Forget that the shortcuts were registered, so the next
   /// [ensureRegistered] fills the catalog again.
   ///
   /// [ShortcutCatalog.clear] empties the catalog but cannot reach this flag,
   /// so a test that clears the catalog resets the flag with it.
   @visibleForTesting
-  static void debugReset() => _registered = false;
+  static void debugReset() {
+    _registered = false;
+    _askSubscription?.close();
+    _askSubscription = null;
+    _askContainer = null;
+  }
 
   /// Register all global shortcuts with the [ShortcutCatalog].
   ///
@@ -116,8 +115,8 @@ class AppShortcuts {
         activator: platformShortcut(LogicalKeyboardKey.keyF),
         isGlobal: true,
       ),
-      // 'Explore with a sentence' is listed by globalBindings, which can
-      // read the platform gate from the provider graph.
+      // 'Ask about your dives' is listed by globalBindings, which can read
+      // the platform gate from the provider graph.
 
       // General
       const ShortcutEntry(
@@ -158,71 +157,47 @@ class AppShortcuts {
     ]);
   }
 
-  /// Opens Explore when the on-device model can answer, and says why not
-  /// otherwise. The page is useless without a model, so this honours the
-  /// same availability as the app bar action, but waits for the probe: a
-  /// press before anything asked would otherwise read "still loading" and
-  /// be dropped.
-  ///
-  /// One press at a time: presses while the probe is still answering open
-  /// nothing more, and an Explore already on the stack is returned to rather
-  /// than stacked again.
-  static Future<void> _openExplore(BuildContext context) async {
-    if (_openingExplore) return;
-    _openingExplore = true;
-    try {
-      final container = ProviderScope.containerOf(context, listen: false);
-      final NlAvailability availability;
-      try {
-        availability = await container.read(exploreAvailabilityProvider.future);
-      } catch (e, stackTrace) {
-        // A failed probe is an unavailable model, as the app bar reads it.
-        _log.warning('Explore probe failed', error: e, stackTrace: stackTrace);
-        if (context.mounted) _showExploreUnavailable(context);
-        return;
-      }
-      if (!context.mounted) return;
-      if (availability == NlAvailability.available) {
-        context.pushOrReturnTo(_explorePath);
-      } else {
-        _showExploreUnavailable(context);
-      }
-    } finally {
-      _openingExplore = false;
-    }
+  static const _askLabel = 'Ask about your dives';
+
+  /// The container Ask's catalog entry follows, and its subscription.
+  static ProviderContainer? _askContainer;
+  static ProviderSubscription<bool>? _askSubscription;
+
+  /// Keeps Ask's catalog entry in step with whether Ask can answer (the
+  /// platform, the model probe and the locale), which changes while the
+  /// app runs: the catalog itself is filled once (#2773). One subscription
+  /// per container, however often the shell rebuilds.
+  static void _followAskAvailability(ProviderContainer container) {
+    if (identical(container, _askContainer)) return;
+    _askSubscription?.close();
+    _askContainer = container;
+    _askSubscription = container.listen<bool>(
+      exploreEnabledProvider,
+      (_, enabled) => _syncAskEntry(enabled),
+      fireImmediately: true,
+    );
   }
 
-  static const _explorePath = '/dives/explore';
-  static const _exploreLabel = 'Explore with a sentence';
-
-  /// True while a press is waiting on the availability probe.
-  static bool _openingExplore = false;
-
-  /// Lists or unlists Explore in the catalog to match the platform gate.
+  /// Lists or unlists Ask (Cmd/Ctrl+Enter in the dive search field, #2773)
+  /// in the catalog.
   /// The gate is a provider so every entry point, and every test override,
   /// agrees; registration has no container, so the entry follows here.
-  static void _syncExploreEntry(bool supported) {
+  static void _syncAskEntry(bool supported) {
     final catalog = ShortcutCatalog.instance;
-    final listed = catalog.entries.any((e) => e.label == _exploreLabel);
+    final listed = catalog.entries.any((e) => e.label == _askLabel);
     if (listed == supported) return;
     if (supported) {
       catalog.register(
         ShortcutEntry(
-          label: _exploreLabel,
+          label: _askLabel,
           category: 'Search',
-          activator: platformShortcut(LogicalKeyboardKey.keyE),
-          isGlobal: true,
+          // Not global: it works inside the dive search field.
+          activator: platformShortcut(LogicalKeyboardKey.enter),
         ),
       );
     } else {
-      catalog.unregisterLabel(_exploreLabel);
+      catalog.unregisterLabel(_askLabel);
     }
-  }
-
-  static void _showExploreUnavailable(BuildContext context) {
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      SnackBar(content: Text(context.l10n.explore_shortcut_unavailable)),
-    );
   }
 
   /// Returns the global shortcut bindings map for [CallbackShortcuts].
@@ -230,11 +205,7 @@ class AppShortcuts {
     BuildContext context,
   ) {
     ensureRegistered();
-    final exploreSupported = ProviderScope.containerOf(
-      context,
-      listen: false,
-    ).read(explorePlatformSupportedProvider);
-    _syncExploreEntry(exploreSupported);
+    _followAskAvailability(ProviderScope.containerOf(context, listen: false));
 
     return {
       // Navigation.
@@ -286,8 +257,6 @@ class AppShortcuts {
             !ResponsiveBreakpoints.isMasterDetail(context);
         if (uri.path != '/dives' || phoneMap) context.go('/dives');
       },
-      if (exploreSupported)
-        platformShortcut(LogicalKeyboardKey.keyE): () => _openExplore(context),
 
       // Settings
       platformShortcut(LogicalKeyboardKey.comma): () {

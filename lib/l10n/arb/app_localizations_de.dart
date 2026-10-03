@@ -2051,10 +2051,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'Schließen / Abbrechen';
 
   @override
-  String get accessibility_shortcut_exploreWithSentence =>
-      'Mit einem Satz erkunden';
-
-  @override
   String get accessibility_shortcut_goBack => 'Zurück';
 
   @override
@@ -2083,6 +2079,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_searchDives => 'Tauchgänge suchen';
+
+  @override
+  String get accessibility_shortcut_askQuestion =>
+      'Fragen zu Ihren Tauchgängen';
 
   @override
   String accessibility_sort_selectedLabel(Object displayName) {
@@ -8463,6 +8463,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_search_jumpTitle => 'Zum Tauchgang springen';
+
+  @override
+  String diveLog_ask_row(String text) {
+    return 'Fragen: $text';
+  }
+
+  @override
+  String get diveLog_ask_running => 'Das Modell auf dem Gerät wird gefragt';
+
+  @override
+  String get diveLog_ask_couldNotUse => 'Nicht verwendet:';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return 'Gefragt: $sentence';
+  }
 
   @override
   String get diveLog_search_openInsights => 'In Einblicken öffnen';
@@ -39165,18 +39181,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Arten suchen';
 
   @override
-  String get diveLog_listPage_tooltip_explore => 'Mit einem Satz erkunden';
-
-  @override
   String get explore_chip_favorite => 'Favorit';
 
   @override
   String get explore_chip_deco => 'Dekompressionstauchgang';
-
-  @override
-  String explore_chip_fieldPeriod(String field, String period) {
-    return '$field: $period';
-  }
 
   @override
   String get explore_chip_noDeco => 'Ohne Dekompression';
@@ -39197,59 +39205,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String explore_chip_between(String field, String low, String high) {
     return '$field $low bis $high';
-  }
-
-  @override
-  String explore_chip_enum(String field, String values) {
-    return '$field: $values';
-  }
-
-  @override
-  String explore_chip_enumNot(String field, String values) {
-    return '$field nicht $values';
-  }
-
-  @override
-  String explore_chip_timeRange(String start, String end) {
-    return '$start bis $end';
-  }
-
-  @override
-  String explore_chip_timeSince(Object start) {
-    return 'Seit $start';
-  }
-
-  @override
-  String explore_chip_timeBefore(Object end) {
-    return 'Vor $end';
-  }
-
-  @override
-  String explore_chip_viaDives(String label) {
-    return 'Tauchgänge: $label';
-  }
-
-  @override
-  String explore_chip_withinDays(int days, String field) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: '$field innerhalb von $days Tagen',
-      one: '$field innerhalb von $days Tag',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String explore_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Tauchgänge',
-      one: '1 Tauchgang',
-      zero: 'Keine Tauchgänge',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -39338,29 +39293,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get explore_field_weekday => 'Wochentag';
 
   @override
-  String get explore_handoff_diveList => 'In der Tauchgangsliste öffnen';
-
-  @override
-  String get explore_handoff_insights => 'In Einblicken öffnen';
-
-  @override
   String get explore_handoff_list => 'In Liste öffnen';
 
   @override
-  String get explore_hint =>
-      'Fragen Sie nach Ihren Tauchgängen, zum Beispiel Schildkröten tiefer als 20 m auf Bonaire';
-
-  @override
-  String get explore_needsAttention_title => 'Bitte prüfen';
-
-  @override
-  String get explore_op_gt => 'über';
-
-  @override
   String get explore_op_gte => 'mindestens';
-
-  @override
-  String get explore_op_lt => 'unter';
 
   @override
   String get explore_op_lte => 'höchstens';
@@ -39371,52 +39307,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get explore_op_eq => 'von';
-
-  @override
   String explore_pickCandidate_title(Object text) {
     return 'Was meinten Sie mit \"$text\"?';
   }
-
-  @override
-  String get explore_recent_title => 'Zuletzt';
-
-  @override
-  String explore_results_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Ergebnisse',
-      one: '$count Ergebnis',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get explore_results_subjectTitle => 'Treffer';
-
-  @override
-  String explore_results_subjectTruncated(Object count) {
-    return 'Die ersten $count werden angezeigt. In der Liste öffnen, um alle zu sehen.';
-  }
-
-  @override
-  String get explore_results_title => 'Passende Tauchgänge';
-
-  @override
-  String explore_results_truncated(Object count) {
-    return 'Die ersten $count werden angezeigt. In der Tauchgangsliste öffnen, um alle zu sehen.';
-  }
-
-  @override
-  String get explore_shortcut_unavailable =>
-      'Erkunden benötigt das Modell auf dem Gerät, das auf diesem Gerät nicht bereit ist.';
-
-  @override
-  String get explore_title => 'Erkunden';
-
-  @override
-  String get explore_understood_title => 'Verstanden';
 
   @override
   String get explore_unplaced_reason_aggregateWithScope =>
@@ -39442,47 +39335,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get explore_unresolved_noCandidates => 'Kein Treffer in Ihrem Logbuch';
-
-  @override
-  String get explore_chart_divesOverTime => 'Tauchgänge im Zeitverlauf';
-
-  @override
-  String get explore_chart_depthTrend => 'Tiefe';
-
-  @override
-  String get explore_chart_waterTempTrend => 'Wassertemperatur';
-
-  @override
-  String get explore_chart_bottomTimeTrend => 'Grundzeit';
-
-  @override
-  String explore_chart_entityCounts(Object kind) {
-    return 'Tauchgänge pro $kind';
-  }
-
-  @override
-  String get explore_kind_site => 'Tauchplatz';
-
-  @override
-  String get explore_kind_species => 'Art';
-
-  @override
-  String get explore_kind_gear => 'Ausrüstung';
-
-  @override
-  String get explore_kind_buddy => 'Buddy';
-
-  @override
-  String get explore_kind_tag => 'Tag';
-
-  @override
-  String get explore_kind_center => 'Tauchbasis';
-
-  @override
-  String get explore_kind_trip => 'Reise';
-
-  @override
-  String get explore_kind_computer => 'Computer';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

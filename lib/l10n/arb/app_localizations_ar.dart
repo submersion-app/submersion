@@ -2024,9 +2024,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'إغلاق / إلغاء';
 
   @override
-  String get accessibility_shortcut_exploreWithSentence => 'استكشف بجملة';
-
-  @override
   String get accessibility_shortcut_goBack => 'رجوع';
 
   @override
@@ -2056,6 +2053,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_searchDives => 'البحث في الغوصات';
+
+  @override
+  String get accessibility_shortcut_askQuestion => 'اسأل عن غطساتك';
 
   @override
   String accessibility_sort_selectedLabel(Object displayName) {
@@ -8301,6 +8301,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_search_jumpTitle => 'الانتقال إلى غوصة';
+
+  @override
+  String diveLog_ask_row(String text) {
+    return 'اسأل: $text';
+  }
+
+  @override
+  String get diveLog_ask_running => 'جارٍ سؤال النموذج على الجهاز';
+
+  @override
+  String get diveLog_ask_couldNotUse => 'تعذّر استخدام:';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return 'سُئل: $sentence';
+  }
 
   @override
   String get diveLog_search_openInsights => 'فتح في الرؤى';
@@ -38864,18 +38880,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'البحث عن الأنواع';
 
   @override
-  String get diveLog_listPage_tooltip_explore => 'استكشف بجملة';
-
-  @override
   String get explore_chip_favorite => 'مفضل';
 
   @override
   String get explore_chip_deco => 'غطسة تخفيف ضغط';
-
-  @override
-  String explore_chip_fieldPeriod(String field, String period) {
-    return '$field: $period';
-  }
 
   @override
   String get explore_chip_noDeco => 'بدون تخفيف ضغط';
@@ -38896,59 +38904,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String explore_chip_between(String field, String low, String high) {
     return '$field $low إلى $high';
-  }
-
-  @override
-  String explore_chip_enum(String field, String values) {
-    return '$field: $values';
-  }
-
-  @override
-  String explore_chip_enumNot(String field, String values) {
-    return '$field ليس $values';
-  }
-
-  @override
-  String explore_chip_timeRange(String start, String end) {
-    return '$start إلى $end';
-  }
-
-  @override
-  String explore_chip_timeSince(Object start) {
-    return 'منذ $start';
-  }
-
-  @override
-  String explore_chip_timeBefore(Object end) {
-    return 'قبل $end';
-  }
-
-  @override
-  String explore_chip_viaDives(String label) {
-    return 'الغطسات: $label';
-  }
-
-  @override
-  String explore_chip_withinDays(int days, String field) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: '$field خلال $days يوم',
-      one: '$field خلال $days يوم',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String explore_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count غطسات',
-      one: 'غطسة واحدة',
-      zero: 'لا توجد غطسات',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -39035,29 +38990,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get explore_field_weekday => 'يوم الأسبوع';
 
   @override
-  String get explore_handoff_diveList => 'فتح في قائمة الغطسات';
-
-  @override
-  String get explore_handoff_insights => 'فتح في الرؤى';
-
-  @override
   String get explore_handoff_list => 'فتح في القائمة';
 
   @override
-  String get explore_hint =>
-      'اسأل عن غطساتك، مثلاً سلاحف أعمق من 20 م في بونير';
-
-  @override
-  String get explore_needsAttention_title => 'يحتاج إلى انتباه';
-
-  @override
-  String get explore_op_gt => 'أكثر من';
-
-  @override
   String get explore_op_gte => 'على الأقل';
-
-  @override
-  String get explore_op_lt => 'أقل من';
 
   @override
   String get explore_op_lte => 'على الأكثر';
@@ -39068,52 +39004,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get explore_op_eq => 'يساوي';
-
-  @override
   String explore_pickCandidate_title(Object text) {
     return 'ماذا قصدت بـ \"$text\"؟';
   }
-
-  @override
-  String get explore_recent_title => 'الأخيرة';
-
-  @override
-  String explore_results_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count نتيجة',
-      one: '$count نتيجة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get explore_results_subjectTitle => 'النتائج المطابقة';
-
-  @override
-  String explore_results_subjectTruncated(Object count) {
-    return 'يُعرض أول $count. افتح القائمة لعرضها كلها.';
-  }
-
-  @override
-  String get explore_results_title => 'الغطسات المطابقة';
-
-  @override
-  String explore_results_truncated(Object count) {
-    return 'عرض أول $count. افتح قائمة الغطسات لرؤيتها كلها.';
-  }
-
-  @override
-  String get explore_shortcut_unavailable =>
-      'يحتاج الاستكشاف إلى النموذج على الجهاز، وهو غير جاهز على هذا الجهاز.';
-
-  @override
-  String get explore_title => 'استكشاف';
-
-  @override
-  String get explore_understood_title => 'تم فهمه';
 
   @override
   String get explore_unplaced_reason_aggregateWithScope =>
@@ -39136,47 +39029,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get explore_unresolved_noCandidates => 'لا توجد مطابقة في سجلك';
-
-  @override
-  String get explore_chart_divesOverTime => 'الغطسات عبر الزمن';
-
-  @override
-  String get explore_chart_depthTrend => 'العمق';
-
-  @override
-  String get explore_chart_waterTempTrend => 'درجة حرارة الماء';
-
-  @override
-  String get explore_chart_bottomTimeTrend => 'وقت القاع';
-
-  @override
-  String explore_chart_entityCounts(Object kind) {
-    return 'الغطسات لكل $kind';
-  }
-
-  @override
-  String get explore_kind_site => 'موقع';
-
-  @override
-  String get explore_kind_species => 'نوع';
-
-  @override
-  String get explore_kind_gear => 'معدات';
-
-  @override
-  String get explore_kind_buddy => 'رفيق';
-
-  @override
-  String get explore_kind_tag => 'علامة';
-
-  @override
-  String get explore_kind_center => 'مركز غطس';
-
-  @override
-  String get explore_kind_trip => 'رحلة';
-
-  @override
-  String get explore_kind_computer => 'حاسوب';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

@@ -52,7 +52,6 @@ import 'package:submersion/features/dive_3d/presentation/pages/compare_dives_3d_
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
-import 'package:submersion/features/explore/presentation/pages/explore_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/profile_editor_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
 import 'package:submersion/features/maps/presentation/pages/dive_activity_map_page.dart';
@@ -452,7 +451,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'explore',
                 name: 'explore',
-                builder: (context, state) => const ExplorePage(),
+                // Explore is Ask in the search row now (#2773).
+                redirect: redirectRetiredDiveSearch,
               ),
               GoRoute(
                 path: ':diveId',
@@ -1996,11 +1996,12 @@ DiveEditPage newDivePage(GoRouterState state) => DiveEditPage(
   tripCylinderId: state.uri.queryParameters['tripCylinderId'],
 );
 
-/// `/dives/search` was Advanced Search; it is the Refine panel now (#2773),
-/// so an old link or a bookmark lands on the dive list with its search row
-/// open. The open flag is written after the frame: go_router evaluates a
-/// redirect while parsing the location, which on a cold start happens while
-/// the widget tree builds, where Riverpod refuses provider writes.
+/// `/dives/search` was Advanced Search and `/dives/explore` was Explore;
+/// they are the Refine panel and Ask in the search row now (#2773), so an
+/// old link or a bookmark lands on the dive list with its search row open.
+/// The open flag is written after the frame: go_router evaluates a redirect
+/// while parsing the location, which on a cold start happens while the
+/// widget tree builds, where Riverpod refuses provider writes.
 String redirectRetiredDiveSearch(BuildContext context, GoRouterState state) {
   final container = ProviderScope.containerOf(context, listen: false);
   WidgetsBinding.instance.addPostFrameCallback((_) {

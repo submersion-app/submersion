@@ -1,7 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
-import 'package:submersion/features/explore/presentation/providers/explore_subject_providers.dart';
+import 'package:submersion/features/explore/presentation/explore_handoff.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/explore/domain/query_model.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 /// Explore's equipment answer goes through the equipment list's filter,
 /// whose unset status hides retired and sold gear. A status the sentence
@@ -120,5 +128,53 @@ void main() {
     expect(f.status, isNull);
     expect(f.allStatuses, isTrue);
     expect(f.query, either);
+  });
+
+  group('writeSubjectHandoff', () {
+    final refProbe = Provider<Ref>((ref) => ref);
+
+    Ref refOf(ProviderContainer c) {
+      final sub = c.listen(refProbe, (_, _) {});
+      addTearDown(sub.close);
+      return c.read(refProbe);
+    }
+
+    test('each subject writes its own list query and names its route', () {
+      final c = ProviderContainer();
+      addTearDown(c.dispose);
+      final ref = refOf(c);
+      final node = TextNode(['reef']);
+      expect(writeSubjectHandoff(ref, ParsedSubject.sites, node), '/sites');
+      expect(c.read(siteFilterProvider).query, node);
+      expect(writeSubjectHandoff(ref, ParsedSubject.buddies, node), '/buddies');
+      expect(c.read(buddyQueryProvider), node);
+      expect(writeSubjectHandoff(ref, ParsedSubject.species, node), '/species');
+      expect(c.read(seenSpeciesQueryProvider), node);
+      expect(writeSubjectHandoff(ref, ParsedSubject.trips, node), '/trips');
+      expect(c.read(tripFilterProvider).query, node);
+      expect(
+        writeSubjectHandoff(ref, ParsedSubject.centers, node),
+        '/dive-centers',
+      );
+      expect(c.read(diveCenterQueryProvider), node);
+      expect(
+        writeSubjectHandoff(ref, ParsedSubject.equipment, node),
+        '/equipment',
+      );
+      expect(
+        c.read(equipmentFilterProvider).query,
+        exploreEquipmentFilter(node).query,
+      );
+    });
+
+    test('a dive sentence is not a subject handoff', () {
+      final c = ProviderContainer();
+      addTearDown(c.dispose);
+      expect(
+        () =>
+            writeSubjectHandoff(refOf(c), ParsedSubject.dives, TextNode(['x'])),
+        throwsStateError,
+      );
+    });
   });
 }

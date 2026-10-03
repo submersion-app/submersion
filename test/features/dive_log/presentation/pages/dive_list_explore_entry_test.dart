@@ -7,14 +7,12 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
   late DiveRepository repository;
-  final tooltip = AppLocalizationsEn().diveLog_listPage_tooltip_explore;
 
   setUp(() async {
     await setUpTestDatabase();
@@ -27,10 +25,6 @@ void main() {
     final router = GoRouter(
       routes: [
         GoRoute(path: '/', builder: (context, state) => const DiveListPage()),
-        GoRoute(
-          path: '/dives/explore',
-          builder: (context, state) => const Scaffold(),
-        ),
       ],
     );
     await tester.pumpWidget(
@@ -57,17 +51,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('the explore action is hidden when the gate is closed', (
-    tester,
-  ) async {
-    await pump(tester, enabled: false);
-    expect(find.byTooltip(tooltip), findsNothing);
-  });
-
-  testWidgets('the explore action is shown when the gate is open', (
+  // #2773: Ask lives in the search row; Explore's sparkle icon is gone
+  // even where the on-device model works.
+  testWidgets('the Dives app bar has no Explore entry, even with the model', (
     tester,
   ) async {
     await pump(tester, enabled: true);
-    expect(find.byTooltip(tooltip), findsOneWidget);
+    expect(find.byIcon(Icons.auto_awesome), findsNothing);
   });
 }

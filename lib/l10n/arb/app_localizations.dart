@@ -3193,12 +3193,6 @@ abstract class AppLocalizations {
   /// **'Close / Cancel'**
   String get accessibility_shortcut_closeCancel;
 
-  /// No description provided for @accessibility_shortcut_exploreWithSentence.
-  ///
-  /// In en, this message translates to:
-  /// **'Explore with a sentence'**
-  String get accessibility_shortcut_exploreWithSentence;
-
   /// Keyboard shortcut label for going back
   ///
   /// In en, this message translates to:
@@ -3258,6 +3252,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search dives'**
   String get accessibility_shortcut_searchDives;
+
+  /// No description provided for @accessibility_shortcut_askQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about your dives'**
+  String get accessibility_shortcut_askQuestion;
 
   /// Semantics label for a selected sort option
   ///
@@ -13494,6 +13494,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Jump to dive'**
   String get diveLog_search_jumpTitle;
+
+  /// No description provided for @diveLog_ask_row.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask: {text}'**
+  String diveLog_ask_row(String text);
+
+  /// No description provided for @diveLog_ask_running.
+  ///
+  /// In en, this message translates to:
+  /// **'Asking the on-device model'**
+  String get diveLog_ask_running;
+
+  /// No description provided for @diveLog_ask_couldNotUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t use:'**
+  String get diveLog_ask_couldNotUse;
+
+  /// No description provided for @diveLog_ask_asked.
+  ///
+  /// In en, this message translates to:
+  /// **'Asked: {sentence}'**
+  String diveLog_ask_asked(String sentence);
 
   /// No description provided for @diveLog_search_openInsights.
   ///
@@ -62524,12 +62548,6 @@ abstract class AppLocalizations {
   /// **'Search species'**
   String get diveLog_filter_speciesSearchHint;
 
-  /// No description provided for @diveLog_listPage_tooltip_explore.
-  ///
-  /// In en, this message translates to:
-  /// **'Explore with a sentence'**
-  String get diveLog_listPage_tooltip_explore;
-
   /// No description provided for @explore_chip_favorite.
   ///
   /// In en, this message translates to:
@@ -62541,12 +62559,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Decompression dive'**
   String get explore_chip_deco;
-
-  /// No description provided for @explore_chip_fieldPeriod.
-  ///
-  /// In en, this message translates to:
-  /// **'{field}: {period}'**
-  String explore_chip_fieldPeriod(String field, String period);
 
   /// No description provided for @explore_chip_noDeco.
   ///
@@ -62577,54 +62589,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{field} {low} to {high}'**
   String explore_chip_between(String field, String low, String high);
-
-  /// No description provided for @explore_chip_enum.
-  ///
-  /// In en, this message translates to:
-  /// **'{field}: {values}'**
-  String explore_chip_enum(String field, String values);
-
-  /// No description provided for @explore_chip_enumNot.
-  ///
-  /// In en, this message translates to:
-  /// **'{field} not {values}'**
-  String explore_chip_enumNot(String field, String values);
-
-  /// No description provided for @explore_chip_timeRange.
-  ///
-  /// In en, this message translates to:
-  /// **'{start} to {end}'**
-  String explore_chip_timeRange(String start, String end);
-
-  /// No description provided for @explore_chip_timeSince.
-  ///
-  /// In en, this message translates to:
-  /// **'Since {start}'**
-  String explore_chip_timeSince(Object start);
-
-  /// No description provided for @explore_chip_timeBefore.
-  ///
-  /// In en, this message translates to:
-  /// **'Before {end}'**
-  String explore_chip_timeBefore(Object end);
-
-  /// No description provided for @explore_chip_viaDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives: {label}'**
-  String explore_chip_viaDives(String label);
-
-  /// No description provided for @explore_chip_withinDays.
-  ///
-  /// In en, this message translates to:
-  /// **'{days, plural, =1{{field} within {days} day} other{{field} within {days} days}}'**
-  String explore_chip_withinDays(int days, String field);
-
-  /// No description provided for @explore_count.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =0{No dives} =1{1 dive} other{{count} dives}}'**
-  String explore_count(num count);
 
   /// No description provided for @explore_download_button.
   ///
@@ -62782,53 +62746,17 @@ abstract class AppLocalizations {
   /// **'Weekday'**
   String get explore_field_weekday;
 
-  /// No description provided for @explore_handoff_diveList.
-  ///
-  /// In en, this message translates to:
-  /// **'Open in dive list'**
-  String get explore_handoff_diveList;
-
-  /// No description provided for @explore_handoff_insights.
-  ///
-  /// In en, this message translates to:
-  /// **'Open in Insights'**
-  String get explore_handoff_insights;
-
   /// No description provided for @explore_handoff_list.
   ///
   /// In en, this message translates to:
   /// **'Open in list'**
   String get explore_handoff_list;
 
-  /// No description provided for @explore_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Ask about your dives, for example turtles below 20 m in Bonaire'**
-  String get explore_hint;
-
-  /// No description provided for @explore_needsAttention_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Needs attention'**
-  String get explore_needsAttention_title;
-
-  /// No description provided for @explore_op_gt.
-  ///
-  /// In en, this message translates to:
-  /// **'over'**
-  String get explore_op_gt;
-
   /// No description provided for @explore_op_gte.
   ///
   /// In en, this message translates to:
   /// **'at least'**
   String get explore_op_gte;
-
-  /// No description provided for @explore_op_lt.
-  ///
-  /// In en, this message translates to:
-  /// **'under'**
-  String get explore_op_lt;
 
   /// No description provided for @explore_op_lte.
   ///
@@ -62842,71 +62770,11 @@ abstract class AppLocalizations {
   /// **'{minutes} min'**
   String explore_value_minutes(int minutes);
 
-  /// No description provided for @explore_op_eq.
-  ///
-  /// In en, this message translates to:
-  /// **'of'**
-  String get explore_op_eq;
-
   /// No description provided for @explore_pickCandidate_title.
   ///
   /// In en, this message translates to:
   /// **'Which did you mean by \"{text}\"?'**
   String explore_pickCandidate_title(Object text);
-
-  /// No description provided for @explore_recent_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Recent'**
-  String get explore_recent_title;
-
-  /// No description provided for @explore_results_count.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{{count} result} other{{count} results}}'**
-  String explore_results_count(num count);
-
-  /// No description provided for @explore_results_subjectTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Matches'**
-  String get explore_results_subjectTitle;
-
-  /// No description provided for @explore_results_subjectTruncated.
-  ///
-  /// In en, this message translates to:
-  /// **'Showing the first {count}. Open in the list for all of them.'**
-  String explore_results_subjectTruncated(Object count);
-
-  /// No description provided for @explore_results_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Matching dives'**
-  String get explore_results_title;
-
-  /// No description provided for @explore_results_truncated.
-  ///
-  /// In en, this message translates to:
-  /// **'Showing the first {count}. Open in the dive list for all of them.'**
-  String explore_results_truncated(Object count);
-
-  /// No description provided for @explore_shortcut_unavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'Explore needs the on-device model, which is not ready on this device.'**
-  String get explore_shortcut_unavailable;
-
-  /// No description provided for @explore_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Explore'**
-  String get explore_title;
-
-  /// No description provided for @explore_understood_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Understood'**
-  String get explore_understood_title;
 
   /// No description provided for @explore_unplaced_reason_aggregateWithScope.
   ///
@@ -62949,84 +62817,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No match in your logbook'**
   String get explore_unresolved_noCandidates;
-
-  /// No description provided for @explore_chart_divesOverTime.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives over time'**
-  String get explore_chart_divesOverTime;
-
-  /// No description provided for @explore_chart_depthTrend.
-  ///
-  /// In en, this message translates to:
-  /// **'Depth'**
-  String get explore_chart_depthTrend;
-
-  /// No description provided for @explore_chart_waterTempTrend.
-  ///
-  /// In en, this message translates to:
-  /// **'Water temperature'**
-  String get explore_chart_waterTempTrend;
-
-  /// No description provided for @explore_chart_bottomTimeTrend.
-  ///
-  /// In en, this message translates to:
-  /// **'Bottom time'**
-  String get explore_chart_bottomTimeTrend;
-
-  /// No description provided for @explore_chart_entityCounts.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives per {kind}'**
-  String explore_chart_entityCounts(Object kind);
-
-  /// No description provided for @explore_kind_site.
-  ///
-  /// In en, this message translates to:
-  /// **'site'**
-  String get explore_kind_site;
-
-  /// No description provided for @explore_kind_species.
-  ///
-  /// In en, this message translates to:
-  /// **'species'**
-  String get explore_kind_species;
-
-  /// No description provided for @explore_kind_gear.
-  ///
-  /// In en, this message translates to:
-  /// **'gear'**
-  String get explore_kind_gear;
-
-  /// No description provided for @explore_kind_buddy.
-  ///
-  /// In en, this message translates to:
-  /// **'buddy'**
-  String get explore_kind_buddy;
-
-  /// No description provided for @explore_kind_tag.
-  ///
-  /// In en, this message translates to:
-  /// **'tag'**
-  String get explore_kind_tag;
-
-  /// No description provided for @explore_kind_center.
-  ///
-  /// In en, this message translates to:
-  /// **'dive center'**
-  String get explore_kind_center;
-
-  /// No description provided for @explore_kind_trip.
-  ///
-  /// In en, this message translates to:
-  /// **'trip'**
-  String get explore_kind_trip;
-
-  /// No description provided for @explore_kind_computer.
-  ///
-  /// In en, this message translates to:
-  /// **'computer'**
-  String get explore_kind_computer;
 
   /// Screen-reader label for a dive row in the dive list.
   ///

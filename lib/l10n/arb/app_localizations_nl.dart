@@ -2042,10 +2042,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'Sluiten / Annuleren';
 
   @override
-  String get accessibility_shortcut_exploreWithSentence =>
-      'Verkennen met een zin';
-
-  @override
   String get accessibility_shortcut_goBack => 'Ga terug';
 
   @override
@@ -2074,6 +2070,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_searchDives => 'Duiken zoeken';
+
+  @override
+  String get accessibility_shortcut_askQuestion => 'Vraag over je duiken';
 
   @override
   String accessibility_sort_selectedLabel(Object displayName) {
@@ -8402,6 +8401,22 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_search_jumpTitle => 'Naar duik springen';
+
+  @override
+  String diveLog_ask_row(String text) {
+    return 'Vraag: $text';
+  }
+
+  @override
+  String get diveLog_ask_running => 'Het model op het apparaat wordt gevraagd';
+
+  @override
+  String get diveLog_ask_couldNotUse => 'Niet gebruikt:';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return 'Gevraagd: $sentence';
+  }
 
   @override
   String get diveLog_search_openInsights => 'Openen in Inzichten';
@@ -38974,18 +38989,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Soorten zoeken';
 
   @override
-  String get diveLog_listPage_tooltip_explore => 'Verkennen met een zin';
-
-  @override
   String get explore_chip_favorite => 'Favoriet';
 
   @override
   String get explore_chip_deco => 'Decompressieduik';
-
-  @override
-  String explore_chip_fieldPeriod(String field, String period) {
-    return '$field: $period';
-  }
 
   @override
   String get explore_chip_noDeco => 'Zonder decompressie';
@@ -39006,59 +39013,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String explore_chip_between(String field, String low, String high) {
     return '$field $low tot $high';
-  }
-
-  @override
-  String explore_chip_enum(String field, String values) {
-    return '$field: $values';
-  }
-
-  @override
-  String explore_chip_enumNot(String field, String values) {
-    return '$field niet $values';
-  }
-
-  @override
-  String explore_chip_timeRange(String start, String end) {
-    return '$start tot $end';
-  }
-
-  @override
-  String explore_chip_timeSince(Object start) {
-    return 'Sinds $start';
-  }
-
-  @override
-  String explore_chip_timeBefore(Object end) {
-    return 'Voor $end';
-  }
-
-  @override
-  String explore_chip_viaDives(String label) {
-    return 'Duiken: $label';
-  }
-
-  @override
-  String explore_chip_withinDays(int days, String field) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: '$field binnen $days dagen',
-      one: '$field binnen $days dag',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String explore_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count duiken',
-      one: '1 duik',
-      zero: 'Geen duiken',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -39147,29 +39101,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get explore_field_weekday => 'Weekdag';
 
   @override
-  String get explore_handoff_diveList => 'Openen in duiklijst';
-
-  @override
-  String get explore_handoff_insights => 'Openen in Inzichten';
-
-  @override
   String get explore_handoff_list => 'Openen in lijst';
 
   @override
-  String get explore_hint =>
-      'Vraag naar je duiken, bijvoorbeeld schildpadden dieper dan 20 m op Bonaire';
-
-  @override
-  String get explore_needsAttention_title => 'Vraagt aandacht';
-
-  @override
-  String get explore_op_gt => 'meer dan';
-
-  @override
   String get explore_op_gte => 'minstens';
-
-  @override
-  String get explore_op_lt => 'minder dan';
 
   @override
   String get explore_op_lte => 'hoogstens';
@@ -39180,52 +39115,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get explore_op_eq => 'van';
-
-  @override
   String explore_pickCandidate_title(Object text) {
     return 'Wat bedoelde je met \"$text\"?';
   }
-
-  @override
-  String get explore_recent_title => 'Recent';
-
-  @override
-  String explore_results_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count resultaten',
-      one: '$count resultaat',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get explore_results_subjectTitle => 'Overeenkomsten';
-
-  @override
-  String explore_results_subjectTruncated(Object count) {
-    return 'De eerste $count worden getoond. Open de lijst voor alle resultaten.';
-  }
-
-  @override
-  String get explore_results_title => 'Overeenkomende duiken';
-
-  @override
-  String explore_results_truncated(Object count) {
-    return 'De eerste $count worden getoond. Open de duiklijst voor alle duiken.';
-  }
-
-  @override
-  String get explore_shortcut_unavailable =>
-      'Verkennen heeft het model op het apparaat nodig, dat op dit apparaat niet klaar is.';
-
-  @override
-  String get explore_title => 'Verkennen';
-
-  @override
-  String get explore_understood_title => 'Begrepen';
 
   @override
   String get explore_unplaced_reason_aggregateWithScope =>
@@ -39251,47 +39143,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get explore_unresolved_noCandidates =>
       'Geen overeenkomst in je logboek';
-
-  @override
-  String get explore_chart_divesOverTime => 'Duiken in de tijd';
-
-  @override
-  String get explore_chart_depthTrend => 'Diepte';
-
-  @override
-  String get explore_chart_waterTempTrend => 'Watertemperatuur';
-
-  @override
-  String get explore_chart_bottomTimeTrend => 'Bodemtijd';
-
-  @override
-  String explore_chart_entityCounts(Object kind) {
-    return 'Duiken per $kind';
-  }
-
-  @override
-  String get explore_kind_site => 'locatie';
-
-  @override
-  String get explore_kind_species => 'soort';
-
-  @override
-  String get explore_kind_gear => 'uitrusting';
-
-  @override
-  String get explore_kind_buddy => 'buddy';
-
-  @override
-  String get explore_kind_tag => 'tag';
-
-  @override
-  String get explore_kind_center => 'duikcentrum';
-
-  @override
-  String get explore_kind_trip => 'reis';
-
-  @override
-  String get explore_kind_computer => 'computer';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

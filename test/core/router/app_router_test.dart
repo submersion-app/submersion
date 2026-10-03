@@ -1375,14 +1375,15 @@ void main() {
   // bookmark lands on the dive list with its search row open, including on
   // a cold start, when the redirect runs while the tree builds.
   group('diveSearch route redirects to the dive list', () {
-    for (final location in ['/dives/search', '/dives/search?section=query']) {
+    for (final (name, path, location) in [
+      ('diveSearch', 'search', '/dives/search'),
+      ('diveSearch', 'search', '/dives/search?section=query'),
+      ('explore', 'explore', '/dives/explore'),
+    ]) {
       testWidgets('a cold start at $location opens the search row', (
         tester,
       ) async {
-        final route = _findRouteByName(
-          router.configuration.routes,
-          'diveSearch',
-        )!;
+        final route = _findRouteByName(router.configuration.routes, name)!;
         expect(route.redirect, same(redirectRetiredDiveSearch));
         final coldStart = GoRouter(
           initialLocation: location,
@@ -1394,7 +1395,7 @@ void main() {
                     Text('open=${ref.watch(diveSearchBarOpenProvider)}'),
               ),
               routes: [
-                GoRoute(path: 'search', redirect: redirectRetiredDiveSearch),
+                GoRoute(path: path, redirect: redirectRetiredDiveSearch),
               ],
             ),
           ],

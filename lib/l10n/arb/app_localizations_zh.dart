@@ -1947,9 +1947,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => '关闭 / 取消';
 
   @override
-  String get accessibility_shortcut_exploreWithSentence => '用一句话探索';
-
-  @override
   String get accessibility_shortcut_goBack => '返回';
 
   @override
@@ -1978,6 +1975,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_searchDives => '搜索潜水';
+
+  @override
+  String get accessibility_shortcut_askQuestion => '询问你的潜水记录';
 
   @override
   String accessibility_sort_selectedLabel(Object displayName) {
@@ -8048,6 +8048,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_search_jumpTitle => '跳转到潜水';
+
+  @override
+  String diveLog_ask_row(String text) {
+    return '提问：$text';
+  }
+
+  @override
+  String get diveLog_ask_running => '正在询问设备端模型';
+
+  @override
+  String get diveLog_ask_couldNotUse => '无法使用：';
+
+  @override
+  String diveLog_ask_asked(String sentence) {
+    return '已提问：$sentence';
+  }
 
   @override
   String get diveLog_search_openInsights => '在洞察中打开';
@@ -37002,18 +37018,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => '搜索物种';
 
   @override
-  String get diveLog_listPage_tooltip_explore => '用一句话探索';
-
-  @override
   String get explore_chip_favorite => '收藏';
 
   @override
   String get explore_chip_deco => '减压潜水';
-
-  @override
-  String explore_chip_fieldPeriod(String field, String period) {
-    return '$field：$period';
-  }
 
   @override
   String get explore_chip_noDeco => '无减压';
@@ -37034,59 +37042,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String explore_chip_between(String field, String low, String high) {
     return '$field $low 至 $high';
-  }
-
-  @override
-  String explore_chip_enum(String field, String values) {
-    return '$field：$values';
-  }
-
-  @override
-  String explore_chip_enumNot(String field, String values) {
-    return '$field不是 $values';
-  }
-
-  @override
-  String explore_chip_timeRange(String start, String end) {
-    return '$start 至 $end';
-  }
-
-  @override
-  String explore_chip_timeSince(Object start) {
-    return '自 $start 起';
-  }
-
-  @override
-  String explore_chip_timeBefore(Object end) {
-    return '$end 之前';
-  }
-
-  @override
-  String explore_chip_viaDives(String label) {
-    return '潜水：$label';
-  }
-
-  @override
-  String explore_chip_withinDays(int days, String field) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: '$field $days 天内',
-      one: '$field $days 天内',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String explore_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count 次潜水',
-      one: '1 次潜水',
-      zero: '无潜水',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -37168,28 +37123,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get explore_field_weekday => '星期';
 
   @override
-  String get explore_handoff_diveList => '在潜水列表中打开';
-
-  @override
-  String get explore_handoff_insights => '在洞察中打开';
-
-  @override
   String get explore_handoff_list => '在列表中打开';
 
   @override
-  String get explore_hint => '询问你的潜水，例如博奈尔 20 米以下的海龟';
-
-  @override
-  String get explore_needsAttention_title => '需要注意';
-
-  @override
-  String get explore_op_gt => '超过';
-
-  @override
   String get explore_op_gte => '至少';
-
-  @override
-  String get explore_op_lt => '低于';
 
   @override
   String get explore_op_lte => '至多';
@@ -37200,51 +37137,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get explore_op_eq => '为';
-
-  @override
   String explore_pickCandidate_title(Object text) {
     return '\"$text\" 指的是哪一个？';
   }
-
-  @override
-  String get explore_recent_title => '最近';
-
-  @override
-  String explore_results_count(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count 个结果',
-      one: '$count 个结果',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get explore_results_subjectTitle => '匹配结果';
-
-  @override
-  String explore_results_subjectTruncated(Object count) {
-    return '仅显示前 $count 项。在列表中打开以查看全部。';
-  }
-
-  @override
-  String get explore_results_title => '匹配的潜水';
-
-  @override
-  String explore_results_truncated(Object count) {
-    return '显示前 $count 条。在潜水列表中查看全部。';
-  }
-
-  @override
-  String get explore_shortcut_unavailable => '探索需要设备端模型，但此设备上的模型尚未就绪。';
-
-  @override
-  String get explore_title => '探索';
-
-  @override
-  String get explore_understood_title => '已理解';
 
   @override
   String get explore_unplaced_reason_aggregateWithScope => '暂不能与潜水条件一起使用';
@@ -37266,47 +37161,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get explore_unresolved_noCandidates => '日志中没有匹配项';
-
-  @override
-  String get explore_chart_divesOverTime => '潜水随时间变化';
-
-  @override
-  String get explore_chart_depthTrend => '深度';
-
-  @override
-  String get explore_chart_waterTempTrend => '水温';
-
-  @override
-  String get explore_chart_bottomTimeTrend => '水底时间';
-
-  @override
-  String explore_chart_entityCounts(Object kind) {
-    return '每个$kind的潜水次数';
-  }
-
-  @override
-  String get explore_kind_site => '潜点';
-
-  @override
-  String get explore_kind_species => '物种';
-
-  @override
-  String get explore_kind_gear => '装备';
-
-  @override
-  String get explore_kind_buddy => '潜伴';
-
-  @override
-  String get explore_kind_tag => '标签';
-
-  @override
-  String get explore_kind_center => '潜水中心';
-
-  @override
-  String get explore_kind_trip => '行程';
-
-  @override
-  String get explore_kind_computer => '电脑';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
