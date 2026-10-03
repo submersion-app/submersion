@@ -52,8 +52,10 @@ _ENTRY = re.compile(
     r"\s*([A-Z_|\s]+?)\s*,\s*\w+\s*\}"
 )
 # Where an entry starts, whether or not _ENTRY can read it: the table body
-# holds nothing but entries, so every opening brace begins one.
-_ENTRY_START = re.compile(r"\{")
+# holds nothing but entries, so every opening brace outside a string literal
+# begins one. String literals are matched (and skipped) so a brace in a
+# product name is not taken for a new entry.
+_ENTRY_START = re.compile(r'"(?:\\.|[^"\\])*"|\{')
 # The shape slugify produces; an idOverrides value must have it too.
 _ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
@@ -72,9 +74,12 @@ def parse_descriptors(source):
     # from the matrix without a word.
     entries = []
     for start in _ENTRY_START.finditer(body):
+        if start.group() != "{":
+            continue  # a string literal, possibly holding a brace
         entry = _ENTRY.match(body, start.start())
         if entry is None:
-            line = body[start.start() : body.find("\n", start.start())].strip()
+            end = body.find("\n", start.start())
+            line = body[start.start() : end if end != -1 else len(body)].strip()
             raise CatalogError("cannot read descriptor entry: %s" % line)
         vendor, product, flags = entry.groups()
         transports = set()
@@ -172,31 +177,26 @@ def build_catalog(descriptors, rules, previous_ids=()):
     return {"models": models, "unsupported": unsupported, "removed": removed}
 
 
+def _git(path, *args):
+    """stdout of git run in the repo at path; raises on failure."""
+    return subprocess.run(
+        ["git", "-C", path] + list(args), capture_output=True, text=True, check=True
+    ).stdout
+
+
 def git_head(path):
     try:
-        result = subprocess.run(
-            ["git", "-C", path, "rev-parse", "HEAD"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
+        return _git(path, "rev-parse", "HEAD").strip()
     except (OSError, subprocess.CalledProcessError) as error:
         raise CatalogError("cannot read the git commit of %s: %s" % (path, error))
-    return result.stdout.strip()
 
 
 def git_dirty(path, files):
     """Whether any of files has uncommitted changes in the repo at path."""
     try:
-        result = subprocess.run(
-            ["git", "-C", path, "status", "--porcelain", "--"] + list(files),
-            capture_output=True,
-            text=True,
-            check=True,
-        )
+        return bool(_git(path, "status", "--porcelain", "--", *files).strip())
     except (OSError, subprocess.CalledProcessError):
         return False
-    return bool(result.stdout.strip())
 
 
 def main(argv=None):

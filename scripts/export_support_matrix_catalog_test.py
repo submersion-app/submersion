@@ -102,6 +102,17 @@ class ParseTest(unittest.TestCase):
             gen.parse_descriptors(table(TERIC, odd))
         self.assertIn("Tern 2", str(raised.exception))
 
+    def test_a_brace_inside_a_product_name_parses(self):
+        quad = '{"Mares", "Quad {Air}", DC_FAMILY_MARES_ICONHD, 0x23, DC_TRANSPORT_BLE, dc_filter_mares},'
+        parsed = gen.parse_descriptors(table(TERIC, quad))
+        self.assertEqual([p for _, p, _ in parsed], ["Teric", "Quad {Air}"])
+
+    def test_the_error_quotes_an_unreadable_last_row_whole(self):
+        odd = '{"Shearwater", "Tern 2", DC_FAMILY_SHEARWATER_PETREL, 0x10 | 0x01, DC_TRANSPORT_BLE, dc_filter_shearwater},'
+        with self.assertRaises(gen.CatalogError) as raised:
+            gen.parse_descriptors(table(TERIC, odd))
+        self.assertTrue(str(raised.exception).endswith("dc_filter_shearwater},"), str(raised.exception))
+
     def test_a_row_not_led_by_a_string_literal_is_an_error(self):
         for odd in (
             '{VENDOR_SHEARWATER, "Tern 2", DC_FAMILY_SHEARWATER_PETREL, 15, DC_TRANSPORT_BLE, dc_filter_shearwater},',

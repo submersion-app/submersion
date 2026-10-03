@@ -326,11 +326,22 @@ Python 3.9 or later so it works in the cloud routine as well as locally.
 
 - Parses `g_descriptors[]` entries
   (`{"Vendor", "Product", DC_FAMILY_..., model, DC_TRANSPORT_A | ..., filter}`)
-  from `descriptor.c`.
-- Reads `scripts/data/support_matrix_platform_rules.json`.
+  from `descriptor.c`. Every entry must parse: each opening brace outside a
+  string literal (after comments are stripped) starts an entry, and one the
+  parser cannot read, or a transport flag it does not know, fails the run
+  naming the row. A model is never dropped silently.
+- Reads `scripts/data/support_matrix_platform_rules.json`, which must be a JSON
+  object listing every platform with known libdc transport names; each
+  `idOverrides` value must itself be a lowercase-hyphen id.
 - Optional `--previous <catalog.json>` to compute `removed`.
-- Writes `catalog.json` to the path given by `--out`.
+- Writes `catalog.json` to the path given by `--out` through a sibling
+  `.partial` file swapped into place, so a failed write leaves the existing
+  catalog whole (the sweep passes the same path as `--previous` and `--out`).
 - Records the app and libdc submodule commits in `generatedFrom`.
+- Any failure prints `error: ...` and exits 1. Two conditions warn without
+  failing: an `idOverrides` key that matches no descriptor, and uncommitted
+  changes to the generator or its rules (which the recorded `appCommit` does
+  not contain).
 
 `scripts/export_support_matrix_catalog_test.py` (unittest, same import style as
 `check_pr_issue_link_test.py`) must be added to the script-test list in
