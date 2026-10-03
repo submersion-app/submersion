@@ -1490,13 +1490,16 @@ jobs:
         # The base is the merge commit's first parent: the main commit this
         # run actually tested. The event's base.sha can name an older one. The
         # checkout is shallow, but cat-file prints the raw commit, parents
-        # included.
+        # included. Steps run under `bash -eo pipefail`, so the lookup's own
+        # failure is caught, and continue-on-error keeps any failure here from
+        # skipping the verdict step below.
         if: github.event_name == 'pull_request' && contains(needs.*.result, 'failure')
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          BASE_SHA="$(git cat-file -p HEAD | sed -n 's/^parent //p' | head -1)"
+          BASE_SHA="$(git cat-file -p HEAD | sed -n 's/^parent //p' | head -1)" || BASE_SHA=""
           export BASE_SHA="${BASE_SHA:-$EVENT_BASE_SHA}"
           python3 scripts/report_inherited_failures.py
 
