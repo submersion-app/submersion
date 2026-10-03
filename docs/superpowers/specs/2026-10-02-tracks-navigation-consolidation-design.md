@@ -346,7 +346,14 @@ both kinds the dive list's card design together.
 
 ## Vocabulary (PR 2)
 
-User-facing "route" becomes "underwater track" in every locale:
+User-facing "route" becomes "track": the full "underwater track" wherever a
+string can be seen outside an underwater-only screen, plain "track" inside
+one. Every key whose value changes is renamed, and the old key is deleted
+from all 11 locales. Out of scope: the dive planner's route, a trip's voyage
+route, the emergency card and the startup recovery text, which use "route" in
+another sense.
+
+The strings it covers, in every locale:
 
 - dive detail section heading and actions (`NavTrackSection`)
 - detail, alignment and 3D page titles and dialogs
