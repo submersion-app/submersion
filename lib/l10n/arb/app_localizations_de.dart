@@ -4002,6 +4002,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_gear_removePart => 'Teil entfernen';
 
   @override
+  String diveLog_gear_alsoOnDive(String diver, String time) {
+    return 'Auch beim Tauchgang von $diver, $time';
+  }
+
+  @override
   String get diveLog_gear_removeSet => 'Set von diesem Tauchgang entfernen';
 
   @override
@@ -31553,6 +31558,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'Widersprüchliche Quellen';
 
   @override
+  String get dataQuality_detector_shared_gear_overlap =>
+      'Geteilte Ausrüstung bei überlappenden Tauchgängen';
+
+  @override
   String dataQuality_msg_clock_future(String date) {
     return 'Tauchgang liegt in der Zukunft ($date)';
   }
@@ -31570,6 +31579,28 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'Überschneidet einen anderen Tauchgang um $minutes Min.';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap(
+    String item,
+    String diverA,
+    String timeA,
+    String diverB,
+    String timeB,
+  ) {
+    return '$item ist beim Tauchgang von $diverA um $timeA und beim Tauchgang von $diverB um $timeB dabei.';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap_parts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mit $count eingebauten Teilen.',
+      one: 'Mit $count eingebautem Teil.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -43210,6 +43241,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_assignTransmitter => 'Sender zuweisen';
+
+  @override
+  String dataQuality_repairLabel_removeGearFromDive(String diver) {
+    return 'Aus dem Tauchgang von $diver entfernen';
+  }
 
   @override
   String get backup_unrecognized_appBar_title => 'Nicht erkannte Sicherungen';

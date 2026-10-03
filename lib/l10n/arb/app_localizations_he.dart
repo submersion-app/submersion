@@ -3905,6 +3905,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_gear_removePart => 'הסרת חלק';
 
   @override
+  String diveLog_gear_alsoOnDive(String diver, String time) {
+    return 'גם בצלילה של $diver, $time';
+  }
+
+  @override
   String get diveLog_gear_removeSet => 'הסרת הסט מהצלילה הזו';
 
   @override
@@ -30851,6 +30856,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'מקורות סותרים';
 
   @override
+  String get dataQuality_detector_shared_gear_overlap =>
+      'ציוד משותף בצלילות חופפות';
+
+  @override
   String dataQuality_msg_clock_future(String date) {
     return 'הצלילה מתוארכת לעתיד ($date)';
   }
@@ -30868,6 +30877,28 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'חופפת לצלילה אחרת ב-$minutes דק׳';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap(
+    String item,
+    String diverA,
+    String timeA,
+    String diverB,
+    String timeB,
+  ) {
+    return '$item נמצא בצלילה של $diverA ב-$timeA ובצלילה של $diverB ב-$timeB.';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap_parts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'כולל $count חלקים מותקנים.',
+      one: 'כולל חלק מותקן $count.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42424,6 +42455,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_assignTransmitter => 'שיוך משדר';
+
+  @override
+  String dataQuality_repairLabel_removeGearFromDive(String diver) {
+    return 'הסרה מהצלילה של $diver';
+  }
 
   @override
   String get backup_unrecognized_appBar_title => 'גיבויים לא מזוהים';

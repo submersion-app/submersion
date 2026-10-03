@@ -3791,6 +3791,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_gear_removePart => '移除部件';
 
   @override
+  String diveLog_gear_alsoOnDive(String diver, String time) {
+    return '也在 $diver 的潜水中，$time';
+  }
+
+  @override
   String get diveLog_gear_removeSet => '从本次潜水移除套装';
 
   @override
@@ -29928,6 +29933,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_detector_source_conflict => '来源冲突';
 
   @override
+  String get dataQuality_detector_shared_gear_overlap => '重叠潜水中的共享装备';
+
+  @override
   String dataQuality_msg_clock_future(String date) {
     return '潜水日期在未来（$date）';
   }
@@ -29945,6 +29953,27 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return '与另一次潜水重叠 $minutes 分钟';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap(
+    String item,
+    String diverA,
+    String timeA,
+    String diverB,
+    String timeB,
+  ) {
+    return '$item 同时出现在 $diverA 于 $timeA 的潜水和 $diverB 于 $timeB 的潜水中。';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap_parts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '包括 $count 个已安装部件。',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -40728,6 +40757,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_assignTransmitter => '分配发射器';
+
+  @override
+  String dataQuality_repairLabel_removeGearFromDive(String diver) {
+    return '从 $diver 的潜水中移除';
+  }
 
   @override
   String get backup_unrecognized_appBar_title => '无法识别的备份';

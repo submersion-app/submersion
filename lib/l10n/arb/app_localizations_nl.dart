@@ -3970,6 +3970,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_gear_removePart => 'Onderdeel verwijderen';
 
   @override
+  String diveLog_gear_alsoOnDive(String diver, String time) {
+    return 'Ook bij de duik van $diver, $time';
+  }
+
+  @override
   String get diveLog_gear_removeSet => 'Set van deze duik verwijderen';
 
   @override
@@ -31379,6 +31384,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'Tegenstrijdige bronnen';
 
   @override
+  String get dataQuality_detector_shared_gear_overlap =>
+      'Gedeelde uitrusting bij overlappende duiken';
+
+  @override
   String dataQuality_msg_clock_future(String date) {
     return 'De duik is gedateerd in de toekomst ($date)';
   }
@@ -31396,6 +31405,28 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'Overlapt een andere duik met $minutes min';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap(
+    String item,
+    String diverA,
+    String timeA,
+    String diverB,
+    String timeB,
+  ) {
+    return '$item zit bij de duik van $diverA om $timeA en bij de duik van $diverB om $timeB.';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap_parts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Met $count ingebouwde onderdelen.',
+      one: 'Met $count ingebouwd onderdeel.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -43008,6 +43039,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_assignTransmitter => 'Zender toewijzen';
+
+  @override
+  String dataQuality_repairLabel_removeGearFromDive(String diver) {
+    return 'Verwijderen uit de duik van $diver';
+  }
 
   @override
   String get backup_unrecognized_appBar_title => 'Niet-herkende back-ups';

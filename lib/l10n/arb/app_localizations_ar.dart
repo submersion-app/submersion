@@ -3921,6 +3921,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_gear_removePart => 'إزالة الجزء';
 
   @override
+  String diveLog_gear_alsoOnDive(String diver, String time) {
+    return 'موجودة أيضًا في غطسة $diver، $time';
+  }
+
+  @override
   String get diveLog_gear_removeSet => 'إزالة الطقم من هذه الغطسة';
 
   @override
@@ -31204,6 +31209,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'مصادر متعارضة';
 
   @override
+  String get dataQuality_detector_shared_gear_overlap =>
+      'معدات مشتركة في غطسات متداخلة';
+
+  @override
   String dataQuality_msg_clock_future(String date) {
     return 'تاريخ الغوصة في المستقبل ($date)';
   }
@@ -31221,6 +31230,28 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'تتداخل مع غوصة أخرى بمقدار $minutes دقيقة';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap(
+    String item,
+    String diverA,
+    String timeA,
+    String diverB,
+    String timeB,
+  ) {
+    return '$item موجودة في غطسة $diverA عند $timeA وفي غطسة $diverB عند $timeB.';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap_parts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تشمل $count قطع مركّبة.',
+      one: 'تشمل $count قطعة مركّبة.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42960,6 +42991,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_assignTransmitter => 'تعيين جهاز إرسال';
+
+  @override
+  String dataQuality_repairLabel_removeGearFromDive(String diver) {
+    return 'إزالة من غطسة $diver';
+  }
 
   @override
   String get backup_unrecognized_appBar_title => 'نسخ احتياطية غير معروفة';

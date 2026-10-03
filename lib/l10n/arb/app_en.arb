@@ -2471,6 +2471,20 @@
   "diveLog_gear_expand": "Show parts",
   "diveLog_gear_removeAssembly": "Remove assembly and its parts",
   "diveLog_gear_removePart": "Remove part",
+  "diveLog_gear_alsoOnDive": "Also on {diver}'s dive, {time}",
+  "@diveLog_gear_alsoOnDive": {
+    "description": "Note under a gear row while editing a dive: the item is also on another profile's overlapping dive.",
+    "placeholders": {
+      "diver": {
+        "type": "String",
+        "example": "Anna"
+      },
+      "time": {
+        "type": "String",
+        "example": "10:02"
+      }
+    }
+  },
   "diveLog_gear_removeSet": "Remove set from this dive",
   "diveLog_gear_unknownSet": "Set",
   "diveLog_listPage_bottomSheet_preDiveChecklist": "Start pre-dive checklist",
@@ -20141,6 +20155,7 @@
   "dataQuality_detector_gas_mod": "Gas/MOD inconsistency",
   "dataQuality_detector_tank_assignment": "Wrong cylinder",
   "dataQuality_detector_source_conflict": "Conflicting sources",
+  "dataQuality_detector_shared_gear_overlap": "Shared gear on overlapping dives",
   "dataQuality_msg_clock_future": "Dive is dated in the future ({date})",
   "@dataQuality_msg_clock_future": {
     "placeholders": {
@@ -20170,6 +20185,42 @@
     "placeholders": {
       "minutes": {
         "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_shared_gear_overlap": "{item} is on {diverA}'s dive at {timeA} and {diverB}'s dive at {timeB}.",
+  "@dataQuality_msg_shared_gear_overlap": {
+    "description": "Data quality finding: the same item is on two different profiles' dives at the same time (issue #2853).",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "Primary light"
+      },
+      "diverA": {
+        "type": "String",
+        "example": "Anna"
+      },
+      "timeA": {
+        "type": "String",
+        "example": "10:02"
+      },
+      "diverB": {
+        "type": "String",
+        "example": "Bill"
+      },
+      "timeB": {
+        "type": "String",
+        "example": "10:05"
+      }
+    }
+  },
+  "dataQuality_msg_shared_gear_overlap_parts": "{count, plural, one{Includes {count} installed part.} other{Includes {count} installed parts.}}",
+  "@dataQuality_msg_shared_gear_overlap_parts": {
+    "description": "Appended to the shared gear finding when the item has installed parts or components that are also on both dives.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
       }
     }
   },
@@ -26449,6 +26500,16 @@
     }
   },
   "dataQuality_repairLabel_assignTransmitter": "Assign transmitter",
+  "dataQuality_repairLabel_removeGearFromDive": "Remove from {diver}'s dive",
+  "@dataQuality_repairLabel_removeGearFromDive": {
+    "description": "Repair button: remove the shared item from one profile's dive.",
+    "placeholders": {
+      "diver": {
+        "type": "String",
+        "example": "Anna"
+      }
+    }
+  },
   "backup_unrecognized_appBar_title": "Unrecognized Backups",
   "backup_unrecognized_explanation": "These files are in your backups folder but not in this device's backup history. Only a file this device wrote can be deleted here: anything else may be another device's only copy.",
   "backup_unrecognized_empty": "No unrecognized backup files.",

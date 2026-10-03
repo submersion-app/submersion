@@ -3932,6 +3932,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_gear_removePart => 'Remove part';
 
   @override
+  String diveLog_gear_alsoOnDive(String diver, String time) {
+    return 'Also on $diver\'s dive, $time';
+  }
+
+  @override
   String get diveLog_gear_removeSet => 'Remove set from this dive';
 
   @override
@@ -31105,6 +31110,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'Conflicting sources';
 
   @override
+  String get dataQuality_detector_shared_gear_overlap =>
+      'Shared gear on overlapping dives';
+
+  @override
   String dataQuality_msg_clock_future(String date) {
     return 'Dive is dated in the future ($date)';
   }
@@ -31122,6 +31131,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'Overlaps another dive by $minutes min';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap(
+    String item,
+    String diverA,
+    String timeA,
+    String diverB,
+    String timeB,
+  ) {
+    return '$item is on $diverA\'s dive at $timeA and $diverB\'s dive at $timeB.';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap_parts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Includes $count installed parts.',
+      one: 'Includes $count installed part.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42646,6 +42677,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_assignTransmitter => 'Assign transmitter';
+
+  @override
+  String dataQuality_repairLabel_removeGearFromDive(String diver) {
+    return 'Remove from $diver\'s dive';
+  }
 
   @override
   String get backup_unrecognized_appBar_title => 'Unrecognized Backups';

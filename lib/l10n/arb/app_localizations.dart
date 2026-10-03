@@ -6306,6 +6306,12 @@ abstract class AppLocalizations {
   /// **'Remove part'**
   String get diveLog_gear_removePart;
 
+  /// Note under a gear row while editing a dive: the item is also on another profile's overlapping dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Also on {diver}\'s dive, {time}'**
+  String diveLog_gear_alsoOnDive(String diver, String time);
+
   /// No description provided for @diveLog_gear_removeSet.
   ///
   /// In en, this message translates to:
@@ -49978,6 +49984,12 @@ abstract class AppLocalizations {
   /// **'Conflicting sources'**
   String get dataQuality_detector_source_conflict;
 
+  /// No description provided for @dataQuality_detector_shared_gear_overlap.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared gear on overlapping dives'**
+  String get dataQuality_detector_shared_gear_overlap;
+
   /// No description provided for @dataQuality_msg_clock_future.
   ///
   /// In en, this message translates to:
@@ -50001,6 +50013,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Overlaps another dive by {minutes} min'**
   String dataQuality_msg_clock_overlap(int minutes);
+
+  /// Data quality finding: the same item is on two different profiles' dives at the same time (issue #2853).
+  ///
+  /// In en, this message translates to:
+  /// **'{item} is on {diverA}\'s dive at {timeA} and {diverB}\'s dive at {timeB}.'**
+  String dataQuality_msg_shared_gear_overlap(
+    String item,
+    String diverA,
+    String timeA,
+    String diverB,
+    String timeB,
+  );
+
+  /// Appended to the shared gear finding when the item has installed parts or components that are also on both dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Includes {count} installed part.} other{Includes {count} installed parts.}}'**
+  String dataQuality_msg_shared_gear_overlap_parts(int count);
 
   /// No description provided for @dataQuality_msg_duplicate.
   ///
@@ -68621,6 +68651,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Assign transmitter'**
   String get dataQuality_repairLabel_assignTransmitter;
+
+  /// Repair button: remove the shared item from one profile's dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from {diver}\'s dive'**
+  String dataQuality_repairLabel_removeGearFromDive(String diver);
 
   /// No description provided for @backup_unrecognized_appBar_title.
   ///

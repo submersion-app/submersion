@@ -3997,6 +3997,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_gear_removePart => 'Quitar pieza';
 
   @override
+  String diveLog_gear_alsoOnDive(String diver, String time) {
+    return 'También en la inmersión de $diver, $time';
+  }
+
+  @override
   String get diveLog_gear_removeSet => 'Quitar el equipo de esta inmersión';
 
   @override
@@ -31622,6 +31627,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'Fuentes en conflicto';
 
   @override
+  String get dataQuality_detector_shared_gear_overlap =>
+      'Equipo compartido en inmersiones solapadas';
+
+  @override
   String dataQuality_msg_clock_future(String date) {
     return 'La inmersión tiene fecha en el futuro ($date)';
   }
@@ -31639,6 +31648,28 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'Se solapa con otra inmersión durante $minutes min';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap(
+    String item,
+    String diverA,
+    String timeA,
+    String diverB,
+    String timeB,
+  ) {
+    return '$item está en la inmersión de $diverA a las $timeA y en la de $diverB a las $timeB.';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap_parts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Incluye $count piezas instaladas.',
+      one: 'Incluye $count pieza instalada.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -43328,6 +43359,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_assignTransmitter => 'Asignar transmisor';
+
+  @override
+  String dataQuality_repairLabel_removeGearFromDive(String diver) {
+    return 'Quitar de la inmersión de $diver';
+  }
 
   @override
   String get backup_unrecognized_appBar_title =>

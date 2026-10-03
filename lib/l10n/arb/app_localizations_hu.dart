@@ -3987,6 +3987,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_gear_removePart => 'Rész eltávolítása';
 
   @override
+  String diveLog_gear_alsoOnDive(String diver, String time) {
+    return '$diver merülésén is szerepel, $time';
+  }
+
+  @override
   String get diveLog_gear_removeSet =>
       'Készlet eltávolítása erről a merülésről';
 
@@ -31462,6 +31467,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_detector_source_conflict => 'Ütköző források';
 
   @override
+  String get dataQuality_detector_shared_gear_overlap =>
+      'Közös felszerelés átfedő merüléseken';
+
+  @override
   String dataQuality_msg_clock_future(String date) {
     return 'A merülés dátuma a jövőben van ($date)';
   }
@@ -31479,6 +31488,28 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return '$minutes perccel átfed egy másik merülést';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap(
+    String item,
+    String diverA,
+    String timeA,
+    String diverB,
+    String timeB,
+  ) {
+    return '$item szerepel $diverA merülésén ($timeA) és $diverB merülésén ($timeB) is.';
+  }
+
+  @override
+  String dataQuality_msg_shared_gear_overlap_parts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count beépített résszel.',
+      one: '$count beépített résszel.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -43098,6 +43129,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_assignTransmitter =>
       'Jeladó hozzárendelése';
+
+  @override
+  String dataQuality_repairLabel_removeGearFromDive(String diver) {
+    return 'Eltávolítás $diver merüléséből';
+  }
 
   @override
   String get backup_unrecognized_appBar_title =>
