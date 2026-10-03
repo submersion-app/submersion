@@ -80,8 +80,8 @@ void main() {
     tester,
   ) async {
     await _pump(tester);
-    final date = UnitFormatter(
-      const AppSettings(),
+    final date = const UnitFormatter(
+      AppSettings(),
     ).formatMonthDay(DateTime(2026, 3, 8));
     expect(find.text('Day 2 · $date'), findsOneWidget);
     expect(find.byType(FlutterMap), findsOneWidget);
