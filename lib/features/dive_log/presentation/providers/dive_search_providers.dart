@@ -1,9 +1,13 @@
+import 'package:flutter/widgets.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/save_query_flow.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// How long typing rests before the dive list re-runs the search (#2773).
@@ -61,3 +65,19 @@ final diveJumpResultsProvider = FutureProvider.autoDispose
         return const <DiveSummary>[];
       }
     });
+
+/// Saves the whole dive search (#2773, spec 5.4) as one saved query under a
+/// name the diver gives; a provider so tests can stand in for the dialog
+/// and the repository.
+final diveSearchSaverProvider =
+    Provider<
+      Future<void> Function(BuildContext context, WidgetRef ref, QueryNode node)
+    >(
+      (ref) =>
+          (context, widgetRef, node) => saveQueryFromEditor(
+            context,
+            widgetRef,
+            subject: QuerySubject.dives,
+            node: node,
+          ),
+    );

@@ -10,6 +10,8 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_text_field.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/core/query/presentation/query_tree_edit.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_ask_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -37,6 +39,7 @@ const kDiveSearchFieldKey = ValueKey('dive-search-field');
 const kDiveSearchRefineKey = ValueKey('dive-search-refine');
 const kDiveSearchCloseKey = ValueKey('dive-search-close');
 const kDiveSearchInsightsKey = ValueKey('dive-search-insights');
+const kDiveSearchSaveKey = ValueKey('dive-search-save');
 
 /// The dive list's one search row (#2773): plain words, quoted phrases and
 /// query syntax in one field, filtering the list as the diver types. It
@@ -377,6 +380,19 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                       ),
                     ),
                   ),
+                  // The whole search as one saved query; under All dives,
+                  // what applies is the typed query alone (toQuery()).
+                  if (normalizeQuery(filter.toQuery()) case final whole?)
+                    IconButton(
+                      key: kDiveSearchSaveKey,
+                      tooltip: l10n.common_action_save,
+                      icon: const Icon(Icons.bookmark_add_outlined),
+                      onPressed: () => ref.read(diveSearchSaverProvider)(
+                        context,
+                        ref,
+                        whole,
+                      ),
+                    ),
                   // An icon on narrow layouts, so the chips keep the row.
                   if (constraints.maxWidth < 600)
                     IconButton(

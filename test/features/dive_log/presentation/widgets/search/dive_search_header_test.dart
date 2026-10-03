@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/core/query/presentation/query_tree_edit.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
@@ -31,6 +33,7 @@ void main() {
     ValueChanged<DiveSummary>? onOpenDive,
     double? width,
     Future<List<DiveSummary>> Function(QueryNode query)? jumpFor,
+    void Function(QueryNode node)? saveOverride,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -44,6 +47,10 @@ void main() {
           diveJumpResultsProvider.overrideWith(
             (ref, q) => jumpFor != null ? jumpFor(q) : Future.value(jump),
           ),
+          if (saveOverride != null)
+            diveSearchSaverProvider.overrideWithValue(
+              (context, ref, node) async => saveOverride(node),
+            ),
         ],
         child: Builder(
           builder: (context) {
@@ -351,6 +358,32 @@ void main() {
     expect(filterOf(), const DiveFilterState());
     expect(fieldOf(tester).controller!.text, isEmpty);
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('Save stores the whole search as one query', (tester) async {
+    QueryNode? saved;
+    await pumpHeader(
+      tester,
+      filter: DiveFilterState(minDepth: 30, query: TextNode(['manta'])),
+      saveOverride: (node) => saved = node,
+    );
+    await tester.tap(find.byKey(kDiveSearchSaveKey));
+    await tester.pumpAndSettle();
+    expect(
+      saved,
+      normalizeQuery(
+        DiveFilterState(minDepth: 30, query: TextNode(['manta'])).toQuery(),
+      ),
+    );
+  });
+
+  // Review Focus 5.
+  testWidgets('no Save under All dives with nothing typed', (tester) async {
+    await pumpHeader(
+      tester,
+      filter: const DiveFilterState(minDepth: 30, axesSuspended: true),
+    );
+    expect(find.byKey(kDiveSearchSaveKey), findsNothing);
   });
 
   // Review finding: the jump list ran a full-log query per keystroke.
