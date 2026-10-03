@@ -1457,6 +1457,19 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mappa del viaggio. I siti del giorno visibile sono evidenziati.';
 
   @override
+  String trips_story_dayMap_semantics(int number) {
+    return 'Mappa del giorno $number';
+  }
+
+  @override
+  String get trips_story_dayMap_expand => 'Mostra la mappa a schermo intero';
+
+  @override
+  String trips_story_dayMap_divePin(int number) {
+    return 'Immersione $number';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Modalità e rebreather';
 
   @override

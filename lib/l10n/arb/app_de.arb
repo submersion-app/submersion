@@ -370,6 +370,23 @@
   "trips_story_history_avgDepth": "Ø Tiefe {value}",
   "trips_story_rhythm_semantics": "Tauchzeiten an diesem Tag",
   "trips_story_map_semantics": "Reisekarte. Die Tauchplätze des sichtbaren Tages sind hervorgehoben.",
+  "trips_story_dayMap_semantics": "Karte von Tag {number}",
+  "@trips_story_dayMap_semantics": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_story_dayMap_expand": "Karte im Vollbild anzeigen",
+  "trips_story_dayMap_divePin": "Tauchgang {number}",
+  "@trips_story_dayMap_divePin": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_bulkEdit_groupRebreather": "Tauchmodus & Kreislaufgerät",
   "diveLog_bulkEdit_fieldSetpointLow": "Sollwert niedrig",
   "diveLog_bulkEdit_fieldSetpointHigh": "Sollwert hoch",

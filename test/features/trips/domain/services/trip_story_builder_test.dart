@@ -286,7 +286,7 @@ void main() {
   });
 
   group('buildTripStory map geometry', () {
-    test('collects unique day site points and itinerary ports in order', () {
+    test('collects one point per dive and the itinerary port, in order', () {
       const site = DiveSite(
         id: 'site-a',
         name: 'Blue Corner',
@@ -317,11 +317,18 @@ void main() {
         checklistItems: [],
         today: DateTime(2026, 6, 1),
       );
-      expect(story.mapGeometry.points, hasLength(2));
-      expect(story.mapGeometry.points[0].label, 'Kralendijk');
-      expect(story.mapGeometry.points[0].dayIndex, 0);
-      expect(story.mapGeometry.points[1].siteId, 'site-a');
-      expect(story.mapGeometry.points[1].dayIndex, 1);
+      final points = story.mapGeometry.points;
+      expect(points, hasLength(3));
+      expect(points[0].label, 'Kralendijk');
+      expect(points[0].dayIndex, 0);
+      expect(points[0].isDive, isFalse);
+      // One pin per dive, numbered like the day card's rows.
+      expect(points[1].diveId, 'd1');
+      expect(points[1].diveNumber, 1);
+      expect(points[1].siteId, 'site-a');
+      expect(points[2].diveId, 'd2');
+      expect(points[2].diveNumber, 2);
+      expect(points[2].dayIndex, 1);
     });
 
     test('includes liveaboard embark/disembark ports as route endpoints', () {

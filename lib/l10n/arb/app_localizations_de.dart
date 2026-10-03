@@ -1451,6 +1451,19 @@ class AppLocalizationsDe extends AppLocalizations {
       'Reisekarte. Die Tauchplätze des sichtbaren Tages sind hervorgehoben.';
 
   @override
+  String trips_story_dayMap_semantics(int number) {
+    return 'Karte von Tag $number';
+  }
+
+  @override
+  String get trips_story_dayMap_expand => 'Karte im Vollbild anzeigen';
+
+  @override
+  String trips_story_dayMap_divePin(int number) {
+    return 'Tauchgang $number';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Tauchmodus & Kreislaufgerät';
 
   @override

@@ -1440,6 +1440,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Trip map. Sites for the day in view are highlighted.';
 
   @override
+  String trips_story_dayMap_semantics(int number) {
+    return 'Map of day $number';
+  }
+
+  @override
+  String get trips_story_dayMap_expand => 'View fullscreen map';
+
+  @override
+  String trips_story_dayMap_divePin(int number) {
+    return 'Dive $number';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Dive Mode & Rebreather';
 
   @override

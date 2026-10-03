@@ -164,7 +164,8 @@ class TripStoryDayWeather extends Equatable {
   List<Object?> get props => [airTemp, cloudCover, precipitation];
 }
 
-/// A mappable point contributed by a story day (dive site or itinerary port).
+/// A mappable point contributed by a story day: an itinerary location, or
+/// one dive at a site (one point per dive, so a pin can name a dive).
 class TripStoryMapPoint extends Equatable {
   final double latitude;
   final double longitude;
@@ -172,16 +173,35 @@ class TripStoryMapPoint extends Equatable {
   final String? siteId;
   final String label;
 
+  /// The dive this point stands for; null for an itinerary location.
+  final String? diveId;
+
+  /// The number the day card shows for that dive (its logged number, else
+  /// its position in the day), so the pin and the row read the same.
+  final int? diveNumber;
+
   const TripStoryMapPoint({
     required this.latitude,
     required this.longitude,
     required this.dayIndex,
     required this.label,
     this.siteId,
+    this.diveId,
+    this.diveNumber,
   });
 
+  bool get isDive => diveId != null;
+
   @override
-  List<Object?> get props => [latitude, longitude, dayIndex, siteId, label];
+  List<Object?> get props => [
+    latitude,
+    longitude,
+    dayIndex,
+    siteId,
+    label,
+    diveId,
+    diveNumber,
+  ];
 }
 
 /// Precomputed map geometry for the whole story, in day order. The point

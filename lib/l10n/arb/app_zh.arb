@@ -359,6 +359,23 @@
   "trips_story_history_avgDepth": "平均深度 {value}",
   "trips_story_rhythm_semantics": "当天的潜水时间",
   "trips_story_map_semantics": "旅行地图。当前日期的潜点已高亮。",
+  "trips_story_dayMap_semantics": "第 {number} 天地图",
+  "@trips_story_dayMap_semantics": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_story_dayMap_expand": "全屏查看地图",
+  "trips_story_dayMap_divePin": "第 {number} 次潜水",
+  "@trips_story_dayMap_divePin": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_bulkEdit_groupRebreather": "潜水模式与循环呼吸器",
   "diveLog_bulkEdit_fieldSetpointLow": "低设定点",
   "diveLog_bulkEdit_fieldSetpointHigh": "高设定点",

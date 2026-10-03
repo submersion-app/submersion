@@ -1445,6 +1445,19 @@ class AppLocalizationsNl extends AppLocalizations {
       'Reiskaart. De stekken van de zichtbare dag zijn gemarkeerd.';
 
   @override
+  String trips_story_dayMap_semantics(int number) {
+    return 'Kaart van dag $number';
+  }
+
+  @override
+  String get trips_story_dayMap_expand => 'Kaart op volledig scherm';
+
+  @override
+  String trips_story_dayMap_divePin(int number) {
+    return 'Duik $number';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Duikmodus & rebreather';
 
   @override

@@ -1431,6 +1431,19 @@ class AppLocalizationsAr extends AppLocalizations {
       'خريطة الرحلة. مواقع اليوم المعروض مميزة.';
 
   @override
+  String trips_story_dayMap_semantics(int number) {
+    return 'خريطة اليوم $number';
+  }
+
+  @override
+  String get trips_story_dayMap_expand => 'عرض الخريطة بملء الشاشة';
+
+  @override
+  String trips_story_dayMap_divePin(int number) {
+    return 'غوصة $number';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'وضع الغوص وجهاز التنفس';
 
   @override

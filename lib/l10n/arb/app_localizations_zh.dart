@@ -1399,6 +1399,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_story_map_semantics => '旅行地图。当前日期的潜点已高亮。';
 
   @override
+  String trips_story_dayMap_semantics(int number) {
+    return '第 $number 天地图';
+  }
+
+  @override
+  String get trips_story_dayMap_expand => '全屏查看地图';
+
+  @override
+  String trips_story_dayMap_divePin(int number) {
+    return '第 $number 次潜水';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => '潜水模式与循环呼吸器';
 
   @override

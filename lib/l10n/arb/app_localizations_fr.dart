@@ -1459,6 +1459,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Carte du voyage. Les sites du jour affiché sont mis en évidence.';
 
   @override
+  String trips_story_dayMap_semantics(int number) {
+    return 'Carte du jour $number';
+  }
+
+  @override
+  String get trips_story_dayMap_expand => 'Afficher la carte en plein écran';
+
+  @override
+  String trips_story_dayMap_divePin(int number) {
+    return 'Plongée $number';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Mode de plongée et recycleur';
 
   @override

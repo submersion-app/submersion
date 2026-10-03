@@ -359,6 +359,23 @@
   "trips_story_history_avgDepth": "עומק ממוצע {value}",
   "trips_story_rhythm_semantics": "זמני הצלילה ביום זה",
   "trips_story_map_semantics": "מפת הטיול. אתרי היום המוצג מודגשים.",
+  "trips_story_dayMap_semantics": "מפת יום {number}",
+  "@trips_story_dayMap_semantics": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_story_dayMap_expand": "הצגת מפה במסך מלא",
+  "trips_story_dayMap_divePin": "צלילה {number}",
+  "@trips_story_dayMap_divePin": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_bulkEdit_groupRebreather": "מצב צלילה וריבריא'תר",
   "diveLog_bulkEdit_fieldSetpointLow": "ערך יעד נמוך",
   "diveLog_bulkEdit_fieldSetpointHigh": "ערך יעד גבוה",

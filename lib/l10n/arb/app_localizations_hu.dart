@@ -1453,6 +1453,19 @@ class AppLocalizationsHu extends AppLocalizations {
       'Úti térkép. A látható nap helyszínei kiemelve.';
 
   @override
+  String trips_story_dayMap_semantics(int number) {
+    return '$number. nap térképe';
+  }
+
+  @override
+  String get trips_story_dayMap_expand => 'Térkép teljes képernyőn';
+
+  @override
+  String trips_story_dayMap_divePin(int number) {
+    return '$number. merülés';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'Merülési mód és rebreather';
 
   @override

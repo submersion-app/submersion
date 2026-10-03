@@ -1434,6 +1434,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_map_semantics => 'מפת הטיול. אתרי היום המוצג מודגשים.';
 
   @override
+  String trips_story_dayMap_semantics(int number) {
+    return 'מפת יום $number';
+  }
+
+  @override
+  String get trips_story_dayMap_expand => 'הצגת מפה במסך מלא';
+
+  @override
+  String trips_story_dayMap_divePin(int number) {
+    return 'צלילה $number';
+  }
+
+  @override
   String get diveLog_bulkEdit_groupRebreather => 'מצב צלילה וריבריא\'תר';
 
   @override

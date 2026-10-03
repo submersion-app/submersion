@@ -359,6 +359,23 @@
   "trips_story_history_avgDepth": "متوسط العمق {value}",
   "trips_story_rhythm_semantics": "أوقات الغطس في هذا اليوم",
   "trips_story_map_semantics": "خريطة الرحلة. مواقع اليوم المعروض مميزة.",
+  "trips_story_dayMap_semantics": "خريطة اليوم {number}",
+  "@trips_story_dayMap_semantics": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_story_dayMap_expand": "عرض الخريطة بملء الشاشة",
+  "trips_story_dayMap_divePin": "غوصة {number}",
+  "@trips_story_dayMap_divePin": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_bulkEdit_groupRebreather": "وضع الغوص وجهاز التنفس",
   "diveLog_bulkEdit_fieldSetpointLow": "النقطة المحددة المنخفضة",
   "diveLog_bulkEdit_fieldSetpointHigh": "النقطة المحددة العالية",

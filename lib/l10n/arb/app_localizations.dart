@@ -2245,6 +2245,24 @@ abstract class AppLocalizations {
   /// **'Trip map. Sites for the day in view are highlighted.'**
   String get trips_story_map_semantics;
 
+  /// No description provided for @trips_story_dayMap_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Map of day {number}'**
+  String trips_story_dayMap_semantics(int number);
+
+  /// No description provided for @trips_story_dayMap_expand.
+  ///
+  /// In en, this message translates to:
+  /// **'View fullscreen map'**
+  String get trips_story_dayMap_expand;
+
+  /// No description provided for @trips_story_dayMap_divePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {number}'**
+  String trips_story_dayMap_divePin(int number);
+
   /// No description provided for @diveLog_bulkEdit_groupRebreather.
   ///
   /// In en, this message translates to:

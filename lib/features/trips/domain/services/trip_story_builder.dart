@@ -158,7 +158,7 @@ TripStory buildTripStory({
       ),
     );
 
-    // Map geometry: itinerary port first, then unique dive sites in order.
+    // Map geometry: itinerary location first, then one point per dive.
     if (itineraryDay != null && itineraryDay.hasCoordinates) {
       mapPoints.add(
         TripStoryMapPoint(
@@ -169,12 +169,12 @@ TripStory buildTripStory({
         ),
       );
     }
-    final seenSiteIds = <String>{};
-    for (final dive in dayDives) {
+    // One point per dive with a located site, numbered as the day card
+    // numbers its rows, so a pin on the day map names one dive.
+    for (final (index, dive) in dayDives.indexed) {
       final site = dive.site;
       final location = site?.location;
       if (site == null || location == null) continue;
-      if (!seenSiteIds.add(site.id)) continue;
       mapPoints.add(
         TripStoryMapPoint(
           latitude: location.latitude,
@@ -182,6 +182,8 @@ TripStory buildTripStory({
           dayIndex: i,
           siteId: site.id,
           label: site.name,
+          diveId: dive.id,
+          diveNumber: dive.diveNumber ?? index + 1,
         ),
       );
     }
