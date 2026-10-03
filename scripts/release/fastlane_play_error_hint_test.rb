@@ -138,6 +138,10 @@ check(hint.match?(/Publishing overview/i),
       'the not-sent-for-review hint does not say where the pending changes are')
 check(hint.match?(/send .*for review/i), 'the not-sent-for-review hint does not say to send them for review')
 check(hint.match?(/re-?run/i), 'the not-sent-for-review hint does not say a re-run then succeeds')
+# The same wrapper serves mirror_beta, whose build upload_beta has already
+# committed: re-running that job repeats the upload into a reused version code.
+check(hint.match?(/closed-track copy/i),
+      'the not-sent-for-review hint does not warn that a refused copy must not be re-run')
 
 # Anything else must get no hint: a wrong hint sends the reader the wrong way.
 [
@@ -229,6 +233,13 @@ check($upload_params[:rescue_changes_not_sent_for_review] == false,
 check(!$upload_params.key?(:changes_not_sent_for_review) || $upload_params[:changes_not_sent_for_review] == false,
       'the wrapper commits edits as not sent for review')
 
+# A draft is never sent for review, and the stable release (release.yml's
+# `upload` lane) is finished by hand in the Console, so supply keeps parking it
+# there rather than failing the release over an unrelated pending change.
+upload_to_play_with_hint(track: 'internal', release_status: 'draft')
+check(!$upload_params.key?(:rescue_changes_not_sent_for_review),
+      'a draft upload lost supply\'s not-sent-for-review rescue')
+
 with_env('GITHUB_ACTIONS' => 'true') do
   stdout = capture_stdout { raised = call_wrapper(FakePlayError.new(NOT_SENT_FOR_REVIEW_ERROR)) }
 end
@@ -287,6 +298,15 @@ $upload_error = nil
   with_env('GITHUB_ACTIONS' => nil, 'PLAY_BETA_TRACK' => nil, 'PLAY_BETA_MIRROR_TRACK' => nil) { run.call }
   check($upload_params.is_a?(Hash) && $upload_params[:rescue_changes_not_sent_for_review] == false,
         "the #{name} lane can commit a release that was never sent for review")
+end
+
+if LANES.key?(:upload)
+  $upload_params = nil
+  LANES[:upload].call
+  check($upload_params.is_a?(Hash) && !$upload_params.key?(:rescue_changes_not_sent_for_review),
+        'the upload lane (stable releases, a draft) fails on a pending Console change it never sends')
+else
+  check(false, 'the android Fastfile no longer defines an upload lane to check')
 end
 
 # --- Report -----------------------------------------------------------------
