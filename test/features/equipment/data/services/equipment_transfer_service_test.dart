@@ -242,4 +242,37 @@ void main() {
     expect(await events('light'), isEmpty);
     expect(await db.select(db.equipmentShares).get(), isEmpty);
   });
+
+  test(
+    "a transfer hands the old owner's fills on its cylinders to the new owner",
+    () async {
+      await addItem('tank', 'bill');
+      const t = 1000;
+      await db
+          .into(db.cylinderFills)
+          .insert(
+            CylinderFillsCompanion.insert(
+              id: 'fill1',
+              passportId: 'pp1',
+              filledAt: t,
+              o2Percent: 32,
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value('bill'),
+              equipmentId: const Value('tank'),
+            ),
+          );
+      await service.transfer(
+        equipmentIds: ['tank'],
+        toDiverId: 'anna',
+        actingDiverId: 'bill',
+        keepAccess: false,
+      );
+      final fill = await (db.select(
+        db.cylinderFills,
+      )..where((f) => f.id.equals('fill1'))).getSingle();
+      expect(fill.diverId, 'anna');
+      expect(await pending('cylinderFills'), {'fill1'});
+    },
+  );
 }

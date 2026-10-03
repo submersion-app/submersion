@@ -68,12 +68,13 @@ class EquipmentTransferService {
     );
   }
 
-  /// Hands [fromDiverId]'s fills on [unit]'s cylinders to [toDiverId], for a
-  /// profile delete: fills follow the cylinder (`equipment_id`), but the
-  /// delete removes every fill its profile logged (`diver_id`), so a kept
-  /// cylinder would arrive without its fill log. Runs inside the caller's
+  /// Hands [fromDiverId]'s fills on [unit]'s cylinders to [toDiverId] with
+  /// the cylinders: fills follow the cylinder (`equipment_id`), but a profile
+  /// delete removes every fill its profile logged (`diver_id`), so a fill
+  /// left under the old owner would vanish from the new owner's cylinder
+  /// once the old owner's profile is deleted. Runs inside the caller's
   /// transaction.
-  Future<void> handOverFillsInTransaction({
+  Future<void> _handOverFills({
     required Set<String> unit,
     required String fromDiverId,
     required String toDiverId,
@@ -277,6 +278,12 @@ class EquipmentTransferService {
         now,
       );
     }
+    await _handOverFills(
+      unit: unit,
+      fromDiverId: fromDiverId,
+      toDiverId: toDiverId,
+      now: now,
+    );
     final registry = moveRegistry
         ? await _moveRegistry(ids, from: fromDiverId, to: toDiverId, now: now)
         : const EquipmentTransferResult();

@@ -528,12 +528,6 @@ class DiverRepository {
             moveRegistry: true,
             now: handoverAt,
           );
-          await _equipmentTransfer.handOverFillsInTransaction(
-            unit: kept.unit,
-            fromDiverId: id,
-            toDiverId: kept.heirId,
-            now: handoverAt,
-          );
           keptEquipment += moved.itemsMoved;
           movedTransmitters.addAll(moved.movedTransmitterIds);
           if (!keptHeirIds.contains(kept.heirId)) keptHeirIds.add(kept.heirId);
