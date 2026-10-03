@@ -3,11 +3,15 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_json.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/text/fuzzy_match.dart' as fuzzy;
 import 'package:submersion/features/explore/domain/query_model.dart';
+
+const _log = LoggerService('RecentQueries');
 
 /// Whether a recent search was typed into the field or asked of the model.
 enum RecentQueryKind { typed, asked }
@@ -53,9 +57,34 @@ class RecentQueryRepository {
   static String keyFor(String sentence) =>
       fuzzy.normalize(sentence).replaceAll(RegExp(r'\s+'), ' ');
 
-  /// A typed search's key: prefixed, so the same words typed and asked are
-  /// two rows. Asked keys stay unprefixed, as the v18 rows have them.
-  static String typedKeyFor(String text) => 'typed:${keyFor(text)}';
+  /// A typed search's key: its tree with the ref labels left out, so a
+  /// rename does not split one search into two rows (the list prints the
+  /// current names), compared like a sentence (case, accents). Prefixed, so
+  /// it never meets an asked key; those stay as the v18 rows have them.
+  static String typedKeyFor(QueryNode node) =>
+      'typed:${keyFor(jsonEncode(queryNodeToJson(_withoutLabels(node))))}';
+
+  static QueryNode _withoutLabels(QueryNode node) => switch (node) {
+    AndNode(:final children) => AndNode(children.map(_withoutLabels).toList()),
+    OrNode(:final children) => OrNode(children.map(_withoutLabels).toList()),
+    NotNode(:final child) => NotNode(_withoutLabels(child)),
+    ScopedNode(:final path, :final inner) => ScopedNode(
+      path,
+      _withoutLabels(inner),
+    ),
+    ConditionNode(:final path, :final op, :final value) => ConditionNode(
+      path,
+      op,
+      switch (value) {
+        RefValue(:final id) => RefValue(id, ''),
+        ListValue(:final items) => ListValue([
+          for (final i in items) i is RefValue ? RefValue(i.id, '') : i,
+        ]),
+        _ => value,
+      },
+    ),
+    TextNode() => node,
+  };
 
   /// The diver's recent sentences in [locale], newest first.
   Future<List<RecentQuery>> list({
@@ -75,23 +104,20 @@ class RecentQueryRepository {
     final stale = <String>[];
     for (final r in rows) {
       if (r.kind == RecentQueryKind.typed.name) {
-        try {
+        final node = _readTyped(r.parsedJson);
+        if (node == null) {
+          stale.add(r.key);
+        } else {
           out.add(
             RecentQuery(
               sentence: r.sentence,
               locale: r.locale,
               parsed: null,
               kind: RecentQueryKind.typed,
-              node: queryNodeFromJson(
-                (jsonDecode(r.parsedJson) as Map).cast<String, Object?>(),
-              ),
+              node: node,
               lastUsedAt: DateTime.fromMillisecondsSinceEpoch(r.lastUsedAt),
             ),
           );
-        } on Object {
-          // A tree this build cannot read (bad JSON, an unknown node or
-          // value) is dropped, never shown.
-          stale.add(r.key);
         }
         continue;
       }
@@ -132,30 +158,36 @@ class RecentQueryRepository {
     return out;
   }
 
+  /// A typed row's tree, or null (logged) when this build cannot read it:
+  /// bad JSON, not an object, or an unknown node or value.
+  static QueryNode? _readTyped(String json) {
+    try {
+      final decoded = jsonDecode(json);
+      if (decoded is! Map) throw const FormatException('not an object');
+      return queryNodeFromJson(decoded.cast<String, Object?>());
+    } on QueryJsonException catch (e) {
+      _log.warning('Dropping a typed recent: ${e.message}');
+    } on FormatException catch (e) {
+      _log.warning('Dropping a typed recent: ${e.message}');
+    }
+    return null;
+  }
+
   Future<void> record(
     String sentence,
     String locale,
     ParsedQuery parsed, {
     required String diverId,
-  }) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    await _db
-        .into(_db.recentQueries)
-        .insertOnConflictUpdate(
-          RecentQueriesCompanion(
-            diverId: Value(diverId),
-            key: Value(keyFor(sentence)),
-            sentence: Value(sentence),
-            locale: Value(locale),
-            parsedJson: Value(jsonEncode(parsed.toJson())),
-            schemaVersion: Value(parsed.schemaVersion),
-            subject: Value(parsed.subject.name),
-            kind: Value(RecentQueryKind.asked.name),
-            lastUsedAt: Value(now),
-          ),
-        );
-    await _trim(diverId);
-  }
+  }) => _upsert(
+    diverId: diverId,
+    key: keyFor(sentence),
+    sentence: sentence,
+    locale: locale,
+    json: jsonEncode(parsed.toJson()),
+    schemaVersion: parsed.schemaVersion,
+    subject: parsed.subject.name,
+    kind: RecentQueryKind.asked,
+  );
 
   /// A query the diver typed and committed (#2773). Stored as its tree, so
   /// it prints in the diver's current units when shown.
@@ -164,21 +196,41 @@ class RecentQueryRepository {
     QueryNode node, {
     required String locale,
     required String diverId,
+  }) => _upsert(
+    diverId: diverId,
+    key: typedKeyFor(node),
+    sentence: text,
+    locale: locale,
+    json: jsonEncode(queryNodeToJson(node)),
+    schemaVersion: 0,
+    subject: 'dives',
+    kind: RecentQueryKind.typed,
+  );
+
+  /// Writes (or bumps) one row, then trims the diver's list.
+  Future<void> _upsert({
+    required String diverId,
+    required String key,
+    required String sentence,
+    required String locale,
+    required String json,
+    required int schemaVersion,
+    required String subject,
+    required RecentQueryKind kind,
   }) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
     await _db
         .into(_db.recentQueries)
         .insertOnConflictUpdate(
           RecentQueriesCompanion(
             diverId: Value(diverId),
-            key: Value(typedKeyFor(text)),
-            sentence: Value(text),
+            key: Value(key),
+            sentence: Value(sentence),
             locale: Value(locale),
-            parsedJson: Value(jsonEncode(queryNodeToJson(node))),
-            schemaVersion: const Value(0),
-            subject: const Value('dives'),
-            kind: Value(RecentQueryKind.typed.name),
-            lastUsedAt: Value(now),
+            parsedJson: Value(json),
+            schemaVersion: Value(schemaVersion),
+            subject: Value(subject),
+            kind: Value(kind.name),
+            lastUsedAt: Value(DateTime.now().millisecondsSinceEpoch),
           ),
         );
     await _trim(diverId);

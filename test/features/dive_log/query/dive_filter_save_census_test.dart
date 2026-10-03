@@ -137,7 +137,8 @@ void main() {
     ]);
     for (final MapEntry(key: name, value: filter) in samples.entries) {
       test('$name survives save and reload ($unitName)', () {
-        final saved = normalizeQuery(filter.toQuery())!;
+        // As saveQueryFromEditor stores it: a group of one is flattened.
+        final saved = flattenOneChildGroups(normalizeQuery(filter.toQuery())!);
         final reloaded = queryNodeFromJson(
           (jsonDecode(jsonEncode(queryNodeToJson(saved))) as Map)
               .cast<String, Object?>(),

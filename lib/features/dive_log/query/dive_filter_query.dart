@@ -67,8 +67,7 @@ extension DiveFilterQuery on DiveFilterState {
       parts.add(
         ScopedNode(
           FieldPath(['tanks']),
-          // No one-condition group: it re-parses without it (#2773 census).
-          _allOf([
+          AndNode([
             if (minO2Percent != null)
               c('o2', QueryOp.gte, NumberValue(minO2Percent!, null)),
             if (maxO2Percent != null)
@@ -140,18 +139,14 @@ extension DiveFilterQuery on DiveFilterState {
       );
     }
     if (customFieldKey != null && customFieldKey!.isNotEmpty) {
-      final key = c('key', QueryOp.eq, StringValue(customFieldKey!));
-      final value = customFieldValue;
       parts.add(
         ScopedNode(
           FieldPath(['customFields']),
-          // No one-condition group: it re-parses without it (#2773 census).
-          value == null || value.isEmpty
-              ? key
-              : AndNode([
-                  key,
-                  c('value', QueryOp.contains, StringValue(value)),
-                ]),
+          AndNode([
+            c('key', QueryOp.eq, StringValue(customFieldKey!)),
+            if (customFieldValue != null && customFieldValue!.isNotEmpty)
+              c('value', QueryOp.contains, StringValue(customFieldValue!)),
+          ]),
         ),
       );
     }
@@ -228,8 +223,3 @@ CompiledQuery compileDiveFilter(
 /// the SQL path reports the error through its AsyncValue.
 Set<String> diveFilterTablesTouched(DiveFilterState filter) =>
     tablesTouchedOrRoot(filter.toQuery(), diveQueryEntity);
-
-/// [parts] joined by AND, or the single part alone: a one-condition group
-/// prints without its group and would not re-parse to the same tree.
-QueryNode _allOf(List<QueryNode> parts) =>
-    parts.length == 1 ? parts.single : AndNode(parts);

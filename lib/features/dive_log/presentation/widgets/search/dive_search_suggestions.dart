@@ -34,8 +34,9 @@ class DiveSearchSuggestions extends ConsumerWidget {
   final ValueChanged<String> onHint;
 
   /// Prints a typed recent's stored tree as the field would now: in the
-  /// diver's current units, with current names.
-  final String Function(QueryNode node) printQuery;
+  /// diver's current units, with current names. Null for a tree this build
+  /// cannot run (a field since renamed or removed); that recent is left out.
+  final String? Function(QueryNode node) printQuery;
 
   static const _recentShown = 5;
 
@@ -44,12 +45,21 @@ class DiveSearchSuggestions extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final askEnabled = ref.watch(exploreEnabledProvider);
-    final recents = [
+    final recents = <(RecentQuery, String)>[
       for (final r in ref.watch(recentQueriesProvider).value ?? const [])
-        if (r.kind == RecentQueryKind.typed || askEnabled) r,
+        if (r.kind == RecentQueryKind.typed || askEnabled)
+          if (switch (r.node) {
+                final node? => printQuery(node),
+                null => r.sentence,
+              }
+              case final title?)
+            (r, title),
     ].take(_recentShown).toList();
     final metric = ref.watch(queryUnitPrefsProvider).depth == DepthUnit.meters;
-    final buddy = ref.watch(allBuddiesProvider).value?.firstOrNull?.name;
+    // Only the first name: a buddy edited elsewhere does not rebuild this.
+    final buddy = ref.watch(
+      allBuddiesProvider.select((a) => a.value?.firstOrNull?.name),
+    );
     final hints = [
       'manta',
       '"blue hole"',
@@ -86,7 +96,7 @@ class DiveSearchSuggestions extends ConsumerWidget {
                 l10n.diveLog_search_recentTitle,
                 style: theme.textTheme.labelLarge,
               ),
-              for (final r in recents)
+              for (final (r, title) in recents)
                 ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
@@ -102,10 +112,7 @@ class DiveSearchSuggestions extends ConsumerWidget {
                     ),
                   ),
                   title: Text(
-                    switch (r.node) {
-                      final node? => printQuery(node),
-                      null => r.sentence,
-                    },
+                    title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

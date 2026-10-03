@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/compiler/query_validator.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
@@ -96,6 +97,15 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
   /// arrived from outside (a chip, an answer, a saved search) is not typed.
   bool _typedSinceRecord = false;
 
+  /// The hint last typed in for the diver: running it is not a search they
+  /// typed, until they edit it.
+  String? _appliedHint;
+
+  /// The field shows a sentence that is not applied (an asked recent, or
+  /// Undo), so the suggestions for an empty field stay away until the text
+  /// changes.
+  bool _sentenceShown = false;
+
   @override
   void initState() {
     super.initState();
@@ -178,8 +188,14 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
   }
 
   void _onTextChanged(String text) {
-    setState(() => _text = text);
-    if (text.trim().isNotEmpty) _typedSinceRecord = true;
+    setState(() {
+      _text = text;
+      _sentenceShown = false;
+    });
+    if (text != _appliedHint) {
+      _appliedHint = null;
+      if (text.trim().isNotEmpty) _typedSinceRecord = true;
+    }
     final ask = ref.read(diveAskProvider.notifier);
     // The diver typed on: their newer text wins over an answer on its way.
     ask.cancel();
@@ -293,7 +309,12 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
       );
       return;
     }
-    setState(() => _text = recent.sentence);
+    // Shown, not applied: the replay applies its answer.
+    setState(() {
+      _text = recent.sentence;
+      _sentenceShown = true;
+      _textOverride = QueryTextOverride(recent.sentence);
+    });
     _runAsk(
       recent.sentence,
       () => ref.read(diveAskProvider.notifier).replay(recent),
@@ -302,6 +323,8 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
 
   /// A hint is typed in for the diver, and applies as typed text does.
   void _applyHint(String hint) {
+    _appliedHint = hint;
+    _typedSinceRecord = false;
     setState(() => _textOverride = QueryTextOverride(hint, commit: true));
     _focus.requestFocus();
   }
@@ -311,6 +334,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     if (sentence == null) return;
     setState(() {
       _text = sentence;
+      _sentenceShown = true;
       _textOverride = QueryTextOverride(sentence);
     });
     _focus.requestFocus();
@@ -329,6 +353,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
       setState(() {
         _local = _jumpQuery = null;
         _text = '';
+        _sentenceShown = false;
       });
     });
     // A new answer wins over words still waiting on the debounce, even
@@ -350,6 +375,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
         _local = _jumpQuery = query;
         _fieldValid = true;
         _text = '';
+        _sentenceShown = false;
         _textOverride = QueryTextOverride(
           _editorContext().printer.print(query),
         );
@@ -365,6 +391,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
       setState(() {
         _local = _jumpQuery = next.query;
         _text = '';
+        _sentenceShown = false;
       });
     });
 
@@ -452,13 +479,18 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
           onUndo: _undoAsk,
           onOpenList: (route) => context.go(route),
         ),
-        if (_focus.hasFocus && _local == null && _text.trim().isEmpty)
+        if (_focus.hasFocus &&
+            _local == null &&
+            _text.trim().isEmpty &&
+            !_sentenceShown)
           DiveSearchSuggestions(
             onSaved: _applySaved,
             onRecent: _applyRecent,
             onHint: _applyHint,
             printQuery: (node) =>
-                editorContext.printer.print(_withCurrentNames(node)),
+                validateQuery(node, diveQueryEntity, appQueryRegistry).isEmpty
+                ? editorContext.printer.print(_withCurrentNames(node))
+                : null,
           ),
         if (_focus.hasFocus && _jumpQuery != null)
           DiveJumpList(
@@ -492,7 +524,14 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   ),
                   // The whole search as one saved query; under All dives,
                   // what applies is the typed query alone (toQuery()).
-                  if (normalizeQuery(filter.toQuery()) != null)
+                  // What the field shows (typing still on the debounce
+                  // included), so an emptied field offers nothing to save.
+                  if (normalizeQuery(
+                        filter
+                            .copyWith(query: _local, clearQuery: _local == null)
+                            .toQuery(),
+                      ) !=
+                      null)
                     IconButton(
                       key: kDiveSearchSaveKey,
                       tooltip: l10n.common_action_save,

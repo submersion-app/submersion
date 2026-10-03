@@ -139,4 +139,33 @@ void main() {
     expect(removeTopLevelConjunct(a, 0), isNull);
     expect(removeTopLevelConjunct(OrNode([a, b]), 0), isNull);
   });
+
+  // Review: one-condition groups print without their group, so a saved
+  // tree did not re-parse to itself; saving flattens them.
+  test('flattenOneChildGroups unwraps groups of one, at any depth', () {
+    expect(flattenOneChildGroups(AndNode([a])), a);
+    expect(
+      flattenOneChildGroups(
+        OrNode([
+          AndNode([a]),
+        ]),
+      ),
+      a,
+    );
+    expect(
+      flattenOneChildGroups(
+        AndNode([
+          a,
+          OrNode([b]),
+        ]),
+      ),
+      AndNode([a, b]),
+    );
+    expect(
+      flattenOneChildGroups(ScopedNode(FieldPath(['tanks']), AndNode([a]))),
+      ScopedNode(FieldPath(['tanks']), a),
+    );
+    expect(flattenOneChildGroups(NotNode(AndNode([NotNode(a)]))), a);
+    expect(flattenOneChildGroups(AndNode([a, b])), AndNode([a, b]));
+  });
 }

@@ -420,6 +420,18 @@ void main() {
     );
   });
 
+  testWidgets('Save asks for a name, as every saved query does', (
+    tester,
+  ) async {
+    await pumpHeader(
+      tester,
+      filter: DiveFilterState(query: TextNode(['manta'])),
+    );
+    await tester.tap(find.byKey(kDiveSearchSaveKey));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextFormField), findsOneWidget);
+  });
+
   // Review Focus 5.
   testWidgets('no Save under All dives with nothing typed', (tester) async {
     await pumpHeader(
@@ -679,6 +691,108 @@ void main() {
     await tester.tap(find.byKey(kDiveSearchSaveKey));
     await tester.pumpAndSettle();
     expect(saved, TextNode(['wreck']));
+  });
+
+  // Review: a typed recent naming a field this build lacks threw while
+  // the suggestions printed it.
+  testWidgets('a typed recent this build cannot read is left out', (
+    tester,
+  ) async {
+    await pumpHeader(
+      tester,
+      recents: [
+        RecentQuery(
+          sentence: 'noSuchField > 5',
+          locale: 'en',
+          parsed: null,
+          kind: RecentQueryKind.typed,
+          node: ConditionNode(
+            FieldPath(['noSuchField']),
+            QueryOp.gt,
+            const NumberValue(5, null),
+          ),
+          lastUsedAt: DateTime(2026, 10, 2),
+        ),
+      ],
+    );
+    await tester.tap(find.byKey(kDiveSearchFieldKey));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(kDiveSearchSuggestionsKey), findsOneWidget);
+    expect(find.textContaining('noSuchField'), findsNothing);
+  });
+
+  // Review: an asked recent ran with an empty field, so its notice or
+  // error named a sentence the diver could not see.
+  testWidgets('an asked recent shows its sentence in the field', (
+    tester,
+  ) async {
+    final recent = RecentQuery(
+      sentence: 'turtles in Bonaire',
+      locale: 'en',
+      parsed: const ParsedQuery(subject: ParsedSubject.dives),
+      lastUsedAt: DateTime(2026, 10, 1),
+    );
+    await pumpHeader(
+      tester,
+      askEnabled: true,
+      ask: (ref) => _ReplayAsk(ref),
+      recents: [recent],
+    );
+    await tester.tap(find.byKey(kDiveSearchFieldKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'turtles in Bonaire'));
+    await tester.pumpAndSettle();
+    expect(fieldOf(tester).controller!.text, 'turtles in Bonaire');
+    // The field is not empty, so the suggestions do not cover it.
+    expect(find.byKey(kDiveSearchSuggestionsKey), findsNothing);
+  });
+
+  // Review: a tapped hint was filed as a typed search.
+  testWidgets('a tapped hint is not recorded as typed', (tester) async {
+    final typed = <String>[];
+    await pumpHeader(
+      tester,
+      typedRecorder: (text, node, l, d) async => typed.add(text),
+    );
+    await tester.tap(find.byKey(kDiveSearchFieldKey));
+    await tester.pump();
+    await tester.tap(find.text('manta'));
+    await tester.pump();
+    await tester.pump(kDiveSearchDebounce * 2);
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    expect(typed, isEmpty);
+  });
+
+  testWidgets('a hint the diver then edits is recorded', (tester) async {
+    final typed = <String>[];
+    await pumpHeader(
+      tester,
+      typedRecorder: (text, node, l, d) async => typed.add(text),
+    );
+    await tester.tap(find.byKey(kDiveSearchFieldKey));
+    await tester.pump();
+    await tester.tap(find.text('manta'));
+    await tester.pump();
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'mantas');
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    expect(typed, ['mantas']);
+  });
+
+  // Review: Save stayed up for a field just emptied, and its tap did
+  // nothing.
+  testWidgets('no Save once the field is emptied', (tester) async {
+    await pumpHeader(
+      tester,
+      filter: DiveFilterState(query: TextNode(['manta'])),
+    );
+    expect(find.byKey(kDiveSearchSaveKey), findsOneWidget);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), '');
+    await tester.pump();
+    expect(find.byKey(kDiveSearchSaveKey), findsNothing);
   });
 
   testWidgets('a hint is typed in and applied', (tester) async {
