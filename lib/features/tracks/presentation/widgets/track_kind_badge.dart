@@ -21,7 +21,8 @@ class TrackKindBadge extends StatelessWidget {
         scheme.onSecondaryContainer,
       ),
       TrackKind.underwater => (
-        l10n.tracks_kind_underwater,
+        // Singular: one badge labels one track (the filter's label is plural).
+        l10n.tracks_badge_underwater,
         scheme.tertiaryContainer,
         scheme.onTertiaryContainer,
       ),

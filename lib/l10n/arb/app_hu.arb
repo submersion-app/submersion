@@ -4858,6 +4858,7 @@
   "tracks_kind_all": "Mind",
   "tracks_kind_gps": "GPS",
   "tracks_kind_underwater": "Víz alatti",
+  "tracks_badge_underwater": "Víz alatti",
   "tracks_map_noMappable": "Ezen útvonalak egyikének sincs még helye a térképen.",
   "gpsLogger_matchResult": "{count} merülés pozicionálva",
   "gpsLogger_matchResultNone": "Egyik merülés sem illeszkedik rögzített útvonalhoz",

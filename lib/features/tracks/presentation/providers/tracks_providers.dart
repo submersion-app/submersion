@@ -22,10 +22,13 @@ final tracksListProvider = FutureProvider<List<TrackListItem>>((ref) async {
   final kind = ref.watch(trackKindFilterProvider);
   final range = ref.watch(trackDateFilterProvider);
   // Both watched before either is awaited, so the two queries overlap.
-  final (gps, underwater) = await (
-    ref.watch(gpsTracksProvider.future),
-    ref.watch(allNavTracksProvider.future),
-  ).wait;
+  // Future.wait observes both and rethrows the first error as it was thrown
+  // (a record's .wait would wrap it in a ParallelWaitError).
+  final gpsFuture = ref.watch(gpsTracksProvider.future);
+  final underwaterFuture = ref.watch(allNavTracksProvider.future);
+  await Future.wait<Object>([gpsFuture, underwaterFuture]);
+  final gps = await gpsFuture;
+  final underwater = await underwaterFuture;
   return mergeTracks(
     gps: gps,
     underwater: underwater,
@@ -48,9 +51,10 @@ final tracksOverviewTruncatedProvider = Provider<bool>((ref) {
 
 /// The summary strip's figures, following the active filters.
 final tracksSummaryProvider = FutureProvider<TracksSummary>((ref) async {
-  final (items, dives) = await (
-    ref.watch(tracksListProvider.future),
-    ref.watch(divesProvider.future),
-  ).wait;
+  final itemsFuture = ref.watch(tracksListProvider.future);
+  final divesFuture = ref.watch(divesProvider.future);
+  await Future.wait<Object>([itemsFuture, divesFuture]);
+  final items = await itemsFuture;
+  final dives = await divesFuture;
   return summarizeTracks(items, dives);
 });

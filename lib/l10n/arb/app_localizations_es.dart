@@ -25219,6 +25219,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tides_title => 'Mareas';
 
   @override
+  String get tracks_badge_underwater => 'Submarino';
+
+  @override
   String get tracks_empty_body =>
       'Graba un track GPS con tu teléfono durante un día de buceo o importa archivos GPX, KML, CSV o FIT y registros de navegación de Seacraft ENC. Los tracks GPS se asocian automáticamente a tus inmersiones; para cada track submarino eliges la inmersión.';
 

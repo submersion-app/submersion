@@ -122,11 +122,21 @@ class _TracksPageState extends ConsumerState<TracksPage> {
       builder: (context) => _DeleteTrackDialog(item: item),
     );
     if (confirmed != true || !mounted) return;
-    switch (item) {
-      case GpsTrackItem():
-        await ref.read(deleteTrackProvider)(item.id);
-      case UnderwaterTrackItem():
-        await ref.read(navTrackRepositoryProvider).delete(item.id);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    try {
+      switch (item) {
+        case GpsTrackItem():
+          await ref.read(deleteTrackProvider)(item.id);
+        case UnderwaterTrackItem():
+          await ref.read(navTrackRepositoryProvider).delete(item.id);
+      }
+    } catch (e, stackTrace) {
+      _log.error('Track delete failed', error: e, stackTrace: stackTrace);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.common_error_tryAgain)),
+      );
+      return;
     }
     if (!mounted) return;
     // A deleted track must not stay picked on the map.
@@ -173,7 +183,7 @@ class _TracksPageState extends ConsumerState<TracksPage> {
         onDelete: _delete,
       ),
       mapPane: TracksMapPane(controller: _mapController),
-      infoCard: tracksInfoCard(ref: ref, onOpen: _open),
+      infoCard: TracksInfoCard(onOpen: _open),
     );
   }
 

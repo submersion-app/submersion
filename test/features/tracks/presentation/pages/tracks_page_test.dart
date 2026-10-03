@@ -134,9 +134,13 @@ class _GatedGpsMatch extends GpsTrackMatchService {
 /// Records deletes instead of touching the nav table.
 class _RecordingNavRepository extends NavTrackRepository {
   String? deletedId;
+  bool failDelete = false;
 
   @override
-  Future<void> delete(String routeId) async => deletedId = routeId;
+  Future<void> delete(String routeId) async {
+    if (failDelete) throw StateError('database locked');
+    deletedId = routeId;
+  }
 }
 
 final _points = [
@@ -784,5 +788,23 @@ void main() {
     await tester.tap(kindSegment('GPS'));
     await tester.pumpAndSettle();
     expect(find.text('1 route needs your choice'), findsNothing);
+  });
+
+  testWidgets('a failed delete says so and keeps the track', (tester) async {
+    navRepo.failDelete = true;
+    await tester.pumpWidget(await app(underwater: [_uw()]));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(row('underwater:r1'), findsOneWidget);
   });
 }

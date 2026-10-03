@@ -23930,6 +23930,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tides_title => '潮汐';
 
   @override
+  String get tracks_badge_underwater => '水下';
+
+  @override
   String get tracks_empty_body =>
       '在潜水日用手机记录 GPS 轨迹，或导入 GPX、KML、CSV、FIT 文件以及 Seacraft ENC 导航日志。GPS 轨迹会自动匹配到你的潜水；水下轨迹需要你自己选择对应的潜水。';
 

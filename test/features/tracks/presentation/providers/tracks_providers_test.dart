@@ -131,4 +131,20 @@ void main() {
     expect(summary.trackCount, 1);
     expect(summary.divesCovered, 0);
   });
+
+  test('a failing source surfaces its own error, not a wrapper', () async {
+    final container = ProviderContainer(
+      overrides: [
+        gpsTracksProvider.overrideWith((ref) async => const <GpsTrack>[]),
+        allNavTracksProvider.overrideWith(
+          (ref) async => throw StateError('nav table locked'),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    await expectLater(
+      container.read(tracksListProvider.future),
+      throwsA(isA<StateError>()),
+    );
+  });
 }

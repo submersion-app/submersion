@@ -4960,6 +4960,7 @@
   "tracks_kind_all": "Alle",
   "tracks_kind_gps": "GPS",
   "tracks_kind_underwater": "Onderwater",
+  "tracks_badge_underwater": "Onderwater",
   "tracks_map_noMappable": "Geen van deze tracks heeft al een positie op de kaart.",
   "gpsLogger_matchResult": "{count} duiken gepositioneerd",
   "gpsLogger_matchResultNone": "Geen duiken komen overeen met een opgenomen track",

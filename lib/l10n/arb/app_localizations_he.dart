@@ -24600,6 +24600,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tides_title => 'גאות';
 
   @override
+  String get tracks_badge_underwater => 'תת-ימי';
+
+  @override
   String get tracks_empty_body =>
       'הקלט מסלול GPS בטלפון במהלך יום צלילה, או ייבא קובצי GPX, KML, CSV או FIT ויומני ניווט של Seacraft ENC. מסלולי GPS מותאמים לצלילות שלך באופן אוטומטי, ואת הצלילה של כל מסלול תת-ימי בוחרים ידנית.';
 

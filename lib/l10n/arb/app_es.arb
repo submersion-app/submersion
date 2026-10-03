@@ -4960,6 +4960,7 @@
   "tracks_kind_all": "Todos",
   "tracks_kind_gps": "GPS",
   "tracks_kind_underwater": "Submarinos",
+  "tracks_badge_underwater": "Submarino",
   "tracks_map_noMappable": "Ninguno de estos tracks tiene todavía una posición en el mapa.",
   "gpsLogger_matchResult": "{count} inmersiones posicionadas",
   "gpsLogger_matchResultNone": "Ninguna inmersión coincide con un track grabado",

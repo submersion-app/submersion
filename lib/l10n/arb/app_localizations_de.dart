@@ -25157,6 +25157,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tides_title => 'Gezeiten';
 
   @override
+  String get tracks_badge_underwater => 'Unterwasser';
+
+  @override
   String get tracks_empty_body =>
       'Zeichne an einem Tauchtag einen GPS-Track mit deinem Telefon auf oder importiere GPX-, KML-, CSV- oder FIT-Dateien und Seacraft-ENC-Navigationsprotokolle. GPS-Tracks werden deinen Tauchgängen automatisch zugeordnet; für jeden Unterwasser-Track wählst du den Tauchgang selbst.';
 

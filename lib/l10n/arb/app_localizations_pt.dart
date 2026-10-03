@@ -25209,6 +25209,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tides_title => 'Marés';
 
   @override
+  String get tracks_badge_underwater => 'Subaquática';
+
+  @override
   String get tracks_empty_body =>
       'Grave uma trilha GPS com seu celular durante um dia de mergulho ou importe arquivos GPX, KML, CSV ou FIT e registros de navegação Seacraft ENC. As trilhas GPS são associadas automaticamente aos seus mergulhos; você escolhe o mergulho de cada trilha subaquática.';
 

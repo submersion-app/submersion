@@ -4960,6 +4960,7 @@
   "tracks_kind_all": "Todas",
   "tracks_kind_gps": "GPS",
   "tracks_kind_underwater": "Subaquáticas",
+  "tracks_badge_underwater": "Subaquática",
   "tracks_map_noMappable": "Nenhuma destas trilhas tem ainda uma posição no mapa.",
   "gpsLogger_matchResult": "{count} mergulhos posicionados",
   "gpsLogger_matchResultNone": "Nenhum mergulho corresponde a uma trilha gravada",

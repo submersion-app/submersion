@@ -4858,6 +4858,7 @@
   "tracks_kind_all": "Tutte",
   "tracks_kind_gps": "GPS",
   "tracks_kind_underwater": "Subacquee",
+  "tracks_badge_underwater": "Subacquea",
   "tracks_map_noMappable": "Nessuna di queste tracce ha ancora una posizione sulla mappa.",
   "gpsLogger_matchResult": "{count} immersioni posizionate",
   "gpsLogger_matchResultNone": "Nessuna immersione corrisponde a una traccia registrata",

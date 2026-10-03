@@ -4858,6 +4858,7 @@
   "tracks_kind_all": "הכול",
   "tracks_kind_gps": "GPS",
   "tracks_kind_underwater": "תת-ימיים",
+  "tracks_badge_underwater": "תת-ימי",
   "tracks_map_noMappable": "לאף אחד מהמסלולים האלה אין עדיין מיקום על המפה.",
   "gpsLogger_matchResult": "{count} צלילות מוקמו",
   "gpsLogger_matchResultNone": "אף צלילה לא תואמת מסלול שהוקלט",

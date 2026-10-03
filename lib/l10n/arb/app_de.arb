@@ -5063,6 +5063,7 @@
   "tracks_kind_all": "Alle",
   "tracks_kind_gps": "GPS",
   "tracks_kind_underwater": "Unterwasser",
+  "tracks_badge_underwater": "Unterwasser",
   "tracks_map_noMappable": "Keiner dieser Tracks hat bisher eine Position auf der Karte.",
   "gpsLogger_matchResult": "{count} Tauchgänge positioniert",
   "gpsLogger_matchResultNone": "Keine Tauchgänge passen zu einem aufgezeichneten Track",

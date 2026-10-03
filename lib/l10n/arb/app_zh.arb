@@ -5099,6 +5099,7 @@
   "tracks_kind_all": "全部",
   "tracks_kind_gps": "GPS",
   "tracks_kind_underwater": "水下",
+  "tracks_badge_underwater": "水下",
   "tracks_map_noMappable": "这些轨迹在地图上都还没有位置。",
   "gpsLogger_matchResult": "已定位 {count} 次潜水",
   "gpsLogger_matchResultNone": "没有潜水与已记录的轨迹匹配",

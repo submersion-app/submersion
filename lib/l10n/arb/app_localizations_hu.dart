@@ -25130,6 +25130,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tides_title => 'Árapály';
 
   @override
+  String get tracks_badge_underwater => 'Víz alatti';
+
+  @override
   String get tracks_empty_body =>
       'Rögzíts GPS-útvonalat a telefonoddal egy merülőnapon, vagy importálj GPX, KML, CSV vagy FIT fájlokat és Seacraft ENC navigációs naplókat. A GPS-útvonalak automatikusan párosulnak a merüléseiddel; a víz alatti útvonalakhoz te választod ki a merülést.';
 

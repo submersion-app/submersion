@@ -24888,6 +24888,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tides_title => 'المد والجزر';
 
   @override
+  String get tracks_badge_underwater => 'تحت الماء';
+
+  @override
   String get tracks_empty_body =>
       'سجّل مسار GPS على هاتفك خلال يوم الغطس، أو استورد ملفات GPX أو KML أو CSV أو FIT وسجلات الملاحة من Seacraft ENC. تتم مطابقة مسارات GPS مع غطساتك تلقائيًا، وتختار أنت الغطسة لكل مسار تحت الماء.';
 

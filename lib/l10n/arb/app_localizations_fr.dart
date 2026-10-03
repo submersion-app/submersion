@@ -25296,6 +25296,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tides_title => 'Marées';
 
   @override
+  String get tracks_badge_underwater => 'Sous-marine';
+
+  @override
   String get tracks_empty_body =>
       'Enregistrez une trace GPS avec votre téléphone pendant une journée de plongée, ou importez des fichiers GPX, KML, CSV ou FIT et des journaux de navigation Seacraft ENC. Les traces GPS sont associées automatiquement à vos plongées ; vous choisissez la plongée de chaque trace sous-marine.';
 

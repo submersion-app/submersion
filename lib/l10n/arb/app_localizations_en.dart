@@ -24807,6 +24807,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tides_title => 'Tides';
 
   @override
+  String get tracks_badge_underwater => 'Underwater';
+
+  @override
   String get tracks_empty_body =>
       'Record a GPS track on your phone during a dive day, or import GPX, KML, CSV or FIT files and Seacraft ENC navigation logs. GPS tracks are matched to your dives automatically; you choose the dive for each underwater track.';
 

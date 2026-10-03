@@ -109,30 +109,38 @@ class _CapNotice extends StatelessWidget {
   }
 }
 
-/// The info card for the selected track, or null when nothing listed is
-/// selected (including a selection the filters now hide). Call from build.
-Widget? tracksInfoCard({
-  required WidgetRef ref,
-  required ValueChanged<TrackListItem> onOpen,
-}) {
-  final items = ref.watch(tracksListProvider).value ?? const <TrackListItem>[];
-  final section = mapListSelectionProvider(kTracksSectionKey);
-  final selectedKey = ref.watch(section).selectedId;
-  final selected = items
-      .where((item) => item.selectionKey == selectedKey)
-      .firstOrNull;
-  if (selected == null) return null;
-  void close() => ref.read(section.notifier).deselect();
-  return switch (selected) {
-    GpsTrackItem(:final track) => GpsTrackInfoCard(
-      track: track,
-      onDetailsTap: () => onOpen(selected),
-      onClose: close,
-    ),
-    UnderwaterTrackItem(:final track) => NavTrackInfoCard(
-      route: track,
-      onDetailsTap: () => onOpen(selected),
-      onClose: close,
-    ),
-  };
+/// The info card for the selected track, or nothing when no listed track
+/// is selected (including a selection the filters now hide).
+///
+/// A widget of its own so a track change rebuilds this card, not the whole
+/// page that hosts it.
+class TracksInfoCard extends ConsumerWidget {
+  const TracksInfoCard({super.key, required this.onOpen});
+
+  final ValueChanged<TrackListItem> onOpen;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final items =
+        ref.watch(tracksListProvider).value ?? const <TrackListItem>[];
+    final section = mapListSelectionProvider(kTracksSectionKey);
+    final selectedKey = ref.watch(section).selectedId;
+    final selected = items
+        .where((item) => item.selectionKey == selectedKey)
+        .firstOrNull;
+    if (selected == null) return const SizedBox.shrink();
+    void close() => ref.read(section.notifier).deselect();
+    return switch (selected) {
+      GpsTrackItem(:final track) => GpsTrackInfoCard(
+        track: track,
+        onDetailsTap: () => onOpen(selected),
+        onClose: close,
+      ),
+      UnderwaterTrackItem(:final track) => NavTrackInfoCard(
+        route: track,
+        onDetailsTap: () => onOpen(selected),
+        onClose: close,
+      ),
+    };
+  }
 }

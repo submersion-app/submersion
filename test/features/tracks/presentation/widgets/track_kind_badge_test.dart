@@ -26,4 +26,18 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('the row badge is singular where the filter is plural', (
+    tester,
+  ) async {
+    // One badge labels one track: French "Sous-marine", not the filter's
+    // plural "Sous-marines".
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('fr'),
+        child: Column(children: [TrackKindBadge(TrackKind.underwater)]),
+      ),
+    );
+    expect(find.text('Sous-marine'), findsOneWidget);
+  });
 }

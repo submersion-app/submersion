@@ -40096,6 +40096,12 @@ abstract class AppLocalizations {
   /// **'Tides'**
   String get tides_title;
 
+  /// No description provided for @tracks_badge_underwater.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater'**
+  String get tracks_badge_underwater;
+
   /// No description provided for @tracks_empty_body.
   ///
   /// In en, this message translates to:
