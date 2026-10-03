@@ -170,6 +170,79 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
+  // A hand-made dives CSV writes its duration however the diver's old log or
+  // spreadsheet did. Every one of these used to import as no duration (#1809).
+  group('parseFlexibleDuration', () {
+    const cases = {
+      '45': Duration(minutes: 45),
+      ' 45 ': Duration(minutes: 45),
+      '45.5': Duration(minutes: 45, seconds: 30),
+      '45,5': Duration(minutes: 45, seconds: 30),
+      '45 min': Duration(minutes: 45),
+      '45min': Duration(minutes: 45),
+      '45 mins': Duration(minutes: 45),
+      '45 Minutes': Duration(minutes: 45),
+      '45m': Duration(minutes: 45),
+      "45'": Duration(minutes: 45),
+      "45'30\"": Duration(minutes: 45, seconds: 30),
+      '45m 30s': Duration(minutes: 45, seconds: 30),
+      '45 min 30 sec': Duration(minutes: 45, seconds: 30),
+      '1h 5m': Duration(hours: 1, minutes: 5),
+      '1h05': Duration(hours: 1, minutes: 5),
+      '1 hr 5 min': Duration(hours: 1, minutes: 5),
+      '1.5 h': Duration(minutes: 90),
+      '2700 s': Duration(minutes: 45),
+      '45:00': Duration(minutes: 45),
+      '25:20': Duration(minutes: 25, seconds: 20),
+      '00:45:00': Duration(minutes: 45),
+      '1:23:45': Duration(hours: 1, minutes: 23, seconds: 45),
+      '0:45:30.4': Duration(minutes: 45, seconds: 30),
+      '45:00 min': Duration(minutes: 45),
+    };
+    for (final entry in cases.entries) {
+      test('reads "${entry.key}" as ${entry.value}', () {
+        expect(converter.parseFlexibleDuration(entry.key), entry.value);
+      });
+    }
+
+    const unreadable = [
+      '',
+      '   ',
+      'abc',
+      'n/a',
+      '-45',
+      '45 kg',
+      '45 min 1h',
+      '30s 5',
+      '1:2:3:4',
+      'a:b',
+      '45 45',
+    ];
+    for (final raw in unreadable) {
+      test('returns null for "$raw"', () {
+        expect(converter.parseFlexibleDuration(raw), isNull);
+      });
+    }
+
+    test('returns null for null', () {
+      expect(converter.parseFlexibleDuration(null), isNull);
+    });
+
+    // A cell too large for an int or a double must read as unreadable, not
+    // throw: nothing above the transformer catches, so a throw would end the
+    // whole import.
+    test('returns null for numbers too large to hold', () {
+      final huge = '9' * 400;
+      expect(
+        converter.parseFlexibleDuration('99999999999999999999:00'),
+        isNull,
+      );
+      expect(converter.parseFlexibleDuration(huge), isNull);
+      expect(converter.parseFlexibleDuration('0:$huge'), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   group('parseVisibility', () {
     test('maps "excellent" (case-insensitive)', () {
       expect(converter.parseVisibility('excellent'), 'excellent');
@@ -831,6 +904,22 @@ void main() {
       test('returns null for non-numeric input', () {
         expect(service.minutesToSeconds('abc'), isNull);
       });
+
+      // Stripping the colons used to read "00:45:00" as 4500 minutes (#1809).
+      test('reads a clock-style value as H:MM:SS, not digits', () {
+        expect(
+          service.minutesToSeconds('00:45:00'),
+          const Duration(minutes: 45),
+        );
+      });
+
+      test('reads a unit suffix and a decimal comma', () {
+        expect(service.minutesToSeconds('45 min'), const Duration(minutes: 45));
+        expect(
+          service.minutesToSeconds('45,5'),
+          const Duration(minutes: 45, seconds: 30),
+        );
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -859,8 +948,17 @@ void main() {
         expect(result!.inSeconds, 0);
       });
 
-      test('returns null for single-part input', () {
-        expect(service.hmsToSeconds('42'), isNull);
+      // A bare number under an H:M:S preset is a whole-minute duration, not
+      // an unreadable cell (#1809).
+      test('reads single-part input as minutes', () {
+        expect(service.hmsToSeconds('42'), const Duration(minutes: 42));
+      });
+
+      test('reads fractional seconds', () {
+        expect(
+          service.hmsToSeconds('0:45:30.4'),
+          const Duration(minutes: 45, seconds: 30),
+        );
       });
 
       test('returns null for non-numeric colon-separated input', () {

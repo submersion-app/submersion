@@ -166,6 +166,50 @@ void main() {
     expect(tanks.map((t) => t.id), ['tank-a', isNot('tank-a')]);
   });
 
+  test('writes the usage duration the parse records (#1496)', () async {
+    // A dive imported before v259 has no usage_duration; a resync is the
+    // only way to supply what MacDive recorded.
+    final diveId = await seedDive(notes: '', buddy: '');
+    await seedTank(diveId, id: 'tank-a', tankOrder: 0);
+
+    await service.applyReimport(
+      diveId: diveId,
+      diveData: {
+        'tanks': [
+          {'order': 0, 'usageDuration': const Duration(minutes: 30)},
+          {'order': 1, 'usageDuration': const Duration(minutes: 12)},
+        ],
+      },
+      now: DateTime(2026, 9, 3),
+    );
+
+    final tanks =
+        await (db.select(db.diveTanks)
+              ..where((t) => t.diveId.equals(diveId))
+              ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+            .get();
+    expect(tanks.map((t) => t.usageDuration), [30 * 60, 12 * 60]);
+  });
+
+  test('keeps a stored usage duration the parse does not report', () async {
+    final diveId = await seedDive(notes: '', buddy: '');
+    await seedTank(diveId, id: 'tank-a', tankOrder: 0);
+    await db.customStatement('UPDATE dive_tanks SET usage_duration = 1500');
+
+    await service.applyReimport(
+      diveId: diveId,
+      diveData: {
+        'tanks': [
+          {'order': 0, 'startPressure': 200.0},
+        ],
+      },
+      now: DateTime(2026, 9, 3),
+    );
+
+    final tank = await db.select(db.diveTanks).getSingle();
+    expect(tank.usageDuration, 1500);
+  });
+
   test('a brand-new tank takes the file\'s source (#2716)', () async {
     final diveId = await seedDive(notes: '', buddy: '');
     await db

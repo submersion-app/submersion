@@ -8777,30 +8777,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'מוצגות $limit ההתאמות הראשונות. חדדו את החיפוש כדי לצמצם את התוצאות.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'לא נמצאו צלילות עבור \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'חיפוש לפי אתר, שותף או הערות';
-
-  @override
-  String get diveLog_listPage_tooltip_back => 'חזרה';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList => 'חזרה לרשימת צלילות';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'ניקוי חיפוש';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'סינון צלילות';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'תצוגת רשימה';
@@ -8810,6 +8790,33 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_searchDives => 'חיפוש צלילות';
+
+  @override
+  String get diveLog_search_fieldHint => 'חיפוש, או נסו depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'צמצום';
+
+  @override
+  String get diveLog_search_closeTooltip => 'סגירת החיפוש';
+
+  @override
+  String get diveLog_search_scopeWithin => 'בתוך המסננים';
+
+  @override
+  String get diveLog_search_scopeAll => 'כל הצלילות';
+
+  @override
+  String get diveLog_search_jumpTitle => 'מעבר לצלילה';
+
+  @override
+  String get diveLog_search_openInsights => 'פתיחה בתובנות';
+
+  @override
+  String get diveLog_search_cleared => 'החיפוש נוקה';
+
+  @override
+  String get diveLog_search_undo => 'ביטול';
 
   @override
   String get diveLog_listPage_tooltip_sort => 'מיון';
@@ -20324,6 +20331,20 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'כל מכשיר כזה יתעדכן ברגע שיריץ גרסה חדשה לפחות כמו של מכשיר זה. אם עדיין לא מוצע לו עדכון כזה, הוא יגיע עם הגרסה הבאה, או מוקדם יותר בהצטרפות לבטא.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList מריץ גרסה ישנה יותר של Submersion שאינה יכולה לקרוא את השינויים האחרונים של מכשיר זה, ולכן לא יקבל אותם עד שיתעדכן.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList מריצים גרסה ישנה יותר של Submersion שאינה יכולה לקרוא את השינויים האחרונים של מכשיר זה, ולכן לא יקבלו אותם עד שיתעדכנו.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return 'ל$deviceList עדיין יש גרסת ספרייה ישנה או לא מוכרת, ולכן השינויים שלו לא מוזגו. פתח את Submersion במכשיר כדי לאמץ את הספרייה הנוכחית.';
   }
@@ -20371,8 +20392,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'עדכן מכשיר זה כדי לקבל אותם.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'הם יגיעו ברגע שמכשיר זה יריץ גרסה חדשה לפחות באותה מידה. אם המכשיר האחר נמצא בערוץ הבטא, ייתכן שעדיין אין עדכון יציב: העבר גם את מכשיר זה לערוץ עדכוני הבטא, או המתן לגרסה היציבה הבאה.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'הם יוחלו אוטומטית ברגע שעדכון חנות האפליקציות של מכשיר זה יגיע; ייתכן שהעדכון עדיין בבדיקה.';
+      'הם יוחלו אוטומטית ברגע שעדכון חנות האפליקציות של מכשיר זה יגיע לגרסה הזו. ייתכן שהעדכון עדיין בבדיקה, או, אם המכשיר האחר מריץ גרסת בטא (TestFlight או בדיקת Google Play), שהוא עדיין לא פורסם: הצטרף לאותה בטא במכשיר זה, או המתן לגרסה הבאה.';
 
   @override
   String get settings_cloudSync_provider_connected => 'מחובר';
@@ -22213,8 +22238,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'תישאר בגרסת הבטא הזו עד שהגרסה היציבה הבאה תהיה חדשה ממנה.';
+  String get settings_updates_stableDialogBody =>
+      'מכשיר זה שומר על הגרסה הנוכחית שלו עד שגרסה יציבה תהיה חדשה ממנה, כך שהאפליקציה לעולם לא חוזרת לגרסה קודמת ויומן הצלילה שלך נשמר. עד אז, מכשירים בערוץ היציב שמסתנכרנים עם מכשיר זה עשויים שלא לקבל את השינויים האחרונים שלו. אל תתקין גרסה יציבה ישנה יותר מעל גרסה זו: היא לא יכולה לפתוח יומן צלילה שגרסה חדשה יותר שדרגה.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'מעבר ליציב';
+
+  @override
+  String get settings_updates_stableDialogTitle => 'לחזור לעדכונים יציבים?';
 
   @override
   String get settings_updates_upToDate => 'מעודכן';
@@ -23025,6 +23056,17 @@ class AppLocalizationsHe extends AppLocalizations {
     Object label,
   ) {
     return '$name, דירוג $rank, $count $label';
+  }
+
+  @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name, $subtitle, דירוג $rank, $count $label';
   }
 
   @override
@@ -24556,10 +24598,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transfer_appBar_title => 'העברה';
-
-  @override
-  String get transfer_computers_aboutContent =>
-      'חבר את מחשב הצלילה שלך באמצעות Bluetooth כדי להוריד יומני צלילה ישירות לאפליקציה. מחשבים נתמכים כוללים Suunto, Shearwater, Garmin, Mares ועוד מותגים פופולריים רבים.\n\nמשתמשי Apple Watch Ultra יכולים לייבא נתוני צלילה ישירות מאפליקציית הבריאות, כולל עומק, משך וקצב לב.';
 
   @override
   String get transfer_computers_aboutTitle => 'אודות מחשבי צלילה';
@@ -27773,7 +27811,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, ועוד 50+ דגמים.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi, ועוד 50+ דגמים.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'מותגים נתמכים';
@@ -27786,6 +27824,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'הבנתי';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'שעוני Garmin אינם מורדים כאן. ייבא את הצלילות שלהם דרך $importPath או $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 => '• ודא שהמחשב במצב העברה';
@@ -42538,12 +42581,28 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveImport_healthkit_proceedingToReview => 'ממשיך לסקירה...';
 
   @override
+  String get importWizard_dc_importFromFile => 'ייבוא מקובץ';
+
+  @override
   String get importWizard_dc_knownComputer => 'מחשב צלילה מוכר';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'נשמר בשם \"$name\". רק צלילות חדשות יורדו.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'לא ניתן להוריד ישירות ממחשב הצלילה הזה';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'ל-Submersion אין חיבור שמור עבור $name. ייבא את הצלילות שלו מקובץ, או הוסף אותו מחדש ממחשבי צלילה כדי להוריד דרך Bluetooth או USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'שעוני Garmin שומרים צלילות כקובצי FIT במקום לאפשר הורדה ישירה. חבר את השעון ב-USB, העתק את הקבצים מהתיקייה GARMIN/Activity שלו, ולאחר מכן ייבא אותם.';
 
   @override
   String get importWizard_dc_noNewDives => 'אין צלילות חדשות להורדה';

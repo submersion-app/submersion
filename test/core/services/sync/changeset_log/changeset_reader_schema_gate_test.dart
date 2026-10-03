@@ -57,6 +57,9 @@ void main() {
     String? epochId,
     int? schemaVersionOverride,
     String? deviceNameOverride,
+    int? writerSchemaVersionOverride,
+    bool dropSchemaFields = false,
+    bool dropWriterSchemaVersion = false,
   }) async {
     await writer.publish(
       provider: provider,
@@ -65,7 +68,11 @@ void main() {
       deletions: const [],
       epochId: epochId,
     );
-    if (schemaVersionOverride != null || deviceNameOverride != null) {
+    if (schemaVersionOverride != null ||
+        deviceNameOverride != null ||
+        writerSchemaVersionOverride != null ||
+        dropSchemaFields ||
+        dropWriterSchemaVersion) {
       final manifestFile = (await provider.listFiles(
         folderId: folder,
         namePattern: ChangesetLogLayout.manifestName(peerId),
@@ -79,6 +86,13 @@ void main() {
       if (deviceNameOverride != null) {
         manifest['deviceName'] = deviceNameOverride;
       }
+      if (writerSchemaVersionOverride != null) {
+        manifest['writerSchemaVersion'] = writerSchemaVersionOverride;
+      }
+      if (dropWriterSchemaVersion || dropSchemaFields) {
+        manifest.remove('writerSchemaVersion');
+      }
+      if (dropSchemaFields) manifest.remove('schemaVersion');
       await provider.uploadFile(
         Uint8List.fromList(utf8.encode(jsonEncode(manifest))),
         manifestFile.name,
@@ -99,6 +113,8 @@ void main() {
     currentEpochId: currentEpochId,
     localSchemaVersion: localSchemaVersion ?? AppDatabase.currentSchemaVersion,
   );
+
+  const floor = AppDatabase.minimumCompatibleSchemaVersion;
 
   test(
     'published manifests are stamped with the floor and writer schema',
@@ -224,4 +240,100 @@ void main() {
       expect(applied, isEmpty);
     },
   );
+
+  /// The reverse of the gate (issue #2619): a peer whose own schema is below
+  /// this build's floor holds every payload this device publishes, so this
+  /// device names it instead of looking cleanly synced while that peer
+  /// receives nothing. The peer's own payloads still apply here.
+  group('peers too old to read this device', () {
+    test('names a peer below the floor and still applies it', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publishPeer(
+        'peer-stable',
+        epochId: 'epoch-A',
+        schemaVersionOverride: floor - 1,
+        writerSchemaVersionOverride: floor - 1,
+        deviceNameOverride: 'Stable iPad',
+      );
+
+      final result = await pull(currentEpochId: 'epoch-A');
+
+      expect(result.olderSchemaPeerDeviceIds, {'peer-stable'});
+      expect(result.olderSchemaPeerNames, {'peer-stable': 'Stable iPad'});
+      expect(result.peersProcessed, 1);
+      expect(applied, isNotEmpty);
+    });
+
+    test('a peer at the floor or newer is not named', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publishPeer('peer-current', epochId: 'epoch-A');
+      await publishPeer(
+        'peer-at-floor',
+        epochId: 'epoch-A',
+        writerSchemaVersionOverride: floor,
+      );
+
+      final result = await pull(currentEpochId: 'epoch-A');
+
+      expect(result.olderSchemaPeerDeviceIds, isEmpty);
+      expect(result.peersProcessed, 2);
+    });
+
+    test(
+      'a manifest from before writerSchemaVersion is judged by schemaVersion',
+      () async {
+        // Before #1089 the gate field carried the writer's actual schema, and
+        // both fields arrived in the same change, so a missing
+        // writerSchemaVersion means schemaVersion is the real schema.
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+        );
+        await publishPeer(
+          'peer-legacy',
+          epochId: 'epoch-A',
+          schemaVersionOverride: floor - 1,
+          dropWriterSchemaVersion: true,
+        );
+
+        final result = await pull(currentEpochId: 'epoch-A');
+
+        expect(result.olderSchemaPeerDeviceIds, {'peer-legacy'});
+      },
+    );
+
+    test('a manifest with no schema fields at all is not named', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publishPeer(
+        'peer-unknown',
+        epochId: 'epoch-A',
+        dropSchemaFields: true,
+      );
+
+      final result = await pull(currentEpochId: 'epoch-A');
+
+      expect(result.olderSchemaPeerDeviceIds, isEmpty);
+    });
+
+    test('a stale-epoch peer is reported as skipped, not as older', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publishPeer(
+        'peer-stale',
+        epochId: 'epoch-B',
+        writerSchemaVersionOverride: floor - 1,
+      );
+
+      final result = await pull(currentEpochId: 'epoch-A');
+
+      expect(result.skippedPeerDeviceIds, {'peer-stale'});
+      expect(result.olderSchemaPeerDeviceIds, isEmpty);
+    });
+  });
 }

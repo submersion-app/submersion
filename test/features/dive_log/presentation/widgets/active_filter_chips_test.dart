@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
@@ -207,5 +209,99 @@ void main() {
     expect(find.byType(Chip), findsOneWidget);
     expect(find.text('weights:none'), findsOneWidget);
     expect(container.read(diveFilterProvider).hasActiveFilters, isFalse);
+  });
+
+  testWidgets('suspended axis chips are dimmed and locked (#2773)', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    final suspended = StateProvider<DiveFilterState>(
+      (ref) => DiveFilterState(
+        favoritesOnly: true,
+        query: TextNode(['manta']),
+        axesSuspended: true,
+      ),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides,
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) => Wrap(
+                children: activeDiveFilterChips(context, ref, suspended),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final axisChip = find.widgetWithText(Chip, 'Favorites');
+    expect(axisChip, findsOneWidget);
+    expect(tester.widget<Chip>(axisChip).onDeleted, isNull);
+    expect(
+      find.ancestor(of: axisChip, matching: find.byType(Opacity)),
+      findsOneWidget,
+    );
+    final queryChip = find.widgetWithText(Chip, 'manta');
+    expect(queryChip, findsOneWidget);
+    expect(tester.widget<Chip>(queryChip).onDeleted, isNotNull);
+  });
+
+  // Copilot review on #2807: handoff axes with no panel control (a buddy's
+  // "View all" sets buddyId and diveIds) each get a removable chip.
+  testWidgets('buddy and dive-set handoffs show removable chips', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    final handoff = StateProvider<DiveFilterState>(
+      (ref) => const DiveFilterState(buddyId: 'b1', diveIds: ['d1', 'd2']),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          allBuddiesProvider.overrideWith(
+            (ref) async => [
+              Buddy(
+                id: 'b1',
+                name: 'Ana',
+                createdAt: DateTime(2026),
+                updatedAt: DateTime(2026),
+              ),
+            ],
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) =>
+                  Wrap(children: activeDiveFilterChips(context, ref, handoff)),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(Scaffold)),
+    );
+    final buddy = find.widgetWithText(Chip, 'Ana');
+    final dives = find.widgetWithText(Chip, '2 dives');
+    expect(buddy, findsOneWidget);
+    expect(dives, findsOneWidget);
+    tester.widget<Chip>(buddy).onDeleted!();
+    expect(container.read(handoff).buddyId, isNull);
+    expect(container.read(handoff).diveIds, ['d1', 'd2']);
+    await tester.pump();
+    tester.widget<Chip>(find.widgetWithText(Chip, '2 dives')).onDeleted!();
+    expect(container.read(handoff).hasActiveFilters, isFalse);
   });
 }

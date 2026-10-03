@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:submersion/core/query/compiler/query_validator.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
@@ -39,6 +40,9 @@ class QueryTextField extends StatefulWidget {
     this.describeError,
     this.fieldKey,
     this.autofocus = false,
+    this.focusNode,
+    this.onEscape,
+    this.onValidityChanged,
   });
 
   final QueryEditorContext context;
@@ -49,15 +53,29 @@ class QueryTextField extends StatefulWidget {
   final Key? fieldKey;
   final bool autofocus;
 
+  /// Focus for the text field; the field makes and disposes its own when
+  /// null. An outside node stays the caller's to dispose.
+  final FocusNode? focusNode;
+
+  /// Called on Escape while the field has focus.
+  final VoidCallback? onEscape;
+
+  /// Called with false when the text stops parsing (the last valid value
+  /// stays committed, so [onChanged] says nothing) and with true once it
+  /// parses again or is emptied.
+  final ValueChanged<bool>? onValidityChanged;
+
   @override
   State<QueryTextField> createState() => _QueryTextFieldState();
 }
 
 class _QueryTextFieldState extends State<QueryTextField> {
   late final QueryErrorHighlightController _controller;
-  final _focus = FocusNode();
+  final _ownFocus = FocusNode();
+  FocusNode get _focus => widget.focusNode ?? _ownFocus;
   QueryError? _error;
   List<Completion> _completions = const [];
+  bool _valid = true;
 
   /// The last tree this field committed, so an outside [widget.value] equal
   /// to it does not rewrite the text under the diver's cursor.
@@ -78,6 +96,10 @@ class _QueryTextFieldState extends State<QueryTextField> {
   @override
   void didUpdateWidget(QueryTextField old) {
     super.didUpdateWidget(old);
+    if (old.focusNode != widget.focusNode) {
+      (old.focusNode ?? _ownFocus).removeListener(_onFocusChange);
+      _focus.addListener(_onFocusChange);
+    }
     if (widget.value != _committed) {
       _committed = widget.value;
       _controller
@@ -100,9 +122,8 @@ class _QueryTextFieldState extends State<QueryTextField> {
 
   @override
   void dispose() {
-    _focus
-      ..removeListener(_onFocusChange)
-      ..dispose();
+    _focus.removeListener(_onFocusChange);
+    _ownFocus.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -114,6 +135,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
     final completions = completionsAt(text, caret, widget.context);
     if (text.trim().isEmpty) {
       _commit(null);
+      _setValid(true);
       _controller.setError();
       setState(() {
         _error = null;
@@ -130,6 +152,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
         );
         if (errors.isEmpty) {
           _commit(normalizeQuery(node));
+          _setValid(true);
           _controller.setError();
           setState(() {
             _error = null;
@@ -143,6 +166,12 @@ class _QueryTextFieldState extends State<QueryTextField> {
     }
   }
 
+  void _setValid(bool valid) {
+    if (valid == _valid) return;
+    _valid = valid;
+    widget.onValidityChanged?.call(valid);
+  }
+
   void _commit(QueryNode? node) {
     if (node == _committed) return;
     _committed = node;
@@ -150,6 +179,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
   }
 
   void _showError(QueryError error, List<Completion> completions) {
+    _setValid(false);
     _controller.setError(offset: error.offset, length: error.length);
     setState(() {
       _error = error;
@@ -176,27 +206,39 @@ class _QueryTextFieldState extends State<QueryTextField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextField(
-          key: widget.fieldKey,
-          controller: _controller,
-          focusNode: _focus,
-          autofocus: widget.autofocus,
-          autocorrect: false,
-          enableSuggestions: false,
-          textInputAction: TextInputAction.search,
-          style: const TextStyle(fontFamily: 'monospace'),
-          decoration: InputDecoration(
-            hintText: widget.hintText,
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: _controller.text.isEmpty
-                ? null
-                : IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () => _replace(0, _controller.text.length, ''),
-                  ),
-            errorText: error == null ? null : describe(error),
+        CallbackShortcuts(
+          bindings: {
+            if (widget.onEscape != null)
+              const SingleActivator(LogicalKeyboardKey.escape):
+                  widget.onEscape!,
+          },
+          child: TextField(
+            key: widget.fieldKey,
+            controller: _controller,
+            focusNode: _focus,
+            autofocus: widget.autofocus,
+            autocorrect: false,
+            enableSuggestions: false,
+            textInputAction: TextInputAction.search,
+            style: const TextStyle(fontFamily: 'monospace'),
+            decoration: InputDecoration(
+              hintText: widget.hintText,
+              // The hint is prose: in the field's monospace it is too wide
+              // for a phone's search row.
+              hintStyle: TextStyle(
+                fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+              ),
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _controller.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => _replace(0, _controller.text.length, ''),
+                    ),
+              errorText: error == null ? null : describe(error),
+            ),
+            onChanged: _onTextChanged,
           ),
-          onChanged: _onTextChanged,
         ),
         if (error != null && suggestionsReplaceSpan(error, _controller.text))
           Padding(

@@ -1722,6 +1722,8 @@ class DiveRepository {
                   validTripCylinderLink(tank.tripCylinderId, validSlots),
                 ),
                 sourceTankIndex: Value(tank.sourceTankIndex),
+                // What the source log recorded (issue #1496).
+                usageDuration: Value(tank.usageDuration?.inSeconds),
               ),
             );
           }
@@ -2031,7 +2033,8 @@ class DiveRepository {
                 // computerId and transmitterSerial are computer-owned identity
                 // and deliberately not written here: edit flows rebuild the
                 // tank field by field, and a rebuild that forgot them must not
-                // wipe what the download recorded.
+                // wipe what the download recorded. The recorded usage
+                // duration (#1496) is import-owned for the same reason.
                 // The regulator link is user-authored, unlike the two above,
                 // so an edit does write it.
                 regulatorEquipmentId: Value(tank.regulatorEquipmentId),
@@ -2077,6 +2080,7 @@ class DiveRepository {
                       validTripCylinderLink(tank.tripCylinderId, validSlots),
                     ),
                     sourceTankIndex: Value(tank.sourceTankIndex),
+                    usageDuration: Value(tank.usageDuration?.inSeconds),
                   ),
                 );
             await _syncRepository.markRecordPending(
@@ -3959,6 +3963,9 @@ class DiveRepository {
               tripCylinderId: t.tripCylinderId,
               equipmentId: t.equipmentId,
               sourceTankIndex: t.sourceTankIndex,
+              usageDuration: t.usageDuration != null
+                  ? Duration(seconds: t.usageDuration!)
+                  : null,
             ),
           )
           .toList(),
@@ -4395,6 +4402,9 @@ class DiveRepository {
           tripCylinderId: t.tripCylinderId,
           equipmentId: t.equipmentId,
           sourceTankIndex: t.sourceTankIndex,
+          usageDuration: t.usageDuration != null
+              ? Duration(seconds: t.usageDuration!)
+              : null,
         );
       }).toList(),
       profile: seriesProfile,
@@ -6725,6 +6735,11 @@ class DiveRepository {
     // restore puts back only a source the dive still has.
     sourceId: withLink
         ? Value(validSources.contains(t.sourceId) ? t.sourceId : null)
+        : const Value.absent(),
+    // How long the source log says this cylinder was breathed (#1496):
+    // true of one dive only, so a template never carries it.
+    usageDuration: withLink
+        ? Value(t.usageDuration?.inSeconds)
         : const Value.absent(),
   );
 

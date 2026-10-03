@@ -5016,16 +5016,20 @@
   "diveLog_listPage_tripGroupExpand": "Show dives on {tripName}",
   "diveLog_listPage_tripGroupCollapse": "Hide dives on {tripName}",
   "diveLog_listPage_tripGroupOpenTrip": "Open trip {tripName}",
-  "diveLog_listPage_searchLimitNotice": "Showing the first {limit} matches. Refine your search to narrow results.",
-  "diveLog_listPage_searchNoResults": "No dives found for \"{query}\"",
-  "diveLog_listPage_searchSuggestion": "Search by site, buddy, or notes",
-  "diveLog_listPage_tooltip_back": "Back",
   "diveLog_listPage_tooltip_backToDiveList": "Back to dive list",
   "diveLog_listPage_tooltip_clearSearch": "Clear search",
-  "diveLog_listPage_tooltip_filterDives": "Filter dives",
   "diveLog_listPage_tooltip_listView": "List View",
   "diveLog_listPage_tooltip_mapView": "Map View",
   "diveLog_listPage_tooltip_searchDives": "Search dives",
+  "diveLog_search_fieldHint": "Search, or try depth > 30m",
+  "diveLog_search_refineTooltip": "Refine",
+  "diveLog_search_closeTooltip": "Close search",
+  "diveLog_search_scopeWithin": "Within filters",
+  "diveLog_search_scopeAll": "All dives",
+  "diveLog_search_jumpTitle": "Jump to dive",
+  "diveLog_search_openInsights": "Open in Insights",
+  "diveLog_search_cleared": "Search cleared",
+  "diveLog_search_undo": "Undo",
   "diveLog_listPage_tooltip_sort": "Sort",
   "diveLog_listPage_unknownSite": "Unknown Site",
   "diveLog_map_emptySubtitle": "Log dives with location data to see your activity on the map",
@@ -5768,20 +5772,6 @@
     "placeholders": {
       "tripName": {
         "type": "String"
-      }
-    }
-  },
-  "@diveLog_listPage_searchLimitNotice": {
-    "placeholders": {
-      "limit": {
-        "type": "int"
-      }
-    }
-  },
-  "@diveLog_listPage_searchNoResults": {
-    "placeholders": {
-      "query": {
-        "type": "Object"
       }
     }
   },
@@ -12827,6 +12817,9 @@
   "settings_cloudSync_header_syncBehavior": "Sync Behavior",
   "settings_cloudSync_lastSynced": "Last synced: {time}",
   "settings_cloudSync_pendingChanges": "{count, plural, =1{1 pending change} other{{count} pending changes}}",
+  "settings_cloudSync_peerBehind_action": "Each one catches up once it runs a version at least as new as this one. If no such update is offered to it yet, it arrives with the next release, or sooner by joining the beta.",
+  "settings_cloudSync_peerBehind_banner": "{deviceList} runs an older version of Submersion that cannot read this device's latest changes, so it will not receive them until it updates.",
+  "settings_cloudSync_peerBehind_bannerPlural": "{deviceList} run an older version of Submersion that cannot read this device's latest changes, so they will not receive them until they update.",
   "settings_cloudSync_peerNeedsAdopt_banner": "{deviceList} still has an older or unknown library version, so its changes were not merged. Open Submersion on it to adopt the current library.",
   "settings_cloudSync_peerNeedsAdopt_bannerPlural": "{deviceList} still have an older or unknown library version, so their changes were not merged. Open Submersion on them to adopt the current library.",
   "settings_cloudSync_peerNeedsAdopt_unnamedDevice": "device {shortId}",
@@ -12840,7 +12833,8 @@
   "settings_cloudSync_peerRequiresUpdate_bannerNamed": "{deviceList} syncs from a newer version of Submersion, so its latest changes are held for now.",
   "settings_cloudSync_peerRequiresUpdate_bannerNamedPlural": "{deviceList} sync from a newer version of Submersion, so their latest changes are held for now.",
   "settings_cloudSync_peerRequiresUpdate_updateAction": "Update this device to receive them.",
-  "settings_cloudSync_peerRequiresUpdate_storeAction": "They will apply automatically once this device's app store update arrives; the update may still be in review.",
+  "settings_cloudSync_peerRequiresUpdate_stableAction": "They arrive once this device runs a version at least as new. If that device is on the beta channel, a stable update may not exist yet: switch this device to the beta update channel too, or wait for the next stable release.",
+  "settings_cloudSync_peerRequiresUpdate_storeAction": "They apply automatically once this device's app store update reaches that version. It may still be in review, or, if that device runs a beta (TestFlight or Google Play testing), not be released yet: join the same beta on this device, or wait for the next release.",
   "settings_cloudSync_provider_connected": "Connected",
   "settings_cloudSync_provider_connectedTo": "Connected to {providerName}",
   "settings_cloudSync_provider_connectionFailed": "{providerName} connection failed: {error}",
@@ -13500,7 +13494,9 @@
       }
     }
   },
-  "settings_updates_stableSwitchNotice": "You will stay on this beta until the next stable release is newer than it.",
+  "settings_updates_stableDialogBody": "This device keeps its current build until a stable release is newer than it, so the app is never downgraded and your dive log is kept. Until then, devices on the stable channel that sync with this one may not receive its latest changes. Do not install an older stable build over this one: it cannot open a dive log that a newer build has upgraded.",
+  "settings_updates_stableDialogConfirm": "Switch to Stable",
+  "settings_updates_stableDialogTitle": "Return to stable updates?",
   "settings_updates_upToDate": "Up to date",
   "settings_updates_versionAvailable": "Version {version} available",
   "@settings_updates_versionAvailable": {
@@ -14183,6 +14179,7 @@
   "insights_ranking_itemCount": "{count} {label}",
   "insights_ranking_moreItems": "and {count} more",
   "insights_ranking_semanticLabel": "{name}, rank {rank}, {count} {label}",
+  "insights_ranking_semanticLabelWithSubtitle": "{name}, {subtitle}, rank {rank}, {count} {label}",
   "insights_records_appBar_title": "Dive Records",
   "insights_records_coldestDive": "Coldest Dive",
   "insights_records_deepestDive": "Deepest Dive",
@@ -14447,6 +14444,25 @@
   "@insights_ranking_semanticLabel": {
     "placeholders": {
       "name": {
+        "type": "Object"
+      },
+      "rank": {
+        "type": "Object"
+      },
+      "count": {
+        "type": "Object"
+      },
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
+  "@insights_ranking_semanticLabelWithSubtitle": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      },
+      "subtitle": {
         "type": "Object"
       },
       "rank": {
@@ -15502,7 +15518,6 @@
   },
   "tides_title": "Tides",
   "transfer_appBar_title": "Transfer",
-  "transfer_computers_aboutContent": "Connect your dive computer via Bluetooth to download dive logs directly to the app. Supported computers include Suunto, Shearwater, Garmin, Mares, and many other popular brands.  Apple Watch Ultra users can import dive data directly from the Health app, including depth, duration, and heart rate.",
   "transfer_computers_aboutTitle": "About Dive Computers",
   "transfer_computers_appleWatchHeader": "Apple Watch",
   "transfer_computers_appleWatchSubtitle": "Import dives via Apple HealthKit",
@@ -18300,11 +18315,25 @@
   "diveComputer_list_findComputers": "Find Computers",
   "diveComputer_list_helpBluetooth": "• Bluetooth LE (most modern computers)",
   "diveComputer_list_helpBluetoothClassic": "• Bluetooth Classic (older models)",
-  "diveComputer_list_helpBrandsList": "Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.",
+  "diveComputer_list_helpBrandsList": "Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.",
   "diveComputer_list_helpBrandsTitle": "Supported Brands",
   "diveComputer_list_helpConnectionsTitle": "Supported Connections",
   "diveComputer_list_helpDialogTitle": "Dive Computer Help",
   "diveComputer_list_helpDismiss": "Got it",
+  "diveComputer_list_helpGarminNote": "Garmin watches are not downloaded here. Import their dives from {importPath} or {cloudPath}.",
+  "@diveComputer_list_helpGarminNote": {
+    "description": "Help dialog line telling Garmin owners their dives are imported, not downloaded over Bluetooth or USB; the placeholders are menu paths built from the Transfer, File Import and Cloud labels",
+    "placeholders": {
+      "importPath": {
+        "type": "String",
+        "example": "Transfer > File Import"
+      },
+      "cloudPath": {
+        "type": "String",
+        "example": "Transfer > Cloud"
+      }
+    }
+  },
   "diveComputer_list_helpTip1": "• Ensure your computer is in transfer mode",
   "diveComputer_list_helpTip2": "• Keep devices close during download",
   "diveComputer_list_helpTip3": "• Make sure Bluetooth is enabled",
@@ -25982,8 +26011,12 @@
   "diveImport_healthkit_fetchFailedBody": "Failed to fetch dives: {error}",
   "diveImport_healthkit_foundDives": "{count, plural, =1{Found 1 dive} other{Found {count} dives}}",
   "diveImport_healthkit_proceedingToReview": "Proceeding to review...",
+  "importWizard_dc_importFromFile": "Import from File",
   "importWizard_dc_knownComputer": "Known Computer",
   "importWizard_dc_knownComputerBody": "Saved as \"{name}\". Only new dives will be downloaded.",
+  "importWizard_dc_noDirectDownload": "Can't download this computer directly",
+  "importWizard_dc_noDirectDownloadBody": "Submersion has no saved connection for {name}. Import its dives from a file, or add it again from Dive Computers to download over Bluetooth or USB.",
+  "importWizard_dc_noDirectDownloadGarminBody": "Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.",
   "importWizard_dc_noNewDives": "No new dives to download",
   "importWizard_dc_noNewDivesBody": "All dives from this computer have already been imported.",
   "universalImport_compare_noDiveData": "Dive data not available for comparison.",
@@ -26429,6 +26462,14 @@
   },
   "@importWizard_dc_knownComputerBody": {
     "description": "Badge body shown when the connected dive computer is already saved in the library.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@importWizard_dc_noDirectDownloadBody": {
+    "description": "Download step body when a saved dive computer has no stored connection to download from.",
     "placeholders": {
       "name": {
         "type": "String"

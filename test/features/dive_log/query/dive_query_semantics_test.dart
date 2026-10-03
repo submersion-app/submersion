@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/compiler/query_compiler.dart';
 import 'package:submersion/core/query/compiler/query_validator.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
@@ -133,6 +134,12 @@ void main() {
     }, reason: 'site name is a search column');
     expect(await ids('notes ~ "100%"'), {'d3'});
     expect(await ids('notes:none'), {'d2', 'd4', 'd5'});
+    // Quotes are an exact phrase (#2773); bare words each match anywhere.
+    expect(await ids('"night dive"'), {'d3'});
+    expect(await ids('"dive night"'), isEmpty);
+    expect(await ids('dive night'), {'d3'});
+    expect(await ids('"manta ray"'), {'d1'});
+    expect(await ids('"ray manta"'), isEmpty);
   });
 
   test('NOT never drops a dive for a NULL column (review fix)', () async {
@@ -176,5 +183,24 @@ void main() {
         .toList();
     expect(scans, isEmpty, reason: lines.join('\n'));
     expect(lines, contains('SCAN d'), reason: lines.join('\n'));
+  });
+
+  // Code review (#2773): text the old Search overlay matched literally.
+  test('hyphenated words and percentages are plain text', () {
+    QueryNode parsed(String text) {
+      final r = parser.parse(text);
+      expect(r, isA<ParseOk>(), reason: '$r');
+      return (r as ParseOk).node!;
+    }
+
+    expect(parsed('Abu-Nuhas'), TextNode(['Abu-Nuhas']));
+    expect(parsed('100%'), TextNode(['100%']));
+    expect(parsed('-manta'), NotNode(TextNode(['manta'])));
+    expect(parsed('cns > 40%'), parsed('cns > 40'));
+    expect(parser.parse('depth > 30%'), isA<ParseFailure>());
+  });
+
+  test('a percentage searches as one term', () async {
+    expect(await ids('100%'), {'d3'});
   });
 }

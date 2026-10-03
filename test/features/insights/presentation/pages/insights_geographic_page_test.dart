@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_geographic_page.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/semantics_finders.dart';
+import '../../../../helpers/test_app.dart';
 
 void main() {
   Future<void> pumpPage(
@@ -114,5 +119,107 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  group('drill-through (#2623)', () {
+    Future<ProviderContainer> pumpRouted(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1200, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final router = GoRouter(
+        initialLocation: '/insights',
+        routes: [
+          GoRoute(
+            path: '/insights',
+            builder: (_, _) => const InsightsGeographicPage(),
+          ),
+          GoRoute(path: '/dives', builder: (_, _) => const Text('dive list')),
+        ],
+      );
+      final base = await getBaseOverrides();
+      await tester.pumpWidget(
+        testAppRouter(
+          router: router,
+          locale: const Locale('en'),
+          overrides: [
+            ...base,
+            insightsFilterProvider.overrideWith(
+              (ref) => const DiveFilterState(minDepth: 18),
+            ),
+            countriesVisitedProvider.overrideWith(
+              (ref) async => [item('Bonaire', 12)],
+            ),
+            regionsExploredProvider.overrideWith(
+              (ref) async => [
+                RankingItem(
+                  id: 'Yucatan',
+                  name: 'Yucatan',
+                  count: 4,
+                  subtitle: 'Mexico',
+                ),
+              ],
+            ),
+            divesPerTripProvider.overrideWith((ref) async => const []),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      return ProviderScope.containerOf(
+        tester.element(find.byType(InsightsGeographicPage)),
+      );
+    }
+
+    ConditionNode site(String column, String value) => ConditionNode(
+      FieldPath(['site', column]),
+      QueryOp.eq,
+      StringValue(value),
+    );
+
+    testWidgets('a country opens its dives under the Insights filter', (
+      tester,
+    ) async {
+      final container = await pumpRouted(tester);
+
+      await tester.tap(find.text('Bonaire'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('dive list'), findsOneWidget);
+      final filter = container.read(diveFilterProvider);
+      expect(filter.minDepth, 18);
+      expect(filter.query, site('country', 'Bonaire'));
+    });
+
+    testWidgets('a region row names its country to screen readers', (
+      tester,
+    ) async {
+      await pumpRouted(tester);
+
+      // Two regions can share a name, so the button label carries the
+      // country that tells them apart (and that the tap filters on).
+      expect(
+        findSemanticsLabelled('Yucatan, Mexico, rank 1, 4 dives'),
+        findsOneWidget,
+      );
+      expect(
+        findSemanticsLabelled('Bonaire, rank 1, 12 dives'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a region opens its dives in its own country', (tester) async {
+      final container = await pumpRouted(tester);
+
+      await tester.tap(find.text('Yucatan'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('dive list'), findsOneWidget);
+      final filter = container.read(diveFilterProvider);
+      expect(filter.minDepth, 18);
+      expect(
+        filter.query,
+        AndNode([site('region', 'Yucatan'), site('country', 'Mexico')]),
+      );
+    });
   });
 }

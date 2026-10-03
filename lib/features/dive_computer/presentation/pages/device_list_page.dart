@@ -341,6 +341,18 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
               ),
               const SizedBox(height: 8),
               Text(context.l10n.diveComputer_list_helpBrandsList),
+              const SizedBox(height: 8),
+              // Garmin has no libdivecomputer backend: its dives arrive as
+              // FIT files or from Garmin Connect, so point there by the same
+              // labels the Transfer screen shows.
+              Text(
+                context.l10n.diveComputer_list_helpGarminNote(
+                  '${context.l10n.nav_transfer} > '
+                      '${context.l10n.transfer_section_importTitle}',
+                  '${context.l10n.nav_transfer} > '
+                      '${context.l10n.transfer_section_cloudTitle}',
+                ),
+              ),
             ],
           ),
         ),

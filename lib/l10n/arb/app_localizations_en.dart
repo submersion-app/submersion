@@ -8842,30 +8842,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'Showing the first $limit matches. Refine your search to narrow results.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'No dives found for \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Search by site, buddy, or notes';
-
-  @override
-  String get diveLog_listPage_tooltip_back => 'Back';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList => 'Back to dive list';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Clear search';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Filter dives';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'List View';
@@ -8875,6 +8855,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_searchDives => 'Search dives';
+
+  @override
+  String get diveLog_search_fieldHint => 'Search, or try depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Refine';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Close search';
+
+  @override
+  String get diveLog_search_scopeWithin => 'Within filters';
+
+  @override
+  String get diveLog_search_scopeAll => 'All dives';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Jump to dive';
+
+  @override
+  String get diveLog_search_openInsights => 'Open in Insights';
+
+  @override
+  String get diveLog_search_cleared => 'Search cleared';
+
+  @override
+  String get diveLog_search_undo => 'Undo';
 
   @override
   String get diveLog_listPage_tooltip_sort => 'Sort';
@@ -20484,6 +20491,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'Each one catches up once it runs a version at least as new as this one. If no such update is offered to it yet, it arrives with the next release, or sooner by joining the beta.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList runs an older version of Submersion that cannot read this device\'s latest changes, so it will not receive them until it updates.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList run an older version of Submersion that cannot read this device\'s latest changes, so they will not receive them until they update.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList still has an older or unknown library version, so its changes were not merged. Open Submersion on it to adopt the current library.';
   }
@@ -20531,8 +20552,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Update this device to receive them.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'They arrive once this device runs a version at least as new. If that device is on the beta channel, a stable update may not exist yet: switch this device to the beta update channel too, or wait for the next stable release.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'They will apply automatically once this device\'s app store update arrives; the update may still be in review.';
+      'They apply automatically once this device\'s app store update reaches that version. It may still be in review, or, if that device runs a beta (TestFlight or Google Play testing), not be released yet: join the same beta on this device, or wait for the next release.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Connected';
@@ -22388,8 +22413,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'You will stay on this beta until the next stable release is newer than it.';
+  String get settings_updates_stableDialogBody =>
+      'This device keeps its current build until a stable release is newer than it, so the app is never downgraded and your dive log is kept. Until then, devices on the stable channel that sync with this one may not receive its latest changes. Do not install an older stable build over this one: it cannot open a dive log that a newer build has upgraded.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'Switch to Stable';
+
+  @override
+  String get settings_updates_stableDialogTitle => 'Return to stable updates?';
 
   @override
   String get settings_updates_upToDate => 'Up to date';
@@ -23222,6 +23253,17 @@ class AppLocalizationsEn extends AppLocalizations {
     Object label,
   ) {
     return '$name, rank $rank, $count $label';
+  }
+
+  @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name, $subtitle, rank $rank, $count $label';
   }
 
   @override
@@ -24763,10 +24805,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transfer_appBar_title => 'Transfer';
-
-  @override
-  String get transfer_computers_aboutContent =>
-      'Connect your dive computer via Bluetooth to download dive logs directly to the app. Supported computers include Suunto, Shearwater, Garmin, Mares, and many other popular brands.  Apple Watch Ultra users can import dive data directly from the Health app, including depth, duration, and heart rate.';
 
   @override
   String get transfer_computers_aboutTitle => 'About Dive Computers';
@@ -27997,7 +28035,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Supported Brands';
@@ -28010,6 +28048,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Got it';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Garmin watches are not downloaded here. Import their dives from $importPath or $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>
@@ -42763,12 +42806,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'Proceeding to review...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Import from File';
+
+  @override
   String get importWizard_dc_knownComputer => 'Known Computer';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Saved as \"$name\". Only new dives will be downloaded.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Can\'t download this computer directly';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Submersion has no saved connection for $name. Import its dives from a file, or add it again from Dive Computers to download over Bluetooth or USB.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.';
 
   @override
   String get importWizard_dc_noNewDives => 'No new dives to download';

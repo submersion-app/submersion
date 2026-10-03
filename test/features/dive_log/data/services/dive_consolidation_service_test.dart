@@ -1269,6 +1269,105 @@ void main() {
     );
   });
 
+  // #1809: a dive logged without a site or a runtime, say by an earlier file
+  // import that dropped them, is repaired by re-importing the file and
+  // consolidating each dive into its duplicate. The fold adopts them onto the
+  // target the way it adopts GPS above: only when the target has none.
+  group('apply site and runtime (#1809)', () {
+    Future<void> setSiteAndRuntime(
+      String id, {
+      required String? siteId,
+      required int? runtimeSeconds,
+    }) => (db.update(db.dives)..where((t) => t.id.equals(id))).write(
+      DivesCompanion(siteId: Value(siteId), runtime: Value(runtimeSeconds)),
+    );
+
+    Future<Dive> targetRow() =>
+        (db.select(db.dives)..where((t) => t.id.equals('t'))).getSingle();
+
+    Future<void> seedPair() async {
+      await seedDive(
+        't',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        computerId: 'comp-t',
+        serial: 'SER-T',
+      );
+      await seedDive(
+        's',
+        entry: DateTime.utc(2026, 7, 1, 9, 1),
+        computerId: 'comp-s',
+        serial: 'SER-S',
+      );
+    }
+
+    test('a target lacking both adopts them from a secondary', () async {
+      await seedPair();
+      await setSiteAndRuntime('t', siteId: null, runtimeSeconds: null);
+      await setSiteAndRuntime('s', siteId: 'site-s', runtimeSeconds: 2700);
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await targetRow();
+      expect(target.siteId, 'site-s');
+      expect(target.runtime, 2700);
+    });
+
+    test('a target with no runtime and no profile is still repaired by a '
+        're-import starting at the same instant', () async {
+      final entry = DateTime.utc(2026, 7, 1, 9);
+      await seedDive('t', entry: entry, profile: const []);
+      await setSiteAndRuntime('t', siteId: null, runtimeSeconds: null);
+      await seedDive('s', entry: entry, runtimeMin: 45, profile: const []);
+      await setSiteAndRuntime('s', siteId: 'site-s', runtimeSeconds: 2700);
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await targetRow();
+      expect(target.siteId, 'site-s');
+      expect(target.runtime, 2700);
+    });
+
+    test('a target that has them keeps its own', () async {
+      await seedPair();
+      await setSiteAndRuntime('t', siteId: 'site-t', runtimeSeconds: 1800);
+      await setSiteAndRuntime('s', siteId: 'site-s', runtimeSeconds: 2700);
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await targetRow();
+      expect(target.siteId, 'site-t');
+      expect(target.runtime, 1800);
+    });
+
+    test('site and runtime fill independently', () async {
+      await seedPair();
+      await setSiteAndRuntime('t', siteId: 'site-t', runtimeSeconds: null);
+      await setSiteAndRuntime('s', siteId: 'site-s', runtimeSeconds: 2700);
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await targetRow();
+      expect(target.siteId, 'site-t');
+      expect(target.runtime, 2700);
+    });
+
+    test('undo restores the target to having neither', () async {
+      await seedPair();
+      await setSiteAndRuntime('t', siteId: null, runtimeSeconds: null);
+      await setSiteAndRuntime('s', siteId: 'site-s', runtimeSeconds: 2700);
+
+      final outcome = await service.apply(
+        targetDiveId: 't',
+        secondaryDiveIds: ['s'],
+      );
+      await service.undo(outcome.snapshot);
+
+      final target = await targetRow();
+      expect(target.siteId, isNull);
+      expect(target.runtime, isNull);
+    });
+  });
+
   group('consolidate then re-parse (#1177)', () {
     test('the secondary strand stays aligned with the primary across a '
         're-parse of the consolidated dive', () async {

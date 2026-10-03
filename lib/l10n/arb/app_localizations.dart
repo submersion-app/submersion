@@ -14361,30 +14361,6 @@ abstract class AppLocalizations {
   /// **'Open trip {tripName}'**
   String diveLog_listPage_tripGroupOpenTrip(String tripName);
 
-  /// No description provided for @diveLog_listPage_searchLimitNotice.
-  ///
-  /// In en, this message translates to:
-  /// **'Showing the first {limit} matches. Refine your search to narrow results.'**
-  String diveLog_listPage_searchLimitNotice(int limit);
-
-  /// No description provided for @diveLog_listPage_searchNoResults.
-  ///
-  /// In en, this message translates to:
-  /// **'No dives found for \"{query}\"'**
-  String diveLog_listPage_searchNoResults(Object query);
-
-  /// No description provided for @diveLog_listPage_searchSuggestion.
-  ///
-  /// In en, this message translates to:
-  /// **'Search by site, buddy, or notes'**
-  String get diveLog_listPage_searchSuggestion;
-
-  /// No description provided for @diveLog_listPage_tooltip_back.
-  ///
-  /// In en, this message translates to:
-  /// **'Back'**
-  String get diveLog_listPage_tooltip_back;
-
   /// No description provided for @diveLog_listPage_tooltip_backToDiveList.
   ///
   /// In en, this message translates to:
@@ -14396,12 +14372,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear search'**
   String get diveLog_listPage_tooltip_clearSearch;
-
-  /// No description provided for @diveLog_listPage_tooltip_filterDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Filter dives'**
-  String get diveLog_listPage_tooltip_filterDives;
 
   /// No description provided for @diveLog_listPage_tooltip_listView.
   ///
@@ -14420,6 +14390,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search dives'**
   String get diveLog_listPage_tooltip_searchDives;
+
+  /// No description provided for @diveLog_search_fieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search, or try depth > 30m'**
+  String get diveLog_search_fieldHint;
+
+  /// No description provided for @diveLog_search_refineTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refine'**
+  String get diveLog_search_refineTooltip;
+
+  /// No description provided for @diveLog_search_closeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close search'**
+  String get diveLog_search_closeTooltip;
+
+  /// No description provided for @diveLog_search_scopeWithin.
+  ///
+  /// In en, this message translates to:
+  /// **'Within filters'**
+  String get diveLog_search_scopeWithin;
+
+  /// No description provided for @diveLog_search_scopeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All dives'**
+  String get diveLog_search_scopeAll;
+
+  /// No description provided for @diveLog_search_jumpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to dive'**
+  String get diveLog_search_jumpTitle;
+
+  /// No description provided for @diveLog_search_openInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Insights'**
+  String get diveLog_search_openInsights;
+
+  /// No description provided for @diveLog_search_cleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Search cleared'**
+  String get diveLog_search_cleared;
+
+  /// No description provided for @diveLog_search_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get diveLog_search_undo;
 
   /// No description provided for @diveLog_listPage_tooltip_sort.
   ///
@@ -33390,6 +33414,24 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 pending change} other{{count} pending changes}}'**
   String settings_cloudSync_pendingChanges(int count);
 
+  /// No description provided for @settings_cloudSync_peerBehind_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Each one catches up once it runs a version at least as new as this one. If no such update is offered to it yet, it arrives with the next release, or sooner by joining the beta.'**
+  String get settings_cloudSync_peerBehind_action;
+
+  /// No description provided for @settings_cloudSync_peerBehind_banner.
+  ///
+  /// In en, this message translates to:
+  /// **'{deviceList} runs an older version of Submersion that cannot read this device\'s latest changes, so it will not receive them until it updates.'**
+  String settings_cloudSync_peerBehind_banner(Object deviceList);
+
+  /// No description provided for @settings_cloudSync_peerBehind_bannerPlural.
+  ///
+  /// In en, this message translates to:
+  /// **'{deviceList} run an older version of Submersion that cannot read this device\'s latest changes, so they will not receive them until they update.'**
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList);
+
   /// No description provided for @settings_cloudSync_peerNeedsAdopt_banner.
   ///
   /// In en, this message translates to:
@@ -33452,10 +33494,16 @@ abstract class AppLocalizations {
   /// **'Update this device to receive them.'**
   String get settings_cloudSync_peerRequiresUpdate_updateAction;
 
+  /// No description provided for @settings_cloudSync_peerRequiresUpdate_stableAction.
+  ///
+  /// In en, this message translates to:
+  /// **'They arrive once this device runs a version at least as new. If that device is on the beta channel, a stable update may not exist yet: switch this device to the beta update channel too, or wait for the next stable release.'**
+  String get settings_cloudSync_peerRequiresUpdate_stableAction;
+
   /// No description provided for @settings_cloudSync_peerRequiresUpdate_storeAction.
   ///
   /// In en, this message translates to:
-  /// **'They will apply automatically once this device\'s app store update arrives; the update may still be in review.'**
+  /// **'They apply automatically once this device\'s app store update reaches that version. It may still be in review, or, if that device runs a beta (TestFlight or Google Play testing), not be released yet: join the same beta on this device, or wait for the next release.'**
   String get settings_cloudSync_peerRequiresUpdate_storeAction;
 
   /// No description provided for @settings_cloudSync_provider_connected.
@@ -36653,11 +36701,23 @@ abstract class AppLocalizations {
   /// **'Version {version} ready to install'**
   String settings_updates_readyToInstall(String version);
 
-  /// No description provided for @settings_updates_stableSwitchNotice.
+  /// No description provided for @settings_updates_stableDialogBody.
   ///
   /// In en, this message translates to:
-  /// **'You will stay on this beta until the next stable release is newer than it.'**
-  String get settings_updates_stableSwitchNotice;
+  /// **'This device keeps its current build until a stable release is newer than it, so the app is never downgraded and your dive log is kept. Until then, devices on the stable channel that sync with this one may not receive its latest changes. Do not install an older stable build over this one: it cannot open a dive log that a newer build has upgraded.'**
+  String get settings_updates_stableDialogBody;
+
+  /// No description provided for @settings_updates_stableDialogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Stable'**
+  String get settings_updates_stableDialogConfirm;
+
+  /// No description provided for @settings_updates_stableDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to stable updates?'**
+  String get settings_updates_stableDialogTitle;
 
   /// No description provided for @settings_updates_upToDate.
   ///
@@ -38068,6 +38128,18 @@ abstract class AppLocalizations {
   /// **'{name}, rank {rank}, {count} {label}'**
   String insights_ranking_semanticLabel(
     Object name,
+    Object rank,
+    Object count,
+    Object label,
+  );
+
+  /// No description provided for @insights_ranking_semanticLabelWithSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {subtitle}, rank {rank}, {count} {label}'**
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
     Object rank,
     Object count,
     Object label,
@@ -40023,12 +40095,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transfer'**
   String get transfer_appBar_title;
-
-  /// No description provided for @transfer_computers_aboutContent.
-  ///
-  /// In en, this message translates to:
-  /// **'Connect your dive computer via Bluetooth to download dive logs directly to the app. Supported computers include Suunto, Shearwater, Garmin, Mares, and many other popular brands.  Apple Watch Ultra users can import dive data directly from the Health app, including depth, duration, and heart rate.'**
-  String get transfer_computers_aboutContent;
 
   /// No description provided for @transfer_computers_aboutTitle.
   ///
@@ -45073,7 +45139,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveComputer_list_helpBrandsList.
   ///
   /// In en, this message translates to:
-  /// **'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.'**
+  /// **'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.'**
   String get diveComputer_list_helpBrandsList;
 
   /// No description provided for @diveComputer_list_helpBrandsTitle.
@@ -45099,6 +45165,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Got it'**
   String get diveComputer_list_helpDismiss;
+
+  /// Help dialog line telling Garmin owners their dives are imported, not downloaded over Bluetooth or USB; the placeholders are menu paths built from the Transfer, File Import and Cloud labels
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin watches are not downloaded here. Import their dives from {importPath} or {cloudPath}.'**
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath);
 
   /// No description provided for @diveComputer_list_helpTip1.
   ///
@@ -69081,6 +69153,12 @@ abstract class AppLocalizations {
   /// **'Proceeding to review...'**
   String get diveImport_healthkit_proceedingToReview;
 
+  /// No description provided for @importWizard_dc_importFromFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from File'**
+  String get importWizard_dc_importFromFile;
+
   /// No description provided for @importWizard_dc_knownComputer.
   ///
   /// In en, this message translates to:
@@ -69092,6 +69170,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved as \"{name}\". Only new dives will be downloaded.'**
   String importWizard_dc_knownComputerBody(String name);
+
+  /// No description provided for @importWizard_dc_noDirectDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t download this computer directly'**
+  String get importWizard_dc_noDirectDownload;
+
+  /// Download step body when a saved dive computer has no stored connection to download from.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion has no saved connection for {name}. Import its dives from a file, or add it again from Dive Computers to download over Bluetooth or USB.'**
+  String importWizard_dc_noDirectDownloadBody(String name);
+
+  /// No description provided for @importWizard_dc_noDirectDownloadGarminBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.'**
+  String get importWizard_dc_noDirectDownloadGarminBody;
 
   /// No description provided for @importWizard_dc_noNewDives.
   ///

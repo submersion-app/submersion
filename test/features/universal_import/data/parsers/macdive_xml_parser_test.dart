@@ -131,6 +131,10 @@ void main() {
       // GasMix stores o2/he as percentages 0-100 (not 0-1 fractions).
       expect(gasMix.o2, closeTo(32.0, 0.01));
       expect(gasMix.he, closeTo(0.0, 0.01));
+      // #1496: the gas's <duration> is how long the tank was breathed, under
+      // the key _buildTanks reads. `runtime` is the dive's key, not a tank's.
+      expect(tank['usageDuration'], const Duration(seconds: 2400));
+      expect(tank.containsKey('runtime'), isFalse);
     });
 
     test('dive has profile samples with timestamp+depth', () async {

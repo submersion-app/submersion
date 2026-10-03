@@ -9,10 +9,12 @@ import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// Creates a platform-appropriate shortcut activator.
 ///
@@ -268,9 +270,21 @@ class AppShortcuts {
         }
       },
 
-      // Search
+      // Search: the dive list's search row (#2773), opened with the caret
+      // in it. From another section this switches to Dives, like digit1.
       platformShortcut(LogicalKeyboardKey.keyF): () {
-        context.push('/dives/search');
+        final container = ProviderScope.containerOf(context, listen: false);
+        container.read(diveSearchBarOpenProvider.notifier).state = true;
+        container.read(diveSearchFocusPendingProvider.notifier).state = true;
+        final uri = GoRouter.of(
+          context,
+        ).routerDelegate.currentConfiguration.uri;
+        // The phone map view (/dives?view=map) has no search row; wide
+        // layouts show the list beside the map, so they stay put.
+        final phoneMap =
+            uri.queryParameters['view'] == 'map' &&
+            !ResponsiveBreakpoints.isMasterDetail(context);
+        if (uri.path != '/dives' || phoneMap) context.go('/dives');
       },
       if (exploreSupported)
         platformShortcut(LogicalKeyboardKey.keyE): () => _openExplore(context),

@@ -255,6 +255,11 @@ class DiveTanks extends Table {
   /// registry may replace on existing dives. Null once the diver or the
   /// registry sets the role, and on every row from before v254.
   TextColumn get roleSource => text().nullable()();
+
+  /// v259: how long this cylinder was breathed, in seconds, as the source
+  /// log recorded it (issue #1496). Null when the source recorded none,
+  /// and on every row from before v259.
+  IntColumn get usageDuration => integer().nullable()();
   TextColumn get tankMaterial =>
       text().nullable()(); // aluminum, steel, carbonFiber
   TextColumn get tankName =>

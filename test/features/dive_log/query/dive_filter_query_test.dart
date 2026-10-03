@@ -296,4 +296,16 @@ void main() {
     );
     expect(diveFilterTablesTouched(wrongType), {'dives'});
   });
+
+  test('suspended axes lower to the query alone (#2773)', () {
+    final q = TextNode(['manta']);
+    expect(
+      DiveFilterState(minDepth: 30, query: q, axesSuspended: true).toQuery(),
+      q,
+    );
+    expect(
+      const DiveFilterState(minDepth: 30, axesSuspended: true).toQuery(),
+      isNull,
+    );
+  });
 }

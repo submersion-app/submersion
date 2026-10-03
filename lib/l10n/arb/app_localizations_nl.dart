@@ -8926,30 +8926,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'De eerste $limit resultaten worden getoond. Verfijn je zoekopdracht om de resultaten te beperken.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'Geen duiken gevonden voor \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Zoek op stek, buddy of notities';
-
-  @override
-  String get diveLog_listPage_tooltip_back => 'Terug';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList => 'Terug naar duiklijst';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Zoekopdracht wissen';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Duiken filteren';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'Lijstweergave';
@@ -8959,6 +8939,33 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_searchDives => 'Duiken zoeken';
+
+  @override
+  String get diveLog_search_fieldHint => 'Zoek, bv. depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Verfijnen';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Zoeken sluiten';
+
+  @override
+  String get diveLog_search_scopeWithin => 'Binnen filters';
+
+  @override
+  String get diveLog_search_scopeAll => 'Alle duiken';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Naar duik springen';
+
+  @override
+  String get diveLog_search_openInsights => 'Openen in Inzichten';
+
+  @override
+  String get diveLog_search_cleared => 'Zoekopdracht gewist';
+
+  @override
+  String get diveLog_search_undo => 'Ongedaan maken';
 
   @override
   String get diveLog_listPage_tooltip_sort => 'Sorteren';
@@ -20660,6 +20667,20 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'Elk apparaat loopt bij zodra het een minstens even nieuwe versie gebruikt als dit apparaat. Wordt zo\'n update nog niet aangeboden, dan komt die met de volgende versie, of eerder door deel te nemen aan de bèta.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList gebruikt een oudere versie van Submersion die de nieuwste wijzigingen van dit apparaat niet kan lezen, en ontvangt ze dus pas na een update.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList gebruiken een oudere versie van Submersion die de nieuwste wijzigingen van dit apparaat niet kan lezen, en ontvangen ze dus pas na een update.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList heeft nog een oudere of onbekende bibliotheekversie, dus de wijzigingen zijn niet samengevoegd. Open Submersion daar om de huidige bibliotheek over te nemen.';
   }
@@ -20707,8 +20728,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Werk dit apparaat bij om ze te ontvangen.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'Ze komen binnen zodra dit apparaat een minstens even nieuwe versie gebruikt. Als het andere apparaat op het bètakanaal zit, bestaat er mogelijk nog geen stabiele update: zet dit apparaat ook op het bèta-updatekanaal, of wacht op de volgende stabiele versie.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'Ze worden automatisch toegepast zodra de appstore-update voor dit apparaat beschikbaar is; de update is mogelijk nog in beoordeling.';
+      'Ze worden automatisch toegepast zodra de appstore-update voor dit apparaat die versie bereikt. De update is mogelijk nog in beoordeling of, als het andere apparaat een bèta gebruikt (TestFlight of Google Play-test), nog niet uitgebracht: neem op dit apparaat deel aan dezelfde bèta, of wacht op de volgende versie.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Verbonden';
@@ -22575,8 +22600,16 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'Je blijft op deze bèta totdat de volgende stabiele versie nieuwer is.';
+  String get settings_updates_stableDialogBody =>
+      'Dit apparaat houdt zijn huidige build totdat een stabiele versie nieuwer is, dus de app wordt nooit teruggezet en je duiklogboek blijft behouden. Tot die tijd ontvangen apparaten op het stabiele kanaal die met dit apparaat synchroniseren mogelijk niet de nieuwste wijzigingen. Installeer geen oudere stabiele build over deze heen: die kan geen duiklogboek openen dat een nieuwere build heeft geüpgraded.';
+
+  @override
+  String get settings_updates_stableDialogConfirm =>
+      'Overschakelen naar stabiel';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      'Terug naar stabiele updates?';
 
   @override
   String get settings_updates_upToDate => 'Up-to-date';
@@ -23419,6 +23452,17 @@ class AppLocalizationsNl extends AppLocalizations {
     Object label,
   ) {
     return '$name, rang $rank, $count $label';
+  }
+
+  @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name, $subtitle, rang $rank, $count $label';
   }
 
   @override
@@ -24971,10 +25015,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get transfer_appBar_title => 'Overdracht';
-
-  @override
-  String get transfer_computers_aboutContent =>
-      'Verbind je duikcomputer via Bluetooth om duiklogs rechtstreeks naar de app te downloaden. Ondersteunde computers zijn onder andere Suunto, Shearwater, Garmin, Mares en vele andere populaire merken.\n\nApple Watch Ultra-gebruikers kunnen duikgegevens rechtstreeks uit de Gezondheid-app importeren, inclusief diepte, duur en hartslag.';
 
   @override
   String get transfer_computers_aboutTitle => 'Over duikcomputers';
@@ -28240,7 +28280,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi en 50+ andere modellen.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi en 50+ andere modellen.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Ondersteunde merken';
@@ -28254,6 +28294,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Begrepen';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Garmin-horloges worden hier niet gedownload. Importeer hun duiken via $importPath of $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>
@@ -43097,12 +43142,28 @@ class AppLocalizationsNl extends AppLocalizations {
       'Doorgaan naar controleren...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Importeren uit bestand';
+
+  @override
   String get importWizard_dc_knownComputer => 'Bekende computer';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Opgeslagen als ‘$name’. Alleen nieuwe duiken worden gedownload.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Direct downloaden van deze computer is niet mogelijk';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Submersion heeft geen opgeslagen verbinding voor $name. Importeer de duiken uit een bestand, of voeg de computer opnieuw toe via Duikcomputers om via Bluetooth of USB te downloaden.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Garmin-horloges slaan duiken op als FIT-bestanden in plaats van een directe download te bieden. Sluit het horloge via USB aan, kopieer de bestanden uit de map GARMIN/Activity en importeer ze daarna.';
 
   @override
   String get importWizard_dc_noNewDives =>

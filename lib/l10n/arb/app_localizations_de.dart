@@ -8990,31 +8990,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'Die ersten $limit Treffer werden angezeigt. Verfeinern Sie die Suche, um die Ergebnisse einzugrenzen.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'Keine Tauchgänge gefunden für \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Nach Tauchplatz, Tauchpartner oder Notizen suchen';
-
-  @override
-  String get diveLog_listPage_tooltip_back => 'Zurück';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'Zurück zur Tauchgangliste';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Suche löschen';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Tauchgänge filtern';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'Listenansicht';
@@ -9024,6 +9004,33 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_searchDives => 'Tauchgänge suchen';
+
+  @override
+  String get diveLog_search_fieldHint => 'Suche, z. B. depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Verfeinern';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Suche schließen';
+
+  @override
+  String get diveLog_search_scopeWithin => 'Innerhalb der Filter';
+
+  @override
+  String get diveLog_search_scopeAll => 'Alle Tauchgänge';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Zum Tauchgang springen';
+
+  @override
+  String get diveLog_search_openInsights => 'In Einblicken öffnen';
+
+  @override
+  String get diveLog_search_cleared => 'Suche zurückgesetzt';
+
+  @override
+  String get diveLog_search_undo => 'Rückgängig';
 
   @override
   String get diveLog_listPage_tooltip_sort => 'Sortieren';
@@ -20778,6 +20785,20 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'Jedes Gerät holt auf, sobald es eine mindestens ebenso neue Version wie dieses verwendet. Wird ihm noch kein solches Update angeboten, kommt es mit der nächsten Version, oder früher über die Teilnahme an der Beta.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList verwendet eine ältere Version von Submersion, die die neuesten Änderungen dieses Geräts nicht lesen kann, und erhält sie daher erst nach einem Update.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList verwenden eine ältere Version von Submersion, die die neuesten Änderungen dieses Geräts nicht lesen kann, und erhalten sie daher erst nach einem Update.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList hat noch eine ältere oder unbekannte Bibliotheksversion, daher wurden die Änderungen nicht zusammengeführt. Öffnen Sie Submersion dort, um die aktuelle Bibliothek zu übernehmen.';
   }
@@ -20825,8 +20846,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Aktualisieren Sie dieses Gerät, um sie zu erhalten.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'Sie kommen an, sobald dieses Gerät eine mindestens ebenso neue Version verwendet. Wenn jenes Gerät den Beta-Kanal nutzt, gibt es möglicherweise noch kein stabiles Update: Stellen Sie dieses Gerät ebenfalls auf den Beta-Update-Kanal um, oder warten Sie auf die nächste stabile Version.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'Sie werden automatisch übernommen, sobald das App-Store-Update für dieses Gerät verfügbar ist; das Update befindet sich möglicherweise noch in der Prüfung.';
+      'Sie werden automatisch übernommen, sobald das App-Store-Update dieses Geräts diese Version erreicht. Das Update befindet sich möglicherweise noch in der Prüfung oder ist, falls jenes Gerät eine Beta verwendet (TestFlight oder Google Play-Test), noch nicht veröffentlicht: Treten Sie auf diesem Gerät derselben Beta bei, oder warten Sie auf die nächste Version.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Verbunden';
@@ -22712,8 +22737,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'Sie bleiben auf dieser Beta, bis die nächste stabile Version neuer ist als diese.';
+  String get settings_updates_stableDialogBody =>
+      'Dieses Gerät behält seinen aktuellen Build, bis eine stabile Version neuer ist; die App wird nie herabgestuft und Ihr Tauchlogbuch bleibt erhalten. Bis dahin erhalten Geräte im stabilen Kanal, die mit diesem synchronisieren, möglicherweise nicht seine neuesten Änderungen. Installieren Sie keinen älteren stabilen Build über diesen: Er kann kein Tauchlogbuch öffnen, das ein neuerer Build aktualisiert hat.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'Zu Stabil wechseln';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      'Zu stabilen Updates zurückkehren?';
 
   @override
   String get settings_updates_upToDate => 'Auf dem neuesten Stand';
@@ -23562,6 +23594,17 @@ class AppLocalizationsDe extends AppLocalizations {
     Object label,
   ) {
     return '$name, Rang $rank, $count $label';
+  }
+
+  @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name, $subtitle, Rang $rank, $count $label';
   }
 
   @override
@@ -25112,10 +25155,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_appBar_title => 'Übertragung';
-
-  @override
-  String get transfer_computers_aboutContent =>
-      'Verbinden Sie Ihren Tauchcomputer über Bluetooth, um Tauchprotokolle direkt in die App herunterzuladen. Unterstützte Computer sind Suunto, Shearwater, Garmin, Mares und viele andere beliebte Marken.\n\nApple Watch Ultra-Benutzer können Tauchdaten direkt aus der Health-App importieren, einschließlich Tiefe, Dauer und Herzfrequenz.';
 
   @override
   String get transfer_computers_aboutTitle => 'Über Tauchcomputer';
@@ -28409,7 +28448,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi und über 50 weitere Modelle.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi und über 50 weitere Modelle.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Unterstützte Marken';
@@ -28423,6 +28462,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Verstanden';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'Garmin-Uhren werden hier nicht heruntergeladen. Importieren Sie ihre Tauchgänge über $importPath oder $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>
@@ -43294,12 +43338,28 @@ class AppLocalizationsDe extends AppLocalizations {
       'Weiter zur Überprüfung...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Aus Datei importieren';
+
+  @override
   String get importWizard_dc_knownComputer => 'Bekannter Computer';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Gespeichert als „$name“. Es werden nur neue Tauchgänge heruntergeladen.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Direkter Download von diesem Computer nicht möglich';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'Für $name ist in Submersion keine Verbindung gespeichert. Importieren Sie die Tauchgänge aus einer Datei, oder fügen Sie den Computer unter Tauchcomputer erneut hinzu, um per Bluetooth oder USB herunterzuladen.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'Garmin-Uhren speichern Tauchgänge als FIT-Dateien und bieten keinen direkten Download. Verbinden Sie die Uhr per USB, kopieren Sie die Dateien aus ihrem Ordner GARMIN/Activity und importieren Sie sie anschließend.';
 
   @override
   String get importWizard_dc_noNewDives =>

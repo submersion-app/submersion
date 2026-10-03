@@ -34,7 +34,9 @@ class TokenizeException implements Exception {
 /// grammar decides their validity; otherwise `2025-3-1` would read as the
 /// number 2025 followed by two negated terms.
 final RegExp _isoDate = RegExp(r'^\d{4}-\d{1,2}(-\d{1,2})?(?![\w.])');
-final RegExp _number = RegExp(r'^\d+(\.\d+)?[A-Za-z]*');
+
+/// A number with a unit suffix (`30m`) or a percent sign (`32%`).
+final RegExp _number = RegExp(r'^\d+(\.\d+)?(%|[A-Za-z]*)');
 const _twoCharSymbols = {'!=', '<=', '>='};
 const _oneCharSymbols = {
   '(',
@@ -54,6 +56,16 @@ const _oneCharSymbols = {
 
 bool _isWordChar(String c) =>
     c.trim().isNotEmpty && !_oneCharSymbols.contains(c) && c != '"' && c != '!';
+
+/// A hyphen with a word character on both sides belongs to the word
+/// (`Abu-Nuhas`, `U-352`); only a hyphen that starts a term negates it
+/// (#2773), so plain text reads the way a diver typed it.
+bool _isInnerHyphen(String s, int i) =>
+    i > 0 &&
+    i + 1 < s.length &&
+    s[i] == '-' &&
+    _isWordChar(s[i - 1]) &&
+    _isWordChar(s[i + 1]);
 
 /// Splits query text into tokens. Throws [TokenizeException] (with the
 /// offset) on an unterminated quote or a character no token accepts; the
@@ -110,13 +122,16 @@ List<Token> tokenize(String input) {
       continue;
     }
     final number = _number.firstMatch(rest);
-    if (number != null) {
+    final numberEnd = i + (number?[0]!.length ?? 0);
+    // `3-day` is a word, not the number 3 and a negated `day`.
+    if (number != null && !_isInnerHyphen(input, numberEnd)) {
       out.add(Token(TokenKind.number, number[0]!, i, number[0]!.length));
       i += number[0]!.length;
       continue;
     }
     var j = i;
-    while (j < input.length && _isWordChar(input[j])) {
+    while (j < input.length &&
+        (_isWordChar(input[j]) || _isInnerHyphen(input, j))) {
       j++;
     }
     if (j == i) {

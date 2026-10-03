@@ -154,7 +154,6 @@ import 'package:submersion/features/weight_planner/presentation/widgets/weight_e
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
 
-const _createNewSiteSentinel = '__create_new__';
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
 
@@ -2716,43 +2715,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   Future<void> _showSitePicker() async {
     final anchor = _existingDive?.entryLocation ?? _existingDive?.exitLocation;
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (sheetContext, scrollController) => SitePickerSheet(
-          scrollController: scrollController,
-          selectedSiteId: _selectedSite?.id,
-          currentLocation: _currentLocation,
-          diveLocation: anchor,
-          onSiteSelected: (site) {
-            _markDirty();
-            setState(() => _assignSite(site));
-            _reevaluateGeofenceForSite();
-            Navigator.of(sheetContext).pop();
-          },
-          onCreateNewSite: () {
-            Navigator.of(sheetContext).pop(_createNewSiteSentinel);
-          },
-        ),
-      ),
+    final site = await pickOrCreateSite(
+      context,
+      ref,
+      selectedSiteId: _selectedSite?.id,
+      currentLocation: _currentLocation,
+      diveLocation: anchor,
+      newSiteSeedLocation: anchor,
     );
-
-    if (result == _createNewSiteSentinel && mounted) {
-      final siteId = await context.push<String>('/sites/new', extra: anchor);
-      if (siteId != null && mounted) {
-        final repo = ref.read(siteRepositoryProvider);
-        final site = await repo.getSiteById(siteId);
-        if (site != null && mounted) {
-          _markDirty();
-          setState(() => _assignSite(site));
-          _reevaluateGeofenceForSite();
-        }
-      }
+    if (site != null && mounted) {
+      _markDirty();
+      setState(() => _assignSite(site));
+      _reevaluateGeofenceForSite();
     }
   }
 

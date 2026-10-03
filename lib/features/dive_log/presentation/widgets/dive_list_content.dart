@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
@@ -50,13 +51,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/close_dive_search.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
@@ -1049,7 +1049,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       _toggleSelection(dive.id);
       return;
     }
+    _openDive(dive);
+  }
 
+  /// Opens [dive] the way a list tap does outside selection mode. The search
+  /// row's jump list calls this directly: its rows may not be in the list
+  /// at all, so selecting them would do nothing visible.
+  void _openDive(DiveSummary dive) {
     // In map mode, call onItemTapForMap instead of navigating
     if (widget.isMapMode && widget.onItemTapForMap != null) {
       // Also update the visual selection highlight
@@ -1139,6 +1145,17 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, stack) => _buildErrorState(context, error),
           );
+          // The search row sits OUTSIDE the loading and empty states, so a
+          // search that matches nothing never takes its own field away.
+          final body = Column(
+            children: [
+              DiveSearchHeader(
+                onOpenDive: _openDive,
+                onEscape: selection.isActive ? _selection.exit : null,
+              ),
+              Expanded(child: content),
+            ],
+          );
 
           if (!widget.showAppBar) {
             // Used inside MasterDetailScaffold - no Scaffold wrapper
@@ -1148,7 +1165,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   _buildSelectionBar(loadedDives)
                 else
                   _buildCompactAppBar(context, filter),
-                Expanded(child: content),
+                Expanded(child: body),
               ],
             );
           }
@@ -1158,7 +1175,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             appBar: selection.isActive
                 ? _buildSelectionAppBar(loadedDives)
                 : _buildAppBar(context, filter),
-            body: content,
+            body: body,
             floatingActionButton: selection.isActive
                 ? null
                 : widget.floatingActionButton,
@@ -1211,27 +1228,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             tooltip: context.l10n.diveLog_listPage_tooltip_explore,
             onPressed: () => context.push('/dives/explore'),
           ),
-        IconButton(
-          icon: const Icon(Icons.search),
-          tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
-          onPressed: () {
-            showSearch(context: context, delegate: DiveSearchDelegate(ref));
-          },
-        ),
-        IconButton(
-          icon: Badge(
-            isLabelVisible: filter.hasActiveFilters,
-            child: const Icon(Icons.filter_list),
-          ),
-          tooltip: context.l10n.diveLog_listPage_tooltip_filterDives,
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => DiveFilterSheet(ref: ref),
-            );
-          },
-        ),
+        const DiveSearchAction(),
         IconButton(
           icon: const Icon(Icons.sort),
           tooltip: context.l10n.diveLog_listPage_tooltip_sort,
@@ -1424,27 +1421,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               tooltip: context.l10n.diveLog_listPage_tooltip_explore,
               onPressed: () => context.push('/dives/explore'),
             ),
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
-            tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
-            onPressed: () {
-              showSearch(context: context, delegate: DiveSearchDelegate(ref));
-            },
-          ),
-          IconButton(
-            icon: Badge(
-              isLabelVisible: filter.hasActiveFilters,
-              child: const Icon(Icons.filter_list, size: 20),
-            ),
-            tooltip: context.l10n.diveLog_listPage_tooltip_filterDives,
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => DiveFilterSheet(ref: ref),
-              );
-            },
-          ),
+          const DiveSearchAction(iconSize: 20),
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
             tooltip: context.l10n.diveLog_listPage_tooltip_sort,
@@ -1713,6 +1690,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 _buildSelectionBar(
                   tableDives.map((d) => DiveSummary.fromDive(d)).toList(),
                 ),
+              DiveSearchHeader(
+                onOpenDive: _openDive,
+                onEscape: selection.isActive ? _selection.exit : null,
+              ),
               Expanded(child: content),
             ],
           );
@@ -1737,7 +1718,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         }
         return Column(
           children: [
-            if (filter.hasActiveFilters) _buildActiveFiltersBar(context),
             Expanded(
               child: DiveTableView(
                 dives: dives,
@@ -1912,7 +1892,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       onRefresh: () => ref.read(paginatedDiveListProvider.notifier).refresh(),
       child: Column(
         children: [
-          if (hasActiveFilters) _buildActiveFiltersBar(context),
           Expanded(
             child: CustomScrollView(
               controller: _scrollController,
@@ -2122,31 +2101,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
   }
 
-  Widget _buildActiveFiltersBar(BuildContext context) {
-    final chips = activeDiveFilterChips(context, ref, diveFilterProvider);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(children: chips),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              ref.read(diveFilterProvider.notifier).state =
-                  const DiveFilterState();
-            },
-            child: Text(context.l10n.diveLog_filterChip_clearAll),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEmptyState(BuildContext context, bool hasActiveFilters) {
     if (hasActiveFilters) {
       return Center(
@@ -2174,10 +2128,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
-              onPressed: () {
-                ref.read(diveFilterProvider.notifier).state =
-                    const DiveFilterState();
-              },
+              onPressed: () => closeDiveSearch(context, ref, collapse: false),
               icon: const Icon(Icons.clear_all),
               label: Text(context.l10n.diveLog_emptyFiltered_clearFilters),
             ),

@@ -668,6 +668,25 @@ class DiveConsolidationService {
                 .firstWhere((l) => l != null, orElse: () => null)
           : null;
 
+      // The same rule for the site and the runtime. A dive logged without
+      // them, say by an earlier file import that dropped them, is repaired by
+      // re-importing the file and consolidating each dive into its
+      // duplicate (#1809).
+      final secondaryRows = [
+        for (final secondary in plan.secondaries)
+          snapshot.diveRows.firstWhere((r) => r.id == secondary.id),
+      ];
+      final siteFill = targetRow.siteId == null
+          ? secondaryRows
+                .map((r) => r.siteId)
+                .firstWhere((id) => id != null, orElse: () => null)
+          : null;
+      final runtimeFill = targetRow.runtime == null
+          ? secondaryRows
+                .map((r) => r.runtime)
+                .firstWhere((s) => s != null, orElse: () => null)
+          : null;
+
       // Touch the target so sync carries the consolidation.
       await (_db.update(
         _db.dives,
@@ -685,6 +704,10 @@ class DiveConsolidationService {
               : const Value.absent(),
           exitLongitude: exitFill != null
               ? Value(exitFill.longitude)
+              : const Value.absent(),
+          siteId: siteFill != null ? Value(siteFill) : const Value.absent(),
+          runtime: runtimeFill != null
+              ? Value(runtimeFill)
               : const Value.absent(),
         ),
       );

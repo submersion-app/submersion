@@ -8971,31 +8971,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String diveLog_listPage_searchLimitNotice(int limit) {
-    return 'Az első $limit találat látható. Pontosítsa a keresést az eredmények szűkítéséhez.';
-  }
-
-  @override
-  String diveLog_listPage_searchNoResults(Object query) {
-    return 'Nem található merülés: \"$query\"';
-  }
-
-  @override
-  String get diveLog_listPage_searchSuggestion =>
-      'Keresés merülőhely, búvártárs vagy jegyzetek alapján';
-
-  @override
-  String get diveLog_listPage_tooltip_back => 'Vissza';
-
-  @override
   String get diveLog_listPage_tooltip_backToDiveList =>
       'Vissza a merülések listájához';
 
   @override
   String get diveLog_listPage_tooltip_clearSearch => 'Keresés törlése';
-
-  @override
-  String get diveLog_listPage_tooltip_filterDives => 'Merülések szűrése';
 
   @override
   String get diveLog_listPage_tooltip_listView => 'Lista nézet';
@@ -9005,6 +8985,33 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_listPage_tooltip_searchDives => 'Merülések keresése';
+
+  @override
+  String get diveLog_search_fieldHint => 'Keresés, pl. depth > 30m';
+
+  @override
+  String get diveLog_search_refineTooltip => 'Szűkítés';
+
+  @override
+  String get diveLog_search_closeTooltip => 'Keresés bezárása';
+
+  @override
+  String get diveLog_search_scopeWithin => 'A szűrőkön belül';
+
+  @override
+  String get diveLog_search_scopeAll => 'Összes merülés';
+
+  @override
+  String get diveLog_search_jumpTitle => 'Ugrás a merüléshez';
+
+  @override
+  String get diveLog_search_openInsights => 'Megnyitás az Elemzésekben';
+
+  @override
+  String get diveLog_search_cleared => 'Keresés törölve';
+
+  @override
+  String get diveLog_search_undo => 'Visszavonás';
 
   @override
   String get diveLog_listPage_tooltip_sort => 'Rendezés';
@@ -20739,6 +20746,20 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_cloudSync_peerBehind_action =>
+      'Mindegyik felzárkózik, amint legalább ugyanilyen új verziót futtat, mint ez az eszköz. Ha még nem kap ilyen frissítést, az a következő kiadással érkezik, vagy korábban, ha csatlakozik a bétához.';
+
+  @override
+  String settings_cloudSync_peerBehind_banner(Object deviceList) {
+    return '$deviceList a Submersion egy régebbi verzióját futtatja, amely nem tudja olvasni ennek az eszköznek a legújabb változtatásait, ezért csak frissítés után kapja meg őket.';
+  }
+
+  @override
+  String settings_cloudSync_peerBehind_bannerPlural(Object deviceList) {
+    return '$deviceList a Submersion egy régebbi verzióját futtatják, amely nem tudja olvasni ennek az eszköznek a legújabb változtatásait, ezért csak frissítés után kapják meg őket.';
+  }
+
+  @override
   String settings_cloudSync_peerNeedsAdopt_banner(Object deviceList) {
     return '$deviceList még régebbi vagy ismeretlen könyvtárverziót használ, ezért a változásai nem lettek egyesítve. Nyissa meg rajta a Submersiont az aktuális könyvtár átvételéhez.';
   }
@@ -20786,8 +20807,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Frissítsd ezt az eszközt, hogy megkapd őket.';
 
   @override
+  String get settings_cloudSync_peerRequiresUpdate_stableAction =>
+      'Akkor érkeznek meg, amikor ez az eszköz legalább ugyanilyen új verziót futtat. Ha a másik eszköz a béta csatornán van, lehet, hogy még nincs stabil frissítés: állítsd ezt az eszközt is a béta frissítési csatornára, vagy várd meg a következő stabil kiadást.';
+
+  @override
   String get settings_cloudSync_peerRequiresUpdate_storeAction =>
-      'Automatikusan érvénybe lépnek, amint megérkezik az eszköz alkalmazásbolti frissítése; a frissítés még ellenőrzés alatt állhat.';
+      'Automatikusan érvénybe lépnek, amint az eszköz alkalmazásbolti frissítése eléri azt a verziót. A frissítés még ellenőrzés alatt állhat, vagy ha a másik eszköz bétát használ (TestFlight vagy Google Play tesztelés), még nem jelent meg: csatlakozz ezen az eszközön is ugyanahhoz a bétához, vagy várd meg a következő kiadást.';
 
   @override
   String get settings_cloudSync_provider_connected => 'Csatlakoztatva';
@@ -22678,8 +22703,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get settings_updates_stableSwitchNotice =>
-      'Ezen a bétán maradsz, amíg a következő stabil kiadás nem lesz nála újabb.';
+  String get settings_updates_stableDialogBody =>
+      'Ez az eszköz megtartja a jelenlegi buildjét, amíg egy stabil kiadás újabb nem lesz nála, így az alkalmazás sosem áll vissza korábbi verzióra, és a merülési naplód megmarad. Addig a stabil csatornán lévő, ezzel szinkronizáló eszközök nem biztos, hogy megkapják a legújabb változtatásait. Ne telepíts erre egy régebbi stabil buildet: az nem tud megnyitni olyan merülési naplót, amelyet egy újabb build frissített.';
+
+  @override
+  String get settings_updates_stableDialogConfirm => 'Váltás stabilra';
+
+  @override
+  String get settings_updates_stableDialogTitle =>
+      'Visszatérsz a stabil frissítésekhez?';
 
   @override
   String get settings_updates_upToDate => 'Naprakész';
@@ -23532,6 +23564,17 @@ class AppLocalizationsHu extends AppLocalizations {
     Object label,
   ) {
     return '$name, $rank. helyezés, $count $label';
+  }
+
+  @override
+  String insights_ranking_semanticLabelWithSubtitle(
+    Object name,
+    Object subtitle,
+    Object rank,
+    Object count,
+    Object label,
+  ) {
+    return '$name, $subtitle, $rank. helyezés, $count $label';
   }
 
   @override
@@ -25085,10 +25128,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get transfer_appBar_title => 'Átvitel';
-
-  @override
-  String get transfer_computers_aboutContent =>
-      'Csatlakoztassa merülési számítógépét Bluetooth-on keresztül, és töltse le a merülési naplókat közvetlenül az alkalmazásba. Támogatott számítógépek: Suunto, Shearwater, Garmin, Mares és sok más népszerű márka.\n\nAz Apple Watch Ultra felhasználók közvetlenül importálhatják a merülési adatokat a Health alkalmazásból, beleértve a mélység, időtartam és szívfrekvencia adatokat.';
 
   @override
   String get transfer_computers_aboutTitle => 'Merülési számítógépek';
@@ -28357,7 +28396,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpBrandsList =>
-      'Shearwater, Suunto, Garmin, Mares, Scubapro, Oceanic, Aqualung, Cressi és 50+ további modell.';
+      'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi és 50+ további modell.';
 
   @override
   String get diveComputer_list_helpBrandsTitle => 'Támogatott márkák';
@@ -28370,6 +28409,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpDismiss => 'Rendben';
+
+  @override
+  String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
+    return 'A Garmin órák merüléseit nem itt kell letölteni. Importálja őket innen: $importPath vagy $cloudPath.';
+  }
 
   @override
   String get diveComputer_list_helpTip1 =>
@@ -43196,12 +43240,28 @@ class AppLocalizationsHu extends AppLocalizations {
       'Továbblépés az áttekintésre...';
 
   @override
+  String get importWizard_dc_importFromFile => 'Importálás fájlból';
+
+  @override
   String get importWizard_dc_knownComputer => 'Ismert búvárszámítógép';
 
   @override
   String importWizard_dc_knownComputerBody(String name) {
     return 'Mentve mint \"$name\". Csak az új merülések töltődnek le.';
   }
+
+  @override
+  String get importWizard_dc_noDirectDownload =>
+      'Erről a búvárszámítógépről nem lehet közvetlenül letölteni';
+
+  @override
+  String importWizard_dc_noDirectDownloadBody(String name) {
+    return 'A Submersion nem tárol mentett kapcsolatot ehhez: $name. Importálja a merüléseit fájlból, vagy adja hozzá újra a Merülésszámítógépek oldalon, hogy Bluetooth-on vagy USB-n keresztül tölthessen le.';
+  }
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminBody =>
+      'A Garmin órák FIT-fájlokként tárolják a merüléseket, és nem kínálnak közvetlen letöltést. Csatlakoztassa az órát USB-n, másolja ki a fájlokat a GARMIN/Activity mappájából, majd importálja őket.';
 
   @override
   String get importWizard_dc_noNewDives => 'Nincs letöltendő új merülés';

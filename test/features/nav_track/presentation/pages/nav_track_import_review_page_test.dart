@@ -9,8 +9,11 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/location_service_provider.dart';
+import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -82,12 +85,28 @@ NavTrackImportPreview _preview({
   );
 }
 
+/// Device GPS that never has a fix, so opening the site picker (which asks
+/// for one when the page supplies no location) stays off the Geolocator
+/// platform channel.
+class _NoFixLocationService implements LocationService {
+  @override
+  Future<LocationResult?> getCurrentLocation({
+    bool includeGeocoding = true,
+    Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
+  }) async => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Future<void> _pump(
   WidgetTester tester, {
   required NavTrackImportPreview preview,
   NavTrackImportService? service,
   List<EquipmentItem>? equipment,
   MockSettingsNotifier? settingsNotifier,
+  List<DiveSite>? sites,
 }) async {
   // A host locale the app actually translates into, so the English finders
   // below pass only because the MaterialApp pins `en`. Drop the pin and
@@ -109,6 +128,10 @@ Future<void> _pump(
           navTrackImportServiceProvider.overrideWithValue(service),
         if (equipment != null)
           activeEquipmentProvider.overrideWith((ref) async => equipment),
+        if (sites != null) ...[
+          sitesProvider.overrideWith((ref) async => sites),
+          locationServiceProvider.overrideWithValue(_NoFixLocationService()),
+        ],
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -554,6 +577,42 @@ void main() {
       expect(find.text('No site chosen'), findsOneWidget);
     },
   );
+
+  testWidgets('the site picker offers no "New Dive Site" button (issue #2792) '
+      'and a picked site is shown', (tester) async {
+    await _pump(
+      tester,
+      preview: _preview(),
+      sites: const [DiveSite(id: 's1', name: 'Coral Garden')],
+    );
+
+    final picker = find.byKey(const ValueKey('nav-track-site-picker'));
+    await tester.scrollUntilVisible(
+      picker,
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(picker);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Select Dive Site'), findsOneWidget);
+    expect(find.text('New Dive Site'), findsNothing);
+
+    await tester.tap(find.text('Coral Garden'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Select Dive Site'), findsNothing);
+    expect(
+      find.descendant(of: picker, matching: find.text('Coral Garden')),
+      findsOneWidget,
+    );
+  });
 
   testWidgets('leaves the route unlinked when several dives overlap', (
     tester,

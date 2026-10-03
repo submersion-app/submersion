@@ -11,6 +11,7 @@ import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
+import 'package:submersion/features/dive_computer/data/services/parsed_dive_start_time.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
@@ -535,19 +536,15 @@ class ReparseService {
   // ==========================================================================
 
   /// The dive's start instant as this parse reports it, in the source's own
-  /// time frame.
+  /// time frame, or null when the parser reported no date.
   ///
   /// Both the source row's provenance window and the dive row's own clock
   /// derive from this one expression so they cannot drift apart across a
-  /// re-parse (#1207).
-  static DateTime _parsedEntryTime(pigeon.ParsedDive parsed) => DateTime.utc(
-    parsed.dateTimeYear,
-    parsed.dateTimeMonth,
-    parsed.dateTimeDay,
-    parsed.dateTimeHour,
-    parsed.dateTimeMinute,
-    parsed.dateTimeSecond,
-  );
+  /// re-parse (#1207). When it is null, each row keeps the start it already
+  /// stores rather than taking a rolled-over date such as -0001-11-30
+  /// (#1640).
+  static DateTime? _parsedEntryTime(pigeon.ParsedDive parsed) =>
+      parsedDiveStartTime(parsed);
 
   Future<void> _updateSourceRow({
     required String sourceRowId,
@@ -560,7 +557,12 @@ class ReparseService {
     required Uint8List? rawFingerprint,
     required DateTime now,
   }) async {
-    final entryTime = _parsedEntryTime(parsed);
+    final entryTime =
+        _parsedEntryTime(parsed) ??
+        (await (db.select(
+              db.diveDataSources,
+            )..where((t) => t.id.equals(sourceRowId))).getSingleOrNull())
+            ?.entryTime;
     await (db.update(
       db.diveDataSources,
     )..where((t) => t.id.equals(sourceRowId))).write(
@@ -598,10 +600,10 @@ class ReparseService {
         // timeline; this window is not, because consolidation copies a
         // folded-in source's entry/exit across untouched and records the
         // shift in timeOffsetSeconds instead.
-        entryTime: Value(entryTime),
-        exitTime: Value(
-          entryTime.add(Duration(seconds: parsed.durationSeconds)),
-        ),
+        entryTime: entryTime != null ? Value(entryTime) : const Value.absent(),
+        exitTime: entryTime != null
+            ? Value(entryTime.add(Duration(seconds: parsed.durationSeconds)))
+            : const Value.absent(),
         descriptorVendor: Value(descriptorVendor),
         descriptorProduct: Value(descriptorProduct),
         descriptorModel: Value(descriptorModel),
@@ -623,8 +625,21 @@ class ReparseService {
     required DateTime now,
     required String? vendor,
   }) async {
-    final diveDateTimeMs = _parsedEntryTime(parsed).millisecondsSinceEpoch;
-    final exitTimeMs = diveDateTimeMs + (parsed.durationSeconds * 1000);
+    // A parse with no date leaves both start columns as stored, and the exit
+    // follows the dive's effective start (entry time when set, as
+    // Dive.effectiveEntryTime reads it), so the re-parse cannot move the dive
+    // (#1640).
+    final parsedStartMs = _parsedEntryTime(parsed)?.millisecondsSinceEpoch;
+    final int startMs;
+    if (parsedStartMs != null) {
+      startMs = parsedStartMs;
+    } else {
+      final stored = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      startMs = stored.entryTime ?? stored.diveDateTime;
+    }
+    final exitTimeMs = startMs + (parsed.durationSeconds * 1000);
     final bottomTimeSeconds = _calculateBottomTimeFromSamples(
       parsed.samples,
       totalDurationSeconds: parsed.durationSeconds,
@@ -652,8 +667,12 @@ class ReparseService {
           parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
         ),
         runtime: Value(parsed.durationSeconds),
-        diveDateTime: Value(diveDateTimeMs),
-        entryTime: Value(diveDateTimeMs),
+        diveDateTime: parsedStartMs != null
+            ? Value(parsedStartMs)
+            : const Value.absent(),
+        entryTime: parsedStartMs != null
+            ? Value(parsedStartMs)
+            : const Value.absent(),
         exitTime: Value(exitTimeMs),
         bottomTime: Value(bottomTimeSeconds ?? parsed.durationSeconds),
         // Only overwrite the dive's water temp when this parse produced one,
