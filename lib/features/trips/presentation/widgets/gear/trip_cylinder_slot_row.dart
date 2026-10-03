@@ -55,7 +55,9 @@ class TripCylinderSlotRow extends StatelessWidget {
     }
 
     final specs = [
-      if (c.volume != null) units.formatVolume(c.volume),
+      // A cylinder's size: litres of tank in metric, rated gas in imperial,
+      // as the board shows it.
+      if (c.volume != null) units.formatTankVolume(c.volume, c.workingPressure),
       if (c.workingPressure != null) units.formatPressure(c.workingPressure),
     ];
     return ListTile(

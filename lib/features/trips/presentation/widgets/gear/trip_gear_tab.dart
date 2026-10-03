@@ -32,9 +32,24 @@ class TripGearTab extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
-    final gear = ref.watch(tripGearProvider(trip.id)).value;
-    final states = ref.watch(tripCylinderStatesProvider(trip.id)).value;
+    final gearAsync = ref.watch(tripGearProvider(trip.id));
+    final statesAsync = ref.watch(tripCylinderStatesProvider(trip.id));
+    final gear = gearAsync.value;
+    final states = statesAsync.value;
     if (gear == null || states == null) {
+      // A failed read has no value either; say so rather than spin. The
+      // repositories log the failure.
+      if (gearAsync.hasError || statesAsync.hasError) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Text(
+              l10n.common_error_tryAgain,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        );
+      }
       return const Center(child: CircularProgressIndicator.adaptive());
     }
     final alerts =

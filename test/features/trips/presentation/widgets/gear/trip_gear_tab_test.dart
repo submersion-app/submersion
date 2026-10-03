@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -209,11 +211,15 @@ Future<_Harness> _pumpTab(
   List<ScrubberMargin> margins = const [],
   List<EquipmentItem> active = const [],
   List<EquipmentSet> sets = const [],
+  AppSettings settings = const AppSettings(),
+  Object? gearError,
 }) async {
   final packs = _FakePacks();
   final slots = _FakeSlots();
   final pushed = <String>[];
-  final overrides = await getBaseOverrides();
+  final overrides = await getBaseOverrides(
+    settingsNotifier: MockSettingsNotifier(settings),
+  );
   final router = GoRouter(
     routes: [
       GoRoute(
@@ -240,7 +246,10 @@ Future<_Harness> _pumpTab(
     ProviderScope(
       overrides: [
         ...overrides,
-        tripGearProvider('t1').overrideWith((ref) async => gear),
+        tripGearProvider('t1').overrideWith((ref) async {
+          if (gearError != null) throw gearError;
+          return gear;
+        }),
         tripCylinderStatesProvider('t1').overrideWith((ref) async => states),
         tripCylindersProvider(
           't1',
@@ -479,5 +488,49 @@ void main() {
   ) async {
     await _pumpTab(tester, gear: const [fins]);
     expect(find.byKey(const Key('trip-gear-alert-fins')), findsNothing);
+  });
+
+  testWidgets('before departure an imperial diver sees rated capacity', (
+    tester,
+  ) async {
+    final al80 = foldCylinderState(
+      cylinder: TripCylinder(
+        id: 'c1',
+        tripId: 't1',
+        label: 'Truck 1',
+        volume: 11.1,
+        workingPressure: 207,
+        createdAt: _t0,
+        updatedAt: _t0,
+      ),
+      events: const [],
+      uses: const [],
+    );
+    await _pumpTab(
+      tester,
+      states: [al80],
+      settings: const AppSettings(
+        volumeUnit: VolumeUnit.cubicFeet,
+        pressureUnit: PressureUnit.psi,
+      ),
+    );
+    final subtitle = tester.widget<Text>(
+      find.descendant(
+        of: find.byKey(const Key('trip-gear-slot-c1')),
+        matching: find.textContaining('Rental'),
+      ),
+    );
+    // About 78 cuft of gas, never the 0.4 cuft of water the tank holds.
+    expect(subtitle.data, matches(RegExp(r'^~?7[0-9] cuft')));
+  });
+
+  testWidgets('a failed load says so instead of spinning', (tester) async {
+    await _pumpTab(tester, gearError: StateError('database is locked'));
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('database is locked'), findsNothing);
   });
 }
