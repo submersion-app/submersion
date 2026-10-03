@@ -1099,7 +1099,13 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       );
       return dbEvents.isEmpty
           ? analysis
-          : analysis.copyWith(events: mergeEvents(analysis.events, dbEvents));
+          : analysis.copyWith(
+              events: mergeEvents(
+                analysis.events,
+                dbEvents,
+                analyzedComputerId: computerId,
+              ),
+            );
     }
     final tanks = computerId == null
         ? dive.tanks
@@ -1341,7 +1347,11 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     if (dbEvents.isEmpty) {
       return withCns;
     }
-    final merged = mergeEvents(withCns.events, dbEvents);
+    final merged = mergeEvents(
+      withCns.events,
+      dbEvents,
+      analyzedComputerId: computerId,
+    );
     return withCns.copyWith(events: merged);
   }
 }

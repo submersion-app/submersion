@@ -68,12 +68,19 @@ EventSource _parseSource(String source) {
 /// When duplicates exist, the DB event (from [dbEvents]) is kept: it is the
 /// computer's own record and can carry its exact label (#1523), and the chart
 /// hides computed events by default on a dive that has the computer's, so
-/// keeping the computed one would drop the marker entirely. The result is
-/// sorted by timestamp ascending.
+/// keeping the computed one would drop the marker entirely.
+///
+/// [analyzedComputerId] is the computer whose profile [autoEvents] were
+/// computed on, for a per-source analysis. Only that computer's events (and
+/// ones with no computer) then win a tie; another computer's colliding event
+/// is kept alongside the computed one, because the chart hides it whenever
+/// that computer is not shown. Null (a dive-level analysis) lets any DB event
+/// win. The result is sorted by timestamp ascending.
 List<ProfileEvent> mergeEvents(
   List<ProfileEvent> autoEvents,
-  List<ProfileEvent> dbEvents,
-) {
+  List<ProfileEvent> dbEvents, {
+  String? analyzedComputerId,
+}) {
   if (dbEvents.isEmpty) return List.of(autoEvents);
   if (autoEvents.isEmpty) {
     final sorted = List.of(dbEvents);
@@ -81,9 +88,13 @@ List<ProfileEvent> mergeEvents(
     return sorted;
   }
 
-  // Build a set of keys from DB events for deduplication
+  // Build a set of keys from the DB events that win a tie
   final dbKeys = <(int, ProfileEventType)>{
-    for (final event in dbEvents) (event.timestamp, event.eventType),
+    for (final event in dbEvents)
+      if (analyzedComputerId == null ||
+          event.computerId == null ||
+          event.computerId == analyzedComputerId)
+        (event.timestamp, event.eventType),
   };
 
   // Start with all DB events, add non-duplicate auto-detected events

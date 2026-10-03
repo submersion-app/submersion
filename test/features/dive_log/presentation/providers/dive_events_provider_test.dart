@@ -358,6 +358,55 @@ void main() {
       expect(result.first.id, 'db-1');
     });
 
+    group('scoped to the analyzed computer (#1523)', () {
+      ProfileEvent at(String id, {String? computerId, EventSource? source}) =>
+          ProfileEvent(
+            id: id,
+            diveId: 'dive-1',
+            timestamp: 600,
+            eventType: ProfileEventType.ascentRateWarning,
+            severity: EventSeverity.warning,
+            computerId: computerId,
+            source: source ?? EventSource.imported,
+            createdAt: now,
+          );
+      final computed = at('auto-1', source: EventSource.computed);
+
+      test('another computer\'s event does not suppress the computed one', () {
+        // Viewing computer A: B's event is hidden when B is not overlaid, so
+        // it must not take the place of the marker computed on A's profile.
+        final result = mergeEvents(
+          [computed],
+          [at('db-b', computerId: 'B')],
+          analyzedComputerId: 'A',
+        );
+        expect(result.map((e) => e.id), unorderedEquals(['auto-1', 'db-b']));
+      });
+
+      test('the analyzed computer\'s event still wins the tie', () {
+        final result = mergeEvents(
+          [computed],
+          [at('db-a', computerId: 'A')],
+          analyzedComputerId: 'A',
+        );
+        expect(result.map((e) => e.id), ['db-a']);
+      });
+
+      test('an event with no computer still wins the tie', () {
+        final result = mergeEvents(
+          [computed],
+          [at('db-none')],
+          analyzedComputerId: 'A',
+        );
+        expect(result.map((e) => e.id), ['db-none']);
+      });
+
+      test('a dive-level merge lets any computer\'s event win', () {
+        final result = mergeEvents([computed], [at('db-b', computerId: 'B')]);
+        expect(result.map((e) => e.id), ['db-b']);
+      });
+    });
+
     test('keeps both when same timestamp but different eventType', () {
       final autoEvents = [
         ProfileEvent(
