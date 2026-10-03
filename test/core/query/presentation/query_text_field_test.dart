@@ -141,6 +141,30 @@ void main() {
     expect(field.style!.fontFamily, 'monospace');
   });
 
+  testWidgets('reports when the text stops and starts parsing', (tester) async {
+    final validity = <bool>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: QueryTextField(
+            context: context,
+            value: null,
+            onChanged: (_) {},
+            onValidityChanged: validity.add,
+            fieldKey: fieldKey,
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(find.byKey(fieldKey), 'manta');
+    await tester.enterText(find.byKey(fieldKey), 'manta depth >');
+    await tester.enterText(find.byKey(fieldKey), 'manta depth >=');
+    // The same committed value as before the error: still reported valid.
+    await tester.enterText(find.byKey(fieldKey), 'manta');
+    await tester.enterText(find.byKey(fieldKey), '');
+    expect(validity, [false, true]);
+  });
+
   testWidgets('a valid query is committed', (tester) async {
     QueryNode? committed;
     await tester.pumpWidget(host(value: null, onChanged: (n) => committed = n));

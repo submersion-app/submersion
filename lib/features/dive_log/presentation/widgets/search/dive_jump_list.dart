@@ -27,8 +27,14 @@ class _DiveJumpListState extends ConsumerState<DiveJumpList> {
 
   @override
   Widget build(BuildContext context) {
-    final latest = ref.watch(diveJumpResultsProvider(widget.query)).value;
-    if (latest != null) _shown = latest;
+    final result = ref.watch(diveJumpResultsProvider(widget.query));
+    // A failed query hides the rows; only a load in progress keeps the
+    // previous query's rows.
+    if (result.hasError) {
+      _shown = const [];
+    } else if (result.value case final latest?) {
+      _shown = latest;
+    }
     final dives = _shown;
     if (dives.isEmpty) return const SizedBox.shrink();
     final units = UnitFormatter(ref.watch(settingsProvider));
