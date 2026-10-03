@@ -152,3 +152,65 @@ def build_catalog(descriptors, rules, previous_ids=()):
             )
     removed = sorted(set(previous_ids) - set(owners))
     return {"models": models, "unsupported": unsupported, "removed": removed}
+
+
+def git_head(path):
+    try:
+        result = subprocess.run(
+            ["git", "-C", path, "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as error:
+        raise CatalogError("cannot read the git commit of %s: %s" % (path, error))
+    return result.stdout.strip()
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--descriptor", default=DEFAULT_DESCRIPTOR)
+    parser.add_argument("--rules", default=DEFAULT_RULES)
+    parser.add_argument("--previous", help="the catalog.json this one replaces")
+    parser.add_argument("--out", required=True)
+    parser.add_argument("--min-descriptors", type=int, default=300)
+    args = parser.parse_args(argv)
+    try:
+        with open(args.descriptor, encoding="utf-8") as handle:
+            descriptors = parse_descriptors(handle.read())
+        if len(descriptors) < args.min_descriptors:
+            raise CatalogError(
+                "only %d descriptors parsed (expected at least %d); "
+                "the table format may have changed" % (len(descriptors), args.min_descriptors)
+            )
+        with open(args.rules, encoding="utf-8") as handle:
+            rules = load_rules(handle.read())
+        previous_ids = ()
+        if args.previous:
+            with open(args.previous, encoding="utf-8") as handle:
+                previous = json.load(handle)
+            previous_ids = [m["id"] for m in previous["models"] + previous.get("unsupported", [])]
+        catalog = build_catalog(descriptors, rules, previous_ids)
+        libdc_dir = os.path.dirname(os.path.dirname(os.path.abspath(args.descriptor)))
+        generated_from = {
+            "appCommit": git_head(_ROOT),
+            "libdcCommit": git_head(libdc_dir),
+            "generatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        }
+    except (OSError, ValueError, KeyError, CatalogError) as error:
+        print("error: %s" % error, file=sys.stderr)
+        return 1
+    output = {"generatedFrom": generated_from}
+    output.update(catalog)
+    with open(args.out, "w", encoding="utf-8") as handle:
+        json.dump(output, handle, indent=2, ensure_ascii=False)
+        handle.write("\n")
+    print(
+        "%d models, %d unsupported, %d removed -> %s"
+        % (len(catalog["models"]), len(catalog["unsupported"]), len(catalog["removed"]), args.out)
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

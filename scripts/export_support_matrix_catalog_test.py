@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """Unit tests for export_support_matrix_catalog.py."""
 
+import contextlib
 import importlib.util
+import io
 import json
 import os
+import tempfile
 import unittest
+from unittest import mock
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _spec = importlib.util.spec_from_file_location(
@@ -187,6 +191,60 @@ class RulesTest(unittest.TestCase):
     def test_the_committed_rules_file_is_the_spec(self):
         with open(gen.DEFAULT_RULES, encoding="utf-8") as handle:
             self.assertEqual(gen.load_rules(handle.read()), RULES)
+
+
+class MainTest(unittest.TestCase):
+    def run_main(self, *lines, extra=()):
+        with tempfile.TemporaryDirectory() as tmp:
+            descriptor = os.path.join(tmp, "descriptor.c")
+            with open(descriptor, "w", encoding="utf-8") as handle:
+                handle.write(table(*lines))
+            out = os.path.join(tmp, "catalog.json")
+            argv = ["--descriptor", descriptor, "--out", out, "--min-descriptors", "1"]
+            argv += list(extra)
+            stderr = io.StringIO()
+            with mock.patch.object(gen, "git_head", return_value="a" * 40), contextlib.redirect_stderr(
+                stderr
+            ), contextlib.redirect_stdout(io.StringIO()):
+                code = gen.main(argv)
+            written = None
+            if os.path.exists(out):
+                with open(out, encoding="utf-8") as handle:
+                    written = json.load(handle)
+            return code, written, stderr.getvalue(), tmp
+
+    def test_writes_a_catalog_with_provenance(self):
+        code, catalog, _, _ = self.run_main(TERIC, ALADIN_2G_A)
+        self.assertEqual(code, 0)
+        self.assertEqual(list(catalog), ["generatedFrom", "models", "unsupported", "removed"])
+        self.assertEqual(catalog["generatedFrom"]["appCommit"], "a" * 40)
+        self.assertEqual(catalog["generatedFrom"]["libdcCommit"], "a" * 40)
+        self.assertRegex(catalog["generatedFrom"]["generatedAt"], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+
+    def test_refuses_a_table_below_the_minimum(self):
+        code, catalog, stderr, _ = self.run_main(TERIC, extra=["--min-descriptors", "5"])
+        self.assertEqual(code, 1)
+        self.assertIsNone(catalog)
+        self.assertIn("only 1 descriptors", stderr)
+
+    def test_previous_catalog_feeds_removed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.path.join(tmp, "previous.json")
+            with open(previous, "w", encoding="utf-8") as handle:
+                json.dump({"models": [{"id": "gone-model"}], "unsupported": []}, handle)
+            code, catalog, _, _ = self.run_main(TERIC, extra=["--previous", previous])
+        self.assertEqual(code, 0)
+        self.assertEqual(catalog["removed"], ["gone-model"])
+
+    def test_a_collision_exits_non_zero_without_writing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rules = os.path.join(tmp, "rules.json")
+            with open(rules, "w", encoding="utf-8") as handle:
+                json.dump(dict(RULES, idOverrides={}), handle)
+            code, catalog, stderr, _ = self.run_main(XP_AIR_IRDA, XP_AIR_SERIAL, extra=["--rules", rules])
+        self.assertEqual(code, 1)
+        self.assertIsNone(catalog)
+        self.assertIn("idOverrides", stderr)
 
 
 if __name__ == "__main__":
