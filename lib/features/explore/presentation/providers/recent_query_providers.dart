@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/explore/data/recent_query_repository.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
@@ -27,7 +28,25 @@ final recentQueryRecorderProvider = Provider<RecentQueryRecorder>((ref) {
       repo.record(sentence, locale, parsed, diverId: diverId);
 });
 
-/// The active diver's recent sentences for the active locale, newest first.
+/// Records a query the diver typed (#2773); overridable like
+/// [recentQueryRecorderProvider], and passed the diver who typed it.
+typedef RecentTypedRecorder =
+    Future<void> Function(
+      String text,
+      QueryNode node,
+      String locale,
+      String diverId,
+    );
+
+// no-tick: a write function, as recentQueryRecorderProvider.
+final recentTypedRecorderProvider = Provider<RecentTypedRecorder>((ref) {
+  final repo = ref.watch(recentQueryRepositoryProvider);
+  return (text, node, locale, diverId) =>
+      repo.recordTyped(text, node, locale: locale, diverId: diverId);
+});
+
+/// The active diver's recent searches for the active locale, typed and
+/// asked, newest first.
 final recentQueriesProvider = FutureProvider<List<RecentQuery>>((ref) async {
   final repo = ref.watch(recentQueryRepositoryProvider);
   ref.invalidateSelfWhen(repo.watchChanges());

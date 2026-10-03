@@ -4,6 +4,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/explore/data/recent_query_repository.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
@@ -169,5 +170,56 @@ void main() {
       (await repo.list(diverId: 'ana', locale: 'en')).map((r) => r.sentence),
       ['turtles'],
     );
+  });
+  test('typed and asked recents keep their kind and do not collide', () async {
+    final repo = RecentQueryRepository();
+    await repo.record(
+      'manta',
+      'en',
+      const ParsedQuery(subject: ParsedSubject.dives),
+      diverId: 'ana',
+    );
+    await repo.recordTyped(
+      'manta',
+      TextNode(['manta']),
+      locale: 'en',
+      diverId: 'ana',
+    );
+    final rows = await repo.list(diverId: 'ana', locale: 'en');
+    expect(rows.map((r) => r.kind).toSet(), {
+      RecentQueryKind.typed,
+      RecentQueryKind.asked,
+    });
+    final typed = rows.singleWhere((r) => r.kind == RecentQueryKind.typed);
+    expect(typed.node, TextNode(['manta']));
+    expect(typed.sentence, 'manta');
+  });
+
+  test('a typed recent survives a list read', () async {
+    final repo = RecentQueryRepository();
+    await repo.recordTyped(
+      'depth > 30m',
+      ConditionNode(
+        FieldPath(['depth']),
+        QueryOp.gt,
+        const NumberValue(30, null),
+      ),
+      locale: 'en',
+      diverId: 'ana',
+    );
+    await repo.list(diverId: 'ana', locale: 'en');
+    expect(await repo.list(diverId: 'ana', locale: 'en'), hasLength(1));
+  });
+
+  test('another diver or language never sees a typed recent', () async {
+    final repo = RecentQueryRepository();
+    await repo.recordTyped(
+      'manta',
+      TextNode(['manta']),
+      locale: 'en',
+      diverId: 'ana',
+    );
+    expect(await repo.list(diverId: 'ben', locale: 'en'), isEmpty);
+    expect(await repo.list(diverId: 'ana', locale: 'de'), isEmpty);
   });
 }
