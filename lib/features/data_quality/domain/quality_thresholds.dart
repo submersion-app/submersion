@@ -105,4 +105,9 @@ abstract final class QualityThresholds {
 
   // neighbor lookup window for cross-dive detectors
   static const Duration neighborWindow = Duration(hours: 12);
+
+  // Two profiles' dives share gear only when their times overlap by more
+  // than this: it absorbs unsynchronised dive computer clocks, so a mask
+  // handed over between back-to-back dives is not reported (issue #2853).
+  static const Duration sharedGearOverlapTolerance = Duration(minutes: 5);
 }
