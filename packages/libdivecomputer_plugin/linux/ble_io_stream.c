@@ -120,16 +120,17 @@ static gchar* get_string_property(GDBusConnection* conn,
 }
 
 // Whether BlueZ still reports the device connected. FALSE when the property
-// cannot be read, which is the answer a dropped link gives.
+// cannot be read within |timeout_ms|, which is the answer a dropped link or a
+// wedged BlueZ gives.
 static gboolean device_connected(GDBusConnection* conn,
-                                 const gchar* device_path) {
+                                 const gchar* device_path, gint timeout_ms) {
     g_autoptr(GError) error = NULL;
     GVariant* result = g_dbus_connection_call_sync(
         conn, "org.bluez", device_path,
         "org.freedesktop.DBus.Properties", "Get",
         g_variant_new("(ss)", "org.bluez.Device1", "Connected"),
         G_VARIANT_TYPE("(v)"),
-        G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+        G_DBUS_CALL_FLAGS_NONE, timeout_ms, NULL, &error);
     if (!result) return FALSE;
 
     GVariant* value = NULL;
@@ -858,7 +859,8 @@ static int ble_write(void* userdata, const void* data, size_t size,
     // download it over BLE, never looks at a write's status. Mirrors
     // ReadPollPolicy.writeOutcome on Android and darwin.
     if (error && stream->read_poller &&
-        device_connected(stream->connection, stream->device_path)) {
+        device_connected(stream->connection, stream->device_path,
+                         MIN(stream->timeout_ms, 10000))) {
         g_warning("BleIoStream: the computer rejected a %zu-byte command (%s); "
                   "treating it as sent and reading the reply",
                   size, error->message);
