@@ -22,26 +22,27 @@ final explorePlatformSupportedProvider = Provider<bool>((ref) {
   };
 });
 
-/// The device's locale; a provider so tests can set it.
-final exploreDeviceLocaleProvider = Provider<Locale>(
-  (ref) => PlatformDispatcher.instance.locale,
+/// Reads the device's locale at the moment it is called, since the device
+/// language can change while the app runs; a provider so tests can set it.
+final exploreDeviceLocaleProvider = Provider<Locale Function()>(
+  (ref) =>
+      () => PlatformDispatcher.instance.locale,
 );
 
-/// The language tag of the app's locale setting: 'system', the default,
-/// resolves to the device's.
-final exploreLocaleTagProvider = Provider<String>((ref) {
-  final locale = ref.watch(localeProvider);
-  return locale == 'system'
-      ? ref.watch(exploreDeviceLocaleProvider).toLanguageTag()
-      : locale;
-});
+/// The language tag of the app's [locale] setting: 'system', the default,
+/// resolves to the [device]'s language now.
+String exploreLocaleTag(String locale, Locale Function() device) =>
+    locale == 'system' ? device().toLanguageTag() : locale;
 
 /// The model's answer for the active app locale.
 final exploreAvailabilityProvider = FutureProvider<NlAvailability>((ref) async {
   if (!ref.watch(explorePlatformSupportedProvider)) {
     return NlAvailability.unsupportedPlatform;
   }
-  final tag = ref.watch(exploreLocaleTagProvider);
+  final tag = exploreLocaleTag(
+    ref.watch(localeProvider),
+    ref.watch(exploreDeviceLocaleProvider),
+  );
   return ref.watch(nlEngineProvider).availability(tag);
 });
 

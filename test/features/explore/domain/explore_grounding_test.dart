@@ -127,6 +127,9 @@ void main() {
         ('this year', 'recent dives'),
         ('this month', 'dives in March'),
         ('last 30 days', 'dives from last summer'),
+        // A weekday names no unit, though it ends in "day".
+        ('this month', 'dives on Sunday'),
+        ('last 30 days', 'holiday dives'),
       ]) {
         expect(
           groundedIn(parse(time: time), sentence, locale: 'en').time,
@@ -143,6 +146,8 @@ void main() {
         ('last 2 weeks', 'dives over the last fortnight'),
         ('last 30 days', 'dives this past month'),
         ('last 7 days', 'dives since yesterday'),
+        ('this week', 'dives this weekend'),
+        ('last 7 days', 'dives today'),
         ('last year', 'deep dives last year'),
         ('2019 to 2021', 'my dives from 2019 to 2021'),
       ]) {

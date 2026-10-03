@@ -109,7 +109,7 @@ void main() {
     overrides: [
       nlEngineProvider.overrideWithValue(engine),
       localeProvider.overrideWithValue(locale),
-      exploreDeviceLocaleProvider.overrideWithValue(device),
+      exploreDeviceLocaleProvider.overrideWithValue(() => device),
       queryUnitPrefsProvider.overrideWithValue(
         const UnitPrefs(
           depth: DepthUnit.meters,

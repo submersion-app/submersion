@@ -46,8 +46,12 @@ ParsedQuery groundedIn(
   );
 }
 
+final _tagSeparator = RegExp('[-_]');
+
 bool _isEnglish(String locale) =>
-    locale.split(RegExp('[-_]')).first.toLowerCase() == 'en';
+    locale.split(_tagSeparator).first.toLowerCase() == 'en';
+
+final _notLettersOrDigits = RegExp(r'[^\p{L}\p{N}]+', unicode: true);
 
 /// [text] with case, accents and full-width digits folded, and every run of
 /// anything but letters and digits made one space, so "Cold-Water" and
@@ -59,9 +63,7 @@ String _comparable(String text) {
         .runes
         .map((r) => r >= 0xFF10 && r <= 0xFF19 ? r - 0xFF10 + 0x30 : r),
   );
-  return folded
-      .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
-      .trim();
+  return folded.replaceAll(_notLettersOrDigits, ' ').trim();
 }
 
 /// Whether [text] has words of its own and they all occur, in order, in
@@ -79,14 +81,17 @@ bool _yearsAreIn(String time, String said) =>
 final _yearUnit = RegExp(r'\byears?\b');
 final _shortUnit = RegExp(r'\b(?:days?|weeks?|months?)\b');
 
+/// The words that name a day, week or month. Whole words: a weekday
+/// ("Sunday") or "holiday" ends in "day" but names no span.
+final _shortUnitSaid = RegExp(
+  r'\b(?:days?|weeks?|weekends?|fortnights?|months?|today|tonight|yesterday)\b',
+);
+
 /// Whether [said] names the unit of the English period [time], if it has
-/// one. Substrings on purpose: "today" names a day, "weekend" a week.
+/// one.
 bool _unitIsIn(String time, String said) {
   final t = _comparable(time);
-  if (_yearUnit.hasMatch(t) && !said.contains('year')) return false;
-  if (_shortUnit.hasMatch(t) &&
-      !['day', 'week', 'month', 'fortnight'].any(said.contains)) {
-    return false;
-  }
+  if (_yearUnit.hasMatch(t) && !_yearUnit.hasMatch(said)) return false;
+  if (_shortUnit.hasMatch(t) && !_shortUnitSaid.hasMatch(said)) return false;
   return true;
 }
