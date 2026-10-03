@@ -70,16 +70,18 @@ EventSource _parseSource(String source) {
 /// hides computed events by default on a dive that has the computer's, so
 /// keeping the computed one would drop the marker entirely.
 ///
-/// [analyzedComputerId] is the computer whose profile [autoEvents] were
-/// computed on, for a per-source analysis. Only that computer's events (and
-/// ones with no computer) then win a tie; another computer's colliding event
-/// is kept alongside the computed one, because the chart hides it whenever
-/// that computer is not shown. Null (a dive-level analysis) lets any DB event
-/// win. The result is sorted by timestamp ascending.
+/// [analyzedSource] is set for a per-source analysis and names the computer
+/// whose profile [autoEvents] were computed on; its `computerId` is null for
+/// a source with no computer (a file import). Only that computer's events
+/// (and ones with no computer) then win a tie; another computer's colliding
+/// event is kept alongside the computed one, because the chart hides it
+/// whenever that computer is not shown. A null [analyzedSource] (a
+/// dive-level analysis) lets any DB event win. The result is sorted by
+/// timestamp ascending.
 List<ProfileEvent> mergeEvents(
   List<ProfileEvent> autoEvents,
   List<ProfileEvent> dbEvents, {
-  String? analyzedComputerId,
+  ({String? computerId})? analyzedSource,
 }) {
   if (dbEvents.isEmpty) return List.of(autoEvents);
   if (autoEvents.isEmpty) {
@@ -91,9 +93,9 @@ List<ProfileEvent> mergeEvents(
   // Build a set of keys from the DB events that win a tie
   final dbKeys = <(int, ProfileEventType)>{
     for (final event in dbEvents)
-      if (analyzedComputerId == null ||
+      if (analyzedSource == null ||
           event.computerId == null ||
-          event.computerId == analyzedComputerId)
+          event.computerId == analyzedSource.computerId)
         (event.timestamp, event.eventType),
   };
 

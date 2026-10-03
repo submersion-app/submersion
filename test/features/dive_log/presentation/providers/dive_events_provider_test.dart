@@ -378,7 +378,7 @@ void main() {
         final result = mergeEvents(
           [computed],
           [at('db-b', computerId: 'B')],
-          analyzedComputerId: 'A',
+          analyzedSource: (computerId: 'A'),
         );
         expect(result.map((e) => e.id), unorderedEquals(['auto-1', 'db-b']));
       });
@@ -387,7 +387,7 @@ void main() {
         final result = mergeEvents(
           [computed],
           [at('db-a', computerId: 'A')],
-          analyzedComputerId: 'A',
+          analyzedSource: (computerId: 'A'),
         );
         expect(result.map((e) => e.id), ['db-a']);
       });
@@ -396,7 +396,28 @@ void main() {
         final result = mergeEvents(
           [computed],
           [at('db-none')],
-          analyzedComputerId: 'A',
+          analyzedSource: (computerId: 'A'),
+        );
+        expect(result.map((e) => e.id), ['db-none']);
+      });
+
+      test('a source with no computer is not overridden by a computer\'s '
+          'event', () {
+        // A file-imported source has no computer; its analysis is still
+        // per-source, so a downloaded computer's event must not replace it.
+        final result = mergeEvents(
+          [computed],
+          [at('db-b', computerId: 'B')],
+          analyzedSource: (computerId: null),
+        );
+        expect(result.map((e) => e.id), unorderedEquals(['auto-1', 'db-b']));
+      });
+
+      test('a source with no computer still yields to an event with none', () {
+        final result = mergeEvents(
+          [computed],
+          [at('db-none')],
+          analyzedSource: (computerId: null),
         );
         expect(result.map((e) => e.id), ['db-none']);
       });

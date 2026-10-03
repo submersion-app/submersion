@@ -1062,12 +1062,18 @@ ProfileAnalysisService _analysisServiceFor(AnalysisSettings inputs) =>
 /// that computer's tanks plus unattributed (manually added) tanks, which
 /// belong to the dive rather than to either computer.
 ///
+/// [perSource] marks the analysis of one data source's samples rather than
+/// the whole dive. It scopes which computer's events displace computed ones
+/// (see [mergeEvents]), and is what tells a source with no computer apart
+/// from a dive-level analysis, since both pass a null [computerId].
+///
 /// Throws on failure; callers wrap with their own error handling.
 Future<ProfileAnalysis?> computeAnalysisForProfile(
   Ref ref,
   Dive dive,
   List<DiveProfilePoint> profile, {
   String? computerId,
+  bool perSource = false,
 }) async {
   {
     // Every settings-derived input below (gradient factors, ppO2 and ascent
@@ -1103,7 +1109,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
               events: mergeEvents(
                 analysis.events,
                 dbEvents,
-                analyzedComputerId: computerId,
+                analyzedSource: perSource ? (computerId: computerId) : null,
               ),
             );
     }
@@ -1350,7 +1356,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     final merged = mergeEvents(
       withCns.events,
       dbEvents,
-      analyzedComputerId: computerId,
+      analyzedSource: perSource ? (computerId: computerId) : null,
     );
     return withCns.copyWith(events: merged);
   }
@@ -1425,6 +1431,7 @@ final sourceProfileAnalysisProvider =
           dive,
           sourceProfile.points,
           computerId: sourceProfile.computerId,
+          perSource: true,
         );
       } catch (e, stackTrace) {
         _log.error(
