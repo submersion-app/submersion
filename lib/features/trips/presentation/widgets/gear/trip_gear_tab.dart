@@ -162,6 +162,9 @@ class TripGearTab extends ConsumerWidget {
           for (final s in states)
             TripCylinderSlotRow(
               state: s,
+              alerts: _mostPressingFirst(
+                alertsByItem[s.cylinder.equipmentId] ?? const [],
+              ),
               started: started,
               units: units,
               onTap: openBoard,
@@ -186,6 +189,10 @@ class TripGearTab extends ConsumerWidget {
     }
   }
 }
+
+/// [alerts] with an overdue clock ahead of any merely coming due.
+List<DueClock> _mostPressingFirst(List<DueClock> alerts) => [...alerts]
+  ..sort((a, b) => b.status.severity.index.compareTo(a.status.severity.index));
 
 class _SectionHeader extends StatelessWidget {
   final String title;

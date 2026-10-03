@@ -1,19 +1,30 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/icons/mdi_icons.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_alert_sheet.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One cylinder slot on the Gear tab (#2845). Before departure: the label,
 /// its specs, and whether it is rental or the diver's own. From the first
 /// day: the status dot, bottle, mix and pressure, as the board shows them.
+/// An owned cylinder's service clocks (a hydro or visual falling due) add a
+/// tinted line that opens their detail, as a packed item's do.
 class TripCylinderSlotRow extends StatelessWidget {
   final TripCylinderState state;
   final bool started;
   final UnitFormatter units;
   final VoidCallback onTap;
+
+  /// The linked item's blocking clocks, most pressing first; empty for a
+  /// rental slot or a cylinder with nothing due.
+  final List<DueClock> alerts;
 
   const TripCylinderSlotRow({
     super.key,
@@ -21,7 +32,42 @@ class TripCylinderSlotRow extends StatelessWidget {
     required this.started,
     required this.units,
     required this.onTap,
+    this.alerts = const [],
   });
+
+  /// The tinted, tappable line for the slot's most pressing clock, or null.
+  Widget? _alertLine(BuildContext context) {
+    if (alerts.isEmpty) return null;
+    final status = StatusColors.of(context);
+    final worst = alerts.first.status;
+    return InkWell(
+      key: Key('trip-gear-alert-${state.cylinder.equipmentId}'),
+      onTap: () => showTripGearAlertSheet(
+        context,
+        item: alerts.first.item,
+        alerts: alerts,
+      ),
+      child: Text(
+        tripServiceAlertSubtitle(context, units, worst),
+        style: TextStyle(
+          color: worst.severity == ServiceClockSeverity.overdue
+              ? status.alert.accent
+              : status.warn.accent,
+        ),
+      ),
+    );
+  }
+
+  /// [text] with the alert line under it when there is one.
+  Widget _subtitle(BuildContext context, String text) {
+    final line = _alertLine(context);
+    if (line == null) return Text(text);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [Text(text), line],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +94,7 @@ class TripCylinderSlotRow extends StatelessWidget {
           '${mix == null ? '--' : tripCylinderMixLabel(l10n, mix)} · '
           '${pressure == null ? '--' : units.formatPressure(pressure)}',
         ),
-        subtitle: Text('${c.label} · $origin'),
+        subtitle: _subtitle(context, '${c.label} · $origin'),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
       );
@@ -64,7 +110,7 @@ class TripCylinderSlotRow extends StatelessWidget {
       key: Key('trip-gear-slot-${c.id}'),
       leading: Icon(MdiIcons.divingScubaTank, color: theme.colorScheme.primary),
       title: Text(c.label),
-      subtitle: Text([...specs, origin].join(' · ')),
+      subtitle: _subtitle(context, [...specs, origin].join(' · ')),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
     );

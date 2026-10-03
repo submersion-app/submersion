@@ -544,8 +544,8 @@ void main() {
       // The per-dive rows use the same runtime-with-bottom-time-fallback rule
       // as the trip total, so the rows on this page add up to the total shown
       // on the Overview tab (issue #889).
-      expect(find.text('52min'), findsWidgets);
-      expect(find.text('45min'), findsNothing);
+      expect(find.text('52 min'), findsWidgets);
+      expect(find.text('45 min'), findsNothing);
     });
   });
 

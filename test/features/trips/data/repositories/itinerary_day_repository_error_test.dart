@@ -52,6 +52,7 @@ void main() {
           't1',
           now,
           now.add(const Duration(days: 7)),
+          tripType: TripType.liveaboard,
         ),
         throwsA(anything),
       );

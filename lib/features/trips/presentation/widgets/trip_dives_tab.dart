@@ -95,7 +95,9 @@ class TripDivesTab extends ConsumerWidget {
                         // Overview tab reports (issue #889).
                         if ((dive.runtime ?? dive.bottomTime) != null)
                           Text(
-                            '${(dive.runtime ?? dive.bottomTime)!.inMinutes}min',
+                            context.l10n.diveLog_sources_minutes(
+                              (dive.runtime ?? dive.bottomTime)!.inMinutes,
+                            ),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),

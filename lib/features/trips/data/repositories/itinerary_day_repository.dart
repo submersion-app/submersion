@@ -335,8 +335,9 @@ class ItineraryDayRepository {
   Future<List<domain.ItineraryDay>> regenerateForTrip(
     String tripId,
     DateTime startDate,
-    DateTime endDate,
-  ) async {
+    DateTime endDate, {
+    required TripType tripType,
+  }) async {
     try {
       _log.info('Regenerating itinerary days for trip: $tripId');
 
@@ -348,6 +349,7 @@ class ItineraryDayRepository {
         tripId: tripId,
         startDate: startDate,
         endDate: endDate,
+        tripType: tripType,
       );
 
       // 3. Build a lookup of existing days by date (year, month, day)

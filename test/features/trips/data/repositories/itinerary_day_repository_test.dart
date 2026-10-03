@@ -274,11 +274,23 @@ void main() {
     });
 
     group('regenerateForTrip', () {
+      test('types the days for the trip, not for a boat', () async {
+        final result = await repository.regenerateForTrip(
+          testTripId,
+          DateTime(2025, 3, 1),
+          DateTime(2025, 3, 5),
+          tripType: TripType.resort,
+        );
+        expect(result.first.dayType, DayType.travel);
+        expect(result.last.dayType, DayType.travel);
+      });
+
       test('should generate correct days for date range', () async {
         final result = await repository.regenerateForTrip(
           testTripId,
           DateTime(2025, 3, 1),
           DateTime(2025, 3, 5),
+          tripType: TripType.liveaboard,
         );
 
         expect(result, hasLength(5));
@@ -312,6 +324,7 @@ void main() {
             testTripId,
             DateTime(2025, 3, 1),
             DateTime(2025, 3, 5),
+            tripType: TripType.liveaboard,
           );
 
           // Customize day 2 (March 2) and day 3 (March 3)
@@ -334,6 +347,7 @@ void main() {
             testTripId,
             DateTime(2025, 3, 2),
             DateTime(2025, 3, 6),
+            tripType: TripType.liveaboard,
           );
 
           expect(result, hasLength(5));
@@ -368,6 +382,7 @@ void main() {
           testTripId,
           DateTime(2025, 3, 1),
           DateTime(2025, 3, 3),
+          tripType: TripType.liveaboard,
         );
 
         expect(result, hasLength(3));
@@ -382,6 +397,7 @@ void main() {
           testTripId,
           DateTime(2025, 3, 1),
           DateTime(2025, 3, 7),
+          tripType: TripType.liveaboard,
         );
         final initial = await repository.getByTripId(testTripId);
         expect(initial, hasLength(7));
@@ -391,6 +407,7 @@ void main() {
           testTripId,
           DateTime(2025, 3, 1),
           DateTime(2025, 3, 3),
+          tripType: TripType.liveaboard,
         );
         final regenerated = await repository.getByTripId(testTripId);
         expect(regenerated, hasLength(3));
@@ -570,7 +587,12 @@ void main() {
           2,
         );
 
-        await repository.regenerateForTrip(testTripId, startDate, endDate);
+        await repository.regenerateForTrip(
+          testTripId,
+          startDate,
+          endDate,
+          tripType: TripType.liveaboard,
+        );
         final regenerated = await repository.getByTripId(testTripId);
         final third = regenerated.firstWhere(
           (d) => d.date == DateTime(2025, 3, 3),

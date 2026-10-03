@@ -533,4 +533,17 @@ void main() {
     );
     expect(find.textContaining('database is locked'), findsNothing);
   });
+
+  testWidgets('an owned cylinder\'s service clock reads on its slot and '
+      'opens the detail', (tester) async {
+    await _pumpTab(
+      tester,
+      states: [slot('Faber 12', equipmentId: 'tk')],
+      alerts: [dueClock('tk')],
+    );
+    expect(find.byKey(const Key('trip-gear-alert-tk')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('trip-gear-alert-tk')));
+    await tester.pumpAndSettle();
+    expect(find.byType(TripServiceAlertList), findsOneWidget);
+  });
 }
