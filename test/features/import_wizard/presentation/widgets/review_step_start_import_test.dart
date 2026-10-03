@@ -104,7 +104,7 @@ Map<int, DiveMatchResult> _allMatched({String? plannedPrefix}) => {
     ),
 };
 
-Future<ImportWizardNotifier> _pump(
+Future<void> _pump(
   WidgetTester tester,
   ImportBundle bundle, {
   VoidCallback? onImport,
@@ -132,7 +132,6 @@ Future<ImportWizardNotifier> _pump(
     ),
   );
   await tester.pumpAndSettle();
-  return notifier;
 }
 
 Finder get _importButton =>
@@ -164,6 +163,20 @@ void main() {
       expect(find.text('Retain source dive numbers'), findsNothing);
       await tester.tap(_importButton.hitTestable());
       expect(imported, 1);
+    });
+
+    testWidgets('keeps Done on screen when its content has to scroll', (
+      tester,
+    ) async {
+      await _pump(tester, _bundle());
+      // Short enough that the sheet's content outgrows it.
+      tester.view.physicalSize = const Size(700, 360);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Options'));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(FilledButton, 'Done').hitTestable(), findsOne);
     });
 
     testWidgets('shows a drag handle', (tester) async {
@@ -207,7 +220,10 @@ void main() {
     });
   });
 
-  testWidgets('Review reaches the decision row on another, scrolled tab', (
+  // Pins the tab switch only. TabBarView rebuilds a page it brings back at
+  // offset 0, so this cannot tell whether Review also scrolled that tab; the
+  // single-tab test above covers the scroll itself.
+  testWidgets('Review switches to the tab holding the undecided duplicates', (
     tester,
   ) async {
     await _pump(
@@ -230,16 +246,7 @@ void main() {
       ),
     );
 
-    // Scroll the sites tab past its decision row, then leave it.
-    await tester.tap(find.text('Sites ($_diveCount)'));
-    await tester.pumpAndSettle();
-    await tester.drag(
-      find.byType(SingleChildScrollView).last,
-      const Offset(0, -2000),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Dives (1)'));
-    await tester.pumpAndSettle();
+    expect(find.text('Skip all ($_diveCount)').hitTestable(), findsNothing);
 
     await tester.tap(find.widgetWithText(TextButton, 'Review'));
     await tester.pumpAndSettle();

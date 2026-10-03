@@ -812,73 +812,97 @@ class _ImportOptionsSheetState extends State<_ImportOptionsSheet> {
     if (state == null) return const SizedBox.shrink();
     final hasSourceNumbers = state.bundle?.hasSourceDiveNumbers ?? false;
 
-    return SingleChildScrollView(
-      // Second line of defense: isScrollControlled at the call site already
-      // lets the sheet grow with its content, but a small screen (or a tag
-      // field with several chips) can still exceed even that, so the body
-      // scrolls internally rather than overflowing (issue #998 follow-up).
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            context.l10n.universalImport_title_importOptions,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          // Disabled, and saying why, when no dive in this source carries a
-          // number: an enabled switch that changes nothing is what issue
-          // #1832 reported.
-          SwitchListTile(
-            title: Text(context.l10n.universalImport_label_retainDiveNumbers),
-            subtitle: Text(
-              hasSourceNumbers
-                  ? context.l10n.universalImport_label_retainDiveNumbersSubtitle
-                  : context
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Flexible(
+          child: SingleChildScrollView(
+            // Second line of defense: isScrollControlled at the call site
+            // already lets the sheet grow with its content, but a small screen
+            // (or a tag field with several chips) can still exceed even that,
+            // so the body scrolls internally rather than overflowing (issue
+            // #998 follow-up).
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.l10n.universalImport_title_importOptions,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Disabled, and saying why, when no dive in this source carries a
+                // number: an enabled switch that changes nothing is what issue
+                // #1832 reported.
+                SwitchListTile(
+                  title: Text(
+                    context.l10n.universalImport_label_retainDiveNumbers,
+                  ),
+                  subtitle: Text(
+                    hasSourceNumbers
+                        ? context
+                              .l10n
+                              .universalImport_label_retainDiveNumbersSubtitle
+                        : context
+                              .l10n
+                              .universalImport_label_retainDiveNumbersUnavailable,
+                  ),
+                  value: hasSourceNumbers && state.retainSourceDiveNumbers,
+                  onChanged: hasSourceNumbers
+                      ? (value) =>
+                            widget.notifier.setRetainSourceDiveNumbers(value)
+                      : null,
+                ),
+                // Session-only override of the diver's saved auto-tag preference
+                // (issue #998 follow-up). Starts from that preference -- whatever
+                // initializeDefaultTag already seeded importTags with -- but
+                // toggling it here never writes back to the setting; it only adds
+                // or removes this one import's default tag.
+                SwitchListTile(
+                  title: Text(
+                    context.l10n.universalImport_label_autoTagThisImport,
+                  ),
+                  subtitle: Text(
+                    context
                         .l10n
-                        .universalImport_label_retainDiveNumbersUnavailable,
-            ),
-            value: hasSourceNumbers && state.retainSourceDiveNumbers,
-            onChanged: hasSourceNumbers
-                ? (value) => widget.notifier.setRetainSourceDiveNumbers(value)
-                : null,
-          ),
-          // Session-only override of the diver's saved auto-tag preference
-          // (issue #998 follow-up). Starts from that preference -- whatever
-          // initializeDefaultTag already seeded importTags with -- but
-          // toggling it here never writes back to the setting; it only adds
-          // or removes this one import's default tag.
-          SwitchListTile(
-            title: Text(context.l10n.universalImport_label_autoTagThisImport),
-            subtitle: Text(
-              context.l10n.universalImport_label_autoTagThisImportSubtitle,
-            ),
-            value: widget.notifier.isAutoTagForThisImportEnabled,
-            onChanged: (value) =>
-                widget.notifier.setAutoTagForThisImport(value),
-          ),
-          const Divider(),
-          ImportTagsField(
-            tags: state.importTags,
-            existingTags: widget.existingTags,
-            onAdd: (tag) => widget.notifier.addImportTag(tag),
-            onRemove: (index) => widget.notifier.removeImportTag(index),
-          ),
-          const SizedBox(height: 16),
-          // The sheet hides the Import button beneath it; without this the
-          // only way back was tapping the scrim (issue #2607).
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: FilledButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(context.l10n.common_action_done),
+                        .universalImport_label_autoTagThisImportSubtitle,
+                  ),
+                  value: widget.notifier.isAutoTagForThisImportEnabled,
+                  onChanged: (value) =>
+                      widget.notifier.setAutoTagForThisImport(value),
+                ),
+                const Divider(),
+                ImportTagsField(
+                  tags: state.importTags,
+                  existingTags: widget.existingTags,
+                  onAdd: (tag) => widget.notifier.addImportTag(tag),
+                  onRemove: (index) => widget.notifier.removeImportTag(index),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+        // The sheet hides the Import button beneath it; without this the
+        // only way back was tapping the scrim (issue #2607). Kept outside the
+        // scroll view so a long tag list cannot push it below the fold.
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(context.l10n.common_action_done),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
