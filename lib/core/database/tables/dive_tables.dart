@@ -359,7 +359,9 @@ class GasSwitches extends Table {
   RealColumn get depth => real().nullable()(); // depth at switch (meters)
   // v258: which computer's reading the switch came from (issue #2582), so
   // replacing one computer's reading leaves the others' switches alone.
-  // Null for a switch the diver entered. Deletes set null.
+  // Null when unattributed: a switch the diver entered, or one the v258
+  // backfill could not place (a merged cylinder's on a dive more than one
+  // computer recorded). Null applies to every computer. Deletes set null.
   TextColumn get computerId => text().nullable().references(
     DiveComputers,
     #id,
