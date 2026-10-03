@@ -521,6 +521,22 @@ void main() {
         expect(day.plannedDives, 2);
       });
 
+      test('a Rest day returned to the estimate is a dive day again', () async {
+        await repository.setPlannedDives(
+          tripId: testTripId,
+          date: DateTime(2025, 3, 3),
+          plannedDives: 0,
+        );
+        await repository.setPlannedDives(
+          tripId: testTripId,
+          date: DateTime(2025, 3, 3),
+          plannedDives: null,
+        );
+        final day = (await repository.getByTripId(testTripId)).single;
+        expect(day.dayType, DayType.diveDay);
+        expect(day.plannedDives, isNull);
+      });
+
       test('a port day planned at 0 keeps its type', () async {
         await repository.saveAll([
           createTestDay(

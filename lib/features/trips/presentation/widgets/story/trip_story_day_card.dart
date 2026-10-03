@@ -60,11 +60,14 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
     setState(() => _highlightedDiveId = diveId);
     final keyContext = diveId == null ? null : _rowKeys[diveId]?.currentContext;
     if (keyContext == null) return;
+    // Only when the row is below the fold: the rows sit under the map, so a
+    // scroll for a row already in view would push the map off the top and
+    // every next pin tap would start with scrolling back up.
     Scrollable.ensureVisible(
       keyContext,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
-      alignment: 0.3,
+      alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
     );
   }
 

@@ -61,10 +61,11 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
     return ids.length;
   }
 
-  /// One day chapter: its header, then its card (the day's own map, dives,
-  /// photos, sightings). Every day gets the same header, surface days
-  /// included; theirs simply has no body under it.
-  Widget _daySliver(
+  /// One day chapter: the Today divider when it is today, its header, then
+  /// its card (the day's own map, dives, photos, sightings). Every day gets
+  /// the same header, surface days included; theirs simply has no body
+  /// under it.
+  Widget _dayChapter(
     TripStory story,
     int index,
     int? todayIndex,
@@ -77,41 +78,33 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
     // disappeared.
     final stored = storedWeather[tripDayMillis(day.date)];
     final showTodayDivider = todayIndex != null && index == todayIndex;
-    const divider = SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      sliver: SliverToBoxAdapter(child: _TodayDivider()),
-    );
-    // Ordinary scrolling content: nothing on the story is pinned (#2845).
-    final heading = SliverToBoxAdapter(
-      child: TripStoryDayHeader(
-        day: day,
-        storedWeather: stored?.toStoryWeather(),
-      ),
-    );
-    // Its 8px bottom inset is the gap between consecutive chapters; the
-    // headings carry a surfaceContainer tint, so the page-surface gap reads as
-    // air between one chapter's card and the next chapter's tinted band. The
-    // card gets the day's own map points.
-    final body = SliverPadding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      sliver: SliverToBoxAdapter(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TripStoryDayCard(
-              day: day,
-              tripId: story.trip.id,
-              mapPoints: story.mapGeometry.pointsForDay(index),
-              onExpandMap: (day, points) =>
-                  showTripDayMapPage(context, day: day, points: points),
-            ),
-          ],
+    return Column(
+      key: ValueKey(day.date),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (showTodayDivider)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: _TodayDivider(),
+          ),
+        // Ordinary scrolling content: nothing on the story is pinned (#2845).
+        TripStoryDayHeader(day: day, storedWeather: stored?.toStoryWeather()),
+        // Its 8px bottom inset is the gap between consecutive chapters; the
+        // headings carry a surfaceContainer tint, so the page-surface gap
+        // reads as air between one chapter's card and the next chapter's
+        // tinted band. The card gets the day's own map points.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: TripStoryDayCard(
+            key: ValueKey(day.date),
+            day: day,
+            tripId: story.trip.id,
+            mapPoints: story.mapGeometry.pointsForDay(index),
+            onExpandMap: (day, points) =>
+                showTripDayMapPage(context, day: day, points: points),
+          ),
         ),
-      ),
-    );
-
-    return SliverMainAxisGroup(
-      slivers: [if (showTodayDivider) divider, heading, body],
+      ],
     );
   }
 
@@ -147,8 +140,21 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           sliver: SliverToBoxAdapter(child: TripVesselSection(tripId: trip.id)),
         ),
-      for (var index = 0; index < story.days.length; index++)
-        _daySliver(story, index, todayIndex, storedWeather),
+      // Built lazily: each chapter carries a map that loads tiles, so only
+      // the chapters near the viewport exist. Keyed by date, so a story whose
+      // days shift (a new start, a dive before the trip) moves each day's
+      // state with it rather than handing it to whichever day lands in its
+      // slot.
+      SliverList.builder(
+        itemCount: story.days.length,
+        itemBuilder: (context, index) =>
+            _dayChapter(story, index, todayIndex, storedWeather),
+        findChildIndexCallback: (key) {
+          if (key is! ValueKey<DateTime>) return null;
+          final index = story.days.indexWhere((d) => d.date == key.value);
+          return index < 0 ? null : index;
+        },
+      ),
       if (trip.notes.isNotEmpty)
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),

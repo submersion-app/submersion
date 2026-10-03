@@ -134,4 +134,25 @@ void main() {
     await tester.tap(find.byTooltip('View fullscreen map'));
     expect(expanded, 1);
   });
+
+  testWidgets('new points re-fit the camera', (tester) async {
+    await _pump(tester, points: [_dive1]);
+    const far = TripStoryMapPoint(
+      latitude: -8.5,
+      longitude: 119.4,
+      dayIndex: 1,
+      label: 'Komodo',
+      siteId: 'site-k',
+      diveId: 'd9',
+      diveNumber: 9,
+    );
+    await _pump(tester, points: [far]);
+    await tester.pump(const Duration(seconds: 1));
+    final camera = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!
+        .camera;
+    expect(camera.center.latitude, closeTo(-8.5, 0.5));
+    expect(camera.center.longitude, closeTo(119.4, 0.5));
+  });
 }

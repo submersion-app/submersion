@@ -424,4 +424,31 @@ void main() {
     expect(expandedDay?.dayNumber, 2);
     expect(expandedPoints?.single.diveId, 'd1');
   });
+
+  testWidgets('a pin scrolls only when its row is off screen', (tester) async {
+    tester.view.physicalSize = const Size(420, 560);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pumpCard(
+      tester,
+      _pastDay(['d1', 'd2', 'd3', 'd4']),
+      mapPoints: [_pin('d1', 1), _pin('d4', 4)],
+    );
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    expect(position.pixels, 0);
+    final row1 = tester.getRect(
+      find.byWidgetPredicate((w) => w is DiveListItem && w.summary.id == 'd1'),
+    );
+    expect(row1.bottom, lessThanOrEqualTo(560), reason: 'row 1 starts visible');
+    // Row 1 is in view: the map stays where it is.
+    await tester.tap(find.byKey(const Key('day-map-pin-d1')));
+    await tester.pumpAndSettle();
+    expect(position.pixels, 0);
+    // Row 4 is below the fold: the page brings it up.
+    await tester.tap(find.byKey(const Key('day-map-pin-d4')));
+    await tester.pumpAndSettle();
+    expect(position.pixels, greaterThan(0));
+  });
 }

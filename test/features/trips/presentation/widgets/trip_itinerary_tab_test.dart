@@ -378,4 +378,36 @@ void main() {
     );
     expect(repo.updated, isEmpty);
   });
+
+  testWidgets('a Rest day switched to Dive day goes back to the estimate', (
+    tester,
+  ) async {
+    final rest = ItineraryDay(
+      id: 'r',
+      tripId: 'trip-1',
+      dayNumber: 2,
+      date: DateTime(2026, 3, 7),
+      dayType: DayType.rest,
+      plannedDives: 0,
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+    final repo = _RecordingItineraryRepo();
+    await _pumpTab(
+      tester,
+      trip: _resortTrip(),
+      days: [rest],
+      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+    );
+    await tester.tap(find.text('Day 2'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButtonFormField<DayType>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dive Day').hitTestable());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(repo.updated.single.dayType, DayType.diveDay);
+    expect(repo.updated.single.plannedDives, isNull);
+  });
 }

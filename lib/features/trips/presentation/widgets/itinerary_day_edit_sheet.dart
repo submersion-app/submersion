@@ -207,9 +207,17 @@ class _ItineraryDayEditSheetState
                   ),
               ],
               onChanged: (value) {
-                if (value != null) {
-                  setState(() => _selectedDayType = value);
-                }
+                if (value == null) return;
+                setState(() {
+                  // Leaving Rest drops the 0 it forced, so the day goes back
+                  // to the estimate instead of a dive day planned at none.
+                  if (_selectedDayType == DayType.rest &&
+                      value != DayType.rest &&
+                      _plannedDivesController.text.trim() == '0') {
+                    _plannedDivesController.clear();
+                  }
+                  _selectedDayType = value;
+                });
               },
             ),
             const SizedBox(height: 16),

@@ -58,6 +58,9 @@ void main() {
   group('isBarePlanDay', () {
     test('a dive day with no port, position or notes is bare', () {
       expect(isBarePlanDay(row(9, DayType.diveDay)), isTrue);
+      // The board writes a day planned at 0 as Rest (#2658): still only a
+      // plan, so a date edit must prune it like a dive day (#2663).
+      expect(isBarePlanDay(row(9, DayType.rest)), isTrue);
       // A planned count is the plan itself, not content.
       expect(
         isBarePlanDay(row(9, DayType.diveDay).copyWith(plannedDives: 3)),

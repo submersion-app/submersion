@@ -26,7 +26,8 @@ void showTripDayMapPage(
 }
 
 /// One story day's map on its own page (#2845). Tapping a dive pin docks
-/// that dive's row at the bottom; tapping the row opens the dive.
+/// that dive's row at the bottom; tapping the row opens the dive; tapping the
+/// pin again or the map undocks it.
 class TripDayMapPage extends ConsumerStatefulWidget {
   final TripStoryDay day;
   final List<TripStoryMapPoint> points;
@@ -65,6 +66,7 @@ class _TripDayMapPageState extends ConsumerState<TripDayMapPage> {
               points: widget.points,
               highlightedDiveId: _dockedDiveId,
               onDiveTap: (id) => setState(() => _dockedDiveId = id),
+              onMapTap: () => setState(() => _dockedDiveId = null),
             ),
           ),
           if (docked != null)

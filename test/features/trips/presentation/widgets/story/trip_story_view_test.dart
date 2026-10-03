@@ -407,4 +407,41 @@ void main() {
     );
     expect(find.byKey(const Key('trip-cylinders-summary')), findsOneWidget);
   });
+
+  testWidgets('day cards are keyed by date so shifted days keep their state', (
+    tester,
+  ) async {
+    final trip = _trip(start: DateTime(2026, 3, 7), end: DateTime(2026, 3, 8));
+    await pumpView(tester, _story(trip, today: DateTime(2026, 6, 1)));
+    final keys = [
+      for (final c in tester.widgetList<TripStoryDayCard>(
+        find.byType(TripStoryDayCard),
+      ))
+        c.key,
+    ];
+    expect(keys, [
+      ValueKey(DateTime(2026, 3, 7)),
+      ValueKey(DateTime(2026, 3, 8)),
+    ]);
+  });
+
+  testWidgets('a long trip mounts only the day maps near the screen', (
+    tester,
+  ) async {
+    final trip = _trip(start: DateTime(2026, 3, 1), end: DateTime(2026, 3, 30));
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 30; i++)
+          _diveAt('d$i', DateTime(2026, 3, 1 + i, 9), 12.1 + i / 100, -68.2),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(390, 844));
+    // Each map loads tiles; thirty at once would be thirty sets of tiles.
+    expect(
+      find.byType(FlutterMap, skipOffstage: false).evaluate().length,
+      lessThan(6),
+    );
+  });
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,13 +15,15 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One story day's map: its itinerary location and one pin per dive, fitted
 /// to the day's points (issue #2845). Tapping a dive pin reports the dive
-/// through [onDiveTap] (null when the highlighted pin is tapped again); an
-/// [onExpand] handler adds the fullscreen button.
+/// through [onDiveTap] (null when the highlighted pin is tapped again); a
+/// tap on the map itself reports through [onMapTap]; an [onExpand] handler
+/// adds the fullscreen button.
 class TripDayMap extends ConsumerStatefulWidget {
   final TripStoryDay day;
   final List<TripStoryMapPoint> points;
   final String? highlightedDiveId;
   final ValueChanged<String?>? onDiveTap;
+  final VoidCallback? onMapTap;
   final VoidCallback? onExpand;
 
   const TripDayMap({
@@ -29,6 +32,7 @@ class TripDayMap extends ConsumerStatefulWidget {
     required this.points,
     this.highlightedDiveId,
     this.onDiveTap,
+    this.onMapTap,
     this.onExpand,
   });
 
@@ -50,6 +54,23 @@ class TripDayMap extends ConsumerStatefulWidget {
 
 class _TripDayMapState extends ConsumerState<TripDayMap> {
   final MapController _controller = MapController();
+
+  @override
+  void didUpdateWidget(TripDayMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The initial fit runs once; a dive whose site moved, or a story whose
+    // days shifted, brings new points that must be framed again.
+    if (!listEquals(oldWidget.points, widget.points)) {
+      _controller.fitCamera(_fit(ref.read(mapTileMaxZoomProvider)));
+    }
+  }
+
+  WorldCameraFit _fit(double maxZoom) => WorldCameraFit(
+    points: [for (final p in widget.points) LatLng(p.latitude, p.longitude)],
+    padding: const EdgeInsets.all(32),
+    maxZoom: maxZoom,
+    singlePointZoom: TripDayMap.singlePointZoom,
+  );
 
   @override
   void dispose() {
@@ -82,9 +103,6 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
     final colorScheme = Theme.of(context).colorScheme;
     final maxZoom = ref.watch(mapTileMaxZoomProvider);
     final urlTemplate = ref.watch(mapTileUrlProvider);
-    final latLngs = [
-      for (final p in widget.points) LatLng(p.latitude, p.longitude),
-    ];
     final offsets = _stackOffsets();
 
     return Semantics(
@@ -98,15 +116,13 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
             child: FlutterMap(
               mapController: _controller,
               options: MapOptions(
-                initialCameraFit: WorldCameraFit(
-                  points: latLngs,
-                  padding: const EdgeInsets.all(32),
-                  maxZoom: maxZoom,
-                  singlePointZoom: TripDayMap.singlePointZoom,
-                ),
+                initialCameraFit: _fit(maxZoom),
                 minZoom: TripDayMap.minZoom,
                 maxZoom: maxZoom,
                 cameraConstraint: worldMapCameraConstraint,
+                onTap: widget.onMapTap == null
+                    ? null
+                    : (_, _) => widget.onMapTap!(),
                 // Pans and zooms like the other embedded maps; north stays
                 // up.
                 interactionOptions: const InteractionOptions(

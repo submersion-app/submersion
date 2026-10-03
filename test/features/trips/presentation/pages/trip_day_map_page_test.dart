@@ -111,4 +111,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('DIVE d1'), findsOneWidget);
   });
+
+  testWidgets('tapping the map background undocks the row', (tester) async {
+    await _pump(tester);
+    await tester.tap(find.byKey(const Key('day-map-pin-d1')));
+    await tester.pumpAndSettle();
+    expect(find.byType(DiveListItem), findsOneWidget);
+    await tester.tapAt(
+      tester.getTopLeft(find.byType(FlutterMap)) + const Offset(40, 40),
+    );
+    // A tap on the map body arms flutter_map's double-tap timer.
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    expect(find.byType(DiveListItem), findsNothing);
+  });
 }
