@@ -1344,11 +1344,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String trips_story_dockedDay_goToDay(int number) {
-    return 'Ga naar dag $number';
-  }
-
-  @override
   String get trips_story_surfaceDay => 'Oppervlaktedag';
 
   @override
@@ -1439,10 +1434,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_story_rhythm_semantics => 'Duiktijden van deze dag';
-
-  @override
-  String get trips_story_map_semantics =>
-      'Reiskaart. De stekken van de zichtbare dag zijn gemarkeerd.';
 
   @override
   String trips_story_dayMap_semantics(int number) {
@@ -14867,17 +14858,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String trips_gearAlerts_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count uitrustingsmeldingen voor deze reis',
-      one: '$count uitrustingsmelding voor deze reis',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -26197,23 +26177,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get trips_gear_title => 'Uitrusting';
-
-  @override
-  String get trips_gear_none => 'Nog geen uitrusting ingepakt';
-
-  @override
-  String get trips_gear_add => 'Uitrusting toevoegen';
-
-  @override
   String get trips_gear_remove => 'Eruit halen';
 
   @override
   String get trips_gear_failed =>
       'Kan de uitrusting niet wijzigen. Probeer het opnieuw.';
-
-  @override
-  String get trips_gear_useSet => 'Set gebruiken';
 
   @override
   String trips_gear_packedFromSet(int count, String name) {
@@ -26403,13 +26371,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String trips_cylinders_summaryUnfilled(int count) {
     return 'Nog niet gevuld $count';
   }
-
-  @override
-  String get trips_cylinders_setUp => 'Flessen instellen';
-
-  @override
-  String get trips_cylinders_setUpHint =>
-      'Houd de flessen bij die je op deze reis hebt: vullingen, mengsels en wat er in elke fles over is.';
 
   @override
   String get trips_cylinders_status_full => 'Vol';
@@ -26866,9 +26827,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_itinerary_notes_label => 'Notes';
-
-  @override
-  String get trips_itinerary_noDives => 'No dives';
 
   @override
   String get trips_itinerary_error_loading => 'Kan het reisschema niet laden.';

@@ -335,7 +335,6 @@
   "o2Toxicity_thisDive": "Cette plongée",
   "o2Toxicity_weekly": "Hebdomadaire",
   "trips_story_dayLabel": "Jour {number}",
-  "trips_story_dockedDay_goToDay": "Aller au jour {number}",
   "trips_story_surfaceDay": "Journée en surface",
   "trips_story_today": "Aujourd'hui",
   "trips_story_dayOfTrip": "Jour {current} sur {total}",
@@ -358,7 +357,6 @@
   "trips_story_history_avgTemp": "moy. {value}",
   "trips_story_history_avgDepth": "prof. moy. {value}",
   "trips_story_rhythm_semantics": "Heures de plongée de cette journée",
-  "trips_story_map_semantics": "Carte du voyage. Les sites du jour affiché sont mis en évidence.",
   "trips_story_dayMap_semantics": "Carte du jour {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -4407,7 +4405,6 @@
   "dashboard_serviceDue_more": "+{count} de plus",
   "dashboard_alerts_clockDue": "{name} : {kind} à échéance",
   "dashboard_alerts_clockOverdue": "{name} : {kind} en retard",
-  "trips_gearAlerts_count": "{count, plural, one{{count} alerte matériel pour ce voyage} other{{count} alertes matériel pour ce voyage}}",
   "trips_serviceAlert_count": "{count, plural, =1{{count} équipement nécessite un entretien avant ce voyage} other{{count} équipements nécessitent un entretien avant ce voyage}}",
   "trips_serviceAlert_dueBefore": "{kind} à échéance le {date}",
   "equipment_service_overdue": "{kind} en retard",
@@ -7476,12 +7473,8 @@
       }
     }
   },
-  "trips_gear_title": "Matériel",
-  "trips_gear_none": "Aucun matériel prévu pour l'instant",
-  "trips_gear_add": "Ajouter du matériel",
   "trips_gear_remove": "Retirer",
   "trips_gear_failed": "Impossible de modifier le matériel. Réessayez.",
-  "trips_gear_useSet": "Utiliser un ensemble",
   "trips_gear_packedFromSet": "{count, plural, =0{Tout le contenu de {name} est déjà prévu} one{{count} élément de {name} ajouté} other{{count} éléments de {name} ajoutés}}",
   "trips_gear_add_action": "Ajouter",
   "trips_gear_add_fromEquipment": "Depuis mon matériel",
@@ -7631,8 +7624,6 @@
       }
     }
   },
-  "trips_cylinders_setUp": "Configurer les blocs",
-  "trips_cylinders_setUpHint": "Suivez les blocs que vous avez sur ce voyage : gonflages, mélanges et ce qu'il reste dans chacun.",
   "trips_cylinders_status_full": "Plein",
   "trips_cylinders_status_partial": "Entamé",
   "trips_cylinders_status_empty": "Vide",
@@ -7831,7 +7822,6 @@
   "trips_itinerary_dayType_label": "Day Type",
   "trips_itinerary_diveCount": "{count, plural, =1{{count} plongée} other{{count} plongées}}",
   "trips_itinerary_editDay": "Edit Day",
-  "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "Impossible de charger l'itinéraire.",
   "trips_itinerary_daySaveError": "Impossible d'enregistrer la journée. Réessayez.",
   "trips_itinerary_empty": "Pas encore d'itinéraire. Générez-en un à partir des dates du voyage, ou ajoutez des jours au fur et à mesure.",

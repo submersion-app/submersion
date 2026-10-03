@@ -1352,11 +1352,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String trips_story_dockedDay_goToDay(int number) {
-    return 'Ugrás a(z) $number. napra';
-  }
-
-  @override
   String get trips_story_surfaceDay => 'Felszíni nap';
 
   @override
@@ -1447,10 +1442,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_story_rhythm_semantics => 'A nap merülési idői';
-
-  @override
-  String get trips_story_map_semantics =>
-      'Úti térkép. A látható nap helyszínei kiemelve.';
 
   @override
   String trips_story_dayMap_semantics(int number) {
@@ -14932,17 +14923,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String trips_gearAlerts_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count felszerelési figyelmeztetés ehhez az utazáshoz',
-      one: '$count felszerelési figyelmeztetés ehhez az utazáshoz',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -26311,23 +26291,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get trips_gear_title => 'Felszerelés';
-
-  @override
-  String get trips_gear_none => 'Még nincs bepakolt felszerelés';
-
-  @override
-  String get trips_gear_add => 'Felszerelés hozzáadása';
-
-  @override
   String get trips_gear_remove => 'Kivétel';
 
   @override
   String get trips_gear_failed =>
       'Nem sikerült módosítani a felszerelést. Próbáld újra.';
-
-  @override
-  String get trips_gear_useSet => 'Készlet használata';
 
   @override
   String trips_gear_packedFromSet(int count, String name) {
@@ -26517,13 +26485,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String trips_cylinders_summaryUnfilled(int count) {
     return 'Még nincs töltve $count';
   }
-
-  @override
-  String get trips_cylinders_setUp => 'Palackok beállítása';
-
-  @override
-  String get trips_cylinders_setUpHint =>
-      'Kövesd az úton nálad lévő palackokat: töltések, keverékek és hogy mennyi maradt mindegyikben.';
 
   @override
   String get trips_cylinders_status_full => 'Tele';
@@ -26982,9 +26943,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_itinerary_notes_label => 'Notes';
-
-  @override
-  String get trips_itinerary_noDives => 'No dives';
 
   @override
   String get trips_itinerary_error_loading =>

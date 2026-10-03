@@ -2101,12 +2101,6 @@ abstract class AppLocalizations {
   /// **'Day {number}'**
   String trips_story_dayLabel(int number);
 
-  /// No description provided for @trips_story_dockedDay_goToDay.
-  ///
-  /// In en, this message translates to:
-  /// **'Go to day {number}'**
-  String trips_story_dockedDay_goToDay(int number);
-
   /// No description provided for @trips_story_surfaceDay.
   ///
   /// In en, this message translates to:
@@ -2238,12 +2232,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive times during this day'**
   String get trips_story_rhythm_semantics;
-
-  /// No description provided for @trips_story_map_semantics.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip map. Sites for the day in view are highlighted.'**
-  String get trips_story_map_semantics;
 
   /// No description provided for @trips_story_dayMap_semantics.
   ///
@@ -24410,12 +24398,6 @@ abstract class AppLocalizations {
   /// **'{name}: {kind} overdue'**
   String dashboard_alerts_clockOverdue(String name, String kind);
 
-  /// No description provided for @trips_gearAlerts_count.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{{count} gear alert for this trip} other{{count} gear alerts for this trip}}'**
-  String trips_gearAlerts_count(int count);
-
   /// No description provided for @trips_serviceAlert_count.
   ///
   /// In en, this message translates to:
@@ -42024,24 +42006,6 @@ abstract class AppLocalizations {
   /// **'{count} rebreathers, lowest {minutes} min scrubber margin'**
   String trips_scrubber_bannerCount(int count, String minutes);
 
-  /// No description provided for @trips_gear_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Gear'**
-  String get trips_gear_title;
-
-  /// No description provided for @trips_gear_none.
-  ///
-  /// In en, this message translates to:
-  /// **'No gear packed yet'**
-  String get trips_gear_none;
-
-  /// No description provided for @trips_gear_add.
-  ///
-  /// In en, this message translates to:
-  /// **'Add gear'**
-  String get trips_gear_add;
-
   /// No description provided for @trips_gear_remove.
   ///
   /// In en, this message translates to:
@@ -42053,12 +42017,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not change the gear. Try again.'**
   String get trips_gear_failed;
-
-  /// No description provided for @trips_gear_useSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Use set'**
-  String get trips_gear_useSet;
 
   /// No description provided for @trips_gear_packedFromSet.
   ///
@@ -42293,18 +42251,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not filled yet {count}'**
   String trips_cylinders_summaryUnfilled(int count);
-
-  /// No description provided for @trips_cylinders_setUp.
-  ///
-  /// In en, this message translates to:
-  /// **'Set up cylinders'**
-  String get trips_cylinders_setUp;
-
-  /// No description provided for @trips_cylinders_setUpHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Track the cylinders you hold on this trip: fills, mixes and what is left in each.'**
-  String get trips_cylinders_setUpHint;
 
   /// No description provided for @trips_cylinders_status_full.
   ///
@@ -42971,12 +42917,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notes'**
   String get trips_itinerary_notes_label;
-
-  /// No description provided for @trips_itinerary_noDives.
-  ///
-  /// In en, this message translates to:
-  /// **'No dives'**
-  String get trips_itinerary_noDives;
 
   /// No description provided for @trips_itinerary_error_loading.
   ///

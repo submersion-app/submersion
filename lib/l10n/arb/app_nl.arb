@@ -335,7 +335,6 @@
   "o2Toxicity_thisDive": "Deze duik",
   "o2Toxicity_weekly": "Wekelijks",
   "trips_story_dayLabel": "Dag {number}",
-  "trips_story_dockedDay_goToDay": "Ga naar dag {number}",
   "trips_story_surfaceDay": "Oppervlaktedag",
   "trips_story_today": "Vandaag",
   "trips_story_dayOfTrip": "Dag {current} van {total}",
@@ -358,7 +357,6 @@
   "trips_story_history_avgTemp": "gem. {value}",
   "trips_story_history_avgDepth": "gem. diepte {value}",
   "trips_story_rhythm_semantics": "Duiktijden van deze dag",
-  "trips_story_map_semantics": "Reiskaart. De stekken van de zichtbare dag zijn gemarkeerd.",
   "trips_story_dayMap_semantics": "Kaart van dag {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -4509,7 +4507,6 @@
   "dashboard_serviceDue_more": "+{count} meer",
   "dashboard_alerts_clockDue": "{name}: {kind} nodig",
   "dashboard_alerts_clockOverdue": "{name}: {kind} achterstallig",
-  "trips_gearAlerts_count": "{count, plural, one{{count} uitrustingsmelding voor deze reis} other{{count} uitrustingsmeldingen voor deze reis}}",
   "trips_serviceAlert_count": "{count, plural, =1{1 item heeft vóór deze reis service nodig} other{{count} items hebben vóór deze reis service nodig}}",
   "trips_serviceAlert_dueBefore": "{kind} vervalt op {date}",
   "equipment_service_overdue": "{kind} achterstallig",
@@ -7578,12 +7575,8 @@
       }
     }
   },
-  "trips_gear_title": "Uitrusting",
-  "trips_gear_none": "Nog geen uitrusting ingepakt",
-  "trips_gear_add": "Uitrusting toevoegen",
   "trips_gear_remove": "Eruit halen",
   "trips_gear_failed": "Kan de uitrusting niet wijzigen. Probeer het opnieuw.",
-  "trips_gear_useSet": "Set gebruiken",
   "trips_gear_packedFromSet": "{count, plural, =0{Alles uit {name} is al ingepakt} one{{count} item uit {name} ingepakt} other{{count} items uit {name} ingepakt}}",
   "trips_gear_add_action": "Toevoegen",
   "trips_gear_add_fromEquipment": "Uit mijn uitrusting",
@@ -7733,8 +7726,6 @@
       }
     }
   },
-  "trips_cylinders_setUp": "Flessen instellen",
-  "trips_cylinders_setUpHint": "Houd de flessen bij die je op deze reis hebt: vullingen, mengsels en wat er in elke fles over is.",
   "trips_cylinders_status_full": "Vol",
   "trips_cylinders_status_partial": "Deels vol",
   "trips_cylinders_status_empty": "Leeg",
@@ -7933,7 +7924,6 @@
   "trips_itinerary_dayType_label": "Day Type",
   "trips_itinerary_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "trips_itinerary_editDay": "Edit Day",
-  "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "Kan het reisschema niet laden.",
   "trips_itinerary_daySaveError": "Kan de dag niet opslaan. Probeer het opnieuw.",
   "trips_itinerary_empty": "Nog geen reisschema. Maak er een van de reisdata, of voeg dagen toe terwijl je gaat.",

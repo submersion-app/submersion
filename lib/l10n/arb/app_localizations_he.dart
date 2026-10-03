@@ -1334,11 +1334,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String trips_story_dockedDay_goToDay(int number) {
-    return 'מעבר ליום $number';
-  }
-
-  @override
   String get trips_story_surfaceDay => 'יום פני השטח';
 
   @override
@@ -1429,9 +1424,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_story_rhythm_semantics => 'זמני הצלילה ביום זה';
-
-  @override
-  String get trips_story_map_semantics => 'מפת הטיול. אתרי היום המוצג מודגשים.';
 
   @override
   String trips_story_dayMap_semantics(int number) {
@@ -14659,19 +14651,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String trips_gearAlerts_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count התראות ציוד לטיול הזה',
-      many: '$count התראות ציוד לטיול הזה',
-      two: '$count התראות ציוד לטיול הזה',
-      one: '$count התראת ציוד לטיול הזה',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -25759,22 +25738,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get trips_gear_title => 'ציוד';
-
-  @override
-  String get trips_gear_none => 'עדיין לא נארז ציוד';
-
-  @override
-  String get trips_gear_add => 'הוספת ציוד';
-
-  @override
   String get trips_gear_remove => 'הסרה';
 
   @override
   String get trips_gear_failed => 'לא ניתן לשנות את הציוד. נסו שוב.';
-
-  @override
-  String get trips_gear_useSet => 'שימוש בסט';
 
   @override
   String trips_gear_packedFromSet(int count, String name) {
@@ -25964,13 +25931,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String trips_cylinders_summaryUnfilled(int count) {
     return 'טרם מולאו $count';
   }
-
-  @override
-  String get trips_cylinders_setUp => 'הגדרת מכלים';
-
-  @override
-  String get trips_cylinders_setUpHint =>
-      'עקבו אחר המכלים שיש לכם בטיול הזה: מילויים, תערובות וכמה נשאר בכל אחד.';
 
   @override
   String get trips_cylinders_status_full => 'מלא';
@@ -26425,9 +26385,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_itinerary_notes_label => 'Notes';
-
-  @override
-  String get trips_itinerary_noDives => 'No dives';
 
   @override
   String get trips_itinerary_error_loading => 'לא ניתן לטעון את המסלול.';

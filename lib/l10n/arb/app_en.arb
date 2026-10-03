@@ -853,14 +853,6 @@
       }
     }
   },
-  "trips_story_dockedDay_goToDay": "Go to day {number}",
-  "@trips_story_dockedDay_goToDay": {
-    "placeholders": {
-      "number": {
-        "type": "int"
-      }
-    }
-  },
   "trips_story_surfaceDay": "Surface day",
   "trips_story_today": "Today",
   "trips_story_dayOfTrip": "Day {current} of {total}",
@@ -931,7 +923,6 @@
     }
   },
   "trips_story_rhythm_semantics": "Dive times during this day",
-  "trips_story_map_semantics": "Trip map. Sites for the day in view are highlighted.",
   "trips_story_dayMap_semantics": "Map of day {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -8742,14 +8733,6 @@
       }
     }
   },
-  "trips_gearAlerts_count": "{count, plural, one{{count} gear alert for this trip} other{{count} gear alerts for this trip}}",
-  "@trips_gearAlerts_count": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "trips_serviceAlert_count": "{count, plural, =1{1 item needs service before this trip} other{{count} items need service before this trip}}",
   "@trips_serviceAlert_count": {
     "placeholders": {
@@ -16050,12 +16033,8 @@
       }
     }
   },
-  "trips_gear_title": "Gear",
-  "trips_gear_none": "No gear packed yet",
-  "trips_gear_add": "Add gear",
   "trips_gear_remove": "Unpack",
   "trips_gear_failed": "Could not change the gear. Try again.",
-  "trips_gear_useSet": "Use set",
   "trips_gear_packedFromSet": "{count, plural, =0{Everything in {name} is already packed} one{Packed {count} item from {name}} other{Packed {count} items from {name}}}",
   "@trips_gear_packedFromSet": {
     "placeholders": {
@@ -16211,8 +16190,6 @@
       }
     }
   },
-  "trips_cylinders_setUp": "Set up cylinders",
-  "trips_cylinders_setUpHint": "Track the cylinders you hold on this trip: fills, mixes and what is left in each.",
   "trips_cylinders_status_full": "Full",
   "trips_cylinders_status_partial": "Partial",
   "trips_cylinders_status_empty": "Empty",
@@ -16501,7 +16478,6 @@
   "trips_itinerary_dayType_label": "Day Type",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_itinerary_notes_label": "Notes",
-  "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "Couldn't load the itinerary.",
   "trips_itinerary_daySaveError": "Couldn't save the day. Try again.",
   "trips_itinerary_empty": "No itinerary yet. Generate one from the trip dates, or add days as you go.",

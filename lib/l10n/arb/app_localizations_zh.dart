@@ -1303,11 +1303,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String trips_story_dockedDay_goToDay(int number) {
-    return '跳转到第 $number 天';
-  }
-
-  @override
   String get trips_story_surfaceDay => '水面日';
 
   @override
@@ -1394,9 +1389,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_story_rhythm_semantics => '当天的潜水时间';
-
-  @override
-  String get trips_story_map_semantics => '旅行地图。当前日期的潜点已高亮。';
 
   @override
   String trips_story_dayMap_semantics(int number) {
@@ -14314,16 +14306,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String trips_gearAlerts_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '此行程有 $count 条装备提醒',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -25052,22 +25034,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get trips_gear_title => '装备';
-
-  @override
-  String get trips_gear_none => '尚未打包任何装备';
-
-  @override
-  String get trips_gear_add => '添加装备';
-
-  @override
   String get trips_gear_remove => '移除';
 
   @override
   String get trips_gear_failed => '无法更改装备，请重试。';
-
-  @override
-  String get trips_gear_useSet => '使用套装';
 
   @override
   String trips_gear_packedFromSet(int count, String name) {
@@ -25246,12 +25216,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String trips_cylinders_summaryUnfilled(int count) {
     return '尚未充气 $count';
   }
-
-  @override
-  String get trips_cylinders_setUp => '设置气瓶';
-
-  @override
-  String get trips_cylinders_setUpHint => '记录本次行程中你持有的气瓶：充气、混合气以及每瓶剩余多少。';
 
   @override
   String get trips_cylinders_status_full => '满';
@@ -25691,9 +25655,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_itinerary_notes_label => '备注';
-
-  @override
-  String get trips_itinerary_noDives => '无潜水';
 
   @override
   String get trips_itinerary_error_loading => '无法加载行程。';

@@ -335,7 +335,6 @@
   "o2Toxicity_thisDive": "Este mergulho",
   "o2Toxicity_weekly": "Semanal",
   "trips_story_dayLabel": "Dia {number}",
-  "trips_story_dockedDay_goToDay": "Ir para o dia {number}",
   "trips_story_surfaceDay": "Dia de superfície",
   "trips_story_today": "Hoje",
   "trips_story_dayOfTrip": "Dia {current} de {total}",
@@ -358,7 +357,6 @@
   "trips_story_history_avgTemp": "média {value}",
   "trips_story_history_avgDepth": "prof. média {value}",
   "trips_story_rhythm_semantics": "Horários de mergulho deste dia",
-  "trips_story_map_semantics": "Mapa da viagem. Os pontos do dia visível estão destacados.",
   "trips_story_dayMap_semantics": "Mapa do dia {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -4509,7 +4507,6 @@
   "dashboard_serviceDue_more": "+{count} mais",
   "dashboard_alerts_clockDue": "{name}: {kind} pendente",
   "dashboard_alerts_clockOverdue": "{name}: {kind} em atraso",
-  "trips_gearAlerts_count": "{count, plural, one{{count} alerta de equipamento para esta viagem} other{{count} alertas de equipamento para esta viagem}}",
   "trips_serviceAlert_count": "{count, plural, =1{{count} equipamento precisa de manutenção antes desta viagem} other{{count} equipamentos precisam de manutenção antes desta viagem}}",
   "trips_serviceAlert_dueBefore": "{kind} vence em {date}",
   "equipment_service_overdue": "{kind} em atraso",
@@ -7578,12 +7575,8 @@
       }
     }
   },
-  "trips_gear_title": "Equipamento",
-  "trips_gear_none": "Nenhum equipamento preparado ainda",
-  "trips_gear_add": "Adicionar equipamento",
   "trips_gear_remove": "Remover",
   "trips_gear_failed": "Não foi possível alterar o equipamento. Tente novamente.",
-  "trips_gear_useSet": "Usar conjunto",
   "trips_gear_packedFromSet": "{count, plural, =0{Tudo de {name} já está preparado} one{{count} item de {name} preparado} other{{count} itens de {name} preparados}}",
   "trips_gear_add_action": "Adicionar",
   "trips_gear_add_fromEquipment": "Do meu equipamento",
@@ -7733,8 +7726,6 @@
       }
     }
   },
-  "trips_cylinders_setUp": "Configurar cilindros",
-  "trips_cylinders_setUpHint": "Acompanhe os cilindros que tem nesta viagem: enchimentos, misturas e o que resta em cada um.",
   "trips_cylinders_status_full": "Cheio",
   "trips_cylinders_status_partial": "Parcial",
   "trips_cylinders_status_empty": "Vazio",
@@ -7933,7 +7924,6 @@
   "trips_itinerary_dayType_label": "Day Type",
   "trips_itinerary_diveCount": "{count, plural, =1{{count} mergulho} other{{count} mergulhos}}",
   "trips_itinerary_editDay": "Edit Day",
-  "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "Não foi possível carregar o itinerário.",
   "trips_itinerary_daySaveError": "Não foi possível guardar o dia. Tente novamente.",
   "trips_itinerary_empty": "Ainda sem itinerário. Gere um a partir das datas da viagem ou adicione dias à medida que avança.",

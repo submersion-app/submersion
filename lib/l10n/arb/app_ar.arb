@@ -335,7 +335,6 @@
   "o2Toxicity_thisDive": "هذه الغطسة",
   "o2Toxicity_weekly": "أسبوعي",
   "trips_story_dayLabel": "اليوم {number}",
-  "trips_story_dockedDay_goToDay": "الانتقال إلى اليوم {number}",
   "trips_story_surfaceDay": "يوم سطح",
   "trips_story_today": "اليوم",
   "trips_story_dayOfTrip": "اليوم {current} من {total}",
@@ -358,7 +357,6 @@
   "trips_story_history_avgTemp": "متوسط {value}",
   "trips_story_history_avgDepth": "متوسط العمق {value}",
   "trips_story_rhythm_semantics": "أوقات الغطس في هذا اليوم",
-  "trips_story_map_semantics": "خريطة الرحلة. مواقع اليوم المعروض مميزة.",
   "trips_story_dayMap_semantics": "خريطة اليوم {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -4509,7 +4507,6 @@
   "dashboard_serviceDue_more": "+{count} أخرى",
   "dashboard_alerts_clockDue": "{name}: {kind} مستحقة",
   "dashboard_alerts_clockOverdue": "{name}: {kind} متأخرة",
-  "trips_gearAlerts_count": "{count, plural, zero{{count} تنبيهات معدات لهذه الرحلة} one{{count} تنبيه معدات لهذه الرحلة} two{{count} تنبيها معدات لهذه الرحلة} few{{count} تنبيهات معدات لهذه الرحلة} many{{count} تنبيهًا للمعدات لهذه الرحلة} other{{count} تنبيه معدات لهذه الرحلة}}",
   "trips_serviceAlert_count": "{count, plural, zero{لا توجد معدات تحتاج إلى صيانة قبل هذه الرحلة} one{قطعة معدات واحدة تحتاج إلى صيانة قبل هذه الرحلة} two{قطعتا معدات تحتاجان إلى صيانة قبل هذه الرحلة} few{{count} قطع معدات تحتاج إلى صيانة قبل هذه الرحلة} many{{count} قطعة معدات تحتاج إلى صيانة قبل هذه الرحلة} other{{count} قطعة معدات تحتاج إلى صيانة قبل هذه الرحلة}}",
   "trips_serviceAlert_dueBefore": "{kind} مستحقة في {date}",
   "equipment_service_overdue": "{kind} متأخرة",
@@ -7578,12 +7575,8 @@
       }
     }
   },
-  "trips_gear_title": "المعدات",
-  "trips_gear_none": "لم تُجهز أي معدات بعد",
-  "trips_gear_add": "إضافة معدات",
   "trips_gear_remove": "إزالة",
   "trips_gear_failed": "تعذر تغيير المعدات. حاول مرة أخرى.",
-  "trips_gear_useSet": "استخدام مجموعة",
   "trips_gear_packedFromSet": "{count, plural, =0{كل ما في {name} مُجهز بالفعل} one{تم تجهيز عنصر واحد من {name}} two{تم تجهيز عنصرين من {name}} few{تم تجهيز {count} عناصر من {name}} many{تم تجهيز {count} عنصرًا من {name}} other{تم تجهيز {count} عنصر من {name}}}",
   "trips_gear_add_action": "إضافة",
   "trips_gear_add_fromEquipment": "من معداتي",
@@ -7733,8 +7726,6 @@
       }
     }
   },
-  "trips_cylinders_setUp": "إعداد الأسطوانات",
-  "trips_cylinders_setUpHint": "تتبّع الأسطوانات التي معك في هذه الرحلة: التعبئات والخلطات وما تبقّى في كل منها.",
   "trips_cylinders_status_full": "ممتلئة",
   "trips_cylinders_status_partial": "جزئية",
   "trips_cylinders_status_empty": "فارغة",
@@ -7933,7 +7924,6 @@
   "trips_itinerary_dayType_label": "Day Type",
   "trips_itinerary_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "trips_itinerary_editDay": "Edit Day",
-  "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "تعذّر تحميل برنامج الرحلة.",
   "trips_itinerary_daySaveError": "تعذّر حفظ اليوم. حاول مرة أخرى.",
   "trips_itinerary_empty": "لا يوجد برنامج رحلة بعد. أنشئ واحدًا من تواريخ الرحلة، أو أضف الأيام تباعًا.",

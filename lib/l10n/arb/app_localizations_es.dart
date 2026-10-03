@@ -1353,11 +1353,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String trips_story_dockedDay_goToDay(int number) {
-    return 'Ir al día $number';
-  }
-
-  @override
   String get trips_story_surfaceDay => 'Día de superficie';
 
   @override
@@ -1449,10 +1444,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get trips_story_rhythm_semantics =>
       'Horarios de inmersión de este día';
-
-  @override
-  String get trips_story_map_semantics =>
-      'Mapa del viaje. Los puntos del día visible están resaltados.';
 
   @override
   String trips_story_dayMap_semantics(int number) {
@@ -14966,17 +14957,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String trips_gearAlerts_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count avisos de equipo para este viaje',
-      one: '$count aviso de equipo para este viaje',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -26412,23 +26392,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get trips_gear_title => 'Equipo';
-
-  @override
-  String get trips_gear_none => 'Aún no hay equipo preparado';
-
-  @override
-  String get trips_gear_add => 'Añadir equipo';
-
-  @override
   String get trips_gear_remove => 'Quitar';
 
   @override
   String get trips_gear_failed =>
       'No se pudo cambiar el equipo. Inténtalo de nuevo.';
-
-  @override
-  String get trips_gear_useSet => 'Usar conjunto';
 
   @override
   String trips_gear_packedFromSet(int count, String name) {
@@ -26619,13 +26587,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String trips_cylinders_summaryUnfilled(int count) {
     return 'Sin llenar $count';
   }
-
-  @override
-  String get trips_cylinders_setUp => 'Configurar botellas';
-
-  @override
-  String get trips_cylinders_setUpHint =>
-      'Controla las botellas que tienes en este viaje: cargas, mezclas y lo que queda en cada una.';
 
   @override
   String get trips_cylinders_status_full => 'Llena';
@@ -27082,9 +27043,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_itinerary_notes_label => 'Notes';
-
-  @override
-  String get trips_itinerary_noDives => 'No dives';
 
   @override
   String get trips_itinerary_error_loading =>

@@ -335,7 +335,6 @@
   "o2Toxicity_thisDive": "Ez a merülés",
   "o2Toxicity_weekly": "Heti",
   "trips_story_dayLabel": "{number}. nap",
-  "trips_story_dockedDay_goToDay": "Ugrás a(z) {number}. napra",
   "trips_story_surfaceDay": "Felszíni nap",
   "trips_story_today": "Ma",
   "trips_story_dayOfTrip": "{current}. nap a(z) {total} napból",
@@ -358,7 +357,6 @@
   "trips_story_history_avgTemp": "átlag {value}",
   "trips_story_history_avgDepth": "átl. mélység {value}",
   "trips_story_rhythm_semantics": "A nap merülési idői",
-  "trips_story_map_semantics": "Úti térkép. A látható nap helyszínei kiemelve.",
   "trips_story_dayMap_semantics": "{number}. nap térképe",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -4407,7 +4405,6 @@
   "dashboard_serviceDue_more": "+{count} további",
   "dashboard_alerts_clockDue": "{name}: {kind} esedékes",
   "dashboard_alerts_clockOverdue": "{name}: {kind} lejárt",
-  "trips_gearAlerts_count": "{count, plural, one{{count} felszerelési figyelmeztetés ehhez az utazáshoz} other{{count} felszerelési figyelmeztetés ehhez az utazáshoz}}",
   "trips_serviceAlert_count": "{count, plural, =1{1 felszerelés szervizt igényel az utazás előtt} other{{count} felszerelés szervizt igényel az utazás előtt}}",
   "trips_serviceAlert_dueBefore": "{kind} esedékes: {date}",
   "equipment_service_overdue": "{kind} lejárt",
@@ -7476,12 +7473,8 @@
       }
     }
   },
-  "trips_gear_title": "Felszerelés",
-  "trips_gear_none": "Még nincs bepakolt felszerelés",
-  "trips_gear_add": "Felszerelés hozzáadása",
   "trips_gear_remove": "Kivétel",
   "trips_gear_failed": "Nem sikerült módosítani a felszerelést. Próbáld újra.",
-  "trips_gear_useSet": "Készlet használata",
   "trips_gear_packedFromSet": "{count, plural, =0{A(z) {name} minden eleme már be van pakolva} one{{count} elem bepakolva innen: {name}} other{{count} elem bepakolva innen: {name}}}",
   "trips_gear_add_action": "Hozzáadás",
   "trips_gear_add_fromEquipment": "A felszerelésemből",
@@ -7631,8 +7624,6 @@
       }
     }
   },
-  "trips_cylinders_setUp": "Palackok beállítása",
-  "trips_cylinders_setUpHint": "Kövesd az úton nálad lévő palackokat: töltések, keverékek és hogy mennyi maradt mindegyikben.",
   "trips_cylinders_status_full": "Tele",
   "trips_cylinders_status_partial": "Részben",
   "trips_cylinders_status_empty": "Üres",
@@ -7831,7 +7822,6 @@
   "trips_itinerary_dayType_label": "Day Type",
   "trips_itinerary_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "trips_itinerary_editDay": "Edit Day",
-  "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "Nem sikerült betölteni az útitervet.",
   "trips_itinerary_daySaveError": "Nem sikerült menteni a napot. Próbáld újra.",
   "trips_itinerary_empty": "Még nincs útiterv. Készíts egyet az utazás dátumaiból, vagy adj hozzá napokat menet közben.",

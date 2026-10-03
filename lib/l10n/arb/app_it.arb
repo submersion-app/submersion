@@ -335,7 +335,6 @@
   "o2Toxicity_thisDive": "Questa immersione",
   "o2Toxicity_weekly": "Settimanale",
   "trips_story_dayLabel": "Giorno {number}",
-  "trips_story_dockedDay_goToDay": "Vai al giorno {number}",
   "trips_story_surfaceDay": "Giorno di superficie",
   "trips_story_today": "Oggi",
   "trips_story_dayOfTrip": "Giorno {current} di {total}",
@@ -358,7 +357,6 @@
   "trips_story_history_avgTemp": "media {value}",
   "trips_story_history_avgDepth": "prof. media {value}",
   "trips_story_rhythm_semantics": "Orari delle immersioni del giorno",
-  "trips_story_map_semantics": "Mappa del viaggio. I siti del giorno visibile sono evidenziati.",
   "trips_story_dayMap_semantics": "Mappa del giorno {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -4407,7 +4405,6 @@
   "dashboard_serviceDue_more": "+{count} altri",
   "dashboard_alerts_clockDue": "{name}: {kind} in scadenza",
   "dashboard_alerts_clockOverdue": "{name}: {kind} in ritardo",
-  "trips_gearAlerts_count": "{count, plural, one{{count} avviso sull'attrezzatura per questo viaggio} other{{count} avvisi sull'attrezzatura per questo viaggio}}",
   "trips_serviceAlert_count": "{count, plural, =1{1 attrezzatura necessita di manutenzione prima di questo viaggio} other{{count} attrezzature necessitano di manutenzione prima di questo viaggio}}",
   "trips_serviceAlert_dueBefore": "{kind} in scadenza il {date}",
   "equipment_service_overdue": "{kind} in ritardo",
@@ -7472,12 +7469,8 @@
       }
     }
   },
-  "trips_gear_title": "Attrezzatura",
-  "trips_gear_none": "Nessuna attrezzatura preparata",
-  "trips_gear_add": "Aggiungi attrezzatura",
   "trips_gear_remove": "Togli",
   "trips_gear_failed": "Impossibile modificare l'attrezzatura. Riprova.",
-  "trips_gear_useSet": "Usa set",
   "trips_gear_packedFromSet": "{count, plural, =0{Tutto il contenuto di {name} è già preparato} one{{count} elemento di {name} preparato} other{{count} elementi di {name} preparati}}",
   "trips_gear_add_action": "Aggiungi",
   "trips_gear_add_fromEquipment": "Dalla mia attrezzatura",
@@ -7627,8 +7620,6 @@
       }
     }
   },
-  "trips_cylinders_setUp": "Configura le bombole",
-  "trips_cylinders_setUpHint": "Tieni traccia delle bombole che hai in questo viaggio: ricariche, miscele e quanto resta in ciascuna.",
   "trips_cylinders_status_full": "Piena",
   "trips_cylinders_status_partial": "Parziale",
   "trips_cylinders_status_empty": "Vuota",
@@ -7827,7 +7818,6 @@
   "trips_itinerary_dayType_label": "Day Type",
   "trips_itinerary_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "trips_itinerary_editDay": "Edit Day",
-  "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "Impossibile caricare l'itinerario.",
   "trips_itinerary_daySaveError": "Impossibile salvare la giornata. Riprova.",
   "trips_itinerary_empty": "Nessun itinerario ancora. Generane uno dalle date del viaggio o aggiungi i giorni man mano.",

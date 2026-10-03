@@ -1330,11 +1330,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String trips_story_dockedDay_goToDay(int number) {
-    return 'الانتقال إلى اليوم $number';
-  }
-
-  @override
   String get trips_story_surfaceDay => 'يوم سطح';
 
   @override
@@ -1425,10 +1420,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_story_rhythm_semantics => 'أوقات الغطس في هذا اليوم';
-
-  @override
-  String get trips_story_map_semantics =>
-      'خريطة الرحلة. مواقع اليوم المعروض مميزة.';
 
   @override
   String trips_story_dayMap_semantics(int number) {
@@ -14757,21 +14748,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String trips_gearAlerts_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count تنبيه معدات لهذه الرحلة',
-      many: '$count تنبيهًا للمعدات لهذه الرحلة',
-      few: '$count تنبيهات معدات لهذه الرحلة',
-      two: '$count تنبيها معدات لهذه الرحلة',
-      one: '$count تنبيه معدات لهذه الرحلة',
-      zero: '$count تنبيهات معدات لهذه الرحلة',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -26063,22 +26039,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get trips_gear_title => 'المعدات';
-
-  @override
-  String get trips_gear_none => 'لم تُجهز أي معدات بعد';
-
-  @override
-  String get trips_gear_add => 'إضافة معدات';
-
-  @override
   String get trips_gear_remove => 'إزالة';
 
   @override
   String get trips_gear_failed => 'تعذر تغيير المعدات. حاول مرة أخرى.';
-
-  @override
-  String get trips_gear_useSet => 'استخدام مجموعة';
 
   @override
   String trips_gear_packedFromSet(int count, String name) {
@@ -26271,13 +26235,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String trips_cylinders_summaryUnfilled(int count) {
     return 'لم تُعبّأ بعد $count';
   }
-
-  @override
-  String get trips_cylinders_setUp => 'إعداد الأسطوانات';
-
-  @override
-  String get trips_cylinders_setUpHint =>
-      'تتبّع الأسطوانات التي معك في هذه الرحلة: التعبئات والخلطات وما تبقّى في كل منها.';
 
   @override
   String get trips_cylinders_status_full => 'ممتلئة';
@@ -26734,9 +26691,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_itinerary_notes_label => 'Notes';
-
-  @override
-  String get trips_itinerary_noDives => 'No dives';
 
   @override
   String get trips_itinerary_error_loading => 'تعذّر تحميل برنامج الرحلة.';

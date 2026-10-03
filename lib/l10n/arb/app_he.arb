@@ -335,7 +335,6 @@
   "o2Toxicity_thisDive": "צלילה זו",
   "o2Toxicity_weekly": "שבועי",
   "trips_story_dayLabel": "יום {number}",
-  "trips_story_dockedDay_goToDay": "מעבר ליום {number}",
   "trips_story_surfaceDay": "יום פני השטח",
   "trips_story_today": "היום",
   "trips_story_dayOfTrip": "יום {current} מתוך {total}",
@@ -358,7 +357,6 @@
   "trips_story_history_avgTemp": "ממוצע {value}",
   "trips_story_history_avgDepth": "עומק ממוצע {value}",
   "trips_story_rhythm_semantics": "זמני הצלילה ביום זה",
-  "trips_story_map_semantics": "מפת הטיול. אתרי היום המוצג מודגשים.",
   "trips_story_dayMap_semantics": "מפת יום {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -4407,7 +4405,6 @@
   "dashboard_serviceDue_more": "+{count} נוספים",
   "dashboard_alerts_clockDue": "{name}: {kind} נדרש",
   "dashboard_alerts_clockOverdue": "{name}: {kind} באיחור",
-  "trips_gearAlerts_count": "{count, plural, one{{count} התראת ציוד לטיול הזה} two{{count} התראות ציוד לטיול הזה} many{{count} התראות ציוד לטיול הזה} other{{count} התראות ציוד לטיול הזה}}",
   "trips_serviceAlert_count": "{count, plural, one{פריט ציוד אחד זקוק לטיפול לפני הטיול הזה} two{שני פריטי ציוד זקוקים לטיפול לפני הטיול הזה} many{{count} פריטי ציוד זקוקים לטיפול לפני הטיול הזה} other{{count} פריטי ציוד זקוקים לטיפול לפני הטיול הזה}}",
   "trips_serviceAlert_dueBefore": "{kind} לביצוע עד {date}",
   "equipment_service_overdue": "{kind} באיחור",
@@ -7578,12 +7575,8 @@
       }
     }
   },
-  "trips_gear_title": "ציוד",
-  "trips_gear_none": "עדיין לא נארז ציוד",
-  "trips_gear_add": "הוספת ציוד",
   "trips_gear_remove": "הסרה",
   "trips_gear_failed": "לא ניתן לשנות את הציוד. נסו שוב.",
-  "trips_gear_useSet": "שימוש בסט",
   "trips_gear_packedFromSet": "{count, plural, =0{כל הציוד מתוך {name} כבר ארוז} one{נארז פריט אחד מתוך {name}} two{נארזו {count} פריטים מתוך {name}} many{נארזו {count} פריטים מתוך {name}} other{נארזו {count} פריטים מתוך {name}}}",
   "trips_gear_add_action": "הוספה",
   "trips_gear_add_fromEquipment": "מהציוד שלי",
@@ -7733,8 +7726,6 @@
       }
     }
   },
-  "trips_cylinders_setUp": "הגדרת מכלים",
-  "trips_cylinders_setUpHint": "עקבו אחר המכלים שיש לכם בטיול הזה: מילויים, תערובות וכמה נשאר בכל אחד.",
   "trips_cylinders_status_full": "מלא",
   "trips_cylinders_status_partial": "חלקי",
   "trips_cylinders_status_empty": "ריק",
@@ -7933,7 +7924,6 @@
   "trips_itinerary_dayType_label": "Day Type",
   "trips_itinerary_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "trips_itinerary_editDay": "Edit Day",
-  "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "לא ניתן לטעון את המסלול.",
   "trips_itinerary_daySaveError": "לא ניתן לשמור את היום. נסו שוב.",
   "trips_itinerary_empty": "אין עדיין מסלול. צרו אחד מתאריכי הטיול, או הוסיפו ימים תוך כדי.",
