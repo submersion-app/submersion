@@ -35,11 +35,20 @@ class _TripItineraryGenerateButtonState
     extends ConsumerState<TripItineraryGenerateButton> {
   bool _saving = false;
 
+  Set<DateTime> _covered() => {for (final d in widget.days) tripDay(d.date)};
+
+  /// Whether any trip date has no row: answered from the dates, so a
+  /// rebuild does not build the rows themselves.
+  bool _anyMissing() {
+    final covered = _covered();
+    return tripDaysBetween(
+      widget.trip.startDate,
+      widget.trip.endDate,
+    ).any((d) => !covered.contains(d));
+  }
+
   List<ItineraryDay> _missing() {
-    final covered = {
-      for (final d in widget.days)
-        if (widget.trip.containsDate(d.date)) tripDay(d.date),
-    };
+    final covered = _covered();
     return ItineraryDay.generateForTrip(
       tripId: widget.trip.id,
       startDate: widget.trip.startDate,
@@ -78,7 +87,7 @@ class _TripItineraryGenerateButtonState
 
   @override
   Widget build(BuildContext context) {
-    if (_missing().isEmpty) return const SizedBox.shrink();
+    if (!_anyMissing()) return const SizedBox.shrink();
     final l10n = context.l10n;
     final label = widget.days.isEmpty
         ? l10n.trips_story_generateItinerary

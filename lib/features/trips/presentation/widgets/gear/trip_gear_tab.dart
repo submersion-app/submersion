@@ -67,7 +67,11 @@ class TripGearTab extends ConsumerWidget {
     final margins = ended
         ? const <ScrubberMargin>[]
         : ref.watch(tripScrubberMarginsProvider(trip.id)).value ?? const [];
-    final forecast = ref.watch(tripFillForecastProvider(trip.id)).value;
+    // The forecast shows only while the trip is under way, so only then is
+    // it computed.
+    final forecast = trip.isInProgress
+        ? ref.watch(tripFillForecastProvider(trip.id)).value
+        : null;
     // Each item's blocking clocks, most pressing first: the row shows the
     // first, the sheet lists them all.
     final alertsByItem = {
@@ -162,7 +166,7 @@ class TripGearTab extends ConsumerWidget {
                   )
                 : null,
           ),
-          if (trip.isInProgress && forecast != null)
+          if (forecast != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: TripFillForecastText(forecast: forecast, units: units),

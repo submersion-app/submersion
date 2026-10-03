@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
+import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
@@ -95,7 +96,11 @@ class TripOverviewSummaryCard extends ConsumerWidget {
           _Row(
             icon: Icons.event_note,
             label: l10n.trips_detail_tab_itinerary,
-            summary: days == null ? null : _itinerarySpans(l10n, days),
+            // The days the Itinerary tab lists: a plan-only row outside the
+            // trip's dates is left over from a moved trip (#2663).
+            summary: days == null
+                ? null
+                : _itinerarySpans(l10n, tripStoryItinerary(trip, days)),
             onTap: () => _open(context, TripDetailTab.itinerary),
           ),
           _Row(

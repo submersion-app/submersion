@@ -227,6 +227,22 @@ void main() {
     expect(find.text('4 days · 5 dives planned'), findsOneWidget);
   });
 
+  testWidgets('the itinerary row leaves out bare plan days outside the trip, '
+      'as the Itinerary tab does', (tester) async {
+    // The trip runs offsets 0 to 7; -2 and 9 are plan-only rows a shortened
+    // trip left behind, which sync does not prune (#2663).
+    await _pump(
+      tester,
+      days: [
+        _day(-2, planned: 2),
+        _day(0, planned: 2),
+        _day(1, planned: 2),
+        _day(9, planned: 2),
+      ],
+    );
+    expect(find.text('2 days · 4 dives planned'), findsOneWidget);
+  });
+
   testWidgets('with no itinerary the row says so', (tester) async {
     await _pump(tester);
     expect(find.text('Not planned yet'), findsOneWidget);

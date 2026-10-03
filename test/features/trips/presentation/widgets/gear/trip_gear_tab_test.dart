@@ -216,6 +216,7 @@ Future<_Harness> _pumpTab(
   List<EquipmentSet> sets = const [],
   AppSettings settings = const AppSettings(),
   Object? gearError,
+  List<String>? forecastReads,
 }) async {
   final packs = _FakePacks();
   final slots = _FakeSlots();
@@ -259,7 +260,10 @@ Future<_Harness> _pumpTab(
         ).overrideWith((ref) async => [for (final s in states) s.cylinder]),
         tripServiceAlertsProvider('t1').overrideWith((ref) async => alerts),
         tripScrubberMarginsProvider('t1').overrideWith((ref) async => margins),
-        tripFillForecastProvider('t1').overrideWith((ref) async => null),
+        tripFillForecastProvider('t1').overrideWith((ref) async {
+          forecastReads?.add('t1');
+          return null;
+        }),
         tripEquipmentRepositoryProvider.overrideWithValue(packs),
         tripCylinderRepositoryProvider.overrideWithValue(slots),
         activeEquipmentProvider.overrideWith((ref) async => active),
@@ -589,5 +593,33 @@ void main() {
     expect(find.byKey(const Key('trip-gear-alert-reg')), findsNothing);
     expect(find.byKey(const Key('trip-gear-alert-ccr')), findsNothing);
     expect(find.byKey(const Key('trip-gear-alert-tk')), findsNothing);
+  });
+
+  testWidgets('only a trip under way reads the fill forecast', (tester) async {
+    final upcomingReads = <String>[];
+    await _pumpTab(
+      tester,
+      states: [slot('Faber 12')],
+      forecastReads: upcomingReads,
+    );
+    expect(upcomingReads, isEmpty);
+
+    final endedReads = <String>[];
+    await _pumpTab(
+      tester,
+      onTrip: trip(past: true),
+      states: [slot('Faber 12')],
+      forecastReads: endedReads,
+    );
+    expect(endedReads, isEmpty);
+
+    final underWayReads = <String>[];
+    await _pumpTab(
+      tester,
+      onTrip: trip(started: true),
+      states: [slot('Faber 12')],
+      forecastReads: underWayReads,
+    );
+    expect(underWayReads, isNotEmpty);
   });
 }
