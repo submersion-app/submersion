@@ -65,10 +65,10 @@ PLAY_ERROR_HINTS = [
   [
     /changesNotSentForReview to true/i,
     "Play would not send this release for review automatically, because the Play " \
-    "Console already holds changes that must be sent by hand, so nothing was " \
-    "committed. Open Publishing overview in the Play Console, check the pending " \
-    "changes (a release, declaration or listing edit), and send them for review. " \
-    "Nothing in this edit was committed: if the upload was refused, its version " \
+    "Console already holds changes that must be sent by hand. Open Publishing " \
+    "overview in the Play Console, check the pending changes (a release, " \
+    "declaration or listing edit), and send them for review. Nothing in this " \
+    "edit was committed: if the upload was refused, its version " \
     "code is still free and the job can be re-run once the changes are sent; if " \
     "only the closed-track copy was refused, do not re-run, since the upload " \
     "already used the version code and the next beta copies its own build. " \
