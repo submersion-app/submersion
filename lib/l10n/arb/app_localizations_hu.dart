@@ -25157,21 +25157,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezen útvonalak egyikének sincs még helye a térképen.';
 
   @override
-  String get tracks_match_button => 'Útvonalak párosítása merülésekkel';
-
-  @override
-  String get tracks_match_none => 'Nincs új egyezés';
-
-  @override
-  String get tracks_match_partialError =>
-      'Néhány útvonalat nem sikerült párosítani. Kérjük, próbáld újra.';
-
-  @override
-  String tracks_match_result(int linked, int positioned) {
-    return 'Pozicionált merülések: $positioned · Összekapcsolt víz alatti útvonalak: $linked';
-  }
-
-  @override
   String get transfer_appBar_title => 'Átvitel';
 
   @override
@@ -29186,6 +29171,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gpsLogger_locationOff => 'A helymeghatározás ki van kapcsolva.';
+
+  @override
+  String get gpsLogger_matchButton => 'Merülések párosítása GPS-naplókkal';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count merülés pozicionálva';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone =>
+      'Egyik merülés sem illeszkedik rögzített útvonalhoz';
 
   @override
   String get gpsLogger_noFixYet => 'Várakozás GPS-jelre';
@@ -46375,6 +46372,20 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String navTrack_list_deleteMessage(String name) {
     return '„$name” törlése?';
+  }
+
+  @override
+  String get navTrack_review_saveConfirmation => 'Útvonal mentve.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count útvonal vár a választásodra',
+      one: '$count útvonal vár a választásodra',
+    );
+    return '$_temp0';
   }
 
   @override

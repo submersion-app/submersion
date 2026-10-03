@@ -51,7 +51,7 @@ areas with different vocabulary.
 | Import | One Import action, auto-detecting ENC CSV vs every other format |
 | Recording | Record card stays at the top of the list on record-capable devices, under every filter |
 | URLs | Everything under `/tracks`; old paths redirect |
-| Shared tools | Date filter, summary strip and Match cover both kinds |
+| Shared tools | Date filter and summary strip cover both kinds; Match is the GPS sweep (underwater tracks are only suggested since #2819) |
 | Vocabulary | User-facing "route" becomes "underwater track" everywhere, all locales |
 | Quick actions | Underwater Routes action removed; GPS action keeps its label, opens `/tracks` |
 | Architecture | New `lib/features/tracks/` composes the two features (approach A) |
@@ -82,7 +82,7 @@ lib/features/tracks/
   domain/track_kind.dart                 # enum TrackKind { gps, underwater }, TrackKindFilter { all, gps, underwater }
   domain/tracks_query.dart               # pure: merge, date bound, combined overview cap
   domain/tracks_summary.dart             # pure: counts, recorded time, dives covered (deduplicated)
-  application/tracks_match_controller.dart   # runs both sweeps sequentially, combined result
+  application/tracks_match_controller.dart   # the GPS sweep; underwater tracks are only ever suggested
   presentation/providers/tracks_providers.dart
   presentation/tracks_import.dart            # one Import action: detect ENC, route to the right review page
   presentation/track_item_location.dart      # detail path for a TrackListItem
@@ -94,6 +94,7 @@ lib/features/tracks/
   presentation/widgets/tracks_list_pane.dart
   presentation/widgets/tracks_map_pane.dart
   presentation/widgets/tracks_match_snackbar.dart
+  presentation/widgets/tracks_pending_choice_banner.dart
   presentation/widgets/tracks_overview_map.dart
   presentation/widgets/tracks_summary_strip.dart
   presentation/widgets/tracks_empty_state.dart
@@ -261,7 +262,7 @@ with `sectionKey: kTracksSectionKey`.
 - **List pane,** top to bottom, the same header on both widths:
   `GpsRecordCard` (record-capable devices only, every filter),
   `TracksSummaryStrip`, the kind filter (segmented All / GPS / Underwater),
-  the date filter, the "Match tracks to dives" button (where GPS Log had
+  the date filter, the "Match dives to GPS logs" button (where GPS Log had
   its match button), then rows. The list is never capped, so it carries no
   cap notice.
 - **Rows:** a `switch` over `TrackListItem` renders `GpsTrackListTile` or
@@ -317,25 +318,31 @@ Drag-and-drop and share-sheet handling (`handleIncomingFile`) are unchanged.
 
 ## Match
 
-`TracksMatchController.matchAll()` runs `GpsTrackMatchService.sweep()` then
-`NavTrackMatchService.sweep()`, sequentially: both write dive links, and the
-GPS sweep also writes dive coordinates. Each sweep is wrapped separately, so
-a failure in one does not skip the other.
+Since #2819 an underwater sweep never links anything: it only suggests a
+dive, and linking always goes through the diver's choice on the track's
+detail page (#2394). So the Tracks page's Match action is the GPS sweep
+alone, exactly the GPS log's old action: `TracksMatchController.matchAll()`
+runs `GpsTrackMatchService.sweep()` and returns
+`TracksMatchOutcome(positionedDiveIds, failed)`.
 
-Result: `TracksMatchOutcome(positionedDiveIds, linkedUnderwaterIds,
-anyFailed)`. The GPS sweep reports the dives it positioned, not tracks, and
-those ids feed the existing "Review site matches" action, which the merged
-page keeps.
+Snackbar, with the GPS log's own strings ("Match dives to GPS logs"):
 
-Snackbar:
+- dives positioned: "{count} dives positioned", with the "Review site
+  matches" action that hands their ids to the site review
+- nothing positioned: "No dives matched a recorded track"
+- the sweep failed: the generic "try again" message (failure logged)
 
-- something matched and nothing failed: "Dives positioned: {positioned} ·
-  Underwater tracks linked: {linked}" (label and value pairs, so no plural
-  forms to translate)
-- nothing matched and nothing failed: "No new matches"
-- any failed: "Some tracks could not be matched. Try again." (each failure
-  logged separately)
-- whenever dives were positioned: the "Review site matches" action
+Underwater tracks waiting for that choice are counted by
+`navTrackPendingChoiceCountProvider` and shown as a "N routes need your
+choice" hint under the summary strip.
+
+The list also takes #2819's first-load states: a spinner while the first
+load runs and a "try again" message if it fails, both only before any data
+has arrived, since the list re-enters loading on every track change.
+
+#2819's card redesign of the underwater rows is not carried over: in the
+merged list the two kinds keep one row style, and a follow-up issue gives
+both kinds the dive list's card design together.
 
 ## Vocabulary (PR 2)
 
@@ -373,8 +380,8 @@ Unit:
   underwater track counts once; trim-aware GPS duration; a recording GPS
   track contributes no time; underwater falls back to `endTime - startTime`
   when `durationSeconds` is null.
-- `TracksMatchController`: both sweeps run in order; one throwing still runs
-  the other and reports `anyFailed`.
+- `TracksMatchController`: reports the dives the GPS sweep positioned; a
+  throwing sweep is reported as failed, not thrown.
 - `importTrackFile`: ENC CSV routes to underwater review; GPX and a
   non-ENC CSV route to GPS review; parse error shows the localized message.
 

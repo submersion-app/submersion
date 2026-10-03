@@ -24914,21 +24914,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يملك أي من هذه المسارات موقعًا على الخريطة بعد.';
 
   @override
-  String get tracks_match_button => 'مطابقة المسارات مع الغطسات';
-
-  @override
-  String get tracks_match_none => 'لا توجد مطابقات جديدة';
-
-  @override
-  String get tracks_match_partialError =>
-      'تعذّرت مطابقة بعض المسارات. يُرجى المحاولة مرة أخرى.';
-
-  @override
-  String tracks_match_result(int linked, int positioned) {
-    return 'الغطسات المحددة مواقعها: $positioned · المسارات تحت الماء المرتبطة: $linked';
-  }
-
-  @override
   String get transfer_appBar_title => 'النقل';
 
   @override
@@ -28912,6 +28897,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gpsLogger_locationOff => 'خدمات الموقع متوقفة.';
+
+  @override
+  String get gpsLogger_matchButton => 'مطابقة الغطسات مع سجلات GPS';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return 'تم تحديد موقع $count غطسة';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone => 'لا توجد غطسات تطابق مسارًا مسجّلًا';
 
   @override
   String get gpsLogger_noFixYet => 'في انتظار إشارة GPS';
@@ -46185,6 +46181,22 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String navTrack_list_deleteMessage(String name) {
     return 'حذف \"$name\"؟';
+  }
+
+  @override
+  String get navTrack_review_saveConfirmation => 'تم حفظ المسار.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مسار ينتظر اختيارك',
+      few: '$count مسارات تنتظر اختيارك',
+      two: 'مساران ينتظران اختيارك',
+      one: 'مسار واحد ينتظر اختيارك',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -40144,30 +40144,6 @@ abstract class AppLocalizations {
   /// **'None of these tracks has a position on the map yet.'**
   String get tracks_map_noMappable;
 
-  /// No description provided for @tracks_match_button.
-  ///
-  /// In en, this message translates to:
-  /// **'Match tracks to dives'**
-  String get tracks_match_button;
-
-  /// No description provided for @tracks_match_none.
-  ///
-  /// In en, this message translates to:
-  /// **'No new matches'**
-  String get tracks_match_none;
-
-  /// No description provided for @tracks_match_partialError.
-  ///
-  /// In en, this message translates to:
-  /// **'Some tracks could not be matched. Try again.'**
-  String get tracks_match_partialError;
-
-  /// No description provided for @tracks_match_result.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives positioned: {positioned} · Underwater tracks linked: {linked}'**
-  String tracks_match_result(int linked, int positioned);
-
   /// No description provided for @transfer_appBar_title.
   ///
   /// In en, this message translates to:
@@ -46380,6 +46356,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location services are turned off.'**
   String get gpsLogger_locationOff;
+
+  /// No description provided for @gpsLogger_matchButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Match dives to GPS logs'**
+  String get gpsLogger_matchButton;
+
+  /// No description provided for @gpsLogger_matchResult.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives positioned'**
+  String gpsLogger_matchResult(int count);
+
+  /// No description provided for @gpsLogger_matchResultNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives matched a recorded track'**
+  String get gpsLogger_matchResultNone;
 
   /// No description provided for @gpsLogger_noFixYet.
   ///
@@ -73942,6 +73936,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete \"{name}\"?'**
   String navTrack_list_deleteMessage(String name);
+
+  /// No description provided for @navTrack_review_saveConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Route saved.'**
+  String get navTrack_review_saveConfirmation;
+
+  /// No description provided for @navTrack_list_pendingChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} route needs your choice} other{{count} routes need your choice}}'**
+  String navTrack_list_pendingChoice(num count);
 
   /// No description provided for @navTrack_seascape_title.
   ///

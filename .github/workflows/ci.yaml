@@ -555,7 +555,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -580,6 +580,8 @@ jobs:
             scripts/bundle_tests_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/filter_trivial_coverage_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/beta_failure_alert_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml

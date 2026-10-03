@@ -23955,20 +23955,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tracks_map_noMappable => '这些轨迹在地图上都还没有位置。';
 
   @override
-  String get tracks_match_button => '将轨迹匹配到潜水';
-
-  @override
-  String get tracks_match_none => '没有新的匹配';
-
-  @override
-  String get tracks_match_partialError => '部分轨迹无法匹配，请重试。';
-
-  @override
-  String tracks_match_result(int linked, int positioned) {
-    return '已定位潜水：$positioned · 已关联水下轨迹：$linked';
-  }
-
-  @override
   String get transfer_appBar_title => '传输';
 
   @override
@@ -27765,6 +27751,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsLogger_locationOff => '定位服务已关闭。';
+
+  @override
+  String get gpsLogger_matchButton => '将潜水与 GPS 记录匹配';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '已定位 $count 次潜水';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone => '没有潜水与已记录的轨迹匹配';
 
   @override
   String get gpsLogger_noFixYet => '正在等待 GPS 定位';
@@ -43864,6 +43861,19 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String navTrack_list_deleteMessage(String name) {
     return '删除“$name”？';
+  }
+
+  @override
+  String get navTrack_review_saveConfirmation => '路线已保存。';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条路线等待你的选择',
+    );
+    return '$_temp0';
   }
 
   @override

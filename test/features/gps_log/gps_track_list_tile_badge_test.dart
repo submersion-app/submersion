@@ -57,4 +57,41 @@ void main() {
     final badge = tester.getRect(find.byKey(const ValueKey('badge')));
     expect(badge.top, greaterThanOrEqualTo(detail.bottom));
   });
+
+  testWidgets('without a badge the detail line is the whole subtitle', (
+    tester,
+  ) async {
+    const track = GpsTrack(
+      id: 't1',
+      startTime: 1700000000000,
+      endTime: 1700005400000,
+      pointCount: 1,
+    );
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          gpsTrackGeometryProvider((
+            't1',
+            TrackLod.thumbnail,
+          )).overrideWith((ref) async => const []),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ListView(
+              children: [GpsTrackListTile(track: track, onTap: () {})],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final tile = tester.widget<ListTile>(find.byType(ListTile));
+    expect(tile.subtitle, isA<Text>());
+    expect(find.text('1 point, 1h 30m'), findsOneWidget);
+  });
 }

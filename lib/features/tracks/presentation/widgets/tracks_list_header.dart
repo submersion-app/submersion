@@ -4,6 +4,7 @@ import 'package:submersion/features/gps_log/presentation/widgets/gps_record_card
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_date_filter_action.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_kind_filter_control.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_empty_state.dart';
+import 'package:submersion/features/tracks/presentation/widgets/tracks_pending_choice_banner.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_summary_strip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -38,6 +39,7 @@ class TracksListHeader extends StatelessWidget {
               const SizedBox(height: 16),
             ],
             const TracksSummaryStrip(),
+            const TracksPendingChoiceBanner(),
             const SizedBox(height: 12),
             const TrackKindFilterControl(),
             const SizedBox(height: 8),
@@ -50,7 +52,7 @@ class TracksListHeader extends StatelessWidget {
               OutlinedButton.icon(
                 key: const ValueKey('tracks-match'),
                 icon: const Icon(Icons.add_location_alt_outlined),
-                label: Text(l10n.tracks_match_button),
+                label: Text(l10n.gpsLogger_matchButton),
                 onPressed: match,
               ),
             ],

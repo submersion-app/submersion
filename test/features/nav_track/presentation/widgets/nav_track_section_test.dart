@@ -211,6 +211,32 @@ void main() {
       expect(find.text('ROUTE_DETAIL_PAGE'), findsOneWidget);
     });
 
+    testWidgets('tapping the route row opens its detail page', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) =>
+                Scaffold(body: NavTrackSection(dive: _dive)),
+          ),
+          GoRoute(
+            path: '/tracks/underwater/:id',
+            builder: (context, state) => Scaffold(
+              body: Text('ROUTE_DETAIL ${state.pathParameters['id']}'),
+            ),
+          ),
+        ],
+      );
+      final route = _route(diveId: _dive.id);
+      await _pump(tester, linkedRoutes: [route], router: router);
+
+      await tester.tap(find.byType(ListTile).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('ROUTE_DETAIL ${route.id}'), findsOneWidget);
+    });
+
     testWidgets('"Open 3D seascape" pushes the route seascape page', (
       tester,
     ) async {

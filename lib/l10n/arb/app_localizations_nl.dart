@@ -25043,21 +25043,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen van deze tracks heeft al een positie op de kaart.';
 
   @override
-  String get tracks_match_button => 'Tracks aan duiken koppelen';
-
-  @override
-  String get tracks_match_none => 'Geen nieuwe koppelingen';
-
-  @override
-  String get tracks_match_partialError =>
-      'Sommige tracks konden niet worden gekoppeld. Probeer het opnieuw.';
-
-  @override
-  String tracks_match_result(int linked, int positioned) {
-    return 'Gepositioneerde duiken: $positioned · Gekoppelde onderwatertracks: $linked';
-  }
-
-  @override
   String get transfer_appBar_title => 'Overdracht';
 
   @override
@@ -29065,6 +29050,18 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gpsLogger_locationOff => 'Locatievoorzieningen staan uit.';
+
+  @override
+  String get gpsLogger_matchButton => 'Duiken koppelen aan GPS-logs';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count duiken gepositioneerd';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone =>
+      'Geen duiken komen overeen met een opgenomen track';
 
   @override
   String get gpsLogger_noFixYet => 'Wachten op GPS-fix';
@@ -46262,6 +46259,20 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String navTrack_list_deleteMessage(String name) {
     return '\"$name\" verwijderen?';
+  }
+
+  @override
+  String get navTrack_review_saveConfirmation => 'Route opgeslagen.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count routes wachten op je keuze',
+      one: '$count route wacht op je keuze',
+    );
+    return '$_temp0';
   }
 
   @override

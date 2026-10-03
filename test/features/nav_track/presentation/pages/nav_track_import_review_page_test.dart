@@ -1043,6 +1043,23 @@ void main() {
     );
   }
 
+  testWidgets(
+    'a successful save confirms with a snackbar even without a site set '
+    '(#2393)',
+    (tester) async {
+      final service = _RecordingImportService();
+      await _pumpWithRouter(tester, preview: _preview(), service: service);
+
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+      await tester.pumpAndSettle();
+
+      expect(service.lastSiteId, isNull);
+      expect(find.text('Route saved.'), findsOneWidget);
+    },
+  );
+
   testWidgets('a parse error raised by commit is shown on the page and Save is '
       'offered again', (tester) async {
     await _pumpWithRouter(

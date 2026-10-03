@@ -54,7 +54,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/media/presentation/providers/gallery_cloud_id_backfill_provider.dart';
 import 'package:submersion/features/media/presentation/providers/gallery_origin_backfill_provider.dart';
-import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
@@ -1455,19 +1454,10 @@ class SyncNotifier extends StateNotifier<SyncState> {
               stackTrace: stackTrace,
             );
           }
-          // An underwater route synced in from another device may cover a
-          // dive that already exists here (or vice versa): sweep unlinked
-          // routes against every dive now that the merge is complete.
-          // Best-effort, same reasoning as the GPS sweep above.
-          try {
-            await _ref.read(navTrackMatchServiceProvider).sweep();
-          } catch (e, stackTrace) {
-            _log.error(
-              'Post-sync nav track match sweep failed',
-              error: e,
-              stackTrace: stackTrace,
-            );
-          }
+          // No underwater-route sweep here: a sweep no longer links
+          // anything by itself (#2394: confirming a dive is always the
+          // diver's own choice), and the routes list's pending-choice hint
+          // already refreshes when synced routes land.
           // Gallery rows linked before links recorded an origin learn it
           // here (media sync program spec 6.1). After a sync, never at
           // launch: a stamp bumps the row clock, so this device's copies

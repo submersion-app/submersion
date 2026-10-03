@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -20,8 +21,6 @@ import 'package:submersion/features/gps_log/presentation/providers/gps_track_map
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_thumbnail.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
-import 'package:submersion/features/nav_track/data/services/nav_track_match_service.dart';
-import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
@@ -112,25 +111,6 @@ class _GpsMatch extends GpsTrackMatchService {
   }
 }
 
-class _UnderwaterMatch extends NavTrackMatchService {
-  _UnderwaterMatch({this.linked = const []})
-    : super(
-        routeRepository: NavTrackRepository(),
-        diveRepository: DiveRepository(),
-      );
-  final List<String> linked;
-  int calls = 0;
-
-  @override
-  Future<({List<String> linked, List<String> needsChoice})> sweep({
-    List<String>? limitToRouteIds,
-    List<String>? limitToDiveIds,
-  }) async {
-    calls++;
-    return (linked: linked, needsChoice: const <String>[]);
-  }
-}
-
 /// Records deletes instead of touching the nav table.
 class _RecordingNavRepository extends NavTrackRepository {
   String? deletedId;
@@ -200,7 +180,9 @@ void main() {
   Future<Widget> app({
     List<NavTrack> underwater = const [],
     GpsTrackMatchService? gpsMatch,
-    NavTrackMatchService? underwaterMatch,
+    // Overrides the GPS list (for loading and error states); the default
+    // reads the test database.
+    Future<List<GpsTrack>> Function()? gpsTracks,
     Size? size,
     String initialLocation = '/tracks',
     Map<String, List<GpsTrackPoint>> geometry = const {},
@@ -246,9 +228,16 @@ void main() {
         sharedPreferencesProvider.overrideWithValue(prefs),
         allNavTracksProvider.overrideWith((ref) async => underwater),
         navTrackRepositoryProvider.overrideWithValue(navRepo),
-        navTrackMatchServiceProvider.overrideWithValue(
-          underwaterMatch ?? _UnderwaterMatch(),
+        // The pending-choice hint counts unlinked routes; derive them from
+        // the fixture rather than reaching the diver lookup.
+        unlinkedNavTracksProvider.overrideWith(
+          (ref) async => [
+            for (final track in underwater)
+              if (track.diveId == null) track,
+          ],
         ),
+        if (gpsTracks != null)
+          gpsTracksProvider.overrideWith((ref) => gpsTracks()),
         for (final track in underwater)
           navTrackByIdProvider(
             track.id,
@@ -291,7 +280,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Start logging'), findsNothing);
     expect(find.text('No tracks yet'), findsOneWidget);
-    expect(find.text('Match tracks to dives'), findsOneWidget);
+    expect(find.text('Match dives to GPS logs'), findsOneWidget);
   }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
 
   testWidgets('a phone shows the record card', (tester) async {
@@ -368,46 +357,75 @@ void main() {
     expect(find.text('UNDERWATER-DETAIL r1'), findsOneWidget);
   });
 
-  testWidgets('match reports both sweeps and links to the site review', (
+  testWidgets('match reports positioned dives and links to the site review', (
     tester,
   ) async {
     await tester.pumpWidget(
-      await app(
-        gpsMatch: _GpsMatch(result: const ['d1', 'd2']),
-        underwaterMatch: _UnderwaterMatch(linked: const ['r1']),
-      ),
+      await app(gpsMatch: _GpsMatch(result: const ['d1', 'd2'])),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Match tracks to dives'));
+    await tester.tap(find.text('Match dives to GPS logs'));
     await tester.pumpAndSettle();
-    expect(
-      find.text('Dives positioned: 2 · Underwater tracks linked: 1'),
-      findsOneWidget,
-    );
+    expect(find.text('2 dives positioned'), findsOneWidget);
 
     await tester.tap(find.text('Review site matches'));
     await tester.pumpAndSettle();
     expect(find.text('MATCH-SITES-PAGE'), findsOneWidget);
   });
 
-  testWidgets('a failing GPS sweep still runs the underwater one', (
-    tester,
-  ) async {
-    final underwaterMatch = _UnderwaterMatch();
-    await tester.pumpWidget(
-      await app(
-        gpsMatch: _GpsMatch(fail: true),
-        underwaterMatch: underwaterMatch,
-      ),
-    );
+  testWidgets('match with nothing new says so', (tester) async {
+    await tester.pumpWidget(await app(gpsMatch: _GpsMatch()));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Match tracks to dives'));
+    await tester.tap(find.text('Match dives to GPS logs'));
     await tester.pumpAndSettle();
-    expect(underwaterMatch.calls, 1);
+    expect(find.text('No dives matched a recorded track'), findsOneWidget);
+    expect(find.text('Review site matches'), findsNothing);
+  });
+
+  testWidgets('a failing match says so instead of throwing', (tester) async {
+    await tester.pumpWidget(await app(gpsMatch: _GpsMatch(fail: true)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Match dives to GPS logs'));
+    await tester.pumpAndSettle();
     expect(
-      find.text('Some tracks could not be matched. Try again.'),
+      find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('unlinked underwater tracks show the pending-choice hint', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await app(underwater: [_uw()]));
+    await tester.pumpAndSettle();
+    expect(find.text('1 route needs your choice'), findsOneWidget);
+  });
+
+  testWidgets('the list shows a spinner on first load, not the empty state', (
+    tester,
+  ) async {
+    final pending = Completer<List<GpsTrack>>();
+    await tester.pumpWidget(await app(gpsTracks: () => pending.future));
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('No tracks yet'), findsNothing);
+    pending.complete(const []);
+    await tester.pumpAndSettle();
+    expect(find.text('No tracks yet'), findsOneWidget);
+  });
+
+  testWidgets('a failed list says so instead of claiming there are none', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      await app(gpsTracks: () => Future.error(StateError('boom'))),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('No tracks yet'), findsNothing);
   });
 
   testWidgets('deleting a GPS track confirms, then removes it', (tester) async {
@@ -643,5 +661,67 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(NavTrackImportReviewPage), findsOneWidget);
+  });
+
+  testWidgets('a kind link arriving while Tracks is open applies it', (
+    tester,
+  ) async {
+    final gpsId = await seedGps();
+    await tester.pumpWidget(await app(underwater: [_uw()]));
+    await tester.pumpAndSettle();
+    expect(row('gps:$gpsId'), findsOneWidget);
+
+    GoRouter.of(
+      tester.element(find.byType(TracksPage)),
+    ).go('/tracks?kind=underwater');
+    await tester.pumpAndSettle();
+
+    expect(row('gps:$gpsId'), findsNothing);
+    expect(row('underwater:r1'), findsOneWidget);
+  });
+
+  testWidgets('on a phone the map button opens the full-screen map', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await app());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Show map'));
+    await tester.pumpAndSettle();
+    expect(find.text('MAP-PAGE'), findsOneWidget);
+  });
+
+  testWidgets('cancelling a delete keeps the track', (tester) async {
+    final id = await seedGps();
+    await tester.pumpWidget(await app());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(await repo.getTrack(id), isNotNull);
+    expect(row('gps:$id'), findsOneWidget);
+  });
+
+  testWidgets('closing the info card clears the selection', (tester) async {
+    final id = await seedGps();
+    await tester.pumpWidget(
+      await app(size: _desktop, geometry: {id: _twoFixes}),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('1 point, 1h 30m'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MapInfoCard), findsOneWidget);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(MapInfoCard),
+        matching: find.byIcon(Icons.close),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MapInfoCard), findsNothing);
   });
 }

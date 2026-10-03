@@ -276,6 +276,36 @@ void main() {
     expect(repository.linkMode, NavTrackLinkMode.manual);
   });
 
+  testWidgets(
+    '"Choose dive" pre-selects the sole dive NavTrackMatchService suggests '
+    '(#2394)',
+    (tester) async {
+      // Entry time equals the route's own startTime (1755856800000ms), so
+      // this is the sole dive NavTrackMatcher.candidatesFor overlaps --
+      // no fake match service needed, the pre-selection is computed
+      // directly from the dives already fetched for the sheet.
+      final candidate = Dive(
+        id: 'dive-9',
+        diveNumber: 9,
+        dateTime: DateTime.fromMillisecondsSinceEpoch(1755856800000),
+        entryTime: DateTime.fromMillisecondsSinceEpoch(1755856800000),
+      );
+      await _pump(tester, route: _route(), allDives: [candidate]);
+
+      await tester.tap(find.text('Choose dive'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<ListTile>(
+              find.byKey(const ValueKey('nav-track-dive-choice-dive-9')),
+            )
+            .selected,
+        isTrue,
+      );
+    },
+  );
+
   testWidgets('shows the no-correction sentence when nothing was aligned', (
     tester,
   ) async {

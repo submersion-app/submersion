@@ -73,6 +73,13 @@ void main() {
   });
 
   group('UnderwaterTrackItem', () {
+    test('reads the recording window as stored', () {
+      final item = UnderwaterTrackItem(_route(start: 1000, end: 9000));
+      expect(item.id, 'r1');
+      expect(item.startTime, 1000);
+      expect(item.endTime, 9000);
+    });
+
     test('maps only when anchored', () {
       expect(UnderwaterTrackItem(_route()).isMappable, isFalse);
       expect(

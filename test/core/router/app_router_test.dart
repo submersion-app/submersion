@@ -3,6 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
+import 'package:submersion/features/tracks/domain/track_kind.dart';
+import 'package:submersion/features/tracks/presentation/pages/tracks_map_page.dart';
+import 'package:submersion/features/tracks/presentation/pages/tracks_page.dart';
 import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/router/app_router.dart';
@@ -188,6 +195,89 @@ void main() {
         paths.indexOf('/gps-log/map'),
         lessThan(paths.indexOf('/gps-log/:id')),
       );
+    });
+
+    testWidgets('each tracks route builds its page with the path id', (
+      tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      GoRouterState stateFor(
+        String fullPath,
+        String location, [
+        Map<String, String> params = const {},
+      ]) => GoRouterState(
+        router.configuration,
+        uri: Uri.parse(location),
+        matchedLocation: Uri.parse(location).path,
+        fullPath: fullPath,
+        pathParameters: params,
+        pageKey: ValueKey(location),
+      );
+      final routes = router.configuration.routes;
+      Widget build(String name, GoRouterState state) =>
+          _findRouteByName(routes, name)!.builder!(capturedContext, state);
+
+      final landing = _findRouteByName(routes, 'tracks')!.pageBuilder!(
+        capturedContext,
+        stateFor('/tracks', '/tracks?kind=underwater'),
+      );
+      expect(landing, isA<NoTransitionPage<void>>());
+      final tracksPage =
+          (landing as NoTransitionPage<void>).child as TracksPage;
+      expect(tracksPage.initialKind, TrackKindFilter.underwater);
+
+      expect(
+        build('tracksMap', stateFor('/tracks/map', '/tracks/map')),
+        isA<TracksMapPage>(),
+      );
+      final gps =
+          build(
+                'gpsTrackDetail',
+                stateFor('/tracks/gps/:id', '/tracks/gps/g1', {'id': 'g1'}),
+              )
+              as GpsTrackDetailPage;
+      expect(gps.trackId, 'g1');
+      final detail =
+          build(
+                'underwaterTrackDetail',
+                stateFor('/tracks/underwater/:id', '/tracks/underwater/u1', {
+                  'id': 'u1',
+                }),
+              )
+              as NavTrackDetailPage;
+      expect(detail.trackId, 'u1');
+      final align =
+          build(
+                'underwaterTrackAlign',
+                stateFor(
+                  '/tracks/underwater/:id/align',
+                  '/tracks/underwater/u1/align',
+                  {'id': 'u1'},
+                ),
+              )
+              as NavTrackAlignPage;
+      expect(align.routeId, 'u1');
+      final seascape =
+          build(
+                'underwaterTrackSeascape',
+                stateFor(
+                  '/tracks/underwater/:id/3d',
+                  '/tracks/underwater/u1/3d',
+                  {'id': 'u1'},
+                ),
+              )
+              as NavTrackSeascapePage;
+      expect(seascape.trackId, 'u1');
     });
 
     testWidgets('old GPS log and underwater route locations redirect into '

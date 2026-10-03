@@ -24626,21 +24626,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'לאף אחד מהמסלולים האלה אין עדיין מיקום על המפה.';
 
   @override
-  String get tracks_match_button => 'התאמת מסלולים לצלילות';
-
-  @override
-  String get tracks_match_none => 'אין התאמות חדשות';
-
-  @override
-  String get tracks_match_partialError =>
-      'לא ניתן היה להתאים חלק מהמסלולים. יש לנסות שוב.';
-
-  @override
-  String tracks_match_result(int linked, int positioned) {
-    return 'צלילות שמוקמו: $positioned · מסלולים תת-ימיים שקושרו: $linked';
-  }
-
-  @override
   String get transfer_appBar_title => 'העברה';
 
   @override
@@ -28583,6 +28568,17 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gpsLogger_locationOff => 'שירותי המיקום כבויים.';
+
+  @override
+  String get gpsLogger_matchButton => 'התאמת צלילות ליומני GPS';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count צלילות מוקמו';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone => 'אף צלילה לא תואמת מסלול שהוקלט';
 
   @override
   String get gpsLogger_noFixYet => 'ממתין לאות GPS';
@@ -45631,6 +45627,21 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String navTrack_list_deleteMessage(String name) {
     return 'למחוק את \"$name\"?';
+  }
+
+  @override
+  String get navTrack_review_saveConfirmation => 'המסלול נשמר.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מסלולים ממתינים לבחירתך',
+      two: 'שני מסלולים ממתינים לבחירתך',
+      one: 'מסלול אחד ממתין לבחירתך',
+    );
+    return '$_temp0';
   }
 
   @override

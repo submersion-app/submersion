@@ -583,3 +583,50 @@ jobs:
       - name: Cleanup sensitive files
         if: always()
         run: rm -f android/fastlane/play-store-key.json
+
+  # Five red Beta runs in eleven hours went unnoticed until someone read the
+  # Actions list (#2598). This job opens one rolling issue when any job above
+  # fails, comments on it while it stays open, and closes it once a run
+  # publishes on every lane; scripts/beta_failure_alert.py has the details.
+  #
+  # It needs every job in this workflow, not just the store lanes:
+  # needs.*.result sees only the jobs listed here, and a failed build or
+  # precheck skips every lane rather than failing it. A job added without being
+  # listed fails scripts/beta_failure_alert_test.py.
+  #
+  # The condition runs it only on a failure or a fully published run, so the
+  # many runs gated off by precheck stay "skipped" in the Actions list. The ref
+  # check keeps a workflow_dispatch trial from a branch from paging anyone.
+  alert:
+    name: Alert on failure
+    needs: [precheck, build, publish-beta, upload-testflight-ios, upload-testflight-macos, upload-play]
+    if: >-
+      always() && github.ref == 'refs/heads/main' && (
+        contains(needs.*.result, 'failure') || (
+          !contains(needs.*.result, 'skipped') &&
+          !contains(needs.*.result, 'cancelled')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      # Reads this run's jobs to name the failed steps in the alert.
+      actions: read
+    # No concurrency group, on purpose: a group keeps one pending job and
+    # cancels the one it replaces whatever cancel-in-progress says, so a green
+    # run queued behind an alert could discard a pending failure. Two failing
+    # runs that each open an issue are folded together by the script instead.
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: scripts
+          persist-credentials: false
+
+      - name: Open, update or close the failure alert
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          BETA_TAG: ${{ needs.precheck.outputs.tag }}
+          BETA_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          BETA_ALERT_ASSIGNEE: ${{ vars.BETA_ALERT_ASSIGNEE }}
+        run: python3 scripts/beta_failure_alert.py

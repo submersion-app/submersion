@@ -25229,21 +25229,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessuna di queste tracce ha ancora una posizione sulla mappa.';
 
   @override
-  String get tracks_match_button => 'Associa le tracce alle immersioni';
-
-  @override
-  String get tracks_match_none => 'Nessuna nuova corrispondenza';
-
-  @override
-  String get tracks_match_partialError =>
-      'Non è stato possibile associare alcune tracce. Riprova.';
-
-  @override
-  String tracks_match_result(int linked, int positioned) {
-    return 'Immersioni posizionate: $positioned · Tracce subacquee collegate: $linked';
-  }
-
-  @override
   String get transfer_appBar_title => 'Trasferimento';
 
   @override
@@ -29273,6 +29258,18 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get gpsLogger_locationOff =>
       'I servizi di localizzazione sono disattivati.';
+
+  @override
+  String get gpsLogger_matchButton => 'Abbina le immersioni ai registri GPS';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count immersioni posizionate';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone =>
+      'Nessuna immersione corrisponde a una traccia registrata';
 
   @override
   String get gpsLogger_noFixYet => 'In attesa del segnale GPS';
@@ -46555,6 +46552,20 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String navTrack_list_deleteMessage(String name) {
     return 'Eliminare «$name»?';
+  }
+
+  @override
+  String get navTrack_review_saveConfirmation => 'Percorso salvato.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count percorsi attendono la tua scelta',
+      one: '$count percorso attende la tua scelta',
+    );
+    return '$_temp0';
   }
 
   @override

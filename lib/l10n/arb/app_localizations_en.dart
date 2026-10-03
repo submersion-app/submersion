@@ -24833,21 +24833,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'None of these tracks has a position on the map yet.';
 
   @override
-  String get tracks_match_button => 'Match tracks to dives';
-
-  @override
-  String get tracks_match_none => 'No new matches';
-
-  @override
-  String get tracks_match_partialError =>
-      'Some tracks could not be matched. Try again.';
-
-  @override
-  String tracks_match_result(int linked, int positioned) {
-    return 'Dives positioned: $positioned · Underwater tracks linked: $linked';
-  }
-
-  @override
   String get transfer_appBar_title => 'Transfer';
 
   @override
@@ -28817,6 +28802,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsLogger_locationOff => 'Location services are turned off.';
+
+  @override
+  String get gpsLogger_matchButton => 'Match dives to GPS logs';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count dives positioned';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone => 'No dives matched a recorded track';
 
   @override
   String get gpsLogger_noFixYet => 'Waiting for GPS fix';
@@ -45877,6 +45873,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String navTrack_list_deleteMessage(String name) {
     return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get navTrack_review_saveConfirmation => 'Route saved.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count routes need your choice',
+      one: '$count route needs your choice',
+    );
+    return '$_temp0';
   }
 
   @override

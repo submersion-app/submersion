@@ -15526,20 +15526,6 @@
   "tracks_kind_gps": "GPS",
   "tracks_kind_underwater": "Underwater",
   "tracks_map_noMappable": "None of these tracks has a position on the map yet.",
-  "tracks_match_button": "Match tracks to dives",
-  "tracks_match_none": "No new matches",
-  "tracks_match_partialError": "Some tracks could not be matched. Try again.",
-  "tracks_match_result": "Dives positioned: {positioned} · Underwater tracks linked: {linked}",
-  "@tracks_match_result": {
-    "placeholders": {
-      "linked": {
-        "type": "int"
-      },
-      "positioned": {
-        "type": "int"
-      }
-    }
-  },
   "transfer_appBar_title": "Transfer",
   "transfer_computers_aboutTitle": "About Dive Computers",
   "transfer_computers_appleWatchHeader": "Apple Watch",
@@ -18837,6 +18823,16 @@
     }
   },
   "gpsLogger_locationOff": "Location services are turned off.",
+  "gpsLogger_matchButton": "Match dives to GPS logs",
+  "gpsLogger_matchResult": "{count} dives positioned",
+  "@gpsLogger_matchResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gpsLogger_matchResultNone": "No dives matched a recorded track",
   "gpsLogger_noFixYet": "Waiting for GPS fix",
   "gpsLogger_permissionDenied": "Location permission is required to record a GPS track. Enable it in system settings.",
   "gpsLogger_recordingStatus": "Recording - {count, plural, one{{count} point} other{{count} points}}",
@@ -28746,6 +28742,15 @@
     "placeholders": {
       "name": {
         "type": "String"
+      }
+    }
+  },
+  "navTrack_review_saveConfirmation": "Route saved.",
+  "navTrack_list_pendingChoice": "{count, plural, one{{count} route needs your choice} other{{count} routes need your choice}}",
+  "@navTrack_list_pendingChoice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
       }
     }
   },

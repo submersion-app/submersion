@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
@@ -143,7 +144,14 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    // The list pane shows its own spinner too; this checks the map's.
+    expect(
+      find.descendant(
+        of: find.byType(TracksMapPane),
+        matching: find.byType(CircularProgressIndicator),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('No recorded tracks to show.'), findsNothing);
     pending.complete(const []);
     await tester.pumpAndSettle();
@@ -154,7 +162,10 @@ void main() {
   ) async {
     await _pump(tester, tracks: () => Future.error(StateError('boom')));
     expect(
-      find.text('Something went wrong. Please try again.'),
+      find.descendant(
+        of: find.byType(TracksMapPane),
+        matching: find.text('Something went wrong. Please try again.'),
+      ),
       findsOneWidget,
     );
     expect(find.text('No recorded tracks to show.'), findsNothing);
@@ -202,5 +213,68 @@ void main() {
     );
     expect(layer.polylines.last.hitValue, 'gps:$oldest');
     expect(layer.polylines.length, kTracksOverviewLimit + 1);
+  });
+
+  testWidgets('a row selects, the card opens its track, back returns to '
+      'Tracks', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final data = [_track('t1', 20.0)];
+    final router = GoRouter(
+      initialLocation: '/tracks/map',
+      routes: [
+        GoRoute(
+          path: '/tracks',
+          builder: (_, _) => const Scaffold(body: Text('TRACKS-PAGE')),
+        ),
+        GoRoute(
+          path: '/tracks/map',
+          builder: (context, state) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(size: const Size(1400, 900)),
+            child: const TracksMapPage(),
+          ),
+        ),
+        GoRoute(
+          path: '/tracks/gps/:id',
+          builder: (_, state) =>
+              Scaffold(body: Text('GPS-DETAIL ${state.pathParameters['id']}')),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          gpsTracksProvider.overrideWith((ref) async => data),
+          allNavTracksProvider.overrideWith((ref) async => const []),
+          for (final t in data)
+            gpsTrackGeometryProvider((
+              t.id,
+              TrackLod.thumbnail,
+            )).overrideWith((ref) async => t.points),
+        ],
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('gps:t1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('View details'));
+    await tester.pumpAndSettle();
+    expect(find.text('GPS-DETAIL t1'), findsOneWidget);
+
+    router.pop();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    expect(find.text('TRACKS-PAGE'), findsOneWidget);
   });
 }

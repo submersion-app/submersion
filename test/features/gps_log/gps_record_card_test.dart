@@ -118,6 +118,23 @@ void main() {
     expect(find.text('Stop logging'), findsOneWidget);
   });
 
+  testWidgets('recording before the first fix says it is waiting', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      state: Stream.value(
+        GpsRecorderState(
+          status: GpsRecorderStatus.recording,
+          trackId: 't1',
+          pointCount: 0,
+          startedAt: DateTime.now().toUtc(),
+        ),
+      ),
+    );
+    expect(find.text('Waiting for GPS fix'), findsOneWidget);
+  });
+
   testWidgets('warns when location services are disabled', (tester) async {
     GeolocatorPlatform.instance = _FakeGeolocator(serviceEnabled: false);
     await _pump(tester);

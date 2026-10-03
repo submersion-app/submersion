@@ -505,10 +505,12 @@ class DiveImportService {
 
     // A downloaded dive may already have an unlinked underwater route
     // waiting for it (an ENC log imported before the dive, or a Suunto
-    // route from an earlier session) -- link the two by time window, scoped
-    // to the dives this download just brought in. Best-effort, same as the
-    // GPS sweep above: matching is an enhancement, the dives imported fine
-    // either way.
+    // route from an earlier session). The sweep no longer links anything by
+    // itself (#2394: confirming or picking a dive is always the diver's own
+    // choice, on the route's detail page), so this is now a no-op kept for
+    // the trigger's own sake; a later pass may drop it. Best-effort, same as
+    // the GPS sweep above: matching is an enhancement, the dives imported
+    // fine either way.
     if (_navTrackMatchService != null && importedDiveIds.isNotEmpty) {
       try {
         await _navTrackMatchService.sweep(limitToDiveIds: importedDiveIds);

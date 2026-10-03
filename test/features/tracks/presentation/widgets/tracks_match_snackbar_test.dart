@@ -42,66 +42,36 @@ Future<void> _show(WidgetTester tester, TracksMatchOutcome outcome) async {
 }
 
 void main() {
-  testWidgets('reports both counts and offers the site review', (tester) async {
+  testWidgets('reports positioned dives and offers the site review', (
+    tester,
+  ) async {
     await _show(
       tester,
-      const TracksMatchOutcome(
-        positionedDiveIds: ['d1', 'd2'],
-        linkedUnderwaterIds: ['r1'],
-        anyFailed: false,
-      ),
+      const TracksMatchOutcome(positionedDiveIds: ['d1', 'd2'], failed: false),
     );
-    expect(
-      find.text('Dives positioned: 2 · Underwater tracks linked: 1'),
-      findsOneWidget,
-    );
+    expect(find.text('2 dives positioned'), findsOneWidget);
 
     await tester.tap(find.text('Review site matches'));
     await tester.pumpAndSettle();
     expect(find.text('MATCH-SITES [d1, d2]'), findsOneWidget);
   });
 
-  testWidgets('underwater links alone offer no site review', (tester) async {
+  testWidgets('nothing new says so, with no review action', (tester) async {
     await _show(
       tester,
-      const TracksMatchOutcome(
-        positionedDiveIds: [],
-        linkedUnderwaterIds: ['r1'],
-        anyFailed: false,
-      ),
+      const TracksMatchOutcome(positionedDiveIds: [], failed: false),
     );
-    expect(
-      find.text('Dives positioned: 0 · Underwater tracks linked: 1'),
-      findsOneWidget,
-    );
+    expect(find.text('No dives matched a recorded track'), findsOneWidget);
     expect(find.text('Review site matches'), findsNothing);
   });
 
-  testWidgets('nothing new says so', (tester) async {
+  testWidgets('a failure says so', (tester) async {
     await _show(
       tester,
-      const TracksMatchOutcome(
-        positionedDiveIds: [],
-        linkedUnderwaterIds: [],
-        anyFailed: false,
-      ),
-    );
-    expect(find.text('No new matches'), findsOneWidget);
-  });
-
-  testWidgets('a failure says so even when the other sweep matched', (
-    tester,
-  ) async {
-    await _show(
-      tester,
-      const TracksMatchOutcome(
-        positionedDiveIds: [],
-        linkedUnderwaterIds: ['r1'],
-        anyFailed: true,
-      ),
+      const TracksMatchOutcome(positionedDiveIds: [], failed: true),
     );
     expect(
-      find.text('Some tracks could not be matched. Try again.'),
+      find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
   });

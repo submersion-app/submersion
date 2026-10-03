@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/tracks/application/tracks_match_controller.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// Reports a Match press. Positioned dives keep the GPS log's "Review site
-/// matches" action, which hands their ids to the site review.
+/// Reports a Match press. Positioned dives get the "Review site matches"
+/// action, which hands their ids to the site review.
 void showTracksMatchOutcome({
   required ScaffoldMessengerState messenger,
   required AppLocalizations l10n,
@@ -13,14 +13,11 @@ void showTracksMatchOutcome({
   required TracksMatchOutcome outcome,
 }) {
   final positioned = outcome.positionedDiveIds;
-  final message = outcome.anyFailed
-      ? l10n.tracks_match_partialError
-      : !outcome.matchedAnything
-      ? l10n.tracks_match_none
-      : l10n.tracks_match_result(
-          outcome.linkedUnderwaterIds.length,
-          positioned.length,
-        );
+  final message = outcome.failed
+      ? l10n.common_error_tryAgain
+      : positioned.isEmpty
+      ? l10n.gpsLogger_matchResultNone
+      : l10n.gpsLogger_matchResult(positioned.length);
   messenger
     ..clearSnackBars()
     ..showSnackBar(

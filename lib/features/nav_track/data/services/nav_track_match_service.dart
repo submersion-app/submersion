@@ -1,11 +1,14 @@
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
-import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_match_suggestion.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 
-/// Links unlinked routes to dives by time window. Single choke point for
-/// all four triggers (import-time, dive-computer download, post-sync,
-/// manual) so matching behaviour cannot diverge between them -- mirrors
+/// Reports unlinked routes and, where exactly one dive overlaps, which one
+/// to suggest. It never links anything itself (#2394: a route used to be
+/// linked silently the instant exactly one dive overlapped it, with no way
+/// to decline before the fact). The suggestion rule itself is
+/// `NavTrackMatcher.soleCandidateFor`, shared with the route detail page's
+/// "Choose dive" so the two can never suggest different dives. This mirrors
 /// `GpsTrackMatchService`'s own role for surface tracks.
 class NavTrackMatchService {
   final NavTrackRepository _routeRepository;
@@ -13,8 +16,8 @@ class NavTrackMatchService {
   final Future<String?> Function() _currentDiverId;
 
   /// [currentDiverId] resolves the active diver: a sweep then considers
-  /// only that diver's routes and the ownerless ones, and links them only
-  /// to that diver's dives. Omitted (or resolving to null), every route and
+  /// only that diver's routes and the ownerless ones, and suggests only
+  /// that diver's dives. Omitted (or resolving to null), every route and
   /// dive is considered.
   NavTrackMatchService({
     required NavTrackRepository routeRepository,
@@ -26,22 +29,22 @@ class NavTrackMatchService {
 
   static Future<String?> _noDiver() async => null;
 
-  /// Links every unlinked route that overlaps exactly one dive's time
-  /// window (see `NavTrackMatcher`) with `NavTrackLinkMode.auto`.
-  ///
-  /// A route with no overlapping dive, or with more than one, is left
-  /// alone and reported in `needsChoice`: a zero-match route is genuinely
-  /// unmatched rather than ambiguous, but both need the diver's own
-  /// choice, so the UI shows them together, "N routes need a manual
-  /// choice". A route already linked -- by an earlier sweep or by hand --
-  /// is never reconsidered: `NavTrackRepository.getUnlinked` excludes it,
-  /// so a manual link can never be overwritten by a later sweep.
+  /// One entry per unlinked route in scope, confirming or picking a
+  /// different dive is entirely up to the diver (the route detail page's
+  /// "Choose dive", or the routes list's own hint). `suggestedDiveId` is the
+  /// sole dive whose time window overlaps the route; it is null when none
+  /// overlap (genuinely unmatched) or more than one does (ambiguous) --
+  /// both still belong in the report, since either way the diver is the one
+  /// who decides. A route already linked -- by hand, or by confirming an
+  /// earlier suggestion -- is never reconsidered:
+  /// `NavTrackRepository.getUnlinked` excludes it, so a sweep can never
+  /// touch a route the diver has already placed.
   ///
   /// [limitToRouteIds] scopes the sweep to specific routes (import-time:
   /// just the route that was imported); [limitToDiveIds] scopes it to
   /// specific dives (a dive-computer download: just the dives it brought
-  /// in). Neither is required for a full sweep (manual, post-sync).
-  Future<({List<String> linked, List<String> needsChoice})> sweep({
+  /// in). Neither is required for a full sweep.
+  Future<List<NavTrackMatchSuggestion>> sweep({
     List<String>? limitToRouteIds,
     List<String>? limitToDiveIds,
   }) async {
@@ -54,7 +57,7 @@ class NavTrackMatchService {
           if (ids.contains(route.id)) route,
       ];
     }
-    if (routes.isEmpty) return (linked: <String>[], needsChoice: <String>[]);
+    if (routes.isEmpty) return const [];
 
     final dives = limitToDiveIds != null
         ? [
@@ -64,29 +67,17 @@ class NavTrackMatchService {
               if (diverId == null || dive.diverId == diverId) dive,
           ]
         : await _diveRepository.getAllDives(diverId: diverId);
-    if (dives.isEmpty) {
-      return (linked: <String>[], needsChoice: <String>[]);
-    }
 
-    final linked = <String>[];
-    final needsChoice = <String>[];
-    for (final route in routes) {
-      final candidates = NavTrackMatcher.candidatesFor(
-        routeStartSeconds: route.startTime ~/ 1000,
-        routeEndSeconds: route.endTime ~/ 1000,
-        dives: dives,
-      );
-      if (candidates.length != 1) {
-        needsChoice.add(route.id);
-        continue;
-      }
-      final didLink = await _routeRepository.link(
-        route.id,
-        candidates.single.id,
-        linkMode: NavTrackLinkMode.auto,
-      );
-      if (didLink) linked.add(route.id);
-    }
-    return (linked: linked, needsChoice: needsChoice);
+    return [
+      for (final route in routes)
+        (
+          routeId: route.id,
+          suggestedDiveId: NavTrackMatcher.soleCandidateFor(
+            routeStartSeconds: route.startTime ~/ 1000,
+            routeEndSeconds: route.endTime ~/ 1000,
+            dives: dives,
+          )?.id,
+        ),
+    ];
   }
 }

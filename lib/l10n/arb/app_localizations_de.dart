@@ -25183,21 +25183,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keiner dieser Tracks hat bisher eine Position auf der Karte.';
 
   @override
-  String get tracks_match_button => 'Tracks mit Tauchgängen abgleichen';
-
-  @override
-  String get tracks_match_none => 'Keine neuen Zuordnungen';
-
-  @override
-  String get tracks_match_partialError =>
-      'Einige Tracks konnten nicht zugeordnet werden. Bitte erneut versuchen.';
-
-  @override
-  String tracks_match_result(int linked, int positioned) {
-    return 'Positionierte Tauchgänge: $positioned · Verknüpfte Unterwasser-Tracks: $linked';
-  }
-
-  @override
   String get transfer_appBar_title => 'Übertragung';
 
   @override
@@ -29236,6 +29221,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gpsLogger_locationOff => 'Ortungsdienste sind deaktiviert.';
+
+  @override
+  String get gpsLogger_matchButton => 'Tauchgänge mit GPS-Logs abgleichen';
+
+  @override
+  String gpsLogger_matchResult(int count) {
+    return '$count Tauchgänge positioniert';
+  }
+
+  @override
+  String get gpsLogger_matchResultNone =>
+      'Keine Tauchgänge passen zu einem aufgezeichneten Track';
 
   @override
   String get gpsLogger_noFixYet => 'Warte auf GPS-Fix';
@@ -46482,6 +46479,20 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String navTrack_list_deleteMessage(String name) {
     return '„$name“ löschen?';
+  }
+
+  @override
+  String get navTrack_review_saveConfirmation => 'Route gespeichert.';
+
+  @override
+  String navTrack_list_pendingChoice(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Routen warten auf deine Wahl',
+      one: '$count Route wartet auf deine Wahl',
+    );
+    return '$_temp0';
   }
 
   @override

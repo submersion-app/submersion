@@ -19,6 +19,8 @@ import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
+import 'package:submersion/features/gps_log/presentation/pages/track_import_review_page.dart';
+import 'package:submersion/features/nav_track/presentation/nav_track_parse_error_text.dart';
 import 'package:submersion/features/tracks/presentation/tracks_import.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -92,6 +94,55 @@ class _RejectingTrackImport extends TrackImportService {
     'no fixes',
     reason: TrackParseReason.noPositions,
   );
+}
+
+/// Throws [error] from prepare, for the underwater error branches.
+class _FailingNavImport extends _PreparedNavImport {
+  _FailingNavImport(this.error);
+  final Object error;
+
+  @override
+  Future<NavTrackImportPreview> prepare(
+    Uint8List bytes, {
+    String? fileName,
+  }) async => throw error;
+}
+
+/// Returns a parsed GPS track, or throws [error], from prepare.
+class _ScriptedTrackImport extends TrackImportService {
+  _ScriptedTrackImport({this.error});
+  final Object? error;
+
+  @override
+  Future<TrackImportCandidate> prepare({
+    required String fileName,
+    required Uint8List bytes,
+    CsvColumnMapping? csvMapping,
+  }) async {
+    if (error != null) throw error!;
+    return TrackImportCandidate(
+      parsed: ParsedTrack(
+        name: 'Cozumel Day 3',
+        fixes: [
+          (
+            utc: DateTime.utc(2026, 5, 22, 13),
+            lat: 20.5,
+            lon: -87.2,
+            accuracy: 5.0,
+          ),
+          (
+            utc: DateTime.utc(2026, 5, 22, 13, 1),
+            lat: 20.51,
+            lon: -87.21,
+            accuracy: null,
+          ),
+        ],
+      ),
+      format: TrackFileFormat.gpx,
+      sourceRef: fileName,
+      tzOffsetMinutes: 0,
+    );
+  }
 }
 
 Future<void> _pumpImporter(
@@ -206,5 +257,90 @@ void main() {
       ),
     );
     expect(find.text(expected), findsOneWidget);
+  });
+
+  testWidgets('cancelling the picker changes nothing', (tester) async {
+    final original = FilePickerPlatform.instance;
+    addTearDown(() => FilePickerPlatform.instance = original);
+    FilePickerPlatform.instance = MockFilePickerPlatform();
+    await _pumpImporter(tester, const []);
+
+    await tester.tap(find.text('import'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SnackBar), findsNothing);
+    expect(find.text('import'), findsOneWidget);
+  });
+
+  testWidgets('an unreadable ENC log shows the localized reason', (
+    tester,
+  ) async {
+    _pick('005.DAT.csv', _fixture('seacraft_enc3_short.csv'));
+    const error = NavTrackParseException(
+      'no samples',
+      reason: NavTrackParseReason.tooShort,
+    );
+    await _pumpImporter(tester, [
+      navTrackImportServiceProvider.overrideWithValue(_FailingNavImport(error)),
+    ]);
+
+    await tester.tap(find.text('import'));
+    await tester.pumpAndSettle();
+
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    expect(find.text(navTrackParseErrorText(l10n, error)), findsOneWidget);
+    expect(find.byType(NavTrackImportReviewPage), findsNothing);
+  });
+
+  testWidgets('an unexpected ENC failure says the import failed', (
+    tester,
+  ) async {
+    _pick('005.DAT.csv', _fixture('seacraft_enc3_short.csv'));
+    final error = StateError('disk gone');
+    await _pumpImporter(tester, [
+      navTrackImportServiceProvider.overrideWithValue(_FailingNavImport(error)),
+    ]);
+
+    await tester.tap(find.text('import'));
+    await tester.pumpAndSettle();
+
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    expect(
+      find.text(l10n.navTrack_list_importFailed(error.toString())),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('an unexpected GPS failure says the import failed', (
+    tester,
+  ) async {
+    _pick('track.gpx', Uint8List.fromList(utf8.encode('<gpx/>')));
+    final error = StateError('disk gone');
+    await _pumpImporter(tester, [
+      trackImportServiceProvider.overrideWithValue(
+        _ScriptedTrackImport(error: error),
+      ),
+    ]);
+
+    await tester.tap(find.text('import'));
+    await tester.pumpAndSettle();
+
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    expect(find.text(l10n.gpsTrack_import_failed('$error')), findsOneWidget);
+  });
+
+  testWidgets('a readable GPS file opens the GPS review', (tester) async {
+    _pick('track.gpx', Uint8List.fromList(utf8.encode('<gpx/>')));
+    await _pumpImporter(tester, [
+      trackImportServiceProvider.overrideWithValue(_ScriptedTrackImport()),
+    ]);
+
+    await tester.tap(find.text('import'));
+    await tester.pumpAndSettle();
+
+    final review = tester.widget<TrackImportReviewPage>(
+      find.byType(TrackImportReviewPage),
+    );
+    expect(review.candidate.sourceRef, 'track.gpx');
   });
 }
