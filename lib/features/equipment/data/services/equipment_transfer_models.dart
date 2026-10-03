@@ -28,3 +28,37 @@ class EquipmentTransferResult {
         transmittersKept: transmittersKept + other.transmittersKept,
       );
 }
+
+/// A dive computer or transmitter linked to a unit, for the dialog.
+class TransferRegistryRow {
+  const TransferRegistryRow({
+    required this.id,
+    required this.label,
+    this.clashes = false,
+  });
+
+  final String id;
+  final String label;
+
+  /// A transmitter that clashes with one the chosen target owns, so it
+  /// stays with the old owner.
+  final bool clashes;
+}
+
+/// What a transfer would do, for the dialog before it is confirmed.
+class EquipmentTransferPreview {
+  const EquipmentTransferPreview({
+    required this.unitIds,
+    required this.skippedNotOwned,
+    required this.computers,
+    required this.transmitters,
+  });
+
+  /// Every item that would move, picked ones included.
+  final List<String> unitIds;
+  final int skippedNotOwned;
+  final List<TransferRegistryRow> computers;
+  final List<TransferRegistryRow> transmitters;
+
+  bool get hasRegistry => computers.isNotEmpty || transmitters.isNotEmpty;
+}

@@ -102,6 +102,18 @@ class TransmitterRepository {
     if (affected.isNotEmpty) scheduleQualityScan(affected);
   }
 
+  /// Queues a rescan of the dives each of [transmitterIds] matches, after a
+  /// change of owner (issue #2852): which profile's registry knows the
+  /// serial decides the unknown-transmitter finding.
+  Future<void> rescanDivesForTransmitters(
+    Iterable<String> transmitterIds,
+  ) async {
+    for (final id in transmitterIds.toSet()) {
+      final t = await getById(id);
+      if (t != null) await _rescanAffectedDives(t);
+    }
+  }
+
   /// Clears every registry link to [equipmentId], as the cylinder an entry
   /// feeds or the transmitter item it is, and stages each changed row. Call
   /// it before the item is deleted: ON DELETE SET NULL would clear the link

@@ -10,6 +10,8 @@ import 'package:submersion/features/equipment/data/repositories/equipment_share_
 import 'package:submersion/features/equipment/data/services/equipment_transfer_models.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_ownership_event.dart';
 import 'package:submersion/features/equipment/domain/services/transfer_unit.dart';
+import 'package:submersion/features/equipment/domain/services/transmitter_transfer_clash.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 
 export 'package:submersion/features/equipment/data/services/equipment_transfer_models.dart';
 
@@ -21,6 +23,53 @@ class EquipmentTransferService {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   static const _uuid = Uuid();
+
+  /// Transmitters moved by [transferUnitInTransaction] since the last
+  /// [takeMovedTransmitters], whose dives are rescanned after the commit.
+  final List<String> _movedTransmitters = [];
+
+  /// What [transfer] would do, for the dialog: the expanded unit, the
+  /// picked items [actingDiverId] does not own, and the linked dive
+  /// computers and transmitters, with clashes against [toDiverId]'s
+  /// transmitters when a target is given.
+  Future<EquipmentTransferPreview> preview({
+    required List<String> equipmentIds,
+    required String actingDiverId,
+    String? toDiverId,
+  }) async {
+    final graph = await loadGraph();
+    final picked = equipmentIds.toSet();
+    final units = transferUnits(graph, picked, ownerId: actingDiverId);
+    final unitIds = {for (final u in units) ...u}.toList()..sort();
+    final computers = await _linkedComputers(unitIds, actingDiverId);
+    final transmitters = await _linkedTransmitters(unitIds, actingDiverId);
+    final targetKeys = toDiverId == null
+        ? const <TransmitterKey>[]
+        : await _transmitterKeysOf(toDiverId);
+    return EquipmentTransferPreview(
+      unitIds: unitIds,
+      skippedNotOwned: picked.where((id) => !unitIds.contains(id)).length,
+      computers: [
+        for (final c in computers) TransferRegistryRow(id: c.id, label: c.name),
+      ],
+      transmitters: [
+        for (final t in transmitters)
+          TransferRegistryRow(
+            id: t.id,
+            label: t.label,
+            clashes: transmitterClashes(_keyOf(t), targetKeys),
+          ),
+      ],
+    );
+  }
+
+  /// Transmitters moved since the last call, for a caller that ran
+  /// [transferUnitInTransaction] itself and rescans after its commit.
+  List<String> takeMovedTransmitters() {
+    final ids = List<String>.of(_movedTransmitters);
+    _movedTransmitters.clear();
+    return ids;
+  }
 
   /// Every item's owner and host and every assembly edge. Libraries hold a
   /// few hundred items, so one read beats walking the links query by query.
@@ -49,6 +98,7 @@ class EquipmentTransferService {
     bool moveRegistry = true,
   }) async {
     if (toDiverId == actingDiverId) return const EquipmentTransferResult();
+    _movedTransmitters.clear();
     final result = await _db.transaction(() async {
       final graph = await loadGraph();
       final picked = equipmentIds.toSet();
@@ -71,6 +121,10 @@ class EquipmentTransferService {
       return total;
     });
     SyncEventBus.notifyLocalChange();
+    final moved = takeMovedTransmitters();
+    if (moved.isNotEmpty) {
+      await TransmitterRepository().rescanDivesForTransmitters(moved);
+    }
     return result;
   }
 
@@ -122,8 +176,102 @@ class EquipmentTransferService {
         now,
       );
     }
-    return EquipmentTransferResult(itemsMoved: ids.length);
+    final registry = moveRegistry
+        ? await _moveRegistry(ids, from: fromDiverId, to: toDiverId, now: now)
+        : const EquipmentTransferResult();
+    return EquipmentTransferResult(itemsMoved: ids.length) + registry;
   }
+
+  /// Moves the unit's dive computers and transmitters, leaving a
+  /// transmitter that clashes with one the target already has.
+  Future<EquipmentTransferResult> _moveRegistry(
+    List<String> unitIds, {
+    required String from,
+    required String to,
+    required int now,
+  }) async {
+    final computers = await _linkedComputers(unitIds, from);
+    for (final c in computers) {
+      await (_db.update(
+        _db.diveComputers,
+      )..where((t) => t.id.equals(c.id))).write(
+        DiveComputersCompanion(diverId: Value(to), updatedAt: Value(now)),
+      );
+      await _markPending('diveComputers', c.id, now);
+    }
+    final targetKeys = await _transmitterKeysOf(to);
+    var moved = 0;
+    var kept = 0;
+    for (final t in await _linkedTransmitters(unitIds, from)) {
+      final key = _keyOf(t);
+      if (transmitterClashes(key, targetKeys)) {
+        kept++;
+        continue;
+      }
+      await (_db.update(
+        _db.transmitters,
+      )..where((r) => r.id.equals(t.id))).write(
+        TransmittersCompanion(diverId: Value(to), updatedAt: Value(now)),
+      );
+      await _markPending('transmitters', t.id, now);
+      targetKeys.add(key);
+      _movedTransmitters.add(t.id);
+      moved++;
+    }
+    return EquipmentTransferResult(
+      computersMoved: computers.length,
+      transmittersMoved: moved,
+      transmittersKept: kept,
+    );
+  }
+
+  Future<List<DiveComputer>> _linkedComputers(
+    List<String> unitIds,
+    String owner,
+  ) async => [
+    for (final chunk in seriesIdChunks(unitIds))
+      ...await (_db.select(_db.diveComputers)
+            ..where((t) => t.equipmentId.isIn(chunk) & t.diverId.equals(owner)))
+          .get(),
+  ];
+
+  Future<List<TransmitterRow>> _linkedTransmitters(
+    List<String> unitIds,
+    String owner,
+  ) async {
+    final byId = <String, TransmitterRow>{};
+    for (final chunk in seriesIdChunks(unitIds)) {
+      final rows =
+          await (_db.select(_db.transmitters)..where(
+                (t) =>
+                    t.diverId.equals(owner) &
+                    (t.equipmentId.isIn(chunk) |
+                        t.transmitterEquipmentId.isIn(chunk)),
+              ))
+              .get();
+      for (final r in rows) {
+        byId[r.id] = r;
+      }
+    }
+    final rows = byId.values.toList()..sort((a, b) => a.id.compareTo(b.id));
+    return rows;
+  }
+
+  /// A growable list: [_moveRegistry] adds each moved transmitter so two
+  /// moving transmitters are checked against each other too.
+  Future<List<TransmitterKey>> _transmitterKeysOf(String diverId) async => [
+    for (final r in await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.diverId.equals(diverId))).get())
+      _keyOf(r),
+  ];
+
+  TransmitterKey _keyOf(TransmitterRow r) => (
+    id: r.id,
+    serial: r.transmitterSerial,
+    diveComputerId: r.diveComputerId,
+    channelIndex: r.channelIndex,
+  );
 
   /// The new owner's share rows go (it owns the items now). The old owner
   /// gets a new share row when [keepAccess] is true. Shares apply
