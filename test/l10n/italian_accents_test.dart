@@ -109,7 +109,6 @@ void main() {
   /// of them regress to a bare `e`.
   const copulaPhrases = <String, List<String>>{
     'certifications_detail_status_expired': ['certificazione è scaduta'],
-    'dashboard_alerts_insuranceExpiredGeneric': ['subacquea è scaduta'],
     'diveLog_equipmentPicker_allSpare': ['rimanente è segnata'],
     'equipment_list_emptyState_serviceDueUpToDate': [
       'attrezzatura è in regola',
@@ -123,8 +122,6 @@ void main() {
     'gasCalculators_mnd_o2Narcotic': ['O2 è narcotico'],
     'media_diveScan_accessDenied': ['foto è necessario'],
     'settings_decompression_o2Narcotic': ['O2 è narcotico'],
-    'settings_storage_resetDialog_backupFailed': ['Il reset è stato'],
-    'tags_manage_nameRequired': ['tag è obbligatorio'],
   };
 
   test('strings that state a fact keep every accented copula è', () {

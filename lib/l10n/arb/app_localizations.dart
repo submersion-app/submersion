@@ -1820,12 +1820,6 @@ abstract class AppLocalizations {
   /// **'Add geofence'**
   String get equipment_setEdit_addGeofence;
 
-  /// No description provided for @equipment_setEdit_editGeofence.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit geofence'**
-  String get equipment_setEdit_editGeofence;
-
   /// No description provided for @equipment_setEdit_removeGeofence.
   ///
   /// In en, this message translates to:
@@ -2977,12 +2971,6 @@ abstract class AppLocalizations {
   /// **'Up'**
   String get accessibility_keyLabel_up;
 
-  /// Screen reader summary for a chart
-  ///
-  /// In en, this message translates to:
-  /// **'{chartType} chart. {description}'**
-  String accessibility_label_chartSummary(Object chartType, Object description);
-
   /// Semantics label for the FAB create button in master-detail scaffold
   ///
   /// In en, this message translates to:
@@ -3289,12 +3277,6 @@ abstract class AppLocalizations {
   /// **'Save your dive data to a file'**
   String get backup_export_subtitle;
 
-  /// No description provided for @backup_export_success.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup exported successfully'**
-  String get backup_export_success;
-
   /// No description provided for @backup_export_title.
   ///
   /// In en, this message translates to:
@@ -3529,12 +3511,6 @@ abstract class AppLocalizations {
   /// **'Automatic backups'**
   String get backup_schedule_enabled;
 
-  /// No description provided for @backup_schedule_enabled_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Back up your data on a schedule'**
-  String get backup_schedule_enabled_subtitle;
-
   /// No description provided for @backup_schedule_frequency.
   ///
   /// In en, this message translates to:
@@ -3565,59 +3541,17 @@ abstract class AppLocalizations {
   /// **'Automatic Backups'**
   String get backup_section_auto;
 
-  /// No description provided for @backup_section_cloud.
-  ///
-  /// In en, this message translates to:
-  /// **'Cloud'**
-  String get backup_section_cloud;
-
   /// No description provided for @backup_section_history.
   ///
   /// In en, this message translates to:
   /// **'History'**
   String get backup_section_history;
 
-  /// No description provided for @backup_section_schedule.
-  ///
-  /// In en, this message translates to:
-  /// **'Schedule'**
-  String get backup_section_schedule;
-
-  /// No description provided for @backup_status_disabled.
-  ///
-  /// In en, this message translates to:
-  /// **'Automatic Backups Disabled'**
-  String get backup_status_disabled;
-
   /// No description provided for @backup_status_lastBackup.
   ///
   /// In en, this message translates to:
   /// **'Last backup: {time}'**
   String backup_status_lastBackup(String time);
-
-  /// No description provided for @backup_status_neverBackedUp.
-  ///
-  /// In en, this message translates to:
-  /// **'Never Backed Up'**
-  String get backup_status_neverBackedUp;
-
-  /// No description provided for @backup_status_noBackupsYet.
-  ///
-  /// In en, this message translates to:
-  /// **'Create your first backup to protect your data'**
-  String get backup_status_noBackupsYet;
-
-  /// No description provided for @backup_status_overdue.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup Overdue'**
-  String get backup_status_overdue;
-
-  /// No description provided for @backup_status_upToDate.
-  ///
-  /// In en, this message translates to:
-  /// **'Backups Up to Date'**
-  String get backup_status_upToDate;
 
   /// No description provided for @backup_time_daysAgo.
   ///
@@ -3817,18 +3751,6 @@ abstract class AppLocalizations {
   /// **'Unable to load statistics'**
   String get buddies_error_unableToLoadStats;
 
-  /// No description provided for @buddies_field_certificationAgency.
-  ///
-  /// In en, this message translates to:
-  /// **'Certification Agency'**
-  String get buddies_field_certificationAgency;
-
-  /// No description provided for @buddies_field_certificationLevel.
-  ///
-  /// In en, this message translates to:
-  /// **'Certification Level'**
-  String get buddies_field_certificationLevel;
-
   /// No description provided for @buddies_field_email.
   ///
   /// In en, this message translates to:
@@ -3846,12 +3768,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Linked profile'**
   String get buddies_field_linkedProfile;
-
-  /// No description provided for @buddies_field_linkedProfileHint.
-  ///
-  /// In en, this message translates to:
-  /// **'The local profile this buddy is'**
-  String get buddies_field_linkedProfileHint;
 
   /// No description provided for @buddies_field_linkedProfileNone.
   ///
@@ -3895,29 +3811,11 @@ abstract class AppLocalizations {
   /// **'+1 (555) 123-4567'**
   String get buddies_field_phoneHint;
 
-  /// No description provided for @buddies_label_agency.
-  ///
-  /// In en, this message translates to:
-  /// **'Agency'**
-  String get buddies_label_agency;
-
   /// No description provided for @buddies_label_diveCount.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
   String buddies_label_diveCount(int count);
-
-  /// No description provided for @buddies_label_level.
-  ///
-  /// In en, this message translates to:
-  /// **'Level'**
-  String get buddies_label_level;
-
-  /// No description provided for @buddies_label_notSpecified.
-  ///
-  /// In en, this message translates to:
-  /// **'Not specified'**
-  String get buddies_label_notSpecified;
 
   /// No description provided for @buddies_linkText_action.
   ///
@@ -4171,12 +4069,6 @@ abstract class AppLocalizations {
   /// **'Contact import is not available on this platform'**
   String get buddies_message_contactImportUnavailable;
 
-  /// No description provided for @buddies_message_contactLoadFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load contacts'**
-  String get buddies_message_contactLoadFailed;
-
   /// No description provided for @buddies_message_contactPermissionRequired.
   ///
   /// In en, this message translates to:
@@ -4339,12 +4231,6 @@ abstract class AppLocalizations {
   /// **'No buddies found for \"{query}\"'**
   String buddies_search_noResults(Object query);
 
-  /// No description provided for @buddies_section_certification.
-  ///
-  /// In en, this message translates to:
-  /// **'Certification'**
-  String get buddies_section_certification;
-
   /// No description provided for @buddies_section_certifications.
   ///
   /// In en, this message translates to:
@@ -4501,41 +4387,11 @@ abstract class AppLocalizations {
   /// **'Please enter a name'**
   String get buddies_validation_nameRequired;
 
-  /// No description provided for @buddies_list_selection_closeTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Close Selection'**
-  String get buddies_list_selection_closeTooltip;
-
-  /// No description provided for @buddies_list_selection_count.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} selected'**
-  String buddies_list_selection_count(int count);
-
-  /// No description provided for @buddies_list_selection_selectAllTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Select All'**
-  String get buddies_list_selection_selectAllTooltip;
-
-  /// No description provided for @buddies_list_selection_deselectAllTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Deselect All'**
-  String get buddies_list_selection_deselectAllTooltip;
-
   /// No description provided for @buddies_list_selection_mergeTooltip.
   ///
   /// In en, this message translates to:
   /// **'Merge Selected'**
   String get buddies_list_selection_mergeTooltip;
-
-  /// No description provided for @buddies_list_selection_deleteTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Selected'**
-  String get buddies_list_selection_deleteTooltip;
 
   /// No description provided for @buddies_list_merge_snackbar.
   ///
@@ -4654,24 +4510,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None (manual entry)'**
   String get buddies_instructorPicker_none;
-
-  /// No description provided for @certifications_appBar_addCertification.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Certification'**
-  String get certifications_appBar_addCertification;
-
-  /// No description provided for @certifications_appBar_certificationWallet.
-  ///
-  /// In en, this message translates to:
-  /// **'Certification Wallet'**
-  String get certifications_appBar_certificationWallet;
-
-  /// No description provided for @certifications_appBar_editCertification.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Certification'**
-  String get certifications_appBar_editCertification;
 
   /// No description provided for @certifications_appBar_title.
   ///
@@ -5426,62 +5264,11 @@ abstract class AppLocalizations {
   /// **'Link to Certification'**
   String get certifications_picker_sheetTitle;
 
-  /// No description provided for @certifications_renderer_footer.
-  ///
-  /// In en, this message translates to:
-  /// **'Submersion Dive Log'**
-  String get certifications_renderer_footer;
-
-  /// No description provided for @certifications_renderer_label_cardNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Card #: {number}'**
-  String certifications_renderer_label_cardNumber(Object number);
-
-  /// No description provided for @certifications_renderer_label_hasCompletedTraining.
-  ///
-  /// In en, this message translates to:
-  /// **'has completed training as'**
-  String get certifications_renderer_label_hasCompletedTraining;
-
-  /// No description provided for @certifications_renderer_label_instructor.
-  ///
-  /// In en, this message translates to:
-  /// **'Instructor: {name}'**
-  String certifications_renderer_label_instructor(Object name);
-
-  /// No description provided for @certifications_renderer_label_instructorWithNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Instructor: {name} ({number})'**
-  String certifications_renderer_label_instructorWithNumber(
-    Object name,
-    Object number,
-  );
-
-  /// No description provided for @certifications_renderer_label_issued.
-  ///
-  /// In en, this message translates to:
-  /// **'Issued: {date}'**
-  String certifications_renderer_label_issued(Object date);
-
-  /// No description provided for @certifications_renderer_label_thisCertifies.
-  ///
-  /// In en, this message translates to:
-  /// **'This certifies that'**
-  String get certifications_renderer_label_thisCertifies;
-
   /// No description provided for @certifications_search_empty_hint.
   ///
   /// In en, this message translates to:
   /// **'Search by name, agency, or card number'**
   String get certifications_search_empty_hint;
-
-  /// No description provided for @certifications_search_fieldLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Search certifications...'**
-  String get certifications_search_fieldLabel;
 
   /// No description provided for @certifications_search_noResults.
   ///
@@ -6537,12 +6324,6 @@ abstract class AppLocalizations {
   /// **'Start pre-dive checklist'**
   String get diveLog_listPage_bottomSheet_preDiveChecklist;
 
-  /// No description provided for @preDive_dashboard_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Pre-Dive Check'**
-  String get preDive_dashboard_title;
-
   /// No description provided for @preDive_dashboard_resume.
   ///
   /// In en, this message translates to:
@@ -6698,12 +6479,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get common_action_save;
-
-  /// Generic search action
-  ///
-  /// In en, this message translates to:
-  /// **'Search'**
-  String get common_action_search;
 
   /// Confirmation button label for actions that share a record with other dive profiles.
   ///
@@ -7076,12 +6851,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Export Training Log'**
   String get courses_action_exportTrainingLog;
-
-  /// No description provided for @courses_action_linkDive.
-  ///
-  /// In en, this message translates to:
-  /// **'Link'**
-  String get courses_action_linkDive;
 
   /// No description provided for @courses_action_markCompleted.
   ///
@@ -7611,180 +7380,6 @@ abstract class AppLocalizations {
   /// **'Courses in progress'**
   String get dashboard_activeCourses_title;
 
-  /// No description provided for @dashboard_activity_daySinceDiving.
-  ///
-  /// In en, this message translates to:
-  /// **'Day since diving'**
-  String get dashboard_activity_daySinceDiving;
-
-  /// No description provided for @dashboard_activity_daysSinceDiving.
-  ///
-  /// In en, this message translates to:
-  /// **'Days since diving'**
-  String get dashboard_activity_daysSinceDiving;
-
-  /// No description provided for @dashboard_activity_diveInYear.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive in {year}'**
-  String dashboard_activity_diveInYear(Object year);
-
-  /// No description provided for @dashboard_activity_diveThisMonth.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive this month'**
-  String get dashboard_activity_diveThisMonth;
-
-  /// No description provided for @dashboard_activity_divesInYear.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives in {year}'**
-  String dashboard_activity_divesInYear(Object year);
-
-  /// No description provided for @dashboard_activity_divesThisMonth.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives this month'**
-  String get dashboard_activity_divesThisMonth;
-
-  /// No description provided for @dashboard_activity_error.
-  ///
-  /// In en, this message translates to:
-  /// **'Error'**
-  String get dashboard_activity_error;
-
-  /// No description provided for @dashboard_activity_lastDive.
-  ///
-  /// In en, this message translates to:
-  /// **'Last dive'**
-  String get dashboard_activity_lastDive;
-
-  /// No description provided for @dashboard_activity_loading.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading'**
-  String get dashboard_activity_loading;
-
-  /// No description provided for @dashboard_activity_noDivesYet.
-  ///
-  /// In en, this message translates to:
-  /// **'No dives yet'**
-  String get dashboard_activity_noDivesYet;
-
-  /// No description provided for @dashboard_activity_today.
-  ///
-  /// In en, this message translates to:
-  /// **'Today!'**
-  String get dashboard_activity_today;
-
-  /// No description provided for @dashboard_alerts_actionUpdate.
-  ///
-  /// In en, this message translates to:
-  /// **'Update'**
-  String get dashboard_alerts_actionUpdate;
-
-  /// No description provided for @dashboard_alerts_actionView.
-  ///
-  /// In en, this message translates to:
-  /// **'View'**
-  String get dashboard_alerts_actionView;
-
-  /// No description provided for @dashboard_alerts_checkInsuranceExpiry.
-  ///
-  /// In en, this message translates to:
-  /// **'Check your insurance expiry date'**
-  String get dashboard_alerts_checkInsuranceExpiry;
-
-  /// No description provided for @dashboard_alerts_daysOverdueOne.
-  ///
-  /// In en, this message translates to:
-  /// **'1 day overdue'**
-  String get dashboard_alerts_daysOverdueOne;
-
-  /// No description provided for @dashboard_alerts_daysOverdueOther.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} days overdue'**
-  String dashboard_alerts_daysOverdueOther(Object count);
-
-  /// No description provided for @dashboard_alerts_dueInDaysOne.
-  ///
-  /// In en, this message translates to:
-  /// **'Due in 1 day'**
-  String get dashboard_alerts_dueInDaysOne;
-
-  /// No description provided for @dashboard_alerts_dueInDaysOther.
-  ///
-  /// In en, this message translates to:
-  /// **'Due in {count} days'**
-  String dashboard_alerts_dueInDaysOther(Object count);
-
-  /// No description provided for @dashboard_alerts_equipmentServiceDue.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} Service Due'**
-  String dashboard_alerts_equipmentServiceDue(Object name);
-
-  /// No description provided for @dashboard_alerts_equipmentServiceOverdue.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} Service Overdue'**
-  String dashboard_alerts_equipmentServiceOverdue(Object name);
-
-  /// No description provided for @dashboard_alerts_insuranceExpired.
-  ///
-  /// In en, this message translates to:
-  /// **'Insurance Expired'**
-  String get dashboard_alerts_insuranceExpired;
-
-  /// No description provided for @dashboard_alerts_insuranceExpiredGeneric.
-  ///
-  /// In en, this message translates to:
-  /// **'Your dive insurance has expired'**
-  String get dashboard_alerts_insuranceExpiredGeneric;
-
-  /// No description provided for @dashboard_alerts_insuranceExpiredProvider.
-  ///
-  /// In en, this message translates to:
-  /// **'{provider} expired'**
-  String dashboard_alerts_insuranceExpiredProvider(Object provider);
-
-  /// No description provided for @dashboard_alerts_insuranceExpiresDate.
-  ///
-  /// In en, this message translates to:
-  /// **'Expires {date}'**
-  String dashboard_alerts_insuranceExpiresDate(Object date);
-
-  /// No description provided for @dashboard_alerts_insuranceExpiringSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Insurance Expiring Soon'**
-  String get dashboard_alerts_insuranceExpiringSoon;
-
-  /// No description provided for @dashboard_alerts_sectionTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Alerts & Reminders'**
-  String get dashboard_alerts_sectionTitle;
-
-  /// No description provided for @dashboard_alerts_serviceDueToday.
-  ///
-  /// In en, this message translates to:
-  /// **'Service due today'**
-  String get dashboard_alerts_serviceDueToday;
-
-  /// No description provided for @dashboard_alerts_serviceIntervalReached.
-  ///
-  /// In en, this message translates to:
-  /// **'Service interval reached'**
-  String get dashboard_alerts_serviceIntervalReached;
-
-  /// No description provided for @dashboard_defaultDiverName.
-  ///
-  /// In en, this message translates to:
-  /// **'Diver'**
-  String get dashboard_defaultDiverName;
-
   /// No description provided for @dashboard_greeting_afternoon.
   ///
   /// In en, this message translates to:
@@ -7869,48 +7464,6 @@ abstract class AppLocalizations {
   /// **'Ready to log your first dive?'**
   String get dashboard_hero_noDives;
 
-  /// No description provided for @dashboard_hero_divesLoggedLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'dives logged'**
-  String get dashboard_hero_divesLoggedLabel;
-
-  /// No description provided for @dashboard_hero_hoursUnderwaterLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'hours underwater'**
-  String get dashboard_hero_hoursUnderwaterLabel;
-
-  /// No description provided for @dashboard_hero_daysSinceLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'days since diving'**
-  String get dashboard_hero_daysSinceLabel;
-
-  /// No description provided for @dashboard_hero_thisMonthLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'dives this month'**
-  String get dashboard_hero_thisMonthLabel;
-
-  /// No description provided for @dashboard_hero_thisYearLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'dives this year'**
-  String get dashboard_hero_thisYearLabel;
-
-  /// No description provided for @dashboard_hero_todayLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'today!'**
-  String get dashboard_hero_todayLabel;
-
-  /// No description provided for @dashboard_hero_noDivesLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'no dives yet'**
-  String get dashboard_hero_noDivesLabel;
-
   /// No description provided for @dashboard_hero_diverFallbackName.
   ///
   /// In en, this message translates to:
@@ -7940,18 +7493,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'countries'**
   String get dashboard_hero_statCountries;
-
-  /// No description provided for @dashboard_activityStats_divesInYear.
-  ///
-  /// In en, this message translates to:
-  /// **'dives in {year}'**
-  String dashboard_activityStats_divesInYear(String year);
-
-  /// No description provided for @dashboard_semantics_statsBar.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive statistics summary'**
-  String get dashboard_semantics_statsBar;
 
   /// No description provided for @dashboard_gauges_addGear.
   ///
@@ -8409,71 +7950,17 @@ abstract class AppLocalizations {
   /// **'{name}: {years} years in {month}'**
   String dashboard_milestones_certYears(String name, int years, String month);
 
-  /// No description provided for @dashboard_personalRecords_coldest.
-  ///
-  /// In en, this message translates to:
-  /// **'Coldest'**
-  String get dashboard_personalRecords_coldest;
-
-  /// No description provided for @dashboard_personalRecords_deepest.
-  ///
-  /// In en, this message translates to:
-  /// **'Deepest'**
-  String get dashboard_personalRecords_deepest;
-
-  /// No description provided for @dashboard_personalRecords_longest.
-  ///
-  /// In en, this message translates to:
-  /// **'Longest'**
-  String get dashboard_personalRecords_longest;
-
-  /// No description provided for @dashboard_personalRecords_sectionTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Personal Records'**
-  String get dashboard_personalRecords_sectionTitle;
-
-  /// No description provided for @dashboard_personalRecords_warmest.
-  ///
-  /// In en, this message translates to:
-  /// **'Warmest'**
-  String get dashboard_personalRecords_warmest;
-
-  /// No description provided for @dashboard_quickActions_addSite.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Site'**
-  String get dashboard_quickActions_addSite;
-
-  /// No description provided for @dashboard_quickActions_addSiteTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a new dive site'**
-  String get dashboard_quickActions_addSiteTooltip;
-
   /// No description provided for @dashboard_quickActions_logDive.
   ///
   /// In en, this message translates to:
   /// **'Log Dive'**
   String get dashboard_quickActions_logDive;
 
-  /// No description provided for @dashboard_quickActions_logDiveTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Log a new dive'**
-  String get dashboard_quickActions_logDiveTooltip;
-
   /// No description provided for @dashboard_quickActions_planDive.
   ///
   /// In en, this message translates to:
   /// **'Plan Dive'**
   String get dashboard_quickActions_planDive;
-
-  /// No description provided for @dashboard_quickActions_planDiveTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Plan a new dive'**
-  String get dashboard_quickActions_planDiveTooltip;
 
   /// No description provided for @dashboard_quickActions_sectionTitle.
   ///
@@ -8486,54 +7973,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Insights'**
   String get dashboard_quickActions_insights;
-
-  /// No description provided for @dashboard_quickActions_insightsTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'View dive insights'**
-  String get dashboard_quickActions_insightsTooltip;
-
-  /// No description provided for @dashboard_quickStats_countries.
-  ///
-  /// In en, this message translates to:
-  /// **'Countries'**
-  String get dashboard_quickStats_countries;
-
-  /// No description provided for @dashboard_quickStats_countriesSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'visited'**
-  String get dashboard_quickStats_countriesSubtitle;
-
-  /// No description provided for @dashboard_quickStats_sectionTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'At a Glance'**
-  String get dashboard_quickStats_sectionTitle;
-
-  /// No description provided for @dashboard_quickStats_species.
-  ///
-  /// In en, this message translates to:
-  /// **'Species'**
-  String get dashboard_quickStats_species;
-
-  /// No description provided for @dashboard_quickStats_speciesSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'discovered'**
-  String get dashboard_quickStats_speciesSubtitle;
-
-  /// No description provided for @dashboard_quickStats_topBuddy.
-  ///
-  /// In en, this message translates to:
-  /// **'Top Buddy'**
-  String get dashboard_quickStats_topBuddy;
-
-  /// No description provided for @dashboard_quickStats_topBuddyDives.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} dives'**
-  String dashboard_quickStats_topBuddyDives(Object count);
 
   /// No description provided for @dashboard_recentDives_empty.
   ///
@@ -8565,12 +8004,6 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load the dive profile'**
   String get dashboard_recentDives_profileLoadError;
 
-  /// No description provided for @dashboard_recentDives_profileMinutes.
-  ///
-  /// In en, this message translates to:
-  /// **'{minutes} min'**
-  String dashboard_recentDives_profileMinutes(int minutes);
-
   /// No description provided for @dashboard_recentDives_logFirst.
   ///
   /// In en, this message translates to:
@@ -8595,59 +8028,17 @@ abstract class AppLocalizations {
   /// **'View all dives'**
   String get dashboard_recentDives_viewAllTooltip;
 
-  /// No description provided for @dashboard_semantics_activeAlerts.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} active alerts'**
-  String dashboard_semantics_activeAlerts(Object count);
-
   /// No description provided for @dashboard_semantics_errorLoadingRecentDives.
   ///
   /// In en, this message translates to:
   /// **'Error: Failed to load recent dives'**
   String get dashboard_semantics_errorLoadingRecentDives;
 
-  /// No description provided for @dashboard_semantics_errorLoadingStatistics.
-  ///
-  /// In en, this message translates to:
-  /// **'Error: Failed to load statistics'**
-  String get dashboard_semantics_errorLoadingStatistics;
-
   /// No description provided for @dashboard_semantics_greetingBanner.
   ///
   /// In en, this message translates to:
   /// **'Dashboard greeting banner'**
   String get dashboard_semantics_greetingBanner;
-
-  /// No description provided for @dashboard_stats_errorLoadingStatistics.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load statistics'**
-  String get dashboard_stats_errorLoadingStatistics;
-
-  /// No description provided for @dashboard_stats_hoursLogged.
-  ///
-  /// In en, this message translates to:
-  /// **'Hours Logged'**
-  String get dashboard_stats_hoursLogged;
-
-  /// No description provided for @dashboard_stats_maxDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'Max Depth'**
-  String get dashboard_stats_maxDepth;
-
-  /// No description provided for @dashboard_stats_sitesVisited.
-  ///
-  /// In en, this message translates to:
-  /// **'Sites Visited'**
-  String get dashboard_stats_sitesVisited;
-
-  /// No description provided for @dashboard_stats_totalDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Total Dives'**
-  String get dashboard_stats_totalDives;
 
   /// No description provided for @decoCalculator_addToPlanner.
   ///
@@ -8869,12 +8260,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Center'**
   String get diveCenters_action_addCenter;
-
-  /// No description provided for @diveCenters_action_addNew.
-  ///
-  /// In en, this message translates to:
-  /// **'Add New'**
-  String get diveCenters_action_addNew;
 
   /// No description provided for @diveCenters_action_clearRating.
   ///
@@ -9175,18 +8560,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search dive centers (e.g., \"PADI\", \"Thailand\")'**
   String get diveCenters_hint_importSearch;
-
-  /// No description provided for @diveCenters_hint_latitude.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., 10.4613'**
-  String get diveCenters_hint_latitude;
-
-  /// No description provided for @diveCenters_hint_longitude.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., 99.8359'**
-  String get diveCenters_hint_longitude;
 
   /// No description provided for @diveCenters_hint_name.
   ///
@@ -9728,114 +9101,6 @@ abstract class AppLocalizations {
   /// **'Undo'**
   String get diveLog_bulkDelete_undo;
 
-  /// No description provided for @diveLog_bulkEdit_addTags.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Tags'**
-  String get diveLog_bulkEdit_addTags;
-
-  /// No description provided for @diveLog_bulkEdit_addTagsDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Add tags to selected dives'**
-  String get diveLog_bulkEdit_addTagsDescription;
-
-  /// No description provided for @diveLog_bulkEdit_addedTags.
-  ///
-  /// In en, this message translates to:
-  /// **'Added {tagCount} {tagCount, plural, =1{tag} other{tags}} to {diveCount} {diveCount, plural, =1{dive} other{dives}}'**
-  String diveLog_bulkEdit_addedTags(int tagCount, int diveCount);
-
-  /// No description provided for @diveLog_bulkEdit_changeTrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Change Trip'**
-  String get diveLog_bulkEdit_changeTrip;
-
-  /// No description provided for @diveLog_bulkEdit_changeTripDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Move selected dives to a trip'**
-  String get diveLog_bulkEdit_changeTripDescription;
-
-  /// No description provided for @diveLog_bulkEdit_errorLoadingTrips.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading trips'**
-  String get diveLog_bulkEdit_errorLoadingTrips;
-
-  /// No description provided for @diveLog_bulkEdit_failedAddTags.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to add tags: {error}'**
-  String diveLog_bulkEdit_failedAddTags(Object error);
-
-  /// No description provided for @diveLog_bulkEdit_failedUpdateTrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to update trip: {error}'**
-  String diveLog_bulkEdit_failedUpdateTrip(Object error);
-
-  /// No description provided for @diveLog_bulkEdit_movedToTrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Moved {count} {count, plural, =1{dive} other{dives}} to trip'**
-  String diveLog_bulkEdit_movedToTrip(int count);
-
-  /// No description provided for @diveLog_bulkEdit_noTagsAvailable.
-  ///
-  /// In en, this message translates to:
-  /// **'No tags available.'**
-  String get diveLog_bulkEdit_noTagsAvailable;
-
-  /// No description provided for @diveLog_bulkEdit_noTagsAvailableCreate.
-  ///
-  /// In en, this message translates to:
-  /// **'No tags available. Create tags first.'**
-  String get diveLog_bulkEdit_noTagsAvailableCreate;
-
-  /// No description provided for @diveLog_bulkEdit_noTrip.
-  ///
-  /// In en, this message translates to:
-  /// **'No Trip'**
-  String get diveLog_bulkEdit_noTrip;
-
-  /// No description provided for @diveLog_bulkEdit_removeFromTrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove from trip'**
-  String get diveLog_bulkEdit_removeFromTrip;
-
-  /// No description provided for @diveLog_bulkEdit_removeTags.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove Tags'**
-  String get diveLog_bulkEdit_removeTags;
-
-  /// No description provided for @diveLog_bulkEdit_removeTagsDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove tags from selected dives'**
-  String get diveLog_bulkEdit_removeTagsDescription;
-
-  /// No description provided for @diveLog_bulkEdit_removedFromTrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Removed {count} {count, plural, =1{dive} other{dives}} from trip'**
-  String diveLog_bulkEdit_removedFromTrip(int count);
-
-  /// No description provided for @diveLog_bulkEdit_selectTrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Select Trip'**
-  String get diveLog_bulkEdit_selectTrip;
-
-  /// No description provided for @diveLog_bulkEdit_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit {count} {count, plural, =1{Dive} other{Dives}}'**
-  String diveLog_bulkEdit_title(int count);
-
   /// No description provided for @diveLog_bulkExport_csv.
   ///
   /// In en, this message translates to:
@@ -10152,42 +9417,6 @@ abstract class AppLocalizations {
   /// **'Choose starting profile'**
   String get diveLog_computerSheet_title;
 
-  /// No description provided for @diveLog_cylinderSac_avgDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'Avg: {depth}'**
-  String diveLog_cylinderSac_avgDepth(Object depth);
-
-  /// No description provided for @diveLog_cylinderSac_badge_ai.
-  ///
-  /// In en, this message translates to:
-  /// **'AI'**
-  String get diveLog_cylinderSac_badge_ai;
-
-  /// No description provided for @diveLog_cylinderSac_badge_basic.
-  ///
-  /// In en, this message translates to:
-  /// **'Basic'**
-  String get diveLog_cylinderSac_badge_basic;
-
-  /// No description provided for @diveLog_cylinderSac_noSac.
-  ///
-  /// In en, this message translates to:
-  /// **'SAC: --'**
-  String get diveLog_cylinderSac_noSac;
-
-  /// No description provided for @diveLog_cylinderSac_tooltip_aiData.
-  ///
-  /// In en, this message translates to:
-  /// **'Using AI transmitter data for higher accuracy'**
-  String get diveLog_cylinderSac_tooltip_aiData;
-
-  /// No description provided for @diveLog_cylinderSac_tooltip_basicData.
-  ///
-  /// In en, this message translates to:
-  /// **'Calculated from start/end pressures'**
-  String get diveLog_cylinderSac_tooltip_basicData;
-
   /// No description provided for @diveLog_deco_badge_deco.
   ///
   /// In en, this message translates to:
@@ -10223,12 +9452,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'NDL'**
   String get diveLog_deco_label_ndl;
-
-  /// No description provided for @diveLog_deco_label_time.
-  ///
-  /// In en, this message translates to:
-  /// **'Time'**
-  String get diveLog_deco_label_time;
 
   /// No description provided for @diveLog_deco_label_tts.
   ///
@@ -10372,18 +9595,6 @@ abstract class AppLocalizations {
   /// **'CRITICAL'**
   String get diveLog_detail_badge_critical;
 
-  /// No description provided for @diveLog_detail_badge_deco.
-  ///
-  /// In en, this message translates to:
-  /// **'DECO'**
-  String get diveLog_detail_badge_deco;
-
-  /// No description provided for @diveLog_detail_badge_noDeco.
-  ///
-  /// In en, this message translates to:
-  /// **'NO DECO'**
-  String get diveLog_detail_badge_noDeco;
-
   /// No description provided for @diveLog_detail_badge_warning.
   ///
   /// In en, this message translates to:
@@ -10402,12 +9613,6 @@ abstract class AppLocalizations {
   /// **'Range Stats'**
   String get diveLog_detail_button_rangeAnalysis;
 
-  /// No description provided for @diveLog_detail_button_showEnd.
-  ///
-  /// In en, this message translates to:
-  /// **'Show end'**
-  String get diveLog_detail_button_showEnd;
-
   /// No description provided for @diveLog_detail_captureSignature.
   ///
   /// In en, this message translates to:
@@ -10419,41 +9624,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{timestamp}'**
   String diveLog_detail_collapsed_atTime(Object timestamp);
-
-  /// No description provided for @diveLog_detail_collapsed_atTimeInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'{timestamp} • {baseInfo}'**
-  String diveLog_detail_collapsed_atTimeInfo(Object timestamp, Object baseInfo);
-
-  /// No description provided for @diveLog_detail_collapsed_ceiling.
-  ///
-  /// In en, this message translates to:
-  /// **'Ceiling: {value}'**
-  String diveLog_detail_collapsed_ceiling(Object value);
-
-  /// No description provided for @diveLog_detail_collapsed_cnsMaxPpO2.
-  ///
-  /// In en, this message translates to:
-  /// **'CNS: {cns} • Max ppO₂: {maxPpO2}'**
-  String diveLog_detail_collapsed_cnsMaxPpO2(Object cns, Object maxPpO2);
-
-  /// No description provided for @diveLog_detail_collapsed_cnsMaxPpO2AtTime.
-  ///
-  /// In en, this message translates to:
-  /// **'CNS: {cns} • Max ppO₂: {maxPpO2} • At {timestamp}: {ppO2} bar'**
-  String diveLog_detail_collapsed_cnsMaxPpO2AtTime(
-    Object cns,
-    Object maxPpO2,
-    Object timestamp,
-    Object ppO2,
-  );
-
-  /// No description provided for @diveLog_detail_collapsed_ndl.
-  ///
-  /// In en, this message translates to:
-  /// **'NDL: {value}'**
-  String diveLog_detail_collapsed_ndl(Object value);
 
   /// No description provided for @diveLog_detail_customFieldCount.
   ///
@@ -10587,12 +9757,6 @@ abstract class AppLocalizations {
   /// **'Low Tide'**
   String get diveLog_detail_label_lowTide;
 
-  /// No description provided for @diveLog_detail_label_ppO2AtPoint.
-  ///
-  /// In en, this message translates to:
-  /// **'ppO₂ at selected point:'**
-  String get diveLog_detail_label_ppO2AtPoint;
-
   /// No description provided for @diveLog_detail_label_rateOfChange.
   ///
   /// In en, this message translates to:
@@ -10700,12 +9864,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buddies'**
   String get diveLog_detail_section_buddies;
-
-  /// No description provided for @diveLog_detail_section_conditions.
-  ///
-  /// In en, this message translates to:
-  /// **'Conditions'**
-  String get diveLog_detail_section_conditions;
 
   /// No description provided for @diveLog_detail_section_customFields.
   ///
@@ -11133,41 +10291,17 @@ abstract class AppLocalizations {
   /// **'Key'**
   String get diveLog_edit_customFieldKey;
 
-  /// No description provided for @diveLog_edit_customFieldKeyHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., camera_settings'**
-  String get diveLog_edit_customFieldKeyHint;
-
   /// No description provided for @diveLog_edit_customFieldValue.
   ///
   /// In en, this message translates to:
   /// **'Value'**
   String get diveLog_edit_customFieldValue;
 
-  /// No description provided for @diveLog_edit_customFieldValueHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., f/8 ISO400'**
-  String get diveLog_edit_customFieldValueHint;
-
-  /// No description provided for @diveLog_edit_durationMinutes.
-  ///
-  /// In en, this message translates to:
-  /// **'Duration: {minutes} min'**
-  String diveLog_edit_durationMinutes(Object minutes);
-
   /// No description provided for @diveLog_edit_equipmentCaption.
   ///
   /// In en, this message translates to:
   /// **'Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Tanks too.'**
   String get diveLog_edit_equipmentCaption;
-
-  /// No description provided for @diveLog_edit_equipmentHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap \"Use Set\" or \"Add\" to select equipment'**
-  String get diveLog_edit_equipmentHint;
 
   /// No description provided for @diveLog_edit_errorLoadingDiveTypes.
   ///
@@ -11216,12 +10350,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trip'**
   String get diveLog_edit_group_trip;
-
-  /// No description provided for @diveLog_edit_headerNew.
-  ///
-  /// In en, this message translates to:
-  /// **'Log New Dive'**
-  String get diveLog_edit_headerNew;
 
   /// Empty-state invitation for the Buddies group
   ///
@@ -11289,12 +10417,6 @@ abstract class AppLocalizations {
   /// **'Current Strength'**
   String get diveLog_edit_label_currentStrength;
 
-  /// No description provided for @diveLog_edit_label_diveType.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Type'**
-  String get diveLog_edit_label_diveType;
-
   /// No description provided for @diveLog_edit_label_diveTypes.
   ///
   /// In en, this message translates to:
@@ -11318,12 +10440,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional name for this dive'**
   String get diveLog_edit_diveNamePlaceholder;
-
-  /// No description provided for @diveLog_edit_hint_diveNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Auto-assigned if left blank'**
-  String get diveLog_edit_hint_diveNumber;
 
   /// No description provided for @diveLog_edit_label_entryMethod.
   ///
@@ -11595,41 +10711,17 @@ abstract class AppLocalizations {
   /// **'Custom Fields'**
   String get diveLog_edit_section_customFields;
 
-  /// No description provided for @diveLog_edit_section_depthDuration.
-  ///
-  /// In en, this message translates to:
-  /// **'Depth & Duration'**
-  String get diveLog_edit_section_depthDuration;
-
   /// No description provided for @diveLog_edit_section_diveCenter.
   ///
   /// In en, this message translates to:
   /// **'Dive Center'**
   String get diveLog_edit_section_diveCenter;
 
-  /// No description provided for @diveLog_edit_section_diveSite.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Site'**
-  String get diveLog_edit_section_diveSite;
-
-  /// No description provided for @diveLog_edit_section_entryTime.
-  ///
-  /// In en, this message translates to:
-  /// **'Entry Time'**
-  String get diveLog_edit_section_entryTime;
-
   /// No description provided for @diveLog_edit_section_equipment.
   ///
   /// In en, this message translates to:
   /// **'Equipment'**
   String get diveLog_edit_section_equipment;
-
-  /// No description provided for @diveLog_edit_section_exitTime.
-  ///
-  /// In en, this message translates to:
-  /// **'Exit Time'**
-  String get diveLog_edit_section_exitTime;
 
   /// No description provided for @diveLog_edit_section_marineLife.
   ///
@@ -11655,12 +10747,6 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get diveLog_edit_section_tags;
 
-  /// No description provided for @diveLog_edit_section_tanks.
-  ///
-  /// In en, this message translates to:
-  /// **'Tanks ({count})'**
-  String diveLog_edit_section_tanks(Object count);
-
   /// No description provided for @diveLog_edit_section_trainingCourse.
   ///
   /// In en, this message translates to:
@@ -11678,30 +10764,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Weight'**
   String get diveLog_edit_section_weight;
-
-  /// No description provided for @diveLog_edit_select.
-  ///
-  /// In en, this message translates to:
-  /// **'Select'**
-  String get diveLog_edit_select;
-
-  /// No description provided for @diveLog_edit_selectDiveCenter.
-  ///
-  /// In en, this message translates to:
-  /// **'Select Dive Center'**
-  String get diveLog_edit_selectDiveCenter;
-
-  /// No description provided for @diveLog_edit_selectDiveSite.
-  ///
-  /// In en, this message translates to:
-  /// **'Select Dive Site'**
-  String get diveLog_edit_selectDiveSite;
-
-  /// No description provided for @diveLog_edit_selectTrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Select Trip'**
-  String get diveLog_edit_selectTrip;
 
   /// No description provided for @diveLog_edit_snackbar_avgDepthCalculated.
   ///
@@ -11787,23 +10849,11 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{1 tank} other{{count} tanks}}'**
   String diveLog_edit_summary_tanks(int count);
 
-  /// No description provided for @diveLog_edit_surfaceInterval.
-  ///
-  /// In en, this message translates to:
-  /// **'Surface Interval: {interval}'**
-  String diveLog_edit_surfaceInterval(Object interval);
-
   /// No description provided for @diveLog_edit_surfacePressureDefault.
   ///
   /// In en, this message translates to:
   /// **'1013'**
   String get diveLog_edit_surfacePressureDefault;
-
-  /// No description provided for @diveLog_edit_surfacePressureHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Standard: 1013 mbar at sea level'**
-  String get diveLog_edit_surfacePressureHint;
 
   /// Collapse the tank editor back to the card
   ///
@@ -11811,35 +10861,11 @@ abstract class AppLocalizations {
   /// **'Done'**
   String get diveLog_edit_tankCard_done;
 
-  /// Expand a tank card into the full editor
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get diveLog_edit_tankCard_edit;
-
-  /// Hero label on tank card: gas mix
-  ///
-  /// In en, this message translates to:
-  /// **'Mix'**
-  String get diveLog_edit_tankCard_mix;
-
-  /// Hero label on tank card: start to end pressure
-  ///
-  /// In en, this message translates to:
-  /// **'Pressure'**
-  String get diveLog_edit_tankCard_pressure;
-
   /// Caption on a tank card
   ///
   /// In en, this message translates to:
   /// **'Tank {number}'**
   String diveLog_edit_tankCard_title(int number);
-
-  /// Hero label on tank card: tank volume
-  ///
-  /// In en, this message translates to:
-  /// **'Volume'**
-  String get diveLog_edit_tankCard_volume;
 
   /// No description provided for @diveLog_edit_tanksCaption.
   ///
@@ -11852,24 +10878,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Calculate from dive profile'**
   String get diveLog_edit_tooltip_calculateFromProfile;
-
-  /// No description provided for @diveLog_edit_tooltip_clearDiveCenter.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear dive center'**
-  String get diveLog_edit_tooltip_clearDiveCenter;
-
-  /// No description provided for @diveLog_edit_tooltip_clearSite.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear site'**
-  String get diveLog_edit_tooltip_clearSite;
-
-  /// No description provided for @diveLog_edit_tooltip_clearTrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear trip'**
-  String get diveLog_edit_tooltip_clearTrip;
 
   /// No description provided for @diveLog_edit_tooltip_removeEquipment.
   ///
@@ -12501,12 +11509,6 @@ abstract class AppLocalizations {
   /// **'Buddy'**
   String get diveLog_filter_sectionBuddy;
 
-  /// No description provided for @diveLog_filter_sectionDepthRange.
-  ///
-  /// In en, this message translates to:
-  /// **'Depth Range (meters)'**
-  String get diveLog_filter_sectionDepthRange;
-
   /// No description provided for @diveLog_filter_sectionDiveType.
   ///
   /// In en, this message translates to:
@@ -12566,12 +11568,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close fullscreen'**
   String get diveLog_fullscreenProfile_close;
-
-  /// No description provided for @diveLog_fullscreenProfile_readoutHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Hover or scrub the profile'**
-  String get diveLog_fullscreenProfile_readoutHint;
 
   /// No description provided for @diveLog_fullscreenProfile_title.
   ///
@@ -13197,18 +12193,6 @@ abstract class AppLocalizations {
   /// **'Error adding dive role: {error}'**
   String diveRoles_snackbar_errorAdding(Object error);
 
-  /// Hero stat label: maximum site depth
-  ///
-  /// In en, this message translates to:
-  /// **'Max depth'**
-  String get diveSites_edit_depth_heroMax;
-
-  /// Hero stat label: minimum site depth
-  ///
-  /// In en, this message translates to:
-  /// **'Min depth'**
-  String get diveSites_edit_depth_heroMin;
-
   /// Site form group: access, mooring, parking, hazards
   ///
   /// In en, this message translates to:
@@ -13539,12 +12523,6 @@ abstract class AppLocalizations {
   /// **'The selected folder does not contain a Submersion database.'**
   String get setup_folder_notFound_message;
 
-  /// No description provided for @setup_folder_notFound_title.
-  ///
-  /// In en, this message translates to:
-  /// **'No library in that folder'**
-  String get setup_folder_notFound_title;
-
   /// No description provided for @setup_folder_pick.
   ///
   /// In en, this message translates to:
@@ -13574,12 +12552,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your Name'**
   String get setup_profile_nameLabel;
-
-  /// No description provided for @setup_profile_nameValidation.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter your name'**
-  String get setup_profile_nameValidation;
 
   /// No description provided for @setup_profile_subtitle.
   ///
@@ -13694,12 +12666,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pulling your library...'**
   String get setup_syncPull_syncing;
-
-  /// No description provided for @setup_syncPull_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Connect and pull'**
-  String get setup_syncPull_title;
 
   /// No description provided for @setup_sync_changeProvider.
   ///
@@ -14259,12 +13225,6 @@ abstract class AppLocalizations {
   /// **'Match {count} dives to sites'**
   String importSummary_matchSitesButton(int count);
 
-  /// No description provided for @diveLog_listPage_searchFieldLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Search dives...'**
-  String get diveLog_listPage_searchFieldLabel;
-
   /// Shown above the dive list when the Group trips toggle is on but the active sort scatters a trip's dives.
   ///
   /// In en, this message translates to:
@@ -14619,18 +13579,6 @@ abstract class AppLocalizations {
   /// **'{count} {count, plural, =1{dive} other{dives}} without numbers'**
   String diveLog_numbering_unnumberedDives(int count);
 
-  /// No description provided for @diveLog_o2tox_badge_critical.
-  ///
-  /// In en, this message translates to:
-  /// **'CRITICAL'**
-  String get diveLog_o2tox_badge_critical;
-
-  /// No description provided for @diveLog_o2tox_badge_warning.
-  ///
-  /// In en, this message translates to:
-  /// **'WARNING'**
-  String get diveLog_o2tox_badge_warning;
-
   /// No description provided for @diveLog_o2tox_cnsBadgeLabel.
   ///
   /// In en, this message translates to:
@@ -14673,12 +13621,6 @@ abstract class AppLocalizations {
   /// **'Time above {limit} bar'**
   String diveLog_o2tox_label_timeAboveLimit(String limit);
 
-  /// No description provided for @diveLog_o2tox_ofDailyLimit.
-  ///
-  /// In en, this message translates to:
-  /// **'of daily limit'**
-  String get diveLog_o2tox_ofDailyLimit;
-
   /// No description provided for @diveLog_o2tox_oxygenToleranceUnits.
   ///
   /// In en, this message translates to:
@@ -14696,12 +13638,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Critical oxygen toxicity warning'**
   String get diveLog_o2tox_semantics_criticalWarning;
-
-  /// No description provided for @diveLog_o2tox_semantics_otu.
-  ///
-  /// In en, this message translates to:
-  /// **'Oxygen Tolerance Units: {value}, {percent} percent of daily limit'**
-  String diveLog_o2tox_semantics_otu(Object value, Object percent);
 
   /// No description provided for @diveLog_o2tox_semantics_warning.
   ///
@@ -14870,12 +13806,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Elapsed'**
   String get diveLog_rangeStats_label_elapsed;
-
-  /// No description provided for @diveLog_rangeStats_label_gasConsumed.
-  ///
-  /// In en, this message translates to:
-  /// **'Gas Consumed'**
-  String get diveLog_rangeStats_label_gasConsumed;
 
   /// No description provided for @diveLog_rangeStats_label_maxAscent.
   ///
@@ -15099,12 +14029,6 @@ abstract class AppLocalizations {
   /// **'Decompression'**
   String get diveLog_search_label_deco;
 
-  /// No description provided for @diveLog_search_label_depthRange.
-  ///
-  /// In en, this message translates to:
-  /// **'Depth Range (m)'**
-  String get diveLog_search_label_depthRange;
-
   /// No description provided for @diveLog_search_label_diveCenter.
   ///
   /// In en, this message translates to:
@@ -15159,29 +14083,11 @@ abstract class AppLocalizations {
   /// **'Organization'**
   String get diveLog_search_section_organization;
 
-  /// No description provided for @diveLog_selection_countSelected.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} selected'**
-  String diveLog_selection_countSelected(Object count);
-
   /// No description provided for @diveLog_selection_tooltip_combine.
   ///
   /// In en, this message translates to:
   /// **'Combine'**
   String get diveLog_selection_tooltip_combine;
-
-  /// No description provided for @diveLog_selection_tooltip_delete.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Selected'**
-  String get diveLog_selection_tooltip_delete;
-
-  /// No description provided for @diveLog_selection_tooltip_deselectAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Deselect All'**
-  String get diveLog_selection_tooltip_deselectAll;
 
   /// No description provided for @diveLog_selection_tooltip_edit.
   ///
@@ -15189,23 +14095,11 @@ abstract class AppLocalizations {
   /// **'Edit Selected'**
   String get diveLog_selection_tooltip_edit;
 
-  /// No description provided for @diveLog_selection_tooltip_exit.
-  ///
-  /// In en, this message translates to:
-  /// **'Exit selection'**
-  String get diveLog_selection_tooltip_exit;
-
   /// No description provided for @diveLog_selection_tooltip_export.
   ///
   /// In en, this message translates to:
   /// **'Export Selected'**
   String get diveLog_selection_tooltip_export;
-
-  /// No description provided for @diveLog_selection_tooltip_selectAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Select All'**
-  String get diveLog_selection_tooltip_selectAll;
 
   /// No description provided for @diveLog_selection_tooltip_selectDateRange.
   ///
@@ -15243,12 +14137,6 @@ abstract class AppLocalizations {
   /// **'Add Dive Site'**
   String get diveLog_sitePicker_addDiveSite;
 
-  /// No description provided for @diveLog_sitePicker_distanceKm.
-  ///
-  /// In en, this message translates to:
-  /// **'{distance} km away'**
-  String diveLog_sitePicker_distanceKm(Object distance);
-
   /// A site's distance from the reference point; {distance} already includes the unit, e.g. '1.2 km' or '800 ft'
   ///
   /// In en, this message translates to:
@@ -15260,12 +14148,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sorted by distance from this dive'**
   String get diveLog_sitePicker_sortedByDiveDistance;
-
-  /// No description provided for @diveLog_sitePicker_distanceMeters.
-  ///
-  /// In en, this message translates to:
-  /// **'{distance} m away'**
-  String diveLog_sitePicker_distanceMeters(Object distance);
 
   /// No description provided for @diveLog_sitePicker_errorLoading.
   ///
@@ -15344,12 +14226,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import from Computer'**
   String get diveLog_summary_action_importComputer;
-
-  /// No description provided for @diveLog_summary_action_logDive.
-  ///
-  /// In en, this message translates to:
-  /// **'Log Dive'**
-  String get diveLog_summary_action_logDive;
 
   /// No description provided for @diveLog_summary_action_viewInsights.
   ///
@@ -15530,12 +14406,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'({amount} used)'**
   String diveLog_tank_gasUsed(String amount);
-
-  /// No description provided for @diveLog_tank_modInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'MOD: {depth} (ppO₂ {ppO2})'**
-  String diveLog_tank_modInfo(Object depth, String ppO2);
 
   /// No description provided for @diveLog_tank_modMndInfo.
   ///
@@ -15758,12 +14628,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ppO2'**
   String get diveLog_tooltip_ppO2;
-
-  /// No description provided for @diveLog_tooltip_press.
-  ///
-  /// In en, this message translates to:
-  /// **'Press'**
-  String get diveLog_tooltip_press;
 
   /// No description provided for @diveLog_tooltip_rate.
   ///
@@ -16185,24 +15049,6 @@ abstract class AppLocalizations {
   /// **'Altitude:'**
   String get divePlanner_label_altitude;
 
-  /// No description provided for @divePlanner_label_belowMinReserve.
-  ///
-  /// In en, this message translates to:
-  /// **'Below Min Reserve'**
-  String get divePlanner_label_belowMinReserve;
-
-  /// No description provided for @divePlanner_label_ceiling.
-  ///
-  /// In en, this message translates to:
-  /// **'Ceiling'**
-  String get divePlanner_label_ceiling;
-
-  /// No description provided for @divePlanner_label_consumption.
-  ///
-  /// In en, this message translates to:
-  /// **'Consumption'**
-  String get divePlanner_label_consumption;
-
   /// No description provided for @divePlanner_label_deco.
   ///
   /// In en, this message translates to:
@@ -16226,12 +15072,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Depth ({depthSymbol})'**
   String divePlanner_label_depthAxis(Object depthSymbol);
-
-  /// No description provided for @divePlanner_label_diveProfile.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Profile'**
-  String get divePlanner_label_diveProfile;
 
   /// No description provided for @divePlanner_label_empty.
   ///
@@ -16257,12 +15097,6 @@ abstract class AppLocalizations {
   /// **'GF Low'**
   String get divePlanner_label_gfLow;
 
-  /// No description provided for @divePlanner_label_max.
-  ///
-  /// In en, this message translates to:
-  /// **'Max'**
-  String get divePlanner_label_max;
-
   /// No description provided for @divePlanner_label_minutesUnit.
   ///
   /// In en, this message translates to:
@@ -16281,12 +15115,6 @@ abstract class AppLocalizations {
   /// **'Plan Settings'**
   String get divePlanner_label_planSettings;
 
-  /// No description provided for @divePlanner_label_remaining.
-  ///
-  /// In en, this message translates to:
-  /// **'Remaining'**
-  String get divePlanner_label_remaining;
-
   /// No description provided for @divePlanner_label_reserve.
   ///
   /// In en, this message translates to:
@@ -16298,12 +15126,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Runtime'**
   String get divePlanner_label_runtime;
-
-  /// No description provided for @divePlanner_label_sacRate.
-  ///
-  /// In en, this message translates to:
-  /// **'RMV:'**
-  String get divePlanner_label_sacRate;
 
   /// No description provided for @divePlanner_label_salinity.
   ///
@@ -16365,12 +15187,6 @@ abstract class AppLocalizations {
   /// **'Treat O₂ as narcotic for this plan'**
   String get divePlanner_gasOptions_o2Narcotic;
 
-  /// No description provided for @divePlanner_label_status.
-  ///
-  /// In en, this message translates to:
-  /// **'Status'**
-  String get divePlanner_label_status;
-
   /// No description provided for @divePlanner_label_tanks.
   ///
   /// In en, this message translates to:
@@ -16419,12 +15235,6 @@ abstract class AppLocalizations {
   /// **'No saved tanks yet. Save a tank from this plan to reuse it in other plans.'**
   String get divePlanner_savedTanks_empty;
 
-  /// No description provided for @divePlanner_label_time.
-  ///
-  /// In en, this message translates to:
-  /// **'Time'**
-  String get divePlanner_label_time;
-
   /// No description provided for @divePlanner_label_timeAxis.
   ///
   /// In en, this message translates to:
@@ -16437,65 +15247,17 @@ abstract class AppLocalizations {
   /// **'TTS'**
   String get divePlanner_label_tts;
 
-  /// No description provided for @divePlanner_label_used.
-  ///
-  /// In en, this message translates to:
-  /// **'Used'**
-  String get divePlanner_label_used;
-
   /// No description provided for @divePlanner_label_warnings.
   ///
   /// In en, this message translates to:
   /// **'Warnings'**
   String get divePlanner_label_warnings;
 
-  /// No description provided for @divePlanner_legend_ascent.
-  ///
-  /// In en, this message translates to:
-  /// **'Ascent'**
-  String get divePlanner_legend_ascent;
-
-  /// No description provided for @divePlanner_legend_bottom.
-  ///
-  /// In en, this message translates to:
-  /// **'Bottom'**
-  String get divePlanner_legend_bottom;
-
-  /// No description provided for @divePlanner_legend_deco.
-  ///
-  /// In en, this message translates to:
-  /// **'Deco'**
-  String get divePlanner_legend_deco;
-
-  /// No description provided for @divePlanner_legend_descent.
-  ///
-  /// In en, this message translates to:
-  /// **'Descent'**
-  String get divePlanner_legend_descent;
-
-  /// No description provided for @divePlanner_legend_safety.
-  ///
-  /// In en, this message translates to:
-  /// **'Safety'**
-  String get divePlanner_legend_safety;
-
-  /// No description provided for @divePlanner_message_addSegmentsForGas.
-  ///
-  /// In en, this message translates to:
-  /// **'Add segments to see gas projections'**
-  String get divePlanner_message_addSegmentsForGas;
-
   /// No description provided for @divePlanner_message_addSegmentsForProfile.
   ///
   /// In en, this message translates to:
   /// **'Add segments to see the dive profile'**
   String get divePlanner_message_addSegmentsForProfile;
-
-  /// No description provided for @divePlanner_message_convertingPlan.
-  ///
-  /// In en, this message translates to:
-  /// **'Converting plan to dive...'**
-  String get divePlanner_message_convertingPlan;
 
   /// No description provided for @divePlanner_message_noProfile.
   ///
@@ -16527,84 +15289,17 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to reset the plan?'**
   String get divePlanner_message_resetConfirmation;
 
-  /// No description provided for @divePlanner_semantics_criticalWarning.
-  ///
-  /// In en, this message translates to:
-  /// **'Critical warning: {message}'**
-  String divePlanner_semantics_criticalWarning(Object message);
-
-  /// No description provided for @divePlanner_semantics_decoStop.
-  ///
-  /// In en, this message translates to:
-  /// **'Deco stop at {depth} for {duration} on {gasMix}'**
-  String divePlanner_semantics_decoStop(
-    Object depth,
-    Object duration,
-    Object gasMix,
-  );
-
-  /// No description provided for @divePlanner_semantics_gasConsumption.
-  ///
-  /// In en, this message translates to:
-  /// **'{tankName}: {gasUsed} used, {remaining} remaining, {percent} used{warning}'**
-  String divePlanner_semantics_gasConsumption(
-    Object tankName,
-    Object gasUsed,
-    Object remaining,
-    Object percent,
-    Object warning,
-  );
-
-  /// No description provided for @divePlanner_semantics_profileChart.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive plan, max depth {maxDepth}, total time {totalMinutes} minutes'**
-  String divePlanner_semantics_profileChart(
-    Object maxDepth,
-    Object totalMinutes,
-  );
-
-  /// No description provided for @divePlanner_semantics_warning.
-  ///
-  /// In en, this message translates to:
-  /// **'Warning: {message}'**
-  String divePlanner_semantics_warning(Object message);
-
   /// No description provided for @divePlanner_tab_plan.
   ///
   /// In en, this message translates to:
   /// **'Plan'**
   String get divePlanner_tab_plan;
 
-  /// No description provided for @divePlanner_tab_profile.
-  ///
-  /// In en, this message translates to:
-  /// **'Profile'**
-  String get divePlanner_tab_profile;
-
   /// No description provided for @divePlanner_tab_results.
   ///
   /// In en, this message translates to:
   /// **'Results'**
   String get divePlanner_tab_results;
-
-  /// No description provided for @divePlanner_warning_ascentRateHigh.
-  ///
-  /// In en, this message translates to:
-  /// **'Ascent rate exceeds safe limit'**
-  String get divePlanner_warning_ascentRateHigh;
-
-  /// No description provided for @divePlanner_warning_ascentRateHighWithRate.
-  ///
-  /// In en, this message translates to:
-  /// **'Ascent rate {rate}/min exceeds safe limit'**
-  String divePlanner_warning_ascentRateHighWithRate(Object rate);
-
-  /// No description provided for @divePlanner_warning_belowMinReserve.
-  ///
-  /// In en, this message translates to:
-  /// **'Below minimum reserve ({reserve})'**
-  String divePlanner_warning_belowMinReserve(Object reserve);
 
   /// No description provided for @divePlanner_warning_cnsCritical.
   ///
@@ -16624,12 +15319,6 @@ abstract class AppLocalizations {
   /// **'END of {depth} exceeds the {limit} limit'**
   String divePlanner_warning_endExceedsLimit(Object depth, Object limit);
 
-  /// No description provided for @divePlanner_warning_endHigh.
-  ///
-  /// In en, this message translates to:
-  /// **'Equivalent Narcotic Depth too high'**
-  String get divePlanner_warning_endHigh;
-
   /// No description provided for @divePlanner_warning_gasLow.
   ///
   /// In en, this message translates to:
@@ -16641,24 +15330,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tank will be empty'**
   String get divePlanner_warning_gasOut;
-
-  /// No description provided for @divePlanner_warning_minGasViolation.
-  ///
-  /// In en, this message translates to:
-  /// **'Minimum gas reserve not maintained'**
-  String get divePlanner_warning_minGasViolation;
-
-  /// No description provided for @divePlanner_warning_modViolation.
-  ///
-  /// In en, this message translates to:
-  /// **'Gas switch attempted above MOD'**
-  String get divePlanner_warning_modViolation;
-
-  /// No description provided for @divePlanner_warning_ndlExceeded.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive enters decompression obligation'**
-  String get divePlanner_warning_ndlExceeded;
 
   /// No description provided for @divePlanner_warning_otuWarning.
   ///
@@ -17032,12 +15703,6 @@ abstract class AppLocalizations {
   /// **'Copy {label} to clipboard'**
   String diveSites_detail_semantics_copyToClipboard(Object label);
 
-  /// No description provided for @diveSites_detail_semantics_viewDivesAtSite.
-  ///
-  /// In en, this message translates to:
-  /// **'View dives at this site'**
-  String get diveSites_detail_semantics_viewDivesAtSite;
-
   /// No description provided for @diveSites_detail_semantics_viewFullscreenMap.
   ///
   /// In en, this message translates to:
@@ -17159,23 +15824,11 @@ abstract class AppLocalizations {
   /// **'Exit'**
   String get diveSites_detail_access_exitMethod;
 
-  /// No description provided for @diveSites_edit_altitude_helperText.
-  ///
-  /// In en, this message translates to:
-  /// **'Site elevation above sea level (for altitude diving)'**
-  String get diveSites_edit_altitude_helperText;
-
   /// No description provided for @diveSites_edit_altitude_hint.
   ///
   /// In en, this message translates to:
   /// **'e.g., 2000'**
   String get diveSites_edit_altitude_hint;
-
-  /// No description provided for @diveSites_edit_altitude_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Altitude ({symbol})'**
-  String diveSites_edit_altitude_label(Object symbol);
 
   /// No description provided for @diveSites_edit_altitude_validation.
   ///
@@ -17213,47 +15866,11 @@ abstract class AppLocalizations {
   /// **'New Site'**
   String get diveSites_edit_appBar_newSite;
 
-  /// No description provided for @diveSites_edit_appBar_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get diveSites_edit_appBar_save;
-
-  /// No description provided for @diveSites_edit_button_addSite.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Site'**
-  String get diveSites_edit_button_addSite;
-
-  /// No description provided for @diveSites_edit_button_mergeSites.
-  ///
-  /// In en, this message translates to:
-  /// **'Merge Sites'**
-  String get diveSites_edit_button_mergeSites;
-
-  /// No description provided for @diveSites_edit_button_saveChanges.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Changes'**
-  String get diveSites_edit_button_saveChanges;
-
   /// No description provided for @diveSites_edit_cancel.
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
   String get diveSites_edit_cancel;
-
-  /// No description provided for @diveSites_edit_depth_helperText.
-  ///
-  /// In en, this message translates to:
-  /// **'From the shallowest to the deepest point'**
-  String get diveSites_edit_depth_helperText;
-
-  /// No description provided for @diveSites_edit_depth_maxHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., 30'**
-  String get diveSites_edit_depth_maxHint;
 
   /// No description provided for @diveSites_edit_depth_maxLabel.
   ///
@@ -17261,47 +15878,11 @@ abstract class AppLocalizations {
   /// **'Maximum Depth ({symbol})'**
   String diveSites_edit_depth_maxLabel(Object symbol);
 
-  /// No description provided for @diveSites_edit_depth_minHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., 5'**
-  String get diveSites_edit_depth_minHint;
-
   /// No description provided for @diveSites_edit_depth_minLabel.
   ///
   /// In en, this message translates to:
   /// **'Minimum Depth ({symbol})'**
   String diveSites_edit_depth_minLabel(Object symbol);
-
-  /// No description provided for @diveSites_edit_depth_separator.
-  ///
-  /// In en, this message translates to:
-  /// **'to'**
-  String get diveSites_edit_depth_separator;
-
-  /// No description provided for @diveSites_edit_discardDialog_content.
-  ///
-  /// In en, this message translates to:
-  /// **'You have unsaved changes. Are you sure you want to leave?'**
-  String get diveSites_edit_discardDialog_content;
-
-  /// No description provided for @diveSites_edit_discardDialog_discard.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get diveSites_edit_discardDialog_discard;
-
-  /// No description provided for @diveSites_edit_discardDialog_keepEditing.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep Editing'**
-  String get diveSites_edit_discardDialog_keepEditing;
-
-  /// No description provided for @diveSites_edit_discardDialog_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard Changes?'**
-  String get diveSites_edit_discardDialog_title;
 
   /// No description provided for @diveSites_edit_field_country_label.
   ///
@@ -17393,18 +15974,6 @@ abstract class AppLocalizations {
   /// **'Getting...'**
   String get diveSites_edit_gps_gettingLocation;
 
-  /// No description provided for @diveSites_edit_gps_helperText.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose a location method or look up the coordinates to auto-fill country, region, town and body of water'**
-  String get diveSites_edit_gps_helperText;
-
-  /// No description provided for @diveSites_edit_gps_latitude_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., 21.4225'**
-  String get diveSites_edit_gps_latitude_hint;
-
   /// No description provided for @diveSites_edit_gps_latitude_label.
   ///
   /// In en, this message translates to:
@@ -17416,12 +15985,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invalid latitude'**
   String get diveSites_edit_gps_latitude_validation;
-
-  /// No description provided for @diveSites_edit_gps_longitude_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., -86.7542'**
-  String get diveSites_edit_gps_longitude_hint;
 
   /// No description provided for @diveSites_edit_gps_longitude_label.
   ///
@@ -17489,12 +16052,6 @@ abstract class AppLocalizations {
   /// **'Use My Location'**
   String get diveSites_edit_gps_useMyLocation;
 
-  /// No description provided for @diveSites_edit_hazards_helperText.
-  ///
-  /// In en, this message translates to:
-  /// **'List any hazards or safety considerations'**
-  String get diveSites_edit_hazards_helperText;
-
   /// No description provided for @diveSites_edit_hazards_hint.
   ///
   /// In en, this message translates to:
@@ -17518,12 +16075,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No expected species added'**
   String get diveSites_edit_marineLife_empty;
-
-  /// No description provided for @diveSites_edit_marineLife_helperText.
-  ///
-  /// In en, this message translates to:
-  /// **'Species you expect to see at this site'**
-  String get diveSites_edit_marineLife_helperText;
 
   /// No description provided for @diveSites_edit_merge_confirmBody.
   ///
@@ -17553,18 +16104,6 @@ abstract class AppLocalizations {
     int total,
   );
 
-  /// No description provided for @diveSites_edit_merge_fieldSourceMenuTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Select value from selected site'**
-  String get diveSites_edit_merge_fieldSourceMenuTooltip;
-
-  /// No description provided for @diveSites_edit_merge_marineLifeHelperText.
-  ///
-  /// In en, this message translates to:
-  /// **'Combined from all selected sites'**
-  String get diveSites_edit_merge_marineLifeHelperText;
-
   /// No description provided for @diveSites_edit_merge_loadingErrorBody.
   ///
   /// In en, this message translates to:
@@ -17589,35 +16128,17 @@ abstract class AppLocalizations {
   /// **'Merge Sites'**
   String get diveSites_edit_merge_notEnoughTitle;
 
-  /// No description provided for @diveSites_edit_rating_clear.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear Rating'**
-  String get diveSites_edit_rating_clear;
-
   /// No description provided for @diveSites_edit_rating_starTooltip.
   ///
   /// In en, this message translates to:
   /// **'{count} star{count, plural, =1{} other{s}}'**
   String diveSites_edit_rating_starTooltip(int count);
 
-  /// No description provided for @diveSites_edit_section_access.
-  ///
-  /// In en, this message translates to:
-  /// **'Access & Logistics'**
-  String get diveSites_edit_section_access;
-
   /// No description provided for @diveSites_edit_section_altitude.
   ///
   /// In en, this message translates to:
   /// **'Altitude'**
   String get diveSites_edit_section_altitude;
-
-  /// No description provided for @diveSites_edit_section_depthRange.
-  ///
-  /// In en, this message translates to:
-  /// **'Depth Range'**
-  String get diveSites_edit_section_depthRange;
 
   /// No description provided for @diveSites_edit_section_difficultyLevel.
   ///
@@ -17630,12 +16151,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expected Species'**
   String get diveSites_edit_section_expectedMarineLife;
-
-  /// No description provided for @diveSites_edit_section_gpsCoordinates.
-  ///
-  /// In en, this message translates to:
-  /// **'GPS Coordinates'**
-  String get diveSites_edit_section_gpsCoordinates;
 
   /// No description provided for @diveSites_edit_section_hazards.
   ///
@@ -17708,12 +16223,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Site added'**
   String get diveSites_edit_snackbar_siteAdded;
-
-  /// No description provided for @diveSites_edit_snackbar_sitesMerged.
-  ///
-  /// In en, this message translates to:
-  /// **'Sites merged'**
-  String get diveSites_edit_snackbar_sitesMerged;
 
   /// No description provided for @diveSites_edit_snackbar_siteUpdated.
   ///
@@ -17966,12 +16475,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown error'**
   String get diveSites_import_error_unknown;
-
-  /// No description provided for @diveSites_import_externalSite_locationUnknown.
-  ///
-  /// In en, this message translates to:
-  /// **'Location unknown'**
-  String get diveSites_import_externalSite_locationUnknown;
 
   /// No description provided for @diveSites_import_label_gps.
   ///
@@ -18409,41 +16912,11 @@ abstract class AppLocalizations {
   /// **'Search sites...'**
   String get diveSites_list_search_placeholder;
 
-  /// Tooltip for the close button in multi-select mode
-  ///
-  /// In en, this message translates to:
-  /// **'Close Selection'**
-  String get diveSites_list_selection_closeTooltip;
-
-  /// No description provided for @diveSites_list_selection_count.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} selected'**
-  String diveSites_list_selection_count(Object count);
-
-  /// Tooltip for the delete button in multi-select mode
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Selected'**
-  String get diveSites_list_selection_deleteTooltip;
-
   /// Tooltip for the merge button in multi-select mode
   ///
   /// In en, this message translates to:
   /// **'Merge Selected'**
   String get diveSites_list_selection_mergeTooltip;
-
-  /// Tooltip for the deselect all button in multi-select mode
-  ///
-  /// In en, this message translates to:
-  /// **'Deselect All'**
-  String get diveSites_list_selection_deselectAllTooltip;
-
-  /// Tooltip for the select all button in multi-select mode
-  ///
-  /// In en, this message translates to:
-  /// **'Select All'**
-  String get diveSites_list_selection_selectAllTooltip;
 
   /// No description provided for @diveSites_list_sort_title.
   ///
@@ -19324,47 +17797,11 @@ abstract class AppLocalizations {
   /// **'Active Diver'**
   String get divers_detail_activeDiver;
 
-  /// No description provided for @divers_detail_allergiesLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Allergies'**
-  String get divers_detail_allergiesLabel;
-
-  /// No description provided for @divers_detail_appBarTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Diver'**
-  String get divers_detail_appBarTitle;
-
-  /// No description provided for @divers_detail_bloodTypeLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Blood Type'**
-  String get divers_detail_bloodTypeLabel;
-
-  /// No description provided for @divers_detail_bottomTimeLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Bottom Time'**
-  String get divers_detail_bottomTimeLabel;
-
   /// No description provided for @divers_detail_cancelButton.
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
   String get divers_detail_cancelButton;
-
-  /// No description provided for @divers_detail_contactTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Contact'**
-  String get divers_detail_contactTitle;
-
-  /// No description provided for @divers_detail_defaultLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Default'**
-  String get divers_detail_defaultLabel;
 
   /// No description provided for @divers_detail_deleteButton.
   ///
@@ -19383,150 +17820,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete Diver?'**
   String get divers_detail_deleteDialogTitle;
-
-  /// No description provided for @divers_detail_deleteError.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to delete: {error}'**
-  String divers_detail_deleteError(Object error);
-
-  /// No description provided for @divers_detail_deleteMenuItem.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete'**
-  String get divers_detail_deleteMenuItem;
-
-  /// No description provided for @divers_detail_deletedSnackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Diver deleted'**
-  String get divers_detail_deletedSnackbar;
-
-  /// No description provided for @divers_detail_diveInsuranceTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Insurance'**
-  String get divers_detail_diveInsuranceTitle;
-
-  /// No description provided for @divers_detail_diveStatisticsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Statistics'**
-  String get divers_detail_diveStatisticsTitle;
-
-  /// No description provided for @divers_detail_editTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit diver'**
-  String get divers_detail_editTooltip;
-
-  /// No description provided for @divers_detail_emergencyContactTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Emergency Contact'**
-  String get divers_detail_emergencyContactTitle;
-
-  /// No description provided for @divers_detail_errorPrefix.
-  ///
-  /// In en, this message translates to:
-  /// **'Error: {error}'**
-  String divers_detail_errorPrefix(Object error);
-
-  /// No description provided for @divers_detail_expiredBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'Expired'**
-  String get divers_detail_expiredBadge;
-
-  /// No description provided for @divers_detail_expiresLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Expires'**
-  String get divers_detail_expiresLabel;
-
-  /// No description provided for @divers_detail_medicalInfoTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Medical Information'**
-  String get divers_detail_medicalInfoTitle;
-
-  /// No description provided for @divers_detail_medicalNotesLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Notes'**
-  String get divers_detail_medicalNotesLabel;
-
-  /// No description provided for @divers_detail_notFound.
-  ///
-  /// In en, this message translates to:
-  /// **'Diver not found'**
-  String get divers_detail_notFound;
-
-  /// No description provided for @divers_detail_notesTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Notes'**
-  String get divers_detail_notesTitle;
-
-  /// No description provided for @divers_detail_policyNumberLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Policy #'**
-  String get divers_detail_policyNumberLabel;
-
-  /// No description provided for @divers_detail_providerLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Provider'**
-  String get divers_detail_providerLabel;
-
-  /// No description provided for @divers_detail_setAsDefault.
-  ///
-  /// In en, this message translates to:
-  /// **'Set as Default'**
-  String get divers_detail_setAsDefault;
-
-  /// No description provided for @divers_detail_setAsDefaultSnackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} set as default diver'**
-  String divers_detail_setAsDefaultSnackbar(Object name);
-
-  /// No description provided for @divers_detail_switchToTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Switch to this diver'**
-  String get divers_detail_switchToTooltip;
-
-  /// No description provided for @divers_detail_switchedTo.
-  ///
-  /// In en, this message translates to:
-  /// **'Switched to {name}'**
-  String divers_detail_switchedTo(Object name);
-
-  /// No description provided for @divers_detail_totalDivesLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Total Dives'**
-  String get divers_detail_totalDivesLabel;
-
-  /// No description provided for @divers_detail_unableToLoadStats.
-  ///
-  /// In en, this message translates to:
-  /// **'Unable to load stats'**
-  String get divers_detail_unableToLoadStats;
-
-  /// No description provided for @divers_edit_addButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Diver'**
-  String get divers_edit_addButton;
-
-  /// No description provided for @divers_edit_addTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Diver'**
-  String get divers_edit_addTitle;
 
   /// No description provided for @divers_edit_allergiesHint.
   ///
@@ -19551,12 +17844,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Blood Type'**
   String get divers_edit_bloodTypeLabel;
-
-  /// No description provided for @divers_edit_cancelButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get divers_edit_cancelButton;
 
   /// No description provided for @divers_edit_clearInsuranceExpiryTooltip.
   ///
@@ -19600,24 +17887,6 @@ abstract class AppLocalizations {
   /// **'Discard Changes?'**
   String get divers_edit_discardDialogTitle;
 
-  /// No description provided for @divers_edit_diverAdded.
-  ///
-  /// In en, this message translates to:
-  /// **'Diver added'**
-  String get divers_edit_diverAdded;
-
-  /// No description provided for @divers_edit_diverUpdated.
-  ///
-  /// In en, this message translates to:
-  /// **'Diver updated'**
-  String get divers_edit_diverUpdated;
-
-  /// No description provided for @divers_edit_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Diver'**
-  String get divers_edit_editTitle;
-
   /// No description provided for @divers_edit_emailError.
   ///
   /// In en, this message translates to:
@@ -19629,18 +17898,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Email'**
   String get divers_edit_emailLabel;
-
-  /// No description provided for @divers_edit_emergencyContactsSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Emergency Contacts'**
-  String get divers_edit_emergencyContactsSection;
-
-  /// No description provided for @divers_edit_errorLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading diver: {error}'**
-  String divers_edit_errorLoading(Object error);
 
   /// No description provided for @divers_edit_errorSaving.
   ///
@@ -19696,12 +17953,6 @@ abstract class AppLocalizations {
   /// **'Insurance Provider'**
   String get divers_edit_insuranceProviderLabel;
 
-  /// No description provided for @divers_edit_insuranceSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Insurance'**
-  String get divers_edit_insuranceSection;
-
   /// No description provided for @divers_edit_keepEditingButton.
   ///
   /// In en, this message translates to:
@@ -19731,12 +17982,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Medical Clearance Expiry'**
   String get divers_edit_medicalClearanceTitle;
-
-  /// No description provided for @divers_edit_medicalInfoSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Medical Information'**
-  String get divers_edit_medicalInfoSection;
 
   /// No description provided for @divers_edit_medicalNotesLabel.
   ///
@@ -19773,18 +18018,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notes'**
   String get divers_edit_notesLabel;
-
-  /// No description provided for @divers_edit_notesSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Notes'**
-  String get divers_edit_notesSection;
-
-  /// No description provided for @divers_edit_personalInfoSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Personal Information'**
-  String get divers_edit_personalInfoSection;
 
   /// No description provided for @divers_edit_phoneLabel.
   ///
@@ -19839,78 +18072,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select medical clearance date'**
   String get divers_edit_selectMedicalClearanceTooltip;
-
-  /// No description provided for @divers_edit_updateButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Update Diver'**
-  String get divers_edit_updateButton;
-
-  /// No description provided for @divers_list_addDiverTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a new diver profile'**
-  String get divers_list_addDiverTooltip;
-
-  /// No description provided for @divers_list_appBarTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Diver Profiles'**
-  String get divers_list_appBarTitle;
-
-  /// No description provided for @divers_list_compactTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Divers'**
-  String get divers_list_compactTitle;
-
-  /// No description provided for @divers_list_diverStats.
-  ///
-  /// In en, this message translates to:
-  /// **'{diveCount} dives{bottomTime}'**
-  String divers_list_diverStats(Object diveCount, Object bottomTime);
-
-  /// No description provided for @divers_list_emptySubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Add diver profiles to track dive logs for multiple people'**
-  String get divers_list_emptySubtitle;
-
-  /// No description provided for @divers_list_emptyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'No divers yet'**
-  String get divers_list_emptyTitle;
-
-  /// No description provided for @divers_list_errorLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading divers: {error}'**
-  String divers_list_errorLoading(Object error);
-
-  /// No description provided for @divers_list_errorLoadingStats.
-  ///
-  /// In en, this message translates to:
-  /// **'Error loading stats'**
-  String get divers_list_errorLoadingStats;
-
-  /// No description provided for @divers_list_loadingStats.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading...'**
-  String get divers_list_loadingStats;
-
-  /// No description provided for @divers_list_retryButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Retry'**
-  String get divers_list_retryButton;
-
-  /// No description provided for @divers_list_viewDiverLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'View diver {name}'**
-  String divers_list_viewDiverLabel(Object name);
 
   /// No description provided for @divers_detail_deleteDialogConfirmHint.
   ///
@@ -19983,24 +18144,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'0-300m (0-984ft)'**
   String get enum_altitudeGroup_seaLevel_range;
-
-  /// No description provided for @enum_ascentRate_danger.
-  ///
-  /// In en, this message translates to:
-  /// **'Danger'**
-  String get enum_ascentRate_danger;
-
-  /// No description provided for @enum_ascentRate_safe.
-  ///
-  /// In en, this message translates to:
-  /// **'Safe'**
-  String get enum_ascentRate_safe;
-
-  /// No description provided for @enum_ascentRate_warning.
-  ///
-  /// In en, this message translates to:
-  /// **'Warning'**
-  String get enum_ascentRate_warning;
 
   /// No description provided for @enum_certificationAgency_bsac.
   ///
@@ -20482,90 +18625,6 @@ abstract class AppLocalizations {
   /// **'Semi-Closed Rebreather'**
   String get enum_diveMode_scr;
 
-  /// No description provided for @enum_diveType_altitude.
-  ///
-  /// In en, this message translates to:
-  /// **'Altitude'**
-  String get enum_diveType_altitude;
-
-  /// No description provided for @enum_diveType_boat.
-  ///
-  /// In en, this message translates to:
-  /// **'Boat'**
-  String get enum_diveType_boat;
-
-  /// No description provided for @enum_diveType_cave.
-  ///
-  /// In en, this message translates to:
-  /// **'Cave'**
-  String get enum_diveType_cave;
-
-  /// No description provided for @enum_diveType_deep.
-  ///
-  /// In en, this message translates to:
-  /// **'Deep'**
-  String get enum_diveType_deep;
-
-  /// No description provided for @enum_diveType_drift.
-  ///
-  /// In en, this message translates to:
-  /// **'Drift'**
-  String get enum_diveType_drift;
-
-  /// No description provided for @enum_diveType_freedive.
-  ///
-  /// In en, this message translates to:
-  /// **'Freedive'**
-  String get enum_diveType_freedive;
-
-  /// No description provided for @enum_diveType_ice.
-  ///
-  /// In en, this message translates to:
-  /// **'Ice'**
-  String get enum_diveType_ice;
-
-  /// No description provided for @enum_diveType_liveaboard.
-  ///
-  /// In en, this message translates to:
-  /// **'Liveaboard'**
-  String get enum_diveType_liveaboard;
-
-  /// No description provided for @enum_diveType_night.
-  ///
-  /// In en, this message translates to:
-  /// **'Night'**
-  String get enum_diveType_night;
-
-  /// No description provided for @enum_diveType_recreational.
-  ///
-  /// In en, this message translates to:
-  /// **'Recreational'**
-  String get enum_diveType_recreational;
-
-  /// No description provided for @enum_diveType_shore.
-  ///
-  /// In en, this message translates to:
-  /// **'Shore'**
-  String get enum_diveType_shore;
-
-  /// No description provided for @enum_diveType_technical.
-  ///
-  /// In en, this message translates to:
-  /// **'Technical'**
-  String get enum_diveType_technical;
-
-  /// No description provided for @enum_diveType_training.
-  ///
-  /// In en, this message translates to:
-  /// **'Training'**
-  String get enum_diveType_training;
-
-  /// No description provided for @enum_diveType_wreck.
-  ///
-  /// In en, this message translates to:
-  /// **'Wreck'**
-  String get enum_diveType_wreck;
-
   /// No description provided for @enum_entryMethod_backRoll.
   ///
   /// In en, this message translates to:
@@ -20920,12 +18979,6 @@ abstract class AppLocalizations {
   /// **'Alert'**
   String get enum_eventSeverity_alert;
 
-  /// No description provided for @enum_eventSeverity_info.
-  ///
-  /// In en, this message translates to:
-  /// **'Info'**
-  String get enum_eventSeverity_info;
-
   /// No description provided for @enum_eventSeverity_warning.
   ///
   /// In en, this message translates to:
@@ -20955,54 +19008,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'8.5 x 11 in'**
   String get enum_pdfPageSize_letter_description;
-
-  /// No description provided for @enum_pdfTemplate_detailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Detailed'**
-  String get enum_pdfTemplate_detailed;
-
-  /// No description provided for @enum_pdfTemplate_detailed_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Full dive information with notes and ratings'**
-  String get enum_pdfTemplate_detailed_description;
-
-  /// No description provided for @enum_pdfTemplate_nauiStyle.
-  ///
-  /// In en, this message translates to:
-  /// **'NAUI Style'**
-  String get enum_pdfTemplate_nauiStyle;
-
-  /// No description provided for @enum_pdfTemplate_nauiStyle_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Layout matching NAUI logbook format'**
-  String get enum_pdfTemplate_nauiStyle_description;
-
-  /// No description provided for @enum_pdfTemplate_padiStyle.
-  ///
-  /// In en, this message translates to:
-  /// **'PADI Style'**
-  String get enum_pdfTemplate_padiStyle;
-
-  /// No description provided for @enum_pdfTemplate_padiStyle_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Layout matching PADI logbook format'**
-  String get enum_pdfTemplate_padiStyle_description;
-
-  /// No description provided for @enum_pdfTemplate_simple.
-  ///
-  /// In en, this message translates to:
-  /// **'Simple'**
-  String get enum_pdfTemplate_simple;
-
-  /// No description provided for @enum_pdfTemplate_simple_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Compact table format, many dives per page'**
-  String get enum_pdfTemplate_simple_description;
 
   /// No description provided for @enum_profileEvent_alert.
   ///
@@ -21358,66 +19363,6 @@ abstract class AppLocalizations {
   /// **'PASCR'**
   String get enum_scrType_pascr_short;
 
-  /// No description provided for @enum_serviceType_annual.
-  ///
-  /// In en, this message translates to:
-  /// **'Annual Service'**
-  String get enum_serviceType_annual;
-
-  /// No description provided for @enum_serviceType_calibration.
-  ///
-  /// In en, this message translates to:
-  /// **'Calibration'**
-  String get enum_serviceType_calibration;
-
-  /// No description provided for @enum_serviceType_cleaning.
-  ///
-  /// In en, this message translates to:
-  /// **'Cleaning'**
-  String get enum_serviceType_cleaning;
-
-  /// No description provided for @enum_serviceType_inspection.
-  ///
-  /// In en, this message translates to:
-  /// **'Inspection'**
-  String get enum_serviceType_inspection;
-
-  /// No description provided for @enum_serviceType_other.
-  ///
-  /// In en, this message translates to:
-  /// **'Other'**
-  String get enum_serviceType_other;
-
-  /// No description provided for @enum_serviceType_overhaul.
-  ///
-  /// In en, this message translates to:
-  /// **'Overhaul'**
-  String get enum_serviceType_overhaul;
-
-  /// No description provided for @enum_serviceType_recall.
-  ///
-  /// In en, this message translates to:
-  /// **'Recall/Safety'**
-  String get enum_serviceType_recall;
-
-  /// No description provided for @enum_serviceType_repair.
-  ///
-  /// In en, this message translates to:
-  /// **'Repair'**
-  String get enum_serviceType_repair;
-
-  /// No description provided for @enum_serviceType_replacement.
-  ///
-  /// In en, this message translates to:
-  /// **'Part Replacement'**
-  String get enum_serviceType_replacement;
-
-  /// No description provided for @enum_serviceType_warranty.
-  ///
-  /// In en, this message translates to:
-  /// **'Warranty Service'**
-  String get enum_serviceType_warranty;
-
   /// No description provided for @enum_sortDirection_ascending.
   ///
   /// In en, this message translates to:
@@ -21471,12 +19416,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive Number'**
   String get enum_sortField_diveNumber;
-
-  /// No description provided for @enum_sortField_duration.
-  ///
-  /// In en, this message translates to:
-  /// **'Duration'**
-  String get enum_sortField_duration;
 
   /// No description provided for @enum_sortField_endDate.
   ///
@@ -23524,18 +21463,6 @@ abstract class AppLocalizations {
   /// **'Brand'**
   String get equipment_detail_brandLabel;
 
-  /// No description provided for @equipment_detail_daysOverdue.
-  ///
-  /// In en, this message translates to:
-  /// **'{days} days overdue'**
-  String equipment_detail_daysOverdue(Object days);
-
-  /// No description provided for @equipment_detail_daysUntilService.
-  ///
-  /// In en, this message translates to:
-  /// **'{days} days until service'**
-  String equipment_detail_daysUntilService(Object days);
-
   /// No description provided for @equipment_detail_detailsTitle.
   ///
   /// In en, this message translates to:
@@ -23656,12 +21583,6 @@ abstract class AppLocalizations {
   /// **'Installed in'**
   String get equipment_detail_installedInLabel;
 
-  /// No description provided for @equipment_detail_lastServiceLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Last Service'**
-  String get equipment_detail_lastServiceLabel;
-
   /// No description provided for @equipment_detail_loadingTitle.
   ///
   /// In en, this message translates to:
@@ -23673,12 +21594,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Model'**
   String get equipment_detail_modelLabel;
-
-  /// No description provided for @equipment_detail_nextServiceDueLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Next Service Due'**
-  String get equipment_detail_nextServiceDueLabel;
 
   /// No description provided for @equipment_detail_notFoundMessage.
   ///
@@ -23733,12 +21648,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Serial Number'**
   String get equipment_detail_serialNumberLabel;
-
-  /// No description provided for @equipment_detail_serviceInfoTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Service Information'**
-  String get equipment_detail_serviceInfoTitle;
 
   /// No description provided for @equipment_serviceClocks_title.
   ///
@@ -23818,18 +21727,6 @@ abstract class AppLocalizations {
   /// **'Counting since {date}'**
   String equipment_serviceClocks_countingSince(String date);
 
-  /// No description provided for @equipment_serviceClocks_overdue.
-  ///
-  /// In en, this message translates to:
-  /// **'Overdue'**
-  String get equipment_serviceClocks_overdue;
-
-  /// No description provided for @equipment_serviceClocks_divesLeft.
-  ///
-  /// In en, this message translates to:
-  /// **'{remaining} of {total} dives left'**
-  String equipment_serviceClocks_divesLeft(int remaining, int total);
-
   /// No description provided for @equipment_serviceClocks_divesUsedAndLeft.
   ///
   /// In en, this message translates to:
@@ -23906,12 +21803,6 @@ abstract class AppLocalizations {
   /// **'Role'**
   String get cylinderConfigs_role;
 
-  /// No description provided for @cylinderConfigs_startPressure.
-  ///
-  /// In en, this message translates to:
-  /// **'Start pressure'**
-  String get cylinderConfigs_startPressure;
-
   /// No description provided for @cylinderConfigs_label.
   ///
   /// In en, this message translates to:
@@ -23923,18 +21814,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'From preset'**
   String get cylinderConfigs_fromPreset;
-
-  /// No description provided for @cylinderConfigs_deleteTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete configuration?'**
-  String get cylinderConfigs_deleteTitle;
-
-  /// No description provided for @cylinderConfigs_deleteBody.
-  ///
-  /// In en, this message translates to:
-  /// **'This does not change any dive it was already applied to.'**
-  String get cylinderConfigs_deleteBody;
 
   /// No description provided for @cylinderConfigs_applyAction.
   ///
@@ -24032,12 +21911,6 @@ abstract class AppLocalizations {
   /// **'Counted from logged dive time'**
   String get equipment_serviceClocks_hoursSource;
 
-  /// No description provided for @equipment_serviceClocks_hoursLeft.
-  ///
-  /// In en, this message translates to:
-  /// **'{remaining} of {total} hours left'**
-  String equipment_serviceClocks_hoursLeft(String remaining, String total);
-
   /// No description provided for @equipment_serviceClocks_hoursUsedAndLeft.
   ///
   /// In en, this message translates to:
@@ -24047,12 +21920,6 @@ abstract class AppLocalizations {
     String remaining,
     String total,
   );
-
-  /// No description provided for @equipment_serviceClocks_saltHoursLeft.
-  ///
-  /// In en, this message translates to:
-  /// **'{remaining} of {total} salt-water hours left'**
-  String equipment_serviceClocks_saltHoursLeft(String remaining, String total);
 
   /// No description provided for @equipment_serviceClocks_saltHoursUsedAndLeft.
   ///
@@ -24064,12 +21931,6 @@ abstract class AppLocalizations {
     String total,
   );
 
-  /// No description provided for @equipment_serviceClocks_coldDivesLeft.
-  ///
-  /// In en, this message translates to:
-  /// **'{remaining} of {total} cold dives left'**
-  String equipment_serviceClocks_coldDivesLeft(String remaining, String total);
-
   /// No description provided for @equipment_serviceClocks_coldDivesUsedAndLeft.
   ///
   /// In en, this message translates to:
@@ -24079,12 +21940,6 @@ abstract class AppLocalizations {
     String remaining,
     String total,
   );
-
-  /// No description provided for @equipment_serviceClocks_o2HoursLeft.
-  ///
-  /// In en, this message translates to:
-  /// **'{remaining} of {total} high-O2 hours left'**
-  String equipment_serviceClocks_o2HoursLeft(String remaining, String total);
 
   /// No description provided for @equipment_serviceClocks_o2HoursUsedAndLeft.
   ///
@@ -24096,12 +21951,6 @@ abstract class AppLocalizations {
     String total,
   );
 
-  /// No description provided for @equipment_serviceClocks_deepCyclesLeft.
-  ///
-  /// In en, this message translates to:
-  /// **'{remaining} of {total} deep dives left'**
-  String equipment_serviceClocks_deepCyclesLeft(String remaining, String total);
-
   /// No description provided for @equipment_serviceClocks_deepCyclesUsedAndLeft.
   ///
   /// In en, this message translates to:
@@ -24111,12 +21960,6 @@ abstract class AppLocalizations {
     String remaining,
     String total,
   );
-
-  /// No description provided for @equipment_serviceClocks_cyclesLeft.
-  ///
-  /// In en, this message translates to:
-  /// **'{remaining} of {total} battery cycles left'**
-  String equipment_serviceClocks_cyclesLeft(String remaining, String total);
 
   /// No description provided for @equipment_serviceClocks_cyclesUsedAndLeft.
   ///
@@ -24133,18 +21976,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manage service types'**
   String get equipment_serviceClocks_manageKinds;
-
-  /// No description provided for @equipment_serviceClocks_appliesToClock.
-  ///
-  /// In en, this message translates to:
-  /// **'Applies to clock'**
-  String get equipment_serviceClocks_appliesToClock;
-
-  /// No description provided for @equipment_serviceClocks_noClockOption.
-  ///
-  /// In en, this message translates to:
-  /// **'Not tied to a clock'**
-  String get equipment_serviceClocks_noClockOption;
 
   /// No description provided for @equipment_scheduleDialog_title.
   ///
@@ -24344,30 +22175,6 @@ abstract class AppLocalizations {
   /// **'every {hours} hours'**
   String equipment_serviceKinds_everyHours(String hours);
 
-  /// No description provided for @dashboard_serviceDue_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Service due'**
-  String get dashboard_serviceDue_title;
-
-  /// No description provided for @dashboard_serviceDue_more.
-  ///
-  /// In en, this message translates to:
-  /// **'+{count} more'**
-  String dashboard_serviceDue_more(int count);
-
-  /// No description provided for @dashboard_alerts_clockDue.
-  ///
-  /// In en, this message translates to:
-  /// **'{name}: {kind} due'**
-  String dashboard_alerts_clockDue(String name, String kind);
-
-  /// No description provided for @dashboard_alerts_clockOverdue.
-  ///
-  /// In en, this message translates to:
-  /// **'{name}: {kind} overdue'**
-  String dashboard_alerts_clockOverdue(String name, String kind);
-
   /// No description provided for @trips_gearAlerts_count.
   ///
   /// In en, this message translates to:
@@ -24452,35 +22259,11 @@ abstract class AppLocalizations {
   /// **'{days} days before a trip'**
   String settings_notifications_tripLeadDays(int days);
 
-  /// No description provided for @equipment_detail_serviceIntervalLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Service Interval'**
-  String get equipment_detail_serviceIntervalLabel;
-
-  /// No description provided for @equipment_detail_serviceIntervalValue.
-  ///
-  /// In en, this message translates to:
-  /// **'{days} days'**
-  String equipment_detail_serviceIntervalValue(Object days);
-
   /// Tooltip on a tag chip on equipment detail; tapping it opens the equipment list filtered to that tag
   ///
   /// In en, this message translates to:
   /// **'Show equipment with {name}'**
   String equipment_detail_showEquipmentWith(String name);
-
-  /// No description provided for @equipment_detail_sizeLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Size'**
-  String get equipment_detail_sizeLabel;
-
-  /// No description provided for @equipment_detail_thicknessLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Thickness'**
-  String get equipment_detail_thicknessLabel;
 
   /// No description provided for @equipment_detail_statusLabel.
   ///
@@ -24644,12 +22427,6 @@ abstract class AppLocalizations {
   /// **'Error'**
   String get equipment_edit_errorTitle;
 
-  /// No description provided for @equipment_edit_lastServiceDateLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Last Service Date'**
-  String get equipment_edit_lastServiceDateLabel;
-
   /// No description provided for @equipment_edit_loadingTitle.
   ///
   /// In en, this message translates to:
@@ -24782,36 +22559,6 @@ abstract class AppLocalizations {
   /// **'Serial Number'**
   String get equipment_edit_serialNumberLabel;
 
-  /// No description provided for @equipment_edit_serviceIntervalHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., 365 for yearly'**
-  String get equipment_edit_serviceIntervalHint;
-
-  /// No description provided for @equipment_edit_serviceIntervalLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Service Interval (days)'**
-  String get equipment_edit_serviceIntervalLabel;
-
-  /// No description provided for @equipment_edit_serviceSettingsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Service Settings'**
-  String get equipment_edit_serviceSettingsTitle;
-
-  /// No description provided for @equipment_edit_sizeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., M, L, 42'**
-  String get equipment_edit_sizeHint;
-
-  /// No description provided for @equipment_edit_sizeLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Size'**
-  String get equipment_edit_sizeLabel;
-
   /// No description provided for @equipment_edit_snackbar_added.
   ///
   /// In en, this message translates to:
@@ -24865,18 +22612,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g., shop.example.com/product'**
   String get equipment_edit_webLinkHint;
-
-  /// No description provided for @equipment_edit_thicknessHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., 5mm, 7mm'**
-  String get equipment_edit_thicknessHint;
-
-  /// No description provided for @equipment_edit_thicknessLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Thickness'**
-  String get equipment_edit_thicknessLabel;
 
   /// No description provided for @equipment_edit_typeLabel.
   ///
@@ -25154,12 +22889,6 @@ abstract class AppLocalizations {
   /// **'Search Equipment'**
   String get equipment_list_searchTooltip;
 
-  /// No description provided for @equipment_list_setsTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment Sets'**
-  String get equipment_list_setsTooltip;
-
   /// No description provided for @equipment_list_sortTitle.
   ///
   /// In en, this message translates to:
@@ -25172,41 +22901,11 @@ abstract class AppLocalizations {
   /// **'Sort'**
   String get equipment_list_sortTooltip;
 
-  /// No description provided for @equipment_list_tile_daysCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{days} days'**
-  String equipment_list_tile_daysCount(Object days);
-
-  /// No description provided for @equipment_list_tile_serviceInDays.
-  ///
-  /// In en, this message translates to:
-  /// **'{days, plural, =1{Service in 1 day} other{Service in {days} days}}'**
-  String equipment_list_tile_serviceInDays(int days);
-
-  /// No description provided for @equipment_list_tile_serviceDueChip.
-  ///
-  /// In en, this message translates to:
-  /// **'Service Due'**
-  String get equipment_list_tile_serviceDueChip;
-
-  /// No description provided for @equipment_list_tile_serviceIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Service in'**
-  String get equipment_list_tile_serviceIn;
-
   /// No description provided for @equipment_menu_delete.
   ///
   /// In en, this message translates to:
   /// **'Delete'**
   String get equipment_menu_delete;
-
-  /// No description provided for @equipment_menu_markAsServiced.
-  ///
-  /// In en, this message translates to:
-  /// **'Mark as Serviced'**
-  String get equipment_menu_markAsServiced;
 
   /// No description provided for @equipment_menu_reactivate.
   ///
@@ -26063,12 +23762,6 @@ abstract class AppLocalizations {
   /// **'{count} items'**
   String equipment_sets_itemCountPlural(Object count);
 
-  /// No description provided for @equipment_sets_itemCountSemanticLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} in set'**
-  String equipment_sets_itemCountSemanticLabel(Object count);
-
   /// No description provided for @equipment_sets_itemCountSingular.
   ///
   /// In en, this message translates to:
@@ -26086,12 +23779,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment deleted'**
   String get equipment_snackbar_deleted;
-
-  /// No description provided for @equipment_snackbar_markedAsServiced.
-  ///
-  /// In en, this message translates to:
-  /// **'Marked as serviced'**
-  String get equipment_snackbar_markedAsServiced;
 
   /// No description provided for @equipment_snackbar_reactivated.
   ///
@@ -26116,12 +23803,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Equipment'**
   String get equipment_summary_addEquipmentButton;
-
-  /// No description provided for @equipment_summary_equipmentSetsButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment Sets'**
-  String get equipment_summary_equipmentSetsButton;
 
   /// No description provided for @equipment_summary_overviewTitle.
   ///
@@ -26200,12 +23881,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sets'**
   String get equipment_tab_sets;
-
-  /// Prefix for approximate values, e.g. ~80 cuft
-  ///
-  /// In en, this message translates to:
-  /// **'~'**
-  String get formatter_approximate_prefix;
 
   /// Connector word between date and time, e.g. 'Jan 15 at 2:30 PM'
   ///
@@ -26417,23 +24092,11 @@ abstract class AppLocalizations {
   /// **'Tx 21/35'**
   String get gas_tmx2135_displayName;
 
-  /// No description provided for @gasCalculators_bestMix_bestOxygenMix.
-  ///
-  /// In en, this message translates to:
-  /// **'Best Oxygen Mix'**
-  String get gasCalculators_bestMix_bestOxygenMix;
-
   /// No description provided for @gasCalculators_bestMix_commonMixesRef.
   ///
   /// In en, this message translates to:
   /// **'Common Mixes Reference'**
   String get gasCalculators_bestMix_commonMixesRef;
-
-  /// No description provided for @gasCalculators_bestMix_exceedsAirMod.
-  ///
-  /// In en, this message translates to:
-  /// **'Air MOD exceeded at ppO₂ {ppO2}'**
-  String gasCalculators_bestMix_exceedsAirMod(Object ppO2);
 
   /// No description provided for @gasCalculators_bestMix_targetDepth.
   ///
@@ -27000,12 +24663,6 @@ abstract class AppLocalizations {
   /// **'Trimix blender'**
   String get gasCalculators_tab_blender;
 
-  /// No description provided for @gasCalculators_blender_cylinder.
-  ///
-  /// In en, this message translates to:
-  /// **'Cylinder'**
-  String get gasCalculators_blender_cylinder;
-
   /// No description provided for @gasCalculators_blender_startCylinder.
   ///
   /// In en, this message translates to:
@@ -27060,12 +24717,6 @@ abstract class AppLocalizations {
   /// **'Topup'**
   String get gasCalculators_blender_topup;
 
-  /// No description provided for @gasCalculators_blender_purity.
-  ///
-  /// In en, this message translates to:
-  /// **'Purity'**
-  String get gasCalculators_blender_purity;
-
   /// Accessibility label for the move-up button on a fill-gas role row.
   ///
   /// In en, this message translates to:
@@ -27119,28 +24770,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name}: {mix}'**
   String gasCalculators_blender_filledFrom(String name, String mix);
-
-  /// No description provided for @gasCalculators_blender_amounts.
-  ///
-  /// In en, this message translates to:
-  /// **'Gas to add'**
-  String get gasCalculators_blender_amounts;
-
-  /// No description provided for @gasCalculators_blender_stepStart.
-  ///
-  /// In en, this message translates to:
-  /// **'Start with {pressure} {gas}'**
-  String gasCalculators_blender_stepStart(String pressure, String gas);
-
-  /// No description provided for @gasCalculators_blender_stepFill.
-  ///
-  /// In en, this message translates to:
-  /// **'Fill {gas} to {pressure} → {mix}'**
-  String gasCalculators_blender_stepFill(
-    String gas,
-    String pressure,
-    String mix,
-  );
 
   /// No description provided for @gasCalculators_blender_error_targetPressure.
   ///
@@ -27346,12 +24975,6 @@ abstract class AppLocalizations {
   /// **'Save current mix'**
   String get gasCalculators_blender_saveTemplate;
 
-  /// No description provided for @gasCalculators_blender_manageTemplates.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage templates'**
-  String get gasCalculators_blender_manageTemplates;
-
   /// No description provided for @gasCalculators_blender_templateSaved.
   ///
   /// In en, this message translates to:
@@ -27430,18 +25053,6 @@ abstract class AppLocalizations {
   /// **'Price per 100 {unit}'**
   String gasCalculators_blender_unitPrice(String unit);
 
-  /// No description provided for @gasCalculators_blender_currency.
-  ///
-  /// In en, this message translates to:
-  /// **'Currency'**
-  String get gasCalculators_blender_currency;
-
-  /// No description provided for @gasCalculators_blender_currencyFollowsUnits.
-  ///
-  /// In en, this message translates to:
-  /// **'Follows Settings > Units > Default currency'**
-  String get gasCalculators_blender_currencyFollowsUnits;
-
   /// No description provided for @gasCalculators_blender_manageCylinderSizes.
   ///
   /// In en, this message translates to:
@@ -27519,12 +25130,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{gas} hose purge'**
   String gasCalculators_blender_flushFeeLine(String gas);
-
-  /// No description provided for @gasCalculators_blender_billed.
-  ///
-  /// In en, this message translates to:
-  /// **'Billed'**
-  String get gasCalculators_blender_billed;
 
   /// No description provided for @gasCalculators_blender_billedDate.
   ///
@@ -27813,12 +25418,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This cannot be undone.'**
   String get gasCalculators_blender_invoiceArchiveDeleteBody;
-
-  /// No description provided for @gasCalculators_blender_defaults.
-  ///
-  /// In en, this message translates to:
-  /// **'Default settings and billing'**
-  String get gasCalculators_blender_defaults;
 
   /// No description provided for @gasCalculators_tab_mod.
   ///
@@ -28319,12 +25918,6 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get marineLife_speciesManage_cancelButton;
 
-  /// No description provided for @marineLife_speciesManage_cannotDeleteInUse.
-  ///
-  /// In en, this message translates to:
-  /// **'Cannot delete \"{name}\" - it has sightings'**
-  String marineLife_speciesManage_cannotDeleteInUse(Object name);
-
   /// No description provided for @marineLife_speciesManage_clearSearchTooltip.
   ///
   /// In en, this message translates to:
@@ -28343,41 +25936,17 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get marineLife_speciesManage_deleteButton;
 
-  /// No description provided for @marineLife_speciesManage_deleteDialogContent.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to delete \"{name}\"?'**
-  String marineLife_speciesManage_deleteDialogContent(Object name);
-
-  /// No description provided for @marineLife_speciesManage_deleteDialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Species?'**
-  String get marineLife_speciesManage_deleteDialogTitle;
-
   /// No description provided for @marineLife_speciesManage_deleteTooltip.
   ///
   /// In en, this message translates to:
   /// **'Delete species'**
   String get marineLife_speciesManage_deleteTooltip;
 
-  /// No description provided for @marineLife_speciesManage_deletedSnackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Deleted \"{name}\"'**
-  String marineLife_speciesManage_deletedSnackbar(Object name);
-
   /// No description provided for @marineLife_speciesManage_editTooltip.
   ///
   /// In en, this message translates to:
   /// **'Edit species'**
   String get marineLife_speciesManage_editTooltip;
-
-  /// No description provided for @marineLife_speciesManage_errorDeleting.
-  ///
-  /// In en, this message translates to:
-  /// **'Error deleting species: {error}'**
-  String marineLife_speciesManage_errorDeleting(Object error);
 
   /// No description provided for @marineLife_speciesManage_errorResetting.
   ///
@@ -28841,12 +26410,6 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get media_diveMediaSection_cancelButton;
 
-  /// No description provided for @media_diveMediaSection_cancelSelectionButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get media_diveMediaSection_cancelSelectionButton;
-
   /// No description provided for @media_diveMediaSection_emptyState.
   ///
   /// In en, this message translates to:
@@ -28858,18 +26421,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error loading media'**
   String get media_diveMediaSection_errorLoading;
-
-  /// No description provided for @media_diveMediaSection_selectAllButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Select All'**
-  String get media_diveMediaSection_selectAllButton;
-
-  /// No description provided for @media_diveMediaSection_selectedCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} selected'**
-  String media_diveMediaSection_selectedCount(int count);
 
   /// No description provided for @media_diveMediaSection_thumbnailLabel.
   ///
@@ -29087,12 +26638,6 @@ abstract class AppLocalizations {
   /// **'Error scanning gallery: {error}'**
   String media_diveScan_error(String error);
 
-  /// No description provided for @media_gpsBanner_addToSiteButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Add to Site'**
-  String get media_gpsBanner_addToSiteButton;
-
   /// No description provided for @media_gpsBanner_coordinates.
   ///
   /// In en, this message translates to:
@@ -29122,12 +26667,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Review sites'**
   String get mediaImport_reviewSitesAction;
-
-  /// No description provided for @media_gpsBanner_title.
-  ///
-  /// In en, this message translates to:
-  /// **'GPS found in photos'**
-  String get media_gpsBanner_title;
 
   /// No description provided for @media_import_failedToImport.
   ///
@@ -29630,12 +27169,6 @@ abstract class AppLocalizations {
   /// **'Error loading photos: {error}'**
   String media_photoViewer_errorLoadingPhotos(Object error);
 
-  /// No description provided for @media_photoViewer_failedToLoadImage.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load image'**
-  String get media_photoViewer_failedToLoadImage;
-
   /// No description provided for @media_photoViewer_failedToLoadVideo.
   ///
   /// In en, this message translates to:
@@ -29863,12 +27396,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t connect'**
   String get media_unavailablePlaceholder_networkError;
-
-  /// No description provided for @media_unavailablePlaceholder_notOnDevice.
-  ///
-  /// In en, this message translates to:
-  /// **'Not on this device'**
-  String get media_unavailablePlaceholder_notOnDevice;
 
   /// No description provided for @media_unavailablePlaceholder_signInRequired.
   ///
@@ -30242,12 +27769,6 @@ abstract class AppLocalizations {
   /// **'Name this album'**
   String get media_smartAlbum_saveTitle;
 
-  /// Filter bar: smart album menu
-  ///
-  /// In en, this message translates to:
-  /// **'Albums'**
-  String get media_smartAlbum_albums;
-
   /// Filter bar: remove a smart album
   ///
   /// In en, this message translates to:
@@ -30535,12 +28056,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlink'**
   String get media_library_unlinkSelected;
-
-  /// Selection bar count label
-  ///
-  /// In en, this message translates to:
-  /// **'{count} selected'**
-  String media_library_selectedCount(int count);
 
   /// By-dive view header for media attached to no dive
   ///
@@ -31220,12 +28735,6 @@ abstract class AppLocalizations {
   /// **'Planning'**
   String get planning_appBar_title;
 
-  /// No description provided for @planning_card_decoCalculator_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Calculate no-decompression limits, required deco stops, and CNS/OTU exposure for multi-level dive profiles.'**
-  String get planning_card_decoCalculator_description;
-
   /// No description provided for @planning_card_decoCalculator_subtitle.
   ///
   /// In en, this message translates to:
@@ -31237,12 +28746,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deco Calculator'**
   String get planning_card_decoCalculator_title;
-
-  /// No description provided for @planning_card_divePlanner_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Plan complex dives with multiple depth levels, gas switches, and automatic decompression stop calculations.'**
-  String get planning_card_divePlanner_description;
 
   /// No description provided for @planning_card_divePlanner_subtitle.
   ///
@@ -31256,12 +28759,6 @@ abstract class AppLocalizations {
   /// **'Dive Planner'**
   String get planning_card_divePlanner_title;
 
-  /// No description provided for @planning_card_gasCalculators_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Four specialized gas calculators: • MOD - Maximum operating depth for a gas mix • Best Mix - Ideal O₂% for a target depth • Consumption - Gas usage estimation • Rock Bottom - Emergency reserve calculation'**
-  String get planning_card_gasCalculators_description;
-
   /// No description provided for @planning_card_gasCalculators_subtitle.
   ///
   /// In en, this message translates to:
@@ -31274,12 +28771,6 @@ abstract class AppLocalizations {
   /// **'Gas Calculators'**
   String get planning_card_gasCalculators_title;
 
-  /// No description provided for @planning_card_surfaceInterval_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Calculate the minimum surface interval needed between dives based on tissue loading. Visualize how your 16 tissue compartments off-gas over time.'**
-  String get planning_card_surfaceInterval_description;
-
   /// No description provided for @planning_card_surfaceInterval_subtitle.
   ///
   /// In en, this message translates to:
@@ -31291,12 +28782,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Surface Interval'**
   String get planning_card_surfaceInterval_title;
-
-  /// No description provided for @planning_card_weightCalculator_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Estimate the weight you need based on your exposure suit, tank material, water type, and body weight.'**
-  String get planning_card_weightCalculator_description;
 
   /// No description provided for @planning_card_weightCalculator_subtitle.
   ///
@@ -31315,12 +28800,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These tools are for planning purposes only. Always verify calculations and follow your dive training.'**
   String get planning_info_disclaimer;
-
-  /// No description provided for @planning_newPlan.
-  ///
-  /// In en, this message translates to:
-  /// **'New plan'**
-  String get planning_newPlan;
 
   /// No description provided for @planning_section_tools.
   ///
@@ -31345,120 +28824,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No saved plans yet'**
   String get planning_summary_noPlans;
-
-  /// No description provided for @planning_sidebar_appBar_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Planning'**
-  String get planning_sidebar_appBar_title;
-
-  /// No description provided for @planning_sidebar_decoCalculator_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'NDL & deco stops'**
-  String get planning_sidebar_decoCalculator_subtitle;
-
-  /// No description provided for @planning_sidebar_decoCalculator_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Deco Calculator'**
-  String get planning_sidebar_decoCalculator_title;
-
-  /// No description provided for @planning_sidebar_divePlanner_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Multi-level dive plans'**
-  String get planning_sidebar_divePlanner_subtitle;
-
-  /// No description provided for @planning_sidebar_divePlanner_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Planner'**
-  String get planning_sidebar_divePlanner_title;
-
-  /// No description provided for @planning_sidebar_gasCalculators_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'MOD, Best Mix, more'**
-  String get planning_sidebar_gasCalculators_subtitle;
-
-  /// No description provided for @planning_sidebar_gasCalculators_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Gas Calculators'**
-  String get planning_sidebar_gasCalculators_title;
-
-  /// No description provided for @planning_sidebar_info_disclaimer.
-  ///
-  /// In en, this message translates to:
-  /// **'Planning tools are for reference only. Always verify calculations.'**
-  String get planning_sidebar_info_disclaimer;
-
-  /// No description provided for @planning_sidebar_surfaceInterval_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Repetitive dive planning'**
-  String get planning_sidebar_surfaceInterval_subtitle;
-
-  /// No description provided for @planning_sidebar_surfaceInterval_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Surface Interval'**
-  String get planning_sidebar_surfaceInterval_title;
-
-  /// No description provided for @planning_sidebar_weightCalculator_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Recommended weight'**
-  String get planning_sidebar_weightCalculator_subtitle;
-
-  /// No description provided for @planning_sidebar_weightCalculator_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Weight Calculator'**
-  String get planning_sidebar_weightCalculator_title;
-
-  /// No description provided for @planning_welcome_quickTips_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Quick Tips'**
-  String get planning_welcome_quickTips_title;
-
-  /// No description provided for @planning_welcome_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Select a tool from the sidebar to get started'**
-  String get planning_welcome_subtitle;
-
-  /// No description provided for @planning_welcome_tip_decoCalculator.
-  ///
-  /// In en, this message translates to:
-  /// **'Deco Calculator for NDL and stop times'**
-  String get planning_welcome_tip_decoCalculator;
-
-  /// No description provided for @planning_welcome_tip_divePlanner.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Planner for multi-level dive planning'**
-  String get planning_welcome_tip_divePlanner;
-
-  /// No description provided for @planning_welcome_tip_gasCalculators.
-  ///
-  /// In en, this message translates to:
-  /// **'Gas Calculators for MOD and gas planning'**
-  String get planning_welcome_tip_gasCalculators;
-
-  /// No description provided for @planning_welcome_tip_weightCalculator.
-  ///
-  /// In en, this message translates to:
-  /// **'Weight Calculator for buoyancy setup'**
-  String get planning_welcome_tip_weightCalculator;
-
-  /// No description provided for @planning_welcome_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Planning Tools'**
-  String get planning_welcome_title;
 
   /// No description provided for @settings_about_aboutSubmersion.
   ///
@@ -31556,18 +28921,6 @@ abstract class AppLocalizations {
   /// **'Larger'**
   String get settings_appearance_displaySize_larger;
 
-  /// No description provided for @settings_appearance_depthColoredCards.
-  ///
-  /// In en, this message translates to:
-  /// **'Depth-colored dive cards'**
-  String get settings_appearance_depthColoredCards;
-
-  /// No description provided for @settings_appearance_depthColoredCards_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Show dive cards with ocean-colored backgrounds based on depth'**
-  String get settings_appearance_depthColoredCards_subtitle;
-
   /// No description provided for @settings_appearance_cardColorAttribute.
   ///
   /// In en, this message translates to:
@@ -31603,48 +28956,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Temperature'**
   String get settings_appearance_cardColorAttribute_temperature;
-
-  /// No description provided for @settings_appearance_colorGradient.
-  ///
-  /// In en, this message translates to:
-  /// **'Color gradient'**
-  String get settings_appearance_colorGradient;
-
-  /// No description provided for @settings_appearance_colorGradient_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose the color range for card backgrounds'**
-  String get settings_appearance_colorGradient_subtitle;
-
-  /// No description provided for @settings_appearance_colorGradient_ocean.
-  ///
-  /// In en, this message translates to:
-  /// **'Ocean'**
-  String get settings_appearance_colorGradient_ocean;
-
-  /// No description provided for @settings_appearance_colorGradient_thermal.
-  ///
-  /// In en, this message translates to:
-  /// **'Thermal'**
-  String get settings_appearance_colorGradient_thermal;
-
-  /// No description provided for @settings_appearance_colorGradient_sunset.
-  ///
-  /// In en, this message translates to:
-  /// **'Sunset'**
-  String get settings_appearance_colorGradient_sunset;
-
-  /// No description provided for @settings_appearance_colorGradient_forest.
-  ///
-  /// In en, this message translates to:
-  /// **'Forest'**
-  String get settings_appearance_colorGradient_forest;
-
-  /// No description provided for @settings_appearance_colorGradient_monochrome.
-  ///
-  /// In en, this message translates to:
-  /// **'Monochrome'**
-  String get settings_appearance_colorGradient_monochrome;
 
   /// No description provided for @settings_appearance_colorGradient_custom.
   ///
@@ -31682,23 +28993,11 @@ abstract class AppLocalizations {
   /// **'Dive Details'**
   String get settings_appearance_header_diveDetails;
 
-  /// No description provided for @settings_appearance_header_diveLog.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Log'**
-  String get settings_appearance_header_diveLog;
-
   /// No description provided for @settings_appearance_header_diveProfile.
   ///
   /// In en, this message translates to:
   /// **'Dive Profile'**
   String get settings_appearance_header_diveProfile;
-
-  /// No description provided for @settings_appearance_header_diveSites.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Sites'**
-  String get settings_appearance_header_diveSites;
 
   /// No description provided for @settings_appearance_diveDetails_sectionOrderVisibility.
   ///
@@ -31988,12 +29287,6 @@ abstract class AppLocalizations {
   /// **'Safety review'**
   String get safetySettings_title;
 
-  /// No description provided for @safetySettings_entry_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Post-dive observations and rules'**
-  String get safetySettings_entry_subtitle;
-
   /// No description provided for @safetySettings_masterToggle.
   ///
   /// In en, this message translates to:
@@ -32234,12 +29527,6 @@ abstract class AppLocalizations {
   /// **'Coordinates copied to clipboard'**
   String get diveLog_detail_coordinatesCopied;
 
-  /// No description provided for @diveLog_detail_openInMaps.
-  ///
-  /// In en, this message translates to:
-  /// **'Open in Maps'**
-  String get diveLog_detail_openInMaps;
-
   /// No description provided for @diveDetailSection_weights_name.
   ///
   /// In en, this message translates to:
@@ -32347,12 +29634,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Min ditchable weight'**
   String get buoyancy_minDitchable;
-
-  /// No description provided for @buoyancy_droppable.
-  ///
-  /// In en, this message translates to:
-  /// **'You can ditch'**
-  String get buoyancy_droppable;
 
   /// No description provided for @buoyancy_ditchWarning.
   ///
@@ -32708,18 +29989,6 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get settings_appearance_header_language;
 
-  /// No description provided for @settings_appearance_header_theme.
-  ///
-  /// In en, this message translates to:
-  /// **'Color Theme'**
-  String get settings_appearance_header_theme;
-
-  /// No description provided for @settings_appearance_header_mode.
-  ///
-  /// In en, this message translates to:
-  /// **'Mode'**
-  String get settings_appearance_header_mode;
-
   /// No description provided for @settings_themes_title.
   ///
   /// In en, this message translates to:
@@ -32768,12 +30037,6 @@ abstract class AppLocalizations {
   /// **'Map background on dive cards'**
   String get settings_appearance_mapBackgroundDiveCards;
 
-  /// No description provided for @settings_appearance_mapBackgroundDiveCards_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Show dive site map as background on dive cards'**
-  String get settings_appearance_mapBackgroundDiveCards_subtitle;
-
   /// No description provided for @settings_appearance_mapBackgroundDiveCards_subtitleWithNote.
   ///
   /// In en, this message translates to:
@@ -32785,12 +30048,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Map background on site cards'**
   String get settings_appearance_mapBackgroundSiteCards;
-
-  /// No description provided for @settings_appearance_mapBackgroundSiteCards_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Show map as background on dive site cards'**
-  String get settings_appearance_mapBackgroundSiteCards_subtitle;
 
   /// No description provided for @settings_appearance_mapBackgroundSiteCards_subtitleWithNote.
   ///
@@ -32804,23 +30061,11 @@ abstract class AppLocalizations {
   /// **'Max depth marker'**
   String get settings_appearance_maxDepthMarker;
 
-  /// No description provided for @settings_appearance_maxDepthMarker_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Show a marker at the maximum depth point'**
-  String get settings_appearance_maxDepthMarker_subtitle;
-
   /// No description provided for @settings_appearance_maxDepthMarker_subtitleFull.
   ///
   /// In en, this message translates to:
   /// **'Show a marker at the maximum depth point on dive profiles'**
   String get settings_appearance_maxDepthMarker_subtitleFull;
-
-  /// No description provided for @settings_appearance_metric_ascentRateColors.
-  ///
-  /// In en, this message translates to:
-  /// **'Ascent Rate Colors'**
-  String get settings_appearance_metric_ascentRateColors;
 
   /// No description provided for @settings_appearance_metric_ceiling.
   ///
@@ -32953,12 +30198,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pressure threshold markers'**
   String get settings_appearance_pressureThresholdMarkers;
-
-  /// No description provided for @settings_appearance_pressureThresholdMarkers_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Show markers when tank pressure crosses thresholds'**
-  String get settings_appearance_pressureThresholdMarkers_subtitle;
 
   /// No description provided for @settings_appearance_pressureThresholdMarkers_subtitleFull.
   ///
@@ -33659,48 +30898,6 @@ abstract class AppLocalizations {
   /// **'S3-Compatible Storage'**
   String get settings_cloudSync_provider_s3_title;
 
-  /// No description provided for @settings_cloudSync_resetDialog_cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get settings_cloudSync_resetDialog_cancel;
-
-  /// No description provided for @settings_cloudSync_resetDialog_content.
-  ///
-  /// In en, this message translates to:
-  /// **'This will clear all sync history and start fresh. Your data will not be deleted, but you may need to resolve conflicts on the next sync.'**
-  String get settings_cloudSync_resetDialog_content;
-
-  /// No description provided for @settings_cloudSync_resetDialog_reset.
-  ///
-  /// In en, this message translates to:
-  /// **'Reset'**
-  String get settings_cloudSync_resetDialog_reset;
-
-  /// No description provided for @settings_cloudSync_resetDialog_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Reset Sync State?'**
-  String get settings_cloudSync_resetDialog_title;
-
-  /// No description provided for @settings_cloudSync_resetSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync state reset'**
-  String get settings_cloudSync_resetSuccess;
-
-  /// No description provided for @settings_cloudSync_resetSyncState.
-  ///
-  /// In en, this message translates to:
-  /// **'Reset Sync State'**
-  String get settings_cloudSync_resetSyncState;
-
-  /// No description provided for @settings_cloudSync_resetSyncState_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear sync history and start fresh'**
-  String get settings_cloudSync_resetSyncState_subtitle;
-
   /// No description provided for @settings_cloudSync_resolveConflicts.
   ///
   /// In en, this message translates to:
@@ -34223,12 +31420,6 @@ abstract class AppLocalizations {
   /// **'Create a backup of your data'**
   String get settings_data_backup_subtitle;
 
-  /// No description provided for @settings_data_cloudSync.
-  ///
-  /// In en, this message translates to:
-  /// **'Database Cloud Sync'**
-  String get settings_data_cloudSync;
-
   /// No description provided for @settings_data_customFolder.
   ///
   /// In en, this message translates to:
@@ -34240,18 +31431,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Database Storage'**
   String get settings_data_databaseStorage;
-
-  /// No description provided for @settings_data_export_completed.
-  ///
-  /// In en, this message translates to:
-  /// **'Export completed'**
-  String get settings_data_export_completed;
-
-  /// No description provided for @settings_data_export_exporting.
-  ///
-  /// In en, this message translates to:
-  /// **'Exporting...'**
-  String get settings_data_export_exporting;
 
   /// No description provided for @settings_data_export_failed.
   ///
@@ -34277,18 +31456,6 @@ abstract class AppLocalizations {
   /// **'Storage'**
   String get settings_data_header_storage;
 
-  /// No description provided for @settings_data_import_completed.
-  ///
-  /// In en, this message translates to:
-  /// **'Operation completed'**
-  String get settings_data_import_completed;
-
-  /// No description provided for @settings_data_import_failed.
-  ///
-  /// In en, this message translates to:
-  /// **'Operation failed: {error}'**
-  String settings_data_import_failed(Object error);
-
   /// No description provided for @settings_data_offlineMaps.
   ///
   /// In en, this message translates to:
@@ -34300,42 +31467,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Map tiles and 3D terrain data'**
   String get settings_data_offlineMaps_subtitle;
-
-  /// No description provided for @settings_data_restore.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore'**
-  String get settings_data_restore;
-
-  /// No description provided for @settings_data_restoreDialog_cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get settings_data_restoreDialog_cancel;
-
-  /// No description provided for @settings_data_restoreDialog_content.
-  ///
-  /// In en, this message translates to:
-  /// **'Warning: Restoring from a backup will replace ALL current data with the backup data. This action cannot be undone.  Are you sure you want to continue?'**
-  String get settings_data_restoreDialog_content;
-
-  /// No description provided for @settings_data_restoreDialog_restore.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore'**
-  String get settings_data_restoreDialog_restore;
-
-  /// No description provided for @settings_data_restoreDialog_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore Backup'**
-  String get settings_data_restoreDialog_title;
-
-  /// No description provided for @settings_data_restore_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore from backup'**
-  String get settings_data_restore_subtitle;
 
   /// No description provided for @settings_data_syncTime_daysAgo.
   ///
@@ -34360,24 +31491,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count}m ago'**
   String settings_data_syncTime_minutesAgo(Object count);
-
-  /// No description provided for @settings_data_sync_lastSynced.
-  ///
-  /// In en, this message translates to:
-  /// **'Last synced: {time}'**
-  String settings_data_sync_lastSynced(Object time);
-
-  /// No description provided for @settings_data_sync_notConfigured.
-  ///
-  /// In en, this message translates to:
-  /// **'Not configured'**
-  String get settings_data_sync_notConfigured;
-
-  /// No description provided for @settings_data_sync_syncing.
-  ///
-  /// In en, this message translates to:
-  /// **'Syncing...'**
-  String get settings_data_sync_syncing;
 
   /// No description provided for @settings_decompression_aboutContent.
   ///
@@ -35257,12 +32370,6 @@ abstract class AppLocalizations {
   /// **'Save a weighting from the dive editor, or tap + to build one here.'**
   String get weightPresets_page_empty;
 
-  /// No description provided for @weightPresets_action_rename.
-  ///
-  /// In en, this message translates to:
-  /// **'Rename'**
-  String get weightPresets_action_rename;
-
   /// No description provided for @weightPresets_action_new.
   ///
   /// In en, this message translates to:
@@ -35310,12 +32417,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This weighting rig no longer exists.'**
   String get weightPresets_editor_notFound;
-
-  /// No description provided for @weightPresets_rename_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Rename preset'**
-  String get weightPresets_rename_title;
 
   /// No description provided for @weightPresets_delete_title.
   ///
@@ -35485,35 +32586,11 @@ abstract class AppLocalizations {
   /// **'Reminder Time'**
   String get settings_notifications_reminderTime;
 
-  /// No description provided for @settings_profile_activeDiver_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Active diver - tap to switch'**
-  String get settings_profile_activeDiver_subtitle;
-
-  /// No description provided for @settings_profile_addNewDiver.
-  ///
-  /// In en, this message translates to:
-  /// **'Add New Diver'**
-  String get settings_profile_addNewDiver;
-
   /// No description provided for @settings_profile_error_loadingDiver.
   ///
   /// In en, this message translates to:
   /// **'Error loading diver'**
   String get settings_profile_error_loadingDiver;
-
-  /// No description provided for @settings_profile_header_activeDiver.
-  ///
-  /// In en, this message translates to:
-  /// **'Active Diver'**
-  String get settings_profile_header_activeDiver;
-
-  /// No description provided for @settings_profile_header_manageDivers.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage Divers'**
-  String get settings_profile_header_manageDivers;
 
   /// No description provided for @settings_profile_noDiverProfile.
   ///
@@ -35539,47 +32616,17 @@ abstract class AppLocalizations {
   /// **'Switched to {diverName}'**
   String settings_profile_switchedTo(Object diverName);
 
-  /// No description provided for @settings_profile_viewAllDivers.
-  ///
-  /// In en, this message translates to:
-  /// **'View All Divers'**
-  String get settings_profile_viewAllDivers;
-
-  /// No description provided for @settings_profile_viewAllDivers_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Add or edit diver profiles'**
-  String get settings_profile_viewAllDivers_subtitle;
-
   /// No description provided for @settings_profileHub_addNewDiver.
   ///
   /// In en, this message translates to:
   /// **'Add New Diver'**
   String get settings_profileHub_addNewDiver;
 
-  /// No description provided for @settings_profileHub_cannotDeleteOnly.
-  ///
-  /// In en, this message translates to:
-  /// **'Cannot delete the only diver profile'**
-  String get settings_profileHub_cannotDeleteOnly;
-
   /// No description provided for @settings_profileHub_createDiverTitle.
   ///
   /// In en, this message translates to:
   /// **'Create Diver'**
   String get settings_profileHub_createDiverTitle;
-
-  /// No description provided for @settings_profileHub_deleteConfirmContent.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to delete {name}? All associated dive logs will be unassigned.'**
-  String settings_profileHub_deleteConfirmContent(String name);
-
-  /// No description provided for @settings_profileHub_deleteConfirmTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Diver?'**
-  String get settings_profileHub_deleteConfirmTitle;
 
   /// No description provided for @settings_profileHub_deleteDiver.
   ///
@@ -35652,12 +32699,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Personal Info'**
   String get settings_profileHub_personalInfo;
-
-  /// No description provided for @settings_profileHub_personalInfo_notSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Not set'**
-  String get settings_profileHub_personalInfo_notSet;
 
   /// No description provided for @settings_profileHub_saved.
   ///
@@ -35935,12 +32976,6 @@ abstract class AppLocalizations {
   /// **'App Default'**
   String get settings_storage_appDefault;
 
-  /// No description provided for @settings_storage_appDefaultLocation.
-  ///
-  /// In en, this message translates to:
-  /// **'App default location'**
-  String get settings_storage_appDefaultLocation;
-
   /// No description provided for @settings_storage_appDefault_subtitle.
   ///
   /// In en, this message translates to:
@@ -35989,16 +33024,6 @@ abstract class AppLocalizations {
   /// **'App-managed cloud sync is disabled while the database sits on a device storage volume. No sync service can reach that folder on Android, so use Backup & Restore to keep copies elsewhere.'**
   String get settings_storage_customFolder_deviceOnly_noCloudSync;
 
-  /// No description provided for @settings_storage_dbStats.
-  ///
-  /// In en, this message translates to:
-  /// **'{fileSize} • {diveCount} dives • {siteCount} sites'**
-  String settings_storage_dbStats(
-    Object fileSize,
-    Object diveCount,
-    Object siteCount,
-  );
-
   /// No description provided for @settings_storage_dismissError_tooltip.
   ///
   /// In en, this message translates to:
@@ -36034,12 +33059,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading...'**
   String get settings_storage_loading;
-
-  /// No description provided for @settings_storage_migrating_doNotClose.
-  ///
-  /// In en, this message translates to:
-  /// **'Please do not close the app'**
-  String get settings_storage_migrating_doNotClose;
 
   /// No description provided for @settings_storage_migrating_movingDatabase.
   ///
@@ -36130,12 +33149,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset'**
   String get settings_storage_resetDialog_confirmButton;
-
-  /// No description provided for @settings_storage_resetDialog_backupFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup failed. Reset aborted to protect your data.'**
-  String get settings_storage_resetDialog_backupFailed;
 
   /// No description provided for @settings_storage_resetDialog_resetFailed.
   ///
@@ -37346,12 +34359,6 @@ abstract class AppLocalizations {
   /// **'No issues reported'**
   String get insights_equipment_issues_empty;
 
-  /// No description provided for @insights_equipment_countLabel_items.
-  ///
-  /// In en, this message translates to:
-  /// **'items'**
-  String get insights_equipment_countLabel_items;
-
   /// No description provided for @insights_equipment_countLabel_findings.
   ///
   /// In en, this message translates to:
@@ -37930,12 +34937,6 @@ abstract class AppLocalizations {
   /// **'No Deco'**
   String get insights_profile_deco_noDeco;
 
-  /// No description provided for @insights_profile_deco_notRecorded.
-  ///
-  /// In en, this message translates to:
-  /// **'Not Recorded'**
-  String get insights_profile_deco_notRecorded;
-
   /// No description provided for @insights_profile_deco_notRecordedHint.
   ///
   /// In en, this message translates to:
@@ -38335,18 +35336,6 @@ abstract class AppLocalizations {
   /// **'Avg Depth'**
   String get insights_summary_avgDepth;
 
-  /// No description provided for @insights_summary_avgTemp.
-  ///
-  /// In en, this message translates to:
-  /// **'Avg Temp'**
-  String get insights_summary_avgTemp;
-
-  /// No description provided for @insights_summary_depthDistribution_empty.
-  ///
-  /// In en, this message translates to:
-  /// **'Chart will appear when you log dives'**
-  String get insights_summary_depthDistribution_empty;
-
   /// No description provided for @insights_summary_depthDistribution_semanticLabel.
   ///
   /// In en, this message translates to:
@@ -38359,18 +35348,6 @@ abstract class AppLocalizations {
   /// **'Depth Distribution'**
   String get insights_summary_depthDistribution_title;
 
-  /// No description provided for @insights_summary_diveTypes_empty.
-  ///
-  /// In en, this message translates to:
-  /// **'Chart will appear when you log dives'**
-  String get insights_summary_diveTypes_empty;
-
-  /// No description provided for @insights_summary_diveTypes_moreTypes.
-  ///
-  /// In en, this message translates to:
-  /// **'and {count} more types'**
-  String insights_summary_diveTypes_moreTypes(Object count);
-
   /// No description provided for @insights_summary_diveTypes_semanticLabel.
   ///
   /// In en, this message translates to:
@@ -38382,42 +35359,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive Types'**
   String get insights_summary_diveTypes_title;
-
-  /// No description provided for @insights_summary_divesByMonth_empty.
-  ///
-  /// In en, this message translates to:
-  /// **'Chart will appear when you log dives'**
-  String get insights_summary_divesByMonth_empty;
-
-  /// No description provided for @insights_summary_divesByMonth_semanticLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Bar chart showing dives by month'**
-  String get insights_summary_divesByMonth_semanticLabel;
-
-  /// No description provided for @insights_summary_divesByMonth_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives by Month'**
-  String get insights_summary_divesByMonth_title;
-
-  /// No description provided for @insights_summary_divesByMonth_tooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'{fullLabel} {count} dives'**
-  String insights_summary_divesByMonth_tooltip(Object fullLabel, Object count);
-
-  /// No description provided for @insights_summary_header_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Select a category to explore detailed insights'**
-  String get insights_summary_header_subtitle;
-
-  /// No description provided for @insights_summary_header_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Insights Overview'**
-  String get insights_summary_header_title;
 
   /// No description provided for @insights_summary_maxDepth.
   ///
@@ -38436,60 +35377,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
   String insights_summary_tagUsage_diveCount(int count);
-
-  /// No description provided for @insights_summary_tagUsage_empty.
-  ///
-  /// In en, this message translates to:
-  /// **'No tags created yet'**
-  String get insights_summary_tagUsage_empty;
-
-  /// No description provided for @insights_summary_tagUsage_emptyHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Add tags to dives to see statistics'**
-  String get insights_summary_tagUsage_emptyHint;
-
-  /// No description provided for @insights_summary_tagUsage_moreTags.
-  ///
-  /// In en, this message translates to:
-  /// **'and {count} more tags'**
-  String insights_summary_tagUsage_moreTags(Object count);
-
-  /// No description provided for @insights_summary_tagUsage_tagCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} tags'**
-  String insights_summary_tagUsage_tagCount(Object count);
-
-  /// No description provided for @insights_summary_tagUsage_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Tag Usage'**
-  String get insights_summary_tagUsage_title;
-
-  /// No description provided for @insights_summary_topDiveSites_diveCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} dives'**
-  String insights_summary_topDiveSites_diveCount(Object count);
-
-  /// No description provided for @insights_summary_topDiveSites_empty.
-  ///
-  /// In en, this message translates to:
-  /// **'No dive sites yet'**
-  String get insights_summary_topDiveSites_empty;
-
-  /// No description provided for @insights_summary_topDiveSites_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Top Dive Sites'**
-  String get insights_summary_topDiveSites_title;
-
-  /// No description provided for @insights_summary_topDiveSites_totalCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} total'**
-  String insights_summary_topDiveSites_totalCount(Object count);
 
   /// No description provided for @insights_summary_totalDives.
   ///
@@ -38763,12 +35650,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Refresh records'**
   String get insights_tooltip_refreshRecords;
-
-  /// No description provided for @insights_tooltip_refreshInsights.
-  ///
-  /// In en, this message translates to:
-  /// **'Refresh insights'**
-  String get insights_tooltip_refreshInsights;
 
   /// No description provided for @insights_valueCard_semanticLabel.
   ///
@@ -39146,35 +36027,11 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{Add tags} =1{Add 1 tag} other{Add {count} tags}}'**
   String tags_picker_addCount(int count);
 
-  /// No description provided for @tags_action_deleteTag.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete tag'**
-  String get tags_action_deleteTag;
-
   /// Tooltip on a tag chip; tapping the chip opens the dive list filtered to that tag
   ///
   /// In en, this message translates to:
   /// **'Show dives tagged \"{tagName}\"'**
   String tags_action_showDives(String tagName);
-
-  /// No description provided for @tags_dialog_deleteMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to delete \"{tagName}\"? This will remove it from all dives.'**
-  String tags_dialog_deleteMessage(Object tagName);
-
-  /// No description provided for @tags_dialog_deleteTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Tag?'**
-  String get tags_dialog_deleteTitle;
-
-  /// No description provided for @tags_empty.
-  ///
-  /// In en, this message translates to:
-  /// **'No tags yet. Create tags when editing dives.'**
-  String get tags_empty;
 
   /// No description provided for @tags_hint_addMoreTags.
   ///
@@ -39187,12 +36044,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tags'**
   String get importWizard_tagsLabel;
-
-  /// Wizard step label for resolving photos referenced by an imported logbook
-  ///
-  /// In en, this message translates to:
-  /// **'Photos'**
-  String get importWizard_photos_stepLabel;
 
   /// Count of photos the imported logbook refers to
   ///
@@ -39314,12 +36165,6 @@ abstract class AppLocalizations {
   /// **'No tags yet. Create one to get started.'**
   String get tags_manage_emptyState;
 
-  /// No description provided for @tags_manage_selectedCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} selected'**
-  String tags_manage_selectedCount(int count);
-
   /// No description provided for @tags_manage_createTitle.
   ///
   /// In en, this message translates to:
@@ -39427,12 +36272,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use for sites'**
   String get tags_manage_useForSites;
-
-  /// No description provided for @tags_manage_nameRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Tag name is required'**
-  String get tags_manage_nameRequired;
 
   /// No description provided for @tags_manage_deleteTitle.
   ///
@@ -39653,12 +36492,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Merge'**
   String get tags_manage_mergeAction;
-
-  /// No description provided for @tags_title_manageTags.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage Tags'**
-  String get tags_title_manageTags;
 
   /// No description provided for @tank_al100_description.
   ///
@@ -40084,12 +36917,6 @@ abstract class AppLocalizations {
   /// **'Transfer'**
   String get transfer_appBar_title;
 
-  /// No description provided for @transfer_computers_aboutTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'About Dive Computers'**
-  String get transfer_computers_aboutTitle;
-
   /// No description provided for @transfer_computers_appleWatchHeader.
   ///
   /// In en, this message translates to:
@@ -40125,24 +36952,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error loading computers'**
   String get transfer_computers_errorLoading;
-
-  /// No description provided for @transfer_computers_loading.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading...'**
-  String get transfer_computers_loading;
-
-  /// No description provided for @transfer_computers_manageTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage Computers'**
-  String get transfer_computers_manageTitle;
-
-  /// No description provided for @transfer_computers_noComputersSaved.
-  ///
-  /// In en, this message translates to:
-  /// **'No computers saved'**
-  String get transfer_computers_noComputersSaved;
 
   /// Dive count on a known-computer card
   ///
@@ -40191,18 +37000,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Yesterday'**
   String get transfer_computers_lastDownloadYesterday;
-
-  /// No description provided for @transfer_computers_savedCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} saved {count, plural, =1{computer} other{computers}}'**
-  String transfer_computers_savedCount(int count);
-
-  /// No description provided for @transfer_computers_sectionHeader.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Computers'**
-  String get transfer_computers_sectionHeader;
 
   /// No description provided for @transfer_csvExport_cancelButton.
   ///
@@ -40612,35 +37409,11 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get transfer_pdfExport_languageHeader;
 
-  /// No description provided for @transfer_pdfExport_pageSizeA4.
-  ///
-  /// In en, this message translates to:
-  /// **'A4'**
-  String get transfer_pdfExport_pageSizeA4;
-
-  /// No description provided for @transfer_pdfExport_pageSizeA4Desc.
-  ///
-  /// In en, this message translates to:
-  /// **'210 x 297 mm'**
-  String get transfer_pdfExport_pageSizeA4Desc;
-
   /// No description provided for @transfer_pdfExport_pageSizeHeader.
   ///
   /// In en, this message translates to:
   /// **'Page Size'**
   String get transfer_pdfExport_pageSizeHeader;
-
-  /// No description provided for @transfer_pdfExport_pageSizeLetter.
-  ///
-  /// In en, this message translates to:
-  /// **'Letter'**
-  String get transfer_pdfExport_pageSizeLetter;
-
-  /// No description provided for @transfer_pdfExport_pageSizeLetterDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'8.5 x 11 in'**
-  String get transfer_pdfExport_pageSizeLetterDesc;
 
   /// No description provided for @transfer_pdfExport_templateDetailed.
   ///
@@ -40780,12 +37553,6 @@ abstract class AppLocalizations {
   /// **'{shown} of {total, plural, =1{{total} trip} other{{total} trips}}'**
   String trips_list_countFiltered(int shown, int total);
 
-  /// No description provided for @trips_appBar_tripPhotos.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip Photos'**
-  String get trips_appBar_tripPhotos;
-
   /// No description provided for @trips_detail_action_delete.
   ///
   /// In en, this message translates to:
@@ -40852,12 +37619,6 @@ abstract class AppLocalizations {
   /// **'Unknown Site'**
   String get trips_detail_dives_unknownSite;
 
-  /// No description provided for @trips_detail_dives_viewAll.
-  ///
-  /// In en, this message translates to:
-  /// **'View All ({count})'**
-  String trips_detail_dives_viewAll(Object count);
-
   /// No description provided for @trips_detail_durationDays.
   ///
   /// In en, this message translates to:
@@ -40900,24 +37661,6 @@ abstract class AppLocalizations {
   /// **'Export to PDF'**
   String get trips_detail_export_pdf_title;
 
-  /// No description provided for @trips_detail_label_liveaboard.
-  ///
-  /// In en, this message translates to:
-  /// **'Liveaboard'**
-  String get trips_detail_label_liveaboard;
-
-  /// No description provided for @trips_detail_label_location.
-  ///
-  /// In en, this message translates to:
-  /// **'Location'**
-  String get trips_detail_label_location;
-
-  /// No description provided for @trips_detail_label_resort.
-  ///
-  /// In en, this message translates to:
-  /// **'Resort'**
-  String get trips_detail_label_resort;
-
   /// No description provided for @trips_detail_scan_accessDenied.
   ///
   /// In en, this message translates to:
@@ -40954,41 +37697,17 @@ abstract class AppLocalizations {
   /// **'Linking photos...'**
   String get trips_detail_scan_linkingPhotos;
 
-  /// No description provided for @trips_detail_sectionTitle_details.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip Details'**
-  String get trips_detail_sectionTitle_details;
-
-  /// No description provided for @trips_detail_sectionTitle_dives.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives'**
-  String get trips_detail_sectionTitle_dives;
-
   /// No description provided for @trips_detail_sectionTitle_notes.
   ///
   /// In en, this message translates to:
   /// **'Notes'**
   String get trips_detail_sectionTitle_notes;
 
-  /// No description provided for @trips_detail_sectionTitle_statistics.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip Statistics'**
-  String get trips_detail_sectionTitle_statistics;
-
   /// No description provided for @trips_detail_snackBar_deleted.
   ///
   /// In en, this message translates to:
   /// **'Trip deleted'**
   String get trips_detail_snackBar_deleted;
-
-  /// No description provided for @trips_detail_stat_avgDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'Avg Depth'**
-  String get trips_detail_stat_avgDepth;
 
   /// No description provided for @trips_detail_stat_maxDepth.
   ///
@@ -41062,12 +37781,6 @@ abstract class AppLocalizations {
   /// **'Currently on: {tripName}'**
   String trips_diveScan_currentTrip(String tripName);
 
-  /// No description provided for @trips_diveScan_deselectAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Deselect all'**
-  String get trips_diveScan_deselectAll;
-
   /// No description provided for @trips_diveScan_error.
   ///
   /// In en, this message translates to:
@@ -41103,12 +37816,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select an active diver to scan for dives'**
   String get trips_diveScan_noDiver;
-
-  /// No description provided for @trips_diveScan_selectAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Select all'**
-  String get trips_diveScan_selectAll;
 
   /// No description provided for @trips_diveScan_subtitle.
   ///
@@ -41548,12 +38255,6 @@ abstract class AppLocalizations {
   /// **'Error loading photos'**
   String get trips_photos_error_loading;
 
-  /// No description provided for @trips_photos_moreIndicator.
-  ///
-  /// In en, this message translates to:
-  /// **'+{count}'**
-  String trips_photos_moreIndicator(Object count);
-
   /// No description provided for @trips_photos_moreIndicator_semanticLabel.
   ///
   /// In en, this message translates to:
@@ -41704,12 +38405,6 @@ abstract class AppLocalizations {
   /// **'Quick Actions'**
   String get trips_summary_quickActions_title;
 
-  /// No description provided for @trips_summary_recentSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'{date} • {count} dives'**
-  String trips_summary_recentSubtitle(Object date, Object count);
-
   /// No description provided for @trips_summary_recentTitle.
   ///
   /// In en, this message translates to:
@@ -41799,12 +38494,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shore dives over one or more days'**
   String get trips_type_description_shore;
-
-  /// No description provided for @trips_edit_label_tripType.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip Type'**
-  String get trips_edit_label_tripType;
 
   /// No description provided for @trips_edit_sectionTitle_vessel.
   ///
@@ -42696,24 +39385,6 @@ abstract class AppLocalizations {
   /// **'Disembark'**
   String get trips_detail_label_disembark;
 
-  /// No description provided for @trips_detail_stat_divesPerDay.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives per day'**
-  String get trips_detail_stat_divesPerDay;
-
-  /// No description provided for @trips_detail_stat_diveDays.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive days'**
-  String get trips_detail_stat_diveDays;
-
-  /// No description provided for @trips_detail_stat_seaDays.
-  ///
-  /// In en, this message translates to:
-  /// **'Sea days'**
-  String get trips_detail_stat_seaDays;
-
   /// No description provided for @trips_detail_stat_sitesVisited.
   ///
   /// In en, this message translates to:
@@ -42726,47 +39397,11 @@ abstract class AppLocalizations {
   /// **'Species seen'**
   String get trips_detail_stat_speciesSeen;
 
-  /// No description provided for @trips_detail_sectionTitle_dailyBreakdown.
-  ///
-  /// In en, this message translates to:
-  /// **'Daily Breakdown'**
-  String get trips_detail_sectionTitle_dailyBreakdown;
-
-  /// No description provided for @trips_breakdown_column_day.
-  ///
-  /// In en, this message translates to:
-  /// **'Day'**
-  String get trips_breakdown_column_day;
-
-  /// No description provided for @trips_breakdown_column_type.
-  ///
-  /// In en, this message translates to:
-  /// **'Type'**
-  String get trips_breakdown_column_type;
-
-  /// No description provided for @trips_breakdown_column_dives.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives'**
-  String get trips_breakdown_column_dives;
-
-  /// No description provided for @trips_breakdown_column_bottomTime.
-  ///
-  /// In en, this message translates to:
-  /// **'Bottom Time'**
-  String get trips_breakdown_column_bottomTime;
-
   /// No description provided for @trips_breakdown_column_sites.
   ///
   /// In en, this message translates to:
   /// **'Sites'**
   String get trips_breakdown_column_sites;
-
-  /// No description provided for @trips_detail_sectionTitle_voyageMap.
-  ///
-  /// In en, this message translates to:
-  /// **'Voyage Route'**
-  String get trips_detail_sectionTitle_voyageMap;
 
   /// No description provided for @trips_itinerary_dayLabel.
   ///
@@ -42846,83 +39481,11 @@ abstract class AppLocalizations {
   /// **'Other'**
   String get trips_vesselType_other;
 
-  /// Symbol for feet altitude unit
-  ///
-  /// In en, this message translates to:
-  /// **'ft'**
-  String get units_altitude_feet;
-
-  /// Symbol for meters altitude unit
-  ///
-  /// In en, this message translates to:
-  /// **'m'**
-  String get units_altitude_meters;
-
-  /// Unit label for barometric pressure in bar
-  ///
-  /// In en, this message translates to:
-  /// **'bar'**
-  String get units_barometric_bar;
-
-  /// Unit label for barometric pressure in millibar
-  ///
-  /// In en, this message translates to:
-  /// **'mbar'**
-  String get units_barometric_mbar;
-
-  /// Display name for day-first abbreviated month date format
-  ///
-  /// In en, this message translates to:
-  /// **'D MMM YYYY'**
-  String get units_dateFormat_dMMMYYYY;
-
-  /// Display name for day/month/year date format
-  ///
-  /// In en, this message translates to:
-  /// **'DD/MM/YYYY'**
-  String get units_dateFormat_ddmmyyyy;
-
-  /// Display name for month/day/year date format
-  ///
-  /// In en, this message translates to:
-  /// **'MM/DD/YYYY'**
-  String get units_dateFormat_mmddyyyy;
-
-  /// Display name for abbreviated month date format
-  ///
-  /// In en, this message translates to:
-  /// **'MMM D, YYYY'**
-  String get units_dateFormat_mmmDYYYY;
-
-  /// Display name for ISO date format
-  ///
-  /// In en, this message translates to:
-  /// **'YYYY-MM-DD'**
-  String get units_dateFormat_yyyymmdd;
-
-  /// Symbol for feet depth unit
-  ///
-  /// In en, this message translates to:
-  /// **'ft'**
-  String get units_depth_feet;
-
-  /// Symbol for meters depth unit
-  ///
-  /// In en, this message translates to:
-  /// **'m'**
-  String get units_depth_meters;
-
   /// Symbol for bar pressure unit
   ///
   /// In en, this message translates to:
   /// **'bar'**
   String get units_pressure_bar;
-
-  /// Symbol for PSI pressure unit
-  ///
-  /// In en, this message translates to:
-  /// **'psi'**
-  String get units_pressure_psi;
 
   /// Unit for heart rate in beats per minute
   ///
@@ -42954,66 +39517,6 @@ abstract class AppLocalizations {
   /// **'mV'**
   String get units_profileMetric_millivolts;
 
-  /// Symbol for Celsius temperature unit
-  ///
-  /// In en, this message translates to:
-  /// **'C'**
-  String get units_temperature_celsius;
-
-  /// Symbol for Fahrenheit temperature unit
-  ///
-  /// In en, this message translates to:
-  /// **'F'**
-  String get units_temperature_fahrenheit;
-
-  /// Display name for 12-hour time format
-  ///
-  /// In en, this message translates to:
-  /// **'12-hour'**
-  String get units_timeFormat_twelveHour;
-
-  /// Display name for 24-hour time format
-  ///
-  /// In en, this message translates to:
-  /// **'24-hour'**
-  String get units_timeFormat_twentyFourHour;
-
-  /// Symbol for cubic feet volume unit
-  ///
-  /// In en, this message translates to:
-  /// **'cuft'**
-  String get units_volume_cubicFeet;
-
-  /// Symbol for liters volume unit
-  ///
-  /// In en, this message translates to:
-  /// **'L'**
-  String get units_volume_liters;
-
-  /// Symbol for kilograms weight unit
-  ///
-  /// In en, this message translates to:
-  /// **'kg'**
-  String get units_weight_kilograms;
-
-  /// Symbol for pounds weight unit
-  ///
-  /// In en, this message translates to:
-  /// **'lbs'**
-  String get units_weight_pounds;
-
-  /// Button label to consolidate an imported dive as a secondary computer reading on the matched existing dive
-  ///
-  /// In en, this message translates to:
-  /// **'Consolidate as additional computer'**
-  String get universalImport_action_consolidate;
-
-  /// Label for the continue button in the import wizard
-  ///
-  /// In en, this message translates to:
-  /// **'Continue'**
-  String get universalImport_action_continue;
-
   /// Button label to deselect all items in a tab
   ///
   /// In en, this message translates to:
@@ -43025,12 +39528,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get universalImport_action_done;
-
-  /// Label for the import button in the review step
-  ///
-  /// In en, this message translates to:
-  /// **'Import'**
-  String get universalImport_action_import;
 
   /// Button label to select all items in a tab
   ///
@@ -43044,12 +39541,6 @@ abstract class AppLocalizations {
   /// **'Change File'**
   String get universalImport_action_changeFile;
 
-  /// Button label for the file picker button
-  ///
-  /// In en, this message translates to:
-  /// **'Select File'**
-  String get universalImport_action_selectFile;
-
   /// Button label for the multi-select file picker button
   ///
   /// In en, this message translates to:
@@ -43061,12 +39552,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose Folder'**
   String get universalImport_action_chooseFolder;
-
-  /// Header for the batch file triage list
-  ///
-  /// In en, this message translates to:
-  /// **'Files to Import'**
-  String get universalImport_triage_title;
 
   /// How many selected files will join the import batch
   ///
@@ -43509,12 +39994,6 @@ abstract class AppLocalizations {
   /// **'Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, Garmin FIT, and Shearwater Cloud databases.'**
   String get universalImport_description_supportedFormats;
 
-  /// Label on the expansion button for a pending duplicate dive row (replaces 'Compare dives')
-  ///
-  /// In en, this message translates to:
-  /// **'Decide'**
-  String get universalImport_dive_decideAction;
-
   /// Error message shown when the detected file format is not supported
   ///
   /// In en, this message translates to:
@@ -43665,23 +40144,11 @@ abstract class AppLocalizations {
   /// **'Detecting...'**
   String get universalImport_label_detecting;
 
-  /// Title for a dive card showing its number
-  ///
-  /// In en, this message translates to:
-  /// **'Dive #{number}'**
-  String universalImport_label_diveNumber(Object number);
-
   /// Badge label for a probable duplicate entity
   ///
   /// In en, this message translates to:
   /// **'Duplicate'**
   String get universalImport_label_duplicate;
-
-  /// Banner text indicating how many duplicates were found
-  ///
-  /// In en, this message translates to:
-  /// **'{count} duplicates found and auto-deselected.'**
-  String universalImport_label_duplicatesFound(Object count);
 
   /// Short action label meaning the incoming duplicate should be imported as a brand-new entry (used on snackbars and bulk buttons)
   ///
@@ -43724,12 +40191,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not right? Select the correct source:'**
   String get universalImport_label_selectCorrectSource;
-
-  /// Text showing how many items are selected
-  ///
-  /// In en, this message translates to:
-  /// **'{count} selected'**
-  String universalImport_label_selected(Object count);
 
   /// Label for skipping a column mapping in the field mapping step
   ///
@@ -43802,24 +40263,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not restore every planned dive. Try again.'**
   String get universalImport_fillPlanned_undoFailed;
-
-  /// Text showing the batch tag applied to imported items
-  ///
-  /// In en, this message translates to:
-  /// **'Tagged as: {tag}'**
-  String universalImport_label_taggedAs(Object tag);
-
-  /// Fallback text when a dive has no date
-  ///
-  /// In en, this message translates to:
-  /// **'Unknown date'**
-  String get universalImport_label_unknownDate;
-
-  /// Fallback name for an entity without a name
-  ///
-  /// In en, this message translates to:
-  /// **'Unnamed'**
-  String get universalImport_label_unnamed;
 
   /// Counter text showing current of total items
   ///
@@ -43917,22 +40360,6 @@ abstract class AppLocalizations {
   /// **'Review'**
   String get universalImport_pending_reviewAction;
 
-  /// Row hint shown under an undecided pending duplicate prompting the user to tap the Decide button
-  ///
-  /// In en, this message translates to:
-  /// **'Tap Decide to choose'**
-  String get universalImport_rowHint_tapCompareToDecide;
-
-  /// Accessibility label for entity type selection count
-  ///
-  /// In en, this message translates to:
-  /// **'{selected} of {total} {entityType} selected'**
-  String universalImport_semantics_entitySelection(
-    Object selected,
-    Object total,
-    Object entityType,
-  );
-
   /// Accessibility label for the import error message
   ///
   /// In en, this message translates to:
@@ -43944,12 +40371,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import progress: {percent} percent'**
   String universalImport_semantics_importProgress(Object percent);
-
-  /// Accessibility label for the total selected items count
-  ///
-  /// In en, this message translates to:
-  /// **'{count} items selected for import'**
-  String universalImport_semantics_itemsSelected(Object count);
 
   /// Screen reader label for the 'Needs decision' pill on a pending duplicate row
   ///
@@ -43999,41 +40420,17 @@ abstract class AppLocalizations {
   /// **'Import'**
   String get universalImport_step_import;
 
-  /// Step indicator label for the field mapping step
-  ///
-  /// In en, this message translates to:
-  /// **'Map'**
-  String get universalImport_step_map;
-
   /// Step indicator label for the review step
   ///
   /// In en, this message translates to:
   /// **'Review'**
   String get universalImport_step_review;
 
-  /// Step indicator label for the file selection step
-  ///
-  /// In en, this message translates to:
-  /// **'Select'**
-  String get universalImport_step_select;
-
-  /// Addendum to the pending duplicates summary banner clarifying that each needs a decision before import
-  ///
-  /// In en, this message translates to:
-  /// **'Each needs a decision before importing.'**
-  String get universalImport_summary_decidesRequired;
-
   /// Title for the universal import wizard page and file selection heading
   ///
   /// In en, this message translates to:
   /// **'File Import'**
   String get universalImport_title;
-
-  /// Tooltip for the close button on the import wizard app bar
-  ///
-  /// In en, this message translates to:
-  /// **'Close import wizard'**
-  String get universalImport_tooltip_closeWizard;
 
   /// No description provided for @weather_windFromDirection.
   ///
@@ -44160,96 +40557,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Thunderstorm with hail'**
   String get weather_wmo_thunderstormHail;
-
-  /// Base weight line in calculation breakdown
-  ///
-  /// In en, this message translates to:
-  /// **'Base ({suitType}): {weight} kg'**
-  String weightCalc_baseLine(Object suitType, Object weight);
-
-  /// Body weight adjustment line in calculation breakdown
-  ///
-  /// In en, this message translates to:
-  /// **'Body weight adjustment: +{adjustment} kg'**
-  String weightCalc_bodyWeightAdjustment(Object adjustment);
-
-  /// No description provided for @weightCalc_suit_drysuit.
-  ///
-  /// In en, this message translates to:
-  /// **'Drysuit'**
-  String get weightCalc_suit_drysuit;
-
-  /// No description provided for @weightCalc_suit_none.
-  ///
-  /// In en, this message translates to:
-  /// **'No Suit'**
-  String get weightCalc_suit_none;
-
-  /// No description provided for @weightCalc_suit_rashguard.
-  ///
-  /// In en, this message translates to:
-  /// **'Rashguard Only'**
-  String get weightCalc_suit_rashguard;
-
-  /// No description provided for @weightCalc_suit_semidry.
-  ///
-  /// In en, this message translates to:
-  /// **'Semi-dry Suit'**
-  String get weightCalc_suit_semidry;
-
-  /// No description provided for @weightCalc_suit_shorty3mm.
-  ///
-  /// In en, this message translates to:
-  /// **'3mm Shorty'**
-  String get weightCalc_suit_shorty3mm;
-
-  /// No description provided for @weightCalc_suit_wetsuit3mm.
-  ///
-  /// In en, this message translates to:
-  /// **'3mm Full Wetsuit'**
-  String get weightCalc_suit_wetsuit3mm;
-
-  /// No description provided for @weightCalc_suit_wetsuit5mm.
-  ///
-  /// In en, this message translates to:
-  /// **'5mm Wetsuit'**
-  String get weightCalc_suit_wetsuit5mm;
-
-  /// No description provided for @weightCalc_suit_wetsuit7mm.
-  ///
-  /// In en, this message translates to:
-  /// **'7mm Wetsuit'**
-  String get weightCalc_suit_wetsuit7mm;
-
-  /// Tank adjustment line in calculation breakdown
-  ///
-  /// In en, this message translates to:
-  /// **'Tank ({tankMaterial}): {adjustment} kg'**
-  String weightCalc_tankLine(Object tankMaterial, Object adjustment);
-
-  /// Title for the weight calculation breakdown
-  ///
-  /// In en, this message translates to:
-  /// **'Weight Calculation:'**
-  String get weightCalc_title;
-
-  /// Total line in weight calculation breakdown
-  ///
-  /// In en, this message translates to:
-  /// **'Total: {total} kg'**
-  String weightCalc_total(Object total);
-
-  /// Water type adjustment line in calculation breakdown
-  ///
-  /// In en, this message translates to:
-  /// **'Water ({waterType}): {adjustment} kg'**
-  String weightCalc_waterLine(Object waterType, Object adjustment);
-
-  /// No description provided for @divePlanner_label_resultsWithWarnings.
-  ///
-  /// In en, this message translates to:
-  /// **'Results, {count} warnings'**
-  String divePlanner_label_resultsWithWarnings(Object count);
 
   /// No description provided for @tides_semantic_tideCycle.
   ///
@@ -44539,23 +40846,11 @@ abstract class AppLocalizations {
   /// **'Choose Different Device'**
   String get diveComputer_discovery_chooseDifferentDevice;
 
-  /// No description provided for @diveComputer_discovery_computer.
-  ///
-  /// In en, this message translates to:
-  /// **'Computer'**
-  String get diveComputer_discovery_computer;
-
   /// No description provided for @diveComputer_discovery_connectAndDownload.
   ///
   /// In en, this message translates to:
   /// **'Connect & Download'**
   String get diveComputer_discovery_connectAndDownload;
-
-  /// No description provided for @diveComputer_discovery_connectingToDevice.
-  ///
-  /// In en, this message translates to:
-  /// **'Connecting to device...'**
-  String get diveComputer_discovery_connectingToDevice;
 
   /// No description provided for @diveComputer_discovery_deviceNameHint.
   ///
@@ -44569,48 +40864,6 @@ abstract class AppLocalizations {
   /// **'Device Name'**
   String get diveComputer_discovery_deviceNameLabel;
 
-  /// No description provided for @diveComputer_discovery_exitDialogCancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get diveComputer_discovery_exitDialogCancel;
-
-  /// No description provided for @diveComputer_discovery_exitDialogConfirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Exit'**
-  String get diveComputer_discovery_exitDialogConfirm;
-
-  /// No description provided for @diveComputer_discovery_exitDialogContent.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to exit? Your progress will be lost.'**
-  String get diveComputer_discovery_exitDialogContent;
-
-  /// No description provided for @diveComputer_discovery_exitDialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Exit Setup?'**
-  String get diveComputer_discovery_exitDialogTitle;
-
-  /// No description provided for @diveComputer_discovery_exitTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Exit setup'**
-  String get diveComputer_discovery_exitTooltip;
-
-  /// No description provided for @diveComputer_discovery_noDeviceSelected.
-  ///
-  /// In en, this message translates to:
-  /// **'No device selected'**
-  String get diveComputer_discovery_noDeviceSelected;
-
-  /// No description provided for @diveComputer_discovery_pleaseWaitConnection.
-  ///
-  /// In en, this message translates to:
-  /// **'Please wait while we establish a connection'**
-  String get diveComputer_discovery_pleaseWaitConnection;
-
   /// No description provided for @diveComputer_discovery_recognizedDevice.
   ///
   /// In en, this message translates to:
@@ -44622,60 +40875,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This device is in our supported devices library. Dive download should work automatically.'**
   String get diveComputer_discovery_recognizedDeviceDescription;
-
-  /// No description provided for @diveComputer_discovery_stepConnect.
-  ///
-  /// In en, this message translates to:
-  /// **'Connect'**
-  String get diveComputer_discovery_stepConnect;
-
-  /// No description provided for @diveComputer_discovery_stepDone.
-  ///
-  /// In en, this message translates to:
-  /// **'Done'**
-  String get diveComputer_discovery_stepDone;
-
-  /// No description provided for @diveComputer_discovery_stepDownload.
-  ///
-  /// In en, this message translates to:
-  /// **'Download'**
-  String get diveComputer_discovery_stepDownload;
-
-  /// No description provided for @diveComputer_discovery_stepScan.
-  ///
-  /// In en, this message translates to:
-  /// **'Scan'**
-  String get diveComputer_discovery_stepScan;
-
-  /// No description provided for @diveComputer_discovery_titleComplete.
-  ///
-  /// In en, this message translates to:
-  /// **'Complete'**
-  String get diveComputer_discovery_titleComplete;
-
-  /// No description provided for @diveComputer_discovery_titleConfirmDevice.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirm Device'**
-  String get diveComputer_discovery_titleConfirmDevice;
-
-  /// No description provided for @diveComputer_discovery_titleConnecting.
-  ///
-  /// In en, this message translates to:
-  /// **'Connecting'**
-  String get diveComputer_discovery_titleConnecting;
-
-  /// No description provided for @diveComputer_discovery_titleDownloading.
-  ///
-  /// In en, this message translates to:
-  /// **'Downloading'**
-  String get diveComputer_discovery_titleDownloading;
-
-  /// No description provided for @diveComputer_discovery_titleFindDevice.
-  ///
-  /// In en, this message translates to:
-  /// **'Find Device'**
-  String get diveComputer_discovery_titleFindDevice;
 
   /// No description provided for @diveComputer_discovery_unknownDevice.
   ///
@@ -44731,12 +40930,6 @@ abstract class AppLocalizations {
   /// **'Download in Progress'**
   String get diveComputer_downloadExit_title;
 
-  /// No description provided for @diveComputer_downloadStep_andMoreDives.
-  ///
-  /// In en, this message translates to:
-  /// **'... and {count} more'**
-  String diveComputer_downloadStep_andMoreDives(Object count);
-
   /// No description provided for @diveComputer_downloadStep_cancel.
   ///
   /// In en, this message translates to:
@@ -44767,12 +40960,6 @@ abstract class AppLocalizations {
   /// **'Clock synced'**
   String get diveComputer_downloadStep_clockSynced;
 
-  /// No description provided for @diveComputer_downloadStep_depthMeters.
-  ///
-  /// In en, this message translates to:
-  /// **'{depth}m'**
-  String diveComputer_downloadStep_depthMeters(Object depth);
-
   /// No description provided for @diveComputer_downloadStep_downloadAll.
   ///
   /// In en, this message translates to:
@@ -44796,12 +40983,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Downloaded Dives'**
   String get diveComputer_downloadStep_downloadedDives;
-
-  /// No description provided for @diveComputer_downloadStep_durationMin.
-  ///
-  /// In en, this message translates to:
-  /// **'{duration} min'**
-  String diveComputer_downloadStep_durationMin(Object duration);
 
   /// No description provided for @diveComputer_downloadStep_errorOccurred.
   ///
@@ -44872,77 +41053,17 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Import 1 downloaded dive} other{Import {count} downloaded dives}}'**
   String diveComputer_downloadStep_importPartialCount(int count);
 
-  /// No description provided for @diveComputer_download_cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get diveComputer_download_cancel;
-
-  /// No description provided for @diveComputer_download_closeTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Close'**
-  String get diveComputer_download_closeTooltip;
-
   /// No description provided for @diveComputer_download_computerNotFound.
   ///
   /// In en, this message translates to:
   /// **'Computer not found'**
   String get diveComputer_download_computerNotFound;
 
-  /// No description provided for @diveComputer_download_depthMeters.
-  ///
-  /// In en, this message translates to:
-  /// **'{depth}m'**
-  String diveComputer_download_depthMeters(Object depth);
-
-  /// No description provided for @diveComputer_download_deviceNotFoundError.
-  ///
-  /// In en, this message translates to:
-  /// **'Device not found. Make sure your {name} is nearby and in transfer mode.'**
-  String diveComputer_download_deviceNotFoundError(Object name);
-
-  /// No description provided for @diveComputer_download_deviceNotFoundTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Device Not Found'**
-  String get diveComputer_download_deviceNotFoundTitle;
-
-  /// No description provided for @diveComputer_download_divesUpdated.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives updated'**
-  String get diveComputer_download_divesUpdated;
-
-  /// No description provided for @diveComputer_download_done.
-  ///
-  /// In en, this message translates to:
-  /// **'Done'**
-  String get diveComputer_download_done;
-
-  /// No description provided for @diveComputer_download_downloadedDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Downloaded Dives'**
-  String get diveComputer_download_downloadedDives;
-
-  /// No description provided for @diveComputer_download_duplicatesSkipped.
-  ///
-  /// In en, this message translates to:
-  /// **'Duplicates skipped'**
-  String get diveComputer_download_duplicatesSkipped;
-
   /// No description provided for @diveComputer_download_durationMin.
   ///
   /// In en, this message translates to:
   /// **'{duration} min'**
   String diveComputer_download_durationMin(Object duration);
-
-  /// No description provided for @diveComputer_download_errorOccurred.
-  ///
-  /// In en, this message translates to:
-  /// **'An error occurred'**
-  String get diveComputer_download_errorOccurred;
 
   /// No description provided for @diveComputer_download_noSerialPortsFound.
   ///
@@ -44980,89 +41101,11 @@ abstract class AppLocalizations {
   /// **'Error: {error}'**
   String diveComputer_download_errorWithMessage(Object error);
 
-  /// No description provided for @diveComputer_download_goBack.
-  ///
-  /// In en, this message translates to:
-  /// **'Go Back'**
-  String get diveComputer_download_goBack;
-
-  /// No description provided for @diveComputer_download_importFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Import failed'**
-  String get diveComputer_download_importFailed;
-
-  /// No description provided for @diveComputer_download_importResults.
-  ///
-  /// In en, this message translates to:
-  /// **'Import Results'**
-  String get diveComputer_download_importResults;
-
-  /// No description provided for @diveComputer_download_importedDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Imported Dives'**
-  String get diveComputer_download_importedDives;
-
   /// No description provided for @diveComputer_download_importingCountDives.
   ///
   /// In en, this message translates to:
   /// **'Importing {count} dives...'**
   String diveComputer_download_importingCountDives(int count);
-
-  /// No description provided for @diveComputer_download_importingCountNewDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Importing {count} new dives...'**
-  String diveComputer_download_importingCountNewDives(int count);
-
-  /// No description provided for @diveComputer_download_newDivesImported.
-  ///
-  /// In en, this message translates to:
-  /// **'New dives imported'**
-  String get diveComputer_download_newDivesImported;
-
-  /// No description provided for @diveComputer_download_newDivesOnlySubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Only downloads dives added since your last sync'**
-  String get diveComputer_download_newDivesOnlySubtitle;
-
-  /// No description provided for @diveComputer_download_newDivesOnlyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Download new dives only'**
-  String get diveComputer_download_newDivesOnlyTitle;
-
-  /// No description provided for @diveComputer_download_preparing.
-  ///
-  /// In en, this message translates to:
-  /// **'Preparing...'**
-  String get diveComputer_download_preparing;
-
-  /// No description provided for @diveComputer_download_progressPercent.
-  ///
-  /// In en, this message translates to:
-  /// **'{percent}%'**
-  String diveComputer_download_progressPercent(Object percent);
-
-  /// No description provided for @diveComputer_download_reimportHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Looking for older or deleted dives? Re-import all'**
-  String get diveComputer_download_reimportHint;
-
-  /// No description provided for @diveComputer_download_retry.
-  ///
-  /// In en, this message translates to:
-  /// **'Retry'**
-  String get diveComputer_download_retry;
-
-  /// No description provided for @diveComputer_download_scanError.
-  ///
-  /// In en, this message translates to:
-  /// **'Scan error: {error}'**
-  String diveComputer_download_scanError(Object error);
 
   /// No description provided for @diveComputer_download_searchingForDevice.
   ///
@@ -45070,29 +41113,11 @@ abstract class AppLocalizations {
   /// **'Searching for {name}...'**
   String diveComputer_download_searchingForDevice(Object name);
 
-  /// No description provided for @diveComputer_download_searchingInstructions.
-  ///
-  /// In en, this message translates to:
-  /// **'Make sure the device is nearby and in transfer mode'**
-  String get diveComputer_download_searchingInstructions;
-
   /// No description provided for @diveComputer_download_title.
   ///
   /// In en, this message translates to:
   /// **'Download Dives'**
   String get diveComputer_download_title;
-
-  /// No description provided for @diveComputer_download_tryAgain.
-  ///
-  /// In en, this message translates to:
-  /// **'Try Again'**
-  String get diveComputer_download_tryAgain;
-
-  /// No description provided for @diveComputer_download_upToDate.
-  ///
-  /// In en, this message translates to:
-  /// **'No new dives found -- your log is up to date'**
-  String get diveComputer_download_upToDate;
 
   /// No description provided for @diveComputer_list_addComputer.
   ///
@@ -45352,60 +41377,6 @@ abstract class AppLocalizations {
   /// **'USB device: {model}'**
   String diveComputer_scan_usbSemanticLabel(String model);
 
-  /// No description provided for @diveComputer_summary_diveComputer.
-  ///
-  /// In en, this message translates to:
-  /// **'dive computer'**
-  String get diveComputer_summary_diveComputer;
-
-  /// No description provided for @diveComputer_summary_divesDownloaded.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} {count, plural, =1{dive} other{dives}} downloaded'**
-  String diveComputer_summary_divesDownloaded(int count);
-
-  /// No description provided for @diveComputer_summary_done.
-  ///
-  /// In en, this message translates to:
-  /// **'Done'**
-  String get diveComputer_summary_done;
-
-  /// No description provided for @diveComputer_summary_imported.
-  ///
-  /// In en, this message translates to:
-  /// **'Imported'**
-  String get diveComputer_summary_imported;
-
-  /// No description provided for @diveComputer_summary_semanticLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} {count, plural, =1{dive} other{dives}} downloaded from {name}'**
-  String diveComputer_summary_semanticLabel(int count, Object name);
-
-  /// No description provided for @diveComputer_summary_skippedDuplicates.
-  ///
-  /// In en, this message translates to:
-  /// **'Skipped (duplicates)'**
-  String get diveComputer_summary_skippedDuplicates;
-
-  /// No description provided for @diveComputer_summary_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Download Complete!'**
-  String get diveComputer_summary_title;
-
-  /// No description provided for @diveComputer_summary_updated.
-  ///
-  /// In en, this message translates to:
-  /// **'Updated'**
-  String get diveComputer_summary_updated;
-
-  /// No description provided for @diveComputer_summary_viewDives.
-  ///
-  /// In en, this message translates to:
-  /// **'View Dives'**
-  String get diveComputer_summary_viewDives;
-
   /// No description provided for @diveImport_alreadyImported.
   ///
   /// In en, this message translates to:
@@ -45418,105 +41389,11 @@ abstract class AppLocalizations {
   /// **'Avg HR'**
   String get diveImport_avgHR;
 
-  /// No description provided for @diveImport_back.
-  ///
-  /// In en, this message translates to:
-  /// **'Back'**
-  String get diveImport_back;
-
-  /// No description provided for @diveImport_deselectAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Deselect All'**
-  String get diveImport_deselectAll;
-
-  /// No description provided for @diveImport_divesImported.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives imported'**
-  String get diveImport_divesImported;
-
-  /// No description provided for @diveImport_divesMerged.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives merged'**
-  String get diveImport_divesMerged;
-
-  /// No description provided for @diveImport_divesSkipped.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives skipped'**
-  String get diveImport_divesSkipped;
-
-  /// No description provided for @diveImport_done.
-  ///
-  /// In en, this message translates to:
-  /// **'Done'**
-  String get diveImport_done;
-
   /// No description provided for @diveImport_duration.
   ///
   /// In en, this message translates to:
   /// **'Duration'**
   String get diveImport_duration;
-
-  /// No description provided for @diveImport_error.
-  ///
-  /// In en, this message translates to:
-  /// **'Error'**
-  String get diveImport_error;
-
-  /// No description provided for @diveImport_fit_closeTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Close FIT import'**
-  String get diveImport_fit_closeTooltip;
-
-  /// No description provided for @diveImport_fit_noDivesDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Select one or more .fit files exported from Garmin Connect or copied from a Garmin Descent device.'**
-  String get diveImport_fit_noDivesDescription;
-
-  /// No description provided for @diveImport_fit_noDivesLoaded.
-  ///
-  /// In en, this message translates to:
-  /// **'No Dives Loaded'**
-  String get diveImport_fit_noDivesLoaded;
-
-  /// No description provided for @diveImport_fit_parsed.
-  ///
-  /// In en, this message translates to:
-  /// **'Parsed {diveCount} {diveCount, plural, =1{dive} other{dives}} from {fileCount} {fileCount, plural, =1{file} other{files}}'**
-  String diveImport_fit_parsed(int diveCount, int fileCount);
-
-  /// No description provided for @diveImport_fit_parsedWithSkipped.
-  ///
-  /// In en, this message translates to:
-  /// **'Parsed {diveCount} {diveCount, plural, =1{dive} other{dives}} from {fileCount} {fileCount, plural, =1{file} other{files}} ({skippedCount} skipped)'**
-  String diveImport_fit_parsedWithSkipped(
-    int diveCount,
-    int fileCount,
-    Object skippedCount,
-  );
-
-  /// No description provided for @diveImport_fit_parsing.
-  ///
-  /// In en, this message translates to:
-  /// **'Parsing...'**
-  String get diveImport_fit_parsing;
-
-  /// No description provided for @diveImport_fit_selectFiles.
-  ///
-  /// In en, this message translates to:
-  /// **'Select FIT Files'**
-  String get diveImport_fit_selectFiles;
-
-  /// No description provided for @diveImport_fit_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Import from FIT File'**
-  String get diveImport_fit_title;
 
   /// No description provided for @diveImport_healthkit_accessDescription.
   ///
@@ -45530,23 +41407,11 @@ abstract class AppLocalizations {
   /// **'Apple HealthKit'**
   String get diveImport_healthkit_accessRequired;
 
-  /// No description provided for @diveImport_healthkit_attribution.
-  ///
-  /// In en, this message translates to:
-  /// **'Powered by Apple HealthKit'**
-  String get diveImport_healthkit_attribution;
-
   /// No description provided for @diveImport_healthkit_closeTooltip.
   ///
   /// In en, this message translates to:
   /// **'Close Apple Watch import'**
   String get diveImport_healthkit_closeTooltip;
-
-  /// No description provided for @diveImport_healthkit_dataUsage.
-  ///
-  /// In en, this message translates to:
-  /// **'Reads underwater diving activities from Apple Health, including depth, duration, water temperature, and heart rate. This data is stored locally in your dive log and is never shared with third parties.'**
-  String get diveImport_healthkit_dataUsage;
 
   /// No description provided for @diveImport_healthkit_dateFrom.
   ///
@@ -45554,47 +41419,17 @@ abstract class AppLocalizations {
   /// **'From'**
   String get diveImport_healthkit_dateFrom;
 
-  /// No description provided for @diveImport_healthkit_dateSelectorLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'{label} date selector'**
-  String diveImport_healthkit_dateSelectorLabel(Object label);
-
   /// No description provided for @diveImport_healthkit_dateTo.
   ///
   /// In en, this message translates to:
   /// **'To'**
   String get diveImport_healthkit_dateTo;
 
-  /// No description provided for @diveImport_healthkit_fetchDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Fetch Dives'**
-  String get diveImport_healthkit_fetchDives;
-
-  /// No description provided for @diveImport_healthkit_fetching.
-  ///
-  /// In en, this message translates to:
-  /// **'Fetching...'**
-  String get diveImport_healthkit_fetching;
-
   /// No description provided for @diveImport_healthkit_grantAccess.
   ///
   /// In en, this message translates to:
   /// **'Continue'**
   String get diveImport_healthkit_grantAccess;
-
-  /// No description provided for @diveImport_healthkit_noDivesFound.
-  ///
-  /// In en, this message translates to:
-  /// **'No Dives Found'**
-  String get diveImport_healthkit_noDivesFound;
-
-  /// No description provided for @diveImport_healthkit_noDivesFoundDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'No underwater diving activities found in the selected date range.'**
-  String get diveImport_healthkit_noDivesFoundDescription;
 
   /// No description provided for @diveImport_healthkit_notAvailable.
   ///
@@ -45608,35 +41443,11 @@ abstract class AppLocalizations {
   /// **'Apple Watch import needs an iPhone with the Health app.'**
   String get diveImport_healthkit_notAvailableDescription;
 
-  /// No description provided for @diveImport_healthkit_permissionCheckFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to check permissions'**
-  String get diveImport_healthkit_permissionCheckFailed;
-
-  /// No description provided for @diveImport_healthkit_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Import from Apple Watch'**
-  String get diveImport_healthkit_title;
-
   /// No description provided for @diveImport_healthkit_watchTitle.
   ///
   /// In en, this message translates to:
   /// **'Import from Watch'**
   String get diveImport_healthkit_watchTitle;
-
-  /// No description provided for @diveImport_import.
-  ///
-  /// In en, this message translates to:
-  /// **'Import'**
-  String get diveImport_import;
-
-  /// No description provided for @diveImport_importComplete.
-  ///
-  /// In en, this message translates to:
-  /// **'Import Complete'**
-  String get diveImport_importComplete;
 
   /// No description provided for @diveImport_likelyDuplicate.
   ///
@@ -45656,45 +41467,11 @@ abstract class AppLocalizations {
   /// **'New dive'**
   String get diveImport_newDive;
 
-  /// No description provided for @diveImport_next.
-  ///
-  /// In en, this message translates to:
-  /// **'Next'**
-  String get diveImport_next;
-
   /// No description provided for @diveImport_possibleDuplicate.
   ///
   /// In en, this message translates to:
   /// **'Possible duplicate'**
   String get diveImport_possibleDuplicate;
-
-  /// No description provided for @diveImport_reviewSelectedDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Review Selected Dives'**
-  String get diveImport_reviewSelectedDives;
-
-  /// No description provided for @diveImport_reviewSummary.
-  ///
-  /// In en, this message translates to:
-  /// **'{newCount} new{possibleCount, plural, =0{} other{, {possibleCount} possible duplicates}}{skipCount, plural, =0{} other{, {skipCount} will be skipped}}'**
-  String diveImport_reviewSummary(
-    Object newCount,
-    int possibleCount,
-    int skipCount,
-  );
-
-  /// No description provided for @diveImport_selectAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Select All'**
-  String get diveImport_selectAll;
-
-  /// No description provided for @diveImport_selectedCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} selected'**
-  String diveImport_selectedCount(Object count);
 
   /// No description provided for @diveImport_sourceGarmin.
   ///
@@ -45720,24 +41497,6 @@ abstract class AppLocalizations {
   /// **'Watch'**
   String get diveImport_sourceWatch;
 
-  /// No description provided for @diveImport_step_done.
-  ///
-  /// In en, this message translates to:
-  /// **'Done'**
-  String get diveImport_step_done;
-
-  /// No description provided for @diveImport_step_review.
-  ///
-  /// In en, this message translates to:
-  /// **'Review'**
-  String get diveImport_step_review;
-
-  /// No description provided for @diveImport_step_select.
-  ///
-  /// In en, this message translates to:
-  /// **'Select'**
-  String get diveImport_step_select;
-
   /// No description provided for @diveImport_temp.
   ///
   /// In en, this message translates to:
@@ -45762,12 +41521,6 @@ abstract class AppLocalizations {
   /// **'Certifications'**
   String get diveImport_uddf_certifications;
 
-  /// No description provided for @diveImport_uddf_closeTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Close UDDF import'**
-  String get diveImport_uddf_closeTooltip;
-
   /// No description provided for @diveImport_uddf_diveCenters.
   ///
   /// In en, this message translates to:
@@ -45786,18 +41539,6 @@ abstract class AppLocalizations {
   /// **'Dives'**
   String get diveImport_uddf_dives;
 
-  /// No description provided for @diveImport_uddf_duplicate.
-  ///
-  /// In en, this message translates to:
-  /// **'Duplicate'**
-  String get diveImport_uddf_duplicate;
-
-  /// No description provided for @diveImport_uddf_duplicatesFound.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} duplicates found and auto-deselected.'**
-  String diveImport_uddf_duplicatesFound(Object count);
-
   /// No description provided for @diveImport_uddf_equipment.
   ///
   /// In en, this message translates to:
@@ -45810,137 +41551,17 @@ abstract class AppLocalizations {
   /// **'Equipment Sets'**
   String get diveImport_uddf_equipmentSets;
 
-  /// No description provided for @diveImport_uddf_importProgress.
-  ///
-  /// In en, this message translates to:
-  /// **'{current} of {total}'**
-  String diveImport_uddf_importProgress(Object current, Object total);
-
-  /// No description provided for @diveImport_uddf_importing.
-  ///
-  /// In en, this message translates to:
-  /// **'Importing...'**
-  String get diveImport_uddf_importing;
-
-  /// No description provided for @diveImport_uddf_likelyDuplicate.
-  ///
-  /// In en, this message translates to:
-  /// **'Likely duplicate'**
-  String get diveImport_uddf_likelyDuplicate;
-
-  /// No description provided for @diveImport_uddf_noFileDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Select a .uddf or .xml file exported from another dive log application.'**
-  String get diveImport_uddf_noFileDescription;
-
-  /// No description provided for @diveImport_uddf_noFileSelected.
-  ///
-  /// In en, this message translates to:
-  /// **'No File Selected'**
-  String get diveImport_uddf_noFileSelected;
-
-  /// No description provided for @diveImport_uddf_parsing.
-  ///
-  /// In en, this message translates to:
-  /// **'Parsing...'**
-  String get diveImport_uddf_parsing;
-
-  /// No description provided for @diveImport_uddf_possibleDuplicate.
-  ///
-  /// In en, this message translates to:
-  /// **'Possible duplicate'**
-  String get diveImport_uddf_possibleDuplicate;
-
-  /// No description provided for @diveImport_uddf_selectFile.
-  ///
-  /// In en, this message translates to:
-  /// **'Select UDDF File'**
-  String get diveImport_uddf_selectFile;
-
-  /// No description provided for @diveImport_uddf_selectedOfTotal.
-  ///
-  /// In en, this message translates to:
-  /// **'{selected} of {total} selected'**
-  String diveImport_uddf_selectedOfTotal(Object selected, Object total);
-
   /// No description provided for @diveImport_uddf_sites.
   ///
   /// In en, this message translates to:
   /// **'Sites'**
   String get diveImport_uddf_sites;
 
-  /// No description provided for @diveImport_uddf_stepImport.
-  ///
-  /// In en, this message translates to:
-  /// **'Import'**
-  String get diveImport_uddf_stepImport;
-
-  /// No description provided for @diveImport_uddf_tabBuddies.
-  ///
-  /// In en, this message translates to:
-  /// **'Buddies'**
-  String get diveImport_uddf_tabBuddies;
-
-  /// No description provided for @diveImport_uddf_tabCenters.
-  ///
-  /// In en, this message translates to:
-  /// **'Centers'**
-  String get diveImport_uddf_tabCenters;
-
-  /// No description provided for @diveImport_uddf_tabCerts.
-  ///
-  /// In en, this message translates to:
-  /// **'Certs'**
-  String get diveImport_uddf_tabCerts;
-
   /// No description provided for @diveImport_uddf_tabCourses.
   ///
   /// In en, this message translates to:
   /// **'Courses'**
   String get diveImport_uddf_tabCourses;
-
-  /// No description provided for @diveImport_uddf_tabDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Dives'**
-  String get diveImport_uddf_tabDives;
-
-  /// No description provided for @diveImport_uddf_tabEquipment.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment'**
-  String get diveImport_uddf_tabEquipment;
-
-  /// No description provided for @diveImport_uddf_tabSets.
-  ///
-  /// In en, this message translates to:
-  /// **'Sets'**
-  String get diveImport_uddf_tabSets;
-
-  /// No description provided for @diveImport_uddf_tabSites.
-  ///
-  /// In en, this message translates to:
-  /// **'Sites'**
-  String get diveImport_uddf_tabSites;
-
-  /// No description provided for @diveImport_uddf_tabTags.
-  ///
-  /// In en, this message translates to:
-  /// **'Tags'**
-  String get diveImport_uddf_tabTags;
-
-  /// No description provided for @diveImport_uddf_tabTrips.
-  ///
-  /// In en, this message translates to:
-  /// **'Trips'**
-  String get diveImport_uddf_tabTrips;
-
-  /// No description provided for @diveImport_uddf_tabTypes.
-  ///
-  /// In en, this message translates to:
-  /// **'Types'**
-  String get diveImport_uddf_tabTypes;
 
   /// No description provided for @diveImport_uddf_tags.
   ///
@@ -45959,24 +41580,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fills'**
   String get diveImport_uddf_fills;
-
-  /// No description provided for @diveImport_uddf_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Import from UDDF'**
-  String get diveImport_uddf_title;
-
-  /// No description provided for @diveImport_uddf_toggleDiveSelection.
-  ///
-  /// In en, this message translates to:
-  /// **'Toggle selection for dive'**
-  String get diveImport_uddf_toggleDiveSelection;
-
-  /// No description provided for @diveImport_uddf_toggleEntitySelection.
-  ///
-  /// In en, this message translates to:
-  /// **'Toggle selection for {name}'**
-  String diveImport_uddf_toggleEntitySelection(Object name);
 
   /// No description provided for @diveImport_uddf_trips.
   ///
@@ -47366,107 +42969,17 @@ abstract class AppLocalizations {
   /// **'GPS Logger'**
   String get tools_gpsLogger_title;
 
-  /// No description provided for @tools_weight_aluminumImperial.
-  ///
-  /// In en, this message translates to:
-  /// **'More buoyant when empty (+4 lbs)'**
-  String get tools_weight_aluminumImperial;
-
-  /// No description provided for @tools_weight_aluminumMetric.
-  ///
-  /// In en, this message translates to:
-  /// **'More buoyant when empty (+2 kg)'**
-  String get tools_weight_aluminumMetric;
-
   /// No description provided for @tools_weight_bodyWeightOptional.
   ///
   /// In en, this message translates to:
   /// **'Body Weight (optional)'**
   String get tools_weight_bodyWeightOptional;
 
-  /// No description provided for @tools_weight_carbonFiberImperial.
-  ///
-  /// In en, this message translates to:
-  /// **'Very buoyant (+7 lbs)'**
-  String get tools_weight_carbonFiberImperial;
-
-  /// No description provided for @tools_weight_carbonFiberMetric.
-  ///
-  /// In en, this message translates to:
-  /// **'Very buoyant (+3 kg)'**
-  String get tools_weight_carbonFiberMetric;
-
   /// No description provided for @tools_weight_disclaimer.
   ///
   /// In en, this message translates to:
   /// **'This is an estimate only. Always perform a buoyancy check at the start of your dive and adjust as needed. Factors like BCD, personal buoyancy, and breathing patterns will affect your actual weight requirements.'**
   String get tools_weight_disclaimer;
-
-  /// No description provided for @tools_weight_exposureSuit.
-  ///
-  /// In en, this message translates to:
-  /// **'Exposure Suit'**
-  String get tools_weight_exposureSuit;
-
-  /// No description provided for @tools_weight_gasCapacity.
-  ///
-  /// In en, this message translates to:
-  /// **'• Gas capacity: {capacity} cuft'**
-  String tools_weight_gasCapacity(Object capacity);
-
-  /// No description provided for @tools_weight_helperImperial.
-  ///
-  /// In en, this message translates to:
-  /// **'Adds ~2 lbs per 22 lbs over 154 lbs'**
-  String get tools_weight_helperImperial;
-
-  /// No description provided for @tools_weight_helperMetric.
-  ///
-  /// In en, this message translates to:
-  /// **'Adds ~1 kg per 10 kg over 70 kg'**
-  String get tools_weight_helperMetric;
-
-  /// No description provided for @tools_weight_notSpecified.
-  ///
-  /// In en, this message translates to:
-  /// **'Not specified'**
-  String get tools_weight_notSpecified;
-
-  /// No description provided for @tools_weight_recommendedWeight.
-  ///
-  /// In en, this message translates to:
-  /// **'Recommended Weight'**
-  String get tools_weight_recommendedWeight;
-
-  /// No description provided for @tools_weight_resultAccessibility.
-  ///
-  /// In en, this message translates to:
-  /// **'Recommended weight: {weight} {unit}'**
-  String tools_weight_resultAccessibility(Object weight, Object unit);
-
-  /// No description provided for @tools_weight_steelImperial.
-  ///
-  /// In en, this message translates to:
-  /// **'Negatively buoyant (-4 lbs)'**
-  String get tools_weight_steelImperial;
-
-  /// No description provided for @tools_weight_steelMetric.
-  ///
-  /// In en, this message translates to:
-  /// **'Negatively buoyant (-2 kg)'**
-  String get tools_weight_steelMetric;
-
-  /// No description provided for @tools_weight_tankMaterial.
-  ///
-  /// In en, this message translates to:
-  /// **'Tank Material'**
-  String get tools_weight_tankMaterial;
-
-  /// No description provided for @tools_weight_tankSpecifications.
-  ///
-  /// In en, this message translates to:
-  /// **'Tank Specifications'**
-  String get tools_weight_tankSpecifications;
 
   /// No description provided for @tools_weight_title.
   ///
@@ -47479,24 +42992,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Water Type'**
   String get tools_weight_waterType;
-
-  /// No description provided for @tools_weight_waterVolume.
-  ///
-  /// In en, this message translates to:
-  /// **'• Water volume: {volume} L'**
-  String tools_weight_waterVolume(Object volume);
-
-  /// No description provided for @tools_weight_workingPressure.
-  ///
-  /// In en, this message translates to:
-  /// **'• Working pressure: {pressure} bar'**
-  String tools_weight_workingPressure(Object pressure);
-
-  /// No description provided for @tools_weight_yourWeight.
-  ///
-  /// In en, this message translates to:
-  /// **'Your weight'**
-  String get tools_weight_yourWeight;
 
   /// No description provided for @settings_section_dataSources_title.
   ///
@@ -47630,18 +43125,6 @@ abstract class AppLocalizations {
   /// **'Powered by Apple HealthKit'**
   String get settings_dataSources_appleHealth_poweredBy;
 
-  /// No description provided for @settings_dataSources_noSources.
-  ///
-  /// In en, this message translates to:
-  /// **'No data source integrations are available on this platform.'**
-  String get settings_dataSources_noSources;
-
-  /// No description provided for @diveLog_edit_section_environment.
-  ///
-  /// In en, this message translates to:
-  /// **'Environment'**
-  String get diveLog_edit_section_environment;
-
   /// No description provided for @diveLog_edit_subsection_autofill.
   ///
   /// In en, this message translates to:
@@ -47653,12 +43136,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Weather'**
   String get diveLog_edit_subsection_weather;
-
-  /// No description provided for @diveLog_edit_subsection_diveConditions.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Conditions'**
-  String get diveLog_edit_subsection_diveConditions;
 
   /// No description provided for @diveLog_edit_label_windSpeed.
   ///
@@ -47702,41 +43179,17 @@ abstract class AppLocalizations {
   /// **'Fetch Weather'**
   String get diveLog_edit_button_fetchWeather;
 
-  /// No description provided for @diveLog_edit_fetchingWeather.
-  ///
-  /// In en, this message translates to:
-  /// **'Fetching weather...'**
-  String get diveLog_edit_fetchingWeather;
-
   /// No description provided for @diveLog_edit_weatherFetched.
   ///
   /// In en, this message translates to:
   /// **'Weather data loaded'**
   String get diveLog_edit_weatherFetched;
 
-  /// No description provided for @diveLog_edit_fetchWeatherNoConnection.
-  ///
-  /// In en, this message translates to:
-  /// **'No internet connection'**
-  String get diveLog_edit_fetchWeatherNoConnection;
-
   /// No description provided for @diveLog_edit_fetchWeatherUnavailable.
   ///
   /// In en, this message translates to:
   /// **'Weather data unavailable for this date'**
   String get diveLog_edit_fetchWeatherUnavailable;
-
-  /// No description provided for @diveLog_edit_fetchWeatherNotYetAvailable.
-  ///
-  /// In en, this message translates to:
-  /// **'Weather data not yet available for this date'**
-  String get diveLog_edit_fetchWeatherNotYetAvailable;
-
-  /// No description provided for @diveLog_edit_fetchWeatherHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a date and dive site first'**
-  String get diveLog_edit_fetchWeatherHint;
 
   /// No description provided for @diveLog_edit_fetchWeatherConfirm.
   ///
@@ -48014,18 +43467,6 @@ abstract class AppLocalizations {
   /// **'Done'**
   String get columnConfig_done;
 
-  /// No description provided for @settings_appearance_columnConfig.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Details List Fields'**
-  String get settings_appearance_columnConfig;
-
-  /// No description provided for @settings_appearance_columnConfig_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Customize fields shown in dive list views'**
-  String get settings_appearance_columnConfig_subtitle;
-
   /// No description provided for @diveField_category_core.
   ///
   /// In en, this message translates to:
@@ -48109,12 +43550,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Metadata'**
   String get diveField_category_metadata;
-
-  /// No description provided for @listViewMode_table.
-  ///
-  /// In en, this message translates to:
-  /// **'Table'**
-  String get listViewMode_table;
 
   /// No description provided for @settings_appearance_general.
   ///
@@ -49607,48 +45042,6 @@ abstract class AppLocalizations {
   /// **'Advanced'**
   String get equipment_edit_advanced_title;
 
-  /// No description provided for @equipment_edit_buoyancyHint_exposure.
-  ///
-  /// In en, this message translates to:
-  /// **'Positive: how much it floats'**
-  String get equipment_edit_buoyancyHint_exposure;
-
-  /// No description provided for @equipment_edit_buoyancyHint_generic.
-  ///
-  /// In en, this message translates to:
-  /// **'Negative if it sinks'**
-  String get equipment_edit_buoyancyHint_generic;
-
-  /// No description provided for @equipment_edit_buoyancyHint_tank.
-  ///
-  /// In en, this message translates to:
-  /// **'Leave empty - tanks use their own specifications'**
-  String get equipment_edit_buoyancyHint_tank;
-
-  /// No description provided for @equipment_edit_buoyancyLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Buoyancy ({unit})'**
-  String equipment_edit_buoyancyLabel(String unit);
-
-  /// No description provided for @equipment_edit_dryWeightLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Dry weight ({unit})'**
-  String equipment_edit_dryWeightLabel(String unit);
-
-  /// No description provided for @equipment_edit_liftCapacityLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Lift capacity ({unit})'**
-  String equipment_edit_liftCapacityLabel(String unit);
-
-  /// No description provided for @equipment_edit_liftCapacityHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Wing or BCD rated lift'**
-  String get equipment_edit_liftCapacityHint;
-
   /// No description provided for @planner_gearWeights_accept.
   ///
   /// In en, this message translates to:
@@ -49840,12 +45233,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'3D View'**
   String get dive3d_previewTitle;
-
-  /// No description provided for @dive3d_previewHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap to explore in 3D'**
-  String get dive3d_previewHint;
 
   /// No description provided for @dive3d_resetView.
   ///
@@ -50381,53 +45768,11 @@ abstract class AppLocalizations {
   /// **'Dive'**
   String get dive3d_scene_dive;
 
-  /// No description provided for @dive3d_scene_tissue.
-  ///
-  /// In en, this message translates to:
-  /// **'Tissues'**
-  String get dive3d_scene_tissue;
-
-  /// No description provided for @dive3d_tissue_gasCombined.
-  ///
-  /// In en, this message translates to:
-  /// **'Combined'**
-  String get dive3d_tissue_gasCombined;
-
-  /// No description provided for @dive3d_tissue_gasN2.
-  ///
-  /// In en, this message translates to:
-  /// **'N2'**
-  String get dive3d_tissue_gasN2;
-
-  /// No description provided for @dive3d_tissue_gasHe.
-  ///
-  /// In en, this message translates to:
-  /// **'He'**
-  String get dive3d_tissue_gasHe;
-
-  /// No description provided for @dive3d_tissue_colorMValue.
-  ///
-  /// In en, this message translates to:
-  /// **'% M-value'**
-  String get dive3d_tissue_colorMValue;
-
-  /// No description provided for @dive3d_tissue_colorAbsolute.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading'**
-  String get dive3d_tissue_colorAbsolute;
-
   /// No description provided for @dive3d_tissue_controlling.
   ///
   /// In en, this message translates to:
   /// **'Controlling'**
   String get dive3d_tissue_controlling;
-
-  /// No description provided for @dive3d_tissue_surfaceInterval.
-  ///
-  /// In en, this message translates to:
-  /// **'Surface interval'**
-  String get dive3d_tissue_surfaceInterval;
 
   /// No description provided for @dive3d_career_title.
   ///
@@ -50507,12 +45852,6 @@ abstract class AppLocalizations {
   /// **'Left→right: time · Front→back: fast→slow tissues'**
   String get dive3d_tissue_legendAxes;
 
-  /// No description provided for @dive3d_tissue_legendDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'Blue curve: your depth'**
-  String get dive3d_tissue_legendDepth;
-
   /// No description provided for @dive3d_tissue_onGassing.
   ///
   /// In en, this message translates to:
@@ -50578,12 +45917,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Compartment'**
   String get dive3d_tissue_axisCompartment;
-
-  /// No description provided for @dive3d_compare_computers_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Compare computers'**
-  String get dive3d_compare_computers_title;
 
   /// No description provided for @dive3d_compare_dives_title.
   ///
@@ -52361,12 +47694,6 @@ abstract class AppLocalizations {
   /// **'Add a cylinder volume to show RMV in {unit}'**
   String diveLog_detail_sacVolumeHint(String unit);
 
-  /// No description provided for @safetyHub_alert_noFly.
-  ///
-  /// In en, this message translates to:
-  /// **'No-fly: {remaining} remaining'**
-  String safetyHub_alert_noFly(String remaining);
-
   /// No description provided for @emergencyCard_title.
   ///
   /// In en, this message translates to:
@@ -52462,12 +47789,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Policy {number}'**
   String emergencyCard_insurancePolicy(String number);
-
-  /// No description provided for @emergencyCard_chambersSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Hyperbaric chambers'**
-  String get emergencyCard_chambersSection;
 
   /// No description provided for @emergencyCard_chambersNote.
   ///
@@ -54153,18 +49474,6 @@ abstract class AppLocalizations {
   /// **'I saved my recovery code'**
   String get settings_security_recoveryCode_savedConfirm;
 
-  /// No description provided for @settings_security_disableBlockedByEncryption_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Encryption is on'**
-  String get settings_security_disableBlockedByEncryption_title;
-
-  /// No description provided for @settings_security_disableBlockedByEncryption_body.
-  ///
-  /// In en, this message translates to:
-  /// **'Turn off database encryption before turning off App Lock. The encrypted database needs a credential.'**
-  String get settings_security_disableBlockedByEncryption_body;
-
   /// No description provided for @settings_security_enableEncryption_title.
   ///
   /// In en, this message translates to:
@@ -54350,12 +49659,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dismiss'**
   String get dataQuality_action_dismiss;
-
-  /// No description provided for @dataQuality_action_dismissFiltered.
-  ///
-  /// In en, this message translates to:
-  /// **'Dismiss all shown'**
-  String get dataQuality_action_dismissFiltered;
 
   /// No description provided for @dataQuality_action_goToDive.
   ///
@@ -54927,12 +50230,6 @@ abstract class AppLocalizations {
   /// **'Review'**
   String get dataQuality_summary_review;
 
-  /// No description provided for @dataQuality_detail_chip.
-  ///
-  /// In en, this message translates to:
-  /// **'Review'**
-  String get dataQuality_detail_chip;
-
   /// No description provided for @dataQuality_detail_chipCount.
   ///
   /// In en, this message translates to:
@@ -55298,12 +50595,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Coordinate format'**
   String get settings_coordinateFormat_title;
-
-  /// No description provided for @settings_coordinateFormat_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'How GPS positions are shown and entered'**
-  String get settings_coordinateFormat_subtitle;
 
   /// No description provided for @settings_placeNameLanguage_title.
   ///
@@ -67251,12 +62542,6 @@ abstract class AppLocalizations {
   /// **'site'**
   String get explore_kind_site;
 
-  /// No description provided for @explore_kind_place.
-  ///
-  /// In en, this message translates to:
-  /// **'place'**
-  String get explore_kind_place;
-
   /// No description provided for @explore_kind_species.
   ///
   /// In en, this message translates to:
@@ -71073,24 +66358,6 @@ abstract class AppLocalizations {
   /// **'Sync check failed: {error}'**
   String settings_cloudSync_launchCheck_failed(String error);
 
-  /// No description provided for @diveLog_detail_viewMap.
-  ///
-  /// In en, this message translates to:
-  /// **'Map'**
-  String get diveLog_detail_viewMap;
-
-  /// No description provided for @diveLog_detail_view3d.
-  ///
-  /// In en, this message translates to:
-  /// **'3D'**
-  String get diveLog_detail_view3d;
-
-  /// No description provided for @setup_sync_icloudUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'iCloud is not available on this device'**
-  String get setup_sync_icloudUnavailable;
-
   /// No description provided for @media_info_title.
   ///
   /// In en, this message translates to:
@@ -71775,12 +67042,6 @@ abstract class AppLocalizations {
   /// **'Weekly average'**
   String get insights_trend_aggregation_weekly;
 
-  /// No description provided for @insights_trend_band_semanticLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Shaded band spans the lowest and highest value in each group'**
-  String get insights_trend_band_semanticLabel;
-
   /// No description provided for @insights_trend_legend_rate.
   ///
   /// In en, this message translates to:
@@ -71810,12 +67071,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Every dive in range'**
   String get insights_conditions_tempTrend_subtitle;
-
-  /// No description provided for @insights_conditions_tempTrend_empty.
-  ///
-  /// In en, this message translates to:
-  /// **'No temperature data available'**
-  String get insights_conditions_tempTrend_empty;
 
   /// No description provided for @insights_conditions_tempTrend_error.
   ///
@@ -72084,12 +67339,6 @@ abstract class AppLocalizations {
   /// **'Listing dives…'**
   String get suuntoCloud_fetch_listing;
 
-  /// Progress line while paging through the Suunto cloud's workout list, showing the running dive count found so far.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =0{Listing dives…} =1{Listing dives… (1 found so far)} other{Listing dives… ({count} found so far)}}'**
-  String suuntoCloud_fetch_listingFound(int count);
-
   /// Progress line while downloading each dive from the Suunto cloud.
   ///
   /// In en, this message translates to:
@@ -72227,12 +67476,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Listing dives…'**
   String get garminConnect_fetch_listing;
-
-  /// Progress line while paging through Garmin Connect's activity list, showing the running dive count found so far.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =0{Listing dives…} =1{Listing dives… (1 found so far)} other{Listing dives… ({count} found so far)}}'**
-  String garminConnect_fetch_listingFound(int count);
 
   /// Progress line while downloading each dive from Garmin Connect.
   ///
@@ -73545,12 +68788,6 @@ abstract class AppLocalizations {
   /// **'Dive {id}'**
   String navTrack_common_diveById(String id);
 
-  /// No description provided for @navTrack_common_unlinked.
-  ///
-  /// In en, this message translates to:
-  /// **'unlinked'**
-  String get navTrack_common_unlinked;
-
   /// No description provided for @navTrack_align_title.
   ///
   /// In en, this message translates to:
@@ -73646,12 +68883,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rotation:'**
   String get navTrack_align_rotationLabel;
-
-  /// No description provided for @navTrack_align_rotationDegrees.
-  ///
-  /// In en, this message translates to:
-  /// **'{degrees} deg'**
-  String navTrack_align_rotationDegrees(String degrees);
 
   /// No description provided for @navTrack_terrain_summary.
   ///
@@ -74221,12 +69452,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{minutes}min'**
   String navTrack_list_durationMinutes(int minutes);
-
-  /// No description provided for @diveLog_detail_tooltip_whatIf.
-  ///
-  /// In en, this message translates to:
-  /// **'Replan this dive'**
-  String get diveLog_detail_tooltip_whatIf;
 
   /// No description provided for @diveLog_detail_menu_whatIf.
   ///

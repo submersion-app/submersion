@@ -78,7 +78,6 @@ void main() {
       'reemplazo': _Homograph(
         'the noun reemplazo, and the past tense reemplazó',
         keys: {
-          'enum_serviceType_replacement',
           'settings_cloudSync_result_noReplacementToRebuild',
           'settings_cloudSync_result_noReplacementMarker',
         },
@@ -107,7 +106,6 @@ void main() {
         'the RAE accepts cardiaca beside cardíaca',
         keys: {
           'settings_appearance_metric_heartRate',
-          'diveImport_healthkit_dataUsage',
           'settings_dataSources_appleHealth_dataTypeHeartRate',
         },
       ),
@@ -200,7 +198,6 @@ void main() {
         'Bluetooth LE, and the verb lê',
         keys: {
           'diveComputer_list_helpBluetooth',
-          'diveImport_healthkit_dataUsage',
           'diveComputer_connectionType_ble',
         },
       ),
@@ -218,12 +215,7 @@ void main() {
       'insights_category_overview_subtitle',
       'transfer_computers_appleWatchSubtitle',
     },
-    'pt': {
-      'diveLog_edit_customFieldKeyHint',
-      'diveLog_rangeStats_label_gasConsumed',
-      'divePlanner_gasOptions_title',
-      'diveLog_whatIf_engineNote',
-    },
+    'pt': {'divePlanner_gasOptions_title', 'diveLog_whatIf_engineNote'},
   };
 
   Map<String, String> readArb(String locale) {

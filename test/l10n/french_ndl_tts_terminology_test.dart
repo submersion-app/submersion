@@ -75,7 +75,6 @@ void main() {
   });
 
   test('the planner, tooltip and surface interval labels read NDL and TTS', () {
-    expect(fr.diveLog_detail_collapsed_ndl('12 min'), 'NDL : 12 min');
     expect(fr.diveLog_tooltip_ndl, 'NDL');
     expect(fr.diveLog_tooltip_tts, 'TTS');
     expect(fr.divePlanner_label_ndl, 'NDL');

@@ -253,10 +253,6 @@ void main() {
       expect(hu.gas_scrEan60_description, 'SCR tápgáz - 60% O2');
     });
 
-    test('the deco calculator computes no-deco limits', () {
-      expect(hu.planning_card_decoCalculator_description, contains('nullidő'));
-    });
-
     test('cached tiles are gyorsítótárazott', () {
       expect(
         hu.maps_offline_deleteRegionMessage('x', 3, '1 MB'),

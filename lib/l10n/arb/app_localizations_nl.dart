@@ -1161,9 +1161,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_setEdit_addGeofence => 'Geofence toevoegen';
 
   @override
-  String get equipment_setEdit_editGeofence => 'Edit geofence';
-
-  @override
   String get equipment_setEdit_removeGeofence => 'Remove geofence';
 
   @override
@@ -1904,14 +1901,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get accessibility_keyLabel_up => 'Omhoog';
 
   @override
-  String accessibility_label_chartSummary(
-    Object chartType,
-    Object description,
-  ) {
-    return '$chartType grafiek. $description';
-  }
-
-  @override
   String get accessibility_label_createNewItem => 'Nieuw item aanmaken';
 
   @override
@@ -2082,9 +2071,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_export_subtitle => 'Sla je duikgegevens op in een bestand';
 
   @override
-  String get backup_export_success => 'Back-up succesvol geëxporteerd';
-
-  @override
   String get backup_export_title => 'Back-up exporteren';
 
   @override
@@ -2219,10 +2205,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_schedule_enabled => 'Automatische back-ups';
 
   @override
-  String get backup_schedule_enabled_subtitle =>
-      'Maak back-ups van uw gegevens volgens schema';
-
-  @override
   String get backup_schedule_frequency => 'Frequentie';
 
   @override
@@ -2241,34 +2223,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_section_auto => 'Automatische back-ups';
 
   @override
-  String get backup_section_cloud => 'Cloud';
-
-  @override
   String get backup_section_history => 'Geschiedenis';
-
-  @override
-  String get backup_section_schedule => 'Schema';
-
-  @override
-  String get backup_status_disabled => 'Automatische Back-ups Uitgeschakeld';
 
   @override
   String backup_status_lastBackup(String time) {
     return 'Laatste back-up: $time';
   }
-
-  @override
-  String get backup_status_neverBackedUp => 'Nooit Back-up Gemaakt';
-
-  @override
-  String get backup_status_noBackupsYet =>
-      'Maak uw eerste back-up om uw gegevens te beschermen';
-
-  @override
-  String get backup_status_overdue => 'Back-up Achterstallig';
-
-  @override
-  String get backup_status_upToDate => 'Back-ups Actueel';
 
   @override
   String backup_time_daysAgo(int count) {
@@ -2386,12 +2346,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_error_unableToLoadStats => 'Kan statistieken niet laden';
 
   @override
-  String get buddies_field_certificationAgency => 'Certificeringsorganisatie';
-
-  @override
-  String get buddies_field_certificationLevel => 'Certificeringsniveau';
-
-  @override
   String get buddies_field_email => 'E-mail';
 
   @override
@@ -2399,10 +2353,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buddies_field_linkedProfile => 'Gekoppeld profiel';
-
-  @override
-  String get buddies_field_linkedProfileHint =>
-      'Het lokale profiel dat deze buddy is';
 
   @override
   String get buddies_field_linkedProfileNone => 'Niet gekoppeld';
@@ -2426,9 +2376,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_field_phoneHint => '+31 6 12345678';
 
   @override
-  String get buddies_label_agency => 'Organisatie';
-
-  @override
   String buddies_label_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -2438,12 +2385,6 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get buddies_label_level => 'Niveau';
-
-  @override
-  String get buddies_label_notSpecified => 'Niet opgegeven';
 
   @override
   String get buddies_linkText_action => 'Koppelen aan buddy-records';
@@ -2660,9 +2601,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Contacten importeren is niet beschikbaar op dit platform';
 
   @override
-  String get buddies_message_contactLoadFailed => 'Contacten laden mislukt';
-
-  @override
   String get buddies_message_contactPermissionRequired =>
       'Contacten toegang is vereist om buddies te importeren';
 
@@ -2758,9 +2696,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String buddies_search_noResults(Object query) {
     return 'Geen buddies gevonden voor \"$query\"';
   }
-
-  @override
-  String get buddies_section_certification => 'Certificering';
 
   @override
   String get buddies_section_certifications => 'Certificeringen';
@@ -2859,25 +2794,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_validation_nameRequired => 'Voer een naam in';
 
   @override
-  String get buddies_list_selection_closeTooltip => 'Selectie sluiten';
-
-  @override
-  String buddies_list_selection_count(int count) {
-    return '$count geselecteerd';
-  }
-
-  @override
-  String get buddies_list_selection_selectAllTooltip => 'Alles selecteren';
-
-  @override
-  String get buddies_list_selection_deselectAllTooltip => 'Alles deselecteren';
-
-  @override
   String get buddies_list_selection_mergeTooltip => 'Geselecteerde samenvoegen';
-
-  @override
-  String get buddies_list_selection_deleteTooltip =>
-      'Geselecteerde verwijderen';
 
   @override
   String buddies_list_merge_snackbar(int count) {
@@ -2971,18 +2888,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buddies_instructorPicker_none => 'Geen (handmatige invoer)';
-
-  @override
-  String get certifications_appBar_addCertification =>
-      'Certificering toevoegen';
-
-  @override
-  String get certifications_appBar_certificationWallet =>
-      'Certificeringsportefeuille';
-
-  @override
-  String get certifications_appBar_editCertification =>
-      'Certificering bewerken';
 
   @override
   String get certifications_appBar_title => 'Certificeringen';
@@ -3447,45 +3352,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_picker_sheetTitle => 'Koppelen aan certificering';
 
   @override
-  String get certifications_renderer_footer => 'Submersion Duiklogboek';
-
-  @override
-  String certifications_renderer_label_cardNumber(Object number) {
-    return 'Kaartnr.: $number';
-  }
-
-  @override
-  String get certifications_renderer_label_hasCompletedTraining =>
-      'heeft de opleiding afgerond als';
-
-  @override
-  String certifications_renderer_label_instructor(Object name) {
-    return 'Instructeur: $name';
-  }
-
-  @override
-  String certifications_renderer_label_instructorWithNumber(
-    Object name,
-    Object number,
-  ) {
-    return 'Instructeur: $name ($number)';
-  }
-
-  @override
-  String certifications_renderer_label_issued(Object date) {
-    return 'Uitgegeven: $date';
-  }
-
-  @override
-  String get certifications_renderer_label_thisCertifies =>
-      'Hierbij wordt gecertificeerd dat';
-
-  @override
   String get certifications_search_empty_hint =>
       'Zoek op naam, organisatie of kaartnummer';
-
-  @override
-  String get certifications_search_fieldLabel => 'Certificeringen zoeken...';
 
   @override
   String certifications_search_noResults(Object query) {
@@ -4112,9 +3980,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Pre-dive checklist starten';
 
   @override
-  String get preDive_dashboard_title => 'Pre-dive check';
-
-  @override
   String preDive_dashboard_resume(int done, int total) {
     return 'Hervatten - $done van $total';
   }
@@ -4203,9 +4068,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get common_action_save => 'Opslaan';
-
-  @override
-  String get common_action_search => 'Zoeken';
 
   @override
   String get common_action_share => 'Delen';
@@ -4439,9 +4301,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_action_exportTrainingLog => 'Trainingslogboek exporteren';
-
-  @override
-  String get courses_action_linkDive => 'Koppelen';
 
   @override
   String get courses_action_markCompleted => 'Markeren als voltooid';
@@ -4759,113 +4618,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dashboard_activeCourses_title => 'Lopende cursussen';
 
   @override
-  String get dashboard_activity_daySinceDiving => 'Dag sinds laatste duik';
-
-  @override
-  String get dashboard_activity_daysSinceDiving => 'Dagen sinds laatste duik';
-
-  @override
-  String dashboard_activity_diveInYear(Object year) {
-    return 'Duik in $year';
-  }
-
-  @override
-  String get dashboard_activity_diveThisMonth => 'Duik deze maand';
-
-  @override
-  String dashboard_activity_divesInYear(Object year) {
-    return 'Duiken in $year';
-  }
-
-  @override
-  String get dashboard_activity_divesThisMonth => 'Duiken deze maand';
-
-  @override
-  String get dashboard_activity_error => 'Fout';
-
-  @override
-  String get dashboard_activity_lastDive => 'Laatste duik';
-
-  @override
-  String get dashboard_activity_loading => 'Laden';
-
-  @override
-  String get dashboard_activity_noDivesYet => 'Nog geen duiken';
-
-  @override
-  String get dashboard_activity_today => 'Vandaag!';
-
-  @override
-  String get dashboard_alerts_actionUpdate => 'Bijwerken';
-
-  @override
-  String get dashboard_alerts_actionView => 'Bekijken';
-
-  @override
-  String get dashboard_alerts_checkInsuranceExpiry =>
-      'Controleer de vervaldatum van uw verzekering';
-
-  @override
-  String get dashboard_alerts_daysOverdueOne => '1 dag te laat';
-
-  @override
-  String dashboard_alerts_daysOverdueOther(Object count) {
-    return '$count dagen te laat';
-  }
-
-  @override
-  String get dashboard_alerts_dueInDaysOne => 'Binnen 1 dag';
-
-  @override
-  String dashboard_alerts_dueInDaysOther(Object count) {
-    return 'Binnen $count dagen';
-  }
-
-  @override
-  String dashboard_alerts_equipmentServiceDue(Object name) {
-    return 'Onderhoud $name gepland';
-  }
-
-  @override
-  String dashboard_alerts_equipmentServiceOverdue(Object name) {
-    return 'Onderhoud $name achterstallig';
-  }
-
-  @override
-  String get dashboard_alerts_insuranceExpired => 'Verzekering verlopen';
-
-  @override
-  String get dashboard_alerts_insuranceExpiredGeneric =>
-      'Uw duikverzekering is verlopen';
-
-  @override
-  String dashboard_alerts_insuranceExpiredProvider(Object provider) {
-    return '$provider verlopen';
-  }
-
-  @override
-  String dashboard_alerts_insuranceExpiresDate(Object date) {
-    return 'Verloopt op $date';
-  }
-
-  @override
-  String get dashboard_alerts_insuranceExpiringSoon =>
-      'Verzekering verloopt binnenkort';
-
-  @override
-  String get dashboard_alerts_sectionTitle => 'Meldingen & Herinneringen';
-
-  @override
-  String get dashboard_alerts_serviceDueToday => 'Onderhoud vandaag gepland';
-
-  @override
-  String get dashboard_alerts_serviceIntervalReached =>
-      'Onderhoudsinterval bereikt';
-
-  @override
-  String get dashboard_defaultDiverName => 'Duiker';
-
-  @override
   String get dashboard_greeting_afternoon => 'Goedemiddag';
 
   @override
@@ -4920,27 +4672,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dashboard_hero_noDives => 'Klaar om uw eerste duik te loggen?';
 
   @override
-  String get dashboard_hero_divesLoggedLabel => 'duiken gelogd';
-
-  @override
-  String get dashboard_hero_hoursUnderwaterLabel => 'uren onder water';
-
-  @override
-  String get dashboard_hero_daysSinceLabel => 'dagen sinds laatste duik';
-
-  @override
-  String get dashboard_hero_thisMonthLabel => 'deze maand';
-
-  @override
-  String get dashboard_hero_thisYearLabel => 'duiken dit jaar';
-
-  @override
-  String get dashboard_hero_todayLabel => 'vandaag!';
-
-  @override
-  String get dashboard_hero_noDivesLabel => 'nog geen duiken';
-
-  @override
   String get dashboard_hero_diverFallbackName => 'Duiker';
 
   @override
@@ -4954,14 +4685,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dashboard_hero_statCountries => 'landen';
-
-  @override
-  String dashboard_activityStats_divesInYear(String year) {
-    return 'duiken in $year';
-  }
-
-  @override
-  String get dashboard_semantics_statsBar => 'Samenvatting duikstatistieken';
 
   @override
   String get dashboard_gauges_addGear => 'Uitrusting toevoegen';
@@ -5260,71 +4983,16 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get dashboard_personalRecords_coldest => 'Koudste';
-
-  @override
-  String get dashboard_personalRecords_deepest => 'Diepste';
-
-  @override
-  String get dashboard_personalRecords_longest => 'Langste';
-
-  @override
-  String get dashboard_personalRecords_sectionTitle => 'Persoonlijke records';
-
-  @override
-  String get dashboard_personalRecords_warmest => 'Warmste';
-
-  @override
-  String get dashboard_quickActions_addSite => 'Stek toevoegen';
-
-  @override
-  String get dashboard_quickActions_addSiteTooltip =>
-      'Een nieuwe duikstek toevoegen';
-
-  @override
   String get dashboard_quickActions_logDive => 'Duik loggen';
 
   @override
-  String get dashboard_quickActions_logDiveTooltip => 'Een nieuwe duik loggen';
-
-  @override
   String get dashboard_quickActions_planDive => 'Duik plannen';
-
-  @override
-  String get dashboard_quickActions_planDiveTooltip =>
-      'Een nieuwe duik plannen';
 
   @override
   String get dashboard_quickActions_sectionTitle => 'Snelle acties';
 
   @override
   String get dashboard_quickActions_insights => 'Inzichten';
-
-  @override
-  String get dashboard_quickActions_insightsTooltip => 'Duikinzichten bekijken';
-
-  @override
-  String get dashboard_quickStats_countries => 'Landen';
-
-  @override
-  String get dashboard_quickStats_countriesSubtitle => 'bezocht';
-
-  @override
-  String get dashboard_quickStats_sectionTitle => 'In een oogopslag';
-
-  @override
-  String get dashboard_quickStats_species => 'Soorten';
-
-  @override
-  String get dashboard_quickStats_speciesSubtitle => 'ontdekt';
-
-  @override
-  String get dashboard_quickStats_topBuddy => 'Vaste buddy';
-
-  @override
-  String dashboard_quickStats_topBuddyDives(Object count) {
-    return '$count duiken';
-  }
 
   @override
   String get dashboard_recentDives_empty => 'Nog geen duiken gelogd';
@@ -5344,11 +5012,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan het duikprofiel niet laden';
 
   @override
-  String dashboard_recentDives_profileMinutes(int minutes) {
-    return '$minutes min';
-  }
-
-  @override
   String get dashboard_recentDives_logFirst => 'Log uw eerste duik';
 
   @override
@@ -5361,37 +5024,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dashboard_recentDives_viewAllTooltip => 'Alle duiken bekijken';
 
   @override
-  String dashboard_semantics_activeAlerts(Object count) {
-    return '$count actieve meldingen';
-  }
-
-  @override
   String get dashboard_semantics_errorLoadingRecentDives =>
       'Fout: Laden van recente duiken mislukt';
 
   @override
-  String get dashboard_semantics_errorLoadingStatistics =>
-      'Fout: Laden van statistieken mislukt';
-
-  @override
   String get dashboard_semantics_greetingBanner =>
       'Dashboard begroetingsbanner';
-
-  @override
-  String get dashboard_stats_errorLoadingStatistics =>
-      'Laden van statistieken mislukt';
-
-  @override
-  String get dashboard_stats_hoursLogged => 'Uren gelogd';
-
-  @override
-  String get dashboard_stats_maxDepth => 'Max diepte';
-
-  @override
-  String get dashboard_stats_sitesVisited => 'Bezochte stekken';
-
-  @override
-  String get dashboard_stats_totalDives => 'Totaal duiken';
 
   @override
   String get decoCalculator_addToPlanner => 'Toevoegen aan planner';
@@ -5524,9 +5162,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveCenters_action_addCenter => 'Centrum toevoegen';
-
-  @override
-  String get diveCenters_action_addNew => 'Nieuw toevoegen';
 
   @override
   String get diveCenters_action_clearRating => 'Wissen';
@@ -5712,12 +5347,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveCenters_hint_importSearch =>
       'Zoek duikcentra (bijv. \"PADI\", \"Thailand\")';
-
-  @override
-  String get diveCenters_hint_latitude => 'bijv. 10.4613';
-
-  @override
-  String get diveCenters_hint_longitude => 'bijv. 99.8359';
 
   @override
   String get diveCenters_hint_name => 'Voer naam duikcentrum in';
@@ -6057,106 +5686,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_bulkDelete_undo => 'Ongedaan maken';
 
   @override
-  String get diveLog_bulkEdit_addTags => 'Tags toevoegen';
-
-  @override
-  String get diveLog_bulkEdit_addTagsDescription =>
-      'Tags toevoegen aan geselecteerde duiken';
-
-  @override
-  String diveLog_bulkEdit_addedTags(int tagCount, int diveCount) {
-    String _temp0 = intl.Intl.pluralLogic(
-      tagCount,
-      locale: localeName,
-      other: 'tags',
-      one: 'tag',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      diveCount,
-      locale: localeName,
-      other: 'duiken',
-      one: 'duik',
-    );
-    return '$tagCount $_temp0 toegevoegd aan $diveCount $_temp1';
-  }
-
-  @override
-  String get diveLog_bulkEdit_changeTrip => 'Reis wijzigen';
-
-  @override
-  String get diveLog_bulkEdit_changeTripDescription =>
-      'Geselecteerde duiken naar een reis verplaatsen';
-
-  @override
-  String get diveLog_bulkEdit_errorLoadingTrips => 'Fout bij laden van reizen';
-
-  @override
-  String diveLog_bulkEdit_failedAddTags(Object error) {
-    return 'Tags toevoegen mislukt: $error';
-  }
-
-  @override
-  String diveLog_bulkEdit_failedUpdateTrip(Object error) {
-    return 'Reis bijwerken mislukt: $error';
-  }
-
-  @override
-  String diveLog_bulkEdit_movedToTrip(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'duiken',
-      one: 'duik',
-    );
-    return '$count $_temp0 verplaatst naar reis';
-  }
-
-  @override
-  String get diveLog_bulkEdit_noTagsAvailable => 'Geen tags beschikbaar.';
-
-  @override
-  String get diveLog_bulkEdit_noTagsAvailableCreate =>
-      'Geen tags beschikbaar. Maak eerst tags aan.';
-
-  @override
-  String get diveLog_bulkEdit_noTrip => 'Geen reis';
-
-  @override
-  String get diveLog_bulkEdit_removeFromTrip => 'Verwijderen uit reis';
-
-  @override
-  String get diveLog_bulkEdit_removeTags => 'Tags verwijderen';
-
-  @override
-  String get diveLog_bulkEdit_removeTagsDescription =>
-      'Tags verwijderen van geselecteerde duiken';
-
-  @override
-  String diveLog_bulkEdit_removedFromTrip(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'duiken',
-      one: 'duik',
-    );
-    return '$count $_temp0 verwijderd uit reis';
-  }
-
-  @override
-  String get diveLog_bulkEdit_selectTrip => 'Reis selecteren';
-
-  @override
-  String diveLog_bulkEdit_title(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'duiken',
-      one: 'duik',
-    );
-    return '$count $_temp0 bewerken';
-  }
-
-  @override
   String get diveLog_bulkExport_csv => 'CSV';
 
   @override
@@ -6366,28 +5895,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_computerSheet_title => 'Startprofiel kiezen';
 
   @override
-  String diveLog_cylinderSac_avgDepth(Object depth) {
-    return 'Gem.: $depth';
-  }
-
-  @override
-  String get diveLog_cylinderSac_badge_ai => 'AI';
-
-  @override
-  String get diveLog_cylinderSac_badge_basic => 'Basis';
-
-  @override
-  String get diveLog_cylinderSac_noSac => 'SAC: --';
-
-  @override
-  String get diveLog_cylinderSac_tooltip_aiData =>
-      'AI-zendergegevens gebruikt voor hogere nauwkeurigheid';
-
-  @override
-  String get diveLog_cylinderSac_tooltip_basicData =>
-      'Berekend op basis van begin-/einddruk';
-
-  @override
   String get diveLog_deco_badge_deco => 'DECO';
 
   @override
@@ -6404,9 +5911,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_deco_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_deco_label_time => 'Tijd';
 
   @override
   String get diveLog_deco_label_tts => 'TTS';
@@ -6498,12 +6002,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_badge_critical => 'KRITIEK';
 
   @override
-  String get diveLog_detail_badge_deco => 'DECO';
-
-  @override
-  String get diveLog_detail_badge_noDeco => 'GEEN DECO';
-
-  @override
   String get diveLog_detail_badge_warning => 'WAARSCHUWING';
 
   @override
@@ -6521,48 +6019,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_button_rangeAnalysis => 'Bereikstatistieken';
 
   @override
-  String get diveLog_detail_button_showEnd => 'Toon einde';
-
-  @override
   String get diveLog_detail_captureSignature =>
       'Handtekening instructeur vastleggen';
 
   @override
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'Om $timestamp';
-  }
-
-  @override
-  String diveLog_detail_collapsed_atTimeInfo(
-    Object timestamp,
-    Object baseInfo,
-  ) {
-    return 'Om $timestamp • $baseInfo';
-  }
-
-  @override
-  String diveLog_detail_collapsed_ceiling(Object value) {
-    return 'Plafond: $value';
-  }
-
-  @override
-  String diveLog_detail_collapsed_cnsMaxPpO2(Object cns, Object maxPpO2) {
-    return 'CNS: $cns • Max ppO₂: $maxPpO2';
-  }
-
-  @override
-  String diveLog_detail_collapsed_cnsMaxPpO2AtTime(
-    Object cns,
-    Object maxPpO2,
-    Object timestamp,
-    Object ppO2,
-  ) {
-    return 'CNS: $cns • Max ppO₂: $maxPpO2 • Om $timestamp: $ppO2 bar';
-  }
-
-  @override
-  String diveLog_detail_collapsed_ndl(Object value) {
-    return 'NDL: $value';
   }
 
   @override
@@ -6648,9 +6110,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_label_lowTide => 'Laag water';
 
   @override
-  String get diveLog_detail_label_ppO2AtPoint => 'ppO₂ op geselecteerd punt:';
-
-  @override
   String get diveLog_detail_label_rateOfChange => 'Wijzigingssnelheid';
 
   @override
@@ -6705,9 +6164,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_buddies => 'Buddy\'s';
-
-  @override
-  String get diveLog_detail_section_conditions => 'Omstandigheden';
 
   @override
   String get diveLog_detail_section_customFields => 'Custom Fields';
@@ -6973,26 +6429,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_customFieldKey => 'Key';
 
   @override
-  String get diveLog_edit_customFieldKeyHint => 'e.g., camera_settings';
-
-  @override
   String get diveLog_edit_customFieldValue => 'Value';
-
-  @override
-  String get diveLog_edit_customFieldValueHint => 'e.g., f/8 ISO400';
-
-  @override
-  String diveLog_edit_durationMinutes(Object minutes) {
-    return 'Duur: $minutes min';
-  }
 
   @override
   String get diveLog_edit_equipmentCaption =>
       'Uitrusting die je gebruikte, voor het aantal duiken en de onderhoudsgeschiedenis. Een fles die hier staat levert geen gasgegevens; voeg hem ook toe onder Flessen.';
-
-  @override
-  String get diveLog_edit_equipmentHint =>
-      'Tik op \"Set gebruiken\" of \"Toevoegen\" om uitrusting te selecteren';
 
   @override
   String diveLog_edit_errorLoadingDiveTypes(Object error) {
@@ -7019,9 +6460,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_group_trip => 'Reis';
-
-  @override
-  String get diveLog_edit_headerNew => 'Nieuwe duik loggen';
 
   @override
   String get diveLog_edit_invite_buddies => 'Buddy\'s toevoegen';
@@ -7060,9 +6498,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_label_currentStrength => 'Stromingssterkte';
 
   @override
-  String get diveLog_edit_label_diveType => 'Duiktype';
-
-  @override
   String get diveLog_edit_label_diveTypes => 'Duiktypes';
 
   @override
@@ -7074,10 +6509,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_edit_diveNamePlaceholder =>
       'Optionele naam voor deze duik';
-
-  @override
-  String get diveLog_edit_hint_diveNumber =>
-      'Automatisch toegewezen als leeg gelaten';
 
   @override
   String get diveLog_edit_label_entryMethod => 'Instapmethode';
@@ -7248,22 +6679,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_section_customFields => 'Custom Fields';
 
   @override
-  String get diveLog_edit_section_depthDuration => 'Diepte & Duur';
-
-  @override
   String get diveLog_edit_section_diveCenter => 'Duikcentrum';
 
   @override
-  String get diveLog_edit_section_diveSite => 'Duikstek';
-
-  @override
-  String get diveLog_edit_section_entryTime => 'Tijd van instap';
-
-  @override
   String get diveLog_edit_section_equipment => 'Uitrusting';
-
-  @override
-  String get diveLog_edit_section_exitTime => 'Tijd van uitstap';
 
   @override
   String get diveLog_edit_section_marineLife => 'Soorten';
@@ -7278,11 +6697,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_section_tags => 'Tags';
 
   @override
-  String diveLog_edit_section_tanks(Object count) {
-    return 'Flessen ($count)';
-  }
-
-  @override
   String get diveLog_edit_section_trainingCourse => 'Trainingscursus';
 
   @override
@@ -7290,18 +6704,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_weight => 'Gewicht';
-
-  @override
-  String get diveLog_edit_select => 'Selecteren';
-
-  @override
-  String get diveLog_edit_selectDiveCenter => 'Duikcentrum selecteren';
-
-  @override
-  String get diveLog_edit_selectDiveSite => 'Duikstek selecteren';
-
-  @override
-  String get diveLog_edit_selectTrip => 'Reis selecteren';
 
   @override
   String diveLog_edit_snackbar_avgDepthCalculated(Object depth) {
@@ -7385,36 +6787,15 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String diveLog_edit_surfaceInterval(Object interval) {
-    return 'Oppervlakte-interval: $interval';
-  }
-
-  @override
   String get diveLog_edit_surfacePressureDefault => '1013';
-
-  @override
-  String get diveLog_edit_surfacePressureHint =>
-      'Standaard: 1013 mbar op zeeniveau';
 
   @override
   String get diveLog_edit_tankCard_done => 'Klaar';
 
   @override
-  String get diveLog_edit_tankCard_edit => 'Bewerken';
-
-  @override
-  String get diveLog_edit_tankCard_mix => 'Mengsel';
-
-  @override
-  String get diveLog_edit_tankCard_pressure => 'Druk';
-
-  @override
   String diveLog_edit_tankCard_title(int number) {
     return 'Fles $number';
   }
-
-  @override
-  String get diveLog_edit_tankCard_volume => 'Volume';
 
   @override
   String get diveLog_edit_tanksCaption =>
@@ -7423,15 +6804,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
       'Berekenen uit duikprofiel';
-
-  @override
-  String get diveLog_edit_tooltip_clearDiveCenter => 'Duikcentrum wissen';
-
-  @override
-  String get diveLog_edit_tooltip_clearSite => 'Duikstek wissen';
-
-  @override
-  String get diveLog_edit_tooltip_clearTrip => 'Reis wissen';
 
   @override
   String get diveLog_edit_tooltip_removeEquipment => 'Uitrusting verwijderen';
@@ -7806,9 +7178,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_sectionBuddy => 'Buddy';
 
   @override
-  String get diveLog_filter_sectionDepthRange => 'Dieptebereik (meters)';
-
-  @override
   String get diveLog_filter_sectionDiveType => 'Duiktype';
 
   @override
@@ -7838,10 +7207,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_fullscreenProfile_close => 'Volledig scherm sluiten';
-
-  @override
-  String get diveLog_fullscreenProfile_readoutHint =>
-      'Beweeg de muis over het profiel of veeg erover';
 
   @override
   String diveLog_fullscreenProfile_title(Object number) {
@@ -8240,12 +7605,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveSites_edit_depth_heroMax => 'Max. diepte';
-
-  @override
-  String get diveSites_edit_depth_heroMin => 'Min. diepte';
-
-  @override
   String get diveSites_edit_group_accessSafety => 'Toegang & veiligheid';
 
   @override
@@ -8437,9 +7796,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'De geselecteerde map bevat geen Submersion-database.';
 
   @override
-  String get setup_folder_notFound_title => 'Geen bibliotheek in die map';
-
-  @override
   String get setup_folder_pick => 'Map kiezen';
 
   @override
@@ -8453,9 +7809,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_profile_nameLabel => 'Je naam';
-
-  @override
-  String get setup_profile_nameValidation => 'Voer je naam in';
 
   @override
   String get setup_profile_subtitle =>
@@ -8518,9 +7871,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_syncPull_syncing => 'Bibliotheek ophalen...';
-
-  @override
-  String get setup_syncPull_title => 'Verbinden en ophalen';
 
   @override
   String get setup_sync_changeProvider => 'Provider wijzigen';
@@ -8861,9 +8211,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLog_listPage_searchFieldLabel => 'Duiken zoeken...';
-
-  @override
   String diveLog_listPage_groupingPausedBySort(String sortName) {
     return 'Groeperen op reis staat uit bij sorteren op $sortName';
   }
@@ -9098,12 +8445,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLog_o2tox_badge_critical => 'KRITIEK';
-
-  @override
-  String get diveLog_o2tox_badge_warning => 'WAARSCHUWING';
-
-  @override
   String diveLog_o2tox_cnsBadgeLabel(Object value) {
     return 'CNS $value';
   }
@@ -9131,9 +8472,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLog_o2tox_ofDailyLimit => 'van dagelijks limiet';
-
-  @override
   String get diveLog_o2tox_oxygenToleranceUnits =>
       'Zuurstoftolerantie-eenheden';
 
@@ -9145,11 +8483,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_o2tox_semantics_criticalWarning =>
       'Kritieke waarschuwing zuurstoftoxiciteit';
-
-  @override
-  String diveLog_o2tox_semantics_otu(Object value, Object percent) {
-    return 'Oxygen Tolerance Units: $value, $percent procent van dagelijkse limiet';
-  }
 
   @override
   String get diveLog_o2tox_semantics_warning =>
@@ -9244,9 +8577,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_rangeStats_label_elapsed => 'Elapsed';
-
-  @override
-  String get diveLog_rangeStats_label_gasConsumed => 'Gas Consumed';
 
   @override
   String get diveLog_rangeStats_label_maxAscent => 'Max Ascent';
@@ -9364,9 +8694,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_label_deco => 'Decompressie';
 
   @override
-  String get diveLog_search_label_depthRange => 'Dieptebereik (m)';
-
-  @override
   String get diveLog_search_label_diveCenter => 'Duikcentrum';
 
   @override
@@ -9394,30 +8721,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_section_organization => 'Organisatie';
 
   @override
-  String diveLog_selection_countSelected(Object count) {
-    return '$count geselecteerd';
-  }
-
-  @override
   String get diveLog_selection_tooltip_combine => 'Samenvoegen';
-
-  @override
-  String get diveLog_selection_tooltip_delete => 'Geselecteerde verwijderen';
-
-  @override
-  String get diveLog_selection_tooltip_deselectAll => 'Alles deselecteren';
 
   @override
   String get diveLog_selection_tooltip_edit => 'Geselecteerde bewerken';
 
   @override
-  String get diveLog_selection_tooltip_exit => 'Selectie verlaten';
-
-  @override
   String get diveLog_selection_tooltip_export => 'Geselecteerde exporteren';
-
-  @override
-  String get diveLog_selection_tooltip_selectAll => 'Alles selecteren';
 
   @override
   String get diveLog_selection_tooltip_selectDateRange =>
@@ -9439,11 +8749,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_sitePicker_addDiveSite => 'Duikstek toevoegen';
 
   @override
-  String diveLog_sitePicker_distanceKm(Object distance) {
-    return '$distance km afstand';
-  }
-
-  @override
   String diveLog_sitePicker_distanceAway(String distance) {
     return '$distance afstand';
   }
@@ -9451,11 +8756,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_sitePicker_sortedByDiveDistance =>
       'Gesorteerd op afstand tot deze duik';
-
-  @override
-  String diveLog_sitePicker_distanceMeters(Object distance) {
-    return '$distance m afstand';
-  }
 
   @override
   String diveLog_sitePicker_errorLoading(Object error) {
@@ -9499,9 +8799,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_summary_action_importComputer => 'Importeren van computer';
-
-  @override
-  String get diveLog_summary_action_logDive => 'Duik loggen';
 
   @override
   String get diveLog_summary_action_viewInsights => 'Inzichten bekijken';
@@ -9603,11 +8900,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String diveLog_tank_gasUsed(String amount) {
     return '($amount gebruikt)';
-  }
-
-  @override
-  String diveLog_tank_modInfo(Object depth, String ppO2) {
-    return 'MOD: $depth (ppO₂ $ppO2)';
   }
 
   @override
@@ -9731,9 +9023,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_ppO2 => 'ppO2';
-
-  @override
-  String get diveLog_tooltip_press => 'Druk';
 
   @override
   String get diveLog_tooltip_rate => 'Snelheid';
@@ -9975,15 +9264,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_label_altitude => 'Hoogte:';
 
   @override
-  String get divePlanner_label_belowMinReserve => 'Onder minimale reserve';
-
-  @override
-  String get divePlanner_label_ceiling => 'Plafond';
-
-  @override
-  String get divePlanner_label_consumption => 'Verbruik';
-
-  @override
   String get divePlanner_label_deco => 'DECO';
 
   @override
@@ -9998,9 +9278,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_label_diveProfile => 'Duikprofiel';
-
-  @override
   String get divePlanner_label_empty => 'LEEG';
 
   @override
@@ -10013,9 +9290,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_label_gfLow => 'GF laag';
 
   @override
-  String get divePlanner_label_max => 'Max';
-
-  @override
   String get divePlanner_label_minutesUnit => 'min';
 
   @override
@@ -10025,16 +9299,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_label_planSettings => 'Planinstellingen';
 
   @override
-  String get divePlanner_label_remaining => 'Resterend';
-
-  @override
   String get divePlanner_label_reserve => 'Reserve';
 
   @override
   String get divePlanner_label_runtime => 'Looptijd';
-
-  @override
-  String get divePlanner_label_sacRate => 'RMV:';
 
   @override
   String get divePlanner_label_salinity => 'Zoutgehalte';
@@ -10069,9 +9337,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Treat O₂ as narcotic for this plan';
 
   @override
-  String get divePlanner_label_status => 'Status';
-
-  @override
   String get divePlanner_label_tanks => 'Flessen';
 
   @override
@@ -10097,45 +9362,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Nog geen opgeslagen flessen. Sla een fles uit dit plan op om die in andere plannen te hergebruiken.';
 
   @override
-  String get divePlanner_label_time => 'Tijd';
-
-  @override
   String get divePlanner_label_timeAxis => 'Tijd (min)';
 
   @override
   String get divePlanner_label_tts => 'TTS';
 
   @override
-  String get divePlanner_label_used => 'Gebruikt';
-
-  @override
   String get divePlanner_label_warnings => 'Waarschuwingen';
-
-  @override
-  String get divePlanner_legend_ascent => 'Opstijgen';
-
-  @override
-  String get divePlanner_legend_bottom => 'Bodem';
-
-  @override
-  String get divePlanner_legend_deco => 'Deco';
-
-  @override
-  String get divePlanner_legend_descent => 'Afdalen';
-
-  @override
-  String get divePlanner_legend_safety => 'Veiligheid';
-
-  @override
-  String get divePlanner_message_addSegmentsForGas =>
-      'Voeg segmenten toe om gasprognoses te zien';
 
   @override
   String get divePlanner_message_addSegmentsForProfile =>
       'Voeg segmenten toe om het duikprofiel te zien';
-
-  @override
-  String get divePlanner_message_convertingPlan => 'Plan omzetten naar duik...';
 
   @override
   String get divePlanner_message_noProfile => 'Geen profiel om weer te geven';
@@ -10156,65 +9393,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Weet je zeker dat je het plan wilt resetten?';
 
   @override
-  String divePlanner_semantics_criticalWarning(Object message) {
-    return 'Kritieke waarschuwing: $message';
-  }
-
-  @override
-  String divePlanner_semantics_decoStop(
-    Object depth,
-    Object duration,
-    Object gasMix,
-  ) {
-    return 'Deco stop op $depth voor $duration op $gasMix';
-  }
-
-  @override
-  String divePlanner_semantics_gasConsumption(
-    Object tankName,
-    Object gasUsed,
-    Object remaining,
-    Object percent,
-    Object warning,
-  ) {
-    return '$tankName: $gasUsed gebruikt, $remaining resterend, $percent gebruikt$warning';
-  }
-
-  @override
-  String divePlanner_semantics_profileChart(
-    Object maxDepth,
-    Object totalMinutes,
-  ) {
-    return 'Duikplan, max diepte $maxDepth, totale tijd $totalMinutes minuten';
-  }
-
-  @override
-  String divePlanner_semantics_warning(Object message) {
-    return 'Waarschuwing: $message';
-  }
-
-  @override
   String get divePlanner_tab_plan => 'Plan';
 
   @override
-  String get divePlanner_tab_profile => 'Profiel';
-
-  @override
   String get divePlanner_tab_results => 'Resultaten';
-
-  @override
-  String get divePlanner_warning_ascentRateHigh =>
-      'Opstijgsnelheid overschrijdt veilige limiet';
-
-  @override
-  String divePlanner_warning_ascentRateHighWithRate(Object rate) {
-    return 'Opstijgsnelheid $rate/min overschrijdt veilige limiet';
-  }
-
-  @override
-  String divePlanner_warning_belowMinReserve(Object reserve) {
-    return 'Onder minimale reserve ($reserve)';
-  }
 
   @override
   String get divePlanner_warning_cnsCritical => 'CNS% overschrijdt 100%';
@@ -10230,27 +9412,12 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_warning_endHigh => 'Equivalent Narcotic Depth te hoog';
-
-  @override
   String divePlanner_warning_gasLow(Object threshold) {
     return 'Fles onder $threshold reserve';
   }
 
   @override
   String get divePlanner_warning_gasOut => 'Fles zal leeg zijn';
-
-  @override
-  String get divePlanner_warning_minGasViolation =>
-      'Minimale gasreserve niet gehandhaafd';
-
-  @override
-  String get divePlanner_warning_modViolation =>
-      'Gaswissel geprobeerd boven MOD';
-
-  @override
-  String get divePlanner_warning_ndlExceeded =>
-      'Duik gaat in decompressieverplichting';
 
   @override
   String get divePlanner_warning_otuWarning => 'OTU ophoping hoog';
@@ -10481,10 +9648,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveSites_detail_semantics_viewDivesAtSite =>
-      'Bekijk duiken op deze stek';
-
-  @override
   String get diveSites_detail_semantics_viewFullscreenMap =>
       'Bekijk kaart op volledig scherm';
 
@@ -10569,16 +9732,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_detail_access_exitMethod => 'Uitstap';
 
   @override
-  String get diveSites_edit_altitude_helperText =>
-      'Hoogte van de stek boven zeeniveau (voor hoogteduiken)';
-
-  @override
   String get diveSites_edit_altitude_hint => 'bijv. 2000';
-
-  @override
-  String diveSites_edit_altitude_label(Object symbol) {
-    return 'Hoogte ($symbol)';
-  }
 
   @override
   String get diveSites_edit_altitude_validation => 'Ongeldige hoogte';
@@ -10599,26 +9753,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_edit_appBar_newSite => 'Nieuwe stek';
 
   @override
-  String get diveSites_edit_appBar_save => 'Opslaan';
-
-  @override
-  String get diveSites_edit_button_addSite => 'Stek toevoegen';
-
-  @override
-  String get diveSites_edit_button_mergeSites => 'Duiklocaties samenvoegen';
-
-  @override
-  String get diveSites_edit_button_saveChanges => 'Wijzigingen opslaan';
-
-  @override
   String get diveSites_edit_cancel => 'Annuleren';
-
-  @override
-  String get diveSites_edit_depth_helperText =>
-      'Van het ondiepste tot het diepste punt';
-
-  @override
-  String get diveSites_edit_depth_maxHint => 'bijv. 30';
 
   @override
   String diveSites_edit_depth_maxLabel(Object symbol) {
@@ -10626,28 +9761,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveSites_edit_depth_minHint => 'bijv. 5';
-
-  @override
   String diveSites_edit_depth_minLabel(Object symbol) {
     return 'Minimale diepte ($symbol)';
   }
-
-  @override
-  String get diveSites_edit_depth_separator => 'tot';
-
-  @override
-  String get diveSites_edit_discardDialog_content =>
-      'Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt vertrekken?';
-
-  @override
-  String get diveSites_edit_discardDialog_discard => 'Verwerpen';
-
-  @override
-  String get diveSites_edit_discardDialog_keepEditing => 'Verder bewerken';
-
-  @override
-  String get diveSites_edit_discardDialog_title => 'Wijzigingen verwerpen?';
 
   @override
   String get diveSites_edit_field_country_label => 'Land';
@@ -10701,20 +9817,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_edit_gps_gettingLocation => 'Ophalen...';
 
   @override
-  String get diveSites_edit_gps_helperText =>
-      'Kies een locatiemethode of zoek de coördinaten op om land, regio, plaats en water automatisch in te vullen';
-
-  @override
-  String get diveSites_edit_gps_latitude_hint => 'bijv. 21.4225';
-
-  @override
   String get diveSites_edit_gps_latitude_label => 'Breedtegraad';
 
   @override
   String get diveSites_edit_gps_latitude_validation => 'Ongeldige breedtegraad';
-
-  @override
-  String get diveSites_edit_gps_longitude_hint => 'bijv. -86.7542';
 
   @override
   String get diveSites_edit_gps_longitude_label => 'Lengtegraad';
@@ -10754,10 +9860,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_edit_gps_useMyLocation => 'Gebruik mijn locatie';
 
   @override
-  String get diveSites_edit_hazards_helperText =>
-      'Vermeld eventuele gevaren of veiligheidsoverwegingen';
-
-  @override
   String get diveSites_edit_hazards_hint =>
       'bijv. sterke stroming, bootverkeer, kwallen, scherp koraal';
 
@@ -10770,10 +9872,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveSites_edit_marineLife_empty =>
       'Geen verwachte soorten toegevoegd';
-
-  @override
-  String get diveSites_edit_marineLife_helperText =>
-      'Soorten die je op deze stek verwacht te zien';
 
   @override
   String diveSites_edit_merge_confirmBody(int count) {
@@ -10797,14 +9895,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveSites_edit_merge_fieldSourceMenuTooltip =>
-      'Waarde selecteren van geselecteerde locatie';
-
-  @override
-  String get diveSites_edit_merge_marineLifeHelperText =>
-      'Gecombineerd uit alle geselecteerde locaties';
-
-  @override
   String diveSites_edit_merge_loadingErrorBody(Object error) {
     return 'Kan duiklocaties niet laden: $error';
   }
@@ -10821,9 +9911,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_edit_merge_notEnoughTitle => 'Duiklocaties samenvoegen';
 
   @override
-  String get diveSites_edit_rating_clear => 'Beoordeling wissen';
-
-  @override
   String diveSites_edit_rating_starTooltip(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -10835,22 +9922,13 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveSites_edit_section_access => 'Toegang & logistiek';
-
-  @override
   String get diveSites_edit_section_altitude => 'Hoogte';
-
-  @override
-  String get diveSites_edit_section_depthRange => 'Dieptebereik';
 
   @override
   String get diveSites_edit_section_difficultyLevel => 'Moeilijkheidsgraad';
 
   @override
   String get diveSites_edit_section_expectedMarineLife => 'Verwachte soorten';
-
-  @override
-  String get diveSites_edit_section_gpsCoordinates => 'GPS-coördinaten';
 
   @override
   String get diveSites_edit_section_hazards => 'Gevaren & veiligheid';
@@ -10896,9 +9974,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_edit_snackbar_siteAdded => 'Stek toegevoegd';
-
-  @override
-  String get diveSites_edit_snackbar_sitesMerged => 'Duiklocaties samengevoegd';
 
   @override
   String get diveSites_edit_snackbar_siteUpdated => 'Stek bijgewerkt';
@@ -11035,10 +10110,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_import_error_unknown => 'Onbekende fout';
-
-  @override
-  String get diveSites_import_externalSite_locationUnknown =>
-      'Locatie onbekend';
 
   @override
   String get diveSites_import_label_gps => 'GPS';
@@ -11376,27 +10447,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_list_search_placeholder => 'Stekken zoeken...';
 
   @override
-  String get diveSites_list_selection_closeTooltip => 'Selectie sluiten';
-
-  @override
-  String diveSites_list_selection_count(Object count) {
-    return '$count geselecteerd';
-  }
-
-  @override
-  String get diveSites_list_selection_deleteTooltip =>
-      'Geselecteerde verwijderen';
-
-  @override
   String get diveSites_list_selection_mergeTooltip =>
       'Geselecteerde samenvoegen';
-
-  @override
-  String get diveSites_list_selection_deselectAllTooltip =>
-      'Alles deselecteren';
-
-  @override
-  String get diveSites_list_selection_selectAllTooltip => 'Alles selecteren';
 
   @override
   String get diveSites_list_sort_title => 'Stekken sorteren';
@@ -11948,25 +11000,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divers_detail_activeDiver => 'Actieve duiker';
 
   @override
-  String get divers_detail_allergiesLabel => 'Allergieën';
-
-  @override
-  String get divers_detail_appBarTitle => 'Duiker';
-
-  @override
-  String get divers_detail_bloodTypeLabel => 'Bloedgroep';
-
-  @override
-  String get divers_detail_bottomTimeLabel => 'Bodemtijd';
-
-  @override
   String get divers_detail_cancelButton => 'Annuleren';
-
-  @override
-  String get divers_detail_contactTitle => 'Contact';
-
-  @override
-  String get divers_detail_defaultLabel => 'Standaard';
 
   @override
   String get divers_detail_deleteButton => 'Verwijderen';
@@ -11980,86 +11014,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divers_detail_deleteDialogTitle => 'Duiker verwijderen?';
 
   @override
-  String divers_detail_deleteError(Object error) {
-    return 'Verwijderen mislukt: $error';
-  }
-
-  @override
-  String get divers_detail_deleteMenuItem => 'Verwijderen';
-
-  @override
-  String get divers_detail_deletedSnackbar => 'Duiker verwijderd';
-
-  @override
-  String get divers_detail_diveInsuranceTitle => 'Duikverzekering';
-
-  @override
-  String get divers_detail_diveStatisticsTitle => 'Duikstatistieken';
-
-  @override
-  String get divers_detail_editTooltip => 'Duiker bewerken';
-
-  @override
-  String get divers_detail_emergencyContactTitle => 'Noodcontact';
-
-  @override
-  String divers_detail_errorPrefix(Object error) {
-    return 'Fout: $error';
-  }
-
-  @override
-  String get divers_detail_expiredBadge => 'Verlopen';
-
-  @override
-  String get divers_detail_expiresLabel => 'Verloopt';
-
-  @override
-  String get divers_detail_medicalInfoTitle => 'Medische informatie';
-
-  @override
-  String get divers_detail_medicalNotesLabel => 'Notities';
-
-  @override
-  String get divers_detail_notFound => 'Duiker niet gevonden';
-
-  @override
-  String get divers_detail_notesTitle => 'Notities';
-
-  @override
-  String get divers_detail_policyNumberLabel => 'Polisnr.';
-
-  @override
-  String get divers_detail_providerLabel => 'Verzekeraar';
-
-  @override
-  String get divers_detail_setAsDefault => 'Instellen als standaard';
-
-  @override
-  String divers_detail_setAsDefaultSnackbar(Object name) {
-    return '$name ingesteld als standaardduiker';
-  }
-
-  @override
-  String get divers_detail_switchToTooltip => 'Overschakelen naar deze duiker';
-
-  @override
-  String divers_detail_switchedTo(Object name) {
-    return 'Overgeschakeld naar $name';
-  }
-
-  @override
-  String get divers_detail_totalDivesLabel => 'Totaal duiken';
-
-  @override
-  String get divers_detail_unableToLoadStats => 'Kan statistieken niet laden';
-
-  @override
-  String get divers_edit_addButton => 'Duiker toevoegen';
-
-  @override
-  String get divers_edit_addTitle => 'Duiker toevoegen';
-
-  @override
   String get divers_edit_allergiesHint => 'bijv. Penicilline, Schaaldieren';
 
   @override
@@ -12070,9 +11024,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get divers_edit_bloodTypeLabel => 'Bloedgroep';
-
-  @override
-  String get divers_edit_cancelButton => 'Annuleren';
 
   @override
   String get divers_edit_clearInsuranceExpiryTooltip =>
@@ -12099,27 +11050,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divers_edit_discardDialogTitle => 'Wijzigingen verwerpen?';
 
   @override
-  String get divers_edit_diverAdded => 'Duiker toegevoegd';
-
-  @override
-  String get divers_edit_diverUpdated => 'Duiker bijgewerkt';
-
-  @override
-  String get divers_edit_editTitle => 'Duiker bewerken';
-
-  @override
   String get divers_edit_emailError => 'Voer een geldig e-mailadres in';
 
   @override
   String get divers_edit_emailLabel => 'E-mail';
-
-  @override
-  String get divers_edit_emergencyContactsSection => 'Noodcontacten';
-
-  @override
-  String divers_edit_errorLoading(Object error) {
-    return 'Fout bij laden van duiker: $error';
-  }
 
   @override
   String divers_edit_errorSaving(Object error) {
@@ -12153,9 +11087,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divers_edit_insuranceProviderLabel => 'Verzekeraar';
 
   @override
-  String get divers_edit_insuranceSection => 'Duikverzekering';
-
-  @override
   String get divers_edit_keepEditingButton => 'Verder bewerken';
 
   @override
@@ -12170,9 +11101,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get divers_edit_medicalClearanceTitle =>
       'Vervaldatum medische keuring';
-
-  @override
-  String get divers_edit_medicalInfoSection => 'Medische informatie';
 
   @override
   String get divers_edit_medicalNotesLabel => 'Medische notities';
@@ -12191,12 +11119,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get divers_edit_notesLabel => 'Notities';
-
-  @override
-  String get divers_edit_notesSection => 'Notities';
-
-  @override
-  String get divers_edit_personalInfoSection => 'Persoonlijke gegevens';
 
   @override
   String get divers_edit_phoneLabel => 'Telefoon';
@@ -12226,49 +11148,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get divers_edit_selectMedicalClearanceTooltip =>
       'Datum medische keuring selecteren';
-
-  @override
-  String get divers_edit_updateButton => 'Duiker bijwerken';
-
-  @override
-  String get divers_list_addDiverTooltip => 'Nieuw duikersprofiel toevoegen';
-
-  @override
-  String get divers_list_appBarTitle => 'Duikersprofielen';
-
-  @override
-  String get divers_list_compactTitle => 'Duikers';
-
-  @override
-  String divers_list_diverStats(Object diveCount, Object bottomTime) {
-    return '$diveCount duiken$bottomTime';
-  }
-
-  @override
-  String get divers_list_emptySubtitle =>
-      'Voeg duikersprofielen toe om duiklogs bij te houden voor meerdere personen';
-
-  @override
-  String get divers_list_emptyTitle => 'Nog geen duikers';
-
-  @override
-  String divers_list_errorLoading(Object error) {
-    return 'Fout bij laden van duikers: $error';
-  }
-
-  @override
-  String get divers_list_errorLoadingStats => 'Fout bij laden van statistieken';
-
-  @override
-  String get divers_list_loadingStats => 'Laden...';
-
-  @override
-  String get divers_list_retryButton => 'Opnieuw proberen';
-
-  @override
-  String divers_list_viewDiverLabel(Object name) {
-    return 'Duiker $name bekijken';
-  }
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
@@ -12309,15 +11188,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_altitudeGroup_seaLevel_range => '0-300m (0-984ft)';
-
-  @override
-  String get enum_ascentRate_danger => 'Gevaar';
-
-  @override
-  String get enum_ascentRate_safe => 'Veilig';
-
-  @override
-  String get enum_ascentRate_warning => 'Waarschuwing';
 
   @override
   String get enum_certificationAgency_bsac => 'BSAC';
@@ -12567,48 +11437,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_diveMode_scr => 'Semi-gesloten Rebreather';
 
   @override
-  String get enum_diveType_altitude => 'Hoogte';
-
-  @override
-  String get enum_diveType_boat => 'Boot';
-
-  @override
-  String get enum_diveType_cave => 'Grot';
-
-  @override
-  String get enum_diveType_deep => 'Diep';
-
-  @override
-  String get enum_diveType_drift => 'Drift';
-
-  @override
-  String get enum_diveType_freedive => 'Vrijduiken';
-
-  @override
-  String get enum_diveType_ice => 'IJs';
-
-  @override
-  String get enum_diveType_liveaboard => 'Duiksafari';
-
-  @override
-  String get enum_diveType_night => 'Nacht';
-
-  @override
-  String get enum_diveType_recreational => 'Recreatief';
-
-  @override
-  String get enum_diveType_shore => 'Kant';
-
-  @override
-  String get enum_diveType_technical => 'Technisch';
-
-  @override
-  String get enum_diveType_training => 'Training';
-
-  @override
-  String get enum_diveType_wreck => 'Wrak';
-
-  @override
   String get enum_entryMethod_backRoll => 'Achterwaartse rol';
 
   @override
@@ -12786,9 +11614,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_eventSeverity_alert => 'Alarm';
 
   @override
-  String get enum_eventSeverity_info => 'Info';
-
-  @override
   String get enum_eventSeverity_warning => 'Waarschuwing';
 
   @override
@@ -12802,34 +11627,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_pdfPageSize_letter_description => '8.5 x 11 in';
-
-  @override
-  String get enum_pdfTemplate_detailed => 'Gedetailleerd';
-
-  @override
-  String get enum_pdfTemplate_detailed_description =>
-      'Volledige duikinformatie met notities en beoordelingen';
-
-  @override
-  String get enum_pdfTemplate_nauiStyle => 'NAUI Stijl';
-
-  @override
-  String get enum_pdfTemplate_nauiStyle_description =>
-      'Lay-out volgens NAUI logboekformaat';
-
-  @override
-  String get enum_pdfTemplate_padiStyle => 'PADI Stijl';
-
-  @override
-  String get enum_pdfTemplate_padiStyle_description =>
-      'Lay-out volgens PADI logboekformaat';
-
-  @override
-  String get enum_pdfTemplate_simple => 'Eenvoudig';
-
-  @override
-  String get enum_pdfTemplate_simple_description =>
-      'Compact tabelformaat, veel duiken per pagina';
 
   @override
   String get enum_profileEvent_alert => 'Alarm';
@@ -13010,36 +11807,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_scrType_pascr_short => 'PASCR';
 
   @override
-  String get enum_serviceType_annual => 'Jaarlijks onderhoud';
-
-  @override
-  String get enum_serviceType_calibration => 'Kalibratie';
-
-  @override
-  String get enum_serviceType_cleaning => 'Reiniging';
-
-  @override
-  String get enum_serviceType_inspection => 'Inspectie';
-
-  @override
-  String get enum_serviceType_other => 'Overig';
-
-  @override
-  String get enum_serviceType_overhaul => 'Revisie';
-
-  @override
-  String get enum_serviceType_recall => 'Terugroepactie/Veiligheid';
-
-  @override
-  String get enum_serviceType_repair => 'Reparatie';
-
-  @override
-  String get enum_serviceType_replacement => 'Onderdeelvervanging';
-
-  @override
-  String get enum_serviceType_warranty => 'Garantieonderhoud';
-
-  @override
   String get enum_sortDirection_ascending => 'Oplopend';
 
   @override
@@ -13065,9 +11832,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_sortField_diveNumber => 'Duiknummer';
-
-  @override
-  String get enum_sortField_duration => 'Duur';
 
   @override
   String get enum_sortField_endDate => 'Einddatum';
@@ -14294,16 +13058,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_detail_brandLabel => 'Merk';
 
   @override
-  String equipment_detail_daysOverdue(Object days) {
-    return '$days dagen achterstallig';
-  }
-
-  @override
-  String equipment_detail_daysUntilService(Object days) {
-    return '$days dagen tot service';
-  }
-
-  @override
   String get equipment_detail_detailsTitle => 'Details';
 
   @override
@@ -14393,16 +13147,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_detail_installedInLabel => 'Geplaatst in';
 
   @override
-  String get equipment_detail_lastServiceLabel => 'Laatste service';
-
-  @override
   String get equipment_detail_loadingTitle => 'Laden...';
 
   @override
   String get equipment_detail_modelLabel => 'Model';
-
-  @override
-  String get equipment_detail_nextServiceDueLabel => 'Volgende service gepland';
 
   @override
   String get equipment_detail_notFoundMessage =>
@@ -14433,9 +13181,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_detail_serialNumberLabel => 'Serienummer';
-
-  @override
-  String get equipment_detail_serviceInfoTitle => 'Service-informatie';
 
   @override
   String get equipment_serviceClocks_title => 'Serviceintervallen';
@@ -14484,14 +13229,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get equipment_serviceClocks_overdue => 'Te laat';
-
-  @override
-  String equipment_serviceClocks_divesLeft(int remaining, int total) {
-    return '$remaining van $total duiken resterend';
-  }
-
-  @override
   String equipment_serviceClocks_divesUsedAndLeft(
     int used,
     int remaining,
@@ -14535,20 +13272,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get cylinderConfigs_role => 'Rol';
 
   @override
-  String get cylinderConfigs_startPressure => 'Begindruk';
-
-  @override
   String get cylinderConfigs_label => 'Label';
 
   @override
   String get cylinderConfigs_fromPreset => 'Uit voorinstelling';
-
-  @override
-  String get cylinderConfigs_deleteTitle => 'Configuratie verwijderen?';
-
-  @override
-  String get cylinderConfigs_deleteBody =>
-      'Duiken waarop hij al is toegepast veranderen niet.';
 
   @override
   String get cylinderConfigs_applyAction => 'Configuratie toepassen';
@@ -14632,22 +13359,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Berekend op basis van geregistreerde duiktijd';
 
   @override
-  String equipment_serviceClocks_hoursLeft(String remaining, String total) {
-    return '$remaining van $total uur resterend';
-  }
-
-  @override
   String equipment_serviceClocks_hoursUsedAndLeft(
     String used,
     String remaining,
     String total,
   ) {
     return '$used uur, $remaining van $total resterend';
-  }
-
-  @override
-  String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
-    return '$remaining van $total uren in zout water over';
   }
 
   @override
@@ -14660,22 +13377,12 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_coldDivesLeft(String remaining, String total) {
-    return '$remaining van $total koudwaterduiken over';
-  }
-
-  @override
   String equipment_serviceClocks_coldDivesUsedAndLeft(
     String used,
     String remaining,
     String total,
   ) {
     return '$used koudwaterduiken, $remaining van $total over';
-  }
-
-  @override
-  String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
-    return '$remaining van $total uren met hoog O2 over';
   }
 
   @override
@@ -14688,25 +13395,12 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String equipment_serviceClocks_deepCyclesLeft(
-    String remaining,
-    String total,
-  ) {
-    return '$remaining van $total diepe duiken over';
-  }
-
-  @override
   String equipment_serviceClocks_deepCyclesUsedAndLeft(
     String used,
     String remaining,
     String total,
   ) {
     return '$used diepe duiken, $remaining van $total over';
-  }
-
-  @override
-  String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
-    return '$remaining van $total batterijcycli over';
   }
 
   @override
@@ -14720,13 +13414,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_serviceClocks_manageKinds => 'Servicetypen beheren';
-
-  @override
-  String get equipment_serviceClocks_appliesToClock => 'Gekoppeld aan interval';
-
-  @override
-  String get equipment_serviceClocks_noClockOption =>
-      'Niet aan een interval gekoppeld';
 
   @override
   String get equipment_scheduleDialog_title => 'Interval bewerken';
@@ -14846,24 +13533,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get dashboard_serviceDue_title => 'Service nodig';
-
-  @override
-  String dashboard_serviceDue_more(int count) {
-    return '+$count meer';
-  }
-
-  @override
-  String dashboard_alerts_clockDue(String name, String kind) {
-    return '$name: $kind nodig';
-  }
-
-  @override
-  String dashboard_alerts_clockOverdue(String name, String kind) {
-    return '$name: $kind achterstallig';
-  }
-
-  @override
   String trips_gearAlerts_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -14969,23 +13638,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_serviceIntervalLabel => 'Serviceinterval';
-
-  @override
-  String equipment_detail_serviceIntervalValue(Object days) {
-    return '$days dagen';
-  }
-
-  @override
   String equipment_detail_showEquipmentWith(String name) {
     return 'Uitrusting met $name tonen';
   }
-
-  @override
-  String get equipment_detail_sizeLabel => 'Maat';
-
-  @override
-  String get equipment_detail_thicknessLabel => 'Dikte';
 
   @override
   String get equipment_detail_statusLabel => 'Status';
@@ -15081,9 +13736,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_edit_errorTitle => 'Fout';
 
   @override
-  String get equipment_edit_lastServiceDateLabel => 'Laatste servicedatum';
-
-  @override
   String get equipment_edit_loadingTitle => 'Laden...';
 
   @override
@@ -15158,21 +13810,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_edit_serialNumberLabel => 'Serienummer';
 
   @override
-  String get equipment_edit_serviceIntervalHint => 'bijv. 365 voor jaarlijks';
-
-  @override
-  String get equipment_edit_serviceIntervalLabel => 'Serviceinterval (dagen)';
-
-  @override
-  String get equipment_edit_serviceSettingsTitle => 'Service-instellingen';
-
-  @override
-  String get equipment_edit_sizeHint => 'bijv. M, L, 42';
-
-  @override
-  String get equipment_edit_sizeLabel => 'Maat';
-
-  @override
   String get equipment_edit_snackbar_added => 'Uitrusting toegevoegd';
 
   @override
@@ -15200,12 +13837,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_edit_webLinkHint => 'bijv. shop.example.com/product';
-
-  @override
-  String get equipment_edit_thicknessHint => 'bijv. 5mm, 7mm';
-
-  @override
-  String get equipment_edit_thicknessLabel => 'Dikte';
 
   @override
   String get equipment_edit_typeLabel => 'Type *';
@@ -15386,41 +14017,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_list_searchTooltip => 'Uitrusting zoeken';
 
   @override
-  String get equipment_list_setsTooltip => 'Uitrustingssets';
-
-  @override
   String get equipment_list_sortTitle => 'Uitrusting sorteren';
 
   @override
   String get equipment_list_sortTooltip => 'Sorteren';
 
   @override
-  String equipment_list_tile_daysCount(Object days) {
-    return '$days dagen';
-  }
-
-  @override
-  String equipment_list_tile_serviceInDays(int days) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: 'Service over $days dagen',
-      one: 'Service over 1 dag',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get equipment_list_tile_serviceDueChip => 'Service nodig';
-
-  @override
-  String get equipment_list_tile_serviceIn => 'Service over';
-
-  @override
   String get equipment_menu_delete => 'Verwijderen';
-
-  @override
-  String get equipment_menu_markAsServiced => 'Markeren als onderhouden';
 
   @override
   String get equipment_menu_reactivate => 'Heractiveren';
@@ -15971,11 +14574,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String equipment_sets_itemCountSemanticLabel(Object count) {
-    return '$count in set';
-  }
-
-  @override
   String equipment_sets_itemCountSingular(Object count) {
     return '$count onderdeel';
   }
@@ -15985,10 +14583,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_snackbar_deleted => 'Uitrusting verwijderd';
-
-  @override
-  String get equipment_snackbar_markedAsServiced =>
-      'Gemarkeerd als onderhouden';
 
   @override
   String get equipment_snackbar_reactivated => 'Uitrusting geheractiveerd';
@@ -16001,9 +14595,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_summary_addEquipmentButton => 'Uitrusting toevoegen';
-
-  @override
-  String get equipment_summary_equipmentSetsButton => 'Uitrustingssets';
 
   @override
   String get equipment_summary_overviewTitle => 'Overzicht';
@@ -16050,9 +14641,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_tab_sets => 'Sets';
-
-  @override
-  String get formatter_approximate_prefix => '~';
 
   @override
   String get formatter_connector_at => 'op';
@@ -16163,16 +14751,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gas_tmx2135_displayName => 'Tx 21/35';
 
   @override
-  String get gasCalculators_bestMix_bestOxygenMix => 'Beste zuurstofmengsel';
-
-  @override
   String get gasCalculators_bestMix_commonMixesRef =>
       'Veelgebruikte mengsels referentie';
-
-  @override
-  String gasCalculators_bestMix_exceedsAirMod(Object ppO2) {
-    return 'Lucht MOD overschreden bij ppO₂ $ppO2';
-  }
 
   @override
   String get gasCalculators_bestMix_targetDepth => 'Doeldiepte';
@@ -16528,9 +15108,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_tab_blender => 'Trimix-menger';
 
   @override
-  String get gasCalculators_blender_cylinder => 'Fles';
-
-  @override
   String get gasCalculators_blender_startCylinder => 'In de fles';
 
   @override
@@ -16556,9 +15133,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_topup => 'Aanvulgas';
-
-  @override
-  String get gasCalculators_blender_purity => 'Zuiverheid';
 
   @override
   String gasCalculators_blender_moveGasUp(String gas) {
@@ -16593,23 +15167,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String gasCalculators_blender_filledFrom(String name, String mix) {
     return '$name: $mix';
-  }
-
-  @override
-  String get gasCalculators_blender_amounts => 'Toe te voegen gas';
-
-  @override
-  String gasCalculators_blender_stepStart(String pressure, String gas) {
-    return 'Begin met $pressure $gas';
-  }
-
-  @override
-  String gasCalculators_blender_stepFill(
-    String gas,
-    String pressure,
-    String mix,
-  ) {
-    return 'Vul $gas tot $pressure → $mix';
   }
 
   @override
@@ -16736,9 +15293,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_blender_saveTemplate => 'Huidig mengsel opslaan';
 
   @override
-  String get gasCalculators_blender_manageTemplates => 'Sjablonen beheren';
-
-  @override
   String gasCalculators_blender_templateSaved(String mix) {
     return '$mix opgeslagen';
   }
@@ -16790,13 +15344,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_blender_currency => 'Valuta';
-
-  @override
-  String get gasCalculators_blender_currencyFollowsUnits =>
-      'Volgt Instellingen > Eenheden > Standaardvaluta';
-
-  @override
   String get gasCalculators_blender_manageCylinderSizes => 'Flesmaten beheren';
 
   @override
@@ -16841,9 +15388,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String gasCalculators_blender_flushFeeLine(String gas) {
     return '$gas slang spoelen';
   }
-
-  @override
-  String get gasCalculators_blender_billed => 'Gefactureerd';
 
   @override
   String gasCalculators_blender_billedDate(String date) {
@@ -17022,10 +15566,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get gasCalculators_blender_invoiceArchiveDeleteBody =>
       'Dit kan niet ongedaan worden gemaakt.';
-
-  @override
-  String get gasCalculators_blender_defaults =>
-      'Standaardinstellingen en facturering';
 
   @override
   String get gasCalculators_tab_mod => 'MOD';
@@ -17338,11 +15878,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get marineLife_speciesManage_cancelButton => 'Annuleren';
 
   @override
-  String marineLife_speciesManage_cannotDeleteInUse(Object name) {
-    return 'Kan \"$name\" niet verwijderen - heeft waarnemingen';
-  }
-
-  @override
   String get marineLife_speciesManage_clearSearchTooltip =>
       'Zoekopdracht wissen';
 
@@ -17355,28 +15890,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get marineLife_speciesManage_deleteButton => 'Verwijderen';
 
   @override
-  String marineLife_speciesManage_deleteDialogContent(Object name) {
-    return 'Weet je zeker dat je \"$name\" wilt verwijderen?';
-  }
-
-  @override
-  String get marineLife_speciesManage_deleteDialogTitle => 'Soort verwijderen?';
-
-  @override
   String get marineLife_speciesManage_deleteTooltip => 'Soort verwijderen';
 
   @override
-  String marineLife_speciesManage_deletedSnackbar(Object name) {
-    return '\"$name\" verwijderd';
-  }
-
-  @override
   String get marineLife_speciesManage_editTooltip => 'Soort bewerken';
-
-  @override
-  String marineLife_speciesManage_errorDeleting(Object error) {
-    return 'Fout bij verwijderen van soort: $error';
-  }
 
   @override
   String marineLife_speciesManage_errorResetting(Object error) {
@@ -17723,21 +16240,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_diveMediaSection_cancelButton => 'Annuleren';
 
   @override
-  String get media_diveMediaSection_cancelSelectionButton => 'Annuleren';
-
-  @override
   String get media_diveMediaSection_emptyState => 'Nog geen foto\'s';
 
   @override
   String get media_diveMediaSection_errorLoading => 'Fout bij laden van media';
-
-  @override
-  String get media_diveMediaSection_selectAllButton => 'Alles selecteren';
-
-  @override
-  String media_diveMediaSection_selectedCount(int count) {
-    return '$count geselecteerd';
-  }
 
   @override
   String get media_diveMediaSection_thumbnailLabel =>
@@ -17910,9 +16416,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get media_gpsBanner_addToSiteButton => 'Toevoegen aan duikstek';
-
-  @override
   String media_gpsBanner_coordinates(Object coordinates) {
     return 'Coördinaten: $coordinates';
   }
@@ -17930,9 +16433,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get mediaImport_reviewSitesAction => 'Stekken bekijken';
-
-  @override
-  String get media_gpsBanner_title => 'GPS gevonden in foto\'s';
 
   @override
   String media_import_failedToImport(int count) {
@@ -18341,9 +16841,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get media_photoViewer_failedToLoadImage => 'Kan afbeelding niet laden';
-
-  @override
   String get media_photoViewer_failedToLoadVideo => 'Kan video niet laden';
 
   @override
@@ -18485,9 +16982,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_unavailablePlaceholder_networkError => 'Couldn\'t connect';
-
-  @override
-  String get media_unavailablePlaceholder_notOnDevice => 'Niet op dit apparaat';
 
   @override
   String get media_unavailablePlaceholder_signInRequired => 'Sign in to view';
@@ -18692,9 +17186,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_smartAlbum_saveTitle => 'Naam dit album';
 
   @override
-  String get media_smartAlbum_albums => 'Albums';
-
-  @override
   String get media_smartAlbum_delete => 'Album verwijderen';
 
   @override
@@ -18856,11 +17347,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_library_unlinkSelected => 'Ontkoppelen';
-
-  @override
-  String media_library_selectedCount(int count) {
-    return '$count geselecteerd';
-  }
 
   @override
   String get media_library_unlinkedHeader => 'Niet gekoppeld';
@@ -19294,19 +17780,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get planning_appBar_title => 'Planning';
 
   @override
-  String get planning_card_decoCalculator_description =>
-      'Bereken no-decompressielimieten, benodigde decostops en CNS/OTU-blootstelling voor duikprofielen met meerdere niveaus.';
-
-  @override
   String get planning_card_decoCalculator_subtitle =>
       'Plan duiken met decompressiestops';
 
   @override
   String get planning_card_decoCalculator_title => 'Decocalculator';
-
-  @override
-  String get planning_card_divePlanner_description =>
-      'Plan complexe duiken met meerdere diepteniveaus, gaswisselingen en automatische berekening van decompressiestops.';
 
   @override
   String get planning_card_divePlanner_subtitle =>
@@ -19316,10 +17794,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get planning_card_divePlanner_title => 'Duikplanner';
 
   @override
-  String get planning_card_gasCalculators_description =>
-      'Vier gespecialiseerde gascalculators:\n• MOD - Maximale werkdiepte voor een gasmengsel\n• Beste mix - Ideaal O₂% voor een doeldiepte\n• Verbruik - Schatting gasverbruik\n• Noodreserve - Berekening noodreserve';
-
-  @override
   String get planning_card_gasCalculators_subtitle =>
       'MOD, Beste mix, Verbruik, Noodreserve';
 
@@ -19327,19 +17801,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get planning_card_gasCalculators_title => 'Gascalculators';
 
   @override
-  String get planning_card_surfaceInterval_description =>
-      'Bereken het minimale oppervlakte-interval dat nodig is tussen duiken op basis van weefselbelasting. Visualiseer hoe je 16 weefselcompartimenten ontgassen in de tijd.';
-
-  @override
   String get planning_card_surfaceInterval_subtitle =>
       'Plan herhalingsduikintervallen';
 
   @override
   String get planning_card_surfaceInterval_title => 'Oppervlakte-interval';
-
-  @override
-  String get planning_card_weightCalculator_description =>
-      'Schat het gewicht dat je nodig hebt op basis van je duikpak, flesmateriaal, watertype en lichaamsgewicht.';
 
   @override
   String get planning_card_weightCalculator_subtitle =>
@@ -19353,9 +17819,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze tools zijn alleen voor planningsdoeleinden. Controleer berekeningen altijd en volg je duikopleiding.';
 
   @override
-  String get planning_newPlan => 'Nieuw plan';
-
-  @override
   String get planning_section_tools => 'Gereedschappen';
 
   @override
@@ -19366,71 +17829,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get planning_summary_noPlans => 'Nog geen opgeslagen plannen';
-
-  @override
-  String get planning_sidebar_appBar_title => 'Planning';
-
-  @override
-  String get planning_sidebar_decoCalculator_subtitle => 'NDL & decostops';
-
-  @override
-  String get planning_sidebar_decoCalculator_title => 'Decocalculator';
-
-  @override
-  String get planning_sidebar_divePlanner_subtitle =>
-      'Duikplannen met meerdere niveaus';
-
-  @override
-  String get planning_sidebar_divePlanner_title => 'Duikplanner';
-
-  @override
-  String get planning_sidebar_gasCalculators_subtitle => 'MOD, Beste mix, meer';
-
-  @override
-  String get planning_sidebar_gasCalculators_title => 'Gascalculators';
-
-  @override
-  String get planning_sidebar_info_disclaimer =>
-      'Planningstools zijn alleen ter referentie. Controleer berekeningen altijd.';
-
-  @override
-  String get planning_sidebar_surfaceInterval_subtitle =>
-      'Planning herhalingsduiken';
-
-  @override
-  String get planning_sidebar_surfaceInterval_title => 'Oppervlakte-interval';
-
-  @override
-  String get planning_sidebar_weightCalculator_subtitle => 'Aanbevolen gewicht';
-
-  @override
-  String get planning_sidebar_weightCalculator_title => 'Gewichtscalculator';
-
-  @override
-  String get planning_welcome_quickTips_title => 'Snelle tips';
-
-  @override
-  String get planning_welcome_subtitle =>
-      'Selecteer een tool in de zijbalk om te beginnen';
-
-  @override
-  String get planning_welcome_tip_decoCalculator =>
-      'Decocalculator voor NDL en stoptijden';
-
-  @override
-  String get planning_welcome_tip_divePlanner =>
-      'Duikplanner voor duikplannen met meerdere niveaus';
-
-  @override
-  String get planning_welcome_tip_gasCalculators =>
-      'Gascalculators voor MOD en gasplanning';
-
-  @override
-  String get planning_welcome_tip_weightCalculator =>
-      'Gewichtscalculator voor triminstelling';
-
-  @override
-  String get planning_welcome_title => 'Planningstools';
 
   @override
   String get settings_about_aboutSubmersion => 'Over Submersion';
@@ -19486,14 +17884,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_displaySize_larger => 'Groter';
 
   @override
-  String get settings_appearance_depthColoredCards =>
-      'Dieptegekleurde duikkaarten';
-
-  @override
-  String get settings_appearance_depthColoredCards_subtitle =>
-      'Toon duikkaarten met oceaangekleurde achtergronden op basis van diepte';
-
-  @override
   String get settings_appearance_cardColorAttribute => 'Kaarten kleuren op';
 
   @override
@@ -19512,28 +17902,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_appearance_cardColorAttribute_temperature =>
       'Temperatuur';
-
-  @override
-  String get settings_appearance_colorGradient => 'Kleurverloop';
-
-  @override
-  String get settings_appearance_colorGradient_subtitle =>
-      'Kies het kleurbereik voor kaartachtergronden';
-
-  @override
-  String get settings_appearance_colorGradient_ocean => 'Oceaan';
-
-  @override
-  String get settings_appearance_colorGradient_thermal => 'Thermal';
-
-  @override
-  String get settings_appearance_colorGradient_sunset => 'Zonsondergang';
-
-  @override
-  String get settings_appearance_colorGradient_forest => 'Bos';
-
-  @override
-  String get settings_appearance_colorGradient_monochrome => 'Monochroom';
 
   @override
   String get settings_appearance_colorGradient_custom => 'Aangepast';
@@ -19556,13 +17924,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_header_diveDetails => 'Duikdetails';
 
   @override
-  String get settings_appearance_header_diveLog => 'Duiklogboek';
-
-  @override
   String get settings_appearance_header_diveProfile => 'Duikprofiel';
-
-  @override
-  String get settings_appearance_header_diveSites => 'Duikstekken';
 
   @override
   String get settings_appearance_diveDetails_sectionOrderVisibility =>
@@ -19778,10 +18140,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get safetySettings_title => 'Veiligheidscontrole';
 
   @override
-  String get safetySettings_entry_subtitle =>
-      'Observaties en regels na de duik';
-
-  @override
   String get safetySettings_masterToggle => 'Veiligheidscontrole na de duik';
 
   @override
@@ -19941,9 +18299,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Coördinaten gekopieerd naar klembord';
 
   @override
-  String get diveLog_detail_openInMaps => 'Openen in Kaarten';
-
-  @override
   String get diveDetailSection_weights_name => 'Gewichten';
 
   @override
@@ -20006,9 +18361,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buoyancy_minDitchable => 'Min. afwerpbaar lood';
-
-  @override
-  String get buoyancy_droppable => 'Je kunt afwerpen';
 
   @override
   String get buoyancy_ditchWarning => 'Meer dan je kunt afwerpen';
@@ -20217,12 +18569,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_header_language => 'Taal';
 
   @override
-  String get settings_appearance_header_theme => 'Thema';
-
-  @override
-  String get settings_appearance_header_mode => 'Modus';
-
-  @override
   String get settings_themes_title => 'Thema kiezen';
 
   @override
@@ -20248,20 +18594,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kaartachtergrond op duikkaarten';
 
   @override
-  String get settings_appearance_mapBackgroundDiveCards_subtitle =>
-      'Toon duikstekkaart als achtergrond op duikkaarten';
-
-  @override
   String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
       'Toon duikstekkaart als achtergrond op duikkaarten (vereist steklocatie)';
 
   @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'Kaartachtergrond op stekkaarten';
-
-  @override
-  String get settings_appearance_mapBackgroundSiteCards_subtitle =>
-      'Toon kaart als achtergrond op duikstekkaarten';
 
   @override
   String get settings_appearance_mapBackgroundSiteCards_subtitleWithNote =>
@@ -20271,16 +18609,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_maxDepthMarker => 'Maximale dieptemarkering';
 
   @override
-  String get settings_appearance_maxDepthMarker_subtitle =>
-      'Toon een markering bij het maximale dieptepunt';
-
-  @override
   String get settings_appearance_maxDepthMarker_subtitleFull =>
       'Toon een markering bij het maximale dieptepunt op duikprofielen';
-
-  @override
-  String get settings_appearance_metric_ascentRateColors =>
-      'Kleuren opstijgsnelheid';
 
   @override
   String get settings_appearance_metric_ceiling => 'Plafond';
@@ -20351,10 +18681,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_appearance_pressureThresholdMarkers =>
       'Drukdrempelmarkeringen';
-
-  @override
-  String get settings_appearance_pressureThresholdMarkers_subtitle =>
-      'Toon markeringen wanneer flesdruk drempels overschrijdt';
 
   @override
   String get settings_appearance_pressureThresholdMarkers_subtitleFull =>
@@ -20856,31 +19182,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_cloudSync_provider_s3_title => 'S3-compatibele opslag';
 
   @override
-  String get settings_cloudSync_resetDialog_cancel => 'Annuleren';
-
-  @override
-  String get settings_cloudSync_resetDialog_content =>
-      'Dit wist alle synchronisatiegeschiedenis en start opnieuw. Je gegevens worden niet verwijderd, maar mogelijk moet je conflicten oplossen bij de volgende synchronisatie.';
-
-  @override
-  String get settings_cloudSync_resetDialog_reset => 'Herstellen';
-
-  @override
-  String get settings_cloudSync_resetDialog_title =>
-      'Synchronisatiestatus herstellen?';
-
-  @override
-  String get settings_cloudSync_resetSuccess => 'Synchronisatiestatus hersteld';
-
-  @override
-  String get settings_cloudSync_resetSyncState =>
-      'Synchronisatiestatus herstellen';
-
-  @override
-  String get settings_cloudSync_resetSyncState_subtitle =>
-      'Synchronisatiegeschiedenis wissen en opnieuw beginnen';
-
-  @override
   String get settings_cloudSync_resolveConflicts => 'Conflicten oplossen';
 
   @override
@@ -21195,19 +19496,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Maak een back-up van je gegevens';
 
   @override
-  String get settings_data_cloudSync => 'Database-cloudsynchronisatie';
-
-  @override
   String get settings_data_customFolder => 'Aangepaste map';
 
   @override
   String get settings_data_databaseStorage => 'Database-opslag';
-
-  @override
-  String get settings_data_export_completed => 'Export voltooid';
-
-  @override
-  String get settings_data_export_exporting => 'Exporteren...';
 
   @override
   String settings_data_export_failed(Object error) {
@@ -21224,38 +19516,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_data_header_storage => 'Opslag';
 
   @override
-  String get settings_data_import_completed => 'Bewerking voltooid';
-
-  @override
-  String settings_data_import_failed(Object error) {
-    return 'Bewerking mislukt: $error';
-  }
-
-  @override
   String get settings_data_offlineMaps => 'Offline kaarten';
 
   @override
   String get settings_data_offlineMaps_subtitle =>
       'Kaarttegels en 3D-terreingegevens';
-
-  @override
-  String get settings_data_restore => 'Herstellen';
-
-  @override
-  String get settings_data_restoreDialog_cancel => 'Annuleren';
-
-  @override
-  String get settings_data_restoreDialog_content =>
-      'Waarschuwing: Herstellen vanuit een back-up vervangt ALLE huidige gegevens door de back-upgegevens. Deze actie kan niet ongedaan worden gemaakt.\n\nWeet je zeker dat je wilt doorgaan?';
-
-  @override
-  String get settings_data_restoreDialog_restore => 'Herstellen';
-
-  @override
-  String get settings_data_restoreDialog_title => 'Back-up herstellen';
-
-  @override
-  String get settings_data_restore_subtitle => 'Herstellen vanuit back-up';
 
   @override
   String settings_data_syncTime_daysAgo(Object count) {
@@ -21274,17 +19539,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String settings_data_syncTime_minutesAgo(Object count) {
     return '${count}m geleden';
   }
-
-  @override
-  String settings_data_sync_lastSynced(Object time) {
-    return 'Laatst gesynchroniseerd: $time';
-  }
-
-  @override
-  String get settings_data_sync_notConfigured => 'Niet geconfigureerd';
-
-  @override
-  String get settings_data_sync_syncing => 'Synchroniseren...';
 
   @override
   String get settings_decompression_aboutContent =>
@@ -21800,9 +20054,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Sla een loodhoeveelheid op vanuit de duikeditor, of tik op + om er hier een samen te stellen.';
 
   @override
-  String get weightPresets_action_rename => 'Naam wijzigen';
-
-  @override
   String get weightPresets_action_new => 'New preset';
 
   @override
@@ -21826,9 +20077,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get weightPresets_editor_notFound =>
       'This weighting rig no longer exists.';
-
-  @override
-  String get weightPresets_rename_title => 'Voorinstelling hernoemen';
 
   @override
   String get weightPresets_delete_title => 'Deze voorinstelling verwijderen?';
@@ -21933,20 +20181,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_notifications_reminderTime => 'Herinneringstijd';
 
   @override
-  String get settings_profile_activeDiver_subtitle =>
-      'Actieve duiker - tik om te wisselen';
-
-  @override
-  String get settings_profile_addNewDiver => 'Nieuwe duiker toevoegen';
-
-  @override
   String get settings_profile_error_loadingDiver => 'Fout bij laden van duiker';
-
-  @override
-  String get settings_profile_header_activeDiver => 'Actieve duiker';
-
-  @override
-  String get settings_profile_header_manageDivers => 'Duikers beheren';
 
   @override
   String get settings_profile_noDiverProfile => 'Geen duikersprofiel';
@@ -21964,29 +20199,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get settings_profile_viewAllDivers => 'Alle duikers bekijken';
-
-  @override
-  String get settings_profile_viewAllDivers_subtitle =>
-      'Duikersprofielen toevoegen of bewerken';
-
-  @override
   String get settings_profileHub_addNewDiver => 'Nieuwe duiker toevoegen';
 
   @override
-  String get settings_profileHub_cannotDeleteOnly =>
-      'Kan het enige duikersprofiel niet verwijderen';
-
-  @override
   String get settings_profileHub_createDiverTitle => 'Duiker aanmaken';
-
-  @override
-  String settings_profileHub_deleteConfirmContent(String name) {
-    return 'Weet je zeker dat je $name wilt verwijderen? Alle bijbehorende duiklogs worden losgekoppeld.';
-  }
-
-  @override
-  String get settings_profileHub_deleteConfirmTitle => 'Duiker verwijderen?';
 
   @override
   String get settings_profileHub_deleteDiver => 'Duiker verwijderen';
@@ -22032,9 +20248,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_profileHub_personalInfo => 'Persoonlijke gegevens';
-
-  @override
-  String get settings_profileHub_personalInfo_notSet => 'Niet ingesteld';
 
   @override
   String get settings_profileHub_saved => 'Wijzigingen opgeslagen';
@@ -22193,9 +20406,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_storage_appDefault => 'App-standaard';
 
   @override
-  String get settings_storage_appDefaultLocation => 'Standaard app-locatie';
-
-  @override
   String get settings_storage_appDefault_subtitle =>
       'Standaard app-opslaglocatie';
 
@@ -22224,15 +20434,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Door de app beheerde cloudsynchronisatie is uitgeschakeld zolang de database op een opslagvolume van het apparaat staat. Geen enkele synchronisatiedienst kan die map op Android bereiken; gebruik Back-up en Herstel om elders kopieën te bewaren.';
 
   @override
-  String settings_storage_dbStats(
-    Object fileSize,
-    Object diveCount,
-    Object siteCount,
-  ) {
-    return '$fileSize • $diveCount duiken • $siteCount stekken';
-  }
-
-  @override
   String get settings_storage_dismissError_tooltip => 'Foutmelding sluiten';
 
   @override
@@ -22251,9 +20452,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_storage_loading => 'Laden...';
-
-  @override
-  String get settings_storage_migrating_doNotClose => 'Sluit de app niet';
 
   @override
   String get settings_storage_migrating_movingDatabase =>
@@ -22308,10 +20506,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_storage_resetDialog_confirmButton => 'Resetten';
-
-  @override
-  String get settings_storage_resetDialog_backupFailed =>
-      'Back-up mislukt. Reset afgebroken om je gegevens te beschermen.';
 
   @override
   String settings_storage_resetDialog_resetFailed(Object error) {
@@ -23012,9 +21206,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_equipment_issues_empty => 'Geen problemen gemeld';
 
   @override
-  String get insights_equipment_countLabel_items => 'items';
-
-  @override
   String get insights_equipment_countLabel_findings => 'bevindingen';
 
   @override
@@ -23347,9 +21538,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_profile_deco_noDeco => 'Geen deco';
 
   @override
-  String get insights_profile_deco_notRecorded => 'Niet vastgelegd';
-
-  @override
   String insights_profile_deco_notRecordedHint(int count) {
     return '$count duiken hebben geen vastgelegde of berekenbare decogegevens en tellen niet mee voor het percentage';
   }
@@ -23606,13 +21794,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_summary_avgDepth => 'Gem. diepte';
 
   @override
-  String get insights_summary_avgTemp => 'Gem. temp.';
-
-  @override
-  String get insights_summary_depthDistribution_empty =>
-      'Grafiek verschijnt wanneer je duiken logt';
-
-  @override
   String get insights_summary_depthDistribution_semanticLabel =>
       'Cirkeldiagram met diepteverdeling';
 
@@ -23620,43 +21801,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_summary_depthDistribution_title => 'Diepteverdeling';
 
   @override
-  String get insights_summary_diveTypes_empty =>
-      'Grafiek verschijnt wanneer je duiken logt';
-
-  @override
-  String insights_summary_diveTypes_moreTypes(Object count) {
-    return 'en $count meer types';
-  }
-
-  @override
   String get insights_summary_diveTypes_semanticLabel =>
       'Cirkeldiagram met duiktypeverdeling';
 
   @override
   String get insights_summary_diveTypes_title => 'Duiktypes';
-
-  @override
-  String get insights_summary_divesByMonth_empty =>
-      'Grafiek verschijnt wanneer je duiken logt';
-
-  @override
-  String get insights_summary_divesByMonth_semanticLabel =>
-      'Staafdiagram met duiken per maand';
-
-  @override
-  String get insights_summary_divesByMonth_title => 'Duiken per maand';
-
-  @override
-  String insights_summary_divesByMonth_tooltip(Object fullLabel, Object count) {
-    return '$fullLabel\n$count duiken';
-  }
-
-  @override
-  String get insights_summary_header_subtitle =>
-      'Selecteer een categorie om gedetailleerde inzichten te bekijken';
-
-  @override
-  String get insights_summary_header_title => 'Overzicht van inzichten';
 
   @override
   String get insights_summary_maxDepth => 'Max diepte';
@@ -23673,42 +21822,6 @@ class AppLocalizationsNl extends AppLocalizations {
       one: '1 duik',
     );
     return '$_temp0';
-  }
-
-  @override
-  String get insights_summary_tagUsage_empty => 'Nog geen tags aangemaakt';
-
-  @override
-  String get insights_summary_tagUsage_emptyHint =>
-      'Voeg tags toe aan duiken om statistieken te zien';
-
-  @override
-  String insights_summary_tagUsage_moreTags(Object count) {
-    return 'en $count meer tags';
-  }
-
-  @override
-  String insights_summary_tagUsage_tagCount(Object count) {
-    return '$count tags';
-  }
-
-  @override
-  String get insights_summary_tagUsage_title => 'Taggebruik';
-
-  @override
-  String insights_summary_topDiveSites_diveCount(Object count) {
-    return '$count duiken';
-  }
-
-  @override
-  String get insights_summary_topDiveSites_empty => 'Nog geen duikstekken';
-
-  @override
-  String get insights_summary_topDiveSites_title => 'Top duikstekken';
-
-  @override
-  String insights_summary_topDiveSites_totalCount(Object count) {
-    return '$count totaal';
   }
 
   @override
@@ -23866,9 +21979,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_tooltip_refreshRecords => 'Records verversen';
-
-  @override
-  String get insights_tooltip_refreshInsights => 'Inzichten verversen';
 
   @override
   String insights_valueCard_semanticLabel(Object label, Object value) {
@@ -24131,33 +22241,15 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get tags_action_deleteTag => 'Tag verwijderen';
-
-  @override
   String tags_action_showDives(String tagName) {
     return 'Duiken met tag \"$tagName\" tonen';
   }
-
-  @override
-  String tags_dialog_deleteMessage(Object tagName) {
-    return 'Weet je zeker dat je \"$tagName\" wilt verwijderen? Dit verwijdert het van alle duiken.';
-  }
-
-  @override
-  String get tags_dialog_deleteTitle => 'Tag verwijderen?';
-
-  @override
-  String get tags_empty =>
-      'Nog geen tags. Maak tags aan bij het bewerken van duiken.';
 
   @override
   String get tags_hint_addMoreTags => 'Meer tags toevoegen...';
 
   @override
   String get importWizard_tagsLabel => 'Tags';
-
-  @override
-  String get importWizard_photos_stepLabel => 'Foto\'s';
 
   @override
   String importWizard_photos_foundCount(int count) {
@@ -24273,11 +22365,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Nog geen tags. Maak er een aan om te beginnen.';
 
   @override
-  String tags_manage_selectedCount(int count) {
-    return '$count geselecteerd';
-  }
-
-  @override
   String get tags_manage_createTitle => 'Tag aanmaken';
 
   @override
@@ -24380,9 +22467,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tags_manage_useForSites => 'Gebruiken voor duikstekken';
-
-  @override
-  String get tags_manage_nameRequired => 'Tagnaam is verplicht';
 
   @override
   String get tags_manage_deleteTitle => 'Tag verwijderen?';
@@ -24784,9 +22868,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tags_manage_mergeAction => 'Samenvoegen';
 
   @override
-  String get tags_title_manageTags => 'Tags beheren';
-
-  @override
   String get tank_al100_description => 'Aluminium 100 cu ft';
 
   @override
@@ -25033,9 +23114,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get transfer_appBar_title => 'Overdracht';
 
   @override
-  String get transfer_computers_aboutTitle => 'Over duikcomputers';
-
-  @override
   String get transfer_computers_appleWatchHeader => 'Apple Watch';
 
   @override
@@ -25055,15 +23133,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get transfer_computers_errorLoading => 'Fout bij laden van computers';
-
-  @override
-  String get transfer_computers_loading => 'Laden...';
-
-  @override
-  String get transfer_computers_manageTitle => 'Computers beheren';
-
-  @override
-  String get transfer_computers_noComputersSaved => 'Geen computers opgeslagen';
 
   @override
   String transfer_computers_diveCount(num count) {
@@ -25108,20 +23177,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get transfer_computers_lastDownloadYesterday => 'Gisteren';
-
-  @override
-  String transfer_computers_savedCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'computers',
-      one: 'computer',
-    );
-    return '$count opgeslagen $_temp0';
-  }
-
-  @override
-  String get transfer_computers_sectionHeader => 'Duikcomputers';
 
   @override
   String get transfer_csvExport_cancelButton => 'Annuleren';
@@ -25356,19 +23411,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get transfer_pdfExport_languageHeader => 'Taal';
 
   @override
-  String get transfer_pdfExport_pageSizeA4 => 'A4';
-
-  @override
-  String get transfer_pdfExport_pageSizeA4Desc => '210 x 297 mm';
-
-  @override
   String get transfer_pdfExport_pageSizeHeader => 'Paginaformaat';
-
-  @override
-  String get transfer_pdfExport_pageSizeLetter => 'Letter';
-
-  @override
-  String get transfer_pdfExport_pageSizeLetterDesc => '8.5 x 11 in';
 
   @override
   String get transfer_pdfExport_templateDetailed => 'Gedetailleerd';
@@ -25466,9 +23509,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get trips_appBar_tripPhotos => 'Reisfoto\'s';
-
-  @override
   String get trips_detail_action_delete => 'Verwijderen';
 
   @override
@@ -25504,11 +23544,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_detail_dives_unknownSite => 'Onbekende duikstek';
 
   @override
-  String trips_detail_dives_viewAll(Object count) {
-    return 'Alles bekijken ($count)';
-  }
-
-  @override
   String trips_detail_durationDays(Object days) {
     return '$days dagen';
   }
@@ -25535,15 +23570,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_detail_export_pdf_title => 'Exporteren naar PDF';
 
   @override
-  String get trips_detail_label_liveaboard => 'Liveaboard';
-
-  @override
-  String get trips_detail_label_location => 'Locatie';
-
-  @override
-  String get trips_detail_label_resort => 'Resort';
-
-  @override
   String get trips_detail_scan_accessDenied =>
       'Toegang tot fotobibliotheek geweigerd';
 
@@ -25568,22 +23594,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_detail_scan_linkingPhotos => 'Foto\'s koppelen...';
 
   @override
-  String get trips_detail_sectionTitle_details => 'Reisdetails';
-
-  @override
-  String get trips_detail_sectionTitle_dives => 'Duiken';
-
-  @override
   String get trips_detail_sectionTitle_notes => 'Notities';
 
   @override
-  String get trips_detail_sectionTitle_statistics => 'Reisstatistieken';
-
-  @override
   String get trips_detail_snackBar_deleted => 'Reis verwijderd';
-
-  @override
-  String get trips_detail_stat_avgDepth => 'Gem. diepte';
 
   @override
   String get trips_detail_stat_maxDepth => 'Max. diepte';
@@ -25628,9 +23642,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get trips_diveScan_deselectAll => 'Alles deselecteren';
-
-  @override
   String get trips_diveScan_error =>
       'Kan niet naar duiken zoeken. Probeer het opnieuw.';
 
@@ -25653,9 +23664,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get trips_diveScan_noDiver =>
       'Selecteer een actieve duiker om naar duiken te zoeken';
-
-  @override
-  String get trips_diveScan_selectAll => 'Alles selecteren';
 
   @override
   String trips_diveScan_subtitle(int count) {
@@ -25921,11 +23929,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_photos_error_loading => 'Fout bij laden van foto\'s';
 
   @override
-  String trips_photos_moreIndicator(Object count) {
-    return '+$count';
-  }
-
-  @override
   String trips_photos_moreIndicator_semanticLabel(Object count) {
     return '$count meer foto\'s';
   }
@@ -26008,11 +24011,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_summary_quickActions_title => 'Snelle acties';
 
   @override
-  String trips_summary_recentSubtitle(Object date, Object count) {
-    return '$date • $count duiken';
-  }
-
-  @override
   String get trips_summary_recentTitle => 'Recente reizen';
 
   @override
@@ -26060,9 +24058,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_type_description_shore => 'Kantduiken op een of meer dagen';
-
-  @override
-  String get trips_edit_label_tripType => 'Trip Type';
 
   @override
   String get trips_edit_sectionTitle_vessel => 'Vessel Details';
@@ -26676,40 +24671,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_detail_label_disembark => 'Disembark';
 
   @override
-  String get trips_detail_stat_divesPerDay => 'Dives per day';
-
-  @override
-  String get trips_detail_stat_diveDays => 'Dive days';
-
-  @override
-  String get trips_detail_stat_seaDays => 'Sea days';
-
-  @override
   String get trips_detail_stat_sitesVisited => 'Sites visited';
 
   @override
   String get trips_detail_stat_speciesSeen => 'Species seen';
 
   @override
-  String get trips_detail_sectionTitle_dailyBreakdown => 'Daily Breakdown';
-
-  @override
-  String get trips_breakdown_column_day => 'Day';
-
-  @override
-  String get trips_breakdown_column_type => 'Type';
-
-  @override
-  String get trips_breakdown_column_dives => 'Dives';
-
-  @override
-  String get trips_breakdown_column_bottomTime => 'Bottom Time';
-
-  @override
   String get trips_breakdown_column_sites => 'Sites';
-
-  @override
-  String get trips_detail_sectionTitle_voyageMap => 'Voyage Route';
 
   @override
   String trips_itinerary_dayLabel(int dayNumber) {
@@ -26762,43 +24730,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_vesselType_other => 'Other';
 
   @override
-  String get units_altitude_feet => 'ft';
-
-  @override
-  String get units_altitude_meters => 'm';
-
-  @override
-  String get units_barometric_bar => 'bar';
-
-  @override
-  String get units_barometric_mbar => 'mbar';
-
-  @override
-  String get units_dateFormat_dMMMYYYY => 'D MMM YYYY';
-
-  @override
-  String get units_dateFormat_ddmmyyyy => 'DD/MM/YYYY';
-
-  @override
-  String get units_dateFormat_mmddyyyy => 'MM/DD/YYYY';
-
-  @override
-  String get units_dateFormat_mmmDYYYY => 'MMM D, YYYY';
-
-  @override
-  String get units_dateFormat_yyyymmdd => 'YYYY-MM-DD';
-
-  @override
-  String get units_depth_feet => 'ft';
-
-  @override
-  String get units_depth_meters => 'm';
-
-  @override
   String get units_pressure_bar => 'bar';
-
-  @override
-  String get units_pressure_psi => 'psi';
 
   @override
   String get units_profileMetric_bpm => 'bpm';
@@ -26816,44 +24748,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get units_profileMetric_millivolts => 'mV';
 
   @override
-  String get units_temperature_celsius => 'C';
-
-  @override
-  String get units_temperature_fahrenheit => 'F';
-
-  @override
-  String get units_timeFormat_twelveHour => '12-uurs';
-
-  @override
-  String get units_timeFormat_twentyFourHour => '24-uurs';
-
-  @override
-  String get units_volume_cubicFeet => 'cuft';
-
-  @override
-  String get units_volume_liters => 'L';
-
-  @override
-  String get units_weight_kilograms => 'kg';
-
-  @override
-  String get units_weight_pounds => 'lbs';
-
-  @override
-  String get universalImport_action_consolidate =>
-      'Samenvoegen als extra computer';
-
-  @override
-  String get universalImport_action_continue => 'Doorgaan';
-
-  @override
   String get universalImport_action_deselectAll => 'Alles deselecteren';
 
   @override
   String get universalImport_action_done => 'Gereed';
-
-  @override
-  String get universalImport_action_import => 'Importeren';
 
   @override
   String get universalImport_action_selectAll => 'Alles selecteren';
@@ -26862,16 +24760,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_action_changeFile => 'Bestand wijzigen';
 
   @override
-  String get universalImport_action_selectFile => 'Selecteer bestand';
-
-  @override
   String get universalImport_action_selectFiles => 'Bestanden selecteren';
 
   @override
   String get universalImport_action_chooseFolder => 'Map kiezen';
-
-  @override
-  String get universalImport_triage_title => 'Te importeren bestanden';
 
   @override
   String universalImport_triage_readyCount(num count) {
@@ -27280,9 +25172,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Selecteer een duiklogboekbestand om te importeren. Ondersteunde formaten zijn CSV, UDDF, Subsurface XML en Garmin FIT.';
 
   @override
-  String get universalImport_dive_decideAction => 'Beslissen';
-
-  @override
   String get universalImport_error_unsupportedFormat =>
       'Dit formaat wordt nog niet ondersteund. Exporteer als UDDF of CSV.';
 
@@ -27398,17 +25287,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_label_detecting => 'Detecteren...';
 
   @override
-  String universalImport_label_diveNumber(Object number) {
-    return 'Duik #$number';
-  }
-
-  @override
   String get universalImport_label_duplicate => 'Duplicaat';
-
-  @override
-  String universalImport_label_duplicatesFound(Object count) {
-    return '$count duplicaten gevonden en automatisch gedeselecteerd.';
-  }
 
   @override
   String get universalImport_label_importAsNew => 'Als nieuw importeren';
@@ -27435,11 +25314,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get universalImport_label_selectCorrectSource =>
       'Niet juist? Selecteer de juiste bron:';
-
-  @override
-  String universalImport_label_selected(Object count) {
-    return '$count geselecteerd';
-  }
 
   @override
   String get universalImport_label_skip => 'Overslaan';
@@ -27483,17 +25357,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get universalImport_fillPlanned_undoFailed =>
       'Niet elke geplande duik kon worden hersteld. Probeer het opnieuw.';
-
-  @override
-  String universalImport_label_taggedAs(Object tag) {
-    return 'Getagd als: $tag';
-  }
-
-  @override
-  String get universalImport_label_unknownDate => 'Onbekende datum';
-
-  @override
-  String get universalImport_label_unnamed => 'Naamloos';
 
   @override
   String universalImport_label_xOfY(Object current, Object total) {
@@ -27556,19 +25419,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_pending_reviewAction => 'Bekijken';
 
   @override
-  String get universalImport_rowHint_tapCompareToDecide =>
-      'Tik op Beslissen om te kiezen';
-
-  @override
-  String universalImport_semantics_entitySelection(
-    Object selected,
-    Object total,
-    Object entityType,
-  ) {
-    return '$selected van $total $entityType geselecteerd';
-  }
-
-  @override
   String universalImport_semantics_importError(Object error) {
     return 'Importfout: $error';
   }
@@ -27576,11 +25426,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String universalImport_semantics_importProgress(Object percent) {
     return 'Importvoortgang: $percent procent';
-  }
-
-  @override
-  String universalImport_semantics_itemsSelected(Object count) {
-    return '$count items geselecteerd voor import';
   }
 
   @override
@@ -27619,23 +25464,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_step_import => 'Importeren';
 
   @override
-  String get universalImport_step_map => 'Toewijzen';
-
-  @override
   String get universalImport_step_review => 'Controleren';
 
   @override
-  String get universalImport_step_select => 'Selecteren';
-
-  @override
-  String get universalImport_summary_decidesRequired =>
-      'Elk vereist een beslissing voor het importeren.';
-
-  @override
   String get universalImport_title => 'Gegevens importeren';
-
-  @override
-  String get universalImport_tooltip_closeWizard => 'Importwizard sluiten';
 
   @override
   String weather_windFromDirection(Object wind, Object direction) {
@@ -27701,63 +25533,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get weather_wmo_thunderstormHail => 'Onweer met hagel';
-
-  @override
-  String weightCalc_baseLine(Object suitType, Object weight) {
-    return 'Basis ($suitType): $weight kg';
-  }
-
-  @override
-  String weightCalc_bodyWeightAdjustment(Object adjustment) {
-    return 'Lichaamsgewicht aanpassing: +$adjustment kg';
-  }
-
-  @override
-  String get weightCalc_suit_drysuit => 'Droogpak';
-
-  @override
-  String get weightCalc_suit_none => 'Geen pak';
-
-  @override
-  String get weightCalc_suit_rashguard => 'Alleen rashguard';
-
-  @override
-  String get weightCalc_suit_semidry => 'Semi-droogpak';
-
-  @override
-  String get weightCalc_suit_shorty3mm => '3mm Shorty';
-
-  @override
-  String get weightCalc_suit_wetsuit3mm => '3mm Wetsuit';
-
-  @override
-  String get weightCalc_suit_wetsuit5mm => '5mm Wetsuit';
-
-  @override
-  String get weightCalc_suit_wetsuit7mm => '7mm Wetsuit';
-
-  @override
-  String weightCalc_tankLine(Object tankMaterial, Object adjustment) {
-    return 'Fles ($tankMaterial): $adjustment kg';
-  }
-
-  @override
-  String get weightCalc_title => 'Gewichtsberekening:';
-
-  @override
-  String weightCalc_total(Object total) {
-    return 'Totaal: $total kg';
-  }
-
-  @override
-  String weightCalc_waterLine(Object waterType, Object adjustment) {
-    return 'Water ($waterType): $adjustment kg';
-  }
-
-  @override
-  String divePlanner_label_resultsWithWarnings(Object count) {
-    return 'Resultaten, $count waarschuwingen';
-  }
 
   @override
   String tides_semantic_tideCycle(Object state, Object height) {
@@ -27925,15 +25700,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kies een ander apparaat';
 
   @override
-  String get diveComputer_discovery_computer => 'Computer';
-
-  @override
   String get diveComputer_discovery_connectAndDownload =>
       'Verbinden en downloaden';
-
-  @override
-  String get diveComputer_discovery_connectingToDevice =>
-      'Verbinden met apparaat...';
 
   @override
   String diveComputer_discovery_deviceNameHint(Object model) {
@@ -27944,62 +25712,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveComputer_discovery_deviceNameLabel => 'Apparaatnaam';
 
   @override
-  String get diveComputer_discovery_exitDialogCancel => 'Annuleren';
-
-  @override
-  String get diveComputer_discovery_exitDialogConfirm => 'Afsluiten';
-
-  @override
-  String get diveComputer_discovery_exitDialogContent =>
-      'Weet je zeker dat je wilt afsluiten? Je voortgang gaat verloren.';
-
-  @override
-  String get diveComputer_discovery_exitDialogTitle => 'Setup afsluiten?';
-
-  @override
-  String get diveComputer_discovery_exitTooltip => 'Setup afsluiten';
-
-  @override
-  String get diveComputer_discovery_noDeviceSelected =>
-      'Geen apparaat geselecteerd';
-
-  @override
-  String get diveComputer_discovery_pleaseWaitConnection =>
-      'Even geduld terwijl we verbinding maken';
-
-  @override
   String get diveComputer_discovery_recognizedDevice => 'Herkend apparaat';
 
   @override
   String get diveComputer_discovery_recognizedDeviceDescription =>
       'Dit apparaat staat in onze lijst met ondersteunde apparaten. Duiken downloaden zou automatisch moeten werken.';
-
-  @override
-  String get diveComputer_discovery_stepConnect => 'Verbinden';
-
-  @override
-  String get diveComputer_discovery_stepDone => 'Klaar';
-
-  @override
-  String get diveComputer_discovery_stepDownload => 'Downloaden';
-
-  @override
-  String get diveComputer_discovery_stepScan => 'Scannen';
-
-  @override
-  String get diveComputer_discovery_titleComplete => 'Voltooid';
-
-  @override
-  String get diveComputer_discovery_titleConfirmDevice => 'Apparaat bevestigen';
-
-  @override
-  String get diveComputer_discovery_titleConnecting => 'Verbinden';
-
-  @override
-  String get diveComputer_discovery_titleDownloading => 'Downloaden';
-
-  @override
-  String get diveComputer_discovery_titleFindDevice => 'Apparaat zoeken';
 
   @override
   String get diveComputer_discovery_unknownDevice => 'Onbekend apparaat';
@@ -28035,11 +25752,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveComputer_downloadExit_title => 'Download bezig';
 
   @override
-  String diveComputer_downloadStep_andMoreDives(Object count) {
-    return '... en nog $count meer';
-  }
-
-  @override
   String get diveComputer_downloadStep_cancel => 'Annuleren';
 
   @override
@@ -28057,11 +25769,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveComputer_downloadStep_clockSynced => 'Klok gesynchroniseerd';
 
   @override
-  String diveComputer_downloadStep_depthMeters(Object depth) {
-    return '${depth}m';
-  }
-
-  @override
   String get diveComputer_downloadStep_downloadAll => 'Alle duiken downloaden';
 
   @override
@@ -28073,11 +25780,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_downloadStep_downloadedDives => 'Gedownloade duiken';
-
-  @override
-  String diveComputer_downloadStep_durationMin(Object duration) {
-    return '$duration min';
-  }
 
   @override
   String get diveComputer_downloadStep_errorOccurred =>
@@ -28137,48 +25839,12 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_download_cancel => 'Annuleren';
-
-  @override
-  String get diveComputer_download_closeTooltip => 'Sluiten';
-
-  @override
   String get diveComputer_download_computerNotFound => 'Computer niet gevonden';
-
-  @override
-  String diveComputer_download_depthMeters(Object depth) {
-    return '${depth}m';
-  }
-
-  @override
-  String diveComputer_download_deviceNotFoundError(Object name) {
-    return 'Apparaat niet gevonden. Zorg dat je $name in de buurt is en in overdrachtmodus staat.';
-  }
-
-  @override
-  String get diveComputer_download_deviceNotFoundTitle =>
-      'Apparaat niet gevonden';
-
-  @override
-  String get diveComputer_download_divesUpdated => 'Duiken bijgewerkt';
-
-  @override
-  String get diveComputer_download_done => 'Klaar';
-
-  @override
-  String get diveComputer_download_downloadedDives => 'Gedownloade duiken';
-
-  @override
-  String get diveComputer_download_duplicatesSkipped =>
-      'Duplicaten overgeslagen';
 
   @override
   String diveComputer_download_durationMin(Object duration) {
     return '$duration min';
   }
-
-  @override
-  String get diveComputer_download_errorOccurred => 'Er is een fout opgetreden';
 
   @override
   String get diveComputer_download_noSerialPortsFound =>
@@ -28208,57 +25874,8 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_download_goBack => 'Terug';
-
-  @override
-  String get diveComputer_download_importFailed => 'Importeren mislukt';
-
-  @override
-  String get diveComputer_download_importResults => 'Importresultaten';
-
-  @override
-  String get diveComputer_download_importedDives => 'Geïmporteerde duiken';
-
-  @override
   String diveComputer_download_importingCountDives(int count) {
     return '$count duiken importeren...';
-  }
-
-  @override
-  String diveComputer_download_importingCountNewDives(int count) {
-    return '$count nieuwe duiken importeren...';
-  }
-
-  @override
-  String get diveComputer_download_newDivesImported =>
-      'Nieuwe duiken geïmporteerd';
-
-  @override
-  String get diveComputer_download_newDivesOnlySubtitle =>
-      'Downloadt alleen duiken die zijn toegevoegd sinds je laatste synchronisatie';
-
-  @override
-  String get diveComputer_download_newDivesOnlyTitle =>
-      'Alleen nieuwe duiken downloaden';
-
-  @override
-  String get diveComputer_download_preparing => 'Voorbereiden...';
-
-  @override
-  String diveComputer_download_progressPercent(Object percent) {
-    return '$percent%';
-  }
-
-  @override
-  String get diveComputer_download_reimportHint =>
-      'Op zoek naar oudere of verwijderde duiken? Alles opnieuw importeren';
-
-  @override
-  String get diveComputer_download_retry => 'Opnieuw proberen';
-
-  @override
-  String diveComputer_download_scanError(Object error) {
-    return 'Scanfout: $error';
   }
 
   @override
@@ -28267,18 +25884,7 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_download_searchingInstructions =>
-      'Zorg dat het apparaat in de buurt is en in overdrachtmodus staat';
-
-  @override
   String get diveComputer_download_title => 'Duiken downloaden';
-
-  @override
-  String get diveComputer_download_tryAgain => 'Opnieuw proberen';
-
-  @override
-  String get diveComputer_download_upToDate =>
-      'Geen nieuwe duiken gevonden -- je logboek is up-to-date';
 
   @override
   String get diveComputer_list_addComputer => 'Computer toevoegen';
@@ -28432,135 +26038,13 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_summary_diveComputer => 'duikcomputer';
-
-  @override
-  String diveComputer_summary_divesDownloaded(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'duiken',
-      one: 'duik',
-    );
-    return '$count $_temp0 gedownload';
-  }
-
-  @override
-  String get diveComputer_summary_done => 'Klaar';
-
-  @override
-  String get diveComputer_summary_imported => 'Geïmporteerd';
-
-  @override
-  String diveComputer_summary_semanticLabel(int count, Object name) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'duiken',
-      one: 'duik',
-    );
-    return '$count $_temp0 gedownload van $name';
-  }
-
-  @override
-  String get diveComputer_summary_skippedDuplicates =>
-      'Overgeslagen (duplicaten)';
-
-  @override
-  String get diveComputer_summary_title => 'Download voltooid!';
-
-  @override
-  String get diveComputer_summary_updated => 'Bijgewerkt';
-
-  @override
-  String get diveComputer_summary_viewDives => 'Duiken bekijken';
-
-  @override
   String get diveImport_alreadyImported => 'Al geïmporteerd';
 
   @override
   String get diveImport_avgHR => 'Gem. HR';
 
   @override
-  String get diveImport_back => 'Terug';
-
-  @override
-  String get diveImport_deselectAll => 'Alles deselecteren';
-
-  @override
-  String get diveImport_divesImported => 'Duiken geïmporteerd';
-
-  @override
-  String get diveImport_divesMerged => 'Duiken samengevoegd';
-
-  @override
-  String get diveImport_divesSkipped => 'Duiken overgeslagen';
-
-  @override
-  String get diveImport_done => 'Klaar';
-
-  @override
   String get diveImport_duration => 'Duur';
-
-  @override
-  String get diveImport_error => 'Fout';
-
-  @override
-  String get diveImport_fit_closeTooltip => 'FIT-import sluiten';
-
-  @override
-  String get diveImport_fit_noDivesDescription =>
-      'Selecteer één of meer .fit-bestanden die zijn geëxporteerd vanuit Garmin Connect of gekopieerd van een Garmin Descent-apparaat.';
-
-  @override
-  String get diveImport_fit_noDivesLoaded => 'Geen duiken geladen';
-
-  @override
-  String diveImport_fit_parsed(int diveCount, int fileCount) {
-    String _temp0 = intl.Intl.pluralLogic(
-      diveCount,
-      locale: localeName,
-      other: 'duiken',
-      one: 'duik',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      fileCount,
-      locale: localeName,
-      other: 'bestanden',
-      one: 'bestand',
-    );
-    return '$diveCount $_temp0 verwerkt uit $fileCount $_temp1';
-  }
-
-  @override
-  String diveImport_fit_parsedWithSkipped(
-    int diveCount,
-    int fileCount,
-    Object skippedCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      diveCount,
-      locale: localeName,
-      other: 'duiken',
-      one: 'duik',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      fileCount,
-      locale: localeName,
-      other: 'bestanden',
-      one: 'bestand',
-    );
-    return '$diveCount $_temp0 verwerkt uit $fileCount $_temp1 ($skippedCount overgeslagen)';
-  }
-
-  @override
-  String get diveImport_fit_parsing => 'Verwerken...';
-
-  @override
-  String get diveImport_fit_selectFiles => 'FIT-bestanden selecteren';
-
-  @override
-  String get diveImport_fit_title => 'Importeren vanuit FIT-bestand';
 
   @override
   String get diveImport_healthkit_accessDescription =>
@@ -28570,42 +26054,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveImport_healthkit_accessRequired => 'Apple HealthKit';
 
   @override
-  String get diveImport_healthkit_attribution =>
-      'Mogelijk gemaakt door Apple HealthKit';
-
-  @override
   String get diveImport_healthkit_closeTooltip => 'Apple Watch-import sluiten';
-
-  @override
-  String get diveImport_healthkit_dataUsage =>
-      'Leest onderwaterduikactiviteiten uit Apple Health, inclusief diepte, duur, watertemperatuur en hartslag. Deze gegevens worden lokaal opgeslagen in uw duiklogboek en worden nooit gedeeld met derden.';
 
   @override
   String get diveImport_healthkit_dateFrom => 'Van';
 
   @override
-  String diveImport_healthkit_dateSelectorLabel(Object label) {
-    return '$label datumselectie';
-  }
-
-  @override
   String get diveImport_healthkit_dateTo => 'Tot';
 
   @override
-  String get diveImport_healthkit_fetchDives => 'Duiken ophalen';
-
-  @override
-  String get diveImport_healthkit_fetching => 'Ophalen...';
-
-  @override
   String get diveImport_healthkit_grantAccess => 'Doorgaan';
-
-  @override
-  String get diveImport_healthkit_noDivesFound => 'Geen duiken gevonden';
-
-  @override
-  String get diveImport_healthkit_noDivesFoundDescription =>
-      'Geen onderwaterduikactiviteiten gevonden in het geselecteerde datumbereik.';
 
   @override
   String get diveImport_healthkit_notAvailable => 'Niet beschikbaar';
@@ -28615,20 +26073,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voor importeren vanaf de Apple Watch is een iPhone met de app Gezondheid nodig.';
 
   @override
-  String get diveImport_healthkit_permissionCheckFailed =>
-      'Controle van machtigingen mislukt';
-
-  @override
-  String get diveImport_healthkit_title => 'Importeren vanuit Apple Watch';
-
-  @override
   String get diveImport_healthkit_watchTitle => 'Importeren vanuit Watch';
-
-  @override
-  String get diveImport_import => 'Importeren';
-
-  @override
-  String get diveImport_importComplete => 'Import voltooid';
 
   @override
   String get diveImport_likelyDuplicate => 'Waarschijnlijk duplicaat';
@@ -28640,43 +26085,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveImport_newDive => 'Nieuwe duik';
 
   @override
-  String get diveImport_next => 'Volgende';
-
-  @override
   String get diveImport_possibleDuplicate => 'Mogelijk duplicaat';
-
-  @override
-  String get diveImport_reviewSelectedDives =>
-      'Geselecteerde duiken controleren';
-
-  @override
-  String diveImport_reviewSummary(
-    Object newCount,
-    int possibleCount,
-    int skipCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      possibleCount,
-      locale: localeName,
-      other: ', $possibleCount mogelijke duplicaten',
-      zero: '',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      skipCount,
-      locale: localeName,
-      other: ', $skipCount worden overgeslagen',
-      zero: '',
-    );
-    return '$newCount nieuw$_temp0$_temp1';
-  }
-
-  @override
-  String get diveImport_selectAll => 'Alles selecteren';
-
-  @override
-  String diveImport_selectedCount(Object count) {
-    return '$count geselecteerd';
-  }
 
   @override
   String get diveImport_sourceGarmin => 'Garmin';
@@ -28691,15 +26100,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveImport_sourceWatch => 'Watch';
 
   @override
-  String get diveImport_step_done => 'Klaar';
-
-  @override
-  String get diveImport_step_review => 'Controleren';
-
-  @override
-  String get diveImport_step_select => 'Selecteren';
-
-  @override
   String get diveImport_temp => 'Temp';
 
   @override
@@ -28712,9 +26112,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveImport_uddf_certifications => 'Brevetten';
 
   @override
-  String get diveImport_uddf_closeTooltip => 'UDDF-import sluiten';
-
-  @override
   String get diveImport_uddf_diveCenters => 'Duikcentra';
 
   @override
@@ -28724,89 +26121,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveImport_uddf_dives => 'Duiken';
 
   @override
-  String get diveImport_uddf_duplicate => 'Duplicaat';
-
-  @override
-  String diveImport_uddf_duplicatesFound(Object count) {
-    return '$count duplicaten gevonden en automatisch gedeselecteerd.';
-  }
-
-  @override
   String get diveImport_uddf_equipment => 'Uitrusting';
 
   @override
   String get diveImport_uddf_equipmentSets => 'Uitrustingssets';
 
   @override
-  String diveImport_uddf_importProgress(Object current, Object total) {
-    return '$current van $total';
-  }
-
-  @override
-  String get diveImport_uddf_importing => 'Importeren...';
-
-  @override
-  String get diveImport_uddf_likelyDuplicate => 'Waarschijnlijk duplicaat';
-
-  @override
-  String get diveImport_uddf_noFileDescription =>
-      'Selecteer een .uddf- of .xml-bestand dat is geëxporteerd vanuit een andere duiklogapplicatie.';
-
-  @override
-  String get diveImport_uddf_noFileSelected => 'Geen bestand geselecteerd';
-
-  @override
-  String get diveImport_uddf_parsing => 'Verwerken...';
-
-  @override
-  String get diveImport_uddf_possibleDuplicate => 'Mogelijk duplicaat';
-
-  @override
-  String get diveImport_uddf_selectFile => 'UDDF-bestand selecteren';
-
-  @override
-  String diveImport_uddf_selectedOfTotal(Object selected, Object total) {
-    return '$selected van $total geselecteerd';
-  }
-
-  @override
   String get diveImport_uddf_sites => 'Locaties';
 
   @override
-  String get diveImport_uddf_stepImport => 'Importeren';
-
-  @override
-  String get diveImport_uddf_tabBuddies => 'Buddy\'s';
-
-  @override
-  String get diveImport_uddf_tabCenters => 'Centra';
-
-  @override
-  String get diveImport_uddf_tabCerts => 'Brevetten';
-
-  @override
   String get diveImport_uddf_tabCourses => 'Cursussen';
-
-  @override
-  String get diveImport_uddf_tabDives => 'Duiken';
-
-  @override
-  String get diveImport_uddf_tabEquipment => 'Uitrusting';
-
-  @override
-  String get diveImport_uddf_tabSets => 'Sets';
-
-  @override
-  String get diveImport_uddf_tabSites => 'Locaties';
-
-  @override
-  String get diveImport_uddf_tabTags => 'Tags';
-
-  @override
-  String get diveImport_uddf_tabTrips => 'Reizen';
-
-  @override
-  String get diveImport_uddf_tabTypes => 'Types';
 
   @override
   String get diveImport_uddf_tags => 'Tags';
@@ -28816,17 +26140,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveImport_uddf_fills => 'Vullingen';
-
-  @override
-  String get diveImport_uddf_title => 'Importeren vanuit UDDF';
-
-  @override
-  String get diveImport_uddf_toggleDiveSelection => 'Duikselectie wisselen';
-
-  @override
-  String diveImport_uddf_toggleEntitySelection(Object name) {
-    return 'Selectie wisselen voor $name';
-  }
 
   @override
   String get diveImport_uddf_trips => 'Reizen';
@@ -29712,83 +27025,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tools_gpsLogger_title => 'GPS-logger';
 
   @override
-  String get tools_weight_aluminumImperial =>
-      'Meer drijvend wanneer leeg (+4 lbs)';
-
-  @override
-  String get tools_weight_aluminumMetric =>
-      'Meer drijvend wanneer leeg (+2 kg)';
-
-  @override
   String get tools_weight_bodyWeightOptional => 'Lichaamsgewicht (optioneel)';
-
-  @override
-  String get tools_weight_carbonFiberImperial => 'Zeer drijvend (+7 lbs)';
-
-  @override
-  String get tools_weight_carbonFiberMetric => 'Zeer drijvend (+3 kg)';
 
   @override
   String get tools_weight_disclaimer =>
       'Dit is slechts een schatting. Voer altijd een drijfproef uit aan het begin van je duik en pas aan waar nodig. Factoren zoals trimvest, persoonlijke drijfkracht en adempatronen beïnvloeden je werkelijke gewichtsbehoefte.';
 
   @override
-  String get tools_weight_exposureSuit => 'Duikpak';
-
-  @override
-  String tools_weight_gasCapacity(Object capacity) {
-    return '• Gascapaciteit: $capacity cuft';
-  }
-
-  @override
-  String get tools_weight_helperImperial =>
-      'Voegt ~2 lbs toe per 22 lbs boven 154 lbs';
-
-  @override
-  String get tools_weight_helperMetric =>
-      'Voegt ~1 kg toe per 10 kg boven 70 kg';
-
-  @override
-  String get tools_weight_notSpecified => 'Niet opgegeven';
-
-  @override
-  String get tools_weight_recommendedWeight => 'Aanbevolen gewicht';
-
-  @override
-  String tools_weight_resultAccessibility(Object weight, Object unit) {
-    return 'Aanbevolen gewicht: $weight $unit';
-  }
-
-  @override
-  String get tools_weight_steelImperial => 'Negatief drijvend (-4 lbs)';
-
-  @override
-  String get tools_weight_steelMetric => 'Negatief drijvend (-2 kg)';
-
-  @override
-  String get tools_weight_tankMaterial => 'Flesmateriaal';
-
-  @override
-  String get tools_weight_tankSpecifications => 'Flesspecificaties';
-
-  @override
   String get tools_weight_title => 'Gewichtscalculator';
 
   @override
   String get tools_weight_waterType => 'Watertype';
-
-  @override
-  String tools_weight_waterVolume(Object volume) {
-    return '• Watervolume: $volume L';
-  }
-
-  @override
-  String tools_weight_workingPressure(Object pressure) {
-    return '• Werkdruk: $pressure bar';
-  }
-
-  @override
-  String get tools_weight_yourWeight => 'Jouw gewicht';
 
   @override
   String get settings_section_dataSources_title => 'Apple HealthKit';
@@ -29872,20 +27119,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Mogelijk gemaakt door Apple HealthKit';
 
   @override
-  String get settings_dataSources_noSources =>
-      'Er zijn geen databronintegraties beschikbaar op dit platform.';
-
-  @override
-  String get diveLog_edit_section_environment => 'Omgeving';
-
-  @override
   String get diveLog_edit_subsection_autofill => 'Automatisch invullen';
 
   @override
   String get diveLog_edit_subsection_weather => 'Weer';
-
-  @override
-  String get diveLog_edit_subsection_diveConditions => 'Duikomstandigheden';
 
   @override
   String get diveLog_edit_label_windSpeed => 'Windsnelheid';
@@ -29909,24 +27146,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_button_fetchWeather => 'Fetch Weather';
 
   @override
-  String get diveLog_edit_fetchingWeather => 'Fetching weather...';
-
-  @override
   String get diveLog_edit_weatherFetched => 'Weather data loaded';
-
-  @override
-  String get diveLog_edit_fetchWeatherNoConnection => 'No internet connection';
 
   @override
   String get diveLog_edit_fetchWeatherUnavailable =>
       'Weather data unavailable for this date';
-
-  @override
-  String get diveLog_edit_fetchWeatherNotYetAvailable =>
-      'Weather data not yet available for this date';
-
-  @override
-  String get diveLog_edit_fetchWeatherHint => 'Add a date and dive site first';
 
   @override
   String get diveLog_edit_fetchWeatherConfirm =>
@@ -30079,13 +27303,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get columnConfig_done => 'Gereed';
 
   @override
-  String get settings_appearance_columnConfig => 'Duikdetails lijstvelden';
-
-  @override
-  String get settings_appearance_columnConfig_subtitle =>
-      'Velden in duiklijstweergaven aanpassen';
-
-  @override
   String get diveField_category_core => 'Kern';
 
   @override
@@ -30126,9 +27343,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveField_category_metadata => 'Metadata';
-
-  @override
-  String get listViewMode_table => 'Tabel';
 
   @override
   String get settings_appearance_general => 'Algemeen';
@@ -31244,36 +28458,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_edit_advanced_title => 'Geavanceerd';
 
   @override
-  String get equipment_edit_buoyancyHint_exposure =>
-      'Positief: hoeveel het drijft';
-
-  @override
-  String get equipment_edit_buoyancyHint_generic => 'Negatief als het zinkt';
-
-  @override
-  String get equipment_edit_buoyancyHint_tank =>
-      'Leeg laten - flessen gebruiken hun eigen specificaties';
-
-  @override
-  String equipment_edit_buoyancyLabel(String unit) {
-    return 'Drijfvermogen ($unit)';
-  }
-
-  @override
-  String equipment_edit_dryWeightLabel(String unit) {
-    return 'Drooggewicht ($unit)';
-  }
-
-  @override
-  String equipment_edit_liftCapacityLabel(String unit) {
-    return 'Liftcapaciteit ($unit)';
-  }
-
-  @override
-  String get equipment_edit_liftCapacityHint =>
-      'Nominale liftkracht van wing of trimvest';
-
-  @override
   String get planner_gearWeights_accept => 'Gebruik als gepland lood';
 
   @override
@@ -31380,9 +28564,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dive3d_previewTitle => '3D-weergave';
-
-  @override
-  String get dive3d_previewHint => 'Tik om in 3D te verkennen';
 
   @override
   String get dive3d_resetView => 'Weergave herstellen';
@@ -31671,28 +28852,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dive3d_scene_dive => 'Duik';
 
   @override
-  String get dive3d_scene_tissue => 'Weefsels';
-
-  @override
-  String get dive3d_tissue_gasCombined => 'Gecombineerd';
-
-  @override
-  String get dive3d_tissue_gasN2 => 'N2';
-
-  @override
-  String get dive3d_tissue_gasHe => 'He';
-
-  @override
-  String get dive3d_tissue_colorMValue => '% M-waarde';
-
-  @override
-  String get dive3d_tissue_colorAbsolute => 'Belasting';
-
-  @override
   String get dive3d_tissue_controlling => 'Leidend';
-
-  @override
-  String get dive3d_tissue_surfaceInterval => 'Oppervlakte-interval';
 
   @override
   String get dive3d_career_title => '3D-geschiedenis';
@@ -31739,9 +28899,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Links→rechts: tijd · Voor→achter: snelle→trage weefsels';
 
   @override
-  String get dive3d_tissue_legendDepth => 'Blauwe curve: je diepte';
-
-  @override
   String get dive3d_tissue_onGassing => 'Gasopname';
 
   @override
@@ -31781,9 +28938,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dive3d_tissue_axisCompartment => 'Compartiment';
-
-  @override
-  String get dive3d_compare_computers_title => 'Computers vergelijken';
 
   @override
   String get dive3d_compare_dives_title => 'Duiken vergelijken';
@@ -32736,11 +29890,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String safetyHub_alert_noFly(String remaining) {
-    return 'Vliegverbod: nog $remaining';
-  }
-
-  @override
   String get emergencyCard_title => 'Noodgeval';
 
   @override
@@ -32803,9 +29952,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String emergencyCard_insurancePolicy(String number) {
     return 'Polis $number';
   }
-
-  @override
-  String get emergencyCard_chambersSection => 'Decompressiekamers';
 
   @override
   String get emergencyCard_chambersNote =>
@@ -33941,14 +31087,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ik heb mijn herstelcode opgeslagen';
 
   @override
-  String get settings_security_disableBlockedByEncryption_title =>
-      'Versleuteling is ingeschakeld';
-
-  @override
-  String get settings_security_disableBlockedByEncryption_body =>
-      'Schakel eerst de databaseversleuteling uit voordat je de app-vergrendeling uitschakelt. De versleutelde database heeft een toegangscode nodig.';
-
-  @override
   String get settings_security_enableEncryption_title =>
       'Database versleutelen?';
 
@@ -34070,9 +31208,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dataQuality_action_dismiss => 'Negeren';
-
-  @override
-  String get dataQuality_action_dismissFiltered => 'Alle getoonde negeren';
 
   @override
   String get dataQuality_action_goToDive => 'Naar duik';
@@ -34510,9 +31645,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_summary_review => 'Controleren';
 
   @override
-  String get dataQuality_detail_chip => 'Controleren';
-
-  @override
   String dataQuality_detail_chipCount(int count) {
     return 'Controleren ($count)';
   }
@@ -34734,10 +31866,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_coordinateFormat_title => 'Coördinaatformaat';
-
-  @override
-  String get settings_coordinateFormat_subtitle =>
-      'Hoe GPS-posities worden weergegeven en ingevoerd';
 
   @override
   String get settings_placeNameLanguage_title => 'Taal van plaatsnamen';
@@ -41776,9 +38904,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get explore_kind_site => 'locatie';
 
   @override
-  String get explore_kind_place => 'plaats';
-
-  @override
   String get explore_kind_species => 'soort';
 
   @override
@@ -44464,16 +41589,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_viewMap => 'Kaart';
-
-  @override
-  String get diveLog_detail_view3d => '3D';
-
-  @override
-  String get setup_sync_icloudUnavailable =>
-      'iCloud is niet beschikbaar op dit apparaat';
-
-  @override
   String get media_info_title => 'Media-info';
 
   @override
@@ -44850,10 +41965,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_trend_aggregation_weekly => 'Weekgemiddelde';
 
   @override
-  String get insights_trend_band_semanticLabel =>
-      'De gearceerde band omvat de laagste en hoogste waarde van elke groep';
-
-  @override
   String get insights_trend_legend_rate => 'Algemene trend';
 
   @override
@@ -44872,10 +41983,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get insights_conditions_tempTrend_subtitle =>
       'Elke duik in het bereik';
-
-  @override
-  String get insights_conditions_tempTrend_empty =>
-      'Geen temperatuurgegevens beschikbaar';
 
   @override
   String get insights_conditions_tempTrend_error =>
@@ -45048,18 +42155,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get suuntoCloud_fetch_listing => 'Duiken worden opgehaald…';
 
   @override
-  String suuntoCloud_fetch_listingFound(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Duiken worden opgehaald… (tot nu toe $count gevonden)',
-      one: 'Duiken worden opgehaald… (tot nu toe 1 gevonden)',
-      zero: 'Duiken worden opgehaald…',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String suuntoCloud_fetch_fetchingDiveOf(int current, int total) {
     return 'Duik $current van $total downloaden…';
   }
@@ -45152,18 +42247,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get garminConnect_fetch_listing => 'Duiken worden opgehaald…';
-
-  @override
-  String garminConnect_fetch_listingFound(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Duiken worden opgehaald… (tot nu toe $count gevonden)',
-      one: 'Duiken worden opgehaald… (tot nu toe 1 gevonden)',
-      zero: 'Duiken worden opgehaald…',
-    );
-    return '$_temp0';
-  }
 
   @override
   String garminConnect_fetch_fetchingDiveOf(int current, int total) {
@@ -46058,9 +43141,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get navTrack_common_unlinked => 'niet gekoppeld';
-
-  @override
   String get navTrack_align_title => 'Uitlijnen op kaart';
 
   @override
@@ -46109,11 +43189,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get navTrack_align_rotationLabel => 'Rotatie:';
-
-  @override
-  String navTrack_align_rotationDegrees(String degrees) {
-    return '$degrees°';
-  }
 
   @override
   String navTrack_terrain_summary(
@@ -46489,9 +43564,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String navTrack_list_durationMinutes(int minutes) {
     return '${minutes}min';
   }
-
-  @override
-  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
 
   @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
