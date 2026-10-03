@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_alert_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
@@ -50,9 +50,7 @@ class TripCylinderSlotRow extends StatelessWidget {
       child: Text(
         tripServiceAlertSubtitle(context, units, worst),
         style: TextStyle(
-          color: worst.severity == ServiceClockSeverity.overdue
-              ? status.alert.accent
-              : status.warn.accent,
+          color: serviceSeveritySwatch(status, worst.severity)?.accent,
         ),
       ),
     );

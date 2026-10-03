@@ -18,7 +18,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The assembled trip story, one plain scroll (#2845): hero, stat strip, the
 /// cylinders line while under way, and one chapter per day, each with its
 /// own map.
-class TripStoryView extends ConsumerStatefulWidget {
+class TripStoryView extends ConsumerWidget {
   final TripStory story;
   final TripWithStats stats;
   final VoidCallback? onScanForDives;
@@ -31,13 +31,8 @@ class TripStoryView extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<TripStoryView> createState() => _TripStoryViewState();
-}
-
-class _TripStoryViewState extends ConsumerState<TripStoryView> {
-  @override
-  Widget build(BuildContext context) {
-    final tripId = widget.story.trip.id;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tripId = story.trip.id;
     // One read for the whole story, shared by every chapter heading.
     final storedWeather =
         ref.watch(tripDayWeatherProvider(tripId)).asData?.value ??
@@ -46,13 +41,13 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
     // above via the table tick, so a row landing re-renders its day header.
     ref.watch(tripDayWeatherBackfillProvider(tripId));
 
-    return CustomScrollView(slivers: _contentSlivers(storedWeather));
+    return CustomScrollView(slivers: _contentSlivers(context, storedWeather));
   }
 
   /// Distinct dive sites visited across the whole trip (for the stat strip).
   int get _siteCount {
     final ids = <String>{};
-    for (final day in widget.story.days) {
+    for (final day in story.days) {
       for (final dive in day.dives) {
         final id = dive.site?.id;
         if (id != null) ids.add(id);
@@ -66,7 +61,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
   /// the same header, surface days included; theirs simply has no body
   /// under it.
   Widget _dayChapter(
-    TripStory story,
+    BuildContext context,
     int index,
     int? todayIndex,
     Map<int, TripDayWeather> storedWeather,
@@ -108,22 +103,21 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
     );
   }
 
-  List<Widget> _contentSlivers(Map<int, TripDayWeather> storedWeather) {
-    final story = widget.story;
+  List<Widget> _contentSlivers(
+    BuildContext context,
+    Map<int, TripDayWeather> storedWeather,
+  ) {
     final trip = story.trip;
     final todayIndex = story.todayIndex;
     return [
       SliverPadding(
         padding: const EdgeInsets.all(16),
         sliver: SliverToBoxAdapter(
-          child: TripStoryHero(
-            story: story,
-            onScanForDives: widget.onScanForDives,
-          ),
+          child: TripStoryHero(story: story, onScanForDives: onScanForDives),
         ),
       ),
       SliverToBoxAdapter(
-        child: TripStatStrip(stats: widget.stats, siteCount: _siteCount),
+        child: TripStatStrip(stats: stats, siteCount: _siteCount),
       ),
       SliverToBoxAdapter(child: TripCylindersSummaryCard(trip: trip)),
       // Return-flight dive-window countdown, shown while the trip is
@@ -148,7 +142,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
       SliverList.builder(
         itemCount: story.days.length,
         itemBuilder: (context, index) =>
-            _dayChapter(story, index, todayIndex, storedWeather),
+            _dayChapter(context, index, todayIndex, storedWeather),
         findChildIndexCallback: (key) {
           if (key is! ValueKey<DateTime>) return null;
           final index = story.days.indexWhere((d) => d.date == key.value);

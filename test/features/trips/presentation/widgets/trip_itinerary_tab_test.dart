@@ -425,4 +425,28 @@ void main() {
     expect(find.text('3 dives planned'), findsNothing);
     expect(find.text('2 dives planned'), findsOneWidget);
   });
+
+  testWidgets('on a Rest day the planned dives field reads 0 and is locked', (
+    tester,
+  ) async {
+    await _pumpTab(tester, trip: _resortTrip(), days: staleRows);
+    await tester.tap(find.text('Day 2'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('itinerary-planned-dives')),
+      '2',
+    );
+    await tester.tap(find.byType(DropdownButtonFormField<DayType>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rest').hitTestable());
+    await tester.pumpAndSettle();
+    final field = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(const Key('itinerary-planned-dives')),
+        matching: find.byType(TextField),
+      ),
+    );
+    expect(field.enabled, isFalse);
+    expect(field.controller!.text, '0');
+  });
 }

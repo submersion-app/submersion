@@ -572,4 +572,22 @@ void main() {
     expect(find.text('Could not change the gear. Try again.'), findsOneWidget);
     expect(find.textContaining('database is locked'), findsNothing);
   });
+
+  testWidgets('an ended trip shows no service or scrubber lines (#2485)', (
+    tester,
+  ) async {
+    await _pumpTab(
+      tester,
+      onTrip: trip(past: true),
+      gear: const [reg, ccr],
+      states: [slot('Faber 12', equipmentId: 'tk')],
+      alerts: [dueClock('reg', overdue: true), dueClock('tk')],
+      margins: [margin()],
+    );
+    expect(find.textContaining('overdue'), findsNothing);
+    expect(find.textContaining('scrubber margin'), findsNothing);
+    expect(find.byKey(const Key('trip-gear-alert-reg')), findsNothing);
+    expect(find.byKey(const Key('trip-gear-alert-ccr')), findsNothing);
+    expect(find.byKey(const Key('trip-gear-alert-tk')), findsNothing);
+  });
 }

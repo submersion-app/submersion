@@ -25,12 +25,18 @@ Map<DateTime, ItineraryDay> itineraryByDay(List<ItineraryDay> itinerary) => {
   for (final d in itinerary) tripDay(d.date): d,
 };
 
-/// Pure. Whether a trip day is a dive day: its itinerary row says so, or it
-/// has no row. An itinerary may cover only some days (a single planned day
-/// from the board, decided 2026-09-29), so a day it does not cover is an
-/// ordinary dive day, and a trip with no itinerary at all is all dive days.
-bool isTripDiveDay(ItineraryDay? row) =>
-    row == null || row.dayType == DayType.diveDay;
+/// Pure. Whether a trip day is a dive day: the diver's own plan for it when
+/// they set one (a Travel day planned at 2 is a dive day, a dive day planned
+/// at 0 is not, #2845), else its type, else, with no row, yes. An itinerary
+/// may cover only some days (a single planned day from the board, decided
+/// 2026-09-29), so a day it does not cover is an ordinary dive day, and a
+/// trip with no itinerary at all is all dive days.
+bool isTripDiveDay(ItineraryDay? row) {
+  if (row == null) return true;
+  final planned = row.plannedDives;
+  if (planned != null) return planned > 0;
+  return row.dayType == DayType.diveDay;
+}
 
 /// Pure. Whether an itinerary row carries nothing but a plan: a dive day,
 /// or the rest day the board writes for a plan of 0 (#2658), with no port,

@@ -44,6 +44,28 @@ void main() {
     expect(isTripDiveDay(row(9, DayType.embark)), isFalse);
   });
 
+  test('a day\'s own plan decides it, whatever its type (#2845)', () {
+    // A Travel day the diver plans to dive counts; a dive day planned at
+    // none does not.
+    expect(
+      isTripDiveDay(row(9, DayType.travel).copyWith(plannedDives: 2)),
+      isTrue,
+    );
+    expect(
+      isTripDiveDay(row(9, DayType.diveDay).copyWith(plannedDives: 0)),
+      isFalse,
+    );
+    expect(isTripDiveDay(row(9, DayType.travel)), isFalse);
+    expect(
+      tripDiveDayCount(
+        start: start,
+        end: end,
+        itinerary: [row(9, DayType.travel).copyWith(plannedDives: 2)],
+      ),
+      7,
+    );
+  });
+
   test('rows outside the trip are ignored', () {
     expect(
       tripDiveDayCount(

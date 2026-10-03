@@ -5,10 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_alert_sheet.dart';
@@ -52,9 +52,7 @@ class TripPackedItemRow extends ConsumerWidget {
     final scrubber = margin;
     if (clock != null) {
       subtitle = tripServiceAlertSubtitle(context, units, clock);
-      tint = clock.severity == ServiceClockSeverity.overdue
-          ? status.alert.accent
-          : status.warn.accent;
+      tint = serviceSeveritySwatch(status, clock.severity)?.accent;
     } else if (scrubber != null) {
       // With no rated duration there is no margin to give; the line names
       // the section and the sheet carries the hint.

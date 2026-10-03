@@ -7,6 +7,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
@@ -52,27 +53,34 @@ class TripGearTab extends ConsumerWidget {
       }
       return const Center(child: CircularProgressIndicator.adaptive());
     }
-    final alerts =
-        ref.watch(tripServiceAlertsProvider(trip.id)).value ?? const [];
-    final margins =
-        ref.watch(tripScrubberMarginsProvider(trip.id)).value ?? const [];
-    final forecast = ref.watch(tripFillForecastProvider(trip.id)).value;
-    final started = !trip.startsAfter(clock.now());
+    final now = clock.now();
+    final started = !trip.startsAfter(now);
     final upcoming = trip.isUpcoming;
-    // One line per item: the provider lists a clock per blocking schedule,
-    // and an overdue one outranks one merely coming due.
-    final alertByItem = <String, DueClock>{};
-    for (final a in alerts) {
-      final held = alertByItem[a.item.id];
-      if (held == null ||
-          a.status.severity.index > held.status.severity.index) {
-        alertByItem[a.item.id] = a;
-      }
-    }
-    final alertsByItem = <String, List<DueClock>>{};
-    for (final a in alerts) {
-      (alertsByItem[a.item.id] ??= []).add(a);
-    }
+    // Service and scrubber state plan for a trip still ahead; a trip already
+    // dived has nothing left to plan, and today's state says nothing about it
+    // (#2485). Checked before the providers are watched, so a past trip
+    // computes nothing.
+    final ended = trip.endsBefore(now);
+    final alerts = ended
+        ? const <DueClock>[]
+        : ref.watch(tripServiceAlertsProvider(trip.id)).value ?? const [];
+    final margins = ended
+        ? const <ScrubberMargin>[]
+        : ref.watch(tripScrubberMarginsProvider(trip.id)).value ?? const [];
+    final forecast = ref.watch(tripFillForecastProvider(trip.id)).value;
+    // Each item's blocking clocks, most pressing first: the row shows the
+    // first, the sheet lists them all.
+    final alertsByItem = {
+      for (final id in {for (final a in alerts) a.item.id})
+        id:
+            [
+              for (final a in alerts)
+                if (a.item.id == id) a,
+            ]..sort(
+              (a, b) =>
+                  b.status.severity.index.compareTo(a.status.severity.index),
+            ),
+    };
     final marginByItem = {for (final m in margins) m.item.id: m};
     // An owned cylinder on the board is listed under Cylinders only.
     final slotted = {
@@ -138,7 +146,7 @@ class TripGearTab extends ConsumerWidget {
           for (final item in packed)
             TripPackedItemRow(
               item: item,
-              alert: alertByItem[item.id],
+              alert: alertsByItem[item.id]?.first,
               alerts: alertsByItem[item.id] ?? const [],
               margin: marginByItem[item.id],
               onUnpack: () => _unpack(context, ref, item.id),
@@ -162,9 +170,7 @@ class TripGearTab extends ConsumerWidget {
           for (final s in states)
             TripCylinderSlotRow(
               state: s,
-              alerts: _mostPressingFirst(
-                alertsByItem[s.cylinder.equipmentId] ?? const [],
-              ),
+              alerts: alertsByItem[s.cylinder.equipmentId] ?? const [],
               started: started,
               units: units,
               onTap: openBoard,
@@ -189,10 +195,6 @@ class TripGearTab extends ConsumerWidget {
     }
   }
 }
-
-/// [alerts] with an overdue clock ahead of any merely coming due.
-List<DueClock> _mostPressingFirst(List<DueClock> alerts) => [...alerts]
-  ..sort((a, b) => b.status.severity.index.compareTo(a.status.severity.index));
 
 class _SectionHeader extends StatelessWidget {
   final String title;

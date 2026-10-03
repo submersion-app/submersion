@@ -26,6 +26,9 @@ class TripDetailTabs extends StatelessWidget {
     final l10n = context.l10n;
     final trip = tripWithStats.trip;
     return DefaultTabController(
+      // Keyed by trip: the master-detail pane reuses this widget for the next
+      // trip, which opens on its Overview, not on the tab left open before.
+      key: ValueKey(trip.id),
       length: TripDetailTab.values.length,
       child: Column(
         children: [
