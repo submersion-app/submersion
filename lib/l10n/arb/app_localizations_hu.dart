@@ -1409,6 +1409,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_dayType_disembark => 'Kiszállás';
 
   @override
+  String get trips_dayType_travel => 'Utazás';
+
+  @override
+  String get trips_dayType_rest => 'Pihenőnap';
+
+  @override
   String get trips_story_planned => 'Tervezett';
 
   @override

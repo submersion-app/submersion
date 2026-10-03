@@ -349,6 +349,8 @@
   "trips_dayType_portDay": "Havendag",
   "trips_dayType_embark": "Inschepen",
   "trips_dayType_disembark": "Ontschepen",
+  "trips_dayType_travel": "Reisdag",
+  "trips_dayType_rest": "Rustdag",
   "trips_story_planned": "Gepland",
   "trips_story_empty_title": "Nog geen duiken of reisplan",
   "trips_story_empty_subtitle": "Voeg duiken toe of plan de dagen om het verhaal te zien.",

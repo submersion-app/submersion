@@ -349,6 +349,8 @@
   "trips_dayType_portDay": "יום נמל",
   "trips_dayType_embark": "עלייה לסיפון",
   "trips_dayType_disembark": "ירידה מהסיפון",
+  "trips_dayType_travel": "נסיעה",
+  "trips_dayType_rest": "מנוחה",
   "trips_story_planned": "מתוכנן",
   "trips_story_empty_title": "אין עדיין צלילות או מסלול",
   "trips_story_empty_subtitle": "הוסף צלילות לטיול או תכנן את הימים כדי לראות את הסיפור.",

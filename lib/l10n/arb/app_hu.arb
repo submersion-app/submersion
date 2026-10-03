@@ -349,6 +349,8 @@
   "trips_dayType_portDay": "Kikötői nap",
   "trips_dayType_embark": "Beszállás",
   "trips_dayType_disembark": "Kiszállás",
+  "trips_dayType_travel": "Utazás",
+  "trips_dayType_rest": "Pihenőnap",
   "trips_story_planned": "Tervezett",
   "trips_story_empty_title": "Még nincs merülés vagy útiterv",
   "trips_story_empty_subtitle": "Adj hozzá merüléseket vagy tervezd meg a napokat a történethez.",

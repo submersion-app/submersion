@@ -22,6 +22,10 @@ extension DayTypeL10n on DayType {
         return l10n.trips_dayType_embark;
       case DayType.disembark:
         return l10n.trips_dayType_disembark;
+      case DayType.travel:
+        return l10n.trips_dayType_travel;
+      case DayType.rest:
+        return l10n.trips_dayType_rest;
     }
   }
 }

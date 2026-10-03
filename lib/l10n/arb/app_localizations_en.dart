@@ -1396,6 +1396,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_dayType_disembark => 'Disembark';
 
   @override
+  String get trips_dayType_travel => 'Travel';
+
+  @override
+  String get trips_dayType_rest => 'Rest';
+
+  @override
   String get trips_story_planned => 'Planned';
 
   @override

@@ -281,6 +281,10 @@ class _ItineraryDayCard extends ConsumerWidget {
         return Icons.waves;
       case DayType.portDay:
         return Icons.anchor;
+      case DayType.travel:
+        return Icons.flight_takeoff;
+      case DayType.rest:
+        return Icons.beach_access;
     }
   }
 
@@ -296,6 +300,10 @@ class _ItineraryDayCard extends ConsumerWidget {
         return Colors.blue.shade600;
       case DayType.portDay:
         return Colors.orange.shade700;
+      case DayType.travel:
+        return colorScheme.tertiary;
+      case DayType.rest:
+        return colorScheme.onSurfaceVariant;
     }
   }
 }

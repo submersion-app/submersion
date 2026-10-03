@@ -349,6 +349,8 @@
   "trips_dayType_portDay": "يوم في الميناء",
   "trips_dayType_embark": "الصعود",
   "trips_dayType_disembark": "النزول",
+  "trips_dayType_travel": "سفر",
+  "trips_dayType_rest": "راحة",
   "trips_story_planned": "مخطط",
   "trips_story_empty_title": "لا توجد غطسات أو خط سير بعد",
   "trips_story_empty_subtitle": "أضف غطسات إلى هذه الرحلة أو خطط أيامها لرؤية القصة.",

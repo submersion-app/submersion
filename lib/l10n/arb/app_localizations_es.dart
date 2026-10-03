@@ -1410,6 +1410,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_dayType_disembark => 'Desembarque';
 
   @override
+  String get trips_dayType_travel => 'Viaje';
+
+  @override
+  String get trips_dayType_rest => 'Descanso';
+
+  @override
   String get trips_story_planned => 'Planificado';
 
   @override

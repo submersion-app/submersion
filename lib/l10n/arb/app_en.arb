@@ -901,6 +901,8 @@
   "trips_dayType_portDay": "Port Day",
   "trips_dayType_embark": "Embark",
   "trips_dayType_disembark": "Disembark",
+  "trips_dayType_travel": "Travel",
+  "trips_dayType_rest": "Rest",
   "trips_story_planned": "Planned",
   "trips_story_empty_title": "No dives or itinerary yet",
   "trips_story_empty_subtitle": "Add dives to this trip or plan its days to see the story.",

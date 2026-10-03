@@ -349,6 +349,8 @@
   "trips_dayType_portDay": "港口日",
   "trips_dayType_embark": "登船",
   "trips_dayType_disembark": "离船",
+  "trips_dayType_travel": "旅行",
+  "trips_dayType_rest": "休息",
   "trips_story_planned": "已计划",
   "trips_story_empty_title": "还没有潜水或行程",
   "trips_story_empty_subtitle": "为此旅行添加潜水或规划行程以查看故事。",

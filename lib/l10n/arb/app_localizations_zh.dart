@@ -1358,6 +1358,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_dayType_disembark => '离船';
 
   @override
+  String get trips_dayType_travel => '旅行';
+
+  @override
+  String get trips_dayType_rest => '休息';
+
+  @override
   String get trips_story_planned => '已计划';
 
   @override

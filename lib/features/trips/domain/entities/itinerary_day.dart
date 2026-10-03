@@ -42,12 +42,15 @@ class ItineraryDay extends Equatable {
 
   bool get hasCoordinates => latitude != null && longitude != null;
 
-  /// Generate itinerary days for a trip date range.
-  /// Day 1 = embark, last day = disembark, middle days = diveDay.
+  /// Generate itinerary days for a trip date range. A liveaboard opens with
+  /// Embark and closes with Disembark; every other type travels on its first
+  /// and last day, with Dive days between. A land trip of one or two days has
+  /// no middle to travel around, so it gets Dive days only.
   static List<ItineraryDay> generateForTrip({
     required String tripId,
     required DateTime startDate,
     required DateTime endDate,
+    TripType tripType = TripType.liveaboard,
   }) {
     const uuid = Uuid();
     final now = DateTime.now();
@@ -55,16 +58,23 @@ class ItineraryDay extends Equatable {
     final start = DateTime(startDate.year, startDate.month, startDate.day);
     final end = DateTime(endDate.year, endDate.month, endDate.day);
     final totalDays = (end.difference(start).inHours / 24).round() + 1;
+    final liveaboard = tripType == TripType.liveaboard;
     final days = <ItineraryDay>[];
 
     for (int i = 0; i < totalDays; i++) {
+      final first = i == 0;
+      final last = i == totalDays - 1;
       final DayType type;
-      if (i == 0) {
-        type = DayType.embark;
-      } else if (i == totalDays - 1) {
-        type = DayType.disembark;
-      } else {
+      if (liveaboard) {
+        type = first
+            ? DayType.embark
+            : last
+            ? DayType.disembark
+            : DayType.diveDay;
+      } else if (totalDays <= 2) {
         type = DayType.diveDay;
+      } else {
+        type = first || last ? DayType.travel : DayType.diveDay;
       }
 
       days.add(

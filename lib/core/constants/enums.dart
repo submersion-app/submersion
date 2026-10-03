@@ -678,7 +678,13 @@ enum DayType {
   seaDay('Sea Day'),
   portDay('Port Day'),
   embark('Embark'),
-  disembark('Disembark');
+  disembark('Disembark'),
+
+  /// A land trip's first and last day: getting there and back (#2845).
+  travel('Travel'),
+
+  /// A day planned at no dives (#2658).
+  rest('Rest');
 
   final String displayName;
   const DayType(this.displayName);

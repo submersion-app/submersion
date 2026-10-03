@@ -349,6 +349,8 @@
   "trips_dayType_portDay": "Giorno in porto",
   "trips_dayType_embark": "Imbarco",
   "trips_dayType_disembark": "Sbarco",
+  "trips_dayType_travel": "Viaggio",
+  "trips_dayType_rest": "Riposo",
   "trips_story_planned": "Pianificato",
   "trips_story_empty_title": "Nessuna immersione o itinerario",
   "trips_story_empty_subtitle": "Aggiungi immersioni o pianifica i giorni per vedere la storia.",

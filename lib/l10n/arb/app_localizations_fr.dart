@@ -1413,6 +1413,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_dayType_disembark => 'Débarquement';
 
   @override
+  String get trips_dayType_travel => 'Voyage';
+
+  @override
+  String get trips_dayType_rest => 'Repos';
+
+  @override
   String get trips_story_planned => 'Prévu';
 
   @override

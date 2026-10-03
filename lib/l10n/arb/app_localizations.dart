@@ -2185,6 +2185,18 @@ abstract class AppLocalizations {
   /// **'Disembark'**
   String get trips_dayType_disembark;
 
+  /// No description provided for @trips_dayType_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get trips_dayType_travel;
+
+  /// No description provided for @trips_dayType_rest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest'**
+  String get trips_dayType_rest;
+
   /// No description provided for @trips_story_planned.
   ///
   /// In en, this message translates to:

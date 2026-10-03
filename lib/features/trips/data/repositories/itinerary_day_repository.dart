@@ -151,8 +151,10 @@ class ItineraryDayRepository {
 
   /// Sets one day's planned dives for the fill forecast; null returns the
   /// day to the estimate. A day with no itinerary row gets one, typed dive
-  /// day (decided 2026-09-29: a trip may plan single days without an
-  /// itinerary); null on such a day writes nothing. The find and the insert
+  /// day, or rest day when the plan is 0 (decided 2026-09-29: a trip may plan
+  /// single days without an itinerary); null on such a day writes nothing.
+  /// On an existing row, 0 turns a dive day into a rest day and a positive
+  /// count turns a rest day back (#2658); other types keep. The find and the insert
   /// share one transaction, and the table has no (trip, date) uniqueness,
   /// so two quick saves cannot insert the day twice.
   Future<void> setPlannedDives({
@@ -194,6 +196,23 @@ class ItineraryDayRepository {
               updatedAt: Value(now),
             ),
           );
+          // A plan of none is a rest day, and a rest day planned again is a
+          // dive day (#2658). Any other type says what the day is for and
+          // keeps it.
+          final retype = switch (plannedDives) {
+            0 => (from: DayType.diveDay, to: DayType.rest),
+            final n? when n > 0 => (from: DayType.rest, to: DayType.diveDay),
+            _ => null,
+          };
+          if (retype != null) {
+            await (_db.update(_db.tripItineraryDays)..where(
+                  (t) =>
+                      t.id.isIn(existing) & t.dayType.equals(retype.from.name),
+                ))
+                .write(
+                  TripItineraryDaysCompanion(dayType: Value(retype.to.name)),
+                );
+          }
           written = existing;
         } else if (plannedDives != null) {
           final trip = await (_db.select(
@@ -209,6 +228,11 @@ class ItineraryDayRepository {
                   tripId: tripId,
                   dayNumber: calendarDaysBetween(start, day) + 1,
                   date: day.millisecondsSinceEpoch,
+                  dayType: Value(
+                    plannedDives == 0
+                        ? DayType.rest.name
+                        : DayType.diveDay.name,
+                  ),
                   plannedDives: Value(plannedDives),
                   createdAt: now,
                   updatedAt: now,

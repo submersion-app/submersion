@@ -360,6 +360,8 @@
   "trips_dayType_portDay": "Hafentag",
   "trips_dayType_embark": "Einschiffung",
   "trips_dayType_disembark": "Ausschiffung",
+  "trips_dayType_travel": "Anreise",
+  "trips_dayType_rest": "Ruhetag",
   "trips_story_planned": "Geplant",
   "trips_story_empty_title": "Noch keine Tauchgänge oder Reiseplan",
   "trips_story_empty_subtitle": "Füge Tauchgänge hinzu oder plane die Tage, um die Story zu sehen.",

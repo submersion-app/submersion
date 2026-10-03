@@ -349,6 +349,8 @@
   "trips_dayType_portDay": "Jour au port",
   "trips_dayType_embark": "Embarquement",
   "trips_dayType_disembark": "Débarquement",
+  "trips_dayType_travel": "Voyage",
+  "trips_dayType_rest": "Repos",
   "trips_story_planned": "Prévu",
   "trips_story_empty_title": "Pas encore de plongées ni d'itinéraire",
   "trips_story_empty_subtitle": "Ajoutez des plongées ou planifiez les jours pour voir le récit.",

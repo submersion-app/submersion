@@ -1401,6 +1401,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_dayType_disembark => 'Ontschepen';
 
   @override
+  String get trips_dayType_travel => 'Reisdag';
+
+  @override
+  String get trips_dayType_rest => 'Rustdag';
+
+  @override
   String get trips_story_planned => 'Gepland';
 
   @override

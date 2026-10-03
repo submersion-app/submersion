@@ -349,6 +349,8 @@
   "trips_dayType_portDay": "Dia no porto",
   "trips_dayType_embark": "Embarque",
   "trips_dayType_disembark": "Desembarque",
+  "trips_dayType_travel": "Viagem",
+  "trips_dayType_rest": "Descanso",
   "trips_story_planned": "Planejado",
   "trips_story_empty_title": "Ainda sem mergulhos ou itinerário",
   "trips_story_empty_subtitle": "Adicione mergulhos ou planeje os dias para ver a história.",

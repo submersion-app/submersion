@@ -1391,6 +1391,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_dayType_disembark => 'ירידה מהסיפון';
 
   @override
+  String get trips_dayType_travel => 'נסיעה';
+
+  @override
+  String get trips_dayType_rest => 'מנוחה';
+
+  @override
   String get trips_story_planned => 'מתוכנן';
 
   @override

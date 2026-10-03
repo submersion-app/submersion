@@ -479,6 +479,65 @@ void main() {
         expect(days.single.plannedDives, 4);
       });
 
+      test('a day with no row planned at 0 is typed Rest (#2658)', () async {
+        await repository.setPlannedDives(
+          tripId: testTripId,
+          date: DateTime(2025, 3, 3),
+          plannedDives: 0,
+        );
+        final day = (await repository.getByTripId(testTripId)).single;
+        expect(day.dayType, DayType.rest);
+        expect(day.plannedDives, 0);
+      });
+
+      test('a dive day planned at 0 becomes a Rest day', () async {
+        await repository.saveAll([
+          createTestDay(dayNumber: 3, date: DateTime(2025, 3, 3)),
+        ]);
+        await repository.setPlannedDives(
+          tripId: testTripId,
+          date: DateTime(2025, 3, 3),
+          plannedDives: 0,
+        );
+        final day = (await repository.getByTripId(testTripId)).single;
+        expect(day.dayType, DayType.rest);
+      });
+
+      test('a Rest day planned at 2 becomes a dive day again (R1)', () async {
+        await repository.saveAll([
+          createTestDay(
+            dayNumber: 3,
+            date: DateTime(2025, 3, 3),
+            dayType: DayType.rest,
+          ),
+        ]);
+        await repository.setPlannedDives(
+          tripId: testTripId,
+          date: DateTime(2025, 3, 3),
+          plannedDives: 2,
+        );
+        final day = (await repository.getByTripId(testTripId)).single;
+        expect(day.dayType, DayType.diveDay);
+        expect(day.plannedDives, 2);
+      });
+
+      test('a port day planned at 0 keeps its type', () async {
+        await repository.saveAll([
+          createTestDay(
+            dayNumber: 4,
+            date: DateTime(2025, 3, 4),
+            dayType: DayType.portDay,
+          ),
+        ]);
+        await repository.setPlannedDives(
+          tripId: testTripId,
+          date: DateTime(2025, 3, 4),
+          plannedDives: 0,
+        );
+        final day = (await repository.getByTripId(testTripId)).single;
+        expect(day.dayType, DayType.portDay);
+      });
+
       test('saveAll, updateDay and regenerateForTrip keep the plan', () async {
         await repository.saveAll([
           createTestDay(

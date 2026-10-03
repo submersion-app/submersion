@@ -1387,6 +1387,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_dayType_disembark => 'النزول';
 
   @override
+  String get trips_dayType_travel => 'سفر';
+
+  @override
+  String get trips_dayType_rest => 'راحة';
+
+  @override
   String get trips_story_planned => 'مخطط';
 
   @override
