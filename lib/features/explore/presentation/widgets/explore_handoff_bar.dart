@@ -9,8 +9,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
+import 'package:submersion/features/explore/presentation/explore_handoff.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
-import 'package:submersion/features/explore/presentation/providers/explore_subject_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';

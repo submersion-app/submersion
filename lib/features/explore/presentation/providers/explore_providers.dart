@@ -9,7 +9,6 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/explore/data/recent_query_repository.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/core/query/names/name_index.dart';
@@ -20,10 +19,14 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_repository_provider.dart';
+import 'package:submersion/features/explore/presentation/providers/recent_query_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
+
+// Moved to their own file; re-exported until Explore's page goes (#2773).
+export 'package:submersion/features/explore/presentation/providers/recent_query_providers.dart';
 
 /// Explore's own scope, so editing chips never rescopes the dive list or
 /// Statistics until the diver asks for a handoff (#2365 PR 5).
@@ -48,34 +51,6 @@ final exploreFilterProvider = Provider<DiveFilterState>(
         : null,
   ),
 );
-
-final recentQueryRepositoryProvider = Provider<RecentQueryRepository>(
-  (ref) => RecentQueryRepository(),
-);
-
-/// Recorded after a successful compile; overridable so provider tests need
-/// no local cache database.
-typedef RecentQueryRecorder =
-    Future<void> Function(String sentence, String locale, ParsedQuery parsed);
-
-// no-tick: the value is a write function, not data; nothing here is cached
-// and the list provider follows the table's own tick.
-final recentQueryRecorderProvider = Provider<RecentQueryRecorder>((ref) {
-  final repo = ref.watch(recentQueryRepositoryProvider);
-  return (sentence, locale, parsed) async {
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    await repo.record(sentence, locale, parsed, diverId: diverId ?? '');
-  };
-});
-
-/// The active diver's recent sentences for the active locale, newest first.
-final recentQueriesProvider = FutureProvider<List<RecentQuery>>((ref) async {
-  final repo = ref.watch(recentQueryRepositoryProvider);
-  ref.invalidateSelfWhen(repo.watchChanges());
-  final locale = ref.watch(localeProvider);
-  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-  return repo.list(diverId: diverId ?? '', locale: locale);
-});
 
 class ExploreState {
   final String sentence;

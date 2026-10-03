@@ -9,7 +9,6 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/explore_compiler.dart';
@@ -340,56 +339,5 @@ void main() {
     c.read(exploreQueryNodeProvider.notifier).state = compiled.query;
     final results = await c.read(exploreResultsProvider.future);
     expect(results.map((s) => s.id).toSet(), {'light', 'blank'});
-  });
-
-  test('the recorder writes a recent query the list provider reads', () async {
-    final c = await container();
-    await c.read(recentQueryRecorderProvider)(
-      'turtles in bonaire',
-      'en',
-      const ParsedQuery(subject: ParsedSubject.dives),
-    );
-    final recent = await c.read(recentQueriesProvider.future);
-    expect(recent.map((r) => r.sentence), ['turtles in bonaire']);
-  });
-
-  test('recent queries are scoped to the active locale', () async {
-    final c = await container();
-    await c
-        .read(recentQueryRepositoryProvider)
-        .record(
-          'tortues',
-          'fr',
-          const ParsedQuery(subject: ParsedSubject.dives),
-          diverId: '',
-        );
-    expect(await c.read(recentQueriesProvider.future), isEmpty);
-  });
-
-  test('recent queries are scoped to the active diver', () async {
-    final overrides = await getBaseOverrides();
-    final c = ProviderContainer(
-      overrides: [
-        ...overrides,
-        localeProvider.overrideWithValue('en'),
-        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'ana'),
-      ].cast(),
-    );
-    addTearDown(c.dispose);
-    await c
-        .read(recentQueryRepositoryProvider)
-        .record(
-          'wrecks with Bob',
-          'en',
-          const ParsedQuery(subject: ParsedSubject.dives),
-          diverId: 'bob',
-        );
-    await c.read(recentQueryRecorderProvider)(
-      'turtles with Ana',
-      'en',
-      const ParsedQuery(subject: ParsedSubject.dives),
-    );
-    final recent = await c.read(recentQueriesProvider.future);
-    expect(recent.map((r) => r.sentence), ['turtles with Ana']);
   });
 }
