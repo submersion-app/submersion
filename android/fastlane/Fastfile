@@ -30,13 +30,47 @@ PLAY_CHANGELOG_LIMIT = 500
 # in effect.
 PLAY_METADATA_ROOT = File.expand_path(File.join(__dir__, "metadata", "android"))
 
+# Play rejections that no retry or rebuild can clear, each paired with what to
+# do about it. The API messages name the symptom only: five beta runs in a row
+# failed on the unregistered-package one (#2597) while the Console listed the
+# package as Registered, because the missing key was one Google holds and the
+# error never says which key it checked. Keep each hint on one line, so it
+# survives as a single GitHub annotation.
+PLAY_ERROR_HINTS = [
+  [
+    /registered to your verified developer identity/i,
+    "Play checks three signing keys against Android developer verification, and " \
+    "the error never says which one is unregistered: the app signing key (App " \
+    "integrity), the upload key (android/upload-keystore.jks), and the internal " \
+    "app sharing key (Test and release > Internal app sharing). Start a manual " \
+    "release on Open testing in the Play Console; its dialog prints the missing " \
+    "fingerprint. Register that key under Package names (Google-held keys verify " \
+    "without an APK), then discard the draft release. Retrying or rebuilding " \
+    "cannot clear this.",
+  ],
+  [
+    /Version code \d+ has already been used/i,
+    "Play already holds a bundle with this version code, from an earlier upload " \
+    "that went through or one added by hand in the Play Console (for example " \
+    "while diagnosing a rejection), and never takes a version code twice, so a " \
+    "re-run of this build can never succeed. Let the next merge to main ship a " \
+    "new build number.",
+  ],
+  [
+    /Foreground Service permissions/i,
+    "The Play Console's Foreground Service declaration needs answering. It is " \
+    "reachable only from a release: attach a bundle to a track release, choose " \
+    "Preview and confirm, then follow Go to declaration.",
+  ],
+].freeze
+
 platform :android do
   desc "Upload AAB to internal testing track"
   lane :upload do
     aab_path = find_aab
 
     UI.message("Uploading to internal testing track...")
-    upload_to_play_store(
+    upload_to_play_with_hint(
       aab: aab_path,
       track: "internal",
       release_status: "draft",
@@ -54,7 +88,7 @@ platform :android do
     aab_path = find_aab
 
     UI.message("Validating AAB...")
-    upload_to_play_store(
+    upload_to_play_with_hint(
       aab: aab_path,
       track: "internal",
       release_status: "draft",
@@ -75,7 +109,7 @@ platform :android do
     changelog_root = write_beta_changelog
 
     UI.message("Uploading to the '#{track}' testing track...")
-    upload_to_play_store(
+    upload_to_play_with_hint(
       aab: aab_path,
       track: track,
       release_status: "completed",
@@ -118,7 +152,7 @@ platform :android do
     UI.message("Copying build #{version_code} from '#{source}' to '#{target}'...")
     # track_promote_to copies the release, notes included, without taking it off
     # the source track. No rollout: a fraction would stage the closed release.
-    upload_to_play_store(
+    upload_to_play_with_hint(
       track: source,
       track_promote_to: target,
       track_promote_release_status: "completed",
@@ -141,7 +175,7 @@ platform :android do
     track = beta_track
 
     UI.message("Promoting build #{version_code} from '#{track}' to production (rollout #{rollout})...")
-    upload_to_play_store(
+    upload_to_play_with_hint(
       track: track,
       track_promote_to: "production",
       version_code: version_code,
@@ -263,6 +297,32 @@ platform :android do
     File.write(File.join(dir, "#{version_code}.txt"), notes[0, PLAY_CHANGELOG_LIMIT])
     UI.message("Wrote Play release notes for version code #{version_code} to #{dir}.")
     metadata_root
+  end
+
+  # The hint for a Play rejection message, or nil when it is not one we know.
+  def play_error_hint(message)
+    text = message.to_s
+    PLAY_ERROR_HINTS.each { |pattern, hint| return hint if text.match?(pattern) }
+    nil
+  end
+
+  # Every Play call goes through here. A known rejection adds its hint to the
+  # log, and on GitHub Actions to the run summary as an error annotation, then
+  # the original error is re-raised unchanged so beta.yml's retry loop and the
+  # job's status behave exactly as before.
+  #
+  # The annotation goes to $stdout directly: a bare `puts` in a Fastfile is
+  # fastlane's puts action, which prefixes a timestamp, and GitHub only reads a
+  # workflow command at the very start of a line.
+  def upload_to_play_with_hint(params)
+    upload_to_play_store(params)
+  rescue StandardError => e
+    hint = play_error_hint(e.message)
+    if hint
+      UI.error(hint)
+      $stdout.puts("::error title=Google Play rejected the upload::#{hint}") if ENV["GITHUB_ACTIONS"] == "true"
+    end
+    raise
   end
 
   # Finds the AAB file. Checks for the renamed artifact first (CI),

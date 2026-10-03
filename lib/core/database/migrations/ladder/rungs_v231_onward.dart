@@ -167,5 +167,13 @@ extension RungsFromV231 on AppDatabase {
       await _assertComputerTissueColumn();
     }
     if (from < 256) await reportProgress();
+    // v257: metadata-only profile revision history over existing
+    // dive_profile_series rows (#1197). One history row per series id,
+    // no sample/blob duplication. Re-asserted in beforeOpen.
+    if (from < 257) {
+      await _assertProfileSeriesHistorySchema();
+      await _backfillProfileSeriesHistoryRows();
+    }
+    if (from < 257) await reportProgress();
   }
 }

@@ -21,6 +21,7 @@ import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/matching/match_scorer.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
@@ -1603,7 +1604,7 @@ class DiveComputerRepository {
         await ChecklistDiveLinker().autoLinkForDive(
           diveId: diveId,
           diverId: diverId,
-          diveStart: DateTime.fromMillisecondsSinceEpoch(entryTimeMs),
+          diveStart: wallClockUtcFromMillis(entryTimeMs),
         );
 
         // Fill altitude from the entry/exit GPS fixes (best-effort). Awaited
@@ -1769,6 +1770,9 @@ class DiveComputerRepository {
           computerId: computerId,
           sourceId: ownerSourceId,
           isPrimary: isPrimary,
+          // A download is a computer import whether or not the dive already
+          // had a series, matching how the v257 backfill classifies it.
+          revisionKind: 'computer_import',
           samples: [for (final point in points) _sampleFromPointData(point)],
         );
       }

@@ -23,7 +23,14 @@ import 'package:submersion/features/media/data/services/quicktime_metadata.dart'
 ///
 /// A creationdate or `©day` value in UTC (`Z`) says nothing about the local
 /// clock, so it is skipped in favour of the next field.
-DateTime? readVideoCaptureTime(File file) {
+///
+/// [toLocal] converts a UTC `mvhd` value to local time; it defaults to this
+/// computer's timezone. Tests pass a fixed zone so the conversion shows even
+/// on a UTC host.
+DateTime? readVideoCaptureTime(
+  File file, {
+  DateTime Function(DateTime utc) toLocal = _systemLocal,
+}) {
   RandomAccessFile? raf;
   try {
     raf = file.openSync();
@@ -43,6 +50,7 @@ DateTime? readVideoCaptureTime(File file) {
       raw: header.creation,
       duration: header.duration,
       modified: file.lastModifiedSync(),
+      toLocal: toLocal,
     );
   } on Object {
     return null;

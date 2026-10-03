@@ -6749,6 +6749,68 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => 'Merülési profil';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => 'Szerkesztés';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'Létrehozva';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'Merülőkomputer import';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'Örökölt';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'Profilszerkesztő';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'Adatminőség-javítás';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'Teljes profil simítása';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'Kijelölés simítása';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'Összes kiugró érték eltávolítása';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'Kijelölt kiugró értékek eltávolítása';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth =>
+      'Mélység eltolása';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime =>
+      'Idő eltolása';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'Szegmens törlése';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'Szegmens törlése (interpolálva)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'Generálás útvonalpontokból';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'Végső nullák levágása';
+
+  @override
   String get diveLog_detail_section_equipment => 'Felszerelés';
 
   @override
@@ -26207,6 +26269,21 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült módosítani a felszerelést. Próbáld újra.';
 
   @override
+  String get trips_gear_useSet => 'Készlet használata';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem bepakolva innen: $name',
+      one: '$count elem bepakolva innen: $name',
+      zero: 'A(z) $name minden eleme már be van pakolva',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Ma $needed kell, $full teli van.';
   }
@@ -43726,6 +43803,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_profileEditor_mode_trim => 'Vágás';
 
   @override
+  String get diveLog_profileEditor_revisionSelectorTooltip =>
+      'Aktív verzió cseréje. Ez a módosítás azonnal érvénybe lép, és az összes jövőbeli szerkesztés ezen a verziót fogja alapul venni.';
+
+  @override
+  String get diveLog_profileEditor_revisionSwitchFailed =>
+      'Nem sikerült a profilverzió váltása.';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -46289,6 +46374,26 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => 'Beállítás elsődlegesként';
 
   @override
+  String get navTrack_editRow_none => 'Nincs';
+
+  @override
+  String get navTrack_editRow_loadFailed =>
+      'Nem sikerült betölteni az útvonalakat';
+
+  @override
+  String navTrack_editRow_more(int count, String name) {
+    return '$name +$count';
+  }
+
+  @override
+  String get navTrack_editSheet_removeTooltip => 'Útvonal eltávolítása';
+
+  @override
+  String navTrack_editRow_saveFailed(String error) {
+    return 'Nem sikerült frissíteni a merülés vízalatti útvonalait: $error';
+  }
+
+  @override
   String get navTrack_importError_unsupportedFormat =>
       'Ez a fájl nem Seacraft ENC navigációs napló.';
 
@@ -46314,9 +46419,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'Navigációs konzolról mért vízalatti útvonal';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'Vízalatti útvonalak';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {
@@ -47372,6 +47474,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_manage_savedQueries_subtitle =>
       'Mentett lekérdezések átnevezése, átrendezése és törlése';
+
+  @override
+  String get settings_manage_navRoutes_subtitle =>
+      'Rögzített útvonalak importálása, igazítása és összekapcsolása';
 
   @override
   String get query_error_unterminatedQuote => 'lezáratlan idézőjel';

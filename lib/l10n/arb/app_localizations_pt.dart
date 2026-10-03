@@ -6762,6 +6762,68 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => 'Perfil do Mergulho';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => 'Edição';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'Criado';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'Importação de computador de mergulho';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'Legado';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'Editor de perfil';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'Reparo de qualidade de dados';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'Suavizar todo o perfil';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'Suavizar seleção';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'Remover todos os outliers';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'Remover outliers selecionados';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth =>
+      'Deslocar profundidade';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime =>
+      'Deslocar tempo';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'Excluir segmento';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'Excluir segmento (interpolado)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'Gerar a partir de waypoints';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'Aparar zeros finais';
+
+  @override
   String get diveLog_detail_section_equipment => 'Equipamentos';
 
   @override
@@ -26293,6 +26355,21 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível alterar o equipamento. Tente novamente.';
 
   @override
+  String get trips_gear_useSet => 'Usar conjunto';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens de $name preparados',
+      one: '$count item de $name preparado',
+      zero: 'Tudo de $name já está preparado',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Hoje são precisos $needed, tem $full cheios.';
   }
@@ -43921,6 +43998,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_profileEditor_mode_trim => 'Cortar';
 
   @override
+  String get diveLog_profileEditor_revisionSelectorTooltip =>
+      'Alternar revisão ativa. Esta mudança entra em vigor imediatamente e todas as futuras edições serão baseadas nesta revisão.';
+
+  @override
+  String get diveLog_profileEditor_revisionSwitchFailed =>
+      'Não foi possível alternar a revisão do perfil.';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -46491,6 +46576,26 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => 'Definir como principal';
 
   @override
+  String get navTrack_editRow_none => 'Nenhuma';
+
+  @override
+  String get navTrack_editRow_loadFailed =>
+      'Não foi possível carregar as rotas';
+
+  @override
+  String navTrack_editRow_more(int count, String name) {
+    return '$name +$count';
+  }
+
+  @override
+  String get navTrack_editSheet_removeTooltip => 'Remover rota';
+
+  @override
+  String navTrack_editRow_saveFailed(String error) {
+    return 'Não foi possível atualizar as rotas subaquáticas deste mergulho: $error';
+  }
+
+  @override
   String get navTrack_importError_unsupportedFormat =>
       'Este arquivo não é um registro de navegação Seacraft ENC.';
 
@@ -46516,9 +46621,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'Rota subaquática medida a partir de um console de navegação';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'Rotas subaquáticas';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {
@@ -47572,6 +47674,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_manage_savedQueries_subtitle =>
       'Renomear, reordenar e excluir consultas salvas';
+
+  @override
+  String get settings_manage_navRoutes_subtitle =>
+      'Importar, alinhar e associar rotas gravadas';
 
   @override
   String get query_error_unterminatedQuote => 'aspas não fechadas';

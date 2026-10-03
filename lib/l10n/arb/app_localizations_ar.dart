@@ -6640,6 +6640,67 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => 'ملف الغوصة';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => 'تعديل';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'إنشاء';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'استيراد من كمبيوتر الغوص';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'سابق';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'محرر الملف';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'إصلاح جودة البيانات';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'تنعيم الملف بالكامل';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'تنعيم التحديد';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'إزالة كل القيم الشاذة';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'إزالة القيم الشاذة المحددة';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth =>
+      'إزاحة العمق';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime => 'إزاحة الوقت';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'حذف المقطع';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'حذف المقطع (مع استيفاء)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'إنشاء من نقاط المسار';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'قص الأصفار النهائية';
+
+  @override
   String get diveLog_detail_section_equipment => 'المعدات';
 
   @override
@@ -25959,6 +26020,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_gear_failed => 'تعذر تغيير المعدات. حاول مرة أخرى.';
 
   @override
+  String get trips_gear_useSet => 'استخدام مجموعة';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تجهيز $count عنصر من $name',
+      many: 'تم تجهيز $count عنصرًا من $name',
+      few: 'تم تجهيز $count عناصر من $name',
+      two: 'تم تجهيز عنصرين من $name',
+      one: 'تم تجهيز عنصر واحد من $name',
+      zero: 'كل ما في $name مُجهز بالفعل',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'اليوم يحتاج إلى $needed، ولديك $full ممتلئة.';
   }
@@ -43565,6 +43644,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_mode_trim => 'قص';
 
   @override
+  String get diveLog_profileEditor_revisionSelectorTooltip =>
+      'تبديل المراجعة النشطة. هذا التغيير يسري مفعوله فوراً وسيتم أساس جميع التعديلات المستقبلية على هذه المراجعة.';
+
+  @override
+  String get diveLog_profileEditor_revisionSwitchFailed =>
+      'تعذر تبديل مراجعة الملف الشخصي.';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -46098,6 +46185,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => 'تعيين كأساسي';
 
   @override
+  String get navTrack_editRow_none => 'لا يوجد';
+
+  @override
+  String get navTrack_editRow_loadFailed => 'تعذر تحميل المسارات';
+
+  @override
+  String navTrack_editRow_more(int count, String name) {
+    return '$name +$count';
+  }
+
+  @override
+  String get navTrack_editSheet_removeTooltip => 'إزالة المسار';
+
+  @override
+  String navTrack_editRow_saveFailed(String error) {
+    return 'تعذر تحديث مسارات هذه الغوصة تحت الماء: $error';
+  }
+
+  @override
   String get navTrack_importError_unsupportedFormat =>
       'هذا الملف ليس سجل ملاحة Seacraft ENC.';
 
@@ -46123,9 +46229,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'مسار تحت الماء تم قياسه من وحدة تحكم ملاحية';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'المسارات تحت الماء';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {
@@ -47178,6 +47281,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_manage_savedQueries_subtitle =>
       'إعادة تسمية الاستعلامات المحفوظة وإعادة ترتيبها وحذفها';
+
+  @override
+  String get settings_manage_navRoutes_subtitle =>
+      'استيراد المسارات المسجلة ومحاذاتها وربطها';
 
   @override
   String get query_error_unterminatedQuote => 'علامة اقتباس غير مغلقة';

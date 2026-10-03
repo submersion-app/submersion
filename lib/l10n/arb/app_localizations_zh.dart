@@ -6446,6 +6446,61 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => '潜水轮廓';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => '编辑';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => '创建';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport => '电脑导入';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => '旧版';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor => '轮廓编辑器';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      '数据质量修复';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll => '平滑整个轮廓';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      '平滑所选区域';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      '移除所有异常值';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      '移除所选异常值';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth => '调整深度';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime => '调整时间';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment => '删除区段';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      '删除区段（插值）';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      '根据路径点生成';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros => '裁剪末尾零值';
+
+  @override
   String get diveLog_detail_section_equipment => '装备';
 
   @override
@@ -24954,6 +25009,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_gear_failed => '无法更改装备，请重试。';
 
   @override
+  String get trips_gear_useSet => '使用套装';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已从 $name 打包 $count 件装备',
+      zero: '$name 中的装备已全部打包',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return '今天需要 $needed 个，你有 $full 个满瓶。';
   }
@@ -41401,6 +41470,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_mode_trim => '修剪';
 
   @override
+  String get diveLog_profileEditor_revisionSelectorTooltip =>
+      '切换活跃版本。此更改立即生效，所有未来编辑都将基于此版本。';
+
+  @override
+  String get diveLog_profileEditor_revisionSwitchFailed => '无法切换剖面版本。';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -43784,6 +43860,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => '设为主要';
 
   @override
+  String get navTrack_editRow_none => '无';
+
+  @override
+  String get navTrack_editRow_loadFailed => '无法加载路线';
+
+  @override
+  String navTrack_editRow_more(int count, String name) {
+    return '$name +$count';
+  }
+
+  @override
+  String get navTrack_editSheet_removeTooltip => '移除路线';
+
+  @override
+  String navTrack_editRow_saveFailed(String error) {
+    return '无法更新此潜水的水下路线：$error';
+  }
+
+  @override
   String get navTrack_importError_unsupportedFormat =>
       '此文件不是 Seacraft ENC 导航日志。';
 
@@ -43804,9 +43899,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveDetailSection_navTrack_description => '通过导航控制台测量的水下路线';
-
-  @override
-  String get dashboard_quickActions_navRoutes => '水下路线';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {
@@ -44852,6 +44944,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_manage_savedQueries_subtitle => '重命名、重新排序和删除已保存的查询';
+
+  @override
+  String get settings_manage_navRoutes_subtitle => '导入、对齐并关联已记录的路线';
 
   @override
   String get query_error_unterminatedQuote => '引号未闭合';

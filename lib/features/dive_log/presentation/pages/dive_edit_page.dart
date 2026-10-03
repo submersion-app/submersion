@@ -73,6 +73,9 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/nav_track/application/dive_route_link_applier.dart';
+import 'package:submersion/features/nav_track/domain/dive_route_link_draft.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -88,6 +91,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/experience_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_gear_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/rare_sections.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/route_link_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/route_row.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/dive_tank_config_adapter.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_confirm_dialog.dart';
@@ -315,6 +320,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// through and the set applied (issue #1487). Read through [_gearRows].
   List<GearProvenance> _gearProvenance = [];
   List<BuddyWithRole> _selectedBuddies = [];
+
+  /// The dive's staged underwater route links, applied on Save. Null until
+  /// an existing dive's current links have loaded, so the row stays inert
+  /// and a Save can never read "not loaded" as "every route removed".
+  DiveRouteLinkDraft? _routeDraft;
+
+  /// The dive's current links could not be read, so the route row says so
+  /// and stays inert instead of claiming the dive has none.
+  bool _routeLinksFailed = false;
   Set<String> _originalBuddyIds = {};
   String? _diverRoleId;
 
@@ -558,6 +572,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     } else if (widget.isEditing) {
       logFailure(_loadExistingDive(), _DiveEditPageState, 'load existing dive');
     } else {
+      // A new dive has no links yet, so its draft is ready immediately.
+      _routeDraft = DiveRouteLinkDraft.initial(const []);
       // For new dives, capture GPS in the background to suggest nearby sites
       _captureLocationForNearby();
       _isPlanned = widget.prefill?.isPlanned ?? false;
@@ -974,7 +990,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _loopO2Avg = dive.loopO2Avg;
         });
         // Load existing sightings and buddies
-        await Future.wait([_loadSightings(), _loadBuddies()]);
+        await Future.wait([
+          _loadSightings(),
+          _loadBuddies(),
+          _loadRouteLinks(),
+        ]);
       }
     } finally {
       if (mounted) {
@@ -1028,6 +1048,38 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         _originalBuddyIds = buddies.map((b) => b.buddy.id).toSet();
       });
     }
+  }
+
+  Future<void> _loadRouteLinks() async {
+    final diveId = widget.diveId;
+    if (diveId == null) return;
+    try {
+      final linked = await ref.read(navTracksForDiveProvider(diveId).future);
+      if (mounted) {
+        setState(() => _routeDraft = DiveRouteLinkDraft.initial(linked));
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load route links for dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) setState(() => _routeLinksFailed = true);
+    }
+  }
+
+  Future<void> _openRouteSheet() async {
+    final draft = _routeDraft;
+    if (draft == null) return;
+    await showRouteLinkSheet(
+      context,
+      draft: draft,
+      entryTime: _currentEntryTime(),
+      onChanged: (next) {
+        setState(() => _routeDraft = next);
+        _markDirty();
+      },
+    );
   }
 
   @override
@@ -2393,6 +2445,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         _markDirty();
         setState(() => _assignSite(null));
       },
+      // A planned dive has no recording to link (spec 2026-10-02, section 1).
+      routeRow: _isPlanned
+          ? null
+          : RouteRow(
+              draft: _routeDraft,
+              loadFailed: _routeLinksFailed,
+              onTap: _openRouteSheet,
+            ),
       maxDepthSuggestion: hasProfile
           ? _depthSuggestion(
               units,
@@ -5917,6 +5977,44 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ref.invalidate(divesForBuddyProvider(buddyId));
         }
         ref.invalidate(allBuddiesWithDiveCountProvider);
+      }
+
+      // Apply the staged underwater route links. A planned dive has no
+      // recording, so a draft left from before the switch was turned on is
+      // dropped. A failure is reported but never undoes the dive save.
+      final routeDraft = _routeDraft;
+      if (savedDiveId != null &&
+          !_isPlanned &&
+          routeDraft != null &&
+          routeDraft.hasChanges) {
+        try {
+          final skipped = await applyDiveRouteLinkDraft(
+            ref.read(navTrackRepositoryProvider),
+            diveId: savedDiveId,
+            draft: routeDraft,
+          );
+          if (skipped.isNotEmpty) {
+            _log.warning(
+              'Routes already linked elsewhere, left as is: $skipped',
+            );
+          }
+        } catch (e, stackTrace) {
+          _log.error(
+            'Failed to apply route links for dive $savedDiveId',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  context.l10n.navTrack_editRow_saveFailed(e.toString()),
+                ),
+              ),
+            );
+          }
+        }
+        ref.invalidate(navTracksForDiveProvider(savedDiveId));
       }
 
       // Invalidate course providers if course association changed

@@ -425,21 +425,32 @@ class NavTrackRepository {
 
   /// Unlinks [routeId] from whatever dive it was linked to. The recording
   /// itself, its correction, and its samples are untouched.
-  Future<void> unlink(String routeId) async {
+  ///
+  /// With [onlyFromDiveId], the route is unlinked only while it is still on
+  /// that dive. The check is part of the update itself, so a sync that moves
+  /// the route to another dive just before this write cannot get it detached
+  /// from that other dive; the call is then a no-op.
+  Future<void> unlink(String routeId, {String? onlyFromDiveId}) async {
     try {
       final route = await getById(routeId, includePoints: false);
       final diveId = route?.diveId;
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(
-        _db.navTracks,
-      )..where((t) => t.id.equals(routeId))).write(
-        NavTracksCompanion(
-          diveId: const Value(null),
-          linkMode: const Value(null),
-          isPrimary: const Value(true),
-          updatedAt: Value(now),
-        ),
-      );
+      final rowsAffected =
+          await (_db.update(_db.navTracks)..where((t) {
+                final byId = t.id.equals(routeId);
+                return onlyFromDiveId == null
+                    ? byId
+                    : byId & t.diveId.equals(onlyFromDiveId);
+              }))
+              .write(
+                NavTracksCompanion(
+                  diveId: const Value(null),
+                  linkMode: const Value(null),
+                  isPrimary: const Value(true),
+                  updatedAt: Value(now),
+                ),
+              );
+      if (onlyFromDiveId != null && rowsAffected == 0) return;
       await _markPending(routeId, now);
       if (diveId != null) await _promoteSiblingIfNoPrimary(diveId, now);
     } catch (e, stackTrace) {

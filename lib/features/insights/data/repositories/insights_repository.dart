@@ -8,6 +8,7 @@ import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/buddies/domain/services/legacy_name_parser.dart';
@@ -2310,11 +2311,13 @@ class InsightsRepository {
         maxDepthMeters: statsResult.read<double?>('max_depth'),
         siteCount: statsResult.read<int>('site_count'),
         topSites: topSites,
+        // first_seen / last_seen are MIN / MAX of dive_date_time, a wall
+        // clock flagged UTC (issue #2808).
         firstSeen: firstSeenMs != null
-            ? DateTime.fromMillisecondsSinceEpoch(firstSeenMs)
+            ? wallClockUtcFromMillis(firstSeenMs)
             : null,
         lastSeen: lastSeenMs != null
-            ? DateTime.fromMillisecondsSinceEpoch(lastSeenMs)
+            ? wallClockUtcFromMillis(lastSeenMs)
             : null,
       );
     } catch (e, stackTrace) {

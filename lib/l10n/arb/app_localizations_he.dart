@@ -6614,6 +6614,66 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => 'פרופיל צלילה';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => 'עריכה';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'נוצר';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'ייבוא ממחשב צלילה';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'מורשת';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'עורך פרופיל';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'תיקון איכות נתונים';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'החלקת כל הפרופיל';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'החלקת הבחירה';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'הסרת כל החריגים';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'הסרת חריגים נבחרים';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth => 'הזזת עומק';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime => 'הזזת זמן';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'מחיקת מקטע';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'מחיקת מקטע (אינטרפולציה)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'יצירה מנקודות דרך';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'קיצוץ אפסים בסוף';
+
+  @override
   String get diveLog_detail_section_equipment => 'ציוד';
 
   @override
@@ -25657,6 +25717,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_gear_failed => 'לא ניתן לשנות את הציוד. נסו שוב.';
 
   @override
+  String get trips_gear_useSet => 'שימוש בסט';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נארזו $count פריטים מתוך $name',
+      many: 'נארזו $count פריטים מתוך $name',
+      two: 'נארזו $count פריטים מתוך $name',
+      one: 'נארז פריט אחד מתוך $name',
+      zero: 'כל הציוד מתוך $name כבר ארוז',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'היום צריך $needed, יש לך $full מלאים.';
   }
@@ -43052,6 +43129,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profileEditor_mode_trim => 'חיתוך';
 
   @override
+  String get diveLog_profileEditor_revisionSelectorTooltip =>
+      'החלף גרסה פעילה. שינוי זה יוצא לפועל מיד וכל העריכות הבאות יהיו מבוססות על גרסה זו.';
+
+  @override
+  String get diveLog_profileEditor_revisionSwitchFailed =>
+      'לא ניתן להחליף את גרסת הפרופיל.';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -45543,6 +45628,25 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => 'הגדרה כראשי';
 
   @override
+  String get navTrack_editRow_none => 'אין';
+
+  @override
+  String get navTrack_editRow_loadFailed => 'לא ניתן לטעון את המסלולים';
+
+  @override
+  String navTrack_editRow_more(int count, String name) {
+    return '$name +$count';
+  }
+
+  @override
+  String get navTrack_editSheet_removeTooltip => 'הסרת מסלול';
+
+  @override
+  String navTrack_editRow_saveFailed(String error) {
+    return 'לא ניתן לעדכן את המסלולים התת-ימיים של צלילה זו: $error';
+  }
+
+  @override
   String get navTrack_importError_unsupportedFormat =>
       'קובץ זה אינו יומן ניווט Seacraft ENC.';
 
@@ -45568,9 +45672,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'מסלול תת-ימי שנמדד ממסוף ניווט';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'מסלולים תת-ימיים';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {
@@ -46622,6 +46723,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_manage_savedQueries_subtitle =>
       'שינוי שם, סידור מחדש ומחיקה של שאילתות שמורות';
+
+  @override
+  String get settings_manage_navRoutes_subtitle =>
+      'ייבוא, יישור וקישור של מסלולים מוקלטים';
 
   @override
   String get query_error_unterminatedQuote => 'מירכאה לא סגורה';

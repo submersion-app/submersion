@@ -6783,6 +6783,68 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => 'Profil de plongée';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => 'Modification';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'Création';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'Import ordinateur de plongée';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'Hérité';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'Éditeur de profil';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'Réparation de la qualité des données';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'Lisser tout le profil';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'Lisser la sélection';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'Supprimer tous les points aberrants';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'Supprimer les points aberrants sélectionnés';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth =>
+      'Décaler la profondeur';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime =>
+      'Décaler le temps';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'Supprimer le segment';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'Supprimer le segment (interpolé)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'Générer depuis des points de passage';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'Supprimer les zéros de fin';
+
+  @override
   String get diveLog_detail_section_equipment => 'Équipement';
 
   @override
@@ -26381,6 +26443,21 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de modifier le matériel. Réessayez.';
 
   @override
+  String get trips_gear_useSet => 'Utiliser un ensemble';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments de $name ajoutés',
+      one: '$count élément de $name ajouté',
+      zero: 'Tout le contenu de $name est déjà prévu',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Aujourd\'hui il en faut $needed, vous en avez $full pleins.';
   }
@@ -44015,6 +44092,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_profileEditor_mode_trim => 'Rogner';
 
   @override
+  String get diveLog_profileEditor_revisionSelectorTooltip =>
+      'Basculer vers la révision active. Ce changement prend effet immédiatement et toutes les futures éditions seront basées sur cette révision.';
+
+  @override
+  String get diveLog_profileEditor_revisionSwitchFailed =>
+      'Impossible de changer de révision du profil.';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -46583,6 +46668,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => 'Définir comme principal';
 
   @override
+  String get navTrack_editRow_none => 'Aucun';
+
+  @override
+  String get navTrack_editRow_loadFailed => 'Impossible de charger les trajets';
+
+  @override
+  String navTrack_editRow_more(int count, String name) {
+    return '$name +$count';
+  }
+
+  @override
+  String get navTrack_editSheet_removeTooltip => 'Retirer le trajet';
+
+  @override
+  String navTrack_editRow_saveFailed(String error) {
+    return 'Impossible de mettre à jour les trajets sous-marins de cette plongée : $error';
+  }
+
+  @override
   String get navTrack_importError_unsupportedFormat =>
       'Ce fichier n\'est pas un journal de navigation Seacraft ENC.';
 
@@ -46608,9 +46712,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'Trajet sous-marin mesuré depuis une console de navigation';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'Trajets sous-marins';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {
@@ -47666,6 +47767,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_manage_savedQueries_subtitle =>
       'Renommer, réorganiser et supprimer les requêtes enregistrées';
+
+  @override
+  String get settings_manage_navRoutes_subtitle =>
+      'Importer, aligner et lier les trajets enregistrés';
 
   @override
   String get query_error_unterminatedQuote => 'guillemet non fermé';

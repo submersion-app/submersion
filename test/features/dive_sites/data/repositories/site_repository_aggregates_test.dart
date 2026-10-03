@@ -7,6 +7,10 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 import '../../../../helpers/test_database.dart';
 
+// Dive dates are stored as a wall clock flagged UTC (issue #2808), so the
+// fixtures use DateTime.utc. DateTime equality also compares the UTC flag,
+// which makes the date expectations fail on a local decode in any time zone,
+// UTC CI included.
 Future<void> _insertDive(
   db.AppDatabase database, {
   required String id,
@@ -16,6 +20,7 @@ Future<void> _insertDive(
   int? runtime,
   int? bottomTime,
 }) async {
+  assert(at.isUtc, 'dive_date_time is stored as a wall clock flagged UTC');
   final ms = at.millisecondsSinceEpoch;
   await database
       .into(database.dives)
@@ -78,28 +83,28 @@ void main() {
         database,
         id: 'd1',
         siteId: 'site-a',
-        at: DateTime(2024, 1, 10),
+        at: DateTime.utc(2024, 1, 10),
         maxDepth: 18,
       );
       await _insertDive(
         database,
         id: 'd2',
         siteId: 'site-a',
-        at: DateTime(2024, 3, 5),
+        at: DateTime.utc(2024, 3, 5),
         maxDepth: 31.5,
       );
       await _insertDive(
         database,
         id: 'd3',
         siteId: 'site-b',
-        at: DateTime(2023, 6, 1),
+        at: DateTime.utc(2023, 6, 1),
       );
 
       final aggregates = await repository.getDiveAggregatesBySite();
 
       expect(aggregates.keys, unorderedEquals(['site-a', 'site-b']));
       expect(aggregates['site-a']!.diveCount, 2);
-      expect(aggregates['site-a']!.lastDivedAt, DateTime(2024, 3, 5));
+      expect(aggregates['site-a']!.lastDivedAt, DateTime.utc(2024, 3, 5));
       expect(aggregates['site-a']!.maxDepthReached, 31.5);
       expect(aggregates['site-b']!.diveCount, 1);
       expect(aggregates['site-b']!.maxDepthReached, isNull);
@@ -110,7 +115,7 @@ void main() {
         database,
         id: 'd1',
         siteId: 'site-a',
-        at: DateTime(2024, 1, 10),
+        at: DateTime.utc(2024, 1, 10),
       );
 
       expect(await repository.getDiveCountsBySite(), {'site-a': 1});
@@ -162,7 +167,7 @@ void main() {
         database,
         id: 'd1',
         siteId: 'site-a',
-        at: DateTime(2024, 3, 5),
+        at: DateTime.utc(2024, 3, 5),
         maxDepth: 31.5,
       );
       await _insertFeature(
@@ -178,7 +183,7 @@ void main() {
       final c = sites.singleWhere((s) => s.site.id == 'site-c');
 
       expect(a.diveCount, 1);
-      expect(a.lastDivedAt, DateTime(2024, 3, 5));
+      expect(a.lastDivedAt, DateTime.utc(2024, 3, 5));
       expect(a.maxDepthReached, 31.5);
       expect(a.featureTypes, ['wreck']);
       expect(c.diveCount, 0);
@@ -193,7 +198,7 @@ void main() {
         database,
         id: 'd1',
         siteId: 'site-a',
-        at: DateTime(2026, 1, 5),
+        at: DateTime.utc(2026, 1, 5),
         maxDepth: 10,
         runtime: 1800,
       );
@@ -201,7 +206,7 @@ void main() {
         database,
         id: 'd2',
         siteId: 'site-a',
-        at: DateTime(2026, 6, 5),
+        at: DateTime.utc(2026, 6, 5),
         maxDepth: 30,
         runtime: 3600,
       );
@@ -209,7 +214,7 @@ void main() {
       final aggregates = await repository.getDiveAggregatesBySite();
       final site = aggregates['site-a']!;
 
-      expect(site.firstDivedAt, equals(DateTime(2026, 1, 5)));
+      expect(site.firstDivedAt, equals(DateTime.utc(2026, 1, 5)));
       expect(site.averageDepthReached, equals(20));
       expect(site.longestDiveSeconds, equals(3600));
       expect(site.averageDurationSeconds, equals(2700));
@@ -220,7 +225,7 @@ void main() {
         database,
         id: 'd3',
         siteId: 'site-b',
-        at: DateTime(2026, 2, 2),
+        at: DateTime.utc(2026, 2, 2),
         maxDepth: 12,
         bottomTime: 2400,
       );
@@ -236,7 +241,7 @@ void main() {
         database,
         id: 'd4',
         siteId: 'site-c',
-        at: DateTime(2026, 3, 3),
+        at: DateTime.utc(2026, 3, 3),
       );
 
       final aggregates = await repository.getDiveAggregatesBySite();
@@ -247,7 +252,7 @@ void main() {
       expect(site.longestDiveSeconds, isNull);
       expect(site.averageDurationSeconds, isNull);
       // The date is always recorded, so first dived is always known.
-      expect(site.firstDivedAt, equals(DateTime(2026, 3, 3)));
+      expect(site.firstDivedAt, equals(DateTime.utc(2026, 3, 3)));
     });
   });
 }

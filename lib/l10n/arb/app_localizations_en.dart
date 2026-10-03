@@ -6656,6 +6656,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => 'Dive Profile';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => 'Edit';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'Create';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'Computer Import';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'Legacy';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'Profile editor';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'Data quality repair';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'Smooth entire profile';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'Smooth selection';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'Remove all outliers';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'Remove selected outliers';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth =>
+      'Shift depth';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime => 'Shift time';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'Delete segment';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'Delete segment (interpolated)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'Generate from waypoints';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'Trim end zeros';
+
+  @override
   String get diveLog_detail_section_equipment => 'Equipment';
 
   @override
@@ -25870,6 +25931,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_gear_failed => 'Could not change the gear. Try again.';
 
   @override
+  String get trips_gear_useSet => 'Use set';
+
+  @override
+  String trips_gear_packedFromSet(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Packed $count items from $name',
+      one: 'Packed $count item from $name',
+      zero: 'Everything in $name is already packed',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trips_cylinders_forecast_todayShort(int needed, int full) {
     return 'Today needs $needed, you have $full full.';
   }
@@ -43280,6 +43356,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_profileEditor_mode_trim => 'Trim';
 
   @override
+  String get diveLog_profileEditor_revisionSelectorTooltip =>
+      'Switch active revision. This takes effect immediately and all future edits will be based on this revision.';
+
+  @override
+  String get diveLog_profileEditor_revisionSwitchFailed =>
+      'Could not switch profile revision.';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -45791,6 +45875,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_section_menuMakePrimary => 'Make primary';
 
   @override
+  String get navTrack_editRow_none => 'None';
+
+  @override
+  String get navTrack_editRow_loadFailed => 'Could not load routes';
+
+  @override
+  String navTrack_editRow_more(int count, String name) {
+    return '$name +$count';
+  }
+
+  @override
+  String get navTrack_editSheet_removeTooltip => 'Remove route';
+
+  @override
+  String navTrack_editRow_saveFailed(String error) {
+    return 'Could not update this dive\'s underwater routes: $error';
+  }
+
+  @override
   String get navTrack_importError_unsupportedFormat =>
       'This file is not a Seacraft ENC navigation log.';
 
@@ -45816,9 +45919,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveDetailSection_navTrack_description =>
       'Measured underwater route from a navigation console';
-
-  @override
-  String get dashboard_quickActions_navRoutes => 'Underwater Routes';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {
@@ -46869,6 +46969,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_manage_savedQueries_subtitle =>
       'Rename, reorder and delete saved queries';
+
+  @override
+  String get settings_manage_navRoutes_subtitle =>
+      'Import, align and link recorded routes';
 
   @override
   String get query_error_unterminatedQuote => 'unterminated quote';

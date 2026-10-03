@@ -1051,16 +1051,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
           // Underwater navigation routes (spec
           // 2026-09-10-underwater-nav-track-design.md, "The routes area"):
-          // siblings of /gps-log for the same reason -- pushing a route from
-          // the dive detail's "Underwater Route" section must not stack a
-          // list page underneath it.
+          // siblings of /gps-log so that pushing a route from the dive
+          // detail's "Underwater Route" section does not stack a list page
+          // underneath it. Opened from Settings > Manage, so it slides in
+          // like the other Manage pages.
           GoRoute(
             path: '/nav-routes',
             name: 'navRoutes',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const NavTrackListPage(),
-            ),
+            builder: (context, state) => const NavTrackListPage(),
           ),
           GoRoute(
             path: '/nav-routes/:id',

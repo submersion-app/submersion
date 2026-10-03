@@ -10725,6 +10725,102 @@ abstract class AppLocalizations {
   /// **'Dive Profile'**
   String get diveLog_detail_section_diveProfile;
 
+  /// No description provided for @diveLog_detail_profileRevision_kind_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get diveLog_detail_profileRevision_kind_edit;
+
+  /// No description provided for @diveLog_detail_profileRevision_kind_create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get diveLog_detail_profileRevision_kind_create;
+
+  /// No description provided for @diveLog_detail_profileRevision_kind_computerImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Computer Import'**
+  String get diveLog_detail_profileRevision_kind_computerImport;
+
+  /// No description provided for @diveLog_detail_profileRevision_kind_legacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Legacy'**
+  String get diveLog_detail_profileRevision_kind_legacy;
+
+  /// No description provided for @diveLog_detail_profileRevision_editType_profileEditor.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile editor'**
+  String get diveLog_detail_profileRevision_editType_profileEditor;
+
+  /// No description provided for @diveLog_detail_profileRevision_editType_dataQualityRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Data quality repair'**
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair;
+
+  /// No description provided for @diveLog_detail_profileRevision_editType_smoothAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Smooth entire profile'**
+  String get diveLog_detail_profileRevision_editType_smoothAll;
+
+  /// No description provided for @diveLog_detail_profileRevision_editType_smoothSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Smooth selection'**
+  String get diveLog_detail_profileRevision_editType_smoothSelection;
+
+  /// No description provided for @diveLog_detail_profileRevision_editType_removeAllOutliers.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all outliers'**
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers;
+
+  /// No description provided for @diveLog_detail_profileRevision_editType_removeSelectedOutliers.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove selected outliers'**
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers;
+
+  /// No description provided for @diveLog_detail_profileRevision_editType_shiftDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift depth'**
+  String get diveLog_detail_profileRevision_editType_shiftDepth;
+
+  /// No description provided for @diveLog_detail_profileRevision_editType_shiftTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift time'**
+  String get diveLog_detail_profileRevision_editType_shiftTime;
+
+  /// No description provided for @diveLog_detail_profileRevision_editType_deleteSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete segment'**
+  String get diveLog_detail_profileRevision_editType_deleteSegment;
+
+  /// No description provided for @diveLog_detail_profileRevision_editType_deleteSegmentInterpolated.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete segment (interpolated)'**
+  String get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated;
+
+  /// No description provided for @diveLog_detail_profileRevision_editType_generateFromWaypoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate from waypoints'**
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints;
+
+  /// No description provided for @diveLog_detail_profileRevision_editType_trimEndZeros.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim end zeros'**
+  String get diveLog_detail_profileRevision_editType_trimEndZeros;
+
   /// No description provided for @diveLog_detail_section_equipment.
   ///
   /// In en, this message translates to:
@@ -41862,6 +41958,18 @@ abstract class AppLocalizations {
   /// **'Could not change the gear. Try again.'**
   String get trips_gear_failed;
 
+  /// No description provided for @trips_gear_useSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Use set'**
+  String get trips_gear_useSet;
+
+  /// No description provided for @trips_gear_packedFromSet.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Everything in {name} is already packed} one{Packed {count} item from {name}} other{Packed {count} items from {name}}}'**
+  String trips_gear_packedFromSet(int count, String name);
+
   /// No description provided for @trips_cylinders_forecast_todayShort.
   ///
   /// In en, this message translates to:
@@ -69957,6 +70065,18 @@ abstract class AppLocalizations {
   /// **'Trim'**
   String get diveLog_profileEditor_mode_trim;
 
+  /// No description provided for @diveLog_profileEditor_revisionSelectorTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch active revision. This takes effect immediately and all future edits will be based on this revision.'**
+  String get diveLog_profileEditor_revisionSelectorTooltip;
+
+  /// No description provided for @diveLog_profileEditor_revisionSwitchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not switch profile revision.'**
+  String get diveLog_profileEditor_revisionSwitchFailed;
+
   /// Header of the dive-detail section listing where a dive's data came from (dive computers, imported files, manual entry).
   ///
   /// In en, this message translates to:
@@ -73817,6 +73937,36 @@ abstract class AppLocalizations {
   /// **'Make primary'**
   String get navTrack_section_menuMakePrimary;
 
+  /// No description provided for @navTrack_editRow_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get navTrack_editRow_none;
+
+  /// No description provided for @navTrack_editRow_loadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load routes'**
+  String get navTrack_editRow_loadFailed;
+
+  /// Dive Edit route row value when several routes are linked: the first route's name and how many more there are
+  ///
+  /// In en, this message translates to:
+  /// **'{name} +{count}'**
+  String navTrack_editRow_more(int count, String name);
+
+  /// No description provided for @navTrack_editSheet_removeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove route'**
+  String get navTrack_editSheet_removeTooltip;
+
+  /// No description provided for @navTrack_editRow_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update this dive\'s underwater routes: {error}'**
+  String navTrack_editRow_saveFailed(String error);
+
   /// No description provided for @navTrack_importError_unsupportedFormat.
   ///
   /// In en, this message translates to:
@@ -73858,12 +74008,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Measured underwater route from a navigation console'**
   String get diveDetailSection_navTrack_description;
-
-  /// No description provided for @dashboard_quickActions_navRoutes.
-  ///
-  /// In en, this message translates to:
-  /// **'Underwater Routes'**
-  String get dashboard_quickActions_navRoutes;
 
   /// No description provided for @navTrack_list_durationHours.
   ///
@@ -75838,6 +75982,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rename, reorder and delete saved queries'**
   String get settings_manage_savedQueries_subtitle;
+
+  /// No description provided for @settings_manage_navRoutes_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import, align and link recorded routes'**
+  String get settings_manage_navRoutes_subtitle;
 
   /// Query error message.
   ///

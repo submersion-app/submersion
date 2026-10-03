@@ -3916,6 +3916,22 @@
   "diveLog_detail_section_decoStatus": "Deco Status",
   "diveLog_detail_section_details": "Details",
   "diveLog_detail_section_diveProfile": "Dive Profile",
+  "diveLog_detail_profileRevision_kind_edit": "Edit",
+  "diveLog_detail_profileRevision_kind_create": "Create",
+  "diveLog_detail_profileRevision_kind_computerImport": "Computer Import",
+  "diveLog_detail_profileRevision_kind_legacy": "Legacy",
+  "diveLog_detail_profileRevision_editType_profileEditor": "Profile editor",
+  "diveLog_detail_profileRevision_editType_dataQualityRepair": "Data quality repair",
+  "diveLog_detail_profileRevision_editType_smoothAll": "Smooth entire profile",
+  "diveLog_detail_profileRevision_editType_smoothSelection": "Smooth selection",
+  "diveLog_detail_profileRevision_editType_removeAllOutliers": "Remove all outliers",
+  "diveLog_detail_profileRevision_editType_removeSelectedOutliers": "Remove selected outliers",
+  "diveLog_detail_profileRevision_editType_shiftDepth": "Shift depth",
+  "diveLog_detail_profileRevision_editType_shiftTime": "Shift time",
+  "diveLog_detail_profileRevision_editType_deleteSegment": "Delete segment",
+  "diveLog_detail_profileRevision_editType_deleteSegmentInterpolated": "Delete segment (interpolated)",
+  "diveLog_detail_profileRevision_editType_generateFromWaypoints": "Generate from waypoints",
+  "diveLog_detail_profileRevision_editType_trimEndZeros": "Trim end zeros",
   "diveLog_detail_section_equipment": "Equipment",
   "diveLog_detail_section_marineLife": "Species",
   "diveLog_detail_sightingPhotos": "{count, plural, =1{1 photo} other{{count} photos}}",
@@ -16005,6 +16021,14 @@
   "trips_gear_add": "Add gear",
   "trips_gear_remove": "Unpack",
   "trips_gear_failed": "Could not change the gear. Try again.",
+  "trips_gear_useSet": "Use set",
+  "trips_gear_packedFromSet": "{count, plural, =0{Everything in {name} is already packed} one{Packed {count} item from {name}} other{Packed {count} items from {name}}}",
+  "@trips_gear_packedFromSet": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "name": {"type": "String"}
+    }
+  },
   "trips_cylinders_forecast_todayShort": "Today needs {needed}, you have {full} full.",
   "@trips_cylinders_forecast_todayShort": {
     "placeholders": {
@@ -26566,6 +26590,8 @@
   "diveLog_profileEditor_mode_outlier": "Outlier",
   "diveLog_profileEditor_mode_draw": "Draw",
   "diveLog_profileEditor_mode_trim": "Trim",
+  "diveLog_profileEditor_revisionSelectorTooltip": "Switch active revision. This takes effect immediately and all future edits will be based on this revision.",
+  "diveLog_profileEditor_revisionSwitchFailed": "Could not switch profile revision.",
   "diveLog_sources_sectionTitle": "{count, plural, =0{Data Source} =1{Data Source} other{Data Sources}}",
   "diveLog_sources_badge_manual": "Manual",
   "diveLog_sources_badge_viewing": "Viewing",
@@ -28701,6 +28727,29 @@
   "navTrack_section_menuOpen": "Open route",
   "navTrack_section_menuOpen3d": "Open 3D seascape",
   "navTrack_section_menuMakePrimary": "Make primary",
+  "navTrack_editRow_none": "None",
+  "navTrack_editRow_loadFailed": "Could not load routes",
+  "navTrack_editRow_more": "{name} +{count}",
+  "@navTrack_editRow_more": {
+    "description": "Dive Edit route row value when several routes are linked: the first route's name and how many more there are",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "navTrack_editSheet_removeTooltip": "Remove route",
+  "navTrack_editRow_saveFailed": "Could not update this dive's underwater routes: {error}",
+  "@navTrack_editRow_saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "navTrack_importError_unsupportedFormat": "This file is not a Seacraft ENC navigation log.",
   "navTrack_importError_unreadable": "This file could not be read as a Seacraft ENC navigation log.",
   "navTrack_importError_tooShort": "This recording has too few samples to be a usable route.",
@@ -28708,7 +28757,6 @@
   "navTrack_importError_tooLarge": "This recording has more samples than a route can store.",
   "diveDetailSection_navTrack_name": "Underwater Route",
   "diveDetailSection_navTrack_description": "Measured underwater route from a navigation console",
-  "dashboard_quickActions_navRoutes": "Underwater Routes",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
   "@navTrack_list_durationHours": {
     "placeholders": {
@@ -29373,6 +29421,7 @@
   "@settings_manage_savedQueries": {"description": "Settings > Manage entry"},
   "settings_manage_savedQueries_subtitle": "Rename, reorder and delete saved queries",
   "@settings_manage_savedQueries_subtitle": {"description": "Settings > Manage entry subtitle"},
+  "settings_manage_navRoutes_subtitle": "Import, align and link recorded routes",
   "query_error_unterminatedQuote": "unterminated quote",
   "@query_error_unterminatedQuote": {"description": "Query error message."},
   "query_error_unexpectedCharacter": "unexpected character \"{text}\"",

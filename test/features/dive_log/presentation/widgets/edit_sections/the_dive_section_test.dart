@@ -149,4 +149,41 @@ void main() {
       lessThan(top(find.text('DIVE_TYPES_ROW'))),
     );
   });
+
+  testWidgets('renders the route row after the site and its extras', (
+    tester,
+  ) async {
+    final controllers = List.generate(6, (_) => TextEditingController());
+    for (final c in controllers) {
+      addTearDown(c.dispose);
+    }
+    await tester.pumpWidget(
+      _wrap(
+        TheDiveSection(
+          depthSymbol: 'm',
+          nameController: controllers[0],
+          maxDepthController: controllers[1],
+          avgDepthController: controllers[2],
+          bottomTimeController: controllers[3],
+          runtimeController: controllers[4],
+          diveNumberController: controllers[5],
+          entryText: 'ENTRY_TS',
+          onEditEntry: () {},
+          exitText: null,
+          onEditExit: () {},
+          siteName: 'Blue Hole',
+          onPickSite: () {},
+          siteExtras: const Text('SITE_EXTRAS'),
+          routeRow: const Text('ROUTE_ROW'),
+        ),
+      ),
+    );
+
+    double top(Finder f) => tester.getTopLeft(f).dy;
+    expect(top(find.text('Blue Hole')), lessThan(top(find.text('ROUTE_ROW'))));
+    expect(
+      top(find.text('SITE_EXTRAS')),
+      lessThan(top(find.text('ROUTE_ROW'))),
+    );
+  });
 }
