@@ -286,4 +286,45 @@ void main() {
       expect(find.textContaining('Alice'), findsWidgets);
     });
   });
+
+  group('kept gear line (issue #2852)', () {
+    Future<void> open(WidgetTester tester, {int kept = 0}) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          child: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () => DeleteDiverDialog.show(
+                context,
+                diverName: 'Alice',
+                keptEquipmentCount: kept,
+              ),
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('says how much gear is kept for other profiles', (
+      tester,
+    ) async {
+      await open(tester, kept: 5);
+      expect(
+        find.text(
+          '5 pieces of gear in use by other profiles will be kept and '
+          'handed to them.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('says nothing when no gear is kept', (tester) async {
+      await open(tester);
+      expect(find.textContaining('pieces of gear'), findsNothing);
+      expect(find.textContaining('piece of gear'), findsNothing);
+    });
+  });
 }

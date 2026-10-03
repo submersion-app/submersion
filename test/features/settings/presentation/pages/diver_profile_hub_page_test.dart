@@ -44,6 +44,12 @@ class _MockDiverListNotifier extends StateNotifier<AsyncValue<List<Diver>>>
   Future<void> setAsDefault(String id) async {}
 }
 
+/// Reports kept gear for the delete confirmation (issue #2852).
+class _KeptGearDiverRepository extends DiverRepository {
+  @override
+  Future<int> keptEquipmentCount(String diverId) async => 3;
+}
+
 /// Records updateDiver so the remove-photo path can be asserted end to end.
 class _RecordingDiverRepository extends DiverRepository {
   final List<Diver> updated = [];
@@ -253,6 +259,60 @@ void main() {
       await tester.tap(find.byIcon(Icons.more_vert));
       await tester.pumpAndSettle();
       expect(find.text('Delete Diver'), findsOneWidget);
+    });
+
+    testWidgets('delete says which gear is kept and who got it', (
+      tester,
+    ) async {
+      final overrides = await getBaseOverrides();
+      final d1 = makeDiver(id: 'd1', name: 'Diver One');
+      final d2 = makeDiver(id: 'd2', name: 'Diver Two');
+      final notifier = _MockDiverListNotifier([d1, d2])
+        ..deleteResult = const DeleteDiverResult(
+          reassignedTripsCount: 0,
+          reassignedSitesCount: 0,
+          keptEquipmentCount: 3,
+          keptEquipmentHeirNames: ['Diver Two'],
+        );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            currentDiverProvider.overrideWith((_) async => d1),
+            diverListNotifierProvider.overrideWith((_) => notifier),
+            diverRepositoryProvider.overrideWithValue(
+              _KeptGearDiverRepository(),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiverProfileHubPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete Diver'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          '3 pieces of gear in use by other profiles will be kept and '
+          'handed to them.',
+        ),
+        findsOneWidget,
+      );
+      await tester.enterText(find.byType(TextField), 'Delete Diver One');
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+      expect(notifier.deleteCalls, 1);
+      expect(
+        find.text('Diver deleted. 3 pieces of gear handed to Diver Two.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('hides delete option when only one diver exists', (

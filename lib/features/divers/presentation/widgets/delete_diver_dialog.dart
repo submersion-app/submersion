@@ -7,18 +7,30 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The user must type "Delete {name}" (case-sensitive) before the destructive
 /// Delete button becomes enabled.
 class DeleteDiverDialog extends StatefulWidget {
-  const DeleteDiverDialog({super.key, required this.diverName});
+  const DeleteDiverDialog({
+    super.key,
+    required this.diverName,
+    this.keptEquipmentCount = 0,
+  });
 
   final String diverName;
+
+  /// Items of this profile's gear other profiles use, which the delete
+  /// keeps and hands to them (issue #2852).
+  final int keptEquipmentCount;
 
   /// Shows the dialog and returns true if the user confirms the deletion.
   static Future<bool> show(
     BuildContext context, {
     required String diverName,
+    int keptEquipmentCount = 0,
   }) async {
     final result = await showDialog<bool>(
       context: context,
-      builder: (_) => DeleteDiverDialog(diverName: diverName),
+      builder: (_) => DeleteDiverDialog(
+        diverName: diverName,
+        keptEquipmentCount: keptEquipmentCount,
+      ),
     );
     return result ?? false;
   }
@@ -84,6 +96,15 @@ class _DeleteDiverDialogState extends State<DeleteDiverDialog> {
             context.l10n.divers_detail_deleteDialogContent(widget.diverName),
             style: theme.textTheme.bodyMedium,
           ),
+          if (widget.keptEquipmentCount > 0) ...[
+            const SizedBox(height: 8),
+            Text(
+              context.l10n.divers_delete_keptEquipment_dialogLine(
+                widget.keptEquipmentCount,
+              ),
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
           const SizedBox(height: 16),
           TextField(
             controller: _controller,

@@ -10,8 +10,12 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/delete_diver_dialog.dart';
+import 'package:submersion/features/divers/presentation/widgets/delete_diver_snackbar_text.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+final _log = LoggerService.forClass(DiverProfileHubPage);
 
 class DiverProfileHubPage extends ConsumerWidget {
   const DiverProfileHubPage({super.key});
@@ -415,32 +419,36 @@ class DiverProfileHubPage extends ConsumerWidget {
     WidgetRef ref,
     Diver diver,
   ) async {
+    // The count only informs the confirmation; the delete keeps the gear
+    // whether or not it could be read (issue #2852).
+    var keptCount = 0;
+    try {
+      keptCount = await ref
+          .read(diverRepositoryProvider)
+          .keptEquipmentCount(diver.id);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not count the gear a delete would keep',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+    if (!context.mounted) return;
     final confirmed = await DeleteDiverDialog.show(
       context,
       diverName: diver.name,
+      keptEquipmentCount: keptCount,
     );
     if (confirmed && context.mounted) {
       final result = await ref
           .read(diverListNotifierProvider.notifier)
           .deleteDiver(diver.id);
       if (context.mounted) {
-        if (result.hasReassignments) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.l10n.divers_delete_reassigned_snackbar(
-                  result.reassignedTripsCount,
-                  result.reassignedSitesCount,
-                  result.reassignedToDiverName ?? '',
-                ),
-              ),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.l10n.settings_profileHub_deleted)),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(deleteDiverSnackbarText(context.l10n, result)),
+          ),
+        );
       }
     }
   }
