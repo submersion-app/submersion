@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_ask_pro
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/explore/data/recent_query_repository.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
@@ -471,6 +473,39 @@ void main() {
     expect(filedUnder, 'ana');
   });
 
+  test('a recent with a current parse replays without the model', () async {
+    final engine = _Engine(_turtles);
+    final c = make(engine);
+    final parsed = ParsedQuery.fromJson(
+      (jsonDecode(_deep) as Map).cast<String, Object?>(),
+    );
+    final route = await askOf(c).replay(
+      RecentQuery(
+        sentence: 'deep dives',
+        locale: 'en',
+        parsed: parsed,
+        lastUsedAt: DateTime(2026, 10, 1),
+      ),
+    );
+    expect(route, isNull);
+    expect(engine.compileCalls, 0);
+    expect(boundOf(stateOf(c).answer!.compiled, 'depth', QueryOp.gte), 40);
+  });
+
+  test('a recent from an older prompt asks the model again', () async {
+    final engine = _Engine(_deep);
+    final c = make(engine);
+    await askOf(c).replay(
+      RecentQuery(
+        sentence: 'deep dives',
+        locale: 'en',
+        parsed: null,
+        lastUsedAt: DateTime(2026, 10, 1),
+      ),
+    );
+    expect(engine.compileCalls, 1);
+  });
+
   test('prepare warms the model once', () async {
     final engine = _Engine(_turtles);
     final c = make(engine);
@@ -479,5 +514,26 @@ void main() {
       ..prepare();
     await Future<void>.delayed(Duration.zero);
     expect(engine.prepareCalls, 1);
+  });
+
+  test('a replay whose name index fails ends with an error', () async {
+    final c = make(
+      _Engine(_turtles),
+      names: () async => throw StateError('index build failed'),
+    );
+    final parsed = ParsedQuery.fromJson(
+      (jsonDecode(_deep) as Map).cast<String, Object?>(),
+    );
+    final route = await askOf(c).replay(
+      RecentQuery(
+        sentence: 'deep dives',
+        locale: 'en',
+        parsed: parsed,
+        lastUsedAt: DateTime(2026, 10, 1),
+      ),
+    );
+    expect(route, isNull);
+    expect(stateOf(c).running, isFalse);
+    expect(stateOf(c).error, NlError.unknown);
   });
 }

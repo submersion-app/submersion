@@ -8419,6 +8419,24 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_search_manageSaved => 'Beheren';
+
+  @override
+  String get diveLog_search_recentTitle => 'Recent';
+
+  @override
+  String get diveLog_search_recentTyped => 'Getypte zoekopdracht';
+
+  @override
+  String get diveLog_search_recentAsked => 'Gestelde vraag';
+
+  @override
+  String get diveLog_search_hintsTitle => 'Probeer';
+
+  @override
+  String get diveLog_search_hintAsk => 'of stel een vraag';
+
+  @override
   String get diveLog_search_openInsights => 'Openen in Inzichten';
 
   @override

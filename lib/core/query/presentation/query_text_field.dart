@@ -28,8 +28,12 @@ bool suggestionsReplaceSpan(QueryError error, String text) {
 /// each new instance is applied once, after any new value in the same
 /// update.
 class QueryTextOverride {
-  QueryTextOverride(this.text);
+  QueryTextOverride(this.text, {this.commit = false});
   final String text;
+
+  /// Parse and commit [text] as if the diver typed it (a hint tapped),
+  /// rather than only showing it (Undo).
+  final bool commit;
 }
 
 /// The typed editor of a query tree (#2365, spec Unit 6 "Text").
@@ -55,6 +59,7 @@ class QueryTextField extends StatefulWidget {
     this.onTextChanged,
     this.textOverride,
     this.shortcuts = const {},
+    this.onSubmitted,
   });
 
   final QueryEditorContext context;
@@ -86,6 +91,9 @@ class QueryTextField extends StatefulWidget {
 
   /// Extra key bindings active while the field has focus.
   final Map<ShortcutActivator, VoidCallback> shortcuts;
+
+  /// Called when the diver presses Enter (the keyboard's search action).
+  final VoidCallback? onSubmitted;
 
   @override
   State<QueryTextField> createState() => _QueryTextFieldState();
@@ -150,6 +158,13 @@ class _QueryTextFieldState extends State<QueryTextField> {
         ..setError();
       _error = null;
       _completions = const [];
+      if (override.commit) {
+        // After the frame: committing calls the parent back, and this
+        // runs inside its build.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _onEdited(_controller.text);
+        });
+      }
     }
   }
 
@@ -282,6 +297,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
               errorText: error == null ? null : describe(error),
             ),
             onChanged: _onEdited,
+            onSubmitted: (_) => widget.onSubmitted?.call(),
           ),
         ),
         if (error != null && suggestionsReplaceSpan(error, _controller.text))

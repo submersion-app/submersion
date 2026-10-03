@@ -292,6 +292,10 @@ class RecentQueries extends Table {
   TextColumn get subject => text()();
   IntColumn get lastUsedAt => integer()();
 
+  /// typed (a query the diver wrote) or asked (a sentence put to the
+  /// model); the v18 rows were all asked (#2773).
+  TextColumn get kind => text().withDefault(const Constant('asked'))();
+
   /// One row per diver, language and sentence.
   @override
   Set<Column> get primaryKey => {diverId, locale, key};
@@ -317,7 +321,7 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -485,6 +489,18 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       if (from < 18) {
         await m.createTable(recentQueries);
       }
+      // v19: recent searches gain a kind, typed or asked (#2773). Rows the
+      // v18 rung created were all asked; the column default says so. A
+      // table v18 created below this step already has the column.
+      if (from < 19) {
+        final cols = await customSelect(
+          "PRAGMA table_info('recent_queries')",
+        ).get();
+        final names = cols.map((c) => c.read<String>('name')).toSet();
+        if (names.isNotEmpty && !names.contains('kind')) {
+          await m.addColumn(recentQueries, recentQueries.kind);
+        }
+      }
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -590,9 +606,21 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           schema_version INTEGER NOT NULL,
           subject TEXT NOT NULL,
           last_used_at INTEGER NOT NULL,
+          kind TEXT NOT NULL DEFAULT 'asked',
           PRIMARY KEY (diver_id, locale, key)
         )
       ''');
+      // v19 mirror: a table a colliding branch created without the kind.
+      final recentKind = await customSelect(
+        "SELECT name FROM pragma_table_info('recent_queries') "
+        "WHERE name = 'kind'",
+      ).get();
+      if (recentKind.isEmpty) {
+        await customStatement(
+          "ALTER TABLE recent_queries ADD COLUMN kind TEXT NOT NULL "
+          "DEFAULT 'asked'",
+        );
+      }
       await customStatement('''
         CREATE TABLE IF NOT EXISTS swiss_bathy_tile_cache (
           tile_key TEXT NOT NULL,

@@ -8319,6 +8319,24 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_search_manageSaved => 'إدارة';
+
+  @override
+  String get diveLog_search_recentTitle => 'الأخيرة';
+
+  @override
+  String get diveLog_search_recentTyped => 'بحث مكتوب';
+
+  @override
+  String get diveLog_search_recentAsked => 'سؤال مطروح';
+
+  @override
+  String get diveLog_search_hintsTitle => 'جرّب';
+
+  @override
+  String get diveLog_search_hintAsk => 'أو اطرح سؤالًا';
+
+  @override
   String get diveLog_search_openInsights => 'فتح في الرؤى';
 
   @override

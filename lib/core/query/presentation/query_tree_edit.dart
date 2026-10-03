@@ -116,6 +116,31 @@ QueryNode? normalizeQuery(QueryNode? node) {
   }
 }
 
+/// [node] with every one-child group replaced by its child, at any depth,
+/// for a tree being saved (#2773). A group of one prints without its group,
+/// so a saved tree that kept one would not re-parse to itself; the meaning
+/// is the same. Not for the builder, which shows a new group of one as a
+/// card (see [normalizeQuery]).
+QueryNode flattenOneChildGroups(QueryNode node) {
+  switch (node) {
+    case AndNode(:final children) || OrNode(:final children)
+        when children.length == 1:
+      return flattenOneChildGroups(children.single);
+    case AndNode(:final children):
+      return AndNode([for (final c in children) flattenOneChildGroups(c)]);
+    case OrNode(:final children):
+      return OrNode([for (final c in children) flattenOneChildGroups(c)]);
+    case NotNode(:final child):
+      final inner = flattenOneChildGroups(child);
+      return inner is NotNode ? inner.child : NotNode(inner);
+    case ScopedNode(:final path, :final inner):
+      return ScopedNode(path, flattenOneChildGroups(inner));
+    case ConditionNode():
+    case TextNode():
+      return node;
+  }
+}
+
 /// The chips: one per top-level AND child, or the node itself.
 List<QueryNode> topLevelConjuncts(QueryNode? node) => switch (node) {
   null => const [],

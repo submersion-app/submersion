@@ -8066,6 +8066,24 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_search_manageSaved => '管理';
+
+  @override
+  String get diveLog_search_recentTitle => '最近';
+
+  @override
+  String get diveLog_search_recentTyped => '输入的搜索';
+
+  @override
+  String get diveLog_search_recentAsked => '提出的问题';
+
+  @override
+  String get diveLog_search_hintsTitle => '试试';
+
+  @override
+  String get diveLog_search_hintAsk => '或提出问题';
+
+  @override
   String get diveLog_search_openInsights => '在洞察中打开';
 
   @override

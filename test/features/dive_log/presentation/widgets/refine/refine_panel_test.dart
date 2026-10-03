@@ -88,7 +88,8 @@ void main() {
     expect(find.text('Show dives'), findsOneWidget);
   });
 
-  testWidgets('a saved query applies at once, keeping other axes', (
+  // Spec 5.4 (#2773): a saved search is the whole search; the axes clear.
+  testWidgets('a saved query loads as the whole search, axes cleared', (
     tester,
   ) async {
     final depth = ConditionNode(
@@ -116,9 +117,7 @@ void main() {
     );
     await tester.tap(find.widgetWithText(ActionChip, 'Deep'));
     await tester.pumpAndSettle();
-    expect(c.read(t).query, depth);
-    expect(c.read(t).minDepth, 30);
-    expect(c.read(t).axesSuspended, isFalse);
+    expect(c.read(t), DiveFilterState(query: depth));
     expect(find.byType(RefinePanel), findsNothing);
   });
 

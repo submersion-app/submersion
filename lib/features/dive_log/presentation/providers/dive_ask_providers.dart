@@ -7,6 +7,7 @@ import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/explore/data/recent_query_repository.dart';
 import 'package:submersion/features/explore/domain/entity_resolver.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/features/explore/domain/explore_compiler.dart';
@@ -136,6 +137,33 @@ class DiveAskNotifier extends StateNotifier<AskState> {
       _fail(request, NlError.unknown);
     }
     return null;
+  }
+
+  /// A recent asked sentence: its stored parse when the current prompt
+  /// wrote it (no model call), otherwise the model again, so an older
+  /// parse's invented period is not replayed (#2838).
+  Future<String?> replay(RecentQuery recent) async {
+    final parsed = recent.parsed;
+    if (parsed == null) return ask(recent.sentence);
+    final request = ++_request;
+    state = const AskState(running: true);
+    try {
+      final names = await _ref.read(exploreNameIndexProvider.future);
+      if (request != _request) return null;
+      return _publish(
+        AskAnswer(
+          sentence: recent.sentence,
+          parsed: parsed,
+          compiled: _compile(parsed, names),
+          previousQuery: _ref.read(diveFilterProvider).query,
+        ),
+        handOff: true,
+      );
+    } catch (e, stackTrace) {
+      _log.error('Replaying a recent failed', error: e, stackTrace: stackTrace);
+      _fail(request, NlError.unknown);
+      return null;
+    }
   }
 
   /// Pins mention [mentionIndex] to [entry] and recompiles. The label goes

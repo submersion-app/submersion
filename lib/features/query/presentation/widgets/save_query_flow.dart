@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/presentation/query_tree_edit.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
@@ -37,7 +38,13 @@ Future<void> saveQueryFromEditor(
     if (name == null || !context.mounted) return;
     await ref
         .read(savedQueryRepositoryProvider)
-        .create(subject: subject, name: name, node: node, diverId: diverId);
+        .create(
+          subject: subject,
+          name: name,
+          // Stored as it re-reads: a group of one prints without its group.
+          node: flattenOneChildGroups(node),
+          diverId: diverId,
+        );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.query_saved_snackbar(name))),

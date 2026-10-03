@@ -8465,6 +8465,24 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_search_manageSaved => 'Kezelés';
+
+  @override
+  String get diveLog_search_recentTitle => 'Legutóbbiak';
+
+  @override
+  String get diveLog_search_recentTyped => 'Begépelt keresés';
+
+  @override
+  String get diveLog_search_recentAsked => 'Feltett kérdés';
+
+  @override
+  String get diveLog_search_hintsTitle => 'Próbáld';
+
+  @override
+  String get diveLog_search_hintAsk => 'vagy tegyél fel egy kérdést';
+
+  @override
   String get diveLog_search_openInsights => 'Megnyitás az Elemzésekben';
 
   @override

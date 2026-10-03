@@ -328,6 +328,59 @@ void main() {
     expect(asked, 1);
   });
 
+  testWidgets('Enter calls onSubmitted', (tester) async {
+    var submitted = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: QueryTextField(
+            context: context,
+            value: null,
+            onChanged: (_) {},
+            onSubmitted: () => submitted++,
+            fieldKey: fieldKey,
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(find.byKey(fieldKey), 'manta');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    expect(submitted, 1);
+  });
+
+  testWidgets('a committing override applies the text as if typed', (
+    tester,
+  ) async {
+    QueryNode? committed;
+    final texts = <String>[];
+    late StateSetter setOuter;
+    QueryTextOverride? override;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (ctx, setState) {
+              setOuter = setState;
+              return QueryTextField(
+                context: context,
+                value: null,
+                onChanged: (n) => committed = n,
+                onTextChanged: texts.add,
+                textOverride: override,
+                fieldKey: fieldKey,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    setOuter(() => override = QueryTextOverride('manta', commit: true));
+    await tester.pump();
+    await tester.pump();
+    expect(committed, TextNode(['manta']));
+    expect(texts, ['manta']);
+  });
+
   testWidgets('a valid query is committed', (tester) async {
     QueryNode? committed;
     await tester.pumpWidget(host(value: null, onChanged: (n) => committed = n));
