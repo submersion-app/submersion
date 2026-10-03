@@ -51,7 +51,12 @@ final diveComputerEventsProvider =
         ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
       );
       final dbEvents = await repository.getEventsForDive(diveId);
-      return dbEvents.map(mapDiveProfileEventToProfileEvent).toList();
+      // The manufacturer tells the marker label whether an event's value is
+      // a Suunto native code (#1523).
+      return withComputerManufacturers(
+        dbEvents.map(mapDiveProfileEventToProfileEvent).toList(),
+        (id) async => (await repository.getComputerById(id))?.manufacturer,
+      );
     });
 
 /// Combines pressure data from one or more tanks into a single pressure series.
@@ -1057,12 +1062,18 @@ ProfileAnalysisService _analysisServiceFor(AnalysisSettings inputs) =>
 /// that computer's tanks plus unattributed (manually added) tanks, which
 /// belong to the dive rather than to either computer.
 ///
+/// [perSource] marks the analysis of one data source's samples rather than
+/// the whole dive. It scopes which computer's events displace computed ones
+/// (see [mergeEvents]), and is what tells a source with no computer apart
+/// from a dive-level analysis, since both pass a null [computerId].
+///
 /// Throws on failure; callers wrap with their own error handling.
 Future<ProfileAnalysis?> computeAnalysisForProfile(
   Ref ref,
   Dive dive,
   List<DiveProfilePoint> profile, {
   String? computerId,
+  bool perSource = false,
 }) async {
   {
     // Every settings-derived input below (gradient factors, ppO2 and ascent
@@ -1094,7 +1105,13 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       );
       return dbEvents.isEmpty
           ? analysis
-          : analysis.copyWith(events: mergeEvents(analysis.events, dbEvents));
+          : analysis.copyWith(
+              events: mergeEvents(
+                analysis.events,
+                dbEvents,
+                analyzedSource: perSource ? (computerId: computerId) : null,
+              ),
+            );
     }
     final tanks = computerId == null
         ? dive.tanks
@@ -1336,7 +1353,11 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     if (dbEvents.isEmpty) {
       return withCns;
     }
-    final merged = mergeEvents(withCns.events, dbEvents);
+    final merged = mergeEvents(
+      withCns.events,
+      dbEvents,
+      analyzedSource: perSource ? (computerId: computerId) : null,
+    );
     return withCns.copyWith(events: merged);
   }
 }
@@ -1410,6 +1431,7 @@ final sourceProfileAnalysisProvider =
           dive,
           sourceProfile.points,
           computerId: sourceProfile.computerId,
+          perSource: true,
         );
       } catch (e, stackTrace) {
         _log.error(

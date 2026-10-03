@@ -13,16 +13,17 @@
 /// marker. The older `DiveEvents` *object* shape has no `Active` field -- treat
 /// it as a begin.
 ///
-/// The native code is stored on `DownloadedEvent.value` and is inert today; a
-/// consumer that decodes it (`suuntoNauticEventLabel`, currently on the
-/// Suunto Nautic fork) can render the exact Suunto wording.
+/// The native code is stored on `DownloadedEvent.value`, and from there on the
+/// event's `value` column; `SuuntoNativeEvent.of` decodes it so the profile
+/// marker shows the watch's exact wording (#1523).
 library;
 
 /// The libdivecomputer event-type string and native code for one cloud event.
 class SuuntoCloudEvent {
   const SuuntoCloudEvent(this.downloadedType, [this.nativeCode]);
 
-  /// A value `_mapEventTypeString` understands.
+  /// A value `_mapEventTypeString` understands. Where libdivecomputer has no
+  /// event type precise enough, this names the `ProfileEventType` directly.
   final String downloadedType;
 
   /// `(sub-group << 8) | type` for the sub-group it was found under, or null
@@ -39,13 +40,11 @@ const int _ooam = 0x1D;
 /// `subgroup key` → (`Type` string → mapping). Types deliberately left out
 /// (Battery, Sidemount, "... Ahead" predictive states, Recovery time, Setpoint
 /// on an OC watch, bearings/stopwatch) resolve to `null` and are not imported.
-///
-/// `Warning "NoDecoTime"` and `State "Ndl exceeded"` are also left out for now:
-/// they map to informational states (low no-deco time / became a deco dive)
-/// with no libdivecomputer event type yet.
 const Map<String, Map<String, SuuntoCloudEvent>> _table = {
   'Alarm': {
-    'PO2 Low': SuuntoCloudEvent('PO2', (_alarm << 8) | 1),
+    // libdivecomputer's 'PO2' reads as high ppO2, so the low alarm names its
+    // own type.
+    'PO2 Low': SuuntoCloudEvent('ppO2Low', (_alarm << 8) | 1),
     'PO2 High': SuuntoCloudEvent('PO2', (_alarm << 8) | 2),
     'Tank Pressure': SuuntoCloudEvent('airtime', (_alarm << 8) | 3),
     'Gas Time': SuuntoCloudEvent('airtime', (_alarm << 8) | 4),
@@ -54,17 +53,21 @@ const Map<String, Map<String, SuuntoCloudEvent>> _table = {
     'CNS100%': SuuntoCloudEvent('cnsCritical', (_alarm << 8) | 7),
     'OTU300': SuuntoCloudEvent('cnsCritical', (_alarm << 8) | 8),
     'Deco Stop Broken': SuuntoCloudEvent('ceiling', (_alarm << 8) | 10),
-    'Deep Stop Broken': SuuntoCloudEvent('deepstop', (_alarm << 8) | 12),
+    // 'deepstop' is the stop itself and would read as a stop start; breaking
+    // it is a violation.
+    'Deep Stop Broken': SuuntoCloudEvent('violation', (_alarm << 8) | 12),
     'Safety Stop Broken': SuuntoCloudEvent('missedStop', (_alarm << 8) | 13),
   },
   'Warning': {
     'User PO2 High': SuuntoCloudEvent('PO2', (_warning << 8) | 6),
     'CNS80%': SuuntoCloudEvent('cnsWarning', (_warning << 8) | 14),
     'OTU250': SuuntoCloudEvent('cnsWarning', (_warning << 8) | 15),
+    'NoDecoTime': SuuntoCloudEvent('lowNoDecoTime', (_warning << 8) | 20),
     'User Tank Pressure': SuuntoCloudEvent('airtime', (_warning << 8) | 28),
     'User Gas Time': SuuntoCloudEvent('airtime', (_warning << 8) | 29),
   },
   'State': {
+    'Ndl exceeded': SuuntoCloudEvent('decompressionDive', (_state << 8) | 19),
     'At Deco Stop': SuuntoCloudEvent('deco', (_state << 8) | 35),
     'At Deep Stop': SuuntoCloudEvent('deepstop', (_state << 8) | 36),
     'At Safety Stop': SuuntoCloudEvent('safetystop', (_state << 8) | 37),
@@ -88,3 +91,9 @@ SuuntoCloudEvent? suuntoCloudEvent(String subgroup, String? type) {
   if (type == null) return null;
   return _table[subgroup]?[type];
 }
+
+/// Every `(subgroup, Type)` pair [suuntoCloudEvent] recognizes.
+Iterable<(String, String)> get suuntoCloudEventKeys => [
+  for (final MapEntry(key: subgroup, value: types) in _table.entries)
+    for (final type in types.keys) (subgroup, type),
+];

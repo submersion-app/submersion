@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
@@ -96,6 +97,31 @@ void main() {
     await c.read(exploreAvailabilityProvider.future);
     expect((c.read(nlEngineProvider) as _FakeEngine).askedLocale, 'de');
   });
+
+  test(
+    'following the system, a re-probe reads the device language now',
+    () async {
+      // The device language can change while the app runs; a re-probe (the
+      // download flow invalidates the probe) must not reuse the first answer.
+      var device = const Locale('en', 'US');
+      final engine = _FakeEngine(NlAvailability.available);
+      final c = ProviderContainer(
+        overrides: [
+          nlEngineProvider.overrideWithValue(engine),
+          explorePlatformSupportedProvider.overrideWithValue(true),
+          localeProvider.overrideWithValue('system'),
+          exploreDeviceLocaleProvider.overrideWithValue(() => device),
+        ],
+      );
+      addTearDown(c.dispose);
+      await c.read(exploreAvailabilityProvider.future);
+      expect(engine.askedLocale, 'en-US');
+      device = const Locale('de', 'DE');
+      c.invalidate(exploreAvailabilityProvider);
+      await c.read(exploreAvailabilityProvider.future);
+      expect(engine.askedLocale, 'de-DE');
+    },
+  );
 
   test('stays closed while a locale change re-probes', () async {
     // AsyncValue keeps the previous answer during a dependency-driven

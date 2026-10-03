@@ -1097,6 +1097,9 @@ void main() {
           EventData(timestamp: 300, type: 'cnsWarning'),
           EventData(timestamp: 600, type: 'cnsCritical'),
           EventData(timestamp: 900, type: 'missedStop'),
+          EventData(timestamp: 1000, type: 'ppO2Low'),
+          EventData(timestamp: 1100, type: 'lowNoDecoTime'),
+          EventData(timestamp: 1200, type: 'decompressionDive'),
         ],
         forceNew: true,
       );
@@ -1110,8 +1113,18 @@ void main() {
         'cnsWarning',
         'cnsCritical',
         'missedStop',
+        'ppO2Low',
+        'lowNoDecoTime',
+        'decompressionDive',
       ]);
-      expect(events.map((e) => e.severity), ['warning', 'alert', 'alert']);
+      expect(events.map((e) => e.severity), [
+        'warning',
+        'alert',
+        'alert',
+        'alert',
+        'warning',
+        'info',
+      ]);
     });
 
     test('a no-deco profile defaults the dive type to recreational', () async {

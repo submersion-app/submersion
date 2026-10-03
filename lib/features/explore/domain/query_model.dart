@@ -7,13 +7,20 @@ library;
 
 import 'dart:convert';
 
-const int kQuerySchemaVersion = 3;
+const int kQuerySchemaVersion = 4;
 
 /// The oldest schema version a stored or model-written parse may carry.
 /// Versions 2 and 3 only added fields and units (3: each subject's own
-/// fields, phase 3), so every older payload is a valid current one and a
-/// diver's recent sentences survive the bumps.
+/// fields, phase 3), and 4 only changed how time is written, so every older
+/// payload is a valid current one and a diver's recent sentences survive the
+/// bumps.
 const int kMinReadableQuerySchemaVersion = 1;
+
+/// The oldest prompt whose stored parse is worth replaying. Before version 4
+/// the model filled the optional time object for nearly every sentence,
+/// usually with "this year" (#2838), so an older recent sentence is asked
+/// again rather than replayed with a window the diver never asked for.
+const int kMinReplayableQuerySchemaVersion = 4;
 
 enum ParsedSubject { dives, equipment, sites, buddies, species, trips, centers }
 
@@ -116,7 +123,6 @@ class QueryMention {
 class QueryTime {
   final String text;
   const QueryTime(this.text);
-  Map<String, Object?> toJson() => {'text': text};
 }
 
 class ParsedQuery {
@@ -214,12 +220,7 @@ class ParsedQuery {
         ),
       );
     }
-    final rawTime = json['time'];
-    QueryTime? time;
-    if (rawTime != null) {
-      final text = _map(rawTime, 'time')['text'];
-      if (text is String && text.trim().isNotEmpty) time = QueryTime(text);
-    }
+    final time = _time(json['time']);
     final unplaced = _list(
       json['unplaced'],
       'unplaced',
@@ -238,7 +239,7 @@ class ParsedQuery {
     'subject': subject.name,
     'clauses': clauses.map((c) => c.toJson()).toList(),
     'mentions': mentions.map((m) => m.toJson()).toList(),
-    'time': time?.toJson(),
+    'time': time?.text,
     'unplaced': unplaced,
   };
 
@@ -273,6 +274,21 @@ class ParsedQuery {
     mentions: mentions,
     unplaced: unplaced,
   );
+}
+
+/// Version 4 writes time as a string, "none" when the sentence names no
+/// period; versions 1 to 3 wrote an optional `{"text": ...}` object, which a
+/// stored parse or a prompt-only adapter may still carry.
+QueryTime? _time(Object? raw) {
+  final text = switch (raw) {
+    null => null,
+    final String s => s,
+    _ => _map(raw, 'time')['text'],
+  };
+  if (text is! String) return null;
+  final trimmed = text.trim();
+  if (trimmed.isEmpty || trimmed.toLowerCase() == 'none') return null;
+  return QueryTime(trimmed);
 }
 
 /// A constrained decoder with one type per property may quote a number, a

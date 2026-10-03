@@ -175,7 +175,7 @@ void main() {
     });
 
     test('verifies https://submersion.app/c as an app link', () {
-      final filter = viewFiltersWithScheme('https').single;
+      final filter = viewFiltersWithScheme('https').first;
       expect(filter.getAttribute('autoVerify', namespaceUri: android), 'true');
       final data = filter.findElements('data').single;
       expect(
@@ -183,6 +183,46 @@ void main() {
         'submersion.app',
       );
       expect(data.getAttribute('path', namespaceUri: android), '/c');
+    });
+
+    test('every https filter is a complete app link', () {
+      // Play Console reads any filter naming an https host as a web link and
+      // reports "Link not working" for one that lacks VIEW or BROWSABLE, even
+      // the NFC filter, which never needed them.
+      final httpsFilters = activity
+          .findElements('intent-filter')
+          .where(
+            (f) => f
+                .findElements('data')
+                .any(
+                  (d) =>
+                      d.getAttribute('scheme', namespaceUri: android) ==
+                      'https',
+                ),
+          )
+          .toList();
+      expect(httpsFilters, isNotEmpty);
+      for (final filter in httpsFilters) {
+        expect(
+          filter
+              .findElements('action')
+              .map((a) => a.getAttribute('name', namespaceUri: android)),
+          contains('android.intent.action.VIEW'),
+        );
+        expect(
+          filter
+              .findElements('category')
+              .map((c) => c.getAttribute('name', namespaceUri: android)),
+          containsAll([
+            'android.intent.category.DEFAULT',
+            'android.intent.category.BROWSABLE',
+          ]),
+        );
+        expect(
+          filter.getAttribute('autoVerify', namespaceUri: android),
+          'true',
+        );
+      }
     });
 
     test('opens submersion://c links', () {

@@ -2752,6 +2752,9 @@ class DiveComputerRepository {
       case 'cnsWarning':
       case 'cnsCritical':
       case 'missedStop':
+      case 'ppO2Low':
+      case 'lowNoDecoTime':
+      case 'decompressionDive':
         return type;
       default:
         return null;
@@ -2765,12 +2768,14 @@ class DiveComputerRepository {
     switch (eventType) {
       case 'decoViolation':
       case 'ppO2High':
+      case 'ppO2Low':
       case 'cnsCritical':
       case 'missedStop':
         return 'alert';
       case 'ascentRateWarning':
       case 'lowGas':
       case 'cnsWarning':
+      case 'lowNoDecoTime':
         return 'warning';
       case 'safetyStopStart':
       case 'decoStopStart':

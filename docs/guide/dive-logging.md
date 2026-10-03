@@ -76,6 +76,25 @@ You can add multiple tanks per dive:
 <strong>Tank Presets:</strong> Use preset buttons like "AL80" or "HP100" to quickly fill in common tank configurations.
 </div>
 
+### Tanks or Equipment?
+
+Gas & Gear has two lists that can both hold a cylinder. They do different jobs:
+
+| List | What it records | What uses it |
+|------|-----------------|--------------|
+| **Tanks** | What you breathed from on this dive: size, gas mix, start and end pressure, role | Gas graphs on the profile, gas consumption (SAC and RMV), gas switches, deco and oxygen calculations, and gas statistics |
+| **Equipment** | Which items from your gear catalog you used | Each item's dive count, service reminders, gear statistics |
+
+A cylinder in **Equipment** adds no gas data to the dive. Adding a Tank item from your gear catalog, on its own or through a set, does not create a tank. To get graphs and consumption for it, add it under **Tanks** as well.
+
+One cylinder can be on a dive in both lists, and for a cylinder you own that is the normal case: the Equipment entry counts the dive toward that cylinder's history, and the tank holds this dive's gas and pressures. The tank copies the cylinder's details when you fill it in. It does not stay linked, so later changes to the cylinder in your catalog do not rewrite past dives.
+
+To fill a tank from a cylinder you own, open the tank and tap **Fill from my cylinders** (the box icon next to the tag scanner), then choose the cylinder. Submersion copies its size, working pressure, material and latest recorded fill into the tank and adds the cylinder to the dive's **Equipment**. Scanning a cylinder's tag does the same.
+
+The button appears when your gear catalog has a Tank item in use. Spare cylinders are not listed. A cylinder another diver profile has shared with you is listed with its owner's name, and using it adds it to this dive's equipment the same way.
+
+When a dive computer downloads pressures from an air-integrated transmitter you have registered, the tank is matched to that cylinder automatically.
+
 ### Technical Diving
 
 For technical divers, additional fields are available:
@@ -173,11 +192,11 @@ Submersion automatically numbers your dives:
 
 Link equipment to each dive:
 
-1. Scroll to the **Equipment** section
-2. Tap **Add Equipment**
+1. Open **Gas & Gear** and find the **Equipment** list
+2. Tap **Add**, or **Use Set** to add a whole equipment set
 3. Select items from your gear catalog
 
-This helps track usage and when gear needs service.
+This helps track usage and when gear needs service. A cylinder listed here does not feed gas graphs or consumption; see [Tanks or Equipment?](guide/dive-logging.md?id=tanks-or-equipment).
 
 ## Weight Tracking
 

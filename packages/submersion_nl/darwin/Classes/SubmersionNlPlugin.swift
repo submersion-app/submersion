@@ -136,7 +136,10 @@ public class SubmersionNlPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   /// Builds the schema v1 shape from the vocabulary Dart shipped, so the enum
   /// lists are owned in one place and the model cannot emit a field or op the
   /// compiler does not know. `value` is a string: a property has one type, and
-  /// the Dart side unquotes numbers, lists and booleans.
+  /// the Dart side unquotes numbers, lists and booleans. `time` is a required
+  /// string, "none" when the sentence names no period: as an optional object
+  /// the model filled it for nearly every sentence, usually with "this year"
+  /// (#2838).
   @available(iOS 26.0, macOS 26.0, *)
   private static func querySchema(_ vocab: [String: Any]) -> DynamicGenerationSchema {
     func strings(_ key: String) -> [String] { vocab[key] as? [String] ?? [] }
@@ -155,9 +158,6 @@ public class SubmersionNlPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
         .init(name: "kind", schema: DynamicGenerationSchema(name: "Kind", anyOf: strings("mentionKinds"))),
         .init(name: "text", schema: DynamicGenerationSchema(type: String.self)),
       ])
-    let time = DynamicGenerationSchema(
-      name: "Time",
-      properties: [.init(name: "text", schema: DynamicGenerationSchema(type: String.self))])
     return DynamicGenerationSchema(
       name: "ParsedQuery",
       properties: [
@@ -165,7 +165,7 @@ public class SubmersionNlPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
         .init(name: "subject", schema: DynamicGenerationSchema(name: "Subject", anyOf: strings("subjects"))),
         .init(name: "clauses", schema: DynamicGenerationSchema(arrayOf: clause)),
         .init(name: "mentions", schema: DynamicGenerationSchema(arrayOf: mention)),
-        .init(name: "time", schema: time, isOptional: true),
+        .init(name: "time", schema: DynamicGenerationSchema(type: String.self)),
         .init(name: "unplaced", schema: DynamicGenerationSchema(arrayOf: DynamicGenerationSchema(type: String.self))),
       ])
   }

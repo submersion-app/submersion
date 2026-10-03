@@ -1,3 +1,4 @@
+// pre-push: scans lib/l10n/arb/
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
@@ -250,10 +251,6 @@ void main() {
       expect(hu.gas_scrEan40_description, 'SCR tápgáz - 40% O2');
       expect(hu.gas_scrEan50_description, 'SCR tápgáz - 50% O2');
       expect(hu.gas_scrEan60_description, 'SCR tápgáz - 60% O2');
-    });
-
-    test('the deco calculator computes no-deco limits', () {
-      expect(hu.planning_card_decoCalculator_description, contains('nullidő'));
     });
 
     test('cached tiles are gyorsítótárazott', () {

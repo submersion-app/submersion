@@ -317,6 +317,17 @@ static gpointer download_thread_func(gpointer data) {
   auto* td = static_cast<DownloadThreadData*>(data);
   HostApiContext* ctx = td->ctx;
 
+  // Only the BLE and serial/USB paths below have a byte pipe, and the routing
+  // further down treats everything that is not BLE as serial, so an infrared
+  // device would probe serial ports. Reject it as Android and Darwin do
+  // (issue #2841).
+  if (td->transport == LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_INFRARED) {
+    send_error_from_thread(ctx, "unsupported_transport",
+                           "Infrared transport is not supported on Linux");
+    download_thread_data_free(td);
+    return nullptr;
+  }
+
   // Create download session. The session holds a dc_context_t (logging) and a
   // cancelled flag. It is intentionally reused across multiple libdc_download_run
   // calls during multi-port probing — each call creates its own internal state.
