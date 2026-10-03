@@ -175,13 +175,9 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
           child: SavedQueryChipRow(
             subject: QuerySubject.dives,
             onApply: (load) {
-              final notifier = ref.read(widget.filterProvider.notifier);
-              // At once, keeping the other axes (PR 4 makes this the whole
-              // saved search).
-              notifier.state = notifier.state.copyWith(
+              // The whole saved search (spec 5.4): the axes clear.
+              ref.read(widget.filterProvider.notifier).state = DiveFilterState(
                 query: load.node,
-                clearQuery: load.node == null,
-                axesSuspended: false,
               );
               widget.onApplied?.call();
               _close();
