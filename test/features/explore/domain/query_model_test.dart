@@ -244,6 +244,35 @@ void main() {
       'clauses': const [],
     });
     expect(q.subject, ParsedSubject.dives);
-    expect(kQuerySchemaVersion, 3);
+    expect(kQuerySchemaVersion, 4);
+  });
+
+  group('time (#2838)', () {
+    ParsedQuery withTime(Object? time) =>
+        ParsedQuery.fromJson(sample()..['time'] = time);
+
+    test('version 4 writes time as a string, "none" when there is none', () {
+      expect(withTime('last year').time?.text, 'last year');
+      expect(withTime('none').time, isNull);
+      expect(withTime(' None ').time, isNull);
+      expect(withTime('').time, isNull);
+      expect(withTime(null).time, isNull);
+    });
+
+    test('the object form of versions 1 to 3 still reads', () {
+      expect(withTime({'text': 'since 2022'}).time?.text, 'since 2022');
+      expect(withTime({'text': ''}).time, isNull);
+    });
+
+    test('a time of another type is a schema mismatch', () {
+      expect(() => withTime(2023), throwsA(isA<QuerySchemaException>()));
+    });
+
+    test('toJson writes the version 4 form and reads it back', () {
+      final q = withTime('May 2023');
+      expect(q.toJson()['time'], 'May 2023');
+      expect(ParsedQuery.fromJson(q.toJson()).time?.text, 'May 2023');
+      expect(withTime('none').toJson()['time'], isNull);
+    });
   });
 }

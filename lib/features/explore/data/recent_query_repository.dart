@@ -10,7 +10,10 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 class RecentQuery {
   final String sentence;
   final String locale;
-  final ParsedQuery parsed;
+
+  /// The stored parse, or null when an older prompt wrote it and the
+  /// sentence must be asked again (see [kMinReplayableQuerySchemaVersion]).
+  final ParsedQuery? parsed;
   final DateTime lastUsedAt;
   const RecentQuery({
     required this.sentence,
@@ -61,9 +64,11 @@ class RecentQueryRepository {
         continue;
       }
       try {
-        final parsed = ParsedQuery.fromJson(
-          (jsonDecode(r.parsedJson) as Map).cast<String, Object?>(),
-        );
+        final parsed = r.schemaVersion < kMinReplayableQuerySchemaVersion
+            ? null
+            : ParsedQuery.fromJson(
+                (jsonDecode(r.parsedJson) as Map).cast<String, Object?>(),
+              );
         out.add(
           RecentQuery(
             sentence: r.sentence,
