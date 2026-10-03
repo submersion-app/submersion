@@ -25553,6 +25553,32 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_itinerary_daySaveError => '无法保存日程，请重试。';
 
   @override
+  String get trips_itinerary_empty => '还没有行程。根据旅行日期生成一个，或随时添加天数。';
+
+  @override
+  String get trips_itinerary_fillMissing => '补全缺少的天数';
+
+  @override
+  String trips_itinerary_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '计划 $count 次潜水',
+      one: '计划 1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_itinerary_plannedDives_label => '计划潜水次数';
+
+  @override
+  String get trips_itinerary_plannedDives_invalid => '请输入整数的潜水次数，或留空。';
+
+  @override
+  String get trips_itinerary_location_label => '地点';
+
+  @override
   String get trips_vesselType_catamaran => '双体船';
 
   @override

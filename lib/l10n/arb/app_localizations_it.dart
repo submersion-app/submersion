@@ -26913,6 +26913,34 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile salvare la giornata. Riprova.';
 
   @override
+  String get trips_itinerary_empty =>
+      'Nessun itinerario ancora. Generane uno dalle date del viaggio o aggiungi i giorni man mano.';
+
+  @override
+  String get trips_itinerary_fillMissing => 'Completa i giorni mancanti';
+
+  @override
+  String trips_itinerary_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni pianificate',
+      one: '1 immersione pianificata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_itinerary_plannedDives_label => 'Immersioni pianificate';
+
+  @override
+  String get trips_itinerary_plannedDives_invalid =>
+      'Inserisci un numero intero di immersioni o lascia vuoto.';
+
+  @override
+  String get trips_itinerary_location_label => 'Luogo';
+
+  @override
   String get trips_vesselType_catamaran => 'Catamaran';
 
   @override

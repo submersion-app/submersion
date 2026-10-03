@@ -7821,6 +7821,19 @@
   "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "Não foi possível carregar o itinerário.",
   "trips_itinerary_daySaveError": "Não foi possível guardar o dia. Tente novamente.",
+  "trips_itinerary_empty": "Ainda sem itinerário. Gere um a partir das datas da viagem ou adicione dias à medida que avança.",
+  "trips_itinerary_fillMissing": "Preencher dias em falta",
+  "trips_itinerary_plannedDives": "{count, plural, =1{{count} mergulho planeado} other{{count} mergulhos planeados}}",
+  "@trips_itinerary_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_itinerary_plannedDives_label": "Mergulhos planeados",
+  "trips_itinerary_plannedDives_invalid": "Introduza um número inteiro de mergulhos ou deixe em branco.",
+  "trips_itinerary_location_label": "Local",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_list_button_retry": "Tentar novamente",

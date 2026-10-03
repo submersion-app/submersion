@@ -27011,6 +27011,34 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'enregistrer la journée. Réessayez.';
 
   @override
+  String get trips_itinerary_empty =>
+      'Pas encore d\'itinéraire. Générez-en un à partir des dates du voyage, ou ajoutez des jours au fur et à mesure.';
+
+  @override
+  String get trips_itinerary_fillMissing => 'Compléter les jours manquants';
+
+  @override
+  String trips_itinerary_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées prévues',
+      one: '$count plongée prévue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_itinerary_plannedDives_label => 'Plongées prévues';
+
+  @override
+  String get trips_itinerary_plannedDives_invalid =>
+      'Saisissez un nombre entier de plongées, ou laissez vide.';
+
+  @override
+  String get trips_itinerary_location_label => 'Lieu';
+
+  @override
   String get trips_vesselType_catamaran => 'Catamaran';
 
   @override

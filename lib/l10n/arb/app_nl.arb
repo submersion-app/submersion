@@ -7821,6 +7821,19 @@
   "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "Kan het reisschema niet laden.",
   "trips_itinerary_daySaveError": "Kan de dag niet opslaan. Probeer het opnieuw.",
+  "trips_itinerary_empty": "Nog geen reisschema. Maak er een van de reisdata, of voeg dagen toe terwijl je gaat.",
+  "trips_itinerary_fillMissing": "Ontbrekende dagen aanvullen",
+  "trips_itinerary_plannedDives": "{count, plural, =1{1 duik gepland} other{{count} duiken gepland}}",
+  "@trips_itinerary_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_itinerary_plannedDives_label": "Geplande duiken",
+  "trips_itinerary_plannedDives_invalid": "Voer een heel aantal duiken in, of laat het leeg.",
+  "trips_itinerary_location_label": "Locatie",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_list_button_retry": "Opnieuw proberen",

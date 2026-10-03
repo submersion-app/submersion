@@ -26720,6 +26720,34 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan de dag niet opslaan. Probeer het opnieuw.';
 
   @override
+  String get trips_itinerary_empty =>
+      'Nog geen reisschema. Maak er een van de reisdata, of voeg dagen toe terwijl je gaat.';
+
+  @override
+  String get trips_itinerary_fillMissing => 'Ontbrekende dagen aanvullen';
+
+  @override
+  String trips_itinerary_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken gepland',
+      one: '1 duik gepland',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_itinerary_plannedDives_label => 'Geplande duiken';
+
+  @override
+  String get trips_itinerary_plannedDives_invalid =>
+      'Voer een heel aantal duiken in, of laat het leeg.';
+
+  @override
+  String get trips_itinerary_location_label => 'Locatie';
+
+  @override
   String get trips_vesselType_catamaran => 'Catamaran';
 
   @override

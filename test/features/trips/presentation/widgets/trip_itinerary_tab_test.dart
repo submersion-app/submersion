@@ -35,6 +35,23 @@ ItineraryDay _row(String id, DateTime date, int storedNumber) => ItineraryDay(
   updatedAt: DateTime(2026, 1, 1),
 );
 
+Trip _resortTrip() => Trip(
+  id: 'trip-1',
+  name: 'Bonaire',
+  startDate: DateTime(2026, 3, 6),
+  endDate: DateTime(2026, 3, 10),
+  tripType: TripType.resort,
+  createdAt: DateTime(2026, 1, 1),
+  updatedAt: DateTime(2026, 1, 1),
+);
+
+/// An updateDay that records the day it was given.
+class _RecordingItineraryRepo extends ItineraryDayRepository {
+  final updated = <ItineraryDay>[];
+  @override
+  Future<void> updateDay(ItineraryDay day) async => updated.add(day);
+}
+
 /// An updateDay that fails the way a locked database does.
 class _FailingItineraryRepo extends ItineraryDayRepository {
   @override
@@ -205,5 +222,160 @@ void main() {
 
     expect(find.text("Couldn't save the day. Try again."), findsOneWidget);
     expect(find.textContaining('database is locked'), findsNothing);
+  });
+
+  testWidgets('an empty itinerary explains itself and offers Generate', (
+    tester,
+  ) async {
+    await _pumpTab(tester, trip: _resortTrip(), days: const []);
+    expect(
+      find.text(
+        'No itinerary yet. Generate one from the trip dates, or add days as '
+        'you go.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Generate itinerary'), findsOneWidget);
+    expect(find.text('No dives'), findsNothing);
+  });
+
+  testWidgets('a partial itinerary offers Fill in missing days above the '
+      'list', (tester) async {
+    await _pumpTab(tester, trip: _resortTrip(), days: staleRows);
+    expect(find.text('Fill in missing days'), findsOneWidget);
+    expect(find.text('Day 2'), findsOneWidget);
+  });
+
+  testWidgets('a day ahead with a plan says how many dives', (tester) async {
+    final planned = _row(
+      'p',
+      DateTime(2026, 3, 9),
+      4,
+    ).copyWith(plannedDives: 3);
+    await _pumpTab(tester, trip: _resortTrip(), days: [planned]);
+    expect(find.text('3 dives planned'), findsOneWidget);
+  });
+
+  testWidgets('off a boat the sheet labels the place Location and offers '
+      'land day types', (tester) async {
+    await _pumpTab(tester, trip: _resortTrip(), days: staleRows);
+    await tester.tap(find.text('Day 2'));
+    await tester.pumpAndSettle();
+    expect(find.text('Location'), findsOneWidget);
+    expect(find.text('Port / Anchorage'), findsNothing);
+    await tester.tap(find.byType(DropdownButtonFormField<DayType>));
+    await tester.pumpAndSettle();
+    expect(find.text('Travel').hitTestable(), findsOneWidget);
+    expect(find.text('Rest').hitTestable(), findsOneWidget);
+    expect(find.text('Embark').hitTestable(), findsNothing);
+  });
+
+  testWidgets('on a boat the sheet keeps Port / Anchorage and the maritime '
+      'types', (tester) async {
+    await _pumpTab(tester, trip: _trip(DateTime(2026, 3, 6)), days: staleRows);
+    await tester.tap(find.text('Day 2'));
+    await tester.pumpAndSettle();
+    expect(find.text('Port / Anchorage'), findsOneWidget);
+    await tester.tap(find.byType(DropdownButtonFormField<DayType>));
+    await tester.pumpAndSettle();
+    expect(find.text('Embark').hitTestable(), findsOneWidget);
+    expect(find.text('Travel').hitTestable(), findsOneWidget);
+  });
+
+  testWidgets('a sea day on a resort trip keeps its type', (tester) async {
+    final sea = ItineraryDay(
+      id: 'sea',
+      tripId: 'trip-1',
+      dayNumber: 2,
+      date: DateTime(2026, 3, 7),
+      dayType: DayType.seaDay,
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+    final repo = _RecordingItineraryRepo();
+    await _pumpTab(
+      tester,
+      trip: _resortTrip(),
+      days: [sea],
+      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+    );
+    await tester.tap(find.text('Day 2'));
+    await tester.pumpAndSettle();
+    // The dropdown shows the stored value even though a resort trip does
+    // not offer it.
+    expect(find.text('Sea Day'), findsWidgets);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(repo.updated.single.dayType, DayType.seaDay);
+  });
+
+  testWidgets(
+    'the sheet saves planned dives, and a dive day at 0 keeps its type',
+    (tester) async {
+      final repo = _RecordingItineraryRepo();
+      await _pumpTab(
+        tester,
+        trip: _resortTrip(),
+        days: staleRows,
+        extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+      );
+      await tester.tap(find.text('Day 2'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('itinerary-planned-dives')),
+        '0',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(repo.updated.single.plannedDives, 0);
+      // The spec: saving as Dive day with 0 keeps the type; the story still
+      // reads it as a planned rest day (TripStoryDay.isPlannedRest).
+      expect(repo.updated.single.dayType, DayType.diveDay);
+    },
+  );
+
+  testWidgets('saving a day as Rest plans it at none', (tester) async {
+    final repo = _RecordingItineraryRepo();
+    await _pumpTab(
+      tester,
+      trip: _resortTrip(),
+      days: staleRows,
+      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+    );
+    await tester.tap(find.text('Day 2'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButtonFormField<DayType>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rest').hitTestable());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(repo.updated.single.dayType, DayType.rest);
+    expect(repo.updated.single.plannedDives, 0);
+  });
+
+  testWidgets('a non-number in planned dives is refused in place', (
+    tester,
+  ) async {
+    final repo = _RecordingItineraryRepo();
+    await _pumpTab(
+      tester,
+      trip: _resortTrip(),
+      days: staleRows,
+      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+    );
+    await tester.tap(find.text('Day 2'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('itinerary-planned-dives')),
+      'two',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Enter a whole number of dives, or leave it blank.'),
+      findsOneWidget,
+    );
+    expect(repo.updated, isEmpty);
   });
 }

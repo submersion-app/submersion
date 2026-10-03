@@ -26836,6 +26836,34 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült menteni a napot. Próbáld újra.';
 
   @override
+  String get trips_itinerary_empty =>
+      'Még nincs útiterv. Készíts egyet az utazás dátumaiból, vagy adj hozzá napokat menet közben.';
+
+  @override
+  String get trips_itinerary_fillMissing => 'Hiányzó napok kitöltése';
+
+  @override
+  String trips_itinerary_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tervezett merülés',
+      one: '1 tervezett merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_itinerary_plannedDives_label => 'Tervezett merülések';
+
+  @override
+  String get trips_itinerary_plannedDives_invalid =>
+      'Adj meg egy egész számot, vagy hagyd üresen.';
+
+  @override
+  String get trips_itinerary_location_label => 'Helyszín';
+
+  @override
   String get trips_vesselType_catamaran => 'Catamaran';
 
   @override

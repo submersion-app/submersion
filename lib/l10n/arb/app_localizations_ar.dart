@@ -26587,6 +26587,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_itinerary_daySaveError => 'تعذّر حفظ اليوم. حاول مرة أخرى.';
 
   @override
+  String get trips_itinerary_empty =>
+      'لا يوجد برنامج رحلة بعد. أنشئ واحدًا من تواريخ الرحلة، أو أضف الأيام تباعًا.';
+
+  @override
+  String get trips_itinerary_fillMissing => 'إكمال الأيام الناقصة';
+
+  @override
+  String trips_itinerary_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصات مخططة',
+      one: 'غوصة واحدة مخططة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_itinerary_plannedDives_label => 'الغوصات المخططة';
+
+  @override
+  String get trips_itinerary_plannedDives_invalid =>
+      'أدخل عددًا صحيحًا من الغوصات، أو اتركه فارغًا.';
+
+  @override
+  String get trips_itinerary_location_label => 'الموقع';
+
+  @override
   String get trips_vesselType_catamaran => 'Catamaran';
 
   @override

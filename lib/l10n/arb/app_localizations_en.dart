@@ -26494,6 +26494,34 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t save the day. Try again.';
 
   @override
+  String get trips_itinerary_empty =>
+      'No itinerary yet. Generate one from the trip dates, or add days as you go.';
+
+  @override
+  String get trips_itinerary_fillMissing => 'Fill in missing days';
+
+  @override
+  String trips_itinerary_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives planned',
+      one: '1 dive planned',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_itinerary_plannedDives_label => 'Planned dives';
+
+  @override
+  String get trips_itinerary_plannedDives_invalid =>
+      'Enter a whole number of dives, or leave it blank.';
+
+  @override
+  String get trips_itinerary_location_label => 'Location';
+
+  @override
   String get trips_vesselType_catamaran => 'Catamaran';
 
   @override

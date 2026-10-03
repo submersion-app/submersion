@@ -16389,6 +16389,19 @@
   "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "Couldn't load the itinerary.",
   "trips_itinerary_daySaveError": "Couldn't save the day. Try again.",
+  "trips_itinerary_empty": "No itinerary yet. Generate one from the trip dates, or add days as you go.",
+  "trips_itinerary_fillMissing": "Fill in missing days",
+  "trips_itinerary_plannedDives": "{count, plural, =1{1 dive planned} other{{count} dives planned}}",
+  "@trips_itinerary_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_itinerary_plannedDives_label": "Planned dives",
+  "trips_itinerary_plannedDives_invalid": "Enter a whole number of dives, or leave it blank.",
+  "trips_itinerary_location_label": "Location",
   "trips_vesselType_catamaran": "Catamaran",
   "trips_vesselType_motorYacht": "Motor Yacht",
   "trips_vesselType_sailingYacht": "Sailing Yacht",

@@ -26278,6 +26278,34 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_itinerary_daySaveError => 'לא ניתן לשמור את היום. נסו שוב.';
 
   @override
+  String get trips_itinerary_empty =>
+      'אין עדיין מסלול. צרו אחד מתאריכי הטיול, או הוסיפו ימים תוך כדי.';
+
+  @override
+  String get trips_itinerary_fillMissing => 'השלמת ימים חסרים';
+
+  @override
+  String trips_itinerary_plannedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות מתוכננות',
+      one: 'צלילה אחת מתוכננת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_itinerary_plannedDives_label => 'צלילות מתוכננות';
+
+  @override
+  String get trips_itinerary_plannedDives_invalid =>
+      'הזינו מספר שלם של צלילות, או השאירו ריק.';
+
+  @override
+  String get trips_itinerary_location_label => 'מיקום';
+
+  @override
   String get trips_vesselType_catamaran => 'Catamaran';
 
   @override

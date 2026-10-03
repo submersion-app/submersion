@@ -7821,6 +7821,19 @@
   "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "No se pudo cargar el itinerario.",
   "trips_itinerary_daySaveError": "No se pudo guardar el día. Inténtalo de nuevo.",
+  "trips_itinerary_empty": "Aún no hay itinerario. Genera uno a partir de las fechas del viaje o añade días sobre la marcha.",
+  "trips_itinerary_fillMissing": "Completar los días que faltan",
+  "trips_itinerary_plannedDives": "{count, plural, =1{1 inmersión planificada} other{{count} inmersiones planificadas}}",
+  "@trips_itinerary_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_itinerary_plannedDives_label": "Inmersiones planificadas",
+  "trips_itinerary_plannedDives_invalid": "Introduce un número entero de inmersiones o déjalo en blanco.",
+  "trips_itinerary_location_label": "Lugar",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_list_button_retry": "Reintentar",

@@ -7924,6 +7924,19 @@
   "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "Der Reiseplan konnte nicht geladen werden.",
   "trips_itinerary_daySaveError": "Der Tag konnte nicht gespeichert werden. Versuche es erneut.",
+  "trips_itinerary_empty": "Noch keine Reiseroute. Erstelle eine aus den Reisedaten oder füge Tage nach und nach hinzu.",
+  "trips_itinerary_fillMissing": "Fehlende Tage ergänzen",
+  "trips_itinerary_plannedDives": "{count, plural, =1{1 Tauchgang geplant} other{{count} Tauchgänge geplant}}",
+  "@trips_itinerary_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_itinerary_plannedDives_label": "Geplante Tauchgänge",
+  "trips_itinerary_plannedDives_invalid": "Gib eine ganze Zahl an Tauchgängen ein oder lass das Feld leer.",
+  "trips_itinerary_location_label": "Ort",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_list_button_retry": "Erneut versuchen",

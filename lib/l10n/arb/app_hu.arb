@@ -7719,6 +7719,19 @@
   "trips_itinerary_noDives": "No dives",
   "trips_itinerary_error_loading": "Nem sikerült betölteni az útitervet.",
   "trips_itinerary_daySaveError": "Nem sikerült menteni a napot. Próbáld újra.",
+  "trips_itinerary_empty": "Még nincs útiterv. Készíts egyet az utazás dátumaiból, vagy adj hozzá napokat menet közben.",
+  "trips_itinerary_fillMissing": "Hiányzó napok kitöltése",
+  "trips_itinerary_plannedDives": "{count, plural, =1{1 tervezett merülés} other{{count} tervezett merülés}}",
+  "@trips_itinerary_plannedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_itinerary_plannedDives_label": "Tervezett merülések",
+  "trips_itinerary_plannedDives_invalid": "Adj meg egy egész számot, vagy hagyd üresen.",
+  "trips_itinerary_location_label": "Helyszín",
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_portName_label": "Port / Anchorage",
   "trips_list_button_retry": "Újrapróba",

@@ -42822,6 +42822,42 @@ abstract class AppLocalizations {
   /// **'Couldn\'t save the day. Try again.'**
   String get trips_itinerary_daySaveError;
 
+  /// No description provided for @trips_itinerary_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No itinerary yet. Generate one from the trip dates, or add days as you go.'**
+  String get trips_itinerary_empty;
+
+  /// No description provided for @trips_itinerary_fillMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in missing days'**
+  String get trips_itinerary_fillMissing;
+
+  /// No description provided for @trips_itinerary_plannedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive planned} other{{count} dives planned}}'**
+  String trips_itinerary_plannedDives(int count);
+
+  /// No description provided for @trips_itinerary_plannedDives_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dives'**
+  String get trips_itinerary_plannedDives_label;
+
+  /// No description provided for @trips_itinerary_plannedDives_invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number of dives, or leave it blank.'**
+  String get trips_itinerary_plannedDives_invalid;
+
+  /// No description provided for @trips_itinerary_location_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get trips_itinerary_location_label;
+
   /// No description provided for @trips_vesselType_catamaran.
   ///
   /// In en, this message translates to:
