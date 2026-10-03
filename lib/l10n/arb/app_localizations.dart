@@ -40135,8 +40135,8 @@ abstract class AppLocalizations {
   /// Action on the batch summary row that lets the diver re-open a recognised Seacraft ENC file (excluded from the batch) in the underwater route review page
   ///
   /// In en, this message translates to:
-  /// **'Import as route'**
-  String get universalImport_summary_importAsRoute;
+  /// **'Import as underwater track'**
+  String get universalImport_summary_importAsUnderwaterTrack;
 
   /// Per-file summary line for CSV files excluded from the batch
   ///
@@ -45486,11 +45486,11 @@ abstract class AppLocalizations {
   /// **'Steep walls'**
   String get dive3d_seascape_overlay_walls;
 
-  /// No description provided for @dive3d_seascape_showRoute.
+  /// No description provided for @dive3d_seascape_showUnderwaterTrack.
   ///
   /// In en, this message translates to:
-  /// **'Show route'**
-  String get dive3d_seascape_showRoute;
+  /// **'Show underwater track'**
+  String get dive3d_seascape_showUnderwaterTrack;
 
   /// No description provided for @dive3d_overlay_water.
   ///
@@ -45984,17 +45984,17 @@ abstract class AppLocalizations {
   /// **'Estimated path (dead reckoning)'**
   String get dive3d_spatial_estimatedPath;
 
-  /// No description provided for @dive3d_spatial_recordedPath.
+  /// No description provided for @dive3d_spatial_recordedTrack.
   ///
   /// In en, this message translates to:
-  /// **'Recorded route'**
-  String get dive3d_spatial_recordedPath;
+  /// **'Recorded track'**
+  String get dive3d_spatial_recordedTrack;
 
-  /// No description provided for @dive3d_spatial_recordedPathWithSource.
+  /// No description provided for @dive3d_spatial_recordedTrackWithSource.
   ///
   /// In en, this message translates to:
-  /// **'Recorded route ({source})'**
-  String dive3d_spatial_recordedPathWithSource(String source);
+  /// **'Recorded track ({source})'**
+  String dive3d_spatial_recordedTrackWithSource(String source);
 
   /// No description provided for @dive3d_spatial_synthesizedSeafloor.
   ///
@@ -68908,17 +68908,17 @@ abstract class AppLocalizations {
   /// **'How equipment is grouped and sorted on a dive'**
   String get settings_appearance_gearArrangementSubtitle;
 
-  /// No description provided for @navTrack_common_loadError.
+  /// No description provided for @navTrack_common_trackLoadError.
   ///
   /// In en, this message translates to:
-  /// **'Could not load this route.'**
-  String get navTrack_common_loadError;
+  /// **'Could not load this track.'**
+  String get navTrack_common_trackLoadError;
 
-  /// No description provided for @navTrack_common_notFound.
+  /// No description provided for @navTrack_common_trackNotFound.
   ///
   /// In en, this message translates to:
-  /// **'Route not found.'**
-  String get navTrack_common_notFound;
+  /// **'Track not found.'**
+  String get navTrack_common_trackNotFound;
 
   /// No description provided for @navTrack_common_cancel.
   ///
@@ -69089,17 +69089,17 @@ abstract class AppLocalizations {
   /// **' (coarse bathymetry: only land conflicts checked)'**
   String get navTrack_terrain_coarsePart;
 
-  /// No description provided for @navTrack_detail_renameTitle.
+  /// No description provided for @navTrack_detail_renameTrackTitle.
   ///
   /// In en, this message translates to:
-  /// **'Rename route'**
-  String get navTrack_detail_renameTitle;
+  /// **'Rename track'**
+  String get navTrack_detail_renameTrackTitle;
 
-  /// No description provided for @navTrack_detail_deleteTitle.
+  /// No description provided for @navTrack_detail_deleteTrackTitle.
   ///
   /// In en, this message translates to:
-  /// **'Delete route?'**
-  String get navTrack_detail_deleteTitle;
+  /// **'Delete track?'**
+  String get navTrack_detail_deleteTrackTitle;
 
   /// No description provided for @navTrack_detail_deleteMessage.
   ///
@@ -69107,11 +69107,11 @@ abstract class AppLocalizations {
   /// **'This cannot be undone.'**
   String get navTrack_detail_deleteMessage;
 
-  /// No description provided for @navTrack_detail_defaultTitle.
+  /// No description provided for @navTrack_detail_defaultTrackTitle.
   ///
   /// In en, this message translates to:
-  /// **'Route'**
-  String get navTrack_detail_defaultTitle;
+  /// **'Underwater track'**
+  String get navTrack_detail_defaultTrackTitle;
 
   /// No description provided for @navTrack_detail_menuRename.
   ///
@@ -69227,11 +69227,11 @@ abstract class AppLocalizations {
   /// **'Choose site'**
   String get navTrack_detail_chooseSite;
 
-  /// No description provided for @navTrack_review_title.
+  /// No description provided for @navTrack_review_importTrackTitle.
   ///
   /// In en, this message translates to:
-  /// **'Import Underwater Route'**
-  String get navTrack_review_title;
+  /// **'Import Underwater Track'**
+  String get navTrack_review_importTrackTitle;
 
   /// No description provided for @navTrack_review_segmentSummaryNoFix.
   ///
@@ -69249,11 +69249,11 @@ abstract class AppLocalizations {
     String vector,
   );
 
-  /// No description provided for @navTrack_review_saveError.
+  /// No description provided for @navTrack_review_trackSaveError.
   ///
   /// In en, this message translates to:
-  /// **'Could not save this route: {error}'**
-  String navTrack_review_saveError(String error);
+  /// **'Could not save this track: {error}'**
+  String navTrack_review_trackSaveError(String error);
 
   /// No description provided for @navTrack_review_importError.
   ///
@@ -69279,11 +69279,11 @@ abstract class AppLocalizations {
   /// **'No movement recorded: distance and speed stay at zero throughout this file.'**
   String get navTrack_review_warningNoMovement;
 
-  /// No description provided for @navTrack_review_warningDuplicate.
+  /// No description provided for @navTrack_review_trackDuplicateWarning.
   ///
   /// In en, this message translates to:
-  /// **'This looks like a route already imported from the same file.'**
-  String get navTrack_review_warningDuplicate;
+  /// **'This looks like a track already imported from the same file.'**
+  String get navTrack_review_trackDuplicateWarning;
 
   /// No description provided for @navTrack_review_replaceLabel.
   ///
@@ -69405,29 +69405,29 @@ abstract class AppLocalizations {
   /// **'Delete \"{name}\"?'**
   String navTrack_list_deleteMessage(String name);
 
-  /// No description provided for @navTrack_review_saveConfirmation.
+  /// No description provided for @navTrack_review_trackSavedConfirmation.
   ///
   /// In en, this message translates to:
-  /// **'Route saved.'**
-  String get navTrack_review_saveConfirmation;
+  /// **'Underwater track saved.'**
+  String get navTrack_review_trackSavedConfirmation;
 
-  /// No description provided for @navTrack_list_pendingChoice.
+  /// No description provided for @navTrack_list_pendingTrackChoice.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} route needs your choice} other{{count} routes need your choice}}'**
-  String navTrack_list_pendingChoice(num count);
+  /// **'{count, plural, one{{count} underwater track needs your choice} other{{count} underwater tracks need your choice}}'**
+  String navTrack_list_pendingTrackChoice(num count);
 
-  /// No description provided for @navTrack_seascape_title.
+  /// No description provided for @navTrack_seascape_trackTitle.
   ///
   /// In en, this message translates to:
-  /// **'Route seascape'**
-  String get navTrack_seascape_title;
+  /// **'Track seascape'**
+  String get navTrack_seascape_trackTitle;
 
-  /// No description provided for @navTrack_seascape_noScene.
+  /// No description provided for @navTrack_seascape_trackNoScene.
   ///
   /// In en, this message translates to:
-  /// **'This route has no usable seascape.'**
-  String get navTrack_seascape_noScene;
+  /// **'This track has no usable seascape.'**
+  String get navTrack_seascape_trackNoScene;
 
   /// No description provided for @navTrack_handoff_recognized.
   ///
@@ -69435,41 +69435,41 @@ abstract class AppLocalizations {
   /// **'Seacraft ENC navigation log recognised'**
   String get navTrack_handoff_recognized;
 
-  /// No description provided for @navTrack_handoff_description.
+  /// No description provided for @navTrack_handoff_trackDescription.
   ///
   /// In en, this message translates to:
-  /// **'This is an underwater route, not a dive log. It has its own place in Submersion, separate from your dive import.'**
-  String get navTrack_handoff_description;
+  /// **'This is an underwater track, not a dive log. It has its own place in Submersion, separate from your dive import.'**
+  String get navTrack_handoff_trackDescription;
 
-  /// No description provided for @navTrack_handoff_reviewButton.
+  /// No description provided for @navTrack_handoff_reviewTrackButton.
   ///
   /// In en, this message translates to:
-  /// **'Review route'**
-  String get navTrack_handoff_reviewButton;
+  /// **'Review underwater track'**
+  String get navTrack_handoff_reviewTrackButton;
 
-  /// No description provided for @navTrack_section_title.
+  /// No description provided for @navTrack_section_trackTitle.
   ///
   /// In en, this message translates to:
-  /// **'Underwater Route'**
-  String get navTrack_section_title;
+  /// **'Underwater Track'**
+  String get navTrack_section_trackTitle;
 
-  /// No description provided for @navTrack_section_routeCount.
+  /// No description provided for @navTrack_section_trackCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} route} other{{count} routes}}'**
-  String navTrack_section_routeCount(num count);
+  /// **'{count, plural, one{{count} track} other{{count} tracks}}'**
+  String navTrack_section_trackCount(num count);
 
-  /// No description provided for @navTrack_section_noRouteLinked.
+  /// No description provided for @navTrack_section_noTrackLinked.
   ///
   /// In en, this message translates to:
-  /// **'No route linked'**
-  String get navTrack_section_noRouteLinked;
+  /// **'No track linked'**
+  String get navTrack_section_noTrackLinked;
 
-  /// No description provided for @navTrack_section_linkButton.
+  /// No description provided for @navTrack_section_linkTrackButton.
   ///
   /// In en, this message translates to:
-  /// **'Link route'**
-  String get navTrack_section_linkButton;
+  /// **'Link track'**
+  String get navTrack_section_linkTrackButton;
 
   /// No description provided for @navTrack_section_importButton.
   ///
@@ -69483,11 +69483,11 @@ abstract class AppLocalizations {
   /// **'primary'**
   String get navTrack_section_primaryTag;
 
-  /// No description provided for @navTrack_section_menuOpen.
+  /// No description provided for @navTrack_section_menuOpenTrack.
   ///
   /// In en, this message translates to:
-  /// **'Open route'**
-  String get navTrack_section_menuOpen;
+  /// **'Open track'**
+  String get navTrack_section_menuOpenTrack;
 
   /// No description provided for @navTrack_section_menuOpen3d.
   ///
@@ -69507,11 +69507,11 @@ abstract class AppLocalizations {
   /// **'None'**
   String get navTrack_editRow_none;
 
-  /// No description provided for @navTrack_editRow_loadFailed.
+  /// No description provided for @navTrack_editRow_tracksLoadFailed.
   ///
   /// In en, this message translates to:
-  /// **'Could not load routes'**
-  String get navTrack_editRow_loadFailed;
+  /// **'Could not load underwater tracks'**
+  String get navTrack_editRow_tracksLoadFailed;
 
   /// Dive Edit route row value when several routes are linked: the first route's name and how many more there are
   ///
@@ -69519,17 +69519,17 @@ abstract class AppLocalizations {
   /// **'{name} +{count}'**
   String navTrack_editRow_more(int count, String name);
 
-  /// No description provided for @navTrack_editSheet_removeTooltip.
+  /// No description provided for @navTrack_editSheet_removeTrackTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Remove route'**
-  String get navTrack_editSheet_removeTooltip;
+  /// **'Remove track'**
+  String get navTrack_editSheet_removeTrackTooltip;
 
-  /// No description provided for @navTrack_editRow_saveFailed.
+  /// No description provided for @navTrack_editRow_tracksSaveFailed.
   ///
   /// In en, this message translates to:
-  /// **'Could not update this dive\'s underwater routes: {error}'**
-  String navTrack_editRow_saveFailed(String error);
+  /// **'Could not update this dive\'s underwater tracks: {error}'**
+  String navTrack_editRow_tracksSaveFailed(String error);
 
   /// No description provided for @navTrack_importError_unsupportedFormat.
   ///
@@ -69543,11 +69543,11 @@ abstract class AppLocalizations {
   /// **'This file could not be read as a Seacraft ENC navigation log.'**
   String get navTrack_importError_unreadable;
 
-  /// No description provided for @navTrack_importError_tooShort.
+  /// No description provided for @navTrack_importError_trackTooShort.
   ///
   /// In en, this message translates to:
-  /// **'This recording has too few samples to be a usable route.'**
-  String get navTrack_importError_tooShort;
+  /// **'This recording has too few samples to be a usable underwater track.'**
+  String get navTrack_importError_trackTooShort;
 
   /// No description provided for @navTrack_importError_badData.
   ///
@@ -69555,23 +69555,23 @@ abstract class AppLocalizations {
   /// **'This file has data Submersion could not make sense of.'**
   String get navTrack_importError_badData;
 
-  /// No description provided for @navTrack_importError_tooLarge.
+  /// No description provided for @navTrack_importError_trackTooLarge.
   ///
   /// In en, this message translates to:
-  /// **'This recording has more samples than a route can store.'**
-  String get navTrack_importError_tooLarge;
+  /// **'This recording has more samples than an underwater track can store.'**
+  String get navTrack_importError_trackTooLarge;
 
-  /// No description provided for @diveDetailSection_navTrack_name.
+  /// No description provided for @diveDetailSection_navTrack_trackName.
   ///
   /// In en, this message translates to:
-  /// **'Underwater Route'**
-  String get diveDetailSection_navTrack_name;
+  /// **'Underwater Track'**
+  String get diveDetailSection_navTrack_trackName;
 
-  /// No description provided for @diveDetailSection_navTrack_description.
+  /// No description provided for @diveDetailSection_navTrack_trackDescription.
   ///
   /// In en, this message translates to:
-  /// **'Measured underwater route from a navigation console'**
-  String get diveDetailSection_navTrack_description;
+  /// **'Measured underwater track from a navigation console'**
+  String get diveDetailSection_navTrack_trackDescription;
 
   /// No description provided for @navTrack_list_durationHours.
   ///

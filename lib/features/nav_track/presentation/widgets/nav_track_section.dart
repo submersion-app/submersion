@@ -31,9 +31,9 @@ class NavTrackSection extends ConsumerWidget {
     final l10n = context.l10n;
 
     return CollapsibleCardSection(
-      title: l10n.navTrack_section_title,
+      title: l10n.navTrack_section_trackTitle,
       icon: Icons.route,
-      collapsedSubtitle: l10n.navTrack_section_routeCount(routes.length),
+      collapsedSubtitle: l10n.navTrack_section_trackCount(routes.length),
       isExpanded: isExpanded,
       onToggle: (expanded) =>
           ref.read(navTrackSectionExpandedProvider.notifier).state = expanded,
@@ -104,7 +104,7 @@ class _RouteRow extends ConsumerWidget {
           itemBuilder: (context) => [
             PopupMenuItem(
               value: 'open',
-              child: Text(l10n.navTrack_section_menuOpen),
+              child: Text(l10n.navTrack_section_menuOpenTrack),
             ),
             PopupMenuItem(
               value: '3d',

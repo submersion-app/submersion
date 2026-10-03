@@ -25126,7 +25126,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_importAsRoute => 'استيراد كمسار';
+  String get universalImport_summary_importAsUnderwaterTrack =>
+      'استيراد كمسار تحت الماء';
 
   @override
   String get universalImport_summary_fileNeedsIndividualImport =>
@@ -28552,7 +28553,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'جدران شديدة الانحدار';
 
   @override
-  String get dive3d_seascape_showRoute => 'إظهار المسار';
+  String get dive3d_seascape_showUnderwaterTrack => 'إظهار المسار تحت الماء';
 
   @override
   String get dive3d_overlay_water => 'سطح الماء';
@@ -28818,10 +28819,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_spatial_estimatedPath => 'مسار مقدّر (الحساب الاستدلالي)';
 
   @override
-  String get dive3d_spatial_recordedPath => 'مسار مسجّل';
+  String get dive3d_spatial_recordedTrack => 'مسار مسجّل';
 
   @override
-  String dive3d_spatial_recordedPathWithSource(String source) {
+  String dive3d_spatial_recordedTrackWithSource(String source) {
     return 'مسار مسجّل ($source)';
   }
 
@@ -43157,10 +43158,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'كيفية تجميع المعدات وترتيبها في الغوصة';
 
   @override
-  String get navTrack_common_loadError => 'تعذر تحميل هذا المسار.';
+  String get navTrack_common_trackLoadError => 'تعذر تحميل هذا المسار.';
 
   @override
-  String get navTrack_common_notFound => 'المسار غير موجود.';
+  String get navTrack_common_trackNotFound => 'المسار غير موجود.';
 
   @override
   String get navTrack_common_cancel => 'إلغاء';
@@ -43262,16 +43263,16 @@ class AppLocalizationsAr extends AppLocalizations {
       ' (قياس أعماق منخفض الدقة: تم فحص تعارضات اليابسة فقط)';
 
   @override
-  String get navTrack_detail_renameTitle => 'إعادة تسمية المسار';
+  String get navTrack_detail_renameTrackTitle => 'إعادة تسمية المسار';
 
   @override
-  String get navTrack_detail_deleteTitle => 'حذف المسار؟';
+  String get navTrack_detail_deleteTrackTitle => 'حذف المسار؟';
 
   @override
   String get navTrack_detail_deleteMessage => 'لا يمكن التراجع عن هذا.';
 
   @override
-  String get navTrack_detail_defaultTitle => 'مسار';
+  String get navTrack_detail_defaultTrackTitle => 'مسار تحت الماء';
 
   @override
   String get navTrack_detail_menuRename => 'إعادة التسمية';
@@ -43352,7 +43353,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'اختيار موقع';
 
   @override
-  String get navTrack_review_title => 'استيراد مسار تحت الماء';
+  String get navTrack_review_importTrackTitle => 'استيراد مسار تحت الماء';
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
@@ -43369,7 +43370,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String navTrack_review_saveError(String error) {
+  String navTrack_review_trackSaveError(String error) {
     return 'تعذر حفظ هذا المسار: $error';
   }
 
@@ -43389,7 +43390,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم تُسجَّل أي حركة: تبقى المسافة والسرعة عند الصفر طوال هذا الملف.';
 
   @override
-  String get navTrack_review_warningDuplicate =>
+  String get navTrack_review_trackDuplicateWarning =>
       'يبدو هذا مسارًا تم استيراده مسبقًا من الملف نفسه.';
 
   @override
@@ -43464,26 +43465,27 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get navTrack_review_saveConfirmation => 'تم حفظ المسار.';
+  String get navTrack_review_trackSavedConfirmation =>
+      'تم حفظ المسار تحت الماء.';
 
   @override
-  String navTrack_list_pendingChoice(num count) {
+  String navTrack_list_pendingTrackChoice(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count مسار ينتظر اختيارك',
-      few: '$count مسارات تنتظر اختيارك',
-      two: 'مساران ينتظران اختيارك',
-      one: 'مسار واحد ينتظر اختيارك',
+      other: '$count مسار تحت الماء ينتظر اختيارك',
+      few: '$count مسارات تحت الماء تنتظر اختيارك',
+      two: 'مساران تحت الماء ينتظران اختيارك',
+      one: 'مسار تحت الماء واحد ينتظر اختيارك',
     );
     return '$_temp0';
   }
 
   @override
-  String get navTrack_seascape_title => 'المشهد البحري للمسار';
+  String get navTrack_seascape_trackTitle => 'المشهد البحري للمسار';
 
   @override
-  String get navTrack_seascape_noScene =>
+  String get navTrack_seascape_trackNoScene =>
       'لا يحتوي هذا المسار على مشهد بحري قابل للاستخدام.';
 
   @override
@@ -43491,17 +43493,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم التعرف على سجل ملاحة Seacraft ENC';
 
   @override
-  String get navTrack_handoff_description =>
+  String get navTrack_handoff_trackDescription =>
       'هذا مسار تحت الماء، وليس سجل غطس. له مكانه الخاص في Submersion، منفصل عن استيراد غطساتك.';
 
   @override
-  String get navTrack_handoff_reviewButton => 'مراجعة المسار';
+  String get navTrack_handoff_reviewTrackButton => 'مراجعة المسار تحت الماء';
 
   @override
-  String get navTrack_section_title => 'مسار تحت الماء';
+  String get navTrack_section_trackTitle => 'مسار تحت الماء';
 
   @override
-  String navTrack_section_routeCount(num count) {
+  String navTrack_section_trackCount(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -43514,10 +43516,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get navTrack_section_noRouteLinked => 'لا يوجد مسار مرتبط';
+  String get navTrack_section_noTrackLinked => 'لا يوجد مسار مرتبط';
 
   @override
-  String get navTrack_section_linkButton => 'ربط مسار';
+  String get navTrack_section_linkTrackButton => 'ربط مسار';
 
   @override
   String get navTrack_section_importButton => 'استيراد ملف';
@@ -43526,7 +43528,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_section_primaryTag => 'أساسي';
 
   @override
-  String get navTrack_section_menuOpen => 'فتح المسار';
+  String get navTrack_section_menuOpenTrack => 'فتح المسار';
 
   @override
   String get navTrack_section_menuOpen3d => 'فتح المشهد ثلاثي الأبعاد';
@@ -43538,7 +43540,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_editRow_none => 'لا يوجد';
 
   @override
-  String get navTrack_editRow_loadFailed => 'تعذر تحميل المسارات';
+  String get navTrack_editRow_tracksLoadFailed =>
+      'تعذر تحميل المسارات تحت الماء';
 
   @override
   String navTrack_editRow_more(int count, String name) {
@@ -43546,10 +43549,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get navTrack_editSheet_removeTooltip => 'إزالة المسار';
+  String get navTrack_editSheet_removeTrackTooltip => 'إزالة المسار';
 
   @override
-  String navTrack_editRow_saveFailed(String error) {
+  String navTrack_editRow_tracksSaveFailed(String error) {
     return 'تعذر تحديث مسارات هذه الغوصة تحت الماء: $error';
   }
 
@@ -43562,22 +43565,22 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذرت قراءة هذا الملف كسجل ملاحة Seacraft ENC.';
 
   @override
-  String get navTrack_importError_tooShort =>
-      'يحتوي هذا التسجيل على عدد قليل جدًا من العينات ليكون مسارًا قابلاً للاستخدام.';
+  String get navTrack_importError_trackTooShort =>
+      'يحتوي هذا التسجيل على عدد قليل جدًا من العينات ليكون مسارًا تحت الماء قابلاً للاستخدام.';
 
   @override
   String get navTrack_importError_badData =>
       'يحتوي هذا الملف على بيانات تعذر على Submersion فهمها.';
 
   @override
-  String get navTrack_importError_tooLarge =>
-      'يحتوي هذا التسجيل على عينات أكثر مما يمكن لمسار تخزينه.';
+  String get navTrack_importError_trackTooLarge =>
+      'يحتوي هذا التسجيل على عينات أكثر مما يمكن لمسار تحت الماء تخزينه.';
 
   @override
-  String get diveDetailSection_navTrack_name => 'مسار تحت الماء';
+  String get diveDetailSection_navTrack_trackName => 'مسار تحت الماء';
 
   @override
-  String get diveDetailSection_navTrack_description =>
+  String get diveDetailSection_navTrack_trackDescription =>
       'مسار تحت الماء تم قياسه من وحدة تحكم ملاحية';
 
   @override

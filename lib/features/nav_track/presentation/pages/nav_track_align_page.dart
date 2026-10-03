@@ -280,12 +280,13 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     return routeAsync.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) =>
-          Scaffold(body: Center(child: Text(l10n.navTrack_common_loadError))),
+      error: (e, _) => Scaffold(
+        body: Center(child: Text(l10n.navTrack_common_trackLoadError)),
+      ),
       data: (route) {
         if (route == null) {
           return Scaffold(
-            body: Center(child: Text(l10n.navTrack_common_notFound)),
+            body: Center(child: Text(l10n.navTrack_common_trackNotFound)),
           );
         }
         // The repository hands back an empty points list for a synced blob
@@ -293,7 +294,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
         if (route.points.length < 2) {
           return Scaffold(
             appBar: AppBar(title: Text(l10n.navTrack_align_title)),
-            body: Center(child: Text(l10n.navTrack_common_loadError)),
+            body: Center(child: Text(l10n.navTrack_common_trackLoadError)),
           );
         }
         _initFromRoute(route);

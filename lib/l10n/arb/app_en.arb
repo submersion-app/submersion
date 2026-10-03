@@ -15505,7 +15505,7 @@
     }
   },
   "universalImport_summary_fileImported": "{count, plural, =1{1 dive imported} other{{count} dives imported}}",
-  "universalImport_summary_importAsRoute": "Import as route",
+  "universalImport_summary_importAsUnderwaterTrack": "Import as underwater track",
   "universalImport_summary_fileNeedsIndividualImport": "Needs individual import",
   "universalImport_summary_fileUnsupported": "Unsupported format",
   "universalImport_summary_fileParseFailed": "Failed to read",
@@ -15768,7 +15768,7 @@
       }
     }
   },
-  "@universalImport_summary_importAsRoute": {
+  "@universalImport_summary_importAsUnderwaterTrack": {
     "description": "Action on the batch summary row that lets the diver re-open a recognised Seacraft ENC file (excluded from the batch) in the underwater route review page"
   },
   "@universalImport_summary_fileNeedsIndividualImport": {
@@ -18624,8 +18624,8 @@
   "@dive3d_seascape_overlay_contours": {},
   "dive3d_seascape_overlay_walls": "Steep walls",
   "@dive3d_seascape_overlay_walls": {},
-  "dive3d_seascape_showRoute": "Show route",
-  "@dive3d_seascape_showRoute": {},
+  "dive3d_seascape_showUnderwaterTrack": "Show underwater track",
+  "@dive3d_seascape_showUnderwaterTrack": {},
   "dive3d_overlay_water": "Water surface",
   "@dive3d_overlay_water": {},
   "dive3d_seascape_legend_land": "Land",
@@ -18832,10 +18832,10 @@
   "@dive3d_spatial_title": {},
   "dive3d_spatial_estimatedPath": "Estimated path (dead reckoning)",
   "@dive3d_spatial_estimatedPath": {},
-  "dive3d_spatial_recordedPath": "Recorded route",
-  "@dive3d_spatial_recordedPath": {},
-  "dive3d_spatial_recordedPathWithSource": "Recorded route ({source})",
-  "@dive3d_spatial_recordedPathWithSource": {
+  "dive3d_spatial_recordedTrack": "Recorded track",
+  "@dive3d_spatial_recordedTrack": {},
+  "dive3d_spatial_recordedTrackWithSource": "Recorded track ({source})",
+  "@dive3d_spatial_recordedTrackWithSource": {
     "placeholders": {
       "source": {
         "type": "String"
@@ -26503,8 +26503,8 @@
   "equipment_arrange_saveFailed": "Could not save the arrangement",
   "settings_appearance_gearArrangement": "Gear arrangement",
   "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive",
-  "navTrack_common_loadError": "Could not load this route.",
-  "navTrack_common_notFound": "Route not found.",
+  "navTrack_common_trackLoadError": "Could not load this track.",
+  "navTrack_common_trackNotFound": "Track not found.",
   "navTrack_common_cancel": "Cancel",
   "navTrack_common_save": "Save",
   "navTrack_common_delete": "Delete",
@@ -26585,10 +26585,10 @@
     }
   },
   "navTrack_terrain_coarsePart": " (coarse bathymetry: only land conflicts checked)",
-  "navTrack_detail_renameTitle": "Rename route",
-  "navTrack_detail_deleteTitle": "Delete route?",
+  "navTrack_detail_renameTrackTitle": "Rename track",
+  "navTrack_detail_deleteTrackTitle": "Delete track?",
   "navTrack_detail_deleteMessage": "This cannot be undone.",
-  "navTrack_detail_defaultTitle": "Route",
+  "navTrack_detail_defaultTrackTitle": "Underwater track",
   "navTrack_detail_menuRename": "Rename",
   "navTrack_detail_menuChangeSite": "Change site",
   "navTrack_detail_noMapYet": "Set the start point to see this on a map.",
@@ -26670,7 +26670,7 @@
   "navTrack_detail_chooseDive": "Choose dive",
   "navTrack_detail_noSite": "No site",
   "navTrack_detail_chooseSite": "Choose site",
-  "navTrack_review_title": "Import Underwater Route",
+  "navTrack_review_importTrackTitle": "Import Underwater Track",
   "navTrack_review_segmentSummaryNoFix": "{underwater} samples underwater, no GPS fix after the dive.",
   "@navTrack_review_segmentSummaryNoFix": {
     "placeholders": {
@@ -26693,8 +26693,8 @@
       }
     }
   },
-  "navTrack_review_saveError": "Could not save this route: {error}",
-  "@navTrack_review_saveError": {
+  "navTrack_review_trackSaveError": "Could not save this track: {error}",
+  "@navTrack_review_trackSaveError": {
     "placeholders": {
       "error": {
         "type": "String"
@@ -26712,7 +26712,7 @@
   "navTrack_review_sourceLabel": "Seacraft ENC log",
   "navTrack_review_nameHint": "Name (optional)",
   "navTrack_review_warningNoMovement": "No movement recorded: distance and speed stay at zero throughout this file.",
-  "navTrack_review_warningDuplicate": "This looks like a route already imported from the same file.",
+  "navTrack_review_trackDuplicateWarning": "This looks like a track already imported from the same file.",
   "navTrack_review_replaceLabel": "Replace",
   "navTrack_review_linkToDive": "Link to dive",
   "navTrack_review_diveSite": "Dive site",
@@ -26771,38 +26771,38 @@
       }
     }
   },
-  "navTrack_review_saveConfirmation": "Route saved.",
-  "navTrack_list_pendingChoice": "{count, plural, one{{count} route needs your choice} other{{count} routes need your choice}}",
-  "@navTrack_list_pendingChoice": {
+  "navTrack_review_trackSavedConfirmation": "Underwater track saved.",
+  "navTrack_list_pendingTrackChoice": "{count, plural, one{{count} underwater track needs your choice} other{{count} underwater tracks need your choice}}",
+  "@navTrack_list_pendingTrackChoice": {
     "placeholders": {
       "count": {
         "type": "num"
       }
     }
   },
-  "navTrack_seascape_title": "Route seascape",
-  "navTrack_seascape_noScene": "This route has no usable seascape.",
+  "navTrack_seascape_trackTitle": "Track seascape",
+  "navTrack_seascape_trackNoScene": "This track has no usable seascape.",
   "navTrack_handoff_recognized": "Seacraft ENC navigation log recognised",
-  "navTrack_handoff_description": "This is an underwater route, not a dive log. It has its own place in Submersion, separate from your dive import.",
-  "navTrack_handoff_reviewButton": "Review route",
-  "navTrack_section_title": "Underwater Route",
-  "navTrack_section_routeCount": "{count, plural, one{{count} route} other{{count} routes}}",
-  "@navTrack_section_routeCount": {
+  "navTrack_handoff_trackDescription": "This is an underwater track, not a dive log. It has its own place in Submersion, separate from your dive import.",
+  "navTrack_handoff_reviewTrackButton": "Review underwater track",
+  "navTrack_section_trackTitle": "Underwater Track",
+  "navTrack_section_trackCount": "{count, plural, one{{count} track} other{{count} tracks}}",
+  "@navTrack_section_trackCount": {
     "placeholders": {
       "count": {
         "type": "num"
       }
     }
   },
-  "navTrack_section_noRouteLinked": "No route linked",
-  "navTrack_section_linkButton": "Link route",
+  "navTrack_section_noTrackLinked": "No track linked",
+  "navTrack_section_linkTrackButton": "Link track",
   "navTrack_section_importButton": "Import file",
   "navTrack_section_primaryTag": "primary",
-  "navTrack_section_menuOpen": "Open route",
+  "navTrack_section_menuOpenTrack": "Open track",
   "navTrack_section_menuOpen3d": "Open 3D seascape",
   "navTrack_section_menuMakePrimary": "Make primary",
   "navTrack_editRow_none": "None",
-  "navTrack_editRow_loadFailed": "Could not load routes",
+  "navTrack_editRow_tracksLoadFailed": "Could not load underwater tracks",
   "navTrack_editRow_more": "{name} +{count}",
   "@navTrack_editRow_more": {
     "description": "Dive Edit route row value when several routes are linked: the first route's name and how many more there are",
@@ -26815,9 +26815,9 @@
       }
     }
   },
-  "navTrack_editSheet_removeTooltip": "Remove route",
-  "navTrack_editRow_saveFailed": "Could not update this dive's underwater routes: {error}",
-  "@navTrack_editRow_saveFailed": {
+  "navTrack_editSheet_removeTrackTooltip": "Remove track",
+  "navTrack_editRow_tracksSaveFailed": "Could not update this dive's underwater tracks: {error}",
+  "@navTrack_editRow_tracksSaveFailed": {
     "placeholders": {
       "error": {
         "type": "String"
@@ -26826,11 +26826,11 @@
   },
   "navTrack_importError_unsupportedFormat": "This file is not a Seacraft ENC navigation log.",
   "navTrack_importError_unreadable": "This file could not be read as a Seacraft ENC navigation log.",
-  "navTrack_importError_tooShort": "This recording has too few samples to be a usable route.",
+  "navTrack_importError_trackTooShort": "This recording has too few samples to be a usable underwater track.",
   "navTrack_importError_badData": "This file has data Submersion could not make sense of.",
-  "navTrack_importError_tooLarge": "This recording has more samples than a route can store.",
-  "diveDetailSection_navTrack_name": "Underwater Route",
-  "diveDetailSection_navTrack_description": "Measured underwater route from a navigation console",
+  "navTrack_importError_trackTooLarge": "This recording has more samples than an underwater track can store.",
+  "diveDetailSection_navTrack_trackName": "Underwater Track",
+  "diveDetailSection_navTrack_trackDescription": "Measured underwater track from a navigation console",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
   "@navTrack_list_durationHours": {
     "placeholders": {

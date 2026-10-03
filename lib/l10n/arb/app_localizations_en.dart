@@ -25021,7 +25021,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_importAsRoute => 'Import as route';
+  String get universalImport_summary_importAsUnderwaterTrack =>
+      'Import as underwater track';
 
   @override
   String get universalImport_summary_fileNeedsIndividualImport =>
@@ -28449,7 +28450,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'Steep walls';
 
   @override
-  String get dive3d_seascape_showRoute => 'Show route';
+  String get dive3d_seascape_showUnderwaterTrack => 'Show underwater track';
 
   @override
   String get dive3d_overlay_water => 'Water surface';
@@ -28714,11 +28715,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dive3d_spatial_estimatedPath => 'Estimated path (dead reckoning)';
 
   @override
-  String get dive3d_spatial_recordedPath => 'Recorded route';
+  String get dive3d_spatial_recordedTrack => 'Recorded track';
 
   @override
-  String dive3d_spatial_recordedPathWithSource(String source) {
-    return 'Recorded route ($source)';
+  String dive3d_spatial_recordedTrackWithSource(String source) {
+    return 'Recorded track ($source)';
   }
 
   @override
@@ -42841,10 +42842,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'How equipment is grouped and sorted on a dive';
 
   @override
-  String get navTrack_common_loadError => 'Could not load this route.';
+  String get navTrack_common_trackLoadError => 'Could not load this track.';
 
   @override
-  String get navTrack_common_notFound => 'Route not found.';
+  String get navTrack_common_trackNotFound => 'Track not found.';
 
   @override
   String get navTrack_common_cancel => 'Cancel';
@@ -42946,16 +42947,16 @@ class AppLocalizationsEn extends AppLocalizations {
       ' (coarse bathymetry: only land conflicts checked)';
 
   @override
-  String get navTrack_detail_renameTitle => 'Rename route';
+  String get navTrack_detail_renameTrackTitle => 'Rename track';
 
   @override
-  String get navTrack_detail_deleteTitle => 'Delete route?';
+  String get navTrack_detail_deleteTrackTitle => 'Delete track?';
 
   @override
   String get navTrack_detail_deleteMessage => 'This cannot be undone.';
 
   @override
-  String get navTrack_detail_defaultTitle => 'Route';
+  String get navTrack_detail_defaultTrackTitle => 'Underwater track';
 
   @override
   String get navTrack_detail_menuRename => 'Rename';
@@ -43036,7 +43037,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'Choose site';
 
   @override
-  String get navTrack_review_title => 'Import Underwater Route';
+  String get navTrack_review_importTrackTitle => 'Import Underwater Track';
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
@@ -43053,8 +43054,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String navTrack_review_saveError(String error) {
-    return 'Could not save this route: $error';
+  String navTrack_review_trackSaveError(String error) {
+    return 'Could not save this track: $error';
   }
 
   @override
@@ -43073,8 +43074,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'No movement recorded: distance and speed stay at zero throughout this file.';
 
   @override
-  String get navTrack_review_warningDuplicate =>
-      'This looks like a route already imported from the same file.';
+  String get navTrack_review_trackDuplicateWarning =>
+      'This looks like a track already imported from the same file.';
 
   @override
   String get navTrack_review_replaceLabel => 'Replace';
@@ -43148,55 +43149,57 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get navTrack_review_saveConfirmation => 'Route saved.';
+  String get navTrack_review_trackSavedConfirmation =>
+      'Underwater track saved.';
 
   @override
-  String navTrack_list_pendingChoice(num count) {
+  String navTrack_list_pendingTrackChoice(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count routes need your choice',
-      one: '$count route needs your choice',
+      other: '$count underwater tracks need your choice',
+      one: '$count underwater track needs your choice',
     );
     return '$_temp0';
   }
 
   @override
-  String get navTrack_seascape_title => 'Route seascape';
+  String get navTrack_seascape_trackTitle => 'Track seascape';
 
   @override
-  String get navTrack_seascape_noScene => 'This route has no usable seascape.';
+  String get navTrack_seascape_trackNoScene =>
+      'This track has no usable seascape.';
 
   @override
   String get navTrack_handoff_recognized =>
       'Seacraft ENC navigation log recognised';
 
   @override
-  String get navTrack_handoff_description =>
-      'This is an underwater route, not a dive log. It has its own place in Submersion, separate from your dive import.';
+  String get navTrack_handoff_trackDescription =>
+      'This is an underwater track, not a dive log. It has its own place in Submersion, separate from your dive import.';
 
   @override
-  String get navTrack_handoff_reviewButton => 'Review route';
+  String get navTrack_handoff_reviewTrackButton => 'Review underwater track';
 
   @override
-  String get navTrack_section_title => 'Underwater Route';
+  String get navTrack_section_trackTitle => 'Underwater Track';
 
   @override
-  String navTrack_section_routeCount(num count) {
+  String navTrack_section_trackCount(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count routes',
-      one: '$count route',
+      other: '$count tracks',
+      one: '$count track',
     );
     return '$_temp0';
   }
 
   @override
-  String get navTrack_section_noRouteLinked => 'No route linked';
+  String get navTrack_section_noTrackLinked => 'No track linked';
 
   @override
-  String get navTrack_section_linkButton => 'Link route';
+  String get navTrack_section_linkTrackButton => 'Link track';
 
   @override
   String get navTrack_section_importButton => 'Import file';
@@ -43205,7 +43208,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_section_primaryTag => 'primary';
 
   @override
-  String get navTrack_section_menuOpen => 'Open route';
+  String get navTrack_section_menuOpenTrack => 'Open track';
 
   @override
   String get navTrack_section_menuOpen3d => 'Open 3D seascape';
@@ -43217,7 +43220,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_editRow_none => 'None';
 
   @override
-  String get navTrack_editRow_loadFailed => 'Could not load routes';
+  String get navTrack_editRow_tracksLoadFailed =>
+      'Could not load underwater tracks';
 
   @override
   String navTrack_editRow_more(int count, String name) {
@@ -43225,11 +43229,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get navTrack_editSheet_removeTooltip => 'Remove route';
+  String get navTrack_editSheet_removeTrackTooltip => 'Remove track';
 
   @override
-  String navTrack_editRow_saveFailed(String error) {
-    return 'Could not update this dive\'s underwater routes: $error';
+  String navTrack_editRow_tracksSaveFailed(String error) {
+    return 'Could not update this dive\'s underwater tracks: $error';
   }
 
   @override
@@ -43241,23 +43245,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'This file could not be read as a Seacraft ENC navigation log.';
 
   @override
-  String get navTrack_importError_tooShort =>
-      'This recording has too few samples to be a usable route.';
+  String get navTrack_importError_trackTooShort =>
+      'This recording has too few samples to be a usable underwater track.';
 
   @override
   String get navTrack_importError_badData =>
       'This file has data Submersion could not make sense of.';
 
   @override
-  String get navTrack_importError_tooLarge =>
-      'This recording has more samples than a route can store.';
+  String get navTrack_importError_trackTooLarge =>
+      'This recording has more samples than an underwater track can store.';
 
   @override
-  String get diveDetailSection_navTrack_name => 'Underwater Route';
+  String get diveDetailSection_navTrack_trackName => 'Underwater Track';
 
   @override
-  String get diveDetailSection_navTrack_description =>
-      'Measured underwater route from a navigation console';
+  String get diveDetailSection_navTrack_trackDescription =>
+      'Measured underwater track from a navigation console';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {

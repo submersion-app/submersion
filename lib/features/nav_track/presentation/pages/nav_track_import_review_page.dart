@@ -331,7 +331,7 @@ class _NavTrackImportReviewPageState
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _error = l10n.navTrack_review_saveError(e.toString());
+        _error = l10n.navTrack_review_trackSaveError(e.toString());
       });
       return;
     }
@@ -354,7 +354,7 @@ class _NavTrackImportReviewPageState
     // site set, so it was unclear whether anything had happened).
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
-      SnackBar(content: Text(l10n.navTrack_review_saveConfirmation)),
+      SnackBar(content: Text(l10n.navTrack_review_trackSavedConfirmation)),
     );
     //
     // Every entry point pushes this page imperatively (on the root
@@ -379,7 +379,7 @@ class _NavTrackImportReviewPageState
     final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navTrack_review_title)),
+      appBar: AppBar(title: Text(l10n.navTrack_review_importTrackTitle)),
       body: FutureBuilder<NavTrackImportPreview>(
         future: _previewFuture,
         builder: (context, snapshot) {
@@ -476,7 +476,7 @@ class _NavTrackImportReviewPageState
           const SizedBox(height: 12),
           _WarningCard(
             key: const ValueKey('nav-track-warning-duplicate'),
-            text: l10n.navTrack_review_warningDuplicate,
+            text: l10n.navTrack_review_trackDuplicateWarning,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

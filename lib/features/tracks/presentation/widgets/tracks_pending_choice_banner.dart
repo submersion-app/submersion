@@ -34,7 +34,7 @@ class TracksPendingChoiceBanner extends ConsumerWidget {
           Icon(Icons.help_outline, color: colorScheme.primary, size: 20),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(context.l10n.navTrack_list_pendingChoice(count)),
+            child: Text(context.l10n.navTrack_list_pendingTrackChoice(count)),
           ),
         ],
       ),

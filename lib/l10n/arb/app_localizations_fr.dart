@@ -25504,7 +25504,8 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_importAsRoute => 'Importer comme route';
+  String get universalImport_summary_importAsUnderwaterTrack =>
+      'Importer comme trace sous-marine';
 
   @override
   String get universalImport_summary_fileNeedsIndividualImport =>
@@ -28998,7 +28999,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'Tombants';
 
   @override
-  String get dive3d_seascape_showRoute => 'Afficher l\'itinéraire';
+  String get dive3d_seascape_showUnderwaterTrack =>
+      'Afficher la trace sous-marine';
 
   @override
   String get dive3d_overlay_water => 'Surface de l\'eau';
@@ -29268,11 +29270,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Trajet estimé (navigation à l\'estime)';
 
   @override
-  String get dive3d_spatial_recordedPath => 'Trajet enregistré';
+  String get dive3d_spatial_recordedTrack => 'Trace enregistrée';
 
   @override
-  String dive3d_spatial_recordedPathWithSource(String source) {
-    return 'Trajet enregistré ($source)';
+  String dive3d_spatial_recordedTrackWithSource(String source) {
+    return 'Trace enregistrée ($source)';
   }
 
   @override
@@ -43589,10 +43591,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Comment l\'équipement est groupé et trié sur une plongée';
 
   @override
-  String get navTrack_common_loadError => 'Impossible de charger ce trajet.';
+  String get navTrack_common_trackLoadError =>
+      'Impossible de charger cette trace.';
 
   @override
-  String get navTrack_common_notFound => 'Trajet introuvable.';
+  String get navTrack_common_trackNotFound => 'Trace introuvable.';
 
   @override
   String get navTrack_common_cancel => 'Annuler';
@@ -43694,16 +43697,16 @@ class AppLocalizationsFr extends AppLocalizations {
       ' (bathymétrie grossière : seuls les conflits à terre sont vérifiés)';
 
   @override
-  String get navTrack_detail_renameTitle => 'Renommer le trajet';
+  String get navTrack_detail_renameTrackTitle => 'Renommer la trace';
 
   @override
-  String get navTrack_detail_deleteTitle => 'Supprimer le trajet ?';
+  String get navTrack_detail_deleteTrackTitle => 'Supprimer la trace ?';
 
   @override
   String get navTrack_detail_deleteMessage => 'Cette action est irréversible.';
 
   @override
-  String get navTrack_detail_defaultTitle => 'Trajet';
+  String get navTrack_detail_defaultTrackTitle => 'Trace sous-marine';
 
   @override
   String get navTrack_detail_menuRename => 'Renommer';
@@ -43784,7 +43787,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'Choisir un site';
 
   @override
-  String get navTrack_review_title => 'Importer un trajet sous-marin';
+  String get navTrack_review_importTrackTitle =>
+      'Importer une trace sous-marine';
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
@@ -43801,8 +43805,8 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String navTrack_review_saveError(String error) {
-    return 'Impossible d\'enregistrer ce trajet : $error';
+  String navTrack_review_trackSaveError(String error) {
+    return 'Impossible d\'enregistrer cette trace : $error';
   }
 
   @override
@@ -43821,8 +43825,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun mouvement enregistré : la distance et la vitesse restent à zéro tout au long de ce fichier.';
 
   @override
-  String get navTrack_review_warningDuplicate =>
-      'Ceci ressemble à un trajet déjà importé depuis le même fichier.';
+  String get navTrack_review_trackDuplicateWarning =>
+      'Ceci ressemble à une trace déjà importée depuis le même fichier.';
 
   @override
   String get navTrack_review_replaceLabel => 'Remplacer';
@@ -43897,56 +43901,58 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get navTrack_review_saveConfirmation => 'Trajet enregistré.';
+  String get navTrack_review_trackSavedConfirmation =>
+      'Trace sous-marine enregistrée.';
 
   @override
-  String navTrack_list_pendingChoice(num count) {
+  String navTrack_list_pendingTrackChoice(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count trajets attendent votre choix',
-      one: '$count trajet attend votre choix',
+      other: '$count traces sous-marines attendent votre choix',
+      one: '$count trace sous-marine attend votre choix',
     );
     return '$_temp0';
   }
 
   @override
-  String get navTrack_seascape_title => 'Paysage sous-marin du trajet';
+  String get navTrack_seascape_trackTitle => 'Paysage sous-marin de la trace';
 
   @override
-  String get navTrack_seascape_noScene =>
-      'Ce trajet n\'a pas de paysage sous-marin exploitable.';
+  String get navTrack_seascape_trackNoScene =>
+      'Cette trace n\'a pas de paysage sous-marin exploitable.';
 
   @override
   String get navTrack_handoff_recognized =>
       'Journal de navigation Seacraft ENC reconnu';
 
   @override
-  String get navTrack_handoff_description =>
-      'Ceci est un trajet sous-marin, pas un journal de plongée. Il a sa propre place dans Submersion, séparée de votre import de plongées.';
+  String get navTrack_handoff_trackDescription =>
+      'Ceci est une trace sous-marine, pas un journal de plongée. Elle a sa propre place dans Submersion, séparée de votre import de plongées.';
 
   @override
-  String get navTrack_handoff_reviewButton => 'Vérifier le trajet';
+  String get navTrack_handoff_reviewTrackButton =>
+      'Vérifier la trace sous-marine';
 
   @override
-  String get navTrack_section_title => 'Trajet sous-marin';
+  String get navTrack_section_trackTitle => 'Trace sous-marine';
 
   @override
-  String navTrack_section_routeCount(num count) {
+  String navTrack_section_trackCount(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count trajets',
-      one: '$count trajet',
+      other: '$count traces',
+      one: '$count trace',
     );
     return '$_temp0';
   }
 
   @override
-  String get navTrack_section_noRouteLinked => 'Aucun trajet lié';
+  String get navTrack_section_noTrackLinked => 'Aucune trace liée';
 
   @override
-  String get navTrack_section_linkButton => 'Lier un trajet';
+  String get navTrack_section_linkTrackButton => 'Lier une trace';
 
   @override
   String get navTrack_section_importButton => 'Importer un fichier';
@@ -43955,7 +43961,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_section_primaryTag => 'principal';
 
   @override
-  String get navTrack_section_menuOpen => 'Ouvrir le trajet';
+  String get navTrack_section_menuOpenTrack => 'Ouvrir la trace';
 
   @override
   String get navTrack_section_menuOpen3d => 'Ouvrir le paysage 3D';
@@ -43967,7 +43973,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_editRow_none => 'Aucun';
 
   @override
-  String get navTrack_editRow_loadFailed => 'Impossible de charger les trajets';
+  String get navTrack_editRow_tracksLoadFailed =>
+      'Impossible de charger les traces sous-marines';
 
   @override
   String navTrack_editRow_more(int count, String name) {
@@ -43975,11 +43982,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get navTrack_editSheet_removeTooltip => 'Retirer le trajet';
+  String get navTrack_editSheet_removeTrackTooltip => 'Retirer la trace';
 
   @override
-  String navTrack_editRow_saveFailed(String error) {
-    return 'Impossible de mettre à jour les trajets sous-marins de cette plongée : $error';
+  String navTrack_editRow_tracksSaveFailed(String error) {
+    return 'Impossible de mettre à jour les traces sous-marines de cette plongée : $error';
   }
 
   @override
@@ -43991,23 +43998,23 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce fichier n\'a pas pu être lu comme un journal de navigation Seacraft ENC.';
 
   @override
-  String get navTrack_importError_tooShort =>
-      'Cet enregistrement a trop peu d\'échantillons pour constituer un trajet utilisable.';
+  String get navTrack_importError_trackTooShort =>
+      'Cet enregistrement a trop peu d\'échantillons pour constituer une trace sous-marine utilisable.';
 
   @override
   String get navTrack_importError_badData =>
       'Ce fichier contient des données que Submersion n\'a pas pu interpréter.';
 
   @override
-  String get navTrack_importError_tooLarge =>
-      'Cet enregistrement contient plus d\'échantillons qu\'un trajet ne peut en stocker.';
+  String get navTrack_importError_trackTooLarge =>
+      'Cet enregistrement contient plus d\'échantillons qu\'une trace sous-marine ne peut en stocker.';
 
   @override
-  String get diveDetailSection_navTrack_name => 'Trajet sous-marin';
+  String get diveDetailSection_navTrack_trackName => 'Trace sous-marine';
 
   @override
-  String get diveDetailSection_navTrack_description =>
-      'Trajet sous-marin mesuré depuis une console de navigation';
+  String get diveDetailSection_navTrack_trackDescription =>
+      'Trace sous-marine mesurée depuis une console de navigation';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {

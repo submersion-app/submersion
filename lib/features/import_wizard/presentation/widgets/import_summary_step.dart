@@ -749,7 +749,9 @@ class _FileOutcomeRow extends StatelessWidget {
                 TextButton(
                   key: const ValueKey('import-summary-import-as-route'),
                   onPressed: () => _importAsRoute(context),
-                  child: Text(l10n.universalImport_summary_importAsRoute),
+                  child: Text(
+                    l10n.universalImport_summary_importAsUnderwaterTrack,
+                  ),
                 ),
             ],
           ),

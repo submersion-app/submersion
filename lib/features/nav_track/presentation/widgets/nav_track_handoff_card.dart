@@ -46,7 +46,7 @@ class NavTrackHandoffCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              l10n.navTrack_handoff_description,
+              l10n.navTrack_handoff_trackDescription,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -61,7 +61,7 @@ class NavTrackHandoffCard extends StatelessWidget {
                   bytes,
                   fileName: fileName,
                 ),
-                child: Text(l10n.navTrack_handoff_reviewButton),
+                child: Text(l10n.navTrack_handoff_reviewTrackButton),
               ),
             ),
           ],

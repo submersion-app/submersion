@@ -6016,7 +6016,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  context.l10n.navTrack_editRow_saveFailed(e.toString()),
+                  context.l10n.navTrack_editRow_tracksSaveFailed(e.toString()),
                 ),
               ),
             );

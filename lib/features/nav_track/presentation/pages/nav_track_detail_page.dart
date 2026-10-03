@@ -75,7 +75,7 @@ class NavTrackDetailPage extends ConsumerWidget {
     final newName = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.navTrack_detail_renameTitle),
+        title: Text(l10n.navTrack_detail_renameTrackTitle),
         content: TextField(controller: controller, autofocus: true),
         actions: [
           TextButton(
@@ -108,7 +108,7 @@ class NavTrackDetailPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.navTrack_detail_deleteTitle),
+        title: Text(l10n.navTrack_detail_deleteTrackTitle),
         content: Text(l10n.navTrack_detail_deleteMessage),
         actions: [
           TextButton(
@@ -224,12 +224,13 @@ class NavTrackDetailPage extends ConsumerWidget {
     return routeAsync.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) =>
-          Scaffold(body: Center(child: Text(l10n.navTrack_common_loadError))),
+      error: (e, _) => Scaffold(
+        body: Center(child: Text(l10n.navTrack_common_trackLoadError)),
+      ),
       data: (route) {
         if (route == null) {
           return Scaffold(
-            body: Center(child: Text(l10n.navTrack_common_notFound)),
+            body: Center(child: Text(l10n.navTrack_common_trackNotFound)),
           );
         }
         final stats = NavTrackStats.of(route.points);
@@ -238,7 +239,7 @@ class NavTrackDetailPage extends ConsumerWidget {
             title: Text(
               route.name ??
                   route.sourceRef ??
-                  l10n.navTrack_detail_defaultTitle,
+                  l10n.navTrack_detail_defaultTrackTitle,
             ),
             actions: [
               IconButton(

@@ -38,10 +38,10 @@ class RouteRow extends StatelessWidget {
     };
     return FormRow.picker(
       key: const ValueKey('dive-edit-route-row'),
-      label: l10n.navTrack_section_title,
+      label: l10n.navTrack_section_trackTitle,
       value: value,
       placeholder: loadFailed && draft == null
-          ? l10n.navTrack_editRow_loadFailed
+          ? l10n.navTrack_editRow_tracksLoadFailed
           : l10n.navTrack_editRow_none,
       onTap: () {
         if (draft != null) onTap();

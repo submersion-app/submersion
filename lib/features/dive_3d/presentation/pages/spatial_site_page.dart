@@ -305,7 +305,9 @@ class _DiveSeascapeStandaloneState
                                   'spatial-site-show-route-toggle',
                                 ),
                                 label: Text(
-                                  context.l10n.dive3d_seascape_showRoute,
+                                  context
+                                      .l10n
+                                      .dive3d_seascape_showUnderwaterTrack,
                                 ),
                                 selected: showMeasuredRoute,
                                 onSelected: (on) =>

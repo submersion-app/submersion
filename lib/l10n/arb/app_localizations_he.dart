@@ -24820,7 +24820,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_importAsRoute => 'ייבוא כמסלול';
+  String get universalImport_summary_importAsUnderwaterTrack =>
+      'ייבוא כמסלול תת-ימי';
 
   @override
   String get universalImport_summary_fileNeedsIndividualImport =>
@@ -28217,7 +28218,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'קירות תלולים';
 
   @override
-  String get dive3d_seascape_showRoute => 'הצג מסלול';
+  String get dive3d_seascape_showUnderwaterTrack => 'הצג מסלול תת-ימי';
 
   @override
   String get dive3d_overlay_water => 'פני המים';
@@ -28480,10 +28481,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dive3d_spatial_estimatedPath => 'נתיב משוער (ניווט משוער)';
 
   @override
-  String get dive3d_spatial_recordedPath => 'מסלול מוקלט';
+  String get dive3d_spatial_recordedTrack => 'מסלול מוקלט';
 
   @override
-  String dive3d_spatial_recordedPathWithSource(String source) {
+  String dive3d_spatial_recordedTrackWithSource(String source) {
     return 'מסלול מוקלט ($source)';
   }
 
@@ -42617,10 +42618,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'כיצד הציוד מקובץ וממוין בצלילה';
 
   @override
-  String get navTrack_common_loadError => 'לא ניתן היה לטעון את המסלול הזה.';
+  String get navTrack_common_trackLoadError =>
+      'לא ניתן היה לטעון את המסלול הזה.';
 
   @override
-  String get navTrack_common_notFound => 'המסלול לא נמצא.';
+  String get navTrack_common_trackNotFound => 'המסלול לא נמצא.';
 
   @override
   String get navTrack_common_cancel => 'ביטול';
@@ -42722,16 +42724,16 @@ class AppLocalizationsHe extends AppLocalizations {
       ' (בתימטריה גסה: נבדקו רק התנגשויות ביבשה)';
 
   @override
-  String get navTrack_detail_renameTitle => 'שינוי שם המסלול';
+  String get navTrack_detail_renameTrackTitle => 'שינוי שם המסלול';
 
   @override
-  String get navTrack_detail_deleteTitle => 'למחוק את המסלול?';
+  String get navTrack_detail_deleteTrackTitle => 'למחוק את המסלול?';
 
   @override
   String get navTrack_detail_deleteMessage => 'לא ניתן לבטל פעולה זו.';
 
   @override
-  String get navTrack_detail_defaultTitle => 'מסלול';
+  String get navTrack_detail_defaultTrackTitle => 'מסלול תת-ימי';
 
   @override
   String get navTrack_detail_menuRename => 'שינוי שם';
@@ -42811,7 +42813,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'בחר אתר';
 
   @override
-  String get navTrack_review_title => 'ייבוא מסלול תת-ימי';
+  String get navTrack_review_importTrackTitle => 'ייבוא מסלול תת-ימי';
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
@@ -42828,7 +42830,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String navTrack_review_saveError(String error) {
+  String navTrack_review_trackSaveError(String error) {
     return 'לא ניתן היה לשמור את המסלול הזה: $error';
   }
 
@@ -42848,7 +42850,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא נרשמה תנועה: המרחק והמהירות נשארים באפס לאורך כל הקובץ.';
 
   @override
-  String get navTrack_review_warningDuplicate =>
+  String get navTrack_review_trackDuplicateWarning =>
       'זה נראה כמו מסלול שכבר יובא מאותו קובץ.';
 
   @override
@@ -42923,41 +42925,42 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get navTrack_review_saveConfirmation => 'המסלול נשמר.';
+  String get navTrack_review_trackSavedConfirmation => 'המסלול התת-ימי נשמר.';
 
   @override
-  String navTrack_list_pendingChoice(num count) {
+  String navTrack_list_pendingTrackChoice(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count מסלולים ממתינים לבחירתך',
-      two: 'שני מסלולים ממתינים לבחירתך',
-      one: 'מסלול אחד ממתין לבחירתך',
+      other: '$count מסלולים תת-ימיים ממתינים לבחירתך',
+      two: 'שני מסלולים תת-ימיים ממתינים לבחירתך',
+      one: 'מסלול תת-ימי אחד ממתין לבחירתך',
     );
     return '$_temp0';
   }
 
   @override
-  String get navTrack_seascape_title => 'נוף תת-ימי של המסלול';
+  String get navTrack_seascape_trackTitle => 'נוף תת-ימי של המסלול';
 
   @override
-  String get navTrack_seascape_noScene => 'למסלול הזה אין נוף תת-ימי שמיש.';
+  String get navTrack_seascape_trackNoScene =>
+      'למסלול הזה אין נוף תת-ימי שמיש.';
 
   @override
   String get navTrack_handoff_recognized => 'זוהה יומן ניווט Seacraft ENC';
 
   @override
-  String get navTrack_handoff_description =>
+  String get navTrack_handoff_trackDescription =>
       'זהו מסלול תת-ימי, לא יומן צלילה. יש לו מקום משלו ב-Submersion, נפרד מייבוא הצלילות שלך.';
 
   @override
-  String get navTrack_handoff_reviewButton => 'בדיקת המסלול';
+  String get navTrack_handoff_reviewTrackButton => 'בדיקת המסלול התת-ימי';
 
   @override
-  String get navTrack_section_title => 'מסלול תת-ימי';
+  String get navTrack_section_trackTitle => 'מסלול תת-ימי';
 
   @override
-  String navTrack_section_routeCount(num count) {
+  String navTrack_section_trackCount(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -42969,10 +42972,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get navTrack_section_noRouteLinked => 'אין מסלול מקושר';
+  String get navTrack_section_noTrackLinked => 'אין מסלול מקושר';
 
   @override
-  String get navTrack_section_linkButton => 'קישור מסלול';
+  String get navTrack_section_linkTrackButton => 'קישור מסלול';
 
   @override
   String get navTrack_section_importButton => 'ייבוא קובץ';
@@ -42981,7 +42984,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_section_primaryTag => 'ראשי';
 
   @override
-  String get navTrack_section_menuOpen => 'פתיחת המסלול';
+  String get navTrack_section_menuOpenTrack => 'פתיחת המסלול';
 
   @override
   String get navTrack_section_menuOpen3d => 'פתיחת נוף תלת-ממד';
@@ -42993,7 +42996,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_editRow_none => 'אין';
 
   @override
-  String get navTrack_editRow_loadFailed => 'לא ניתן לטעון את המסלולים';
+  String get navTrack_editRow_tracksLoadFailed =>
+      'לא ניתן לטעון את המסלולים התת-ימיים';
 
   @override
   String navTrack_editRow_more(int count, String name) {
@@ -43001,10 +43005,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get navTrack_editSheet_removeTooltip => 'הסרת מסלול';
+  String get navTrack_editSheet_removeTrackTooltip => 'הסרת מסלול';
 
   @override
-  String navTrack_editRow_saveFailed(String error) {
+  String navTrack_editRow_tracksSaveFailed(String error) {
     return 'לא ניתן לעדכן את המסלולים התת-ימיים של צלילה זו: $error';
   }
 
@@ -43017,22 +43021,22 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן היה לקרוא את הקובץ הזה כיומן ניווט Seacraft ENC.';
 
   @override
-  String get navTrack_importError_tooShort =>
-      'בהקלטה זו יש מעט מדי דגימות כדי להיות מסלול שמיש.';
+  String get navTrack_importError_trackTooShort =>
+      'בהקלטה זו יש מעט מדי דגימות כדי להיות מסלול תת-ימי שמיש.';
 
   @override
   String get navTrack_importError_badData =>
       'בקובץ זה יש נתונים ש-Submersion לא הצליחה לפענח.';
 
   @override
-  String get navTrack_importError_tooLarge =>
-      'בהקלטה זו יש יותר דגימות ממה שמסלול יכול לאחסן.';
+  String get navTrack_importError_trackTooLarge =>
+      'בהקלטה זו יש יותר דגימות ממה שמסלול תת-ימי יכול לאחסן.';
 
   @override
-  String get diveDetailSection_navTrack_name => 'מסלול תת-ימי';
+  String get diveDetailSection_navTrack_trackName => 'מסלול תת-ימי';
 
   @override
-  String get diveDetailSection_navTrack_description =>
+  String get diveDetailSection_navTrack_trackDescription =>
       'מסלול תת-ימי שנמדד ממסוף ניווט';
 
   @override

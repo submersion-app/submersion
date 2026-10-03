@@ -226,7 +226,7 @@ class _DeleteTrackDialog extends StatelessWidget {
         l10n.gpsLogger_deleteTrackMessage,
       ),
       UnderwaterTrackItem(:final track) => (
-        l10n.navTrack_detail_deleteTitle,
+        l10n.navTrack_detail_deleteTrackTitle,
         l10n.navTrack_list_deleteMessage(
           track.name ?? track.sourceRef ?? track.id,
         ),

@@ -164,12 +164,12 @@ class _RouteLinkSheetState extends ConsumerState<_RouteLinkSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.navTrack_section_title,
+              l10n.navTrack_section_trackTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             if (_draft.current.isEmpty)
-              Text(l10n.navTrack_section_noRouteLinked),
+              Text(l10n.navTrack_section_noTrackLinked),
             for (final route in _draft.current)
               ListTile(
                 key: ValueKey('route-sheet-row-${route.id}'),
@@ -188,7 +188,7 @@ class _RouteLinkSheetState extends ConsumerState<_RouteLinkSheet> {
                 ),
                 trailing: IconButton(
                   key: ValueKey('route-sheet-remove-${route.id}'),
-                  tooltip: l10n.navTrack_editSheet_removeTooltip,
+                  tooltip: l10n.navTrack_editSheet_removeTrackTooltip,
                   icon: const Icon(Icons.close),
                   onPressed: () => _update(_draft.remove(route.id)),
                 ),
@@ -209,7 +209,7 @@ class _RouteLinkSheetState extends ConsumerState<_RouteLinkSheet> {
                   OutlinedButton(
                     key: const ValueKey('route-sheet-link-button'),
                     onPressed: () => _link(candidates),
-                    child: Text(l10n.navTrack_section_linkButton),
+                    child: Text(l10n.navTrack_section_linkTrackButton),
                   ),
                 OutlinedButton(
                   key: const ValueKey('route-sheet-import-button'),

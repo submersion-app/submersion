@@ -24082,7 +24082,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get universalImport_summary_importAsRoute => '作为路线导入';
+  String get universalImport_summary_importAsUnderwaterTrack => '作为水下轨迹导入';
 
   @override
   String get universalImport_summary_fileNeedsIndividualImport => '需要单独导入';
@@ -27355,7 +27355,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => '陡壁';
 
   @override
-  String get dive3d_seascape_showRoute => '显示路线';
+  String get dive3d_seascape_showUnderwaterTrack => '显示水下轨迹';
 
   @override
   String get dive3d_overlay_water => '水面';
@@ -27617,11 +27617,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dive3d_spatial_estimatedPath => '估算路径（航位推算）';
 
   @override
-  String get dive3d_spatial_recordedPath => '记录的路线';
+  String get dive3d_spatial_recordedTrack => '记录的轨迹';
 
   @override
-  String dive3d_spatial_recordedPathWithSource(String source) {
-    return '记录的路线（$source）';
+  String dive3d_spatial_recordedTrackWithSource(String source) {
+    return '记录的轨迹（$source）';
   }
 
   @override
@@ -40911,10 +40911,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_gearArrangementSubtitle => '潜水记录中装备的分组和排序方式';
 
   @override
-  String get navTrack_common_loadError => '无法加载此路线。';
+  String get navTrack_common_trackLoadError => '无法加载此轨迹。';
 
   @override
-  String get navTrack_common_notFound => '未找到路线。';
+  String get navTrack_common_trackNotFound => '未找到轨迹。';
 
   @override
   String get navTrack_common_cancel => '取消';
@@ -41015,16 +41015,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_terrain_coarsePart => '（低分辨率测深数据：仅检查了陆地冲突）';
 
   @override
-  String get navTrack_detail_renameTitle => '重命名路线';
+  String get navTrack_detail_renameTrackTitle => '重命名轨迹';
 
   @override
-  String get navTrack_detail_deleteTitle => '删除路线？';
+  String get navTrack_detail_deleteTrackTitle => '删除轨迹？';
 
   @override
   String get navTrack_detail_deleteMessage => '此操作无法撤销。';
 
   @override
-  String get navTrack_detail_defaultTitle => '路线';
+  String get navTrack_detail_defaultTrackTitle => '水下轨迹';
 
   @override
   String get navTrack_detail_menuRename => '重命名';
@@ -41100,7 +41100,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_detail_chooseSite => '选择潜点';
 
   @override
-  String get navTrack_review_title => '导入水下路线';
+  String get navTrack_review_importTrackTitle => '导入水下轨迹';
 
   @override
   String navTrack_review_segmentSummaryNoFix(int underwater) {
@@ -41117,8 +41117,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String navTrack_review_saveError(String error) {
-    return '无法保存此路线：$error';
+  String navTrack_review_trackSaveError(String error) {
+    return '无法保存此轨迹：$error';
   }
 
   @override
@@ -41136,7 +41136,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_review_warningNoMovement => '未记录任何移动：整个文件中距离和速度始终为零。';
 
   @override
-  String get navTrack_review_warningDuplicate => '这看起来像是已从同一文件导入过的路线。';
+  String get navTrack_review_trackDuplicateWarning => '这看起来像是已从同一文件导入过的轨迹。';
 
   @override
   String get navTrack_review_replaceLabel => '替换';
@@ -41209,52 +41209,52 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get navTrack_review_saveConfirmation => '路线已保存。';
+  String get navTrack_review_trackSavedConfirmation => '水下轨迹已保存。';
 
   @override
-  String navTrack_list_pendingChoice(num count) {
+  String navTrack_list_pendingTrackChoice(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count 条路线等待你的选择',
+      other: '$count 条水下轨迹等待你的选择',
     );
     return '$_temp0';
   }
 
   @override
-  String get navTrack_seascape_title => '路线的海景';
+  String get navTrack_seascape_trackTitle => '轨迹的海景';
 
   @override
-  String get navTrack_seascape_noScene => '此路线没有可用的海景。';
+  String get navTrack_seascape_trackNoScene => '此轨迹没有可用的海景。';
 
   @override
   String get navTrack_handoff_recognized => '已识别 Seacraft ENC 导航日志';
 
   @override
-  String get navTrack_handoff_description =>
-      '这是一条水下路线，不是潜水日志。它在 Submersion 中有自己的位置，与你的潜水记录导入分开。';
+  String get navTrack_handoff_trackDescription =>
+      '这是一条水下轨迹，不是潜水日志。它在 Submersion 中有自己的位置，与你的潜水记录导入分开。';
 
   @override
-  String get navTrack_handoff_reviewButton => '查看路线';
+  String get navTrack_handoff_reviewTrackButton => '查看水下轨迹';
 
   @override
-  String get navTrack_section_title => '水下路线';
+  String get navTrack_section_trackTitle => '水下轨迹';
 
   @override
-  String navTrack_section_routeCount(num count) {
+  String navTrack_section_trackCount(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count 条路线',
+      other: '$count 条轨迹',
     );
     return '$_temp0';
   }
 
   @override
-  String get navTrack_section_noRouteLinked => '未关联路线';
+  String get navTrack_section_noTrackLinked => '未关联轨迹';
 
   @override
-  String get navTrack_section_linkButton => '关联路线';
+  String get navTrack_section_linkTrackButton => '关联轨迹';
 
   @override
   String get navTrack_section_importButton => '导入文件';
@@ -41263,7 +41263,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_section_primaryTag => '主要';
 
   @override
-  String get navTrack_section_menuOpen => '打开路线';
+  String get navTrack_section_menuOpenTrack => '打开轨迹';
 
   @override
   String get navTrack_section_menuOpen3d => '打开 3D 海景';
@@ -41275,7 +41275,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_editRow_none => '无';
 
   @override
-  String get navTrack_editRow_loadFailed => '无法加载路线';
+  String get navTrack_editRow_tracksLoadFailed => '无法加载水下轨迹';
 
   @override
   String navTrack_editRow_more(int count, String name) {
@@ -41283,11 +41283,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get navTrack_editSheet_removeTooltip => '移除路线';
+  String get navTrack_editSheet_removeTrackTooltip => '移除轨迹';
 
   @override
-  String navTrack_editRow_saveFailed(String error) {
-    return '无法更新此潜水的水下路线：$error';
+  String navTrack_editRow_tracksSaveFailed(String error) {
+    return '无法更新此潜水的水下轨迹：$error';
   }
 
   @override
@@ -41298,19 +41298,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_importError_unreadable => '无法将此文件作为 Seacraft ENC 导航日志读取。';
 
   @override
-  String get navTrack_importError_tooShort => '此记录的样本太少，无法成为可用路线。';
+  String get navTrack_importError_trackTooShort => '此记录的样本太少，无法成为可用的水下轨迹。';
 
   @override
   String get navTrack_importError_badData => '此文件包含 Submersion 无法解析的数据。';
 
   @override
-  String get navTrack_importError_tooLarge => '此记录的样本数超过了路线可存储的上限。';
+  String get navTrack_importError_trackTooLarge => '此记录的样本数超过了水下轨迹可存储的上限。';
 
   @override
-  String get diveDetailSection_navTrack_name => '水下路线';
+  String get diveDetailSection_navTrack_trackName => '水下轨迹';
 
   @override
-  String get diveDetailSection_navTrack_description => '通过导航控制台测量的水下路线';
+  String get diveDetailSection_navTrack_trackDescription => '通过导航控制台测量的水下轨迹';
 
   @override
   String navTrack_list_durationHours(int hours, int minutes) {

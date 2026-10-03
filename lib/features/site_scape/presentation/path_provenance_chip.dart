@@ -16,8 +16,8 @@ String pathProvenanceLabel(
 ) => switch (provenance) {
   PathProvenance.measured =>
     sourceLabel != null
-        ? context.l10n.dive3d_spatial_recordedPathWithSource(sourceLabel)
-        : context.l10n.dive3d_spatial_recordedPath,
+        ? context.l10n.dive3d_spatial_recordedTrackWithSource(sourceLabel)
+        : context.l10n.dive3d_spatial_recordedTrack,
   PathProvenance.deadReckoned ||
   PathProvenance.straightLine => context.l10n.dive3d_spatial_estimatedPath,
 };

@@ -41,7 +41,7 @@ class NavTrackSeascapePage extends ConsumerWidget {
     // to SiteTerrainPane instead (code review).
     if (!trackAsync.hasSettled) {
       return Scaffold(
-        appBar: AppBar(title: Text(context.l10n.navTrack_seascape_title)),
+        appBar: AppBar(title: Text(context.l10n.navTrack_seascape_trackTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -57,7 +57,7 @@ class NavTrackSeascapePage extends ConsumerWidget {
     final siteSceneAsync = ref.watch(siteSeascapeProvider(siteId));
     if (!siteSceneAsync.hasSettled) {
       return Scaffold(
-        appBar: AppBar(title: Text(context.l10n.navTrack_seascape_title)),
+        appBar: AppBar(title: Text(context.l10n.navTrack_seascape_trackTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -65,7 +65,7 @@ class NavTrackSeascapePage extends ConsumerWidget {
       return _NavTrackSeascapeStandalone(trackId: trackId);
     }
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.navTrack_seascape_title)),
+      appBar: AppBar(title: Text(context.l10n.navTrack_seascape_trackTitle)),
       body: SiteTerrainPane(
         siteId: siteId,
         playbackContext: NavTrackPlaybackContext(trackId),
@@ -122,14 +122,15 @@ class _NavTrackSeascapeStandaloneState
     final sceneAsync = ref.watch(navTrackSceneProvider(widget.trackId));
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navTrack_seascape_title)),
+      appBar: AppBar(title: Text(l10n.navTrack_seascape_trackTitle)),
       body: sceneAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(l10n.navTrack_seascape_noScene)),
+        error: (e, _) =>
+            Center(child: Text(l10n.navTrack_seascape_trackNoScene)),
         data: (result) {
           final scene = result?.scene;
           if (scene == null || scene.layers.isEmpty) {
-            return Center(child: Text(l10n.navTrack_seascape_noScene));
+            return Center(child: Text(l10n.navTrack_seascape_trackNoScene));
           }
           return Column(
             children: [

@@ -11,8 +11,8 @@ String navTrackParseErrorText(AppLocalizations l10n, NavTrackParseException e) {
     NavTrackParseReason.unsupportedFormat =>
       l10n.navTrack_importError_unsupportedFormat,
     NavTrackParseReason.unreadable => l10n.navTrack_importError_unreadable,
-    NavTrackParseReason.tooShort => l10n.navTrack_importError_tooShort,
+    NavTrackParseReason.tooShort => l10n.navTrack_importError_trackTooShort,
     NavTrackParseReason.badData => l10n.navTrack_importError_badData,
-    NavTrackParseReason.tooLarge => l10n.navTrack_importError_tooLarge,
+    NavTrackParseReason.tooLarge => l10n.navTrack_importError_trackTooLarge,
   };
 }

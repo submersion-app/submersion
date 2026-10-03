@@ -767,7 +767,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
           if (playbackContext is DivePlaybackContext && hasLinkedRoute)
             FilterChip(
               key: const ValueKey('spatial-site-show-route-toggle'),
-              label: Text(context.l10n.dive3d_seascape_showRoute),
+              label: Text(context.l10n.dive3d_seascape_showUnderwaterTrack),
               selected: ref.watch(
                 showMeasuredRouteProvider(playbackContext.diveId),
               ),
