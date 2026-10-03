@@ -16,11 +16,17 @@ thread, GitHub issues, PRs and discussions, the app's release notes, Reddit
 r/submersion, and App Store and Google Play reviews. It stays current through a
 monthly re-sweep that opens a PR for review.
 
+Divers can also report their own result for any model from the page: a
+"Report your result" link opens a GitHub issue form with the model, connection
+and (from a cell) platform already filled in, and the sweep reads those reports
+field by field.
+
 ## Non-goals
 
 - No in-app surface. The app's computer picker does not show verification
-  status in this work.
-- No report form. New evidence arrives through the periodic sweep only.
+  status, and the app does not prompt for feedback after a download.
+- No report form outside GitHub: no hosted form service and no endpoint
+  Submersion runs. A report needs a free GitHub account.
 - No fixes to the transport code issues the survey found (see "Follow-ups").
 - No status for transports Submersion does not implement (Bluetooth Classic,
   IrDA). They are footnoted, not tracked.
@@ -257,18 +263,58 @@ Top to bottom:
 4. **Cell detail**: tapping a cell that has reports expands a panel under the
    row listing every report for that cell, newest first: outcome, app version,
    date, note and a source link ("GitHub #723", "ScubaBoard post", "Reddit",
-   "App Store review").
-5. **Help fill the gaps**: points testers to the ScubaBoard thread, r/submersion
-   and the GitHub issue tracker, and asks for model, phone or computer OS,
-   transport and app version in any report.
+   "App Store review"), then a "Report your result" link for that cell.
+5. **Help fill the gaps**: points testers to the report form first, then the
+   ScubaBoard thread and r/submersion, and asks for model, phone or computer
+   OS, connection and app version in any report.
 6. **Footer**: data provenance (app and libdc commits from `generatedFrom`) and
    the list of unsupported (IrDA-only) models.
 
 Deep links: `/computers#<model-id>` scrolls to that model's rows and highlights
 them. A fragment, not a path, so GitHub Pages needs no rewrite rules.
 
-Below about 720 px the table becomes one card per row: model, transport, and
-five platform chips on one line. No horizontal scroll.
+Below about 720 px the table becomes one card per row: the model with the
+connection pinned to its right, then one "platform + status" pair per platform
+in a grid of at least 140 px per pair (two per line on a phone; five worded
+pills do not fit on one line). No horizontal scroll.
+
+Text on the water takes its ink from the site's `ocean.js`, which inks only
+children of `main .zone__inner`, so the intro, controls, help and footer sit in
+`.zone__inner` blocks. The table sits outside them on its own dark panel with
+fixed light text, and the legend pills carry the panel colour, so both read at
+any depth.
+
+### Reporting a result
+
+The app repo gains an issue form, `.github/ISSUE_TEMPLATE/computer-report.yml`,
+labelled `computer-report`. Its fields, by id (the ids are what a link
+pre-fills):
+
+| id | Type | Content |
+|---|---|---|
+| `model` | input, required | the catalog id and display name, e.g. `shearwater-perdix-3 (Shearwater Perdix 3)` |
+| `platform` | dropdown, required | iOS, Android, macOS, Windows, Linux |
+| `connection` | dropdown, required | Bluetooth, USB |
+| `outcome` | dropdown, required | Downloaded dives; Downloaded with problems; Did not work |
+| `app_version` | input, required | the Submersion version, e.g. 1.8.1 |
+| `device` | input, optional | phone or computer model and OS version |
+| `details` | textarea, optional | what happened |
+
+A notice at the top says the report is public and asks for no personal
+details.
+
+`render.js` gains `reportUrl({ id, vendor, product, family, platform })`,
+returning
+`https://github.com/submersion-app/submersion/issues/new?template=computer-report.yml&labels=computer-report&title=...&model=...&connection=...&platform=...`,
+URL-encoded, with `platform` omitted when not given. The title reads
+"Computer report: Shearwater Perdix 3, Android, Bluetooth" (the platform part
+dropped when absent). The page places it:
+
+- on every row's model cell, with the model and connection filled in;
+- in every cell's detail panel, with the platform filled in too;
+- in "Help fill the gaps", as the blank form.
+
+The links open in a new tab with `rel="noreferrer"`.
 
 The homepage's `#computer` zone gains a "See which computers are verified" link
 to the page.
@@ -312,6 +358,7 @@ Python 3.9 or later so it works in the cloud routine as well as locally.
 | Source | Initial scope | Monthly scope | Access |
 |---|---|---|---|
 | ScubaBoard thread 667061 | all 73 pages | pages after `lastPostId` | public fetch with curl |
+| Report form (`computer-report` label) | every labelled issue | updated since `github.since` | gh REST; parsed field by field, not interpreted |
 | GitHub issues | `device sync` label (81) plus full-text vendor-name search over all 1,181, comments included | updated since `github.since` | gh REST dumps grepped locally (search rate-limits) |
 | GitHub PRs | merged device fixes | merged since `github.since` | gh REST; `fixedIn` via `git tag --contains` |
 | GitHub discussions | all 36 | updated since `github.since` | GraphQL |
@@ -390,8 +437,8 @@ Failure handling in the routine:
 
 | # | Repo | Content | Issue link |
 |---|---|---|---|
-| 1 | app | generator, platform rules, tests, CI test-list entry | `Refs #2616` |
-| 2 | website | page and its modules, validator, tests, generated `catalog.json`, empty `reports.json`, homepage link | none required |
+| 1 | app | generator, platform rules, tests, CI test-list entry, `computer-report` issue form (and the label, created on the repo with this PR) | `Refs #2616` |
+| 2 | website | page and its modules, report links, validator, tests, generated `catalog.json`, empty `reports.json`, homepage link | none required |
 | 3 | website | initial sweep results in `reports.json` | none required |
 | 4 | website | `SWEEP.md`; the scheduled routine is created after the maintainer sets up the Play service account | none required |
 | 5 | app | `docs/guide/dive-computer.md` and `README.md` replace their tested lists and the Bluetooth Classic row with a link to the matrix | `Closes #2616` |

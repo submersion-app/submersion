@@ -37,6 +37,10 @@
 
 ---
 
+## Execution order
+
+Tasks run 1, 2, 3, 4, 5, 6, 7, 11, 12, 8, 9, 10. Tasks 11 and 12 (per-model reports through a pre-filled GitHub issue form) were added after Task 7; the numbers are kept so the briefs and ledger lines already written stay valid. Task 11 joins PR 1 and Task 12 joins PR 2.
+
 ## File Structure
 
 App repo (`submersion`, this worktree):
@@ -2306,6 +2310,29 @@ and the status rules are described in the app repo's spec,
 - `fixedBy`: when the thread or issue links a fixing PR, its number. The merge
   step turns it into `fixedIn`.
 
+## Reports from the form
+
+An issue opened from the matrix page's "Report your result" link is a filled
+issue form (`.github/ISSUE_TEMPLATE/computer-report.yml` in the app repo). Its
+body is Markdown: each field is a `### <label>` heading followed by the answer
+(`_No response_` when an optional field is empty). Read it, do not interpret
+it:
+
+- `model`: the catalog id at the start of "Dive computer" (the text before the
+  first space). If it is not a catalog id, the report goes to `unmapped` with
+  the whole answer.
+- `platform`: the "Platform" answer, lowercased (`iOS` gives `ios`).
+- `transport`: "Connection", `Bluetooth` gives `bluetooth`, `USB` gives `usb`.
+- `outcome`: "What happened", `Downloaded dives` gives `works`,
+  `Downloaded with problems` gives `caveats`, `Did not work` gives `fails`.
+- `appVersion`: "Submersion version" when it is dotted numbers (a leading `v`
+  dropped), otherwise `null`.
+- `date`: the issue's `createdAt` date.
+- `source`: `github-issue`; `url`: the issue's `url`; `sourceRef`: `null`.
+- `note`: a paraphrase of "Details" in our own words, at most 120 characters,
+  or `Reported through the form` when it is empty.
+- A maintainer comment on the issue that links a fixing PR gives `fixedBy`.
+
 ## Candidate file
 
 Each source produces `sweep-<source>.json` in a scratch directory (never in
@@ -2335,7 +2362,8 @@ parallel agents when it has more than about 10 pages or 100 items to read.
 | Source key | Read | Watermark written |
 |---|---|---|
 | `scubaboard` | `https://scubaboard.com/community/threads/submersion-free-open-source-dive-log-app-all-platforms-looking-for-dive-computer-testers.667061/` and `.../page-N`, fetched with `curl -sL -A "Mozilla/5.0"`. Posts are `<article ... data-content="post-<id>">`; permalink `https://scubaboard.com/community/threads/submersion-free-open-source-dive-log-app-all-platforms-looking-for-dive-computer-testers.667061/post-<id>`. Skip posts with id at or below `lastPostId`. | `{ "lastPostId": <highest id read>, "sweptAt": "<today>" }` |
-| `github` (issues, PRs, discussions) | `gh api --paginate "repos/submersion-app/submersion/issues?state=all&per_page=100&since=<since>"` (issues and PRs), `gh api --paginate "repos/submersion-app/submersion/issues/comments?per_page=100&since=<since>"`, and discussions with comments over GraphQL. Dump to files and grep locally for catalog vendor and product names; never use the search API in a loop (it rate-limits). Issue and comment permalinks are their `html_url`. | `{ "since": "<sweep start, ISO 8601 UTC>" }` |
+| `github` (report form) | Issues labelled `computer-report`: `gh issue list --repo submersion-app/submersion --label computer-report --state all --limit 1000 --json number,title,body,url,createdAt,updatedAt`, keeping those updated after `github.since`. Parsed field by field, see "Reports from the form". | shares the `github` watermark |
+| `github` (issues, PRs, discussions) | `gh api --paginate "repos/submersion-app/submersion/issues?state=all&per_page=100&since=<since>"` (issues and PRs), `gh api --paginate "repos/submersion-app/submersion/issues/comments?per_page=100&since=<since>"`, and discussions with comments over GraphQL. Dump to files and grep locally for catalog vendor and product names; never use the search API in a loop (it rate-limits). Issue and comment permalinks are their `html_url`. Skip issues labelled `computer-report`; the form row reads them. | `{ "since": "<sweep start, ISO 8601 UTC>" }` |
 | `reddit` | `curl -s -A "submersion-support-matrix/1.0" "https://www.reddit.com/r/submersion/new.json?limit=100"` (follow `after`), then `https://www.reddit.com<permalink>.json` per post for comments. Skip items with `created_utc` at or below `lastCreatedUtc`. Permalinks are `https://www.reddit.com<permalink>`. | `{ "lastCreatedUtc": <highest read> }` |
 | `appStore` | `https://itunes.apple.com/<cc>/rss/customerreviews/page=<1..10>/id=6757456915/sortby=mostrecent/json` for `cc` in us gb ca au nz ie de at ch fr be nl es it pt se no dk fi pl cz jp mx br sg za; stop a country at the first empty page or the first review at or below `lastReviewId`. | `{ "lastReviewId": <highest numeric id read>, "sweptAt": "<today>" }` |
 | `playStore` | Play Console review exports: `gcloud storage ls gs://$PLAY_REVIEWS_BUCKET/reviews/` then `gcloud storage cp` each `reviews_app.submersion_<YYYYMM>.csv` after `lastExportMonth` (UTF-16; read with `iconv -f UTF-16 -t UTF-8`). Use the `Device`, `App Version Name`, `Review Submit Date and Time`, `Review Submit Millis Since Epoch` and `Review Text` columns. Needs `PLAY_REVIEWS_BUCKET` and a service account key in `GOOGLE_APPLICATION_CREDENTIALS`; without them, set `failed`. | `{ "lastExportMonth": "<YYYYMM of the newest file read>" }` |
@@ -2368,6 +2396,7 @@ Read `SWEEP.md` and `computers/data/catalog.json` first. Dispatch these agents i
 3. GitHub discussions (all 36, with comments) over GraphQL.
 4. Reddit r/submersion, all posts and comments.
 5. App Store reviews, all listed storefronts.
+6. Report-form issues (label `computer-report`), parsed per "Reports from the form"; there may be none yet.
 
 Google Play joins once Task 9's service account exists. If it is unavailable now, record `playStore` as `failed: "service account not set up yet"`.
 
@@ -2473,3 +2502,252 @@ Closes #2616"
 - [ ] **Step 4: Stop and ask before PR 5**
 
 Ask before pushing and opening PR 5. Body: Summary, `Closes #2616`, Screenshots section deleted (only `docs/` and `README.md` changed).
+
+---
+
+### Task 11: The computer report issue form
+
+Added after Task 7 for per-model reports; runs after Task 7, per the execution order. App repo, goes into PR 1.
+
+**Files:**
+- Create: `.github/ISSUE_TEMPLATE/computer-report.yml` (app repo)
+
+**Interfaces:**
+- Produces: field ids `model`, `platform`, `connection`, `outcome`, `app_version`, `device`, `details`; dropdown option labels `iOS`, `Android`, `macOS`, `Windows`, `Linux`; `Bluetooth`, `USB`; `Downloaded dives`, `Downloaded with problems`, `Did not work`; label `computer-report`. Task 12's `reportUrl` and Task 8's form parser consume exactly these.
+
+An issue form is configuration: it has no unit test in this repo, and GitHub validates it when the branch is pushed. Step 2 parses it locally instead.
+
+- [ ] **Step 1: Write the form**
+
+Create `.github/ISSUE_TEMPLATE/computer-report.yml`:
+
+```yaml
+name: Dive computer report
+description: Tell us how Submersion worked with your dive computer. Reports feed the support matrix at submersion.app/computers.
+title: "Computer report: "
+labels: ["computer-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Your report is public on GitHub and feeds the [support matrix](https://submersion.app/computers/), so please leave out personal details such as your name, email address or dive locations.
+  - type: input
+    id: model
+    attributes:
+      label: Dive computer
+      description: The model as the support matrix lists it. It is filled in when you start from the matrix.
+      placeholder: shearwater-perdix-3 (Shearwater Perdix 3)
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: Where you ran Submersion.
+      options:
+        - iOS
+        - Android
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Connection
+      options:
+        - Bluetooth
+        - USB
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: What happened
+      options:
+        - Downloaded dives
+        - Downloaded with problems
+        - Did not work
+    validations:
+      required: true
+  - type: input
+    id: app_version
+    attributes:
+      label: Submersion version
+      description: For example 1.8.1.
+      placeholder: 1.8.1
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Phone or computer
+      description: Optional. The device and its operating system version, for example "Pixel 8, Android 15".
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Optional. Anything that helps, such as error messages, workarounds, or how many dives came across.
+```
+
+- [ ] **Step 2: Parse it and check the ids**
+
+Run: `ruby -ryaml -e 'f = YAML.load_file(".github/ISSUE_TEMPLATE/computer-report.yml"); puts f["labels"].inspect; f["body"].each { |b| puts [b["type"], b["id"], (b.dig("attributes", "options") || []).join("|")].join(" ") }'`
+Expected: `["computer-report"]`, then `markdown`, `input model`, `dropdown platform iOS|Android|macOS|Windows|Linux`, `dropdown connection Bluetooth|USB`, `dropdown outcome Downloaded dives|Downloaded with problems|Did not work`, `input app_version`, `input device`, `textarea details`.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add .github/ISSUE_TEMPLATE/computer-report.yml
+git commit -m "feat(support-matrix): add a dive computer report issue form
+
+Refs #2616"
+```
+
+The `computer-report` label is created on the repo (`gh label create computer-report --repo submersion-app/submersion --color 0E8A16 --description "A diver's result with a dive computer, for the support matrix"`) only after the maintainer approves pushing PR 1; it is an outward change.
+
+---
+
+### Task 12: Report links on the matrix page
+
+Added after Task 7 for per-model reports; runs after Task 7, before Task 8. Website repo, goes into PR 2.
+
+**Files:**
+- Modify: `computers/render.js`, `computers/page.css`, `computers/index.html`
+- Test: `tests/support-matrix-render.test.mjs`
+
+**Interfaces:**
+- Consumes: Task 11's field ids and option labels; `PLATFORM_TEXT`, `FAMILY_TEXT`, `escapeHtml` (render.js).
+- Produces: `reportUrl({ id, vendor, product, family, platform } = {}) -> string`. Every row's model cell and every detail panel carry `<a class="report" ...>`.
+
+- [ ] **Step 1: Write the failing tests**
+
+Add to the imports of `tests/support-matrix-render.test.mjs`: `reportUrl` (from `../computers/render.js`). Append:
+
+```js
+const form = (url) => new URL(url);
+const perdix = { id: "shearwater-perdix-3", vendor: "Shearwater", product: "Perdix 3", family: "bluetooth" };
+
+test("a row's report link fills in the model and connection", () => {
+  const url = form(reportUrl(perdix));
+  assert.equal(url.origin + url.pathname, "https://github.com/submersion-app/submersion/issues/new");
+  assert.equal(url.searchParams.get("template"), "computer-report.yml");
+  assert.equal(url.searchParams.get("labels"), "computer-report");
+  assert.equal(url.searchParams.get("title"), "Computer report: Shearwater Perdix 3, Bluetooth");
+  assert.equal(url.searchParams.get("model"), "shearwater-perdix-3 (Shearwater Perdix 3)");
+  assert.equal(url.searchParams.get("connection"), "Bluetooth");
+  assert.equal(url.searchParams.has("platform"), false);
+});
+
+test("a cell's report link fills in the platform too", () => {
+  const url = form(reportUrl({ ...perdix, platform: "android" }));
+  assert.equal(url.searchParams.get("title"), "Computer report: Shearwater Perdix 3, Android, Bluetooth");
+  assert.equal(url.searchParams.get("platform"), "Android");
+});
+
+test("report links encode spaces as %20, not +", () => {
+  const url = reportUrl(perdix);
+  assert.match(url, /Shearwater%20Perdix%203/);
+  assert.ok(!url.includes("+"));
+});
+
+test("the blank report link opens the form with nothing filled in", () => {
+  const url = form(reportUrl());
+  assert.equal(url.searchParams.get("template"), "computer-report.yml");
+  assert.equal(url.searchParams.has("title"), false);
+  assert.equal(url.searchParams.has("model"), false);
+});
+
+test("every row and every detail panel links to the form", () => {
+  const rows = buildRows(catalog, [report()]);
+  const html = renderRows(rows);
+  assert.equal(html.match(/<a class="report"/g).length, rows.length);
+  assert.ok(html.includes(`href="${escapeHtml(reportUrl(rows[0]))}"`));
+  assert.match(html, /aria-label="Report your result for Mares Puck Pro \+, Bluetooth"/);
+  const perdixRow = rows.find((r) => r.id === "shearwater-perdix-3");
+  const detail = renderDetail(perdixRow, "android");
+  assert.ok(detail.includes(`href="${escapeHtml(reportUrl({ ...perdixRow, platform: "android" }))}"`));
+});
+```
+
+Run: `node --test tests/support-matrix-render.test.mjs`
+Expected: FAIL, `reportUrl` is not exported (SyntaxError on the import).
+
+- [ ] **Step 2: Implement**
+
+In `computers/render.js`, after `FAMILY_TEXT`, add:
+
+```js
+const REPORT_FORM = "https://github.com/submersion-app/submersion/issues/new";
+
+// A pre-filled "computer report" issue form (.github/ISSUE_TEMPLATE in the app
+// repo). The field ids and option labels here must match that form. Spaces are
+// encoded as %20: encodeURIComponent, not URLSearchParams, which writes "+".
+export function reportUrl({ id, vendor, product, family, platform } = {}) {
+  const fields = [["template", "computer-report.yml"], ["labels", "computer-report"]];
+  if (id) {
+    const where = [platform && PLATFORM_TEXT[platform], family && FAMILY_TEXT[family]].filter(Boolean);
+    fields.push(["title", ["Computer report: " + `${vendor} ${product}`, ...where].join(", ")]);
+    fields.push(["model", `${id} (${vendor} ${product})`]);
+    if (family) fields.push(["connection", FAMILY_TEXT[family]]);
+    if (platform) fields.push(["platform", PLATFORM_TEXT[platform]]);
+  }
+  return `${REPORT_FORM}?${fields.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&")}`;
+}
+
+function reportLink(row, platform) {
+  const where = [platform && PLATFORM_TEXT[platform], FAMILY_TEXT[row.family]].filter(Boolean).join(", ");
+  const label = escapeHtml(`Report your result for ${row.vendor} ${row.product}, ${where}`);
+  const href = escapeHtml(reportUrl({ ...row, platform }));
+  return `<a class="report" href="${href}" target="_blank" rel="noreferrer" aria-label="${label}">Report</a>`;
+}
+```
+
+In `renderRows`, change the model cell to:
+
+```js
+`<tr data-model="${escapeHtml(row.id)}"${anchor}><th scope="row">${escapeHtml(row.product)} ${reportLink(row)}</th>` +
+```
+
+In `renderDetail`, change the returned panel's closing to:
+
+```js
+return `<tr class="detail" data-cell="${key}"><td colspan="7"><h3>${title}</h3>${label}<ul>${items}</ul>` +
+  `<p>${reportLink(row, platform)}</p></td></tr>`;
+```
+
+In `computers/page.css`, after `.detail a { color: var(--cyan); }`, add:
+
+```css
+.report { margin-left: 8px; font-size: 0.8rem; font-weight: 400; color: var(--cyan); }
+.detail .report { margin-left: 0; }
+```
+
+In `computers/index.html`, in "Help fill the gaps", replace the sentence beginning "Tried Submersion with your computer? Post what happened in the" up to and including "as a" plus its GitHub issue link with:
+
+```html
+Tried Submersion with your computer?
+<a href="https://github.com/submersion-app/submersion/issues/new?template=computer-report.yml&amp;labels=computer-report" target="_blank" rel="noreferrer">Report your result</a>
+(it takes a free GitHub account), or post what happened in the
+<a href="https://scubaboard.com/community/threads/submersion-free-open-source-dive-log-app-all-platforms-looking-for-dive-computer-testers.667061/">ScubaBoard thread</a>
+or on <a href="https://www.reddit.com/r/submersion/">r/submersion</a>.
+```
+
+keeping the following sentences ("Include the model, ..." and "Reports are added to this page each month.").
+
+- [ ] **Step 3: Run the tests to verify they pass**
+
+Run: `node --test tests/*.test.mjs`
+Expected: all pass.
+
+- [ ] **Step 4: Check in the browser**
+
+With the `website-matrix` preview: a row's "Report" link and a detail panel's link open GitHub's form with the fields filled in (check the `href` with `javascript_tool`, and that a tap does not toggle the row); at 375 px the link sits after the model name without overflow.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add computers/render.js computers/page.css computers/index.html tests/support-matrix-render.test.mjs
+git commit -m "feat(computers): link every model to a pre-filled report form"
+```
