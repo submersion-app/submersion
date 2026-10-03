@@ -3,6 +3,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/data_quality/domain/entities/shared_gear_overlap.dart';
+
+export 'package:submersion/features/data_quality/domain/entities/shared_gear_overlap.dart';
 
 class QualitySample {
   const QualitySample({required this.t, required this.depth, this.temp});
@@ -70,6 +73,7 @@ class DiveQualityContext {
     this.neighbors = const [],
     this.ppO2MaxBar = QualityThresholds.ppO2WarnBar,
     this.knownTransmitterSerials = const {},
+    this.sharedGearOverlaps = const [],
   });
 
   final domain.Dive dive;
@@ -112,4 +116,9 @@ class DiveQualityContext {
   /// Normalized serials of the diver's registered transmitters (issue #1365),
   /// so a detector can tell a downloaded tank nobody has assigned yet.
   final Set<String> knownTransmitterSerials;
+
+  /// Other profiles' dives in the neighbour window that share gear with
+  /// this one (issue #2853). Empty for a dive without a profile and in a
+  /// library with fewer than two profiles.
+  final List<SharedGearOverlap> sharedGearOverlaps;
 }
