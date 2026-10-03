@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
+import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
 
 /// Cheap SQL passes that narrow the full library to per-detector candidate
 /// sets before any context is built. A dive absent from a detector's set is
@@ -57,6 +58,23 @@ class QualityPrefilters {
       'COALESCE(b.entry_time, b.dive_date_time)) <= ?1',
       [Variable.withInt(QualityThresholds.neighborWindow.inMilliseconds)],
     );
+    // Dives sharing an item with another profile's dive in the window
+    // (issue #2853). Dive pairs first, then shared gear per pair, so each
+    // gear branch filters through its dive_id index instead of joining
+    // every gear row in the library with every other.
+    final sharedGear = await ids(
+      'SELECT DISTINCT da.id AS id FROM dives da '
+      'JOIN dives db ON db.id != da.id '
+      'AND da.diver_id IS NOT NULL AND db.diver_id IS NOT NULL '
+      'AND da.diver_id != db.diver_id '
+      'AND ABS(COALESCE(da.entry_time, da.dive_date_time) - '
+      'COALESCE(db.entry_time, db.dive_date_time)) <= ?1 '
+      'WHERE EXISTS (SELECT 1 FROM '
+      '(${diveGearUsageSql(diveIdPredicate: '= da.id')}) ga '
+      'JOIN (${diveGearUsageSql(diveIdPredicate: '= db.id')}) gb '
+      'ON gb.equipment_id = ga.equipment_id)',
+      [Variable.withInt(QualityThresholds.neighborWindow.inMilliseconds)],
+    );
     final timeOutliers = await ids(
       'SELECT d.id AS id FROM dives d WHERE '
       'COALESCE(d.entry_time, d.dive_date_time) > ?1 OR '
@@ -96,6 +114,7 @@ class QualityPrefilters {
       'gas_mod': withTanks.intersection(withProfiles),
       'tank_assignment': withPressures,
       'source_conflict': multiSource,
+      'shared_gear_overlap': sharedGear,
     };
   }
 }

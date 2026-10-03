@@ -137,7 +137,9 @@ void main() {
             equipmentId: const Value('light'),
           ),
         );
-    final item = (await contextFor('b1')).sharedGearOverlaps.single.items.single;
+    final item = (await contextFor(
+      'b1',
+    )).sharedGearOverlaps.single.items.single;
     expect(item.thisLinkKinds, {'gearList', 'tankCylinder'});
     expect(item.otherLinkKinds, {'gearList'});
   });

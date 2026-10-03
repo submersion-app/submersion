@@ -15,8 +15,10 @@ domain.Dive makeTestDive({
   double? waterTemp,
   String? serial,
   List<domain.DiveTank> tanks = const [],
+  String? diverId,
 }) => domain.Dive(
   id: id,
+  diverId: diverId,
   dateTime: entry ?? DateTime.utc(2026, 7, 1, 10),
   entryTime: entry ?? DateTime.utc(2026, 7, 1, 10),
   runtime: runtime,
@@ -42,6 +44,7 @@ DiveQualityContext makeContext({
   // null to model "nobody checked", which the delete-duplicate verdict treats
   // as a reason to withhold itself (#1720).
   bool? carriesDiverData = false,
+  List<SharedGearOverlap> sharedGearOverlaps = const [],
 }) => DiveQualityContext(
   dive: dive,
   now: now ?? DateTime.utc(2026, 7, 17, 12),
@@ -55,6 +58,7 @@ DiveQualityContext makeContext({
   neighbors: neighbors,
   ppO2MaxBar: ppO2MaxBar,
   knownTransmitterSerials: knownTransmitterSerials,
+  sharedGearOverlaps: sharedGearOverlaps,
 );
 
 /// Descend to [depth] at t=0..60, hold, surface in the last minute.
