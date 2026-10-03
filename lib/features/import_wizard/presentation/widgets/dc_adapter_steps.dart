@@ -453,12 +453,13 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     var device = discoveryState.selectedDevice;
     final computer = widget.knownComputer ?? widget.adapter.computer;
 
-    // A USB computer saved on a desktop syncs here with its stored port, but
-    // iOS has no USB host: a download could only fail in the native layer
-    // with "No USB serial ports found" (issue #2837).
+    // A USB computer saved on a desktop syncs here, but iOS has no USB host
+    // (issue #2837). Sync strips the host-local port, so the synced copy has
+    // no stored address and must be recognized by its connection type alone;
+    // with an address it would fail in the native layer with "No USB serial
+    // ports found". A Garmin keeps its FIT-file guidance inside the view.
     if (device == null &&
         computer != null &&
-        computer.bluetoothAddress != null &&
         !ScanStepWidget.offersUsb &&
         _connectionTypeFromString(computer.connectionType) ==
             DeviceConnectionType.usb) {

@@ -73,14 +73,23 @@ DiveComputer _computer({
   );
 }
 
-/// A computer added over a USB cable on a desktop, which stores the port it
-/// was reached on, as it arrives on another device through sync.
-DiveComputer _syncedUsbComputer() => _computer(
+/// A computer added over a USB cable on a desktop.
+///
+/// On that desktop it carries the port it was reached on. Sync strips the
+/// port (it is host-local, `SyncDataSerializer` drops `bluetoothAddress`), so
+/// the copy that arrives on another device has `connectionType: 'usb'` and no
+/// stored address: pass no [port] for that shape.
+DiveComputer _usbComputer({String? port}) => _computer(
   manufacturer: 'Suunto',
   model: 'Vyper',
   connectionType: 'usb',
-  bluetoothAddress: '/dev/cu.usbserial-A10',
+  bluetoothAddress: port,
 );
+
+const _usbExplanation =
+    'Suunto Vyper connects with a USB cable, which Submersion cannot use on '
+    'iPhone or iPad. Download its dives with Submersion on a Mac, Windows or '
+    'Linux computer, or import them from a file.';
 
 class _Harness {
   _Harness() : hostApi = _RecordingHostApi() {
@@ -226,36 +235,45 @@ void main() {
   });
 
   // Issue #2837: iOS has no USB host. A USB computer saved on a desktop
-  // syncs to iOS with its port, and downloading it there used to reach the
-  // native layer and fail with "No USB serial ports found".
+  // syncs to iOS, and downloading it there either fell through to the
+  // generic "no saved connection" text (sync strips the port) or, with a
+  // port, reached the native layer and failed with "No USB serial ports
+  // found".
   group('a saved USB computer', () {
-    testWidgets(
-      'on iOS explains that USB needs a desktop instead of downloading',
-      (tester) async {
-        final harness = _Harness();
-        await tester.pumpWidget(harness.build(_syncedUsbComputer()));
-        await _settle(tester);
+    testWidgets('synced to iOS explains that USB needs a desktop', (
+      tester,
+    ) async {
+      final harness = _Harness();
+      await tester.pumpWidget(harness.build(_usbComputer()));
+      await _settle(tester);
 
-        expect(find.byType(DownloadStepWidget), findsNothing);
-        expect(find.byType(DcNoDirectDownloadView), findsOneWidget);
-        expect(
-          find.text(
-            'Suunto Vyper connects with a USB cable, which Submersion cannot '
-            'use on iPhone or iPad. Download its dives with Submersion on a '
-            'Mac, Windows or Linux computer, or import them from a file.',
-          ),
-          findsOneWidget,
-        );
-        expect(harness.hostApi.calls, isNot(contains('startDownload')));
-      },
-      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
-    );
+      expect(find.byType(DownloadStepWidget), findsNothing);
+      expect(find.byType(DcNoDirectDownloadView), findsOneWidget);
+      expect(find.text(_usbExplanation), findsOneWidget);
+      expect(harness.hostApi.calls, isNot(contains('startDownload')));
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+    testWidgets('with a stored port on iOS explains instead of downloading', (
+      tester,
+    ) async {
+      final harness = _Harness();
+      await tester.pumpWidget(
+        harness.build(_usbComputer(port: '/dev/cu.usbserial-A10')),
+      );
+      await _settle(tester);
+
+      expect(find.byType(DownloadStepWidget), findsNothing);
+      expect(find.text(_usbExplanation), findsOneWidget);
+      expect(harness.hostApi.calls, isNot(contains('startDownload')));
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
     testWidgets('on a platform with a USB host still downloads', (
       tester,
     ) async {
       final harness = _Harness();
-      await tester.pumpWidget(harness.build(_syncedUsbComputer()));
+      await tester.pumpWidget(
+        harness.build(_usbComputer(port: '/dev/cu.usbserial-A10')),
+      );
       await _settle(tester);
 
       expect(find.byType(DcNoDirectDownloadView), findsNothing);

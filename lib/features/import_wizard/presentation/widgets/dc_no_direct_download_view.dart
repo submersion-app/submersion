@@ -39,9 +39,14 @@ class DcNoDirectDownloadView extends StatelessWidget {
 
   bool get _isGarmin => computer.manufacturer?.trim().toLowerCase() == 'garmin';
 
+  /// A Garmin is never downloaded directly, so its FIT-file guidance wins
+  /// over the USB explanation.
+  bool get _explainsUsb =>
+      reason == DcNoDirectDownloadReason.usbUnavailable && !_isGarmin;
+
   String _body(BuildContext context) {
     final l10n = context.l10n;
-    if (reason == DcNoDirectDownloadReason.usbUnavailable) {
+    if (_explainsUsb) {
       return l10n.importWizard_dc_noUsbOnThisPlatformBody(computer.displayName);
     }
     return _isGarmin
@@ -69,9 +74,7 @@ class DcNoDirectDownloadView extends StatelessWidget {
                 color: colorScheme.secondaryContainer,
               ),
               child: Icon(
-                reason == DcNoDirectDownloadReason.usbUnavailable
-                    ? Icons.usb_off
-                    : Icons.file_open_outlined,
+                _explainsUsb ? Icons.usb_off : Icons.file_open_outlined,
                 size: 64,
                 color: colorScheme.onSecondaryContainer,
               ),
