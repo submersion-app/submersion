@@ -6,21 +6,28 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 ///
 /// A small on-device model copies the prompt's examples into sentences that
 /// never asked for them: a "cold-water" filter on "deep dives in Bonaire", a
-/// "since 2022" period on "dives with Sarah". Both checks hold in any
-/// language, because they compare the diver's own characters:
+/// "since 2022" period on "dives with Sarah".
 ///
-/// - A clause's text is the words it came from, so a clause whose words are
-///   not in the sentence is dropped.
+/// - A clause's text is the words it came from, so in English a clause whose
+///   words are not in the sentence is dropped. In any other [locale] the
+///   model often quotes the clause in English ("deeper than 30" for "tiefer
+///   als 30m"), so its clauses are not checked.
 /// - A time is one of the prompt's English shapes, so only its year can be
-///   checked: a year the sentence does not contain is dropped. A period
-///   without one ("last year" from "letztes Jahr") is left to the prompt.
+///   checked, in every language: a year the sentence does not contain is
+///   dropped. A period without one ("last year" from "letztes Jahr") is left
+///   to the prompt.
 ///
 /// Returns [parsed] itself when nothing is dropped.
-ParsedQuery groundedIn(ParsedQuery parsed, String sentence) {
+ParsedQuery groundedIn(
+  ParsedQuery parsed,
+  String sentence, {
+  required String locale,
+}) {
   final said = _comparable(sentence);
+  final checkClauses = _isEnglish(locale);
   final clauses = [
     for (final c in parsed.clauses)
-      if (_isIn(c.text, said)) c,
+      if (!checkClauses || _isIn(c.text, said)) c,
   ];
   final time = parsed.time;
   final keepTime = time == null || _yearsAreIn(time.text, said);
@@ -34,6 +41,9 @@ ParsedQuery groundedIn(ParsedQuery parsed, String sentence) {
     unplaced: parsed.unplaced,
   );
 }
+
+bool _isEnglish(String locale) =>
+    locale.split(RegExp('[-_]')).first.toLowerCase() == 'en';
 
 /// [text] with case, accents and full-width digits folded, and every run of
 /// anything but letters and digits made one space, so "Cold-Water" and

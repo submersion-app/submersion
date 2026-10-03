@@ -27,6 +27,7 @@ void main() {
       final g = groundedIn(
         parse(clauses: [clause('deep'), clause('cold-water')]),
         'deep dives in Bonaire',
+        locale: 'en',
       );
       expect(g.clauses.map((c) => c.text), ['deep']);
     });
@@ -42,6 +43,7 @@ void main() {
           ],
         ),
         'favourite épave dives in cold water below 20m',
+        locale: 'en',
       );
       expect(g.clauses, hasLength(4));
     });
@@ -50,41 +52,74 @@ void main() {
       final g = groundedIn(
         parse(clauses: [clause(''), clause(' - ')]),
         'deep dives',
+        locale: 'en',
+      );
+      expect(g.clauses, isEmpty);
+    });
+  });
+
+  group('other languages', () {
+    // The model often quotes a non-English sentence's clause in English
+    // ("deeper than 30" for "tiefer als 30m"), so only English is checked.
+    test('a clause quoted in English from a German sentence is kept', () {
+      final g = groundedIn(
+        parse(clauses: [clause('deeper than 30')]),
+        'Tauchgänge tiefer als 30m in Bonaire',
+        locale: 'de',
+      );
+      expect(g.clauses, hasLength(1));
+    });
+
+    test('a regional English locale is still checked', () {
+      final g = groundedIn(
+        parse(clauses: [clause('cold-water')]),
+        'deep dives in Bonaire',
+        locale: 'en_GB',
       );
       expect(g.clauses, isEmpty);
     });
 
-    test('words in a script without spaces are found', () {
+    test('a year the diver never typed is dropped in any language', () {
       final g = groundedIn(
-        parse(clauses: [clause('20メートル以上')]),
-        '20メートル以上のダイブ',
+        parse(time: 'since 2022'),
+        'Tauchgänge in Bonaire',
+        locale: 'de',
       );
-      expect(g.clauses, hasLength(1));
+      expect(g.time, isNull);
     });
   });
 
   group('time', () {
     test('a year the diver never typed is dropped', () {
-      final g = groundedIn(parse(time: 'since 2022'), 'deep dives in Bonaire');
+      final g = groundedIn(
+        parse(time: 'since 2022'),
+        'deep dives in Bonaire',
+        locale: 'en',
+      );
       expect(g.time, isNull);
     });
 
     test('a year the diver typed is kept', () {
       expect(
-        groundedIn(parse(time: 'since 2022'), 'dives since 2022').time?.text,
+        groundedIn(
+          parse(time: 'since 2022'),
+          'dives since 2022',
+          locale: 'en',
+        ).time?.text,
         'since 2022',
       );
       expect(
         groundedIn(
           parse(time: '2023-05-01 to 2024-05-14'),
           'dives from May 2023 to May 2024',
+          locale: 'en',
         ).time,
         isNotNull,
       );
     });
 
     test('full-width digits count as the year', () {
-      final g = groundedIn(parse(time: '2023'), '２０２３年のダイブ');
+      final g = groundedIn(parse(time: '2023'), '２０２３年のダイブ', locale: 'ja');
       expect(g.time?.text, '2023');
     });
 
@@ -92,11 +127,19 @@ void main() {
       // Nothing language-neutral can check "letztes Jahr" against
       // "last year"; the prompt's "none" keeps these honest.
       expect(
-        groundedIn(parse(time: 'last year'), 'Tauchgänge letztes Jahr').time,
+        groundedIn(
+          parse(time: 'last year'),
+          'Tauchgänge letztes Jahr',
+          locale: 'de',
+        ).time,
         isNotNull,
       );
       expect(
-        groundedIn(parse(time: 'last 30 days'), 'dives this past month').time,
+        groundedIn(
+          parse(time: 'last 30 days'),
+          'dives this past month',
+          locale: 'en',
+        ).time,
         isNotNull,
       );
     });
@@ -108,7 +151,7 @@ void main() {
       mentions: [QueryMention(kind: MentionKind.place, text: 'Bonaire')],
       unplaced: ['maybe'],
     );
-    final g = groundedIn(parsed, 'sites in Bonaire maybe');
+    final g = groundedIn(parsed, 'sites in Bonaire maybe', locale: 'en');
     expect(g.subject, ParsedSubject.sites);
     expect(g.mentions.single.text, 'Bonaire');
     expect(g.unplaced, ['maybe']);
@@ -117,7 +160,10 @@ void main() {
   test('a grounded parse is returned as is', () {
     final parsed = parse(clauses: [clause('deep')], time: 'last year');
     expect(
-      identical(groundedIn(parsed, 'deep dives last year'), parsed),
+      identical(
+        groundedIn(parsed, 'deep dives last year', locale: 'en'),
+        parsed,
+      ),
       isTrue,
     );
   });
