@@ -28,6 +28,8 @@ import 'package:submersion/features/media_store/data/media_deletion_coordinator.
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
+import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 
@@ -41,28 +43,43 @@ class DeleteDiverResult {
   final String? reassignedToDiverId;
   final String? reassignedToDiverName;
 
+  /// Items of the deleted profile's gear other profiles needed, handed to
+  /// them instead of deleted (issue #2852).
+  final int keptEquipmentCount;
+
+  /// The profiles that received kept gear, in handover order, no repeats.
+  final List<String> keptEquipmentHeirNames;
+
   const DeleteDiverResult({
     required this.reassignedTripsCount,
     required this.reassignedSitesCount,
     this.reassignedToDiverId,
     this.reassignedToDiverName,
+    this.keptEquipmentCount = 0,
+    this.keptEquipmentHeirNames = const [],
   });
 
   bool get hasReassignments =>
       reassignedTripsCount > 0 || reassignedSitesCount > 0;
+
+  bool get hasKeptEquipment => keptEquipmentCount > 0;
 }
 
 class DiverRepository {
   DiverRepository({
     ImportedFileReclaimer? importedFileReclaimer,
     MediaDeletionCoordinator? mediaDeletionCoordinator,
+    EquipmentTransferService? equipmentTransferService,
   }) : _importedFileReclaimer =
            importedFileReclaimer ?? ImportedFileReclaimer(),
-       _injectedMediaDeletionCoordinator = mediaDeletionCoordinator;
+       _injectedMediaDeletionCoordinator = mediaDeletionCoordinator,
+       _equipmentTransfer =
+           equipmentTransferService ?? EquipmentTransferService();
 
   AppDatabase get _db => DatabaseService.instance.database;
   final ImportedFileReclaimer _importedFileReclaimer;
   final MediaDeletionCoordinator? _injectedMediaDeletionCoordinator;
+  final EquipmentTransferService _equipmentTransfer;
 
   /// Built on first use: most callers construct a DiverRepository only to
   /// read the active diver, and never delete one. No worker kick from the
@@ -484,6 +501,8 @@ class DiverRepository {
       String? targetName;
       int reassignedTrips = 0;
       int reassignedSites = 0;
+      var keptEquipment = 0;
+      final keptHeirIds = <String>[];
 
       if (allDiversRows.isNotEmpty) {
         targetId = allDiversRows.first.id;
@@ -494,6 +513,25 @@ class DiverRepository {
       late final MediaCascadePlan mediaPlan;
 
       await _db.transaction(() async {
+        // Step 0a: Hand over the gear other profiles need (issue #2852),
+        // before anything below selects this diver's rows: every later step
+        // matches `diver_id = id`, so a moved item, dive computer or
+        // transmitter is out of their reach, and the media plan keeps the
+        // moved gear's media.
+        final handoverAt = DateTime.now().millisecondsSinceEpoch;
+        for (final kept in await _equipmentTransfer.keptUnitsForDiver(id)) {
+          final moved = await _equipmentTransfer.transferUnitInTransaction(
+            unit: kept.unit,
+            fromDiverId: id,
+            toDiverId: kept.heirId,
+            keepAccess: false,
+            moveRegistry: true,
+            now: handoverAt,
+          );
+          keptEquipment += moved.itemsMoved;
+          if (!keptHeirIds.contains(kept.heirId)) keptHeirIds.add(kept.heirId);
+        }
+
         // Step 0: Reassign shared records to the surviving diver (if any).
         if (targetId != null) {
           final now = DateTime.now().millisecondsSinceEpoch;
@@ -791,6 +829,12 @@ class DiverRepository {
       await _importedFileReclaimer.reclaimOrphans();
 
       SyncEventBus.notifyLocalChange();
+      final movedTransmitters = _equipmentTransfer.takeMovedTransmitters();
+      if (movedTransmitters.isNotEmpty) {
+        await TransmitterRepository().rescanDivesForTransmitters(
+          movedTransmitters,
+        );
+      }
       _log.info('Deleted diver: $id');
 
       return DeleteDiverResult(
@@ -802,6 +846,12 @@ class DiverRepository {
         reassignedToDiverName: reassignedTrips > 0 || reassignedSites > 0
             ? targetName
             : null,
+        keptEquipmentCount: keptEquipment,
+        keptEquipmentHeirNames: [
+          for (final heirId in keptHeirIds)
+            for (final r in allDiversRows)
+              if (r.id == heirId) r.name,
+        ],
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -812,6 +862,11 @@ class DiverRepository {
       rethrow;
     }
   }
+
+  /// How many items of [diverId]'s gear a delete would keep for other
+  /// profiles, for the delete confirmation (issue #2852).
+  Future<int> keptEquipmentCount(String diverId) =>
+      _equipmentTransfer.keptEquipmentCount(diverId);
 
   /// Set a diver as the default (clears default from others)
   Future<void> setDefaultDiver(String id) async {

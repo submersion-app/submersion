@@ -93,11 +93,25 @@ void main() {
   test(
     'the deleted diver own items take their events with tombstones',
     () async {
-      final maskEvent = (await (db.select(
-        db.equipmentOwnershipEvents,
-      )..where((t) => t.equipmentId.equals('mask'))).getSingle()).id;
+      // A shared item is kept and handed over (issue #2852), so unshare the
+      // mask first: it keeps its history but no profile needs it.
+      await EquipmentShareRepository().setShares(
+        equipmentId: 'mask',
+        diverIds: const {},
+        actingDiverId: 'wife',
+      );
+      final maskEvents = [
+        for (final e in await (db.select(
+          db.equipmentOwnershipEvents,
+        )..where((t) => t.equipmentId.equals('mask'))).get())
+          e.id,
+      ];
+      expect(maskEvents, hasLength(2));
       await DiverRepository().deleteDiverWithReassignment('wife');
-      expect(await tombstones('equipmentOwnershipEvents'), contains(maskEvent));
+      expect(
+        await tombstones('equipmentOwnershipEvents'),
+        containsAll(maskEvents),
+      );
     },
   );
 }
