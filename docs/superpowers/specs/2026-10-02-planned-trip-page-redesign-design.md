@@ -3,8 +3,8 @@
 Date: 2026-10-02
 Status: approved design, implementation plan pending
 Branch: ericgriffin/planned-trip-ui-redesign-d5453d
-Issue: opened from this spec once it is approved (the PR body must say
-`Closes #<issue>`, and `Closes #2658` for the rest-day follow-up)
+Issue: #2845 (the PR body must say `Closes #2845`, and `Closes #2658` for
+the rest-day follow-up)
 Release: v1.8.1
 
 ## Problem
