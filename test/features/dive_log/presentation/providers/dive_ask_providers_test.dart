@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
@@ -84,13 +86,16 @@ void main() {
     Future<NameIndex> Function()? names,
     RecentQueryRecorder? recorder,
     DiveFilterState filter = const DiveFilterState(),
+    String locale = 'en',
+    Locale device = const Locale('en', 'US'),
   }) {
     recorded = [];
     final c = ProviderContainer(
       overrides: [
         nlEngineProvider.overrideWithValue(engine),
         explorePlatformSupportedProvider.overrideWithValue(true),
-        localeProvider.overrideWithValue('en'),
+        localeProvider.overrideWithValue(locale),
+        exploreDeviceLocaleProvider.overrideWithValue(() => device),
         queryUnitPrefsProvider.overrideWithValue(
           const UnitPrefs(
             depth: DepthUnit.meters,
@@ -306,15 +311,15 @@ void main() {
 
   test('a slow reply cannot overwrite a newer request', () async {
     final engine = _Engine()
-      ..replies['second'] = _deep
+      ..replies['deep dives'] = _deep
       ..gates['first'] = Completer<String>();
     final c = make(engine);
     final first = askOf(c).ask('first');
     await Future<void>.delayed(Duration.zero);
-    await askOf(c).ask('second');
+    await askOf(c).ask('deep dives');
     engine.gates['first']!.complete(_turtles);
     await first;
-    expect(stateOf(c).answer!.sentence, 'second');
+    expect(stateOf(c).answer!.sentence, 'deep dives');
     expect(boundOf(stateOf(c).answer!.compiled, 'depth', QueryOp.gte), 40);
   });
 
@@ -331,6 +336,67 @@ void main() {
     expect(await first, isNull);
     expect(stateOf(c).answer, isNull);
     expect(filterOf(c).query, TextNode(['typed']));
+  });
+
+  // Ported with Explore's notifier: the model copies the prompt's examples
+  // into sentences that never asked for them (#2838, #2842).
+  group('grounding', () {
+    const embellished =
+        '{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":['
+        '{"field":"depth","op":"gt","value":20,"unit":"m","text":"below 20m"},'
+        '{"field":"waterTemp","op":"lt","value":15,"unit":"c",'
+        '"text":"cold-water"}],"mentions":[{"kind":"place","text":"Bonaire"}],'
+        '"time":"since 2022","unplaced":[]}';
+
+    test('a filter or year the sentence never said is not applied', () async {
+      ParsedQuery? kept;
+      final c = make(
+        _Engine(embellished),
+        recorder: (sentence, locale, parsed) async => kept = parsed,
+      );
+      await askOf(c).ask('Turtles below 20m in Bonaire');
+      final compiled = stateOf(c).answer!.compiled;
+      expect(boundOf(compiled, 'depth', QueryOp.gte), 20);
+      expect(boundOf(compiled, 'waterTemp', QueryOp.lte), isNull);
+      expect(compiled.chips.map((ch) => ch.ref), isNot(contains(ChipRef.time)));
+      // The recent list keeps what the diver saw, not the raw reply.
+      expect(kept!.clauses.map((cl) => cl.text), ['below 20m']);
+      expect(kept!.time, isNull);
+    });
+
+    Future<ExploreCompilation> askOnDevice(
+      Locale device,
+      String sentence,
+    ) async {
+      final c = make(_Engine(embellished), locale: 'system', device: device);
+      await askOf(c).ask(sentence);
+      return stateOf(c).answer!.compiled;
+    }
+
+    test('following an English device, invented clauses are dropped', () async {
+      final compiled = await askOnDevice(
+        const Locale('en', 'US'),
+        'Turtles below 20m in Bonaire',
+      );
+      expect(boundOf(compiled, 'waterTemp', QueryOp.lte), isNull);
+    });
+
+    test('following a German device, clauses are kept', () async {
+      final compiled = await askOnDevice(
+        const Locale('de', 'DE'),
+        'Schildkröten unter 20m in Bonaire, kaltes Wasser',
+      );
+      expect(boundOf(compiled, 'waterTemp', QueryOp.lte), 15);
+    });
+
+    test('a sentence that names its period keeps it', () async {
+      final c = make(_Engine(embellished));
+      await askOf(c).ask('Turtles below 20m in Bonaire since 2022');
+      expect(
+        stateOf(c).answer!.compiled.chips.map((ch) => ch.ref),
+        contains(ChipRef.time),
+      );
+    });
   });
 
   test('prepare warms the model once', () async {

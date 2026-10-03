@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/explore/domain/entity_resolver.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
 import 'package:submersion/features/explore/domain/explore_compiler.dart';
+import 'package:submersion/features/explore/domain/explore_grounding.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/explore/presentation/explore_handoff.dart';
@@ -88,7 +89,16 @@ class DiveAskNotifier extends StateNotifier<AskState> {
           .read(nlEngineProvider)
           .compile(trimmed, localeTag: locale);
       if (request != _request) return null;
-      final parsed = ParsedQuery.fromDecoded(jsonDecode(json));
+      // Only what the sentence says: the model copies the prompt's examples
+      // into sentences that never asked for them (#2838).
+      final parsed = groundedIn(
+        ParsedQuery.fromDecoded(jsonDecode(json)),
+        trimmed,
+        locale: exploreLocaleTag(
+          locale,
+          _ref.read(exploreDeviceLocaleProvider),
+        ),
+      );
       final names = await _ref.read(exploreNameIndexProvider.future);
       if (request != _request) return null;
       final route = _publish(
