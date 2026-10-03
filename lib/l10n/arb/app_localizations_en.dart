@@ -24735,7 +24735,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_itinerary_empty =>
-      'No itinerary yet. Generate one from the trip dates, or add days as you go.';
+      'No itinerary yet. Generate one from the trip dates.';
 
   @override
   String get trips_itinerary_fillMissing => 'Fill in missing days';

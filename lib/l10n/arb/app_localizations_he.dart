@@ -24532,8 +24532,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_itinerary_daySaveError => 'לא ניתן לשמור את היום. נסו שוב.';
 
   @override
-  String get trips_itinerary_empty =>
-      'אין עדיין מסלול. צרו אחד מתאריכי הטיול, או הוסיפו ימים תוך כדי.';
+  String get trips_itinerary_empty => 'אין עדיין מסלול. צרו אחד מתאריכי הטיול.';
 
   @override
   String get trips_itinerary_fillMissing => 'השלמת ימים חסרים';

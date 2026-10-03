@@ -24950,7 +24950,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_itinerary_empty =>
-      'Nog geen reisschema. Maak er een van de reisdata, of voeg dagen toe terwijl je gaat.';
+      'Nog geen reisschema. Maak er een van de reisdata.';
 
   @override
   String get trips_itinerary_fillMissing => 'Ontbrekende dagen aanvullen';

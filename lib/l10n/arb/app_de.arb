@@ -7338,7 +7338,7 @@
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_error_loading": "Der Reiseplan konnte nicht geladen werden.",
   "trips_itinerary_daySaveError": "Der Tag konnte nicht gespeichert werden. Versuche es erneut.",
-  "trips_itinerary_empty": "Noch keine Reiseroute. Erstelle eine aus den Reisedaten oder füge Tage nach und nach hinzu.",
+  "trips_itinerary_empty": "Noch keine Reiseroute. Erstelle eine aus den Reisedaten.",
   "trips_itinerary_fillMissing": "Fehlende Tage ergänzen",
   "trips_itinerary_plannedDives": "{count, plural, =1{1 Tauchgang geplant} other{{count} Tauchgänge geplant}}",
   "@trips_itinerary_plannedDives": {

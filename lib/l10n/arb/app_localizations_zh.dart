@@ -23837,7 +23837,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_itinerary_daySaveError => '无法保存日程，请重试。';
 
   @override
-  String get trips_itinerary_empty => '还没有行程。根据旅行日期生成一个，或随时添加天数。';
+  String get trips_itinerary_empty => '还没有行程。根据旅行日期生成一个。';
 
   @override
   String get trips_itinerary_fillMissing => '补全缺少的天数';

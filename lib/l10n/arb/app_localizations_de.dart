@@ -25093,7 +25093,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_itinerary_empty =>
-      'Noch keine Reiseroute. Erstelle eine aus den Reisedaten oder füge Tage nach und nach hinzu.';
+      'Noch keine Reiseroute. Erstelle eine aus den Reisedaten.';
 
   @override
   String get trips_itinerary_fillMissing => 'Fehlende Tage ergänzen';

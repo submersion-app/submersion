@@ -7134,7 +7134,7 @@
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_error_loading": "Nem sikerült betölteni az útitervet.",
   "trips_itinerary_daySaveError": "Nem sikerült menteni a napot. Próbáld újra.",
-  "trips_itinerary_empty": "Még nincs útiterv. Készíts egyet az utazás dátumaiból, vagy adj hozzá napokat menet közben.",
+  "trips_itinerary_empty": "Még nincs útiterv. Készíts egyet az utazás dátumaiból.",
   "trips_itinerary_fillMissing": "Hiányzó napok kitöltése",
   "trips_itinerary_plannedDives": "{count, plural, =1{1 tervezett merülés} other{{count} tervezett merülés}}",
   "@trips_itinerary_plannedDives": {

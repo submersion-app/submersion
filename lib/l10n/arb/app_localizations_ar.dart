@@ -24829,7 +24829,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_itinerary_empty =>
-      'لا يوجد برنامج رحلة بعد. أنشئ واحدًا من تواريخ الرحلة، أو أضف الأيام تباعًا.';
+      'لا يوجد برنامج رحلة بعد. أنشئ واحدًا من تواريخ الرحلة.';
 
   @override
   String get trips_itinerary_fillMissing => 'إكمال الأيام الناقصة';

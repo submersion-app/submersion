@@ -150,7 +150,6 @@ class TripGearTab extends ConsumerWidget {
           for (final item in packed)
             TripPackedItemRow(
               item: item,
-              alert: alertsByItem[item.id]?.first,
               alerts: alertsByItem[item.id] ?? const [],
               margin: marginByItem[item.id],
               onUnpack: () => _unpack(context, ref, item.id),

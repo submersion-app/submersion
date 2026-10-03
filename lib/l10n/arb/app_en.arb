@@ -15311,7 +15311,7 @@
   "trips_itinerary_notes_label": "Notes",
   "trips_itinerary_error_loading": "Couldn't load the itinerary.",
   "trips_itinerary_daySaveError": "Couldn't save the day. Try again.",
-  "trips_itinerary_empty": "No itinerary yet. Generate one from the trip dates, or add days as you go.",
+  "trips_itinerary_empty": "No itinerary yet. Generate one from the trip dates.",
   "trips_itinerary_fillMissing": "Fill in missing days",
   "trips_itinerary_plannedDives": "{count, plural, =1{1 dive planned} other{{count} dives planned}}",
   "@trips_itinerary_plannedDives": {

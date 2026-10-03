@@ -7399,7 +7399,7 @@
   "trips_itinerary_editDay": "编辑日程",
   "trips_itinerary_error_loading": "无法加载行程。",
   "trips_itinerary_daySaveError": "无法保存日程，请重试。",
-  "trips_itinerary_empty": "还没有行程。根据旅行日期生成一个，或随时添加天数。",
+  "trips_itinerary_empty": "还没有行程。根据旅行日期生成一个。",
   "trips_itinerary_fillMissing": "补全缺少的天数",
   "trips_itinerary_plannedDives": "{count, plural, =1{计划 1 次潜水} other{计划 {count} 次潜水}}",
   "@trips_itinerary_plannedDives": {

@@ -39778,7 +39778,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_itinerary_empty.
   ///
   /// In en, this message translates to:
-  /// **'No itinerary yet. Generate one from the trip dates, or add days as you go.'**
+  /// **'No itinerary yet. Generate one from the trip dates.'**
   String get trips_itinerary_empty;
 
   /// No description provided for @trips_itinerary_fillMissing.

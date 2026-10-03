@@ -7235,7 +7235,7 @@
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_error_loading": "Não foi possível carregar o itinerário.",
   "trips_itinerary_daySaveError": "Não foi possível guardar o dia. Tente novamente.",
-  "trips_itinerary_empty": "Ainda sem itinerário. Gere um a partir das datas da viagem ou adicione dias à medida que avança.",
+  "trips_itinerary_empty": "Ainda sem itinerário. Gere um a partir das datas da viagem.",
   "trips_itinerary_fillMissing": "Preencher dias em falta",
   "trips_itinerary_plannedDives": "{count, plural, =1{{count} mergulho planeado} other{{count} mergulhos planeados}}",
   "@trips_itinerary_plannedDives": {

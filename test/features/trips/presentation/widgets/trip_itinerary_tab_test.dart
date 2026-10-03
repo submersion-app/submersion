@@ -230,10 +230,7 @@ void main() {
   ) async {
     await _pumpTab(tester, trip: _resortTrip(), days: const []);
     expect(
-      find.text(
-        'No itinerary yet. Generate one from the trip dates, or add days as '
-        'you go.',
-      ),
+      find.text('No itinerary yet. Generate one from the trip dates.'),
       findsOneWidget,
     );
     expect(find.text('Generate itinerary'), findsOneWidget);

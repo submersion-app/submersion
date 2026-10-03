@@ -7235,7 +7235,7 @@
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_error_loading": "לא ניתן לטעון את המסלול.",
   "trips_itinerary_daySaveError": "לא ניתן לשמור את היום. נסו שוב.",
-  "trips_itinerary_empty": "אין עדיין מסלול. צרו אחד מתאריכי הטיול, או הוסיפו ימים תוך כדי.",
+  "trips_itinerary_empty": "אין עדיין מסלול. צרו אחד מתאריכי הטיול.",
   "trips_itinerary_fillMissing": "השלמת ימים חסרים",
   "trips_itinerary_plannedDives": "{count, plural, =1{צלילה אחת מתוכננת} other{{count} צלילות מתוכננות}}",
   "@trips_itinerary_plannedDives": {

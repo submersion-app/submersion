@@ -7235,7 +7235,7 @@
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_error_loading": "تعذّر تحميل برنامج الرحلة.",
   "trips_itinerary_daySaveError": "تعذّر حفظ اليوم. حاول مرة أخرى.",
-  "trips_itinerary_empty": "لا يوجد برنامج رحلة بعد. أنشئ واحدًا من تواريخ الرحلة، أو أضف الأيام تباعًا.",
+  "trips_itinerary_empty": "لا يوجد برنامج رحلة بعد. أنشئ واحدًا من تواريخ الرحلة.",
   "trips_itinerary_fillMissing": "إكمال الأيام الناقصة",
   "trips_itinerary_plannedDives": "{count, plural, =1{غوصة واحدة مخططة} other{{count} غوصات مخططة}}",
   "@trips_itinerary_plannedDives": {

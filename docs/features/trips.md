@@ -127,13 +127,13 @@ All dives on the trip:
 - Quick access to details
 - Day-by-day grouping
 
-### Trip Map
+### Day Maps
 
-Visual overview:
+Each day of the story has its own map:
 
-- All dive sites on map
-- Route of travel (liveaboard)
-- Geographic spread
+- One numbered pin per dive, and the day's itinerary location
+- Tap a pin to highlight its dive below the map
+- Open the map fullscreen to pan and zoom
 
 ## Trip Organization
 
@@ -238,8 +238,9 @@ the cylinder forecast uses. A day planned at no dives is a rest day.
 
 One list of what you'll dive with: the gear you pack from your equipment
 (service clocks falling due before the trip show on the item) and the
-cylinders you'll hold, rental or your own. Add offers all three ways in. Once
-the trip starts, the cylinders show their fill state and open the board.
+cylinders you'll hold, rental or your own. Add offers all three ways in.
+Tapping a cylinder opens the board; once the trip starts, the cylinders also
+show their fill state.
 
 ### Checklist
 

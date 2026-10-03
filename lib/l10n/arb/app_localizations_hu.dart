@@ -25047,7 +25047,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_itinerary_empty =>
-      'Még nincs útiterv. Készíts egyet az utazás dátumaiból, vagy adj hozzá napokat menet közben.';
+      'Még nincs útiterv. Készíts egyet az utazás dátumaiból.';
 
   @override
   String get trips_itinerary_fillMissing => 'Hiányzó napok kitöltése';

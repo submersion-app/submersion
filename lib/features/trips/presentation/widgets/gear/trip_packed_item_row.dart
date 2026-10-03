@@ -23,10 +23,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class TripPackedItemRow extends ConsumerWidget {
   final EquipmentItem item;
 
-  /// The item's most pressing clock, for the one-line subtitle.
-  final DueClock? alert;
-
-  /// Every blocking clock on the item, for the detail sheet.
+  /// Every blocking clock on the item, most pressing first: the first is
+  /// the one-line subtitle, the sheet lists them all.
   final List<DueClock> alerts;
   final ScrubberMargin? margin;
   final Future<void> Function() onUnpack;
@@ -34,7 +32,6 @@ class TripPackedItemRow extends ConsumerWidget {
   const TripPackedItemRow({
     super.key,
     required this.item,
-    this.alert,
     this.alerts = const [],
     this.margin,
     required this.onUnpack,
@@ -48,7 +45,7 @@ class TripPackedItemRow extends ConsumerWidget {
 
     var subtitle = item.type.localizedName(l10n);
     Color? tint;
-    final clock = alert?.status;
+    final clock = alerts.firstOrNull?.status;
     final scrubber = margin;
     if (clock != null) {
       subtitle = tripServiceAlertSubtitle(context, units, clock);
@@ -74,7 +71,7 @@ class TripPackedItemRow extends ConsumerWidget {
               onTap: () => showTripGearAlertSheet(
                 context,
                 item: item,
-                alerts: alerts.isEmpty && alert != null ? [alert!] : alerts,
+                alerts: alerts,
                 margin: scrubber,
               ),
               child: subtitleText,

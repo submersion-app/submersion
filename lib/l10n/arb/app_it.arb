@@ -7130,7 +7130,7 @@
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_error_loading": "Impossibile caricare l'itinerario.",
   "trips_itinerary_daySaveError": "Impossibile salvare la giornata. Riprova.",
-  "trips_itinerary_empty": "Nessun itinerario ancora. Generane uno dalle date del viaggio o aggiungi i giorni man mano.",
+  "trips_itinerary_empty": "Nessun itinerario ancora. Generane uno dalle date del viaggio.",
   "trips_itinerary_fillMissing": "Completa i giorni mancanti",
   "trips_itinerary_plannedDives": "{count, plural, =1{1 immersione pianificata} other{{count} immersioni pianificate}}",
   "@trips_itinerary_plannedDives": {

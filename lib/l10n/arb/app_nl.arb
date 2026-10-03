@@ -7235,7 +7235,7 @@
   "trips_itinerary_editDay": "Edit Day",
   "trips_itinerary_error_loading": "Kan het reisschema niet laden.",
   "trips_itinerary_daySaveError": "Kan de dag niet opslaan. Probeer het opnieuw.",
-  "trips_itinerary_empty": "Nog geen reisschema. Maak er een van de reisdata, of voeg dagen toe terwijl je gaat.",
+  "trips_itinerary_empty": "Nog geen reisschema. Maak er een van de reisdata.",
   "trips_itinerary_fillMissing": "Ontbrekende dagen aanvullen",
   "trips_itinerary_plannedDives": "{count, plural, =1{1 duik gepland} other{{count} duiken gepland}}",
   "@trips_itinerary_plannedDives": {
