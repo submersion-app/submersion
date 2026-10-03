@@ -84,6 +84,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 
 /// A dive that a conditions fetch can still do something for: its site carries
 /// coordinates and at least one weather column is empty.
@@ -6550,7 +6551,12 @@ class DiveRepository {
       }
       if (touched.isNotEmpty) await _bumpDives(touched, now);
     });
-    if (touched.isNotEmpty) SyncEventBus.notifyLocalChange();
+    if (touched.isNotEmpty) {
+      SyncEventBus.notifyLocalChange();
+      // The gear changed without a save, so queue the rescan a save would
+      // (issue #2853): a shared gear overlap can appear or go with it.
+      scheduleQualityScan(touched);
+    }
     return touched.length;
   }
 
