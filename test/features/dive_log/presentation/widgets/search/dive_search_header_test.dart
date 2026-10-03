@@ -27,6 +27,14 @@ import 'package:submersion/features/query/domain/entities/saved_query.dart';
 import 'package:submersion/features/query/domain/saved_query_load.dart';
 import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_ask_providers.dart';
+import 'package:submersion/features/explore/domain/query_model.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_app.dart';
@@ -45,6 +53,11 @@ void main() {
     void Function(QueryNode node)? saveOverride,
     List<SavedQueryLoad> savedLoads = const [],
     RecentTypedRecorder? typedRecorder,
+    List<RecentQuery> recents = const [],
+    NameIndex? names,
+    UnitPrefs? prefs,
+    bool? askEnabled,
+    DiveAskNotifier Function(Ref ref)? ask,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -54,16 +67,24 @@ void main() {
           ...base,
           diveFilterProvider.overrideWith((ref) => filter),
           diveSearchBarOpenProvider.overrideWith((ref) => open),
-          queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+          queryNameIndexProvider.overrideWith(
+            (ref) async => names ?? NameIndex.empty,
+          ),
           diveJumpResultsProvider.overrideWith(
             (ref, q) => jumpFor != null ? jumpFor(q) : Future.value(jump),
           ),
           savedQueryLoadsProvider(
             'dives',
           ).overrideWith((ref) async => savedLoads),
-          recentQueriesProvider.overrideWith(
-            (ref) async => const <RecentQuery>[],
-          ),
+          recentQueriesProvider.overrideWith((ref) async => recents),
+          if (prefs != null) queryUnitPrefsProvider.overrideWithValue(prefs),
+          if (askEnabled != null) ...[
+            exploreEnabledProvider.overrideWithValue(askEnabled),
+            exploreNameIndexProvider.overrideWith(
+              (ref) async => names ?? NameIndex.empty,
+            ),
+          ],
+          if (ask != null) diveAskProvider.overrideWith(ask),
           allBuddiesProvider.overrideWith((ref) async => const <Buddy>[]),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'ana'),
           recentTypedRecorderProvider.overrideWithValue(
@@ -494,6 +515,172 @@ void main() {
     expect(typed, isEmpty);
   });
 
+  // Final review: the recents list printed the text from when it was
+  // recorded, so it disagreed with the field after a units change.
+  testWidgets('a typed recent shows in the diver units and current names', (
+    tester,
+  ) async {
+    final node = normalizeQuery(
+      const DiveFilterState(minDepth: 30, siteId: 's1').toQuery(),
+    )!;
+    final names = NameIndex([
+      NameEntry(
+        subject: QuerySubject.sites,
+        label: 'Blue Hole',
+        ids: const ['s1'],
+        target: rowTargetFor(QuerySubject.sites),
+        primary: true,
+      ),
+    ]);
+    await pumpHeader(
+      tester,
+      names: names,
+      prefs: const UnitPrefs(
+        depth: DepthUnit.feet,
+        temperature: TemperatureUnit.fahrenheit,
+        pressure: PressureUnit.psi,
+        weight: WeightUnit.pounds,
+        volume: VolumeUnit.cubicFeet,
+      ),
+      recents: [
+        RecentQuery(
+          sentence: 'depth >= 30m site = "Old name"',
+          locale: 'en',
+          parsed: null,
+          kind: RecentQueryKind.typed,
+          node: node,
+          lastUsedAt: DateTime(2026, 10, 2),
+        ),
+      ],
+    );
+    await tester.tap(find.byKey(kDiveSearchFieldKey));
+    await tester.pumpAndSettle();
+    Finder inRecent(String text) => find.descendant(
+      of: find.byType(ListTile),
+      matching: find.textContaining(text),
+    );
+    expect(inRecent('Old name'), findsNothing);
+    expect(inRecent('30m'), findsNothing);
+    expect(inRecent('Blue Hole'), findsOneWidget);
+    // 30 m as the diver's feet: a unitless number prints in their units.
+    expect(inRecent('98.4'), findsOneWidget);
+  });
+
+  // Final review: a blur on text that does not parse filed the last tree.
+  testWidgets('text that does not parse is not recorded', (tester) async {
+    final typed = <String>[];
+    await pumpHeader(
+      tester,
+      typedRecorder: (text, node, l, d) async => typed.add(text),
+    );
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump();
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'depth >');
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    expect(typed, isEmpty);
+  });
+
+  // Review Focus 1, pinned: a saved site that was deleted since.
+  testWidgets('a saved search whose site is gone still loads', (tester) async {
+    final node = ConditionNode(
+      FieldPath(['site']),
+      QueryOp.eq,
+      const RefValue('gone', 'Old Reef'),
+    );
+    await pumpHeader(
+      tester,
+      savedLoads: [
+        SavedQueryLoad(
+          SavedQuery(
+            id: 'q1',
+            subject: 'dives',
+            name: 'Old Reef dives',
+            queryJson: '{}',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+          node: node,
+          problem: SavedQueryProblem.unresolvedRef,
+        ),
+      ],
+    );
+    await tester.tap(find.byKey(kDiveSearchFieldKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('Old Reef dives'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(filterOf(), DiveFilterState(query: node));
+    expect(find.textContaining('Old Reef'), findsWidgets);
+  });
+
+  // Plan ruling 3: a typed recent applies as typing would.
+  testWidgets('a typed recent replaces the query and keeps the axes', (
+    tester,
+  ) async {
+    await pumpHeader(
+      tester,
+      filter: const DiveFilterState(minDepth: 30),
+      recents: [
+        RecentQuery(
+          sentence: 'wreck',
+          locale: 'en',
+          parsed: null,
+          kind: RecentQueryKind.typed,
+          node: TextNode(['wreck']),
+          lastUsedAt: DateTime(2026, 10, 2),
+        ),
+      ],
+    );
+    await tester.tap(find.byKey(kDiveSearchFieldKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'wreck'));
+    await tester.pumpAndSettle();
+    expect(
+      filterOf(),
+      DiveFilterState(minDepth: 30, query: TextNode(['wreck'])),
+    );
+  });
+
+  // Plan ruling 3: an asked recent replays its stored answer.
+  testWidgets('an asked recent replays', (tester) async {
+    late _ReplayAsk fake;
+    final recent = RecentQuery(
+      sentence: 'turtles in Bonaire',
+      locale: 'en',
+      parsed: const ParsedQuery(subject: ParsedSubject.dives),
+      lastUsedAt: DateTime(2026, 10, 1),
+    );
+    await pumpHeader(
+      tester,
+      askEnabled: true,
+      ask: (ref) => fake = _ReplayAsk(ref),
+      recents: [recent],
+    );
+    await tester.tap(find.byKey(kDiveSearchFieldKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'turtles in Bonaire'));
+    await tester.pumpAndSettle();
+    expect(fake.replayed, [recent]);
+  });
+
+  // Final review: Save read the filter, which still held the query from
+  // before the debounce.
+  testWidgets('Save inside the debounce stores what was typed', (tester) async {
+    QueryNode? saved;
+    await pumpHeader(
+      tester,
+      filter: DiveFilterState(query: TextNode(['manta'])),
+      saveOverride: (node) => saved = node,
+    );
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'wreck');
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveSearchSaveKey));
+    await tester.pumpAndSettle();
+    expect(saved, TextNode(['wreck']));
+  });
+
   testWidgets('a hint is typed in and applied', (tester) async {
     await pumpHeader(tester);
     await tester.tap(find.byKey(kDiveSearchFieldKey));
@@ -659,4 +846,16 @@ void main() {
     expect(tester.widget(insights), isA<IconButton>());
     expect(find.byTooltip('Open in Insights'), findsOneWidget);
   });
+}
+
+class _ReplayAsk extends DiveAskNotifier {
+  _ReplayAsk(super.ref);
+
+  final replayed = <RecentQuery>[];
+
+  @override
+  Future<String?> replay(RecentQuery recent) async {
+    replayed.add(recent);
+    return null;
+  }
 }

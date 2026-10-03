@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/explore/data/recent_query_repository.dart';
@@ -25,11 +26,16 @@ class DiveSearchSuggestions extends ConsumerWidget {
     required this.onSaved,
     required this.onRecent,
     required this.onHint,
+    required this.printQuery,
   });
 
   final ValueChanged<SavedQueryLoad> onSaved;
   final ValueChanged<RecentQuery> onRecent;
   final ValueChanged<String> onHint;
+
+  /// Prints a typed recent's stored tree as the field would now: in the
+  /// diver's current units, with current names.
+  final String Function(QueryNode node) printQuery;
 
   static const _recentShown = 5;
 
@@ -96,7 +102,10 @@ class DiveSearchSuggestions extends ConsumerWidget {
                     ),
                   ),
                   title: Text(
-                    r.sentence,
+                    switch (r.node) {
+                      final node? => printQuery(node),
+                      null => r.sentence,
+                    },
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

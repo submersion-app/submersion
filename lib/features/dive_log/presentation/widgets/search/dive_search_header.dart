@@ -236,7 +236,8 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
   /// is logged, never shown.
   Future<void> _recordTyped() async {
     final node = _local;
-    if (node == null || !_typedSinceRecord) return;
+    // Text that does not parse is not what [_local] holds.
+    if (node == null || !_typedSinceRecord || !_fieldValid) return;
     _typedSinceRecord = false;
     final text = _editorContext().printer.print(node);
     final locale = ref.read(localeProvider);
@@ -271,14 +272,24 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     );
   }
 
+  /// [node] with its refs named as they are now, as a saved search's are
+  /// on load: a site renamed since shows its new name.
+  QueryNode _withCurrentNames(QueryNode node) => refreshRefLabels(
+    node,
+    diveQueryEntity,
+    appQueryRegistry,
+    ref.read(queryNameIndexProvider).value ?? NameIndex.empty,
+  );
+
   /// A typed recent applies as typing would; an asked one replays.
   void _applyRecent(RecentQuery recent) {
     if (recent.kind == RecentQueryKind.typed) {
       _debounce?.cancel();
+      final node = recent.node;
       final notifier = ref.read(diveFilterProvider.notifier);
       notifier.state = notifier.state.copyWith(
-        query: recent.node,
-        clearQuery: recent.node == null,
+        query: node == null ? null : _withCurrentNames(node),
+        clearQuery: node == null,
       );
       return;
     }
@@ -446,6 +457,8 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
             onSaved: _applySaved,
             onRecent: _applyRecent,
             onHint: _applyHint,
+            printQuery: (node) =>
+                editorContext.printer.print(_withCurrentNames(node)),
           ),
         if (_focus.hasFocus && _jumpQuery != null)
           DiveJumpList(
@@ -479,16 +492,21 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   ),
                   // The whole search as one saved query; under All dives,
                   // what applies is the typed query alone (toQuery()).
-                  if (normalizeQuery(filter.toQuery()) case final whole?)
+                  if (normalizeQuery(filter.toQuery()) != null)
                     IconButton(
                       key: kDiveSearchSaveKey,
                       tooltip: l10n.common_action_save,
                       icon: const Icon(Icons.bookmark_add_outlined),
-                      onPressed: () => ref.read(diveSearchSaverProvider)(
-                        context,
-                        ref,
-                        whole,
-                      ),
+                      onPressed: () {
+                        // Typing still waiting on the debounce is part of
+                        // the search the diver sees, as Refine takes it.
+                        _flushPending();
+                        final node = normalizeQuery(
+                          ref.read(diveFilterProvider).toQuery(),
+                        );
+                        if (node == null) return;
+                        ref.read(diveSearchSaverProvider)(context, ref, node);
+                      },
                     ),
                   // An icon on narrow layouts, so the chips keep the row.
                   if (constraints.maxWidth < 600)

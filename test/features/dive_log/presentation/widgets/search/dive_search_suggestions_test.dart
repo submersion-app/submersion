@@ -67,6 +67,10 @@ void main() {
             onSaved: (_) {},
             onRecent: recentsTapped.add,
             onHint: hints.add,
+            printQuery: (node) => switch (node) {
+              TextNode(:final words) => words.join(' '),
+              _ => '$node',
+            },
           ),
         ),
       ),
