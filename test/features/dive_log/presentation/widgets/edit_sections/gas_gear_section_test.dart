@@ -49,4 +49,27 @@ void main() {
     expect(find.text('TANKS'), findsOneWidget);
     expect(find.text('Add tank'), findsOneWidget);
   });
+
+  // Issue #2599: divers could not tell the tank list from the gear list.
+  testWidgets('says the tanks are what the gas data comes from', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_host(_section(showTankControls: true)));
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(GasGearSection)),
+    );
+
+    expect(find.text(l10n.diveLog_edit_tanksCaption), findsOneWidget);
+  });
+
+  testWidgets('a gauge dive has no tanks caption', (tester) async {
+    await tester.pumpWidget(_host(_section(showTankControls: false)));
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(GasGearSection)),
+    );
+
+    expect(find.text(l10n.diveLog_edit_tanksCaption), findsNothing);
+  });
 }

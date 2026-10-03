@@ -12,7 +12,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/show_refine_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/close_dive_search.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_jump_list.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_scope_toggle.dart';
@@ -98,6 +98,20 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focus.requestFocus();
     });
+  }
+
+  /// Writes a typed query still waiting on the debounce now, so a surface
+  /// that reads the filter next (the Refine panel) starts from it.
+  void _flushPending() {
+    if (_debounce?.isActive != true) return;
+    _debounce!.cancel();
+    final node = _local;
+    setState(() => _jumpQuery = node);
+    final notifier = ref.read(diveFilterProvider.notifier);
+    notifier.state = notifier.state.copyWith(
+      query: node,
+      clearQuery: node == null,
+    );
   }
 
   void _onQueryChanged(QueryNode? node) {
@@ -201,11 +215,10 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   label: Text('$panelAxes'),
                   child: const Icon(Icons.tune),
                 ),
-                onPressed: () => showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (_) => DiveFilterSheet(ref: ref),
-                ),
+                onPressed: () {
+                  _flushPending();
+                  showRefinePanel(context, filterProvider: diveFilterProvider);
+                },
               ),
               IconButton(
                 key: kDiveSearchCloseKey,

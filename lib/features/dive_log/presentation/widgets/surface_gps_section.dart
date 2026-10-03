@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -270,7 +271,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
                   Expanded(
                     child: InkWell(
                       key: const ValueKey('gps-track-link'),
-                      onTap: () => context.push('/gps-log/${track.id}'),
+                      onTap: () => context.push(gpsTrackLocation(track.id)),
                       child: Text(
                         '${l10n.diveLog_detail_surfaceGps_track}: '
                         // This provider hydrates points, so the trimmed count

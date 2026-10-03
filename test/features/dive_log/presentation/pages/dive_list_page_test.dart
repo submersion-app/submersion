@@ -803,7 +803,7 @@ void main() {
       expect(find.byType(DiveProfilePanel), findsOneWidget);
     });
 
-    testWidgets('table mode popup menu advanced search navigates', (
+    testWidgets('table mode popup menu no longer offers Advanced Search', (
       tester,
     ) async {
       tester.view.devicePixelRatio = 1.0;
@@ -824,10 +824,6 @@ void main() {
             path: '/dives',
             builder: (context, state) => const DiveListPage(),
           ),
-          GoRoute(
-            path: '/dives/search',
-            builder: (_, _) => const Scaffold(body: Text('advanced search')),
-          ),
         ],
       );
 
@@ -847,12 +843,9 @@ void main() {
       await tester.tap(find.byIcon(Icons.more_vert));
       await tester.pumpAndSettle();
 
-      // Tap Advanced Search
-      await tester.tap(find.textContaining('Advanced'));
-      await tester.pumpAndSettle();
-
-      // Verify navigation occurred
-      expect(find.text('advanced search'), findsOneWidget);
+      // Advanced Search became the Refine panel, reached from the search
+      // row (#2773).
+      expect(find.textContaining('Advanced'), findsNothing);
     });
 
     testWidgets('table mode popup menu match sites navigates', (tester) async {

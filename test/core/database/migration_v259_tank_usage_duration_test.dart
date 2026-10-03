@@ -21,13 +21,15 @@ void main() {
     },
   );
 
-  test('v259 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands. 258 is held by an open
-    // branch (#2828), so the step count is taken from 258.
-    expect(AppDatabase.currentSchemaVersion, 259);
+  test('v259 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v260 (dive_tanks.shared_computer_ids, #2560) landed on
+    // top; the newest rung owns the exact assertions.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(259));
     expect(AppDatabase.migrationVersions, contains(259));
-    expect(AppDatabase.migrationStepCount(258), 1);
+    expect(
+      AppDatabase.migrationStepCount(258),
+      AppDatabase.migrationStepCount(259) + 1,
+    );
   });
 
   test('this rung is additive and did not move the sync floor', () {

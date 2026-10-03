@@ -22,6 +22,9 @@ extension BeforeOpenBackstops on AppDatabase {
 
     // v240 backstop: the events-by-dive index.
     await _assertProfileEventsDiveIdIndex();
+    // v260: dive_tanks.shared_computer_ids (#2560), and the inference for a
+    // consolidated dive that arrived since with nothing recorded.
+    await _assertTankSharedComputerIds();
 
     // v237 backstop: the dive figure switch.
     await _assertShowDiveFigureColumn();
@@ -455,6 +458,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // read selects the whole row, so a database that arrives by restore
     // or sync-adopt without it would throw on the first read.
     await _assertComputerTissueColumn();
+    // v258 backstop: gas_switches.computer_id (#2582), backfill included.
+    await _assertGasSwitchComputerIdColumn();
     // v182 backstop: re-assert the packed profile series tables, then
     // pack any dive that still has legacy rows and no series row. A
     // schema-version collision with a parallel branch skips the rung on

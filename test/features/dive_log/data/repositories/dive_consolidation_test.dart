@@ -817,12 +817,16 @@ void main() {
       // -- Tanks -------------------------------------------------------
       // tank-t1 is shared: comp-s's pressure row and event still
       // reference it, and the gas switch always stays. It must remain
-      // on the original dive, freed from comp-t's attribution.
+      // on the original dive. The fold merged comp-s's cylinder into it,
+      // so comp-s, which shares it, takes it over from the departing
+      // owner rather than leaving it every computer's (#2560).
       final originalTanks = await (db.select(
         db.diveTanks,
       )..where((t) => t.diveId.equals('dive-t'))).get();
       final sharedTank = originalTanks.firstWhere((t) => t.id == 'tank-t1');
-      expect(sharedTank.computerId, isNull);
+      expect(sharedTank.computerId, 'comp-s');
+      // Recorded as shared with nobody else, not as never recorded.
+      expect(sharedTank.sharedComputerIds, '[]');
       expect(sharedTank.o2Percent, equals(21.0));
       expect(sharedTank.hePercent, equals(0.0));
       expect(sharedTank.startPressure, equals(200.0));

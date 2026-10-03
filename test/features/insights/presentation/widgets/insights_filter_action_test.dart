@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart'
+    show diveFilterProvider;
+import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_panel.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -29,6 +31,9 @@ void main() {
         overrides: [
           ...overrides,
           insightsFilterProvider.overrideWith((ref) => filter),
+          diveFilterProvider.overrideWith(
+            (ref) => const DiveFilterState(minDepth: 30),
+          ),
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),
@@ -66,12 +71,40 @@ void main() {
     expect(badge.isLabelVisible, isTrue);
   });
 
-  testWidgets('tapping it opens the filter sheet', (tester) async {
+  testWidgets('tapping it opens the Refine panel', (tester) async {
     await pumpAction(tester);
 
     await tester.tap(find.byKey(const ValueKey('insights-filter-action')));
     await tester.pumpAndSettle();
 
-    expect(find.byType(DiveFilterSheet), findsOneWidget);
+    expect(find.byType(RefinePanel), findsOneWidget);
+  });
+
+  // Review Focus 4: Insights writes its own filter, never the dive list's,
+  // and stays where it is.
+  testWidgets('Show writes the Insights filter only', (tester) async {
+    await pumpAction(
+      tester,
+      filter: DiveFilterState(startDate: DateTime.utc(2024, 1, 1)),
+    );
+    await tester.tap(find.byKey(const ValueKey('insights-filter-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(kRefineClearAllKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(kRefineApplyKey));
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(Scaffold)),
+    );
+    expect(container.read(insightsFilterProvider), const DiveFilterState());
+    expect(
+      container.read(diveFilterProvider),
+      const DiveFilterState(minDepth: 30),
+    );
+    expect(
+      find.byKey(const ValueKey('insights-filter-action')),
+      findsOneWidget,
+    );
   });
 }

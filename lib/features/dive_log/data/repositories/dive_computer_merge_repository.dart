@@ -281,6 +281,11 @@ class DiveComputerMergeRepository {
       _db.diveProfileEvents.computerId,
     );
     await collect(
+      _db.gasSwitches,
+      _db.gasSwitches.diveId,
+      _db.gasSwitches.computerId,
+    );
+    await collect(
       _db.qualityFindings,
       _db.qualityFindings.diveId,
       _db.qualityFindings.computerId,
@@ -337,6 +342,11 @@ class DiveComputerMergeRepository {
         computerId: Value(toId),
         hlc: Value(await _syncRepository.issueRowClock()),
       ),
+    );
+    await (_db.update(
+      _db.gasSwitches,
+    )..where((t) => t.computerId.isIn(fromIds))).write(
+      db.GasSwitchesCompanion(computerId: Value(toId), hlc: Value(repointedAt)),
     );
   }
 

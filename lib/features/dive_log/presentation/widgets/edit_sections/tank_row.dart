@@ -23,7 +23,7 @@ class TankRow extends StatefulWidget {
     this.onRemove,
     this.canRemove = true,
     this.initiallyExpanded = false,
-    this.onCylinderScanned,
+    this.onOwnCylinderUsed,
     this.onScanPending,
     this.tripCylinderStates,
     this.takenTripCylinderIds = const {},
@@ -38,8 +38,8 @@ class TankRow extends StatefulWidget {
   final bool canRemove;
   final bool initiallyExpanded;
 
-  /// Forwarded to [TankEditor.onCylinderScanned].
-  final Future<void> Function(EquipmentItem item)? onCylinderScanned;
+  /// Forwarded to [TankEditor.onOwnCylinderUsed].
+  final Future<void> Function(EquipmentItem item)? onOwnCylinderUsed;
 
   /// Forwarded to [TankEditor.onScanPending].
   final void Function(Future<void> scan)? onScanPending;
@@ -127,7 +127,7 @@ class _TankRowState extends State<TankRow> {
               onChanged: widget.onChanged,
               onRemove: widget.onRemove,
               canRemove: widget.canRemove,
-              onCylinderScanned: widget.onCylinderScanned,
+              onOwnCylinderUsed: widget.onOwnCylinderUsed,
               onScanPending: widget.onScanPending,
               tripCylinderStates: widget.tripCylinderStates,
               takenTripCylinderIds: widget.takenTripCylinderIds,

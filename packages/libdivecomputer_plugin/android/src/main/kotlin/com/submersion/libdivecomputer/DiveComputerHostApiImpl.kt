@@ -115,11 +115,11 @@ class DiveComputerHostApiImpl(
     private fun mapTransports(bitmask: Int): List<TransportType> {
         val transports = mutableListOf<TransportType>()
         if (bitmask and LIBDC_TRANSPORT_BLE != 0) transports.add(TransportType.BLE)
-        // USBHID is deliberately NOT surfaced as USB: no platform build
-        // implements a USB HID transport (HAVE_HIDAPI is off), so
+        // USBHID is deliberately NOT surfaced as USB: Android has no USB HID
+        // I/O stream (macOS, Windows and Linux gained one in #1271), so
         // advertising it sent HID-only devices (Suunto EON Steel family)
         // into the serial path's "No USB serial ports found" dead end
-        // (#143). BLE is the working path for those devices.
+        // (#143). BLE is the working path for those devices here.
         if (bitmask and LIBDC_TRANSPORT_USB != 0) {
             transports.add(TransportType.USB)
         }

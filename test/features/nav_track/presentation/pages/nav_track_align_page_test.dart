@@ -81,20 +81,20 @@ Future<_RecordingNavTrackRepository> _pump(
   final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
   final repository = _RecordingNavTrackRepository();
   final router = GoRouter(
-    initialLocation: '/nav-routes/${route.id}',
+    initialLocation: '/tracks/underwater/${route.id}',
     routes: [
       GoRoute(
-        path: '/nav-routes/:id',
+        path: '/tracks/underwater/:id',
         builder: (context, state) =>
             const Scaffold(body: Text('ROUTE_DETAIL_PAGE')),
       ),
       GoRoute(
-        path: '/nav-routes/:id/align',
+        path: '/tracks/underwater/:id/align',
         builder: (context, state) =>
             NavTrackAlignPage(routeId: state.pathParameters['id']!),
       ),
       GoRoute(
-        path: '/nav-routes/:id/3d',
+        path: '/tracks/underwater/:id/3d',
         builder: (context, state) =>
             const Scaffold(body: Text('ROUTE_3D_PAGE')),
       ),
@@ -121,7 +121,7 @@ Future<_RecordingNavTrackRepository> _pump(
       ),
     ),
   );
-  router.push('/nav-routes/${route.id}/align');
+  router.push('/tracks/underwater/${route.id}/align');
   await tester.pumpAndSettle();
   return repository;
 }

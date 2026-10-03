@@ -4,7 +4,7 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/widgets/year_range_slider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/show_refine_panel.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Years, the active filter axes as removable chips, the full filter sheet
@@ -42,13 +42,9 @@ class FilterTab extends ConsumerWidget {
             OutlinedButton.icon(
               icon: const Icon(Icons.tune),
               label: Text(l10n.connections_filter_allFilters),
-              onPressed: () => showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                builder: (_) => DiveFilterSheet(
-                  ref: ref,
-                  filterProvider: connectionsFilterProvider,
-                ),
+              onPressed: () => showRefinePanel(
+                context,
+                filterProvider: connectionsFilterProvider,
               ),
             ),
             if (active)

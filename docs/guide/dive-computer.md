@@ -4,18 +4,21 @@ Download dives directly from 300+ dive computer models via Bluetooth or USB.
 
 ## Supported Computers
 
-Submersion uses libdivecomputer to support most major dive computer brands:
+Submersion uses libdivecomputer, which supports 350+ models. Which of them
+download over Bluetooth or USB depends on the model and on your platform:
 
-### Fully Tested
+| Platform | Bluetooth LE | USB |
+|----------|--------------|-----|
+| **iOS** | Yes | No |
+| **Android** | Yes | USB serial cables |
+| **macOS, Windows, Linux** | Yes | USB serial cables and USB HID |
 
-| Brand | Models |
-|-------|--------|
-| **Shearwater** | Perdix, Petrel, Teric, Peregrine |
-| **Suunto** | D-series, Vyper, Zoop, EON series |
-| **Mares** | Puck Pro, Smart, Quad |
-| **Aqualung** | i-series, Calm series |
-| **Oceanic** | Multiple models |
-| **Scubapro** | G2, Galileo series |
+Bluetooth Classic and infrared are not supported.
+
+The [support matrix](https://submersion.app/computers/) lists every model, the
+connections each platform can use for it, and what divers have reported:
+verified, issues, not working or untested. Check your model there before buying
+a cable, and add your own result to fill a gap.
 
 ### Garmin (File and Cloud Import)
 
@@ -46,14 +49,6 @@ watches with a dive mode also import; they are labelled plainly "Garmin" until
 their model is added. A Garmin Connect dive with no FIT file (one entered by
 hand, for example) names no watch, so it is filed under a single "Garmin
 Connect" computer instead.
-
-### Connection Types
-
-| Type | Description |
-|------|-------------|
-| **Bluetooth Classic** | Older Bluetooth standard |
-| **Bluetooth LE (BLE)** | Low energy Bluetooth |
-| **USB** | Wired connection (requires adapter) |
 
 ## Setting Up Your Computer
 

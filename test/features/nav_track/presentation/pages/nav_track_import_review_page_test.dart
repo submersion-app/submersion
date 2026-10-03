@@ -228,7 +228,7 @@ enum _ReviewHost {
 
 /// Like [_pump], but with a real `GoRouter` laid out like the app's: a
 /// `ShellRoute` whose nested navigator hosts both the page the import starts
-/// from and `/nav-routes/:id` as siblings, plus a root-level page above the
+/// from and `/tracks/underwater/:id` as siblings, plus a root-level page above the
 /// shell. The review page is opened through [navigateToNavTrackReview] from
 /// [host], exactly as every real entry point does, so a successful save has
 /// to leave that pushed page itself.
@@ -284,7 +284,7 @@ Future<GoRouter> _pumpWithRouter(
             ),
           ),
           GoRoute(
-            path: '/nav-routes/:id',
+            path: '/tracks/underwater/:id',
             builder: (context, state) => Scaffold(
               appBar: AppBar(),
               body: const Text('ROUTE_DETAIL_PAGE'),
@@ -1032,7 +1032,7 @@ void main() {
         expect(find.text('ROOT_LEVEL_PAGE'), findsNothing);
         expect(find.text('ROOT_DIALOG'), findsNothing);
         expect(find.text('ROUTE_DETAIL_PAGE').hitTestable(), findsOneWidget);
-        expect(router.state.uri.path, '/nav-routes/new-route-id');
+        expect(router.state.uri.path, '/tracks/underwater/new-route-id');
 
         // Back leads to where the import began, not out of the app.
         await tester.tap(find.byType(BackButton));
@@ -1042,6 +1042,23 @@ void main() {
       },
     );
   }
+
+  testWidgets(
+    'a successful save confirms with a snackbar even without a site set '
+    '(#2393)',
+    (tester) async {
+      final service = _RecordingImportService();
+      await _pumpWithRouter(tester, preview: _preview(), service: service);
+
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+      await tester.pumpAndSettle();
+
+      expect(service.lastSiteId, isNull);
+      expect(find.text('Route saved.'), findsOneWidget);
+    },
+  );
 
   testWidgets('a parse error raised by commit is shown on the page and Save is '
       'offered again', (tester) async {

@@ -238,7 +238,7 @@ void main() {
     testWidgets('switching scope swaps which order is shown', (tester) async {
       final repo = FakeAppSettingsRepository()
         ..navPrimaryIds = ['equipment', 'buddies', 'insights']
-        ..navRailIds = ['gps-log', 'planning'];
+        ..navRailIds = ['tracks', 'planning'];
       await pumpPage(tester, repo: repo);
 
       // Phone scope first: the divider is present and the top row is Equipment.
@@ -249,7 +249,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const ValueKey('nav-divider')), findsNothing);
-      expect(_firstRowId(tester), 'gps-log');
+      expect(_firstRowId(tester), 'tracks');
 
       await tester.tap(find.text('Phone'));
       await tester.pumpAndSettle();
@@ -345,7 +345,7 @@ void main() {
       // dropped on the floor: the write must carry every id.
       final repo = await pumpPage(tester);
 
-      await tester.tap(find.byTooltip('Move GPS Log up'));
+      await tester.tap(find.byTooltip('Move Tracks up'));
       await tester.pumpAndSettle();
 
       expect(repo.navPrimaryIds, isNotNull);
@@ -353,10 +353,10 @@ void main() {
         repo.navPrimaryIds!.length,
         withLegacyNavIds(movableNavIds).length,
       );
-      // 'gps-log' sits second-to-last canonically; moving it up must move it
+      // 'tracks' sits second-to-last canonically; moving it up must move it
       // ahead of 'transfer' while both stay in the overflow tail.
       final order = repo.navPrimaryIds!;
-      expect(order.indexOf('gps-log'), lessThan(order.indexOf('transfer')));
+      expect(order.indexOf('tracks'), lessThan(order.indexOf('transfer')));
       expect(order.take(3).toList(), kDefaultPrimaryIds);
     });
 

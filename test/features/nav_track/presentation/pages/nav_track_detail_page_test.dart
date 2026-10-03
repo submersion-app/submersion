@@ -276,6 +276,36 @@ void main() {
     expect(repository.linkMode, NavTrackLinkMode.manual);
   });
 
+  testWidgets(
+    '"Choose dive" pre-selects the sole dive NavTrackMatchService suggests '
+    '(#2394)',
+    (tester) async {
+      // Entry time equals the route's own startTime (1755856800000ms), so
+      // this is the sole dive NavTrackMatcher.candidatesFor overlaps --
+      // no fake match service needed, the pre-selection is computed
+      // directly from the dives already fetched for the sheet.
+      final candidate = Dive(
+        id: 'dive-9',
+        diveNumber: 9,
+        dateTime: DateTime.fromMillisecondsSinceEpoch(1755856800000),
+        entryTime: DateTime.fromMillisecondsSinceEpoch(1755856800000),
+      );
+      await _pump(tester, route: _route(), allDives: [candidate]);
+
+      await tester.tap(find.text('Choose dive'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<ListTile>(
+              find.byKey(const ValueKey('nav-track-dive-choice-dive-9')),
+            )
+            .selected,
+        isTrue,
+      );
+    },
+  );
+
   testWidgets('shows the no-correction sentence when nothing was aligned', (
     tester,
   ) async {
@@ -414,10 +444,10 @@ void main() {
           location: GeoPoint(47.5, 8.6),
         );
         final router = GoRouter(
-          initialLocation: '/nav-routes/${route.id}',
+          initialLocation: '/tracks/underwater/${route.id}',
           routes: [
             GoRoute(
-              path: '/nav-routes/:id',
+              path: '/tracks/underwater/:id',
               builder: (context, state) =>
                   NavTrackDetailPage(trackId: state.pathParameters['id']!),
             ),
@@ -467,10 +497,10 @@ void main() {
         );
         Object? seededLocation;
         final router = GoRouter(
-          initialLocation: '/nav-routes/${route.id}',
+          initialLocation: '/tracks/underwater/${route.id}',
           routes: [
             GoRoute(
-              path: '/nav-routes/:id',
+              path: '/tracks/underwater/:id',
               builder: (context, state) =>
                   NavTrackDetailPage(trackId: state.pathParameters['id']!),
             ),
@@ -688,13 +718,13 @@ void main() {
             path: '/',
             builder: (context, state) => Scaffold(
               body: TextButton(
-                onPressed: () => context.push('/nav-routes/${route.id}'),
+                onPressed: () => context.push('/tracks/underwater/${route.id}'),
                 child: const Text('open'),
               ),
             ),
           ),
           GoRoute(
-            path: '/nav-routes/:id',
+            path: '/tracks/underwater/:id',
             builder: (context, state) =>
                 NavTrackDetailPage(trackId: state.pathParameters['id']!),
           ),
@@ -739,20 +769,20 @@ void main() {
       final overrides = await getBaseOverrides();
       final route = _route();
       final router = GoRouter(
-        initialLocation: '/nav-routes/${route.id}',
+        initialLocation: '/tracks/underwater/${route.id}',
         routes: [
           GoRoute(
-            path: '/nav-routes/:id',
+            path: '/tracks/underwater/:id',
             builder: (context, state) =>
                 NavTrackDetailPage(trackId: state.pathParameters['id']!),
           ),
           GoRoute(
-            path: '/nav-routes/:id/align',
+            path: '/tracks/underwater/:id/align',
             builder: (context, state) =>
                 const Scaffold(body: Text('ALIGN_PAGE')),
           ),
           GoRoute(
-            path: '/nav-routes/:id/3d',
+            path: '/tracks/underwater/:id/3d',
             builder: (context, state) =>
                 const Scaffold(body: Text('SEASCAPE_PAGE')),
           ),
@@ -782,15 +812,15 @@ void main() {
       final overrides = await getBaseOverrides();
       final route = _route();
       final router = GoRouter(
-        initialLocation: '/nav-routes/${route.id}',
+        initialLocation: '/tracks/underwater/${route.id}',
         routes: [
           GoRoute(
-            path: '/nav-routes/:id',
+            path: '/tracks/underwater/:id',
             builder: (context, state) =>
                 NavTrackDetailPage(trackId: state.pathParameters['id']!),
           ),
           GoRoute(
-            path: '/nav-routes/:id/3d',
+            path: '/tracks/underwater/:id/3d',
             builder: (context, state) =>
                 const Scaffold(body: Text('SEASCAPE_PAGE')),
           ),

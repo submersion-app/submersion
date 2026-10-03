@@ -47,8 +47,7 @@ void main() {
           '    children: [Text(status), Chip(...)],\n'
           '  ),\n\n'
           'A text action goes under the subtitle as a TileSubtitleAction '
-          '(lib/shared/widgets/tile_subtitle_action.dart); see '
-          'NavTrackListRow for a chip.\n\n'
+          '(lib/shared/widgets/tile_subtitle_action.dart).\n\n'
           '${result.violations.join('\n')}',
     );
   });

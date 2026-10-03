@@ -187,6 +187,7 @@ void main() {
     required String diveId,
     required String tankId,
     required int timestamp,
+    String? computerId,
   }) async {
     await db
         .into(db.gasSwitches)
@@ -197,6 +198,7 @@ void main() {
             timestamp: timestamp,
             tankId: tankId,
             createdAt: 0,
+            computerId: Value(computerId),
           ),
         );
   }
@@ -398,6 +400,7 @@ void main() {
       diveId: 's',
       tankId: 'tank-s1',
       timestamp: 30,
+      computerId: 'comp-s',
     );
     await seedEvent('event-s2', diveId: 's', timestamp: 900, eventType: 'deco');
     await seedMedia('media-s', diveId: 's');
@@ -408,6 +411,13 @@ void main() {
       'scenario 1: re-parents everything and tombstones the secondary',
       () async {
         await seedConsolidatableFixture();
+        // A switch the diver entered: no computer.
+        await seedGasSwitch(
+          'switch-s-manual',
+          diveId: 's',
+          tankId: 'tank-s1',
+          timestamp: 600,
+        );
 
         final outcome = await service.apply(
           targetDiveId: 't',
@@ -442,6 +452,17 @@ void main() {
         final secondaryEvents = events.where((e) => e.computerId == 'comp-s');
         expect(secondaryEvents.map((e) => e.timestamp).toSet(), {90, 960});
         expect(secondaryEvents.every((e) => e.computerId == 'comp-s'), isTrue);
+
+        // Its gas switches keep their own attribution (#2582): the
+        // computer's stays the computer's, and the diver's stays
+        // unattributed so no Replace Source can delete it.
+        final switches = await (db.select(
+          db.gasSwitches,
+        )..where((t) => t.diveId.equals('t'))).get();
+        expect(
+          {for (final s in switches) s.timestamp: s.computerId},
+          {90: 'comp-s', 660: null},
+        );
 
         // Secondary's tank pressure series shifted by +60 and carry the
         // secondary's computerId.
@@ -629,6 +650,12 @@ void main() {
         computerId: 'comp-s',
         serial: 'SER-S',
       );
+      await seedGasSwitch(
+        'switch-t1',
+        diveId: 't',
+        tankId: 'tank-t1',
+        timestamp: 0,
+      );
 
       final before = await (db.select(
         db.diveTanks,
@@ -645,6 +672,12 @@ void main() {
       )..where((t) => t.id.equals('tank-t1'))).getSingle();
       expect(after.computerId, targetRow.computerId);
       expect(after.computerId, 'comp-t');
+      // A switch with no computer is one the diver entered, and stays
+      // unattributed so a Replace Source cannot delete it (#2582).
+      final targetSwitch = await (db.select(
+        db.gasSwitches,
+      )..where((t) => t.id.equals('switch-t1'))).getSingle();
+      expect(targetSwitch.computerId, isNull);
     });
 
     test('the tank computer backfill carries a fresh clock (#2644)', () async {

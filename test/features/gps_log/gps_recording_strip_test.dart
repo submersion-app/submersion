@@ -21,8 +21,8 @@ Widget app({List<dynamic>? overrides}) {
         builder: (context, state) => const Scaffold(body: GpsRecordingStrip()),
       ),
       GoRoute(
-        path: '/gps-log',
-        builder: (context, state) => const Scaffold(body: Text('GPS-LOG-PAGE')),
+        path: '/tracks',
+        builder: (context, state) => const Scaffold(body: Text('TRACKS-PAGE')),
       ),
     ],
   );
@@ -50,7 +50,7 @@ void main() {
     expect(find.text('Recording GPS track · 2 points'), findsOneWidget);
   });
 
-  testWidgets('tap navigates to the GPS Log page', (tester) async {
+  testWidgets('tap navigates to the Tracks page', (tester) async {
     await tester.pumpWidget(
       app(
         overrides: [
@@ -63,6 +63,6 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byType(InkWell));
     await tester.pumpAndSettle();
-    expect(find.text('GPS-LOG-PAGE'), findsOneWidget);
+    expect(find.text('TRACKS-PAGE'), findsOneWidget);
   });
 }

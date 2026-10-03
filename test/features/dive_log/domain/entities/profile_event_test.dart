@@ -198,6 +198,13 @@ void main() {
 
   // Task 11: computerId attributes an event to the dive computer that
   // logged it, so the profile chart can filter events by the toggle bar.
+  group('ProfileEventType iconName (#1523)', () {
+    test('the computer-reported NDL and deco states have their own icons', () {
+      expect(ProfileEventType.lowNoDecoTime.iconName, 'timer');
+      expect(ProfileEventType.decompressionDive.iconName, 'stop_circle');
+    });
+  });
+
   group('ProfileEvent computerId field', () {
     test('defaults to null', () {
       final e = ProfileEvent(

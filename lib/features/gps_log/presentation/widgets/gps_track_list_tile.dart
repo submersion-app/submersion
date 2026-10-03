@@ -22,6 +22,7 @@ class GpsTrackListTile extends ConsumerWidget {
     this.selected = false,
     this.onDelete,
     this.contentPadding,
+    this.kindBadge,
   });
 
   final GpsTrack track;
@@ -31,6 +32,9 @@ class GpsTrackListTile extends ConsumerWidget {
   /// Shown as a trailing delete icon when set.
   final VoidCallback? onDelete;
   final EdgeInsetsGeometry? contentPadding;
+
+  /// Shown under the detail line, so the title keeps the full row width.
+  final Widget? kindBadge;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,7 +47,17 @@ class GpsTrackListTile extends ConsumerWidget {
       minLeadingWidth: kTrackThumbnailWidth,
       leading: GpsTrackThumbnail(trackId: track.id),
       title: Text(formatTrackTitle(units, track)),
-      subtitle: Text(formatTrackDetailLine(l10n, units, track)),
+      subtitle: kindBadge == null
+          ? Text(formatTrackDetailLine(l10n, units, track))
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(formatTrackDetailLine(l10n, units, track)),
+                const SizedBox(height: 4),
+                kindBadge!,
+              ],
+            ),
       trailing: onDelete == null
           ? null
           : IconButton(

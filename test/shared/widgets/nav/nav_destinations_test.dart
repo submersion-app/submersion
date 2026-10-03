@@ -48,10 +48,16 @@ void main() {
         'insights',
         'planning',
         'transfer',
-        'gps-log',
+        'tracks',
         'settings',
         'more',
       ]);
+    });
+
+    test('Tracks takes GPS Log\'s place and route', () {
+      final tracks = kNavDestinations.firstWhere((d) => d.id == 'tracks');
+      expect(tracks.route, '/tracks');
+      expect(kNavDestinations.map((d) => d.id), isNot(contains('gps-log')));
     });
 
     test(
@@ -84,7 +90,7 @@ void main() {
         'insights',
         'planning',
         'transfer',
-        'gps-log',
+        'tracks',
         'settings',
       ]);
     });

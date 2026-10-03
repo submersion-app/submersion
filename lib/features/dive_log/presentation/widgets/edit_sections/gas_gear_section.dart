@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_append_row.dart';
+import 'package:submersion/shared/widgets/forms/form_caption.dart';
 import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 
@@ -70,6 +71,10 @@ class GasGearSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               FormOverline(label: l10n.diveLog_edit_overline_tanks),
+              // The tanks, not the equipment list, feed every gas graph and
+              // statistic; saying so is what tells the two lists apart
+              // (issue #2599).
+              FormCaption(l10n.diveLog_edit_tanksCaption),
               ...tanks,
               FormAppendRow(label: addTankLabel, onTap: onAddTank),
               ?applyConfigChild,

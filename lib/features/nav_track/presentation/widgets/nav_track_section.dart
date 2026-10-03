@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
@@ -95,9 +96,9 @@ class _RouteRow extends ConsumerWidget {
               case 'primary':
                 await ref.read(navTrackRepositoryProvider).setPrimary(route.id);
               case 'open':
-                context.push('/nav-routes/${route.id}');
+                context.push(underwaterTrackLocation(route.id));
               case '3d':
-                context.push('/nav-routes/${route.id}/3d');
+                context.push(underwaterTrackSeascapeLocation(route.id));
             }
           },
           itemBuilder: (context) => [
@@ -120,7 +121,7 @@ class _RouteRow extends ConsumerWidget {
               ),
           ],
         ),
-        onTap: () => context.push('/nav-routes/${route.id}'),
+        onTap: () => context.push(underwaterTrackLocation(route.id)),
       ),
     );
   }

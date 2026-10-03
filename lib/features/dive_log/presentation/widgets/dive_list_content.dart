@@ -1239,8 +1239,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           onSelected: (value) {
             if (value == 'numbering') {
               showDiveNumberingDialog(context);
-            } else if (value == 'advanced_search') {
-              context.push('/dives/search');
             } else if (value == 'match_sites') {
               context.push('/dives/match-sites');
             } else if (value == 'data_quality') {
@@ -1309,16 +1307,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 ),
               ],
               const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'advanced_search',
-                child: Row(
-                  children: [
-                    const Icon(Icons.manage_search),
-                    const SizedBox(width: 12),
-                    Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
-                  ],
-                ),
-              ),
               PopupMenuItem(
                 value: 'numbering',
                 child: Row(
@@ -1432,8 +1420,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             onSelected: (value) {
               if (value == 'numbering') {
                 showDiveNumberingDialog(context);
-              } else if (value == 'advanced_search') {
-                context.push('/dives/search');
               } else if (value == 'match_sites') {
                 context.push('/dives/match-sites');
               } else if (value == 'data_quality') {
@@ -1504,16 +1490,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   ),
                 ],
                 const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'advanced_search',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.manage_search, size: 20),
-                      const SizedBox(width: 12),
-                      Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
-                    ],
-                  ),
-                ),
                 PopupMenuItem(
                   value: 'numbering',
                   child: Row(

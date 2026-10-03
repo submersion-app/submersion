@@ -67,6 +67,26 @@ void main() {
     }
   });
 
+  test('time is a string that says "none" rather than an optional object '
+      '(#2838)', () {
+    // The model filled an optional time object for nearly every sentence,
+    // usually with "this year". An explicit "none" is an answer it gives.
+    final text = NlPrompt.instructions();
+    expect(text, contains('"time": "none" or "..."'));
+    expect(text, isNot(contains('{"text": "..."}')));
+    final times = RegExp(
+      r'^\{"schemaVersion":\d.*"time":("[^"]*"|null|\{)',
+      multiLine: true,
+    ).allMatches(text).map((m) => m[1]).toList();
+    expect(times, isNotEmpty);
+    // Every example answers with a string, and most of them with "none".
+    expect(times.where((t) => !t!.startsWith('"')), isEmpty);
+    expect(
+      times.where((t) => t == '"none"').length,
+      greaterThan(times.length ~/ 2),
+    );
+  });
+
   test('every example compiles with nothing left over but its own words', () {
     final text = NlPrompt.instructions();
     // An example line starts `{"schemaVersion":3`; the shape line has a

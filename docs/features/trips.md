@@ -10,6 +10,7 @@ A trip groups related dives together:
 - Liveaboard expedition
 - Weekend dive trip
 - Training course
+- A single local dive (use the **Day Trip** type)
 
 ## Creating Trips
 
@@ -60,11 +61,18 @@ For live-aboard trips:
 
 ### Day Trip
 
-For single-day excursions:
+For single-day excursions, including a single local dive:
 
-- Same start/end date
+- Choosing **Day Trip** sets the end date to the start date and locks it:
+  moving the start date moves the end date with it, and choosing another
+  type makes the end date editable again
 - Location = departure point
 - Quick organization
+
+<div class="tip">
+<strong>Tip:</strong> A trip does not have to mean travel. If you dive one
+weekend morning at a local site, a Day Trip is the place to put it.
+</div>
 
 ## Linking Dives
 

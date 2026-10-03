@@ -3,12 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
+import 'package:submersion/features/tracks/domain/track_kind.dart';
+import 'package:submersion/features/tracks/presentation/pages/tracks_map_page.dart';
+import 'package:submersion/features/tracks/presentation/pages/tracks_page.dart';
+import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
@@ -16,7 +24,6 @@ import 'package:submersion/features/safety/presentation/pages/incident_edit_page
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
-import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
@@ -33,6 +40,22 @@ GoRoute? _findRouteByName(List<RouteBase> routes, String name) {
     }
     if (route is ShellRoute) {
       final found = _findRouteByName(route.routes, name);
+      if (found != null) return found;
+    }
+  }
+  return null;
+}
+
+/// Finds a [GoRoute] by its own path segment in a route tree recursively.
+GoRoute? _findRouteByPath(List<RouteBase> routes, String path) {
+  for (final route in routes) {
+    if (route is GoRoute) {
+      if (route.path == path) return route;
+      final found = _findRouteByPath(route.routes, path);
+      if (found != null) return found;
+    }
+    if (route is ShellRoute) {
+      final found = _findRouteByPath(route.routes, path);
       if (found != null) return found;
     }
   }
@@ -121,11 +144,200 @@ void main() {
     container.dispose();
   });
 
-  group('gps-log relocation', () {
-    test('gpsLog route is registered at top level', () {
-      final route = _findRouteByName(router.configuration.routes, 'gpsLog');
-      expect(route, isNotNull);
-      expect(route!.path, '/gps-log');
+  group('tracks area', () {
+    test('every tracks page is a top-level sibling of /tracks', () {
+      // go_router builds one page per matched segment and /tracks has its
+      // own pageBuilder, so a nested detail would stack the landing page
+      // under it: two Back presses from a dive's track link.
+      final routes = router.configuration.routes;
+      final tracks = _findRouteByName(routes, 'tracks');
+      expect(tracks?.path, kTracksLocation);
+      expect(tracks!.routes, isEmpty);
+      for (final (name, path) in const [
+        ('tracksMap', '/tracks/map'),
+        ('gpsTrackDetail', '/tracks/gps/:id'),
+        ('underwaterTrackDetail', '/tracks/underwater/:id'),
+        ('underwaterTrackAlign', '/tracks/underwater/:id/align'),
+        ('underwaterTrackSeascape', '/tracks/underwater/:id/3d'),
+      ]) {
+        expect(_findRouteByName(routes, name)?.path, path, reason: name);
+      }
+    });
+
+    test('the location helpers match the route table', () {
+      final config = router.configuration;
+      for (final (location, fullPath) in [
+        (kTracksMapLocation, '/tracks/map'),
+        (gpsTrackLocation('abc'), '/tracks/gps/:id'),
+        (underwaterTrackLocation('abc'), '/tracks/underwater/:id'),
+        (underwaterTrackAlignLocation('abc'), '/tracks/underwater/:id/align'),
+        (underwaterTrackSeascapeLocation('abc'), '/tracks/underwater/:id/3d'),
+      ]) {
+        expect(
+          config.findMatch(Uri.parse(location)).fullPath,
+          fullPath,
+          reason: location,
+        );
+      }
+    });
+
+    test('static paths are declared before parameterised siblings', () {
+      // ':id' matches any single segment, so a static sibling declared after
+      // it would never match.
+      final paths = _orderedRoutePaths(router.configuration.routes);
+      expect(
+        paths.indexOf('/tracks/map'),
+        lessThan(paths.indexOf('/tracks/gps/:id')),
+      );
+      expect(paths.indexOf('/gps-log/map'), isNot(-1));
+      expect(
+        paths.indexOf('/gps-log/map'),
+        lessThan(paths.indexOf('/gps-log/:id')),
+      );
+    });
+
+    testWidgets('each tracks route builds its page with the path id', (
+      tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      GoRouterState stateFor(
+        String fullPath,
+        String location, [
+        Map<String, String> params = const {},
+      ]) => GoRouterState(
+        router.configuration,
+        uri: Uri.parse(location),
+        matchedLocation: Uri.parse(location).path,
+        fullPath: fullPath,
+        pathParameters: params,
+        pageKey: ValueKey(location),
+      );
+      final routes = router.configuration.routes;
+      Widget build(String name, GoRouterState state) =>
+          _findRouteByName(routes, name)!.builder!(capturedContext, state);
+
+      final landing = _findRouteByName(routes, 'tracks')!.pageBuilder!(
+        capturedContext,
+        stateFor('/tracks', '/tracks?kind=underwater'),
+      );
+      expect(landing, isA<NoTransitionPage<void>>());
+      final tracksPage =
+          (landing as NoTransitionPage<void>).child as TracksPage;
+      expect(tracksPage.initialKind, TrackKindFilter.underwater);
+
+      expect(
+        build('tracksMap', stateFor('/tracks/map', '/tracks/map')),
+        isA<TracksMapPage>(),
+      );
+      final gps =
+          build(
+                'gpsTrackDetail',
+                stateFor('/tracks/gps/:id', '/tracks/gps/g1', {'id': 'g1'}),
+              )
+              as GpsTrackDetailPage;
+      expect(gps.trackId, 'g1');
+      final detail =
+          build(
+                'underwaterTrackDetail',
+                stateFor('/tracks/underwater/:id', '/tracks/underwater/u1', {
+                  'id': 'u1',
+                }),
+              )
+              as NavTrackDetailPage;
+      expect(detail.trackId, 'u1');
+      final align =
+          build(
+                'underwaterTrackAlign',
+                stateFor(
+                  '/tracks/underwater/:id/align',
+                  '/tracks/underwater/u1/align',
+                  {'id': 'u1'},
+                ),
+              )
+              as NavTrackAlignPage;
+      expect(align.routeId, 'u1');
+      final seascape =
+          build(
+                'underwaterTrackSeascape',
+                stateFor(
+                  '/tracks/underwater/:id/3d',
+                  '/tracks/underwater/u1/3d',
+                  {'id': 'u1'},
+                ),
+              )
+              as NavTrackSeascapePage;
+      expect(seascape.trackId, 'u1');
+    });
+
+    testWidgets('old GPS log and underwater route locations redirect into '
+        '/tracks', (tester) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      Future<String?> redirect(
+        String path,
+        String location, [
+        Map<String, String> params = const {},
+      ]) async {
+        final route = _findRouteByPath(router.configuration.routes, path);
+        expect(route?.redirect, isNotNull, reason: path);
+        return route!.redirect!(
+          capturedContext,
+          GoRouterState(
+            router.configuration,
+            uri: Uri.parse(location),
+            matchedLocation: location,
+            fullPath: path,
+            pathParameters: params,
+            pageKey: ValueKey(location),
+          ),
+        );
+      }
+
+      expect(await redirect('/gps-log', '/gps-log'), '/tracks');
+      expect(await redirect('/gps-log/map', '/gps-log/map'), '/tracks/map');
+      expect(
+        await redirect('/gps-log/:id', '/gps-log/abc', {'id': 'abc'}),
+        '/tracks/gps/abc',
+      );
+      expect(
+        await redirect('/nav-routes', '/nav-routes'),
+        '/tracks?kind=underwater',
+      );
+      expect(
+        await redirect('/nav-routes/:id', '/nav-routes/r1', {'id': 'r1'}),
+        '/tracks/underwater/r1',
+      );
+      expect(
+        await redirect('/nav-routes/:id/align', '/nav-routes/r1/align', {
+          'id': 'r1',
+        }),
+        '/tracks/underwater/r1/align',
+      );
+      expect(
+        await redirect('/nav-routes/:id/3d', '/nav-routes/r1/3d', {'id': 'r1'}),
+        '/tracks/underwater/r1/3d',
+      );
+      expect(await redirect('gps-logger', '/planning/gps-logger'), '/tracks');
     });
 
     test('old planning gps-logger path is a redirect', () {
@@ -148,46 +360,6 @@ void main() {
       expect(route, isNotNull);
       expect(route!.redirect, isNotNull);
       expect(route.builder, isNull);
-    });
-
-    test('gpsTrackDetail is a SIBLING of gps-log, not a child', () {
-      // go_router builds one page per matched segment and /gps-log has its
-      // own pageBuilder, so nesting stacked a GpsLoggerPage underneath the
-      // detail page - two Back presses to leave, the first landing on a
-      // logger page the diver never opened.
-      final gpsLog = _findRouteByName(router.configuration.routes, 'gpsLog');
-      expect(
-        gpsLog!.routes.whereType<GoRoute>().map((r) => r.name),
-        isNot(contains('gpsTrackDetail')),
-      );
-
-      final detail = _findRouteByName(
-        router.configuration.routes,
-        'gpsTrackDetail',
-      );
-      expect(detail!.path, '/gps-log/:id');
-    });
-
-    test('gpsTrackMap is a sibling too', () {
-      final gpsLog = _findRouteByName(router.configuration.routes, 'gpsLog');
-      expect(
-        gpsLog!.routes.whereType<GoRoute>().map((r) => r.name),
-        isNot(contains('gpsTrackMap')),
-      );
-      final map = _findRouteByName(router.configuration.routes, 'gpsTrackMap');
-      expect(map!.path, '/gps-log/map');
-    });
-
-    test('the static gps-log route is declared before the :id route', () {
-      // ':id' matches any single segment, so a static sibling declared after
-      // it would never match.
-      // _collectRoutePaths returns a Set, which cannot express order.
-      final paths = _orderedRoutePaths(router.configuration.routes);
-      final mapIndex = paths.indexOf('/gps-log/map');
-      final idIndex = paths.indexOf('/gps-log/:id');
-      expect(mapIndex, isNot(-1));
-      expect(idIndex, isNot(-1));
-      expect(mapIndex, lessThan(idIndex));
     });
   });
 
@@ -1199,56 +1371,42 @@ void main() {
     });
   });
 
-  group('diveSearch route carries the calling section filter (#1079)', () {
-    // Insights keeps its own filter, so the advanced search form has to be
-    // told which filter it is editing. The section pushes its provider as the
-    // route `extra`; anything else (deep link, keyboard shortcut) falls back
-    // to the dive list's filter.
-    late BuildContext context;
-
-    DiveSearchPage buildWith(Object? extra) {
-      final route = _findRouteByName(router.configuration.routes, 'diveSearch');
-      expect(route, isNotNull);
-      final widget = route!.builder!(
-        context,
-        GoRouterState(
-          router.configuration,
-          uri: Uri.parse('/dives/search'),
-          matchedLocation: '/dives/search',
-          fullPath: '/dives/search',
-          pathParameters: const {},
-          pageKey: const ValueKey('/dives/search'),
-          extra: extra,
-        ),
-      );
-      expect(widget, isA<DiveSearchPage>());
-      return widget as DiveSearchPage;
+  // #2773: Advanced Search became the Refine panel; an old link or a
+  // bookmark lands on the dive list with its search row open, including on
+  // a cold start, when the redirect runs while the tree builds.
+  group('diveSearch route redirects to the dive list', () {
+    for (final location in ['/dives/search', '/dives/search?section=query']) {
+      testWidgets('a cold start at $location opens the search row', (
+        tester,
+      ) async {
+        final route = _findRouteByName(
+          router.configuration.routes,
+          'diveSearch',
+        )!;
+        expect(route.redirect, same(redirectRetiredDiveSearch));
+        final coldStart = GoRouter(
+          initialLocation: location,
+          routes: [
+            GoRoute(
+              path: '/dives',
+              builder: (context, _) => Consumer(
+                builder: (context, ref, _) =>
+                    Text('open=${ref.watch(diveSearchBarOpenProvider)}'),
+              ),
+              routes: [
+                GoRoute(path: 'search', redirect: redirectRetiredDiveSearch),
+              ],
+            ),
+          ],
+        );
+        addTearDown(coldStart.dispose);
+        await tester.pumpWidget(
+          ProviderScope(child: MaterialApp.router(routerConfig: coldStart)),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('open=true'), findsOneWidget);
+      });
     }
-
-    testWidgets('a pushed filter provider reaches the page', (tester) async {
-      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
-      context = tester.element(find.byType(SizedBox));
-
-      expect(
-        buildWith(insightsFilterProvider).filterProvider,
-        same(insightsFilterProvider),
-      );
-    });
-
-    testWidgets('no extra falls back to the dive list filter', (tester) async {
-      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
-      context = tester.element(find.byType(SizedBox));
-
-      expect(buildWith(null).filterProvider, isNull);
-    });
-
-    testWidgets('an extra of another type falls back too', (tester) async {
-      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
-      context = tester.element(find.byType(SizedBox));
-
-      // A stale deep link or an unrelated caller must not crash the route.
-      expect(buildWith('not a provider').filterProvider, isNull);
-    });
   });
   group('species routes', () {
     test('the Species page is registered at /species', () {

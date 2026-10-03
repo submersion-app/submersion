@@ -243,6 +243,18 @@ void DiveComputerHostApiImpl::PerformDownload(
     const DiscoveredDevice& device,
     const std::optional<std::string>& fingerprint,
     bool sync_clock) {
+    // Only the serial/USB and BLE paths below have a byte pipe, and the
+    // routing further down treats everything that is not serial or USB as
+    // BLE, so an infrared device would try to connect over Bluetooth.
+    // Reject it as Android and Darwin do (issue #2841).
+    if (device.transport() == TransportType::kInfrared) {
+        flutter_api_->OnError(
+            DiveComputerError("unsupported_transport",
+                              "Infrared transport is not supported on Windows"),
+            [] {}, [](const auto&) {});
+        return;
+    }
+
     // Create download session. The session holds a dc_context_t (logging) and a
     // cancelled flag. It is intentionally reused across multiple libdc_download_run
     // calls during multi-port probing — each call creates its own internal state.

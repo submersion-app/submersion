@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -345,6 +346,17 @@ class _NavTrackImportReviewPageState
     // Outside the try: the route is written by now, so nothing below may be
     // reported as a failed save (and invite a second, duplicate one).
     //
+    // The messenger is captured before navigating away: ScaffoldMessenger
+    // is hoisted above the Navigator, so it keeps showing the snackbar on
+    // whatever page ends up on screen next, but `context` itself may no
+    // longer resolve to a live Scaffold once this page is popped (#2393:
+    // without this, saving gave no confirmation at all, with or without a
+    // site set, so it was unclear whether anything had happened).
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.navTrack_review_saveConfirmation)),
+    );
+    //
     // Every entry point pushes this page imperatively (on the root
     // navigator from the drop target or share intent, on the shell's
     // otherwise), so a router `go` can neither remove it nor leave the new
@@ -358,7 +370,7 @@ class _NavTrackImportReviewPageState
     final rootNavigator = Navigator.of(context, rootNavigator: true);
     Navigator.of(context).pop();
     rootNavigator.popUntil((route) => route.isFirst);
-    router.push('/nav-routes/$id');
+    router.push(underwaterTrackLocation(id));
   }
 
   @override

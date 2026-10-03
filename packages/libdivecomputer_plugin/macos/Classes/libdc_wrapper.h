@@ -56,7 +56,12 @@ typedef struct {
     const char *vendor;
     const char *product;
     unsigned int model;
-    unsigned int transports;  // bitmask of LIBDC_TRANSPORT_* values
+    // Bitmask of LIBDC_TRANSPORT_* values. From libdc_descriptor_iterator_next
+    // (the model catalog) it holds only transports the app can drive, so never
+    // LIBDC_TRANSPORT_USB (raw USB), which no platform bridge implements.
+    // libdc_descriptor_match and libdc_descriptor_lookup_model report the
+    // descriptor's raw bitmask, which they need to route a discovered device.
+    unsigned int transports;
 } libdc_descriptor_info_t;
 
 // Opaque iterator handle.

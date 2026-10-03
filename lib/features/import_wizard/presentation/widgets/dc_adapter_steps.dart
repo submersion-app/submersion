@@ -453,6 +453,24 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     var device = discoveryState.selectedDevice;
     final computer = widget.knownComputer ?? widget.adapter.computer;
 
+    // A USB computer saved on a desktop syncs here, but iOS has no USB host
+    // (issue #2837). Sync strips the host-local port, so the synced copy has
+    // no stored address and must be recognized by its connection type alone;
+    // with an address it would fail in the native layer with "No USB serial
+    // ports found". A Garmin keeps its FIT-file guidance inside the view.
+    if (device == null &&
+        computer != null &&
+        !ScanStepWidget.offersUsb &&
+        _connectionTypeFromString(computer.connectionType) ==
+            DeviceConnectionType.usb) {
+      return DcNoDirectDownloadView(
+        computer: computer,
+        reason: DcNoDirectDownloadReason.usbUnavailable,
+        onImportFromFile: () => context.push('/transfer/import-wizard'),
+        onDone: () => context.pop(),
+      );
+    }
+
     // For known-computer downloads, synthesize a DiscoveredDevice from the
     // computer's stored connection info when discovery state has no device.
     // The device descriptor lookup provides the dcModel integer that

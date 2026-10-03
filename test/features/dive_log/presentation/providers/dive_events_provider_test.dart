@@ -327,7 +327,8 @@ void main() {
       expect(result.length, 2);
     });
 
-    test('deduplicates by (timestamp, eventType), keeping auto-detected', () {
+    test('deduplicates by (timestamp, eventType), keeping the computer\'s '
+        'event (#1523)', () {
       final autoEvents = [
         ProfileEvent(
           id: 'auto-1',
@@ -351,8 +352,80 @@ void main() {
 
       final result = mergeEvents(autoEvents, dbEvents);
       expect(result.length, 1);
-      // Auto-detected event is kept (first one wins)
-      expect(result.first.id, 'auto-1');
+      // The computer's own event wins: it carries the exact label, and the
+      // chart hides computed events by default on a dive that has the
+      // computer's events, so keeping the computed one would drop the marker.
+      expect(result.first.id, 'db-1');
+    });
+
+    group('scoped to the analyzed computer (#1523)', () {
+      ProfileEvent at(String id, {String? computerId, EventSource? source}) =>
+          ProfileEvent(
+            id: id,
+            diveId: 'dive-1',
+            timestamp: 600,
+            eventType: ProfileEventType.ascentRateWarning,
+            severity: EventSeverity.warning,
+            computerId: computerId,
+            source: source ?? EventSource.imported,
+            createdAt: now,
+          );
+      final computed = at('auto-1', source: EventSource.computed);
+
+      test('another computer\'s event does not suppress the computed one', () {
+        // Viewing computer A: B's event is hidden when B is not overlaid, so
+        // it must not take the place of the marker computed on A's profile.
+        final result = mergeEvents(
+          [computed],
+          [at('db-b', computerId: 'B')],
+          analyzedSource: (computerId: 'A'),
+        );
+        expect(result.map((e) => e.id), unorderedEquals(['auto-1', 'db-b']));
+      });
+
+      test('the analyzed computer\'s event still wins the tie', () {
+        final result = mergeEvents(
+          [computed],
+          [at('db-a', computerId: 'A')],
+          analyzedSource: (computerId: 'A'),
+        );
+        expect(result.map((e) => e.id), ['db-a']);
+      });
+
+      test('an event with no computer still wins the tie', () {
+        final result = mergeEvents(
+          [computed],
+          [at('db-none')],
+          analyzedSource: (computerId: 'A'),
+        );
+        expect(result.map((e) => e.id), ['db-none']);
+      });
+
+      test('a source with no computer is not overridden by a computer\'s '
+          'event', () {
+        // A file-imported source has no computer; its analysis is still
+        // per-source, so a downloaded computer's event must not replace it.
+        final result = mergeEvents(
+          [computed],
+          [at('db-b', computerId: 'B')],
+          analyzedSource: (computerId: null),
+        );
+        expect(result.map((e) => e.id), unorderedEquals(['auto-1', 'db-b']));
+      });
+
+      test('a source with no computer still yields to an event with none', () {
+        final result = mergeEvents(
+          [computed],
+          [at('db-none')],
+          analyzedSource: (computerId: null),
+        );
+        expect(result.map((e) => e.id), ['db-none']);
+      });
+
+      test('a dive-level merge lets any computer\'s event win', () {
+        final result = mergeEvents([computed], [at('db-b', computerId: 'B')]);
+        expect(result.map((e) => e.id), ['db-b']);
+      });
     });
 
     test('keeps both when same timestamp but different eventType', () {

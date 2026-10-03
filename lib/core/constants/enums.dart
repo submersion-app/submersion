@@ -571,6 +571,10 @@ enum ProfileEventType {
   cnsCritical('CNS Critical', 'alert'),
   ppO2High('High ppO2', 'warning'),
   ppO2Low('Low ppO2', 'warning'),
+  // The computer's own "no-deco time is running low" and "this dive now
+  // needs deco" notices (Suunto Warning NoDecoTime / State Ndl exceeded).
+  lowNoDecoTime('Low No-Deco Time', 'warning'),
+  decompressionDive('Decompression Dive', 'info'),
   setpointChange('Setpoint Change', 'info'),
   bookmark('Bookmark', 'info'),
   alert('Alert', 'alert'),
@@ -591,6 +595,7 @@ enum ProfileEventType {
         return 'pause_circle';
       case ProfileEventType.decoStopStart:
       case ProfileEventType.decoStopEnd:
+      case ProfileEventType.decompressionDive:
         return 'stop_circle';
       case ProfileEventType.gasSwitch:
         return 'swap_horiz';
@@ -610,6 +615,8 @@ enum ProfileEventType {
       case ProfileEventType.ppO2High:
       case ProfileEventType.ppO2Low:
         return 'warning';
+      case ProfileEventType.lowNoDecoTime:
+        return 'timer';
       case ProfileEventType.setpointChange:
         return 'tune';
       case ProfileEventType.bookmark:

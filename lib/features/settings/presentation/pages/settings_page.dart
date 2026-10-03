@@ -2551,17 +2551,6 @@ class _ManageSectionContent extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  key: const ValueKey('settings-manage-nav-routes'),
-                  leading: const Icon(Icons.route),
-                  title: Text(context.l10n.navTrack_list_title),
-                  subtitle: Text(
-                    context.l10n.settings_manage_navRoutes_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/nav-routes'),
-                ),
-                const Divider(height: 1),
-                ListTile(
                   leading: const Icon(MdiIcons.fish),
                   title: Text(context.l10n.settings_manage_species),
                   subtitle: Text(context.l10n.settings_manage_species_subtitle),

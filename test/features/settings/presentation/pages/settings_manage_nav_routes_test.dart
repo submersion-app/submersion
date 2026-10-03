@@ -7,7 +7,10 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 void main() {
-  testWidgets('Manage lists Underwater Routes and opens the routes area', (
+  // Underwater tracks live in the Tracks nav destination (#2833), which
+  // supersedes the Manage tile #2804 added (#2398); a second way in to the
+  // same list must not come back with a merge.
+  testWidgets('Manage has no Underwater Routes tile; Tracks is in the nav', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(400, 3000);
@@ -20,11 +23,6 @@ void main() {
           builder: (context, state) =>
               const SettingsSectionDetailPage(sectionId: 'manage'),
         ),
-        GoRoute(
-          path: '/nav-routes',
-          builder: (context, state) =>
-              const Scaffold(body: Text('NAV-ROUTES-PAGE')),
-        ),
       ],
     );
     await tester.pumpWidget(
@@ -36,20 +34,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final tile = find.byKey(const ValueKey('settings-manage-nav-routes'));
+    // Scroll to the tiles the removed one sat between, so its slot is built.
     await tester.scrollUntilVisible(
-      tile,
+      find.text('Species'),
       100,
       scrollable: find.byType(Scrollable).first,
     );
+    expect(find.text('Near-miss log'), findsOneWidget);
     expect(
-      find.descendant(of: tile, matching: find.text('Underwater Routes')),
-      findsOneWidget,
+      find.byKey(const ValueKey('settings-manage-nav-routes')),
+      findsNothing,
     );
-    expect(find.text('Import, align and link recorded routes'), findsOneWidget);
-
-    await tester.tap(tile);
-    await tester.pumpAndSettle();
-    expect(find.text('NAV-ROUTES-PAGE'), findsOneWidget);
+    expect(find.text('Underwater Routes'), findsNothing);
   });
 }

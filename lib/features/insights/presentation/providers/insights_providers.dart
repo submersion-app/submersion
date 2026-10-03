@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:submersion/core/utils/local_day_changes.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/gas_consumption_display.dart';
@@ -59,6 +60,9 @@ final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
         ? repository.watchDivesChanges()
         : repository.watchTables({'dives', ...extra}),
   );
+  // "Dives This Year" reads the clock once per build (#2600), so a date
+  // change has to rebuild it too.
+  ref.invalidateSelfWhen(localDayChanges());
   return repository.getStatistics(diverId: currentDiverId, filter: filter);
 });
 
