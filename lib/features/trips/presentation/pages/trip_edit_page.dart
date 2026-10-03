@@ -1073,11 +1073,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           await itineraryRepo.saveAll(days);
         }
       } else if (isEditing && _originalLiveaboardDetails != null) {
-        // Type changed away from liveaboard - clean up details
+        // Type changed away from liveaboard: the vessel details go, since only
+        // a liveaboard has them. The itinerary stays; every trip type has one
+        // (#2845), and its maritime days keep their labels.
         final liveaboardRepo = LiveaboardDetailsRepository();
         await liveaboardRepo.deleteByTripId(savedId);
-        final itineraryRepo = ItineraryDayRepository();
-        await itineraryRepo.deleteByTripId(savedId);
       }
 
       // Scan for candidate dives (on create, or when dates changed on edit)
