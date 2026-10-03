@@ -1,4 +1,7 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector.dart';
@@ -24,6 +27,21 @@ class ThrowingDetector extends QualityDetector {
   @override
   List<QualityFinding> detect(DiveQualityContext context) =>
       throw StateError('boom');
+}
+
+/// Flags every dive it sees and has no prefilter candidate set.
+class _UnprefilteredDetector extends QualityDetector {
+  const _UnprefilteredDetector();
+  @override
+  String get id => 'unprefiltered';
+  @override
+  int get version => 1;
+  @override
+  QualityCategory get category => QualityCategory.time;
+  @override
+  List<QualityFinding> detect(DiveQualityContext context) => [
+    make(context, severity: QualitySeverity.info),
+  ];
 }
 
 void main() {
@@ -113,4 +131,86 @@ void main() {
     final findings = await findingsRepo.getFindings(diveId: 'd1');
     expect(findings, isNotEmpty);
   });
+
+  group('unknown transmitters (issue #2870)', () {
+    Future<void> seedTransmitterDive(String id) => diveRepo.createDive(
+      domain.Dive(
+        id: id,
+        dateTime: DateTime.utc(2026, 6, 1),
+        tanks: const [
+          domain.DiveTank(id: 'tank-1', transmitterSerial: '180777'),
+        ],
+      ),
+    );
+
+    Future<List<QualityFinding>> unknownTransmitterFindings(String id) async =>
+        (await findingsRepo.getFindings(
+          diveId: id,
+        )).where((f) => f.detectorId == 'unknown_transmitter').toList();
+
+    test('a full library scan keeps an unknown transmitter finding', () async {
+      await seedTransmitterDive('d1');
+      final service = QualityScanService();
+      await service.scanDives({'d1'}, now: DateTime.utc(2026, 7, 17));
+      expect(await unknownTransmitterFindings('d1'), hasLength(1));
+
+      await service.scanLibrary(now: DateTime.utc(2026, 7, 17));
+
+      final after = await unknownTransmitterFindings('d1');
+      expect(after, hasLength(1));
+      expect(after.single.status, QualityStatus.open);
+    });
+
+    test('a library scan retires the finding once the transmitter is '
+        'registered', () async {
+      await seedTransmitterDive('d1');
+      final service = QualityScanService();
+      await service.scanDives({'d1'}, now: DateTime.utc(2026, 7, 17));
+      expect(await unknownTransmitterFindings('d1'), hasLength(1));
+
+      final t = DateTime.now().millisecondsSinceEpoch;
+      final db = DatabaseService.instance.database;
+      await db
+          .into(db.transmitters)
+          .insert(
+            TransmittersCompanion.insert(
+              id: 'tx1',
+              label: 'Back gas',
+              tankRole: 'backGas',
+              createdAt: t,
+              updatedAt: t,
+              transmitterSerial: const Value('180777'),
+            ),
+          );
+      await service.scanLibrary(now: DateTime.utc(2026, 7, 17));
+
+      final after = await unknownTransmitterFindings('d1');
+      expect(after.where((f) => f.status == QualityStatus.open), isEmpty);
+    });
+
+    test(
+      'a full library scan finds an unknown transmitter by itself',
+      () async {
+        await seedTransmitterDive('d1');
+        await QualityScanService().scanLibrary(now: DateTime.utc(2026, 7, 17));
+        expect(await unknownTransmitterFindings('d1'), hasLength(1));
+      },
+    );
+  });
+
+  // A detector the prefilters do not know must still run in a library
+  // scan: skipping it while counting it as run retires all its findings
+  // (#2870).
+  test(
+    'a detector without a candidate set still runs in a library scan',
+    () async {
+      await seedFutureDive('d1');
+      final service = QualityScanService(
+        detectors: const [_UnprefilteredDetector()],
+      );
+      await service.scanLibrary(now: DateTime.utc(2026, 7, 17));
+      final findings = await findingsRepo.getFindings(diveId: 'd1');
+      expect(findings.map((f) => f.detectorId), ['unprefiltered']);
+    },
+  );
 }

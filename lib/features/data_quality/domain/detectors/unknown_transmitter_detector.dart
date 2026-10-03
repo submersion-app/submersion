@@ -11,8 +11,12 @@ class UnknownTransmitterDetector extends QualityDetector {
 
   @override
   String get id => 'unknown_transmitter';
+
+  /// 2: library scans now run this check (#2870). The bump shows the
+  /// inbox's new-checks banner, so the diver runs the library scan that
+  /// brings back the findings earlier scans retired.
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   QualityCategory get category => QualityCategory.tank;
 
