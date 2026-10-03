@@ -59,6 +59,8 @@ void main() {
     String? serial,
     String? cylinder,
     String? item,
+    String? computer,
+    int? channel,
   }) async {
     final t = DateTime.now().millisecondsSinceEpoch;
     await db
@@ -74,6 +76,8 @@ void main() {
             transmitterSerial: Value(serial),
             equipmentId: Value(cylinder),
             transmitterEquipmentId: Value(item),
+            diveComputerId: Value(computer),
+            channelIndex: Value(channel),
           ),
         );
   }
@@ -202,4 +206,72 @@ void main() {
     expect(p.transmitters.single.clashes, isFalse);
     expect(p.hasRegistry, isTrue);
   });
+
+  // Without a serial, a transmitter is known only by its computer and
+  // channel; moving it while that computer stays would key the new owner's
+  // entry to another profile's computer.
+  test(
+    'a serial-less transmitter stays when its computer does not move',
+    () async {
+      await addItem('tank', 'bill');
+      await addComputer('c1', 'bill');
+      await addTransmitter(
+        'tx1',
+        'bill',
+        cylinder: 'tank',
+        computer: 'c1',
+        channel: 2,
+      );
+      final result = await service.transfer(
+        equipmentIds: ['tank'],
+        toDiverId: 'anna',
+        actingDiverId: 'bill',
+      );
+      expect(result.transmittersKept, 1);
+      expect(result.transmittersMoved, 0);
+      expect(await transmitterOwner('tx1'), 'bill');
+    },
+  );
+
+  test('a serial-less transmitter moves with its computer', () async {
+    await addItem('perdix', 'bill');
+    await addItem('tank', 'bill');
+    await addComputer('c1', 'bill', gear: 'perdix');
+    await addTransmitter(
+      'tx1',
+      'bill',
+      cylinder: 'tank',
+      computer: 'c1',
+      channel: 2,
+    );
+    final result = await service.transfer(
+      equipmentIds: ['perdix', 'tank'],
+      toDiverId: 'anna',
+      actingDiverId: 'bill',
+    );
+    expect(result.transmittersMoved, 1);
+    expect(await transmitterOwner('tx1'), 'anna');
+  });
+
+  test(
+    'a transmitter with a serial moves even if its computer stays',
+    () async {
+      await addItem('tank', 'bill');
+      await addComputer('c1', 'bill');
+      await addTransmitter(
+        'tx1',
+        'bill',
+        serial: 'A1',
+        cylinder: 'tank',
+        computer: 'c1',
+        channel: 2,
+      );
+      final result = await service.transfer(
+        equipmentIds: ['tank'],
+        toDiverId: 'anna',
+        actingDiverId: 'bill',
+      );
+      expect(result.transmittersMoved, 1);
+    },
+  );
 }

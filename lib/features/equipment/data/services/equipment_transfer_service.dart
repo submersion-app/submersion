@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_ownershi
 import 'package:submersion/features/equipment/domain/services/transfer_unit.dart';
 import 'package:submersion/features/equipment/domain/services/transmitter_transfer_clash.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 export 'package:submersion/features/equipment/data/services/equipment_transfer_models.dart';
 
@@ -312,7 +313,16 @@ class EquipmentTransferService {
     var kept = 0;
     for (final t in await _linkedTransmitters(unitIds, from)) {
       final key = _keyOf(t);
-      if (transmitterClashes(key, targetKeys)) {
+      // Without a serial, a transmitter is known only by its computer and
+      // channel: it moves only if its computer belongs to the new owner by
+      // now (moved with this unit or an earlier one), or the new owner's
+      // entry would be keyed to another profile's computer.
+      final computerId = t.diveComputerId;
+      final keyedByStayingComputer =
+          normalizeTransmitterSerial(t.transmitterSerial) == null &&
+          computerId != null &&
+          await _computerOwner(computerId) != to;
+      if (keyedByStayingComputer || transmitterClashes(key, targetKeys)) {
         kept++;
         continue;
       }
@@ -332,6 +342,10 @@ class EquipmentTransferService {
       movedTransmitterIds: moved,
     );
   }
+
+  Future<String?> _computerOwner(String computerId) async => (await (_db.select(
+    _db.diveComputers,
+  )..where((t) => t.id.equals(computerId))).getSingleOrNull())?.diverId;
 
   Future<List<DiveComputer>> _linkedComputers(
     List<String> unitIds,

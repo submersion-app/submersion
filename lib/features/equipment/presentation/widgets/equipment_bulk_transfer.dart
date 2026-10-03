@@ -6,6 +6,9 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_t
 import 'package:submersion/features/equipment/presentation/widgets/equipment_transfer_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
+import 'package:submersion/core/services/logger_service.dart';
+
+const _log = LoggerService('EquipmentBulkTransfer');
 
 /// "Transfer to..." from the item page or the list (issue #2852): asks for
 /// the profile, transfers what [activeDiverId] owns and reports the result.
@@ -64,7 +67,8 @@ transferEquipmentToProfile(
       outcome: BulkActionOutcome.completed,
       keptAccess: request.keepAccess,
     );
-  } catch (_) {
+  } catch (e, stackTrace) {
+    _log.warning('Equipment transfer failed', error: e, stackTrace: stackTrace);
     if (messenger.mounted) {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.common_error_tryAgain)),
