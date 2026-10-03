@@ -51,6 +51,10 @@ _ENTRY = re.compile(
     r'\{\s*"([^"]*)"\s*,\s*"([^"]*)"\s*,\s*\w+\s*,\s*\w+\s*,'
     r"\s*([A-Z_|\s]+?)\s*,\s*\w+\s*\}"
 )
+# Where an entry starts, whether or not _ENTRY can read it.
+_ENTRY_START = re.compile(r'\{\s*"')
+# The shape slugify produces; an idOverrides value must have it too.
+_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
 class CatalogError(Exception):
@@ -63,6 +67,12 @@ def parse_descriptors(source):
     if table is None:
         raise CatalogError("g_descriptors[] table not found")
     body = _LINE_COMMENT.sub("", _BLOCK_COMMENT.sub("", table.group(1)))
+    # Every entry must parse: findall alone would skip an entry it cannot read
+    # and drop that model from the matrix without a word.
+    for start in _ENTRY_START.finditer(body):
+        if not _ENTRY.match(body, start.start()):
+            line = body[start.start() : body.find("\n", start.start())].strip()
+            raise CatalogError("cannot read descriptor entry: %s" % line)
     entries = []
     for vendor, product, flags in _ENTRY.findall(body):
         transports = set()
@@ -84,6 +94,8 @@ def slugify(vendor, product):
 
 def load_rules(text):
     rules = json.loads(text)
+    if not isinstance(rules, dict):
+        raise CatalogError("rules: the file must hold a JSON object")
     known = set(FLAG_NAMES.values())
     for platform in PLATFORMS:
         transports = rules.get(platform)
@@ -92,8 +104,12 @@ def load_rules(text):
         unknown = sorted(set(transports) - known)
         if unknown:
             raise CatalogError("rules: %s lists unknown transports %s" % (platform, unknown))
-    if not isinstance(rules.get("idOverrides", {}), dict):
+    overrides = rules.get("idOverrides", {})
+    if not isinstance(overrides, dict):
         raise CatalogError("rules: idOverrides must be an object")
+    for key, value in overrides.items():
+        if not isinstance(value, str) or not _ID.match(value):
+            raise CatalogError("rules: idOverrides %s gives %r, not a lowercase-hyphen id" % (key, value))
     return rules
 
 
@@ -197,14 +213,25 @@ def main(argv=None):
             "libdcCommit": git_head(libdc_dir),
             "generatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
-    except (OSError, ValueError, KeyError, CatalogError) as error:
+        output = {"generatedFrom": generated_from}
+        output.update(catalog)
+        # The sweep passes the same file as --previous and --out, so write a
+        # sibling and swap it in: a failed write leaves the old catalog whole.
+        partial = args.out + ".partial"
+        try:
+            with open(partial, "w", encoding="utf-8") as handle:
+                json.dump(output, handle, indent=2, ensure_ascii=False)
+                handle.write("\n")
+            os.replace(partial, args.out)
+        finally:
+            if os.path.exists(partial):
+                os.remove(partial)
+    except (OSError, ValueError, KeyError, TypeError, CatalogError) as error:
         print("error: %s" % error, file=sys.stderr)
         return 1
-    output = {"generatedFrom": generated_from}
-    output.update(catalog)
-    with open(args.out, "w", encoding="utf-8") as handle:
-        json.dump(output, handle, indent=2, ensure_ascii=False)
-        handle.write("\n")
+    used = {"%s|%s" % (vendor, product) for vendor, product, _ in descriptors}
+    for key in sorted(set(rules.get("idOverrides", {})) - used):
+        print("warning: idOverrides key %s matches no descriptor" % key, file=sys.stderr)
     print(
         "%d models, %d unsupported, %d removed -> %s"
         % (len(catalog["models"]), len(catalog["unsupported"]), len(catalog["removed"]), args.out)

@@ -94,6 +94,14 @@ class ParseTest(unittest.TestCase):
         with self.assertRaises(gen.CatalogError):
             gen.parse_descriptors("int main(void) { return 0; }")
 
+    def test_an_entry_the_parser_cannot_read_is_an_error(self):
+        # An expression in the model field: findall would skip this entry and
+        # silently drop the model from the matrix.
+        odd = '{"Shearwater", "Tern 2", DC_FAMILY_SHEARWATER_PETREL, 0x10 | 0x01, DC_TRANSPORT_BLE, dc_filter_shearwater},'
+        with self.assertRaises(gen.CatalogError) as raised:
+            gen.parse_descriptors(table(TERIC, odd))
+        self.assertIn("Tern 2", str(raised.exception))
+
 
 class SlugTest(unittest.TestCase):
     def test_slugs(self):
@@ -188,6 +196,16 @@ class RulesTest(unittest.TestCase):
         with self.assertRaises(gen.CatalogError):
             gen.load_rules(json.dumps(rules))
 
+    def test_rejects_a_rules_file_that_is_not_an_object(self):
+        for text in ('["ble"]', '"ios"', "3"):
+            with self.assertRaises(gen.CatalogError):
+                gen.load_rules(text)
+
+    def test_rejects_an_override_that_is_not_an_id(self):
+        rules = dict(RULES, idOverrides={"Mares|Puck Pro +": "Mares Puck Pro Plus"})
+        with self.assertRaises(gen.CatalogError):
+            gen.load_rules(json.dumps(rules))
+
     def test_the_committed_rules_file_is_the_spec(self):
         with open(gen.DEFAULT_RULES, encoding="utf-8") as handle:
             self.assertEqual(gen.load_rules(handle.read()), RULES)
@@ -245,6 +263,51 @@ class MainTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIsNone(catalog)
         self.assertIn("idOverrides", stderr)
+
+    def test_a_malformed_previous_catalog_exits_non_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.path.join(tmp, "previous.json")
+            with open(previous, "w", encoding="utf-8") as handle:
+                json.dump(["not", "a", "catalog"], handle)
+            code, catalog, stderr, _ = self.run_main(TERIC, extra=["--previous", previous])
+        self.assertEqual(code, 1)
+        self.assertIsNone(catalog)
+        self.assertIn("error:", stderr)
+
+    def test_an_unwritable_out_exits_non_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            code, _, stderr, _ = self.run_main(TERIC, extra=["--out", tmp])
+        self.assertEqual(code, 1)
+        self.assertIn("error:", stderr)
+
+    def test_a_failed_write_keeps_the_existing_catalog(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            descriptor = os.path.join(tmp, "descriptor.c")
+            with open(descriptor, "w", encoding="utf-8") as handle:
+                handle.write(table(TERIC))
+            out = os.path.join(tmp, "catalog.json")
+            with open(out, "w", encoding="utf-8") as handle:
+                handle.write('{"previous": true}\n')
+            argv = ["--descriptor", descriptor, "--out", out, "--min-descriptors", "1"]
+            with mock.patch.object(gen, "git_head", return_value="a" * 40), mock.patch.object(
+                gen.json, "dump", side_effect=OSError("disk full")
+            ), contextlib.redirect_stderr(io.StringIO()), contextlib.redirect_stdout(io.StringIO()):
+                code = gen.main(argv)
+            with open(out, encoding="utf-8") as handle:
+                kept = handle.read()
+            leftovers = sorted(os.listdir(tmp))
+        self.assertEqual(code, 1)
+        self.assertEqual(kept, '{"previous": true}\n')
+        self.assertEqual(leftovers, ["catalog.json", "descriptor.c"])
+
+    def test_an_override_that_matches_nothing_warns(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rules = os.path.join(tmp, "rules.json")
+            with open(rules, "w", encoding="utf-8") as handle:
+                json.dump(dict(RULES, idOverrides={"Nobody|Nothing": "nobody-nothing"}), handle)
+            code, _, stderr, _ = self.run_main(TERIC, extra=["--rules", rules])
+        self.assertEqual(code, 0)
+        self.assertIn("warning: idOverrides key Nobody|Nothing matches no descriptor", stderr)
 
 
 if __name__ == "__main__":
