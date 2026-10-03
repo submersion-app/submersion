@@ -12928,6 +12928,7 @@
   "navTrack_common_cancel": "إلغاء",
   "navTrack_common_save": "حفظ",
   "navTrack_common_delete": "حذف",
+  "navTrack_common_unlinked": "غير مرتبط",
   "navTrack_common_unlink": "إلغاء الربط",
   "navTrack_common_open3dTooltip": "فتح ثلاثي الأبعاد",
   "navTrack_common_diveNumber": "الغطسة رقم {number}",

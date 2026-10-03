@@ -12928,6 +12928,7 @@
   "navTrack_common_cancel": "ביטול",
   "navTrack_common_save": "שמירה",
   "navTrack_common_delete": "מחק",
+  "navTrack_common_unlinked": "לא מקושר",
   "navTrack_common_unlink": "בטל קישור",
   "navTrack_common_open3dTooltip": "פתח תלת-ממד",
   "navTrack_common_diveNumber": "צלילה #{number}",

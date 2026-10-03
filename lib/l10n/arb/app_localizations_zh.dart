@@ -40926,6 +40926,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_common_delete => '删除';
 
   @override
+  String get navTrack_common_unlinked => '未关联';
+
+  @override
   String get navTrack_common_unlink => '取消关联';
 
   @override

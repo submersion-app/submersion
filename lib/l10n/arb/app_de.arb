@@ -13040,6 +13040,7 @@
   "navTrack_common_cancel": "Abbrechen",
   "navTrack_common_save": "Speichern",
   "navTrack_common_delete": "Löschen",
+  "navTrack_common_unlinked": "nicht verknüpft",
   "navTrack_common_unlink": "Trennen",
   "navTrack_common_open3dTooltip": "3D öffnen",
   "navTrack_common_diveNumber": "Tauchgang #{number}",

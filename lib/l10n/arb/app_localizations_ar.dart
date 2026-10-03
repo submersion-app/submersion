@@ -43172,6 +43172,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_common_delete => 'حذف';
 
   @override
+  String get navTrack_common_unlinked => 'غير مرتبط';
+
+  @override
   String get navTrack_common_unlink => 'إلغاء الربط';
 
   @override

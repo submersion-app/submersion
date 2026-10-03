@@ -12928,6 +12928,7 @@
   "navTrack_common_cancel": "Mégse",
   "navTrack_common_save": "Mentés",
   "navTrack_common_delete": "Törlés",
+  "navTrack_common_unlinked": "nincs társítva",
   "navTrack_common_unlink": "Leválasztás",
   "navTrack_common_open3dTooltip": "3D megnyitása",
   "navTrack_common_diveNumber": "Merülés #{number}",

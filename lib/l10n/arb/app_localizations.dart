@@ -68938,6 +68938,12 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get navTrack_common_delete;
 
+  /// No description provided for @navTrack_common_unlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'unlinked'**
+  String get navTrack_common_unlinked;
+
   /// No description provided for @navTrack_common_unlink.
   ///
   /// In en, this message translates to:

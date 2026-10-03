@@ -43314,6 +43314,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_common_delete => 'Törlés';
 
   @override
+  String get navTrack_common_unlinked => 'nincs társítva';
+
+  @override
   String get navTrack_common_unlink => 'Leválasztás';
 
   @override

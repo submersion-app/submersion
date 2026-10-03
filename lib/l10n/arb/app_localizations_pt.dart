@@ -43527,6 +43527,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navTrack_common_delete => 'Excluir';
 
   @override
+  String get navTrack_common_unlinked => 'sem vínculo';
+
+  @override
   String get navTrack_common_unlink => 'Desvincular';
 
   @override

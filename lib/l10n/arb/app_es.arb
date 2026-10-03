@@ -12928,6 +12928,7 @@
   "navTrack_common_cancel": "Cancelar",
   "navTrack_common_save": "Guardar",
   "navTrack_common_delete": "Eliminar",
+  "navTrack_common_unlinked": "sin vincular",
   "navTrack_common_unlink": "Desvincular",
   "navTrack_common_open3dTooltip": "Abrir 3D",
   "navTrack_common_diveNumber": "Inmersión #{number}",

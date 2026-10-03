@@ -12928,6 +12928,7 @@
   "navTrack_common_cancel": "Annuleren",
   "navTrack_common_save": "Opslaan",
   "navTrack_common_delete": "Verwijderen",
+  "navTrack_common_unlinked": "niet gekoppeld",
   "navTrack_common_unlink": "Ontkoppelen",
   "navTrack_common_open3dTooltip": "3D openen",
   "navTrack_common_diveNumber": "Duik #{number}",

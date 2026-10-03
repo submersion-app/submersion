@@ -26508,6 +26508,7 @@
   "navTrack_common_cancel": "Cancel",
   "navTrack_common_save": "Save",
   "navTrack_common_delete": "Delete",
+  "navTrack_common_unlinked": "unlinked",
   "navTrack_common_unlink": "Unlink",
   "navTrack_common_open3dTooltip": "Open 3D",
   "navTrack_common_diveNumber": "Dive #{number}",
