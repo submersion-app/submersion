@@ -24,6 +24,16 @@ pending job and cancels the one it replaces, so a green run could discard a
 queued failure alert. Instead, two failing runs that each opened an issue fold
 together afterwards: the newer issue hands its report to the oldest and closes.
 
+Unserialized runs also finish out of order: the store lanes queue behind the
+previous run's, but precheck and build do not, so a newer run's build can fail
+while an older run is still uploading. The newest run's verdict wins. Every
+report records its run number (FAILED_RUN) and every close records the
+resolving run (RESOLVED_RUN). A green run closes only if no newer failure is
+recorded, and reopens if one lands while it closes; a failing run reopens an
+alert that an older or same-numbered run closed meanwhile. Run numbers only
+grow, and a re-run keeps its number, so a re-run that goes green resolves the
+failure it re-ran.
+
 A failure to write the issue exits non-zero. An alert that cannot be delivered
 must not report success, which is how the promotion alert hid its own failure
 (#2609). Assigning and reading the run's failed steps are best effort: losing
@@ -36,6 +46,7 @@ Usage: beta_failure_alert.py   (inputs come from the environment, see main)
 
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -47,6 +58,12 @@ ALERT_JOB = "alert"
 MARKER = "<!-- beta-failure-alert -->"
 LABEL = "ci"
 TITLE = "Beta pipeline failing: testers are not getting new builds"
+
+# Hidden run-number records in reports and close comments; see the docstring.
+FAILED_RUN = "<!-- beta-failure-run: {} -->"
+RESOLVED_RUN = "<!-- beta-resolved-run: {} -->"
+_FAILED_RUN_RE = re.compile(r"<!-- beta-failure-run: (\d+) -->")
+_RESOLVED_RUN_RE = re.compile(r"<!-- beta-resolved-run: (\d+) -->")
 
 # Used when the BETA_ALERT_ASSIGNEE Actions variable is unset.
 DEFAULT_ASSIGNEE = "ericgriffin"
@@ -126,6 +143,7 @@ def _report(gh, ctx, failed_ids, assignee):
     sha = ctx["sha"][:12] if ctx["sha"] else "unknown"
     return "\n".join(
         [
+            FAILED_RUN.format(ctx["run_number"]),
             f"@{assignee} Beta `{tag}` (source `{sha}`) failed:",
             "",
             *_failure_lines(gh, ctx, failed_ids),
@@ -181,6 +199,26 @@ def _fold_duplicate(gh, repo, number, report):
     return oldest
 
 
+def _issue_record(gh, repo, number):
+    """Return (state, newest failed run, newest resolving run) of an issue."""
+    issue = json.loads(
+        gh(["issue", "view", str(number), "--repo", repo, "--json", "state,body,comments"])
+    )
+    texts = [issue.get("body") or ""] + [
+        c.get("body") or "" for c in issue.get("comments") or []
+    ]
+
+    def newest(pattern):
+        return max((int(n) for t in texts for n in pattern.findall(t)), default=0)
+
+    return issue.get("state"), newest(_FAILED_RUN_RE), newest(_RESOLVED_RUN_RE)
+
+
+def _reopen(gh, repo, number, why):
+    gh(["issue", "reopen", str(number), "--repo", repo, "--comment", why])
+    print(f"Reopened beta failure alert #{number}: {why}")
+
+
 def _assign(gh, repo, number, assignee):
     try:
         gh(["issue", "edit", str(number), "--repo", repo, "--add-assignee", assignee])
@@ -220,6 +258,15 @@ def raise_alert(gh, ctx, failed_ids):
     else:
         gh(["issue", "comment", str(number), "--repo", repo, "--body", report])
         print(f"Commented on open beta failure alert #{number}")
+    # A green run may have closed the issue between the lookup and the
+    # comment. Unless that run was newer, this failure stands.
+    run_number = int(ctx["run_number"])
+    state, _, resolved = _issue_record(gh, repo, number)
+    if state != "OPEN" and resolved <= run_number:
+        _reopen(
+            gh, repo, number,
+            f"Run {run_number} failed after an older run closed this alert.",
+        )
     _assign(gh, repo, number, assignee)
 
 
@@ -229,13 +276,29 @@ def resolve_alert(gh, ctx):
     if number is None:
         print("Beta published on every lane; no alert is open.")
         return
+    run_number = int(ctx["run_number"])
+    _, failed, _ = _issue_record(gh, repo, number)
+    if failed > run_number:
+        print(
+            f"Run {run_number} published on every lane, but newer run {failed} "
+            f"failed; leaving #{number} open."
+        )
+        return
     gh(
         [
             "issue", "close", str(number), "--repo", repo, "--comment",
+            f"{RESOLVED_RUN.format(run_number)}\n"
             f"Beta `{ctx['tag']}` published on every lane: {ctx['run_url']}",
         ]
     )
     print(f"Closed beta failure alert #{number}")
+    # A newer run's failure may have landed while this one was closing.
+    _, failed, _ = _issue_record(gh, repo, number)
+    if failed > run_number:
+        _reopen(
+            gh, repo, number,
+            f"Run {failed} failed while older run {run_number} was closing this alert.",
+        )
 
 
 def run(needs, ctx, gh=gh_cli):
@@ -256,6 +319,7 @@ def main(env, gh=gh_cli):
         "repo": repo,
         "run_id": run_id,
         "run_attempt": env.get("GITHUB_RUN_ATTEMPT", "1"),
+        "run_number": env["GITHUB_RUN_NUMBER"],
         "run_url": f"{env.get('GITHUB_SERVER_URL', 'https://github.com')}"
         f"/{repo}/actions/runs/{run_id}",
         "tag": env.get("BETA_TAG", ""),

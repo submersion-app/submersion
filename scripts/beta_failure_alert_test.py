@@ -89,6 +89,7 @@ CONTEXT = {
     "repo": "submersion-app/submersion",
     "run_id": "36460341104",
     "run_attempt": "1",
+    "run_number": "120",
     "run_url": "https://github.com/submersion-app/submersion/actions/runs/36460341104",
     "tag": "v1.8.1.8510",
     "sha": "0123456789abcdef0123456789abcdef01234567",
@@ -110,6 +111,7 @@ class FakeGh:
         self.responses = dict(responses or {})
         self.responses.setdefault(("issue", "list"), json.dumps(list(open_issues)))
         self.responses.setdefault(("api",), json.dumps([RUN_JOBS]))
+        self.responses.setdefault(("issue", "view"), issue_view("OPEN"))
         self.responses.setdefault(
             ("issue", "create"),
             "https://github.com/submersion-app/submersion/issues/2700\n",
@@ -129,6 +131,21 @@ class FakeGh:
 
     def commands(self, *prefix):
         return [c for c in self.calls if tuple(c[: len(prefix)]) == prefix]
+
+
+def issue_view(state, body="", comments=()):
+    """The `gh issue view --json state,body,comments` shape."""
+    return json.dumps(
+        {"state": state, "body": body, "comments": [{"body": c} for c in comments]}
+    )
+
+
+def failed_in(run_number):
+    return alert.FAILED_RUN.format(run_number)
+
+
+def resolved_in(run_number):
+    return alert.RESOLVED_RUN.format(run_number)
 
 
 def _value(cmd, flag):
@@ -289,6 +306,39 @@ class AlertTest(unittest.TestCase):
         (edit,) = gh.commands("issue", "edit")
         self.assertEqual(edit[2], "2700")
 
+    def test_every_report_records_its_run(self):
+        gh = FakeGh()
+        _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        self.assertIn(failed_in(120), _value(gh.commands("issue", "create")[0], "--body"))
+        gh = FakeGh(open_issues=[OPEN_ALERT])
+        _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        self.assertIn(failed_in(120), _value(gh.commands("issue", "comment")[0], "--body"))
+
+    def test_reopens_an_alert_an_older_green_run_closed_meanwhile(self):
+        # The comment landed on an issue a concurrent, older green run closed
+        # between this run's lookup and its comment. The failure must win.
+        gh = FakeGh(
+            open_issues=[OPEN_ALERT],
+            responses={("issue", "view"): issue_view("CLOSED", comments=[resolved_in(119)])},
+        )
+        _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        (reopen,) = gh.commands("issue", "reopen")
+        self.assertEqual(reopen[2], "2650")
+
+    def test_leaves_closed_an_alert_a_newer_run_resolved(self):
+        # A newer run published on every lane: this older failure is stale.
+        gh = FakeGh(
+            open_issues=[OPEN_ALERT],
+            responses={("issue", "view"): issue_view("CLOSED", comments=[resolved_in(121)])},
+        )
+        _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        self.assertEqual(gh.commands("issue", "reopen"), [])
+
+    def test_an_alert_that_stayed_open_is_not_reopened(self):
+        gh = FakeGh(open_issues=[OPEN_ALERT])
+        _quiet(alert.run, PLAY_RED, CONTEXT, gh)
+        self.assertEqual(gh.commands("issue", "reopen"), [])
+
     def test_reads_only_open_ci_issues(self):
         gh = FakeGh()
         _quiet(alert.run, PLAY_RED, CONTEXT, gh)
@@ -371,6 +421,54 @@ class ResolveTest(unittest.TestCase):
         self.assertEqual(close[2], "2650")
         self.assertIn(CONTEXT["tag"], _value(close, "--comment"))
 
+    def test_records_the_resolving_run_in_the_close_comment(self):
+        gh = FakeGh(open_issues=[OPEN_ALERT])
+        _quiet(alert.run, ALL_GREEN, CONTEXT, gh)
+        self.assertIn(resolved_in(120), _value(gh.commands("issue", "close")[0], "--comment"))
+
+    def test_an_older_green_run_leaves_a_newer_failure_open(self):
+        # Run 121's build failed fast while run 120 was still distributing.
+        gh = FakeGh(
+            open_issues=[OPEN_ALERT],
+            responses={
+                ("issue", "view"): issue_view(
+                    "OPEN", body=failed_in(118), comments=[failed_in(121)]
+                )
+            },
+        )
+        code, out = _quiet(alert.run, ALL_GREEN, CONTEXT, gh)
+        self.assertEqual(code, 0)
+        self.assertEqual(gh.commands("issue", "close"), [])
+        self.assertIn("121", out)
+
+    def test_a_rerun_of_the_failed_run_resolves(self):
+        # Re-running the failed jobs keeps the run number.
+        gh = FakeGh(
+            open_issues=[OPEN_ALERT],
+            responses={("issue", "view"): issue_view("OPEN", body=failed_in(120))},
+        )
+        _quiet(alert.run, ALL_GREEN, CONTEXT, gh)
+        self.assertEqual(len(gh.commands("issue", "close")), 1)
+
+    def test_reopens_when_a_newer_failure_lands_while_closing(self):
+        gh = FakeGh(
+            open_issues=[OPEN_ALERT],
+            responses={
+                ("issue", "view"): [
+                    issue_view("OPEN", body=failed_in(119)),
+                    issue_view(
+                        "CLOSED",
+                        body=failed_in(119),
+                        comments=[resolved_in(120), failed_in(121)],
+                    ),
+                ]
+            },
+        )
+        _quiet(alert.run, ALL_GREEN, CONTEXT, gh)
+        self.assertEqual(len(gh.commands("issue", "close")), 1)
+        (reopen,) = gh.commands("issue", "reopen")
+        self.assertEqual(reopen[2], "2650")
+
     def test_does_nothing_when_no_alert_is_open(self):
         gh = FakeGh(open_issues=[UNRELATED])
         _quiet(alert.run, ALL_GREEN, CONTEXT, gh)
@@ -418,6 +516,7 @@ class MainTest(unittest.TestCase):
             "GITHUB_REPOSITORY": CONTEXT["repo"],
             "GITHUB_RUN_ID": CONTEXT["run_id"],
             "GITHUB_RUN_ATTEMPT": CONTEXT["run_attempt"],
+            "GITHUB_RUN_NUMBER": CONTEXT["run_number"],
             "GITHUB_SERVER_URL": "https://github.com",
             "BETA_TAG": CONTEXT["tag"],
             "BETA_SHA": CONTEXT["sha"],
@@ -428,6 +527,7 @@ class MainTest(unittest.TestCase):
         self.assertEqual(code, 0)
         body = _value(gh.commands("issue", "create")[0], "--body")
         self.assertIn(CONTEXT["run_url"], body)
+        self.assertIn(failed_in(120), body)
 
 
 class WorkflowWiringTest(unittest.TestCase):
@@ -450,6 +550,30 @@ class WorkflowWiringTest(unittest.TestCase):
             f"{alert.ALERT_JOB}.needs omits {missing}: a failure there would "
             "never raise the beta alert",
         )
+
+    def _alert_condition(self):
+        body = dict(gate._job_lines(self.text))[alert.ALERT_JOB]
+        start = next(i for i, line in enumerate(body) if line.startswith("    if:"))
+        block = [body[start]]
+        for line in body[start + 1:]:
+            if line.strip() and len(line) - len(line.lstrip()) <= 4:
+                break
+            block.append(line)
+        return " ".join(" ".join(block).split())
+
+    def test_the_alert_runs_on_any_failure_and_on_a_full_publish_only(self):
+        # always() so a failed need does not skip it; the failure clause so
+        # any failed job alerts; the no-skipped/no-cancelled clause so it can
+        # resolve, while gated-off runs stay skipped; main only.
+        condition = self._alert_condition()
+        for clause in (
+            "always()",
+            "github.ref == 'refs/heads/main'",
+            "contains(needs.*.result, 'failure') ||",
+            "!contains(needs.*.result, 'skipped') &&",
+            "!contains(needs.*.result, 'cancelled')",
+        ):
+            self.assertIn(clause, condition)
 
     def test_the_alert_job_has_no_concurrency_group(self):
         # A concurrency group keeps one pending job and cancels the one it
