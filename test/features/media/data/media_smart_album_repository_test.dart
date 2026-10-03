@@ -86,4 +86,41 @@ void main() {
     await repo.create(name: 'Alpha', filter: MediaLibraryFilter.none);
     expect((await repo.getAll()).map((a) => a.name), ['Alpha', 'Zulu']);
   });
+
+  // mediaSmartAlbumsProvider invalidates itself on every tick. A query
+  // stream emits its current result the moment it is listened to, so a
+  // tick on subscribe rebuilt the provider, which subscribed again, which
+  // ticked again: an endless loop for as long as the filter sheet was open,
+  // then a multi-second freeze when it closed (#2835).
+  group('watchChanges', () {
+    test('stays quiet when nothing is written', () async {
+      var ticks = 0;
+      final sub = repo.watchChanges().listen((_) => ticks++);
+      addTearDown(sub.cancel);
+
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(ticks, 0);
+    });
+
+    test('ticks when an album is created', () async {
+      final tick = repo.watchChanges().first;
+
+      await repo.create(name: 'x', filter: MediaLibraryFilter.none);
+
+      await tick.timeout(const Duration(seconds: 5));
+    });
+
+    test('ticks when an album is deleted', () async {
+      final album = await repo.create(
+        name: 'x',
+        filter: MediaLibraryFilter.none,
+      );
+      final tick = repo.watchChanges().first;
+
+      await repo.delete(album.id);
+
+      await tick.timeout(const Duration(seconds: 5));
+    });
+  });
 }

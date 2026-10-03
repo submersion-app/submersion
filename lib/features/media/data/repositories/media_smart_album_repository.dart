@@ -89,12 +89,14 @@ class MediaSmartAlbumRepository {
   }
 
   /// Emits whenever the album set changes, so the UI can re-read.
-  Stream<void> watchChanges() {
-    final count = countAll();
-    return (_db.selectOnly(
-      _db.mediaSmartAlbums,
-    )..addColumns([count])).watchSingle().map((_) {});
-  }
+  ///
+  /// A table-update stream, not a query stream: a query stream emits its
+  /// current result the moment it is listened to, and
+  /// mediaSmartAlbumsProvider invalidates itself on every tick, so that
+  /// initial emission rebuilt the provider into a fresh subscription that
+  /// emitted again, forever (#2835).
+  Stream<void> watchChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.mediaSmartAlbums));
 
   domain.MediaSmartAlbum _fromRow(MediaSmartAlbum row) {
     // A filter this build cannot parse degrades to "everything" rather
