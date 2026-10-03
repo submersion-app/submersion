@@ -303,13 +303,17 @@ make_proximity_fixture() {
     # Repo-wide guards. Each imports nothing the branch changes and lives in no
     # feature area, so only the guard tier can select it:
     #   - test/architecture/ is implicitly "scans lib/";
-    #   - a marked scanner elsewhere declares the trees it reads;
-    #   - a guard that reads test/ declares that.
+    #   - a marked scanner elsewhere declares the path prefixes it reads;
+    #   - a prefix can be narrow (the ARBs) or list several trees;
+    #   - a CRLF file's marker still matches (the repo has CRLF Dart files).
     mkdir -p test/architecture test/l10n
     printf '// scans every file under lib/\n' \
         > test/architecture/sample_guard_test.dart
     printf '// pre-push: scans lib/\n' > test/l10n/arb_scan_test.dart
-    printf '// pre-push: scans test/\n' > test/architecture/test_scan_guard_test.dart
+    printf '// pre-push: scans lib/l10n/arb/\n' > test/l10n/arb_only_scan_test.dart
+    printf '// pre-push: scans lib/l10n/arb/\r\n' > test/l10n/crlf_scan_test.dart
+    printf '// pre-push: scans lib/l10n/arb/ test/\n' \
+        > test/architecture/test_scan_guard_test.dart
     printf '{}\n' > lib/l10n/arb/app_en.arb
 
     # 60 importers of the generated l10n file, so a 40-file sample is a strict
@@ -371,6 +375,8 @@ assert_selected has 'test/architecture/sample_guard_test.dart' \
     'runs the architecture guards when a lib file changes'
 assert_selected has 'test/l10n/arb_scan_test.dart' \
     'runs a marked lib scanner outside test/architecture when lib changes'
+assert_selected lacks 'test/l10n/arb_only_scan_test.dart' \
+    'skips an ARB-scoped guard when no ARB changed'
 
 # --- Test 4: the format check is scoped to the changed files ----------------
 #
@@ -487,6 +493,12 @@ assert_selected has 'test/l10n/arb_scan_test.dart' \
     'runs the lib scanners for an ARB-only change'
 assert_selected has 'test/architecture/sample_guard_test.dart' \
     'runs the architecture guards for an ARB-only change'
+assert_selected has 'test/l10n/arb_only_scan_test.dart' \
+    'runs an ARB-scoped guard for an ARB change'
+assert_selected has 'test/l10n/crlf_scan_test.dart' \
+    'reads the marker of a CRLF file'
+assert_selected has 'test/architecture/test_scan_guard_test.dart' \
+    'matches the first of several prefixes'
 
 rm -rf "$tmp"
 
@@ -499,11 +511,13 @@ tmp="$(make_proximity_fixture 'test/features/gamma/l10n_1_test.dart')"
 run_hook "$tmp"
 
 assert_selected has 'test/architecture/test_scan_guard_test.dart' \
-    'runs a guard marked as reading test/ for a test-only change'
+    'runs a guard marked as reading test/ for a test-only change (a later prefix)'
 assert_selected lacks 'test/architecture/sample_guard_test.dart' \
     'skips lib-only architecture guards for a test-only change'
 assert_selected lacks 'test/l10n/arb_scan_test.dart' \
     'skips marked lib scanners for a test-only change'
+assert_selected lacks 'test/l10n/arb_only_scan_test.dart' \
+    'skips ARB-scoped guards for a test-only change'
 
 rm -rf "$tmp"
 

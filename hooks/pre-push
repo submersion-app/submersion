@@ -27,12 +27,14 @@
 #   5. repo-wide guards: tests that read a whole source tree from disk rather
 #      than importing it, so no import tier can see that a new file breaks
 #      one. Left to CI, they turned main red after green pushes (issue
-#      #2611). A guard declares the trees it reads with a comment line,
-#        // pre-push: scans lib/        (or test/, or both)
-#      and runs when the push changes any file under one of them; everything
+#      #2611). A guard declares the path prefixes it reads with a comment
+#      line, one or more prefixes separated by spaces:
+#        // pre-push: scans lib/            any change under lib/
+#        // pre-push: scans lib/l10n/arb/   only an ARB change
+#      and runs when the push changes a file under one of them. Everything
 #      in test/architecture/ is implicitly "scans lib/". So an ARB-only edit
-#      runs the l10n parity guards, and a test-only edit runs only the guards
-#      that read test/. Measured on an 18-core Mac at -j 16: the 21
+#      runs the ARB checks, and a test-only edit runs only the guards that
+#      read test/. Measured on an 18-core Mac at -j 16: the 21
 #      architecture files take 38s warm on their own. Bundled into one
 #      isolate they took longer (1m56s, run serially), so they run as
 #      separate files.
@@ -494,18 +496,14 @@ near_dirs=$(mktemp)        # feature areas touched by changed lib code
 # A changed lib file at the top level (lib/main.dart) has no feature area to
 # compare against, so proximity cannot discriminate: keep every importer.
 near_everything=0
-# The trees the push touched, for the repo-wide guards (tier 5). lib/ counts
-# any file, since guards read ARBs as well as Dart.
+# Whether the push touched lib/ (any file, ARBs included), for the implicit
+# "scans lib/" of test/architecture/ (tier 5).
 lib_changed=0
-test_dart_changed=0
 
 while IFS= read -r f; do
     [ -n "$f" ] || continue
     case "$f" in *.dart) dart_changed=1 ;; esac
-    case "$f" in
-        lib/*) lib_changed=1 ;;
-        test/*.dart) test_dart_changed=1 ;;
-    esac
+    case "$f" in lib/*) lib_changed=1 ;; esac
     case "$f" in
         test/*_test.dart)
             # A changed test: run it directly.
@@ -565,21 +563,41 @@ ${t}"
     done < <(grep -rlF -f "$helper_pattern" --include='*_test.dart' test 2>/dev/null || true)
 fi
 
-# Repo-wide guards, selected by the trees they read: see tier 5 in the header.
+# Repo-wide guards, selected by the paths they read: see tier 5 in the header.
 # [[:space:]] rather than \s, which BSD grep's -E does not promise.
 guard_marker='^[[:space:]]*//[[:space:]]*pre-push:[[:space:]]*scans[[:space:]]'
+
+# True when a file the push changed starts with prefix $1.
+changed_under() {
+    local f
+    while IFS= read -r f; do
+        case "$f" in "$1"*) return 0 ;; esac
+    done <<< "$changed_files"
+    return 1
+}
+
 guards=""
-if [ "$lib_changed" = "1" ]; then
-    if [ -d test/architecture ]; then
-        guards="$(find test/architecture -name '*_test.dart' 2>/dev/null || true)"
-    fi
-    guards="${guards}
-$(grep -rlE "${guard_marker}.*lib/" --include='*_test.dart' test 2>/dev/null || true)"
+if [ "$lib_changed" = "1" ] && [ -d test/architecture ]; then
+    guards="$(find test/architecture -name '*_test.dart' 2>/dev/null || true)"
 fi
-if [ "$test_dart_changed" = "1" ]; then
-    guards="${guards}
-$(grep -rlE "${guard_marker}.*test/" --include='*_test.dart' test 2>/dev/null || true)"
-fi
+# grep -H gives "path:<marker line>". The CR comes off first: some Dart files
+# are CRLF, and a trailing CR would end up glued to the last prefix.
+while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    line="${line%$'\r'}"
+    guard_file="${line%%:*}"
+    prefix_list="$(printf '%s\n' "${line#*:}" | sed -E \
+        's#^[[:space:]]*//[[:space:]]*pre-push:[[:space:]]*scans[[:space:]]+##')"
+    # read -a splits on spaces without glob-expanding the prefixes.
+    read -r -a prefixes <<< "$prefix_list"
+    for prefix in "${prefixes[@]}"; do
+        if changed_under "$prefix"; then
+            guards="${guards}
+${guard_file}"
+            break
+        fi
+    done
+done < <(grep -rHE "$guard_marker" --include='*_test.dart' test 2>/dev/null || true)
 while IFS= read -r t; do
     [ -n "$t" ] || continue
     matched="${matched}

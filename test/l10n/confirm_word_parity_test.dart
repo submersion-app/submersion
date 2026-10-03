@@ -1,4 +1,4 @@
-// pre-push: scans lib/
+// pre-push: scans lib/l10n/arb/
 import 'dart:convert';
 import 'dart:io';
 

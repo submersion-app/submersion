@@ -565,13 +565,16 @@ new file breaks one (issue #2611). The hook runs them by the trees they read:
 
 - everything in `test/architecture/` runs when the push changes any file
   under `lib/`;
-- a guard elsewhere declares what it reads with a comment line,
-  `// pre-push: scans lib/` or `// pre-push: scans test/` (or both), and runs
-  when the push changes a file there. The ARB parity checks in `test/l10n/`
-  and the widget adoption guards in `test/shared/widgets/` carry it.
+- a guard elsewhere declares the path prefixes it reads with a comment line,
+  such as `// pre-push: scans lib/` or `// pre-push: scans lib/l10n/arb/`
+  (several prefixes are separated by spaces), and runs when the push changes
+  a file under one of them. The widget adoption guards in
+  `test/shared/widgets/` scan `lib/`; every test that reads the ARB files
+  scans `lib/l10n/arb/`, so it runs for an ARB edit and not for other
+  changes.
 
-Mark a new guard that scans a tree the same way, or put it in
-`test/architecture/`. CI still runs the full suite on every pull request that
+Mark a new test that reads source files from disk the same way, or put a
+guard that scans all of `lib/` in `test/architecture/`. CI still runs the full suite on every pull request that
 changes code; a docs-only or CI-only change skips it unless `[full-ci]` is in
 the title or a commit message.
 
