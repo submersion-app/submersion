@@ -81,11 +81,12 @@ void main() {
     NameIndex? names,
     VoidCallback? onUndo,
     ValueChanged<String>? onOpenList,
+    Locale locale = const Locale('en'),
   }) async {
     late ProviderContainer container;
     await tester.pumpWidget(
       testApp(
-        locale: const Locale('en'),
+        locale: locale,
         overrides: [
           nlEngineProvider.overrideWithValue(engine),
           explorePlatformSupportedProvider.overrideWithValue(true),
@@ -179,6 +180,45 @@ void main() {
     await tester.tap(find.widgetWithText(ActionChip, 'Atlantis'));
     await tester.pumpAndSettle();
     expect(find.text('No match in your logbook'), findsOneWidget);
+  });
+
+  // Code review: the buttons shared one row with the text, and long
+  // localized labels pushed it past a phone's width.
+  testWidgets('fits a 360 px phone with long localized buttons', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(360, 800);
+    addTearDown(tester.view.reset);
+    const leftovers =
+        '{"schemaVersion":$kQuerySchemaVersion,"subject":"sites","clauses":[{"field":"rating",'
+        '"op":"gte","value":4,"text":"rated 4"}],"mentions":[],"time":null,'
+        '"unplaced":["kuschelig"]}';
+    final c = await pump(
+      tester,
+      _Engine(leftovers),
+      locale: const Locale('hu'),
+    );
+    await c.read(diveAskProvider.notifier).ask('kuschelig sites rated 4');
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(kDiveAskOpenListKey), findsOneWidget);
+  });
+
+  // Code review: the picker used the notice's ref after the sheet closed,
+  // and the notice may be gone by then.
+  testWidgets('a pick after the notice went away does nothing', (tester) async {
+    final c = await pump(tester, _Engine(withJohn), names: twins);
+    await c.read(diveAskProvider.notifier).ask('dives with John Smith');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(ActionChip, 'John Smith'));
+    await tester.pumpAndSettle();
+    c.read(diveAskProvider.notifier).dismiss();
+    await tester.pump();
+    await tester.tap(find.text('John Smith').last);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(c.read(diveAskProvider).answer, isNull);
   });
 
   testWidgets('Undo and dismiss', (tester) async {

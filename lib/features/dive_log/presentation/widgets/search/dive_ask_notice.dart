@@ -36,60 +36,70 @@ class DiveAskNotice extends ConsumerWidget {
     return Padding(
       key: kDiveAskNoticeKey,
       padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 4, 4),
-      child: Row(
+      // Two lines, not one Row: the actions' localized labels ("Megnyitás a
+      // listában", "Visszavonás") can fill a phone's width on their own.
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                answer.needsAttention
+                    ? l10n.diveLog_ask_couldNotUse
+                    : l10n.diveLog_ask_asked(answer.sentence),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              for (final u in compiled.unresolved)
+                ActionChip(
+                  avatar: const Icon(Icons.help_outline, size: 16),
+                  label: Text(u.mention.text),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => _pick(context, ref, u),
+                ),
+              for (final w in compiled.unplaced)
+                _UnplacedChip(text: w.text, reason: _reason(l10n, w.reason)),
+              // Nothing applied and nothing listed as left over: the
+              // whole sentence went unused.
+              if (compiled.query == null &&
+                  compiled.unplaced.isEmpty &&
+                  compiled.unresolved.isEmpty)
+                Chip(
+                  label: Text(answer.sentence),
+                  visualDensity: VisualDensity.compact,
+                ),
+            ],
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
             child: Wrap(
-              spacing: 8,
-              runSpacing: 4,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Text(
-                  answer.needsAttention
-                      ? l10n.diveLog_ask_couldNotUse
-                      : l10n.diveLog_ask_asked(answer.sentence),
-                  style: Theme.of(context).textTheme.bodySmall,
+                if (compiled.subject != ParsedSubject.dives &&
+                    compiled.query != null)
+                  TextButton(
+                    key: kDiveAskOpenListKey,
+                    onPressed: () {
+                      final route = notifier.openAnswerList();
+                      if (route != null) onOpenList(route);
+                    },
+                    child: Text(l10n.explore_handoff_list),
+                  ),
+                TextButton(
+                  key: kDiveAskUndoKey,
+                  onPressed: onUndo,
+                  child: Text(l10n.diveLog_search_undo),
                 ),
-                for (final u in compiled.unresolved)
-                  ActionChip(
-                    avatar: const Icon(Icons.help_outline, size: 16),
-                    label: Text(u.mention.text),
-                    visualDensity: VisualDensity.compact,
-                    onPressed: () => _pick(context, ref, u),
-                  ),
-                for (final w in compiled.unplaced)
-                  _UnplacedChip(text: w.text, reason: _reason(l10n, w.reason)),
-                // Nothing applied and nothing listed as left over: the
-                // whole sentence went unused.
-                if (compiled.query == null &&
-                    compiled.unplaced.isEmpty &&
-                    compiled.unresolved.isEmpty)
-                  Chip(
-                    label: Text(answer.sentence),
-                    visualDensity: VisualDensity.compact,
-                  ),
+                IconButton(
+                  key: kDiveAskDismissKey,
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                  icon: const Icon(Icons.close, size: 18),
+                  onPressed: notifier.dismiss,
+                ),
               ],
             ),
-          ),
-          if (compiled.subject != ParsedSubject.dives && compiled.query != null)
-            TextButton(
-              key: kDiveAskOpenListKey,
-              onPressed: () {
-                final route = notifier.openAnswerList();
-                if (route != null) onOpenList(route);
-              },
-              child: Text(l10n.explore_handoff_list),
-            ),
-          TextButton(
-            key: kDiveAskUndoKey,
-            onPressed: onUndo,
-            child: Text(l10n.diveLog_search_undo),
-          ),
-          IconButton(
-            key: kDiveAskDismissKey,
-            tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-            icon: const Icon(Icons.close, size: 18),
-            onPressed: notifier.dismiss,
           ),
         ],
       ),

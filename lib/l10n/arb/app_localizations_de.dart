@@ -2018,7 +2018,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_askQuestion =>
-      'Zu deinen Tauchgängen fragen';
+      'Fragen zu Ihren Tauchgängen';
 
   @override
   String accessibility_sort_selectedLabel(Object displayName) {
