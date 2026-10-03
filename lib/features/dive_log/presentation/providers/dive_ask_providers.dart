@@ -33,9 +33,12 @@ class AskAnswer {
   /// The dive list's query before the Ask; Undo writes it back.
   final QueryNode? previousQuery;
 
-  /// Words the compiler could not place, or a name with several matches.
+  /// Nothing was applied, words the compiler could not place, or a name
+  /// with several matches.
   bool get needsAttention =>
-      compiled.unplaced.isNotEmpty || compiled.unresolved.isNotEmpty;
+      compiled.query == null ||
+      compiled.unplaced.isNotEmpty ||
+      compiled.unresolved.isNotEmpty;
 }
 
 class AskState {

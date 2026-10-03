@@ -163,6 +163,23 @@ void main() {
     expect(stateOf(c).answer!.needsAttention, isTrue);
   });
 
+  // Review: a model that places nothing and lists nothing as unplaced
+  // still applied nothing, and must say so.
+  test(
+    'an answer with no query needs the diver even with no leftovers',
+    () async {
+      const empty =
+          '{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[],'
+          '"mentions":[],"time":null,"unplaced":[]}';
+      final before = DiveFilterState(query: TextNode(['reef']));
+      final c = make(_Engine(empty), filter: before);
+      await askOf(c).ask('show me my best dives');
+      expect(filterOf(c), before);
+      expect(stateOf(c).answer!.compiled.query, isNull);
+      expect(stateOf(c).answer!.needsAttention, isTrue);
+    },
+  );
+
   test('another subject with nothing to show hands off at once', () async {
     final c = make(_Engine(_goodSites));
     expect(await askOf(c).ask('sites rated 4'), '/sites');

@@ -128,6 +128,21 @@ void main() {
     expect(find.text('maybe'), findsOneWidget);
   });
 
+  // Review: nothing placed reads as unused, never as "Asked:".
+  testWidgets('an answer that placed nothing shows the sentence as unused', (
+    tester,
+  ) async {
+    const empty =
+        '{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[],'
+        '"mentions":[],"time":null,"unplaced":[]}';
+    final c = await pump(tester, _Engine(empty));
+    await c.read(diveAskProvider.notifier).ask('show me my best dives');
+    await tester.pump();
+    expect(find.text("Couldn't use:"), findsOneWidget);
+    expect(find.widgetWithText(Chip, 'show me my best dives'), findsOneWidget);
+    expect(find.textContaining('Asked:'), findsNothing);
+  });
+
   testWidgets('says what was asked when everything was placed', (tester) async {
     final c = await pump(tester, _Engine(_deep));
     await c.read(diveAskProvider.notifier).ask('deep dives');

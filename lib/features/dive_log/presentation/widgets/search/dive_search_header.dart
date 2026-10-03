@@ -204,6 +204,14 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
         _text = '';
       });
     });
+    // A new answer wins over words still waiting on the debounce, even
+    // when its query equals the one already applied (the filter listener
+    // below sees no change then).
+    ref.listen<AskState>(diveAskProvider, (previous, next) {
+      if (next.answer != null && !identical(next.answer, previous?.answer)) {
+        _debounce?.cancel();
+      }
+    });
     ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
       // Only a change to the QUERY from outside (a chip removed, a saved
       // search loaded) replaces the text; another axis changing mid-debounce

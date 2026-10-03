@@ -184,7 +184,28 @@ void main() {
     await tester.tap(find.byKey(kDiveAskRowKey));
     await tester.pump();
     final answered = filterOf().query;
-    expect(answered, isNot(TextNode(['deep'])));
+    expect(answered, isNotNull);
+    expect(answered, container.read(diveAskProvider).answer!.compiled.query);
+    await tester.pump(kDiveSearchDebounce * 2);
+    expect(filterOf().query, answered);
+  });
+
+  // Review: an answer equal to the query already applied changes nothing
+  // the filter listener sees, so the typed words still waited to land.
+  testAsk('re-asking within the debounce keeps the same answer', (
+    tester,
+  ) async {
+    await pumpHeader(tester, engine: _Engine()..replies['deep dives'] = _deep);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'deep dives');
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pumpAndSettle();
+    final answered = filterOf().query;
+    expect(answered, isNotNull);
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'deep dives');
+    await tester.pump();
+    await tester.tap(find.byKey(kDiveAskRowKey));
+    await tester.pump();
     await tester.pump(kDiveSearchDebounce * 2);
     expect(filterOf().query, answered);
   });
@@ -220,6 +241,9 @@ void main() {
     await tester.tap(find.byKey(kDiveAskUndoKey));
     await tester.pump();
     expect(fieldOf(tester).controller!.text, 'deep dives');
+    expect(filterOf().query, TextNode(['reef']));
+    // Shown, not applied: still the old query once any debounce is over.
+    await tester.pump(kDiveSearchDebounce * 2);
     expect(filterOf().query, TextNode(['reef']));
   });
 

@@ -65,6 +65,15 @@ class DiveAskNotice extends ConsumerWidget {
                       visualDensity: VisualDensity.compact,
                     ),
                   ),
+                // Nothing applied and nothing listed as left over: the
+                // whole sentence went unused.
+                if (compiled.query == null &&
+                    compiled.unplaced.isEmpty &&
+                    compiled.unresolved.isEmpty)
+                  Chip(
+                    label: Text(answer.sentence),
+                    visualDensity: VisualDensity.compact,
+                  ),
               ],
             ),
           ),

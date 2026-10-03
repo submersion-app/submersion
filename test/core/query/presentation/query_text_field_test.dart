@@ -186,6 +186,52 @@ void main() {
     expect(texts.last, 'turtles, in bonaire');
   });
 
+  // Review: a name-index refresh re-parses the text; it is not an edit,
+  // and reporting it as one cancelled a running Ask.
+  testWidgets('a name-index refresh is not reported as an edit', (
+    tester,
+  ) async {
+    final texts = <String>[];
+    var editorContext = context;
+    late StateSetter setOuter;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (ctx, setState) {
+              setOuter = setState;
+              return QueryTextField(
+                context: editorContext,
+                value: null,
+                onChanged: (_) {},
+                onTextChanged: texts.add,
+                fieldKey: fieldKey,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(find.byKey(fieldKey), 'depth >');
+    await tester.pump();
+    expect(texts, ['depth >']);
+    setOuter(
+      () => editorContext = QueryEditorContext(
+        registry: fixtureRegistry,
+        root: fixtureDives,
+        prefs: kMetricPrefs,
+        names: const MapNameResolver({
+          QuerySubject.sites: {'Salt Pier': 's1', 'Bari Reef': 's2'},
+        }),
+        labels: const MapQueryLabels(),
+        now: () => DateTime(2026, 9, 25),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(texts, ['depth >']);
+  });
+
   group('text override', () {
     late StateSetter setOuter;
     QueryNode? value;

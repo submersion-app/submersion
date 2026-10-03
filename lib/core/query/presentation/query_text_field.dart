@@ -161,8 +161,17 @@ class _QueryTextFieldState extends State<QueryTextField> {
     super.dispose();
   }
 
-  void _onTextChanged(String text) {
+  /// An edit by the diver (typing, or a completion or suggestion they
+  /// picked): reported, then parsed.
+  void _onEdited(String text) {
     widget.onTextChanged?.call(text);
+    _onTextChanged(text);
+  }
+
+  /// Parses [text] and commits it when valid. Also re-run without an edit
+  /// (the name index changed), which [QueryTextField.onTextChanged] does
+  /// not hear about.
+  void _onTextChanged(String text) {
     final caret = _controller.selection.isValid
         ? _controller.selection.extentOffset
         : text.length;
@@ -229,7 +238,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
       text: next,
       selection: TextSelection.collapsed(offset: start + text.length),
     );
-    _onTextChanged(next);
+    _onEdited(next);
   }
 
   @override
@@ -272,7 +281,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
                     ),
               errorText: error == null ? null : describe(error),
             ),
-            onChanged: _onTextChanged,
+            onChanged: _onEdited,
           ),
         ),
         if (error != null && suggestionsReplaceSpan(error, _controller.text))
