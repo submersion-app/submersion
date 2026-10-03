@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
@@ -10,6 +11,8 @@ void main() {
   // formatRmv localises the decimal separator from the process-global
   // Intl.defaultLocale, so pin English for the dot-separated expectations.
   late String? previousLocale;
+
+  setUpAll(() => initializeDateFormatting('en'));
 
   setUp(() {
     previousLocale = Intl.defaultLocale;
@@ -36,5 +39,24 @@ void main() {
       // hides most of the spread between typical imperial RMVs.
       expect(fmt.sac(16.84), '0.59 cuft/min');
     });
+  });
+
+  // A shared gear finding names each dive's clock time alone, in the
+  // diver's 12 or 24 hour setting (#2853). The instant is a UTC wall clock
+  // and formats as recorded.
+  test('time follows the 12 or 24 hour setting', () {
+    final at = DateTime.utc(2026, 5, 1, 14, 5);
+    expect(
+      qualityUnitFormattersFor(
+        const UnitFormatter(AppSettings(timeFormat: TimeFormat.twentyFourHour)),
+      ).time(at),
+      '14:05',
+    );
+    expect(
+      qualityUnitFormattersFor(
+        const UnitFormatter(AppSettings(timeFormat: TimeFormat.twelveHour)),
+      ).time(at),
+      '2:05 PM',
+    );
   });
 }

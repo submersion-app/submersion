@@ -474,6 +474,32 @@ void main() {
     });
   });
 
+  // Each removable side of a shared gear finding names its profile, and a
+  // side whose name was not recorded still reads as a sentence (#2853).
+  testWidgets('shared gear repairs name whose dive loses the item', (
+    tester,
+  ) async {
+    await pumpCard(
+      tester,
+      finding: _finding(
+        detectorId: 'shared_gear_overlap',
+        relatedDiveId: 'd2',
+        params: const {
+          'equipmentId': 'light',
+          'itemName': 'Light',
+          'partIds': <String>[],
+          'dives': {
+            'd1': {'diverName': 'Anna', 'entryMs': 0, 'removable': true},
+            'd2': {'diverName': '', 'entryMs': 0, 'removable': true},
+          },
+        },
+      ),
+    );
+    await toggleExpand(tester);
+    expect(find.text("Remove from Anna's dive"), findsOneWidget);
+    expect(find.text("Remove from another profile's dive"), findsOneWidget);
+  });
+
   group('finding context rows', () {
     // A cross-dive finding's message can only ever say "a dive 1 min apart":
     // the message builder renders numeric params and holds no prose. Naming
