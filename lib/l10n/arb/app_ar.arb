@@ -4953,7 +4953,7 @@
   "gpsLogger_lastFix": "آخر إشارة قبل {age} ({accuracy})",
   "gpsLogger_locationOff": "خدمات الموقع متوقفة.",
   "gpsLogger_matchButton": "مطابقة الغطسات مع سجلات GPS",
-  "tracks_empty_body": "سجّل مسار GPS على هاتفك خلال يوم الغطس، أو استورد ملفات GPX أو KML أو CSV أو FIT وسجلات الملاحة من Seacraft ENC. تتم مطابقة المسارات مع غطساتك تلقائيًا.",
+  "tracks_empty_body": "سجّل مسار GPS على هاتفك خلال يوم الغطس، أو استورد ملفات GPX أو KML أو CSV أو FIT وسجلات الملاحة من Seacraft ENC. تتم مطابقة مسارات GPS مع غطساتك تلقائيًا، وتختار أنت الغطسة لكل مسار تحت الماء.",
   "tracks_empty_clearFilters": "مسح عوامل التصفية",
   "tracks_empty_filtered": "لا توجد مسارات تطابق عوامل التصفية هذه",
   "tracks_empty_title": "لا توجد مسارات بعد",

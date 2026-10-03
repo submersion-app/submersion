@@ -40099,7 +40099,7 @@ abstract class AppLocalizations {
   /// No description provided for @tracks_empty_body.
   ///
   /// In en, this message translates to:
-  /// **'Record a GPS track on your phone during a dive day, or import GPX, KML, CSV or FIT files and Seacraft ENC navigation logs. Tracks are matched to your dives automatically.'**
+  /// **'Record a GPS track on your phone during a dive day, or import GPX, KML, CSV or FIT files and Seacraft ENC navigation logs. GPS tracks are matched to your dives automatically; you choose the dive for each underwater track.'**
   String get tracks_empty_body;
 
   /// No description provided for @tracks_empty_clearFilters.

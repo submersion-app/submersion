@@ -5092,7 +5092,7 @@
   "gpsLogger_lastFix": "上次定位于 {age} 前（{accuracy}）",
   "gpsLogger_locationOff": "定位服务已关闭。",
   "gpsLogger_matchButton": "将潜水与 GPS 记录匹配",
-  "tracks_empty_body": "在潜水日用手机记录 GPS 轨迹，或导入 GPX、KML、CSV、FIT 文件以及 Seacraft ENC 导航日志。轨迹会自动匹配到你的潜水。",
+  "tracks_empty_body": "在潜水日用手机记录 GPS 轨迹，或导入 GPX、KML、CSV、FIT 文件以及 Seacraft ENC 导航日志。GPS 轨迹会自动匹配到你的潜水；水下轨迹需要你自己选择对应的潜水。",
   "tracks_empty_clearFilters": "清除筛选",
   "tracks_empty_filtered": "没有符合这些筛选条件的轨迹",
   "tracks_empty_title": "暂无轨迹",

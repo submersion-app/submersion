@@ -25220,7 +25220,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tracks_empty_body =>
-      'Graba un track GPS con tu teléfono durante un día de buceo o importa archivos GPX, KML, CSV o FIT y registros de navegación de Seacraft ENC. Los tracks se asocian automáticamente a tus inmersiones.';
+      'Graba un track GPS con tu teléfono durante un día de buceo o importa archivos GPX, KML, CSV o FIT y registros de navegación de Seacraft ENC. Los tracks GPS se asocian automáticamente a tus inmersiones; para cada track submarino eliges la inmersión.';
 
   @override
   String get tracks_empty_clearFilters => 'Borrar filtros';

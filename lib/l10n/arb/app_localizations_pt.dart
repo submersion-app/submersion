@@ -25210,7 +25210,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get tracks_empty_body =>
-      'Grave uma trilha GPS com seu celular durante um dia de mergulho ou importe arquivos GPX, KML, CSV ou FIT e registros de navegação Seacraft ENC. As trilhas são associadas automaticamente aos seus mergulhos.';
+      'Grave uma trilha GPS com seu celular durante um dia de mergulho ou importe arquivos GPX, KML, CSV ou FIT e registros de navegação Seacraft ENC. As trilhas GPS são associadas automaticamente aos seus mergulhos; você escolhe o mergulho de cada trilha subaquática.';
 
   @override
   String get tracks_empty_clearFilters => 'Limpar filtros';

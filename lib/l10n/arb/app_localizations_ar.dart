@@ -24889,7 +24889,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tracks_empty_body =>
-      'سجّل مسار GPS على هاتفك خلال يوم الغطس، أو استورد ملفات GPX أو KML أو CSV أو FIT وسجلات الملاحة من Seacraft ENC. تتم مطابقة المسارات مع غطساتك تلقائيًا.';
+      'سجّل مسار GPS على هاتفك خلال يوم الغطس، أو استورد ملفات GPX أو KML أو CSV أو FIT وسجلات الملاحة من Seacraft ENC. تتم مطابقة مسارات GPS مع غطساتك تلقائيًا، وتختار أنت الغطسة لكل مسار تحت الماء.';
 
   @override
   String get tracks_empty_clearFilters => 'مسح عوامل التصفية';

@@ -25203,7 +25203,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tracks_empty_body =>
-      'Registra una traccia GPS con il telefono durante una giornata di immersioni, oppure importa file GPX, KML, CSV o FIT e registri di navigazione Seacraft ENC. Le tracce vengono associate automaticamente alle tue immersioni.';
+      'Registra una traccia GPS con il telefono durante una giornata di immersioni, oppure importa file GPX, KML, CSV o FIT e registri di navigazione Seacraft ENC. Le tracce GPS vengono associate automaticamente alle tue immersioni; per ogni traccia subacquea scegli tu l\'immersione.';
 
   @override
   String get tracks_empty_clearFilters => 'Cancella filtri';

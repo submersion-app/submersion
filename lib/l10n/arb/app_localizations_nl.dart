@@ -25018,7 +25018,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tracks_empty_body =>
-      'Neem tijdens een duikdag een GPS-track op met je telefoon, of importeer GPX-, KML-, CSV- of FIT-bestanden en Seacraft ENC-navigatielogs. Tracks worden automatisch aan je duiken gekoppeld.';
+      'Neem tijdens een duikdag een GPS-track op met je telefoon, of importeer GPX-, KML-, CSV- of FIT-bestanden en Seacraft ENC-navigatielogs. GPS-tracks worden automatisch aan je duiken gekoppeld; voor elke onderwatertrack kies je zelf de duik.';
 
   @override
   String get tracks_empty_clearFilters => 'Filters wissen';

@@ -17,4 +17,15 @@ void main() {
       }
     }
   });
+
+  test('the empty state promises auto-matching for GPS tracks only', () {
+    // Underwater tracks are only ever suggested since #2819; the diver
+    // picks the dive, so the copy must not promise otherwise.
+    final body = lookupAppLocalizations(const Locale('en')).tracks_empty_body;
+    expect(
+      body,
+      contains('GPS tracks are matched to your dives automatically'),
+    );
+    expect(body, contains('you choose the dive for each underwater track'));
+  });
 }

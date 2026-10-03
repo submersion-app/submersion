@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -142,6 +143,22 @@ class _ScriptedTrackImport extends TrackImportService {
       sourceRef: fileName,
       tzOffsetMinutes: 0,
     );
+  }
+}
+
+/// Holds prepare open until [release], so the page can leave first.
+class _GatedTrackImport extends _ScriptedTrackImport {
+  final _gate = Completer<void>();
+  void release() => _gate.complete();
+
+  @override
+  Future<TrackImportCandidate> prepare({
+    required String fileName,
+    required Uint8List bytes,
+    CsvColumnMapping? csvMapping,
+  }) async {
+    await _gate.future;
+    return super.prepare(fileName: fileName, bytes: bytes);
   }
 }
 
@@ -342,5 +359,25 @@ void main() {
       find.byType(TrackImportReviewPage),
     );
     expect(review.candidate.sourceRef, 'track.gpx');
+  });
+
+  testWidgets('leaving the page while a GPS file parses pushes nothing', (
+    tester,
+  ) async {
+    _pick('track.gpx', Uint8List.fromList(utf8.encode('<gpx/>')));
+    final service = _GatedTrackImport();
+    await _pumpImporter(tester, [
+      trackImportServiceProvider.overrideWithValue(service),
+    ]);
+
+    await tester.tap(find.text('import'));
+    await tester.pump();
+    // The page goes away while the file is still parsing.
+    await tester.pumpWidget(const SizedBox.shrink());
+    service.release();
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(TrackImportReviewPage), findsNothing);
   });
 }

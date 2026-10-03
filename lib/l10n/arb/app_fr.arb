@@ -4851,7 +4851,7 @@
   "gpsLogger_lastFix": "Dernière position il y a {age} ({accuracy})",
   "gpsLogger_locationOff": "Les services de localisation sont désactivés.",
   "gpsLogger_matchButton": "Associer les plongées aux journaux GPS",
-  "tracks_empty_body": "Enregistrez une trace GPS avec votre téléphone pendant une journée de plongée, ou importez des fichiers GPX, KML, CSV ou FIT et des journaux de navigation Seacraft ENC. Les traces sont associées automatiquement à vos plongées.",
+  "tracks_empty_body": "Enregistrez une trace GPS avec votre téléphone pendant une journée de plongée, ou importez des fichiers GPX, KML, CSV ou FIT et des journaux de navigation Seacraft ENC. Les traces GPS sont associées automatiquement à vos plongées ; vous choisissez la plongée de chaque trace sous-marine.",
   "tracks_empty_clearFilters": "Effacer les filtres",
   "tracks_empty_filtered": "Aucune trace ne correspond à ces filtres",
   "tracks_empty_title": "Aucune trace pour l'instant",

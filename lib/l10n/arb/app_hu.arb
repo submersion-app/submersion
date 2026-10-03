@@ -4851,7 +4851,7 @@
   "gpsLogger_lastFix": "Utolsó pozíció {age} ezelőtt ({accuracy})",
   "gpsLogger_locationOff": "A helymeghatározás ki van kapcsolva.",
   "gpsLogger_matchButton": "Merülések párosítása GPS-naplókkal",
-  "tracks_empty_body": "Rögzíts GPS-útvonalat a telefonoddal egy merülőnapon, vagy importálj GPX, KML, CSV vagy FIT fájlokat és Seacraft ENC navigációs naplókat. Az útvonalak automatikusan párosulnak a merüléseiddel.",
+  "tracks_empty_body": "Rögzíts GPS-útvonalat a telefonoddal egy merülőnapon, vagy importálj GPX, KML, CSV vagy FIT fájlokat és Seacraft ENC navigációs naplókat. A GPS-útvonalak automatikusan párosulnak a merüléseiddel; a víz alatti útvonalakhoz te választod ki a merülést.",
   "tracks_empty_clearFilters": "Szűrők törlése",
   "tracks_empty_filtered": "Egy útvonal sem felel meg ezeknek a szűrőknek",
   "tracks_empty_title": "Még nincsenek útvonalak",

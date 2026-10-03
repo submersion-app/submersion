@@ -4851,7 +4851,7 @@
   "gpsLogger_lastFix": "Ultima posizione {age} fa ({accuracy})",
   "gpsLogger_locationOff": "I servizi di localizzazione sono disattivati.",
   "gpsLogger_matchButton": "Abbina le immersioni ai registri GPS",
-  "tracks_empty_body": "Registra una traccia GPS con il telefono durante una giornata di immersioni, oppure importa file GPX, KML, CSV o FIT e registri di navigazione Seacraft ENC. Le tracce vengono associate automaticamente alle tue immersioni.",
+  "tracks_empty_body": "Registra una traccia GPS con il telefono durante una giornata di immersioni, oppure importa file GPX, KML, CSV o FIT e registri di navigazione Seacraft ENC. Le tracce GPS vengono associate automaticamente alle tue immersioni; per ogni traccia subacquea scegli tu l'immersione.",
   "tracks_empty_clearFilters": "Cancella filtri",
   "tracks_empty_filtered": "Nessuna traccia corrisponde a questi filtri",
   "tracks_empty_title": "Nessuna traccia per ora",

@@ -25131,7 +25131,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tracks_empty_body =>
-      'Rögzíts GPS-útvonalat a telefonoddal egy merülőnapon, vagy importálj GPX, KML, CSV vagy FIT fájlokat és Seacraft ENC navigációs naplókat. Az útvonalak automatikusan párosulnak a merüléseiddel.';
+      'Rögzíts GPS-útvonalat a telefonoddal egy merülőnapon, vagy importálj GPX, KML, CSV vagy FIT fájlokat és Seacraft ENC navigációs naplókat. A GPS-útvonalak automatikusan párosulnak a merüléseiddel; a víz alatti útvonalakhoz te választod ki a merülést.';
 
   @override
   String get tracks_empty_clearFilters => 'Szűrők törlése';

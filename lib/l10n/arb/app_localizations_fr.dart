@@ -25297,7 +25297,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tracks_empty_body =>
-      'Enregistrez une trace GPS avec votre téléphone pendant une journée de plongée, ou importez des fichiers GPX, KML, CSV ou FIT et des journaux de navigation Seacraft ENC. Les traces sont associées automatiquement à vos plongées.';
+      'Enregistrez une trace GPS avec votre téléphone pendant une journée de plongée, ou importez des fichiers GPX, KML, CSV ou FIT et des journaux de navigation Seacraft ENC. Les traces GPS sont associées automatiquement à vos plongées ; vous choisissez la plongée de chaque trace sous-marine.';
 
   @override
   String get tracks_empty_clearFilters => 'Effacer les filtres';

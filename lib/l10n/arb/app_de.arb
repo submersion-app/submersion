@@ -5056,7 +5056,7 @@
   "gpsLogger_lastFix": "Letzter Fix vor {age} ({accuracy})",
   "gpsLogger_locationOff": "Ortungsdienste sind deaktiviert.",
   "gpsLogger_matchButton": "Tauchgänge mit GPS-Logs abgleichen",
-  "tracks_empty_body": "Zeichne an einem Tauchtag einen GPS-Track mit deinem Telefon auf oder importiere GPX-, KML-, CSV- oder FIT-Dateien und Seacraft-ENC-Navigationsprotokolle. Tracks werden deinen Tauchgängen automatisch zugeordnet.",
+  "tracks_empty_body": "Zeichne an einem Tauchtag einen GPS-Track mit deinem Telefon auf oder importiere GPX-, KML-, CSV- oder FIT-Dateien und Seacraft-ENC-Navigationsprotokolle. GPS-Tracks werden deinen Tauchgängen automatisch zugeordnet; für jeden Unterwasser-Track wählst du den Tauchgang selbst.",
   "tracks_empty_clearFilters": "Filter zurücksetzen",
   "tracks_empty_filtered": "Keine Tracks entsprechen diesen Filtern",
   "tracks_empty_title": "Noch keine Tracks",

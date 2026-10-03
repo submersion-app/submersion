@@ -122,6 +122,8 @@ Future<void> _importGps(
     );
     return;
   }
+  // The page may have left while the file parsed; its navigator with it.
+  if (!context.mounted) return;
   await navigator.push<bool>(
     MaterialPageRoute(
       builder: (_) => TrackImportReviewPage(candidate: candidate, bytes: bytes),

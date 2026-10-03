@@ -24601,7 +24601,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tracks_empty_body =>
-      'הקלט מסלול GPS בטלפון במהלך יום צלילה, או ייבא קובצי GPX, KML, CSV או FIT ויומני ניווט של Seacraft ENC. המסלולים מותאמים לצלילות שלך באופן אוטומטי.';
+      'הקלט מסלול GPS בטלפון במהלך יום צלילה, או ייבא קובצי GPX, KML, CSV או FIT ויומני ניווט של Seacraft ENC. מסלולי GPS מותאמים לצלילות שלך באופן אוטומטי, ואת הצלילה של כל מסלול תת-ימי בוחרים ידנית.';
 
   @override
   String get tracks_empty_clearFilters => 'ניקוי מסננים';
