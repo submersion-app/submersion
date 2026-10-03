@@ -16,7 +16,9 @@ import 'package:submersion/features/explore/domain/query_model.dart';
 ///   year the sentence does not contain is dropped. In English, so is a
 ///   period whose unit the sentence never names: "this year" on "dives with
 ///   Sarah", "this month" on "dives in March". Days, weeks and months count
-///   as one unit, since "past month" may fairly become "last 30 days".
+///   as one unit, since "past month" may fairly become "last 30 days". So is
+///   a month the sentence never names, in full or abbreviated: "May 2023" on
+///   "dives in March 2023".
 ///
 /// Returns [parsed] itself when nothing is dropped.
 ParsedQuery groundedIn(
@@ -87,11 +89,35 @@ final _shortUnitSaid = RegExp(
   r'\b(?:days?|weeks?|weekends?|fortnights?|months?|today|tonight|yesterday)\b',
 );
 
-/// Whether [said] names the unit of the English period [time], if it has
-/// one.
+const _months = [
+  'january',
+  'february',
+  'march',
+  'april',
+  'may',
+  'june',
+  'july',
+  'august',
+  'september',
+  'october',
+  'november',
+  'december',
+];
+
+/// Whether [said] names [month] in full or by its usual abbreviation.
+bool _monthIsIn(String month, String said) {
+  final short = month == 'september' ? 'sept?' : month.substring(0, 3);
+  return RegExp('\\b(?:$month|$short)\\b').hasMatch(said);
+}
+
+/// Whether [said] names the unit and any month of the English period
+/// [time].
 bool _unitIsIn(String time, String said) {
   final t = _comparable(time);
   if (_yearUnit.hasMatch(t) && !_yearUnit.hasMatch(said)) return false;
   if (_shortUnit.hasMatch(t) && !_shortUnitSaid.hasMatch(said)) return false;
-  return true;
+  return t
+      .split(' ')
+      .where(_months.contains)
+      .every((month) => _monthIsIn(month, said));
 }

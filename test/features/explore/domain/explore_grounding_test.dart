@@ -159,6 +159,42 @@ void main() {
       }
     });
 
+    test('in English, a month the sentence never names is dropped', () {
+      // What the model answered for "dives in March".
+      expect(
+        groundedIn(
+          parse(time: 'May 2023'),
+          'dives in March 2023',
+          locale: 'en',
+        ).time,
+        isNull,
+      );
+    });
+
+    test('in English, a month named in full or abbreviated is kept', () {
+      for (final (time, sentence) in [
+        ('May 2023', 'dives in May 2023'),
+        ('March 2023', 'dives in Mar 2023'),
+        ('September 2023', 'dives in Sept 2023'),
+        ('2023-05-01 to 2023-05-14', 'dives from 1 to 14 May 2023'),
+      ]) {
+        expect(
+          groundedIn(parse(time: time), sentence, locale: 'en').time,
+          isNotNull,
+          reason: '$time / $sentence',
+        );
+      }
+      // Other languages name their months in their own words.
+      expect(
+        groundedIn(
+          parse(time: 'March 2023'),
+          'Tauchgänge im März 2023',
+          locale: 'de',
+        ).time,
+        isNotNull,
+      );
+    });
+
     test('full-width digits count as the year', () {
       final g = groundedIn(parse(time: '2023'), '２０２３年のダイブ', locale: 'ja');
       expect(g.time?.text, '2023');
