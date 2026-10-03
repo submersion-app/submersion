@@ -15,6 +15,12 @@ class _RecordingRepo extends ItineraryDayRepository {
   Future<void> saveAll(List<ItineraryDay> days) async => saved.addAll(days);
 }
 
+class _FailingRepo extends ItineraryDayRepository {
+  @override
+  Future<void> saveAll(List<ItineraryDay> days) async =>
+      throw StateError('database is locked');
+}
+
 Trip _trip(TripType type) => Trip(
   id: 'trip-1',
   name: 'Bonaire',
@@ -39,11 +45,14 @@ Future<_RecordingRepo> _pump(
   WidgetTester tester, {
   required Trip trip,
   required List<ItineraryDay> days,
+  ItineraryDayRepository? failing,
 }) async {
   final repo = _RecordingRepo();
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        itineraryDayRepositoryProvider.overrideWithValue(failing ?? repo),
+      ],
       child: MaterialApp(
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -106,5 +115,25 @@ void main() {
       days: [for (var d = 14; d <= 17; d++) _row(DateTime(2026, 10, d))],
     );
     expect(find.byType(OutlinedButton), findsNothing);
+  });
+
+  testWidgets('a failed Generate says so without the exception', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      trip: _trip(TripType.resort),
+      days: [],
+      failing: _FailingRepo(),
+    );
+    await tester.tap(find.text('Generate itinerary'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text("Couldn't generate the itinerary. Try again."),
+      findsOneWidget,
+    );
+    expect(find.textContaining('database is locked'), findsNothing);
+    // The button is back for another try.
+    expect(find.text('Generate itinerary'), findsOneWidget);
   });
 }

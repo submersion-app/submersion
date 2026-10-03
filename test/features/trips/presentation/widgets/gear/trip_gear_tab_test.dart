@@ -173,17 +173,20 @@ class _FakeEquipment extends EquipmentRepository {
 }
 
 class _FakePacks extends TripEquipmentRepository {
+  bool failing = false;
   final packed = <(String, List<String>)>[];
   final unpacked = <(String, String)>[];
 
   @override
   Future<int> pack(String tripId, Iterable<String> equipmentIds) async {
+    if (failing) throw StateError('database is locked');
     packed.add((tripId, equipmentIds.toList()));
     return equipmentIds.length;
   }
 
   @override
   Future<void> unpack(String tripId, String equipmentId) async {
+    if (failing) throw StateError('database is locked');
     unpacked.add((tripId, equipmentId));
   }
 }
@@ -545,5 +548,28 @@ void main() {
     await tester.tap(find.byKey(const Key('trip-gear-alert-tk')));
     await tester.pumpAndSettle();
     expect(find.byType(TripServiceAlertList), findsOneWidget);
+  });
+
+  testWidgets('a failed unpack says so without the exception', (tester) async {
+    final h = await _pumpTab(tester, gear: const [bcd]);
+    h.packs.failing = true;
+    await tester.tap(find.byKey(const Key('trip-gear-menu-bcd')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Unpack'));
+    await tester.pumpAndSettle();
+    expect(find.text('Could not change the gear. Try again.'), findsOneWidget);
+    expect(find.textContaining('database is locked'), findsNothing);
+  });
+
+  testWidgets('a failed Add says so without the exception', (tester) async {
+    final h = await _pumpTab(tester, active: const [bcd]);
+    h.packs.failing = true;
+    await _openAdd(tester);
+    await tester.tap(find.text('From my equipment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hollis wing').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Could not change the gear. Try again.'), findsOneWidget);
+    expect(find.textContaining('database is locked'), findsNothing);
   });
 }
