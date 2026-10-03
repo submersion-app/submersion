@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -57,6 +58,12 @@ class _EquipmentTransferDialogState
   List<EquipmentItem> _extraItems = const [];
   int _request = 0;
 
+  /// The latest preview could not be read, so the dialog cannot say what
+  /// would move and Transfer stays off until a later preview succeeds.
+  bool _previewFailed = false;
+
+  static final _log = LoggerService.forClass(_EquipmentTransferDialog);
+
   @override
   void initState() {
     super.initState();
@@ -68,27 +75,38 @@ class _EquipmentTransferDialogState
   /// the previous preview stays on screen while the next one loads.
   Future<void> _loadPreview() async {
     final request = ++_request;
-    final preview = await ref
-        .read(equipmentTransferServiceProvider)
-        .preview(
-          equipmentIds: widget.equipmentIds,
-          actingDiverId: widget.activeDiverId,
-          toDiverId: _target,
-        );
-    final extraIds = [
-      for (final id in preview.unitIds)
-        if (!widget.equipmentIds.contains(id)) id,
-    ];
-    final extras = extraIds.isEmpty
-        ? const <EquipmentItem>[]
-        : await ref
-              .read(equipmentRepositoryProvider)
-              .getEquipmentByIds(extraIds);
-    if (!mounted || request != _request) return;
-    setState(() {
-      _preview = preview;
-      _extraItems = extras;
-    });
+    try {
+      final preview = await ref
+          .read(equipmentTransferServiceProvider)
+          .preview(
+            equipmentIds: widget.equipmentIds,
+            actingDiverId: widget.activeDiverId,
+            toDiverId: _target,
+          );
+      final extraIds = [
+        for (final id in preview.unitIds)
+          if (!widget.equipmentIds.contains(id)) id,
+      ];
+      final extras = extraIds.isEmpty
+          ? const <EquipmentItem>[]
+          : await ref
+                .read(equipmentRepositoryProvider)
+                .getEquipmentByIds(extraIds);
+      if (!mounted || request != _request) return;
+      setState(() {
+        _preview = preview;
+        _extraItems = extras;
+        _previewFailed = false;
+      });
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not preview an equipment transfer',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (!mounted || request != _request) return;
+      setState(() => _previewFailed = true);
+    }
   }
 
   String _nameOf(String id) {
@@ -157,6 +175,13 @@ class _EquipmentTransferDialogState
               subtitle: Text(l10n.equipment_transfer_keepAccessHint),
               contentPadding: EdgeInsets.zero,
             ),
+            if (_previewFailed)
+              Text(
+                l10n.common_error_tryAgain,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
             if (preview != null && preview.hasRegistry) ...[
               SwitchListTile(
                 value: _moveRegistry,
@@ -165,7 +190,7 @@ class _EquipmentTransferDialogState
                 subtitle: Text(registryLabels.join(', ')),
                 contentPadding: EdgeInsets.zero,
               ),
-              if (target != null)
+              if (target != null && _moveRegistry)
                 for (final t in preview.transmitters)
                   if (t.clashes)
                     Text(
@@ -185,7 +210,8 @@ class _EquipmentTransferDialogState
           child: Text(l10n.common_action_cancel),
         ),
         FilledButton(
-          onPressed: target == null
+          // Off until the preview has said what would move.
+          onPressed: target == null || preview == null || _previewFailed
               ? null
               : () => Navigator.of(context).pop((
                   toDiverId: target,

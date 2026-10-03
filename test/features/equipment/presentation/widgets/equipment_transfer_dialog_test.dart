@@ -25,6 +25,15 @@ class _FakeService extends EquipmentTransferService {
   }) async => byTarget[toDiverId] ?? byTarget[null]!;
 }
 
+class _FailingService extends EquipmentTransferService {
+  @override
+  Future<EquipmentTransferPreview> preview({
+    required List<String> equipmentIds,
+    required String actingDiverId,
+    String? toDiverId,
+  }) async => throw StateError('preview failed');
+}
+
 class _FakeRepository extends EquipmentRepository {
   _FakeRepository(this.items);
   final List<EquipmentItem> items;
@@ -199,5 +208,58 @@ void main() {
     );
     expect(find.text('Also moves:'), findsOneWidget);
     expect(find.text('JJ rebreather'), findsOneWidget);
+  });
+
+  testWidgets('a failed preview says so and blocks the transfer', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          equipmentTransferServiceProvider.overrideWithValue(_FailingService()),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showEquipmentTransferDialog(
+              context,
+              equipmentIds: const ['light'],
+              activeDiverId: 'bill',
+              profiles: profiles,
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Anna'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('try again'), findsOneWidget);
+    expect(tester.widget<FilledButton>(transferButton()).onPressed, isNull);
+  });
+
+  testWidgets('the clash note hides when registry rows stay put', (
+    tester,
+  ) async {
+    const clash = EquipmentTransferPreview(
+      unitIds: ['tank'],
+      skippedNotOwned: 0,
+      computers: [],
+      transmitters: [
+        TransferRegistryRow(id: 'tx1', label: 'Back gas', clashes: true),
+      ],
+    );
+    await open(tester, {null: clash}, picked: const ['tank']);
+    await tester.tap(find.text('Anna'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('stays with you'), findsOneWidget);
+    await tester.tap(
+      find.text('Also move linked dive computers and transmitters'),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('stays with you'), findsNothing);
   });
 }

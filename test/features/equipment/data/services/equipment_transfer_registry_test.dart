@@ -123,6 +123,27 @@ void main() {
     expect(await transmitterOwner('tx1'), 'anna');
     expect(await pending('diveComputers'), {'c1'});
     expect(await pending('transmitters'), {'tx1'});
+    expect(result.movedTransmitterIds, ['tx1']);
+  });
+
+  test('a failed rescan after the commit does not fail the transfer', () async {
+    final rescanned = <String>[];
+    final failing = EquipmentTransferService(
+      rescanTransmitters: (ids) async {
+        rescanned.addAll(ids);
+        throw StateError('rescan failed');
+      },
+    );
+    await addItem('tank', 'bill');
+    await addTransmitter('tx1', 'bill', serial: 'A1', cylinder: 'tank');
+    final result = await failing.transfer(
+      equipmentIds: ['tank'],
+      toDiverId: 'anna',
+      actingDiverId: 'bill',
+    );
+    expect(result.itemsMoved, 1);
+    expect(rescanned, ['tx1']);
+    expect(await transmitterOwner('tx1'), 'anna');
   });
 
   test('moveRegistry false leaves registry rows with the old owner', () async {

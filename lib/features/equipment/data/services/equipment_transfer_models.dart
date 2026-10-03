@@ -6,6 +6,7 @@ class EquipmentTransferResult {
     this.computersMoved = 0,
     this.transmittersMoved = 0,
     this.transmittersKept = 0,
+    this.movedTransmitterIds = const [],
   });
 
   final int itemsMoved;
@@ -19,6 +20,11 @@ class EquipmentTransferResult {
   /// clashes with one the new owner already has.
   final int transmittersKept;
 
+  /// The transmitters this transfer moved, whose dives are rescanned after
+  /// the commit (which profile's registry knows a serial decides the
+  /// unknown-transmitter finding).
+  final List<String> movedTransmitterIds;
+
   EquipmentTransferResult operator +(EquipmentTransferResult other) =>
       EquipmentTransferResult(
         itemsMoved: itemsMoved + other.itemsMoved,
@@ -26,6 +32,10 @@ class EquipmentTransferResult {
         computersMoved: computersMoved + other.computersMoved,
         transmittersMoved: transmittersMoved + other.transmittersMoved,
         transmittersKept: transmittersKept + other.transmittersKept,
+        movedTransmitterIds: [
+          ...movedTransmitterIds,
+          ...other.movedTransmitterIds,
+        ],
       );
 }
 

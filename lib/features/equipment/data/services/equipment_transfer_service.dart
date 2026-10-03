@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
@@ -20,13 +21,17 @@ export 'package:submersion/features/equipment/data/services/equipment_transfer_m
 /// merge and sync apply. Profile deletion hands kept gear over through
 /// [transferUnitInTransaction].
 class EquipmentTransferService {
+  EquipmentTransferService({
+    Future<void> Function(List<String> transmitterIds)? rescanTransmitters,
+  }) : _rescanTransmitters =
+           rescanTransmitters ??
+           TransmitterRepository().rescanDivesForTransmitters;
+
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
+  final Future<void> Function(List<String> transmitterIds) _rescanTransmitters;
   static const _uuid = Uuid();
-
-  /// Transmitters moved by [transferUnitInTransaction] since the last
-  /// [takeMovedTransmitters], whose dives are rescanned after the commit.
-  final List<String> _movedTransmitters = [];
+  static final _log = LoggerService.forClass(EquipmentTransferService);
 
   /// What [transfer] would do, for the dialog: the expanded unit, the
   /// picked items [actingDiverId] does not own, and the linked dive
@@ -61,6 +66,40 @@ class EquipmentTransferService {
           ),
       ],
     );
+  }
+
+  /// Hands [fromDiverId]'s fills on [unit]'s cylinders to [toDiverId], for a
+  /// profile delete: fills follow the cylinder (`equipment_id`), but the
+  /// delete removes every fill its profile logged (`diver_id`), so a kept
+  /// cylinder would arrive without its fill log. Runs inside the caller's
+  /// transaction.
+  Future<void> handOverFillsInTransaction({
+    required Set<String> unit,
+    required String fromDiverId,
+    required String toDiverId,
+    required int now,
+  }) async {
+    final ids = unit.toList()..sort();
+    for (final chunk in seriesIdChunks(ids)) {
+      final fills =
+          await (_db.select(_db.cylinderFills)..where(
+                (f) =>
+                    f.diverId.equals(fromDiverId) & f.equipmentId.isIn(chunk),
+              ))
+              .get();
+      if (fills.isEmpty) continue;
+      await (_db.update(
+        _db.cylinderFills,
+      )..where((f) => f.id.isIn([for (final f in fills) f.id]))).write(
+        CylinderFillsCompanion(
+          diverId: Value(toDiverId),
+          updatedAt: Value(now),
+        ),
+      );
+      for (final f in fills) {
+        await _markPending('cylinderFills', f.id, now);
+      }
+    }
   }
 
   /// The units of [diverId]'s gear another profile needs, each with its
@@ -120,12 +159,21 @@ class EquipmentTransferService {
     return dive?.read<String>('diver_id');
   }
 
-  /// Transmitters moved since the last call, for a caller that ran
-  /// [transferUnitInTransaction] itself and rescans after its commit.
-  List<String> takeMovedTransmitters() {
-    final ids = List<String>.of(_movedTransmitters);
-    _movedTransmitters.clear();
-    return ids;
+  /// Rescans the dives of [transmitterIds] after a committed transfer or
+  /// handover. The change has already happened, so a failed rescan is
+  /// logged rather than reported as a failed transfer; the next scan of
+  /// those dives catches up.
+  Future<void> rescanMovedTransmitters(List<String> transmitterIds) async {
+    if (transmitterIds.isEmpty) return;
+    try {
+      await _rescanTransmitters(transmitterIds);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not rescan the dives of moved transmitters',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   /// Every item's owner and host and every assembly edge. Libraries hold a
@@ -155,7 +203,6 @@ class EquipmentTransferService {
     bool moveRegistry = true,
   }) async {
     if (toDiverId == actingDiverId) return const EquipmentTransferResult();
-    _movedTransmitters.clear();
     final result = await _db.transaction(() async {
       final graph = await loadGraph();
       final picked = equipmentIds.toSet();
@@ -178,10 +225,7 @@ class EquipmentTransferService {
       return total;
     });
     SyncEventBus.notifyLocalChange();
-    final moved = takeMovedTransmitters();
-    if (moved.isNotEmpty) {
-      await TransmitterRepository().rescanDivesForTransmitters(moved);
-    }
+    await rescanMovedTransmitters(result.movedTransmitterIds);
     return result;
   }
 
@@ -257,7 +301,7 @@ class EquipmentTransferService {
       await _markPending('diveComputers', c.id, now);
     }
     final targetKeys = await _transmitterKeysOf(to);
-    var moved = 0;
+    final moved = <String>[];
     var kept = 0;
     for (final t in await _linkedTransmitters(unitIds, from)) {
       final key = _keyOf(t);
@@ -272,13 +316,13 @@ class EquipmentTransferService {
       );
       await _markPending('transmitters', t.id, now);
       targetKeys.add(key);
-      _movedTransmitters.add(t.id);
-      moved++;
+      moved.add(t.id);
     }
     return EquipmentTransferResult(
       computersMoved: computers.length,
-      transmittersMoved: moved,
+      transmittersMoved: moved.length,
       transmittersKept: kept,
+      movedTransmitterIds: moved,
     );
   }
 

@@ -29,7 +29,6 @@ import 'package:submersion/features/media_store/data/media_transfer_queue_reposi
 import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
-import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 
@@ -502,6 +501,7 @@ class DiverRepository {
       int reassignedTrips = 0;
       int reassignedSites = 0;
       var keptEquipment = 0;
+      final movedTransmitters = <String>[];
       final keptHeirIds = <String>[];
 
       if (allDiversRows.isNotEmpty) {
@@ -528,7 +528,14 @@ class DiverRepository {
             moveRegistry: true,
             now: handoverAt,
           );
+          await _equipmentTransfer.handOverFillsInTransaction(
+            unit: kept.unit,
+            fromDiverId: id,
+            toDiverId: kept.heirId,
+            now: handoverAt,
+          );
           keptEquipment += moved.itemsMoved;
+          movedTransmitters.addAll(moved.movedTransmitterIds);
           if (!keptHeirIds.contains(kept.heirId)) keptHeirIds.add(kept.heirId);
         }
 
@@ -829,12 +836,7 @@ class DiverRepository {
       await _importedFileReclaimer.reclaimOrphans();
 
       SyncEventBus.notifyLocalChange();
-      final movedTransmitters = _equipmentTransfer.takeMovedTransmitters();
-      if (movedTransmitters.isNotEmpty) {
-        await TransmitterRepository().rescanDivesForTransmitters(
-          movedTransmitters,
-        );
-      }
+      await _equipmentTransfer.rescanMovedTransmitters(movedTransmitters);
       _log.info('Deleted diver: $id');
 
       return DeleteDiverResult(

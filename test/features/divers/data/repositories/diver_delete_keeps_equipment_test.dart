@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
+import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -240,5 +241,89 @@ void main() {
     )..where((e) => e.kind.equals('transferred'))).getSingle();
     expect(transferred.fromDiverId, isNull);
     expect(transferred.toDiverId, 'tom');
+  });
+
+  test(
+    'a kept cylinder keeps the fills its old owner logged, under the heir',
+    () async {
+      await addItem('tank', 'bill');
+      await EquipmentShareRepository().shareMany(
+        equipmentIds: ['tank'],
+        diverIds: ['tom'],
+        actingDiverId: 'bill',
+      );
+      const t = 1000;
+      await db
+          .into(db.cylinderFills)
+          .insert(
+            CylinderFillsCompanion.insert(
+              id: 'fill1',
+              passportId: 'pp1',
+              filledAt: t,
+              o2Percent: 32,
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value('bill'),
+              equipmentId: const Value('tank'),
+            ),
+          );
+      await DiverRepository().deleteDiverWithReassignment('bill');
+      final fill = await (db.select(
+        db.cylinderFills,
+      )..where((f) => f.id.equals('fill1'))).getSingleOrNull();
+      expect(fill?.diverId, 'tom');
+      final pending = await db
+          .customSelect(
+            "SELECT record_id FROM sync_records WHERE entity_type = 'cylinderFills'",
+          )
+          .get();
+      expect(pending.map((r) => r.read<String>('record_id')), ['fill1']);
+    },
+  );
+
+  test('a linked transmitter moves with kept gear, and a failed rescan does '
+      'not fail the delete', () async {
+    await addItem('tank', 'bill');
+    await addDive('d1', 'tom', 1000);
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'dt1',
+            diveId: 'd1',
+            equipmentId: const Value('tank'),
+          ),
+        );
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.transmitters)
+        .insert(
+          TransmittersCompanion.insert(
+            id: 'tx1',
+            label: 'tx1',
+            tankRole: 'backGas',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value('bill'),
+            transmitterSerial: const Value('A1'),
+            equipmentId: const Value('tank'),
+          ),
+        );
+    final rescanned = <String>[];
+    final repository = DiverRepository(
+      equipmentTransferService: EquipmentTransferService(
+        rescanTransmitters: (ids) async {
+          rescanned.addAll(ids);
+          throw StateError('rescan failed');
+        },
+      ),
+    );
+    final result = await repository.deleteDiverWithReassignment('bill');
+    expect(result.keptEquipmentCount, 1);
+    expect(rescanned, ['tx1']);
+    final tx = await (db.select(
+      db.transmitters,
+    )..where((r) => r.id.equals('tx1'))).getSingleOrNull();
+    expect(tx?.diverId, 'tom');
   });
 }
