@@ -7,6 +7,8 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_his
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_transfer.dart';
+import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:go_router/go_router.dart';
@@ -290,6 +292,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
     }
 
     final canDelete = _isOwner(ref, equipment);
+    final canTransfer = _canTransfer(ref, equipment);
     return Scaffold(
       appBar: AppBar(
         title: Text(equipment.name),
@@ -302,8 +305,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
           PopupMenuButton<String>(
             key: const ValueKey('equipment-detail-overflow'),
             onSelected: (value) => _handleMenuAction(context, ref, value),
-            itemBuilder: (context) =>
-                _buildMenuItems(context, canDelete: canDelete),
+            itemBuilder: (context) => _buildMenuItems(
+              context,
+              canDelete: canDelete,
+              canTransfer: canTransfer,
+            ),
           ),
         ],
       ),
@@ -314,6 +320,15 @@ class _EquipmentDetailContent extends ConsumerWidget {
   /// Delete is owner-only (issue #2046), so the page menu offers it only to
   /// the item's owner. With no diver or no owner every profile counts as the
   /// owner, as before sharing existed.
+  /// Transfer is owner-only too (issue #2852), needs a real owner, and
+  /// shows only with two or more profiles, like the sharing row.
+  bool _canTransfer(WidgetRef ref, EquipmentItem equipment) {
+    if (!ref.watch(hasMultipleDiversProvider)) return false;
+    final activeDiver = ref.watch(validatedCurrentDiverIdProvider);
+    if (!activeDiver.hasValue) return false;
+    return canShareEquipment(equipment, activeDiver.value);
+  }
+
   bool _isOwner(WidgetRef ref, EquipmentItem equipment) {
     final activeDiver = ref.watch(validatedCurrentDiverIdProvider);
     // Hidden until the active diver is known, so a sharee never sees it flash.
@@ -328,6 +343,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
     bool isServiceOverdue,
   ) {
     final canDelete = _isOwner(ref, equipment);
+    final canTransfer = _canTransfer(ref, equipment);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -387,8 +403,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
             key: const ValueKey('equipment-detail-overflow'),
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) => _handleMenuAction(context, ref, value),
-            itemBuilder: (context) =>
-                _buildMenuItems(context, canDelete: canDelete),
+            itemBuilder: (context) => _buildMenuItems(
+              context,
+              canDelete: canDelete,
+              canTransfer: canTransfer,
+            ),
           ),
         ],
       ),
@@ -400,9 +419,19 @@ class _EquipmentDetailContent extends ConsumerWidget {
   List<PopupMenuEntry<String>> _buildMenuItems(
     BuildContext context, {
     required bool canDelete,
+    required bool canTransfer,
   }) {
     return [
       openInConnectionsMenuItem(context),
+      if (canTransfer)
+        PopupMenuItem(
+          value: 'transfer',
+          child: ListTile(
+            leading: const Icon(Icons.swap_horiz),
+            title: Text(context.l10n.equipment_transfer_action),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
       if (canDelete)
         PopupMenuItem(
           value: 'delete',
@@ -996,6 +1025,28 @@ class _EquipmentDetailContent extends ConsumerWidget {
           context,
           NodeRef(ConnectionKind.equipment, equipmentId),
         );
+      case 'transfer':
+        final activeDiverId = await ref.read(
+          validatedCurrentDiverIdProvider.future,
+        );
+        if (!context.mounted) break;
+        final done = await transferEquipmentToProfile(
+          context,
+          ref,
+          equipmentIds: [equipmentId],
+          activeDiverId: activeDiverId,
+        );
+        // Without kept access the item is no longer this profile's to see,
+        // so leave it as after a delete.
+        if (done.outcome == BulkActionOutcome.completed &&
+            !done.keptAccess &&
+            context.mounted) {
+          if (embedded) {
+            onDeleted?.call();
+          } else {
+            context.go('/equipment');
+          }
+        }
       case 'delete':
         final confirmed = await showDialog<bool>(
           context: context,

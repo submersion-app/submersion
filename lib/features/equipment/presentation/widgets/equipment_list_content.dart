@@ -8,6 +8,7 @@ import 'package:submersion/features/cylinder_passports/presentation/utils/scan_c
 import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_share.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_transfer.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
@@ -566,9 +567,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           return BulkActionOutcome.completed;
         },
       ),
-      // Owner-only (issue #2046): enabled when every checked item is the
-      // active diver's own.
-      if (multipleDivers)
+      // Owner-only (issues #2046, #2852): enabled when every checked item is
+      // the active diver's own.
+      if (multipleDivers) ...[
         BulkAction(
           id: 'share',
           icon: Icons.share,
@@ -582,6 +583,20 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             activeDiverId: activeDiverId,
           ),
         ),
+        BulkAction(
+          id: 'transfer',
+          icon: Icons.swap_horiz,
+          label: context.l10n.equipment_transfer_action,
+          isEnabled: (ids) =>
+              everyChecked(ids, (e) => canShareEquipment(e, activeDiverId)),
+          onInvoke: () async => (await transferEquipmentToProfile(
+            context,
+            ref,
+            equipmentIds: _selectedIds.toList(),
+            activeDiverId: activeDiverId,
+          )).outcome,
+        ),
+      ],
     ];
   }
 

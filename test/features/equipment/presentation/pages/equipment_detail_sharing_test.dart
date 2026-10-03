@@ -24,6 +24,8 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/entities/equipment_share.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_history_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_transfer_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -48,6 +50,35 @@ class _RefusingEquipmentNotifier
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+/// Transfers without touching a database (issue #2852).
+class _FakeTransferService extends EquipmentTransferService {
+  final transferred = <String>[];
+
+  @override
+  Future<EquipmentTransferPreview> preview({
+    required List<String> equipmentIds,
+    required String actingDiverId,
+    String? toDiverId,
+  }) async => EquipmentTransferPreview(
+    unitIds: equipmentIds,
+    skippedNotOwned: 0,
+    computers: const [],
+    transmitters: const [],
+  );
+
+  @override
+  Future<EquipmentTransferResult> transfer({
+    required List<String> equipmentIds,
+    required String toDiverId,
+    required String actingDiverId,
+    bool keepAccess = true,
+    bool moveRegistry = true,
+  }) async {
+    transferred.add(toDiverId);
+    return EquipmentTransferResult(itemsMoved: equipmentIds.length);
+  }
 }
 
 /// Sharing on the equipment detail page (issue #2046): the owner manages
@@ -75,6 +106,7 @@ void main() {
     EquipmentShare(id: 's1', equipmentId: id, diverId: 'wife', createdAt: now),
   ];
   const overflow = ValueKey('equipment-detail-overflow');
+  late _FakeTransferService transfers;
 
   Future<void> pump(
     WidgetTester tester, {
@@ -92,6 +124,7 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
     final overrides = await getBaseOverrides();
+    transfers = _FakeTransferService();
     final router = GoRouter(
       initialLocation: '/equipment/$id',
       routes: [
@@ -99,6 +132,11 @@ void main() {
           path: '/equipment/:id',
           builder: (context, state) =>
               const EquipmentDetailPage(equipmentId: id),
+        ),
+        GoRoute(
+          path: '/equipment',
+          builder: (context, state) =>
+              const Scaffold(body: Text('EQUIPMENT LIST')),
         ),
         GoRoute(
           path: kConnectionsLocation,
@@ -157,6 +195,7 @@ void main() {
               (ref) => _RefusingEquipmentNotifier(),
             ),
           equipmentHistoryProvider(id).overrideWith((ref) async => const []),
+          equipmentTransferServiceProvider.overrideWithValue(transfers),
         ].cast(),
         child: MaterialApp.router(
           routerConfig: router,
@@ -266,5 +305,60 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.widgetWithText(CheckboxListTile, 'Anna'), findsOneWidget);
     expect(find.widgetWithText(CheckboxListTile, 'Bill'), findsNothing);
+  });
+
+  group('transfer (issue #2852)', () {
+    Future<void> openMenu(WidgetTester tester) async {
+      await tester.tap(find.byKey(overflow));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the owner sees Transfer to in the page menu', (tester) async {
+      await pump(tester, activeDiverId: 'owner');
+      await openMenu(tester);
+      expect(find.text('Transfer to...'), findsOneWidget);
+    });
+
+    testWidgets('a sharee does not', (tester) async {
+      await pump(tester, activeDiverId: 'wife');
+      await openMenu(tester);
+      expect(find.text('Transfer to...'), findsNothing);
+    });
+
+    testWidgets('nobody does with one profile', (tester) async {
+      await pump(tester, activeDiverId: 'owner', divers: [bill]);
+      await openMenu(tester);
+      expect(find.text('Transfer to...'), findsNothing);
+    });
+
+    testWidgets('keeping access stays on the item', (tester) async {
+      await pump(tester, activeDiverId: 'owner');
+      await openMenu(tester);
+      await tester.tap(find.text('Transfer to...'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Anna').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Transfer'));
+      await tester.pumpAndSettle();
+      expect(transfers.transferred, ['wife']);
+      expect(find.text('EQUIPMENT LIST'), findsNothing);
+      expect(find.byKey(overflow), findsOneWidget);
+    });
+
+    testWidgets('a transfer without keeping access leaves the item', (
+      tester,
+    ) async {
+      await pump(tester, activeDiverId: 'owner');
+      await openMenu(tester);
+      await tester.tap(find.text('Transfer to...'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Anna').last);
+      await tester.tap(find.text('Keep access for me'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Transfer'));
+      await tester.pumpAndSettle();
+      expect(transfers.transferred, ['wife']);
+      expect(find.text('EQUIPMENT LIST'), findsOneWidget);
+    });
   });
 }

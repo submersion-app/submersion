@@ -505,6 +505,50 @@ void main() {
         expect(await shareEnabled(tester), isFalse);
       });
 
+      Future<PopupMenuItem<String>?> transferItem(WidgetTester tester) async {
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pumpAndSettle();
+        final finder = find.byKey(const ValueKey('selection_menu_transfer'));
+        final item = finder.evaluate().isEmpty
+            ? null
+            : tester.widget<PopupMenuItem<String>>(finder);
+        await tester.tapAt(Offset.zero);
+        await tester.pumpAndSettle();
+        return item;
+      }
+
+      testWidgets('Transfer to is enabled only for a selection you own', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          await host(const [own, hers], divers: divers, activeDiverId: 'owner'),
+        );
+        await tester.pumpAndSettle();
+        await enterSelectionViaMenu(tester);
+        await tester.tap(find.text('Aaa BCD'));
+        await tester.pumpAndSettle();
+        expect((await transferItem(tester))?.enabled, isTrue);
+
+        await tester.tap(find.text('Bbb Reg'));
+        await tester.pumpAndSettle();
+        expect((await transferItem(tester))?.enabled, isFalse);
+      });
+
+      testWidgets('Transfer to is absent with one profile', (tester) async {
+        await tester.pumpWidget(
+          await host(
+            const [own],
+            divers: [divers.first],
+            activeDiverId: 'owner',
+          ),
+        );
+        await tester.pumpAndSettle();
+        await enterSelectionViaMenu(tester);
+        await tester.tap(find.text('Aaa BCD'));
+        await tester.pumpAndSettle();
+        expect(await transferItem(tester), isNull);
+      });
+
       testWidgets('bulk delete keeps shared gear and says so', (tester) async {
         final widget = await host(
           const [own, hers],
