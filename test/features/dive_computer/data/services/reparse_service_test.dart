@@ -2810,6 +2810,11 @@ void main() {
       expect(switches.single.id, isNot('stale-switch'));
       expect(switches.single.timestamp, 180);
       expect(switches.single.depth, 6.0);
+      expect(
+        switches.single.computerId,
+        'comp-1',
+        reason: 'the switch belongs to the re-parsed computer (#2582)',
+      );
 
       // The switch must point at the 99% deco cylinder.
       final decoTank = await (db.select(

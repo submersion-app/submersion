@@ -36,6 +36,10 @@ const Map<String, int> _months = {
   'dec': 12,
 };
 
+/// The month (1 to 12) an English [word] names, in full or abbreviated as
+/// the grammar reads it, or null.
+int? monthOfWord(String word) => _months[word.toLowerCase()];
+
 final RegExp _year = RegExp(r'^(\d{4})$');
 final RegExp _isoMonth = RegExp(r'^(\d{4})-(\d{2})$');
 final RegExp _isoDate = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');

@@ -12,6 +12,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/explore/data/recent_query_repository.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/explore_compilation.dart';
+import 'package:submersion/features/explore/domain/explore_grounding.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/entity_resolver.dart';
@@ -131,7 +132,16 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
           .read(nlEngineProvider)
           .compile(trimmed, localeTag: locale);
       if (request != _request) return;
-      final parsed = ParsedQuery.fromDecoded(jsonDecode(json));
+      // Only what the sentence says: the model copies the prompt's examples
+      // into sentences that never asked for them (#2838).
+      final parsed = groundedIn(
+        ParsedQuery.fromDecoded(jsonDecode(json)),
+        trimmed,
+        locale: exploreLocaleTag(
+          locale,
+          _ref.read(exploreDeviceLocaleProvider),
+        ),
+      );
       if (!await _compileAndPublish(parsed, request)) return;
       await _recordRecent(trimmed, locale, parsed);
     } on NlException catch (e) {
@@ -147,6 +157,16 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
       _log.error('Explore query failed', error: e, stackTrace: stackTrace);
       _fail(request, NlError.unknown);
     }
+  }
+
+  /// A recent sentence: its stored parse when the current prompt wrote it,
+  /// otherwise the model again, so an older parse's invented period is not
+  /// replayed (#2838).
+  Future<void> replay(RecentQuery recent) {
+    final parsed = recent.parsed;
+    return parsed == null
+        ? run(recent.sentence)
+        : rerun(recent.sentence, parsed);
   }
 
   /// A stored parse: no model call.

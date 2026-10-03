@@ -22,6 +22,10 @@ class GasSwitch extends Equatable {
   /// When this record was created
   final DateTime createdAt;
 
+  /// The computer that logged this switch, or null when it applies to every
+  /// computer on the dive (manual entries, file imports, older rows).
+  final String? computerId;
+
   const GasSwitch({
     required this.id,
     required this.diveId,
@@ -29,7 +33,12 @@ class GasSwitch extends Equatable {
     required this.tankId,
     this.depth,
     required this.createdAt,
+    this.computerId,
   });
+
+  /// Whether this switch belongs to [computer]'s own gas plan.
+  bool appliesTo(String computer) =>
+      computerId == null || computerId == computer;
 
   /// Timestamp formatted as MM:SS
   String get timestampFormatted {
@@ -56,6 +65,8 @@ class GasSwitch extends Equatable {
     String? tankId,
     double? depth,
     DateTime? createdAt,
+    String? computerId,
+    bool clearComputerId = false,
   }) {
     return GasSwitch(
       id: id ?? this.id,
@@ -64,11 +75,20 @@ class GasSwitch extends Equatable {
       tankId: tankId ?? this.tankId,
       depth: depth ?? this.depth,
       createdAt: createdAt ?? this.createdAt,
+      computerId: clearComputerId ? null : (computerId ?? this.computerId),
     );
   }
 
   @override
-  List<Object?> get props => [id, diveId, timestamp, tankId, depth, createdAt];
+  List<Object?> get props => [
+    id,
+    diveId,
+    timestamp,
+    tankId,
+    depth,
+    createdAt,
+    computerId,
+  ];
 }
 
 /// Extended gas switch info including tank details (for display purposes).

@@ -2797,7 +2797,10 @@ class SyncService {
     ],
     'diveSafetyReviews': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveSafetyFindings': [(field: 'diveId', parent: 'dives', nullable: false)],
-    'gasSwitches': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'gasSwitches': [
+      (field: 'diveId', parent: 'dives', nullable: false),
+      (field: 'computerId', parent: 'diveComputers', nullable: true),
+    ],
     'diveCustomFields': [(field: 'diveId', parent: 'dives', nullable: false)],
     'tideRecords': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveDataSources': [

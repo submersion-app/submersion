@@ -58,6 +58,8 @@ Widget _chart(List<ProfileEvent> events) {
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
     child: MaterialApp(
+      // A label test below asserts English strings.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -154,5 +156,36 @@ void main() {
     notifier.toggleEvents(); // hide all
     await tester.pumpAndSettle();
     expect(_eventLines(tester), isEmpty);
+  });
+
+  testWidgets('at one timestamp the computer\'s event outranks an equally '
+      'severe computed one', (tester) async {
+    // A per-source merge keeps another computer's colliding event next to
+    // the computed one; the marker should carry the computer's exact label.
+    await tester.pumpWidget(
+      _chart([
+        _event(600, ProfileEventType.ascentRateWarning, EventSource.computed),
+        ProfileEvent(
+          id: 'suunto',
+          diveId: 'd1',
+          timestamp: 600,
+          eventType: ProfileEventType.ascentRateWarning,
+          severity: EventSeverity.warning,
+          value: ((0x18 << 8) | 5).toDouble(),
+          computerId: 'c1',
+          computerManufacturer: 'Suunto',
+          createdAt: DateTime(2026),
+        ),
+      ]),
+    );
+    await tester.pumpAndSettle();
+    _container.first
+        .read(profileLegendProvider.notifier)
+        .toggleComputedEvents();
+    await tester.pumpAndSettle();
+
+    final lines = _eventLines(tester);
+    expect(lines, hasLength(1));
+    expect(lines.single.label.labelResolver(lines.single), 'Ascent Rate Alarm');
   });
 }

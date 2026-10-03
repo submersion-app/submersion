@@ -15,9 +15,10 @@ Future<Set<String>> _names(AppDatabase db, String type) async {
 }
 
 void main() {
-  test('v257 is the current schema version and is in the ladder', () {
-    // Relaxed when v259 (dive_tanks.usage_duration, #1496) landed; the
-    // newest rung owns the exact assertion.
+  test('v257 is at or below the current schema version and in the ladder', () {
+    // Relaxed when v258 (gas_switches.computer_id, #2582) and v259
+    // (dive_tanks.usage_duration, #1496) landed; the newest rung owns the
+    // exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(257));
     expect(AppDatabase.migrationVersions, contains(257));
     expect(

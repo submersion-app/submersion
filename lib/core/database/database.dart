@@ -232,7 +232,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 259;
+  static const int currentSchemaVersion = 260;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1064,11 +1064,24 @@ class AppDatabase extends _$AppDatabase {
     // relations. Local-only table, so the floor stays. Renumbered from 246
     // and then 256: main shipped 247 through 256 while this branch was open.
     257,
+    // v258: gas_switches.computer_id, the computer whose reading a switch
+    // came from (issue #2582), backfilled from the switch's cylinder.
+    // Additive nullable column, so the floor stays. Sits below 259, which
+    // main shipped first; a database already at 259 gains the column and
+    // its backfill through the beforeOpen backstop.
+    258,
     // v259: dive_tanks.usage_duration, how long a cylinder was breathed as
     // the source log recorded it (issue #1496). An additive nullable
     // column, so the floor does not move: an older peer's payload omits it
     // and the row keeps null. 258 is held by an open branch (#2828).
     259,
+    // v260: dive_tanks.shared_computer_ids, the other computers on a
+    // consolidated dive that logged the same cylinder, so each computer is
+    // analysed on its own gas plan (issue #2560). Additive nullable column
+    // plus a local, deterministic backfill, so the floor stays. Renumbered
+    // from 241, 248, 250 and 251 while this was open; gas_switches.computer_id,
+    // which the analysis also reads, is v258 (#2582).
+    260,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

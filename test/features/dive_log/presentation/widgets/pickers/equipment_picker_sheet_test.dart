@@ -33,6 +33,8 @@ Future<void> _pump(
   void Function(EquipmentItem)? onSelected,
   List<Diver> divers = const [],
   String? activeDiverId,
+  String? title,
+  String? hint,
 }) async {
   // Tall enough to render every row without scrolling. The picker groups
   // by type (#1486, #1576) and this fixture gives every type exactly one
@@ -64,6 +66,8 @@ Future<void> _pump(
             selectedEquipmentIds: selectedIds,
             hideSpare: hideSpare,
             onEquipmentSelected: onSelected ?? (_) {},
+            title: title,
+            hint: hint,
           ),
         ),
       ),
@@ -165,6 +169,26 @@ void main() {
     expect(find.text('Item a'), findsNothing);
     await tester.tap(find.text('Item b'));
     expect(selected?.id, 'b');
+  });
+
+  // A caller whose pick means more than "add it to the dive" says so, as
+  // the tank editor's cylinder picker does (issue #2599).
+  testWidgets('a caller can retitle the picker and add a hint', (tester) async {
+    await _pump(
+      tester,
+      equipment: [_item('a', EquipmentType.tank)],
+      title: 'My cylinders',
+      hint: 'Copies the cylinder into this tank.',
+    );
+    expect(find.text('My cylinders'), findsOneWidget);
+    expect(find.text('Add Equipment'), findsNothing);
+    expect(find.text('Copies the cylinder into this tank.'), findsOneWidget);
+  });
+
+  testWidgets('no hint by default', (tester) async {
+    await _pump(tester, equipment: [_item('a', EquipmentType.tank)]);
+    expect(find.text('Add Equipment'), findsOneWidget);
+    expect(find.text('Copies the cylinder into this tank.'), findsNothing);
   });
 
   testWidgets('shows empty state when there is no equipment', (tester) async {

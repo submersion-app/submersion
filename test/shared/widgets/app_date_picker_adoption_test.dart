@@ -1,3 +1,4 @@
+// pre-push: scans lib/
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';

@@ -30,7 +30,7 @@ void main() {
     await repo.record('b', 'en', parsed, diverId: 'ana');
     final list = await repo.list(diverId: 'ana', locale: 'en');
     expect(list.map((r) => r.sentence), ['b', 'a']);
-    expect(list.first.parsed.subject, ParsedSubject.dives);
+    expect(list.first.parsed!.subject, ParsedSubject.dives);
   });
 
   test(
@@ -65,6 +65,34 @@ void main() {
         .customSelect('SELECT COUNT(*) AS n FROM recent_queries')
         .getSingle();
     expect(rows.read<int>('n'), 0);
+  });
+
+  test('a row parsed by an older prompt keeps its sentence but not its '
+      'parse (#2838)', () async {
+    // Before version 4 the model invented a time for most sentences, so a
+    // replayed parse would keep that window: the sentence is asked again.
+    await repo.record(
+      'deep dives',
+      'en',
+      const ParsedQuery(
+        subject: ParsedSubject.dives,
+        time: QueryTime('this year'),
+      ),
+      diverId: 'ana',
+    );
+    await db.customStatement(
+      'UPDATE recent_queries '
+      'SET schema_version = ${kMinReplayableQuerySchemaVersion - 1}',
+    );
+    final list = await repo.list(diverId: 'ana', locale: 'en');
+    expect(list.single.sentence, 'deep dives');
+    expect(list.single.parsed, isNull);
+  });
+
+  test('a row parsed by the current prompt replays its parse', () async {
+    await repo.record('deep dives', 'en', parsed, diverId: 'ana');
+    final list = await repo.list(diverId: 'ana', locale: 'en');
+    expect(list.single.parsed, isNotNull);
   });
 
   test('each diver sees only their own sentences', () async {

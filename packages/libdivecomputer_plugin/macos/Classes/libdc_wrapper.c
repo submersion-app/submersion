@@ -74,7 +74,12 @@ int libdc_descriptor_iterator_next(libdc_descriptor_iterator_t *iter,
     info->vendor = dc_descriptor_get_vendor(desc);
     info->product = dc_descriptor_get_product(desc);
     info->model = dc_descriptor_get_model(desc);
-    info->transports = dc_descriptor_get_transports(desc);
+    // Raw USB devices (the Atomic Aquatics Cobalts) talk through USB control
+    // transfers, and no platform bridge implements DC_IOCTL_USB_CONTROL_*, so
+    // the bit is withheld: every platform maps it to the USB tab, where such a
+    // model could only fail (issue #2837). USB HID and serial are unaffected.
+    info->transports =
+        dc_descriptor_get_transports(desc) & ~(unsigned int)LIBDC_TRANSPORT_USB;
     return 0;
 }
 

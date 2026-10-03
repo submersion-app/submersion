@@ -73,7 +73,7 @@ abstract final class NlPrompt {
 You turn one sentence about a scuba diver's logbook into a JSON object. Reply with JSON only.
 
 Shape:
-{"schemaVersion": $kQuerySchemaVersion, "subject": "...", "clauses": [...], "mentions": [...], "time": null or {"text": "..."}, "unplaced": [...]}
+{"schemaVersion": $kQuerySchemaVersion, "subject": "...", "clauses": [...], "mentions": [...], "time": "none" or "...", "unplaced": [...]}
 
 subject is one of: dives, equipment, sites, buddies, species, trips, centers. Use "dives" unless the sentence asks for the sites, gear, buddies, species, trips or dive centers themselves; "turtles in Bonaire" is still dives.
 
@@ -93,28 +93,28 @@ unit is one of: ${ClauseUnit.values.map((u) => u.jsonName).join(', ')}. Omit uni
 
 A mention is {"kind", "text"} for a named thing: kind is site, place (country, region, island or town), species (an animal), gear (an item, brand, model or material such as trilaminate), buddy (a person), tag, center (a dive shop or operator), trip, or computer. Copy the words as written. Never invent identifiers.
 
-time is {"text": "..."} using only these shapes: "2023", "May 2023", "this year", "last year", "this month", "last month", "last 30 days", "last 2 weeks", "last 6 months", "since 2022", "before 2022", "2023-05-14", "2023-05-01 to 2023-05-14". Otherwise leave time null and put the words in unplaced.
+time is "none" unless the sentence itself names a date or period. When it does, time is that period using only these shapes: "2023", "May 2023", "this year", "last year", "this month", "last month", "last 30 days", "last 2 weeks", "last 6 months", "since 2022", "before 2022", "2023-05-14", "2023-05-01 to 2023-05-14". Otherwise set time to "none" and put the words in unplaced.
 
 Anything you cannot place goes into unplaced as the exact words. Do not guess. Do not add fields that are not listed.
 
 Example 1
 Sentence: Turtles below 20m in Bonaire with viz over 20m
-{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[{"field":"depth","op":"gt","value":20,"unit":"m","text":"below 20m"},{"field":"visibility","op":"gt","value":20,"unit":"m","text":"viz over 20m"}],"mentions":[{"kind":"species","text":"Turtles"},{"kind":"place","text":"Bonaire"}],"time":null,"unplaced":[]}
+{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[{"field":"depth","op":"gt","value":20,"unit":"m","text":"below 20m"},{"field":"visibility","op":"gt","value":20,"unit":"m","text":"viz over 20m"}],"mentions":[{"kind":"species","text":"Turtles"},{"kind":"place","text":"Bonaire"}],"time":"none","unplaced":[]}
 
 Example 2
 Sentence: Show cold-water dives using my trilaminate suit where SAC increased after 20 minutes and the final stop was unstable
-{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[{"field":"waterTemp","op":"lt","value":15,"unit":"c","text":"cold-water"},{"field":"sacChange","op":"gt","value":10,"text":"SAC increased"},{"field":"finalStop","op":"eq","value":"unstable","text":"the final stop was unstable"}],"mentions":[{"kind":"gear","text":"trilaminate suit"}],"time":null,"unplaced":["after 20 minutes"]}
+{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[{"field":"waterTemp","op":"lt","value":15,"unit":"c","text":"cold-water"},{"field":"sacChange","op":"gt","value":10,"text":"SAC increased"},{"field":"finalStop","op":"eq","value":"unstable","text":"the final stop was unstable"}],"mentions":[{"kind":"gear","text":"trilaminate suit"}],"time":"none","unplaced":["after 20 minutes"]}
 
 Example 3
 Sentence: favourite night dives with Sarah last year deeper than 60
-{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[{"field":"favorite","op":"eq","value":true,"text":"favourite"},{"field":"depth","op":"gt","value":60,"text":"deeper than 60"}],"mentions":[{"kind":"tag","text":"night"},{"kind":"buddy","text":"Sarah"}],"time":{"text":"last year"},"unplaced":[]}
+{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[{"field":"favorite","op":"eq","value":true,"text":"favourite"},{"field":"depth","op":"gt","value":60,"text":"deeper than 60"}],"mentions":[{"kind":"tag","text":"night"},{"kind":"buddy","text":"Sarah"}],"time":"last year","unplaced":[]}
 
 Example 4
 Sentence: Sites in Bonaire I have not dived since 2022
-{"schemaVersion":$kQuerySchemaVersion,"subject":"sites","clauses":[{"field":"lastDived","op":"lt","value":"2022","text":"not dived since 2022"}],"mentions":[{"kind":"place","text":"Bonaire"}],"time":null,"unplaced":[]}
+{"schemaVersion":$kQuerySchemaVersion,"subject":"sites","clauses":[{"field":"lastDived","op":"lt","value":"2022","text":"not dived since 2022"}],"mentions":[{"kind":"place","text":"Bonaire"}],"time":"none","unplaced":[]}
 
 Example 5
 Sentence: Regulators due for service in the next 30 days
-{"schemaVersion":$kQuerySchemaVersion,"subject":"equipment","clauses":[{"field":"gearType","op":"eq","value":"regulator","text":"Regulators"},{"field":"serviceDueWithin","op":"lte","value":30,"text":"due for service in the next 30 days"}],"mentions":[],"time":null,"unplaced":[]}
+{"schemaVersion":$kQuerySchemaVersion,"subject":"equipment","clauses":[{"field":"gearType","op":"eq","value":"regulator","text":"Regulators"},{"field":"serviceDueWithin","op":"lte","value":30,"text":"due for service in the next 30 days"}],"mentions":[],"time":"none","unplaced":[]}
 ''';
 }

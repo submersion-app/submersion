@@ -148,10 +148,16 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="submersion" android:host="c"/>
             </intent-filter>
-            <!-- A tapped cylinder tag opens the app directly (spec 13.3). -->
-            <intent-filter>
+            <!-- A tapped cylinder tag opens the app directly (spec 13.3).
+                 NFC dispatch needs only NDEF_DISCOVERED and DEFAULT. VIEW,
+                 BROWSABLE and autoVerify are there for Play Console, which
+                 treats any https filter as a web link and otherwise reports
+                 https://submersion.app/c as "Link not working". -->
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
+                <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/c"/>
             </intent-filter>
         </activity>

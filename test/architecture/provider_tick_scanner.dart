@@ -66,14 +66,19 @@ class _TickDeclarations extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.returnType?.toSource() == 'Stream<void>' &&
-        node.name.lexeme.startsWith('watch')) {
+    if (_isTickSignature(node.returnType, node.name.lexeme)) {
       names.add(node.name.lexeme);
       count++;
     }
     super.visitMethodDeclaration(node);
   }
 }
+
+/// The one definition of a change tick's shape, shared by the provider-tick
+/// scan and the query-stream scan so the two cannot disagree on what a tick
+/// is.
+bool _isTickSignature(TypeAnnotation? returnType, String name) =>
+    returnType?.toSource() == 'Stream<void>' && name.startsWith('watch');
 
 /// Local identifiers bound to a repository, by any of the three shapes the
 /// codebase uses: `ref.watch(xRepositoryProvider)`, `ref.read(...)`, or a bare
@@ -112,11 +117,15 @@ class _RepositoryBindings extends RecursiveAstVisitor<void> {
 
 /// Every method invocation in a subtree, as (target source, method name).
 class _Invocations extends RecursiveAstVisitor<void> {
-  final calls = <({String? target, String method})>[];
+  final calls = <({String? target, String method, int arguments})>[];
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    calls.add((target: node.target?.toSource(), method: node.methodName.name));
+    calls.add((
+      target: node.target?.toSource(),
+      method: node.methodName.name,
+      arguments: node.argumentList.arguments.length,
+    ));
     super.visitMethodInvocation(node);
   }
 }
@@ -319,4 +328,126 @@ bool _hasNoTickMarker(List<String> lines, int declarationLine) {
     return false;
   }
   return false;
+}
+
+/// Drift's query-stream calls. Each delivers the current result as soon as it
+/// is listened to. All three take no arguments, which is what tells them apart
+/// from Riverpod's one-argument `ref.watch(provider)` (whatever the receiver
+/// is called) and from a `Directory.watch(recursive: true)`.
+const _queryStreamCalls = {'watch', 'watchSingle', 'watchSingleOrNull'};
+
+bool _buildsQueryStream(AstNode node) {
+  final invocations = _Invocations();
+  node.accept(invocations);
+  return invocations.calls.any(
+    (c) => c.arguments == 0 && _queryStreamCalls.contains(c.method),
+  );
+}
+
+/// Class-level and top-level members of one file, by name: method and
+/// function bodies and field initializers. Locals are left out, so an
+/// identifier in a tick never matches a variable inside some other method.
+class _Members extends RecursiveAstVisitor<void> {
+  final byName = <String, AstNode>{};
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    byName[node.name.lexeme] = node.body;
+    super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    byName[node.name.lexeme] = node.functionExpression.body;
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    _addVariables(node.fields);
+    super.visitFieldDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    _addVariables(node.variables);
+    super.visitTopLevelVariableDeclaration(node);
+  }
+
+  void _addVariables(VariableDeclarationList list) {
+    for (final variable in list.variables) {
+      final initializer = variable.initializer;
+      if (initializer != null) byName[variable.name.lexeme] = initializer;
+    }
+  }
+}
+
+class _Identifiers extends RecursiveAstVisitor<void> {
+  final names = <String>{};
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    names.add(node.name);
+    super.visitSimpleIdentifier(node);
+  }
+}
+
+class _QueryStreamTicks extends RecursiveAstVisitor<void> {
+  _QueryStreamTicks(this.members);
+
+  final Map<String, AstNode> members;
+  final hits = <String>[];
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    _check(node.returnType, node.name.lexeme, node.body);
+    super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    _check(node.returnType, node.name.lexeme, node.functionExpression.body);
+    super.visitFunctionDeclaration(node);
+  }
+
+  void _check(TypeAnnotation? returnType, String name, FunctionBody body) {
+    if (!_isTickSignature(returnType, name)) return;
+    if (_buildsQueryStream(body) || _delegatesToQueryStream(name, body)) {
+      hits.add(name);
+    }
+  }
+
+  /// One level of same-file delegation: a tick that maps a private helper or
+  /// a field built on a query stream emits on subscribe just the same.
+  bool _delegatesToQueryStream(String tick, FunctionBody body) {
+    final identifiers = _Identifiers();
+    body.accept(identifiers);
+    for (final name in identifiers.names) {
+      if (name == tick) continue;
+      final member = members[name];
+      if (member != null && _buildsQueryStream(member)) return true;
+    }
+    return false;
+  }
+}
+
+/// Change ticks in [source] that are built on a Drift query stream, directly
+/// or through one same-file helper or field.
+///
+/// Every caller feeds a tick to `Ref.invalidateSelfWhen`. A tick that emits on
+/// subscribe invalidates the provider that just subscribed, the rebuild
+/// subscribes again, and the provider spins for as long as anything watches
+/// it: #1175 (the media library) and #2835 (smart albums, a freeze each time
+/// the Filter media sheet closed). A tick must be built on `tableUpdates`.
+List<String> queryStreamTicks(String source) {
+  final unit = parseString(
+    content: source,
+    featureSet: FeatureSet.latestLanguageVersion(),
+    throwIfDiagnostics: false,
+  ).unit;
+  final members = _Members();
+  unit.accept(members);
+  final finder = _QueryStreamTicks(members.byName);
+  unit.accept(finder);
+  return finder.hits;
 }

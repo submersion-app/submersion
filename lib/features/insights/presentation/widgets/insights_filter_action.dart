@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/refine/show_refine_panel.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -26,12 +26,8 @@ class InsightsFilterAction extends ConsumerWidget {
         child: Icon(Icons.filter_list, size: iconSize),
       ),
       tooltip: context.l10n.insights_tooltip_filter,
-      onPressed: () => showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (context) =>
-            DiveFilterSheet(ref: ref, filterProvider: insightsFilterProvider),
-      ),
+      onPressed: () =>
+          showRefinePanel(context, filterProvider: insightsFilterProvider),
     );
   }
 }

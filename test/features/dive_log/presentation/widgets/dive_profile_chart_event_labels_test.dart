@@ -51,12 +51,17 @@ ProfileEvent _event(
   int timestamp,
   ProfileEventType type, {
   EventSeverity severity = EventSeverity.info,
+  double? value,
+  String? computerManufacturer,
 }) => ProfileEvent(
   id: 'e$timestamp',
   diveId: 'd1',
   timestamp: timestamp,
   eventType: type,
   severity: severity,
+  value: value,
+  computerId: computerManufacturer == null ? null : 'c1',
+  computerManufacturer: computerManufacturer,
   createdAt: DateTime(2026),
 );
 
@@ -66,6 +71,8 @@ Widget _buildChart(List<ProfileEvent> events) {
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
     child: MaterialApp(
+      // The new label test asserts English strings.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -205,5 +212,27 @@ void main() {
       reason: '3 s apart is sub-pixel at phone widths; keep one line',
     );
     expect(lines.first.x, 1003.0, reason: 'the warning outranks the info');
+  });
+
+  testWidgets('a Suunto event is labelled with the watch\'s own wording '
+      '(#1523)', (tester) async {
+    await tester.pumpWidget(
+      _buildChart([
+        _event(
+          300,
+          ProfileEventType.lowGas,
+          severity: EventSeverity.warning,
+          value: ((0x18 << 8) | 3).toDouble(),
+          computerManufacturer: 'Suunto',
+        ),
+        _event(600, ProfileEventType.lowGas, severity: EventSeverity.warning),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    final lines = _eventLines(tester)..sort((a, b) => a.x.compareTo(b.x));
+    expect(lines, hasLength(2));
+    expect(lines[0].label.labelResolver(lines[0]), 'Tank Pressure Alarm');
+    expect(lines[1].label.labelResolver(lines[1]), 'Low Gas Warning');
   });
 }
