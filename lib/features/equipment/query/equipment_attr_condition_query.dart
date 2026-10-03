@@ -11,7 +11,7 @@ QueryNode equipmentAttrConditionNode(EquipmentAttrCondition cond) {
       ConditionNode(FieldPath([key]), op, v);
   final types = cond.types.map((t) => t.name).toList()..sort();
   final choices = cond.choices.toList()..sort();
-  return AndNode([
+  final parts = <QueryNode>[
     if (types.isNotEmpty)
       c(
         'type',
@@ -35,5 +35,7 @@ QueryNode equipmentAttrConditionNode(EquipmentAttrCondition cond) {
           c('valueNum', QueryOp.lte, NumberValue(cond.max!, null)),
       ]),
     ),
-  ]);
+  ];
+  // No one-condition group: it re-parses without it (#2773 census).
+  return parts.length == 1 ? parts.single : AndNode(parts);
 }
