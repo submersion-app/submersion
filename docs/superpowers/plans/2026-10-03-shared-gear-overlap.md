@@ -13,6 +13,8 @@
 ## Global Constraints
 
 - Two dives overlap when they belong to different, non-null profiles and their intervals share more than 5 minutes (`QualityThresholds.sharedGearOverlapTolerance`). Interval: `entry_time ?? dive_date_time` to `exit_time ?? entry + (runtime ?? bottom_time)`; no derivable duration means never compared.
+- Dive times are wall-clock instants stored as UTC epoch millis. Every DateTime rebuilt from SQL or from finding params uses `DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true)`, as `QualityContextBuilder._neighbors` does; without it `UnitFormatter.formatTime` shows the time shifted by the device's UTC offset.
+- A test that changes process-wide state restores it (repo CLAUDE.md, issue #2500): `QualityScanScheduler.enabled` goes back in `addTearDown`, and no production code keeps a static "already logged" set.
 - Link kinds: `gearList` (`dive_equipment`), `tankCylinder`, `tankRegulator` (`dive_tanks`), `transmitter` (serial match through the registry, same rule as `getExposureSamplesForEquipment`). Installed parts are listed on their host's finding.
 - Detector id `shared_gear_overlap`, version 1, category `QualityCategory.time`, severity `info`. Never a new `QualityCategory` value (findings sync; older builds throw on an unknown name).
 - One finding per topmost matched item per pair of dives, through `makePair` with discriminator = that item's id.
@@ -26,13 +28,13 @@
 ## Refinements to the spec found while planning
 
 1. **The message names both sides.** The inbox is not scoped to a profile, so "also on Anna's dive" has no "this" to be relative to. The finding reads "{item} is on {diverA}'s dive at {timeA} and {diverB}'s dive at {timeB}." The inline note in the dive editor keeps "Also on {diver}'s dive, {time}".
-2. **Params are keyed by dive id.** A pair finding is anchored on the smaller dive id whichever side was scanned, so "this" and "other" are stored per dive id: `dives: {<diveId>: {diverId, diverName, entryMs, linkKind}}`. Names are stored as facts (the message builder has no providers); a rename refreshes on the next scan of either dive.
+2. **Params are keyed by dive id, in id order.** A pair finding is anchored on the smaller dive id whichever side was scanned, so "this" and "other" are stored per dive id: `dives: {<diveId>: {diverId, diverName, entryMs, linkKinds}}`, with the two entries inserted in ascending dive-id order. `applyScanResults` compares the params JSON as a string, so an order that followed the scanned side would rewrite and re-sync the finding on every other scan. Names are stored as facts (the message builder has no providers); a rename refreshes on the next scan of either dive.
 3. **Installed parts need no install-date arithmetic.** A part only matters when its host is on both dives, and then it folds into the host's finding. The finding lists the host's currently installed parts (`parent_equipment_id = host`, active) and any matched item whose host or assembly parent is also matched.
 4. **The note travels as text.** `DiveGearTreeView` and `EquipmentPickerSheet` take an optional `String? Function(String equipmentId) overlapNote`; only the dive edit page passes it.
 
 ## Review Focus
 
-1. **An item on a dive twice** (gear list and a tank slot). One item, one finding; the link kind reported is `gearList` when either link is, so the remove repair is offered. Pinned in Task 4.
+1. **An item on a dive twice** (gear list and a tank slot). One item, one finding, and both link kinds are recorded. The remove repair is offered only when the gear list is the item's only link on that dive: removing the dive_equipment row would leave the tank link, and the rescan would reopen the same finding. Pinned in Tasks 4 and 7.
 2. **A dive whose profile is unknown (diver_id NULL).** Never paired, on either side. Pinned in Tasks 2 and 4.
 3. **The same pair scanned from both sides.** Same finding id and same params. Pinned in Task 4.
 4. **Editing a new dive** (no id yet) and moving its time. The note follows the unsaved times and the dive never matches itself. Pinned in Task 8.
@@ -71,7 +73,7 @@
 - Produces:
   - `static const Duration sharedGearOverlapTolerance = Duration(minutes: 5);` on `QualityThresholds`.
   - `bool gearUseOverlaps({required DateTime aStart, required DateTime aEnd, required DateTime bStart, required DateTime bEnd})`: true when the shared span is strictly longer than the tolerance.
-  - `Map<String, Set<String>> foldToTopmost(Map<String, Set<String>> hostsOf)`: keys are matched item ids, values their host and assembly-parent ids; returns topmost matched id to the matched ids folded under it (topmost excluded from its own set). Hosts outside the key set are ignored; cycles terminate (the smallest id of a cycle is its top).
+  - `Map<String, Set<String>> foldToTopmost(Map<String, Set<String>> hostsOf)`: keys are matched item ids, values their host and assembly-parent ids; returns topmost matched id to the matched ids folded under it (topmost excluded from its own set). Hosts outside the key set are ignored; cycles terminate (the smallest id of the cycle itself is its top, and items leading into it fold under it).
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -120,6 +122,12 @@ void main() {
     test('a cycle terminates on its smallest id', () {
       expect(foldToTopmost({'b': {'a'}, 'a': {'b'}}), {'a': {'b'}});
     });
+    test('an item leading into a cycle folds under the cycle', () {
+      expect(
+        foldToTopmost({'a': {'c'}, 'c': {'d'}, 'd': {'c'}}),
+        {'c': {'a', 'd'}},
+      );
+    });
   });
 }
 ```
@@ -150,7 +158,7 @@ bool gearUseOverlaps({
 /// matched and are ignored.
 Map<String, Set<String>> foldToTopmost(Map<String, Set<String>> hostsOf) {
   String topOf(String id) {
-    final seen = <String>{id};
+    final path = <String>[id];
     var current = id;
     while (true) {
       final next = [
@@ -159,9 +167,13 @@ Map<String, Set<String>> foldToTopmost(Map<String, Set<String>> hostsOf) {
       ]..sort();
       if (next.isEmpty) return current;
       final step = next.first;
-      if (!seen.add(step)) {
-        return (seen.toList()..sort()).first;
+      final loopStart = path.indexOf(step);
+      if (loopStart >= 0) {
+        // A loop in the links (corrupt data): its smallest member is the
+        // top, never an item that only leads into it.
+        return (path.sublist(loopStart)..sort()).first;
       }
+      path.add(step);
       current = step;
     }
   }
@@ -236,17 +248,17 @@ class SharedGearItem {
   const SharedGearItem({
     required this.equipmentId,
     required this.name,
-    required this.thisLinkKind,
-    required this.otherLinkKind,
+    required this.thisLinkKinds,
+    required this.otherLinkKinds,
     this.hostIds = const {},
     this.installedPartIds = const [],
   });
   final String equipmentId;
   final String name;
-  /// 'gearList' when the item is on the dive that way, else the first of
-  /// tankCylinder, tankRegulator, transmitter.
-  final String thisLinkKind;
-  final String otherLinkKind;
+  /// Every way the item is on each dive: gearList, tankCylinder,
+  /// tankRegulator, transmitter.
+  final Set<String> thisLinkKinds;
+  final Set<String> otherLinkKinds;
   /// Host (parent_equipment_id), assembly parents and via_equipment_id on
   /// either dive.
   final Set<String> hostIds;
@@ -276,7 +288,9 @@ class SharedGearOverlap {
 
   - `DiveQualityContext.sharedGearOverlaps` (`List<SharedGearOverlap>`, default `const []`).
 
-Builder: `_sharedGearOverlaps(domain.Dive dive)`. When `dive.diverId == null`, return `[]`. Otherwise: gear rows of this dive (`gearUsageForDives`); if none, `[]`. Other dives: `SELECT id, diver_id, entry_time, dive_date_time, exit_time, runtime, bottom_time FROM dives WHERE id != ?1 AND diver_id IS NOT NULL AND diver_id != ?2 AND COALESCE(entry_time, dive_date_time) BETWEEN ?3 AND ?4` (the `neighborWindow`, as `_neighbors`), exit derived as `_neighbors` derives it. Their gear rows, intersected with this dive's item ids. Names from `divers` and `equipment`; host ids from `equipment.parent_equipment_id`, `equipment_components` parents and both dives' `dive_equipment.via_equipment_id`; installed parts from `equipment WHERE parent_equipment_id IN (...) AND is_active = 1`. Link kind per side: `gearList` if any row on that side is, else the first other kind in the order above. A dive with no shared items is omitted.
+Builder: `_sharedGearOverlaps(domain.Dive dive)`. When `dive.diverId == null`, return `[]`. Otherwise: gear rows of this dive (`gearUsageForDives`); if none, `[]`. Other dives: `SELECT id, diver_id, entry_time, dive_date_time, exit_time, runtime, bottom_time FROM dives WHERE id != ?1 AND diver_id IS NOT NULL AND diver_id != ?2 AND COALESCE(entry_time, dive_date_time) BETWEEN ?3 AND ?4` (the `neighborWindow`, as `_neighbors`), exit derived as `_neighbors` derives it. Their gear rows, intersected with this dive's item ids. Names from `divers` and `equipment`; host ids from `equipment.parent_equipment_id`, `equipment_components` parents and both dives' `dive_equipment.via_equipment_id`; installed parts from `equipment WHERE parent_equipment_id IN (...) AND is_active = 1`. Link kinds per side: the set of every kind found on that side. A dive with no shared items is omitted.
+
+Skip the whole load, returning `[]` without a query, when the library has fewer than two profiles: read the profile count once per builder instance and cache it beside `_knownSerialsByDiver`, so a single-profile library pays nothing on any scan.
 
 - [ ] **Step 1: Write the failing tests:** an item on Bill's and Anna's overlapping dives appears with both link kinds and names; a same-profile dive does not appear; a null-profile dive does not appear on either side; a dive outside the window does not; a reg with an installed hose lists the hose under `installedPartIds`; an item on the gear list and a tank slot of one dive reports `gearList`.
 - [ ] **Step 2:** Run; FAIL.
@@ -302,28 +316,34 @@ Builder: `_sharedGearOverlaps(domain.Dive dive)`. When `dive.diverId == null`, r
   'itemName': name,
   'partIds': [...sorted folded and installed part ids],
   'dives': {
-    thisDiveId: {'diverId': ..., 'diverName': ..., 'entryMs': ..., 'linkKind': ...},
-    otherDiveId: {...},
+    // Ascending dive-id order, so both sides write the same JSON.
+    smallerDiveId: {'diverId': ..., 'diverName': ..., 'entryMs': ..., 'linkKinds': [...sorted]},
+    largerDiveId: {...},
   },
 }
 ```
 
 Detect: this interval from `effectiveEntryTime` and `effectiveRuntime` (none: `[]`). For each overlap with a non-null `otherExit` where `gearUseOverlaps` holds: fold the items with `foldToTopmost` (hosts restricted to the shared items), and for each top write `makePair(ctx, otherDiveId:, discriminator: top, severity: QualitySeverity.info, params:)`. `partIds` = folded ids plus the top's `installedPartIds`, deduplicated, sorted.
 
-Prefilter: `'shared_gear_overlap'` = dives with a gear row shared with a dive of another non-null profile inside the neighbour window:
+Prefilter: `'shared_gear_overlap'` = dives with an item shared with a dive of another non-null profile inside the neighbour window. Select the cross-profile dive pairs in the window first, then test shared gear per pair, so the gear lookups run through the `dive_id` indexes (`idx_dive_equipment_dive_id`, `idx_dive_tanks_dive_id`) instead of self-joining every gear row in the library:
 
 ```sql
-WITH g AS (<kDiveGearUsageSql>)
-SELECT DISTINCT a.dive_id AS id FROM g a
-JOIN g b ON b.equipment_id = a.equipment_id AND b.dive_id != a.dive_id
-JOIN dives da ON da.id = a.dive_id JOIN dives db ON db.id = b.dive_id
-WHERE da.diver_id IS NOT NULL AND db.diver_id IS NOT NULL
+SELECT DISTINCT da.id AS id
+FROM dives da
+JOIN dives db ON db.id != da.id
+  AND da.diver_id IS NOT NULL AND db.diver_id IS NOT NULL
   AND da.diver_id != db.diver_id
   AND ABS(COALESCE(da.entry_time, da.dive_date_time) -
       COALESCE(db.entry_time, db.dive_date_time)) <= ?1
+WHERE EXISTS (
+  SELECT 1 FROM (<kDiveGearUsageSql>) ga
+  JOIN (<kDiveGearUsageSql>) gb ON gb.equipment_id = ga.equipment_id
+  WHERE ga.dive_id = da.id AND gb.dive_id = db.id)
 ```
 
-- [ ] **Step 1: Write the failing detector tests** with `makeTestDive` / `makeContext` from `test/features/data_quality/helpers/quality_test_helpers.dart`: overlap of 4, 5, 6 minutes (only 6 reports); no runtime: nothing; other exit null: nothing; a reg with two hoses on both dives: one finding with both hoses in `partIds`; two unrelated items: two findings; scanning A against B and B against A gives the same id and equal params (build both contexts); `dives` holds both link kinds.
+Check the plan with `EXPLAIN QUERY PLAN` in the prefilter test against a seeded library (two profiles, a few hundred dives) and assert the gear subqueries search by `dive_id`; if SQLite does not push the dive filter into the union, inline the four link branches with `dive_id = da.id` / `= db.id` in each.
+
+- [ ] **Step 1: Write the failing detector tests** with `makeTestDive` / `makeContext` from `test/features/data_quality/helpers/quality_test_helpers.dart`: overlap of 4, 5, 6 minutes (only 6 reports); no runtime: nothing; other exit null: nothing; a reg with two hoses on both dives: one finding with both hoses in `partIds`; two unrelated items: two findings; scanning A against B and B against A gives the same id and byte-identical `jsonEncode(params)` (build both contexts); an item on one dive by gear list and tank slot records both kinds.
 - [ ] **Step 2:** Run; FAIL.
 - [ ] **Step 3:** Implement the detector, append it to `kQualityDetectors`, add the prefilter key, bump the count assertions by one.
 - [ ] **Step 4:** Run `flutter test test/features/data_quality/`; PASS.
@@ -337,7 +357,7 @@ WHERE da.diver_id IS NOT NULL AND db.diver_id IS NOT NULL
 - Modify: `lib/features/data_quality/data/repositories/quality_findings_repository.dart`
 - Test: `test/features/data_quality/data/quality_findings_repository_test.dart`
 
-`_fromRow` returns `QualityFinding?` (null for a category, severity or status this build does not know, logged once per value) and every caller drops nulls (`whereType<QualityFinding>()` or a null check).
+`_fromRow` returns `QualityFinding?` (null for a category, severity or status this build does not know, logged at warning for each skipped row; no static cache of logged values) and every caller drops nulls (`whereType<QualityFinding>()` or a null check). `lib/features/settings/presentation/widgets/conflict_data_preview.dart:352-354` parses synced finding rows with the same `byName` calls; it gets the same tolerance (an unreadable row renders as raw data instead of throwing), with its own test.
 
 - [ ] **Step 1: Write the failing test:** insert a `quality_findings` row with category `'gear'`; the findings stream and the open-findings read return the other rows without throwing.
 - [ ] **Step 2:** Run; FAIL (ArgumentError from `byName`).
@@ -369,9 +389,9 @@ Place `dataQuality_*` keys after their groups' last key and `diveLog_gear_alsoOn
 - Modify: `quality_finding_message.dart` (title and detail cases), `quality_repair_action.dart` (new `RemoveGearFromDiveRepair({diveId, equipmentId, diverName})` and the `shared_gear_overlap` case), `quality_repair_executor.dart` (`removeGearFromDive`), `quality_finding_card.dart` (label), `data_quality_inbox_page.dart` (dispatch)
 - Test: `test/features/data_quality/presentation/quality_finding_message_test.dart`, `test/features/data_quality/repairs/repair_mapping_test.dart`, `test/features/data_quality/repairs/quality_repair_executor_test.dart`
 
-`repairOptionsFor` for `shared_gear_overlap`: one `RemoveGearFromDiveRepair` per dive in `dives` whose `linkKind` is `gearList` (anchor dive first), then `GoToDiveRepair` for both dives.
+`repairOptionsFor` for `shared_gear_overlap`: one `RemoveGearFromDiveRepair` per dive in `dives` whose `linkKinds` is exactly `['gearList']` (anchor dive first), then `GoToDiveRepair` for both dives. A test pins that an item on a dive by gear list and tank slot gets no remove repair for that dive.
 
-`removeGearFromDive({diveId, equipmentId, findingId})`: snapshot the dive's `dive_equipment` rows as `GearProvenance` (as `BulkDiveEditService` does); if the item is not among them return `noChange`; else `bulkRemoveEquipment([diveId], [equipmentId])`, `SyncEventBus.notifyLocalChange()`, `_finish(findingId, [diveId, ...relatedIds])`; undo writes the snapshot with `replaceGearRows` and rescans.
+`removeGearFromDive({diveId, otherDiveId, equipmentId, findingId})`: snapshot the dive's `dive_equipment` rows as `GearProvenance` (as `BulkDiveEditService` does); if the item is not among them return `noChange`; else run `bulkRemoveEquipment([diveId], [equipmentId])` inside `_db.transaction` (it writes a gear diff and a dive bump and documents "No notify/txn"), then `SyncEventBus.notifyLocalChange()` and `_finish(findingId, [diveId, otherDiveId])`; undo writes the snapshot with `replaceGearRows` in a transaction and rescans both dives.
 
 Message: times through `fmt.time` (add a `time` formatter to `QualityUnitFormatters` if it has none, built on `UnitFormatter.formatTime`); missing names read `sharedItems_ownerUnknown`; the parts sentence appended when `partIds` is non-empty.
 
@@ -408,7 +428,7 @@ Note text: `l10n.diveLog_gear_alsoOnDive(note.diverName, UnitFormatter(settings)
 
 ### Task 10: Rescans where gear is attached silently
 
-For each of `dive_computer_gear_linker.dart`, `dive_equipment_defaulter.dart`, `equipment_set_for_computer_linker.dart` and `DiveRepository.rewriteAssemblyOnPastDives`: find every caller (`grep -rn`), and check whether a `scheduleQualityScan` covering the same dives follows in that caller's flow (import paths call it after their gear steps). For each writer with a path that does not, add `scheduleQualityScan(diveIds)` after its write and a test that the scheduler receives those ids (`QualityScanScheduler` has a test seam; see `quality_scan_service_test.dart`). Ledger the ones already covered. Commit `fix(data-quality): rescan dives whose gear changes without a save`.
+For each of `dive_computer_gear_linker.dart`, `dive_equipment_defaulter.dart`, `equipment_set_for_computer_linker.dart` and `DiveRepository.rewriteAssemblyOnPastDives`: find every caller (`grep -rn`), and check whether a `scheduleQualityScan` covering the same dives follows in that caller's flow (import paths call it after their gear steps). For each writer with a path that does not, add `scheduleQualityScan(diveIds)` after its write and a test that the rescan happens: seed two profiles' overlapping dives, run the writer, `await QualityScanScheduler.instance.idle`, and assert the `shared_gear_overlap` finding row exists (the scheduler exposes no hook to capture scheduled ids). A test that sets `QualityScanScheduler.enabled` restores it in `addTearDown`. Ledger the ones already covered. Commit `fix(data-quality): rescan dives whose gear changes without a save`.
 
 ---
 
